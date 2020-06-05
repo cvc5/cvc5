@@ -346,7 +346,7 @@ header = "options/smt_options.h"
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
-  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)"
+  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis). Fully supported only in (subsets of) the logic QF_ABV."
 
 [[option]]
   name       = "repeatSimp"

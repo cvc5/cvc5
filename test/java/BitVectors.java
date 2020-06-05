@@ -16,10 +16,10 @@
  **/
 
 import static org.junit.Assert.assertEquals;
+
+import edu.stanford.CVC4.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import edu.nyu.acsys.CVC4.*;
 
 public class BitVectors {
   static {
@@ -36,7 +36,7 @@ public class BitVectors {
 
   @Test
   public void evaluatesExpression() {
-    Result.Validity expect, actual;
+    Result.Entailment expect, actual;
     smt.setLogic("QF_BV"); // Set the logic
 
     // The following example has been adapted from the book A Hacker's Delight by
@@ -96,8 +96,8 @@ public class BitVectors {
     smt.assertFormula(assignment1);
     Expr new_x_eq_new_x_ = em.mkExpr(Kind.EQUAL, new_x, new_x_);
 
-    expect = Result.Validity.VALID;
-    actual = smt.query(new_x_eq_new_x_).isValid();
+    expect = Result.Entailment.ENTAILED;
+    actual = smt.checkEntailed(new_x_eq_new_x_).isEntailed();
     assertEquals(expect, actual);
     smt.pop();
 
@@ -110,8 +110,8 @@ public class BitVectors {
     // Assert encoding to CVC4 in current context;
     smt.assertFormula(assignment2);
 
-    expect = Result.Validity.VALID;
-    actual = smt.query(new_x_eq_new_x_).isValid();
+    expect = Result.Entailment.ENTAILED;
+    actual = smt.checkEntailed(new_x_eq_new_x_).isEntailed();
     assertEquals(expect, actual);
   }
 }

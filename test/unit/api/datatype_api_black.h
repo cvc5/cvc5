@@ -43,10 +43,10 @@ void DatatypeBlack::tearDown() {}
 void DatatypeBlack::testMkDatatypeSort()
 {
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort listSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype d = listSort.getDatatype();
@@ -75,22 +75,22 @@ void DatatypeBlack::testMkDatatypeSorts()
   unresTypes.insert(unresList);
 
   DatatypeDecl tree = d_solver.mkDatatypeDecl("tree");
-  DatatypeConstructorDecl node("node");
+  DatatypeConstructorDecl node = d_solver.mkDatatypeConstructorDecl("node");
   node.addSelector("left", unresTree);
   node.addSelector("right", unresTree);
   tree.addConstructor(node);
 
-  DatatypeConstructorDecl leaf("leaf");
+  DatatypeConstructorDecl leaf = d_solver.mkDatatypeConstructorDecl("leaf");
   leaf.addSelector("data", unresList);
   tree.addConstructor(leaf);
 
   DatatypeDecl list = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("car", unresTree);
   cons.addSelector("cdr", unresTree);
   list.addConstructor(cons);
 
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   list.addConstructor(nil);
 
   std::vector<DatatypeDecl> dtdecls;
@@ -130,13 +130,13 @@ void DatatypeBlack::testDatatypeStructs()
 
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   Sort nullSort;
   TS_ASSERT_THROWS(cons.addSelector("null", nullSort), CVC4ApiException&);
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
@@ -152,11 +152,11 @@ void DatatypeBlack::testDatatypeStructs()
 
   // create datatype sort to test
   DatatypeDecl dtypeSpecEnum = d_solver.mkDatatypeDecl("enum");
-  DatatypeConstructorDecl ca("A");
+  DatatypeConstructorDecl ca = d_solver.mkDatatypeConstructorDecl("A");
   dtypeSpecEnum.addConstructor(ca);
-  DatatypeConstructorDecl cb("B");
+  DatatypeConstructorDecl cb = d_solver.mkDatatypeConstructorDecl("B");
   dtypeSpecEnum.addConstructor(cb);
-  DatatypeConstructorDecl cc("C");
+  DatatypeConstructorDecl cc = d_solver.mkDatatypeConstructorDecl("C");
   dtypeSpecEnum.addConstructor(cc);
   Sort dtypeSortEnum = d_solver.mkDatatypeSort(dtypeSpecEnum);
   Datatype dtEnum = dtypeSortEnum.getDatatype();
@@ -165,7 +165,8 @@ void DatatypeBlack::testDatatypeStructs()
 
   // create codatatype
   DatatypeDecl dtypeSpecStream = d_solver.mkDatatypeDecl("stream", true);
-  DatatypeConstructorDecl consStream("cons");
+  DatatypeConstructorDecl consStream =
+      d_solver.mkDatatypeConstructorDecl("cons");
   consStream.addSelector("head", intSort);
   consStream.addSelectorSelf("tail");
   dtypeSpecStream.addConstructor(consStream);
@@ -204,11 +205,11 @@ void DatatypeBlack::testDatatypeNames()
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
   TS_ASSERT_THROWS_NOTHING(dtypeSpec.getName());
   TS_ASSERT(dtypeSpec.getName() == std::string("list"));
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
