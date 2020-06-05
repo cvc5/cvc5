@@ -1504,7 +1504,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * conditions when there is a chain of equalities connecting two constant
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
-  STORE_ALL,
+  CONST_ARRAY,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
