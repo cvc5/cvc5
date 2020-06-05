@@ -147,8 +147,8 @@ class NonlinearExtension
    * involve e.g. solving for variables in nonlinear equations.
    *
    * Notice that in the former case, the lemmas it constructs are not sent out
-   * immediately. Instead, they are put in temporary vectors d_cmiLemmas
-   * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call
+   * immediately. Instead, they are put in temporary vector d_cmiLemmas, which
+   * are then sent out (if necessary) when a last call
    * effort check is issued to this class.
    */
   void interceptModel(std::map<Node, Node>& arithModel);
@@ -304,9 +304,8 @@ class NonlinearExtension
    */
   NlSolver d_nlSlv;
   /**
-   * The lemmas we computed during collectModelInfo. We store two vectors of
-   * lemmas to be sent out on the output channel of TheoryArith. The first
-   * is not preprocessed, the second is.
+   * The lemmas we computed during collectModelInfo, to be sent out on the
+   * output channel of TheoryArith. 
    */
   std::vector<NlLemma> d_cmiLemmas;
   /**
