@@ -66,13 +66,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     std::shared_ptr<ProofNode> pf,
     std::vector<Node>& assumps,
     bool ensureClosed,
-    bool doMinimize)
+    bool doMinimize,
+    Node expected)
 {
   std::vector<std::shared_ptr<ProofNode>> pfChildren;
   pfChildren.push_back(pf);
   if (!ensureClosed)
   {
-    return mkNode(PfRule::SCOPE, pfChildren, assumps);
+    return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
   }
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
@@ -197,28 +198,28 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     assumps.clear();
     assumps.insert(assumps.end(), ac.begin(), ac.end());
   }
-  Node expected;
+  Node minExpected;
   NodeManager* nm = NodeManager::currentNM();
   Node exp;
   Node conc = pf->getResult();
   if (assumps.empty())
   {
     Assert(!conc.isConst());
-    expected = conc;
+    minExpected = conc;
   }
   else
   {
     exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
     if (conc.isConst() && !conc.getConst<bool>())
     {
-      expected = exp.notNode();
+      minExpected = exp.notNode();
     }
     else
     {
-      expected = nm->mkNode(IMPLIES, exp, conc);
+      minExpected = nm->mkNode(IMPLIES, exp, conc);
     }
   }
-  return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
+  return mkNode(PfRule::SCOPE, pfChildren, assumps, minExpected);
 }
 
 bool ProofNodeManager::updateNode(
