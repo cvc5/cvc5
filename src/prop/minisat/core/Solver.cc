@@ -537,7 +537,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             PROOF( ProofManager::getSatProof()->finalizeProof(cr); )
             if (CVC4::options::proofNew())
             {
-              NewProofManager::currentPM()->finalizeProof();
+              NewProofManager::currentPM()->finalizeProof(ca[cr].proofId());
             }
             return ok = false;
           }
@@ -565,19 +565,31 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
-            if (PROOF_ON() || CVC4::options::proofNew())
+            if (PROOF_ON())
             {
-              Unreachable() << "Minisat: unsupported case for new proofs\n";
               if (ca[confl].size() == 1)
               {
                 id = ProofManager::getSatProof()->storeUnitConflict(
                     ca[confl][0], LEARNT);
                 ProofManager::getSatProof()->finalizeProof(
                     CVC4::Minisat::CRef_Lazy);
+
               }
               else
               {
                 ProofManager::getSatProof()->finalizeProof(confl);
+              }
+            }
+            if (CVC4::options::proofNew())
+            {
+              NewProofManager* pm = NewProofManager::currentPM();
+              if (ca[confl].size() == 1)
+              {
+                pm->finalizeProof(ca[confl][0]);
+              }
+              else
+              {
+                pm->finalizeProof(ca[confl].proofId());
               }
             }
           }
@@ -1474,7 +1486,7 @@ lbool Solver::search(int nof_conflicts)
                 PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
                 if (CVC4::options::proofNew())
                 {
-                  NewProofManager::currentPM()->finalizeProof();
+                  NewProofManager::currentPM()->finalizeProof(ca[confl].proofId());
                 }
                 return l_False;
             }
@@ -2051,7 +2063,7 @@ CRef Solver::updateLemmas() {
             PROOF( ProofManager::getSatProof()->storeUnitConflict(lemma[0], LEARNT); );
             if (CVC4::options::proofNew())
             {
-              Assert(false);
+              Unreachable() << "Minisat: unsupported case for new proofs\n";
             }
           }
         } else {

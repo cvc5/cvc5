@@ -107,7 +107,6 @@ class NewProofManager
   void endResChain(ClauseId id);
 
   void finalizeProof(ClauseId conflict_id);
-  void finalizeProof();
   void finalizeProof(Minisat::Solver::TLit lit);
 
   inline void printLit(const Minisat::Solver::TLit lit);
@@ -157,8 +156,8 @@ class NewProofManager
 
   unsigned d_nextId;
 
-  /** The id of the proof step that explains this literal */
-  ClauseId justifyLit(prop::SatLiteral lit);
+  /** If lit is not already justified, try to. Otherwise no-op. */
+  void tryJustifyingLit(prop::SatLiteral lit);
 }; /* class ProofManager */
 
 }  // namespace CVC4
