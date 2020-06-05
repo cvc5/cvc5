@@ -71,6 +71,12 @@ void SygusInterpol::createVariables(bool needsShared)
   for (const Node& s : d_symsetAll)
   {
     TypeNode tn = s.getType();
+    if (tn.isConstructor() || tn.isSelector() || tn.isTester())
+    {
+      // datatype symbols should be considered interpreted symbols here, not
+      // (higher-order) variables.
+      continue;
+    }
     // Notice that we allow for non-first class (e.g. function) variables here.
     std::stringstream ss;
     ss << s;
