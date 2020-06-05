@@ -565,22 +565,22 @@ Node DType::mkGroundTermInternal(TypeNode t, bool isValue) const
   return groundTerm;
 }
 
-void DType::getStrictSubfieldTypes(
+void DType::getAlienSubfieldTypes(
     std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
     std::map<TypeNode, bool>& processed,
-    bool isStrictC) const
+    bool isAlienPos) const
 {
   std::map<TypeNode, bool>::iterator it = processed.find(d_self);
   if (it != processed.end())
   {
-    if (it->second || (!isStrictC && !it->second))
+    if (it->second || (!isAlienPos && !it->second))
     {
-      // already processed as a strict subfield type, or already processed
-      // as a non-strict subfield type and isStrictC is false.
+      // already processed as an alien subfield type, or already processed
+      // as a non-alien subfield type and isAlienPos is false.
       return;
     }
   }
-  processed[d_self] = isStrictC;
+  processed[d_self] = isAlienPos;
   for (std::shared_ptr<DTypeConstructor> ctor : d_constructors)
   {
     for (unsigned j = 0, nargs = ctor->getNumArgs(); j < nargs; ++j)
@@ -589,20 +589,20 @@ void DType::getStrictSubfieldTypes(
       if (tn.isDatatype())
       {
         // special case for datatypes, we must recurse to collect subfield types
-        if (!isStrictC)
+        if (!isAlienPos)
         {
-          // since we aren't adding it to types below, we add its strict
+          // since we aren't adding it to types below, we add its alien
           // subfield types here.
           const DType& dt = tn.getDType();
-          dt.getStrictSubfieldTypes(types, processed, false);
+          dt.getAlienSubfieldTypes(types, processed, false);
         }
-        if (tn.isParametricDatatype() && !isStrictC)
+        if (tn.isParametricDatatype() && !isAlienPos)
         {
           // (instantiated) parametric datatypes have an AST structure:
           //  (PARAMETRIC_DATATYPE D T1 ... Tn)
           // where D is the uninstantiated datatype type.  We should not view D
-          // as a strict subfield type of tn. Thus, we need a special case here
-          // which ignores the first child, when isStrictC is false.
+          // as an alien subfield type of tn. Thus, we need a special case here
+          // which ignores the first child, when isAlienPos is false.
           for (unsigned i = 1, nchild = tn.getNumChildren(); i < nchild; i++)
           {
             expr::getComponentTypes(tn[i], types);
@@ -610,27 +610,31 @@ void DType::getStrictSubfieldTypes(
           continue;
         }
       }
+      // we are in a case where tn is not a datatype, we add all (alien)
+      // component types to types below.
       bool hasTn = types.find(tn) != types.end();
       Trace("datatypes-init")
           << "Collect subfield types " << tn << ", hasTn=" << hasTn
-          << ", isStrictC=" << isStrictC << std::endl;
+          << ", isAlienPos=" << isAlienPos << std::endl;
       expr::getComponentTypes(tn, types);
-      if (!isStrictC && !hasTn)
+      if (!isAlienPos && !hasTn)
       {
-        // the top-level type is not a strict subfield type
+        // the top-level type is added by getComponentTypes, so remove it if it
+        // was not already listed in types
         Assert(types.find(tn) != types.end());
         types.erase(tn);
       }
     }
   }
-  // now, go back and add all strict subfield types from datatypes if
-  // not done so already
+  // Now, go back and add all alien subfield types from datatypes if
+  // not done so already. This is because getComponentTypes does not
+  // recurse into subfield types of datatypes.
   for (const TypeNode& sstn : types)
   {
     if (sstn.isDatatype())
     {
       const DType& dt = sstn.getDType();
-      dt.getStrictSubfieldTypes(types, processed, true);
+      dt.getAlienSubfieldTypes(types, processed, true);
     }
   }
 }
@@ -643,13 +647,13 @@ bool DType::hasNestedRecursion() const
   }
   Trace("datatypes-init") << "Compute simply recursive for " << getName()
                           << std::endl;
-  // get the strict subfield types of this datatype
+  // get the alien subfield types of this datatype
   std::unordered_set<TypeNode, TypeNodeHashFunction> types;
   std::map<TypeNode, bool> processed;
-  getStrictSubfieldTypes(types, processed, false);
+  getAlienSubfieldTypes(types, processed, false);
   if (Trace.isOn("datatypes-init"))
   {
-    Trace("datatypes-init") << "Strict subfield types: " << std::endl;
+    Trace("datatypes-init") << "Alien subfield types: " << std::endl;
     for (const TypeNode& t : types)
     {
       Trace("datatypes-init") << "- " << t << std::endl;
@@ -660,15 +664,15 @@ bool DType::hasNestedRecursion() const
   {
     Trace("datatypes-init")
         << "DType::hasNestedRecursion: true for " << getName()
-        << " due to strict component type" << std::endl;
-    // not simply recursive since it has itself as a strict component type.
+        << " due to alien subfield type" << std::endl;
+    // has nested recursion since it has itself as an alien subfield type.
     d_nestedRecursion = 1;
     return true;
   }
-  // If it is parametric, this type may match with a strict component type (e.g.
+  // If it is parametric, this type may match with an alien subfield type (e.g.
   // we may have a field (T Int) for parametric datatype (T x) where x
   // is a type parameter). Thus, we check whether the self type matches any
-  // component type using the TypeMatcher utility.
+  // alien subfield type using the TypeMatcher utility.
   if (isParametric())
   {
     for (const TypeNode& t : types)

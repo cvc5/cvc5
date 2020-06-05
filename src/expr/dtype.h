@@ -289,9 +289,9 @@ class DType
   bool isWellFounded() const;
   /**
    * Does this datatype have nested recursion? This is true if this datatype
-   * definition does not contain itself as a strict subfield type, or a variant
-   * of itself as a strict subfield type (if this datatype is parametric).
-   * For details see getStrictSubfieldTypes below.
+   * definition contains itself as an alien subfield type, or a variant
+   * of itself as an alien subfield type (if this datatype is parametric).
+   * For details see getAlienSubfieldTypes below.
    *
    * Notice that a type having no nested recursion may have a subfield type that
    * has nested recursion.
@@ -500,50 +500,50 @@ class DType
    */
   Node mkGroundTermInternal(TypeNode t, bool isValue) const;
   /**
-   * This method is used to get strict subfield types of this datatype.
+   * This method is used to get alien subfield types of this datatype.
    *
    * A subfield type T of a datatype type D is a type such that a value of
    * type T may appear as a subterm of a value of type D.
    *
-   * A *strict* subfield type T of a datatype type D is a type such that a
+   * An *alien* subfield type T of a datatype type D is a type such that a
    * value v of type T may appear as a subterm of a value of D, and moreover
    * v occurs as a strict subterm of a non-datatype term in that value.
    *
-   * For example, the strict subfield types of T in:
+   * For example, the alien subfield types of T in:
    *   T -> Emp | Container(s : (Set List))
    *   List -> nil | cons( head : Int, tail: List)
-   * are { List, Int }. Notice that Int is a strict subfield type since it
-   * appears as a subfield type of List, and List is a strict subfield type
-   * of T. In other words, Int is a strict subfield type due to the above
+   * are { List, Int }. Notice that Int is an alien subfield type since it
+   * appears as a subfield type of List, and List is an alien subfield type
+   * of T. In other words, Int is an alien subfield type due to the above
    * definition due to the term (Container (singleton (cons 0 nil))), where
    * 0 occurs as a subterm of (singleton (cons 0 nil)). The non-strict
    * subfield types of T in this example are { (Set List) }.
    *
-   * For example, the strict subfield types of T in:
+   * For example, the alien subfield types of T in:
    *   T -> Emp | Container(s : List)
    *   List -> nil | cons( head : (Set T), tail: List)
-   * are { T, List, (Set T) }. Notice that T is a strict subfield type of itself
-   * since List is a subfield type of T and T is a strict subfield type of List.
-   * Furthermore, List and (Set T) are also strict subfield types of T since
-   * List is a subfield type of T and T is a strict subfield type of itself.
+   * are { T, List, (Set T) }. Notice that T is an alien subfield type of itself
+   * since List is a subfield type of T and T is an alien subfield type of List.
+   * Furthermore, List and (Set T) are also alien subfield types of T since
+   * List is a subfield type of T and T is an alien subfield type of itself.
    *
-   * For example, the strict subfield types of T in:
+   * For example, the alien subfield types of T in:
    *   T -> Emp | Container(s : (Array Int T))
    * are { T, Int }, where we assume that values of (Array U1 U2) are
    * constructed from values of U1 and U2, for all types U1, U2. The non-strict
    * subfield types of T in this example are { (Array Int T) }.
    *
-   * @param types The set of types to append the strict subfield types to,
+   * @param types The set of types to append the alien subfield types to,
    * @param processed The datatypes (cached using d_self) we have processed. If
    * the range of this map is true, we have processed the datatype with
-   * isStrictC = true.
-   * @param isStrictC Whether we are in a strict subfield type position. This
+   * isAlienPos = true.
+   * @param isAlienPos Whether we are in an alien subfield type position. This
    * flag is true if we have traversed beneath a non-datatype type constructor.
    */
-  void getStrictSubfieldTypes(
+  void getAlienSubfieldTypes(
       std::unordered_set<TypeNode, TypeNodeHashFunction>& types,
       std::map<TypeNode, bool>& processed,
-      bool isStrictC) const;
+      bool isAlienPos) const;
   /** name of this datatype */
   std::string d_name;
   /** the type parameters of this datatype (if this is a parametric datatype)
