@@ -262,7 +262,7 @@ class CDProof
   static bool shouldOverwrite(ProofNode* pn, PfRule newId, CDPOverwrite opol);
   /** Returns true if pn is an assumption. */
   static bool isAssumption(ProofNode* pn);
-  /** 
+  /**
    * Notify new proof, called when a new proof of expected is provided. This is
    * used internally to connect proofs of symmetric facts, when necessary.
    */
