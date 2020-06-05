@@ -315,6 +315,12 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
   return d_logic.isTheoryEnabled(theory);
 }
 
+bool Smt2::isHoEnabled() const
+{
+  return getLogic().isHigherOrder()
+         && d_solver->getExprManager()->getOptions().getUfHo();
+}
+
 bool Smt2::logicIsSet() {
   return d_logicSet;
 }
@@ -1371,7 +1377,7 @@ void Smt2::mkSygusDatatype(api::DatatypeDecl& dt,
         if( std::find( types.begin(), types.end(), t )==types.end() ){
           types.push_back( t );
           //identity element
-          api::Sort bt = dt.getDatatype().getSygusType();
+          api::Sort bt = api::Sort(d_solver, dt.getDatatype().getSygusType());
           Debug("parser-sygus") << ":  make identity function for " << bt << ", argument type " << t << std::endl;
 
           std::stringstream ss;
@@ -1475,7 +1481,7 @@ api::Term Smt2::purifySygusGTerm(api::Term term,
     api::Term ret = d_solver->mkVar(term.getSort());
     Trace("parser-sygus2-debug")
         << "...unresolved non-terminal, intro " << ret << std::endl;
-    args.push_back(ret.getExpr());
+    args.push_back(api::Term(d_solver, ret.getExpr()));
     cargs.push_back(itn->second);
     return ret;
   }
@@ -1529,7 +1535,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
-  if (p.d_kind == api::STORE_ALL)
+  if (p.d_kind == api::CONST_ARRAY)
   {
     if (!type.isArray())
     {
@@ -1565,8 +1571,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   Trace("parser-qid") << " " << p.d_expr.getKind() << " " << p.d_expr.getSort();
   Trace("parser-qid") << std::endl;
   // otherwise, we process the type ascription
-  p.d_expr =
-      applyTypeAscription(api::Term(p.d_expr), api::Sort(type)).getExpr();
+  p.d_expr = applyTypeAscription(p.d_expr, type);
 }
 
 api::Term Smt2::parseOpToExpr(ParseOp& p)
@@ -1696,7 +1701,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // Second phase: apply the arguments to the parse op
   const Options& opts = d_solver->getExprManager()->getOptions();
   // handle special cases
-  if (p.d_kind == api::STORE_ALL && !p.d_type.isNull())
+  if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {
     if (args.size() != 1)
     {
@@ -1770,8 +1775,10 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    api::Term ret = d_solver->mkTerm(
-        api::APPLY_SELECTOR, api::Term(dt[0][n].getSelector()), args[0]);
+    api::Term ret =
+        d_solver->mkTerm(api::APPLY_SELECTOR,
+                         api::Term(d_solver, dt[0][n].getSelector()),
+                         args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }
