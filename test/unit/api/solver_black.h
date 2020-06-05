@@ -1223,7 +1223,7 @@ void SolverBlack::testDefineFunsRecGlobal()
   Term bTrue = d_solver->mkBoolean(true);
   Term b = d_solver->mkVar(bSort, "b");
   Term gSym = d_solver->mkConst(fSort, "g");
-  // (define-funs-rec ((g (b Bool) Bool)) b)
+  // (define-funs-rec ((g ((b Bool)) Bool)) (b))
   d_solver->defineFunsRec({gSym}, {{b}}, {b}, true);
 
   // (assert (not (g true)))
