@@ -188,13 +188,32 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   ++(d_statistics.d_watchedVariableIsZero);
 
   ArithVar s = lb->getVariable();
-  Node reason = Constraint::externalExplainByAssertions(lb,ub);
+  TNode eq = d_watchedEqualities[s];
+  ConstraintCP eqC = d_constraintDatabase.getConstraint(
+      s, ConstraintType::Equality, lb->getValue());
+  NodeBuilder<> reasonBuilder(Kind::AND);
+  auto pfLb = lb->externalExplain(reasonBuilder, AssertionOrderSentinel);
+  auto pfUb = ub->externalExplain(reasonBuilder, AssertionOrderSentinel);
+  Node reason = safeConstructNary(reasonBuilder);
+  std::shared_ptr<ProofNode> pf{};
+  if (options::proofNew())
+  {
+    pf = d_pnm->mkNode(
+        PfRule::TRICHOTOMY, {pfLb, pfUb}, {eqC->getProofLiteral()});
+    pf = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, pf, {eq});
+  }
 
   d_keepAlive.push_back(reason);
-  assertionToEqualityEngine(true, s, reason);
+  Trace("arith-ee") << "Asserting an equality on " << s << ", on trichotomy"
+                    << std::endl;
+  Trace("arith-ee") << "  based on " << lb << std::endl;
+  Trace("arith-ee") << "  based on " << ub << std::endl;
+  assertionToEqualityEngine(true, s, reason, pf);
 }
 
 void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
+  Debug("arith::cong") << "Cong::watchedVariableIsZero: " << *eq << std::endl;
+
   Assert(eq->isEquality());
   Assert(eq->getValue().sgn() == 0);
 
@@ -205,23 +224,86 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   //Explain for conflict is correct as these proofs are generated
   //and stored eagerly
   //These will be safe for propagation later as well
-  Node reason = Constraint::externalExplainByAssertions({ eq });
+  NodeBuilder<> nb(Kind::AND);
+  // An open proof of eq from literals now in reason.
+  if (Debug.isOn("arith::cong"))
+  {
+    eq->printProofTree(Debug("arith::cong"));
+  }
+  auto pf = eq->externalExplain(nb, AssertionOrderSentinel);
+  if (options::proofNew())
+  {
+    pf = d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM, pf, {d_watchedEqualities[s]});
+  }
+  Node reason = safeConstructNary(nb);
 
   d_keepAlive.push_back(reason);
-  assertionToEqualityEngine(true, s, reason);
+  assertionToEqualityEngine(true, s, reason, pf);
 }
 
 void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
+  Debug("arith::cong::notzero") << "Cong::watchedVariableCannotBeZero " << *c
+                       << std::endl;
   ++(d_statistics.d_watchedVariableIsNotZero);
 
   ArithVar s = c->getVariable();
+  Node disEq = d_watchedEqualities[s].negate();
 
   //Explain for conflict is correct as these proofs are generated and stored eagerly
   //These will be safe for propagation later as well
-  Node reason = Constraint::externalExplainByAssertions({ c });
+  NodeBuilder<> nb(Kind::AND);
+  // An open proof of eq from literals now in reason.
+  auto pf = c->externalExplain(nb, AssertionOrderSentinel);
+  if (Debug.isOn("arith::cong::notzero"))
+  {
+    Debug("arith::cong::notzero") << "  original proof ";
+    pf->printDebug(Debug("arith::cong::notzero"));
+    Debug("arith::cong::notzero") << std::endl;
+  }
+  Node reason = safeConstructNary(nb);
+  if (options::proofNew())
+  {
+    if (c->getType() == ConstraintType::Disequality)
+    {
+      Assert(c->getLiteral() == d_watchedEqualities[s].negate());
+      // We have to prove equivalence to the watched disequality.
+      pf = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, pf, {disEq});
+    }
+    else
+    {
+      Debug("arith::cong::notzero") << "  proof modification needed" << std::endl;
 
-  d_keepAlive.push_back(reason);
-  assertionToEqualityEngine(false, s, reason);
+      // Four cases:
+      //   c has form x_i = d, d > 0     => multiply c by -1 in Farkas proof
+      //   c has form x_i = d, d > 0     => multiply c by 1 in Farkas proof
+      //   c has form x_i <= d, d < 0     => multiply c by 1 in Farkas proof
+      //   c has form x_i >= d, d > 0     => multiply c by -1 in Farkas proof
+      const bool scaleCNegatively = c->getType() == ConstraintType::LowerBound
+                                    || (c->getType() == ConstraintType::Equality
+                                        && c->getValue().sgn() > 0);
+      const int cSign = scaleCNegatively ? -1 : 1;
+      TNode isZero = d_watchedEqualities[s];
+      const auto isZeroPf = d_pnm->mkAssume(isZero);
+      const auto nm = NodeManager::currentNM();
+      const auto sumPf = d_pnm->mkNode(
+          PfRule::SCALE_SUM_UPPER_BOUNDS,
+          {isZeroPf, pf},
+          // Trick for getting correct, opposing signs.
+          {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});
+      const auto botPf = d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, sumPf, {nm->mkConst(false)});
+      std::vector<Node> assumption = {isZero};
+      pf = d_pnm->mkScope(botPf, assumption, false);
+      Debug("arith::cong::notzero") << "  new proof ";
+      pf->printDebug(Debug("arith::cong::notzero"));
+      Debug("arith::cong::notzero") << std::endl;
+    }
+    Assert(pf->getResult() == disEq);
+  }
+  // TODO(aozdemir) Figure out why the commented line is broken.
+  assertionToEqualityEngine(false, s, reason, nullptr);
+  // assertionToEqualityEngine(false, s, reason, pf);
 }
 
 
@@ -380,30 +462,61 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   d_watchedEqualities.set(s, eq);
 }
 
-void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar s, TNode reason){
+void ArithCongruenceManager::assertionToEqualityEngine(
+    bool isEquality, ArithVar s, TNode reason, std::shared_ptr<ProofNode> pf)
+{
   Assert(isWatchedVariable(s));
 
   TNode eq = d_watchedEqualities[s];
   Assert(eq.getKind() == kind::EQUAL);
 
-  Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
+  Trace("arith-ee") << "Assert to Eq " << eq << ", pol " << isEquality
+                    << ", reason " << reason << std::endl;
   if (options::proofNew())
   {
     Node lit = isEquality ? Node(eq) : eq.notNode();
-    if (CDProof::isSame(lit, reason))
+    if (d_pfGen->hasProofFor(lit))
     {
-      // lit and reason are essentially the same, thus lit does not need an
-      // arithmetic-specific explanation.
-      d_pfee->assertAssume(reason);
+      Trace("arith-pfee") << "Skipping b/c already done" << std::endl;
+      return;
+    }
+    Node sym = CDProof::getSymmFact(lit);
+    if (sym.isNull() || !d_pfGen->hasProofFor(sym))
+    {
+      if (pf != nullptr)
+      {
+        d_pfGen->mkTrustNode(lit, pf);
+        if (Debug.isOn("arith-pfee")) {
+          Trace("arith-pfee") << "Proof: ";
+          pf->printDebug(Trace("arith-pfee"));
+          Trace("arith-pfee") << std::endl;
+        }
+      }
+      if (CDProof::isSame(lit, reason))
+      {
+        // lit and reason are essentially the same, thus lit does not need an
+        // arithmetic-specific explanation.
+        d_pfee->assertAssume(reason);
+        Trace("arith-pfee")
+            << "Skipping, b/c the eq engine could do this" << std::endl;
+      }
+      else
+      {
+        Trace("arith-pfee") << "Actually asserting" << std::endl;
+        if (pf == nullptr)
+        {
+          d_pfee->assertFact(lit, PfRule::TRUST, reason, { lit });
+        }
+        else
+        {
+          d_pfee->assertFact(lit, reason, d_pfGen.get());
+        }
+        Trace("arith-pfee") << "Actually asserted" << std::endl;
+      }
     }
     else
     {
-      Trace("arith-pfee") << "Assert " << lit << " by " << reason << std::endl;
-      std::vector<Node> args;
-      args.push_back(lit);          // forced conclusion of TRUST
-      PfRule rule = PfRule::TRUST;  // FIXME: use a proper PfRule.
-      // assert fact
-      d_pfee->assertFact(lit, rule, reason, args);
+      Trace("arith-pfee") << "Skipping b/c sym already done" << std::endl;
     }
   }
   else

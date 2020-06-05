@@ -355,6 +355,7 @@ struct ConstraintRule {
 class Constraint {
 
   friend class ConstraintDatabase;
+  friend class ArithCongruenceManager;
 
  public:
   /**

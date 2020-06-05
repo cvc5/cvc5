@@ -139,7 +139,10 @@ private:
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
   /** This sends a shared term to the uninterpreted equality engine. */
-  void assertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
+  void assertionToEqualityEngine(bool eq,
+                                 ArithVar s,
+                                 TNode reason,
+                                 std::shared_ptr<ProofNode> pf);
 
   /** Dequeues the delay queue and asserts these equalities.*/
   void enableSharedTerms();
