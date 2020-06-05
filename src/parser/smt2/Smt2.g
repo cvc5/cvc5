@@ -1990,7 +1990,7 @@ qualIdentifier[CVC4::ParseOp& p]
   | LPAREN_TOK AS_TOK
     ( CONST_TOK sortSymbol[type, CHECK_DECLARED]
       {
-        p.d_kind = api::STORE_ALL;
+        p.d_kind = api::CONST_ARRAY;
         PARSER_STATE->parseOpApplyTypeAscription(p, type);
       }
     | identifier[p]

@@ -86,13 +86,16 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
 
 
     cdef cppclass Result:
-    # Note: don't even need constructor
+        Result() except+
+        bint isNull() except +
         bint isSat() except +
         bint isUnsat() except +
         bint isSatUnknown() except +
         bint isEntailed() except +
         bint isNotEntailed() except +
         bint isEntailmentUnknown() except +
+        bint operator==(const Result& r) except +
+        bint operator!=(const Result& r) except +
         string getUnknownExplanation() except +
         string toString() except +
 
@@ -247,6 +250,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
+        Term getConstArrayBase() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
