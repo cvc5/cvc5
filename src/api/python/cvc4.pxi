@@ -52,7 +52,6 @@ def expand_list_arg(num_req_args=0):
 ### can omit spaces between unrelated oneliners
 ### always use c++ default arguments
 #### only use default args of None at python level
-#### Result class can have default because it's pure python
 
 
 ## Objects for hashing
@@ -134,12 +133,14 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    cdef c_DatatypeConstructorDecl* cddc
-    def __cinit__(self, str name):
-        self.cddc = new c_DatatypeConstructorDecl(name.encode())
+    cdef c_DatatypeConstructorDecl cddc
+
+    def __cinit__(self):
+      pass
 
     def addSelector(self, str name, Sort sort):
         self.cddc.addSelector(name.encode(), sort.csort)
+
     def addSelectorSelf(self, str name):
         self.cddc.addSelectorSelf(name.encode())
 
@@ -156,7 +157,7 @@ cdef class DatatypeDecl:
         pass
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
-        self.cdd.addConstructor(ctor.cddc[0])
+        self.cdd.addConstructor(ctor.cddc)
 
     def isParametric(self):
         return self.cdd.isParametric()
@@ -229,54 +230,47 @@ cdef class Op:
         return indices
 
 
-class Result:
-    def __init__(self, name, explanation=""):
-        name = name.lower()
-        incomplete = False
-        if "(incomplete)" in name:
-            incomplete = True
-            name = name.replace("(incomplete)", "").strip()
-        assert name in {"sat", "unsat", "valid", "invalid", "unknown"}, \
-            "can't interpret result = {}".format(name)
+cdef class Result:
+    cdef c_Result cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_Result()
 
-        self._name = name
-        self._explanation = explanation
-        self._incomplete = incomplete
+    def isNull(self):
+        return self.cr.isNull()
 
-    def __bool__(self):
-        if self._name in {"sat", "valid"}:
-            return True
-        elif self._name in {"unsat", "invalid"}:
-            return False
-        elif self._name == "unknown":
-            raise RuntimeError("Cannot interpret 'unknown' result as a Boolean")
-        else:
-            assert False, "Unhandled result=%s"%self._name
+    def isSat(self):
+        return self.cr.isSat()
 
-    def __eq__(self, other):
-        if not isinstance(other, Result):
-            return False
+    def isUnsat(self):
+        return self.cr.isUnsat()
 
-        return self._name == other._name
+    def isSatUnknown(self):
+        return self.cr.isSatUnknown()
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def isEntailed(self):
+        return self.cr.isEntailed()
+
+    def isNotEntailed(self):
+        return self.cr.isNotEntailed()
+
+    def isEntailmentUnknown(self):
+        return self.cr.isEntailmentUnknown()
+
+    def __eq__(self, Result other):
+        return self.cr == other.cr
+
+    def __ne__(self, Result other):
+        return self.cr != other.cr
+
+    def getUnknownExplanation(self):
+        return self.cr.getUnknownExplanation().decode()
 
     def __str__(self):
-        return self._name
+        return self.cr.toString().decode()
 
     def __repr__(self):
-        return self._name
-
-    def isUnknown(self):
-        return self._name == "unknown"
-
-    def isIncomplete(self):
-        return self._incomplete
-
-    @property
-    def explanation(self):
-        return self._explanation
+        return self.cr.toString().decode()
 
 
 cdef class RoundingMode:
@@ -675,6 +669,11 @@ cdef class Solver:
                                             (<str?> symbol).encode())
         return term
 
+    def mkDatatypeConstructorDecl(self, str name):
+        cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl()
+        ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
+        return ddc
+
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
         cdef DatatypeDecl dd = DatatypeDecl()
         cdef vector[c_Sort] v
@@ -728,12 +727,9 @@ cdef class Solver:
         self.csolver.assertFormula(term.cterm)
 
     def checkSat(self):
-        cdef c_Result r = self.csolver.checkSat()
-        name = r.toString().decode()
-        explanation = ""
-        if r.isSatUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSat()
+        return r
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
@@ -744,17 +740,13 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
-        cdef c_Result r
+        cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
-        name = r.toString().decode()
-        explanation = ""
-        if r.isSatUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return  Result(name, explanation)
+        r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        return r
 
     @expand_list_arg(num_req_args=0)
     def checkEntailed(self, *assumptions):
@@ -765,17 +757,13 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
-        cdef c_Result r
+        cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkEntailed(<const vector[c_Term]&> v)
-        name = r.toString().decode()
-        explanation = ""
-        if r.isEntailmentUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
+        r.cr = self.csolver.checkEntailed(<const vector[c_Term]&> v)
+        return r
 
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
@@ -790,7 +778,7 @@ cdef class Solver:
         cdef vector[c_DatatypeConstructorDecl] v
 
         for c in ctors:
-            v.push_back((<DatatypeConstructorDecl?> c).cddc[0])
+            v.push_back((<DatatypeConstructorDecl?> c).cddc)
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
@@ -1107,6 +1095,11 @@ cdef class Term:
 
     def isNull(self):
         return self.cterm.isNull()
+
+    def getConstArrayBase(self):
+        cdef Term term = Term()
+        term.cterm = self.cterm.getConstArrayBase()
+        return term
 
     def notTerm(self):
         cdef Term term = Term()

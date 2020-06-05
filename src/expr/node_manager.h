@@ -42,6 +42,7 @@ namespace CVC4 {
 
 class StatisticsRegistry;
 class ResourceManager;
+class SkolemManager;
 
 class DType;
 
@@ -112,6 +113,9 @@ class NodeManager {
   StatisticsRegistry* d_statisticsRegistry;
 
   ResourceManager* d_resourceManager;
+
+  /** The skolem manager */
+  std::shared_ptr<SkolemManager> d_skManager;
 
   /**
    * A list of registrations on d_options to that call into d_resourceManager.
@@ -405,6 +409,8 @@ public:
 
   /** Get this node manager's resource manager */
   ResourceManager* getResourceManager() { return d_resourceManager; }
+  /** Get this node manager's skolem manager */
+  SkolemManager* getSkolemManager() { return d_skManager.get(); }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const
@@ -539,13 +545,13 @@ public:
    * "SKOLEM_NO_NOTIFY | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
    * cannot be composed in such a manner.
    */
-  enum SkolemFlags {
-    SKOLEM_DEFAULT = 0,   /**< default behavior */
-    SKOLEM_NO_NOTIFY = 1, /**< do not notify subscribers */
-    SKOLEM_EXACT_NAME = 2,/**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4  /**< global vars appear in models even after a pop */
-  };/* enum SkolemFlags */
-
+  enum SkolemFlags
+  {
+    SKOLEM_DEFAULT = 0,    /**< default behavior */
+    SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
+    SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
+    SKOLEM_IS_GLOBAL = 4   /**< global vars appear in models even after a pop */
+  };
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
