@@ -1235,6 +1235,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
+  case kind::SEQUENCE_TYPE: return "Seq";
+  case kind::SEQ_UNIT: return "seq.unit";
 
   //sep theory
   case kind::SEP_STAR: return "sep";

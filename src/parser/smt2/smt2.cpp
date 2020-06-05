@@ -200,6 +200,7 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_DIFF, "re.diff");
   addOperator(api::STRING_LT, "str.<");
   addOperator(api::STRING_LEQ, "str.<=");
+  addOperator(api::SEQ_UNIT, "seq.unit");
 }
 
 void Smt2::addFloatingPointOperators() {
