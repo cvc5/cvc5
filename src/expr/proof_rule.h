@@ -757,8 +757,14 @@ enum class PfRule : uint32_t
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
-  // Children: (P1:(><1 l1 r1), ... , Pn(><n ln rn))
-  //           where each ><i is a (possibly negated) >, >=, =
+  // Note: an ArithLiteral is a term of the form (>< poly const)
+  // where
+  //   >< is >=, >, ==, <, <=, or not(== ...).
+  //   poly is a polynomial
+  //   const is a rational constant
+
+  // Children: (P1:l1, ..., Pn:ln)
+  //           where each li is an ArithLiteral
   //           not(= ...) is dis-allowed!
   //
   // Arguments: (k1, ..., kn), non-zero reals
@@ -768,30 +774,36 @@ enum class PfRule : uint32_t
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
+  //    t1 is the sum of the polynomials.
+  //    t2 is the sum of the constants.
   SCALE_SUM_UPPER_BOUNDS,
 
   // ======== Tightening Strict Integer Upper Bounds
-  // Children: (P:(not (>= i c)))
+  // Children: (P:(< i c))
+  //         where i has integer type.
   // Arguments: none
   // ---------------------
-  // Conclusion: (not (> i greatestIntLessThan(c)}))
+  // Conclusion: (<= i greatestIntLessThan(c)})
   INT_TIGHT_UB,
 
   // ======== Tightening Strict Integer Lower Bounds
   // Children: (P:(> i c))
+  //         where i has integer type.
   // Arguments: none
   // ---------------------
   // Conclusion: (>= i leastIntGreaterThan(c)})
   INT_TIGHT_LB,
 
-  // ======== Tightening Integer Upper Bounds
+  // ======== Trichotomy of the reals
   // Children: (A B)
   // Arguments: (C)
   // ---------------------
   // Conclusion: (C),
-  //                 where (not A) (not B)        and C
-  //                   are (> x c) (not (>= x c)) and (= x c)
+  //                 where (not A) (not B) and C
+  //                   are (> x c) (< x c) and (= x c)
   //                   in some order
+  //                 note that "not" here denotes arithmetic negation, flipping
+  //                 >= to <, etc.
   TRICHOTOMY,
 
   // ======== Int Trust
