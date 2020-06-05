@@ -416,9 +416,8 @@ void SolverBlack::testMkBitVector()
   TS_ASSERT_EQUALS(d_solver->mkBitVector("1010", 2),
                    d_solver->mkBitVector("a", 16));
   TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "01010101", 2).toString(),
-                   "0bin01010101");
-  TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "F", 16).toString(),
-                   "0bin00001111");
+                   "#b01010101");
+  TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "F", 16).toString(), "#b00001111");
   TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "-1", 10),
                    d_solver->mkBitVector(8, "FF", 16));
 }

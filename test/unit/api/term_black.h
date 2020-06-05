@@ -43,6 +43,7 @@ class TermBlack : public CxxTest::TestSuite
   void testTermChildren();
   void testSubstitute();
   void testIsConst();
+  void testConstArray();
 
  private:
   Solver d_solver;
@@ -751,4 +752,20 @@ void TermBlack::testIsConst()
   TS_ASSERT(!onepone.isConst());
   Term tnull;
   TS_ASSERT_THROWS(tnull.isConst(), CVC4ApiException&);
+}
+
+void TermBlack::testConstArray()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+  Term a = d_solver.mkConst(arrsort, "a");
+  Term one = d_solver.mkReal(1);
+  Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  TS_ASSERT(!a.isConst());
+  TS_ASSERT(constarr.isConst());
+
+  TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
+  TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
+  TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
 }

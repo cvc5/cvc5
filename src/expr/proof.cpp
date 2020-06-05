@@ -176,12 +176,14 @@ bool CDProof::addStep(Node expected,
   }
 
   // TODO: this isnt necessary if we forbid SYMM from user
+  // the user may have provided SYMM of an assumption
   if (id == PfRule::SYMM)
   {
     Assert(pchildren.size() == 1);
     if (isAssumption(pchildren[0].get()))
     {
-      // the step we are constructing is an assumption, no use
+      // the step we are constructing is a (symmetric fact of an) assumption, so
+      // there is no use adding it to the proof.
       return true;
     }
   }
