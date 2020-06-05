@@ -1551,7 +1551,7 @@ datatypesDef[bool isCo,
       // involve `par`. This is limited to the case of single datatypes defined
       // via declare-datatype, and hence no datatype body is parsed without
       // having all types declared. This ensures we can parse datatypes with
-      // non-simple recursion, e.g. datatypes D having a subfield type
+      // nested recursion, e.g. datatypes D having a subfield type
       // (Array Int D).
       for (unsigned i=0, dsize=dnames.size(); i<dsize; i++)
       {
