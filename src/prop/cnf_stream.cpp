@@ -332,7 +332,7 @@ SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
   if (CVC4::options::proofNew() && added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, xorNode.notNode(), xorNode[0].notNode(), xorNode[1]);
+        kind::OR, xorNode, xorNode[0], xorNode[1].notNode());
     NewProofManager::currentPM()->addStep(
         clauseNode, PfRule::CNF_XOR_NEG2, {}, {xorNode});
   }
@@ -340,7 +340,7 @@ SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
   if (CVC4::options::proofNew() && added)
   {
     Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, xorNode.notNode(), xorNode[0], xorNode[1].notNode());
+        kind::OR, xorNode, xorNode[0].notNode(), xorNode[1]);
     NewProofManager::currentPM()->addStep(
         clauseNode, PfRule::CNF_XOR_NEG1, {}, {xorNode});
   }
@@ -659,7 +659,7 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
     Node clauseNode = nm->mkNode(
         kind::OR, iteNode, iteNode[0], iteNode[2].notNode());
     NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_NEG1, {}, {iteNode});
+        clauseNode, PfRule::CNF_ITE_NEG2, {}, {iteNode});
   }
   return iteLit;
 }
