@@ -512,19 +512,33 @@ enum class PfRule : uint32_t
   FALSE_ELIM,
 
   //================================================= Quantifiers rules
+  // ======== Witness intro
+  // Children: (P:F[t])
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (= t (witness ((x T)) F[x]))
+  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  WITNESS_INTRO,
+  // ======== Exists intro
+  // Children: (P:F[t])
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (exists ((x T)) F[x])
+  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  EXISTS_INTRO,
   // ======== Skolemize
-  // Children: (P:(exists ((x1 T1) ... (xn Tn)) P))
+  // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
   // Arguments: none
   // ----------------------------------------
-  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) P)) P*sigma)
+  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) F)) F*sigma)
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemExists.
   SKOLEMIZE,
   // ======== Instantiate
-  // Children: (P:(forall ((x1 T1) ... (xn Tn)) P))
+  // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
   // Arguments: (t1 ... tn)
   // ----------------------------------------
-  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) P)) P*sigma)
+  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 

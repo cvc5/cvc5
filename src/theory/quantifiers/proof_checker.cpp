@@ -26,6 +26,8 @@ namespace quantifiers {
 void QuantifiersProofRuleChecker::registerTo(ProofChecker* pc)
 {
   // add checkers
+  pc->registerChecker(PfRule::WITNESS_INTRO, this);
+  pc->registerChecker(PfRule::EXISTS_INTRO, this);
   pc->registerChecker(PfRule::SKOLEMIZE, this);
   pc->registerChecker(PfRule::INSTANTIATE, this);
 }
@@ -35,7 +37,17 @@ Node QuantifiersProofRuleChecker::checkInternal(
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute what was proven
-  if (id == PfRule::SKOLEMIZE)
+  if (id == PfRule::WITNESS_INTRO)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size()==1);
+  }
+  else if (id == PfRule::EXISTS_INTRO)
+  {
+    Assert(children.size() == 1);
+    Assert(args.size()==1);
+  }
+  else if (id == PfRule::SKOLEMIZE)
   {
     Assert(children.size() == 1);
     Assert(args.empty());

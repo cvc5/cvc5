@@ -97,7 +97,7 @@ PRs future:
 (19) Split EngineOutputChannel from TheoryEngine to its own file (req 12)
 (20) Eq proof conversion (req 6)
 (22) String rules, string checker (req 5, 17)
-(23) ProofEqEngine (req 10, 18)
+(23) ProofEqEngine (req 10, 11, 12, 18)
 (24) SharedTermDatabase uses pfee (req 23)
 (25) CongruenceManager uses pfee (req 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager
