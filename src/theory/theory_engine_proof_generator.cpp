@@ -65,7 +65,7 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   }
   else
   {
-    scopeAssumps.push_back(f[1]);
+    scopeAssumps.push_back(f[0]);
   }
   Node conclusion = f[1];
 
