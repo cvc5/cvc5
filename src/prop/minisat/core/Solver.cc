@@ -974,8 +974,10 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 if (CVC4::options::proofNew())
                 {
                   Debug("newproof::sat")
-                      << "redundant lit "
-                      << toSatLiteral<Minisat::Solver>(out_learnt[i]);
+                      << "Solver::analyze: redundant lit "
+                      << toSatLiteral<Minisat::Solver>(out_learnt[i]) << "\n";
+                  NewProofManager::currentPM()->addResolutionStep(
+                      out_learnt[i]);
                 }
                 // Literal is redundant, to be safe, mark the level as current assertion level
                 // TODO: maybe optimize
