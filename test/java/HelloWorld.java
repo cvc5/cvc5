@@ -16,10 +16,10 @@
  **/
 
 import static org.junit.Assert.assertEquals;
+
+import edu.stanford.CVC4.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import edu.nyu.acsys.CVC4.*;
 
 public class HelloWorld {
   static {
@@ -37,8 +37,8 @@ public class HelloWorld {
   @Test
   public void evaluatesExpression() {
     Expr helloworld = em.mkVar("Hello World!", em.booleanType());
-    Result.Validity expect = Result.Validity.INVALID;
-    Result.Validity actual = smt.query(helloworld).isValid();
+    Result.Entailment expect = Result.Entailment.NOT_ENTAILED;
+    Result.Entailment actual = smt.checkEntailed(helloworld).isEntailed();
     assertEquals(actual, expect);
   }
 }
