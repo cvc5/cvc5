@@ -797,13 +797,13 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None):
+    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         '''
         Supports two uses:
                 Term defineFun(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term)
+                               Sort sort, Term term, bool glbl)
                 Term defineFun(Term fun, List[Term] bound_vars,
-                               Term term)
+                               Term term, bool glbl)
         '''
         cdef Term term = Term()
         cdef vector[c_Term] v
@@ -814,21 +814,23 @@ cdef class Solver:
             term.cterm = self.csolver.defineFun((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm)
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
             term.cterm = self.csolver.defineFun((<Term?> sym_or_fun).cterm,
                                                 <const vector[c_Term]&> v,
-                                                (<Term?> sort_or_term).cterm)
+                                                (<Term?> sort_or_term).cterm,
+                                                <bint> glbl)
 
         return term
 
-    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None):
+    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         '''
         Supports two uses:
                 Term defineFunRec(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term)
+                               Sort sort, Term term, bool glbl)
                 Term defineFunRec(Term fun, List[Term] bound_vars,
-                               Term term)
+                               Term term, bool glbl)
         '''
         cdef Term term = Term()
         cdef vector[c_Term] v
@@ -839,11 +841,13 @@ cdef class Solver:
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm)
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
             term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
                                                    <const vector[c_Term]&> v,
-                                                   (<Term?> sort_or_term).cterm)
+                                                   (<Term?> sort_or_term).cterm,
+                                                   <bint> glbl)
 
         return term
 
