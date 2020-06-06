@@ -2191,6 +2191,10 @@ bool Datatype::isRecord() const { return d_dtype->isRecord(); }
 
 bool Datatype::isFinite() const { return d_dtype->isFinite(); }
 bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
+bool Datatype::hasNestedRecursion() const
+{
+  return d_dtype->hasNestedRecursion();
+}
 
 std::string Datatype::toString() const { return d_dtype->getName(); }
 

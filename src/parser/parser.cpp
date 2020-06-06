@@ -387,6 +387,15 @@ api::Sort Parser::mkUnresolvedTypeConstructor(
   return unresolved;
 }
 
+api::Sort Parser::mkUnresolvedType(const std::string& name, size_t arity)
+{
+  if (arity == 0)
+  {
+    return mkUnresolvedType(name);
+  }
+  return mkUnresolvedTypeConstructor(name, arity);
+}
+
 bool Parser::isUnresolvedType(const std::string& name) {
   if (!isDeclared(name, SYM_SORT)) {
     return false;
