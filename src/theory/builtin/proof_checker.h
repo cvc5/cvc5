@@ -112,7 +112,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                        MethodId idr = MethodId::RW_REWRITE);
   /** get a method identifier from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
-  /** 
+  /**
    * Get method identifiers from args starting at the given index. Store their
    * values into ids, idr. This method returns false if args does not contain
    * valid method identifiers at position index in args.
@@ -121,7 +121,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                     MethodId& ids,
                     MethodId& idr,
                     size_t index);
-  /** 
+  /**
    * Add method identifiers ids and idr as nodes to args. This does not add ids
    * or idr if their values are the default ones.
    */

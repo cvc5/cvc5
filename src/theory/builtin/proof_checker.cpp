@@ -354,7 +354,6 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
-
 void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
                                            MethodId ids,
                                            MethodId idr)
@@ -369,7 +368,6 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
     args.push_back(mkMethodId(idr));
   }
 }
-
 
 }  // namespace builtin
 }  // namespace theory
