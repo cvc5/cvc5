@@ -955,20 +955,20 @@ CVC4::Type Sort::getType(void) const { return *d_type; }
 
 size_t Sort::getConstructorArity() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
   return ConstructorType(*d_type).getArity();
 }
 
 std::vector<Sort> Sort::getConstructorDomainSorts() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
   std::vector<CVC4::Type> types = ConstructorType(*d_type).getArgTypes();
   return typeVectorToSorts(d_solver, types);
 }
 
 Sort Sort::getConstructorCodomainSort() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort.";
+  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
   return Sort(d_solver, ConstructorType(*d_type).getRangeType());
 }
 
@@ -976,20 +976,20 @@ Sort Sort::getConstructorCodomainSort() const
 
 size_t Sort::getFunctionArity() const
 {
-  CVC4_API_CHECK(isFunction()) << "Not a function sort.";
+  CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
   return FunctionType(*d_type).getArity();
 }
 
 std::vector<Sort> Sort::getFunctionDomainSorts() const
 {
-  CVC4_API_CHECK(isFunction()) << "Not a function sort.";
+  CVC4_API_CHECK(isFunction()) << "Not a function sort: " << (*this);
   std::vector<CVC4::Type> types = FunctionType(*d_type).getArgTypes();
   return typeVectorToSorts(d_solver, types);
 }
 
 Sort Sort::getFunctionCodomainSort() const
 {
-  CVC4_API_CHECK(isFunction()) << "Not a function sort.";
+  CVC4_API_CHECK(isFunction()) << "Not a function sort" << (*this);
   return Sort(d_solver, FunctionType(*d_type).getRangeType());
 }
 
@@ -4264,34 +4264,43 @@ Term Solver::defineFun(Term fun,
                        Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
-  std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-  size_t size = bound_vars.size();
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
-      << "'" << domain_sorts.size() << "'";
-  for (size_t i = 0; i < size; ++i)
+
+  if (fun.getSort().isFunction())
   {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
-        << "bound variable associated to this solver object";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        bound_vars[i].d_expr->getKind() == CVC4::Kind::BOUND_VARIABLE,
-        "bound variable",
-        bound_vars[i],
-        i)
-        << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        domain_sorts[i] == bound_vars[i].getSort(),
-        "sort of parameter",
-        bound_vars[i],
-        i)
-        << "'" << domain_sorts[i] << "'";
+    std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
+    size_t size = bound_vars.size();
+    CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
+        << "'" << domain_sorts.size() << "'";
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
+          << "bound variable associated to this solver object";
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          bound_vars[i].d_expr->getKind() == CVC4::Kind::BOUND_VARIABLE,
+          "bound variable",
+          bound_vars[i],
+          i)
+          << "a bound variable";
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          domain_sorts[i] == bound_vars[i].getSort(),
+          "sort of parameter",
+          bound_vars[i],
+          i)
+          << "'" << domain_sorts[i] << "'";
+    }
+    Sort codomain = fun.getSort().getFunctionCodomainSort();
+    CVC4_API_CHECK(codomain == term.getSort())
+        << "Invalid sort of function body '" << term << "', expected '"
+        << codomain << "'";
   }
-  Sort codomain = fun.getSort().getFunctionCodomainSort();
+  else
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(bound_vars.size() == 0, fun)
+        << "function or nullary symbol";
+  }
+
   CVC4_API_SOLVER_CHECK_TERM(term);
-  CVC4_API_CHECK(codomain == term.getSort())
-      << "Invalid sort of function body '" << term << "', expected '"
-      << codomain << "'";
 
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
   d_smtEngine->defineFunction(*fun.d_expr, ebound_vars, *term.d_expr);
@@ -4367,34 +4376,42 @@ Term Solver::defineFunRec(Term fun,
       << "recursive function definitions require a logic with uninterpreted "
          "functions";
 
-  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
-  std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-  size_t size = bound_vars.size();
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
-      << "'" << domain_sorts.size() << "'";
-  for (size_t i = 0; i < size; ++i)
+  if (fun.getSort().isFunction())
   {
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
-        << "bound variable associated to this solver object";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        bound_vars[i].d_expr->getKind() == CVC4::Kind::BOUND_VARIABLE,
-        "bound variable",
-        bound_vars[i],
-        i)
-        << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        domain_sorts[i] == bound_vars[i].getSort(),
-        "sort of parameter",
-        bound_vars[i],
-        i)
-        << "'" << domain_sorts[i] << "'";
+    std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
+    size_t size = bound_vars.size();
+    CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
+        << "'" << domain_sorts.size() << "'";
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          this == bound_vars[i].d_solver, "bound variable", bound_vars[i], i)
+          << "bound variable associated to this solver object";
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          bound_vars[i].d_expr->getKind() == CVC4::Kind::BOUND_VARIABLE,
+          "bound variable",
+          bound_vars[i],
+          i)
+          << "a bound variable";
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          domain_sorts[i] == bound_vars[i].getSort(),
+          "sort of parameter",
+          bound_vars[i],
+          i)
+          << "'" << domain_sorts[i] << "'";
+    }
+    Sort codomain = fun.getSort().getFunctionCodomainSort();
+    CVC4_API_CHECK(codomain == term.getSort())
+        << "Invalid sort of function body '" << term << "', expected '"
+        << codomain << "'";
   }
+  else
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(bound_vars.size() == 0, fun)
+        << "function or nullary symbol";
+  }
+
   CVC4_API_SOLVER_CHECK_TERM(term);
-  Sort codomain = fun.getSort().getFunctionCodomainSort();
-  CVC4_API_CHECK(codomain == term.getSort())
-      << "Invalid sort of function body '" << term << "', expected '"
-      << codomain << "'";
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
   d_smtEngine->defineFunctionRec(*fun.d_expr, ebound_vars, *term.d_expr);
   return fun;
@@ -4429,38 +4446,46 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         this == fun.d_solver, "function", fun, j)
         << "function associated to this solver object";
-    CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
     CVC4_API_SOLVER_CHECK_TERM(term);
 
-    std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
-    size_t size = bvars.size();
-    CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bvars)
-        << "'" << domain_sorts.size() << "'";
-    for (size_t i = 0; i < size; ++i)
+    if (fun.getSort().isFunction())
     {
-      for (size_t k = 0, nbvars = bvars.size(); k < nbvars; ++k)
+      std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
+      size_t size = bvars.size();
+      CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bvars)
+          << "'" << domain_sorts.size() << "'";
+      for (size_t i = 0; i < size; ++i)
       {
+        for (size_t k = 0, nbvars = bvars.size(); k < nbvars; ++k)
+        {
+          CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+              this == bvars[k].d_solver, "bound variable", bvars[k], k)
+              << "bound variable associated to this solver object";
+          CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+              bvars[k].d_expr->getKind() == CVC4::Kind::BOUND_VARIABLE,
+              "bound variable",
+              bvars[k],
+              k)
+              << "a bound variable";
+        }
         CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-            this == bvars[k].d_solver, "bound variable", bvars[k], k)
-            << "bound variable associated to this solver object";
-        CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-            bvars[k].d_expr->getKind() == CVC4::Kind::BOUND_VARIABLE,
-            "bound variable",
-            bvars[k],
-            k)
-            << "a bound variable";
+            domain_sorts[i] == bvars[i].getSort(),
+            "sort of parameter",
+            bvars[i],
+            i)
+            << "'" << domain_sorts[i] << "' in parameter bound_vars[" << j
+            << "]";
       }
+      Sort codomain = fun.getSort().getFunctionCodomainSort();
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-          domain_sorts[i] == bvars[i].getSort(),
-          "sort of parameter",
-          bvars[i],
-          i)
-          << "'" << domain_sorts[i] << "' in parameter bound_vars[" << j << "]";
+          codomain == term.getSort(), "sort of function body", term, j)
+          << "'" << codomain << "'";
     }
-    Sort codomain = fun.getSort().getFunctionCodomainSort();
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        codomain == term.getSort(), "sort of function body", term, j)
-        << "'" << codomain << "'";
+    else
+    {
+      CVC4_API_ARG_CHECK_EXPECTED(bvars.size() == 0, fun)
+          << "function or nullary symbol";
+    }
   }
   std::vector<Expr> efuns = termVectorToExprs(funs);
   std::vector<std::vector<Expr>> ebound_vars;
