@@ -17,14 +17,13 @@
 #include <map>
 
 #include "expr/node.h"
-#include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 
-class OperatorElim : public EagerProofGenerator
+class OperatorElim
 {
  public:
   OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
