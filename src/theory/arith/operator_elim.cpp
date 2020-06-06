@@ -30,8 +30,8 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
-    : EagerProofGenerator(nullptr, pnm), d_info(info)
+OperatorElim::OperatorElim(const LogicInfo& info)
+    : d_info(info)
 {
 }
 

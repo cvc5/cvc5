@@ -26,7 +26,7 @@ namespace arith {
 class OperatorElim
 {
  public:
-  OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
+  OperatorElim(const LogicInfo& info);
   ~OperatorElim() {}
   /**
    * Eliminate operators in term n. If n has top symbol that is not a core
