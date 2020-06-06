@@ -1530,7 +1530,10 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 /**
  * Read a list of datatype definitions for datatypes with names dnames and
  * parametric arities arities. A negative value in arities indicates that the
- * arity for the corresponding datatype has not been fixed.
+ * arity for the corresponding datatype has not been fixed: notice that we do
+ * not know the arity of datatypes in the declare-datatype command prior to
+ * parsing their body, whereas the arity of datatypes in declare-datatypes is
+ * given in the preamble of that command and thus is known prior to this call.
  */
 datatypesDef[bool isCo,
              const std::vector<std::string>& dnames,
@@ -1541,7 +1544,26 @@ datatypesDef[bool isCo,
   std::string name;
   std::vector<api::Sort> params;
 }
-  : { PARSER_STATE->pushScope(true); }
+  : { PARSER_STATE->pushScope(true);
+      // Declare the datatypes that are currently being defined as unresolved
+      // types. If we do not know the arity of the datatype yet, we wait to
+      // define it until parsing the preamble of its body, which may optionally
+      // involve `par`. This is limited to the case of single datatypes defined
+      // via declare-datatype, and hence no datatype body is parsed without
+      // having all types declared. This ensures we can parse datatypes with
+      // nested recursion, e.g. datatypes D having a subfield type
+      // (Array Int D).
+      for (unsigned i=0, dsize=dnames.size(); i<dsize; i++)
+      {
+        if( arities[i]<0 )
+        {
+          // do not know the arity yet
+          continue;
+        }
+        unsigned arity = static_cast<unsigned>(arities[i]);
+        PARSER_STATE->mkUnresolvedType(dnames[i], arity);
+      }
+    }
     ( LPAREN_TOK {
       params.clear();
       Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
@@ -1559,6 +1581,11 @@ datatypesDef[bool isCo,
         if( arities[dts.size()]>=0 && static_cast<int>(params.size())!=arities[dts.size()] ){
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
+        if (arities[dts.size()]<0)
+        {
+          // now declare it as an unresolved type
+          PARSER_STATE->mkUnresolvedType(dnames[dts.size()], params.size());
+        }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(SOLVER->mkDatatypeDecl(dnames[dts.size()], params, isCo));
       }
@@ -1568,6 +1595,11 @@ datatypesDef[bool isCo,
     | { // if the arity was fixed by prelude and is not equal to 0
         if( arities[dts.size()]>0 ){
           PARSER_STATE->parseError("No parameters given for datatype.");
+        }
+        else if (arities[dts.size()]<0)
+        {
+          // now declare it as an unresolved type
+          PARSER_STATE->mkUnresolvedType(dnames[dts.size()], 0);
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(SOLVER->mkDatatypeDecl(dnames[dts.size()],

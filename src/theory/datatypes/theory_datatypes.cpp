@@ -587,7 +587,6 @@ Node TheoryDatatypes::expandDefinition(Node n)
   {
     case kind::APPLY_SELECTOR:
     {
-      Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
       Node selector = n.getOperator();
       // APPLY_SELECTOR always applies to an external selector, cindexOf is
       // legal here
@@ -643,30 +642,28 @@ Node TheoryDatatypes::expandDefinition(Node n)
     case TUPLE_UPDATE:
     case RECORD_UPDATE:
     {
-      TypeNode t = n.getType();
-      Assert(t.isDatatype());
-      const DType& dt = t.getDType();
+      Assert(tn.isDatatype());
+      const DType& dt = tn.getDType();
       NodeBuilder<> b(APPLY_CONSTRUCTOR);
       b << dt[0].getConstructor();
       size_t size, updateIndex;
       if (n.getKind() == TUPLE_UPDATE)
       {
-        Assert(t.isTuple());
-        size = t.getTupleLength();
+        Assert(tn.isTuple());
+        size = tn.getTupleLength();
         updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
       }
       else
       {
-        Assert(t.toType().isRecord());
-        const Record& record =
-            DatatypeType(t.toType()).getRecord();
+        Assert(tn.toType().isRecord());
+        const Record& record = DatatypeType(tn.toType()).getRecord();
         size = record.getNumFields();
         updateIndex = record.getIndex(
             n.getOperator().getConst<RecordUpdate>().getField());
       }
       Debug("tuprec") << "expr is " << n << std::endl;
       Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-      Debug("tuprec") << "t is " << t << std::endl;
+      Debug("tuprec") << "t is " << tn << std::endl;
       Debug("tuprec") << "t has arity " << size << std::endl;
       for (size_t i = 0; i < size; ++i)
       {
@@ -679,7 +676,7 @@ Node TheoryDatatypes::expandDefinition(Node n)
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(t, i), n[0]);
+              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
           Debug("tuprec") << "arg " << i << " copies "
                           << b[b.getNumChildren() - 1] << std::endl;
         }
