@@ -156,7 +156,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_opElim(d_pnm.get(), logicInfo)
+      d_opElim(logicInfo)
 {
   if( options::nlExt() ){
     d_nonlinearExtension = new nl::NonlinearExtension(
