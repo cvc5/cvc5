@@ -3964,8 +3964,7 @@ void TheoryArithPrivate::propagate(Theory::Effort e) {
 
       outputPropagate(toProp);
     }else if(constraint->negationHasProof()){
-      TrustNode texp = d_congruenceManager.explain(toProp);
-      Node exp = texp.getNode();
+      Node exp = d_congruenceManager.explain(toProp);
       Node notNormalized = normalized.getKind() == NOT ?
         normalized[0] : normalized.notNode();
       Node lp = flattenAnd(exp.andNode(notNormalized));
