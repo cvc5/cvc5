@@ -2595,6 +2595,7 @@ Solver::Solver(Options* opts)
   Options* o = opts == nullptr ? new Options() : opts;
   d_exprMgr.reset(new ExprManager(*o));
   d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
+  d_smtEngine->setSolver(this);
   d_rng.reset(new Random((*o)[options::seed]));
   if (opts == nullptr) delete o;
 }
@@ -4307,6 +4308,14 @@ Term Solver::defineFunRec(const std::string& symbol,
                           Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+
+  CVC4_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
+      << "recursive function definitions require a logic with quantifiers";
+  CVC4_API_CHECK(
+      d_smtEngine->getUserLogicInfo().isTheoryEnabled(theory::THEORY_UF))
+      << "recursive function definitions require a logic with uninterpreted "
+         "functions";
+
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as function codomain sort";
   Assert(!sort.isFunction()); /* A function sort is not first-class. */
@@ -4350,6 +4359,14 @@ Term Solver::defineFunRec(Term fun,
                           Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+
+  CVC4_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
+      << "recursive function definitions require a logic with quantifiers";
+  CVC4_API_CHECK(
+      d_smtEngine->getUserLogicInfo().isTheoryEnabled(theory::THEORY_UF))
+      << "recursive function definitions require a logic with uninterpreted "
+         "functions";
+
   CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
   std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
   size_t size = bound_vars.size();
@@ -4392,6 +4409,14 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
                            const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+
+  CVC4_API_CHECK(d_smtEngine->getUserLogicInfo().isQuantified())
+      << "recursive function definitions require a logic with quantifiers";
+  CVC4_API_CHECK(
+      d_smtEngine->getUserLogicInfo().isTheoryEnabled(theory::THEORY_UF))
+      << "recursive function definitions require a logic with uninterpreted "
+         "functions";
+
   size_t funs_size = funs.size();
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(funs_size == bound_vars.size(), bound_vars)
       << "'" << funs_size << "'";

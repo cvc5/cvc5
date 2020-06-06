@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -134,7 +135,13 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
 /* class Command                                                              */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(NULL), d_muted(false) {}
+Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
+
+Command::Command(api::Solver* solver)
+    : d_solver(solver), d_commandStatus(nullptr), d_muted(false)
+{
+}
+
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
@@ -1378,7 +1385,11 @@ Command* DefineNamedFunctionCommand::clone() const
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    Expr func, const std::vector<Expr>& formals, Expr formula)
+    api::Solver* solver,
+    api::Term func,
+    const std::vector<api::Term>& formals,
+    api::Term formula)
+    : Command(solver)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1386,27 +1397,29 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr>>& formals,
-    const std::vector<Expr>& formulas)
+    api::Solver* solver,
+    const std::vector<api::Term>& funcs,
+    const std::vector<std::vector<api::Term>>& formals,
+    const std::vector<api::Term>& formulas)
+    : Command(solver)
 {
   d_funcs.insert(d_funcs.end(), funcs.begin(), funcs.end());
   d_formals.insert(d_formals.end(), formals.begin(), formals.end());
   d_formulas.insert(d_formulas.end(), formulas.begin(), formulas.end());
 }
 
-const std::vector<Expr>& DefineFunctionRecCommand::getFunctions() const
+const std::vector<api::Term>& DefineFunctionRecCommand::getFunctions() const
 {
   return d_funcs;
 }
 
-const std::vector<std::vector<Expr>>& DefineFunctionRecCommand::getFormals()
-    const
+const std::vector<std::vector<api::Term>>&
+DefineFunctionRecCommand::getFormals() const
 {
   return d_formals;
 }
 
-const std::vector<Expr>& DefineFunctionRecCommand::getFormulas() const
+const std::vector<api::Term>& DefineFunctionRecCommand::getFormulas() const
 {
   return d_formulas;
 }
@@ -1415,7 +1428,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas);
+    d_solver->defineFunsRec(d_funcs, d_formals, d_formulas);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1427,6 +1440,9 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 Command* DefineFunctionRecCommand::exportTo(
     ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
+  Unimplemented();
+
+#if 0
   std::vector<Expr> funcs;
   for (unsigned i = 0, size = d_funcs.size(); i < size; i++)
   {
@@ -1451,11 +1467,12 @@ Command* DefineFunctionRecCommand::exportTo(
     formulas.push_back(formula);
   }
   return new DefineFunctionRecCommand(funcs, formals, formulas);
+#endif
 }
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
+  return new DefineFunctionRecCommand(d_solver, d_funcs, d_formals, d_formulas);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const

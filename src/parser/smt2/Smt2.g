@@ -1203,8 +1203,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      cmd->reset(new DefineFunctionRecCommand(
-          func.getExpr(), api::termVectorToExprs(bvs), expr.getExpr()));
+      cmd->reset(new DefineFunctionRecCommand(SOLVER, func, bvs, expr));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -1267,15 +1266,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "Number of functions defined does not match number listed in "
             "define-funs-rec"));
       }
-      std::vector<std::vector<Expr>> eformals;
-      for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
-      {
-        eformals.push_back(api::termVectorToExprs(formals[i]));
-      }
       cmd->reset(
-          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
-                                       eformals,
-                                       api::termVectorToExprs(func_defs)));
+          new DefineFunctionRecCommand(SOLVER, funcs, formals, func_defs));
     }
   ;
 
