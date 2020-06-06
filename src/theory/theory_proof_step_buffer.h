@@ -37,10 +37,10 @@ class TheoryProofStepBuffer : public ProofStepBuffer
   ~TheoryProofStepBuffer() {}
   //---------------------------- utilities builtin proof rules
   /**
-   * Apply macro transform. If this method returns true, it adds proof step(s)
-   * to the buffer that conclude tgt from premises src, exp. In particular,
-   * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
-   * applied when src and tgt are equivalent formulas assuming exp.
+   * Apply predicate transform. If this method returns true, it adds (at most
+   * one) proof step to the buffer that conclude tgt from premises src, exp. In
+   * particular, it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method
+   * should be applied when src and tgt are equivalent formulas assuming exp.
    */
   bool applyPredTransform(Node src,
                           Node tgt,
