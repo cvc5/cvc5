@@ -3,6 +3,10 @@ This file contains a summary of important user-visible changes.
 Changes since 1.7
 =================
 
+Improvements:
+* API: Function definitions can now be requested to be global. If the `global`
+  parameter is set to true, they persist after popping the user context.
+
 Changes:
 * API change: `SmtEngine::query()` has been renamed to
   `SmtEngine::checkEntailed()` and `Result::Validity` has been renamed to
