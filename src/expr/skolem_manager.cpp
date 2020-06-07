@@ -90,11 +90,11 @@ Node SkolemManager::mkSkolemExists(Node v,
 }
 
 Node SkolemManager::mkSkolemize(Node q,
-                                   Node& qskolem,
-                                   const std::string& prefix,
-                                   const std::string& comment,
-                                   int flags,
-                                   ProofGenerator* pg)
+                                Node& qskolem,
+                                const std::string& prefix,
+                                const std::string& comment,
+                                int flags,
+                                ProofGenerator* pg)
 {
   Assert(q.getKind() == EXISTS);
   Node v;
@@ -117,7 +117,7 @@ Node SkolemManager::mkSkolemize(Node q,
     pred = nm->mkNode(EXISTS, bvl, pred);
   }
   Node k = mkSkolem(v, pred, prefix, comment, flags, pg);
-  qskolem = pred.substitute(TNode(v),TNode(k));
+  qskolem = pred.substitute(TNode(v), TNode(k));
   if (!ovars.empty())
   {
     qskolem = nm->mkNode(EXISTS, bvl, qskolem);
@@ -149,12 +149,13 @@ Node SkolemManager::mkPurifySkolem(Node t,
 
 Node SkolemManager::mkExistential(Node t, Node p)
 {
-  Assert (p.getType().isBoolean());
+  Assert(p.getType().isBoolean());
   NodeManager* nm = NodeManager::currentNM();
-  std::pair<Node,Node> key(t,p);
-  std::map< std::pair< Node, Node >, Node >::iterator it = d_witnessBoundVar.find(key);
+  std::pair<Node, Node> key(t, p);
+  std::map<std::pair<Node, Node>, Node>::iterator it =
+      d_witnessBoundVar.find(key);
   Node v;
-  if (it!=d_witnessBoundVar.end())
+  if (it != d_witnessBoundVar.end())
   {
     v = it->second;
   }
@@ -164,8 +165,8 @@ Node SkolemManager::mkExistential(Node t, Node p)
     v = nm->mkBoundVar(tt);
     d_witnessBoundVar[key] = v;
   }
-  Node bvl = nm->mkNode(BOUND_VAR_LIST,v);
-  Node psubs = p.substitute(TNode(t),TNode(v));
+  Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
+  Node psubs = p.substitute(TNode(t), TNode(v));
   return nm->mkNode(EXISTS, bvl, psubs);
 }
 

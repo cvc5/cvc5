@@ -118,17 +118,17 @@ class SkolemManager
    *   (witness ((x Int)) (exists ((y Int)) (P x y)))
    * If q is not an existentially quantified formula, then null is
    * returned and an assertion failure is thrown.
-   * 
+   *
    * This method additionally updates qskolem to be the skolemized form of q.
    * In the above example, this is set to:
    *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y Int)) (P x y))) y))
    */
   Node mkSkolemize(Node q,
-                      Node& qskolem,
-                      const std::string& prefix,
-                      const std::string& comment = "",
-                      int flags = NodeManager::SKOLEM_DEFAULT,
-                      ProofGenerator* pg = nullptr);
+                   Node& qskolem,
+                   const std::string& prefix,
+                   const std::string& comment = "",
+                   int flags = NodeManager::SKOLEM_DEFAULT,
+                   ProofGenerator* pg = nullptr);
   /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t, which we
@@ -176,7 +176,7 @@ class SkolemManager
    */
   std::map<Node, ProofGenerator*> d_gens;
   /** Map to canonical bound variables */
-  std::map< std::pair< Node, Node >, Node > d_witnessBoundVar;
+  std::map<std::pair<Node, Node>, Node> d_witnessBoundVar;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
   /** Get or make skolem attribute for witness term w */

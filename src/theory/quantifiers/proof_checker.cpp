@@ -40,12 +40,12 @@ Node QuantifiersProofRuleChecker::checkInternal(
   if (id == PfRule::WITNESS_INTRO || id == PfRule::EXISTS_INTRO)
   {
     Assert(children.size() == 1);
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     SkolemManager* sm = nm->getSkolemManager();
     Node p = SkolemManager::getSkolemForm(children[0]);
     Node t = SkolemManager::getSkolemForm(args[0]);
     Node exists = sm->mkExistential(t, p);
-    if (id==PfRule::EXISTS_INTRO)
+    if (id == PfRule::EXISTS_INTRO)
     {
       return SkolemManager::getWitnessForm(exists);
     }
@@ -70,7 +70,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Node currQ = SkolemManager::getSkolemForm(exists);
     for (const Node& v : exists[0])
     {
-      Assert (currQ.getKind()==EXISTS && v==currQ[0][0]);
+      Assert(currQ.getKind() == EXISTS && v == currQ[0][0]);
       sm->mkSkolemize(currQ, currQ, "k");
       // don't care about the skolems generated, only care about final result
     }
