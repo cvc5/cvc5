@@ -110,6 +110,26 @@ class SkolemManager
                       int flags = NodeManager::SKOLEM_DEFAULT,
                       ProofGenerator* pg = nullptr);
   /**
+   * Same as above, but where pred is an existential quantified formula. We
+   * construct a witness term from its first variable. For example, calling
+   * this method on:
+   *   (exists ((x Int) (y Int)) (P x y))
+   * will return:
+   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
+   * If q is not an existentially quantified formula, then null is
+   * returned and an assertion failure is thrown.
+   * 
+   * This method additionally updates qskolem to be the skolemized form of q.
+   * In the above example, this is set to:
+   *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y Int)) (P x y))) y))
+   */
+  Node mkSkolemize(Node q,
+                      Node& qskolem,
+                      const std::string& prefix,
+                      const std::string& comment = "",
+                      int flags = NodeManager::SKOLEM_DEFAULT,
+                      ProofGenerator* pg = nullptr);
+  /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t, which we
    * implement via an attribute on t. This attribute is used to ensure to
@@ -127,6 +147,12 @@ class SkolemManager
    * that was provided in a call to mkSkolem above.
    */
   ProofGenerator* getProofGenerator(Node t);
+  /**
+   * Make existential. Given t and p[t] where p is a formula, this returns
+   *   (exists ((x T)) p[x])
+   * where T is the type of t, and x is a variable unique to t,p.
+   */
+  Node mkExistential(Node t, Node p);
   /** convert to witness form
    *
    * @param n The term or formula to convert to witness form described above
@@ -149,6 +175,8 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
+  /** Map to canonical bound variables */
+  std::map< std::pair< Node, Node >, Node > d_witnessBoundVar;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
   /** Get or make skolem attribute for witness term w */

@@ -37,15 +37,21 @@ Node QuantifiersProofRuleChecker::checkInternal(
 {
   NodeManager* nm = NodeManager::currentNM();
   // compute what was proven
-  if (id == PfRule::WITNESS_INTRO)
+  if (id == PfRule::WITNESS_INTRO || id == PfRule::EXISTS_INTRO)
   {
     Assert(children.size() == 1);
     Assert(args.size()==1);
-  }
-  else if (id == PfRule::EXISTS_INTRO)
-  {
-    Assert(children.size() == 1);
-    Assert(args.size()==1);
+    SkolemManager* sm = nm->getSkolemManager();
+    Node p = SkolemManager::getSkolemForm(children[0]);
+    Node t = SkolemManager::getSkolemForm(args[0]);
+    Node exists = sm->mkExistential(t, p);
+    if (id==PfRule::EXISTS_INTRO)
+    {
+      return SkolemManager::getWitnessForm(exists);
+    }
+    Node existsSkolem;
+    Node w = sm->mkSkolemize(exists, existsSkolem, "k");
+    return SkolemManager::getWitnessForm(w);
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -61,12 +67,15 @@ Node QuantifiersProofRuleChecker::checkInternal(
         echildren.begin(), children[0][0].begin(), children[0][0].end());
     Node exists = nm->mkNode(EXISTS, echildren);
     std::vector<Node> skolems;
-    Node currFormula = exists;
+    Node currQ = SkolemManager::getSkolemForm(exists);
     for (const Node& v : exists[0])
     {
-      // Assert (currExists.getKind()==EXISTS && v==currExists[0][0]);
-      // Node sk =
+      Assert (currQ.getKind()==EXISTS && v==currQ[0][0]);
+      sm->mkSkolemize(currQ, currQ, "k");
+      // don't care about the skolems generated, only care about final result
     }
+    currQ = SkolemManager::getWitnessForm(currQ);
+    return nm->mkNode(OR, children[0].notNode(), currQ);
   }
   else if (id == PfRule::INSTANTIATE)
   {

@@ -67,10 +67,6 @@ class TheoryProofStepBuffer : public ProofStepBuffer
                      MethodId ids = MethodId::SB_DEFAULT,
                      MethodId idr = MethodId::RW_REWRITE);
   //---------------------------- end utilities builtin proof rules
-
- private:
-  /** the queued proof steps */
-  std::vector<std::pair<Node, ProofStep>> d_steps;
 };
 
 }  // namespace theory

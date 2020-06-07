@@ -89,6 +89,42 @@ Node SkolemManager::mkSkolemExists(Node v,
   return mkSkolem(v, pred, prefix, comment, flags, pg);
 }
 
+Node SkolemManager::mkSkolemize(Node q,
+                                   Node& qskolem,
+                                   const std::string& prefix,
+                                   const std::string& comment,
+                                   int flags,
+                                   ProofGenerator* pg)
+{
+  Assert(q.getKind() == EXISTS);
+  Node v;
+  std::vector<Node> ovars;
+  for (const Node& av : q[0])
+  {
+    if (v.isNull())
+    {
+      v = av;
+      continue;
+    }
+    ovars.push_back(av);
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node pred = q[1];
+  Node bvl;
+  if (!ovars.empty())
+  {
+    bvl = nm->mkNode(BOUND_VAR_LIST, ovars);
+    pred = nm->mkNode(EXISTS, bvl, pred);
+  }
+  Node k = mkSkolem(v, pred, prefix, comment, flags, pg);
+  qskolem = pred.substitute(TNode(v),TNode(k));
+  if (!ovars.empty())
+  {
+    qskolem = nm->mkNode(EXISTS, bvl, qskolem);
+  }
+  return k;
+}
+
 Node SkolemManager::mkPurifySkolem(Node t,
                                    const std::string& prefix,
                                    const std::string& comment,
@@ -109,6 +145,28 @@ Node SkolemManager::mkPurifySkolem(Node t,
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
   t.setAttribute(psa, k);
   return k;
+}
+
+Node SkolemManager::mkExistential(Node t, Node p)
+{
+  Assert (p.getType().isBoolean());
+  NodeManager* nm = NodeManager::currentNM();
+  std::pair<Node,Node> key(t,p);
+  std::map< std::pair< Node, Node >, Node >::iterator it = d_witnessBoundVar.find(key);
+  Node v;
+  if (it!=d_witnessBoundVar.end())
+  {
+    v = it->second;
+  }
+  else
+  {
+    TypeNode tt = t.getType();
+    v = nm->mkBoundVar(tt);
+    d_witnessBoundVar[key] = v;
+  }
+  Node bvl = nm->mkNode(BOUND_VAR_LIST,v);
+  Node psubs = p.substitute(TNode(t),TNode(v));
+  return nm->mkNode(EXISTS, bvl, psubs);
 }
 
 ProofGenerator* SkolemManager::getProofGenerator(Node t)
