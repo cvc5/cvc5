@@ -33,24 +33,8 @@ PreprocessingPassResult Rewrite::applyInternal(
 {
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    TNode a = (*assertionsToPreprocess)[i];
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite((*assertionsToPreprocess)[i]));
-    if (CVC4::options::proofNew())
-    {
-      // assertion changed and it was not just reordering a symmetry. The latter
-      // test is necessary to prevent a cyclic proof
-      if (a != (*assertionsToPreprocess)[i]
-          && (a.getKind() != kind::EQUAL
-              || (*assertionsToPreprocess)[i].getKind() != kind::EQUAL
-              || a[0] != (*assertionsToPreprocess)[i][1]
-              || a[1] != (*assertionsToPreprocess)[i][0]))
-      {
-        // giving the conclusion as an argument as a workaround for checking
-        NewProofManager::currentPM()->addStep(
-            (*assertionsToPreprocess)[i], PfRule::REWRITE_PREPROCESS, {a}, {});
-      }
-    }
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
