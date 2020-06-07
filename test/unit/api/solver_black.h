@@ -84,8 +84,11 @@ class SolverBlack : public CxxTest::TestSuite
   void testDeclareSort();
 
   void testDefineFun();
+  void testDefineFunGlobal();
   void testDefineFunRec();
+  void testDefineFunRecGlobal();
   void testDefineFunsRec();
+  void testDefineFunsRecGlobal();
 
   void testUFIteration();
 
@@ -1036,6 +1039,30 @@ void SolverBlack::testDefineFun()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testDefineFunGlobal()
+{
+  Sort bSort = d_solver->getBooleanSort();
+  Sort fSort = d_solver->mkFunctionSort({bSort}, bSort);
+
+  Term bTrue = d_solver->mkBoolean(true);
+  // (define-fun f () Bool true)
+  Term f = d_solver->defineFun("f", {}, bSort, bTrue, true);
+  Term b = d_solver->mkVar(bSort, "b");
+  Term gSym = d_solver->mkConst(fSort, "g");
+  // (define-fun g (b Bool) Bool b)
+  Term g = d_solver->defineFun(gSym, {b}, b, true);
+
+  // (assert (or (not f) (not (g true))))
+  d_solver->assertFormula(d_solver->mkTerm(
+      OR, f.notTerm(), d_solver->mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  TS_ASSERT(d_solver->checkSat().isUnsat());
+  d_solver->resetAssertions();
+  // (assert (or (not f) (not (g true))))
+  d_solver->assertFormula(d_solver->mkTerm(
+      OR, f.notTerm(), d_solver->mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  TS_ASSERT(d_solver->checkSat().isUnsat());
+}
+
 void SolverBlack::testDefineFunRec()
 {
   Sort bvSort = d_solver->mkBitVectorSort(32);
@@ -1088,6 +1115,31 @@ void SolverBlack::testDefineFunRec()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(slv.defineFunRec("ff", {b12, b22}, bvSort2, v1),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testDefineFunRecGlobal()
+{
+  Sort bSort = d_solver->getBooleanSort();
+  Sort fSort = d_solver->mkFunctionSort({bSort}, bSort);
+
+  d_solver->push();
+  Term bTrue = d_solver->mkBoolean(true);
+  // (define-fun f () Bool true)
+  Term f = d_solver->defineFunRec("f", {}, bSort, bTrue, true);
+  Term b = d_solver->mkVar(bSort, "b");
+  Term gSym = d_solver->mkConst(fSort, "g");
+  // (define-fun g (b Bool) Bool b)
+  Term g = d_solver->defineFunRec(gSym, {b}, b, true);
+
+  // (assert (or (not f) (not (g true))))
+  d_solver->assertFormula(d_solver->mkTerm(
+      OR, f.notTerm(), d_solver->mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  TS_ASSERT(d_solver->checkSat().isUnsat());
+  d_solver->pop();
+  // (assert (or (not f) (not (g true))))
+  d_solver->assertFormula(d_solver->mkTerm(
+      OR, f.notTerm(), d_solver->mkTerm(APPLY_UF, g, bTrue).notTerm()));
+  TS_ASSERT(d_solver->checkSat().isUnsat());
 }
 
 void SolverBlack::testDefineFunsRec()
@@ -1160,6 +1212,27 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS(
       slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v2}),
       CVC4ApiException&);
+}
+
+void SolverBlack::testDefineFunsRecGlobal()
+{
+  Sort bSort = d_solver->getBooleanSort();
+  Sort fSort = d_solver->mkFunctionSort({bSort}, bSort);
+
+  d_solver->push();
+  Term bTrue = d_solver->mkBoolean(true);
+  Term b = d_solver->mkVar(bSort, "b");
+  Term gSym = d_solver->mkConst(fSort, "g");
+  // (define-funs-rec ((g ((b Bool)) Bool)) (b))
+  d_solver->defineFunsRec({gSym}, {{b}}, {b}, true);
+
+  // (assert (not (g true)))
+  d_solver->assertFormula(d_solver->mkTerm(APPLY_UF, gSym, bTrue).notTerm());
+  TS_ASSERT(d_solver->checkSat().isUnsat());
+  d_solver->pop();
+  // (assert (not (g true)))
+  d_solver->assertFormula(d_solver->mkTerm(APPLY_UF, gSym, bTrue).notTerm());
+  TS_ASSERT(d_solver->checkSat().isUnsat());
 }
 
 void SolverBlack::testUFIteration()

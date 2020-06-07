@@ -406,6 +406,12 @@ bool Datatype::isWellFounded() const
   return d_internal->isWellFounded();
 }
 
+bool Datatype::hasNestedRecursion() const
+{
+  ExprManagerScope ems(d_self);
+  return d_internal->hasNestedRecursion();
+}
+
 Expr Datatype::mkGroundTerm(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
