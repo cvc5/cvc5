@@ -81,12 +81,12 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 #include "bindings/java_stream_adapters.h"
 
 // Map C++ exceptions of type CVC4::Exception to Java exceptions of type
-// edu.nyu.acsys.CVC4.Exception
+// edu.stanford.CVC4.Exception
 // 
 // As suggested in:
 // http://www.swig.org/Doc3.0/SWIGDocumentation.html#Java_exception_typemap
-%typemap(throws, throws="edu.nyu.acsys.CVC4.Exception") CVC4::Exception {
-  jclass excep = jenv->FindClass("edu/nyu/acsys/CVC4/Exception");
+%typemap(throws, throws="edu.stanford.CVC4.Exception") CVC4::Exception {
+  jclass excep = jenv->FindClass("edu/stanford/CVC4/Exception");
   if (excep)
     jenv->ThrowNew(excep, $1.what());
   return $null;

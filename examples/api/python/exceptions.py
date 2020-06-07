@@ -1,16 +1,20 @@
+#!/usr/bin/env python
+
+#####################
 ## \file exceptions.py
 ## \verbatim
 ## Top contributors (to current version):
 ##   Andres Noetzli
 ## This file is part of the CVC4 project.
-## Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+## Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
 ## in the top-level source directory) and their institutional affiliations.
 ## All rights reserved.  See the file COPYING in the top-level source
 ## directory for licensing information.\endverbatim
 ##
-## \brief Catching CVC4 exceptions via the Python API.
+## \brief Catching CVC4 exceptions with the legacy Python API.
 ##
-## A simple demonstration of catching CVC4 execptions via the Python API.
+## A simple demonstration of catching CVC4 execptions with the legacy Python
+## API.
 
 import CVC4
 import sys

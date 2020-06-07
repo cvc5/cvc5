@@ -14,7 +14,7 @@
  ** A simple demonstration of catching CVC4 execptions via the Java API.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class Exceptions {
   public static void main(String[] args) {
@@ -29,7 +29,7 @@ public class Exceptions {
     try {
       smt.setOption("non-existing", new SExpr(true));
       System.exit(1);
-    } catch(edu.nyu.acsys.CVC4.Exception e) {
+    } catch (edu.stanford.CVC4.Exception e) {
       System.out.println(e.toString());
     }
 
@@ -40,7 +40,7 @@ public class Exceptions {
       Expr invalidExpr = em.mkExpr(Kind.AND, x, x);
       smt.checkSat(invalidExpr);
       System.exit(1);
-    } catch(edu.nyu.acsys.CVC4.Exception e) {
+    } catch (edu.stanford.CVC4.Exception e) {
       System.out.println(e.toString());
     }
 
@@ -49,7 +49,7 @@ public class Exceptions {
       smt.checkSat(em.mkConst(false));
       smt.getModel();
       System.exit(1);
-    } catch(edu.nyu.acsys.CVC4.Exception e) {
+    } catch (edu.stanford.CVC4.Exception e) {
       System.out.println(e.toString());
     }
   }
