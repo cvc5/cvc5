@@ -133,7 +133,7 @@ Node SkolemCache::mkTypedSkolemCached(
       Assert(index < r.getNumChildren());
       if (d_useOpts && r[index].getKind() == STRING_TO_REGEXP)
       {
-        // just return the body of the str.to_re
+        // optimization, just return the body of the str.to_re
         sk = r[index][0];
       }
       else
@@ -168,8 +168,12 @@ Node SkolemCache::mkTypedSkolemCached(
         Assert(eform.getKind() == EXISTS);
         Assert(eform[0].getNumChildren() == r.getNumChildren());
         // TODO: needs proof manager here
-        sk = sm->mkSkolemExists(
-            eform[0][index], eform, c, "regexp concat skolem");
+        std::vector<Node> skolems;
+        sm->mkSkolemize(
+            eform, skolems, c, "regexp concat skolem");
+        Assert (skolems.size()==r.getNumChildren());
+        Assert (index<skolems.size());
+        sk = skolems[index];
       }
     }
     break;

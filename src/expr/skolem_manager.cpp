@@ -55,44 +55,44 @@ Node SkolemManager::mkSkolem(Node v,
   // store the mapping to proof generator if it exists
   if (pg != nullptr)
   {
+    Node q = nm->mkNode(EXISTS, w[0], w[1]);
     // notice this may overwrite an existing proof generator
-    d_gens[w] = pg;
+    d_gens[q] = pg;
   }
   return getOrMakeSkolem(w, prefix, comment, flags);
 }
 
-Node SkolemManager::mkSkolemExists(Node v,
-                                   Node q,
+Node SkolemManager::mkSkolemize(Node q,
+                                   std::vector<Node>& skolems,
                                    const std::string& prefix,
                                    const std::string& comment,
                                    int flags,
                                    ProofGenerator* pg)
 {
-  Trace("sk-manager-debug") << "mkSkolemExists..." << v << std::endl;
+  Trace("sk-manager-debug") << "mkSkolemize..." << std::endl;
   Assert(q.getKind() == EXISTS);
   Node currQ = q;
   for (const Node& av : q[0])
   {
     Assert(currQ.getKind() == EXISTS && av == currQ[0][0]);
-    Node sk = mkSkolemize(currQ, currQ, prefix, comment, flags, pg);
+    Node sk = skolemize(currQ, currQ, prefix, comment, flags);
     Trace("sk-manager-debug")
         << "made skolem " << sk << " for " << av << std::endl;
-    if (av == v)
-    {
-      Assert(sk.getType() == v.getType());
-      return sk;
-    }
+    skolems.push_back(sk);
   }
-  Assert(false);
-  return Node::null();
+  if (pg!=nullptr)
+  {
+    // notice this may overwrite an existing proof generator
+    d_gens[q] = pg;
+  }
+  return currQ;
 }
 
-Node SkolemManager::mkSkolemize(Node q,
+Node SkolemManager::skolemize(Node q,
                                 Node& qskolem,
                                 const std::string& prefix,
                                 const std::string& comment,
-                                int flags,
-                                ProofGenerator* pg)
+                                int flags)
 {
   Assert(q.getKind() == EXISTS);
   Node v;
@@ -126,7 +126,9 @@ Node SkolemManager::mkSkolemize(Node q,
     qskolem = nm->mkNode(EXISTS, bvl, pred);
   }
   Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
-  Node k = mkSkolem(v, pred, prefix, comment, flags, pg);
+  // don't use a proof generator, since this may be an intermediate, partially
+  // skolemized formula.
+  Node k = mkSkolem(v, pred, prefix, comment, flags, nullptr);
   Assert(k.getType() == v.getType());
   TNode tv = v;
   TNode tk = k;

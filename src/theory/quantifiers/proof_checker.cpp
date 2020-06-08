@@ -49,9 +49,10 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       return SkolemManager::getWitnessForm(exists);
     }
-    Node existsSkolem;
-    Node w = sm->mkSkolemize(exists, existsSkolem, "k");
-    return SkolemManager::getWitnessForm(w);
+    std::vector<Node> skolems;
+    sm->mkSkolemize(exists, skolems, "k");
+    Assert (skolems.size()==1);
+    return SkolemManager::getWitnessForm(skolems[0]);
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -66,16 +67,11 @@ Node QuantifiersProofRuleChecker::checkInternal(
     echildren.insert(
         echildren.begin(), children[0][0].begin(), children[0][0].end());
     Node exists = nm->mkNode(EXISTS, echildren);
+    exists= SkolemManager::getSkolemForm(exists);
     std::vector<Node> skolems;
-    Node currQ = SkolemManager::getSkolemForm(exists);
-    for (const Node& v : exists[0])
-    {
-      Assert(currQ.getKind() == EXISTS && v == currQ[0][0]);
-      sm->mkSkolemize(currQ, currQ, "k");
-      // don't care about the skolems generated, only care about final result
-    }
-    currQ = SkolemManager::getWitnessForm(currQ);
-    return nm->mkNode(OR, children[0].notNode(), currQ);
+    Node res = sm->mkSkolemize(exists, skolems, "k");
+    res = SkolemManager::getWitnessForm(res);
+    return nm->mkNode(OR, children[0].notNode(), res);
   }
   else if (id == PfRule::INSTANTIATE)
   {

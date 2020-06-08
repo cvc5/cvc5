@@ -82,6 +82,7 @@ PR finished:
 PRs ready:
 
 (6) Equality engine updates [Haniel]
+(8) refactor mkSkolemExists
 (11) ProofGenerator (req 10) *
 (32) split theory engine *
 (33) split operator elimination from arith (req 28) *
@@ -89,7 +90,6 @@ PRs ready:
 
 PRs future:
 
-(8) refactor mkSkolemExists TODO
 (12) Add TrustNode (req 11)
 (13) Add EagerProofGenerator (req 11)
 (17) rewriter new infrastructure "rewriteEqualityExt"
@@ -116,6 +116,7 @@ PRs future:
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 41)
 (45) regexp operation refactor (req 3, 7, 8)
+(46) theory engine proof generator (req 11)
 
 PRs wish list:
 
