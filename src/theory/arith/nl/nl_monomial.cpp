@@ -276,7 +276,7 @@ Node MonomialDb::getContainsDiff(Node a, Node b) const
 {
   std::map<Node, std::map<Node, Node> >::const_iterator it =
       d_m_contain_mult.find(a);
-  if (it == d_m_contain_umult.end())
+  if (it == d_m_contain_mult.end())
   {
     return Node::null();
   }
