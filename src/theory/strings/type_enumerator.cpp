@@ -215,12 +215,12 @@ void SeqEnumLen::mkCurr()
   const std::vector<unsigned>& data = d_witer->getData();
   for (unsigned i : data)
   {
-    Assert (i<d_elementDomain.size());
+    Assert(i < d_elementDomain.size());
     seq.push_back(d_elementDomain[i]);
   }
   // make sequence from seq
-  d_curr =
-      NodeManager::currentNM()->mkConst(ExprSequence(d_type.getSequenceElementType().toType(), seq));
+  d_curr = NodeManager::currentNM()->mkConst(
+      ExprSequence(d_type.getSequenceElementType().toType(), seq));
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)

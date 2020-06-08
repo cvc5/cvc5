@@ -679,8 +679,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
-  case kind::SEQ_UNIT: 
-  case kind::SEQUENCE_TYPE:out << smtKindString(k, d_variant) << " "; break;
+  case kind::SEQ_UNIT:
+  case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;

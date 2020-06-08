@@ -68,14 +68,15 @@ void BaseSolver::checkInit()
       {
         Node n = *eqc_i;
         Kind k = n.getKind();
-        if (n.isConst() || k==SEQ_UNIT)
+        if (n.isConst() || k == SEQ_UNIT)
         {
           Node prev = d_eqcInfo[eqc].d_bestContent;
           if (!prev.isNull())
           {
             // we have either (seq.unit x) = C, or (seq.unit x) = (seq.unit y)
             // where C is a sequence constant.
-            Node cval = prev.isConst() ? prev : ( n.isConst() ? n : Node::null());
+            Node cval =
+                prev.isConst() ? prev : (n.isConst() ? n : Node::null());
             std::vector<Node> exp;
             exp.push_back(prev.eqNode(n));
             Node s, t;
@@ -88,19 +89,20 @@ void BaseSolver::checkInit()
             else
             {
               // should not have two constants in the same equivalence class
-              Assert (cval.getType().isSequence());
+              Assert(cval.getType().isSequence());
               std::vector<Node> cchars = Word::getChars(cval);
-              if (cchars.size()==1)
+              if (cchars.size() == 1)
               {
                 Node oval = prev.isConst() ? n : prev;
-                Assert (oval.getKind()==SEQ_UNIT);
+                Assert(oval.getKind() == SEQ_UNIT);
                 s = oval[0];
                 t = cchars[0];
               }
-              else 
+              else
               {
                 // (seq.unit x) = C => false if |C| != 1.
-                d_im.sendInference(exp, d_false, Inference::UNIT_CONST_CONFLICT);
+                d_im.sendInference(
+                    exp, d_false, Inference::UNIT_CONST_CONFLICT);
                 return;
               }
             }
@@ -108,7 +110,7 @@ void BaseSolver::checkInit()
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
               // (seq.unit x) = (seq.unit c) => x = c
-              Assert (s.getType()==t.getType());
+              Assert(s.getType() == t.getType());
               d_im.sendInference(exp, s.eqNode(t), Inference::UNIT_INJ);
             }
           }
@@ -506,7 +508,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // no restriction on sets in the partition of size 1
       continue;
     }
-    if (!tn.isString()) // string-only
+    if (!tn.isString())  // string-only
     {
       // TODO: how to handle sequence for finite types?
       continue;
