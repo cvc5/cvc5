@@ -29,6 +29,7 @@
 #include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/sygus_inst.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -54,7 +55,8 @@ class QuantifiersEnginePrivate
         d_fs(nullptr),
         d_i_cbqi(nullptr),
         d_qsplit(nullptr),
-        d_anti_skolem(nullptr)
+        d_anti_skolem(nullptr),
+        d_sygus_inst(nullptr)
   {
   }
   ~QuantifiersEnginePrivate() {}
@@ -85,6 +87,8 @@ class QuantifiersEnginePrivate
   std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
   /** quantifiers anti-skolemization */
   std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
+  /** SyGuS instantiation engine */
+  std::unique_ptr<quantifiers::SygusInst> d_sygus_inst;
   //------------------------------ end quantifiers modules
   /** initialize
    *
@@ -114,7 +118,7 @@ class QuantifiersEnginePrivate
       d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
       modules.push_back(d_inst_engine.get());
     }
-    if (options::cbqi())
+    if (options::cegqi())
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
@@ -158,6 +162,11 @@ class QuantifiersEnginePrivate
       d_rel_dom.reset(new quantifiers::RelevantDomain(qe));
       d_fs.reset(new quantifiers::InstStrategyEnum(qe, d_rel_dom.get()));
       modules.push_back(d_fs.get());
+    }
+    if (options::sygusInst())
+    {
+      d_sygus_inst.reset(new quantifiers::SygusInst(qe));
+      modules.push_back(d_sygus_inst.get());
     }
   }
 };
@@ -203,7 +212,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_util.push_back(d_term_util.get());
   d_util.push_back(d_term_db.get());
 
-  if (options::sygus())
+  if (options::sygus() || options::sygusInst())
   {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
   }  
@@ -601,6 +610,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
           << "  Theory engine finished : " << !theoryEngineNeedsCheck()
           << std::endl;
       Trace("quant-engine-debug") << "  Needs model effort : " << needsModelE << std::endl;
+      Trace("quant-engine-debug")
+          << "  In conflict : " << d_conflict << std::endl;
     }
     if( Trace.isOn("quant-engine-ee-pre") ){
       Trace("quant-engine-ee-pre") << "Equality engine (pre-inference): " << std::endl;

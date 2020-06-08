@@ -233,7 +233,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
   // empty strings
   for (unsigned i = 0; i < 2; i++)
   {
-    if (n[i].isConst() && n[i].getConst<String>().isEmptyString())
+    if (n[i].isConst() && n[i].getConst<String>().empty())
     {
       Node ret = i == 0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
       return returnRewrite(n, ret, Rewrite::STR_LEQ_EMPTY);

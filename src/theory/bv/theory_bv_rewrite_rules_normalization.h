@@ -385,7 +385,7 @@ inline Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node)
   std::map<Node, BitVector> factorToCoefficient;
 
   // combine like-terms
-  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  for (size_t i = 0, n = node.getNumChildren(); i < n; ++i)
   {
     TNode current = node[i];
     updateCoefMap(current, size, factorToCoefficient, constSum);
@@ -406,7 +406,18 @@ inline Node RewriteRule<PlusCombineLikeTerms>::apply(TNode node)
     children.push_back(utils::mkConst(constSum));
   }
 
-  unsigned csize = children.size();
+  size_t csize = children.size();
+  if (csize == node.getNumChildren())
+  {
+    // If we couldn't combine any terms, we don't perform the rewrite. This is
+    // important because we are otherwise reordering terms in the addition
+    // based on the node ids of the terms that are multiplied with the
+    // coefficients. Due to garbage collection we may see different id orders
+    // for those nodes even when we perform one rewrite directly after the
+    // other, so the rewrite wouldn't be idempotent.
+    return node;
+  }
+
   return csize == 0
     ? utils::mkZero(size)
     : utils::mkNaryNode(kind::BITVECTOR_PLUS, children);
@@ -687,6 +698,14 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
     termRight = iRight->first;
   }
 
+  // Changed tracks whether there have been any changes to the coefficients or
+  // constants of the left- or right-hand side. We perform a rewrite only if
+  // that is the case. This is important because we are otherwise reordering
+  // terms in the addition based on the node ids of the terms that are
+  // multiplied with the coefficients. Due to garbage collection we may see
+  // different id orders for those nodes even when we perform one rewrite
+  // directly after the other, so the rewrite wouldn't be idempotent.
+  bool changed = false;
   bool incLeft, incRight;
 
   while (iLeft != iLeftEnd || iRight != iRightEnd)
@@ -714,6 +733,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
         addToChildren(termRight, size, coeffRight - coeffLeft, childrenRight);
       }
       incLeft = incRight = true;
+      changed = true;
     }
     if (incLeft)
     {
@@ -743,6 +763,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
   // they are
   if (rightConst != zero)
   {
+    changed |= (leftConst != zero);
     rightConst = rightConst - leftConst;
     leftConst = zero;
     if (rightConst != zero)
@@ -770,6 +791,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
     // constant
     childrenRight.push_back(utils::mkConst(-leftConst));
     childrenLeft.pop_back();
+    changed = true;
   }
 
   if (childrenLeft.size() == 0)
@@ -787,6 +809,7 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
       // constant
       newLeft = utils::mkConst(-rightConst);
       childrenRight.pop_back();
+      changed = true;
     }
     else
     {
@@ -807,8 +830,10 @@ inline Node RewriteRule<SolveEq>::apply(TNode node)
     newRight = utils::mkNaryNode(kind::BITVECTOR_PLUS, childrenRight);
   }
 
-  //  Assert(newLeft == Rewriter::rewrite(newLeft));
-  //  Assert(newRight == Rewriter::rewrite(newRight));
+  if (!changed)
+  {
+    return node;
+  }
 
   if (newLeft == newRight)
   {

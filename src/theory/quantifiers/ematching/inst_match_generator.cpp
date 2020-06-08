@@ -596,7 +596,15 @@ InstMatchGenerator* InstMatchGenerator::getInstMatchGenerator(Node q, Node n)
     Node x;
     if (options::purifyTriggers())
     {
-      x = Trigger::getInversionVariable(n);
+      Node xi = Trigger::getInversionVariable(n);
+      if (!xi.isNull())
+      {
+        Node qa = quantifiers::TermUtil::getInstConstAttr(xi);
+        if (qa == q)
+        {
+          x = xi;
+        }
+      }
     }
     if (!x.isNull())
     {
@@ -624,7 +632,8 @@ int VarMatchGeneratorTermSubs::getNextMatch(Node q,
   int ret_val = -1;
   if( !d_eq_class.isNull() ){
     Trace("var-trigger-matching") << "Matching " << d_eq_class << " against " << d_var << " in " << d_subs << std::endl;
-    Node s = d_subs.substitute( d_var, d_eq_class );
+    TNode tvar = d_var;
+    Node s = d_subs.substitute(tvar, d_eq_class);
     s = Rewriter::rewrite( s );
     Trace("var-trigger-matching") << "...got " << s << ", " << s.getKind() << std::endl;
     d_eq_class = Node::null();
@@ -1044,7 +1053,7 @@ InstMatchGeneratorSimple::InstMatchGeneratorSimple(Node q,
   Assert(Trigger::isSimpleTrigger(d_match_pattern));
   for( unsigned i=0; i<d_match_pattern.getNumChildren(); i++ ){
     if( d_match_pattern[i].getKind()==INST_CONSTANT ){
-      if( !options::cbqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
+      if( !options::cegqi() || quantifiers::TermUtil::getInstConstAttr(d_match_pattern[i])==q ){
         d_var_num[i] = d_match_pattern[i].getAttribute(InstVarNumAttribute());
       }else{
         d_var_num[i] = -1;

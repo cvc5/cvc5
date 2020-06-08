@@ -17,6 +17,7 @@
 
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -32,7 +33,6 @@ BaseSolver::BaseSolver(context::Context* c,
                        InferenceManager& im)
     : d_state(s), d_im(im), d_congruent(c)
 {
-  d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = utils::getAlphabetCardinality();
 }
@@ -42,16 +42,13 @@ BaseSolver::~BaseSolver() {}
 void BaseSolver::checkInit()
 {
   // build term index
-  d_eqcToConst.clear();
-  d_eqcToConstBase.clear();
-  d_eqcToConstExp.clear();
+  d_eqcInfo.clear();
   d_termIndex.clear();
   d_stringsEqc.clear();
 
   std::map<Kind, uint32_t> ncongruent;
   std::map<Kind, uint32_t> congruent;
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  Assert(d_state.getRepresentative(d_emptyString) == d_emptyString);
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
   while (!eqcs_i.isFinished())
   {
@@ -59,9 +56,11 @@ void BaseSolver::checkInit()
     TypeNode tn = eqc.getType();
     if (!tn.isRegExp())
     {
+      Node emps;
       if (tn.isString())
       {
         d_stringsEqc.push_back(eqc);
+        emps = Word::mkEmptyWord(tn);
       }
       Node var;
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
@@ -70,9 +69,9 @@ void BaseSolver::checkInit()
         Node n = *eqc_i;
         if (n.isConst())
         {
-          d_eqcToConst[eqc] = n;
-          d_eqcToConstBase[eqc] = n;
-          d_eqcToConstExp[eqc] = Node::null();
+          d_eqcInfo[eqc].d_bestContent = n;
+          d_eqcInfo[eqc].d_base = n;
+          d_eqcInfo[eqc].d_exp = Node::null();
         }
         else if (tn.isInteger())
         {
@@ -86,7 +85,7 @@ void BaseSolver::checkInit()
             if (d_congruent.find(n) == d_congruent.end())
             {
               std::vector<Node> c;
-              Node nc = d_termIndex[k].add(n, 0, d_state, d_emptyString, c);
+              Node nc = d_termIndex[k].add(n, 0, d_state, emps, c);
               if (nc != n)
               {
                 // check if we have inferred a new equality by removal of empty
@@ -102,14 +101,13 @@ void BaseSolver::checkInit()
                     for (unsigned t = 0; t < 2; t++)
                     {
                       Node nn = t == 0 ? nc : n;
-                      while (
-                          count[t] < nn.getNumChildren()
-                          && (nn[count[t]] == d_emptyString
-                              || d_state.areEqual(nn[count[t]], d_emptyString)))
+                      while (count[t] < nn.getNumChildren()
+                             && (nn[count[t]] == emps
+                                 || d_state.areEqual(nn[count[t]], emps)))
                       {
-                        if (nn[count[t]] != d_emptyString)
+                        if (nn[count[t]] != emps)
                         {
-                          exp.push_back(nn[count[t]].eqNode(d_emptyString));
+                          exp.push_back(nn[count[t]].eqNode(emps));
                         }
                         count[t]++;
                       }
@@ -131,9 +129,14 @@ void BaseSolver::checkInit()
                 }
                 else
                 {
-                  // mark as congruent : only process if neither has been
-                  // reduced
-                  d_im.markCongruent(nc, n);
+                  // We cannot mark one of the terms as reduced here (via
+                  // ExtTheory::markCongruent) since extended function terms
+                  // rely on reductions to other extended function terms. We
+                  // may have a pair of extended function terms f(a)=f(b) where
+                  // the reduction of argument a depends on the term b.
+                  // Thus, marking f(b) as reduced by virtue of the fact we
+                  // have f(a) is incorrect, since then we are effectively
+                  // assuming that the reduction of f(a) depends on itself.
                 }
                 // this node is congruent to another one, we can ignore it
                 Trace("strings-process-debug")
@@ -156,11 +159,11 @@ void BaseSolver::checkInit()
                   bool foundNEmpty = false;
                   for (const Node& nnc : n)
                   {
-                    if (d_state.areEqual(nnc, d_emptyString))
+                    if (d_state.areEqual(nnc, emps))
                     {
-                      if (nnc != d_emptyString)
+                      if (nnc != emps)
                       {
-                        exp.push_back(nnc.eqNode(d_emptyString));
+                        exp.push_back(nnc.eqNode(emps));
                       }
                     }
                     else
@@ -241,20 +244,33 @@ void BaseSolver::checkConstantEquivalenceClasses()
     vecc.clear();
     Trace("strings-process-debug")
         << "Check constant equivalence classes..." << std::endl;
-    prevSize = d_eqcToConst.size();
-    checkConstantEquivalenceClasses(&d_termIndex[STRING_CONCAT], vecc);
-  } while (!d_im.hasProcessed() && d_eqcToConst.size() > prevSize);
+    prevSize = d_eqcInfo.size();
+    checkConstantEquivalenceClasses(&d_termIndex[STRING_CONCAT], vecc, true);
+  } while (!d_im.hasProcessed() && d_eqcInfo.size() > prevSize);
+
+  if (!d_im.hasProcessed())
+  {
+    // now, go back and set "most content" terms
+    vecc.clear();
+    checkConstantEquivalenceClasses(&d_termIndex[STRING_CONCAT], vecc, false);
+  }
 }
 
 void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
-                                                 std::vector<Node>& vecc)
+                                                 std::vector<Node>& vecc,
+                                                 bool ensureConst,
+                                                 bool isConst)
 {
   Node n = ti->d_data;
   if (!n.isNull())
   {
-    // construct the constant
-    Node c = utils::mkNConcat(vecc, n.getType());
-    if (!d_state.areEqual(n, c))
+    // construct the constant if applicable
+    Node c;
+    if (isConst)
+    {
+      c = utils::mkNConcat(vecc, n.getType());
+    }
+    if (!isConst || !d_state.areEqual(n, c))
     {
       if (Trace.isOn("strings-debug"))
       {
@@ -270,36 +286,80 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       size_t count = 0;
       size_t countc = 0;
       std::vector<Node> exp;
+      // non-constant vector
+      std::vector<Node> vecnc;
+      size_t contentSize = 0;
       while (count < n.getNumChildren())
       {
+        // Add explanations for the empty children
+        Node emps;
         while (count < n.getNumChildren()
-               && d_state.areEqual(n[count], d_emptyString))
+               && d_state.isEqualEmptyWord(n[count], emps))
         {
-          d_im.addToExplanation(n[count], d_emptyString, exp);
+          d_im.addToExplanation(n[count], emps, exp);
           count++;
         }
         if (count < n.getNumChildren())
         {
-          Trace("strings-debug")
-              << "...explain " << n[count] << " " << vecc[countc] << std::endl;
-          if (!d_state.areEqual(n[count], vecc[countc]))
+          if (vecc[countc].isNull())
           {
-            Node nrr = d_state.getRepresentative(n[count]);
-            Assert(!d_eqcToConstExp[nrr].isNull());
-            d_im.addToExplanation(n[count], d_eqcToConstBase[nrr], exp);
-            exp.push_back(d_eqcToConstExp[nrr]);
+            Assert(!isConst);
+            // no constant for this component, leave it as is
+            vecnc.push_back(n[count]);
           }
           else
           {
-            d_im.addToExplanation(n[count], vecc[countc], exp);
+            if (!isConst)
+            {
+              // use the constant
+              vecnc.push_back(vecc[countc]);
+              Assert(vecc[countc].isConst());
+              contentSize += Word::getLength(vecc[countc]);
+            }
+            Trace("strings-debug") << "...explain " << n[count] << " "
+                                   << vecc[countc] << std::endl;
+            if (!d_state.areEqual(n[count], vecc[countc]))
+            {
+              Node nrr = d_state.getRepresentative(n[count]);
+              Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
+                     && d_eqcInfo[nrr].d_bestContent.isConst());
+              d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
+              exp.push_back(d_eqcInfo[nrr].d_exp);
+            }
+            else
+            {
+              d_im.addToExplanation(n[count], vecc[countc], exp);
+            }
+            countc++;
           }
-          countc++;
           count++;
         }
       }
       // exp contains an explanation of n==c
-      Assert(countc == vecc.size());
-      if (d_state.hasTerm(c))
+      Assert(!isConst || countc == vecc.size());
+      if (!isConst)
+      {
+        // no use storing something with no content
+        if (contentSize > 0)
+        {
+          Node nr = d_state.getRepresentative(n);
+          BaseEqcInfo& bei = d_eqcInfo[nr];
+          if (!bei.d_bestContent.isConst()
+              && (bei.d_bestContent.isNull() || contentSize > bei.d_bestScore))
+          {
+            // The equivalence class is not entailed to be equal to a constant
+            // and we found a better concatenation
+            Node nct = utils::mkNConcat(vecnc, n.getType());
+            Assert(!nct.isConst());
+            bei.d_bestContent = nct;
+            bei.d_base = n;
+            bei.d_exp = utils::mkAnd(exp);
+            Trace("strings-debug")
+                << "Set eqc best content " << n << " to " << nct << std::endl;
+          }
+        }
+      }
+      else if (d_state.hasTerm(c))
       {
         d_im.sendInference(exp, n.eqNode(c), Inference::I_CONST_MERGE);
         return;
@@ -307,31 +367,31 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
       else if (!d_im.hasProcessed())
       {
         Node nr = d_state.getRepresentative(n);
-        std::map<Node, Node>::iterator it = d_eqcToConst.find(nr);
-        if (it == d_eqcToConst.end())
+        BaseEqcInfo& bei = d_eqcInfo[nr];
+        if (!bei.d_bestContent.isConst())
         {
           Trace("strings-debug")
               << "Set eqc const " << n << " to " << c << std::endl;
-          d_eqcToConst[nr] = c;
-          d_eqcToConstBase[nr] = n;
-          d_eqcToConstExp[nr] = utils::mkAnd(exp);
+          bei.d_bestContent = c;
+          bei.d_base = n;
+          bei.d_exp = utils::mkAnd(exp);
         }
-        else if (c != it->second)
+        else if (c != bei.d_bestContent)
         {
           // conflict
           Trace("strings-debug")
-              << "Conflict, other constant was " << it->second
+              << "Conflict, other constant was " << bei.d_bestContent
               << ", this constant was " << c << std::endl;
-          if (d_eqcToConstExp[nr].isNull())
+          if (bei.d_exp.isNull())
           {
             // n==c ^ n == c' => false
-            d_im.addToExplanation(n, it->second, exp);
+            d_im.addToExplanation(n, bei.d_bestContent, exp);
           }
           else
           {
-            // n==c ^ n == d_eqcToConstBase[nr] == c' => false
-            exp.push_back(d_eqcToConstExp[nr]);
-            d_im.addToExplanation(n, d_eqcToConstBase[nr], exp);
+            // n==c ^ n == d_base == c' => false
+            exp.push_back(bei.d_exp);
+            d_im.addToExplanation(n, bei.d_base, exp);
           }
           d_im.sendInference(exp, d_false, Inference::I_CONST_CONFLICT);
           return;
@@ -345,16 +405,23 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
   }
   for (std::pair<const TNode, TermIndex>& p : ti->d_children)
   {
-    std::map<Node, Node>::iterator itc = d_eqcToConst.find(p.first);
-    if (itc != d_eqcToConst.end())
+    std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(p.first);
+    if (it != d_eqcInfo.end() && it->second.d_bestContent.isConst())
     {
-      vecc.push_back(itc->second);
-      checkConstantEquivalenceClasses(&p.second, vecc);
+      vecc.push_back(it->second.d_bestContent);
+      checkConstantEquivalenceClasses(&p.second, vecc, ensureConst, isConst);
       vecc.pop_back();
-      if (d_im.hasProcessed())
-      {
-        break;
-      }
+    }
+    else if (!ensureConst)
+    {
+      // can still proceed, with null
+      vecc.push_back(Node::null());
+      checkConstantEquivalenceClasses(&p.second, vecc, ensureConst, false);
+      vecc.pop_back();
+    }
+    if (d_im.hasProcessed())
+    {
+      break;
     }
   }
 }
@@ -499,29 +566,55 @@ bool BaseSolver::isCongruent(Node n)
 
 Node BaseSolver::getConstantEqc(Node eqc)
 {
-  std::map<Node, Node>::iterator it = d_eqcToConst.find(eqc);
-  if (it != d_eqcToConst.end())
+  std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(eqc);
+  if (it != d_eqcInfo.end() && it->second.d_bestContent.isConst())
   {
-    return it->second;
+    return it->second.d_bestContent;
   }
   return Node::null();
 }
 
 Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
 {
-  std::map<Node, Node>::iterator it = d_eqcToConst.find(eqc);
-  if (it != d_eqcToConst.end())
+  std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(eqc);
+  if (it != d_eqcInfo.end())
   {
-    if (!d_eqcToConstExp[eqc].isNull())
+    BaseEqcInfo& bei = d_eqcInfo[eqc];
+    if (!bei.d_bestContent.isConst())
     {
-      exp.push_back(d_eqcToConstExp[eqc]);
+      return Node::null();
     }
-    if (!d_eqcToConstBase[eqc].isNull())
+    if (!bei.d_exp.isNull())
     {
-      d_im.addToExplanation(n, d_eqcToConstBase[eqc], exp);
+      exp.push_back(bei.d_exp);
     }
-    return it->second;
+    if (!bei.d_base.isNull())
+    {
+      d_im.addToExplanation(n, bei.d_base, exp);
+    }
+    return bei.d_bestContent;
   }
+  return Node::null();
+}
+
+Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
+{
+  std::map<Node, BaseEqcInfo>::const_iterator it = d_eqcInfo.find(eqc);
+  if (it != d_eqcInfo.end())
+  {
+    BaseEqcInfo& bei = d_eqcInfo[eqc];
+    Assert(!bei.d_bestContent.isNull());
+    if (!bei.d_exp.isNull())
+    {
+      exp.push_back(bei.d_exp);
+    }
+    if (!bei.d_base.isNull())
+    {
+      d_im.addToExplanation(n, bei.d_base, exp);
+    }
+    return bei.d_bestContent;
+  }
+
   return Node::null();
 }
 

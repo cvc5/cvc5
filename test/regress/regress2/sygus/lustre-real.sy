@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --cegqi-si=none --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-si=none --sygus-out=status
 (set-logic LIRA)
 (define-fun
 __node_init_top_0 (

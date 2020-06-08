@@ -88,6 +88,7 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
   {
     return;
   }
+  Assert(!d_quantEngine->inConflict());
   double clSet = 0;
   if (Trace.isOn("fs-engine"))
   {
@@ -140,10 +141,10 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
             }
             // added lemma
             addedLemmas++;
-            if (d_quantEngine->inConflict())
-            {
-              break;
-            }
+          }
+          if (d_quantEngine->inConflict())
+          {
+            break;
           }
         }
       }
@@ -206,7 +207,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
         for (unsigned j = 0; j < ts; j++)
         {
           Node gt = tdb->getTypeGroundTerm(ftypes[i], j);
-          if (!options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
+          if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
           {
             Node rep = qy->getRepresentative(gt);
             if (reps_found.find(rep) == reps_found.end())
@@ -301,7 +302,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
             {
               terms.push_back(d_rd->getRDomain(f, i)->d_terms[childIndex[i]]);
               Trace("inst-alg-rd")
-                  << "  " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
+                  << "  (rd) " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
                   << std::endl;
             }
             else
@@ -312,6 +313,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                   << "  " << term_db_list[ftypes[i]][childIndex[i]]
                   << std::endl;
             }
+            Assert(terms[i].isNull()
+                   || terms[i].getType().isComparableTo(ftypes[i]));
           }
           if (ie->addInstantiation(f, terms))
           {
@@ -322,6 +325,12 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           else
           {
             index--;
+          }
+          if (d_quantEngine->inConflict())
+          {
+            // could be conflicting for an internal reason (such as term
+            // indices computed in above calls)
+            return false;
           }
         }
       } while (success);

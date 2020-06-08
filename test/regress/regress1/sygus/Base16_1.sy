@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-qe-preproc --cbqi-full --sygus-out=status --cegqi-si=all
+; COMMAND-LINE: --lang=sygus2 --sygus-qe-preproc --cegqi-full --sygus-out=status --sygus-si=all
 (set-logic BV)
 
 (define-fun B ((h (_ BitVec 8)) (l (_ BitVec 8)) (v (_ BitVec 8))) (_ BitVec 8) (bvlshr (bvshl v (bvsub #x07 h)) (bvsub #x07 (bvsub h l))))

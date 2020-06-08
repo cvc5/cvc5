@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi
+; COMMAND-LINE: --cegqi
 ; EXPECT: unsat
 (set-logic UFNIRA)
 (set-info :status unsat)

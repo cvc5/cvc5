@@ -17,7 +17,7 @@
 
 ; Resource: p0.0
 (declare-const p0.0.resource Bool)
-(assert (= p0.0.resource (and (= resource_prefix "arn") (= resource_partition "aws") (= resource_service "sqs") (= resource_region "us-east-1") (= resource_account "111144448888") (str.in.re resource_resource (re.++ (str.to.re "ab") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b"))))))
+(assert (= p0.0.resource (and (= resource_prefix "arn") (= resource_partition "aws") (= resource_service "sqs") (= resource_region "us-east-1") (= resource_account "111144448888") (str.in_re resource_resource (re.++ (str.to_re "ab") (re.* re.allchar) (str.to_re "b") (re.* re.allchar) (str.to_re "b") (re.* re.allchar) (str.to_re "b"))))))
 
 ; Statement: p0.0
 (declare-const p0.0.statement.allows Bool)
@@ -37,7 +37,7 @@
 
 ; Resource: p1.0
 (declare-const p1.0.resource Bool)
-(assert (= p1.0.resource (and (= resource_prefix "arn") (= resource_partition "aws") (= resource_service "sqs") (= resource_region "us-east-1") (= resource_account "111144448888") (str.in.re resource_resource (re.++ (str.to.re "a") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b"))))))
+(assert (= p1.0.resource (and (= resource_prefix "arn") (= resource_partition "aws") (= resource_service "sqs") (= resource_region "us-east-1") (= resource_account "111144448888") (str.in_re resource_resource (re.++ (str.to_re "a") (re.* re.allchar) (str.to_re "b") (re.* re.allchar) (str.to_re "b") (re.* re.allchar) (str.to_re "b"))))))
 
 ; Statement: p1.0
 (declare-const p1.0.statement.allows Bool)

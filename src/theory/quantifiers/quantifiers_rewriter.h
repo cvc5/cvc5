@@ -234,8 +234,27 @@ class QuantifiersRewriter : public TheoryRewriter
   static Node computeElimSymbols( Node body );
   static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
+  /**
+   * This function removes top-level quantifiers from subformulas of body
+   * appearing with overall polarity pol. It adds quantified variables that
+   * appear in positive polarity positions into args, and those at negative
+   * polarity positions in nargs.
+   *
+   * If prenexAgg is true, we ensure that all top-level quantifiers are
+   * eliminated from subformulas. This means that we must expand ITE and
+   * Boolean equalities to ensure that quantifiers are at fixed polarities.
+   *
+   * For example, calling this function on:
+   *   (or (forall ((x Int)) (P x z)) (not (forall ((y Int)) (Q y z))))
+   * would return:
+   *   (or (P x z) (not (Q y z)))
+   * and add {x} to args, and {y} to nargs.
+   */
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
-  static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
+  /**
+   * Apply prenexing aggressively. Returns the prenex normal form of n.
+   */
+  static Node computePrenexAgg(Node n, std::map<Node, Node>& visited);
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
 private:
  static Node computeOperation(Node f,

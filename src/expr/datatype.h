@@ -705,6 +705,12 @@ class CVC4_PUBLIC Datatype {
    * This datatype must be resolved or an exception is thrown.
    */
   bool isWellFounded() const;
+  /** has nested recursion
+   *
+   * Return true iff this datatype has nested recursion.
+   * This datatype must be resolved or an exception is thrown.
+   */
+  bool hasNestedRecursion() const;
 
   /** is recursive singleton
    *

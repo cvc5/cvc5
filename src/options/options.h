@@ -26,7 +26,6 @@
 
 #include "base/listener.h"
 #include "base/modal_exception.h"
-#include "options/argument_extender.h"
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
@@ -479,8 +478,8 @@ public:
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line
-   * arguments. This uses an ArgumentExtender containing the
-   * command-line arguments. Nonoptions are stored into nonoptions.
+   * arguments. The command line arguments are stored in argc/argv.
+   * Nonoptions are stored into nonoptions.
    *
    * This is not thread safe.
    *
@@ -489,7 +488,8 @@ public:
    * Preconditions: options, extender and nonoptions are non-null.
    */
   static void parseOptionsRecursive(Options* options,
-                                    options::ArgumentExtender* extender,
+                                    int argc,
+                                    char* argv[],
                                     std::vector<std::string>* nonoptions);
 };/* class Options */
 

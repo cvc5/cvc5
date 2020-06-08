@@ -159,7 +159,7 @@ class LambdaTypeRule {
   }
 };/* class LambdaTypeRule */
 
-class ChoiceTypeRule
+class WitnessTypeRule
 {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager,
@@ -169,14 +169,14 @@ class ChoiceTypeRule
     if (n[0].getType(check) != nodeManager->boundVarListType())
     {
       std::stringstream ss;
-      ss << "expected a bound var list for CHOICE expression, got `"
+      ss << "expected a bound var list for WITNESS expression, got `"
          << n[0].getType().toString() << "'";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     if (n[0].getNumChildren() != 1)
     {
       std::stringstream ss;
-      ss << "expected a bound var list with one argument for CHOICE expression";
+      ss << "expected a bound var list with one argument for WITNESS expression";
       throw TypeCheckingExceptionPrivate(n, ss.str());
     }
     if (check)
@@ -185,14 +185,14 @@ class ChoiceTypeRule
       if (!rangeType.isBoolean())
       {
         std::stringstream ss;
-        ss << "expected a body of a CHOICE expression to have Boolean type";
+        ss << "expected a body of a WITNESS expression to have Boolean type";
         throw TypeCheckingExceptionPrivate(n, ss.str());
       }
     }
-    // The type of a choice function is the type of its bound variable.
+    // The type of a witness function is the type of its bound variable.
     return n[0][0].getType();
   }
-}; /* class ChoiceTypeRule */
+}; /* class WitnessTypeRule */
 
 class SortProperties {
  public:

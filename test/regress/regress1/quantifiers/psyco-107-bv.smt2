@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv --cbqi-bv-ineq=eq-boundary
+; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=eq-boundary
 ; EXPECT: unsat
 (set-logic BV)
 (set-info :status unsat)

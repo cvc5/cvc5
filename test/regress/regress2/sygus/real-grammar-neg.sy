@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status --cegqi-si=none --no-sygus-pbe
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --sygus-si=none --no-sygus-pbe
 
 (set-logic LRA)
 

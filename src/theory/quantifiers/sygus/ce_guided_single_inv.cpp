@@ -56,7 +56,7 @@ void CegSingleInv::initialize(Node q)
   Assert(d_quant.isNull());
   d_quant = q;
   d_simp_quant = q;
-  Trace("cegqi-si") << "CegSingleInv::initialize : " << q << std::endl;
+  Trace("sygus-si") << "CegSingleInv::initialize : " << q << std::endl;
   // infer single invocation-ness
 
   // get the variables
@@ -87,13 +87,13 @@ void CegSingleInv::initialize(Node q)
   // process the single invocation-ness of the property
   if (!d_sip->init(progs, qq))
   {
-    Trace("cegqi-si") << "...not single invocation (type mismatch)"
+    Trace("sygus-si") << "...not single invocation (type mismatch)"
                       << std::endl;
     return;
   }
-  Trace("cegqi-si") << "- Partitioned to single invocation parts : "
+  Trace("sygus-si") << "- Partitioned to single invocation parts : "
                     << std::endl;
-  d_sip->debugPrint("cegqi-si");
+  d_sip->debugPrint("sygus-si");
 
   // map from program to bound variables
   std::vector<Node> funcs;
@@ -142,7 +142,7 @@ void CegSingleInv::initialize(Node q)
     return;
   }
   // if we are doing invariant templates, then construct the template
-  Trace("cegqi-si") << "- Do transition inference..." << std::endl;
+  Trace("sygus-si") << "- Do transition inference..." << std::endl;
   d_ti[q].process(qq, q[0][0]);
   Trace("cegqi-inv") << std::endl;
   Node prog = d_ti[q].getFunction();
@@ -194,7 +194,7 @@ void CegSingleInv::initialize(Node q)
           .negate();
   d_simp_quant = Rewriter::rewrite(d_simp_quant);
   d_simp_quant = nm->mkNode(FORALL, q[0], d_simp_quant, q[2]);
-  Trace("cegqi-si") << "Rewritten quantifier : " << d_simp_quant << std::endl;
+  Trace("sygus-si") << "Rewritten quantifier : " << d_simp_quant << std::endl;
 
   // construct template argument
   d_templ_arg[prog] = nm->mkSkolem("I", invariant.getType());
@@ -273,21 +273,21 @@ void CegSingleInv::initialize(Node q)
 
 void CegSingleInv::finishInit(bool syntaxRestricted)
 {
-  Trace("cegqi-si-debug") << "Single invocation: finish init" << std::endl;
+  Trace("sygus-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and
   // options::CegqiSingleInvMode::ALL is not enabled
   if (options::cegqiSingleInvMode() == options::CegqiSingleInvMode::USE
       && d_single_invocation && syntaxRestricted)
   {
     d_single_invocation = false;
-    Trace("cegqi-si") << "...grammar is restricted, do not use single invocation techniques." << std::endl;
+    Trace("sygus-si") << "...grammar is restricted, do not use single invocation techniques." << std::endl;
   }
 
   // we now have determined whether we will do single invocation techniques
   if (!d_single_invocation)
   {
     d_single_inv = Node::null();
-    Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
+    Trace("sygus-si") << "Formula is not single invocation." << std::endl;
     if (options::cegqiSingleInvAbort())
     {
       std::stringstream ss;
@@ -320,7 +320,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                                          sivars.end(),
                                          d_single_inv_arg_sk.begin(),
                                          d_single_inv_arg_sk.end());
-  Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv
+  Trace("sygus-si") << "Single invocation formula is : " << d_single_inv
                     << std::endl;
   // check whether we can handle this quantified formula
   CegHandledStatus status = CEG_HANDLED;
@@ -332,10 +332,10 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
       status = CegInstantiator::isCbqiQuant(d_single_inv);
     }
   }
-  Trace("cegqi-si") << "CegHandledStatus is " << status << std::endl;
+  Trace("sygus-si") << "CegHandledStatus is " << status << std::endl;
   if (status < CEG_HANDLED)
   {
-    Trace("cegqi-si") << "...do not invoke single invocation techniques since "
+    Trace("sygus-si") << "...do not invoke single invocation techniques since "
                          "the quantified formula does not have a handled "
                          "counterexample-guided instantiation strategy!"
                       << std::endl;
@@ -356,7 +356,7 @@ bool CegSingleInv::solve()
     // already solved, probably via a call to solveTrivial.
     return true;
   }
-  Trace("cegqi-si") << "Solve using single invocation..." << std::endl;
+  Trace("sygus-si") << "Solve using single invocation..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // Mark the quantified formula with the quantifier elimination attribute to
   // ensure its structure is preserved in the query below.
@@ -378,7 +378,7 @@ bool CegSingleInv::solve()
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
   siSmt.assertFormula(siq.toExpr());
   Result r = siSmt.checkSat();
-  Trace("cegqi-si") << "Result: " << r << std::endl;
+  Trace("sygus-si") << "Result: " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
     // conjecture is infeasible or unknown
@@ -389,7 +389,7 @@ bool CegSingleInv::solve()
   siSmt.getInstantiatedQuantifiedFormulas(qs);
   Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
-  Trace("cegqi-si") << "#instantiated quantified formulas=" << qs.size()
+  Trace("sygus-si") << "#instantiated quantified formulas=" << qs.size()
                     << std::endl;
   d_inst.clear();
   d_instConds.clear();
@@ -399,7 +399,7 @@ bool CegSingleInv::solve()
     Assert(qn.getKind() == FORALL);
     std::vector<std::vector<Expr> > tvecs;
     siSmt.getInstantiationTermVectors(q, tvecs);
-    Trace("cegqi-si") << "#instantiations of " << q << "=" << tvecs.size()
+    Trace("sygus-si") << "#instantiations of " << q << "=" << tvecs.size()
                       << std::endl;
     std::vector<Node> vars;
     for (const Node& v : qn[0])
@@ -415,14 +415,14 @@ bool CegSingleInv::solve()
       {
         inst.push_back(Node::fromExpr(t));
       }
-      Trace("cegqi-si") << "  Instantiation: " << inst << std::endl;
+      Trace("sygus-si") << "  Instantiation: " << inst << std::endl;
       d_inst.push_back(inst);
       Assert(inst.size() == vars.size());
       Node ilem =
           body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
       ilem = Rewriter::rewrite(ilem);
       d_instConds.push_back(ilem);
-      Trace("cegqi-si") << "  Instantiation Lemma: " << ilem << std::endl;
+      Trace("sygus-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
   }
   d_isSolved = true;
@@ -654,7 +654,7 @@ bool CegSingleInv::solveTrivial(Node q)
   // if we solved all arguments
   if (args.empty() && body.isConst() && !body.getConst<bool>())
   {
-    Trace("cegqi-si-trivial-solve")
+    Trace("sygus-si-trivial-solve")
         << q << " is trivially solvable by substitution " << vars << " -> "
         << subs << std::endl;
     std::map<Node, Node> imap;
@@ -673,7 +673,7 @@ bool CegSingleInv::solveTrivial(Node q)
     d_isSolved = true;
     return true;
   }
-  Trace("cegqi-si-trivial-solve")
+  Trace("sygus-si-trivial-solve")
       << q << " is not trivially solvable." << std::endl;
   return false;
 }
