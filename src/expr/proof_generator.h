@@ -32,11 +32,11 @@ namespace CVC4 {
  * way of justifying lemmas or conflicts.
  *
  * A proof generator has two main interfaces for generating proofs:
- * (1) getProofFor, and (2) addProofTo. The latter is optional. 
- * 
+ * (1) getProofFor, and (2) addProofTo. The latter is optional.
+ *
  * The addProofTo method can be used as an optimization for avoiding
  * the construction of the ProofNode for a given fact.
- * 
+ *
  * If no implementation of addProofTo is provided, then addProofTo(f, pf)
  * calls getProofFor(f) and links the topmost ProofNode of the returned proof
  * into pf. Note this top-most ProofNode can be avoided in the addProofTo
