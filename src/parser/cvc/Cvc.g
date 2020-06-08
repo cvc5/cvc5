@@ -944,7 +944,7 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
       cmd->reset(
           new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
                                        eformals,
-                                       api::termVectorToExprs(formulas)));
+                                       api::termVectorToExprs(formulas), true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1164,7 +1164,7 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
           Command* decl =
-              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
+              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr(), true);
           seq->addCommand(decl);
         }
       }

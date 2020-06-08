@@ -436,17 +436,16 @@ class CVC4_PUBLIC DefineTypeCommand : public DeclarationDefinitionCommand
 
 class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
 {
- protected:
-  Expr d_func;
-  std::vector<Expr> d_formals;
-  Expr d_formula;
-
  public:
-  DefineFunctionCommand(const std::string& id, Expr func, Expr formula);
+  DefineFunctionCommand(const std::string& id,
+                        Expr func,
+                        Expr formula,
+                        bool global);
   DefineFunctionCommand(const std::string& id,
                         Expr func,
                         const std::vector<Expr>& formals,
-                        Expr formula);
+                        Expr formula,
+                        bool global);
 
   Expr getFunction() const;
   const std::vector<Expr>& getFormals() const;
@@ -457,6 +456,19 @@ class CVC4_PUBLIC DefineFunctionCommand : public DeclarationDefinitionCommand
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+
+ protected:
+  /** The function we are defining */
+  Expr d_func;
+  /** The formal arguments for the function we are defining */
+  std::vector<Expr> d_formals;
+  /** The formula corresponding to the body of the function we are defining */
+  Expr d_formula;
+  /**
+   * Stores whether this definition is global (i.e. should persist when
+   * popping the user context.
+   */
+  bool d_global;
 }; /* class DefineFunctionCommand */
 
 /**
@@ -470,7 +482,8 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
   DefineNamedFunctionCommand(const std::string& id,
                              Expr func,
                              const std::vector<Expr>& formals,
-                             Expr formula);
+                             Expr formula,
+                             bool global);
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
@@ -487,10 +500,12 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
  public:
   DefineFunctionRecCommand(Expr func,
                            const std::vector<Expr>& formals,
-                           Expr formula);
+                           Expr formula,
+                           bool global);
   DefineFunctionRecCommand(const std::vector<Expr>& funcs,
                            const std::vector<std::vector<Expr> >& formals,
-                           const std::vector<Expr>& formula);
+                           const std::vector<Expr>& formula,
+                           bool global);
 
   const std::vector<Expr>& getFunctions() const;
   const std::vector<std::vector<Expr> >& getFormals() const;
@@ -509,6 +524,11 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
   std::vector<std::vector<Expr> > d_formals;
   /** formulas corresponding to the bodies of the functions we are defining */
   std::vector<Expr> d_formulas;
+  /**
+   * Stores whether this definition is global (i.e. should persist when
+   * popping the user context.
+   */
+  bool d_global;
 }; /* class DefineFunctionRecCommand */
 
 /**

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof_skolem_cache.cpp
+/*! \file skolem_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of proof skolem cache
+ ** \brief Implementation of skolem manager class
  **/
 
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 
 #include "expr/attribute.h"
 
@@ -35,11 +35,12 @@ struct PurifySkolemAttributeId
 };
 typedef expr::Attribute<PurifySkolemAttributeId, Node> PurifySkolemAttribute;
 
-Node ProofSkolemCache::mkSkolem(Node v,
-                                Node pred,
-                                const std::string& prefix,
-                                const std::string& comment,
-                                int flags)
+Node SkolemManager::mkSkolem(Node v,
+                             Node pred,
+                             const std::string& prefix,
+                             const std::string& comment,
+                             int flags,
+                             ProofGenerator* pg)
 {
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
@@ -49,14 +50,17 @@ Node ProofSkolemCache::mkSkolem(Node v,
   Node predw = getWitnessForm(pred);
   // make the witness term, which should not contain any skolem
   Node w = nm->mkNode(WITNESS, bvl, predw);
+  // store the mapping to proof generator
+  d_gens[w] = pg;
   return getOrMakeSkolem(w, prefix, comment, flags);
 }
 
-Node ProofSkolemCache::mkSkolemExists(Node v,
-                                      Node q,
-                                      const std::string& prefix,
-                                      const std::string& comment,
-                                      int flags)
+Node SkolemManager::mkSkolemExists(Node v,
+                                   Node q,
+                                   const std::string& prefix,
+                                   const std::string& comment,
+                                   int flags,
+                                   ProofGenerator* pg)
 {
   Assert(q.getKind() == EXISTS);
   bool foundVar = false;
@@ -82,13 +86,13 @@ Node ProofSkolemCache::mkSkolemExists(Node v,
     Node bvl = nm->mkNode(BOUND_VAR_LIST, ovars);
     pred = nm->mkNode(EXISTS, bvl, pred);
   }
-  return mkSkolem(v, pred, prefix, comment, flags);
+  return mkSkolem(v, pred, prefix, comment, flags, pg);
 }
 
-Node ProofSkolemCache::mkPurifySkolem(Node t,
-                                      const std::string& prefix,
-                                      const std::string& comment,
-                                      int flags)
+Node SkolemManager::mkPurifySkolem(Node t,
+                                   const std::string& prefix,
+                                   const std::string& comment,
+                                   int flags)
 {
   PurifySkolemAttribute psa;
   if (t.hasAttribute(psa))
@@ -107,23 +111,27 @@ Node ProofSkolemCache::mkPurifySkolem(Node t,
   return k;
 }
 
-Node ProofSkolemCache::getWitnessForm(Node n)
+ProofGenerator* SkolemManager::getProofGenerator(Node t)
 {
-  return convertInternal(n, true);
+  std::map<Node, ProofGenerator*>::iterator it = d_gens.find(t);
+  if (it != d_gens.end())
+  {
+    return it->second;
+  }
+  return nullptr;
 }
 
-Node ProofSkolemCache::getSkolemForm(Node n)
-{
-  return convertInternal(n, false);
-}
+Node SkolemManager::getWitnessForm(Node n) { return convertInternal(n, true); }
 
-Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
+Node SkolemManager::getSkolemForm(Node n) { return convertInternal(n, false); }
+
+Node SkolemManager::convertInternal(Node n, bool toWitness)
 {
   if (n.isNull())
   {
     return n;
   }
-  Trace("pf-skolem-debug") << "ProofSkolemCache::convertInternal: " << toWitness
+  Trace("pf-skolem-debug") << "SkolemManager::convertInternal: " << toWitness
                            << " " << n << std::endl;
   WitnessFormAttribute wfa;
   SkolemFormAttribute sfa;
@@ -153,6 +161,10 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          visit.push_back(cur.getOperator());
+        }
         for (const Node& cn : cur)
         {
           visit.push_back(cn);
@@ -166,7 +178,11 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
       std::vector<Node> children;
       if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
-        children.push_back(cur.getOperator());
+        it = visited.find(cur.getOperator());
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur.getOperator() != it->second;
+        children.push_back(it->second);
       }
       for (const Node& cn : cur)
       {
@@ -186,6 +202,14 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
       }
       else
       {
+        // notice that WITNESS terms t may be assigned a skolem form that is
+        // of kind WITNESS here, if t contains a free variable. This is due to
+        // the fact that witness terms in the bodies of quantified formulas are
+        // not eliminated and thus may appear in places where getSkolemForm is
+        // called on them. Regardless, witness terms with free variables
+        // should never be themselves assigned skolems (otherwise we would have
+        // assertions with free variables), and thus they can be treated like
+        // ordinary terms here.
         cur.setAttribute(sfa, ret);
       }
       visited[cur] = ret;
@@ -197,14 +221,14 @@ Node ProofSkolemCache::convertInternal(Node n, bool toWitness)
   return visited[n];
 }
 
-void ProofSkolemCache::convertToWitnessFormVec(std::vector<Node>& vec)
+void SkolemManager::convertToWitnessFormVec(std::vector<Node>& vec)
 {
   for (unsigned i = 0, nvec = vec.size(); i < nvec; i++)
   {
     vec[i] = getWitnessForm(vec[i]);
   }
 }
-void ProofSkolemCache::convertToSkolemFormVec(std::vector<Node>& vec)
+void SkolemManager::convertToSkolemFormVec(std::vector<Node>& vec)
 {
   for (unsigned i = 0, nvec = vec.size(); i < nvec; i++)
   {
@@ -212,10 +236,10 @@ void ProofSkolemCache::convertToSkolemFormVec(std::vector<Node>& vec)
   }
 }
 
-Node ProofSkolemCache::getOrMakeSkolem(Node w,
-                                       const std::string& prefix,
-                                       const std::string& comment,
-                                       int flags)
+Node SkolemManager::getOrMakeSkolem(Node w,
+                                    const std::string& prefix,
+                                    const std::string& comment,
+                                    int flags)
 {
   Assert(w.getKind() == WITNESS);
   SkolemFormAttribute sfa;
@@ -232,7 +256,7 @@ Node ProofSkolemCache::getOrMakeSkolem(Node w,
   k.setAttribute(wfa, w);
   // set skolem form attribute for w
   w.setAttribute(sfa, k);
-  Trace("pf-skolem") << "ProofSkolemCache::mkSkolem: " << k << " : " << w
+  Trace("pf-skolem") << "SkolemManager::mkSkolem: " << k << " : " << w
                      << std::endl;
   return k;
 }
