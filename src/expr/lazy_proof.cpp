@@ -170,17 +170,6 @@ bool LazyCDProof::hasGenerator(Node fact) const
   {
     it = d_gens.find(factSym);
   }
-  if (it == d_gens.end())
-  {
-    // maybe theri is a predicate fact?
-    bool pol, symm;
-    Node factPred = CDProof::getPredicateFact(fact, pol, symm);
-    if (factPred.isNull())
-    {
-      return false;
-    }
-    it = d_gens.find(factPred);
-  }
   return it != d_gens.end();
 }
 
