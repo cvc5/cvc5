@@ -186,7 +186,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {};
 
-    auto traversal = NodeDfsIterable(top).inPostorder().skipIf(
+    auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER,
         [](TNode n) { return true; });
 
     std::vector<TNode> actual;
