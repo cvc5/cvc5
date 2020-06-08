@@ -365,7 +365,7 @@ struct SequenceProperties
     // empty sequence
     std::vector<Expr> seq;
     return NodeManager::currentNM()->mkConst(
-        ExprSequence(SequenceType(type.toType()), seq));
+        ExprSequence(SequenceType(type.getSequenceElementType().toType()), seq));
   }
 }; /* struct SequenceProperties */
 

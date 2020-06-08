@@ -71,7 +71,7 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
         seq.push_back(c.toExpr());
       }
     }
-    return NodeManager::currentNM()->mkConst(ExprSequence(tn.toType(), seq));
+    return NodeManager::currentNM()->mkConst(ExprSequence(tn.getSequenceElementType().toType(), seq));
   }
   Unimplemented();
   return Node::null();

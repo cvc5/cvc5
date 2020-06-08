@@ -3106,7 +3106,7 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   {
     std::vector<Expr> seq;
     seq.push_back(node[0].toExpr());
-    TypeNode stype = nm->mkSequenceType(node[0].getType());
+    TypeNode stype = node[0].getType();
     Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
