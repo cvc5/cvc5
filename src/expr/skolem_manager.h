@@ -184,6 +184,8 @@ class SkolemManager
                               const std::string& prefix,
                               const std::string& comment,
                               int flags);
+  /** Get or make bound variable */
+  Node getOrMakeBoundVariable(Node t, Node s);
 };
 
 }  // namespace CVC4
