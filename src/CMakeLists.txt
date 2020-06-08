@@ -738,6 +738,8 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_proof_generator.cpp
+  theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
   theory/theory_model.cpp
