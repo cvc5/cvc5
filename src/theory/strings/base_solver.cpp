@@ -109,7 +109,7 @@ void BaseSolver::checkInit()
             if (!d_state.areEqual(s, t))
             {
               // (seq.unit x) = (seq.unit y) => x=y, or
-              // (seq.unit x) = (seq.unit c) => x = c
+              // (seq.unit x) = (seq.unit c) => x=c
               Assert(s.getType() == t.getType());
               d_im.sendInference(exp, s.eqNode(t), Inference::UNIT_INJ);
             }
