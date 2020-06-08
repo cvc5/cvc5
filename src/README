@@ -73,6 +73,7 @@ PR finished:
 (7) strings SkolemCache uses SkolemManager (req 4)
 (9) Proof step buffer (req 5)
 (10) Update CDProof (req 9, 16)
+(11) ProofGenerator (req 10)
 (14) Builtin rules, builtin checker (req 5)
 (15) Boolean rules, boolean checker [Haniel] (req 5)
 (16) UF rules, UF checker [Haniel] (req 5)
@@ -82,30 +83,29 @@ PR finished:
 PRs ready:
 
 (6) Equality engine updates [Haniel]
-(8) refactor mkSkolemExists
-(11) ProofGenerator (req 10) *
+(8) refactor mkSkolemExists *
+(12) Add TrustNode (req 11) *
+(18) Add LazyCDProof (req 11) *
 (32) split theory engine *
 (33) split operator elimination from arith (req 28) *
 (34) theory proof step buffer *
 
 PRs future:
 
-(12) Add TrustNode (req 11)
-(13) Add EagerProofGenerator (req 11)
+(13) Add EagerProofGenerator (req 11, 12)
 (17) rewriter new infrastructure "rewriteEqualityExt"
-(18) Add LazyCDProof (req 11)
 (19) ProofNode update, TODO first refactor free assumptions via visitor?
 (20) Eq proof conversion (req 6)
 (22) Strings core solver update (req 2)
 (23) Updates to proof node manager, including mkScope (req 19)
-(24) ProofEqEngine (req 10, 11, 12, 18, 23)
+(24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (25) Arithmetic proof checker [Alex]
 (26) strings infer info update "noExplain", all calls to InferenceManager
 (27) Strings term registry update
 (29) CongruenceManager uses pfee [Alex] (req 24, 25)
 (30) Arithmetic operator elimination proof producing (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
-(35) Add trustedConflict/trustedLemma to output channel
+(35) Add trustedConflict/trustedLemma to output channel (req 12, 32)
 (36) term traversal extension of CDProof/ [Andres] TODO
 (37) Rewriter proof producing [Andres] (req 36)
 (38) quantifiers proof checker (req 8)
@@ -116,7 +116,7 @@ PRs future:
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 41)
 (45) regexp operation refactor (req 3, 7, 8)
-(46) theory engine proof generator (req 11)
+(46) theory engine proof generator (req 11, 18)
 
 PRs wish list:
 
