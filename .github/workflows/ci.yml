@@ -165,7 +165,7 @@ jobs:
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
 
-    - name: Python Install Check
+    - name: Run Pytest
       if: matrix.python-bindings
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
