@@ -59,6 +59,10 @@ enum class Inference : uint32_t
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
+  // injectivity of seq.unit
+  UNIT_INJ,
+  // unit constant conflict
+  UNIT_CONST_CONFLICT,
   // A split due to cardinality
   CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.

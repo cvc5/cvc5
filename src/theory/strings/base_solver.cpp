@@ -67,11 +67,59 @@ void BaseSolver::checkInit()
       while (!eqc_i.isFinished())
       {
         Node n = *eqc_i;
-        if (n.isConst())
+        Kind k = n.getKind();
+        if (n.isConst() || k==SEQ_UNIT)
         {
-          d_eqcInfo[eqc].d_bestContent = n;
-          d_eqcInfo[eqc].d_base = n;
-          d_eqcInfo[eqc].d_exp = Node::null();
+          Node prev = d_eqcInfo[eqc].d_bestContent;
+          if (!prev.isNull())
+          {
+            // we have either (seq.unit x) = C, or (seq.unit x) = (seq.unit y)
+            // where C is a sequence constant.
+            Node cval = prev.isConst() ? prev : ( n.isConst() ? n : Node::null());
+            std::vector<Node> exp;
+            exp.push_back(prev.eqNode(n));
+            Node s, t;
+            if (cval.isNull())
+            {
+              // injectivity of seq.unit
+              s = prev[0];
+              t = n[0];
+            }
+            else
+            {
+              // should not have two constants in the same equivalence class
+              Assert (cval.getType().isSequence());
+              std::vector<Node> cchars = Word::getChars(cval);
+              if (cchars.size()==1)
+              {
+                Node oval = prev.isConst() ? n : prev;
+                Assert (oval.getKind()==SEQ_UNIT);
+                s = oval[0];
+                t = cchars[0];
+              }
+              else 
+              {
+                // (seq.unit x) = C => false if |C| != 1.
+                d_im.sendInference(exp, d_false, Inference::UNIT_CONST_CONFLICT);
+                return;
+              }
+            }
+            if (!d_state.areEqual(s, t))
+            {
+              // (seq.unit x) = (seq.unit y) => x=y, or
+              // (seq.unit x) = (seq.unit c) => x = c
+              Assert (s.getType()==t.getType());
+              d_im.sendInference(exp, s.eqNode(t), Inference::UNIT_INJ);
+            }
+          }
+          // update best content
+          if (prev.isNull() || n.isConst())
+          {
+            d_eqcInfo[eqc].d_bestContent = n;
+            d_eqcInfo[eqc].d_bestScore = 0;
+            d_eqcInfo[eqc].d_base = n;
+            d_eqcInfo[eqc].d_exp = Node::null();
+          }
         }
         else if (tn.isInteger())
         {
@@ -79,7 +127,6 @@ void BaseSolver::checkInit()
         }
         else if (n.getNumChildren() > 0)
         {
-          Kind k = n.getKind();
           if (k != EQUAL)
           {
             if (d_congruent.find(n) == d_congruent.end())
@@ -90,7 +137,7 @@ void BaseSolver::checkInit()
               {
                 // check if we have inferred a new equality by removal of empty
                 // components
-                if (n.getKind() == STRING_CONCAT && !d_state.areEqual(nc, n))
+                if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
                 {
                   std::vector<Node> exp;
                   size_t count[2] = {0, 0};
@@ -352,6 +399,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Node nct = utils::mkNConcat(vecnc, n.getType());
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
+            bei.d_bestScore = contentSize;
             bei.d_base = n;
             bei.d_exp = utils::mkAnd(exp);
             Trace("strings-debug")
