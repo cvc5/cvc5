@@ -89,7 +89,7 @@ class LazyCDProof : public CDProof
   /** The default proof generator */
   ProofGenerator* d_defaultGen;
   /** Get generator for fact, or nullptr if it doesnt exist */
-  ProofGenerator* getGeneratorFor(Node fact, bool& isSym, bool& isPredEq);
+  ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 };
 
 }  // namespace CVC4

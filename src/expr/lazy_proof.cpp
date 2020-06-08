@@ -59,28 +59,13 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
       if (cur->getRule() == PfRule::ASSUME)
       {
         Node afact = cur->getResult();
-        bool isSym = false, isPredEq = false;
-        ProofGenerator* pg = getGeneratorFor(afact, isSym, isPredEq);
+        bool isSym = false;
+        ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
           Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
                                 << afact << std::endl;
-          Node afactGen;
-          if (isPredEq)
-          {
-            bool pol, symm;
-            afactGen = CDProof::getPredicateFact(afact, pol, symm);
-            // add directly to cdproof
-            CDProof* cdpf = static_cast<CDProof*>(this);
-            cdpf->addStep(!symm ? afact : afact[1].eqNode(afact[0]),
-                          pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
-                          {afactGen},
-                          {});
-          }
-          else
-          {
-            afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
-          }
+          Node afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
           Assert(!afactGen.isNull());
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
@@ -138,8 +123,7 @@ void LazyCDProof::addLazyStep(Node expected,
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
-                                             bool& isSym,
-                                             bool& isPredEq)
+                                             bool& isSym)
 {
   isSym = false;
   NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);
@@ -158,20 +142,6 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
   if (it != d_gens.end())
   {
     isSym = true;
-    return (*it).second;
-  }
-  // could be predicate equality
-  bool pol, symm;
-  Node factPred = CDProof::getPredicateFact(fact, pol, symm);
-  if (factPred.isNull())
-  {
-    // can't be predicate equality, return the default generator
-    return d_defaultGen;
-  }
-  it = d_gens.find(factPred);
-  if (it != d_gens.end())
-  {
-    isPredEq = true;
     return (*it).second;
   }
   // return the default generator
