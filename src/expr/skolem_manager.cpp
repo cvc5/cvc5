@@ -53,7 +53,7 @@ Node SkolemManager::mkSkolem(Node v,
   // make the witness term, which should not contain any skolem
   Node w = nm->mkNode(WITNESS, bvl, predw);
   // store the mapping to proof generator if it exists
-  if (pg!=nullptr)
+  if (pg != nullptr)
   {
     // notice this may overwrite an existing proof generator
     d_gens[w] = pg;
@@ -75,10 +75,11 @@ Node SkolemManager::mkSkolemExists(Node v,
   {
     Assert(currQ.getKind() == EXISTS && av == currQ[0][0]);
     Node sk = mkSkolemize(currQ, currQ, prefix, comment, flags, pg);
-    Trace("sk-manager-debug") << "made skolem " << sk << " for " << av << std::endl;
-    if (av==v)
+    Trace("sk-manager-debug")
+        << "made skolem " << sk << " for " << av << std::endl;
+    if (av == v)
     {
-      Assert (sk.getType()==v.getType());
+      Assert(sk.getType() == v.getType());
       return sk;
     }
   }
@@ -108,7 +109,7 @@ Node SkolemManager::mkSkolemize(Node q,
     }
     // must make fresh variable to avoid shadowing, which is unique per
     // variable av to ensure that this method is deterministic
-    Node avp = getOrMakeBoundVariable(av,av);
+    Node avp = getOrMakeBoundVariable(av, av);
     ovarsW.push_back(avp);
     ovars.push_back(av);
   }
@@ -126,15 +127,16 @@ Node SkolemManager::mkSkolemize(Node q,
   }
   Trace("sk-manager-debug") << "call sub mkSkolem" << std::endl;
   Node k = mkSkolem(v, pred, prefix, comment, flags, pg);
-  Assert (k.getType()==v.getType());
+  Assert(k.getType() == v.getType());
   TNode tv = v;
   TNode tk = k;
-  Trace("sk-manager-debug") << "qskolem apply " << tv << " -> " << tk << " to " << pred << std::endl;
+  Trace("sk-manager-debug")
+      << "qskolem apply " << tv << " -> " << tk << " to " << pred << std::endl;
   qskolem = qskolem.substitute(tv, tk);
   Trace("sk-manager-debug") << "qskolem done substitution" << std::endl;
   // debug free variables?
-  //std::unordered_set<Node, NodeHashFunction> fvs;
-  //expr::getFreeVariables(qskolem,fvs);
+  // std::unordered_set<Node, NodeHashFunction> fvs;
+  // expr::getFreeVariables(qskolem,fvs);
   return k;
 }
 
@@ -164,7 +166,7 @@ Node SkolemManager::mkExistential(Node t, Node p)
 {
   Assert(p.getType().isBoolean());
   NodeManager* nm = NodeManager::currentNM();
-  Node v = getOrMakeBoundVariable(t,p);
+  Node v = getOrMakeBoundVariable(t, p);
   Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
   Node psubs = p.substitute(TNode(t), TNode(v));
   return nm->mkNode(EXISTS, bvl, psubs);
@@ -191,7 +193,7 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
     return n;
   }
   Trace("sk-manager-debug") << "SkolemManager::convertInternal: " << toWitness
-                           << " " << n << std::endl;
+                            << " " << n << std::endl;
   WitnessFormAttribute wfa;
   SkolemFormAttribute sfa;
   NodeManager* nm = NodeManager::currentNM();
@@ -316,13 +318,12 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   // set skolem form attribute for w
   w.setAttribute(sfa, k);
   Trace("sk-manager") << "SkolemManager::mkSkolem: " << k << " : " << w
-                     << std::endl;
+                      << std::endl;
   return k;
 }
 
 Node SkolemManager::getOrMakeBoundVariable(Node t, Node s)
 {
-
   std::pair<Node, Node> key(t, s);
   std::map<std::pair<Node, Node>, Node>::iterator it =
       d_witnessBoundVar.find(key);

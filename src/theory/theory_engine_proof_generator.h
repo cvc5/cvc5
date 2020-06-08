@@ -28,7 +28,7 @@
 
 namespace CVC4 {
 
-/** 
+/**
  * A simple proof generator class used by the theory engine. This class
  * stores proofs for TheoryEngine::getExplanation.
  */
@@ -41,7 +41,7 @@ class TheoryEngineProofGenerator : public ProofGenerator
  public:
   TheoryEngineProofGenerator(ProofNodeManager* pnm, context::UserContext* u);
   ~TheoryEngineProofGenerator() {}
-  /** 
+  /**
    * Make trust explanation. Called when lpf has of proof of (=> exp lit). This
    * stores lpf in the map d_proofs below and returns the trust node for this
    * propagation, which has TrustNodeKind TrustNodeKind::PROP_EXP.
