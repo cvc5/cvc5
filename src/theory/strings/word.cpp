@@ -27,24 +27,14 @@ Node Word::mkEmptyWord(TypeNode tn)
 {
   if (tn.isString())
   {
-    return mkEmptyWord(CONST_STRING);
+    std::vector<unsigned> vec;
+    return NodeManager::currentNM()->mkConst(String(vec));
   }
   else if (tn.isSequence())
   {
     std::vector<Expr> seq;
     return NodeManager::currentNM()->mkConst(
         ExprSequence(tn.getSequenceElementType().toType(), seq));
-  }
-  Unimplemented();
-  return Node::null();
-}
-
-Node Word::mkEmptyWord(Kind k)
-{
-  if (k == CONST_STRING)
-  {
-    std::vector<unsigned> vec;
-    return NodeManager::currentNM()->mkConst(String(vec));
   }
   Unimplemented();
   return Node::null();
@@ -119,6 +109,11 @@ std::vector<Node> Word::getChars(TNode x)
       ret.push_back(ch);
     }
     return ret;
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    return sx.getVec();
   }
   Unimplemented();
   std::vector<Node> ret;
