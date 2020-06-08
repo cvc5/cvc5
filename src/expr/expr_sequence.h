@@ -54,7 +54,9 @@ class CVC4_PUBLIC ExprSequence
   bool operator>(const ExprSequence& es) const;
   bool operator>=(const ExprSequence& es) const;
 
+  /** Get the element type of the sequence */
   const Type& getType() const;
+  /** Get the underlying sequence */
   const Sequence& getSequence() const;
 
  private:

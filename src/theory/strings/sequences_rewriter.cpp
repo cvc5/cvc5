@@ -3044,7 +3044,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     Assert(ratLen.getDenominator() == 1);
     Integer intLen = ratLen.getNumerator();
     uint32_t u = intLen.getUnsignedInt();
-    if (stype.isString())
+    if (stype.isString()) // string-only
     {
       res = nm->mkConst(String(std::string(u, 'A')));
     }

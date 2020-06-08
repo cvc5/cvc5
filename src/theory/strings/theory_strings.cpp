@@ -441,7 +441,7 @@ bool TheoryStrings::collectModelInfoType(
       std::unique_ptr<SEnumLen> sel;
       Trace("strings-model") << "Cardinality of alphabet is "
                              << utils::getAlphabetCardinality() << std::endl;
-      if (tn.isString())
+      if (tn.isString()) // string-only
       {
         sel.reset(new StringEnumLen(
             currLen, currLen, utils::getAlphabetCardinality()));

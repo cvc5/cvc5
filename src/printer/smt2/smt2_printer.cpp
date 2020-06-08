@@ -216,6 +216,10 @@ void Smt2Printer::toStream(std::ostream& out,
     {
       const Sequence& sn = n.getConst<ExprSequence>().getSequence();
       const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.empty())
+      {
+        out << "(as seq.empty " << n.getType() << ")";
+      }
       if (snvec.size() > 1)
       {
         out << "(seq.++ ";
@@ -675,7 +679,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
-  case kind::SEQ_UNIT: out << smtKindString(k, d_variant) << " "; break;
+  case kind::SEQ_UNIT: 
+  case kind::SEQUENCE_TYPE:out << smtKindString(k, d_variant) << " "; break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;

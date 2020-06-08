@@ -212,6 +212,7 @@ void SeqEnumLen::mkCurr()
   const std::vector<unsigned>& data = d_witer->getData();
   for (unsigned i : data)
   {
+    Assert (i<d_elementDomain.size());
     seq.push_back(d_elementDomain[i]);
   }
   // make sequence from seq

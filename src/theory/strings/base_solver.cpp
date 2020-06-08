@@ -57,7 +57,7 @@ void BaseSolver::checkInit()
     if (!tn.isRegExp())
     {
       Node emps;
-      if (tn.isString())
+      if (tn.isStringLike())
       {
         d_stringsEqc.push_back(eqc);
         emps = Word::mkEmptyWord(tn);
@@ -458,7 +458,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // no restriction on sets in the partition of size 1
       continue;
     }
-    if (!tn.isString())
+    if (!tn.isString()) // string-only
     {
       // TODO: how to handle sequence for finite types?
       continue;
