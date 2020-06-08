@@ -15,6 +15,7 @@
 #include "theory/arith/proof_checker.h"
 
 #include <iostream>
+#include <set>
 
 #include "expr/skolem_manager.h"
 #include "theory/arith/arith_utilities.h"
@@ -215,7 +216,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       Node c = SkolemManager::getSkolemForm(args[0]);
       if (a[0] == b[0] && b[0] == c[0] && a[1] == b[1] && b[1] == c[1])
       {
-        std::unordered_set<Kind> cmps;
+        std::set<Kind> cmps;
         cmps.insert(a.getKind());
         cmps.insert(b.getKind());
         cmps.insert(c.getKind());
