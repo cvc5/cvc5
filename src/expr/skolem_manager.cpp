@@ -63,11 +63,11 @@ Node SkolemManager::mkSkolem(Node v,
 }
 
 Node SkolemManager::mkSkolemize(Node q,
-                                   std::vector<Node>& skolems,
-                                   const std::string& prefix,
-                                   const std::string& comment,
-                                   int flags,
-                                   ProofGenerator* pg)
+                                std::vector<Node>& skolems,
+                                const std::string& prefix,
+                                const std::string& comment,
+                                int flags,
+                                ProofGenerator* pg)
 {
   Trace("sk-manager-debug") << "mkSkolemize..." << std::endl;
   Assert(q.getKind() == EXISTS);
@@ -80,7 +80,7 @@ Node SkolemManager::mkSkolemize(Node q,
         << "made skolem " << sk << " for " << av << std::endl;
     skolems.push_back(sk);
   }
-  if (pg!=nullptr)
+  if (pg != nullptr)
   {
     // notice this may overwrite an existing proof generator
     d_gens[q] = pg;
@@ -89,10 +89,10 @@ Node SkolemManager::mkSkolemize(Node q,
 }
 
 Node SkolemManager::skolemize(Node q,
-                                Node& qskolem,
-                                const std::string& prefix,
-                                const std::string& comment,
-                                int flags)
+                              Node& qskolem,
+                              const std::string& prefix,
+                              const std::string& comment,
+                              int flags)
 {
   Assert(q.getKind() == EXISTS);
   Node v;

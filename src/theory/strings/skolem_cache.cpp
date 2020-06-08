@@ -169,10 +169,9 @@ Node SkolemCache::mkTypedSkolemCached(
         Assert(eform[0].getNumChildren() == r.getNumChildren());
         // TODO: needs proof manager here
         std::vector<Node> skolems;
-        sm->mkSkolemize(
-            eform, skolems, c, "regexp concat skolem");
-        Assert (skolems.size()==r.getNumChildren());
-        Assert (index<skolems.size());
+        sm->mkSkolemize(eform, skolems, c, "regexp concat skolem");
+        Assert(skolems.size() == r.getNumChildren());
+        Assert(index < skolems.size());
         sk = skolems[index];
       }
     }

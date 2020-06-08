@@ -51,7 +51,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     }
     std::vector<Node> skolems;
     sm->mkSkolemize(exists, skolems, "k");
-    Assert (skolems.size()==1);
+    Assert(skolems.size() == 1);
     return SkolemManager::getWitnessForm(skolems[0]);
   }
   else if (id == PfRule::SKOLEMIZE)
@@ -67,7 +67,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     echildren.insert(
         echildren.begin(), children[0][0].begin(), children[0][0].end());
     Node exists = nm->mkNode(EXISTS, echildren);
-    exists= SkolemManager::getSkolemForm(exists);
+    exists = SkolemManager::getSkolemForm(exists);
     std::vector<Node> skolems;
     Node res = sm->mkSkolemize(exists, skolems, "k");
     res = SkolemManager::getWitnessForm(res);

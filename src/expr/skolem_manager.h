@@ -97,7 +97,7 @@ class SkolemManager
   /**
    * Make skolemized form of existentially quantified formula q, and store its
    * Skolems into the argument skolems.
-   * 
+   *
    * For example, calling this method on:
    *   (exists ((x Int) (y Int)) (P x y))
    * returns:
@@ -106,7 +106,7 @@ class SkolemManager
    *   (witness ((x Int)) (exists ((y' Int)) (P x y')))
    *   (witness ((y Int)) (P w1 y))
    * respectively. Additionally, this method will add { w1, w2 } to skolems.
-   * 
+   *
    * @param q The existentially quantified formula to skolemize,
    * @param skolems Vector to add Skolems of q to,
    * @param prefix The prefix of the name of each of the Skolems
@@ -118,11 +118,11 @@ class SkolemManager
    * @return The skolemized form of q.
    */
   Node mkSkolemize(Node q,
-                      std::vector<Node>& skolems,
-                      const std::string& prefix,
-                      const std::string& comment = "",
-                      int flags = NodeManager::SKOLEM_DEFAULT,
-                      ProofGenerator* pg = nullptr);
+                   std::vector<Node>& skolems,
+                   const std::string& prefix,
+                   const std::string& comment = "",
+                   int flags = NodeManager::SKOLEM_DEFAULT,
+                   ProofGenerator* pg = nullptr);
   /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t, which we
@@ -192,10 +192,10 @@ class SkolemManager
    *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y Int)) (P x y))) y))
    */
   Node skolemize(Node q,
-                   Node& qskolem,
-                   const std::string& prefix,
-                   const std::string& comment = "",
-                   int flags = NodeManager::SKOLEM_DEFAULT);
+                 Node& qskolem,
+                 const std::string& prefix,
+                 const std::string& comment = "",
+                 int flags = NodeManager::SKOLEM_DEFAULT);
   /** Get or make bound variable */
   Node getOrMakeBoundVariable(Node t, Node s);
 };
