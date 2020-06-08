@@ -161,7 +161,6 @@ void SygusExtension::registerTerm( Node n, std::vector< Node >& lemmas ) {
         d_term_to_anchor[n] = n;
         d_anchor_to_conj[n] = d_tds->getConjectureForEnumerator(n);
         // this assertion fails if we have a sygus term in the search that is unmeasured
-        Assert(d_anchor_to_conj[n] != NULL);
         d = 0;
         is_top_level = true;
         success = true;
@@ -306,11 +305,14 @@ void SygusExtension::assertTesterInternal( int tindex, TNode n, Node exp, std::v
       if (itc != d_anchor_to_conj.end())
       {
         quantifiers::SynthConjecture* conj = itc->second;
-        Assert(conj != NULL);
-        Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
-        if (!dpred.isNull())
+        if (conj)
         {
-          sb_lemmas.push_back(dpred);
+          Node dpred =
+              conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
+          if (!dpred.isNull())
+          {
+            sb_lemmas.push_back(dpred);
+          }
         }
       }
     }
@@ -1013,7 +1015,6 @@ Node SygusExtension::registerSearchValue(Node a,
     // get the root (for PBE symmetry breaking)
     Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
     quantifiers::SynthConjecture* aconj = d_anchor_to_conj[a];
-    Assert(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << cnv
                             << ", type=" << tn << std::endl;
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
@@ -1042,7 +1043,7 @@ Node SygusExtension::registerSearchValue(Node a,
       {
         // Is it equivalent under examples?
         Node bvr_equiv;
-        if (options::sygusSymBreakPbe())
+        if (aconj != nullptr && options::sygusSymBreakPbe())
         {
           // If the enumerator has examples, see if it is equivalent up to its
           // examples with a previous term.
@@ -1622,26 +1623,26 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
     return check(lemmas);
   }
 
-  if (Trace.isOn("cegqi-engine") && !d_szinfo.empty())
+  if (Trace.isOn("sygus-engine") && !d_szinfo.empty())
   {
     if (lemmas.empty())
     {
-      Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
+      Trace("sygus-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
       for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>&
                p : d_szinfo)
       {
         SygusSizeDecisionStrategy* s = p.second.get();
-        Trace("cegqi-engine") << s->d_curr_search_size << " ";
+        Trace("sygus-engine") << s->d_curr_search_size << " ";
       }
-      Trace("cegqi-engine") << std::endl;
+      Trace("sygus-engine") << std::endl;
     }
     else
     {
-      Trace("cegqi-engine")
+      Trace("sygus-engine")
           << "*** Sygus : produced symmetry breaking lemmas" << std::endl;
       for (const Node& lem : lemmas)
       {
-        Trace("cegqi-engine-debug") << "  " << lem << std::endl;
+        Trace("sygus-engine-debug") << "  " << lem << std::endl;
       }
     }
   }
@@ -1782,7 +1783,7 @@ Node SygusExtension::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   }
   Assert(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
-  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s
+  Trace("sygus-engine") << "******* Sygus : allocate size literal " << s
                         << " for " << d_this << std::endl;
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }

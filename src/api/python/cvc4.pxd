@@ -54,7 +54,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
 
 
     cdef cppclass DatatypeConstructorDecl:
-        DatatypeConstructorDecl(const string& name) except +
         void addSelector(const string& name, Sort sort) except +
         void addSelectorSelf(const string& name) except +
         string toString() except +
@@ -81,15 +80,22 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         T getIndices[T]() except +
         string toString() except +
 
+    cdef cppclass OpHashFunction:
+        OpHashFunction() except +
+        size_t operator()(const Op & o) except +
+
 
     cdef cppclass Result:
-    # Note: don't even need constructor
+        Result() except+
+        bint isNull() except +
         bint isSat() except +
         bint isUnsat() except +
         bint isSatUnknown() except +
         bint isEntailed() except +
         bint isNotEntailed() except +
         bint isEntailmentUnknown() except +
+        bint operator==(const Result& r) except +
+        bint operator!=(const Result& r) except +
         string getUnknownExplanation() except +
         string toString() except +
 
@@ -156,6 +162,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         # default value for symbol defined in cvc4cpp.h
         Term mkConst(Sort sort) except +
         Term mkVar(Sort sort, const string& symbol) except +
+        DatatypeConstructorDecl mkDatatypeConstructorDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name) except +
         DatatypeDecl mkDatatypeDecl(const string& name, bint isCoDatatype) except +
         DatatypeDecl mkDatatypeDecl(const string& name, Sort param) except +
@@ -174,14 +181,14 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term declareFun(const string& symbol, const vector[Sort]& sorts, Sort sort) except +
         Sort declareSort(const string& symbol, uint32_t arity) except +
         Term defineFun(const string& symbol, const vector[Term]& bound_vars,
-                       Sort sort, Term term) except +
-        Term defineFun(Term fun, const vector[Term]& bound_vars, Term term) except +
+                       Sort sort, Term term, bint glbl) except +
+        Term defineFun(Term fun, const vector[Term]& bound_vars, Term term, bint glbl) except +
         Term defineFunRec(const string& symbol, const vector[Term]& bound_vars,
-                          Sort sort, Term term) except +
+                          Sort sort, Term term, bint glbl) except +
         Term defineFunRec(Term fun, const vector[Term]& bound_vars,
-                          Term term) except +
+                          Term term, bint glbl) except +
         Term defineFunsRec(vector[Term]& funs, vector[vector[Term]]& bound_vars,
-                           vector[Term]& terms) except +
+                           vector[Term]& terms, bint glbl) except +
         vector[Term] getAssertions() except +
         vector[pair[Term, Term]] getAssignment() except +
         string getInfo(const string& flag) except +
@@ -229,15 +236,21 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint isUninterpretedSortParameterized() except +
         string toString() except +
 
+    cdef cppclass SortHashFunction:
+        SortHashFunction() except +
+        size_t operator()(const Sort & s) except +
+
     cdef cppclass Term:
         Term()
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
         Kind getKind() except +
         Sort getSort() except +
+        Term substitute(const vector[Term] es, const vector[Term] & reps) except +
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
+        Term getConstArrayBase() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
@@ -254,6 +267,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
             Term operator*() except +
         const_iterator begin() except +
         const_iterator end() except +
+
+    cdef cppclass TermHashFunction:
+        TermHashFunction() except +
+        size_t operator()(const Term & t) except +
 
 
 cdef extern from "api/cvc4cpp.h" namespace "CVC4::api::RoundingMode":

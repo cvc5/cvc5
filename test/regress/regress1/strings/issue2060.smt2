@@ -4,8 +4,8 @@
 (declare-const action String)
 (declare-const example_key String)
 
-(assert (str.in.re action (re.++
-                           (str.to.re "foobar:ab")
+(assert (str.in_re action (re.++
+                           (str.to_re "foobar:ab")
                            (re.* re.allchar)
                    )))
 

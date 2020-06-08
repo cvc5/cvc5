@@ -22,7 +22,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/decision_strategy.h"
-#include "theory/strings/skolem_cache.h"
+#include "theory/strings/term_registry.h"
 #include "theory/valuation.h"
 
 namespace CVC4 {
@@ -42,15 +42,8 @@ class StringsFmf
   StringsFmf(context::Context* c,
              context::UserContext* u,
              Valuation valuation,
-             SkolemCache& skc);
+             TermRegistry& tr);
   ~StringsFmf();
-  /** preRegister term
-   *
-   * This determines if the term n should be added to d_inputVars, the set
-   * of terms of type string whose length we are minimizing with this decision
-   * strategy.
-   */
-  void preRegisterTerm(TNode n);
   /** presolve
    *
    * This initializes a (new copy) of the decision strategy d_sslds.
@@ -105,15 +98,10 @@ class StringsFmf
   context::Context* d_satContext;
   /** The user level assertion context for the theory of strings. */
   context::UserContext* d_userContext;
-  /** The valuation object */
+  /** The valuation object of theory of strings */
   Valuation d_valuation;
-  /** reference to the skolem cache */
-  SkolemCache& d_skCache;
-  /**
-   * The set of terms of type string whose length we are minimizing
-   * with this decision strategy.
-   */
-  NodeSet d_inputVars;
+  /** The term registry of theory of strings */
+  TermRegistry& d_termReg;
 };
 
 }  // namespace strings

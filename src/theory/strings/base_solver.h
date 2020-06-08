@@ -100,12 +100,58 @@ class BaseSolver
    */
   Node explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp);
   /**
+   * Same as above, for "best content" terms.
+   */
+  Node explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp);
+  /**
    * Get the set of equivalence classes of type string.
    */
   const std::vector<Node>& getStringEqc() const;
   //-----------------------end query functions
 
  private:
+  /**
+   * The information that we associated with each equivalence class.
+   *
+   * Example 1. Consider the equivalence class { r, x++"a"++y, x++z }, and
+   * assume x = "" and y = "bb" in the current context. We have that
+   *   d_bestContent = "abb",
+   *   d_base = x++"a"++y
+   *   d_exp = ( x = "" AND y = "bb" )
+   *
+   * Example 2. Consider the equivalence class { r, x++"a"++w++y, x++z }, and
+   * assume x = "" and y = "bb" in the current context. We have that
+   *   d_bestContent = "a" ++ w ++ "bb",
+   *   d_bestScore = 3
+   *   d_base = x++"a"++w++y
+   *   d_exp = ( x = "" AND y = "bb" )
+   *
+   * This information is computed during checkInit and is used during various
+   * inference schemas for deriving inferences.
+   */
+  struct BaseEqcInfo
+  {
+    /**
+     * Either a constant or a concatentation of constants and variables that
+     * this equivalence class is entailed to be equal to. If it is a
+     * concatenation, this is the concatenation that is currently known to have
+     * the highest score (see `d_bestScore`).
+     */
+    Node d_bestContent;
+    /**
+     * The sum of the number of characters in the string literals of
+     * `d_bestContent`.
+     */
+    size_t d_bestScore;
+    /**
+     * The term in the equivalence class that is entailed to be equal to
+     * `d_bestContent`.
+     */
+    Node d_base;
+    /** This term explains why `d_bestContent` is equal to `d_base`. */
+    Node d_exp;
+  };
+
   /**
    * A term index that considers terms modulo flattening and constant merging
    * for concatenation terms.
@@ -143,8 +189,17 @@ class BaseSolver
    * accumulates the list of constants in the path to ti. If ti has a non-null
    * data n, then we have inferred that d_data is equivalent to the
    * constant specified by vecc.
+   *
+   * @param ti The term index for string concatenations
+   * @param vecc The list of constants in the path to ti
+   * @param ensureConst If true, require that each element in the path is
+   *                    constant
+   * @param isConst If true, the path so far only includes constants
    */
-  void checkConstantEquivalenceClasses(TermIndex* ti, std::vector<Node>& vecc);
+  void checkConstantEquivalenceClasses(TermIndex* ti,
+                                       std::vector<Node>& vecc,
+                                       bool ensureConst = true,
+                                       bool isConst = true);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */
@@ -164,27 +219,10 @@ class BaseSolver
    */
   NodeSet d_congruent;
   /**
-   * The following three vectors are used for tracking constants that each
-   * equivalence class is entailed to be equal to.
-   * - The map d_eqcToConst maps (representatives) r of equivalence classes to
-   * the constant that that equivalence class is entailed to be equal to,
-   * - The term d_eqcToConstBase[r] is the term in the equivalence class r
-   * that is entailed to be equal to the constant d_eqcToConst[r],
-   * - The term d_eqcToConstExp[r] is the explanation of why
-   * d_eqcToConstBase[r] is equal to d_eqcToConst[r].
-   *
-   * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
-   * assume x = "" and y = "bb" in the current context. We have that
-   *   d_eqcToConst[r] = "abb",
-   *   d_eqcToConstBase[r] = x++"a"++y
-   *   d_eqcToConstExp[r] = ( x = "" AND y = "bb" )
-   *
-   * This information is computed during checkInit and is used during various
-   * inference schemas for deriving inferences.
+   * Maps equivalence classes to their info, see description of `BaseEqcInfo`
+   * for more information.
    */
-  std::map<Node, Node> d_eqcToConst;
-  std::map<Node, Node> d_eqcToConstBase;
-  std::map<Node, Node> d_eqcToConstExp;
+  std::map<Node, BaseEqcInfo> d_eqcInfo;
   /** The list of equivalence classes of type string */
   std::vector<Node> d_stringsEqc;
   /** A term index for each function kind */

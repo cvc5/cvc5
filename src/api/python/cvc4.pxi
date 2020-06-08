@@ -15,11 +15,14 @@ from cvc4 cimport DatatypeSelector as c_DatatypeSelector
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport Op as c_Op
+from cvc4 cimport OpHashFunction as c_OpHashFunction
 from cvc4 cimport Solver as c_Solver
 from cvc4 cimport Sort as c_Sort
+from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
+from cvc4 cimport TermHashFunction as c_TermHashFunction
 
 from cvc4kinds cimport Kind as c_Kind
 
@@ -49,7 +52,12 @@ def expand_list_arg(num_req_args=0):
 ### can omit spaces between unrelated oneliners
 ### always use c++ default arguments
 #### only use default args of None at python level
-#### Result class can have default because it's pure python
+
+
+## Objects for hashing
+cdef c_OpHashFunction cophash = c_OpHashFunction()
+cdef c_SortHashFunction csorthash = c_SortHashFunction()
+cdef c_TermHashFunction ctermhash = c_TermHashFunction()
 
 
 cdef class Datatype:
@@ -125,12 +133,14 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    cdef c_DatatypeConstructorDecl* cddc
-    def __cinit__(self, str name):
-        self.cddc = new c_DatatypeConstructorDecl(name.encode())
+    cdef c_DatatypeConstructorDecl cddc
+
+    def __cinit__(self):
+      pass
 
     def addSelector(self, str name, Sort sort):
         self.cddc.addSelector(name.encode(), sort.csort)
+
     def addSelectorSelf(self, str name):
         self.cddc.addSelectorSelf(name.encode())
 
@@ -147,7 +157,7 @@ cdef class DatatypeDecl:
         pass
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
-        self.cdd.addConstructor(ctor.cddc[0])
+        self.cdd.addConstructor(ctor.cddc)
 
     def isParametric(self):
         return self.cdd.isParametric()
@@ -188,6 +198,9 @@ cdef class Op:
     def __repr__(self):
         return self.cop.toString().decode()
 
+    def __hash__(self):
+        return cophash(self.cop)
+
     def getKind(self):
         return kind(<int> self.cop.getKind())
 
@@ -217,54 +230,47 @@ cdef class Op:
         return indices
 
 
-class Result:
-    def __init__(self, name, explanation=""):
-        name = name.lower()
-        incomplete = False
-        if "(incomplete)" in name:
-            incomplete = True
-            name = name.replace("(incomplete)", "").strip()
-        assert name in {"sat", "unsat", "valid", "invalid", "unknown"}, \
-            "can't interpret result = {}".format(name)
+cdef class Result:
+    cdef c_Result cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_Result()
 
-        self._name = name
-        self._explanation = explanation
-        self._incomplete = incomplete
+    def isNull(self):
+        return self.cr.isNull()
 
-    def __bool__(self):
-        if self._name in {"sat", "valid"}:
-            return True
-        elif self._name in {"unsat", "invalid"}:
-            return False
-        elif self._name == "unknown":
-            raise RuntimeError("Cannot interpret 'unknown' result as a Boolean")
-        else:
-            assert False, "Unhandled result=%s"%self._name
+    def isSat(self):
+        return self.cr.isSat()
 
-    def __eq__(self, other):
-        if not isinstance(other, Result):
-            return False
+    def isUnsat(self):
+        return self.cr.isUnsat()
 
-        return self._name == other._name
+    def isSatUnknown(self):
+        return self.cr.isSatUnknown()
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def isEntailed(self):
+        return self.cr.isEntailed()
+
+    def isNotEntailed(self):
+        return self.cr.isNotEntailed()
+
+    def isEntailmentUnknown(self):
+        return self.cr.isEntailmentUnknown()
+
+    def __eq__(self, Result other):
+        return self.cr == other.cr
+
+    def __ne__(self, Result other):
+        return self.cr != other.cr
+
+    def getUnknownExplanation(self):
+        return self.cr.getUnknownExplanation().decode()
 
     def __str__(self):
-        return self._name
+        return self.cr.toString().decode()
 
     def __repr__(self):
-        return self._name
-
-    def isUnknown(self):
-        return self._name == "unknown"
-
-    def isIncomplete(self):
-        return self._incomplete
-
-    @property
-    def explanation(self):
-        return self._explanation
+        return self.cr.toString().decode()
 
 
 cdef class RoundingMode:
@@ -663,6 +669,11 @@ cdef class Solver:
                                             (<str?> symbol).encode())
         return term
 
+    def mkDatatypeConstructorDecl(self, str name):
+        cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl()
+        ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
+        return ddc
+
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
         cdef DatatypeDecl dd = DatatypeDecl()
         cdef vector[c_Sort] v
@@ -716,12 +727,9 @@ cdef class Solver:
         self.csolver.assertFormula(term.cterm)
 
     def checkSat(self):
-        cdef c_Result r = self.csolver.checkSat()
-        name = r.toString().decode()
-        explanation = ""
-        if r.isSatUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSat()
+        return r
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
@@ -732,17 +740,13 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
-        cdef c_Result r
+        cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
-        name = r.toString().decode()
-        explanation = ""
-        if r.isSatUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return  Result(name, explanation)
+        r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        return r
 
     @expand_list_arg(num_req_args=0)
     def checkEntailed(self, *assumptions):
@@ -753,17 +757,13 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
-        cdef c_Result r
+        cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkEntailed(<const vector[c_Term]&> v)
-        name = r.toString().decode()
-        explanation = ""
-        if r.isEntailmentUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
+        r.cr = self.csolver.checkEntailed(<const vector[c_Term]&> v)
+        return r
 
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
@@ -778,7 +778,7 @@ cdef class Solver:
         cdef vector[c_DatatypeConstructorDecl] v
 
         for c in ctors:
-            v.push_back((<DatatypeConstructorDecl?> c).cddc[0])
+            v.push_back((<DatatypeConstructorDecl?> c).cddc)
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
@@ -797,13 +797,13 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None):
+    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         '''
         Supports two uses:
                 Term defineFun(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term)
+                               Sort sort, Term term, bool glbl)
                 Term defineFun(Term fun, List[Term] bound_vars,
-                               Term term)
+                               Term term, bool glbl)
         '''
         cdef Term term = Term()
         cdef vector[c_Term] v
@@ -814,21 +814,23 @@ cdef class Solver:
             term.cterm = self.csolver.defineFun((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm)
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
             term.cterm = self.csolver.defineFun((<Term?> sym_or_fun).cterm,
                                                 <const vector[c_Term]&> v,
-                                                (<Term?> sort_or_term).cterm)
+                                                (<Term?> sort_or_term).cterm,
+                                                <bint> glbl)
 
         return term
 
-    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None):
+    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         '''
         Supports two uses:
                 Term defineFunRec(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term)
+                               Sort sort, Term term, bool glbl)
                 Term defineFunRec(Term fun, List[Term] bound_vars,
-                               Term term)
+                               Term term, bool glbl)
         '''
         cdef Term term = Term()
         cdef vector[c_Term] v
@@ -839,11 +841,13 @@ cdef class Solver:
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm)
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
             term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
                                                    <const vector[c_Term]&> v,
-                                                   (<Term?> sort_or_term).cterm)
+                                                   (<Term?> sort_or_term).cterm,
+                                                   <bint> glbl)
 
         return term
 
@@ -953,6 +957,9 @@ cdef class Sort:
     def __repr__(self):
         return self.csort.toString().decode()
 
+    def __hash__(self):
+        return csorthash(self.csort)
+
     def isBoolean(self):
         return self.csort.isBoolean()
 
@@ -1054,6 +1061,9 @@ cdef class Term:
             term.cterm = ci
             yield term
 
+    def __hash__(self):
+        return ctermhash(self.cterm)
+
     def getKind(self):
         return kind(<int> self.cterm.getKind())
 
@@ -1061,6 +1071,23 @@ cdef class Term:
         cdef Sort sort = Sort()
         sort.csort = self.cterm.getSort()
         return sort
+
+    def substitute(self, list es, list replacements):
+        cdef vector[c_Term] ces
+        cdef vector[c_Term] creplacements
+        cdef Term term = Term()
+
+        if len(es) != len(replacements):
+            raise RuntimeError("Expecting list inputs to substitute to "
+                               "have the same length but got: "
+                               "{} and {}".format(len(es), len(replacements)))
+
+        for e, r in zip(es, replacements):
+            ces.push_back((<Term?> e).cterm)
+            creplacements.push_back((<Term?> r).cterm)
+
+        term.cterm = self.cterm.substitute(ces, creplacements)
+        return term
 
     def hasOp(self):
         return self.cterm.hasOp()
@@ -1072,6 +1099,11 @@ cdef class Term:
 
     def isNull(self):
         return self.cterm.isNull()
+
+    def getConstArrayBase(self):
+        cdef Term term = Term()
+        term.cterm = self.cterm.getConstArrayBase()
+        return term
 
     def notTerm(self):
         cdef Term term = Term()

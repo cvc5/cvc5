@@ -68,7 +68,7 @@ bool SynthConjectureProcessFun::checkMatch(
   Node cn_subs =
       cn.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
   cn_subs = Rewriter::rewrite(cn_subs);
-  Assert(Rewriter::rewrite(n) == n);
+  n = Rewriter::rewrite(n);
   return cn_subs == n;
 }
 
