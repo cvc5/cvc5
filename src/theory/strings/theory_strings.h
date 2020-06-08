@@ -290,8 +290,8 @@ class TheoryStrings : public Theory {
   bool collectModelInfoType(
       TypeNode tn,
       const std::unordered_set<Node, NodeHashFunction>& repSet,
-      std::vector< std::vector< Node > >& col,
-      std::vector< Node >& lts,
+      std::vector<std::vector<Node> >& col,
+      std::vector<Node>& lts,
       TheoryModel* m);
 
   /** assert pending fact

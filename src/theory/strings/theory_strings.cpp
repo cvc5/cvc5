@@ -295,9 +295,9 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
        repSet)
   {
     // get partition of strings of equal lengths, per type
-    std::map<TypeNode, std::vector< std::vector< Node > > > colT;
-    std::map<TypeNode, std::vector< Node > > ltsT;
-    std::vector<Node> repVec(rst.second.begin(),rst.second.end());
+    std::map<TypeNode, std::vector<std::vector<Node> > > colT;
+    std::map<TypeNode, std::vector<Node> > ltsT;
+    std::vector<Node> repVec(rst.second.begin(), rst.second.end());
     d_state.separateByLength(repVec, colT, ltsT);
     // now collect model info for the type
     TypeNode st = rst.first;
@@ -312,8 +312,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
     const std::unordered_set<Node, NodeHashFunction>& repSet,
-    std::vector< std::vector< Node > >& col,
-    std::vector< Node >& lts,
+    std::vector<std::vector<Node> >& col,
+    std::vector<Node>& lts,
     TheoryModel* m)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -524,8 +524,10 @@ bool TheoryStrings::collectModelInfoType(
   }
   Trace("strings-model") << "String Model : Pure Assigned." << std::endl;
   //step 4 : assign constants to all other equivalence classes
-  for (const Node& rn : repSet){
-    if( processed.find( rn )==processed.end() ){
+  for (const Node& rn : repSet)
+  {
+    if (processed.find(rn) == processed.end())
+    {
       NormalForm& nf = d_csolver->getNormalForm(rn);
       if (Trace.isOn("strings-model"))
       {
@@ -556,7 +558,8 @@ bool TheoryStrings::collectModelInfoType(
       }
       Node cc = utils::mkNConcat(nc, tn);
       Assert(cc.isConst());
-      Trace("strings-model") << "*** Determined constant " << cc << " for " << rn << std::endl;
+      Trace("strings-model")
+          << "*** Determined constant " << cc << " for " << rn << std::endl;
       processed[rn] = cc;
       if (!m->assertEquality(rn, cc, true))
       {

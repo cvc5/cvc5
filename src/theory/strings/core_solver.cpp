@@ -2274,12 +2274,12 @@ void CoreSolver::checkNormalFormsDeq()
     return;
   }
   // otherwise, look at pairs of equivalence classes with equal lengths
-  std::map<TypeNode, std::vector< std::vector< Node > > > colsT;
-  std::map<TypeNode, std::vector< Node > > ltsT;
+  std::map<TypeNode, std::vector<std::vector<Node> > > colsT;
+  std::map<TypeNode, std::vector<Node> > ltsT;
   d_state.separateByLength(d_strings_eqc, colsT, ltsT);
-  for (std::pair<const TypeNode, std::vector< std::vector< Node > > >& ct : colsT)
+  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& ct : colsT)
   {
-    std::vector< std::vector< Node > >& cols = ct.second;
+    std::vector<std::vector<Node> >& cols = ct.second;
     for( unsigned i=0; i<cols.size(); i++ ){
       if (cols[i].size() > 1 && !d_im.hasPendingLemma())
       {

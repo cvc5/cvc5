@@ -48,7 +48,7 @@ bool StringsEntail::canConstantContainConcat(Node c,
     {
       firstc = firstc == -1 ? i : firstc;
       lastc = i;
-      size_t new_pos = Word::find(c,n[i], pos);
+      size_t new_pos = Word::find(c, n[i], pos);
       if (new_pos == std::string::npos)
       {
         return false;
@@ -60,7 +60,7 @@ bool StringsEntail::canConstantContainConcat(Node c,
     }
     else if (n[i].getKind() == STRING_ITOS && ArithEntail::check(n[i][0]))
     {
-      Assert (c.getType().isString());
+      Assert(c.getType().isString());
       const std::vector<unsigned>& tvec = c.getConst<String>().getVec();
       // find the first occurrence of a digit starting at pos
       while (pos < tvec.size() && !String::isDigit(tvec[pos]))
@@ -115,7 +115,7 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(CVC4::Rational(0));
   bool ret = false;
   bool success;
@@ -141,17 +141,14 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
             Assert(ArithEntail::check(curr, true));
             Node s = n1[sindex_use];
             size_t slen = Word::getLength(s);
-            Node ncl =
-                nm->mkConst(CVC4::Rational(slen));
-            Node next_s =
-                nm->mkNode(MINUS, lowerBound, ncl);
+            Node ncl = nm->mkConst(CVC4::Rational(slen));
+            Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
             next_s = Rewriter::rewrite(next_s);
             Assert(next_s.isConst());
             // we can remove the entire constant
             if (next_s.getConst<Rational>().sgn() >= 0)
             {
-              curr = Rewriter::rewrite(
-                  nm->mkNode(MINUS, curr, ncl));
+              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, ncl));
               success = true;
               sindex++;
             }
@@ -161,23 +158,20 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
               // lower bound minus the length of a concrete string is negative,
               // hence lowerBound cannot be larger than long max
               Assert(lbr < Rational(String::maxSize()));
-              curr = Rewriter::rewrite(
-                  nm->mkNode(MINUS, curr, lowerBound));
+              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, lowerBound));
               uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
               Assert(lbsize < slen);
               if (dir == 1)
               {
                 // strip partially from the front
-                nr.push_back(Word::prefix(s,lbsize));
-                n1[sindex_use] = 
-                    Word::suffix(s,slen - lbsize);
+                nr.push_back(Word::prefix(s, lbsize));
+                n1[sindex_use] = Word::suffix(s, slen - lbsize);
               }
               else
               {
                 // strip partially from the back
-                nr.push_back(Word::suffix(s,lbsize));
-                n1[sindex_use] = 
-                    Word::prefix(s, slen - lbsize);
+                nr.push_back(Word::suffix(s, lbsize));
+                n1[sindex_use] = Word::prefix(s, slen - lbsize);
               }
               ret = true;
             }
@@ -551,7 +545,8 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // if there is no overlap
               //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
               //        --> str.contains( x, "a" )
-              removeComponent = ((r == 0 ? Word::overlap(s,t) : Word::overlap(t, s)) == 0);
+              removeComponent =
+                  ((r == 0 ? Word::overlap(s, t) : Word::overlap(t, s)) == 0);
             }
           }
           else if (sss.empty())  // only if not substr
@@ -599,7 +594,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       {
         if (n2[index1].isConst())
         {
-          Assert (n2[index1].getType().isString());
+          Assert(n2[index1].getType().isString());
           CVC4::String t = n2[index1].getConst<String>();
           if (n1.size() == 1)
           {

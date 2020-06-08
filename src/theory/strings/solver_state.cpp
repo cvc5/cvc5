@@ -297,15 +297,16 @@ std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
   return d_valuation.entailmentCheck(mode, lit);
 }
 
-void SolverState::separateByLength(const std::vector<Node>& n,
-                                   std::map<TypeNode, std::vector<std::vector<Node> >>& cols,
-                                   std::map<TypeNode, std::vector<Node>>& lts)
+void SolverState::separateByLength(
+    const std::vector<Node>& n,
+    std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
+    std::map<TypeNode, std::vector<Node>>& lts)
 {
   unsigned leqc_counter = 0;
   // map (length, type) to an equivalence class identifier
-  std::map<std::pair<Node,TypeNode>, unsigned> eqc_to_leqc;
+  std::map<std::pair<Node, TypeNode>, unsigned> eqc_to_leqc;
   // backwards map
-  std::map<unsigned, std::pair<Node,TypeNode>> leqc_to_eqc;
+  std::map<unsigned, std::pair<Node, TypeNode>> leqc_to_eqc;
   // Collection of eqc for each identifier. Notice that some identifiers may
   // not have an associated length in the mappings above, if the length of
   // an equivalence class is unknown.
@@ -321,7 +322,7 @@ void SolverState::separateByLength(const std::vector<Node>& n,
     {
       lt = nm->mkNode(STRING_LENGTH, lt);
       Node r = d_ee.getRepresentative(lt);
-      std::pair<Node,TypeNode> lkey(r,tnEqc);
+      std::pair<Node, TypeNode> lkey(r, tnEqc);
       if (eqc_to_leqc.find(lkey) == eqc_to_leqc.end())
       {
         eqc_to_leqc[lkey] = leqc_counter;
@@ -338,11 +339,12 @@ void SolverState::separateByLength(const std::vector<Node>& n,
   }
   for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
   {
-    Assert (!p.second.empty());
+    Assert(!p.second.empty());
     // get the type of the collection
     TypeNode stn = p.second[0].getType();
     cols[stn].push_back(std::vector<Node>());
-    cols[stn].back().insert(cols[stn].back().end(), p.second.begin(), p.second.end());
+    cols[stn].back().insert(
+        cols[stn].back().end(), p.second.begin(), p.second.end());
     lts[stn].push_back(leqc_to_eqc[p.first].first);
   }
 }
