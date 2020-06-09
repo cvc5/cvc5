@@ -498,7 +498,7 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
   opLArgsExpr.push_back(opLArgs.back().toExpr());
   // build zarg
   Node zarg;
-  Assert(ztype.isReal() || ztype.isBitVector());
+  Assert(bargtype.isReal() || bargtype.isBitVector());
   if (bargtype.isReal())
   {
     zarg = nm->mkConst(Rational(0));
@@ -1271,34 +1271,34 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     std::stringstream ssop;
     if (types[i].isReal())
     {
-      Kind k = LEQ;
+      Kind kind = LEQ;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       if (zarg)
       {
-        Node op = createLambdaWithZeroArg(k, types[i], spc);
+        Node op = createLambdaWithZeroArg(kind, types[i], spc);
         ssop << "leq_" << types[i];
         sdtBool.addConstructor(op, ssop.str(), cargs);
       }
       else
       {
         cargs.push_back(unres_types[iuse]);
-        sdtBool.addConstructor(k, cargs);
+        sdtBool.addConstructor(kind, cargs);
       }
     }
     else if (types[i].isBitVector())
     {
-      Kind k = BITVECTOR_ULT;
+      Kind kind = BITVECTOR_ULT;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       if (zarg)
       {
-        Node op = createLambdaWithZeroArg(k, types[i], spc);
+        Node op = createLambdaWithZeroArg(kind, types[i], spc);
         ssop << "leq_" << types[i];
         sdtBool.addConstructor(op, ssop.str(), cargs);
       }
       else
       {
         cargs.push_back(unres_types[iuse]);
-        sdtBool.addConstructor(k, cargs);
+        sdtBool.addConstructor(kind, cargs);
       }
     }
     else if (types[i].isDatatype())
