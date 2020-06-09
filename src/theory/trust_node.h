@@ -39,6 +39,8 @@ enum class TrustNodeKind : uint32_t
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
+ * Returns a string with static lifetime: it should not be freed.
+ *
  * @param tnk The trust node kind
  * @return The name of the trust node kind
  */
@@ -69,6 +71,9 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk);
  * The static functions for constructing them check that the generator, if
  * provided, is capable of proving the given conflict or lemma, or an assertion
  * failure occurs. Otherwise an assertion error is given.
+ *
+ * While this is not enforced, a `TrustNode` generally encapsulates a **closed** proof
+ * of the formula: one without free assumptions.
  */
 class TrustNode
 {

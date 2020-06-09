@@ -769,6 +769,8 @@ libcvc4_add_sources(
   theory/theory_proof_step_buffer.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
+  theory/trust_node.cpp
+  theory/trust_node.h
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h
