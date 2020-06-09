@@ -1265,6 +1265,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       ss << kindToString(k) << "_" << types[i];
       cargs.push_back(unres_types[iuse]);
       sdtBool.addConstructor(nm->operatorOf(k), ss.str(), cargs);
+      cargs.pop_back();
     }
     // type specific predicates
     std::shared_ptr<SygusPrintCallback> spc;
