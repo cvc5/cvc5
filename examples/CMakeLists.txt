@@ -86,3 +86,8 @@ if(TARGET CVC4::cvc4jar)
 
   add_subdirectory(api/java)
 endif()
+
+if(CVC4_BINDINGS_PYTHON)
+  # If legacy Python API has been built
+  add_subdirectory(api/python)
+endif()

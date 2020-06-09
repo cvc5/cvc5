@@ -1,3 +1,8 @@
+// Declare that all functions in the interface can throw exceptions of type
+// CVC4::Exception and exceptions in general. SWIG catches those exceptions and
+// turns them into target language exceptions via "throws" typemaps.
+%catches(CVC4::Exception,...);
+
 %import "bindings/swig.h"
 
 %include "stdint.i"
@@ -75,77 +80,17 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 #include "bindings/java_iterator_adapter.h"
 #include "bindings/java_stream_adapters.h"
 
-%exception %{
-  try {
-    $action
-  } catch(CVC4::Exception& e) {
-    std::stringstream ss;
-    ss << e.what() << ": " << e.getMessage();
-    std::string explanation = ss.str();
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
-  }
-%}
-
-// Create a mapping from C++ Exceptions to Java Exceptions.
-// This is in a couple of throws typemaps, simply because it's sensitive to SWIG's concept of which namespace we're in.
-%typemap(throws) Exception %{
-  std::string name = "edu/stanford/CVC4/$1_type";
-  /*
-  size_t i = name.find("::");
-  if(i != std::string::npos) {
-    size_t j = name.rfind("::");
-    assert(i <= j);
-    name.replace(i, j - i + 2, "/");
-  }
-  */
-  jclass clazz = jenv->FindClass(name.c_str());
-  assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
-  jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-  assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
-  assert(t != NULL && jenv->ExceptionOccurred() == NULL);
-  int status = jenv->Throw(t);
-  assert(status == 0);
-%}
-%typemap(throws) CVC4::Exception %{
-  std::string name = "edu/stanford/$1_type";
-  size_t i = name.find("::");
-  if(i != std::string::npos) {
-    size_t j = name.rfind("::");
-    assert(i <= j);
-    name.replace(i, j - i + 2, "/");
-  }
-  jclass clazz = jenv->FindClass(name.c_str());
-  assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
-  jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-  assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
-  assert(t != NULL && jenv->ExceptionOccurred() == NULL);
-  int status = jenv->Throw(t);
-  assert(status == 0);
-%}
-
-%typemap(throws) CVC4::ModalException = CVC4::Exception;
-%typemap(throws) CVC4::LogicException = CVC4::Exception;
-%typemap(throws) CVC4::OptionException = CVC4::Exception;
-%typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
-%typemap(throws) CVC4::AssertionException = CVC4::Exception;
-
-%typemap(throws) CVC4::TypeCheckingException = CVC4::Exception;
-%typemap(throws) CVC4::ScopeException = CVC4::Exception;
-%typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
-%typemap(throws) IllegalArgumentException = Exception;
-%typemap(throws) CVC4::AssertionException = CVC4::Exception;
-
-// TIM: Really unclear why both of these are required
-%typemap(throws) CVC4::UnsafeInterruptException = CVC4::Exception;
-%typemap(throws) UnsafeInterruptException = CVC4::Exception;
-%typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
-
-// Generate an error if the mapping from C++ CVC4 Exception to Java CVC4 Exception doesn't exist above
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
-#error "exception $1_type doesn't map to Java correctly---please edit src/cvc4.i and add it"
-%}
+// Map C++ exceptions of type CVC4::Exception to Java exceptions of type
+// edu.stanford.CVC4.Exception
+// 
+// As suggested in:
+// http://www.swig.org/Doc3.0/SWIGDocumentation.html#Java_exception_typemap
+%typemap(throws, throws="edu.stanford.CVC4.Exception") CVC4::Exception {
+  jclass excep = jenv->FindClass("edu/stanford/CVC4/Exception");
+  if (excep)
+    jenv->ThrowNew(excep, $1.what());
+  return $null;
+}
 
 %include "java/typemaps.i" // primitive pointers and references
 %include "java/std_string.i" // map std::string to java.lang.String
