@@ -71,6 +71,9 @@ std::ostream& operator<<(std::ostream& out, TrustNodeKind tnk);
  * The static functions for constructing them check that the generator, if
  * provided, is capable of proving the given conflict or lemma, or an assertion
  * failure occurs. Otherwise an assertion error is given.
+ *
+ * While this is not enforced, a `TrustNode` generally encapsulates a **closed** proof
+ * of the formula: one without free assumptions.
  */
 class TrustNode
 {
