@@ -61,6 +61,10 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * Apply predicate elimination. This method returns the result of applying
    * the rule MACRO_SR_PRED_ELIM on src, exp. The returned formula is equivalent
    * to src assuming exp.
+   *
+   * Notice that in contrast to the other rules above, predicate elimination
+   * never fails and proves a formula that is not explicitly given as an
+   * argument tgt. Thus, the return value of this method is Node not bool.
    */
   Node applyPredElim(Node src,
                      const std::vector<Node>& exp,
