@@ -19,8 +19,8 @@
 namespace CVC4 {
 namespace theory {
 
-EagerProofGenerator::EagerProofGenerator(context::Context* c,
-                                         ProofNodeManager* pnm)
+EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
+                                         context::Context* c)
     : d_pnm(pnm), d_proofs(c == nullptr ? &d_context : c)
 {
 }
@@ -96,7 +96,18 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   return mkTrustNode(n, pf, isConflict);
 }
 
-TrustNode EagerProofGenerator::assertSplit(Node f)
+TrustNode EagerProofGenerator::mkTrustedPropagation(
+    Node n, Node exp, std::shared_ptr<ProofNode> pf)
+{
+  if (pf == nullptr)
+  {
+    return TrustNode::null();
+  }
+  setProofForPropExp(n, exp, pf);
+  return TrustNode::mkTrustPropExp(n, exp, this);
+}
+
+TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
