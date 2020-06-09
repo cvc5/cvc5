@@ -90,6 +90,7 @@ PRs ready:
 (32) split theory engine *
 (33) split operator elimination from arith (req 28) *
 (34) theory proof step buffer *
+(48) remove snorm option *
 
 PRs future:
 

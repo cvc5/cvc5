@@ -15,13 +15,13 @@
 #include "expr/skolem_manager.h"
 
 #include "expr/attribute.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
 
-// note that these could be internal maps in SkolemManager
+// Attributes are global maps from Nodes to data. Thus, note that these could
+// be implemented as internal maps in SkolemManager.
 struct WitnessFormAttributeId
 {
 };
@@ -56,7 +56,8 @@ Node SkolemManager::mkSkolem(Node v,
   if (pg != nullptr)
   {
     Node q = nm->mkNode(EXISTS, w[0], w[1]);
-    // notice this may overwrite an existing proof generator
+    // Notice this may overwrite an existing proof generator. This does not
+    // matter since either should be able to prove q.
     d_gens[q] = pg;
   }
   return getOrMakeSkolem(w, prefix, comment, flags);
@@ -75,6 +76,8 @@ Node SkolemManager::mkSkolemize(Node q,
   for (const Node& av : q[0])
   {
     Assert(currQ.getKind() == EXISTS && av == currQ[0][0]);
+    // currQ is updated to the result of skolemizing its first variable in
+    // the method below.
     Node sk = skolemize(currQ, currQ, prefix, comment, flags);
     Trace("sk-manager-debug")
         << "made skolem " << sk << " for " << av << std::endl;
@@ -82,7 +85,7 @@ Node SkolemManager::mkSkolemize(Node q,
   }
   if (pg != nullptr)
   {
-    // notice this may overwrite an existing proof generator
+    // Same as above, this may overwrite an existing proof generator
     d_gens[q] = pg;
   }
   return currQ;
@@ -108,7 +111,10 @@ Node SkolemManager::skolemize(Node q,
       continue;
     }
     // must make fresh variable to avoid shadowing, which is unique per
-    // variable av to ensure that this method is deterministic
+    // variable av to ensure that this method is deterministic. Having this
+    // method deterministic ensures that the proof checker (e.g. for
+    // quantifiers) is capable of proving the expected value for conclusions
+    // of proof rules, instead of an alpha-equivalent variant of a conclusion.
     Node avp = getOrMakeBoundVariable(av, av);
     ovarsW.push_back(avp);
     ovars.push_back(av);
@@ -136,9 +142,6 @@ Node SkolemManager::skolemize(Node q,
       << "qskolem apply " << tv << " -> " << tk << " to " << pred << std::endl;
   qskolem = qskolem.substitute(tv, tk);
   Trace("sk-manager-debug") << "qskolem done substitution" << std::endl;
-  // debug free variables?
-  // std::unordered_set<Node, NodeHashFunction> fvs;
-  // expr::getFreeVariables(qskolem,fvs);
   return k;
 }
 

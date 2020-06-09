@@ -1023,11 +1023,11 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   NodeInferInfoMap::iterator it = d_lazyFactMap.find(fact);
   if (it == d_lazyFactMap.end())
   {
-    if (fact.getKind() == EQUAL)
+    Node factSym = CDProof::getSymmFact(fact);
+    if (!factSym.isNull())
     {
       // Use the symmetric fact. There is no need to explictly make a
       // SYMM proof, as this is handled by CDProof::mkProof below.
-      Node factSym = fact[1].eqNode(fact[0]);
       it = d_lazyFactMap.find(factSym);
     }
   }
