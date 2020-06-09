@@ -474,7 +474,7 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: (not F)
   FALSE_ELIM,
-  
+
   //================================================= Quantifiers rules
   // ======== Witness intro
   // Children: (P:F[t])
