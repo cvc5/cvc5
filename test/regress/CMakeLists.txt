@@ -742,6 +742,7 @@ set(regress_0_tests
   regress0/quantifiers/issue4275-qcf-cegqi-rep.smt2
   regress0/quantifiers/issue4437-unc-quant.smt2
   regress0/quantifiers/issue4476-ext-rew.smt2
+  regress0/quantifiers/issue4576.smt2
   regress0/quantifiers/lra-triv-gn.smt2
   regress0/quantifiers/macros-int-real.smt2
   regress0/quantifiers/macros-real-arg.smt2
@@ -921,6 +922,7 @@ set(regress_0_tests
   regress0/smtlib/issue4028.smt2
   regress0/smtlib/issue4077.smt2
   regress0/smtlib/issue4151.smt2
+  regress0/smtlib/issue4552.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/reset-assertions1.smt2

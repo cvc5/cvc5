@@ -290,15 +290,18 @@ class CVC4_PUBLIC SmtEngine
    *   (lambda (formals) formula)
    * This adds func to the list of defined functions, which indicates that
    * all occurrences of func should be expanded during expandDefinitions.
-   * This method expects input such that:
-   * - func : a variable of function type that expects the arguments in
-   *          formals,
-   * - formals : a list of BOUND_VARIABLE expressions,
-   * - formula does not contain func.
+   *
+   * @param func a variable of function type that expects the arguments in
+   *             formal
+   * @param formals a list of BOUND_VARIABLE expressions
+   * @param formula The body of the function, must not contain func
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
-                      Expr formula);
+                      Expr formula,
+                      bool global = false);
 
   /** Return true if given expression is a defined function. */
   bool isDefinedFunction(Expr func);
@@ -317,17 +320,22 @@ class CVC4_PUBLIC SmtEngine
    * - func[i] : a variable of function type that expects the arguments in
    *             formals[i], and
    * - formals[i] : a list of BOUND_VARIABLE expressions.
+   *
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
    */
   void defineFunctionsRec(const std::vector<Expr>& funcs,
-                          const std::vector<std::vector<Expr> >& formals,
-                          const std::vector<Expr>& formulas);
+                          const std::vector<std::vector<Expr>>& formals,
+                          const std::vector<Expr>& formulas,
+                          bool global = false);
   /**
    * Define function recursive
    * Same as above, but for a single function.
    */
   void defineFunctionRec(Expr func,
                          const std::vector<Expr>& formals,
-                         Expr formula);
+                         Expr formula,
+                         bool global = false);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -862,8 +870,6 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDList<Expr> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
-  /** The types for the recursive function definitions */
-  typedef context::CDList<Node> NodeList;
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
@@ -1139,9 +1145,15 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in interactive mode.
+   * getAssertions().  Only maintained if in incremental mode.
    */
   AssertionList* d_assertionList;
+
+  /**
+   * List of lemmas generated for global recursive function definitions. We
+   * assert this list of definitions in each check-sat call.
+   */
+  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
 
   /**
    * The list of assumptions from the previous call to checkSatisfiability.

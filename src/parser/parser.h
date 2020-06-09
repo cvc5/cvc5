@@ -812,6 +812,8 @@ public:
     d_globalDeclarations = flag;
   }
 
+  bool getGlobalDeclarations() { return d_globalDeclarations; }
+
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
   }

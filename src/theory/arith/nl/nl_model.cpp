@@ -213,7 +213,7 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
-                         std::vector<Node>& lemmas,
+                         std::vector<NlLemma>& lemmas,
                          std::vector<Node>& gs)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
@@ -478,7 +478,7 @@ void NlModel::addTautology(Node n)
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
-                                  std::vector<Node>& lemmas)
+                                  std::vector<NlLemma>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())
