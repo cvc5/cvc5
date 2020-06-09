@@ -46,16 +46,18 @@ import os
 import re
 import sys
 import textwrap
+import toml
 
 ### Allowed attributes for module/option/alias
 
 MODULE_ATTR_REQ = ['id', 'name', 'header']
-MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['options', 'aliases']
+MODULE_ATTR_ALL = MODULE_ATTR_REQ + ['option', 'alias']
 
 OPTION_ATTR_REQ = ['category', 'type']
 OPTION_ATTR_ALL = OPTION_ATTR_REQ + [
-    'name', 'help', 'smt_name', 'short', 'long', 'default', 'includes',
-    'handler', 'predicates', 'notifies', 'links', 'read_only', 'alternate'
+    'name', 'help', 'help_mode', 'smt_name', 'short', 'long', 'default',
+    'includes', 'handler', 'predicates', 'notifies', 'links', 'read_only',
+    'alternate', 'mode'
 ]
 
 ALIAS_ATTR_REQ = ['category', 'long', 'links']
@@ -226,6 +228,64 @@ TPL_IMPL_OPTION_WAS_SET_BY_USER = \
   return Options::current()->wasSetByUser(*this);
 }}"""
 
+# Mode templates
+TPL_DECL_MODE_ENUM = \
+"""
+enum class {type}
+{{
+  {values}
+}};"""
+
+TPL_DECL_MODE_FUNC = \
+"""
+std::ostream&
+operator<<(std::ostream& os, {type} mode) CVC4_PUBLIC;"""
+
+TPL_IMPL_MODE_FUNC = TPL_DECL_MODE_FUNC[:-len(" CVC4_PUBLIC;")] + \
+"""
+{{
+  os << "{type}::";
+  switch(mode) {{{cases}
+    default:
+        Unreachable();
+  }}
+  return os;
+}}
+"""
+
+TPL_IMPL_MODE_CASE = \
+"""
+    case {type}::{enum}:
+      os << "{enum}";
+      break;"""
+
+TPL_DECL_MODE_HANDLER = \
+"""
+{type}
+stringTo{type}(const std::string& option, const std::string& optarg);"""
+
+TPL_IMPL_MODE_HANDLER = TPL_DECL_MODE_HANDLER[:-1] + \
+"""
+{{
+  {cases}
+  else if (optarg == "help")
+  {{
+    puts({help});
+    exit(1);
+  }}
+  else
+  {{
+    throw OptionException(std::string("unknown option for --{long}: `") +
+                          optarg + "'.  Try --{long}=help.");
+  }}
+}}
+"""
+
+TPL_MODE_HANDLER_CASE = \
+"""if (optarg == "{name}")
+  {{
+    return {type}::{enum};
+  }}"""
 
 
 class Module(object):
@@ -258,7 +318,6 @@ class Option(object):
         self.links = []
         self.read_only = False
         self.alternate = True    # add --no- alternative long option for bool
-        self.lineno = None
         self.filename = None
         for (attr, val) in d.items():
             assert attr in self.__dict__
@@ -275,7 +334,6 @@ class Alias(object):
     def __init__(self, d):
         self.__dict__ = dict((k, None) for k in ALIAS_ATTR_ALL)
         self.links = []
-        self.lineno = None
         self.filename = None
         self.alternate_for = None  # replaces a --no- alternative for an option
         for (attr, val) in d.items():
@@ -288,8 +346,19 @@ def die(msg):
     sys.exit('[error] {}'.format(msg))
 
 
-def perr(filename, lineno, msg):
-    die('parse error in {}:{}: {}'.format(filename, lineno + 1, msg))
+def perr(filename, msg, option_or_alias = None):
+    msg_suffix = ''
+    if option_or_alias:
+        if isinstance(option_or_alias, Option):
+            msg_suffix = 'option '
+            if option_or_alias.name:
+                msg_suffix = "{} '{}' ".format(msg_suffix, option_or_alias.name)
+            else:
+                msg_suffix = "{} '{}' ".format(msg_suffix, option_or_alias.long)
+        else:
+            assert isinstance(option_or_alias, Alias)
+            msg_suffix = "alias '{}' ".format(option_or_alias.long)
+    die('parse error in {}: {}{}'.format(filename, msg, msg_suffix))
 
 
 def write_file(directory, name, content):
@@ -437,6 +506,29 @@ def help_format(help_msg, opts):
     lines.extend([' ' * width_opt + l for l in text[1:]])
     return ['"{}\\n"'.format(x) for x in lines]
 
+def help_mode_format(option):
+    """
+    Format help message for mode options.
+    """
+    assert option.help_mode
+    assert option.mode
+
+    wrapper = textwrap.TextWrapper(width=78, break_on_hyphens=False)
+    text = ['{}'.format(x) for x in wrapper.wrap(option.help_mode)]
+    text.append('Available modes for --{} are:'.format(option.long.split('=')[0]))
+
+    for value, attrib in option.mode.items():
+        assert len(attrib) == 1
+        attrib = attrib[0]
+        if value == option.default and attrib['name'] != "default":
+            text.append('+ {} (default)'.format(attrib['name']))
+        else:
+            text.append('+ {}'.format(attrib['name']))
+        if 'help' in attrib:
+            text.extend('  {}'.format(x) for x in wrapper.wrap(attrib['help']))
+
+    return '\n         '.join('"{}\\n"'.format(x) for x in text)
+
 
 def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     """
@@ -450,6 +542,8 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
     decls = []
     specs = []
     inls = []
+    mode_decl = []
+    mode_impl = []
 
     # *_options_.cpp
     accs = []
@@ -512,6 +606,38 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         # Global definitions
         defs.append('struct {name}__option_t {name};'.format(name=option.name))
 
+        if option.mode:
+            values = option.mode.keys()
+            mode_decl.append(
+                TPL_DECL_MODE_ENUM.format(
+                    type=option.type,
+                    values=',\n  '.join(values)))
+            mode_decl.append(TPL_DECL_MODE_FUNC.format(type=option.type))
+            cases = [TPL_IMPL_MODE_CASE.format(
+                        type=option.type, enum=x) for x in values]
+            mode_impl.append(
+                TPL_IMPL_MODE_FUNC.format(
+                    type=option.type,
+                    cases=''.join(cases)))
+
+            # Generate str-to-enum handler
+            cases = []
+            for value, attrib in option.mode.items():
+                assert len(attrib) == 1
+                cases.append(
+                    TPL_MODE_HANDLER_CASE.format(
+                        name=attrib[0]['name'],
+                        type=option.type,
+                        enum=value))
+            assert option.long
+            assert cases
+            mode_decl.append(TPL_DECL_MODE_HANDLER.format(type=option.type))
+            mode_impl.append(
+                TPL_IMPL_MODE_HANDLER.format(
+                    type=option.type,
+                    cases='\n  else '.join(cases),
+                    help=help_mode_format(option),
+                    long=option.long.split('=')[0]))
 
     filename = os.path.splitext(os.path.split(module.header)[1])[0]
     write_file(dst_dir, '{}.h'.format(filename), tpl_module_h.format(
@@ -522,14 +648,14 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         holder_spec=' \\\n'.join(holder_specs),
         decls='\n'.join(decls),
         specs='\n'.join(specs),
-        inls='\n'.join(inls)
-    ))
+        inls='\n'.join(inls),
+        modes=''.join(mode_decl)))
 
     write_file(dst_dir, '{}.cpp'.format(filename), tpl_module_cpp.format(
         filename=filename,
         accs='\n'.join(accs),
-        defs='\n'.join(defs)
-    ))
+        defs='\n'.join(defs),
+        modes=''.join(mode_impl)))
 
 
 def docgen(category, name, smt_name, short_name, long_name, ctype, default,
@@ -676,7 +802,6 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 '.TP\n.I "{} OPTIONS"'.format(module.name.upper()))
             man_others_int.append(man_others_smt[-1])
 
-
         for option in \
             sorted(module.options, key=lambda x: x.long if x.long else x.name):
             assert option.type != 'void' or option.name is None
@@ -696,6 +821,8 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
                 else:
                     handler = \
                         'handler->{}(option, optionarg)'.format(option.handler)
+            elif option.mode:
+                handler = 'stringTo{}(option, optionarg)'.format(option.type)
             elif option.type != 'bool':
                 handler = \
                     'handleOption<{}>(option, optionarg)'.format(option.type)
@@ -907,6 +1034,9 @@ def codegen_all_modules(modules, dst_dir, tpl_options, tpl_options_holder,
 
                 # Default option values
                 default = option.default if option.default else ''
+                # Prepend enum name
+                if option.mode and option.type not in default:
+                    default = '{}::{}'.format(option.type, default)
                 defaults.append('{}({})'.format(option.name, default))
                 defaults.append('{}__setByUser__(false)'.format(option.name))
 
@@ -1005,7 +1135,7 @@ def rstrip(suffix, s):
     return s[:-len(suffix)] if s.endswith(suffix) else s
 
 
-def check_attribs(filename, lineno, req_attribs, valid_attribs, attribs, ctype):
+def check_attribs(filename, req_attribs, valid_attribs, attribs, ctype):
     """
     Check if for a given module/option/alias the defined attributes are valid and
     if all required attributes are defined.
@@ -1013,30 +1143,32 @@ def check_attribs(filename, lineno, req_attribs, valid_attribs, attribs, ctype):
     msg_for = ""
     if 'name' in attribs:
         msg_for = " for '{}'".format(attribs['name'])
+    elif 'long' in attribs:
+        msg_for = " for '{}'".format(attribs['long'])
     for k in req_attribs:
         if k not in attribs:
-            perr(filename, lineno,
+            perr(filename,
                  "required {} attribute '{}' not specified{}".format(
                      ctype, k, msg_for))
     for k in attribs:
         if k not in valid_attribs:
-            perr(filename, lineno,
+            perr(filename,
                  "invalid {} attribute '{}' specified{}".format(
                      ctype, k, msg_for))
 
 
-def check_unique(filename, lineno, value, cache):
+def check_unique(filename, value, cache):
     """
     Check if given name is unique in cache.
     """
     if value in cache:
-        perr(filename, lineno,
-             "'{}' already defined in '{}' at line {}".format(
-                 value, cache[value][0], cache[value][1]))
-    cache[value] = (filename, lineno + 1)
+        perr(filename,
+             "'{}' already defined in '{}'".format(value, cache[value]))
+    else:
+        cache[value] = filename
 
 
-def check_long(filename, lineno, long_name, ctype=None):
+def check_long(filename, option_or_alias, long_name, ctype=None):
     """
     Check if given long option name is valid.
     """
@@ -1044,189 +1176,37 @@ def check_long(filename, lineno, long_name, ctype=None):
     if long_name is None:
         return
     if long_name.startswith('--'):
-        perr(filename, lineno, 'remove -- prefix from long option')
+        perr(filename, 'remove -- prefix from long', option_or_alias)
     r = r'^[0-9a-zA-Z\-=]+$'
     if not re.match(r, long_name):
-        perr(filename, lineno,
-             "long option '{}' does not match regex criteria '{}'".format(
-                 long_name, r))
+        perr(filename,
+             "long '{}' does not match regex criteria '{}'".format(
+                 long_name, r), option_or_alias)
     name = long_get_option(long_name)
-    check_unique(filename, lineno, name, g_long_cache)
+    check_unique(filename, name, g_long_cache)
 
     if ctype == 'bool':
-        check_unique(filename, lineno, 'no-{}'.format(name), g_long_cache)
+        check_unique(filename, 'no-{}'.format(name), g_long_cache)
 
-
-def check_links(filename, lineno, links):
+def check_links(filename, option_or_alias):
     """
     Check if long options defined in links are valid and correctly used.
     """
     global g_long_cache, g_long_arguments
-    for link in links:
+    for link in option_or_alias.links:
         long_name = lstrip('no-', lstrip('--', long_get_option(link)))
         if long_name not in g_long_cache:
-            perr(filename, lineno,
-                 "invalid long option '{}' in links list".format(link))
+            perr(filename,
+                 "invalid long option '{}' in links list".format(link),
+                 option_or_alias)
         # check if long option requires an argument
         if long_name in g_long_arguments and '=' not in link:
-            perr(filename, lineno,
-                 "linked option '{}' requires an argument".format(link))
+            perr(filename,
+                 "linked option '{}' requires an argument".format(link),
+                 option_or_alias)
 
 
-def check_alias_attrib(filename, lineno, attrib, value):
-    """
-    Check alias attribute values. All attribute checks that can be done while
-    parsing should be done here.
-    """
-    if attrib not in ALIAS_ATTR_ALL:
-        perr(filename, lineno, "invalid alias attribute '{}'".format(attrib))
-    if attrib == 'category':
-        if value not in CATEGORY_VALUES:
-            perr(filename, lineno, "invalid category value '{}'".format(value))
-    elif attrib == 'long':
-        pass # Will be checked after parsing is done
-    elif attrib == 'links':
-        assert isinstance(value, list)
-        if not value:
-            perr(filename, lineno, 'links list must not be empty')
-
-
-def check_option_attrib(filename, lineno, attrib, value):
-    """
-    Check option attribute values. All attribute checks that can be done while
-    parsing should be done here.
-    """
-    global g_smt_cache, g_name_cache, g_short_cache
-
-    if attrib not in OPTION_ATTR_ALL:
-        perr(filename, lineno, "invalid option attribute '{}'".format(attrib))
-
-    if attrib == 'category':
-        if value not in CATEGORY_VALUES:
-            perr(filename, lineno, "invalid category value '{}'".format(value))
-    elif attrib == 'type':
-        if not value:
-            perr(filename, lineno, 'type must not be empty')
-    elif attrib == 'long':
-        pass # Will be checked after parsing is done
-    elif attrib == 'name' and value:
-        r = r'^[a-zA-Z]+[0-9a-zA-Z_]*$'
-        if not re.match(r, value):
-            perr(filename, lineno,
-                 "name '{}' does not match regex criteria '{}'".format(
-                     value, r))
-        check_unique(filename, lineno, value, g_name_cache)
-    elif attrib == 'smt_name' and value:
-        r = r'^[a-zA-Z]+[0-9a-zA-Z\-_]*$'
-        if not re.match(r, value):
-            perr(filename, lineno,
-                 "smt_name '{}' does not match regex criteria '{}'".format(
-                     value, r))
-        check_unique(filename, lineno, value, g_smt_cache)
-    elif attrib == 'short' and value:
-        if value[0].startswith('-'):
-            perr(filename, lineno, 'remove - prefix from short option')
-        if len(value) != 1:
-            perr(filename, lineno, 'short option must be of length 1')
-        if not value.isalpha() and not value.isdigit():
-            perr(filename, lineno, 'short option must be a character or a digit')
-        check_unique(filename, lineno, value, g_short_cache)
-    elif attrib == 'default':
-        pass
-    elif attrib == 'includes' and value:
-        if not isinstance(value, list):
-            perr(filename, lineno, 'expected list for includes attribute')
-    elif attrib == 'handler':
-        pass
-    elif attrib == 'predicates' and value:
-        if not isinstance(value, list):
-            perr(filename, lineno, 'expected list for predicates attribute')
-    elif attrib == 'notifies' and value:
-        if not isinstance(value, list):
-            perr(filename, lineno, 'expected list for notifies attribute')
-    elif attrib == 'links' and value:
-        if not isinstance(value, list):
-            perr(filename, lineno, 'expected list for links attribute')
-    elif attrib in ['read_only', 'alternate'] and value is not None:
-        if not isinstance(value, bool):
-            perr(filename, lineno,
-                 "expected true/false instead of '{}' for {}".format(
-                     value, attrib))
-
-
-def check_module_attrib(filename, lineno, attrib, value):
-    """
-    Check module attribute values. All attribute checks that can be done while
-    parsing should be done here.
-    """
-    global g_module_id_cache
-    if attrib not in MODULE_ATTR_ALL:
-        perr(filename, lineno, "invalid module attribute '{}'".format(attrib))
-    if attrib == 'id':
-        if not value:
-            perr(filename, lineno, 'module id must not be empty')
-        if value in g_module_id_cache:
-            perr(filename, lineno,
-                 "module id '{}' already defined in '{}' at line {}".format(
-                     value,
-                     g_module_id_cache[value][0],
-                     g_module_id_cache[value][1]))
-        g_module_id_cache[value] = (filename, lineno)
-        r = r'^[A-Z]+[A-Z_]*$'
-        if not re.match(r, value):
-            perr(filename, lineno,
-                 "module id '{}' does not match regex criteria '{}'".format(
-                     value, r))
-    elif attrib == 'name':
-        if not value:
-            perr(filename, lineno, 'module name must not be empty')
-    elif attrib == 'header':
-        if not value:
-            perr(filename, lineno, 'module header must not be empty')
-        header_name = \
-            'options/{}.h'.format(rstrip('.toml', os.path.basename(filename)))
-        if header_name != value:
-            perr(filename, lineno,
-                 "expected module header '{}' instead of '{}'".format(
-                     header_name, value))
-
-
-def parse_value(filename, lineno, attrib, val):
-    """
-    Parse attribute values.
-    We only allow three types of values:
-     - bool   (val either true/false or "true"/"false")
-     - string (val starting with ")
-     - lists  (val starting with [)
-    """
-    if val[0] == '"':
-        if val[-1] != '"':
-            perr(filename, lineno, 'missing closing " for string')
-        val = val.lstrip('"').rstrip('"').replace('\\"', '"')
-
-        # for read_only/alternate we allow both true/false and "true"/"false"
-        if attrib in ['read_only', 'alternate']:
-            if val == 'true':
-                return True
-            elif val == 'false':
-                return False
-        return val if val else None
-    elif val[0] == '[':
-        try:
-            val_list = ast.literal_eval(val)
-        except SyntaxError as e:
-            perr(filename, lineno, 'parsing list: {}'.format(e.msg))
-        return val_list
-    elif val == 'true':
-        return True
-    elif val == 'false':
-        return False
-    else:
-        perr(filename, lineno, "invalid value '{}'".format(val))
-        return None
-
-
-def parse_module(filename, file):
+def parse_module(filename, module):
     """
     Parse options module file.
 
@@ -1235,122 +1215,51 @@ def parse_module(filename, file):
     toml format, we chose to implement our own parser to get better error
     messages.
     """
-    module = dict()
-    options = []
-    aliases = []
-    lines = [[x.strip() for x in line.split('=', 1)] for line in file]
-    option = None
-    alias = None
-    option_lines = []
-    alias_lines = []
-    for i in range(len(lines)):
-        assert option is None or alias is None
-        line = lines[i]
-        # Skip comments
-        if line[0].startswith('#'):
-            continue
-        # Check if a new option/alias starts.
-        if len(line) == 1:
-            # Create a new option/alias object, save previously created
-            if line[0] in ['[[option]]', '[[alias]]']:
-                if option:
-                    options.append(option)
-                    option = None
-                if alias:
-                    aliases.append(alias)
-                    alias = None
-                # Create new option dict and save line number where option
-                # was defined.
-                if line[0] == '[[option]]':
-                    assert alias is None
-                    option = dict()
-                    option_lines.append(i)
-                else:
-                    # Create new alias dict and save line number where alias
-                    # was defined.
-                    assert line[0] == '[[alias]]'
-                    assert option is None
-                    alias = dict()
-                    # Save line number where alias was defined
-                    alias_lines.append(i)
-            elif line[0] != '':
-                perr(filename, i, "invalid attribute '{}'".format(line[0]))
-        # Parse module/option/alias attributes.
-        elif len(line) == 2:
-            attrib = line[0]
-            value = parse_value(filename, i, attrib, line[1])
-            # All attributes we parse are part of the current option.
-            if option is not None:
-                check_option_attrib(filename, i, attrib, value)
-                if attrib in option:
-                    perr(filename, i,
-                         "duplicate option attribute '{}'".format(attrib))
-                assert option is not None
-                option[attrib] = value
-            # All attributes we parse are part of the current alias.
-            elif alias is not None:
-                check_alias_attrib(filename, i, attrib, value)
-                if attrib in alias:
-                    perr(filename, i,
-                         "duplicate alias attribute '{}'".format(attrib))
-                assert alias is not None
-                alias[attrib] = value
-            # All other attributes are part of the module.
-            else:
-                if attrib in module:
-                    perr(filename, i,
-                         "duplicate module attribute '{}'".format(attrib))
-                check_module_attrib(filename, i, attrib, value)
-                module[attrib] = value
-        else:
-            perr(filename, i, "invalid attribute '{}'".format(line[0]))
-
-    # Save previously parsed option/alias
-    if option:
-        options.append(option)
-    if alias:
-        aliases.append(alias)
-
     # Check if parsed module attributes are valid and if all required
     # attributes are defined.
-    check_attribs(filename, 1,
+    check_attribs(filename,
                   MODULE_ATTR_REQ, MODULE_ATTR_ALL, module, 'module')
     res = Module(module)
 
-    # Check parsed option/alias attributes and create option/alias objects and
-    # associate file name and line number with options/aliases (required for
-    # better error reporting).
-    assert len(option_lines) == len(options)
-    assert len(alias_lines) == len(aliases)
-    for i in range(len(options)):
-        attribs = options[i]
-        lineno = option_lines[i]
-        check_attribs(filename, lineno,
-                      OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
-        option = Option(attribs)
-        if option.short and not option.long:
-            perr(filename, lineno,
-                 "short option '{}' specified but no long option".format(
-                     option.short))
-        if option.type == 'bool' and option.handler:
-            perr(filename, lineno,
-                 'specifying handlers for options of type bool is not allowed')
-        if option.category != 'undocumented' and not option.help:
-            perr(filename, lineno,
-                 'help text is required for {} options'.format(option.category))
-        option.lineno = lineno
-        option.filename = filename
-        res.options.append(option)
+    if 'option' in module:
+        for attribs in module['option']:
+            lineno = 0
+            check_attribs(filename,
+                          OPTION_ATTR_REQ, OPTION_ATTR_ALL, attribs, 'option')
+            option = Option(attribs)
+            if option.mode and not option.help_mode:
+                perr(filename, 'defines modes but no help_mode', option)
+            if option.mode and option.handler:
+                perr(filename, 'defines modes and a handler', option)
+            if option.mode and option.default and \
+                    option.default not in option.mode.keys():
+                perr(filename,
+                     "invalid default value '{}'".format(option.default),
+                     option)
+            if option.short and not option.long:
+                perr(filename,
+                     "short option '{}' specified but no long option".format(
+                         option.short),
+                     option)
+            if option.type == 'bool' and option.handler:
+                perr(filename,
+                     'defining handlers for bool options is not allowed',
+                     option)
+            if option.category != 'undocumented' and not option.help:
+                perr(filename,
+                     'help text required for {} options'.format(option.category),
+                     option)
+            option.filename = filename
+            res.options.append(option)
 
-    for i in range(len(aliases)):
-        attribs = aliases[i]
-        lineno = alias_lines[i]
-        check_attribs(filename, lineno,
-                      ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
-        alias = Alias(attribs)
-        alias.lineno = lineno
-        alias.filename = filename
-        res.aliases.append(alias)
+    if 'alias' in module:
+        for attribs in module['alias']:
+            lineno = 0
+            check_attribs(filename,
+                          ALIAS_ATTR_REQ, ALIAS_ATTR_ALL, attribs, 'alias')
+            alias = Alias(attribs)
+            alias.filename = filename
+            res.aliases.append(alias)
 
     return res
 
@@ -1400,20 +1309,19 @@ def mkoptions_main():
     # Parse files, check attributes and create module/option objects
     modules = []
     for filename in filenames:
-        with open(filename, 'r') as file:
-            module = parse_module(filename, file)
-            # Check if long options are valid and unique.  First populate
-            # g_long_cache with option.long and --no- alternatives if
-            # applicable.
-            for option in module.options:
-                check_long(option.filename, option.lineno, option.long,
-                           option.type)
-                if option.long:
-                    g_long_to_opt[long_get_option(option.long)] = option
-                    # Add long option that requires an argument
-                    if option.type not in ['bool', 'void']:
-                        g_long_arguments.add(long_get_option(option.long))
-            modules.append(module)
+        module = parse_module(filename, toml.load(filename))
+
+        # Check if long options are valid and unique.  First populate
+        # g_long_cache with option.long and --no- alternatives if
+        # applicable.
+        for option in module.options:
+            check_long(filename, option, option.long, option.type)
+            if option.long:
+                g_long_to_opt[long_get_option(option.long)] = option
+                # Add long option that requires an argument
+                if option.type not in ['bool', 'void']:
+                    g_long_arguments.add(long_get_option(option.long))
+        modules.append(module)
 
     # Check if alias.long is unique and check if alias.long defines an alias
     # for an alternate (--no-<long>) option for existing option <long>.
@@ -1428,7 +1336,7 @@ def mkoptions_main():
                     m[0].alternate = False
                     alias.alternate_for = m[0]
                     del g_long_cache[alias.long]
-            check_long(alias.filename, alias.lineno, alias.long)
+            check_long(alias.filename, alias, alias.long)
             # Add long option that requires an argument
             if '=' in alias.long:
                 g_long_arguments.add(long_get_option(alias.long))
@@ -1437,9 +1345,9 @@ def mkoptions_main():
     # long options are available).
     for module in modules:
         for option in module.options:
-            check_links(option.filename, option.lineno, option.links)
+            check_links(option.filename, option)
         for alias in module.aliases:
-            check_links(alias.filename, alias.lineno, alias.links)
+            check_links(alias.filename, alias)
 
     # Create *_options.{h,cpp} in destination directory
     for module in modules:

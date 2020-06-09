@@ -181,22 +181,20 @@ Node FunDefEvaluator::evaluate(Node n) const
           const std::vector<Node>& args = itf->second.d_args;
           if (!args.empty())
           {
-            // invoke it on arguments
-            sbody = sbody.substitute(
-                args.begin(), args.end(), children.begin(), children.end());
-            // rewrite it
-            sbody = Rewriter::rewrite(sbody);
+            // invoke it on arguments using the evaluator
+            sbody = d_eval.eval(sbody, args, children);
             if (Trace.isOn("fd-eval-debug2"))
             {
               Trace("fd-eval-debug2")
                   << "FunDefEvaluator: evaluation with args:\n";
-              for (const Node& child : children)
+              for (const Node& ch : children)
               {
-                Trace("fd-eval-debug2") << "..." << child << "\n";
+                Trace("fd-eval-debug2") << "..." << ch << "\n";
               }
               Trace("fd-eval-debug2")
                   << "FunDefEvaluator: results in " << sbody << "\n";
             }
+            Assert(!sbody.isNull());
           }
           // our result is the result of the body
           visited[cur] = sbody;

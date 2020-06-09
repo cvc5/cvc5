@@ -19,33 +19,16 @@
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, ModelFormatMode mode) {
-  switch(mode) {
-  case MODEL_FORMAT_MODE_DEFAULT:
-    out << "MODEL_FORMAT_MODE_DEFAULT";
-    break;
-  case MODEL_FORMAT_MODE_TABLE:
-    out << "MODEL_FORMAT_MODE_TABLE";
-    break;
-  default:
-    out << "ModelFormatMode:UNKNOWN![" << unsigned(mode) << "]";
-  }
-
-  return out;
-}
-
-std::ostream& operator<<(std::ostream& out, InstFormatMode mode) {
-  switch(mode) {
-  case INST_FORMAT_MODE_DEFAULT:
-    out << "INST_FORMAT_MODE_DEFAULT";
-    break;
-  case INST_FORMAT_MODE_SZS:
-    out << "INST_FORMAT_MODE_SZS";
-    break;
-  default:
-    out << "InstFormatMode:UNKNOWN![" << unsigned(mode) << "]";
+std::ostream& operator<<(std::ostream& out, options::InstFormatMode mode)
+{
+  out << "InstFormatMode::";
+  switch (mode)
+  {
+    case options::InstFormatMode::DEFAULT: out << "DEFAULT"; break;
+    case options::InstFormatMode::SZS: out << "SZS"; break;
+    default: out << "UNKNOWN![" << unsigned(mode) << "]";
   }
   return out;
 }
 
-}/* CVC4 namespace */
+}  // namespace CVC4

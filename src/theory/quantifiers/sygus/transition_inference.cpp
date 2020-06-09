@@ -197,6 +197,7 @@ void TransitionInference::process(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_complete = true;
+  d_trivial = true;
   std::vector<Node> n_check;
   if (n.getKind() == AND)
   {
@@ -418,8 +419,9 @@ bool TransitionInference::processDisjunct(
   {
     Node op = lit.getOperator();
     // initialize the variables
-    if (d_vars.empty())
+    if (d_trivial)
     {
+      d_trivial = false;
       d_func = op;
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
       NodeManager* nm = NodeManager::currentNM();

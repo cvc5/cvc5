@@ -24,18 +24,8 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace CVC4 {
-
-namespace expr {
-namespace attr {
-struct DatatypeConstructorTypeGroundTermTag {};
-} /* CVC4::expr::attr namespace */
-} /* CVC4::expr namespace */
-
 namespace theory {
 namespace datatypes {
-
-typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node>
-    GroundTermAttr;
 
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
@@ -287,11 +277,13 @@ struct RecordUpdateTypeRule {
     TypeNode recordType = n[0].getType(check);
     TypeNode newValue = n[1].getType(check);
     if (check) {
-      if (!recordType.isRecord()) {
+      if (!recordType.toType().isRecord())
+      {
         throw TypeCheckingExceptionPrivate(
             n, "Record-update expression formed over non-record");
       }
-      const Record& rec = recordType.getRecord();
+      const Record& rec =
+          DatatypeType(recordType.toType()).getRecord();
       if (!rec.contains(ru.getField())) {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()

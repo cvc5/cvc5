@@ -22,8 +22,9 @@
  **/
 
 #include "preprocessing/passes/ackermann.h"
-
+#include <cmath>
 #include "base/check.h"
+#include "expr/node_algorithm.h"
 #include "options/options.h"
 
 using namespace CVC4;
@@ -186,9 +187,111 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
 
 /* -------------------------------------------------------------------------- */
 
+/* Given a minimum capacity for an uninterpreted sort, return the size of the
+ * new BV type */
+size_t getBVSkolemSize(size_t capacity)
+{
+  return static_cast<size_t>(log2(capacity)) + 1;
+}
+
+/* Given the lowest capacity requirements for each uninterpreted sort, assign
+ * a sufficient bit-vector size.
+ * Populate usVarsToBVVars so that it maps variables with uninterpreted sort to
+ * the fresh skolem BV variables. variables */
+void collectUSortsToBV(const unordered_set<TNode, TNodeHashFunction>& vars,
+                       const USortToBVSizeMap& usortCardinality,
+                       SubstitutionMap& usVarsToBVVars)
+{
+  NodeManager* nm = NodeManager::currentNM();
+
+  for (TNode var : vars)
+  {
+    TypeNode type = var.getType();
+    size_t size = getBVSkolemSize(usortCardinality.at(type));
+    Node skolem = nm->mkSkolem(
+        "BVSKOLEM$$",
+        nm->mkBitVectorType(size),
+        "a variable created by the ackermannization "
+        "preprocessing pass, representing a variable with uninterpreted sort "
+            + type.toString() + ".");
+    usVarsToBVVars.addSubstitution(var, skolem);
+  }
+}
+
+/* This function returns the list of terms with uninterpreted sort in the
+ * formula represented by assertions. */
+std::unordered_set<TNode, TNodeHashFunction> getVarsWithUSorts(
+    AssertionPipeline* assertions)
+{
+  std::unordered_set<TNode, TNodeHashFunction> res;
+
+  for (const Node& assertion : assertions->ref())
+  {
+    std::unordered_set<TNode, TNodeHashFunction> vars;
+    expr::getVariables(assertion, vars);
+
+    for (const TNode& var : vars)
+    {
+      if (var.getType().isSort())
+      {
+        res.insert(var);
+      }
+    }
+  }
+
+  return res;
+}
+
+/* This is the top level of converting uninterpreted sorts to bit-vectors.
+ * We count the number of different variables for each uninterpreted sort.
+ * Then for each sort, we will assign a new bit-vector type with a sufficient
+ * size. The size is calculated to have enough capacity, that can accommodate
+ * the variables occured in the original formula. At the end, all variables of
+ * uninterpreted sorts will be converted into Skolem variables of BV */
+void usortsToBitVectors(const LogicInfo& d_logic,
+                        AssertionPipeline* assertions,
+                        USortToBVSizeMap& usortCardinality,
+                        SubstitutionMap& usVarsToBVVars)
+{
+  std::unordered_set<TNode, TNodeHashFunction> toProcess =
+      getVarsWithUSorts(assertions);
+
+  if (toProcess.size() > 0)
+  {
+    /* the current version only supports BV for removing uninterpreted sorts */
+    if (not d_logic.isTheoryEnabled(theory::THEORY_BV))
+    {
+      return;
+    }
+
+    for (TNode term : toProcess)
+    {
+      TypeNode type = term.getType();
+      /* Update the counts for each uninterpreted sort.
+       * For non-existing keys, C++ will create a new element for it, which has
+       * a default 0 value, before incrementing by 1. */
+      usortCardinality[type] = usortCardinality[type] + 1;
+    }
+
+    collectUSortsToBV(toProcess, usortCardinality, usVarsToBVVars);
+
+    for (size_t i = 0, size = assertions->size(); i < size; ++i)
+    {
+      Node old = (*assertions)[i];
+      assertions->replace(i, usVarsToBVVars.apply((*assertions)[i]));
+      Trace("uninterpretedSorts-to-bv")
+          << "  " << old << " => " << (*assertions)[i] << "\n";
+    }
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+
 Ackermann::Ackermann(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "ackermann"),
-      d_funcToSkolem(preprocContext->getUserContext())
+      d_funcToSkolem(preprocContext->getUserContext()),
+      d_usVarsToBVVars(preprocContext->getUserContext()),
+      d_logic(preprocContext->getLogicInfo())
 {
 }
 
@@ -214,6 +317,10 @@ PreprocessingPassResult Ackermann::applyInternal(
     assertionsToPreprocess->replace(
         i, d_funcToSkolem.apply((*assertionsToPreprocess)[i]));
   }
+
+  /* replace uninterpreted sorts with bit-vectors */
+  usortsToBitVectors(
+      d_logic, assertionsToPreprocess, d_usortCardinality, d_usVarsToBVVars);
 
   return PreprocessingPassResult::NO_CONFLICT;
 }

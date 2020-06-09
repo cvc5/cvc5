@@ -18,7 +18,6 @@
 #include "decision/decision_attributes.h"
 #include "decision/justification_heuristic.h"
 #include "expr/node.h"
-#include "options/decision_mode.h"
 #include "options/decision_options.h"
 #include "options/smt_options.h"
 
@@ -26,18 +25,20 @@ using namespace std;
 
 namespace CVC4 {
 
-DecisionEngine::DecisionEngine(context::Context *sc,
-                               context::UserContext *uc) :
-  d_enabledStrategies(),
-  d_needIteSkolemMap(),
-  d_relevancyStrategy(NULL),
-  d_assertions(uc),
-  d_cnfStream(NULL),
-  d_satSolver(NULL),
-  d_satContext(sc),
-  d_userContext(uc),
-  d_result(sc, SAT_VALUE_UNKNOWN),
-  d_engineState(0)
+DecisionEngine::DecisionEngine(context::Context* sc,
+                               context::UserContext* uc,
+                               ResourceManager* rm)
+    : d_enabledITEStrategy(nullptr),
+      d_needIteSkolemMap(),
+      d_relevancyStrategy(nullptr),
+      d_assertions(uc),
+      d_cnfStream(nullptr),
+      d_satSolver(nullptr),
+      d_satContext(sc),
+      d_userContext(uc),
+      d_result(sc, SAT_VALUE_UNKNOWN),
+      d_engineState(0),
+      d_resourceManager(rm)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
 }
@@ -53,36 +54,47 @@ void DecisionEngine::init()
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
-  if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
-  if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
-    ITEDecisionStrategy* ds =
-      new decision::JustificationHeuristic(this, d_userContext, d_satContext);
-    enableStrategy(ds);
-    d_needIteSkolemMap.push_back(ds);
+  if (options::decisionMode() == options::DecisionMode::JUSTIFICATION)
+  {
+    d_enabledITEStrategy.reset(new decision::JustificationHeuristic(
+        this, d_userContext, d_satContext));
+    d_needIteSkolemMap.push_back(d_enabledITEStrategy.get());
   }
 }
 
-
-void DecisionEngine::enableStrategy(DecisionStrategy* ds)
+void DecisionEngine::shutdown()
 {
-  d_enabledStrategies.push_back(ds);
+  Trace("decision") << "Shutting down decision engine" << std::endl;
+
+  Assert(d_engineState == 1);
+  d_engineState = 2;
+  d_enabledITEStrategy.reset(nullptr);
+  d_needIteSkolemMap.clear();
 }
 
-void DecisionEngine::clearStrategies(){
-  for(unsigned i = 0; i < d_enabledStrategies.size(); ++i){
-    delete d_enabledStrategies[i];
-  }
-  d_enabledStrategies.clear();
-  d_needIteSkolemMap.clear();
+SatLiteral DecisionEngine::getNext(bool& stopSearch)
+{
+  d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
+  Assert(d_cnfStream != nullptr)
+      << "Forgot to set cnfStream for decision engine?";
+  Assert(d_satSolver != nullptr)
+      << "Forgot to set satSolver for decision engine?";
+
+  return d_enabledITEStrategy == nullptr
+             ? undefSatLiteral
+             : d_enabledITEStrategy->getNext(stopSearch);
 }
 
 bool DecisionEngine::isRelevant(SatVariable var)
 {
   Debug("decision") << "isRelevant(" << var <<")" << std::endl;
-  if(d_relevancyStrategy != NULL) {
+  if (d_relevancyStrategy != nullptr)
+  {
     //Assert(d_cnfStream->hasNode(var));
     return d_relevancyStrategy->isRelevant( d_cnfStream->getNode(SatLiteral(var)) );
-  } else {
+  }
+  else
+  {
     return true;
   }
 }
@@ -90,10 +102,13 @@ bool DecisionEngine::isRelevant(SatVariable var)
 SatValue DecisionEngine::getPolarity(SatVariable var)
 {
   Debug("decision") << "getPolarity(" << var <<")" << std::endl;
-  if(d_relevancyStrategy != NULL) {
+  if (d_relevancyStrategy != nullptr)
+  {
     Assert(isRelevant(var));
     return d_relevancyStrategy->getPolarity( d_cnfStream->getNode(SatLiteral(var)) );
-  } else {
+  }
+  else
+  {
     return SAT_VALUE_UNKNOWN;
   }
 }

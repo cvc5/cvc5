@@ -15,7 +15,13 @@
  **/
 
 #include "theory/sets/theory_sets.h"
+
+#include "options/sets_options.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/sets/theory_sets_rewriter.h"
+#include "theory/theory_model.h"
+
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -38,6 +44,20 @@ TheorySets::TheorySets(context::Context* c,
 TheorySets::~TheorySets()
 {
   // Do not move me to the header. See explanation in the constructor.
+}
+
+TheoryRewriter* TheorySets::getTheoryRewriter()
+{
+  return d_internal->getTheoryRewriter();
+}
+
+void TheorySets::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setUnevaluatedKind(COMPREHENSION);
+  // choice is used to eliminate witness
+  tm->setUnevaluatedKind(WITNESS);
 }
 
 void TheorySets::addSharedTerm(TNode n) {
@@ -77,12 +97,69 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
-Node TheorySets::expandDefinition(LogicRequest &logicRequest, Node n) {
-  return d_internal->expandDefinition(logicRequest, n);
+Node TheorySets::expandDefinition(Node n)
+{
+  Kind nk = n.getKind();
+  if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
+      || nk == COMPREHENSION)
+  {
+    if (!options::setsExt())
+    {
+      std::stringstream ss;
+      ss << "Extended set operators are not supported in default mode, try "
+            "--sets-ext.";
+      throw LogicException(ss.str());
+    }
+  }
+  if (nk == COMPREHENSION)
+  {
+    // set comprehension is an implicit quantifier, require it in the logic
+    if (!getLogicInfo().isQuantified())
+    {
+      std::stringstream ss;
+      ss << "Set comprehensions require quantifiers in the background logic.";
+      throw LogicException(ss.str());
+    }
+  }
+  return d_internal->expandDefinition(n);
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-  return d_internal->ppAssert( in, outSubstitutions );
+  Debug("sets-proc") << "ppAssert : " << in << std::endl;
+  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
+
+  // this is based off of Theory::ppAssert
+  if (in.getKind() == kind::EQUAL)
+  {
+    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    {
+      // We cannot solve for sets if setsExt is enabled, since universe set
+      // may appear when this option is enabled, and solving for such a set
+      // impacts the semantics of universe set, see
+      // regress0/sets/pre-proc-univ.smt2
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
+        outSubstitutions.addSubstitution(in[0], in[1]);
+        status = Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }
+    else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+    {
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
+        outSubstitutions.addSubstitution(in[1], in[0]);
+        status = Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }
+    else if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
+        status = Theory::PP_ASSERT_STATUS_CONFLICT;
+      }
+    }
+  }
+  return status;
 }
 
 void TheorySets::presolve() {

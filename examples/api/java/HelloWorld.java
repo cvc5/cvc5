@@ -20,7 +20,7 @@
  ** A very simple CVC4 tutorial example.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class HelloWorld {
   public static void main(String[] args) {
@@ -30,6 +30,6 @@ public class HelloWorld {
     Expr helloworld = em.mkVar("Hello World!", em.booleanType());
     SmtEngine smt = new SmtEngine(em);
 
-    System.out.println(helloworld + " is " + smt.query(helloworld));
+    System.out.println(helloworld + " is " + smt.checkEntailed(helloworld));
   }
 }

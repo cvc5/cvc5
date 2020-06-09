@@ -46,7 +46,8 @@ InstantiationEngine::InstantiationEngine(QuantifiersEngine* qe)
   if (options::eMatching()) {
     // these are the instantiation strategies for E-matching
     // user-provided patterns
-    if (options::userPatternsQuant() != USER_PAT_MODE_IGNORE) {
+    if (options::userPatternsQuant() != options::UserPatMode::IGNORE)
+    {
       d_isup.reset(new InstStrategyUserPatterns(d_quantEngine));
       d_instStrategies.push_back(d_isup.get());
     }

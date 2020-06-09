@@ -273,15 +273,15 @@ class CVC4_PUBLIC BitVector
 struct CVC4_PUBLIC BitVectorExtract
 {
   /** The high bit of the range for this extract */
-  unsigned high;
+  unsigned d_high;
   /** The low bit of the range for this extract */
-  unsigned low;
+  unsigned d_low;
 
-  BitVectorExtract(unsigned high, unsigned low) : high(high), low(low) {}
+  BitVectorExtract(unsigned high, unsigned low) : d_high(high), d_low(low) {}
 
   bool operator==(const BitVectorExtract& extract) const
   {
-    return high == extract.high && low == extract.low;
+    return d_high == extract.d_high && d_low == extract.d_low;
   }
 }; /* struct BitVectorExtract */
 
@@ -291,74 +291,74 @@ struct CVC4_PUBLIC BitVectorExtract
 struct CVC4_PUBLIC BitVectorBitOf
 {
   /** The index of the bit */
-  unsigned bitIndex;
-  BitVectorBitOf(unsigned i) : bitIndex(i) {}
+  unsigned d_bitIndex;
+  BitVectorBitOf(unsigned i) : d_bitIndex(i) {}
 
   bool operator==(const BitVectorBitOf& other) const
   {
-    return bitIndex == other.bitIndex;
+    return d_bitIndex == other.d_bitIndex;
   }
 }; /* struct BitVectorBitOf */
 
 struct CVC4_PUBLIC BitVectorSize
 {
-  unsigned size;
-  BitVectorSize(unsigned size) : size(size) {}
-  operator unsigned() const { return size; }
+  unsigned d_size;
+  BitVectorSize(unsigned size) : d_size(size) {}
+  operator unsigned() const { return d_size; }
 }; /* struct BitVectorSize */
 
 struct CVC4_PUBLIC BitVectorRepeat
 {
-  unsigned repeatAmount;
-  BitVectorRepeat(unsigned repeatAmount) : repeatAmount(repeatAmount) {}
-  operator unsigned() const { return repeatAmount; }
+  unsigned d_repeatAmount;
+  BitVectorRepeat(unsigned repeatAmount) : d_repeatAmount(repeatAmount) {}
+  operator unsigned() const { return d_repeatAmount; }
 }; /* struct BitVectorRepeat */
 
 struct CVC4_PUBLIC BitVectorZeroExtend
 {
-  unsigned zeroExtendAmount;
+  unsigned d_zeroExtendAmount;
   BitVectorZeroExtend(unsigned zeroExtendAmount)
-      : zeroExtendAmount(zeroExtendAmount)
+      : d_zeroExtendAmount(zeroExtendAmount)
   {
   }
-  operator unsigned() const { return zeroExtendAmount; }
+  operator unsigned() const { return d_zeroExtendAmount; }
 }; /* struct BitVectorZeroExtend */
 
 struct CVC4_PUBLIC BitVectorSignExtend
 {
-  unsigned signExtendAmount;
+  unsigned d_signExtendAmount;
   BitVectorSignExtend(unsigned signExtendAmount)
-      : signExtendAmount(signExtendAmount)
+      : d_signExtendAmount(signExtendAmount)
   {
   }
-  operator unsigned() const { return signExtendAmount; }
+  operator unsigned() const { return d_signExtendAmount; }
 }; /* struct BitVectorSignExtend */
 
 struct CVC4_PUBLIC BitVectorRotateLeft
 {
-  unsigned rotateLeftAmount;
+  unsigned d_rotateLeftAmount;
   BitVectorRotateLeft(unsigned rotateLeftAmount)
-      : rotateLeftAmount(rotateLeftAmount)
+      : d_rotateLeftAmount(rotateLeftAmount)
   {
   }
-  operator unsigned() const { return rotateLeftAmount; }
+  operator unsigned() const { return d_rotateLeftAmount; }
 }; /* struct BitVectorRotateLeft */
 
 struct CVC4_PUBLIC BitVectorRotateRight
 {
-  unsigned rotateRightAmount;
+  unsigned d_rotateRightAmount;
   BitVectorRotateRight(unsigned rotateRightAmount)
-      : rotateRightAmount(rotateRightAmount)
+      : d_rotateRightAmount(rotateRightAmount)
   {
   }
-  operator unsigned() const { return rotateRightAmount; }
+  operator unsigned() const { return d_rotateRightAmount; }
 }; /* struct BitVectorRotateRight */
 
 struct CVC4_PUBLIC IntToBitVector
 {
-  unsigned size;
-  IntToBitVector(unsigned size) : size(size) {}
-  operator unsigned() const { return size; }
+  unsigned d_size;
+  IntToBitVector(unsigned size) : d_size(size) {}
+  operator unsigned() const { return d_size; }
 }; /* struct IntToBitVector */
 
 /* -----------------------------------------------------------------------
@@ -380,8 +380,8 @@ struct CVC4_PUBLIC BitVectorExtractHashFunction
 {
   size_t operator()(const BitVectorExtract& extract) const
   {
-    size_t hash = extract.low;
-    hash ^= extract.high + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+    size_t hash = extract.d_low;
+    hash ^= extract.d_high + 0x9e3779b9 + (hash << 6) + (hash >> 2);
     return hash;
   }
 }; /* struct BitVectorExtractHashFunction */
@@ -391,7 +391,7 @@ struct CVC4_PUBLIC BitVectorExtractHashFunction
  */
 struct CVC4_PUBLIC BitVectorBitOfHashFunction
 {
-  size_t operator()(const BitVectorBitOf& b) const { return b.bitIndex; }
+  size_t operator()(const BitVectorBitOf& b) const { return b.d_bitIndex; }
 }; /* struct BitVectorBitOfHashFunction */
 
 template <typename T>
@@ -415,21 +415,21 @@ inline std::ostream& operator<<(std::ostream& os,
                                 const BitVectorExtract& bv) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& os, const BitVectorExtract& bv)
 {
-  return os << "[" << bv.high << ":" << bv.low << "]";
+  return os << "[" << bv.d_high << ":" << bv.d_low << "]";
 }
 
 inline std::ostream& operator<<(std::ostream& os,
                                 const BitVectorBitOf& bv) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& os, const BitVectorBitOf& bv)
 {
-  return os << "[" << bv.bitIndex << "]";
+  return os << "[" << bv.d_bitIndex << "]";
 }
 
 inline std::ostream& operator<<(std::ostream& os,
                                 const IntToBitVector& bv) CVC4_PUBLIC;
 inline std::ostream& operator<<(std::ostream& os, const IntToBitVector& bv)
 {
-  return os << "[" << bv.size << "]";
+  return os << "[" << bv.d_size << "]";
 }
 
 }  // namespace CVC4

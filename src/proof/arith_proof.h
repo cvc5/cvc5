@@ -68,7 +68,6 @@ protected:
    */
   proof::ArithProofRecorder d_recorder;
 
-  bool d_realMode;
   theory::TheoryId getTheoryId() override;
 
  public:
@@ -82,10 +81,24 @@ public:
   LFSCArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* proofEngine)
     : ArithProof(arith, proofEngine)
   {}
-  void printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
+  void printOwnedTermAsType(Expr term,
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode expectedType) override;
   void printOwnedSort(Type type, std::ostream& os) override;
+
+  /**
+   * Returns the LFSC identifier for the operator of this node.
+   *
+   * e.g. "+_Real".
+   *
+   * Does not include any parens.
+   *
+   * Even if the operator is a comparison (e.g. >=) on integers, will not
+   * return a purely `Int` predicate like ">=_Int". Instead this treats the
+   * right hand side as a real.
+   */
+  static std::string getLfscFunction(const Node& n);
 
   /**
    * Print a rational number in LFSC format.
@@ -95,6 +108,15 @@ public:
    * @param r the rational to print
    */
   static void printRational(std::ostream& o, const Rational& r);
+
+  /**
+   * Print an integer in LFSC format.
+   *        e.g. 5 or (~ 1)
+   *
+   * @param o ostream to print to.
+   * @param i the integer to print
+   */
+  static void printInteger(std::ostream& o, const Integer& i);
 
   /**
    * Print a value of type poly_formula_norm
@@ -167,6 +189,26 @@ public:
   void printAliasingDeclarations(std::ostream& os,
                                  std::ostream& paren,
                                  const ProofLetMap& globalLetMap) override;
+
+  /**
+   * Given a node that is an arith literal (an arith comparison or negation
+   * thereof), prints a proof of that literal.
+   *
+   * If the node represents a tightenable bound (e.g. [Int] < 3) then it prints
+   * a proof of the tightening instead. (e.g. [Int] <= 2).
+   *
+   * @return a pair comprising:
+   *            * the new node (after tightening) and
+   *            * a string proving it.
+   */
+  std::pair<Node, std::string> printProofAndMaybeTighten(const Node& bound);
+
+  /**
+   * Return whether this node, when serialized to LFSC, has sort `Bool`. Otherwise, the sort is `formula`.
+   */
+  bool printsAsBool(const Node& n) override;
+
+  TypeNode equalityType(const Expr& left, const Expr& right) override;
 };
 
 

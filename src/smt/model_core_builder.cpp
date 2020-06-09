@@ -22,7 +22,7 @@ namespace CVC4 {
 
 bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
                                     Model* m,
-                                    ModelCoresMode mode)
+                                    options::ModelCoresMode mode)
 {
   if (Trace.isOn("model-core"))
   {
@@ -77,12 +77,12 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   std::vector<Node> coreVars;
   std::vector<Node> impliedVars;
   bool minimized = false;
-  if (mode == MODEL_CORES_NON_IMPLIED)
+  if (mode == options::ModelCoresMode::NON_IMPLIED)
   {
     minimized = theory::SubstitutionMinimize::findWithImplied(
         formula, vars, subs, coreVars, impliedVars);
   }
-  else if (mode == MODEL_CORES_SIMPLE)
+  else if (mode == options::ModelCoresMode::SIMPLE)
   {
     minimized = theory::SubstitutionMinimize::find(
         formula, truen, vars, subs, coreVars);

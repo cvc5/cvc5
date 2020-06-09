@@ -156,13 +156,20 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
 class ExportPrivate {
 private:
   typedef std::unordered_map <NodeTemplate<false>, NodeTemplate<true>, TNodeHashFunction> ExportCache;
-  ExprManager* from;
-  ExprManager* to;
-  ExprManagerMapCollection& vmap;
-  uint32_t flags;
-  ExportCache exportCache;
-public:
-  ExportPrivate(ExprManager* from, ExprManager* to, ExprManagerMapCollection& vmap, uint32_t flags) : from(from), to(to), vmap(vmap), flags(flags) {}
+  ExprManager* d_from;
+  ExprManager* d_to;
+  ExprManagerMapCollection& d_vmap;
+  uint32_t d_flags;
+  ExportCache d_exportCache;
+
+ public:
+  ExportPrivate(ExprManager* from,
+                ExprManager* to,
+                ExprManagerMapCollection& vmap,
+                uint32_t flags)
+      : d_from(from), d_to(to), d_vmap(vmap), d_flags(flags)
+  {
+  }
   Node exportInternal(TNode n) {
 
     if(n.isNull()) return Node::null();
@@ -173,17 +180,18 @@ public:
 
     if(n.getMetaKind() == metakind::CONSTANT) {
       if(n.getKind() == kind::EMPTYSET) {
-        Type type = from->exportType(n.getConst< ::CVC4::EmptySet >().getType(), to, vmap);
-        return to->mkConst(::CVC4::EmptySet(type));
+        Type type = d_from->exportType(
+            n.getConst< ::CVC4::EmptySet>().getType(), d_to, d_vmap);
+        return d_to->mkConst(::CVC4::EmptySet(type));
       }
-      return exportConstant(n, NodeManager::fromExprManager(to), vmap);
+      return exportConstant(n, NodeManager::fromExprManager(d_to), d_vmap);
     } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
-      Expr from_e(from, new Node(n));
-      Type type = from->exportType(from_e.getType(), to, vmap);
-      return to->mkNullaryOperator(type, n.getKind()); // FIXME thread safety
+      Expr from_e(d_from, new Node(n));
+      Type type = d_from->exportType(from_e.getType(), d_to, d_vmap);
+      return d_to->mkNullaryOperator(type, n.getKind());  // FIXME thread safety
     } else if(n.getMetaKind() == metakind::VARIABLE) {
-      Expr from_e(from, new Node(n));
-      Expr& to_e = vmap.d_typeMap[from_e];
+      Expr from_e(d_from, new Node(n));
+      Expr& to_e = d_vmap.d_typeMap[from_e];
       if(! to_e.isNull()) {
         Debug("export") << "+ mapped `" << from_e << "' to `" << to_e << "'" << std::endl;
         return to_e.getNode();
@@ -191,20 +199,20 @@ public:
         // construct new variable in other manager:
         // to_e is a ref, so this inserts from_e -> to_e
         std::string name;
-        Type type = from->exportType(from_e.getType(), to, vmap);
+        Type type = d_from->exportType(from_e.getType(), d_to, d_vmap);
         if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
           if (n.getKind() == kind::BOUND_VARIABLE)
           {
             // bound vars are only available at the Node level (not the Expr
             // level)
             TypeNode typeNode = TypeNode::fromType(type);
-            NodeManager* to_nm = NodeManager::fromExprManager(to);
-            Node n = to_nm->mkBoundVar(name, typeNode);  // FIXME thread safety
+            NodeManager* to_nm = NodeManager::fromExprManager(d_to);
+            Node nn = to_nm->mkBoundVar(name, typeNode);  // FIXME thread safety
 
             // Make sure that the correct `NodeManager` is in scope while
             // converting the node to an expression.
             NodeManagerScope to_nms(to_nm);
-            to_e = n.toExpr();
+            to_e = nn.toExpr();
           } else if(n.getKind() == kind::VARIABLE) {
             bool isGlobal;
             Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
@@ -212,17 +220,24 @@ public:
             // Temporarily set the node manager to nullptr; this gets around
             // a check that mkVar isn't called internally
             NodeManagerScope nullScope(nullptr);
-            to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
+            to_e = d_to->mkVar(name,
+                               type,
+                               isGlobal ? ExprManager::VAR_FLAG_GLOBAL
+                                        : d_flags);  // FIXME thread safety
           } else if(n.getKind() == kind::SKOLEM) {
             // skolems are only available at the Node level (not the Expr level)
             TypeNode typeNode = TypeNode::fromType(type);
-            NodeManager* to_nm = NodeManager::fromExprManager(to);
-            Node n = to_nm->mkSkolem(name, typeNode, "is a skolem variable imported from another ExprManager");// FIXME thread safety
+            NodeManager* to_nm = NodeManager::fromExprManager(d_to);
+            Node nn =
+                to_nm->mkSkolem(name,
+                                typeNode,
+                                "is a skolem variable imported from another "
+                                "ExprManager");  // FIXME thread safety
 
             // Make sure that the correct `NodeManager` is in scope while
             // converting the node to an expression.
             NodeManagerScope to_nms(to_nm);
-            to_e = n.toExpr();
+            to_e = nn.toExpr();
           } else {
             Unhandled();
           }
@@ -234,38 +249,39 @@ public:
             // bound vars are only available at the Node level (not the Expr
             // level)
             TypeNode typeNode = TypeNode::fromType(type);
-            NodeManager* to_nm = NodeManager::fromExprManager(to);
-            Node n = to_nm->mkBoundVar(typeNode);  // FIXME thread safety
+            NodeManager* to_nm = NodeManager::fromExprManager(d_to);
+            Node nn = to_nm->mkBoundVar(typeNode);  // FIXME thread safety
 
             // Make sure that the correct `NodeManager` is in scope while
             // converting the node to an expression.
             NodeManagerScope to_nms(to_nm);
-            to_e = n.toExpr();
+            to_e = nn.toExpr();
           }
           else
           {
             // Temporarily set the node manager to nullptr; this gets around
             // a check that mkVar isn't called internally
             NodeManagerScope nullScope(nullptr);
-            to_e = to->mkVar(type);  // FIXME thread safety
+            to_e = d_to->mkVar(type);  // FIXME thread safety
           }
           Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
         }
         uint64_t to_int = (uint64_t)(to_e.getNode().d_nv);
         uint64_t from_int = (uint64_t)(from_e.getNode().d_nv);
-        vmap.d_from[to_int] = from_int;
-        vmap.d_to[from_int] = to_int;
-        vmap.d_typeMap[to_e] = from_e;// insert other direction too
+        d_vmap.d_from[to_int] = from_int;
+        d_vmap.d_to[from_int] = to_int;
+        d_vmap.d_typeMap[to_e] = from_e;  // insert other direction too
 
         // Make sure that the expressions are associated with the correct
         // `ExprManager`s.
-        Assert(from_e.getExprManager() == from);
-        Assert(to_e.getExprManager() == to);
+        Assert(from_e.getExprManager() == d_from);
+        Assert(to_e.getExprManager() == d_to);
         return Node::fromExpr(to_e);
       }
     } else {
-      if(exportCache.find(n) != exportCache.end()) {
-        return exportCache[n];
+      if (d_exportCache.find(n) != d_exportCache.end())
+      {
+        return d_exportCache[n];
       }
 
       std::vector<Node> children;
@@ -286,16 +302,17 @@ public:
 
         // `n` belongs to the `from` ExprManager, so begin ExprManagerScope
         // after printing `n`
-        ExprManagerScope ems(*to);
+        ExprManagerScope ems(*d_to);
         for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
           Debug("export") << "  child: " << *i << std::endl;
         }
       }
 
       // FIXME thread safety
-      Node ret = NodeManager::fromExprManager(to)->mkNode(n.getKind(), children);
+      Node ret =
+          NodeManager::fromExprManager(d_to)->mkNode(n.getKind(), children);
 
-      exportCache[n] = ret;
+      d_exportCache[n] = ret;
       return ret;
     }
   }/* exportInternal() */

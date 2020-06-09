@@ -28,10 +28,9 @@
                     (Psi (-> $$unsorted Bool)) (__flatten_var_0 $$unsorted))
             (mor (mnot Phi) Psi __flatten_var_0))))
 
-(declare-fun mbox ((-> $$unsorted $$unsorted Bool) (-> $$unsorted Bool) $$unsorted) Bool)
-(assert (= mbox
+(define-fun mbox () (-> (-> $$unsorted $$unsorted Bool) (-> $$unsorted Bool) $$unsorted Bool)
           (lambda ((R (-> $$unsorted $$unsorted Bool)) (Phi (-> $$unsorted Bool)) (W $$unsorted))
-            (forall ((V $$unsorted)) (or (not (R W V)) (Phi V)) ))))
+            (forall ((V $$unsorted)) (or (not (R W V)) (Phi V)) )))
 
 (assert (not (forall ((R (-> $$unsorted $$unsorted Bool)))
                (mvalid

@@ -45,6 +45,10 @@ class RegexpOperationBlack : public CxxTest::TestSuite
     d_scope = new SmtScope(d_smt);
     d_regExpOpr = new RegExpOpr();
 
+    // Ensure that the SMT engine is fully initialized (required for the
+    // rewriter)
+    d_smt->push();
+
     d_nm = NodeManager::currentNM();
   }
 

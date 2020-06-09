@@ -17,6 +17,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -652,7 +653,9 @@ bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
     }
     //check if it is entailed
     Trace("qcf-tconstraint-debug") << "Check entailment of " << rew << "..." << std::endl;
-    std::pair<bool, Node> et = p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(THEORY_OF_TYPE_BASED, rew );
+    std::pair<bool, Node> et =
+        p->getQuantifiersEngine()->getTheoryEngine()->entailmentCheck(
+            options::TheoryOfMode::THEORY_OF_TYPE_BASED, rew);
     ++(p->d_statistics.d_entailment_checks);
     Trace("qcf-tconstraint-debug") << "ET result : " << et.first << " " << et.second << std::endl;
     if( !et.first ){
@@ -1191,9 +1194,6 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       return false;
     }
   }
-  for( std::map< int, TNode >::iterator it = d_qni_gterm.begin(); it != d_qni_gterm.end(); ++it ){
-    d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
-  }
   if( d_type==typ_ground ){
     // int e = p->evaluate( d_n );
     // if( e==1 ){
@@ -1321,14 +1321,15 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     if( d_type==typ_pred ){
       nn[0] = qi->getCurrentValue( d_n );
       vn[0] = qi->getCurrentRepVar( qi->getVarNum( nn[0] ) );
-      nn[1] = p->getRepresentative( d_tgt ? p->d_true : p->d_false );
+      nn[1] = d_tgt ? p->d_true : p->d_false;
       vn[1] = -1;
       d_tgt = true;
     }else{
       for( unsigned i=0; i<2; i++ ){
         TNode nc;
-        std::map< int, TNode >::iterator it = d_qni_gterm_rep.find( i );
-        if( it!=d_qni_gterm_rep.end() ){
+        std::map<int, TNode>::iterator it = d_qni_gterm.find(i);
+        if (it != d_qni_gterm.end())
+        {
           nc = it->second;
         }else{
           nc = d_n[i];
@@ -1695,14 +1696,14 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
           }else{
             Debug("qcf-match-debug") << "       Match " << index << " is ground term" << std::endl;
             Assert(d_qni_gterm.find(index) != d_qni_gterm.end());
-            Assert(d_qni_gterm_rep.find(index) != d_qni_gterm_rep.end());
-            val = d_qni_gterm_rep[index];
+            val = d_qni_gterm[index];
             Assert(!val.isNull());
           }
           if( !val.isNull() ){
+            Node valr = p->getRepresentative(val);
             //constrained by val
             std::map<TNode, TNodeTrie>::iterator it =
-                d_qn[index]->d_data.find(val);
+                d_qn[index]->d_data.find(valr);
             if( it!=d_qn[index]->d_data.end() ){
               Debug("qcf-match-debug") << "       Match" << std::endl;
               d_qni.push_back( it );
@@ -1901,11 +1902,11 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
   bool performCheck = false;
   if( options::quantConflictFind() && !d_conflict ){
     if( level==Theory::EFFORT_LAST_CALL ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_LAST_CALL;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::LAST_CALL;
     }else if( level==Theory::EFFORT_FULL ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_DEFAULT;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::DEFAULT;
     }else if( level==Theory::EFFORT_STANDARD ){
-      performCheck = options::qcfWhenMode()==QCF_WHEN_MODE_STD;
+      performCheck = options::qcfWhenMode() == options::QcfWhenMode::STD;
     }
   }
   return performCheck;
@@ -1924,7 +1925,7 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
-      if (!options::cbqi() || !TermUtil::hasInstConstAttr(r))
+      if (!options::cegqi() || !TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);
       }
@@ -1956,8 +1957,9 @@ inline QuantConflictFind::Effort QcfEffortStart() {
 // Returns the beginning of a range of efforts. The value returned is included
 // in the range.
 inline QuantConflictFind::Effort QcfEffortEnd() {
-  return options::qcfMode() == QCF_PROP_EQ ? QuantConflictFind::EFFORT_PROP_EQ
-                                           : QuantConflictFind::EFFORT_CONFLICT;
+  return options::qcfMode() == options::QcfMode::PROP_EQ
+             ? QuantConflictFind::EFFORT_PROP_EQ
+             : QuantConflictFind::EFFORT_CONFLICT;
 }
 
 }  // namespace

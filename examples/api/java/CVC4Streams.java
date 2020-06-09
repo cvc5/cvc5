@@ -15,7 +15,7 @@
  **/
 
 import java.io.*;
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class CVC4Streams {
   public static void main(String[] args) throws IOException {

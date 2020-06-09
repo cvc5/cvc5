@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-inv-templ=post --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-inv-templ=post --sygus-out=status
 (set-logic LIA)
 
 (define-fun
@@ -116,14 +116,6 @@
 ))
 
 
-(declare-primed-var stopwatch.usr.toggle Bool)
-(declare-primed-var stopwatch.usr.reset Bool)
-(declare-primed-var stopwatch.usr.count Int)
-(declare-primed-var stopwatch.res.init_flag Bool)
-(declare-primed-var stopwatch.res.abs_0 Bool)
-(declare-primed-var stopwatch.impl.usr.running Bool)
-(declare-primed-var stopwatch.res.abs_1 Int)
-(declare-primed-var stopwatch.res.inst_0 Bool)
 
 (define-fun
   init (

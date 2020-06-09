@@ -169,7 +169,7 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     }
     if (!done) {
       RewriteResponse ret = flattenNode(n, /* trivialNode = */ ff, /* skipNode = */ tt);
-      Debug("bool-flatten") << n << ": " << ret.node << std::endl;
+      Debug("bool-flatten") << n << ": " << ret.d_node << std::endl;
       return ret;
     }
     break;
@@ -316,6 +316,14 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       //   return RewriteResponse(REWRITE_AGAIN, resp);
       // }
     }
+
+    if (n[0].getKind() == kind::NOT)
+    {
+      // ite(not(c), x, y) ---> ite(c, y, x)
+      return RewriteResponse(
+          REWRITE_AGAIN, nodeManager->mkNode(kind::ITE, n[0][0], n[2], n[1]));
+    }
+
     // else if (n[2].isConst()) {
     //   if(n[2] == ff){
     //     Node resp = (n[0]).andNode(n[1]);

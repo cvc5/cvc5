@@ -87,12 +87,9 @@ class DTypeConstructor
   void setSygus(Node op);
   /** get sygus op
    *
-   * This method returns the operator or
-   * term that this constructor represents
-   * in the sygus encoding. This may be a
-   * builtin operator, defined function, variable,
-   * or constant that this constructor encodes in this
-   * deep embedding.
+   * This method returns the operator or term that this constructor represents
+   * in the sygus encoding. This may be a builtin operator, defined function,
+   * variable, or constant that this constructor encodes in this deep embedding.
    */
   Node getSygusOp() const;
   /** is this a sygus identity function?

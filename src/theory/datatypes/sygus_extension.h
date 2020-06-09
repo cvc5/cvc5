@@ -304,7 +304,7 @@ private:
    * lemmas on getSimpleSymBreakPred, see function below),
    * (3) conjecture-specific symmetry breaking lemmas, see
    * SynthConjecture::getSymmetryBreakingPredicate,
-   * (4) fairness conflicts if sygusFair() is SYGUS_FAIR_DIRECT, e.g.:
+   * (4) fairness conflicts if sygusFair() is SygusFairMode::DIRECT, e.g.:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
    */
@@ -584,12 +584,10 @@ private:
      * The measure value is an integer variable v that is a (symbolic) integer
      * value that is constrained to be less than or equal to the current search
      * size. For example, if we are using the fairness strategy
-     * SYGUS_FAIR_DT_SIZE (see options/datatype_options.h), then we constrain:
-     *   (DT_SYGUS_BOUND m n) <=> (v <= n)
-     * for all asserted fairness literals. Then, if we are enforcing fairness
-     * based on the maximum size, we assert:
-     *   (DT_SIZE e) <= v
-     * for all enumerators e.
+     * SygusFairMode::DT_SIZE (see options/datatype_options.h), then we
+     * constrain: (DT_SYGUS_BOUND m n) <=> (v <= n) for all asserted fairness
+     * literals. Then, if we are enforcing fairness based on the maximum size,
+     * we assert: (DT_SIZE e) <= v for all enumerators e.
      */
     Node getOrMkMeasureValue(std::vector<Node>& lemmas);
     /** get or make the active measure value
@@ -597,7 +595,7 @@ private:
      * The active measure value av is an integer variable that corresponds to
      * the (symbolic) value of the sum of enumerators that are yet to be
      * registered. This is to enforce the "sum of measures" strategy. For
-     * example, if we are using the fairness strategy SYGUS_FAIR_DT_SIZE,
+     * example, if we are using the fairness strategy SygusFairMode::DT_SIZE,
      * then initially av is equal to the measure value v, and the constraints
      *   (DT_SYGUS_BOUND m n) <=> (v <= n)
      * are added as before. When an enumerator e is registered, we add the

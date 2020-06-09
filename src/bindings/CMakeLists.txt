@@ -3,6 +3,12 @@ if(NOT ENABLE_SHARED)
 endif()
 
 find_package(SWIG 3.0.0 REQUIRED)
+if(POLICY CMP0078)
+  cmake_policy(SET CMP0078 OLD)
+endif()
+if(POLICY CMP0086)
+  cmake_policy(SET CMP0086 OLD)
+endif()
 
 if(USE_PYTHON3 AND (SWIG_VERSION VERSION_EQUAL 3.0.8))
   message(FATAL_ERROR
@@ -21,9 +27,9 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/src/include
     ${CMAKE_BINARY_DIR}/src)
 
-if(BUILD_BINDINGS_JAVA)
+if(BUILD_SWIG_BINDINGS_JAVA)
   add_subdirectory(java)
 endif()
-if(BUILD_BINDINGS_PYTHON)
+if(BUILD_SWIG_BINDINGS_PYTHON)
   add_subdirectory(python)
 endif()

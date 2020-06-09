@@ -536,10 +536,14 @@ bool Slicer::isCoreTerm(TNode node) {
   if (d_coreTermCache.find(node) == d_coreTermCache.end()) {
     Kind kind = node.getKind();
     bool not_core;
-    if (options::bitvectorEqualitySlicer() != BITVECTOR_SLICER_OFF) {
-      not_core = (kind != kind::BITVECTOR_EXTRACT && kind != kind::BITVECTOR_CONCAT); 
-    } else {
-      not_core = true; 
+    if (options::bitvectorEqualitySlicer() != options::BvSlicerMode::OFF)
+    {
+      not_core =
+          (kind != kind::BITVECTOR_EXTRACT && kind != kind::BITVECTOR_CONCAT);
+    }
+    else
+    {
+      not_core = true;
     }
     if (not_core &&
         kind != kind::EQUAL &&

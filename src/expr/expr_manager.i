@@ -23,20 +23,8 @@
     }
   }
 
-#ifdef SWIGOCAML
-  /* OCaml bindings cannot deal with this degree of overloading */
-  %ignore CVC4::ExprManager::mkExpr(Kind, const std::vector<Expr>&);
-  %ignore CVC4::ExprManager::mkExpr(Kind, Expr, const std::vector<Expr>&);
-  %ignore CVC4::ExprManager::mkExpr(Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, Expr, Expr, Expr, Expr, Expr);
-  %ignore CVC4::ExprManager::mkExpr(Expr, const std::vector<Expr>&);
-#endif /* SWIGOCAML */
-
 %ignore CVC4::stats::getStatisticsRegistry(ExprManager*);
+%ignore CVC4::ExprManager::getResourceManager();
 
 %include "expr/expr_manager.h"
 
@@ -69,6 +57,7 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
+%template(mkConst) CVC4::ExprManager::mkConst<CVC4::ExprSequence>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::String>;
 #ifdef SWIGPYTHON
 /* The python bindings cannot differentiate between bool and other basic

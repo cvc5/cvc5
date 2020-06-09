@@ -31,7 +31,7 @@
 
 ${type_properties_includes}
 
-#line 36 "${template}"
+#line 35 "${template}"
 
 namespace CVC4 {
 namespace kind {

@@ -27,14 +27,6 @@ namespace theory {
 
 class QuantifiersEngine;
 
-/** Attribute true for quantifiers that are axioms */
-struct AxiomAttributeId {};
-typedef expr::Attribute< AxiomAttributeId, bool > AxiomAttribute;
-
-/** Attribute true for quantifiers that are conjecture */
-struct ConjectureAttributeId {};
-typedef expr::Attribute< ConjectureAttributeId, bool > ConjectureAttribute;
-
 /** Attribute true for function definition quantifiers */
 struct FunDefAttributeId {};
 typedef expr::Attribute< FunDefAttributeId, bool > FunDefAttribute;
@@ -108,10 +100,7 @@ struct QAttributes
  public:
   QAttributes()
       : d_hasPattern(false),
-        d_conjecture(false),
-        d_axiom(false),
         d_sygus(false),
-        d_rr_priority(-1),
         d_qinstLevel(-1),
         d_quant_elim(false),
         d_quant_elim_partial(false)
@@ -120,13 +109,6 @@ struct QAttributes
   ~QAttributes(){}
   /** does the quantified formula have a pattern? */
   bool d_hasPattern;
-  /** if non-null, this is the rewrite rule representation of the quantified
-   * formula */
-  Node d_rr;
-  /** is this formula marked a conjecture? */
-  bool d_conjecture;
-  /** is this formula marked an axiom? */
-  bool d_axiom;
   /** if non-null, this quantified formula is a function definition for function
    * d_fundef_f */
   Node d_fundef_f;
@@ -134,8 +116,6 @@ struct QAttributes
   bool d_sygus;
   /** side condition for sygus conjectures */
   Node d_sygusSideCondition;
-  /** if a rewrite rule, then this is the priority value for the rewrite rule */
-  int d_rr_priority;
   /** stores the maximum instantiation level allowed for this quantified formula
    * (-1 means allow any) */
   int d_qinstLevel;
@@ -150,8 +130,6 @@ struct QAttributes
   Node d_name;
   /** the quantifier id associated with this formula */
   Node d_qid_num;
-  /** is this quantified formula a rewrite rule? */
-  bool isRewriteRule() const { return !d_rr.isNull(); }
   /** is this quantified formula a function definition? */
   bool isFunDef() const { return !d_fundef_f.isNull(); }
   /**
@@ -193,10 +171,6 @@ public:
   /** compute the attributes for q */
   void computeAttributes(Node q);
 
-  /** is quantifier treated as a rewrite rule? */
-  static bool checkRewriteRule( Node q );
-  /** get the rewrite rule associated with the quanfied formula */
-  static Node getRewriteRule( Node q );
   /** is fun def */
   static bool checkFunDef( Node q );
   /** is fun def */
@@ -212,10 +186,6 @@ public:
   /** is quant elim annotation */
   static bool checkQuantElimAnnotation( Node ipl );
 
-  /** is conjecture */
-  bool isConjecture( Node q );
-  /** is axiom */
-  bool isAxiom( Node q );
   /** is function definition */
   bool isFunDef( Node q );
   /** is sygus conjecture */

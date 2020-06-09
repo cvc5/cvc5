@@ -1619,12 +1619,14 @@ template<> inline
 Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<MergeSignExtend>(" << node << ")" << std::endl;
   unsigned amount1 =
-      node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].getKind() == kind::BITVECTOR_ZERO_EXTEND) {
-    unsigned amount2 =
-        node[0].getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+    unsigned amount2 = node[0]
+                           .getOperator()
+                           .getConst<BitVectorZeroExtend>()
+                           .d_zeroExtendAmount;
     if (amount2 == 0)
     {
       NodeBuilder<> nb(kind::BITVECTOR_SIGN_EXTEND);
@@ -1642,7 +1644,7 @@ Node RewriteRule<MergeSignExtend>::apply(TNode node) {
   }
   Assert(node[0].getKind() == kind::BITVECTOR_SIGN_EXTEND);
   unsigned amount2 =
-      node[0].getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+      node[0].getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   return utils::mkSignExtend(node[0][0], amount1 + amount2);
 }
 

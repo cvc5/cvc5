@@ -468,7 +468,8 @@ public:
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
-           || getKind() == kind::EXISTS || getKind() == kind::CHOICE
+           || getKind() == kind::EXISTS || getKind() == kind::WITNESS
+           || getKind() == kind::COMPREHENSION
            || getKind() == kind::MATCH_BIND_CASE;
   }
 
@@ -824,10 +825,15 @@ public:
    * (might break language compliance, but good for debugging expressions)
    * @param language the language in which to output
    */
-  inline void toStream(std::ostream& out, int toDepth = -1, bool types = false, size_t dag = 1,
-                       OutputLanguage language = language::output::LANG_AUTO) const {
+  inline void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dagThreshold = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const
+  {
     assertTNodeNotExpired();
-    d_nv->toStream(out, toDepth, types, dag, language);
+    d_nv->toStream(out, toDepth, types, dagThreshold, language);
   }
 
   /**
@@ -1342,7 +1348,8 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
                                     std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   Assert(node != *this);
 
-  if (getNumChildren() == 0) {
+  if (getNumChildren() == 0 || node == replacement)
+  {
     return *this;
   }
 
@@ -1362,20 +1369,20 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
       nb << getOperator().substitute(node, replacement, cache);
     }
   }
-  for(const_iterator i = begin(),
-        iend = end();
-      i != iend;
-      ++i) {
-    if(*i == node) {
+  for (const_iterator it = begin(), iend = end(); it != iend; ++it)
+  {
+    if (*it == node)
+    {
       nb << replacement;
-    } else {
-      nb << (*i).substitute(node, replacement, cache);
+    }
+    else
+    {
+      nb << (*it).substitute(node, replacement, cache);
     }
   }
 
   // put in cache
   Node n = nb;
-  Assert(node != n);
   cache[*this] = n;
   return n;
 }
@@ -1428,13 +1435,10 @@ NodeTemplate<ref_count>::substitute(Iterator1 nodesBegin,
                                      replacementsBegin, replacementsEnd,
                                      cache);
     }
-    for(const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(nodesBegin, nodesEnd,
-                            replacementsBegin, replacementsEnd,
-                            cache);
+    for (const_iterator it = begin(), iend = end(); it != iend; ++it)
+    {
+      nb << (*it).substitute(
+          nodesBegin, nodesEnd, replacementsBegin, replacementsEnd, cache);
     }
     Node n = nb;
     cache[*this] = n;
@@ -1479,11 +1483,9 @@ NodeTemplate<ref_count>::substitute(Iterator substitutionsBegin,
       // push the operator
       nb << getOperator().substitute(substitutionsBegin, substitutionsEnd, cache);
     }
-    for(const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(substitutionsBegin, substitutionsEnd, cache);
+    for (const_iterator it = begin(), iend = end(); it != iend; ++it)
+    {
+      nb << (*it).substitute(substitutionsBegin, substitutionsEnd, cache);
     }
     Node n = nb;
     cache[*this] = n;

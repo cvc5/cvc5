@@ -43,7 +43,8 @@ InputLanguage Options::getInputLanguage() const {
   return (*this)[options::inputLanguage];
 }
 
-InstFormatMode Options::getInstFormatMode() const {
+options::InstFormatMode Options::getInstFormatMode() const
+{
   return (*this)[options::instFormatMode];
 }
 
@@ -74,15 +75,13 @@ bool Options::getDumpSynth() const{
 }
 
 bool Options::getDumpUnsatCores() const{
-  return (*this)[options::dumpUnsatCores];
+  // dump unsat cores full enables dumpUnsatCores
+  return (*this)[options::dumpUnsatCores]
+         || (*this)[options::dumpUnsatCoresFull];
 }
 
 bool Options::getEarlyExit() const{
   return (*this)[options::earlyExit];
-}
-
-bool Options::getFallbackSequential() const{
-  return (*this)[options::fallbackSequential];
 }
 
 bool Options::getFilesystemAccess() const{
@@ -95,10 +94,6 @@ bool Options::getForceNoLimitCpuWhileDump() const{
 
 bool Options::getHelp() const{
   return (*this)[options::help];
-}
-
-bool Options::getIncrementalParallel() const{
-  return (*this)[options::incrementalParallel];
 }
 
 bool Options::getIncrementalSolving() const{
@@ -142,7 +137,8 @@ bool Options::getSemanticChecks() const{
 }
 
 bool Options::getStatistics() const{
-  return (*this)[options::statistics];
+  // statsEveryQuery enables stats
+  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
@@ -163,10 +159,6 @@ int Options::getTearDownIncremental() const{
 
 bool Options::getVersion() const{
   return (*this)[options::version];
-}
-
-bool Options::getWaitToJoin() const{
-  return (*this)[options::waitToJoin];
 }
 
 const std::string& Options::getForceLogicString() const{
@@ -198,10 +190,6 @@ std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
 }
 
-std::string Options::getReplayInputFilename() const{
-  return (*this)[options::replayInputFilename];
-}
-
 unsigned Options::getParseStep() const{
   return (*this)[options::parseStep];
 }
@@ -227,10 +215,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-bool Options::wasSetByUserCeGuidedInst() const {
-  return wasSetByUser(options::ceGuidedInst);
 }
 
 bool Options::wasSetByUserDumpSynth() const {

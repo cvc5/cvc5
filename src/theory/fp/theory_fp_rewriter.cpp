@@ -46,9 +46,12 @@ namespace rewrite {
   RewriteResponse then (TNode node, bool isPreRewrite) {
     RewriteResponse result(first(node, isPreRewrite));
 
-    if (result.status == REWRITE_DONE) {
-      return second(result.node, isPreRewrite);
-    } else {
+    if (result.d_status == REWRITE_DONE)
+    {
+      return second(result.d_node, isPreRewrite);
+    }
+    else
+    {
       return result;
     }
   }
@@ -1048,7 +1051,7 @@ TheoryFpRewriter::TheoryFpRewriter()
       rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       rewrite::identity;
-  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_preRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_preRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1096,7 +1099,7 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_postRewriteTable[kind::FLOATINGPOINT_NEG] = rewrite::removeDoubleNegation;
   d_postRewriteTable[kind::FLOATINGPOINT_PLUS] =
       rewrite::reorderBinaryOperation;
-  d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_SUB] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_MULT] =
       rewrite::reorderBinaryOperation;
   d_postRewriteTable[kind::FLOATINGPOINT_DIV] = rewrite::identity;
@@ -1110,11 +1113,11 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_postRewriteTable[kind::FLOATINGPOINT_MAX_TOTAL] = rewrite::compactMinMax;
 
   /******** Comparisons ********/
-  d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_EQ] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_LEQ] = rewrite::leqId;
   d_postRewriteTable[kind::FLOATINGPOINT_LT] = rewrite::ltId;
-  d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-  d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_GEQ] = rewrite::identity;
+  d_postRewriteTable[kind::FLOATINGPOINT_GT] = rewrite::identity;
 
   /******** Classifications ********/
   d_postRewriteTable[kind::FLOATINGPOINT_ISN] = rewrite::removeSignOperations;
@@ -1135,7 +1138,7 @@ TheoryFpRewriter::TheoryFpRewriter()
       rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       rewrite::identity;
-  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
+  d_postRewriteTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_UBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_SBV] = rewrite::identity;
   d_postRewriteTable[kind::FLOATINGPOINT_TO_REAL] = rewrite::identity;
@@ -1186,7 +1189,6 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_constantFoldTable[kind::FLOATINGPOINT_ABS] = constantFold::abs;
   d_constantFoldTable[kind::FLOATINGPOINT_NEG] = constantFold::neg;
   d_constantFoldTable[kind::FLOATINGPOINT_PLUS] = constantFold::plus;
-  d_constantFoldTable[kind::FLOATINGPOINT_SUB] = rewrite::removed;
   d_constantFoldTable[kind::FLOATINGPOINT_MULT] = constantFold::mult;
   d_constantFoldTable[kind::FLOATINGPOINT_DIV] = constantFold::div;
   d_constantFoldTable[kind::FLOATINGPOINT_FMA] = constantFold::fma;
@@ -1199,11 +1201,8 @@ TheoryFpRewriter::TheoryFpRewriter()
   d_constantFoldTable[kind::FLOATINGPOINT_MAX_TOTAL] = constantFold::maxTotal;
 
   /******** Comparisons ********/
-  d_constantFoldTable[kind::FLOATINGPOINT_EQ] = rewrite::removed;
   d_constantFoldTable[kind::FLOATINGPOINT_LEQ] = constantFold::leq;
   d_constantFoldTable[kind::FLOATINGPOINT_LT] = constantFold::lt;
-  d_constantFoldTable[kind::FLOATINGPOINT_GEQ] = rewrite::removed;
-  d_constantFoldTable[kind::FLOATINGPOINT_GT] = rewrite::removed;
 
   /******** Classifications ********/
   d_constantFoldTable[kind::FLOATINGPOINT_ISN] = constantFold::isNormal;
@@ -1225,7 +1224,6 @@ TheoryFpRewriter::TheoryFpRewriter()
       constantFold::convertFromSBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR] =
       constantFold::convertFromUBV;
-  d_constantFoldTable[kind::FLOATINGPOINT_TO_FP_GENERIC] = rewrite::removed;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_UBV] = constantFold::convertToUBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_SBV] = constantFold::convertToSBV;
   d_constantFoldTable[kind::FLOATINGPOINT_TO_REAL] =
@@ -1273,9 +1271,11 @@ TheoryFpRewriter::TheoryFpRewriter()
   RewriteResponse TheoryFpRewriter::preRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::preRewrite(): " << node << std::endl;
     RewriteResponse res = d_preRewriteTable[node.getKind()](node, true);
-    if (res.node != node) {
+    if (res.d_node != node)
+    {
       Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  " << res.node << std::endl;
+      Debug("fp-rewrite") << "TheoryFpRewriter::preRewrite(): after  "
+                          << res.d_node << std::endl;
     }
     return res;
   }
@@ -1306,46 +1306,52 @@ TheoryFpRewriter::TheoryFpRewriter()
   RewriteResponse TheoryFpRewriter::postRewrite(TNode node) {
     Trace("fp-rewrite") << "TheoryFpRewriter::postRewrite(): " << node << std::endl;
     RewriteResponse res = d_postRewriteTable[node.getKind()](node, false);
-    if (res.node != node) {
+    if (res.d_node != node)
+    {
       Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before " << node << std::endl;
-      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  " << res.node << std::endl;
+      Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after  "
+                          << res.d_node << std::endl;
     }
 
-    if (res.status == REWRITE_DONE) {
+    if (res.d_status == REWRITE_DONE)
+    {
       bool allChildrenConst = true;
       bool apartFromRoundingMode = false;
       bool apartFromPartiallyDefinedArgument = false;
-      for (Node::const_iterator i = res.node.begin();
-	   i != res.node.end();
-	   ++i) {
-
-	if ((*i).getMetaKind() != kind::metakind::CONSTANT) {
+      for (Node::const_iterator i = res.d_node.begin(); i != res.d_node.end();
+           ++i)
+      {
+        if ((*i).getMetaKind() != kind::metakind::CONSTANT) {
 	  if ((*i).getType().isRoundingMode() && !apartFromRoundingMode) {
 	    apartFromRoundingMode = true;
-	  } else if ((res.node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL ||
-		      res.node.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL) &&
-		     ((*i).getType().isBitVector() ||
-		      (*i).getType().isReal()) &&
-		     !apartFromPartiallyDefinedArgument) {
-	    apartFromPartiallyDefinedArgument = true;
-	  } else {
-	    allChildrenConst = false;
+          }
+          else if ((res.d_node.getKind() == kind::FLOATINGPOINT_MIN_TOTAL
+                    || res.d_node.getKind() == kind::FLOATINGPOINT_MAX_TOTAL
+                    || res.d_node.getKind() == kind::FLOATINGPOINT_TO_UBV_TOTAL
+                    || res.d_node.getKind() == kind::FLOATINGPOINT_TO_SBV_TOTAL
+                    || res.d_node.getKind()
+                           == kind::FLOATINGPOINT_TO_REAL_TOTAL)
+                   && ((*i).getType().isBitVector() || (*i).getType().isReal())
+                   && !apartFromPartiallyDefinedArgument)
+          {
+            apartFromPartiallyDefinedArgument = true;
+          }
+          else
+          {
+            allChildrenConst = false;
 	    break;
-	  }
-	}
+          }
+        }
       }
 
       if (allChildrenConst) {
 	RewriteStatus rs = REWRITE_DONE;    // This is a bit messy because
-	Node rn = res.node;                 // RewriteResponse is too functional..
+        Node rn = res.d_node;  // RewriteResponse is too functional..
 
-	if (apartFromRoundingMode) {
-          if (!(res.node.getKind() == kind::EQUAL)
+        if (apartFromRoundingMode) {
+          if (!(res.d_node.getKind() == kind::EQUAL)
               &&  // Avoid infinite recursion...
-              !(res.node.getKind() == kind::ROUNDINGMODE_BITBLAST))
+              !(res.d_node.getKind() == kind::ROUNDINGMODE_BITBLAST))
           {  // Don't eliminate the bit-blast
             // We are close to being able to constant fold this
             // and in many cases the rounding mode really doesn't matter.
@@ -1359,16 +1365,15 @@ TheoryFpRewriter::TheoryFpRewriter()
 	    Node RTN(nm->mkConst(roundTowardNegative));
 	    Node RTP(nm->mkConst(roundTowardZero));
 
-	    TNode RM(res.node[0]);
+            TNode RM(res.d_node[0]);
 
-	    Node wRNE(res.node.substitute(RM, TNode(RNE)));
-	    Node wRNA(res.node.substitute(RM, TNode(RNA)));
-	    Node wRTZ(res.node.substitute(RM, TNode(RTZ)));
-	    Node wRTN(res.node.substitute(RM, TNode(RTN)));
-	    Node wRTP(res.node.substitute(RM, TNode(RTP)));
+            Node wRNE(res.d_node.substitute(RM, TNode(RNE)));
+            Node wRNA(res.d_node.substitute(RM, TNode(RNA)));
+            Node wRTZ(res.d_node.substitute(RM, TNode(RTZ)));
+            Node wRTN(res.d_node.substitute(RM, TNode(RTN)));
+            Node wRTP(res.d_node.substitute(RM, TNode(RTP)));
 
-
-	    rs = REWRITE_AGAIN_FULL;
+            rs = REWRITE_AGAIN_FULL;
 	    rn = nm->mkNode(kind::ITE,
 			    nm->mkNode(kind::EQUAL, RM, RNE),
 			    wRNE,
@@ -1385,19 +1390,24 @@ TheoryFpRewriter::TheoryFpRewriter()
 	  }
 	} else {
           RewriteResponse tmp =
-              d_constantFoldTable[res.node.getKind()](res.node, false);
-          rs = tmp.status;
-          rn = tmp.node;
-	}
+              d_constantFoldTable[res.d_node.getKind()](res.d_node, false);
+          rs = tmp.d_status;
+          rn = tmp.d_node;
+        }
 
 	RewriteResponse constRes(rs,rn);
 
-	if (constRes.node != res.node) {
-	  Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): before constant fold " << res.node << std::endl;
-	  Debug("fp-rewrite") << "TheoryFpRewriter::postRewrite(): after constant fold " << constRes.node << std::endl;
-	}
+        if (constRes.d_node != res.d_node)
+        {
+          Debug("fp-rewrite")
+              << "TheoryFpRewriter::postRewrite(): before constant fold "
+              << res.d_node << std::endl;
+          Debug("fp-rewrite")
+              << "TheoryFpRewriter::postRewrite(): after constant fold "
+              << constRes.d_node << std::endl;
+        }
 
-	return constRes;
+        return constRes;
       }
     }
 

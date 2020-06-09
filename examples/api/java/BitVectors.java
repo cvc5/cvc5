@@ -14,7 +14,7 @@
  **
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class BitVectors {
   public static void main(String[] args) {
@@ -86,8 +86,8 @@ public class BitVectors {
     Expr new_x_eq_new_x_ = em.mkExpr(Kind.EQUAL, new_x, new_x_);
 
     System.out.println(" Querying: " + new_x_eq_new_x_);
-    System.out.println(" Expect valid. ");
-    System.out.println(" CVC4: " + smt.query(new_x_eq_new_x_));
+    System.out.println(" Expect entailed. ");
+    System.out.println(" CVC4: " + smt.checkEntailed(new_x_eq_new_x_));
     System.out.println(" Popping context. ");
     smt.pop();
 
@@ -102,7 +102,7 @@ public class BitVectors {
     smt.assertFormula(assignment2);
 
     System.out.println(" Querying: " + new_x_eq_new_x_);
-    System.out.println(" Expect valid. ");
-    System.out.println(" CVC4: " + smt.query(new_x_eq_new_x_));
+    System.out.println(" Expect entailed. ");
+    System.out.println(" CVC4: " + smt.checkEntailed(new_x_eq_new_x_));
   }
 }

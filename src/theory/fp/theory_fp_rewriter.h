@@ -42,7 +42,7 @@ class TheoryFpRewriter : public TheoryRewriter
   Node rewriteEquality(TNode equality)
   {
     // often this will suffice
-    return postRewrite(equality).node;
+    return postRewrite(equality).d_node;
   }
 
  protected:

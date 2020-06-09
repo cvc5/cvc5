@@ -73,7 +73,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   // We need to reduce this because of
   d_errorSet.reduceToSignals();
-  d_errorSet.setSelectionRule(VAR_ORDER);
+  d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
 
   if(processSignals()){
     d_conflictVariables.purge();
@@ -121,7 +121,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
 
   if(!d_errorSet.errorEmpty() && result != Result::UNSAT){
     if(exactResult){
-      d_errorSet.setSelectionRule(VAR_ORDER);
+      d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
       while(!d_errorSet.errorEmpty() && result != Result::UNSAT){
         Assert(checkPeriod > 0);
         if(searchForFeasibleSolution(checkPeriod)){
@@ -129,7 +129,7 @@ Result::Sat DualSimplexDecisionProcedure::dualFindModel(bool exactResult){
         }
       }
     }else if( options::arithStandardCheckVarOrderPivots() > 0){
-      d_errorSet.setSelectionRule(VAR_ORDER);
+      d_errorSet.setSelectionRule(options::ErrorSelectionRule::VAR_ORDER);
       if(searchForFeasibleSolution(options::arithStandardCheckVarOrderPivots())){
         result = Result::UNSAT;
       }

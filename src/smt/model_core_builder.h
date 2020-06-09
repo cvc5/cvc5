@@ -38,10 +38,10 @@ class ModelCoreBuilder
    *    { s1 -> m(s1), ..., sn -> m(sn) }
    *
    * The criteria for what consistutes a model core given by mode. For
-   * example, if mode is MODEL_CORES_SIMPLE, then a model core corresponds to a
-   * subset of assignments from the model that suffice to show that the set of
-   * assertions, interpreted conjunctively, evaluates to true under the
-   * substitution corresponding to the model core.
+   * example, if mode is ModelCoresMode::SIMPLE, then a model core
+   * corresponds to a subset of assignments from the model that suffice to show
+   * that the set of assertions, interpreted conjunctively, evaluates to true
+   * under the substitution corresponding to the model core.
    *
    * The model core is recorded on the model object m via calls to
    * m->setUsingModelCore, m->recordModelCoreSymbol, for details see
@@ -56,7 +56,7 @@ class ModelCoreBuilder
    */
   static bool setModelCore(const std::vector<Expr>& assertions,
                            Model* m,
-                           ModelCoresMode mode);
+                           options::ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4

@@ -506,6 +506,9 @@ public:
   /** Is this the String type? */
   bool isString() const;
 
+  /** Is this a string-like type? (string or sequence) */
+  bool isStringLike() const;
+
   /** Is this the Rounding Mode type? */
   bool isRoundingMode() const;
 
@@ -514,6 +517,9 @@ public:
 
   /** Is this a Set type? */
   bool isSet() const;
+
+  /** Is this a Sequence type? */
+  bool isSequence() const;
 
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
@@ -533,6 +539,8 @@ public:
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
 
+  /** Get the element type (for sequence types) */
+  TypeNode getSequenceElementType() const;
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -597,12 +605,6 @@ public:
   /** Get the constituent types of a tuple type */
   std::vector<TypeNode> getTupleTypes() const;
 
-  /** Is this a record type? */
-  bool isRecord() const;
-
-  /** Get the description of the record type */
-  const Record& getRecord() const;
-
   /** Is this a symbolic expression type? */
   bool isSExpr() const;
 
@@ -659,9 +661,6 @@ public:
   /** Is this a tester type */
   bool isTester() const;
 
-  /** Get the Datatype specification from a datatype type */
-  const Datatype& getDatatype() const;
-
   /** Get the internal Datatype specification from a datatype type */
   const DType& getDType() const;
 
@@ -679,6 +678,9 @@ public:
 
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
+
+  /** Get sort constructor arity */
+  uint64_t getSortConstructorArity() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is
@@ -807,12 +809,10 @@ TypeNode TypeNode::substitute(Iterator1 typesBegin,
       // push the operator
       nb << TypeNode(d_nv->d_children[0]);
     }
-    for(TypeNode::const_iterator i = begin(),
-          iend = end();
-        i != iend;
-        ++i) {
-      nb << (*i).substitute(typesBegin, typesEnd,
-                            replacementsBegin, replacementsEnd, cache);
+    for (const TypeNode& tn : *this)
+    {
+      nb << tn.substitute(
+          typesBegin, typesEnd, replacementsBegin, replacementsEnd, cache);
     }
     TypeNode tn = nb.constructTypeNode();
     cache[*this] = tn;
@@ -969,6 +969,11 @@ inline bool TypeNode::isSet() const {
   return getKind() == kind::SET_TYPE;
 }
 
+inline bool TypeNode::isSequence() const
+{
+  return getKind() == kind::SEQUENCE_TYPE;
+}
+
 inline TypeNode TypeNode::getSetElementType() const {
   Assert(isSet());
   return (*this)[0];
@@ -1027,15 +1032,6 @@ inline bool TypeNode::isParametricDatatype() const {
   return getKind() == kind::PARAMETRIC_DATATYPE;
 }
 
-/** Is this a codatatype type */
-inline bool TypeNode::isCodatatype() const {
-  if( isDatatype() ){
-    return getDatatype().isCodatatype();
-  }else{
-    return false;
-  }
-}
-
 /** Is this a constructor type */
 inline bool TypeNode::isConstructor() const {
   return getKind() == kind::CONSTRUCTOR_TYPE;
@@ -1064,18 +1060,6 @@ inline bool TypeNode::isFloatingPoint(unsigned exp, unsigned sig) const {
 inline bool TypeNode::isBitVector(unsigned size) const {
   return
     ( getKind() == kind::BITVECTOR_TYPE && getConst<BitVectorSize>() == size );
-}
-
-/** Get the datatype specification from a datatype type */
-inline const Datatype& TypeNode::getDatatype() const {
-  Assert(isDatatype());
-  if( getKind() == kind::DATATYPE_TYPE ){
-    DatatypeIndexConstant dic = getConst<DatatypeIndexConstant>();
-    return NodeManager::currentNM()->getDatatypeForIndex( dic.getIndex() );
-  }else{
-    Assert(getKind() == kind::PARAMETRIC_DATATYPE);
-    return (*this)[0].getDatatype();
-  }
 }
 
 /** Get the exponent size of this floating-point type */

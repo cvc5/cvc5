@@ -29,9 +29,6 @@ class ModelEngine : public QuantifiersModule
 {
   friend class RepSetIterator;
 private:
-  //options
-  bool optOneQuantPerRound();
-private:
   //check model
   int checkModel();
   //exhaustively instantiate quantifier (possibly using mbqi)

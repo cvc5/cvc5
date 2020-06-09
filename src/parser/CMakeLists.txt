@@ -32,12 +32,13 @@ set(libcvc4parser_src_files
   line_buffer.h
   memory_mapped_input_buffer.cpp
   memory_mapped_input_buffer.h
+  parse_op.cpp
+  parse_op.h
   parser.cpp
   parser.h
   parser_builder.cpp
   parser_builder.h
   parser_exception.h
-  smt2/parse_op.h
   smt2/smt2.cpp
   smt2/smt2.h
   smt2/smt2_input.cpp

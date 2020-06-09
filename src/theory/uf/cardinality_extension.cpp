@@ -480,7 +480,7 @@ SortModel::SortModel(Node n,
 {
   d_cardinality_term = n;
 
-  if (options::ufssMode() == UF_SS_FULL)
+  if (options::ufssMode() == options::UfssMode::FULL)
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
@@ -671,7 +671,7 @@ bool SortModel::areDisequal( Node a, Node b ) {
 
 /** check */
 void SortModel::check( Theory::Effort level, OutputChannel* out ){
-  Assert(options::ufssMode() == UF_SS_FULL);
+  Assert(options::ufssMode() == options::UfssMode::FULL);
   if( level>=Theory::EFFORT_STANDARD && d_hasCard && !d_conflict ){
     Debug("uf-ss") << "CardinalityExtension: Check " << level << " " << d_type
                    << std::endl;
@@ -737,13 +737,15 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
                                  << std::endl;
             Trace("uf-ss-si")  << "Must combine region" << std::endl;
             bool recheck = false;
-            if( options::sortInference()){
+            SortInference* si = d_thss->getSortInference();
+            if (si != nullptr)
+            {
               //If sort inference is enabled, search for regions with same sort.
               std::map< int, int > sortsFound;
               for( int i=0; i<(int)d_regions_index; i++ ){
                 if( d_regions[i]->valid() ){
                   Node op = d_regions[i]->frontKey();
-                  int sort_id = d_thss->getSortInference()->getSortId(op);
+                  int sort_id = si->getSortId(op);
                   if( sortsFound.find( sort_id )!=sortsFound.end() ){
                     Debug("fmf-full-check") << "Combined regions " << i << " " << sortsFound[sort_id] << std::endl;
                     combineRegions( sortsFound[sort_id], i );
@@ -1015,10 +1017,12 @@ int SortModel::addSplit( Region* r, OutputChannel* out ){
         AlwaysAssert(false);
       }
     }
-    if( options::sortInference()) {
+    SortInference* si = d_thss->getSortInference();
+    if (si != nullptr)
+    {
       for( int i=0; i<2; i++ ){
-        int si = d_thss->getSortInference()->getSortId( ss[i] );
-        Trace("uf-ss-split-si") << si << " ";
+        int sid = si->getSortId(ss[i]);
+        Trace("uf-ss-split-si") << sid << " ";
       }
       Trace("uf-ss-split-si")  << std::endl;
     }
@@ -1068,11 +1072,14 @@ void SortModel::addCliqueLemma( std::vector< Node >& clique, OutputChannel* out 
 void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
   if( std::find( d_totality_terms[0].begin(), d_totality_terms[0].end(), n )==d_totality_terms[0].end() ){
     if( std::find( d_totality_lems[n].begin(), d_totality_lems[n].end(), cardinality ) == d_totality_lems[n].end() ){
+      NodeManager* nm = NodeManager::currentNM();
       d_totality_lems[n].push_back( cardinality );
       Node cardLit = d_cardinality_literal[ cardinality ];
       int sort_id = 0;
-      if( options::sortInference() ){
-        sort_id = d_thss->getSortInference()->getSortId(n);
+      SortInference* si = d_thss->getSortInference();
+      if (si != nullptr)
+      {
+        sort_id = si->getSortId(n);
       }
       Trace("uf-ss-totality") << "Add totality lemma for " << n << " " << cardinality << ", sort id is " << sort_id << std::endl;
       int use_cardinality = cardinality;
@@ -1106,7 +1113,7 @@ void SortModel::addTotalityAxiom( Node n, int cardinality, OutputChannel* out ){
       for( int i=0; i<use_cardinality; i++ ){
         eqs.push_back( n.eqNode( getTotalityLemmaTerm( cardinality, i ) ) );
       }
-      Node ax = NodeManager::currentNM()->mkNode( OR, eqs );
+      Node ax = eqs.size() == 1 ? eqs[0] : nm->mkNode(OR, eqs);
       Node lem = NodeManager::currentNM()->mkNode( IMPLIES, cardLit, ax );
       Trace("uf-ss-lemma") << "*** Add totality axiom " << lem << std::endl;
       //send as lemma to the output channel
@@ -1314,7 +1321,7 @@ CardinalityExtension::CardinalityExtension(context::Context* c,
       d_min_pos_tn_master_card(c, -1),
       d_rel_eqc(c)
 {
-  if (options::ufssMode() == UF_SS_FULL && options::ufssFairness())
+  if (options::ufssMode() == options::UfssMode::FULL && options::ufssFairness())
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
@@ -1334,7 +1341,16 @@ CardinalityExtension::~CardinalityExtension()
 
 SortInference* CardinalityExtension::getSortInference()
 {
-  return d_th->getQuantifiersEngine()->getTheoryEngine()->getSortInference();
+  if (!options::sortInference())
+  {
+    return nullptr;
+  }
+  QuantifiersEngine* qe = d_th->getQuantifiersEngine();
+  if (qe != nullptr)
+  {
+    return qe->getTheoryEngine()->getSortInference();
+  }
+  return nullptr;
 }
 
 /** get default sat context */
@@ -1451,7 +1467,8 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
 #endif
   bool polarity = n.getKind() != kind::NOT;
   TNode lit = polarity ? n : n[0];
-  if( options::ufssMode()==UF_SS_FULL ){
+  if (options::ufssMode() == options::UfssMode::FULL)
+  {
     if( lit.getKind()==CARDINALITY_CONSTRAINT ){
       TypeNode tn = lit[0].getType();
       Assert(tn.isSort());
@@ -1466,8 +1483,10 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
             std::map< TypeNode, bool >::iterator it = d_tn_mono_slave.find( tn );
             if( it==d_tn_mono_slave.end() ){
               bool isMonotonic;
-              if( d_th->getQuantifiersEngine() ){
-                isMonotonic = getSortInference()->isMonotonic( tn );
+              SortInference* si = getSortInference();
+              if (si != nullptr)
+              {
+                isMonotonic = si->isMonotonic(tn);
               }else{
                 //if ground, everything is monotonic
                 isMonotonic = true;
@@ -1532,7 +1551,9 @@ void CardinalityExtension::assertNode(Node n, bool isDecision)
         }
       }
     }
-  }else{
+  }
+  else
+  {
     if( lit.getKind()==CARDINALITY_CONSTRAINT || lit.getKind()==COMBINED_CARDINALITY_CONSTRAINT ){
       // cardinality constraint from user input, set incomplete   
       Trace("uf-ss") << "Literal " << lit << " not handled when uf ss mode is not FULL, set incomplete." << std::endl;
@@ -1566,7 +1587,8 @@ bool CardinalityExtension::areDisequal(Node a, Node b)
 void CardinalityExtension::check(Theory::Effort level)
 {
   if( !d_conflict ){
-    if( options::ufssMode()==UF_SS_FULL ){
+    if (options::ufssMode() == options::UfssMode::FULL)
+    {
       Trace("uf-ss-solver")
           << "CardinalityExtension: check " << level << std::endl;
       if (level == Theory::EFFORT_FULL)
@@ -1593,7 +1615,9 @@ void CardinalityExtension::check(Theory::Effort level)
           break;
         }
       }
-    }else if( options::ufssMode()==UF_SS_NO_MINIMAL ){
+    }
+    else if (options::ufssMode() == options::UfssMode::NO_MINIMAL)
+    {
       if( level==Theory::EFFORT_FULL ){
         // split on an equality between two equivalence classes (at most one per type)
         std::map< TypeNode, std::vector< Node > > eqc_list;
@@ -1625,7 +1649,9 @@ void CardinalityExtension::check(Theory::Effort level)
           ++eqcs_i;
         }
       }
-    }else{
+    }
+    else
+    {
       // unhandled uf ss mode
       Assert(false);
     }
@@ -1664,7 +1690,8 @@ CardinalityExtension::CombinedCardinalityDecisionStrategy::identify() const
 
 void CardinalityExtension::preRegisterTerm(TNode n)
 {
-  if( options::ufssMode()==UF_SS_FULL ){
+  if (options::ufssMode() == options::UfssMode::FULL)
+  {
     //initialize combined cardinality
     initializeCombinedCardinality();
 
@@ -1776,7 +1803,7 @@ void CardinalityExtension::initializeCombinedCardinality()
 /** check */
 void CardinalityExtension::checkCombinedCardinality()
 {
-  Assert(options::ufssMode() == UF_SS_FULL);
+  Assert(options::ufssMode() == options::UfssMode::FULL);
   if( options::ufssFairness() ){
     Trace("uf-ss-com-card-debug") << "Check combined cardinality, get maximum negative cardinalities..." << std::endl;
     int totalCombinedCard = 0;

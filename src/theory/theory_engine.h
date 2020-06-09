@@ -23,17 +23,17 @@
 #include <memory>
 #include <set>
 #include <unordered_map>
-#include <vector>
 #include <utility>
+#include <vector>
 
 #include "base/check.h"
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "options/options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "prop/prop_engine.h"
 #include "smt/command.h"
-#include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
 #include "theory/decision_manager.h"
 #include "theory/interrupted.h"
@@ -46,6 +46,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -59,15 +60,17 @@ class LemmaProofRecipe;
  * propagations between theories.
  */
 struct NodeTheoryPair {
-  Node node;
-  theory::TheoryId theory;
-  size_t timestamp;
-  NodeTheoryPair(TNode node, theory::TheoryId theory, size_t timestamp = 0)
-  : node(node), theory(theory), timestamp(timestamp) {}
-  NodeTheoryPair() : theory(theory::THEORY_LAST), timestamp() {}
+  Node d_node;
+  theory::TheoryId d_theory;
+  size_t d_timestamp;
+  NodeTheoryPair(TNode n, theory::TheoryId t, size_t ts = 0)
+      : d_node(n), d_theory(t), d_timestamp(ts)
+  {
+  }
+  NodeTheoryPair() : d_theory(theory::THEORY_LAST), d_timestamp() {}
   // Comparison doesn't take into account the timestamp
   bool operator == (const NodeTheoryPair& pair) const {
-    return node == pair.node && theory == pair.theory;
+    return d_node == pair.d_node && d_theory == pair.d_theory;
   }
 };/* struct NodeTheoryPair */
 
@@ -75,8 +78,8 @@ struct NodeTheoryPairHashFunction {
   NodeHashFunction hashFunction;
   // Hash doesn't take into account the timestamp
   size_t operator()(const NodeTheoryPair& pair) const {
-    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.node));
-    return static_cast<size_t>(fnv1a::fnv1a_64(pair.theory, hash));
+    uint64_t hash = fnv1a::fnv1a_64(NodeHashFunction()(pair.d_node));
+    return static_cast<size_t>(fnv1a::fnv1a_64(pair.d_theory, hash));
   }
 };/* struct NodeTheoryPairHashFunction */
 
@@ -98,7 +101,6 @@ namespace theory {
   class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
-class DecisionEngine;
 class RemoveTermFormulas;
 
 /**
@@ -115,9 +117,6 @@ class TheoryEngine {
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
-
-  /** Access to decision engine */
-  DecisionEngine* d_decisionEngine;
 
   /** Our context */
   context::Context* d_context;
@@ -280,8 +279,9 @@ class TheoryEngine {
     EngineOutputChannel(TheoryEngine* engine, theory::TheoryId theory)
         : d_engine(engine), d_statistics(theory), d_theory(theory) {}
 
-    void safePoint(uint64_t amount) override {
-      spendResource(amount);
+    void safePoint(ResourceManager::Resource r) override
+    {
+      spendResource(r);
       if (d_engine->d_interrupted) {
         throw theory::Interrupted();
       }
@@ -322,8 +322,9 @@ class TheoryEngine {
       d_engine->setIncomplete(d_theory);
     }
 
-    void spendResource(unsigned amount) override {
-      d_engine->spendResource(amount);
+    void spendResource(ResourceManager::Resource r) override
+    {
+      d_engine->spendResource(r);
     }
 
     void handleUserAttribute(const char* attr, theory::Theory* t) override {
@@ -464,15 +465,12 @@ class TheoryEngine {
   bool d_interrupted;
   ResourceManager* d_resourceManager;
 
-  /** Container for lemma input and output channels. */
-  LemmaChannels* d_channels;
-
-public:
-
+ public:
   /** Constructs a theory engine */
-  TheoryEngine(context::Context* context, context::UserContext* userContext,
-               RemoveTermFormulas& iteRemover, const LogicInfo& logic,
-               LemmaChannels* channels);
+  TheoryEngine(context::Context* context,
+               context::UserContext* userContext,
+               RemoveTermFormulas& iteRemover,
+               const LogicInfo& logic);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -480,29 +478,29 @@ public:
   void interrupt();
 
   /** "Spend" a resource during a search or preprocessing.*/
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Adds a theory. Only one theory per TheoryId can be present, so if
    * there is another theory it will be deleted.
    */
   template <class TheoryClass>
-  inline void addTheory(theory::TheoryId theoryId) {
+  inline void addTheory(theory::TheoryId theoryId)
+  {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new EngineOutputChannel(this, theoryId);
-    d_theoryTable[theoryId] =
-        new TheoryClass(d_context, d_userContext, *d_theoryOut[theoryId],
-                        theory::Valuation(this), d_logicInfo);
+    d_theoryTable[theoryId] = new TheoryClass(d_context,
+                                              d_userContext,
+                                              *d_theoryOut[theoryId],
+                                              theory::Valuation(this),
+                                              d_logicInfo);
+    theory::Rewriter::registerTheoryRewriter(
+        theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
 
-  inline void setPropEngine(prop::PropEngine* propEngine) {
-    Assert(d_propEngine == NULL);
+  void setPropEngine(prop::PropEngine* propEngine)
+  {
     d_propEngine = propEngine;
-  }
-
-  inline void setDecisionEngine(DecisionEngine* decisionEngine) {
-    Assert(d_decisionEngine == NULL);
-    d_decisionEngine = decisionEngine;
   }
 
   /** Called when all initialization of options/logic is done */
@@ -589,7 +587,7 @@ public:
    * @param assertion the normalized assertion being sent
    * @param originalAssertion the actual assertion that was sent
    * @param toTheoryId the theory that is on the receiving end
-   * @param fromTheoryId the theory that sent the assertino
+   * @param fromTheoryId the theory that sent the assertion
    * @return true if a new assertion, false if theory already got it
    */
   bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
@@ -864,10 +862,13 @@ public:
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(
+      options::TheoryOfMode mode,
+      TNode lit,
+      const theory::EntailmentCheckParameters* params = NULL,
+      theory::EntailmentCheckSideEffects* out = NULL);
 
-private:
-
+ private:
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
 
@@ -889,21 +890,12 @@ public:
 
   theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
 
-  RemoveTermFormulas* getTermFormulaRemover() { return &d_tform_remover; }
-
   SortInference* getSortInference() { return &d_sortInfer; }
 
   /** Prints the assertions to the debug stream */
   void printAssertions(const char* tag);
 
-  /** Theory alternative is in use. */
-  bool useTheoryAlternative(const std::string& name);
-
-  /** Enables using a theory alternative by name. */
-  void enableTheoryAlternative(const std::string& name);
-
 private:
-  std::set< std::string > d_theoryAlternatives;
 
   std::map< std::string, std::vector< theory::Theory* > > d_attr_handle;
 

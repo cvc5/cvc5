@@ -405,9 +405,9 @@ CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
 {
   d_initialized = false;
   d_tds = d_qe->getTermDatabaseSygus();
-  SygusUnifPiMode mode = options::sygusUnifPi();
-  d_useCondPool =
-      mode == SYGUS_UNIF_PI_CENUM || mode == SYGUS_UNIF_PI_CENUM_IGAIN;
+  options::SygusUnifPiMode mode = options::sygusUnifPi();
+  d_useCondPool = mode == options::SygusUnifPiMode::CENUM
+                  || mode == options::SygusUnifPiMode::CENUM_IGAIN;
 }
 
 Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
@@ -639,8 +639,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  bool useSymCons = options::sygusGrammarConsMode() != SYGUS_GCONS_SIMPLE;
-  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole, useSymCons);
+  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(

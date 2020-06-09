@@ -98,7 +98,12 @@ bool Type::isFunctionLike() const
 
 Expr Type::mkGroundTerm() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->mkGroundTerm().toExpr();
+  Expr ret = d_typeNode->mkGroundTerm().toExpr();
+  if (ret.isNull())
+  {
+    IllegalArgument(this, "Cannot construct ground term!");
+  }
+  return ret;
 }
 
 Expr Type::mkGroundValue() const
@@ -326,7 +331,8 @@ bool Type::isTuple() const {
 /** Is this a record type? */
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->isRecord();
+  return d_typeNode->getKind() == kind::DATATYPE_TYPE
+         && DatatypeType(*this).getDatatype().isRecord();
 }
 
 /** Is this a symbolic expression type? */
@@ -345,6 +351,12 @@ bool Type::isArray() const {
 bool Type::isSet() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSet();
+}
+
+bool Type::isSequence() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSequence();
 }
 
 /** Is this a sort kind */
@@ -510,6 +522,11 @@ SetType::SetType(const Type& t) : Type(t)
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
+SequenceType::SequenceType(const Type& t) : Type(t)
+{
+  PrettyCheckArgument(isNull() || isSequence(), this);
+}
+
 SortType::SortType(const Type& t) : Type(t)
 {
   PrettyCheckArgument(isNull() || isSort(), this);
@@ -544,6 +561,11 @@ Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
 }
 
+Type SequenceType::getElementType() const
+{
+  return makeType(d_typeNode->getSequenceElementType());
+}
+
 DatatypeType ConstructorType::getRangeType() const {
   return DatatypeType(makeType(d_typeNode->getConstructorRangeType()));
 }
@@ -566,7 +588,14 @@ std::vector<Type> ConstructorType::getArgTypes() const {
 
 const Datatype& DatatypeType::getDatatype() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getDatatype();
+  Assert(isDatatype());
+  if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
+  {
+    DatatypeIndexConstant dic = d_typeNode->getConst<DatatypeIndexConstant>();
+    return d_nodeManager->toExprManager()->getDatatypeForIndex(dic.getIndex());
+  }
+  Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
+  return DatatypeType((*d_typeNode)[0].toType()).getDatatype();
 }
 
 bool DatatypeType::isParametric() const {
@@ -636,7 +665,9 @@ std::vector<Type> DatatypeType::getTupleTypes() const {
 /** Get the description of the record type */
 const Record& DatatypeType::getRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getRecord();
+  Assert(isRecord());
+  const Datatype& dt = getDatatype();
+  return *(dt.getRecord());
 }
 
 DatatypeType SelectorType::getDomain() const {

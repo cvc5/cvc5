@@ -93,8 +93,8 @@ Please be advised that the following libraries are covered under the GPLv3
 license.  If you choose to link CVC4 against one of these libraries, the
 resulting combined work is also covered under the GPLv3. If you want to make
 sure you build a version of CVC4 that uses no GPLed libraries, configure CVC4
-with the "--bsd" option before building (which is the default).  CVC4 can then
-be used in contexts where you want to use CVC4 under the terms of the
+with the "--no-gpl" option before building (which is the default).  CVC4 can
+then be used in contexts where you want to use CVC4 under the terms of the
 (modified) BSD license.  See licenses/gpl-3.0.txt for more information.
 
 CVC4 can be optionally configured to link against CLN, the Class Library for

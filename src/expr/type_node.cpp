@@ -46,14 +46,15 @@ TypeNode TypeNode::substitute(const TypeNode& type,
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
   }
-  for(TypeNode::const_iterator i = begin(),
-        iend = end();
-      i != iend;
-      ++i) {
-    if(*i == type) {
+  for (TypeNode::const_iterator j = begin(), iend = end(); j != iend; ++j)
+  {
+    if (*j == type)
+    {
       nb << replacement;
-    } else {
-      (*i).substitute(type, replacement);
+    }
+    else
+    {
+      (*j).substitute(type, replacement);
     }
   }
 
@@ -116,11 +117,12 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = usortFinite;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint())
+  else if (isBoolean() || isBitVector() || isFloatingPoint()
+           || isRoundingMode())
   {
     ret = true;
   }
-  else if (isString() || isRegExp() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal())
   {
     ret = false;
   }
@@ -141,9 +143,8 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
     if (isDatatype())
     {
       TypeNode tn = *this;
-      const Datatype& dt = getDatatype();
-      ret = usortFinite ? dt.isInterpretedFinite(tn.toType())
-                        : dt.isFinite(tn.toType());
+      const DType& dt = getDType();
+      ret = usortFinite ? dt.isInterpretedFinite(tn) : dt.isFinite(tn);
     }
     else if (isArray())
     {
@@ -244,18 +245,22 @@ bool TypeNode::isClosedEnumerable()
     {
       ret = getSetElementType().isClosedEnumerable();
     }
+    else if (isSequence())
+    {
+      ret = getSequenceElementType().isClosedEnumerable();
+    }
     else if (isDatatype())
     {
       // avoid infinite loops: initially set to true
       setAttribute(IsClosedEnumerableAttr(), ret);
       setAttribute(IsClosedEnumerableComputedAttr(), true);
       TypeNode tn = *this;
-      const Datatype& dt = getDatatype();
+      const DType& dt = getDType();
       for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
         for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
         {
-          TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
+          TypeNode ctn = dt[i][j].getRangeType();
           if (tn != ctn && !ctn.isClosedEnumerable())
           {
             ret = false;
@@ -297,6 +302,12 @@ Node TypeNode::mkGroundValue() const
 {
   theory::TypeEnumerator te(*this);
   return *te;
+}
+
+bool TypeNode::isStringLike() const
+{
+  // TODO (cvc4-projects #23): sequence here
+  return isString();
 }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
@@ -346,17 +357,22 @@ bool TypeNode::isComparableTo(TypeNode t) const {
   return false;
 }
 
+TypeNode TypeNode::getSequenceElementType() const
+{
+  Assert(isSequence());
+  return (*this)[0];
+}
+
 TypeNode TypeNode::getBaseType() const {
   TypeNode realt = NodeManager::currentNM()->realType();
   if (isSubtypeOf(realt)) {
     return realt;
   } else if (isParametricDatatype()) {
-    vector<Type> v;
+    std::vector<TypeNode> v;
     for(size_t i = 1; i < getNumChildren(); ++i) {
-      v.push_back((*this)[i].getBaseType().toType());
+      v.push_back((*this)[i].getBaseType());
     }
-    TypeNode tn = TypeNode::fromType((*this)[0].getDatatype().getDatatypeType(v));
-    return tn;
+    return (*this)[0].getDType().getTypeNode().instantiateParametricDatatype(v);
   }
   return *this;
 }
@@ -387,37 +403,25 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
 
 /** Is this a tuple type? */
 bool TypeNode::isTuple() const {
-  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isTuple() );
-}
-
-/** Is this a record type? */
-bool TypeNode::isRecord() const {
-  return ( getKind() == kind::DATATYPE_TYPE && getDatatype().isRecord() );
+  return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
 }
 
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());
-  const Datatype& dt = getDatatype();
+  const DType& dt = getDType();
   Assert(dt.getNumConstructors() == 1);
   return dt[0].getNumArgs();
 }
 
 vector<TypeNode> TypeNode::getTupleTypes() const {
   Assert(isTuple());
-  const Datatype& dt = getDatatype();
+  const DType& dt = getDType();
   Assert(dt.getNumConstructors() == 1);
   vector<TypeNode> types;
   for(unsigned i = 0; i < dt[0].getNumArgs(); ++i) {
-    types.push_back(TypeNode::fromType(dt[0][i].getRangeType()));
+    types.push_back(dt[0][i].getRangeType());
   }
   return types;
-}
-
-const Record& TypeNode::getRecord() const {
-  Assert(isRecord());
-  const Datatype & dt = getDatatype();
-  return *(dt.getRecord());
-  //return getAttribute(expr::DatatypeRecordAttr()).getConst<Record>();
 }
 
 vector<TypeNode> TypeNode::getSExprTypes() const {
@@ -437,11 +441,12 @@ bool TypeNode::isInstantiatedDatatype() const {
   if(getKind() != kind::PARAMETRIC_DATATYPE) {
     return false;
   }
-  const Datatype& dt = (*this)[0].getDatatype();
+  const DType& dt = (*this)[0].getDType();
   unsigned n = dt.getNumParameters();
   Assert(n < getNumChildren());
   for(unsigned i = 0; i < n; ++i) {
-    if(TypeNode::fromType(dt.getParameter(i)) == (*this)[i + 1]) {
+    if (dt.getParameter(i) == (*this)[i + 1])
+    {
       return false;
     }
   }
@@ -464,18 +469,25 @@ TypeNode TypeNode::instantiateParametricDatatype(
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
 }
 
+uint64_t TypeNode::getSortConstructorArity() const
+{
+  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
+  return getAttribute(expr::SortArityAttr());
+}
+
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {
+  Assert(isSortConstructor());
   return NodeManager::currentNM()->mkSort(*this, params);
 }
 
 /** Is this an instantiated datatype parameter */
 bool TypeNode::isParameterInstantiatedDatatype(unsigned n) const {
   AssertArgument(getKind() == kind::PARAMETRIC_DATATYPE, *this);
-  const Datatype& dt = (*this)[0].getDatatype();
+  const DType& dt = (*this)[0].getDType();
   AssertArgument(n < dt.getNumParameters(), *this);
-  return TypeNode::fromType(dt.getParameter(n)) != (*this)[n + 1];
+  return dt.getParameter(n) != (*this)[n + 1];
 }
 
 TypeNode TypeNode::leastCommonTypeNode(TypeNode t0, TypeNode t1){
@@ -601,13 +613,15 @@ Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
       }
     }else if( tn.isDatatype() && ntn.isDatatype() ){
       if( tn.isTuple() && ntn.isTuple() ){
-        const Datatype& dt1 = tn.getDatatype();
-        const Datatype& dt2 = ntn.getDatatype();
+        const DType& dt1 = tn.getDType();
+        const DType& dt2 = ntn.getDType();
+        NodeManager* nm = NodeManager::currentNM();
         if( dt1[0].getNumArgs()==dt2[0].getNumArgs() ){
           std::vector< Node > conds;
           for( unsigned i=0; i<dt2[0].getNumArgs(); i++ ){
-            Node s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt2[0][i].getSelector() ), n );
-            Node etc = getEnsureTypeCondition( s, TypeNode::fromType( dt1[0][i].getRangeType() ) );
+            Node s = nm->mkNode(
+                kind::APPLY_SELECTOR_TOTAL, dt2[0][i].getSelector(), n);
+            Node etc = getEnsureTypeCondition(s, dt1[0][i].getRangeType());
             if( etc.isNull() ){
               return Node::null();
             }else{
@@ -615,11 +629,11 @@ Node TypeNode::getEnsureTypeCondition( Node n, TypeNode tn ) {
             }
           }
           if( conds.empty() ){
-            return NodeManager::currentNM()->mkConst( true );
+            return nm->mkConst(true);
           }else if( conds.size()==1 ){
             return conds[0];
           }else{
-            return NodeManager::currentNM()->mkNode( kind::AND, conds );
+            return nm->mkNode(kind::AND, conds);
           }
         }
       }
@@ -638,6 +652,16 @@ bool TypeNode::isSort() const {
 /** Is this a sort constructor kind */
 bool TypeNode::isSortConstructor() const {
   return getKind() == kind::SORT_TYPE && hasAttribute(expr::SortArityAttr());
+}
+
+/** Is this a codatatype type */
+bool TypeNode::isCodatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isCodatatype();
+  }
+  return false;
 }
 
 std::string TypeNode::toString() const {

@@ -18,6 +18,7 @@
 #include <iosfwd>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
 #include "smt/command.h"
@@ -32,27 +33,23 @@ class Solver;
 
 namespace main {
 
-class CommandExecutor {
-private:
+class CommandExecutor
+{
+ private:
   std::string d_lastStatistics;
 
-protected:
- api::Solver* d_solver;
- SmtEngine* d_smtEngine;
- Options& d_options;
- StatisticsRegistry d_stats;
- Result d_result;
- ExprStream* d_replayStream;
+ protected:
+  std::unique_ptr<api::Solver> d_solver;
+  SmtEngine* d_smtEngine;
+  Options& d_options;
+  StatisticsRegistry d_stats;
+  Result d_result;
 
-public:
- CommandExecutor(api::Solver* solver, Options& options);
+ public:
+  CommandExecutor(Options& options);
 
- virtual ~CommandExecutor()
- {
-   if (d_replayStream != NULL)
-   {
-     delete d_replayStream;
-   }
+  virtual ~CommandExecutor()
+  {
   }
 
   /**
@@ -61,6 +58,9 @@ public:
    * overridden by a derived class).
    */
   bool doCommand(CVC4::Command* cmd);
+
+  /** Get a pointer to the solver object owned by this CommandExecutor. */
+  api::Solver* getSolver() { return d_solver.get(); }
 
   Result getResult() const { return d_result; }
   void reset();
@@ -85,10 +85,7 @@ public:
   static void printStatsFilterZeros(std::ostream& out,
                                     const std::string& statsString);
 
-  LemmaChannels* channels() { return d_smtEngine->channels(); }
   void flushOutputStreams();
-
-  void setReplayStream(ExprStream* replayStream);
 
 protected:
   /** Executes treating cmd as a singleton */
@@ -97,7 +94,7 @@ protected:
 private:
   CommandExecutor();
 
-};/* class CommandExecutor */
+}; /* class CommandExecutor */
 
 bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
 

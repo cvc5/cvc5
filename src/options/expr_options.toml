@@ -5,7 +5,7 @@ header = "options/expr_options.h"
 [[option]]
   name       = "defaultExprDepth"
   category   = "regular"
-  long       = "default-expr-depth=N"
+  long       = "expr-depth=N"
   type       = "int"
   default    = "0"
   predicates = ["setDefaultExprDepthPredicate"]
@@ -13,32 +13,17 @@ header = "options/expr_options.h"
   read_only  = true
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
-[[alias]]
-  category   = "undocumented"
-  long       = "expr-depth=N"
-  links      = ["--default-expr-depth=N"]
-
 [[option]]
   name       = "defaultDagThresh"
-  smt_name   = "default-dag-thresh"
+  smt_name   = "dag-thresh"
   category   = "regular"
-  long       = "default-dag-thresh=N"
+  long       = "dag-thresh=N"
   type       = "int"
   default    = "1"
   predicates = ["setDefaultDagThreshPredicate"]
   notifies   = ["notifySetDefaultDagThresh"]
   read_only  = true
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "dag-thresh=N"
-  links      = ["--default-dag-thresh=N"]
-
-[[alias]]
-  category   = "undocumented"
-  long       = "dag-threshold=N"
-  links      = ["--default-dag-thresh=N"]
 
 [[option]]
   name       = "printExprTypes"
@@ -51,15 +36,6 @@ header = "options/expr_options.h"
   help       = "print types with variables when printing exprs"
 
 [[option]]
-  name       = "earlyTypeChecking"
-  category   = "regular"
-  long       = "eager-type-checking"
-  type       = "bool"
-  default    = "USE_EARLY_TYPE_CHECKING_BY_DEFAULT"
-  read_only  = true
-  help       = "type check expressions immediately on creation (debug builds only)"
-
-[[option]]
   name       = "typeChecking"
   category   = "regular"
   long       = "type-checking"
@@ -67,8 +43,3 @@ header = "options/expr_options.h"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   read_only  = true
   help       = "never type check expressions"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "no-type-checking"
-  links      = ["--no-eager-type-checking"]

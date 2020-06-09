@@ -2,185 +2,72 @@
 /*! \file theory_sets_type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andrew Reynolds
+ **   Kshitij Bansal, Tim King, Andrew Reynolds, Mudathir Mahgoub
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
+ ** \brief type enumerator for sets
  **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** A set enumerator that iterates over the power set of the element type
+ ** starting with the empty set as the initial value
  **/
-
 
 #include "cvc4_private.h"
 
 #ifndef CVC4__THEORY__SETS__TYPE_ENUMERATOR_H
 #define CVC4__THEORY__SETS__TYPE_ENUMERATOR_H
 
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
 #include "expr/kind.h"
+#include "expr/type_node.h"
 #include "theory/rewriter.h"
 #include "theory/sets/normal_form.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class SetEnumerator : public TypeEnumeratorBase<SetEnumerator> {
-  /** type properties */
-  TypeEnumeratorProperties * d_tep;
-  unsigned d_index;
-  TypeNode d_constituentType;
-  NodeManager* d_nm;
-  std::vector<bool> d_indexVec;
-  std::vector<TypeEnumerator*> d_constituentVec;
-  bool d_finished;
-  Node d_setConst;
-
+class SetEnumerator : public TypeEnumeratorBase<SetEnumerator>
+{
  public:
-  SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr)
-      : TypeEnumeratorBase<SetEnumerator>(type),
-        d_tep(tep),
-        d_index(0),
-        d_constituentType(type.getSetElementType()),
-        d_nm(NodeManager::currentNM()),
-        d_indexVec(),
-        d_constituentVec(),
-        d_finished(false),
-        d_setConst()
-  {
-    // d_indexVec.push_back(false);
-    // d_constituentVec.push_back(new TypeEnumerator(d_constituentType));
-    d_setConst = d_nm->mkConst(EmptySet(type.toType()));
-  }
+  SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep = nullptr);
+  SetEnumerator(const SetEnumerator& enumerator);
+  ~SetEnumerator();
 
-  // An set enumerator could be large, and generally you don't want to
-  // go around copying these things; but a copy ctor is presently required
-  // by the TypeEnumerator framework.
-  SetEnumerator(const SetEnumerator& ae)
-      : TypeEnumeratorBase<SetEnumerator>(
-            ae.d_nm->mkSetType(ae.d_constituentType)),
-        d_tep(ae.d_tep),
-        d_index(ae.d_index),
-        d_constituentType(ae.d_constituentType),
-        d_nm(ae.d_nm),
-        d_indexVec(ae.d_indexVec),
-        d_constituentVec(),  // copied below
-        d_finished(ae.d_finished),
-        d_setConst(ae.d_setConst)
-  {
-    for(std::vector<TypeEnumerator*>::const_iterator i =
-          ae.d_constituentVec.begin(), i_end = ae.d_constituentVec.end();
-        i != i_end;
-        ++i) {
-      d_constituentVec.push_back(new TypeEnumerator(**i));
-    }
-  }
+  Node operator*() override;
 
-  ~SetEnumerator() {
-    while (!d_constituentVec.empty()) {
-      delete d_constituentVec.back();
-      d_constituentVec.pop_back();
-    }
-  }
+  /**
+   * This operator iterates over the power set of the element type
+   * following the order of a bitvector counter.
+   * Example: iterating over a set of bitvecotors of length 2 will return the
+   * following sequence consisting of 16 sets:
+   * {}, {00}, {01}, {00, 01}, {10}, {00, 10}, {01, 10}, {00, 01, 10}, ...,
+   * {00, 01, 10, 11}
+   */
+  SetEnumerator& operator++() override;
 
-  Node operator*() override
-  {
-    if (d_finished) {
-      throw NoMoreValuesException(getType());
-    }
+  bool isFinished() override;
 
-    std::vector<Node> elements;
-    for(unsigned i = 0; i < d_constituentVec.size(); ++i) {
-      elements.push_back(*(*(d_constituentVec[i])));
-    }
+ private:
+  /** a pointer to the node manager */
+  NodeManager* d_nodeManager;
+  /** an enumerator for the elements' type */
+  TypeEnumerator d_elementEnumerator;
+  /** a boolean to indicate whether the set enumerator is finished */
+  bool d_isFinished;
+  /** a list of the elements encountered so far */
+  std::vector<Node> d_elementsSoFar;
+  /** stores the index of the current set in the power set */
+  unsigned d_currentSetIndex;
+  /** the current set returned by the set enumerator */
+  Node d_currentSet;
+}; /* class SetEnumerator */
 
-    Node n = NormalForm::elementsToSet(std::set<TNode>(elements.begin(), elements.end()),
-                                       getType());
-
-    Assert(n.isConst());
-    Assert(n == Rewriter::rewrite(n));
-
-    return n;
-  }
-
-  SetEnumerator& operator++() override
-  {
-    Trace("set-type-enum") << "operator++ called, **this = " << **this << std::endl;
-
-    if (d_finished) {
-      Trace("set-type-enum") << "operator++ finished!" << std::endl;
-      return *this;
-    }
-
-    // increment by one, at the same time deleting all elements that
-    // cannot be incremented any further (note: we are keeping a set
-    // -- no repetitions -- thus some trickery to know what to pop and
-    // what not to.)
-    if(d_index > 0) {
-      Assert(d_index == d_constituentVec.size());
-
-      Node last_pre_increment;
-      last_pre_increment = *(*d_constituentVec.back());
-
-      ++(*d_constituentVec.back());
-
-      if (d_constituentVec.back()->isFinished()) {
-        delete d_constituentVec.back();
-        d_constituentVec.pop_back();
-
-        while(!d_constituentVec.empty()) {
-          Node cur_pre_increment = *(*d_constituentVec.back());
-          ++(*d_constituentVec.back());
-          Node cur_post_increment = *(*d_constituentVec.back());
-          if(last_pre_increment == cur_post_increment) {
-            delete d_constituentVec.back();
-            d_constituentVec.pop_back();
-            last_pre_increment = cur_pre_increment;
-          } else {
-            break;
-          }
-        }
-      }
-    }
-
-    if (d_constituentVec.empty()) {
-      ++d_index;
-      d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
-    }
-
-    while (d_constituentVec.size() < d_index) {
-      TypeEnumerator* newEnumerator =
-          new TypeEnumerator(*d_constituentVec.back());
-      ++(*newEnumerator);
-      if (newEnumerator->isFinished()) {
-        Trace("set-type-enum") << "operator++ finished!" << std::endl;
-        delete newEnumerator;
-        d_finished = true;
-        return *this;
-      }
-      d_constituentVec.push_back(newEnumerator);
-    }
-
-    Trace("set-type-enum") << "operator++ returning, **this = " << **this << std::endl;
-    return *this;
-  }
-
-  bool isFinished() override
-  {
-    Trace("set-type-enum") << "isFinished returning: " << d_finished << std::endl;
-    return d_finished;
-  }
-
-};/* class SetEnumerator */
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__SETS__TYPE_ENUMERATOR_H */

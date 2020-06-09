@@ -91,6 +91,15 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         d_unconstrained.insert(current);
       }
     }
+    else if (current.isClosure())
+    {
+      // Throw an exception. This should never happen in practice unless the
+      // user specifically enabled unconstrained simplification in an illegal
+      // logic.
+      throw LogicException(
+          "Cannot use unconstrained simplification in this logic, due to "
+          "(possibly internally introduced) quantified formula.");
+    }
     else
     {
       for (TNode childNode : current)
@@ -235,6 +244,10 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               break;
             }
+          }
+          if (parent[0].getType().getCardinality().isOne())
+          {
+            break;
           }
           if (parent[0].getType().isDatatype())
           {
@@ -577,10 +590,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
-            if (parent.getType() != current.getType())
-            {
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
-            }
+            // always introduce a new variable; it is unsound to try to reuse
+            // currentSub as the variable, see issue #4469.
+            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
           }
           else
@@ -779,6 +791,10 @@ void UnconstrainedSimplifier::processUnconstrained()
     }
     if (!currentSub.isNull())
     {
+      Trace("unc-simp")
+          << "UnconstrainedSimplifier::processUnconstrained: introduce "
+          << currentSub << " for " << current << ", parent " << parent
+          << std::endl;
       Assert(currentSub.isVar());
       d_substitutions.addSubstitution(current, currentSub, false);
     }
@@ -813,7 +829,7 @@ void UnconstrainedSimplifier::processUnconstrained()
 PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
 

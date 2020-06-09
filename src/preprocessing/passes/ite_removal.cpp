@@ -32,7 +32,7 @@ IteRemoval::IteRemoval(PreprocessingPassContext* preprocContext)
 
 PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 {
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   // Remove all of the ITE occurrences and normalize
   d_preprocContext->getIteRemover()->run(

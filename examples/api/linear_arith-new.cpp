@@ -62,9 +62,9 @@ int main()
   slv.push();
   Term diff_leq_two_thirds = slv.mkTerm(LEQ, diff, two_thirds);
   cout << "Prove that " << diff_leq_two_thirds << " with CVC4." << endl;
-  cout << "CVC4 should report VALID." << endl;
-  cout << "Result from CVC4 is: "
-       << slv.checkValidAssuming(diff_leq_two_thirds) << endl;
+  cout << "CVC4 should report ENTAILED." << endl;
+  cout << "Result from CVC4 is: " << slv.checkEntailed(diff_leq_two_thirds)
+       << endl;
   slv.pop();
 
   cout << endl;

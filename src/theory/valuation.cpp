@@ -14,10 +14,12 @@
  ** Implementation of Valuation class.
  **/
 
-#include "expr/node.h"
 #include "theory/valuation.h"
-#include "theory/theory_engine.h"
+
+#include "expr/node.h"
+#include "options/theory_options.h"
 #include "theory/rewriter.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -123,7 +125,12 @@ unsigned Valuation::getAssertionLevel() const{
   return d_engine->getPropEngine()->getAssertionLevel();
 }
 
-std::pair<bool, Node> Valuation::entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params, theory::EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> Valuation::entailmentCheck(
+    options::TheoryOfMode mode,
+    TNode lit,
+    const theory::EntailmentCheckParameters* params,
+    theory::EntailmentCheckSideEffects* out)
+{
   return d_engine->entailmentCheck(mode, lit, params, out);
 }
 

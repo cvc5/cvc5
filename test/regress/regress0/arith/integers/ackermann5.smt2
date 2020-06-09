@@ -1,4 +1,4 @@
-; COMMAND-LINE: --ackermann --no-check-models --no-check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --ackermann --no-check-models
 ; EXPECT: sat
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.0)

@@ -49,7 +49,6 @@ class CegSingleInv
                                std::vector< Node >& terms,
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
-  Node postProcessSolution(Node n);
  private:
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;

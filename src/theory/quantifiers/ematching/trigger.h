@@ -273,9 +273,13 @@ class Trigger {
    *     in the vector we are returning, e.g. we do not return f( x ) if we are
    *     also returning f( f( x ) ). TODO: revisit this (issue #1211)
    */
-  static void collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt,
-                               std::vector< Node >& exclude, std::map< Node, TriggerTermInfo >& tinfo,
-                               bool filterInst = false );
+  static void collectPatTerms(Node q,
+                              Node n,
+                              std::vector<Node>& patTerms,
+                              options::TriggerSelMode tstrt,
+                              std::vector<Node>& exclude,
+                              std::map<Node, TriggerTermInfo>& tinfo,
+                              bool filterInst = false);
 
   /** Is n a usable trigger in quantified formula q?
    *
@@ -380,9 +384,18 @@ class Trigger {
    *
    * We add the triggers we collected recursively in n into added.
    */
-  static void collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
-                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
-                                bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable = false );
+  static void collectPatTerms2(Node q,
+                               Node n,
+                               std::map<Node, std::vector<Node> >& visited,
+                               std::map<Node, TriggerTermInfo>& tinfo,
+                               options::TriggerSelMode tstrt,
+                               std::vector<Node>& exclude,
+                               std::vector<Node>& added,
+                               bool pol,
+                               bool hasPol,
+                               bool epol,
+                               bool hasEPol,
+                               bool knowIsUsable = false);
 
   /** filter all nodes that have trigger instances
    *

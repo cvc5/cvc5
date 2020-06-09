@@ -43,21 +43,32 @@ ${includes}
     } \
     ++ *(d_exprStatistics[kind]); \
   }
-  #define INC_STAT_VAR(type, bound_var) \
-  { \
-    TypeNode* typeNode = Type::getTypeNode(type); \
-    TypeConstant type = typeNode->getKind() == kind::TYPE_CONSTANT ? typeNode->getConst<TypeConstant>() : LAST_TYPE; \
-    if (d_exprStatisticsVars[type] == NULL) { \
-      stringstream statName; \
-      if (type == LAST_TYPE) { \
-        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":Parameterized type"; \
-      } else { \
-        statName << "expr::ExprManager::" << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":" << type; \
-      } \
-      d_exprStatisticsVars[type] = new IntStat(statName.str(), 0); \
-      d_nodeManager->getStatisticsRegistry()->registerStat(d_exprStatisticsVars[type]); \
-    } \
-    ++ *(d_exprStatisticsVars[type]); \
+#define INC_STAT_VAR(type, bound_var)                                      \
+  {                                                                        \
+    TypeNode* isv_typeNode = Type::getTypeNode(type);                      \
+    TypeConstant isv_type = isv_typeNode->getKind() == kind::TYPE_CONSTANT \
+                                ? isv_typeNode->getConst<TypeConstant>()   \
+                                : LAST_TYPE;                               \
+    if (d_exprStatisticsVars[isv_type] == NULL)                            \
+    {                                                                      \
+      stringstream statName;                                               \
+      if (isv_type == LAST_TYPE)                                           \
+      {                                                                    \
+        statName << "expr::ExprManager::"                                  \
+                 << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE")          \
+                 << ":Parameterized isv_type";                             \
+      }                                                                    \
+      else                                                                 \
+      {                                                                    \
+        statName << "expr::ExprManager::"                                  \
+                 << ((bound_var) ? "BOUND_VARIABLE" : "VARIABLE") << ":"   \
+                 << isv_type;                                              \
+      }                                                                    \
+      d_exprStatisticsVars[isv_type] = new IntStat(statName.str(), 0);     \
+      d_nodeManager->getStatisticsRegistry()->registerStat(                \
+          d_exprStatisticsVars[isv_type]);                                 \
+    }                                                                      \
+    ++*(d_exprStatisticsVars[isv_type]);                                   \
   }
 #else
   #define INC_STAT(kind)
@@ -115,10 +126,11 @@ ExprManager::~ExprManager()
       }
     }
 #endif
+    // clear the datatypes
+    d_ownedDatatypes.clear();
 
     delete d_nodeManager;
     d_nodeManager = NULL;
-
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
               << e << std::endl;
@@ -676,10 +688,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
 
-  //have to build deep copy so that datatypes will live in NodeManager
+  // have to build deep copy so that datatypes will live in this class
   std::vector< Datatype* > dt_copies;
   for(std::vector<Datatype>::iterator i = datatypes.begin(), i_end = datatypes.end(); i != i_end; ++i) {
-    dt_copies.push_back( new Datatype( *i ) );
+    d_ownedDatatypes.push_back(std::unique_ptr<Datatype>(new Datatype(*i)));
+    dt_copies.push_back(d_ownedDatatypes.back().get());
   }
 
   // First do some sanity checks, set up the final Type to be used for
@@ -689,12 +702,12 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   // pred selector.
   for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
     TypeNode* typeNode;
+    // register datatype with the node manager
+    unsigned index = d_nodeManager->registerDatatype((*i)->d_internal);
     if( (*i)->getNumParameters() == 0 ) {
-      unsigned index = d_nodeManager->registerDatatype( *i );
       typeNode = new TypeNode(d_nodeManager->mkTypeConst(DatatypeIndexConstant(index)));
       //typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
     } else {
-      unsigned index = d_nodeManager->registerDatatype( *i );
       TypeNode cons = d_nodeManager->mkTypeConst(DatatypeIndexConstant(index));
       //TypeNode cons = d_nodeManager->mkTypeConst(*i);
       std::vector< TypeNode > params;
@@ -880,13 +893,13 @@ SortConstructorType ExprManager::mkSortConstructor(const std::string& name,
  * @param check whether we should check the type as we compute it
  * (default: false)
  */
-Type ExprManager::getType(Expr e, bool check)
+Type ExprManager::getType(Expr expr, bool check)
 {
   NodeManagerScope nms(d_nodeManager);
   Type t;
   try {
     t = Type(d_nodeManager,
-             new TypeNode(d_nodeManager->getType(e.getNode(), check)));
+             new TypeNode(d_nodeManager->getType(expr.getNode(), check)));
   } catch (const TypeCheckingExceptionPrivate& e) {
     throw TypeCheckingException(this, &e);
   }
@@ -1011,6 +1024,22 @@ Expr ExprManager::mkRightAssociative(Kind kind,
   return n.toExpr();
 }
 
+Expr ExprManager::mkChain(Kind kind, const std::vector<Expr>& children)
+{
+  if (children.size() == 2)
+  {
+    // if this is the case exactly 1 pair will be generated so the
+    // AND is not required
+    return mkExpr(kind, children[0], children[1]);
+  }
+  std::vector<Expr> cchildren;
+  for (size_t i = 0, nargsmo = children.size() - 1; i < nargsmo; i++)
+  {
+    cchildren.push_back(mkExpr(kind, children[i], children[i + 1]));
+  }
+  return mkExpr(kind::AND, cchildren);
+}
+
 unsigned ExprManager::minArity(Kind kind) {
   return metakind::getLowerBoundForKind(kind);
 }
@@ -1096,6 +1125,13 @@ Type ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapColle
   NodeManagerScope ems(t.d_nodeManager);
   return Type(em->d_nodeManager,
               new TypeNode(expr::exportTypeInternal(*t.d_typeNode, t.d_nodeManager, em->d_nodeManager, vmap)));
+}
+
+const Datatype& ExprManager::getDatatypeForIndex(unsigned index) const
+{
+  // when the Node-level API is in place, this function will be deleted.
+  Assert(index < d_ownedDatatypes.size());
+  return *d_ownedDatatypes[index];
 }
 
 ${mkConst_implementations}

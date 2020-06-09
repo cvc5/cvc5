@@ -16,8 +16,8 @@
 (define-fun y () (Struct1 Bool) (mk-struct1 true))
 (declare-const z Unit)
 (assert (= u u))
-(assert (is-mk-struct1 y))
-(assert (is-u z))
+(assert ((_ is mk-struct1) y))
+(assert ((_ is u) z))
 
 (declare-fun size (Tree) Int)
 (assert (= (size nil) 0))

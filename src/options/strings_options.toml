@@ -11,17 +11,6 @@ header = "options/strings_options.h"
   help       = "experimental features in the theory of strings"
 
 [[option]]
-  name       = "stringLB"
-  smt_name   = "strings-lb"
-  category   = "regular"
-  long       = "strings-lb=N"
-  type       = "unsigned"
-  default    = "0"
-  predicates = ["unsignedLessEqual2"]
-  read_only  = true
-  help       = "the strategy of LB rule application: 0-lazy, 1-eager, 2-no"
-
-[[option]]
   name       = "stdPrintASCII"
   category   = "regular"
   long       = "strings-print-ascii"
@@ -48,15 +37,6 @@ header = "options/strings_options.h"
   help       = "strings eager check"
 
 [[option]]
-  name       = "stringEIT"
-  category   = "regular"
-  long       = "strings-eit"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "the eager intersection used by the theory of strings"
-
-[[option]]
   name       = "stringIgnNegMembership"
   category   = "regular"
   long       = "strings-inm"
@@ -75,15 +55,6 @@ header = "options/strings_options.h"
   help       = "perform string preprocessing lazily"
 
 [[option]]
-  name       = "stringLenGeqZ"
-  category   = "regular"
-  long       = "strings-len-geqz"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "strings length greater than zero lemmas"
-
-[[option]]
   name       = "stringLenNorm"
   category   = "regular"
   long       = "strings-len-norm"
@@ -91,15 +62,6 @@ header = "options/strings_options.h"
   default    = "true"
   read_only  = true
   help       = "strings length normalization lemma"
-
-[[option]]
-  name       = "stringSplitEmp"
-  category   = "regular"
-  long       = "strings-sp-emp"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "strings split on empty string"
 
 [[option]]
   name       = "stringInferSym"
@@ -132,11 +94,26 @@ header = "options/strings_options.h"
   name       = "stringProcessLoopMode"
   category   = "expert"
   long       = "strings-process-loop-mode=MODE"
-  type       = "CVC4::theory::strings::ProcessLoopMode"
-  default    = "CVC4::theory::strings::ProcessLoopMode::FULL"
-  handler    = "stringToStringsProcessLoopMode"
-  includes   = ["options/strings_modes.h"]
+  type       = "ProcessLoopMode"
+  default    = "FULL"
   help       = "determines how to process looping string equations"
+  help_mode = "Loop processing modes."
+[[option.mode.FULL]]
+  name = "full"
+  help = "Perform full processing of looping word equations."
+[[option.mode.SIMPLE]]
+  name = "simple"
+  help = "Omit normal loop breaking (default with --strings-fmf)."
+[[option.mode.SIMPLE_ABORT]]
+  name = "simple-abort"
+  help = "Abort when normal loop breaking is required."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Omit loop processing."
+[[option.mode.ABORT]]
+  name = "abort"
+  help = "Abort if looping word equations are encountered."
+
 
 [[option]]
   name       = "stringInferAsLemmas"
@@ -175,15 +152,6 @@ header = "options/strings_options.h"
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
-  name       = "stringBinaryCsp"
-  category   = "regular"
-  long       = "strings-binary-csp"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use binary search when splitting strings"
-
-[[option]]
   name       = "stringLenPropCsp"
   category   = "regular"
   long       = "strings-lprop-csp"
@@ -197,7 +165,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "re-elim"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "elimination techniques for regular expressions"
 
 [[option]]
@@ -221,8 +189,19 @@ header = "options/strings_options.h"
   name       = "stringRegExpInterMode"
   category   = "expert"
   long       = "re-inter-mode=MODE"
-  type       = "CVC4::theory::strings::RegExpInterMode"
-  default    = "CVC4::theory::strings::RE_INTER_CONSTANT"
-  handler    = "stringToRegExpInterMode"
-  includes   = ["options/strings_modes.h"]
+  type       = "RegExpInterMode"
+  default    = "CONSTANT"
   help       = "determines which regular expressions intersections to compute"
+  help_mode  = "Regular expression intersection modes."
+[[option.mode.ALL]]
+  name = "all"
+  help = "Compute intersections for all regular expressions."
+[[option.mode.CONSTANT]]
+  name = "constant"
+  help = "Compute intersections only between regular expressions that do not contain re.allchar or re.range."
+[[option.mode.ONE_CONSTANT]]
+  name = "one-constant"
+  help = "Compute intersections only between regular expressions such that at least one side does not contain re.allchar or re.range."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not compute intersections for regular expressions."

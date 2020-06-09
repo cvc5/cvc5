@@ -51,12 +51,20 @@ header = "options/uf_options.h"
   name       = "ufssMode"
   category   = "regular"
   long       = "uf-ss=MODE"
-  type       = "CVC4::theory::uf::UfssMode"
-  default    = "CVC4::theory::uf::UF_SS_FULL"
-  handler    = "stringToUfssMode"
-  includes   = ["options/ufss_mode.h"]
+  type       = "UfssMode"
+  default    = "FULL"
   read_only  = true
   help       = "mode of operation for uf with cardinality solver."
+  help_mode  = "UF with cardinality options currently supported by the --uf-ss option when combined with finite model finding."
+[[option.mode.FULL]]
+  name = "full"
+  help = "Default, use UF with cardinality to find minimal models for uninterpreted sorts."
+[[option.mode.NO_MINIMAL]]
+  name = "no-minimal"
+  help = "Use UF with cardinality to shrink models, but do no enforce minimality."
+[[option.mode.NONE]]
+  name = "none"
+  help = "Do not use UF with cardinality to shrink model sizes."
 
 [[option]]
   name       = "ufssFairness"

@@ -27,7 +27,7 @@
 #include "expr/node.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {
@@ -94,7 +94,15 @@ class Evaluator
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals);
+            const std::vector<Node>& vals) const;
+  /**
+   * Same as above, but with a precomputed visited map.
+   */
+  Node eval(
+      TNode n,
+      const std::vector<Node>& args,
+      const std::vector<Node>& vals,
+      const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
 
  private:
   /**
@@ -117,7 +125,21 @@ class Evaluator
       TNode n,
       const std::vector<Node>& args,
       const std::vector<Node>& vals,
-      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode);
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const;
+  /** reconstruct
+   *
+   * This function reconstructs the result of evaluating n using a combination
+   * of evaluation results (eresults) and substitution+rewriting (evalAsNode).
+   *
+   * Arguments eresults and evalAsNode are built within the context of the
+   * above method for some args and vals. This method ensures that the return
+   * value is equivalent to the rewritten form of n * { args -> vals }.
+   */
+  Node reconstruct(
+      TNode n,
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& eresults,
+      std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode) const;
 };
 
 }  // namespace theory

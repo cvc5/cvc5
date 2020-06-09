@@ -37,7 +37,6 @@ me=$(basename "$0")
 template=$1; shift
 
 rewriter_includes=
-rewrite_init=
 
 pre_rewrite_get_cache=
 pre_rewrite_set_cache=
@@ -139,8 +138,6 @@ function rewriter {
   header="$2"
 
   rewriter_includes="${rewriter_includes}#include \"$header\"
-"
-  rewrite_init="${rewrite_init}   d_theoryRewriters[${theory_id}].reset(new ${class});
 "
   pre_rewrite_attribute_ids="${pre_rewrite_attribute_ids} preids.push_back(expr::attr::AttributeManager::getAttributeId(RewriteAttibute<${theory_id}>::pre_rewrite()));
 "
@@ -257,7 +254,6 @@ for var in \
     post_rewrite_get_cache \
     pre_rewrite_set_cache \
     post_rewrite_set_cache \
-    rewrite_init \
     pre_rewrite_attribute_ids \
     post_rewrite_attribute_ids \
     template \

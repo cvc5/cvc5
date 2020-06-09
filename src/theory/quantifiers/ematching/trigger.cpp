@@ -298,20 +298,37 @@ Node Trigger::getIsUsableEq( Node q, Node n ) {
 bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   if( n1.getKind()==INST_CONSTANT ){
     if( options::relationalTriggers() ){
-      if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
-        return true;
-      }else if( n2.getKind()==INST_CONSTANT ){
+      Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
+      if (q1 != q)
+      {
+        // x is a variable from another quantified formula, fail
+        return false;
+      }
+      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2);
+      if (q2.isNull())
+      {
+        // x = c
         return true;
       }
+      if (n2.getKind() == INST_CONSTANT && q2 == q)
+      {
+        // x = y
+        return true;
+      }
+      // we dont check x = f(y), which is handled symmetrically below
+      // when n1 and n2 are swapped
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
+        && quantifiers::TermUtil::getInstConstAttr(n2) == q
         && !expr::hasSubterm(n1, n2))
     {
+      // f(x) = y
       return true;
     }
     else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
     {
+      // f(x) = c
       return true;
     }
   }
@@ -429,9 +446,19 @@ bool Trigger::isSimpleTrigger( Node n ){
 }
 
 //store triggers in reqPol, indicating their polarity (if any) they must appear to falsify the quantified formula
-void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Node > >& visited, std::map< Node, TriggerTermInfo >& tinfo, 
-                                quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, std::vector< Node >& added,
-                                bool pol, bool hasPol, bool epol, bool hasEPol, bool knowIsUsable ){
+void Trigger::collectPatTerms2(Node q,
+                               Node n,
+                               std::map<Node, std::vector<Node> >& visited,
+                               std::map<Node, TriggerTermInfo>& tinfo,
+                               options::TriggerSelMode tstrt,
+                               std::vector<Node>& exclude,
+                               std::vector<Node>& added,
+                               bool pol,
+                               bool hasPol,
+                               bool epol,
+                               bool hasEPol,
+                               bool knowIsUsable)
+{
   std::map< Node, std::vector< Node > >::iterator itv = visited.find( n );
   if( itv==visited.end() ){
     visited[ n ].clear();
@@ -488,7 +515,10 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
           Assert(added2[i] != nu);
           // if child was not already removed
           if( tinfo.find( added2[i] )!=tinfo.end() ){
-            if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
+            if (tstrt == options::TriggerSelMode::MAX
+                || (tstrt == options::TriggerSelMode::MIN_SINGLE_MAX
+                    && !nu_single))
+            {
               // discard all subterms
               // do not remove if it has smaller weight
               if (tinfo[nu].d_weight <= tinfo[added2[i]].d_weight)
@@ -498,7 +528,9 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
                 visited[added2[i]].clear();
                 tinfo.erase(added2[i]);
               }
-            }else{
+            }
+            else
+            {
               if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
                 if (tinfo[nu].d_weight >= tinfo[added2[i]].d_weight)
                 {
@@ -516,9 +548,15 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
             }
           }
         }
-        if( rm_nu && ( tstrt==quantifiers::TRIGGER_SEL_MIN || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_ALL && nu_single ) ) ){
+        if (rm_nu
+            && (tstrt == options::TriggerSelMode::MIN
+                || (tstrt == options::TriggerSelMode::MIN_SINGLE_ALL
+                    && nu_single)))
+        {
           tinfo.erase( nu );
-        }else{
+        }
+        else
+        {
           if( std::find( added.begin(), added.end(), nu )==added.end() ){
             added.push_back( nu );
           }
@@ -593,14 +631,21 @@ bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< 
   return true;
 }
 
-void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, quantifiers::TriggerSelMode tstrt, std::vector< Node >& exclude, 
-                               std::map< Node, TriggerTermInfo >& tinfo, bool filterInst ){
+void Trigger::collectPatTerms(Node q,
+                              Node n,
+                              std::vector<Node>& patTerms,
+                              options::TriggerSelMode tstrt,
+                              std::vector<Node>& exclude,
+                              std::map<Node, TriggerTermInfo>& tinfo,
+                              bool filterInst)
+{
   std::map< Node, std::vector< Node > > visited;
   if( filterInst ){
     //immediately do not consider any term t for which another term is an instance of t
     std::vector< Node > patTerms2;
     std::map< Node, TriggerTermInfo > tinfo2;
-    collectPatTerms( q, n, patTerms2, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo2, false );
+    collectPatTerms(
+        q, n, patTerms2, options::TriggerSelMode::ALL, exclude, tinfo2, false);
     std::vector< Node > temp;
     temp.insert( temp.begin(), patTerms2.begin(), patTerms2.end() );
     filterTriggerInstances(temp);
@@ -623,7 +668,8 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
         Trace("trigger-filter-instance") << std::endl;
       }
     }
-    if( tstrt==quantifiers::TRIGGER_SEL_ALL ){
+    if (tstrt == options::TriggerSelMode::ALL)
+    {
       for( unsigned i=0; i<temp.size(); i++ ){
         //copy information
         tinfo[temp[i]].d_fv.insert( tinfo[temp[i]].d_fv.end(), tinfo2[temp[i]].d_fv.begin(), tinfo2[temp[i]].d_fv.end() );
@@ -632,7 +678,9 @@ void Trigger::collectPatTerms( Node q, Node n, std::vector< Node >& patTerms, qu
         patTerms.push_back( temp[i] );
       }
       return;
-    }else{
+    }
+    else
+    {
       //do not consider terms that have instances
       for( unsigned i=0; i<patTerms2.size(); i++ ){
         if( std::find( temp.begin(), temp.end(), patTerms2[i] )==temp.end() ){
@@ -875,7 +923,7 @@ void Trigger::getTriggerVariables(Node n, Node q, std::vector<Node>& t_vars)
   std::map< Node, TriggerTermInfo > tinfo;
   // collect all patterns from n
   std::vector< Node > exclude;
-  collectPatTerms(q, n, patTerms, quantifiers::TRIGGER_SEL_ALL, exclude, tinfo);
+  collectPatTerms(q, n, patTerms, options::TriggerSelMode::ALL, exclude, tinfo);
   //collect all variables from all patterns in patTerms, add to t_vars
   for (const Node& pat : patTerms)
   {

@@ -55,25 +55,4 @@ typerule INST_ATTRIBUTE ::CVC4::theory::quantifiers::QuantifierInstAttributeType
 typerule INST_PATTERN_LIST ::CVC4::theory::quantifiers::QuantifierInstPatternListTypeRule 
 typerule INST_CLOSURE ::CVC4::theory::quantifiers::QuantifierInstClosureTypeRule 
 
-# for rewrite rules
-# types...
-sort RRHB_TYPE \
-    Cardinality::INTEGERS \
-    not-well-founded \
-    "head and body of the rule type (for rewrite-rules theory)"
-
-# operators...
-
-# variables, guards, RR_REWRITE/REDUCTION_RULE/DEDUCTION_RULE
-operator REWRITE_RULE 3 "general rewrite rule (for rewrite-rules theory)"
-#HEAD/BODY/TRIGGER
-operator RR_REWRITE 2:3 "actual rewrite rule (for rewrite-rules theory)"
-operator RR_REDUCTION 2:3 "actual reduction rule (for rewrite-rules theory)"
-operator RR_DEDUCTION 2:3 "actual deduction rule (for rewrite-rules theory)"
-
-typerule REWRITE_RULE ::CVC4::theory::quantifiers::RewriteRuleTypeRule
-typerule RR_REWRITE   ::CVC4::theory::quantifiers::RRRewriteTypeRule
-typerule RR_REDUCTION ::CVC4::theory::quantifiers::RRRedDedTypeRule
-typerule RR_DEDUCTION ::CVC4::theory::quantifiers::RRRedDedTypeRule
-
 endtheory

@@ -44,12 +44,14 @@ void SolverState::reset()
   d_congruent.clear();
   d_nvar_sets.clear();
   d_var_set.clear();
+  d_compSets.clear();
   d_pol_mems[0].clear();
   d_pol_mems[1].clear();
   d_members_index.clear();
   d_singleton_index.clear();
   d_bop_index.clear();
   d_op_list.clear();
+  d_allCompSets.clear();
 }
 
 void SolverState::registerEqc(TypeNode tn, Node r)
@@ -137,6 +139,12 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back(n);
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
+  else if (nk == COMPREHENSION)
+  {
+    d_compSets[r].push_back(n);
+    d_allCompSets.push_back(n);
+    Trace("sets-debug2") << "Comp-set[" << r << "] : " << n << std::endl;
+  }
   else if (n.isVar() && !d_skCache.isSkolem(n))
   {
     // it is important that we check it is a variable, but not an internally
@@ -146,8 +154,13 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
       if (d_var_set.find(r) == d_var_set.end())
       {
         d_var_set[r] = n;
+        Trace("sets-debug2") << "var-set[" << r << "] : " << n << std::endl;
       }
     }
+  }
+  else
+  {
+    Trace("sets-debug2") << "Unknown-set[" << r << "] : " << n << std::endl;
   }
 }
 
@@ -391,7 +404,7 @@ Node SolverState::getProxy(Node n)
 {
   Kind nk = n.getKind();
   if (nk != EMPTYSET && nk != SINGLETON && nk != INTERSECTION && nk != SETMINUS
-      && nk != UNION)
+      && nk != UNION && nk != UNIVERSE_SET)
   {
     return n;
   }
@@ -510,6 +523,17 @@ Node SolverState::getVariableSet(Node r) const
   }
   return Node::null();
 }
+
+const std::vector<Node>& SolverState::getComprehensionSets(Node r) const
+{
+  std::map<Node, std::vector<Node> >::const_iterator it = d_compSets.find(r);
+  if (it == d_compSets.end())
+  {
+    return d_emptyVec;
+  }
+  return it->second;
+}
+
 const std::map<Node, Node>& SolverState::getMembers(Node r) const
 {
   return getMembersInternal(r, 0);
@@ -550,6 +574,11 @@ const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
   return d_op_list;
 }
 
+const std::vector<Node>& SolverState::getComprehensionSets() const
+{
+  return d_allCompSets;
+}
+
 void SolverState::debugPrintSet(Node s, const char* c) const
 {
   if (s.getNumChildren() == 0)
@@ -574,6 +603,19 @@ void SolverState::debugPrintSet(Node s, const char* c) const
     }
     Trace(c) << ")";
   }
+}
+
+const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
+{
+  vector<Node> representatives;
+  for (const Node& eqc : getSetsEqClasses())
+  {
+    if (eqc.getType().getSetElementType() == t)
+    {
+      representatives.push_back(eqc);
+    }
+  }
+  return representatives;
 }
 
 }  // namespace sets

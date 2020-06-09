@@ -30,7 +30,8 @@ namespace passes {
 class BVGauss : public PreprocessingPass
 {
  public:
-  BVGauss(PreprocessingPassContext* preprocContext);
+  BVGauss(PreprocessingPassContext* preprocContext,
+          const std::string& name = "bv-gauss");
 
  protected:
   /**

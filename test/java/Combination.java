@@ -16,10 +16,10 @@
  **/
 
 import static org.junit.Assert.assertEquals;
+
+import edu.stanford.CVC4.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import edu.nyu.acsys.CVC4.*;
 
 public class Combination {
   static {
@@ -39,7 +39,7 @@ public class Combination {
     smt.setOption("tlimit", new SExpr(100));
     smt.setOption("produce-models", new SExpr(true)); // Produce Models
     smt.setOption("output-language", new SExpr("cvc4")); // output-language
-    smt.setOption("default-dag-thresh", new SExpr(0)); //Disable dagifying the output
+    smt.setOption("dag-thresh", new SExpr(0)); //Disable dagifying the output
     smt.setLogic("QF_UFLIRA");
 
     // Sorts
@@ -78,10 +78,8 @@ public class Combination {
                 p_f_y);                         // p(f(y))
     smt.assertFormula(assumptions);
 
-    assertEquals(
-        Result.Validity.VALID,
-        smt.query(em.mkExpr(Kind.DISTINCT, x, y)).isValid()
-    );
+    assertEquals(Result.Entailment.ENTAILED,
+        smt.checkEntailed(em.mkExpr(Kind.DISTINCT, x, y)).isEntailed());
 
     assertEquals(
         Result.Sat.SAT,

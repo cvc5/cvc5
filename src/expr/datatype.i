@@ -9,15 +9,9 @@
 #endif /* SWIGJAVA */
 %}
 
+%include "expr/kind.i"
+
 %extend std::vector< CVC4::Datatype > {
-  /* These member functions have slightly different signatures in
-   * different swig language packages.  The underlying issue is that
-   * DatatypeConstructor doesn't have a default constructor */
-#if defined(SWIGOCAML) || defined(SWIGPERL) || defined(SWIGTCL)
-  %ignore vector(unsigned int size = 0);
-  %ignore set( int i, const CVC4::Datatype &x );
-  %ignore to_array();
-#endif /* SWIGOCAML || SWIGPERL || SWIGTCL */
   %ignore vector(size_type);// java/python/perl/others?
   %ignore resize(size_type);// java/python/perl/others?
   %ignore set(int i, const CVC4::Datatype& x);
@@ -26,14 +20,6 @@
 %template(vectorDatatype) std::vector< CVC4::Datatype >;
 
 %extend std::vector< CVC4::DatatypeConstructor > {
-  /* These member functions have slightly different signatures in
-   * different swig language packages.  The underlying issue is that
-   * DatatypeConstructor doesn't have a default constructor */
-#if defined(SWIGOCAML) || defined(SWIGPERL) || defined(SWIGTCL)
-  %ignore vector(unsigned int size = 0);
-  %ignore set( int i, const CVC4::DatatypeConstructor &x );
-  %ignore to_array();
-#endif /* SWIGOCAML || SWIGPERL || SWIGTCL */
   %ignore vector(size_type);// java/python/perl/others?
   %ignore resize(size_type);// java/python/perl/others?
   %ignore set(int i, const CVC4::Datatype::Constructor& x);

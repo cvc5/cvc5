@@ -1,13 +1,13 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic ABV)
 
 (synth-fun f
-  ((s (Array (BitVec 4) (BitVec 4))) (t (BitVec 4)))
-  (Array (BitVec 4) (BitVec 4))
+  ((s (Array (_ BitVec 4) (_ BitVec 4))) (t (_ BitVec 4)))
+  (Array (_ BitVec 4) (_ BitVec 4))
   )
 
-(declare-var x (Array (BitVec 4) (BitVec 4)))
+(declare-var x (Array (_ BitVec 4) (_ BitVec 4)))
 
 (constraint (= (= (store x #b0000 #b0000) (store x #b0001 #b0000)) (= (f x #b0000) (f x #b0001))))
 

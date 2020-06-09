@@ -1,21 +1,21 @@
 % COMMAND-LINE: --incremental
 U : TYPE;
 x, y : U;
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY x = y;
 ASSERT x = y;
-% EXPECT: valid
+% EXPECT: entailed
 QUERY x = y;
 PUSH;
 z : U;
-% EXPECT: valid
+% EXPECT: entailed
 QUERY x = y;
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY x = z;
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY z = x;
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY z /= x;
 POP;
-% EXPECT: invalid
+% EXPECT: not_entailed
 QUERY z /= x;

@@ -44,11 +44,11 @@ constant DATATYPE_TYPE \
     "expr/datatype.h" \
     "a datatype type index"
 cardinality DATATYPE_TYPE \
-    "%TYPE%.getDatatype().getCardinality(%TYPE%.toType())" \
+    "%TYPE%.getDType().getCardinality(%TYPE%)" \
     "expr/datatype.h"
 well-founded DATATYPE_TYPE \
-    "%TYPE%.getDatatype().isWellFounded()" \
-    "%TYPE%.getDatatype().mkGroundTerm(%TYPE%.toType())" \
+    "%TYPE%.getDType().isWellFounded()" \
+    "%TYPE%.getDType().mkGroundTerm(%TYPE%)" \
     "expr/datatype.h"
 
 enumerator DATATYPE_TYPE \
@@ -57,11 +57,11 @@ enumerator DATATYPE_TYPE \
 
 operator PARAMETRIC_DATATYPE 1: "parametric datatype"
 cardinality PARAMETRIC_DATATYPE \
-    "DatatypeType(%TYPE%.toType()).getDatatype().getCardinality(%TYPE%.toType())" \
+    "%TYPE%.getDType().getCardinality(%TYPE%)" \
     "expr/datatype.h"
 well-founded PARAMETRIC_DATATYPE \
-    "DatatypeType(%TYPE%.toType()).getDatatype().isWellFounded()" \
-    "DatatypeType(%TYPE%.toType()).getDatatype().mkGroundTerm(%TYPE%.toType())" \
+    "%TYPE%.getDType().isWellFounded()" \
+    "%TYPE%.getDType().mkGroundTerm(%TYPE%)" \
     "expr/datatype.h"
 
 enumerator PARAMETRIC_DATATYPE \

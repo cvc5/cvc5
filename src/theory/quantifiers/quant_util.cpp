@@ -154,7 +154,7 @@ void QuantPhaseReq::getPolarity( Node n, int child, bool hasPol, bool pol, bool&
     newPol = pol;
   }else{
     newHasPol = false;
-    newPol = pol;
+    newPol = false;
   }
 }
 
@@ -170,7 +170,7 @@ void QuantPhaseReq::getEntailPolarity( Node n, int child, bool hasPol, bool pol,
     newPol = !pol;
   }else{
     newHasPol = false;
-    newPol = pol;
+    newPol = false;
   }
 }
 

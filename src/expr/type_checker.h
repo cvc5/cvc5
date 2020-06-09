@@ -33,8 +33,6 @@ public:
 
  static bool computeIsConst(NodeManager* nodeManager, TNode n);
 
- static bool neverIsConst(NodeManager* nodeManager, TNode n);
-
 };/* class TypeChecker */
 
 }/* CVC4::expr namespace */

@@ -111,69 +111,74 @@ Node EqualityQueryQuantifiersEngine::getInternalRepresentative(Node a,
       }
     }
   }
-  if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_EE ){
-    return r;
-  }else{
-    TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
-    std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
-    std::map<Node, Node>::const_iterator itir = v_int_rep.find(r);
-    if (itir != v_int_rep.end())
+  TypeNode v_tn = q.isNull() ? a.getType() : q[0][index].getType();
+  if (options::quantRepMode() == options::QuantRepMode::EE)
+  {
+    int score = getRepScore(r, q, index, v_tn);
+    if (score >= 0)
     {
-      return itir->second;
+      return r;
     }
-    else
+    // if we are not a valid representative, try to select one below
+  }
+  std::map<Node, Node>& v_int_rep = d_int_rep[v_tn];
+  std::map<Node, Node>::const_iterator itir = v_int_rep.find(r);
+  if (itir != v_int_rep.end())
+  {
+    return itir->second;
+  }
+  // find best selection for representative
+  Node r_best;
+  std::vector<Node> eqc;
+  getEquivalenceClass(r, eqc);
+  Trace("internal-rep-select")
+      << "Choose representative for equivalence class : " << eqc
+      << ", type = " << v_tn << std::endl;
+  int r_best_score = -1;
+  for (const Node& n : eqc)
+  {
+    int score = getRepScore(n, q, index, v_tn);
+    if (score != -2)
     {
-      //find best selection for representative
-      Node r_best;
-      // if( options::fmfRelevantDomain() && !q.isNull() ){
-      //  Trace("internal-rep-debug") << "Consult relevant domain to mkRep " <<
-      //  r << std::endl;
-      //  r_best = d_qe->getRelevantDomain()->getRelevantTerm( q, index, r );
-      //  Trace("internal-rep-debug") << "Returned " << r_best << " " << r <<
-      //  std::endl;
-      //}
-      std::vector< Node > eqc;
-      getEquivalenceClass( r, eqc );
-      Trace("internal-rep-select") << "Choose representative for equivalence class : { ";
-      for( unsigned i=0; i<eqc.size(); i++ ){
-        if (i > 0)
-        {
-          Trace("internal-rep-select") << ", ";
-        }
-        Trace("internal-rep-select") << eqc[i];
+      if (r_best.isNull()
+          || (score >= 0 && (r_best_score < 0 || score < r_best_score)))
+      {
+        r_best = n;
+        r_best_score = score;
       }
-      Trace("internal-rep-select")  << " }, type = " << v_tn << std::endl;
-      int r_best_score = -1;
-      for( size_t i=0; i<eqc.size(); i++ ){
-        int score = getRepScore(eqc[i], q, index, v_tn);
-        if( score!=-2 ){
-          if( r_best.isNull() || ( score>=0 && ( r_best_score<0 || score<r_best_score ) ) ){
-            r_best = eqc[i];
-            r_best_score = score;
-          }
-        }
-      }
-      if( r_best.isNull() ){
-        Trace("internal-rep-warn") << "No valid choice for representative in eqc class." << std::endl;
-        r_best = r;
-      }
-      //now, make sure that no other member of the class is an instance
-      std::unordered_map<TNode, Node, TNodeHashFunction> cache;
-      r_best = getInstance( r_best, eqc, cache );
-      //store that this representative was chosen at this point
-      if( d_rep_score.find( r_best )==d_rep_score.end() ){
-        d_rep_score[ r_best ] = d_reset_count;
-      }
-      Trace("internal-rep-select") << "...Choose " << r_best << " with score " << r_best_score << std::endl;
-      Assert(r_best.getType().isSubtypeOf(v_tn));
-      v_int_rep[r] = r_best;
-      if( r_best!=a ){
-        Trace("internal-rep-debug") << "rep( " << a << " ) = " << r << ", " << std::endl;
-        Trace("internal-rep-debug") << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
-      }
-      return r_best;
     }
   }
+  if (r_best.isNull())
+  {
+    Trace("internal-rep-warn")
+        << "No valid choice for representative in eqc class " << eqc
+        << std::endl;
+    return Node::null();
+  }
+  // now, make sure that no other member of the class is an instance
+  std::unordered_map<TNode, Node, TNodeHashFunction> cache;
+  r_best = getInstance(r_best, eqc, cache);
+  // store that this representative was chosen at this point
+  if (d_rep_score.find(r_best) == d_rep_score.end())
+  {
+    d_rep_score[r_best] = d_reset_count;
+  }
+  Trace("internal-rep-select")
+      << "...Choose " << r_best << " with score " << r_best_score
+      << " and type " << r_best.getType() << std::endl;
+  Assert(r_best.getType().isSubtypeOf(v_tn));
+  v_int_rep[r] = r_best;
+  if (Trace.isOn("internal-rep-debug"))
+  {
+    if (r_best != a)
+    {
+      Trace("internal-rep-debug")
+          << "rep( " << a << " ) = " << r << ", " << std::endl;
+      Trace("internal-rep-debug")
+          << "int_rep( " << a << " ) = " << r_best << ", " << std::endl;
+    }
+  }
+  return r_best;
 }
 
 eq::EqualityEngine* EqualityQueryQuantifiersEngine::getEngine(){
@@ -225,7 +230,7 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
                                                 int index,
                                                 TypeNode v_tn)
 {
-  if( options::cbqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
+  if( options::cegqi() && quantifiers::TermUtil::hasInstConstAttr(n) ){  //reject
     return -2;
   }else if( !n.getType().isSubtypeOf( v_tn ) ){  //reject if incorrect type
     return -2;
@@ -239,11 +244,14 @@ int EqualityQueryQuantifiersEngine::getRepScore(Node n,
       return options::instLevelInputOnly() ? -1 : 0;
     }
   }else{
-    if( options::quantRepMode()==quantifiers::QUANT_REP_MODE_FIRST ){
+    if (options::quantRepMode() == options::QuantRepMode::FIRST)
+    {
       //score prefers earliest use of this term as a representative
       return d_rep_score.find( n )==d_rep_score.end() ? -1 : d_rep_score[n];
-    }else{
-      Assert(options::quantRepMode() == quantifiers::QUANT_REP_MODE_DEPTH);
+    }
+    else
+    {
+      Assert(options::quantRepMode() == options::QuantRepMode::DEPTH);
       return quantifiers::TermUtil::getTermDepth( n );
     }
   }

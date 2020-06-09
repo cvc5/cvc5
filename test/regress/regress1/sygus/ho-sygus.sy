@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --uf-ho
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --uf-ho
 (set-logic ALL)
 (synth-fun f ((y (-> Int Int)) (z Int)) Int)
 (declare-var z (-> Int Int))

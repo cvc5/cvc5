@@ -867,8 +867,9 @@ void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
   std::vector<T> bits;
   bb->bbTerm(node[0], bits);
   
-  T sign_bit = bits.back(); 
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount; 
+  T sign_bit = bits.back();
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
   for (unsigned i = 0; i < bits.size(); ++i ) {
     res_bits.push_back(bits[i]); 

@@ -23,6 +23,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/cdqueue.h"
+#include "theory/sep/theory_sep_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
@@ -56,6 +57,8 @@ class TheorySep : public Theory {
   //whether bounds have been initialized
   bool d_bounds_init;
 
+  TheorySepRewriter d_rewriter;
+
   Node mkAnd( std::vector< TNode >& assumptions );
 
   int processAssertion( Node n, std::map< int, std::map< Node, int > >& visited, 
@@ -65,6 +68,8 @@ class TheorySep : public Theory {
  public:
   TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
   ~TheorySep();
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 

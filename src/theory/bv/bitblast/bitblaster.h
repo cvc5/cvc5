@@ -109,11 +109,12 @@ class MinisatEmptyNotify : public prop::BVSatSolverNotify
   MinisatEmptyNotify() {}
   bool notify(prop::SatLiteral lit) override { return true; }
   void notify(prop::SatClause& clause) override {}
-  void spendResource(unsigned amount) override
+  void spendResource(ResourceManager::Resource r) override
   {
-    NodeManager::currentResourceManager()->spendResource(amount);
+    NodeManager::currentResourceManager()->spendResource(r);
   }
-  void safePoint(unsigned amount) override {}
+
+  void safePoint(ResourceManager::Resource r) override {}
 };
 
 // Bitblaster implementation

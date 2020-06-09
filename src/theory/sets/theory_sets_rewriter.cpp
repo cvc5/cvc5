@@ -62,7 +62,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case kind::MEMBER: {
     if(node[0].isConst() && node[1].isConst()) {
       // both are constants
-      TNode S = preRewrite(node[1]).node;
+      TNode S = preRewrite(node[1]).d_node;
       bool isMember = checkConstantMembership(node[0], S);
       return RewriteResponse(REWRITE_DONE, nm->mkConst(isMember));
     }else if( node[1].getKind()==kind::EMPTYSET ){

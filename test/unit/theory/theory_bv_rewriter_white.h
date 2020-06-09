@@ -43,6 +43,7 @@ class TheoryBvRewriterWhite : public CxxTest::TestSuite
     d_em = new ExprManager(opts);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
 
     d_nm = NodeManager::currentNM();
   }

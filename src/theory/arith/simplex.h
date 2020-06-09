@@ -79,7 +79,7 @@ protected:
   DenseSet d_conflictVariables;
 
   /** The rule to use for heuristic selection mode. */
-  ErrorSelectionRule d_heuristicRule;
+  options::ErrorSelectionRule d_heuristicRule;
 
   /** Linear equality module. */
   LinearEqualityModule& d_linEq;

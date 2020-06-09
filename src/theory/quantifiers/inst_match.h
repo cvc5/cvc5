@@ -79,15 +79,15 @@ public:
     out << " )";
   }
   /** get the i^th term in the instantiation */
-  Node get(int i) const;
+  Node get(size_t i) const;
   /** set/overwrites the i^th field in the instantiation with n */
-  void setValue( int i, TNode n );
+  void setValue(size_t i, TNode n);
   /** set the i^th term in the instantiation to n
    *
    * This method returns true if the i^th field was previously uninitialized,
    * or is equivalent to n modulo the equalities given by q.
    */
-  bool set(EqualityQuery* q, int i, TNode n);
+  bool set(EqualityQuery* q, size_t i, TNode n);
 };
 
 inline std::ostream& operator<<(std::ostream& out, const InstMatch& m) {

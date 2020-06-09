@@ -39,10 +39,24 @@ namespace {
 // TODO: clean this up
 struct intToBV_stack_element
 {
-  TNode node;
-  bool children_added;
-  intToBV_stack_element(TNode node) : node(node), children_added(false) {}
+  TNode d_node;
+  bool d_children_added;
+  intToBV_stack_element(TNode node) : d_node(node), d_children_added(false) {}
 }; /* struct intToBV_stack_element */
+
+bool childrenTypesChanged(Node n, NodeMap& cache) {
+  bool result = false;
+  for (Node child : n) {
+    TypeNode originalType = child.getType();
+    TypeNode newType = cache[child].getType();
+    if (! newType.isSubtypeOf(originalType)) {
+      result = true;
+      break;
+    }
+  }
+  return result;
+}
+
 
 Node intToBVMakeBinary(TNode n, NodeMap& cache)
 {
@@ -54,7 +68,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
   {
     // The current node we are processing
     intToBV_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
+    TNode current = stackHead.d_node;
 
     NodeMap::iterator find = cache.find(current);
     if (find != cache.end())
@@ -62,7 +76,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       toVisit.pop_back();
       continue;
     }
-    if (stackHead.children_added)
+    if (stackHead.d_children_added)
     {
       // Children have been processed, so rebuild this node
       Node result;
@@ -84,6 +98,10 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       else
       {
         NodeBuilder<> builder(current.getKind());
+        if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          builder << current.getOperator();
+        }
+
         for (unsigned i = 0; i < current.getNumChildren(); ++i)
         {
           Assert(cache.find(current[i]) != cache.end());
@@ -99,7 +117,7 @@ Node intToBVMakeBinary(TNode n, NodeMap& cache)
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {
-        stackHead.children_added = true;
+        stackHead.d_children_added = true;
         // We need to add the children
         for (TNode::iterator child_it = current.begin();
              child_it != current.end();
@@ -138,7 +156,7 @@ Node intToBV(TNode n, NodeMap& cache)
   {
     // The current node we are processing
     intToBV_stack_element& stackHead = toVisit.back();
-    TNode current = stackHead.node;
+    TNode current = stackHead.d_node;
 
     // If node is already in the cache we're done, pop from the stack
     NodeMap::iterator find = cache.find(current);
@@ -150,7 +168,7 @@ Node intToBV(TNode n, NodeMap& cache)
 
     // Not yet substituted, so process
     NodeManager* nm = NodeManager::currentNM();
-    if (stackHead.children_added)
+    if (stackHead.d_children_added)
     {
       // Children have been processed, so rebuild this node
       vector<Node> children;
@@ -203,13 +221,12 @@ Node intToBV(TNode n, NodeMap& cache)
           case kind::EQUAL:
           case kind::ITE: break;
           default:
-            if (Theory::theoryOf(current) == THEORY_BOOL)
-            {
-              break;
-            }
-            throw TypeCheckingException(
+            if (childrenTypesChanged(current, cache)) {
+              throw TypeCheckingException(
                 current.toExpr(),
                 string("Cannot translate to BV: ") + current.toString());
+            }
+            break;
         }
         for (unsigned i = 0; i < children.size(); ++i)
         {
@@ -229,6 +246,9 @@ Node intToBV(TNode n, NodeMap& cache)
         }
       }
       NodeBuilder<> builder(newKind);
+      if (current.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        builder << current.getOperator();
+      }
       for (unsigned i = 0; i < children.size(); ++i)
       {
         builder << children[i];
@@ -245,7 +265,7 @@ Node intToBV(TNode n, NodeMap& cache)
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {
-        stackHead.children_added = true;
+        stackHead.d_children_added = true;
         // We need to add the children
         for (TNode::iterator child_it = current.begin();
              child_it != current.end();
@@ -271,10 +291,6 @@ Node intToBV(TNode n, NodeMap& cache)
                                   nm->mkBitVectorType(size),
                                   "Variable introduced in intToBV pass");
           }
-          else
-          {
-            AlwaysAssert(current.getType() == nm->booleanType());
-          }
         }
         else if (current.isConst())
         {
@@ -283,25 +299,21 @@ Node intToBV(TNode n, NodeMap& cache)
             case kind::CONST_RATIONAL:
             {
               Rational constant = current.getConst<Rational>();
-              AlwaysAssert(constant.isIntegral());
-              AlwaysAssert(constant >= 0);
-              BitVector bv(size, constant.getNumerator());
-              if (bv.toSignedInteger() != constant.getNumerator())
-              {
-                throw TypeCheckingException(
-                    current.toExpr(),
-                    string("Not enough bits for constant in intToBV: ")
-                        + current.toString());
+              if (constant.isIntegral()) {
+                AlwaysAssert(constant >= 0);
+                BitVector bv(size, constant.getNumerator());
+                if (bv.toSignedInteger() != constant.getNumerator())
+                {
+                  throw TypeCheckingException(
+                      current.toExpr(),
+                      string("Not enough bits for constant in intToBV: ")
+                          + current.toString());
+                }
+                result = nm->mkConst(bv);
               }
-              result = nm->mkConst(bv);
               break;
             }
-            case kind::CONST_BOOLEAN: break;
-            default:
-              throw TypeCheckingException(
-                  current.toExpr(),
-                  string("Cannot translate const to BV: ")
-                      + current.toString());
+            default: break;
           }
         }
         else
@@ -325,7 +337,7 @@ IntToBV::IntToBV(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult IntToBV::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  unordered_map<Node, Node, NodeHashFunction> cache;
+  NodeMap cache;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(

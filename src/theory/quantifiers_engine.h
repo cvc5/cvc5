@@ -202,7 +202,14 @@ public:
   /** mark relevant quantified formula, this will indicate it should be checked before the others */
   void markRelevant( Node q );
   /** has added lemma */
-  bool hasAddedLemma() { return !d_lemmas_waiting.empty() || d_hasAddedLemma; }
+  bool hasAddedLemma() const;
+  /** theory engine needs check
+   *
+   * This is true if the theory engine has more constraints to process. When
+   * it is false, we are tentatively going to terminate solving with
+   * sat/unknown. For details, see TheoryEngine::needCheck.
+   */
+  bool theoryEngineNeedsCheck() const;
   /** is in conflict */
   bool inConflict() { return d_conflict; }
   /** set conflict */
@@ -214,8 +221,9 @@ public:
   /** get needs check */
   bool getInstWhenNeedsCheck( Theory::Effort e );
   /** get user pat mode */
-  quantifiers::UserPatMode getInstUserPatMode();
-public:
+  options::UserPatMode getInstUserPatMode();
+
+ public:
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
@@ -224,7 +232,16 @@ public:
   bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
-  /** get internal representative */
+  /** get internal representative
+   *
+   * Choose a term that is equivalent to a in the current context that is the
+   * best term for instantiating the index^th variable of quantified formula q.
+   * If no legal term can be found, we return null. This can occur if:
+   * - a's type is not a subtype of the type of the index^th variable of q,
+   * - a is in an equivalent class with all terms that are restricted not to
+   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+   * guided instantiation.
+   */
   Node getInternalRepresentative( Node a, Node q, int index );
 
  public:

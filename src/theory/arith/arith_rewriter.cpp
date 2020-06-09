@@ -390,12 +390,18 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
       }else{          
         return RewriteResponse(REWRITE_DONE, t);
       }
-    }else if(t[0].getKind() == kind::PLUS ){
+    }
+    else if (t[0].getKind() == kind::PLUS)
+    {
       std::vector<Node> product;
-      for( unsigned i=0; i<t[0].getNumChildren(); i++ ){
-        product.push_back(nm->mkNode(kind::EXPONENTIAL, t[0][i]));
+      for (const Node tc : t[0])
+      {
+        product.push_back(nm->mkNode(kind::EXPONENTIAL, tc));
       }
-      return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::MULT, product));
+      // We need to do a full rewrite here, since we can get exponentials of
+      // constants, e.g. when we are rewriting exp(2 + x)
+      return RewriteResponse(REWRITE_AGAIN_FULL,
+                             nm->mkNode(kind::MULT, product));
     }
   }
     break;
@@ -633,14 +639,16 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
 RewriteResponse ArithRewriter::postRewrite(TNode t){
   if(isTerm(t)){
     RewriteResponse response = postRewriteTerm(t);
-    if(Debug.isOn("arith::rewriter") && response.status == REWRITE_DONE) {
-      Polynomial::parsePolynomial(response.node);
+    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    {
+      Polynomial::parsePolynomial(response.d_node);
     }
     return response;
   }else if(isAtom(t)){
     RewriteResponse response = postRewriteAtom(t);
-    if(Debug.isOn("arith::rewriter") && response.status == REWRITE_DONE) {
-      Comparison::parseNormalForm(response.node);
+    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    {
+      Comparison::parseNormalForm(response.d_node);
     }
     return response;
   }else{
@@ -745,7 +753,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
     Node ret = (k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL)
                    ? nm->mkNode(kind::UMINUS, nn)
                    : nn;
-    return RewriteResponse(REWRITE_AGAIN, ret);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   else if (dIsConstant && n.getKind() == kind::CONST_RATIONAL)
   {

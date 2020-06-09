@@ -195,50 +195,50 @@ PreprocessingPassResult MipLibTrick::applyInternal(
   Node trueNode = nm->mkConst(true);
 
   unordered_map<TNode, Node, TNodeHashFunction> intVars;
-  for (TNode v : d_boolVars)
+  for (TNode v0 : d_boolVars)
   {
-    if (propagator->isAssigned(v))
+    if (propagator->isAssigned(v0))
     {
-      Debug("miplib") << "ineligible: " << v << " because assigned "
-                      << propagator->getAssignment(v) << endl;
+      Debug("miplib") << "ineligible: " << v0 << " because assigned "
+                      << propagator->getAssignment(v0) << endl;
       continue;
     }
 
     vector<TNode> assertions;
-    booleans::CircuitPropagator::BackEdgesMap::const_iterator j =
-        backEdges.find(v);
+    booleans::CircuitPropagator::BackEdgesMap::const_iterator j0 =
+        backEdges.find(v0);
     // if not in back edges map, the bool var is unconstrained, showing up in no
     // assertions. if maps to an empty vector, that means the bool var was
     // asserted itself.
-    if (j != backEdges.end())
+    if (j0 != backEdges.end())
     {
-      if (!(*j).second.empty())
+      if (!(*j0).second.empty())
       {
-        traceBackToAssertions(propagator, (*j).second, assertions);
+        traceBackToAssertions(propagator, (*j0).second, assertions);
       }
       else
       {
-        assertions.push_back(v);
+        assertions.push_back(v0);
       }
     }
-    Debug("miplib") << "for " << v << endl;
+    Debug("miplib") << "for " << v0 << endl;
     bool eligible = true;
     map<pair<Node, Node>, uint64_t> marks;
     map<pair<Node, Node>, vector<Rational> > coef;
     map<pair<Node, Node>, vector<Rational> > checks;
     map<pair<Node, Node>, vector<TNode> > asserts;
-    for (vector<TNode>::const_iterator j = assertions.begin();
-         j != assertions.end();
-         ++j)
+    for (vector<TNode>::const_iterator j1 = assertions.begin();
+         j1 != assertions.end();
+         ++j1)
     {
-      Debug("miplib") << "  found: " << *j << endl;
-      if ((*j).getKind() != kind::IMPLIES)
+      Debug("miplib") << "  found: " << *j1 << endl;
+      if ((*j1).getKind() != kind::IMPLIES)
       {
         eligible = false;
         Debug("miplib") << "  -- INELIGIBLE -- (not =>)" << endl;
         break;
       }
-      Node conj = BooleanSimplification::simplify((*j)[0]);
+      Node conj = BooleanSimplification::simplify((*j1)[0]);
       if (conj.getKind() == kind::AND && conj.getNumChildren() > 6)
       {
         eligible = false;
@@ -252,11 +252,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         Debug("miplib") << "  -- INELIGIBLE -- (not /\\ or literal)" << endl;
         break;
       }
-      if ((*j)[1].getKind() != kind::EQUAL
-          || !(((*j)[1][0].isVar()
-                && (*j)[1][1].getKind() == kind::CONST_RATIONAL)
-               || ((*j)[1][0].getKind() == kind::CONST_RATIONAL
-                   && (*j)[1][1].isVar())))
+      if ((*j1)[1].getKind() != kind::EQUAL
+          || !(((*j1)[1][0].isVar()
+                && (*j1)[1][1].getKind() == kind::CONST_RATIONAL)
+               || ((*j1)[1][0].getKind() == kind::CONST_RATIONAL
+                   && (*j1)[1][1].isVar())))
       {
         eligible = false;
         Debug("miplib") << "  -- INELIGIBLE -- (=> (and X X) X)" << endl;
@@ -273,13 +273,13 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           {
             posv.push_back(*ii);
             neg[*ii] = false;
-            found_x = found_x || v == *ii;
+            found_x = found_x || v0 == *ii;
           }
           else if ((*ii).getKind() == kind::NOT && (*ii)[0].isVar())
           {
             posv.push_back((*ii)[0]);
             neg[(*ii)[0]] = true;
-            found_x = found_x || v == (*ii)[0];
+            found_x = found_x || v0 == (*ii)[0];
           }
           else
           {
@@ -303,20 +303,20 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         if (!found_x)
         {
           eligible = false;
-          Debug("miplib") << "  --INELIGIBLE -- (couldn't find " << v
+          Debug("miplib") << "  --INELIGIBLE -- (couldn't find " << v0
                           << " in conjunction)" << endl;
           break;
         }
         sort(posv.begin(), posv.end());
         const Node pos = NodeManager::currentNM()->mkNode(kind::AND, posv);
-        const TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL)
-                              ? (*j)[1][1]
-                              : (*j)[1][0];
+        const TNode var = ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
+                              ? (*j1)[1][1]
+                              : (*j1)[1][0];
         const pair<Node, Node> pos_var(pos, var);
         const Rational& constant =
-            ((*j)[1][0].getKind() == kind::CONST_RATIONAL)
-                ? (*j)[1][0].getConst<Rational>()
-                : (*j)[1][1].getConst<Rational>();
+            ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
+                ? (*j1)[1][0].getConst<Rational>()
+                : (*j1)[1][1].getConst<Rational>();
         uint64_t mark = 0;
         unsigned countneg = 0, thepos = 0;
         for (unsigned ii = 0; ii < pos.getNumChildren(); ++ii)
@@ -368,12 +368,12 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           }
           checks[pos_var][mark] = constant;
         }
-        asserts[pos_var].push_back(*j);
+        asserts[pos_var].push_back(*j1);
       }
       else
       {
         TNode x = conj;
-        if (x != v && x != (v).notNode())
+        if (x != v0 && x != (v0).notNode())
         {
           eligible = false;
           Debug("miplib")
@@ -383,14 +383,14 @@ PreprocessingPassResult MipLibTrick::applyInternal(
         const bool xneg = (x.getKind() == kind::NOT);
         x = xneg ? x[0] : x;
         Debug("miplib") << "  x:" << x << "  " << xneg << endl;
-        const TNode var = ((*j)[1][0].getKind() == kind::CONST_RATIONAL)
-                              ? (*j)[1][1]
-                              : (*j)[1][0];
+        const TNode var = ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
+                              ? (*j1)[1][1]
+                              : (*j1)[1][0];
         const pair<Node, Node> x_var(x, var);
         const Rational& constant =
-            ((*j)[1][0].getKind() == kind::CONST_RATIONAL)
-                ? (*j)[1][0].getConst<Rational>()
-                : (*j)[1][1].getConst<Rational>();
+            ((*j1)[1][0].getKind() == kind::CONST_RATIONAL)
+                ? (*j1)[1][0].getConst<Rational>()
+                : (*j1)[1][1].getConst<Rational>();
         unsigned mark = (xneg ? 0 : 1);
         if ((marks[x_var] & (1u << mark)) != 0)
         {
@@ -414,7 +414,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           coef[x_var].resize(6);
           coef[x_var][0] = constant;
         }
-        asserts[x_var].push_back(*j);
+        asserts[x_var].push_back(*j1);
       }
     }
     if (eligible)
@@ -454,14 +454,15 @@ PreprocessingPassResult MipLibTrick::applyInternal(
               {
                 Rational sum = 0;
                 Debug("miplib") << k << " => " << checks[pos_var][k] << endl;
-                for (size_t v = 1, kk = k; kk != 0; ++v, kk >>= 1)
+                for (size_t v1 = 1, kk = k; kk != 0; ++v1, kk >>= 1)
                 {
                   if ((kk & 0x1) == 1)
                   {
                     Assert(pos.getKind() == kind::AND);
-                    Debug("miplib") << "var " << v << " : " << pos[v - 1]
-                                    << " coef:" << coef[pos_var][v - 1] << endl;
-                    sum += coef[pos_var][v - 1];
+                    Debug("miplib")
+                        << "var " << v1 << " : " << pos[v1 - 1]
+                        << " coef:" << coef[pos_var][v1 - 1] << endl;
+                    sum += coef[pos_var][v1 - 1];
                   }
                 }
                 Debug("miplib") << "checkSum is " << sum << " input says "
@@ -490,7 +491,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
             continue;
           }
 
-          Debug("miplib") << "  -- ELIGIBLE " << v << " , " << pos << " --"
+          Debug("miplib") << "  -- ELIGIBLE " << v0 << " , " << pos << " --"
                           << endl;
           vector<Node> newVars;
           expr::NodeSelfIterator ii, iiend;
@@ -549,10 +550,10 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           if (pos.getKind() == kind::AND)
           {
             NodeBuilder<> sumb(kind::PLUS);
-            for (size_t ii = 0; ii < pos.getNumChildren(); ++ii)
+            for (size_t jj = 0; jj < pos.getNumChildren(); ++jj)
             {
               sumb << nm->mkNode(
-                  kind::MULT, nm->mkConst(coef[pos_var][ii]), newVars[ii]);
+                  kind::MULT, nm->mkConst(coef[pos_var][jj]), newVars[jj]);
             }
             sum = sumb;
           }

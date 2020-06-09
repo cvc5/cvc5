@@ -42,6 +42,7 @@ class CvcPrinter : public CVC4::Printer {
                 bool types,
                 size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
+  void toStream(std::ostream& out, const Model& m) const override;
 
  private:
   void toStream(

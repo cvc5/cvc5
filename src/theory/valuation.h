@@ -22,7 +22,7 @@
 #define CVC4__THEORY__VALUATION_H
 
 #include "expr/node.h"
-#include "options/theoryof_mode.h"
+#include "options/theory_options.h"
 
 namespace CVC4 {
 
@@ -141,7 +141,11 @@ public:
    * Request an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(theory::TheoryOfMode mode, TNode lit, const theory::EntailmentCheckParameters* params = NULL, theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(
+      options::TheoryOfMode mode,
+      TNode lit,
+      const theory::EntailmentCheckParameters* params = NULL,
+      theory::EntailmentCheckSideEffects* out = NULL);
 
   /** need check ? */
   bool needCheck() const;

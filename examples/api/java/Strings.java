@@ -14,7 +14,7 @@
  ** A simple demonstration of reasoning about strings with CVC4 via Jave API.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class Strings {
   public static void main(String[] args) {

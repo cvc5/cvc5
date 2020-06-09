@@ -146,7 +146,7 @@ AigBitblaster::AigBitblaster()
   prop::SatSolver* solver = nullptr;
   switch (options::bvSatSolver())
   {
-    case SAT_SOLVER_MINISAT:
+    case options::SatSolverMode::MINISAT:
     {
       prop::BVSatSolverInterface* minisat =
           prop::SatSolverFactory::createMinisat(
@@ -156,13 +156,17 @@ AigBitblaster::AigBitblaster()
       solver = minisat;
       break;
     }
-    case SAT_SOLVER_CADICAL:
+    case options::SatSolverMode::CADICAL:
       solver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
                                                      "AigBitblaster");
       break;
-    case SAT_SOLVER_CRYPTOMINISAT:
+    case options::SatSolverMode::CRYPTOMINISAT:
       solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "AigBitblaster");
+      break;
+    case options::SatSolverMode::KISSAT:
+      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
+                                                    "AigBitblaster");
       break;
     default: CVC4_FATAL() << "Unknown SAT solver type";
   }

@@ -81,22 +81,9 @@ bool Instantiate::checkComplete()
   return true;
 }
 
-void Instantiate::addNotify(InstantiationNotify* in)
-{
-  d_inst_notify.push_back(in);
-}
-
 void Instantiate::addRewriter(InstantiationRewriter* ir)
 {
   d_instRewrite.push_back(ir);
-}
-
-void Instantiate::notifyFlushLemmas()
-{
-  for (InstantiationNotify*& in : d_inst_notify)
-  {
-    in->filterInstantiations();
-  }
 }
 
 bool Instantiate::addInstantiation(
@@ -110,7 +97,7 @@ bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qe->getOutputChannel().safePoint(options::quantifierStep());
+  d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qe->inConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
@@ -126,16 +113,15 @@ bool Instantiate::addInstantiation(
     {
       terms[i] = getTermForType(tn);
     }
+    // Ensure the type is correct, this for instance ensures that real terms
+    // are cast to integers for { x -> t } where x has type Int and t has
+    // type Real.
+    terms[i] = ensureType(terms[i], tn);
     if (mkRep)
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
       terms[i] = d_qe->getInternalRepresentative(terms[i], q, i);
-    }
-    else
-    {
-      // ensure the type is correct
-      terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
@@ -160,7 +146,7 @@ bool Instantiate::addInstantiation(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cbqi())
+    else if (options::cegqi())
     {
       Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
@@ -304,7 +290,10 @@ bool Instantiate::addInstantiation(
     {
       // virtual term substitution/instantiation level features are
       // incompatible
-      Assert(false);
+      std::stringstream ss;
+      ss << "Cannot combine instantiation strategies that require virtual term "
+            "substitution with those that restrict instantiation levels";
+      throw LogicException(ss.str());
     }
     else
     {
@@ -321,26 +310,8 @@ bool Instantiate::addInstantiation(
           orig_body, q[1], maxInstLevel + 1);
     }
   }
-  QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
-  if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-      && elevel < QuantifiersModule::QEFFORT_NONE
-      && !d_inst_notify.empty())
-  {
-    // notify listeners
-    for (InstantiationNotify*& in : d_inst_notify)
-    {
-      if (!in->notifyInstantiation(elevel, q, lem, terms, body))
-      {
-        Trace("inst-add-debug") << "...we are in conflict." << std::endl;
-        d_qe->setConflict();
-        Assert(d_qe->getNumLemmasWaiting() > 0);
-        break;
-      }
-    }
-  }
   if (options::trackInstLemmas())
   {
-    bool recorded;
     if (options::incrementalSolving())
     {
       recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
@@ -774,6 +745,22 @@ void Instantiate::debugPrintModel()
                               << std::endl;
     }
   }
+}
+
+Node Instantiate::ensureType(Node n, TypeNode tn)
+{
+  Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
+  TypeNode ntn = n.getType();
+  Assert(ntn.isComparableTo(tn));
+  if (ntn.isSubtypeOf(tn))
+  {
+    return n;
+  }
+  if (tn.isInteger())
+  {
+    return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+  }
+  return Node::null();
 }
 
 Instantiate::Statistics::Statistics()

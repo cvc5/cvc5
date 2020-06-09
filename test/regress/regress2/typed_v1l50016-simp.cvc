@@ -1,4 +1,4 @@
-% EXPECT: invalid
+% EXPECT: not_entailed
 
 DATATYPE
   nat = succ(pred : nat) | zero,

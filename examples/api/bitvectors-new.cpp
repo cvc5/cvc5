@@ -87,9 +87,9 @@ int main()
   slv.assertFormula(assignment1);
   Term new_x_eq_new_x_ = slv.mkTerm(EQUAL, new_x, new_x_);
 
-  cout << " Check validity assuming: " << new_x_eq_new_x_ << endl;
-  cout << " Expect valid. " << endl;
-  cout << " CVC4: " << slv.checkValidAssuming(new_x_eq_new_x_) << endl;
+  cout << " Check entailment assuming: " << new_x_eq_new_x_ << endl;
+  cout << " Expect ENTAILED. " << endl;
+  cout << " CVC4: " << slv.checkEntailed(new_x_eq_new_x_) << endl;
   cout << " Popping context. " << endl;
   slv.pop();
 
@@ -103,15 +103,15 @@ int main()
   cout << "Asserting " << assignment2 << " to CVC4 " << endl;
   slv.assertFormula(assignment2);
 
-  cout << " Check validity assuming: " << new_x_eq_new_x_ << endl;
-  cout << " Expect valid. " << endl;
-  cout << " CVC4: " << slv.checkValidAssuming(new_x_eq_new_x_) << endl;
+  cout << " Check entailment assuming: " << new_x_eq_new_x_ << endl;
+  cout << " Expect ENTAILED. " << endl;
+  cout << " CVC4: " << slv.checkEntailed(new_x_eq_new_x_) << endl;
 
   Term x_neq_x = slv.mkTerm(EQUAL, x, x).notTerm();
   std::vector<Term> v{new_x_eq_new_x_, x_neq_x};
-  cout << " Check Validity Assuming: " << v << endl;
-  cout << " Expect invalid. " << endl;
-  cout << " CVC4: " << slv.checkValidAssuming(v) << endl;
+  cout << " Check entailment assuming: " << v << endl;
+  cout << " Expect NOT_ENTAILED. " << endl;
+  cout << " CVC4: " << slv.checkEntailed(v) << endl;
 
   // Assert that a is odd
   Op extract_op = slv.mkOp(BITVECTOR_EXTRACT, 0, 0);
