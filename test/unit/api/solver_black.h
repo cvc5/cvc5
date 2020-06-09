@@ -1042,7 +1042,7 @@ void SolverBlack::testDefineFun()
 void SolverBlack::testDefineFunGlobal()
 {
   Sort bSort = d_solver->getBooleanSort();
-  Sort fSort = d_solver->mkFunctionSort({bSort}, bSort);
+  Sort fSort = d_solver->mkFunctionSort(bSort, bSort);
 
   Term bTrue = d_solver->mkBoolean(true);
   // (define-fun f () Bool true)
@@ -1120,7 +1120,7 @@ void SolverBlack::testDefineFunRec()
 void SolverBlack::testDefineFunRecGlobal()
 {
   Sort bSort = d_solver->getBooleanSort();
-  Sort fSort = d_solver->mkFunctionSort({bSort}, bSort);
+  Sort fSort = d_solver->mkFunctionSort(bSort, bSort);
 
   d_solver->push();
   Term bTrue = d_solver->mkBoolean(true);
@@ -1217,7 +1217,7 @@ void SolverBlack::testDefineFunsRec()
 void SolverBlack::testDefineFunsRecGlobal()
 {
   Sort bSort = d_solver->getBooleanSort();
-  Sort fSort = d_solver->mkFunctionSort({bSort}, bSort);
+  Sort fSort = d_solver->mkFunctionSort(bSort, bSort);
 
   d_solver->push();
   Term bTrue = d_solver->mkBoolean(true);
