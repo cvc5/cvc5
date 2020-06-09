@@ -131,7 +131,7 @@ Node TermRegistry::lengthPositive(Node t)
 
 void TermRegistry::finishInit(ProofNodeManager* pnm)
 {
-  d_epg.reset(new EagerProofGenerator(d_state.getUserContext(), pnm));
+  d_epg.reset(new EagerProofGenerator(pnm, d_state.getUserContext()));
 }
 
 void TermRegistry::preRegisterTerm(TNode n)

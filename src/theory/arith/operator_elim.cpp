@@ -31,7 +31,7 @@ namespace theory {
 namespace arith {
 
 OperatorElim::OperatorElim(ProofNodeManager* pnm, const LogicInfo& info)
-    : EagerProofGenerator(nullptr, pnm), d_info(info)
+    : EagerProofGenerator(pnm), d_info(info)
 {
 }
 
