@@ -106,6 +106,12 @@ class SkolemManager
    *   (witness ((x Int)) (exists ((y' Int)) (P x y')))
    *   (witness ((y Int)) (P w1 y))
    * respectively. Additionally, this method will add { w1, w2 } to skolems.
+   * Notice that y is renamed to y' in the witness form of w1 to avoid variable
+   * shadowing.
+   * 
+   * In contrast to mkSkolem, the proof generator is for the *entire*
+   * existentially quantified formula q, which may have multiple variables in
+   * its prefix.
    *
    * @param q The existentially quantified formula to skolemize,
    * @param skolems Vector to add Skolems of q to,
@@ -169,7 +175,10 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
-  /** Map to canonical bound variables */
+  /** 
+   * Map to canonical bound variables. This is used for example by the method
+   * mkExistential.
+   */
   std::map<std::pair<Node, Node>, Node> d_witnessBoundVar;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
@@ -189,14 +198,17 @@ class SkolemManager
    *
    * This method additionally updates qskolem to be the skolemized form of q.
    * In the above example, this is set to:
-   *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y Int)) (P x y))) y))
+   *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y'))) y))
    */
   Node skolemize(Node q,
                  Node& qskolem,
                  const std::string& prefix,
                  const std::string& comment = "",
                  int flags = NodeManager::SKOLEM_DEFAULT);
-  /** Get or make bound variable */
+  /** 
+   * Get or make bound variable unique to (s,t), for d_witnessBoundVar, where
+   * t and s are terms.
+   */
   Node getOrMakeBoundVariable(Node t, Node s);
 };
 
