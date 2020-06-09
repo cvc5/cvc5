@@ -41,6 +41,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_manager.h"
+#include "expr/sequence.h"
 #include "expr/type.h"
 #include "options/main_options.h"
 #include "options/options.h"
@@ -284,6 +285,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_EMPTY, CVC4::Kind::REGEXP_EMPTY},
     {REGEXP_SIGMA, CVC4::Kind::REGEXP_SIGMA},
     {REGEXP_COMPLEMENT, CVC4::Kind::REGEXP_COMPLEMENT},
+    {CONST_SEQUENCE, CVC4::Kind::CONST_SEQUENCE},
     {SEQ_UNIT, CVC4::Kind::SEQ_UNIT},
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, CVC4::Kind::FORALL},
@@ -554,6 +556,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
         {CVC4::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
+        {CVC4::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
         {CVC4::Kind::SEQ_UNIT, SEQ_UNIT},
         /* Quantifiers ----------------------------------------------------- */
         {CVC4::Kind::FORALL, FORALL},
@@ -909,6 +912,8 @@ bool Sort::isArray() const { return d_type->isArray(); }
 
 bool Sort::isSet() const { return d_type->isSet(); }
 
+bool Sort::isSequence() const { return d_type->isSequence(); }
+
 bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
 
 bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
@@ -1015,6 +1020,14 @@ Sort Sort::getSetElementSort() const
 {
   CVC4_API_CHECK(isSet()) << "Not a set sort.";
   return Sort(d_solver, SetType(*d_type).getElementType());
+}
+
+/* Set sort ------------------------------------------------------------ */
+
+Sort Sort::getSequenceElementSort() const
+{
+  CVC4_API_CHECK(isSequence()) << "Not a sequence sort.";
+  return Sort(d_solver, SequenceType(*d_type).getElementType());
 }
 
 /* Uninterpreted sort -------------------------------------------------- */
@@ -1501,6 +1514,21 @@ Term Term::getConstArrayBase() const
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::STORE_ALL)
       << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
   return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getExpr());
+}
+
+std::vector<Term> Term::getConstSequenceElements() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  // CONST_ARRAY kind maps to STORE_ALL internal kind
+  CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::CONST_SEQUENCE)
+      << "Expecting a CONST_SEQUENCE Term when calling getConstSequenceElements()";
+  const std::vector<Node>& elems = d_expr->getConst<ExprSequence>().getSequence().getVec();
+  std::vector<Term> terms;
+  for (const Node& t : elems)
+  {
+    terms.push_back(Term(d_solver,t.toExpr()));
+  }
+  return terms;
 }
 
 Term Term::notTerm() const
@@ -3354,6 +3382,19 @@ Term Solver::mkChar(const char* s) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
   return mkCharFromStrHelper(std::string(s));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkEmptySequence(Sort sort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+  CVC4_API_SOLVER_CHECK_SORT(sort);
+
+  std::vector<Expr> seq;
+  Expr res = d_exprMgr->mkConst(ExprSequence(*sort.d_type, seq));
+  return Term(this, res);
+
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

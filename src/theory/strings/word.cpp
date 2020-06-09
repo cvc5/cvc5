@@ -89,7 +89,7 @@ size_t Word::getLength(TNode x)
   {
     return x.getConst<ExprSequence>().getSequence().size();
   }
-  Unimplemented();
+  Unimplemented() << "Word::getLength on " << x;
   return 0;
 }
 

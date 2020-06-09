@@ -2272,6 +2272,18 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   REGEXP_COMPLEMENT,
   /**
+   * Constant sequence.
+   * Parameters:
+   *   See mkEmptySequence()
+   * Create with:
+   *   mkEmptySequence(Sort sort)
+   * Note that a constant sequence is a term that is equivalent to:
+   *   (seq.++ (seq.unit c1) ... (seq.unit cn))
+   * where n>=0 and c1, ..., cn are constants of some sort. The elements
+   * can be extracted by Term::getConstSequenceElements().
+   */
+  CONST_SEQUENCE,
+  /**
    * Sequence unit, corresponding to a sequence of length one with the given
    * term.
    * Parameters: 1

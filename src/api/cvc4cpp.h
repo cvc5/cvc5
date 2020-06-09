@@ -380,6 +380,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Sequence sort?
+   * @return true if the sort is a Sequence sort
+   */
+  bool isSequence() const;
+
+  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
@@ -511,6 +517,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+  
+  /* Sequence sort ------------------------------------------------------- */
+
+  /**
+   * @return the element sort of a sequence sort
+   */
+  Sort getSequenceElementSort() const;
 
   /* Uninterpreted sort -------------------------------------------------- */
 
@@ -905,6 +918,13 @@ class CVC4_PUBLIC Term
    *  @return the base value
    */
   Term getConstArrayBase() const;
+  
+  /**
+   *  Return the elements of a constant sequence
+   *  throws an exception if the kind is not CONST_SEQUENCE
+   *  @return the elements of the constant sequence.
+   */
+  std::vector<Term> getConstSequenceElements() const;
 
   /**
    * Boolean negation.
@@ -2556,6 +2576,13 @@ class CVC4_PUBLIC Solver
    * @return the character constant
    */
   Term mkChar(const char* s) const;
+  
+  /**
+   * Create an empty sequence of the given element sort.
+   * @param sort The element sort of the sequence.
+   * @return the empty sequence with given element sort.
+   */
+  Term mkEmptySequence(Sort sort) const;
 
   /**
    * Create a universe set of the given sort.

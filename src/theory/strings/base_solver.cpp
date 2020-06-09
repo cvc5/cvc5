@@ -69,7 +69,7 @@ void BaseSolver::checkInit()
         Node n = *eqc_i;
         Kind k = n.getKind();
         // process constant-like terms
-        if (n.isConst() || k == SEQ_UNIT)
+        if (utils::isConstantLike(n))
         {
           Node prev = d_eqcInfo[eqc].d_bestContent;
           if (!prev.isNull())

@@ -563,6 +563,16 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     t = d_solver->mkEmptySet(s);
   }
+  else if (k==api::CONST_SEQUENCE)
+  {
+    if (!s.isSequence())
+    {
+      std::stringstream ss;
+      ss << "Type ascription on empty sequence must be a sequence, got " << s;
+      parseError(ss.str());
+    }
+    t = d_solver->mkEmptySequence(s.getSequenceElementSort());
+  }
   else if (k == api::UNIVERSE_SET)
   {
     t = d_solver->mkUniverseSet(s);
