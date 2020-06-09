@@ -576,6 +576,11 @@ Node SequencesRewriter::rewriteLength(Node node)
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
   }
+  else if (nk0 == SEQ_UNIT)
+  {
+    Node retNode = nm->mkConst(Rational(1));
+    return returnRewrite(node, retNode, Rewrite::LEN_SEQ_UNIT);
+  }
   return node;
 }
 

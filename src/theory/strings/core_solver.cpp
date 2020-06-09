@@ -707,15 +707,16 @@ void CoreSolver::getNormalForms(Node eqc,
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
     if( !d_bsolver.isCongruent(n) ){
-      if (n.isConst() || n.getKind() == STRING_CONCAT)
+      Kind nk = n.getKind();
+      if (n.isConst() || nk == STRING_CONCAT || nk == SEQ_UNIT)
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
         NormalForm nf_curr;
-        if (n.isConst())
+        if (n.isConst() || nk==SEQ_UNIT)
         {
           nf_curr.init(n);
         }
-        else if (n.getKind() == STRING_CONCAT)
+        else if (nk == STRING_CONCAT)
         {
           // set the base to n, we construct the other portions of nf_curr in
           // the following.

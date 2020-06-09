@@ -63,6 +63,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
   d_extt.addFunctionKind(kind::STRING_TOLOWER);
   d_extt.addFunctionKind(kind::STRING_TOUPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::SEQ_UNIT);
 
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);

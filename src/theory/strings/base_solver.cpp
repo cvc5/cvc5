@@ -68,6 +68,7 @@ void BaseSolver::checkInit()
       {
         Node n = *eqc_i;
         Kind k = n.getKind();
+        // process constant-like terms
         if (n.isConst() || k == SEQ_UNIT)
         {
           Node prev = d_eqcInfo[eqc].d_bestContent;
@@ -123,10 +124,11 @@ void BaseSolver::checkInit()
             d_eqcInfo[eqc].d_exp = Node::null();
           }
         }
-        else if (tn.isInteger())
+        if (tn.isInteger())
         {
           // do nothing
         }
+        // process indexing
         else if (n.getNumChildren() > 0)
         {
           if (k != EQUAL)
@@ -240,7 +242,7 @@ void BaseSolver::checkInit()
             }
           }
         }
-        else
+        else if (!n.isConst())
         {
           if (d_congruent.find(n) == d_congruent.end())
           {
