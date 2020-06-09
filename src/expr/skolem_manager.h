@@ -84,7 +84,7 @@ class SkolemManager
    * @param comment Debug information about the Skolem
    * @param flags The flags for the Skolem (see NodeManager::mkSkolem)
    * @param pg The proof generator for this skolem. If non-null, this proof
-   * generator must respond to a call to getProofFor(exists x. pred) during
+   * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
    * @return The skolem whose witness form is registered by this class.
    */
@@ -95,20 +95,40 @@ class SkolemManager
                 int flags = NodeManager::SKOLEM_DEFAULT,
                 ProofGenerator* pg = nullptr);
   /**
-   * Same as above, but where pred is an existential quantified formula
-   * whose bound variable list contains v. For example, calling this method on:
-   *   x, (exists ((x Int) (y Int)) (P x y))
-   * will return:
-   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
-   * If the variable v is not in the bound variable list of q, then null is
-   * returned and an assertion failure is thrown.
+   * Make skolemized form of existentially quantified formula q, and store its
+   * Skolems into the argument skolems.
+   *
+   * For example, calling this method on:
+   *   (exists ((x Int) (y Int)) (P x y))
+   * returns:
+   *   (P w1 w2)
+   * where w1 and w2 are skolems with witness forms:
+   *   (witness ((x Int)) (exists ((y' Int)) (P x y')))
+   *   (witness ((y Int)) (P w1 y))
+   * respectively. Additionally, this method will add { w1, w2 } to skolems.
+   * Notice that y is renamed to y' in the witness form of w1 to avoid variable
+   * shadowing.
+   *
+   * In contrast to mkSkolem, the proof generator is for the *entire*
+   * existentially quantified formula q, which may have multiple variables in
+   * its prefix.
+   *
+   * @param q The existentially quantified formula to skolemize,
+   * @param skolems Vector to add Skolems of q to,
+   * @param prefix The prefix of the name of each of the Skolems
+   * @param comment Debug information about each of the Skolems
+   * @param flags The flags for the Skolem (see NodeManager::mkSkolem)
+   * @param pg The proof generator for this skolem. If non-null, this proof
+   * generator must respond to a call to getProofFor(q) during
+   * the lifetime of the current node manager.
+   * @return The skolemized form of q.
    */
-  Node mkSkolemExists(Node v,
-                      Node q,
-                      const std::string& prefix,
-                      const std::string& comment = "",
-                      int flags = NodeManager::SKOLEM_DEFAULT,
-                      ProofGenerator* pg = nullptr);
+  Node mkSkolemize(Node q,
+                   std::vector<Node>& skolems,
+                   const std::string& prefix,
+                   const std::string& comment = "",
+                   int flags = NodeManager::SKOLEM_DEFAULT,
+                   ProofGenerator* pg = nullptr);
   /**
    * Same as above, but for special case of (witness ((x T)) (= x t))
    * where T is the type of t. This skolem is unique for each t, which we
@@ -123,10 +143,16 @@ class SkolemManager
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
   /**
-   * Get proof generator for witness term t. This returns the proof generator
-   * that was provided in a call to mkSkolem above.
+   * Get proof generator for existentially quantified formula q. This returns
+   * the proof generator that was provided in a call to mkSkolem above.
    */
-  ProofGenerator* getProofGenerator(Node t);
+  ProofGenerator* getProofGenerator(Node q);
+  /**
+   * Make existential. Given t and p[t] where p is a formula, this returns
+   *   (exists ((x T)) p[x])
+   * where T is the type of t, and x is a variable unique to t,p.
+   */
+  Node mkExistential(Node t, Node p);
   /** convert to witness form
    *
    * @param n The term or formula to convert to witness form described above
@@ -149,6 +175,11 @@ class SkolemManager
    * Mapping from witness terms to proof generators.
    */
   std::map<Node, ProofGenerator*> d_gens;
+  /**
+   * Map to canonical bound variables. This is used for example by the method
+   * mkExistential.
+   */
+  std::map<std::pair<Node, Node>, Node> d_witnessBoundVar;
   /** Convert to witness or skolem form */
   static Node convertInternal(Node n, bool toWitness);
   /** Get or make skolem attribute for witness term w */
@@ -156,6 +187,29 @@ class SkolemManager
                               const std::string& prefix,
                               const std::string& comment,
                               int flags);
+  /**
+   * Skolemize the first variable of existentially quantified formula q.
+   * For example, calling this method on:
+   *   (exists ((x Int) (y Int)) (P x y))
+   * will return:
+   *   (witness ((x Int)) (exists ((y Int)) (P x y)))
+   * If q is not an existentially quantified formula, then null is
+   * returned and an assertion failure is thrown.
+   *
+   * This method additionally updates qskolem to be the skolemized form of q.
+   * In the above example, this is set to:
+   *   (exists ((y Int)) (P (witness ((x Int)) (exists ((y' Int)) (P x y'))) y))
+   */
+  Node skolemize(Node q,
+                 Node& qskolem,
+                 const std::string& prefix,
+                 const std::string& comment = "",
+                 int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
+   * Get or make bound variable unique to (s,t), for d_witnessBoundVar, where
+   * t and s are terms.
+   */
+  Node getOrMakeBoundVariable(Node t, Node s);
 };
 
 }  // namespace CVC4
