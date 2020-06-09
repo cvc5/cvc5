@@ -495,8 +495,27 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                                       std::vector<std::vector<Node> >& cols,
                                       std::vector<Node>& lts)
 {
+  Trace("strings-card") << "Check cardinality (type " << tn << ")..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-card") << "Check cardinality...." << std::endl;
+  uint32_t typeCardSize;
+  bool typeCardKnown = false;
+  if (tn.isString())  // string-only
+  {
+    typeCardSize = d_cardSize;
+    typeCardKnown = true;
+  }
+  else
+  {
+    Assert (tn.isSequence());
+    TypeNode etn = tn.getSequenceElementType();
+    if (etn.isInterpretedFinite())
+    {
+      // infinite cardinality, we are fine
+      return;
+    }
+    // TODO: how to handle sequence for finite types?
+    return;
+  }
   // for each collection
   for (unsigned i = 0, csize = cols.size(); i < csize; ++i)
   {
@@ -508,23 +527,18 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // no restriction on sets in the partition of size 1
       continue;
     }
-    if (!tn.isString())  // string-only
-    {
-      // TODO: how to handle sequence for finite types?
-      continue;
-    }
     // size > c^k
     unsigned card_need = 1;
     double curr = static_cast<double>(cols[i].size());
-    while (curr > d_cardSize)
+    while (curr > typeCardSize)
     {
-      curr = curr / static_cast<double>(d_cardSize);
+      curr = curr / static_cast<double>(typeCardSize);
       card_need++;
     }
     Trace("strings-card")
         << "Need length " << card_need
-        << " for this number of strings (where alphabet size is " << d_cardSize
-        << ")." << std::endl;
+        << " for this number of strings (where alphabet size is " << typeCardSize
+        << ") given type " << tn << "." << std::endl;
     // check if we need to split
     bool needsSplit = true;
     if (lr.isConst())
