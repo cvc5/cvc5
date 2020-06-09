@@ -574,7 +574,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::const_iterator
       itc;
   // maps types to the index of its "any term" grammar construction
-  std::map<TypeNode, unsigned> typeToGAnyTerm;
+  std::map<TypeNode, std::pair<unsigned, bool>> typeToGAnyTerm;
   options::SygusGrammarConsMode sgcm = options::sygusGrammarConsMode();
   for (unsigned i = 0, size = types.size(); i < size; ++i)
   {
@@ -644,7 +644,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         TypeNode unresAnyTerm = mkUnresolvedType(ssat.str(), unres);
         unres_types.push_back(unresAnyTerm);
         // set tracking information for later addition at boolean type.
-        std::pair<unsigned, int> p(sdts.size() - 1, false);
+        std::pair<unsigned, bool> p(sdts.size() - 1, false);
         typeToGAnyTerm[types[i]] = p;
       }
     }
@@ -950,7 +950,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     cargsIte.push_back(unres_t);
     sdts[i].addConstructor(k, cargsIte);
   }
-  std::map<TypeNode, unsigned>::iterator itgat;
+  std::map<TypeNode, std::pair<unsigned, bool>>::iterator itgat;
   // initialize the datatypes (except for the last one, reserved for Bool)
   for (unsigned i = 0, size = types.size() - 1; i < size; ++i)
   {

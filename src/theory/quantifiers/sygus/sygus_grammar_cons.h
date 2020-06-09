@@ -248,8 +248,12 @@ public:
       std::set<Type>& unres);
 
   // helper function for mkSygusTemplateType
-  static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
-                                          const std::string& fun, unsigned& tcount );
+  static TypeNode mkSygusTemplateTypeRec(Node templ,
+                                         Node templ_arg,
+                                         TypeNode templ_arg_sygus_type,
+                                         Node bvl,
+                                         const std::string& fun,
+                                         unsigned& tcount);
 
   /**
    * Given a kind k, create a lambda operator with the given builtin input type
