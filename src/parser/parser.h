@@ -589,6 +589,13 @@ public:
                                         const std::vector<api::Sort>& params);
 
   /**
+   * Creates a new unresolved (parameterized) type constructor of the given
+   * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
+   * depending on the arity.
+   */
+  api::Sort mkUnresolvedType(const std::string& name, size_t arity);
+
+  /**
    * Returns true IFF name is an unresolved type.
    */
   bool isUnresolvedType(const std::string& name);
@@ -804,6 +811,8 @@ public:
   void setGlobalDeclarations(bool flag) {
     d_globalDeclarations = flag;
   }
+
+  bool getGlobalDeclarations() { return d_globalDeclarations; }
 
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;

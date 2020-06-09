@@ -361,8 +361,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(new DefineFunctionCommand(
-          name, func.getExpr(), api::termVectorToExprs(terms), expr.getExpr()));
+      cmd->reset(
+          new DefineFunctionCommand(name,
+                                    func.getExpr(),
+                                    api::termVectorToExprs(terms),
+                                    expr.getExpr(),
+                                    PARSER_STATE->getGlobalDeclarations()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -1204,7 +1208,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
       cmd->reset(new DefineFunctionRecCommand(
-          func.getExpr(), api::termVectorToExprs(bvs), expr.getExpr()));
+          func.getExpr(), api::termVectorToExprs(bvs), expr.getExpr(), PARSER_STATE->getGlobalDeclarations()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -1275,7 +1279,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       cmd->reset(
           new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
                                        eformals,
-                                       api::termVectorToExprs(func_defs)));
+                                       api::termVectorToExprs(func_defs), PARSER_STATE->getGlobalDeclarations()));
     }
   ;
 
@@ -1365,14 +1369,21 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { cmd->reset(seq.release()); }
 
   | DEFINE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    ( // (define f t)
+      symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
-      { api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
+      {
+        api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), e.getExpr()));
+        cmd->reset(
+            new DefineFunctionCommand(name,
+                                      func.getExpr(),
+                                      e.getExpr(),
+                                      PARSER_STATE->getGlobalDeclarations()));
       }
-    | LPAREN_TOK
+    | // (define (f (v U) ...) t)
+      LPAREN_TOK
       symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       sortedVarList[sortedVarNames] RPAREN_TOK
@@ -1382,7 +1393,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         terms = PARSER_STATE->bindBoundVars(sortedVarNames);
       }
       term[e,e2]
-      { PARSER_STATE->popScope();
+      {
+        PARSER_STATE->popScope();
         // declare the name down here (while parsing term, signature
         // must not be extended with the name itself; no recursion
         // permitted)
@@ -1398,11 +1410,16 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         api::Term func = PARSER_STATE->bindVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(
-            name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
+        cmd->reset(
+            new DefineFunctionCommand(name,
+                                      func.getExpr(),
+                                      api::termVectorToExprs(terms),
+                                      e.getExpr(),
+                                      PARSER_STATE->getGlobalDeclarations()));
       }
     )
-  | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+  | // (define-const x U t)
+    DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
@@ -1412,14 +1429,19 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[e, e2]
-    { PARSER_STATE->popScope();
+    {
+      PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
-      cmd->reset(new DefineFunctionCommand(
-          name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
+      cmd->reset(
+          new DefineFunctionCommand(name,
+                                    func.getExpr(),
+                                    api::termVectorToExprs(terms),
+                                    e.getExpr(),
+                                    PARSER_STATE->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -1530,7 +1552,10 @@ datatypesDefCommand[bool isCo, std::unique_ptr<CVC4::Command>* cmd]
 /**
  * Read a list of datatype definitions for datatypes with names dnames and
  * parametric arities arities. A negative value in arities indicates that the
- * arity for the corresponding datatype has not been fixed.
+ * arity for the corresponding datatype has not been fixed: notice that we do
+ * not know the arity of datatypes in the declare-datatype command prior to
+ * parsing their body, whereas the arity of datatypes in declare-datatypes is
+ * given in the preamble of that command and thus is known prior to this call.
  */
 datatypesDef[bool isCo,
              const std::vector<std::string>& dnames,
@@ -1541,7 +1566,26 @@ datatypesDef[bool isCo,
   std::string name;
   std::vector<api::Sort> params;
 }
-  : { PARSER_STATE->pushScope(true); }
+  : { PARSER_STATE->pushScope(true);
+      // Declare the datatypes that are currently being defined as unresolved
+      // types. If we do not know the arity of the datatype yet, we wait to
+      // define it until parsing the preamble of its body, which may optionally
+      // involve `par`. This is limited to the case of single datatypes defined
+      // via declare-datatype, and hence no datatype body is parsed without
+      // having all types declared. This ensures we can parse datatypes with
+      // nested recursion, e.g. datatypes D having a subfield type
+      // (Array Int D).
+      for (unsigned i=0, dsize=dnames.size(); i<dsize; i++)
+      {
+        if( arities[i]<0 )
+        {
+          // do not know the arity yet
+          continue;
+        }
+        unsigned arity = static_cast<unsigned>(arities[i]);
+        PARSER_STATE->mkUnresolvedType(dnames[i], arity);
+      }
+    }
     ( LPAREN_TOK {
       params.clear();
       Debug("parser-dt") << "Processing datatype #" << dts.size() << std::endl;
@@ -1559,6 +1603,11 @@ datatypesDef[bool isCo,
         if( arities[dts.size()]>=0 && static_cast<int>(params.size())!=arities[dts.size()] ){
           PARSER_STATE->parseError("Wrong number of parameters for datatype.");
         }
+        if (arities[dts.size()]<0)
+        {
+          // now declare it as an unresolved type
+          PARSER_STATE->mkUnresolvedType(dnames[dts.size()], params.size());
+        }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(SOLVER->mkDatatypeDecl(dnames[dts.size()], params, isCo));
       }
@@ -1568,6 +1617,11 @@ datatypesDef[bool isCo,
     | { // if the arity was fixed by prelude and is not equal to 0
         if( arities[dts.size()]>0 ){
           PARSER_STATE->parseError("No parameters given for datatype.");
+        }
+        else if (arities[dts.size()]<0)
+        {
+          // now declare it as an unresolved type
+          PARSER_STATE->mkUnresolvedType(dnames[dts.size()], 0);
         }
         Debug("parser-dt") << params.size() << " parameters for " << dnames[dts.size()] << std::endl;
         dts.push_back(SOLVER->mkDatatypeDecl(dnames[dts.size()],
@@ -2185,7 +2239,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
       Command* c = new DefineNamedFunctionCommand(
-          name, func.getExpr(), std::vector<Expr>(), expr.getExpr());
+          name, func.getExpr(), std::vector<Expr>(), expr.getExpr(), PARSER_STATE->getGlobalDeclarations());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }

@@ -21,6 +21,12 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+std::ostream& operator<<(std::ostream& out, NlLemma& n)
+{
+  out << n.d_lemma;
+  return out;
+}
+
 bool SortNlModel::operator()(Node i, Node j)
 {
   int cv = d_nlm->compare(i, j, d_isConcrete, d_isAbsolute);

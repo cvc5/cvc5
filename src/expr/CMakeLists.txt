@@ -41,6 +41,8 @@ libcvc4_add_sources(
   proof.h
   proof_checker.cpp
   proof_checker.h
+  proof_generator.cpp
+  proof_generator.h
   proof_node.cpp
   proof_node.h
   proof_node_to_sexpr.cpp
@@ -49,10 +51,10 @@ libcvc4_add_sources(
   proof_node_manager.h
   proof_rule.cpp
   proof_rule.h
-  proof_skolem_cache.cpp
-  proof_skolem_cache.h
   proof_step_buffer.cpp
   proof_step_buffer.h
+  skolem_manager.cpp
+  skolem_manager.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp

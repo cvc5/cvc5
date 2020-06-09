@@ -27,6 +27,7 @@
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -95,6 +96,7 @@ NodeManager::NodeManager(ExprManager* exprManager)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
       d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -111,6 +113,7 @@ NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
       d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -167,6 +170,9 @@ NodeManager::~NodeManager() {
   // destruction of operators, because they get GCed.
 
   NodeManagerScope nms(this);
+
+  // Destroy skolem manager before cleaning up attributes and zombies
+  d_skManager = nullptr;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
