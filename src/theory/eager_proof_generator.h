@@ -55,23 +55,23 @@ namespace theory {
  *      }
  *   };
  *   // [1] Make objects given user context u and output channel out.
- * 
+ *
  *   MyEagerProofGenerator epg(u);
  *   OutputChannel out;
  *
  *   // [2] Assume epg realizes there is a conflict. We have it store the proof
  *   // internally and return the conflict node paired with epg.
- * 
+ *
  *   TrustNode pconf = epg.getProvenConflictByMethodX(...);
  *
  *   // [3] Send the conflict on the output channel.
- * 
+ *
  *   out.trustedConflict(pconf);
  *
  *   // [4] The trust node has information about what is proven and who can
  *   // prove it, where this association is valid in the remainder of the user
  *   // context.
- * 
+ *
  *   Node conf = pconf.getProven();
  *   ProofGenerator * pg = pconf.getGenerator();
  *   std::shared_ptr<ProofNode> pf = pg->getProofForConflict(conf);
@@ -106,11 +106,11 @@ class EagerProofGenerator : public ProofGenerator
   TrustNode mkTrustNode(Node n,
                         std::shared_ptr<ProofNode> pf,
                         bool isConflict = false);
-  /** 
+  /**
    * Make trust node from a single step proof (with no premises). This is a
    * convenience function that avoids the need to explictly construct ProofNode
    * by the caller.
-   * 
+   *
    * @param n The proven node,
    * @param id The rule of the proof concluding n
    * @param args The arguments to the proof concluding n,

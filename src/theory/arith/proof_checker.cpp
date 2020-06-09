@@ -101,9 +101,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
           }
           case Kind::GEQ:
           case Kind::LEQ:
-          case Kind::EQUAL:
-          {
-            break;
+          case Kind::EQUAL: { break;
           }
           default:
           {
@@ -138,9 +136,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
             }
             break;
           }
-          case Kind::EQUAL:
-          {
-            break;
+          case Kind::EQUAL: { break;
           }
           default:
           {

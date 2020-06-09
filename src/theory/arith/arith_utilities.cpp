@@ -287,26 +287,16 @@ Node negateProofLiteral(TNode n)
   auto nm = NodeManager::currentNM();
   switch (n.getKind())
   {
-    case Kind::GT:
-    {
-      return nm->mkNode(Kind::LEQ, n[0], n[1]);
+    case Kind::GT: { return nm->mkNode(Kind::LEQ, n[0], n[1]);
     }
-    case Kind::LT:
-    {
-      return nm->mkNode(Kind::GEQ, n[0], n[1]);
+    case Kind::LT: { return nm->mkNode(Kind::GEQ, n[0], n[1]);
     }
-    case Kind::LEQ:
-    {
-      return nm->mkNode(Kind::GT, n[0], n[1]);
+    case Kind::LEQ: { return nm->mkNode(Kind::GT, n[0], n[1]);
     }
-    case Kind::GEQ:
-    {
-      return nm->mkNode(Kind::LT, n[0], n[1]);
+    case Kind::GEQ: { return nm->mkNode(Kind::LT, n[0], n[1]);
     }
     case Kind::EQUAL:
-    case Kind::NOT:
-    {
-      return n.negate();
+    case Kind::NOT: { return n.negate();
     }
     default: Unhandled() << n;
   }
