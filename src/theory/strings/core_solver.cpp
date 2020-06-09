@@ -793,7 +793,8 @@ void CoreSolver::getNormalForms(Node eqc,
         }
         //if not equal to self
         std::vector<Node>& currv = nf_curr.d_nf;
-        if (currv.size() > 1 || (currv.size() == 1 && utils::isConstantLike(currv[0])))
+        if (currv.size() > 1
+            || (currv.size() == 1 && utils::isConstantLike(currv[0])))
         {
           // if in a build with assertions, check that normal form is acyclic
           if (Configuration::isAssertionBuild())

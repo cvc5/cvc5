@@ -517,7 +517,7 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
-  
+
   /* Sequence sort ------------------------------------------------------- */
 
   /**
@@ -918,7 +918,7 @@ class CVC4_PUBLIC Term
    *  @return the base value
    */
   Term getConstArrayBase() const;
-  
+
   /**
    *  Return the elements of a constant sequence
    *  throws an exception if the kind is not CONST_SEQUENCE
@@ -2576,7 +2576,7 @@ class CVC4_PUBLIC Solver
    * @return the character constant
    */
   Term mkChar(const char* s) const;
-  
+
   /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.

@@ -497,7 +497,8 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                                       std::vector<std::vector<Node> >& cols,
                                       std::vector<Node>& lts)
 {
-  Trace("strings-card") << "Check cardinality (type " << tn << ")..." << std::endl;
+  Trace("strings-card") << "Check cardinality (type " << tn << ")..."
+                        << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   uint32_t typeCardSize;
   bool typeCardKnown = false;
@@ -508,7 +509,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
   }
   else
   {
-    Assert (tn.isSequence());
+    Assert(tn.isSequence());
     TypeNode etn = tn.getSequenceElementType();
     if (etn.isInterpretedFinite())
     {
@@ -539,8 +540,8 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     }
     Trace("strings-card")
         << "Need length " << card_need
-        << " for this number of strings (where alphabet size is " << typeCardSize
-        << ") given type " << tn << "." << std::endl;
+        << " for this number of strings (where alphabet size is "
+        << typeCardSize << ") given type " << tn << "." << std::endl;
     // check if we need to split
     bool needsSplit = true;
     if (lr.isConst())

@@ -386,7 +386,7 @@ bool TheoryStrings::collectModelInfoType(
         if (nfe.d_nf.size() == 1)
         {
           // is it an equivalence class with a seq.unit term?
-          if (nfe.d_nf[0].getKind()==SEQ_UNIT)
+          if (nfe.d_nf[0].getKind() == SEQ_UNIT)
           {
             pure_eq_assign[eqc] = nfe.d_nf[0];
             Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";

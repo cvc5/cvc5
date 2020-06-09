@@ -699,9 +699,10 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       defineVar("re.nostr", d_solver->mkRegexpEmpty());
     }
     defineVar("re.allchar", d_solver->mkRegexpSigma());
-    
+
     // Boolean is a placeholder
-    defineVar("seq.empty", d_solver->mkEmptySequence(d_solver->getBooleanSort()));
+    defineVar("seq.empty",
+              d_solver->mkEmptySequence(d_solver->getBooleanSort()));
 
     addStringOperators();
   }

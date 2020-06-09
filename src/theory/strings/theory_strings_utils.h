@@ -147,10 +147,10 @@ Node mkSubstrChain(Node base,
  */
 std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
 
-/** 
+/**
  * Return if a string-like term n is "constant-like", that is, either a
  * constant string/sequence, or an application of seq.unit.
- * 
+ *
  * @param n The string-like term
  * @return true if n is constant-like.
  */
