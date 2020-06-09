@@ -39,6 +39,8 @@ enum class TrustNodeKind : uint32_t
  * `safe_print()` printing "<unsupported>" instead of the proper strings for
  * the enum values.
  *
+ * Returns a string with static lifetime: it should not be freed.
+ *
  * @param tnk The trust node kind
  * @return The name of the trust node kind
  */
