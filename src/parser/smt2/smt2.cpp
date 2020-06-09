@@ -156,16 +156,27 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_CHARAT, "str.at");
   addOperator(api::STRING_INDEXOF, "str.indexof");
   addOperator(api::STRING_REPLACE, "str.replace");
+  addOperator(api::STRING_PREFIX, "str.prefixof");
+  addOperator(api::STRING_SUFFIX, "str.suffixof");
+  addOperator(api::STRING_FROM_CODE, "str.from_code");
+  addOperator(api::STRING_IS_DIGIT, "str.is_digit");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
+    // sequence versions
+    addOperator(api::STRING_CONCAT, "seq.++");
+    addOperator(api::STRING_LENGTH, "seq.len");
+    addOperator(api::STRING_SUBSTR, "seq.extract");
+    addOperator(api::STRING_CONTAINS, "seq.contains");
+    addOperator(api::STRING_CHARAT, "seq.at");
+    addOperator(api::STRING_INDEXOF, "seq.indexof");
+    addOperator(api::STRING_REPLACE, "seq.replace");
+    addOperator(api::STRING_PREFIX, "seq.prefixof");
+    addOperator(api::STRING_SUFFIX, "seq.suffixof");
+    addOperator(api::STRING_REV, "seq.rev");
   }
-  addOperator(api::STRING_PREFIX, "str.prefixof");
-  addOperator(api::STRING_SUFFIX, "str.suffixof");
-  addOperator(api::STRING_FROM_CODE, "str.from_code");
-  addOperator(api::STRING_IS_DIGIT, "str.is_digit");
   // at the moment, we only use this syntax for smt2.6
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
       || getLanguage() == language::input::LANG_SYGUS_V2)
