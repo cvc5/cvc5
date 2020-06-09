@@ -60,9 +60,9 @@ class LazyCDProof : public CDProof
    * the current context (according to the context c provided to this class).
    *
    * It is important to note that pg is asked to provide a proof for expected
-   * only when no other call for expected is provided via addStep. In
-   * particular, pg is asked to prove expected when it appears as the conclusion
-   * of an ASSUME leaf within mkProof.
+   * only when no other call for the fact expected is provided via the addStep
+   * method of this class. In particular, pg is asked to prove expected when it
+   * appears as the conclusion of an ASSUME leaf within CDProof::mkProof.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
