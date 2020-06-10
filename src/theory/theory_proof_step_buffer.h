@@ -60,7 +60,9 @@ class TheoryProofStepBuffer : public ProofStepBuffer
   /**
    * Apply predicate elimination. This method returns the result of applying
    * the rule MACRO_SR_PRED_ELIM on src, exp. The returned formula is equivalent
-   * to src assuming exp.
+   * to src assuming exp. If the return value is equivalent to src, then no
+   * proof step is added to this buffer, since this step is a no-op in this
+   * case.
    *
    * Notice that in contrast to the other rules above, predicate elimination
    * never fails and proves a formula that is not explicitly given as an
