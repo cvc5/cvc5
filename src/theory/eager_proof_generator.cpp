@@ -25,12 +25,18 @@ EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
 {
 }
 
+void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
+{
+  // pf should prove f
+  Assert (pf->getResult()==f);
+  d_proofs[f] = pf;
+}
 void EagerProofGenerator::setProofForConflict(Node conf,
                                               std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
   Node ckey = TrustNode::getConflictProven(conf);
-  d_proofs[ckey] = pf;
+  setProofFor(ckey,pf);
 }
 
 void EagerProofGenerator::setProofForLemma(Node lem,
@@ -38,7 +44,7 @@ void EagerProofGenerator::setProofForLemma(Node lem,
 {
   // Normalize based on key
   Node lkey = TrustNode::getLemmaProven(lem);
-  d_proofs[lkey] = pf;
+  setProofFor(lkey,pf);
 }
 
 void EagerProofGenerator::setProofForPropExp(TNode lit,
@@ -47,7 +53,7 @@ void EagerProofGenerator::setProofForPropExp(TNode lit,
 {
   // Normalize based on key
   Node pekey = TrustNode::getPropExpProven(lit, exp);
-  d_proofs[pekey] = pf;
+  setProofFor(pekey,pf);
 }
 
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)

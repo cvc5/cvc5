@@ -92,6 +92,13 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Can we give the proof for formula f? */
   bool hasProofFor(Node f) override;
+  /** 
+   * Set proof for fact f, called when pf is a proof of f.
+   * 
+   * @param f The fact proven by pf,
+   * @param pf The proof to store in this class.
+   */
+  void setProofFor(Node f, std::shared_ptr<ProofNode> pf);
   /**
    * Make trust node: wrap n in a trust node with this generator, and have it
    * store the proof pf to lemma or conflict n.
@@ -154,8 +161,6 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForLemma(Node lem, std::shared_ptr<ProofNode> pf);
   /** Set that pf is the proof for explained propagation */
   void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
-  /** Get the proof for the given key */
-  std::shared_ptr<ProofNode> getProof(Node key);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** A dummy context used by this class if none is provided */

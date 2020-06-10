@@ -203,6 +203,12 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: TheoryEngine::preprocess(F).
   THEORY_PREPROCESS,
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
 
   //================================================= Boolean rules
   // ======== Split

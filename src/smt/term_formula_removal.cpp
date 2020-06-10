@@ -27,7 +27,7 @@ using namespace std;
 namespace CVC4 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
-    : d_tfCache(u), d_skolem_cache(u)
+    : d_tfCache(u), d_skolem_cache(u), d_tpg(nullptr)
 {
 }
 
@@ -38,6 +38,15 @@ void RemoveTermFormulas::run(std::vector<Node>& output,
                              bool reportDeps,
                              LazyCDProof* lp)
 {
+  if (lp!=nullptr)
+  {
+    // create the proof generator if not already done so
+    if (d_tpg==nullptr)
+    {
+      // use the proof manager of the given proof
+      d_tpg.reset(new theory::EagerProofGenerator(lp->getManager()));
+    }
+  }
   size_t n = output.size();
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
     // Do this in two steps to avoid Node problems(?)
@@ -119,9 +128,26 @@ Node RemoveTermFormulas::run(TNode node,
         newAssertion = nodeManager->mkNode(
             kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
 
-        // we justify it
+        // we justify it internally
         if (lp != nullptr)
         {
+          // --------------------------------------- REMOVE_TERM_FORMULA_AXIOM
+          // (ite node[0] (= node node[1]) (= node node[2]))
+          // ----------------------------------------- EXISTS_INTRO
+          // (exists ((x T)) (ite node[0] (= x node[1]) (= x node[2])))
+          std::vector<Node> pfChildren;
+          std::vector<Node> pfArgs;
+          pfArgs.push_back(node);
+          Node conc = getAxiomFor(node);
+          CDProof cdp(lp->getManager());
+          cdp.addStep(conc, PfRule::REMOVE_TERM_FORMULA_AXIOM, pfChildren, pfArgs);
+          existsAssertion = sm->mkExistential(node,conc);
+          pfChildren.push_back(conc);
+          cdp.addStep(existsAssertion, PfRule::EXISTS_INTRO, pfChildren, pfArgs);
+          Assert (d_tpg!=nullptr);
+          // store it in the proof generator managed by this class
+          d_tpg->setProofFor(existsAssertion, cdp.mkProof(existsAssertion));
+          newAssertionPg = d_tpg.get();
         }
       }
     }
@@ -248,7 +274,8 @@ Node RemoveTermFormulas::run(TNode node,
           // (exists x. P[x])
           // ------------------- SKOLEMIZE
           // P[ witness x. P[x] ]
-
+          // where the latter conclusion should be the witness form of
+          // newAssertion.
           // the existential is proven lazily by the provided proof generator
           lp->addLazyStep(existsAssertion, newAssertionPg);
           // the skolemized form is proven as a step
@@ -376,6 +403,17 @@ bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
          node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
          node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
          // dont' worry about FORALL or EXISTS (handled separately)
+}
+
+Node RemoveTermFormulas::getAxiomFor(Node n)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Kind k = n.getKind();
+  if (k==kind::ITE)
+  {
+    return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
+  }
+  return Node::null();
 }
 
 }/* CVC4 namespace */
