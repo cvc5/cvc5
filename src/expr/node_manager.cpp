@@ -27,6 +27,7 @@
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -95,6 +96,7 @@ NodeManager::NodeManager(ExprManager* exprManager)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
       d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -111,6 +113,7 @@ NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
       d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -167,6 +170,9 @@ NodeManager::~NodeManager() {
   // destruction of operators, because they get GCed.
 
   NodeManagerScope nms(this);
+
+  // Destroy skolem manager before cleaning up attributes and zombies
+  d_skManager = nullptr;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
@@ -493,6 +499,17 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
     }
   }
   return n;
+}
+
+TypeNode NodeManager::mkSequenceType(TypeNode elementType)
+{
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in sequences. Try "
+                "option --uf-ho.");
+  return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
@@ -852,6 +869,28 @@ void NodeManager::deleteAttributes(const std::vector<const expr::attr::Attribute
 
 void NodeManager::debugHook(int debugFlag){
   // For debugging purposes only, DO NOT CHECK IN ANY CODE!
+}
+
+Kind NodeManager::getKindForFunction(TNode fun)
+{
+  TypeNode tn = fun.getType();
+  if (tn.isFunction())
+  {
+    return kind::APPLY_UF;
+  }
+  else if (tn.isConstructor())
+  {
+    return kind::APPLY_CONSTRUCTOR;
+  }
+  else if (tn.isSelector())
+  {
+    return kind::APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return kind::APPLY_TESTER;
+  }
+  return kind::UNDEFINED_KIND;
 }
 
 }/* CVC4 namespace */

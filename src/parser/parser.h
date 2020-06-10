@@ -589,6 +589,13 @@ public:
                                         const std::vector<api::Sort>& params);
 
   /**
+   * Creates a new unresolved (parameterized) type constructor of the given
+   * arity. Calls either mkUnresolvedType or mkUnresolvedTypeConstructor
+   * depending on the arity.
+   */
+  api::Sort mkUnresolvedType(const std::string& name, size_t arity);
+
+  /**
    * Returns true IFF name is an unresolved type.
    */
   bool isUnresolvedType(const std::string& name);
@@ -805,10 +812,12 @@ public:
     d_globalDeclarations = flag;
   }
 
+  bool getGlobalDeclarations() { return d_globalDeclarations; }
+
   inline SymbolTable* getSymbolTable() const {
     return d_symtab;
   }
-  
+
   //------------------------ operator overloading
   /** is this function overloaded? */
   bool isOverloadedFunction(api::Term fun)
@@ -822,7 +831,8 @@ public:
   */
   api::Term getOverloadedConstantForType(const std::string& name, api::Sort t)
   {
-    return d_symtab->getOverloadedConstantForType(name, t.getType());
+    return api::Term(d_solver,
+                     d_symtab->getOverloadedConstantForType(name, t.getType()));
   }
 
   /**
@@ -833,8 +843,9 @@ public:
   api::Term getOverloadedFunctionForTypes(const std::string& name,
                                           std::vector<api::Sort>& argTypes)
   {
-    return d_symtab->getOverloadedFunctionForTypes(
-        name, api::sortVectorToTypes(argTypes));
+    return api::Term(d_solver,
+                     d_symtab->getOverloadedFunctionForTypes(
+                         name, api::sortVectorToTypes(argTypes)));
   }
   //------------------------ end operator overloading
   /**
@@ -845,7 +856,7 @@ public:
    * SMT-LIB 2.6 or higher), or otherwise calling the solver to construct
    * the string.
    */
-  Expr mkStringConstant(const std::string& s);
+  api::Term mkStringConstant(const std::string& s);
 
  private:
   /** ad-hoc string escaping

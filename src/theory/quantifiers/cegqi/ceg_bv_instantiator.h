@@ -168,32 +168,32 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
   ~BvInstantiatorPreprocess() override {}
   /** register counterexample lemma
    *
-   * This method modifies the contents of lems based on the extract terms
-   * it contains when the option --cbqi-bv-rm-extract is enabled. It introduces
+   * This method adds to auxLems based on the extract terms that lem
+   * contains when the option --cbqi-bv-rm-extract is enabled. It introduces
    * a dummy equality so that segments of terms t under extracts can be solved
    * independently.
    *
-   * For example:
+   * For example, if lem is:
    *   P[ ((extract 7 4) t), ((extract 3 0) t)]
-   *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *     then we add:
    *   t = concat( x74, x30 )
-   * where x74 and x30 are fresh variables of type BV_4.
+   * to auxLems, where x74 and x30 are fresh variables of type BV_4, which are
+   * added to ceVars.
    *
-   * Another example:
+   * Another example, for:
    *   P[ ((extract 7 3) t), ((extract 4 0) t)]
-   *     becomes:
-   *   P[((extract 7 4) t), ((extract 3 0) t)] ^
+   *     we add:
    *   t = concat( x75, x44, x30 )
-   * where x75, x44 and x30 are fresh variables of type BV_3, BV_1, and BV_4
-   * respectively.
+   * to auxLems where x75, x44 and x30 are fresh variables of type BV_3, BV_1,
+   * and BV_4 respectively, which are added to ceVars.
    *
-   * Notice we leave the original conjecture alone. This is done for performance
+   * Notice we leave the original lem alone. This is done for performance
    * since the added equalities ensure we are able to construct the proper
    * solved forms for variables in t and for the intermediate variables above.
    */
-  void registerCounterexampleLemma(std::vector<Node>& lems,
-                                   std::vector<Node>& ce_vars) override;
+  void registerCounterexampleLemma(Node lem,
+                                   std::vector<Node>& ceVars,
+                                   std::vector<Node>& auxLems) override;
 
  private:
   /** collect extracts

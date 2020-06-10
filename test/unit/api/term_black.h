@@ -43,6 +43,7 @@ class TermBlack : public CxxTest::TestSuite
   void testTermChildren();
   void testSubstitute();
   void testIsConst();
+  void testConstArray();
 
  private:
   Solver d_solver;
@@ -175,10 +176,10 @@ void TermBlack::testGetOp()
   Term extb = d_solver.mkTerm(ext, b);
 
   TS_ASSERT(ab.hasOp());
-  TS_ASSERT_EQUALS(ab.getOp(), Op(SELECT));
+  TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
   TS_ASSERT(!ab.getOp().isIndexed());
   // can compare directly to a Kind (will invoke Op constructor)
-  TS_ASSERT_EQUALS(ab.getOp(), SELECT);
+  TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
   TS_ASSERT(extb.hasOp());
   TS_ASSERT(extb.getOp().isIndexed());
   TS_ASSERT_EQUALS(extb.getOp(), ext);
@@ -189,7 +190,7 @@ void TermBlack::testGetOp()
   TS_ASSERT(!f.hasOp());
   TS_ASSERT_THROWS(f.getOp(), CVC4ApiException&);
   TS_ASSERT(fx.hasOp());
-  TS_ASSERT_EQUALS(fx.getOp(), APPLY_UF);
+  TS_ASSERT_EQUALS(fx.getOp(), Op(&d_solver, APPLY_UF));
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
   TS_ASSERT_EQUALS(fx, d_solver.mkTerm(fx.getOp(), children));
@@ -197,8 +198,8 @@ void TermBlack::testGetOp()
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl cons("cons");
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
   cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
@@ -225,10 +226,10 @@ void TermBlack::testGetOp()
   TS_ASSERT(headTerm.hasOp());
   TS_ASSERT(tailTerm.hasOp());
 
-  TS_ASSERT_EQUALS(nilTerm.getOp(), APPLY_CONSTRUCTOR);
-  TS_ASSERT_EQUALS(consTerm.getOp(), APPLY_CONSTRUCTOR);
-  TS_ASSERT_EQUALS(headTerm.getOp(), APPLY_SELECTOR);
-  TS_ASSERT_EQUALS(tailTerm.getOp(), APPLY_SELECTOR);
+  TS_ASSERT_EQUALS(nilTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  TS_ASSERT_EQUALS(consTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  TS_ASSERT_EQUALS(headTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  TS_ASSERT_EQUALS(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 
   // Test rebuilding
   children.clear();
@@ -751,4 +752,20 @@ void TermBlack::testIsConst()
   TS_ASSERT(!onepone.isConst());
   Term tnull;
   TS_ASSERT_THROWS(tnull.isConst(), CVC4ApiException&);
+}
+
+void TermBlack::testConstArray()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+  Term a = d_solver.mkConst(arrsort, "a");
+  Term one = d_solver.mkReal(1);
+  Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  TS_ASSERT(!a.isConst());
+  TS_ASSERT(constarr.isConst());
+
+  TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
+  TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
+  TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
 }

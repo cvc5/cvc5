@@ -12,7 +12,7 @@
  ** \brief Implementation of solver for handling transcendental functions.
  **/
 
-#include "theory/arith/transcendental_solver.h"
+#include "theory/arith/nl/transcendental_solver.h"
 
 #include <cmath>
 #include <set>
@@ -29,6 +29,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 TranscendentalSolver::TranscendentalSolver(NlModel& m) : d_model(m)
 {
@@ -49,8 +50,7 @@ TranscendentalSolver::~TranscendentalSolver() {}
 void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
                                         const std::vector<Node>& false_asserts,
                                         const std::vector<Node>& xts,
-                                        std::vector<Node>& lems,
-                                        std::vector<Node>& lemsPp)
+                                        std::vector<NlLemma>& lems)
 {
   d_funcCongClass.clear();
   d_funcMap.clear();
@@ -212,7 +212,9 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     // note we must do preprocess on this lemma
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                           << std::endl;
-    lemsPp.push_back(lem);
+    NlLemma nlem(lem);
+    nlem.d_preprocess = true;
+    lems.push_back(nlem);
   }
 
   if (Trace.isOn("nl-ext-mv"))
@@ -332,7 +334,7 @@ unsigned TranscendentalSolver::getTaylorDegree() const
   return d_taylor_degree;
 }
 
-void TranscendentalSolver::processSideEffect(const NlLemmaSideEffect& se)
+void TranscendentalSolver::processSideEffect(const NlLemma& se)
 {
   for (const std::tuple<Node, unsigned, Node>& sp : se.d_secantPoint)
   {
@@ -361,7 +363,7 @@ void TranscendentalSolver::mkPi()
   }
 }
 
-void TranscendentalSolver::getCurrentPiBounds(std::vector<Node>& lemmas)
+void TranscendentalSolver::getCurrentPiBounds(std::vector<NlLemma>& lemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node pi_lem = nm->mkNode(AND,
@@ -370,10 +372,10 @@ void TranscendentalSolver::getCurrentPiBounds(std::vector<Node>& lemmas)
   lemmas.push_back(pi_lem);
 }
 
-std::vector<Node> TranscendentalSolver::checkTranscendentalInitialRefine()
+std::vector<NlLemma> TranscendentalSolver::checkTranscendentalInitialRefine()
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   Trace("nl-ext")
       << "Get initial refinement lemmas for transcendental functions..."
       << std::endl;
@@ -461,9 +463,9 @@ std::vector<Node> TranscendentalSolver::checkTranscendentalInitialRefine()
   return lemmas;
 }
 
-std::vector<Node> TranscendentalSolver::checkTranscendentalMonotonic()
+std::vector<NlLemma> TranscendentalSolver::checkTranscendentalMonotonic()
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   Trace("nl-ext") << "Get monotonicity lemmas for transcendental functions..."
                   << std::endl;
 
@@ -643,10 +645,9 @@ std::vector<Node> TranscendentalSolver::checkTranscendentalMonotonic()
   return lemmas;
 }
 
-std::vector<Node> TranscendentalSolver::checkTranscendentalTangentPlanes(
-    std::map<Node, NlLemmaSideEffect>& lemSE)
+std::vector<NlLemma> TranscendentalSolver::checkTranscendentalTangentPlanes()
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   Trace("nl-ext") << "Get tangent plane lemmas for transcendental functions..."
                   << std::endl;
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
@@ -682,7 +683,7 @@ std::vector<Node> TranscendentalSolver::checkTranscendentalTangentPlanes(
       {
         Trace("nl-ext-tftp") << "- run at degree " << d << "..." << std::endl;
         unsigned prev = lemmas.size();
-        if (checkTfTangentPlanesFun(tf, d, lemmas, lemSE))
+        if (checkTfTangentPlanesFun(tf, d, lemmas))
         {
           Trace("nl-ext-tftp")
               << "...fail, #lemmas = " << (lemmas.size() - prev) << std::endl;
@@ -699,11 +700,9 @@ std::vector<Node> TranscendentalSolver::checkTranscendentalTangentPlanes(
   return lemmas;
 }
 
-bool TranscendentalSolver::checkTfTangentPlanesFun(
-    Node tf,
-    unsigned d,
-    std::vector<Node>& lemmas,
-    std::map<Node, NlLemmaSideEffect>& lemSE)
+bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
+                                                   unsigned d,
+                                                   std::vector<NlLemma>& lemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = tf.getKind();
@@ -1019,10 +1018,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(
     Assert(!lemmaConj.empty());
     Node lem =
         lemmaConj.size() == 1 ? lemmaConj[0] : nm->mkNode(AND, lemmaConj);
-    lemmas.push_back(lem);
+    NlLemma nlem(lem);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
-    lemSE[lem].d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
+    lemmas.push_back(nlem);
   }
   return true;
 }
@@ -1470,6 +1470,7 @@ Node TranscendentalSolver::mkValidPhase(Node a, Node pi)
       NodeManager::currentNM()->mkNode(MULT, mkRationalNode(-1), pi), a, pi);
 }
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

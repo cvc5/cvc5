@@ -12,8 +12,8 @@
  ** \brief Model object for the non-linear extension class
  **/
 
-#ifndef CVC4__THEORY__ARITH__NL_MODEL_H
-#define CVC4__THEORY__ARITH__NL_MODEL_H
+#ifndef CVC4__THEORY__ARITH__NL__NL_MODEL_H
+#define CVC4__THEORY__ARITH__NL__NL_MODEL_H
 
 #include <map>
 #include <unordered_map>
@@ -23,11 +23,13 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 class NonlinearExtension;
 
@@ -151,7 +153,7 @@ class NlModel
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
                   unsigned d,
-                  std::vector<Node>& lemmas,
+                  std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   /**
    * Set that we have used an approximation during this check. This flag is
@@ -232,7 +234,7 @@ class NlModel
    * For instance, if eq reduces to a univariate quadratic equation with no
    * root, we send a conflict clause of the form a*x^2 + b*x + c != 0.
    */
-  bool solveEqualitySimple(Node eq, unsigned d, std::vector<Node>& lemmas);
+  bool solveEqualitySimple(Node eq, unsigned d, std::vector<NlLemma>& lemmas);
 
   /** simple check model for transcendental functions for literal
    *
@@ -307,7 +309,7 @@ class NlModel
    * (2) variables we have solved quadratic equations for, whose value
    * involves approximations of square roots.
    */
-  std::map<Node, std::pair<Node, Node> > d_check_model_bounds;
+  std::map<Node, std::pair<Node, Node>> d_check_model_bounds;
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:
@@ -326,6 +328,7 @@ class NlModel
   std::unordered_set<Node, NodeHashFunction> d_tautology;
 }; /* class NlModel */
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -27,15 +27,16 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
-#include "theory/arith/nl_constraint.h"
-#include "theory/arith/nl_lemma_utils.h"
-#include "theory/arith/nl_model.h"
-#include "theory/arith/nl_monomial.h"
+#include "theory/arith/nl/nl_constraint.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
+#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/nl_monomial.h"
 #include "theory/arith/theory_arith.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
+namespace nl {
 
 typedef std::map<Node, unsigned> NodeMultiset;
 
@@ -78,7 +79,7 @@ class NlSolver
    *   t = 0 V t != 0
    * where t is a term that exists in the current context.
    */
-  std::vector<Node> checkSplitZero();
+  std::vector<NlLemma> checkSplitZero();
 
   /** check monomial sign
    *
@@ -95,7 +96,7 @@ class NlSolver
    * x < 0 => x*y*y < 0
    * x = 0 => x*y*z = 0
    */
-  std::vector<Node> checkMonomialSign();
+  std::vector<NlLemma> checkMonomialSign();
 
   /** check monomial magnitude
    *
@@ -117,7 +118,7 @@ class NlSolver
    * against 1, 1 : compare non-linear monomials against variables, 2 : compare
    * non-linear monomials against other non-linear monomials.
    */
-  std::vector<Node> checkMonomialMagnitude(unsigned c);
+  std::vector<NlLemma> checkMonomialMagnitude(unsigned c);
 
   /** check monomial inferred bounds
    *
@@ -136,8 +137,8 @@ class NlSolver
    *   ...where (y > z + w) and x*y are a constraint and term
    *      that occur in the current context.
    */
-  std::vector<Node> checkMonomialInferBounds(
-      std::vector<Node>& nt_lemmas,
+  std::vector<NlLemma> checkMonomialInferBounds(
+      std::vector<NlLemma>& nt_lemmas,
       const std::vector<Node>& asserts,
       const std::vector<Node>& false_asserts);
 
@@ -153,8 +154,8 @@ class NlSolver
    *   ...where k is fresh and x*z + y*z > t is a
    *      constraint that occurs in the current context.
    */
-  std::vector<Node> checkFactoring(const std::vector<Node>& asserts,
-                                   const std::vector<Node>& false_asserts);
+  std::vector<NlLemma> checkFactoring(const std::vector<Node>& asserts,
+                                      const std::vector<Node>& false_asserts);
 
   /** check monomial infer resolution bounds
    *
@@ -170,7 +171,7 @@ class NlSolver
    *  ...where s <= x*z and x*y <= t are constraints
    *     that occur in the current context.
    */
-  std::vector<Node> checkMonomialInferResBounds();
+  std::vector<NlLemma> checkMonomialInferResBounds();
 
   /** check tangent planes
    *
@@ -196,7 +197,7 @@ class NlSolver
    * ( ( x>2 ^ y>5) ^ (x<2 ^ y<5) ) => x*y > 5*x + 2*y - 10
    * ( ( x>2 ^ y<5) ^ (x<2 ^ y>5) ) => x*y < 5*x + 2*y - 10
    */
-  std::vector<Node> checkTangentPlanes();
+  std::vector<NlLemma> checkTangentPlanes();
 
   //-------------------------------------------- end lemma schemas
  private:
@@ -294,7 +295,7 @@ class NlSolver
                   unsigned a_index,
                   int status,
                   std::vector<Node>& exp,
-                  std::vector<Node>& lem);
+                  std::vector<NlLemma>& lem);
   /** compare monomials a and b
    *
    * Initially, a call to this function is such that :
@@ -337,7 +338,7 @@ class NlSolver
       Node b,
       NodeMultiset& b_exp_proc,
       std::vector<Node>& exp,
-      std::vector<Node>& lem,
+      std::vector<NlLemma>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
   /** helper function for above
    *
@@ -355,12 +356,13 @@ class NlSolver
       NodeMultiset& b_exp_proc,
       int status,
       std::vector<Node>& exp,
-      std::vector<Node>& lem,
+      std::vector<NlLemma>& lem,
       std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers);
   /** Get factor skolem for n, add resulting lemmas to lemmas */
-  Node getFactorSkolem(Node n, std::vector<Node>& lemmas);
+  Node getFactorSkolem(Node n, std::vector<NlLemma>& lemmas);
 }; /* class NlSolver */
 
+}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

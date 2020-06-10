@@ -1,6 +1,6 @@
 ; EXPECT: sat
-; EXPECT: ((|0_0| (_ bv1 4)))
-; EXPECT: ((x (_ bv3 4)))
+; EXPECT: ((|0_0| #b0001))
+; EXPECT: ((x #b0011))
 (set-option :produce-models true)
 (set-logic QF_BV)
 (declare-const |0_0| (_ BitVec 4))

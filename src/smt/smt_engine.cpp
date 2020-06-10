@@ -759,6 +759,7 @@ void SmtEngine::finishInit()
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
     d_assertionList = new (true) AssertionList(getUserContext());
+    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
   }
 
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
@@ -846,6 +847,8 @@ SmtEngine::~SmtEngine()
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
     }
+
+    d_globalDefineFunRecLemmas.reset();
 
     if(d_assertionList != NULL) {
       d_assertionList->deleteSelf();
@@ -1022,72 +1025,110 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   throw UnrecognizedOptionException();
 }
 
-CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
+bool SmtEngine::isValidGetInfoFlag(const std::string& key) const
+{
+  if (key == "all-statistics" || key == "error-behavior" || key == "name"
+      || key == "version" || key == "authors" || key == "status"
+      || key == "reason-unknown" || key == "assertion-stack-levels"
+      || key == "all-options")
+  {
+    return true;
+  }
+  return false;
+}
 
+CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
+{
   SmtScope smts(this);
 
   Trace("smt") << "SMT getInfo(" << key << ")" << endl;
-  if(key == "all-statistics") {
+  if (!isValidGetInfoFlag(key))
+  {
+    throw UnrecognizedOptionException();
+  }
+  if (key == "all-statistics")
+  {
     vector<SExpr> stats;
-    for(StatisticsRegistry::const_iterator i = NodeManager::fromExprManager(d_exprManager)->getStatisticsRegistry()->begin();
-        i != NodeManager::fromExprManager(d_exprManager)->getStatisticsRegistry()->end();
-        ++i) {
+    for (StatisticsRegistry::const_iterator i =
+             NodeManager::fromExprManager(d_exprManager)
+                 ->getStatisticsRegistry()
+                 ->begin();
+         i
+         != NodeManager::fromExprManager(d_exprManager)
+                ->getStatisticsRegistry()
+                ->end();
+         ++i)
+    {
       vector<SExpr> v;
       v.push_back((*i).first);
       v.push_back((*i).second);
       stats.push_back(v);
     }
-    for(StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
-        i != d_statisticsRegistry->end();
-        ++i) {
+    for (StatisticsRegistry::const_iterator i = d_statisticsRegistry->begin();
+         i != d_statisticsRegistry->end();
+         ++i)
+    {
       vector<SExpr> v;
       v.push_back((*i).first);
       v.push_back((*i).second);
       stats.push_back(v);
     }
     return SExpr(stats);
-  } else if(key == "error-behavior") {
+  }
+  if (key == "error-behavior")
+  {
     return SExpr(SExpr::Keyword("immediate-exit"));
-  } else if(key == "name") {
+  }
+  if (key == "name")
+  {
     return SExpr(Configuration::getName());
-  } else if(key == "version") {
+  }
+  if (key == "version")
+  {
     return SExpr(Configuration::getVersionString());
-  } else if(key == "authors") {
+  }
+  if (key == "authors")
+  {
     return SExpr(Configuration::about());
-  } else if(key == "status") {
+  }
+  if (key == "status")
+  {
     // sat | unsat | unknown
-    switch(d_status.asSatisfiabilityResult().isSat()) {
-    case Result::SAT:
-      return SExpr(SExpr::Keyword("sat"));
-    case Result::UNSAT:
-      return SExpr(SExpr::Keyword("unsat"));
-    default:
-      return SExpr(SExpr::Keyword("unknown"));
+    switch (d_status.asSatisfiabilityResult().isSat())
+    {
+      case Result::SAT: return SExpr(SExpr::Keyword("sat"));
+      case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
+      default: return SExpr(SExpr::Keyword("unknown"));
     }
-  } else if(key == "reason-unknown") {
-    if(!d_status.isNull() && d_status.isUnknown()) {
+  }
+  if (key == "reason-unknown")
+  {
+    if (!d_status.isNull() && d_status.isUnknown())
+    {
       stringstream ss;
       ss << d_status.whyUnknown();
       string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
-    } else {
+    }
+    else
+    {
       throw RecoverableModalException(
           "Can't get-info :reason-unknown when the "
           "last result wasn't unknown!");
     }
-  } else if(key == "assertion-stack-levels") {
+  }
+  if (key == "assertion-stack-levels")
+  {
     AlwaysAssert(d_userLevels.size()
                  <= std::numeric_limits<unsigned long int>::max());
     return SExpr(static_cast<unsigned long int>(d_userLevels.size()));
-  } else if(key == "all-options") {
-    // get the options, like all-statistics
-    std::vector< std::vector<std::string> > current_options =
-      Options::current()->getOptions();
-    return SExpr::parseListOfListOfAtoms(current_options);
-  } else {
-    throw UnrecognizedOptionException();
   }
+  Assert(key == "all-options");
+  // get the options, like all-statistics
+  std::vector<std::vector<std::string>> current_options =
+      Options::current()->getOptions();
+  return SExpr::parseListOfListOfAtoms(current_options);
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
@@ -1141,7 +1182,8 @@ void SmtEngine::debugCheckFunctionBody(Expr formula,
 
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
-                               Expr formula)
+                               Expr formula,
+                               bool global)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -1153,7 +1195,7 @@ void SmtEngine::defineFunction(Expr func,
   ss << language::SetLanguage(
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-  DefineFunctionCommand c(ss.str(), func, formals, formula);
+  DefineFunctionCommand c(ss.str(), func, formals, formula, global);
   addToModelCommandAndDump(
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
@@ -1182,13 +1224,22 @@ void SmtEngine::defineFunction(Expr func,
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
   Debug("smt") << "definedFunctions insert " << funcNode << " " << formNode << endl;
-  d_definedFunctions->insert(funcNode, def);
+
+  if (global)
+  {
+    d_definedFunctions->insertAtContextLevelZero(funcNode, def);
+  }
+  else
+  {
+    d_definedFunctions->insert(funcNode, def);
+  }
 }
 
 void SmtEngine::defineFunctionsRec(
     const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr> >& formals,
-    const std::vector<Expr>& formulas)
+    const std::vector<std::vector<Expr>>& formals,
+    const std::vector<Expr>& formulas,
+    bool global)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -1216,7 +1267,8 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
-    Dump("raw-benchmark") << DefineFunctionRecCommand(funcs, formals, formulas);
+    Dump("raw-benchmark") << DefineFunctionRecCommand(
+        funcs, formals, formulas, global);
   }
 
   ExprManager* em = getExprManager();
@@ -1256,17 +1308,28 @@ void SmtEngine::defineFunctionsRec(
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
     Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
-    if (d_assertionList != NULL)
+    if (d_assertionList != nullptr)
     {
       d_assertionList->push_back(e);
     }
-    d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
+    if (global && d_globalDefineFunRecLemmas != nullptr)
+    {
+      // Global definitions are asserted at check-sat-time because we have to
+      // make sure that they are always present
+      Assert(!language::isInputLangSygus(options::inputLanguage()));
+      d_globalDefineFunRecLemmas->emplace_back(Node::fromExpr(e));
+    }
+    else
+    {
+      d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
+    }
   }
 }
 
 void SmtEngine::defineFunctionRec(Expr func,
                                   const std::vector<Expr>& formals,
-                                  Expr formula)
+                                  Expr formula,
+                                  bool global)
 {
   std::vector<Expr> funcs;
   funcs.push_back(func);
@@ -1274,7 +1337,7 @@ void SmtEngine::defineFunctionRec(Expr func,
   formals_multi.push_back(formals);
   std::vector<Expr> formulas;
   formulas.push_back(formula);
-  defineFunctionsRec(funcs, formals_multi, formulas);
+  defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
 bool SmtEngine::isDefinedFunction( Expr func ){
@@ -1612,6 +1675,17 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
         d_assertionList->push_back(e);
       }
       d_private->addFormula(e.getNode(), inUnsatCore, true, true);
+    }
+
+    if (d_globalDefineFunRecLemmas != nullptr)
+    {
+      // Global definitions are asserted at check-sat-time because we have to
+      // make sure that they are always present (they are essentially level
+      // zero assertions)
+      for (const Node& lemma : *d_globalDefineFunRecLemmas)
+      {
+        d_private->addFormula(lemma, false, true, false, false);
+      }
     }
 
     r = check();
