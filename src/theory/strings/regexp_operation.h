@@ -189,7 +189,7 @@ class RegExpOpr {
   bool regExpIncludes(Node r1, Node r2);
 
  private:
-  /** 
+  /**
    * Given a regular expression membership of the form:
    *   (str.in_re x (re.++ R1 ... Rn))
    * This returns the valid existentially quantified formula:

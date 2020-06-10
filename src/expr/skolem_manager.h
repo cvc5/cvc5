@@ -97,7 +97,7 @@ class SkolemManager
                 const std::string& comment = "",
                 int flags = NodeManager::SKOLEM_DEFAULT,
                 ProofGenerator* pg = nullptr,
-                bool retWitness=false);
+                bool retWitness = false);
   /**
    * Make skolemized form of existentially quantified formula q, and store its
    * Skolems into the argument skolems.

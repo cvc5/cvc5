@@ -286,7 +286,7 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
         // assertions with free variables), and thus they can be treated like
         // ordinary terms here. We use an assertion to check that this is
         // indeed the case.
-        Assert (cur.getKind()!=WITNESS || expr::hasFreeVar(cur));
+        Assert(cur.getKind() != WITNESS || expr::hasFreeVar(cur));
         cur.setAttribute(sfa, ret);
       }
       visited[cur] = ret;

@@ -1038,7 +1038,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
     // enabled, this will return arguments of str.to_re.
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
-      if (r[i].getKind()==STRING_TO_REGEXP)
+      if (r[i].getKind() == STRING_TO_REGEXP)
       {
         // optimization, just take the body
         skolems[i] = r[i][0];
@@ -1590,7 +1590,7 @@ Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
   Node x = mem[0];
   Node r = mem[1];
   Assert(r.getKind() == REGEXP_CONCAT);
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   TypeNode xtn = x.getType();
   std::vector<Node> vars;
   std::vector<Node> mems;
@@ -1607,8 +1607,7 @@ Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
   Node ebody = nm->mkNode(AND, mems);
   Node eform = nm->mkNode(EXISTS, bvl, ebody);
   mem.setAttribute(efa, eform);
-  Trace("regexp-opr")
-      << "Exists form " << mem << " : " << eform << std::endl;
+  Trace("regexp-opr") << "Exists form " << mem << " : " << eform << std::endl;
   return eform;
 }
 

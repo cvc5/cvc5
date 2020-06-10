@@ -140,8 +140,11 @@ public:
    * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
    *        of a parent term that is not a Boolean connective.
    */
-  Node run(TNode node, std::vector<Node>& additionalAssertions,
-           IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm,
+  Node run(TNode node,
+           std::vector<Node>& additionalAssertions,
+           IteSkolemMap& iteSkolemMap,
+           bool inQuant,
+           bool inTerm,
            LazyCDProof* lpAssert);
 
   /**
