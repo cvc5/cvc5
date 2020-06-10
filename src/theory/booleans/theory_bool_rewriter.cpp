@@ -311,10 +311,13 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
         Debug("bool-ite") << "n[1] ==ff && n[2] == tt " << n << ": " << n[0].notNode() << std::endl;
         return RewriteResponse(REWRITE_AGAIN, makeNegation(n[0]));
       }
-      Node resp =
-          n[1] == tt ? n[0].orNode(n[2]) : (n[0].notNode()).andNode(n[2]);
-      Debug("bool-ite") << "n[1] const " << n << ": " << resp << std::endl;
-      return RewriteResponse(REWRITE_AGAIN, resp);
+      if (n[1] == tt || n[1] == ff)
+      {
+        Node resp =
+            n[1] == tt ? n[0].orNode(n[2]) : (n[0].notNode()).andNode(n[2]);
+        Debug("bool-ite") << "n[1] const " << n << ": " << resp << std::endl;
+        return RewriteResponse(REWRITE_AGAIN, resp);
+      }
     }
 
     if (n[0].getKind() == kind::NOT)
@@ -324,7 +327,8 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
           REWRITE_AGAIN, nodeManager->mkNode(kind::ITE, n[0][0], n[2], n[1]));
     }
 
-    if (n[2].isConst()) {
+    if (n[2].isConst() && (n[2] == tt || n[2] == ff))
+    {
       Node resp =
           n[2] == tt ? (n[0].notNode()).orNode(n[1]) : n[0].andNode(n[1]);
       Debug("bool-ite") << "n[2] const " << n << ": " << resp << std::endl;
