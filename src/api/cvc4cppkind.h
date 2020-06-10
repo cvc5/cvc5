@@ -2271,8 +2271,8 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   REGEXP_COMPLEMENT,
-  
-/**
+
+  /**
    * Sequence concat.
    * Parameters: n > 1
    *   -[1]..[n]: Terms of Sequence sort
@@ -2282,7 +2282,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   SEQ_CONCAT,
-/**
+  /**
    * Sequence length.
    * Parameters: 1
    *   -[1]: Term of Sequence sort
@@ -2292,11 +2292,10 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_LENGTH,
   /**
    * Sequence extract.
-   * Extracts a subsequence, starting at index i and of length l, from a sequence
-   * s.  If the start index is negative, the start index is greater than the
-   * length of the sequence, or the length is negative, the result is the empty
-   * sequence.
-   * Parameters: 3
+   * Extracts a subsequence, starting at index i and of length l, from a
+   * sequence s.  If the start index is negative, the start index is greater
+   * than the length of the sequence, or the length is negative, the result is
+   * the empty sequence. Parameters: 3
    *   -[1]: Term of sort Sequence
    *   -[2]: Term of sort Integer (index i)
    *   -[3]: Term of sort Integer (length l)
@@ -2307,9 +2306,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_EXTRACT,
   /**
    * Sequence contains.
-   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty, the
-   * result is always true.
-   * Parameters: 2
+   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
+   * the result is always true. Parameters: 2
    *   -[1]: Term of sort Sequence (the sequence s1)
    *   -[2]: Term of sort Sequence (the sequence s2)
    * Create with:
@@ -2319,10 +2317,10 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_CONTAINS,
   /**
    * Sequence index-of.
-   * Returns the index of a subsequence s2 in a sequence s1 starting at index i. If
-   * the index is negative or greater than the length of sequence s1 or the
-   * subsequence s2 does not appear in sequence s1 after index i, the result is -1.
-   * Parameters: 3
+   * Returns the index of a subsequence s2 in a sequence s1 starting at index i.
+   * If the index is negative or greater than the length of sequence s1 or the
+   * subsequence s2 does not appear in sequence s1 after index i, the result is
+   * -1. Parameters: 3
    *   -[1]: Term of sort Sequence (subsequence s1)
    *   -[2]: Term of sort Sequence (subsequence s2)
    *   -[3]: Term of sort Integer (index i)
@@ -2333,9 +2331,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_INDEXOF,
   /**
    * Sequence replace.
-   * Replaces a sequence s2 in a sequence s1 with sequence s3. If s2 does not appear
-   * in s1, s1 is returned unmodified.
-   * Parameters: 3
+   * Replaces a sequence s2 in a sequence s1 with sequence s3. If s2 does not
+   * appear in s1, s1 is returned unmodified. Parameters: 3
    *   -[1]: Term of sort Sequence (sequence s1)
    *   -[2]: Term of sort Sequence (sequence s2)
    *   -[3]: Term of sort Sequence (sequence s3)
@@ -2346,9 +2343,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_REPLACE,
   /**
    * Sequence replace all.
-   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence s3.
-   * If s2 does not appear in s1, s1 is returned unmodified.
-   * Parameters: 3
+   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence
+   * s3. If s2 does not appear in s1, s1 is returned unmodified. Parameters: 3
    *   -[1]: Term of sort Sequence (sequence s1)
    *   -[2]: Term of sort Sequence (sequence s2)
    *   -[3]: Term of sort Sequence (sequence s3)
@@ -2379,9 +2375,8 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_PREFIX,
   /**
    * Sequence suffix-of.
-   * Checks whether a sequence s1 is a suffix of sequence 2. If sequence s1 is empty,
-   * this operator returns true.
-   * Parameters: 2
+   * Checks whether a sequence s1 is a suffix of sequence 2. If sequence s1 is
+   * empty, this operator returns true. Parameters: 2
    *   -[1]: Term of sort Sequence (sequence s1)
    *   -[2]: Term of sort Sequence (sequence s2)
    * Create with:

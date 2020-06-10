@@ -118,7 +118,7 @@ std::vector<Node> Word::getChars(TNode x)
     const std::vector<Node>& vec = sx.getVec();
     for (const Node& v : vec)
     {
-      ret.push_back(nm->mkConst(ExprSequence(t,{v.toExpr()})));
+      ret.push_back(nm->mkConst(ExprSequence(t, {v.toExpr()})));
     }
     return ret;
   }

@@ -15,10 +15,10 @@
 
 #include "theory/strings/base_solver.h"
 
+#include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/sequence.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -98,7 +98,10 @@ void BaseSolver::checkInit()
                 Node oval = prev.isConst() ? n : prev;
                 Assert(oval.getKind() == SEQ_UNIT);
                 s = oval[0];
-                t = cchars[0].getConst<ExprSequence>().getSequence().getVec()[0];
+                t = cchars[0]
+                        .getConst<ExprSequence>()
+                        .getSequence()
+                        .getVec()[0];
                 // oval is congruent (ignored) in this context
                 d_congruent.insert(oval);
               }

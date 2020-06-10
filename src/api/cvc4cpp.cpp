@@ -295,7 +295,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {SEQ_REPLACE_ALL, CVC4::Kind::STRING_STRREPLALL},
     {SEQ_REV, CVC4::Kind::STRING_REV},
     {SEQ_PREFIX, CVC4::Kind::STRING_PREFIX},
-    {SEQ_SUFFIX, CVC4::Kind::STRING_SUFFIX},    
+    {SEQ_SUFFIX, CVC4::Kind::STRING_SUFFIX},
     {CONST_SEQUENCE, CVC4::Kind::CONST_SEQUENCE},
     {SEQ_UNIT, CVC4::Kind::SEQ_UNIT},
     /* Quantifiers --------------------------------------------------------- */

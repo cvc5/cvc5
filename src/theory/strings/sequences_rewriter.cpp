@@ -1829,7 +1829,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
-          Assert (c.getType()==t.getType());
+          Assert(c.getType() == t.getType());
           nb << c.eqNode(t);
         }
 
