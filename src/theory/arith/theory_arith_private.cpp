@@ -710,6 +710,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     if(d_congruenceManager.isWatchedVariable(x_i)){
       int sgn = c_i.sgn();
       if(sgn > 0){
+        // Follows from a two-constraint FARKAS
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
       }else if(sgn == 0 && d_partialModel.upperBoundIsZero(x_i)){
         zeroDifferenceDetected(x_i);
@@ -850,6 +851,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
     if(d_congruenceManager.isWatchedVariable(x_i)){
       int sgn = c_i.sgn();
       if(sgn < 0){
+        // Follows from a two-constraint farkas.
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
       }else if(sgn == 0 && d_partialModel.lowerBoundIsZero(x_i)){
         zeroDifferenceDetected(x_i);
@@ -941,6 +943,8 @@ bool TheoryArithPrivate::AssertEquality(ConstraintP constraint){
       if(sgn == 0){
         zeroDifferenceDetected(x_i);
       }else{
+        // We're equal to something else, so we can't be equal to zero.
+        // True by Farkas.
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
         d_congruenceManager.equalsConstant(constraint);
       }
@@ -993,6 +997,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
     if(d_congruenceManager.isWatchedVariable(x_i)){
       int sgn = c_i.sgn();
       if(sgn == 0){
+        // Duh. This is what a disequality means.
         d_congruenceManager.watchedVariableCannotBeZero(constraint);
       }
     }
@@ -1045,7 +1050,7 @@ bool TheoryArithPrivate::AssertDisequality(ConstraintP constraint){
 
   if(!split && c_i == d_partialModel.getAssignment(x_i)){
     Debug("arith::eq") << "lemma now! " << constraint << endl;
-    outputLemma(constraint->split().getNode());
+    outputTrustedLemma(constraint->split());
     return false;
   }else if(d_partialModel.strictlyLessThanLowerBound(x_i, c_i)){
     Debug("arith::eq") << "can drop as less than lb" << constraint << endl;
@@ -1660,9 +1665,9 @@ Node TheoryArithPrivate::callDioSolver(){
 
     Node orig = Node::null();
     if(lb->isEquality()){
-      orig = lb->externalExplainByAssertions().getNode();
+      orig = Constraint::externalExplainByAssertions({lb});
     }else if(ub->isEquality()){
-      orig = ub->externalExplainByAssertions().getNode();
+      orig = Constraint::externalExplainByAssertions({ub});
     }else {
       orig = Constraint::externalExplainByAssertions(ub, lb);
     }
@@ -1736,7 +1741,9 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
     Debug("arith::constraint") << "marking as constraint as self explaining " << endl;
     constraint->setAssumption(inConflict);
   } else {
-    Debug("arith::constraint") << "already has proof: " << constraint->externalExplainByAssertions() << endl;
+    Debug("arith::constraint")
+        << "already has proof: "
+        << constraint->externalExplainByAssertions().getNode() << endl;
   }
   
 
@@ -1799,6 +1806,8 @@ bool TheoryArithPrivate::assertionCases(ConstraintP constraint){
         bool inConflict = ceilingConstraint->negationHasProof();
         if (Debug.isOn("arith::intbound")) {
           Debug("arith::intbound") << "literal, before: " << constraint->getLiteral() << std::endl;
+          Debug("arith::intbound")
+              << "constraint, before: " << *constraint << std::endl;
           Debug("arith::intbound") << "constraint, after: " << ceilingConstraint << std::endl;
         }
         ceilingConstraint->impliedByIntTighten(constraint, inConflict);
@@ -1919,7 +1928,15 @@ void TheoryArithPrivate::outputConflicts(){
         pf.print(std::cout);
         std::cout << std::endl;
       }
-      Node conflict = confConstraint->externalExplainConflict().getNode();
+      if (Debug.isOn("arith::pf::tree"))
+      {
+        Debug("arith::pf::tree") << "\n\nTree:\n";
+        confConstraint->printProofTree(Debug("arith::pf::tree"));
+        confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
+      }
+
+      TrustNode trustedConflict = confConstraint->externalExplainConflict();
+      Node conflict = trustedConflict.getNode();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
@@ -1954,7 +1971,14 @@ void TheoryArithPrivate::outputConflicts(){
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
       }
 
-      outputConflict(conflict);
+      if (options::proofNew())
+      {
+        outputTrustedConflict(trustedConflict);
+      }
+      else
+      {
+        outputConflict(conflict);
+      }
     }
   }
   if(!d_blackBoxConflict.get().isNull()){
@@ -1967,14 +1991,25 @@ void TheoryArithPrivate::outputConflicts(){
       bb = flattenAndSort(bb);
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
-
     outputConflict(bb);
   }
+}
+
+void TheoryArithPrivate::outputTrustedLemma(TrustNode lemma)
+{
+  Debug("arith::channel") << "Arith trusted lemma: " << lemma << std::endl;
+  (d_containing.d_out)->trustedLemma(lemma);
 }
 
 void TheoryArithPrivate::outputLemma(TNode lem) {
   Debug("arith::channel") << "Arith lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
+}
+
+void TheoryArithPrivate::outputTrustedConflict(TrustNode conf)
+{
+  Debug("arith::channel") << "Arith trusted conflict: " << conf << std::endl;
+  (d_containing.d_out)->trustedConflict(conf);
 }
 
 void TheoryArithPrivate::outputConflict(TNode lit) {
@@ -3799,11 +3834,12 @@ bool TheoryArithPrivate::splitDisequalities(){
         Debug("arith::lemma") << "Splitting on " << front << endl;
         Debug("arith::lemma") << "LHS value = " << lhsValue << endl;
         Debug("arith::lemma") << "RHS value = " << rhsValue << endl;
-        Node lemma = front->split().getNode();
+        TrustNode lemma = front->split();
         ++(d_statistics.d_statDisequalitySplits);
 
-        Debug("arith::lemma") << "Now " << Rewriter::rewrite(lemma) << endl;
-        outputLemma(lemma);
+        Debug("arith::lemma")
+            << "Now " << Rewriter::rewrite(lemma.getNode()) << endl;
+        outputTrustedLemma(lemma);
         //cout << "Now " << Rewriter::rewrite(lemma) << endl;
         splitSomething = true;
       }else if(d_partialModel.strictlyLessThanLowerBound(lhsVar, rhsValue)){
@@ -3876,30 +3912,27 @@ TrustNode TheoryArithPrivate::explain(TNode n)
   Debug("arith::explain") << "explain @" << getSatContext()->getLevel() << ": " << n << endl;
 
   ConstraintP c = d_constraintDatabase.lookup(n);
+  TrustNode exp;
   if(c != NullConstraint){
     Assert(!c->isAssumption());
-    Node exp = c->externalExplainForPropagation().getNode();
+    exp = c->externalExplainForPropagation();
     Debug("arith::explain") << "constraint explanation" << n << ":" << exp << endl;
-    // FIXME
-    return TrustNode::mkTrustPropExp(n, exp, nullptr);
   }else if(d_assertionsThatDoNotMatchTheirLiterals.find(n) != d_assertionsThatDoNotMatchTheirLiterals.end()){
     c = d_assertionsThatDoNotMatchTheirLiterals[n];
     if(!c->isAssumption()){
-      Node exp = c->externalExplainForPropagation().getNode();
+      exp = c->externalExplainForPropagation();
       Debug("arith::explain") << "assertions explanation" << n << ":" << exp << endl;
-      // FIXME
-      return TrustNode::mkTrustPropExp(n, exp, nullptr);
     }else{
       Debug("arith::explain") << "this is a strange mismatch" << n << endl;
       Assert(d_congruenceManager.canExplain(n));
-      Debug("arith::explain") << "this is a strange mismatch" << n << endl;
-      return d_congruenceManager.explain(n);
+      exp = d_congruenceManager.explain(n);
     }
   }else{
     Assert(d_congruenceManager.canExplain(n));
     Debug("arith::explain") << "dm explanation" << n << endl;
-    return d_congruenceManager.explain(n);
+    exp = d_congruenceManager.explain(n);
   }
+  return exp;
 }
 
 bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
@@ -4655,23 +4688,40 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
 Node flattenImplication(Node imp){
   NodeBuilder<> nb(kind::OR);
+  std::unordered_set<Node, NodeHashFunction> included;
   Node left = imp[0];
   Node right = imp[1];
 
   if(left.getKind() == kind::AND){
     for(Node::iterator i = left.begin(), iend = left.end(); i != iend; ++i) {
-      nb << (*i).negate();
+      if (!included.count((*i).negate()))
+      {
+        nb << (*i).negate();
+        included.insert((*i).negate());
+      }
     }
   }else{
-    nb << left.negate();
+    if (!included.count(left.negate()))
+    {
+      nb << left.negate();
+      included.insert(left.negate());
+    }
   }
 
   if(right.getKind() == kind::OR){
     for(Node::iterator i = right.begin(), iend = right.end(); i != iend; ++i) {
-      nb << *i;
+      if (!included.count(*i))
+      {
+        nb << *i;
+        included.insert(*i);
+      }
     }
   }else{
-    nb << right;
+    if (!included.count(right))
+    {
+      nb << right;
+      included.insert(right);
+    }
   }
 
   return nb;
@@ -4750,7 +4800,61 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
           }
         }
       })
-      outputLemma(clause);
+
+      if (options::proofNew())
+      {
+        // We can prove this lemma from Farkas...
+        std::vector<std::shared_ptr<ProofNode>> conflictPfs;
+        // Assume the negated getLiteral version of the implied constaint
+        // then rewrite it into proof normal form.
+        conflictPfs.push_back(
+            d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                          d_pnm->mkAssume(implied->getLiteral().negate()),
+                          {implied->getNegation()->getProofLiteral()}));
+        // Add the explaination proofs.
+        for (const auto constraint : explain)
+        {
+          NodeBuilder<> nb;
+          conflictPfs.push_back(constraint->externalExplainByAssertions(nb));
+        }
+        // Collect the farkas coefficients, as nodes.
+        std::vector<Node> farkasCoefficients;
+        farkasCoefficients.reserve(coeffs->size());
+        auto nm = NodeManager::currentNM();
+        std::transform(
+            coeffs->begin(),
+            coeffs->end(),
+            std::back_inserter(farkasCoefficients),
+            [nm](const Rational& r) { return nm->mkConst<Rational>(r); });
+
+        // Prove bottom.
+        auto sumPf = d_pnm->mkNode(
+            PfRule::SCALE_SUM_UPPER_BOUNDS, conflictPfs, farkasCoefficients);
+        auto botPf = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
+
+        // Prove the conflict
+        std::vector<Node> assumptions;
+        assumptions.reserve(clause.getNumChildren());
+        std::transform(clause.begin(),
+                       clause.end(),
+                       std::back_inserter(assumptions),
+                       [](TNode r) { return r.negate(); });
+        auto notAndNotPf = d_pnm->mkScope(botPf, assumptions);
+
+        // Convert it to a clause
+        auto orNotNotPf = d_pnm->mkNode(PfRule::NOT_AND, notAndNotPf, {});
+        clausePf = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {clause});
+
+        // Output it
+        TrustNode trustedClause = d_pfGen->mkTrustNode(clause, clausePf);
+        outputTrustedLemma(trustedClause);
+      }
+      else
+      {
+        outputLemma(clause);
+      }
     }else{
       Assert(!implied->negationHasProof());
       implied->impliedByFarkas(explain, coeffs, false);
@@ -5214,7 +5318,7 @@ void TheoryArithPrivate::entailmentCheckBoundLookup(std::pair<Node, DeltaRationa
       ? d_partialModel.getUpperBoundConstraint(v)
       : d_partialModel.getLowerBoundConstraint(v);
     if(c != NullConstraint){
-      tmp.first = c->externalExplainByAssertions().getNode();
+      tmp.first = Constraint::externalExplainByAssertions({c});
       tmp.second = c->getValue();
     }
   }

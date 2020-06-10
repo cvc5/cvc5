@@ -669,7 +669,9 @@ private:
     (d_containing.d_out)->setIncomplete();
     d_nlIncomplete = true;
   }
+  void outputTrustedLemma(TrustNode lem);
   void outputLemma(TNode lem);
+  void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);
   void outputRestart();
