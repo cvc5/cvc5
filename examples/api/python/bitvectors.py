@@ -84,7 +84,7 @@ if __name__ == "__main__":
 
     print("Checking entailment assuming:", new_x_eq_new_x_)
     print("Expect ENTAILED.")
-    print("CVC4:", slv.checkEntailment(new_x_eq_new_x_))
+    print("CVC4:", slv.checkEntailed(new_x_eq_new_x_))
     print("Popping context.")
     slv.pop()
 

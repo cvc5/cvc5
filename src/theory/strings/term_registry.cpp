@@ -88,6 +88,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   if (k == EQUAL)
   {
+    if (n[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     d_ee.addTriggerEquality(n);
     return;
   }
@@ -368,6 +374,13 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
                                               LengthStatus s,
                                               std::map<Node, bool>& reqPhase)
 {
+  if (n.isConst())
+  {
+    // No need to send length for constant terms. This case may be triggered
+    // for cases where the skolem cache automatically replaces a skolem by
+    // a constant.
+    return Node::null();
+  }
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
   Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
@@ -425,14 +438,6 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     // n ---> "". Since this method is only called on non-constants n, it must
     // be that n = "" ^ len( n ) = 0 does not rewrite to true.
     Assert(false);
-  }
-
-  // additionally add len( x ) >= 0 ?
-  if (options::stringLenGeqZ())
-  {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite(n_len_geq);
-    lems.push_back(n_len_geq);
   }
 
   if (lems.empty())

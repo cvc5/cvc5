@@ -63,10 +63,10 @@ void SortBlack::testGetDatatype()
 {
   // create datatype sort, check should not fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS_NOTHING(dtypeSort.getDatatype());
@@ -80,11 +80,11 @@ void SortBlack::testDatatypeSorts()
   Sort intSort = d_solver.getIntegerSort();
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
@@ -121,8 +121,9 @@ void SortBlack::testInstantiate()
   // instantiate parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl paramCons("cons");
-  DatatypeConstructorDecl paramNil("nil");
+  DatatypeConstructorDecl paramCons =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
   paramDtypeSpec.addConstructor(paramCons);
   paramDtypeSpec.addConstructor(paramNil);
@@ -131,10 +132,10 @@ void SortBlack::testInstantiate()
       paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
   // instantiate non-parametric datatype sort, check should fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS(
@@ -265,8 +266,9 @@ void SortBlack::testGetDatatypeParamSorts()
   // create parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl paramCons("cons");
-  DatatypeConstructorDecl paramNil("nil");
+  DatatypeConstructorDecl paramCons =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
   paramDtypeSpec.addConstructor(paramCons);
   paramDtypeSpec.addConstructor(paramNil);
@@ -274,10 +276,10 @@ void SortBlack::testGetDatatypeParamSorts()
   TS_ASSERT_THROWS_NOTHING(paramDtypeSort.getDatatypeParamSorts());
   // create non-parametric datatype sort, check should fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS(dtypeSort.getDatatypeParamSorts(), CVC4ApiException&);
@@ -287,10 +289,10 @@ void SortBlack::testGetDatatypeArity()
 {
   // create datatype sort, check should not fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS_NOTHING(dtypeSort.getDatatypeArity());

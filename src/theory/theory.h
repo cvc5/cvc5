@@ -248,8 +248,24 @@ class Theory {
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-public:
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x. This is
+   * useful for ppAssert, when x = val is an entailed equality. This function
+   * determines whether indeed x can be eliminated from the problem via the
+   * substituion x -> val.
+   *
+   * The following criteria imply that x -> val is *not* a legal elimination:
+   * (1) If x is contained in val,
+   * (2) If the type of val is not a subtype of the type of x,
+   * (3) If val contains an operator that cannot be evaluated, and produceModels
+   * is true. For example, x -> sqrt(2) is not a legal elimination if we
+   * are producing models. This is because we care about the value of x, and
+   * its value must be computed (approximated) by the non-linear solver.
+   */
+  bool isLegalElimination(TNode x, TNode val);
 
+ public:
   /**
    * Return the ID of the theory responsible for the given type.
    */
