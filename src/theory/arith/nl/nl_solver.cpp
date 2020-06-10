@@ -165,9 +165,9 @@ void NlSolver::setMonomialFactor(Node a, Node b, const NodeMultiset& common)
   }
 }
 
-std::vector<Node> NlSolver::checkSplitZero()
+std::vector<NlLemma> NlSolver::checkSplitZero()
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   for (unsigned i = 0; i < d_ms_vars.size(); i++)
   {
     Node v = d_ms_vars[i];
@@ -260,7 +260,7 @@ int NlSolver::compareSign(Node oa,
                           unsigned a_index,
                           int status,
                           std::vector<Node>& exp,
-                          std::vector<Node>& lem)
+                          std::vector<NlLemma>& lem)
 {
   Trace("nl-ext-debug") << "Process " << a << " at index " << a_index
                         << ", status is " << status << std::endl;
@@ -311,7 +311,7 @@ bool NlSolver::compareMonomial(
     Node b,
     NodeMultiset& b_exp_proc,
     std::vector<Node>& exp,
-    std::vector<Node>& lem,
+    std::vector<NlLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -415,7 +415,7 @@ bool NlSolver::compareMonomial(
     NodeMultiset& b_exp_proc,
     int status,
     std::vector<Node>& exp,
-    std::vector<Node>& lem,
+    std::vector<NlLemma>& lem,
     std::map<int, std::map<Node, std::map<Node, Node> > >& cmp_infers)
 {
   Trace("nl-ext-comp-debug")
@@ -628,9 +628,9 @@ bool NlSolver::compareMonomial(
   return false;
 }
 
-std::vector<Node> NlSolver::checkMonomialSign()
+std::vector<NlLemma> NlSolver::checkMonomialSign()
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   std::map<Node, int> signs;
   Trace("nl-ext") << "Get monomial sign lemmas..." << std::endl;
   for (unsigned j = 0; j < d_ms.size(); j++)
@@ -667,7 +667,7 @@ std::vector<Node> NlSolver::checkMonomialSign()
   return lemmas;
 }
 
-std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
+std::vector<NlLemma> NlSolver::checkMonomialMagnitude(unsigned c)
 {
   // ensure information is setup
   if (c == 0)
@@ -681,7 +681,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
   }
 
   unsigned r = 1;
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   // if (x,y,L) in cmp_infers, then x > y inferred as conclusion of L
   // in lemmas
   std::map<int, std::map<Node, std::map<Node, Node> > > cmp_infers;
@@ -803,7 +803,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
   Trace("nl-ext-comp") << "Compute redundancies for " << lemmas.size()
                        << " lemmas." << std::endl;
   // naive
-  std::vector<Node> r_lemmas;
+  std::unordered_set<Node, NodeHashFunction> r_lemmas;
   for (std::map<int, std::map<Node, std::map<Node, Node> > >::iterator itb =
            cmp_infers.begin();
        itb != cmp_infers.end();
@@ -828,7 +828,7 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
             std::vector<Node> exp;
             if (cmp_holds(itc3->first, itc2->first, itb->second, exp, visited))
             {
-              r_lemmas.push_back(itc2->second);
+              r_lemmas.insert(itc2->second);
               Trace("nl-ext-comp")
                   << "...inference of " << itc->first << " > " << itc2->first
                   << " was redundant." << std::endl;
@@ -839,11 +839,10 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
       }
     }
   }
-  std::vector<Node> nr_lemmas;
+  std::vector<NlLemma> nr_lemmas;
   for (unsigned i = 0; i < lemmas.size(); i++)
   {
-    if (std::find(r_lemmas.begin(), r_lemmas.end(), lemmas[i])
-        == r_lemmas.end())
+    if (r_lemmas.find(lemmas[i].d_lemma) == r_lemmas.end())
     {
       nr_lemmas.push_back(lemmas[i]);
     }
@@ -855,9 +854,9 @@ std::vector<Node> NlSolver::checkMonomialMagnitude(unsigned c)
   return nr_lemmas;
 }
 
-std::vector<Node> NlSolver::checkTangentPlanes()
+std::vector<NlLemma> NlSolver::checkTangentPlanes()
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   const std::map<Node, std::vector<Node> >& ccMap =
@@ -1013,8 +1012,8 @@ std::vector<Node> NlSolver::checkTangentPlanes()
   return lemmas;
 }
 
-std::vector<Node> NlSolver::checkMonomialInferBounds(
-    std::vector<Node>& nt_lemmas,
+std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
+    std::vector<NlLemma>& nt_lemmas,
     const std::vector<Node>& asserts,
     const std::vector<Node>& false_asserts)
 {
@@ -1028,7 +1027,7 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   const std::map<Node, std::map<Node, ConstraintInfo> >& cim =
       d_cdb.getConstraints();
 
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   // register constraints
   Trace("nl-ext-debug") << "Register bound constraints..." << std::endl;
@@ -1271,10 +1270,10 @@ std::vector<Node> NlSolver::checkMonomialInferBounds(
   return lemmas;
 }
 
-std::vector<Node> NlSolver::checkFactoring(
+std::vector<NlLemma> NlSolver::checkFactoring(
     const std::vector<Node>& asserts, const std::vector<Node>& false_asserts)
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get factoring lemmas..." << std::endl;
   for (const Node& lit : asserts)
@@ -1401,7 +1400,7 @@ std::vector<Node> NlSolver::checkFactoring(
   return lemmas;
 }
 
-Node NlSolver::getFactorSkolem(Node n, std::vector<Node>& lemmas)
+Node NlSolver::getFactorSkolem(Node n, std::vector<NlLemma>& lemmas)
 {
   std::map<Node, Node>::iterator itf = d_factor_skolem.find(n);
   if (itf == d_factor_skolem.end())
@@ -1416,9 +1415,9 @@ Node NlSolver::getFactorSkolem(Node n, std::vector<Node>& lemmas)
   return itf->second;
 }
 
-std::vector<Node> NlSolver::checkMonomialInferResBounds()
+std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
 {
-  std::vector<Node> lemmas;
+  std::vector<NlLemma> lemmas;
   NodeManager* nm = NodeManager::currentNM();
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..."
                   << std::endl;
