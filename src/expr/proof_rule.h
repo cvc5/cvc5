@@ -812,6 +812,13 @@ enum class PfRule : uint32_t
   //                 >= to <, etc.
   TRICHOTOMY,
 
+  // ======== Arithmetic operator elimination
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  ARITH_OP_ELIM_AXIOM,
+
   // ======== Int Trust
   // Children: (P1 ... Pn)
   // Arguments: (Q)

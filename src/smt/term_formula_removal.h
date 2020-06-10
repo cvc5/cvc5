@@ -26,9 +26,9 @@
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "smt/dump.h"
+#include "theory/eager_proof_generator.h"
 #include "util/bool.h"
 #include "util/hash.h"
-#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 
@@ -79,13 +79,14 @@ class RemoveTermFormulas {
   inline Node getSkolemForNode(Node node) const;
 
   static bool hasNestedTermChildren( TNode node );
-  
-  /** 
+
+  /**
    * A proof generator for skolems we introduce that are based on axioms that
    * this class is responsible for.
    */
   std::unique_ptr<theory::EagerProofGenerator> d_tpg;
-public:
+
+ public:
 
   RemoveTermFormulas(context::UserContext* u);
   ~RemoveTermFormulas();
@@ -165,8 +166,8 @@ public:
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-  
-  /** 
+
+  /**
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol. For
    * example, if n is (ite n1 n2 n3), this returns the formula:

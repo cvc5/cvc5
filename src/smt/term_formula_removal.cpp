@@ -38,10 +38,10 @@ void RemoveTermFormulas::run(std::vector<Node>& output,
                              bool reportDeps,
                              LazyCDProof* lp)
 {
-  if (lp!=nullptr)
+  if (lp != nullptr)
   {
     // create the proof generator if not already done so
-    if (d_tpg==nullptr)
+    if (d_tpg == nullptr)
     {
       // use the proof manager of the given proof
       d_tpg.reset(new theory::EagerProofGenerator(lp->getManager()));
@@ -140,11 +140,13 @@ Node RemoveTermFormulas::run(TNode node,
           pfArgs.push_back(node);
           Node conc = getAxiomFor(node);
           CDProof cdp(lp->getManager());
-          cdp.addStep(conc, PfRule::REMOVE_TERM_FORMULA_AXIOM, pfChildren, pfArgs);
-          existsAssertion = sm->mkExistential(node,conc);
+          cdp.addStep(
+              conc, PfRule::REMOVE_TERM_FORMULA_AXIOM, pfChildren, pfArgs);
+          existsAssertion = sm->mkExistential(node, conc);
           pfChildren.push_back(conc);
-          cdp.addStep(existsAssertion, PfRule::EXISTS_INTRO, pfChildren, pfArgs);
-          Assert (d_tpg!=nullptr);
+          cdp.addStep(
+              existsAssertion, PfRule::EXISTS_INTRO, pfChildren, pfArgs);
+          Assert(d_tpg != nullptr);
           // store it in the proof generator managed by this class
           d_tpg->setProofFor(existsAssertion, cdp.mkProof(existsAssertion));
           newAssertionPg = d_tpg.get();
@@ -407,9 +409,9 @@ bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-  if (k==kind::ITE)
+  if (k == kind::ITE)
   {
     return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }

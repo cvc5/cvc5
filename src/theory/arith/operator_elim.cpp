@@ -447,6 +447,11 @@ Node OperatorElim::eliminateOperators(Node node)
   return node;
 }
 
+Node OperatorElim::getAxiomFor(Node n)
+{
+  return Node::null();
+}
+
 Node OperatorElim::getArithSkolem(ArithSkolemId asi)
 {
   std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);

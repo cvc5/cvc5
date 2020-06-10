@@ -15,9 +15,9 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "smt/term_formula_removal.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
-#include "smt/term_formula_removal.h"
 
 using namespace CVC4::kind;
 

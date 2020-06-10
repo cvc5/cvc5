@@ -33,6 +33,7 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
   pc->registerChecker(PfRule::INT_TIGHT_LB, this);
   pc->registerChecker(PfRule::INT_TRUST, this);
+  pc->registerChecker(PfRule::ARITH_OP_ELIM_AXIOM, this);
 }
 
 Node ArithProofRuleChecker::checkInternal(PfRule id,
@@ -248,6 +249,14 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(args.size() == 1);
       return args[0];
+    }
+    case PfRule::ARITH_OP_ELIM_AXIOM:
+    {
+      Assert (children.empty());
+      Assert (args.size()==1);
+      Node t = SkolemManager::getSkolemForm(args[0]);
+      Node ret = OperatorElim::getAxiomFor(t);
+      return SkolemManager::getWitnessForm(ret);
     }
     default: return Node::null();
   }

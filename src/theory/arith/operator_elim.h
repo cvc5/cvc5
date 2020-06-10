@@ -56,6 +56,11 @@ class OperatorElim : public EagerProofGenerator
    */
   Node eliminateOperatorsRec(Node n);
 
+  /**
+   * Get axiom for term n. This returns the axiom that this class uses to
+   * eliminate the term n, which is determined by its top-most symbol.
+   */
+  static Node getAxiomFor(Node n);
  private:
   /** Logic info of the owner of this class */
   const LogicInfo& d_info;
