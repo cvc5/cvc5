@@ -92,9 +92,9 @@ class EagerProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Can we give the proof for formula f? */
   bool hasProofFor(Node f) override;
-  /** 
+  /**
    * Set proof for fact f, called when pf is a proof of f.
-   * 
+   *
    * @param f The fact proven by pf,
    * @param pf The proof to store in this class.
    */
