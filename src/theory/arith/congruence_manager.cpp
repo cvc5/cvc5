@@ -46,7 +46,8 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_avariables(avars),
       d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true),
       d_pnm(pnm),
-      d_pfGen(new EagerProofGenerator(u, pnm)),
+      d_pfGenEe(new EagerProofGenerator(u, pnm)),
+      d_pfGenExplain(new EagerProofGenerator(u, pnm)),
       d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm, options::proofNew()))
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
@@ -55,6 +56,27 @@ ArithCongruenceManager::ArithCongruenceManager(
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
+
+std::vector<Node> andComponents(TNode an)
+{
+  auto nm = NodeManager::currentNM();
+  if (an == nm->mkConst(true))
+  {
+    return {};
+  }
+  else if (an.getKind() != Kind::AND)
+  {
+    return { an };
+  }
+  else
+  {
+    std::vector<Node> a{};
+    a.reserve(an.getNumChildren());
+    a.insert(a.end(), an.begin(), an.end());
+    return a;
+  }
+}
+
 
 ArithCongruenceManager::Statistics::Statistics():
   d_watchedVariables("theory::arith::congruence::watchedVariables", 0),
@@ -432,8 +454,29 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
   TrustNode trn = explainInternal(internal);
-  // TODO: proof of internal to external?
-  return trn;
+  Assert(trn.getKind() == TrustNodeKind::PROP_EXP);
+  Assert(trn.getProven().getKind() == Kind::IMPLIES);
+  if (trn.getProven()[1] != external)
+  {
+    Trace("arith-ee") << "tweaking proof to prove " << external << " not "
+                      << trn.getProven()[1] << std::endl;
+    std::vector<std::shared_ptr<ProofNode>> assumptionPfs;
+    std::vector<Node> assumptions = andComponents(trn.getNode());
+    assumptionPfs.push_back(trn.getGenerator()->getProofFor(trn.getProven()));
+    for (const auto& a : assumptions)
+    {
+      assumptionPfs.push_back(
+          d_pnm->mkNode(PfRule::TRUE_INTRO, d_pnm->mkAssume(a), {}));
+    }
+    auto litPf = d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM, assumptionPfs, {external});
+    auto extPf = d_pnm->mkScope(litPf, assumptions);
+    return d_pfGenExplain->mkTrustedPropagation(external, trn.getNode(), extPf);
+  }
+  else
+  {
+    return trn;
+  }
 }
 
 void ArithCongruenceManager::explain(TNode external, NodeBuilder<>& out){

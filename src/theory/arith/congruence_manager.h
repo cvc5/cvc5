@@ -108,7 +108,9 @@ private:
   // engine. Note that these proofs **are not closed**, and assume the
   // explanation of these facts. This is why this generator is separate from the
   // TheoryArithPrivate generator, which stores closed proofs.
-  std::unique_ptr<EagerProofGenerator> d_pfGen;
+  std::unique_ptr<EagerProofGenerator> d_pfGenEe;
+  // A proof generator for TrustNodes sent to the theory.
+  std::unique_ptr<EagerProofGenerator> d_pfGenExplain;
 
   /** Proof equality engine, wrapping the above class */
   std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
