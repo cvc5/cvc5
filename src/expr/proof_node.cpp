@@ -54,8 +54,10 @@ void ProofNode::getFreeAssumptionsMap(
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;
-  // the current set of formulas bound by SCOPE
-  std::unordered_set<Node, NodeHashFunction> currentScope;
+  // Maps an bound assumption to the number of bindings it is under
+  // e.g. in (SCOPE (SCOPE (ASSUME x) (x y)) (y)), y would be mapped to 2 at
+  // (ASSUME x), and x would be mapped to 1.
+  std::unordered_map<Node, uint32_t, NodeHashFunction> scopeDepth;
   ProofNode* cur;
   visit.push_back(this);
   do
@@ -71,7 +73,7 @@ void ProofNode::getFreeAssumptionsMap(
       {
         Assert(cur->d_args.size() == 1);
         Node f = cur->d_args[0];
-        if (currentScope.find(f) == currentScope.end())
+        if (!scopeDepth.count(f))
         {
           amap[f].push_back(cur);
         }
@@ -83,9 +85,7 @@ void ProofNode::getFreeAssumptionsMap(
           // mark that its arguments are bound in the current scope
           for (const Node& a : cur->d_args)
           {
-            // should not have assumption shadowing
-            Assert(currentScope.find(a) == currentScope.end());
-            currentScope.insert(a);
+            scopeDepth[a] += 1;
           }
           // will need to unbind the variables below
           visited[cur] = false;
@@ -104,7 +104,16 @@ void ProofNode::getFreeAssumptionsMap(
       // unbind its assumptions
       for (const Node& a : cur->d_args)
       {
-        currentScope.erase(a);
+        auto scopeCt = scopeDepth.find(a);
+        Assert(scopeCt != scopeDepth.end());
+        if (scopeCt->second == 1)
+        {
+          scopeDepth.erase(scopeCt);
+        }
+        else
+        {
+          scopeCt->second -= 1;
+        }
       }
     }
   } while (!visit.empty());
