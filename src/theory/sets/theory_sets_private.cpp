@@ -912,7 +912,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.assertInference(lem, d_true, "diseq", 1);
     d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
@@ -1510,7 +1510,7 @@ Node TheorySetsPrivate::expandDefinition(Node node)
     Node memberAndEqual = member.andNode(equal);
     Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
     Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
-    Node witness = nm->mkNode(CHOICE, witnessVariables, ite);
+    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
     return witness;
   }
 
@@ -1534,46 +1534,6 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
       name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
   d_chooseFunctions[setType] = chooseSkolem;
   return chooseSkolem;
-}
-
-Theory::PPAssertStatus TheorySetsPrivate::ppAssert(
-    TNode in, SubstitutionMap& outSubstitutions)
-{
-  Debug("sets-proc") << "ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
-
-  // TODO: allow variable elimination for sets when setsExt = true
-
-  // this is based off of Theory::ppAssert
-  if (in.getKind() == kind::EQUAL)
-  {
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType()))
-    {
-      if (!in[0].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[0], in[1]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-             && (in[0].getType()).isSubtypeOf(in[1].getType()))
-    {
-      if (!in[1].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[1], in[0]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
-  }
-  return status;
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }

@@ -16,11 +16,9 @@
 ### A simple demonstration of the Python interface.  Compare to the
 ### C++ interface in simple_vc_cxx.cpp; they are quite similar.
 ###
-### To run, use something like:
+### To run from a build directory, use something like:
 ###
-###   ln -s ../builds/src/bindings/python/CVC4.py CVC4.py
-###   ln -s ../builds/src/bindings/python/.libs/CVC4.so _CVC4.so
-###   ./SimpleVC.py
+###   PYTHONPATH=src/bindings/python python ../examples/SimpleVC.py
 ####
 
 import CVC4
@@ -61,4 +59,3 @@ def main():
 
 if __name__ == '__main__':
   sys.exit(main())
-

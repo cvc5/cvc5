@@ -155,6 +155,34 @@ bool hasSubtermKind(Kind k, Node n)
   return false;
 }
 
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n)
+{
+  if (ks.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      if (ks.find(cur.getKind()) != ks.end())
+      {
+        return true;
+      }
+      visited.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())
@@ -594,13 +622,13 @@ void getComponentTypes(
     TypeNode curr = toProcess.back();
     toProcess.pop_back();
     // if not already visited
-    if (types.find(t) == types.end())
+    if (types.find(curr) == types.end())
     {
-      types.insert(t);
+      types.insert(curr);
       // get component types from the children
-      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
       {
-        toProcess.push_back(t[i]);
+        toProcess.push_back(curr[i]);
       }
     }
   } while (!toProcess.empty());

@@ -63,6 +63,18 @@ void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
 }
 
+void TheoryArith::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
+      && getLogicInfo().areTranscendentalsUsed())
+  {
+    // witness is used to eliminate square root
+    tm->setUnevaluatedKind(kind::WITNESS);
+  }
+}
+
 Node TheoryArith::expandDefinition(Node node)
 {
   return d_internal->expandDefinition(node);

@@ -190,6 +190,8 @@ libcvc4_add_sources(
   prop/cnf_stream.h
   prop/cryptominisat.cpp
   prop/cryptominisat.h
+  prop/kissat.cpp
+  prop/kissat.h
   prop/minisat/core/Dimacs.h
   prop/minisat/core/Solver.cc
   prop/minisat/core/Solver.h
@@ -298,18 +300,20 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
-  theory/arith/nl_constraint.cpp
-  theory/arith/nl_constraint.h
-  theory/arith/nl_lemma_utils.cpp
-  theory/arith/nl_lemma_utils.h
-  theory/arith/nl_model.cpp
-  theory/arith/nl_model.h
-  theory/arith/nl_monomial.cpp
-  theory/arith/nl_monomial.h
-  theory/arith/nl_solver.cpp
-  theory/arith/nl_solver.h
-  theory/arith/nonlinear_extension.cpp
-  theory/arith/nonlinear_extension.h
+  theory/arith/nl/nl_constraint.cpp
+  theory/arith/nl/nl_constraint.h
+  theory/arith/nl/nl_lemma_utils.cpp
+  theory/arith/nl/nl_lemma_utils.h
+  theory/arith/nl/nl_model.cpp
+  theory/arith/nl/nl_model.h
+  theory/arith/nl/nl_monomial.cpp
+  theory/arith/nl/nl_monomial.h
+  theory/arith/nl/nl_solver.cpp
+  theory/arith/nl/nl_solver.h
+  theory/arith/nl/nonlinear_extension.cpp
+  theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/transcendental_solver.cpp
+  theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/partial_model.cpp
@@ -330,8 +334,6 @@ libcvc4_add_sources(
   theory/arith/theory_arith_private.h
   theory/arith/theory_arith_private_forward.h
   theory/arith/theory_arith_type_rules.h
-  theory/arith/transcendental_solver.cpp
-  theory/arith/transcendental_solver.h
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
@@ -353,6 +355,8 @@ libcvc4_add_sources(
   theory/atom_requests.h
   theory/booleans/circuit_propagator.cpp
   theory/booleans/circuit_propagator.h
+  theory/booleans/proof_checker.cpp
+  theory/booleans/proof_checker.h
   theory/booleans/theory_bool.cpp
   theory/booleans/theory_bool.h
   theory/booleans/theory_bool_rewriter.cpp
@@ -364,6 +368,8 @@ libcvc4_add_sources(
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
   theory/builtin/theory_builtin_type_rules.h
+  theory/builtin/proof_checker.cpp
+  theory/builtin/proof_checker.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
   theory/bv/abstraction.cpp
@@ -742,6 +748,8 @@ libcvc4_add_sources(
   theory/theory_model_builder.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
+  theory/trust_node.cpp
+  theory/trust_node.h
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h
@@ -750,6 +758,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/proof_checker.cpp
+  theory/uf/proof_checker.h
   theory/uf/ho_extension.cpp
   theory/uf/ho_extension.h
   theory/uf/symmetry_breaker.cpp
@@ -843,6 +853,10 @@ if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${CryptoMiniSat_INCLUDE_DIR})
 endif()
+if(USE_KISSAT)
+  target_link_libraries(cvc4 ${Kissat_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${Kissat_INCLUDE_DIR})
+endif()
 if(USE_DRAT2ER)
   target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${Drat2Er_INCLUDE_DIR})
@@ -919,6 +933,7 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
+          expr/expr_sequence.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h

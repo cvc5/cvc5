@@ -235,6 +235,8 @@ void ExtfSolver::checkExtfEval(int effort)
   NodeManager* nm = NodeManager::currentNM();
   bool has_nreduce = false;
   std::vector<Node> terms = d_extt.getActive();
+  // the set of terms we have done extf inferences for
+  std::unordered_set<Node, NodeHashFunction> inferProcessed;
   for (const Node& n : terms)
   {
     // Setup information about n, including if it is equal to a constant.
@@ -415,16 +417,22 @@ void ExtfSolver::checkExtfEval(int effort)
               effort == 0 ? Inference::EXTF_D : Inference::EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
-        to_reduce = nrc;
+        // We must use the original n here to avoid circular justifications for
+        // why extended functions are reduced below. In particular, to_reduce
+        // should never be a duplicate of another term considered in the block
+        // of code for checkExtfInference below.
+        to_reduce = n;
       }
     }
     else
     {
       to_reduce = n;
     }
-    // if not reduced
-    if (!to_reduce.isNull())
+    // if not reduced and not processed
+    if (!to_reduce.isNull()
+        && inferProcessed.find(to_reduce) == inferProcessed.end())
     {
+      inferProcessed.insert(to_reduce);
       Assert(effort < 3);
       if (effort == 1)
       {

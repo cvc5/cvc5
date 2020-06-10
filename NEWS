@@ -3,9 +3,26 @@ This file contains a summary of important user-visible changes.
 Changes since 1.7
 =================
 
+Improvements:
+* API: Function definitions can now be requested to be global. If the `global`
+  parameter is set to true, they persist after popping the user context.
+
 Changes:
+* API change: `SmtEngine::query()` has been renamed to
+  `SmtEngine::checkEntailed()` and `Result::Validity` has been renamed to
+  `Result::Entailment` along with corresponding changes to the enum values.
 * Java API change: The name of CVC4's package is now `edu.stanford.CVC4`
   instead of `edu.nyu.acsys.CVC4`.
+* The default output language is changed from CVC to SMT-LIB 2.6. The
+  default output language is used when the problem language cannot be
+  easily inferred (for example when CVC4 is used from the API).
+* Printing of BV constants: previously CVC4 would print BV constant
+  values as indexed symbols by default and in binary notation with the
+  option --bv-print-consts-in-binary. To be SMT-LIB compliant the
+  default behavior is now to print BV constant values in binary
+  notation and as indexed symbols with the new option
+  --bv-print-consts-as-indexed-symbols. The option
+  --bv-print-consts-in-binary has been removed.
 
 Changes since 1.6
 =================

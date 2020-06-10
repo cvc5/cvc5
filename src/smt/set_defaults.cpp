@@ -46,6 +46,11 @@ namespace smt {
 void setDefaults(SmtEngine& smte, LogicInfo& logic)
 {
   // implied options
+  if (options::debugCheckModels())
+  {
+    Notice() << "SmtEngine: setting checkModel" << std::endl;
+    options::checkModels.set(true);
+  }
   if (options::checkModels() || options::dumpModels())
   {
     Notice() << "SmtEngine: setting produceModels" << std::endl;
@@ -300,7 +305,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
-  // proofs or output an error if enabled explicitly
+  // proofs or output an error if enabled explicitly. It is also currently
+  // incompatible with arithmetic, force the option off.
   if (options::incrementalSolving() || options::unsatCores()
       || options::proof())
   {
@@ -326,8 +332,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       bool uncSimp = !logic.isQuantified() && !options::produceModels()
                      && !options::produceAssignments()
                      && !options::checkModels()
-                     && (logic.isTheoryEnabled(THEORY_ARRAYS)
-                         && logic.isTheoryEnabled(THEORY_BV));
+                     && logic.isTheoryEnabled(THEORY_ARRAYS)
+                     && logic.isTheoryEnabled(THEORY_BV)
+                     && !logic.isTheoryEnabled(THEORY_ARITH);
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << std::endl;
       options::unconstrainedSimp.set(uncSimp);
@@ -531,18 +538,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     smte.setOption("produce-models", SExpr("true"));
   }
 
-  // Set the options for the theoryOf
-  if (!options::theoryOfMode.wasSetByUser())
-  {
-    if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
-        && !logic.isTheoryEnabled(THEORY_STRINGS)
-        && !logic.isTheoryEnabled(THEORY_SETS))
-    {
-      Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
-      options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
-    }
-  }
-
   /////////////////////////////////////////////////////////////////////////////
   // Theory widening
   //
@@ -601,6 +596,18 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
   /////////////////////////////////////////////////////////////////////////////
+
+  // Set the options for the theoryOf
+  if (!options::theoryOfMode.wasSetByUser())
+  {
+    if (logic.isSharingEnabled() && !logic.isTheoryEnabled(THEORY_BV)
+        && !logic.isTheoryEnabled(THEORY_STRINGS)
+        && !logic.isTheoryEnabled(THEORY_SETS))
+    {
+      Trace("smt") << "setting theoryof-mode to term-based" << std::endl;
+      options::theoryOfMode.set(options::TheoryOfMode::THEORY_OF_TERM_BASED);
+    }
+  }
 
   // by default, symmetry breaker is on only for non-incremental QF_UF
   if (!options::ufSymmetryBreaker.wasSetByUser())
@@ -1090,11 +1097,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     {
       options::quantSplit.set(false);
     }
-    // rewrite divk
-    if (!options::rewriteDivk.wasSetByUser())
-    {
-      options::rewriteDivk.set(true);
-    }
     // do not do macros
     if (!options::macrosQuant.wasSetByUser())
     {
@@ -1129,11 +1131,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
   if (options::cegqi())
   {
-    // must rewrite divk
-    if (!options::rewriteDivk.wasSetByUser())
-    {
-      options::rewriteDivk.set(true);
-    }
     if (options::incrementalSolving())
     {
       // cannot do nested quantifier elimination in incremental mode
@@ -1164,11 +1161,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     // prenexing
     if (options::cegqiNestedQE())
     {
-      // only complete with prenex = disj_normal or normal
-      if (options::prenexQuant() <= options::PrenexQuantMode::DISJ_NORMAL)
-      {
-        options::prenexQuant.set(options::PrenexQuantMode::DISJ_NORMAL);
-      }
+      // only complete with prenex = normal
+      options::prenexQuant.set(options::PrenexQuantMode::NORMAL);
     }
     else if (options::globalNegate())
     {

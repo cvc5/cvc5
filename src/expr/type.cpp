@@ -353,6 +353,12 @@ bool Type::isSet() const {
   return d_typeNode->isSet();
 }
 
+bool Type::isSequence() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSequence();
+}
+
 /** Is this a sort kind */
 bool Type::isSort() const {
   NodeManagerScope nms(d_nodeManager);
@@ -516,6 +522,11 @@ SetType::SetType(const Type& t) : Type(t)
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
+SequenceType::SequenceType(const Type& t) : Type(t)
+{
+  PrettyCheckArgument(isNull() || isSequence(), this);
+}
+
 SortType::SortType(const Type& t) : Type(t)
 {
   PrettyCheckArgument(isNull() || isSort(), this);
@@ -548,6 +559,11 @@ Type ArrayType::getConstituentType() const {
 
 Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
+}
+
+Type SequenceType::getElementType() const
+{
+  return makeType(d_typeNode->getSequenceElementType());
 }
 
 DatatypeType ConstructorType::getRangeType() const {

@@ -13,6 +13,7 @@
  **/
 #include "theory/theory_model.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -56,7 +57,6 @@ TheoryModel::TheoryModel(context::Context* c,
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
-  setUnevaluatedKind(kind::BOUND_VARIABLE);
 }
 
 TheoryModel::~TheoryModel()
@@ -203,19 +203,20 @@ Node TheoryModel::getModelValue(TNode n) const
   }
   Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
   Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
-  if (n.isConst())
+  Kind nk = n.getKind();
+  if (n.isConst() || nk == BOUND_VARIABLE)
   {
     d_modelCache[n] = n;
     return n;
   }
 
   Node ret = n;
-  Kind nk = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
 
   // if it is an evaluated kind, compute model values for children and evaluate
   if (n.getNumChildren() > 0
-      && d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end())
+      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
@@ -266,10 +267,10 @@ Node TheoryModel::getModelValue(TNode n) const
   if (ita != d_approximations.end())
   {
     // If the value of n is approximate based on predicate P(n), we return
-    // choice z. P(z).
+    // witness z. P(z).
     Node v = nm->mkBoundVar(n.getType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
+    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
     d_modelCache[n] = answer;
     return answer;
   }
@@ -308,10 +309,8 @@ Node TheoryModel::getModelValue(TNode n) const
   }
 
   // if we are a evaluated or semi-evaluated kind, return an arbitrary value
-  // if we are not in the d_not_evaluated_kinds map, we are evaluated
-  // if we are in the d_semi_evaluated_kinds, we are semi-evaluated
-  if (d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end()
-      || d_semi_evaluated_kinds.find(nk) != d_semi_evaluated_kinds.end())
+  // if we are not in the d_unevaluated_kinds map, we are evaluated
+  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end())
   {
     if (t.isFunction() || t.isPredicate())
     {
@@ -617,15 +616,16 @@ void TheoryModel::recordModelCoreSymbol(Expr sym)
   d_model_core.insert(Node::fromExpr(sym));
 }
 
-void TheoryModel::setUnevaluatedKind(Kind k)
-{
-  d_not_evaluated_kinds.insert(k);
-}
+void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
-  d_not_evaluated_kinds.insert(k);
   d_semi_evaluated_kinds.insert(k);
+}
+
+bool TheoryModel::isLegalElimination(TNode x, TNode val)
+{
+  return !expr::hasSubtermKinds(d_unevaluated_kinds, val);
 }
 
 bool TheoryModel::hasTerm(TNode a)

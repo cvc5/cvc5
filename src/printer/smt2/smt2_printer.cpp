@@ -48,10 +48,7 @@ static OutputLanguage variantToLanguage(Variant v);
 static string smtKindString(Kind k, Variant v);
 
 /** returns whether the variant is smt-lib 2.6 or greater */
-bool isVariant_2_6(Variant v)
-{
-  return v == smt2_6_variant || v == smt2_6_1_variant;
-}
+bool isVariant_2_6(Variant v) { return v == smt2_6_variant; }
 
 static void toStreamRational(std::ostream& out,
                              const Rational& r,
@@ -149,31 +146,25 @@ void Smt2Printer::toStream(std::ostream& out,
           << n.getConst<FloatingPointSize>().significand()
           << ")";
       break;
-    case kind::CONST_BITVECTOR: {
+    case kind::CONST_BITVECTOR:
+    {
       const BitVector& bv = n.getConst<BitVector>();
-      const Integer& x = bv.getValue();
-      unsigned width = bv.getSize();
-      if (d_variant == sygus_variant || options::bvPrintConstsInBinary())
+      if (options::bvPrintConstsAsIndexedSymbols())
       {
-        out << "#b" << bv.toString();
+        out << "(_ bv" << bv.getValue() << " " << bv.getSize() << ")";
       }
       else
       {
-        out << "(_ ";
-        out << "bv" << x << " " << width;
-        out << ")";
+        out << "#b" << bv.toString();
       }
-
-      // //out << "#b";
-
-      // while(n-- > 0) {
-      //   out << (x.testBit(n) ? '1' : '0');
-      // }
       break;
     }
     case kind::CONST_FLOATINGPOINT:
-      out << n.getConst<FloatingPoint>();
+    {
+      out << n.getConst<FloatingPoint>().toString(
+          options::bvPrintConstsAsIndexedSymbols());
       break;
+    }
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
       case roundNearestTiesToEven : out << "roundNearestTiesToEven"; break;
@@ -295,26 +286,22 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
-      // out << "to_fp_bv "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.significand()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
-      // out << "to_fp_fp "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPFloatingPoint>().t.significand()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
-      // out << "to_fp_real "
       out << "(_ to_fp " << n.getConst<FloatingPointToFPReal>().t.exponent()
           << ' ' << n.getConst<FloatingPointToFPReal>().t.significand() << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
-      // out << "to_fp_signed "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPSignedBitVector>().t.significand()
@@ -548,7 +535,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::MATCH_CASE:
     // do nothing
     break;
-  case kind::CHOICE: out << smtKindString(k, d_variant) << " "; break;
+  case kind::WITNESS: out << smtKindString(k, d_variant) << " "; break;
 
   // arith theory
   case kind::PLUS:
@@ -1035,7 +1022,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::LAMBDA:
     return "lambda";
   case kind::MATCH: return "match";
-  case kind::CHOICE: return "choice";
+  case kind::WITNESS: return "witness";
 
   // arith theory
   case kind::PLUS: return "+";
@@ -1203,8 +1190,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
-  case kind::STRING_STRREPLALL:
-    return v == smt2_6_1_variant ? "str.replace_all" : "str.replaceall";
+  case kind::STRING_STRREPLALL: return "str.replace_all";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1213,16 +1199,11 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_LEQ: return "str.<=";
   case kind::STRING_LT: return "str.<";
   case kind::STRING_FROM_CODE: return "str.from_code";
-  case kind::STRING_TO_CODE:
-    return v == smt2_6_1_variant ? "str.to_code" : "str.code";
-  case kind::STRING_ITOS:
-    return v == smt2_6_1_variant ? "str.from_int" : "int.to.str";
-  case kind::STRING_STOI:
-    return v == smt2_6_1_variant ? "str.to_int" : "str.to.int";
-  case kind::STRING_IN_REGEXP:
-    return v == smt2_6_1_variant ? "str.in_re" : "str.in.re";
-  case kind::STRING_TO_REGEXP:
-    return v == smt2_6_1_variant ? "str.to_re" : "str.to.re";
+  case kind::STRING_TO_CODE: return "str.to_code";
+  case kind::STRING_ITOS: return "str.from_int";
+  case kind::STRING_STOI: return "str.to_int";
+  case kind::STRING_IN_REGEXP: return "str.in_re";
+  case kind::STRING_TO_REGEXP: return "str.to_re";
   case kind::REGEXP_EMPTY: return "re.nostr";
   case kind::REGEXP_SIGMA: return "re.allchar";
   case kind::REGEXP_CONCAT: return "re.++";
@@ -2285,11 +2266,9 @@ static OutputLanguage variantToLanguage(Variant variant)
     return language::output::LANG_SMTLIB_V2_0;
   case z3str_variant:
     return language::output::LANG_Z3STR;
-  case sygus_variant:
-    return language::output::LANG_SYGUS;
+  case sygus_variant: return language::output::LANG_SYGUS_V1;
   case no_variant:
-  default:
-    return language::output::LANG_SMTLIB_V2_5;
+  default: return language::output::LANG_SMTLIB_V2_6;
   }
 }
 

@@ -559,7 +559,7 @@ void getFreeSymbolsSygusType(TypeNode sdt,
         for (unsigned k = 0, nargs = dtc[j].getNumArgs(); k < nargs; k++)
         {
           TypeNode argt = dtc[j].getArgType(k);
-          if (!curr.isDatatype() || !curr.getDType().isSygus())
+          if (!argt.isDatatype() || !argt.getDType().isSygus())
           {
             // not a sygus datatype
             continue;
@@ -631,16 +631,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   // We must convert all symbols in the sygus datatype type sdt to
   // apply the substitution { syms -> vars }, where syms is the free
   // variables of the input problem, and vars is the formal argument list
-  // of the function-to-synthesize. For example, given user-provided sygus
-  // grammar:
-  //   G -> a | +( b, G )
-  // we synthesize a function A with two arguments x_a and x_b corresponding to
-  // a and b, and reconstruct the grammar:
-  //   G' -> x_a | +( x_b, G' )
-  // In this way, x_a and x_b are treated as bound variables and handled as
-  // arguments of the function-to-synthesize instead of as free variables with
-  // no relation to A. We additionally require that x_a, when printed, prints
-  // "a", which we do with a custom sygus callback below.
+  // of the function-to-synthesize.
 
   // We are traversing over the subfield types of the datatype to convert
   // them into the form described above.

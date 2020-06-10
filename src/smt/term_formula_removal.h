@@ -112,7 +112,7 @@ public:
    * This is sometimes called "lambda lifting"
    *
    * As an example of (4):
-   *   (choice x. P( x ) ) = t
+   *   (witness x. P( x ) ) = t
    * becomes
    *   P( k ) ^ k = t
    * where k is a fresh skolem constant.
