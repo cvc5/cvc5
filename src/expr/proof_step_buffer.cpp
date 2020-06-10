@@ -56,7 +56,6 @@ Node ProofStepBuffer::tryStep(PfRule id,
     Assert(false) << "ProofStepBuffer::ProofStepBuffer: no proof checker.";
     return Node::null();
   }
-  Trace("pf-step-buffer") << "Try step..." << std::endl;
   Node res =
       d_checker->checkDebug(id, children, args, expected, "pf-step-buffer");
   if (!res.isNull())

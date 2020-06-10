@@ -34,7 +34,7 @@ namespace arith {
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-private:
+ private:
   friend class TheoryArithPrivate;
 
   TheoryArithPrivate* d_internal;
@@ -46,7 +46,7 @@ private:
    */
   proof::ArithProofRecorder * d_proofRecorder;
 
-public:
+ public:
  TheoryArith(context::Context* c,
              context::UserContext* u,
              OutputChannel& out,

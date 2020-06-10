@@ -179,8 +179,6 @@ class SolverState
  private:
   /** Common constants */
   Node d_zero;
-  Node d_true;
-  Node d_false;
   /** Pointer to the SAT context object used by the theory of strings. */
   context::Context* d_context;
   /** Pointer to the user context object used by the theory of strings. */

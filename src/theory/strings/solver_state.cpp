@@ -38,8 +38,6 @@ SolverState::SolverState(context::Context* c,
       d_pendingConflict(c)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_true = NodeManager::currentNM()->mkConst(true);
-  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 SolverState::~SolverState()
@@ -254,13 +252,6 @@ Node SolverState::explainNonEmpty(Node s)
 {
   Assert(s.getType().isStringLike());
   Node emp = Word::mkEmptyWord(s.getType());
-  /*
-  Node eq = Rewriter::rewrite(s.eqNode(emp));
-  if (eq==d_false)
-  {
-    return d_true;
-  }
-  */
   if (areDisequal(s, emp))
   {
     return s.eqNode(emp).negate();

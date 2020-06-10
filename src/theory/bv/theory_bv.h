@@ -65,7 +65,7 @@ class TheoryBV : public Theory {
   std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
-public:
+ public:
  TheoryBV(context::Context* c,
           context::UserContext* u,
           OutputChannel& out,
