@@ -1100,6 +1100,9 @@ cdef class Term:
     def isNull(self):
         return self.cterm.isNull()
 
+    def isConst(self):
+        return self.cterm.isConst()
+
     def getConstArrayBase(self):
         cdef Term term = Term()
         term.cterm = self.cterm.getConstArrayBase()
