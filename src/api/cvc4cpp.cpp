@@ -1123,7 +1123,7 @@ size_t SortHashFunction::operator()(const Sort& s) const
 /* Op                                                                     */
 /* -------------------------------------------------------------------------- */
 
-Op::Op() : d_kind(NULL_EXPR), d_expr(new CVC4::Expr()) {}
+Op::Op() : d_solver(nullptr), d_kind(NULL_EXPR), d_expr(new CVC4::Expr()) {}
 
 Op::Op(const Solver* slv, const Kind k)
     : d_solver(slv), d_kind(k), d_expr(new CVC4::Expr())
@@ -1632,7 +1632,7 @@ Term::const_iterator::const_iterator(const Solver* slv,
 }
 
 Term::const_iterator::const_iterator(const const_iterator& it)
-    : d_orig_expr(nullptr)
+    : d_solver(nullptr), d_orig_expr(nullptr)
 {
   if (it.d_orig_expr != nullptr)
   {
@@ -1924,7 +1924,7 @@ std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 
 /* DatatypeSelector --------------------------------------------------------- */
 
-DatatypeSelector::DatatypeSelector() { d_stor = nullptr; }
+DatatypeSelector::DatatypeSelector() : d_solver(nullptr), d_stor(nullptr) {}
 
 DatatypeSelector::DatatypeSelector(const Solver* slv,
                                    const CVC4::DatatypeConstructorArg& stor)
