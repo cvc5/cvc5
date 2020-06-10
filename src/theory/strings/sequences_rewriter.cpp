@@ -2932,7 +2932,7 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
 
   if (x.isConst())
   {
-    // str.replace_re("ZABCZ", "A" _* "C", y) ---> "Z" ++ y ++ "Z"
+    // str.replace_re("ZABCZ", re.++("A", _*, "C"), y) ---> "Z" ++ y ++ "Z"
     std::pair<size_t, size_t> match = firstMatch(x, y);
     if (match.first != string::npos)
     {
@@ -2961,7 +2961,8 @@ Node SequencesRewriter::rewriteReplaceReAll(Node node)
 
   if (x.isConst())
   {
-    // str.replace_re("ZABCZAB", "A" _* "C", y) ---> "Z" ++ y ++ "Z" ++ y
+    // str.replace_re_all("ZABCZAB", re.++("A", _*, "C"), y) --->
+    //   "Z" ++ y ++ "Z" ++ y
     TypeNode t = x.getType();
     Node emp = Word::mkEmptyWord(t);
     Node yp = Rewriter::rewrite(

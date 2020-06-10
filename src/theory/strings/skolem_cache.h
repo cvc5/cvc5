@@ -102,11 +102,12 @@ class SkolemCache
     // of b in a as the witness for contains( a, b ).
     SK_FIRST_CTN_PRE,
     SK_FIRST_CTN_POST,
-    // in_re(a, _* ++ b ++ _*) =>
+    // For sequence a and regular expression b,
+    // in_re(a, re.++(_*, b, _*)) =>
     //    exists k_pre, k_match, k_post.
     //       a = k_pre ++ k_match ++ k_post ^
     //       ~in_re(k_pre ++ substr(k_match, 0, str.len(k_match) - 1),
-    //              _* ++ y ++ _*) ^
+    //              re.++(_*, b, _*)) ^
     //       in_re(k2, y)
     SK_FIRST_MATCH_PRE,
     SK_FIRST_MATCH,
