@@ -28,7 +28,7 @@ EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
 void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
 {
   // pf should prove f
-  Assert (pf->getResult()==f);
+  Assert(pf->getResult() == f);
   d_proofs[f] = pf;
 }
 
