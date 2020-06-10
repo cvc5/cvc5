@@ -21,6 +21,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
 #include "theory/arith/normal_form.h"
+#include "theory/arith/operator_elim.h"
 
 namespace CVC4 {
 namespace theory {
