@@ -86,7 +86,7 @@ jobs:
       if: matrix.python-bindings
       run: |
         python3 -m pip install pytest
-        pytest --version
+        python3 -m pytest --version
 
     - name: Restore Dependencies
       id: restore-deps
@@ -170,7 +170,7 @@ jobs:
       if: matrix.python-bindings
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
-       pytest ./test/unit/api/python
+       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples
