@@ -144,7 +144,6 @@ private:
   //   * assertionToEqualityEngine(..)
   //   * equalsConstant(c)
   //   * equalsConstant(lb, ub)
-  // If pf is nullptr, constructs a TRUST proof, and uses that.
   // If proofNew is off, then just asserts.
   void assertLitToEqualityEngine(Node lit,
                                  TNode reason,
@@ -161,8 +160,6 @@ private:
   bool hasProofFor(TNode f) const;
   // Sets the proof for this fact and the symmetric one.
   void setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const;
-  // Construct a trust-assume proof.
-  std::shared_ptr<ProofNode> proveWithTrustAssume(TNode lit, TNode exp);
 
   /** Dequeues the delay queue and asserts these equalities.*/
   void enableSharedTerms();

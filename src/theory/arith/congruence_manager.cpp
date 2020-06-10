@@ -526,10 +526,6 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
     }
     else
     {
-      if (pf == nullptr)
-      {
-        pf = proveWithTrustAssume(lit, reason);
-      }
       setProofFor(lit, pf);
       Trace("arith-pfee") << "Actually asserting" << std::endl;
       if (Debug.isOn("arith-pfee")) {
@@ -580,17 +576,6 @@ void ArithCongruenceManager::setProofFor(TNode f, std::shared_ptr<ProofNode> pf)
   Node symF = CDProof::getSymmFact(f);
   auto symPf = d_pnm->mkNode(PfRule::SYMM, pf, {});
   d_pfGenEe->mkTrustNode(symF, symPf);
-}
-
-std::shared_ptr<ProofNode> ArithCongruenceManager::proveWithTrustAssume(TNode lit, TNode exp)
-{
-  std::vector<Node> expVec = andComponents(exp);
-  std::vector<std::shared_ptr<ProofNode>> assumps;
-  for (const auto& e : expVec)
-  {
-    assumps.push_back(d_pnm->mkAssume(e));
-  }
-  return d_pnm->mkNode(PfRule::TRUST, assumps, { lit });
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP c){
