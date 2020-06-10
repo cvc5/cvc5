@@ -94,12 +94,13 @@ Node SkolemCache::mkTypedSkolemCached(
   }
 
   NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* sm = nm->getSkolemManager();
   Node sk;
   switch (id)
   {
     // exists k. k = a
     case SK_PURIFY:
-      sk = ProofSkolemCache::mkPurifySkolem(a, c, "string purify skolem");
+      sk = sm->mkPurifySkolem(a, c, "string purify skolem");
       break;
     // these are eliminated by normalizeStringSkolem
     case SK_ID_V_SPT:
@@ -132,7 +133,7 @@ Node SkolemCache::mkTypedSkolemCached(
       Assert(index < r.getNumChildren());
       if (d_useOpts && r[index].getKind() == STRING_TO_REGEXP)
       {
-        // just return the body of the str.to_re
+        // optimization, just return the body of the str.to_re
         sk = r[index][0];
       }
       else
@@ -161,11 +162,17 @@ Node SkolemCache::mkTypedSkolemCached(
           Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
           eform = nm->mkNode(EXISTS, bvl, nm->mkNode(AND, mems));
           a.setAttribute(efa, eform);
+          Trace("pf-skolem")
+              << "Exists form " << a << " : " << eform << std::endl;
         }
         Assert(eform.getKind() == EXISTS);
         Assert(eform[0].getNumChildren() == r.getNumChildren());
-        sk = ProofSkolemCache::mkSkolemExists(
-            eform[0][index], eform, c, "regexp concat skolem");
+        // TODO: needs proof manager here
+        std::vector<Node> skolems;
+        sm->mkSkolemize(eform, skolems, c, "regexp concat skolem");
+        Assert(skolems.size() == r.getNumChildren());
+        Assert(index < skolems.size());
+        sk = skolems[index];
       }
     }
     break;
@@ -176,7 +183,7 @@ Node SkolemCache::mkTypedSkolemCached(
       Notice() << "Don't know how to handle Skolem ID " << id << std::endl;
       Node v = nm->mkBoundVar(tn);
       Node cond = nm->mkConst(true);
-      sk = ProofSkolemCache::mkSkolem(v, cond, c, "string skolem");
+      sk = sm->mkSkolem(v, cond, c, "string skolem");
     }
     break;
   }
