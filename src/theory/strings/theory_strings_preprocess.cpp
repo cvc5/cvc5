@@ -488,6 +488,175 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, replaceall( x, y, z ) = rpaw
     retNode = rpaw;
   }
+  else if (t.getKind() == STRING_REPLACE_RE)
+  {
+    Node x = t[0];
+    Node y = t[1];
+    Node z = t[2];
+    Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "k");
+
+    std::vector<Node> emptyVec;
+    Node sigmaStar =
+        nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+    Node re = nm->mkNode(REGEXP_CONCAT, sigmaStar, y, sigmaStar);
+    // in_re(x, re.++(_*, y, _*))
+    Node hasMatch = nm->mkNode(STRING_IN_REGEXP, x, re);
+
+    // in_re("", y)
+    Node matchesEmpty =
+        nm->mkNode(STRING_IN_REGEXP, nm->mkConst(String("")), y);
+    // k = z ++ x
+    Node res1 = k.eqNode(nm->mkNode(STRING_CONCAT, z, x));
+
+    Node k1 =
+        sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH_PRE, "rre_pre");
+    Node k2 =
+        sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH, "rre_match");
+    Node k3 =
+        sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_MATCH_POST, "rre_post");
+    // x = k1 ++ k2 ++ k3
+    Node splitX = x.eqNode(nm->mkNode(STRING_CONCAT, k1, k2, k3));
+    // ~in_re(k1 ++ str.substr(k2, 0, str.len(k2) - 1), re.++(_*, y, _*))
+    Node k2len = nm->mkNode(STRING_LENGTH, k2);
+    Node firstMatch =
+        nm->mkNode(
+              STRING_IN_REGEXP,
+              nm->mkNode(
+                  STRING_CONCAT,
+                  k1,
+                  nm->mkNode(
+                      STRING_SUBSTR, k2, zero, nm->mkNode(MINUS, k2len, one))),
+              re)
+            .negate();
+    // in_re(k2, y)
+    Node k2Match = nm->mkNode(STRING_IN_REGEXP, k2, y);
+    // k = k1 ++ z ++ k3
+    Node res2 = k.eqNode(nm->mkNode(STRING_CONCAT, k1, z, k3));
+
+    // IF in_re(x, re.++(_*, y, _*))
+    // THEN:
+    //   IF in_re("", y)
+    //   THEN: k = z ++ x
+    //   ELSE:
+    //     x = k1 ++ k2 ++ k3 ^
+    //     ~in_re(k1 ++ substr(k2, 0, str.len(k2) - 1), re.++(_*, y, _*)) ^
+    //     in_re(k2, y) ^ k = k1 ++ z ++ k3
+    // ELSE: k = x
+    asserts.push_back(nm->mkNode(
+        ITE,
+        hasMatch,
+        nm->mkNode(ITE,
+                   matchesEmpty,
+                   res1,
+                   nm->mkNode(AND, splitX, firstMatch, k2Match, res2)),
+        k.eqNode(x)));
+    retNode = k;
+  }
+  else if (t.getKind() == STRING_REPLACE_RE_ALL)
+  {
+    Node x = t[0];
+    Node y = t[1];
+    Node z = t[2];
+    Node k = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "k");
+
+    Node numOcc = sc->mkTypedSkolemCached(
+        nm->integerType(), x, y, SkolemCache::SK_NUM_OCCUR, "numOcc");
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(nm->integerType());
+    Node us = nm->mkSkolem("Us", nm->mkFunctionType(argTypes, t.getType()));
+    TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
+    Node uf = sc->mkTypedSkolemCached(
+        ufType, x, y, SkolemCache::SK_OCCUR_INDEX, "Uf");
+    Node ul =
+        sc->mkTypedSkolemCached(ufType, x, y, SkolemCache::SK_OCCUR_LEN, "Ul");
+
+    Node emp = Word::mkEmptyWord(t.getType());
+
+    std::vector<Node> emptyVec;
+    Node sigmaStar =
+        nm->mkNode(REGEXP_STAR, nm->mkNode(REGEXP_SIGMA, emptyVec));
+    Node yp = nm->mkNode(REGEXP_DIFF, y, nm->mkNode(STRING_TO_REGEXP, emp));
+    Node re = nm->mkNode(REGEXP_CONCAT, sigmaStar, yp, sigmaStar);
+    // in_re(x, _* ++ y' ++ _*)
+    Node hasMatch = nm->mkNode(STRING_IN_REGEXP, x, re);
+
+    Node ufno = nm->mkNode(APPLY_UF, uf, numOcc);
+    Node usno = nm->mkNode(APPLY_UF, us, numOcc);
+    Node rem = nm->mkNode(STRING_SUBSTR, x, ufno, nm->mkNode(STRING_LENGTH, x));
+
+    std::vector<Node> lemmas;
+    // numOcc > 0
+    lemmas.push_back(nm->mkNode(GT, numOcc, zero));
+    // k = Us(0)
+    lemmas.push_back(k.eqNode(nm->mkNode(APPLY_UF, us, zero)));
+    // Us(numOcc) = substr(x, Uf(numOcc))
+    lemmas.push_back(usno.eqNode(rem));
+    // Uf(0) = 0
+    lemmas.push_back(nm->mkNode(APPLY_UF, uf, zero).eqNode(zero));
+    // not(in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*)))
+    lemmas.push_back(nm->mkNode(STRING_IN_REGEXP, rem, re).negate());
+
+    Node i = SkolemCache::mkIndexVar(t);
+    Node bvli = nm->mkNode(BOUND_VAR_LIST, i);
+    Node bound =
+        nm->mkNode(AND, nm->mkNode(GEQ, i, zero), nm->mkNode(LT, i, numOcc));
+    Node ip1 = nm->mkNode(PLUS, i, one);
+    Node ufi = nm->mkNode(APPLY_UF, uf, i);
+    Node uli = nm->mkNode(APPLY_UF, ul, i);
+    Node ufip1 = nm->mkNode(APPLY_UF, uf, ip1);
+    Node ii = nm->mkNode(MINUS, ufip1, uli);
+    Node match = nm->mkNode(STRING_SUBSTR, x, ii, uli);
+    Node pfxMatch =
+        nm->mkNode(STRING_SUBSTR, x, ufi, nm->mkNode(MINUS, ii, ufi));
+    Node nonMatch =
+        nm->mkNode(STRING_SUBSTR,
+                   x,
+                   ufi,
+                   nm->mkNode(MINUS, nm->mkNode(MINUS, ufip1, one), ufi));
+
+    std::vector<Node> flem;
+    // Ul(i) > 0
+    flem.push_back(nm->mkNode(GT, uli, zero));
+    // Uf(i + 1) >= Uf(i) + Ul(i)
+    flem.push_back(nm->mkNode(GEQ, ufip1, nm->mkNode(PLUS, ufi, uli)));
+    // in_re(substr(x, ii, Ul(i)), y')
+    flem.push_back(nm->mkNode(STRING_IN_REGEXP, match, yp));
+    // ~in_re(substr(x, Uf(i), Uf(i + 1) - 1 - Uf(i)), re.++(_*, y', _*))
+    flem.push_back(nm->mkNode(STRING_IN_REGEXP, nonMatch, re).negate());
+    // Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
+    flem.push_back(
+        nm->mkNode(APPLY_UF, us, i)
+            .eqNode(nm->mkNode(
+                STRING_CONCAT, pfxMatch, z, nm->mkNode(APPLY_UF, us, ip1))));
+
+    Node forall = nm->mkNode(
+        FORALL, bvli, nm->mkNode(OR, bound.negate(), nm->mkNode(AND, flem)));
+    lemmas.push_back(forall);
+
+    // IF in_re(x, re.++(_*, y', _*))
+    // THEN:
+    //   numOcc > 0 ^
+    //   k = Us(0) ^ Us(numOcc) = substr(x, Uf(numOcc)) ^
+    //   Uf(0) = 0 ^ not(in_re(substr(x, Uf(numOcc)), re.++(_*, y', _*)))
+    //   forall i. 0 <= i < nummOcc =>
+    //     Ul(i) > 0 ^
+    //     Uf(i + 1) >= Uf(i) + Ul(i) ^
+    //     in_re(substr(x, ii, Ul(i)), y') ^
+    //     ~in_re(substr(x, Uf(i), Uf(i + 1) - 1 - Uf(i)), re.++(_*, y', _*)) ^
+    //     Us(i) = substr(x, Uf(i), ii - Uf(i)) ++ z ++ Us(i + 1)
+    //     where ii = Uf(i + 1) - Ul(i)
+    // ELSE: k = x
+    // where y' = re.diff(y, "")
+    //
+    // Conceptually, y' is the regex y but excluding the empty string (because
+    // we do not want to match empty strings), numOcc is the number of shortest
+    // matches of y' in x, Uf(i) is the end position of the i-th match, Ul(i)
+    // is the length of the i^th match, and Us(i) is the result of processing
+    // the remainder after processing the i^th occurrence of y in x.
+    asserts.push_back(
+        nm->mkNode(ITE, hasMatch, nm->mkNode(AND, lemmas), k.eqNode(x)));
+    retNode = k;
+  }
   else if (t.getKind() == STRING_TOLOWER || t.getKind() == STRING_TOUPPER)
   {
     Node x = t[0];
