@@ -55,21 +55,21 @@ class TermConversionProofGenerator : public ProofGenerator
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
  protected:
+  typedef context::CDHashMap<Node, Node, NodeHashFunction>
+      NodeNodeMap;
+  /** A dummy context used by this class if none is provided */
+  context::Context d_context;  
+  /** The (lazy) context dependent proof object. */
+  LazyCDProof d_proof;
+  /** map to rewritten forms */
+  NodeNodeMap d_rewriteMap;
+  /** Get rewrite step */
+  Node getRewriteStep(Node t) const;
   /** 
    * Get the proof for term t. Returns a proof of t = t' where t' is the
    * result of rewriting t based on the rewrite steps registered to this class.
    */
   std::shared_ptr<ProofNode> getProofForRewriting(Node t);
-  typedef context::CDHashMap<Node, Node, NodeHashFunction>
-      NodeNodeMap;
-  /** A dummy context used by this class if none is provided */
-  context::Context d_context;
-   /** The (lazy) context dependent proof object. */
-   LazyCDProof d_proof;
-   /** map to rewritten forms */
-   NodeNodeMap d_rewriteMap;
-   /** Get rewrite step */
-   Node getRewriteStep(Node t) const;
 };
 
 }  // namespace CVC4

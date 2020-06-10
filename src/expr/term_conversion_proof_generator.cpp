@@ -70,9 +70,12 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofFor(Node f)
 
 std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(Node t)
 {
-  CDProof pf(d_proof.getManager());
+  // we use the existing proofs
+  PRefProofGenerator prg(&d_proof);
+  LazyCDProof pf(d_proof.getManager(), &prg);
   NodeManager * nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction> rewritten;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
@@ -86,8 +89,21 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
     if (it == visited.end()) 
     {
       visited[cur] = Node::null();
-      visit.push_back(cur);
-      visit.insert(visit.end(),cur.begin(),cur.end());
+      // did we rewrite the current node (possibly at prerewrite)?
+      Node rcur = getRewriteStep(cur);
+      if (!rcur.isNull())
+      {
+        // TODO
+        Node eq = cur.eqNode(rcur);
+        rewritten[cur] = rcur;
+        visit.push_back(cur);
+        visit.push_back(rcur);
+      }
+      else
+      {
+        visit.push_back(cur);
+        visit.insert(visit.end(),cur.begin(),cur.end());
+      }
     } 
     else if (it->second.isNull()) 
     {
@@ -136,7 +152,9 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
       Node rret = getRewriteStep(ret);
       if (!rret.isNull())
       {
-        
+        rewritten[cur] = rret;
+        visit.push_back(cur);
+        visit.push_back(rret);
       }
       else
       {
@@ -144,8 +162,8 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
       }
     }
   } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
+  Assert(visited.find(t) != visited.end());
+  Assert(!visited.find(t)->second.isNull());
   
   
   return nullptr;
