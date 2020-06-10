@@ -230,6 +230,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
           {
             NodeManager* nm = NodeManager::currentNM();
             Node result = rewriteStackTop.d_node.eqNode(response.d_node);
+            Trace("t-rewrite") << "t-rew (pre) : " << rewriteStackTop.d_node << " --> " << response.d_node << std::endl;
             proof->addStep(result,
                            PfRule::THEORY_REWRITE,
                            {},
@@ -367,6 +368,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, CDProof* proof)
         {
           NodeManager* nm = NodeManager::currentNM();
           Node result = rewriteStackTop.d_node.eqNode(response.d_node);
+          Trace("t-rewrite") << "t-rew (post): " << rewriteStackTop.d_node << " --> " << response.d_node << std::endl;
           proof->addStep(result,
                          PfRule::THEORY_REWRITE,
                          {},

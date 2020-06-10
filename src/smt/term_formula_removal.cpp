@@ -36,14 +36,14 @@ RemoveTermFormulas::~RemoveTermFormulas() {}
 void RemoveTermFormulas::run(std::vector<Node>& output,
                              IteSkolemMap& iteSkolemMap,
                              bool reportDeps,
-                             LazyCDProof* lpAssert)
+                             LazyCDProof* lp)
 {
   size_t n = output.size();
   for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
     // Do this in two steps to avoid Node problems(?)
     // Appears related to bug 512, splitting this into two lines
     // fixes the bug on clang on Mac OS
-    Node itesRemoved = run(output[i], output, iteSkolemMap, false, false);
+    Node itesRemoved = run(output[i], output, iteSkolemMap, false, false, lp);
     // In some calling contexts, not necessary to report dependence information.
     if (reportDeps &&
         (options::unsatCores() || options::fewerPreprocessingHoles())) {
@@ -59,7 +59,8 @@ void RemoveTermFormulas::run(std::vector<Node>& output,
 }
 
 Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
-                    IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm) {
+                    IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm,
+                             LazyCDProof* lp) {
   // Current node
   Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << endl;
 
@@ -88,6 +89,9 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   TypeNode nodeType = node.getType();
   Node skolem;
   Node newAssertion;
+  // the exists form of the assertion
+  Node existsAssertion;
+  ProofGenerator * newAssertionPg = nullptr;
   // Handle non-Boolean ITEs here. Boolean ones (within terms) are handled
   // in the "non-variable Boolean term within term" case below.
   if (node.getKind() == kind::ITE && !nodeType.isBoolean())
@@ -110,6 +114,12 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
         // The new assertion
         newAssertion = nodeManager->mkNode(
             kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
+        
+        // we justify it
+        if (lp!=nullptr)
+        {
+          
+        }
       }
     }
   }
@@ -141,6 +151,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
         children.push_back(skolem_app.eqNode(node[1]));
         // axiom defining skolem
         newAssertion = nodeManager->mkNode(kind::FORALL, children);
+        
+        // lambda lifting is trivial to justify, hence we don't set a proof generator here
       }
     }
   }
@@ -151,7 +163,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant || !expr::hasFreeVar(node))
     {
-      // FIXME: we can replace by t if body is of the form (and (= z t) ...)
+      // TODO: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
@@ -169,6 +181,16 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
         // The new assertion is the assumption that the body
         // of the witness operator holds for the Skolem
         newAssertion = node[1].substitute(node[0][0], skolem);
+        
+        // Get the proof generator if one exists, which was responsible for
+        // constructing this witness term. This may not exist, in which case
+        // the witness term was trivial to justify. This is the case e.g. for
+        // purification witness terms.
+        if (lp!=nullptr)
+        {
+          existsAssertion = nodeManager->mkNode(kind::EXISTS, node[0], node[1]);
+          newAssertionPg = sm->getProofGenerator(existsAssertion);
+        }
       }
     }
   }
@@ -197,6 +219,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
 
       // The new assertion
       newAssertion = skolem.eqNode(node);
+      
+      // Boolean term removal is trivial to justify, hence we don't set a proof generator here
     }
   }
 
@@ -208,12 +232,39 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
     {
+      if (lp!=nullptr)
+      {
+        std::vector<Node> pfChildren;
+        std::vector<Node> pfArgs;
+        // justify it
+        if (newAssertionPg!=nullptr)
+        {
+          // ------------------- from skolem manager
+          // (exists x. P[x])
+          // ------------------- SKOLEMIZE
+          // P[ witness x. P[x] ]
+          
+          // the existential is proven lazily by the provided proof generator
+          lp->addLazyStep(existsAssertion, newAssertionPg);
+          // the skolemized form is proven as a step
+          pfChildren.push_back(existsAssertion);
+          lp->addStep(newAssertion, PfRule::SKOLEMIZE, pfChildren, pfArgs);
+        }
+        else
+        {
+          // otherwise should have trivial justification
+          pfArgs.push_back(newAssertion);
+          // ---------------- MACRO_SR_PRED_INTRO
+          // newAssertion
+          lp->addStep(newAssertion, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
+        }
+      }
       Debug("ite") << "*** term formula removal introduced " << skolem
                    << " for " << node << std::endl;
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
+      newAssertion = run(newAssertion, output, iteSkolemMap, false, false, lp);
 
       iteSkolemMap[skolem] = output.size();
       output.push_back(newAssertion);
@@ -241,7 +292,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   }
   // Remove the ITEs from the children
   for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, iteSkolemMap, inQuant, inTerm);
+    Node newChild = run(*it, output, iteSkolemMap, inQuant, inTerm, lp);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }

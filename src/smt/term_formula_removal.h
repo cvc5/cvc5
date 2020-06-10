@@ -141,7 +141,8 @@ public:
    *        of a parent term that is not a Boolean connective.
    */
   Node run(TNode node, std::vector<Node>& additionalAssertions,
-           IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm);
+           IteSkolemMap& iteSkolemMap, bool inQuant, bool inTerm,
+           LazyCDProof* lpAssert);
 
   /**
    * Substitute under node using pre-existing cache.  Do not remove
