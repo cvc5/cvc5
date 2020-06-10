@@ -452,10 +452,11 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
   TrustNode trn = explainInternal(internal);
-  Assert(trn.getKind() == TrustNodeKind::PROP_EXP);
-  Assert(trn.getProven().getKind() == Kind::IMPLIES);
-  if (trn.getProven()[1] != external)
+  if (options::proofNew() && trn.getProven()[1] != external)
   {
+    Assert(trn.getKind() == TrustNodeKind::PROP_EXP);
+    Assert(trn.getProven().getKind() == Kind::IMPLIES);
+    Assert(trn.getGenerator() != nullptr);
     Trace("arith-ee") << "tweaking proof to prove " << external << " not "
                       << trn.getProven()[1] << std::endl;
     std::vector<std::shared_ptr<ProofNode>> assumptionPfs;
