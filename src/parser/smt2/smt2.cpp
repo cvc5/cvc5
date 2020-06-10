@@ -176,6 +176,8 @@ void Smt2::addStringOperators() {
     addOperator(api::STRING_PREFIX, "seq.prefixof");
     addOperator(api::STRING_SUFFIX, "seq.suffixof");
     addOperator(api::STRING_REV, "seq.rev");
+    addOperator(api::STRING_REPLACE_ALL, "seq.replace_all");
+    addOperator(api::SEQ_UNIT, "seq.unit");
   }
   // at the moment, we only use this syntax for smt2.6
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
@@ -211,7 +213,6 @@ void Smt2::addStringOperators() {
   addOperator(api::REGEXP_DIFF, "re.diff");
   addOperator(api::STRING_LT, "str.<");
   addOperator(api::STRING_LEQ, "str.<=");
-  addOperator(api::SEQ_UNIT, "seq.unit");
 }
 
 void Smt2::addFloatingPointOperators() {
