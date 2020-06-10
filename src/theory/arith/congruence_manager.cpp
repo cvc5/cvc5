@@ -214,8 +214,8 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   ConstraintCP eqC = d_constraintDatabase.getConstraint(
       s, ConstraintType::Equality, lb->getValue());
   NodeBuilder<> reasonBuilder(Kind::AND);
-  auto pfLb = lb->externalExplain(reasonBuilder, AssertionOrderSentinel);
-  auto pfUb = ub->externalExplain(reasonBuilder, AssertionOrderSentinel);
+  auto pfLb = lb->externalExplainByAssertions(reasonBuilder);
+  auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
   Node reason = safeConstructNary(reasonBuilder);
   std::shared_ptr<ProofNode> pf{};
   if (options::proofNew())
@@ -252,7 +252,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
   {
     eq->printProofTree(Debug("arith::cong"));
   }
-  auto pf = eq->externalExplain(nb, AssertionOrderSentinel);
+  auto pf = eq->externalExplainByAssertions(nb);
   if (options::proofNew())
   {
     pf = d_pnm->mkNode(
@@ -276,7 +276,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
   //These will be safe for propagation later as well
   NodeBuilder<> nb(Kind::AND);
   // An open proof of eq from literals now in reason.
-  auto pf = c->externalExplain(nb, AssertionOrderSentinel);
+  auto pf = c->externalExplainByAssertions(nb);
   if (Debug.isOn("arith::cong::notzero"))
   {
     Debug("arith::cong::notzero") << "  original proof ";
@@ -323,9 +323,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     }
     Assert(pf->getResult() == disEq);
   }
-  // TODO(aozdemir) Figure out why the commented line is broken.
-  assertionToEqualityEngine(false, s, reason, nullptr);
-  // assertionToEqualityEngine(false, s, reason, pf);
+  assertionToEqualityEngine(false, s, reason, pf);
 }
 
 
@@ -505,6 +503,48 @@ void ArithCongruenceManager::addWatchedPair(ArithVar s, TNode x, TNode y){
   d_watchedEqualities.set(s, eq);
 }
 
+void ArithCongruenceManager::assertLitToEqualityEngine(
+    Node lit, TNode reason, std::shared_ptr<ProofNode> pf)
+{
+  bool isEquality = lit.getKind() != Kind::NOT;
+  Node eq = isEquality ? lit : lit[0];
+  Assert(eq.getKind() == Kind::EQUAL);
+
+  Trace("arith-ee") << "Assert to Eq " << lit
+                    << ", reason " << reason << std::endl;
+  if (options::proofNew())
+  {
+    if (CDProof::isSame(lit, reason))
+    {
+      Trace("arith-pfee") << "Asserting only, b/c implied by symm" << std::endl;
+      d_ee.assertEquality(eq, isEquality, reason);
+    }
+    else if (hasProofFor(lit))
+    {
+      Trace("arith-pfee") << "Skipping b/c already done" << std::endl;
+    }
+    else
+    {
+      if (pf == nullptr)
+      {
+        pf = proveWithTrustAssume(lit, reason);
+      }
+      setProofFor(lit, pf);
+      Trace("arith-pfee") << "Actually asserting" << std::endl;
+      if (Debug.isOn("arith-pfee")) {
+        Trace("arith-pfee") << "Proof: ";
+        pf->printDebug(Trace("arith-pfee"));
+        Trace("arith-pfee") << std::endl;
+      }
+      d_pfee->assertFact(lit, reason, d_pfGenEe.get());
+    }
+  }
+  else
+  {
+    d_ee.assertEquality(eq, isEquality, reason);
+  }
+}
+
 void ArithCongruenceManager::assertionToEqualityEngine(
     bool isEquality, ArithVar s, TNode reason, std::shared_ptr<ProofNode> pf)
 {
@@ -513,66 +553,43 @@ void ArithCongruenceManager::assertionToEqualityEngine(
   TNode eq = d_watchedEqualities[s];
   Assert(eq.getKind() == kind::EQUAL);
 
+  Node lit = isEquality ? Node(eq) : eq.notNode();
   Trace("arith-ee") << "Assert to Eq " << eq << ", pol " << isEquality
                     << ", reason " << reason << std::endl;
-  if (options::proofNew())
+  assertLitToEqualityEngine(lit, reason, pf);
+}
+
+
+bool ArithCongruenceManager::hasProofFor(TNode f) const
+{
+  Assert(options::proofNew());
+  if (d_pfGenEe->hasProofFor(f))
   {
-    Node lit = isEquality ? Node(eq) : eq.notNode();
-    if (d_pfGen->hasProofFor(lit))
-    {
-      Trace("arith-pfee") << "Skipping b/c already done" << std::endl;
-      return;
-    }
-    Node sym = CDProof::getSymmFact(lit);
-    if (sym.isNull() || !d_pfGen->hasProofFor(sym))
-    {
-      if (pf != nullptr)
-      {
-        d_pfGen->mkTrustNode(lit, pf);
-        if (Debug.isOn("arith-pfee")) {
-          Trace("arith-pfee") << "Proof: ";
-          pf->printDebug(Trace("arith-pfee"));
-          Trace("arith-pfee") << std::endl;
-        }
-      }
-      if (CDProof::isSame(lit, reason))
-      {
-        // lit and reason are essentially the same, thus lit does not need an
-        // arithmetic-specific explanation.
-        d_pfee->assertAssume(reason);
-        Trace("arith-pfee")
-            << "Skipping, b/c the eq engine could do this" << std::endl;
-      }
-      else
-      {
-        Trace("arith-pfee") << "Actually asserting" << std::endl;
-        if (pf == nullptr)
-        {
-          d_pfee->assertFact(lit, PfRule::TRUST, reason, { lit });
-        }
-        else
-        {
-          d_pfee->assertFact(lit, reason, d_pfGen.get());
-        }
-        Trace("arith-pfee") << "Actually asserted" << std::endl;
-      }
-    }
-    else
-    {
-      Trace("arith-pfee") << "Skipping b/c sym already done" << std::endl;
-    }
+    return true;
   }
-  else
+  Node sym = CDProof::getSymmFact(f);
+  Assert(!sym.isNull());
+  return d_pfGenEe->hasProofFor(sym);
+}
+
+void ArithCongruenceManager::setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const
+{
+  Assert(!hasProofFor(f));
+  d_pfGenEe->mkTrustNode(f, pf);
+  Node symF = CDProof::getSymmFact(f);
+  auto symPf = d_pnm->mkNode(PfRule::SYMM, pf, {});
+  d_pfGenEe->mkTrustNode(symF, symPf);
+}
+
+std::shared_ptr<ProofNode> ArithCongruenceManager::proveWithTrustAssume(TNode lit, TNode exp)
+{
+  std::vector<Node> expVec = andComponents(exp);
+  std::vector<std::shared_ptr<ProofNode>> assumps;
+  for (const auto& e : expVec)
   {
-    if (isEquality)
-    {
-      d_ee.assertEquality(eq, true, reason);
-    }
-    else
-    {
-      d_ee.assertEquality(eq, false, reason);
-    }
+    assumps.push_back(d_pnm->mkAssume(e));
   }
+  return d_pnm->mkNode(PfRule::TRUST, assumps, { lit });
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP c){
@@ -587,36 +604,17 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
 
 
   //No guarentee this is in normal form!
+  // Note though, that it happens to be in proof normal form!
   Node eq = xAsNode.eqNode(asRational);
   d_keepAlive.push_back(eq);
 
-  Node reason = Constraint::externalExplainByAssertions({ c });
+  NodeBuilder<> nb(Kind::AND);
+  auto pf = c->externalExplainByAssertions(nb);
+  Node reason = safeConstructNary(nb);
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
-  if (options::proofNew())
-  {
-    if (CDProof::isSame(eq, reason))
-    {
-      // eq and reason are essentially the same, thus eq does not need an
-      // arithmetic-specific explanation.
-      d_pfee->assertAssume(reason);
-    }
-    else
-    {
-      Trace("arith-pfee") << "Assert (equalsConstant) " << eq << " by "
-                          << reason << std::endl;
-      std::vector<Node> args;
-      args.push_back(eq);
-      PfRule rule = PfRule::TRUST;  // FIXME
-      // assert fact
-      d_pfee->assertFact(eq, rule, reason, args);
-    }
-  }
-  else
-  {
-    d_ee.assertEquality(eq, true, reason);
-  }
+  assertLitToEqualityEngine(eq, reason, pf);
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
@@ -629,40 +627,28 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
                           << ub << std::endl;
 
   ArithVar x = lb->getVariable();
-  Node reason = Constraint::externalExplainByAssertions(lb,ub);
+  NodeBuilder<> nb(Kind::AND);
+  auto pfLb = lb->externalExplainByAssertions(nb);
+  auto pfUb = ub->externalExplainByAssertions(nb);
+  Node reason = safeConstructNary(nb);
 
   Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());
 
   //No guarentee this is in normal form!
+  // Note though, that it happens to be in proof normal form!
   Node eq = xAsNode.eqNode(asRational);
+  std::shared_ptr<ProofNode> pf;
+  if (options::proofNew())
+  {
+    pf = d_pnm->mkNode(PfRule::TRICHOTOMY, { pfLb, pfUb }, { eq });
+  }
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
-  if (options::proofNew())
-  {
-    if (CDProof::isSame(eq, reason))
-    {
-      // eq and reason are essentially the same, thus eq does not need an
-      // arithmetic-specific explanation.
-      d_pfee->assertAssume(reason);
-    }
-    else
-    {
-      Trace("arith-pfee") << "Assert (equalsConstant2) " << eq << " by "
-                          << reason << std::endl;
-      std::vector<Node> args;
-      args.push_back(eq);
-      PfRule rule = PfRule::TRUST;  // FIXME
-      // assert fact
-      d_pfee->assertFact(eq, rule, reason, args);
-    }
-  }
-  else
-  {
-    d_ee.assertEquality(eq, true, reason);
-  }
+
+  assertLitToEqualityEngine(eq, reason, pf);
 }
 
 void ArithCongruenceManager::addSharedTerm(Node x){

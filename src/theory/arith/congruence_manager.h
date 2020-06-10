@@ -140,11 +140,29 @@ private:
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
+  // Assert this literal to the eq engine. Common functionality for
+  //   * assertionToEqualityEngine(..)
+  //   * equalsConstant(c)
+  //   * equalsConstant(lb, ub)
+  // If pf is nullptr, constructs a TRUST proof, and uses that.
+  // If proofNew is off, then just asserts.
+  void assertLitToEqualityEngine(Node lit,
+                                 TNode reason,
+                                 std::shared_ptr<ProofNode> pf);
   /** This sends a shared term to the uninterpreted equality engine. */
   void assertionToEqualityEngine(bool eq,
                                  ArithVar s,
                                  TNode reason,
                                  std::shared_ptr<ProofNode> pf);
+
+  // Check for proof for this or a symmetric fact
+  //
+  // @returns whether this or a symmetric fact has a proof.
+  bool hasProofFor(TNode f) const;
+  // Sets the proof for this fact and the symmetric one.
+  void setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const;
+  // Construct a trust-assume proof.
+  std::shared_ptr<ProofNode> proveWithTrustAssume(TNode lit, TNode exp);
 
   /** Dequeues the delay queue and asserts these equalities.*/
   void enableSharedTerms();
