@@ -28,15 +28,6 @@ namespace theory {
 namespace strings {
 
 /**
- * Associating formulas with their "exists form", or an existentially
- * quantified formula that is equivalent to it.
- */
-struct ExistsFormAttributeId
-{
-};
-typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
-
-/**
  * A bound variable corresponding to the universally quantified integer
  * variable used to range over the valid positions in a string, used
  * for axiomatizing the behavior of some term.
@@ -69,13 +60,10 @@ Node SkolemCache::mkTypedSkolemCached(
   Trace("skolem-cache") << "mkTypedSkolemCached start: (" << id << ", " << a
                         << ", " << b << ")" << std::endl;
   SkolemId idOrig = id;
-  if (id != SK_RE_CONCAT_COMPONENT)
-  {
-    a = a.isNull() ? a : Rewriter::rewrite(a);
-    b = b.isNull() ? b : Rewriter::rewrite(b);
+  a = a.isNull() ? a : Rewriter::rewrite(a);
+  b = b.isNull() ? b : Rewriter::rewrite(b);
 
-    std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
-  }
+  std::tie(id, a, b) = normalizeStringSkolem(id, a, b);
 
   // optimization: if we aren't asking for the purification skolem for constant
   // a, and the skolem is equivalent to a, then we just return a.
@@ -119,63 +107,6 @@ Node SkolemCache::mkTypedSkolemCached(
     case SK_SUFFIX_REM:
       Unhandled() << "Expected to eliminate Skolem ID " << id << std::endl;
       break;
-    case SK_RE_CONCAT_COMPONENT:
-    {
-      Assert(a.getKind() == STRING_IN_REGEXP);
-      Node x = a[0];
-      Node r = a[1];
-      Assert(r.getKind() == REGEXP_CONCAT);
-      // get the index
-      Assert(b.isConst() && b.getType().isInteger()
-             && b.getConst<Rational>().sgn() >= 0
-             && b.getConst<Rational>().getNumerator().fitsUnsignedInt());
-      uint32_t index = b.getConst<Rational>().getNumerator().toUnsignedInt();
-      Assert(index < r.getNumChildren());
-      if (d_useOpts && r[index].getKind() == STRING_TO_REGEXP)
-      {
-        // optimization, just return the body of the str.to_re
-        sk = r[index][0];
-      }
-      else
-      {
-        Node eform;
-        // get or make the exists form of the membership
-        ExistsFormAttribute efa;
-        if (a.hasAttribute(efa))
-        {
-          eform = a.getAttribute(efa);
-        }
-        else
-        {
-          TypeNode xtn = x.getType();
-          std::vector<Node> vars;
-          std::vector<Node> mems;
-          for (const Node& rc : r)
-          {
-            Node v = nm->mkBoundVar(xtn);
-            vars.push_back(v);
-            mems.push_back(nm->mkNode(STRING_IN_REGEXP, v, rc));
-          }
-          Node sconcat = nm->mkNode(STRING_CONCAT, vars);
-          Node eq = x.eqNode(sconcat);
-          mems.insert(mems.begin(), eq);
-          Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
-          eform = nm->mkNode(EXISTS, bvl, nm->mkNode(AND, mems));
-          a.setAttribute(efa, eform);
-          Trace("pf-skolem")
-              << "Exists form " << a << " : " << eform << std::endl;
-        }
-        Assert(eform.getKind() == EXISTS);
-        Assert(eform[0].getNumChildren() == r.getNumChildren());
-        // TODO: needs proof manager here
-        std::vector<Node> skolems;
-        sm->mkSkolemize(eform, skolems, c, "regexp concat skolem");
-        Assert(skolems.size() == r.getNumChildren());
-        Assert(index < skolems.size());
-        sk = skolems[index];
-      }
-    }
-    break;
     case SK_NUM_OCCUR:
     case SK_OCCUR_INDEX:
     default:
