@@ -87,7 +87,7 @@ TrustNode EagerProofGenerator::mkTrustedPropagation(
   {
     return TrustNode::null();
   }
-  Node pekey = TrustNode::getPropExpProven(lit, exp);
+  Node pekey = TrustNode::getPropExpProven(n, exp);
   setProofFor(pekey, pf);
   return TrustNode::mkTrustPropExp(n, exp, this);
 }
