@@ -1743,7 +1743,7 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
   } else {
     Debug("arith::constraint")
         << "already has proof: "
-        << constraint->externalExplainByAssertions().getNode() << endl;
+        << Constraint::externalExplainByAssertions({ constraint }) << endl;
   }
   
 
