@@ -978,7 +978,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-Node TheoryStrings::ppRewrite(TNode atom) {
+Node TheoryStrings::ppRewrite(TNode atom, LazyCDProof* lp) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)

@@ -710,7 +710,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-Node TheoryBV::ppRewrite(TNode t)
+Node TheoryBV::ppRewrite(TNode t, LazyCDProof* lp)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;

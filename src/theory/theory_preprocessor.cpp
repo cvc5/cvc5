@@ -134,7 +134,7 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lcp)
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
@@ -177,7 +177,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lcp)
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current);
+      Node ppRewritten = ppTheoryRewrite(current, lp);
       d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
@@ -245,7 +245,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lcp)
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term, LazyCDProof* lp)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
@@ -255,7 +255,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    return d_engine.theoryOf(term)->ppRewrite(term);
+    return d_engine.theoryOf(term)->ppRewrite(term, lp);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -275,14 +275,14 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     unsigned i;
     for (i = 0; i < nc; ++i)
     {
-      newNode << ppTheoryRewrite(term[i]);
+      newNode << ppTheoryRewrite(term[i], lp);
     }
     newTerm = Rewriter::rewrite(Node(newNode));
   }
-  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
+  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, lp);
   if (newTerm != newTerm2)
   {
-    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));
+    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2), lp);
   }
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;

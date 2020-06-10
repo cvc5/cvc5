@@ -1080,7 +1080,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
+Node TheoryArithPrivate::ppRewriteTerms(TNode n, LazyCDProof* lp) {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
   }
@@ -1089,17 +1089,17 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(n);
+  Node nn = d_opElim.eliminateOperators(n, lp);
   if (nn != n)
   {
     // since elimination may introduce new operators to eliminate, we must
     // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
+    return d_opElim.eliminateOperatorsRec(nn, lp);
   }
   return n;
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom) {
+Node TheoryArithPrivate::ppRewrite(TNode atom, LazyCDProof* lp) {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (options::arithRewriteEq())
@@ -1108,8 +1108,8 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
     {
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      leq = ppRewriteTerms(leq);
-      geq = ppRewriteTerms(geq);
+      leq = ppRewriteTerms(leq, lp);
+      geq = ppRewriteTerms(geq, lp);
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
@@ -1117,7 +1117,7 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
       return rewritten;
     }
   }
-  return ppRewriteTerms(atom);
+  return ppRewriteTerms(atom, lp);
 }
 
 Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -4811,12 +4811,12 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 Node TheoryArithPrivate::expandDefinition(Node node)
 {
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(node);
+  Node nn = d_opElim.eliminateOperators(node, nullptr);
   if (nn != node)
   {
     // since elimination may introduce new operators to eliminate, we must
     // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
+    return d_opElim.eliminateOperatorsRec(nn, nullptr);
   }
   return node;
 }

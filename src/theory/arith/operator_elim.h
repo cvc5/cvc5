@@ -19,6 +19,7 @@
 #include "expr/node.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
+#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -46,7 +47,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n);
+  Node eliminateOperators(Node n, LazyCDProof* lp);
   /**
    * Recursively ensure that n has no non-standard operators. This applies
    * the above method on all subterms of n.
@@ -54,7 +55,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The eliminated form of n.
    */
-  Node eliminateOperatorsRec(Node n);
+  Node eliminateOperatorsRec(Node n, LazyCDProof* lp);
 
   /**
    * Get axiom for term n. This returns the axiom that this class uses to

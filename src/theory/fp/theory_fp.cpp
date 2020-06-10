@@ -435,7 +435,7 @@ Node TheoryFp::expandDefinition(Node node)
   return res;
 }
 
-Node TheoryFp::ppRewrite(TNode node)
+Node TheoryFp::ppRewrite(TNode node, LazyCDProof* lp)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 

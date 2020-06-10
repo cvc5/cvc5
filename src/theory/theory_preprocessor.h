@@ -71,7 +71,7 @@ class TheoryPreprocessor
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
   /** Helper for theoryPreprocess */
-  Node ppTheoryRewrite(TNode term);
+  Node ppTheoryRewrite(TNode term, LazyCDProof* lp);
 };
 
 }  // namespace CVC4

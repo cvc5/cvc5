@@ -697,7 +697,7 @@ void TheoryDatatypes::presolve()
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in)
+Node TheoryDatatypes::ppRewrite(TNode in, LazyCDProof* lp)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 
