@@ -25,29 +25,11 @@ EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
 {
 }
 
-void EagerProofGenerator::setProofForConflict(Node conf,
-                                              std::shared_ptr<ProofNode> pf)
+void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
 {
-  // Normalize based on key
-  Node ckey = TrustNode::getConflictProven(conf);
-  d_proofs[ckey] = pf;
-}
-
-void EagerProofGenerator::setProofForLemma(Node lem,
-                                           std::shared_ptr<ProofNode> pf)
-{
-  // Normalize based on key
-  Node lkey = TrustNode::getLemmaProven(lem);
-  d_proofs[lkey] = pf;
-}
-
-void EagerProofGenerator::setProofForPropExp(TNode lit,
-                                             Node exp,
-                                             std::shared_ptr<ProofNode> pf)
-{
-  // Normalize based on key
-  Node pekey = TrustNode::getPropExpProven(lit, exp);
-  d_proofs[pekey] = pf;
+  // pf should prove f
+  Assert (pf->getResult()==f);
+  d_proofs[f] = pf;
 }
 
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)
@@ -76,12 +58,14 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   if (isConflict)
   {
     // this shouldnt modify the key
-    setProofForConflict(n, pf);
+    Node ckey = TrustNode::getConflictProven(n);
+    setProofFor(ckey, pf);
     // we can now return the trust node
     return TrustNode::mkTrustConflict(n, this);
   }
   // this shouldnt modify the key
-  setProofForLemma(n, pf);
+  Node lkey = TrustNode::getLemmaProven(n);
+  setProofFor(lkey, pf);
   // we can now return the trust node
   return TrustNode::mkTrustLemma(n, this);
 }
@@ -103,7 +87,8 @@ TrustNode EagerProofGenerator::mkTrustedPropagation(
   {
     return TrustNode::null();
   }
-  setProofForPropExp(n, exp, pf);
+  Node pekey = TrustNode::getPropExpProven(lit, exp);
+  setProofFor(pekey, pf);
   return TrustNode::mkTrustPropExp(n, exp, this);
 }
 
