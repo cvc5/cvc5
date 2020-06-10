@@ -30,10 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-OperatorElim::OperatorElim(const LogicInfo& info)
-    : d_info(info)
-{
-}
+OperatorElim::OperatorElim(const LogicInfo& info) : d_info(info) {}
 
 void OperatorElim::checkNonLinearLogic(Node term)
 {
@@ -252,8 +249,7 @@ Node OperatorElim::eliminateOperators(Node node)
       }
       if (k == INTS_MODULUS_TOTAL)
       {
-        Node nn =
-            nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
+        Node nn = nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
         return nn;
       }
       else
@@ -374,8 +370,8 @@ Node OperatorElim::eliminateOperators(Node node)
         {
           Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
           Node uf = skolemApp.eqNode(var);
-          Node nonNeg = nm->mkNode(
-              AND, nm->mkNode(MULT, var, var).eqNode(node[0]), uf);
+          Node nonNeg =
+              nm->mkNode(AND, nm->mkNode(MULT, var, var).eqNode(node[0]), uf);
 
           // sqrt(x) reduces to:
           // witness y. ite(x >= 0.0, y * y = x ^ y = Uf(x), y = Uf(x))
@@ -385,11 +381,10 @@ Node OperatorElim::eliminateOperators(Node node)
           // satisfiable. On the original formula, this would require that we
           // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
           // model.
-          lem = nm->mkNode(
-              ITE,
-              nm->mkNode(GEQ, node[0], nm->mkConst(Rational(0))),
-              nonNeg,
-              uf);
+          lem = nm->mkNode(ITE,
+                           nm->mkNode(GEQ, node[0], nm->mkConst(Rational(0))),
+                           nonNeg,
+                           uf);
         }
         else
         {
@@ -422,9 +417,8 @@ Node OperatorElim::eliminateOperators(Node node)
                                       ? TANGENT
                                       : (k == ARCCOSECANT
                                              ? COSECANT
-                                             : (k == ARCSECANT
-                                                    ? SECANT
-                                                    : COTANGENT))));
+                                             : (k == ARCSECANT ? SECANT
+                                                               : COTANGENT))));
           Node invTerm = nm->mkNode(rk, var);
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
