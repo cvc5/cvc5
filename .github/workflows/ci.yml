@@ -86,6 +86,7 @@ jobs:
       if: matrix.python-bindings
       run: |
         python3 -m pip install pytest
+        pytest --version
 
     - name: Restore Dependencies
       id: restore-deps
