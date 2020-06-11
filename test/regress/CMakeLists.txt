@@ -1502,7 +1502,6 @@ set(regress_1_tests
   regress1/quantifiers/anti-sk-simp.smt2
   regress1/quantifiers/ari118-bv-2occ-x.smt2
   regress1/quantifiers/arith-rec-fun.smt2
-  regress1/quantifiers/arith-snorm.smt2
   regress1/quantifiers/array-unsat-simp3.smt2
   regress1/quantifiers/bi-artm-s.smt2
   regress1/quantifiers/bignum_quant.smt2
@@ -2420,6 +2419,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # no longer support snorm option
+  regress1/quantifiers/arith-snorm.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
