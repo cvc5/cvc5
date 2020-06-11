@@ -572,7 +572,6 @@ bool Constraint::hasTrichotomyProof() const {
 
 void Constraint::printProofTree(std::ostream& out, size_t depth) const
 {
-#if IS_PROOFS_BUILD
   if (ARITH_PROOF_ON())
   {
     const ConstraintRule& rule = getConstraintRule();
@@ -612,7 +611,6 @@ void Constraint::printProofTree(std::ostream& out, size_t depth) const
     }
     return;
   }
-#endif /* IS_PROOFS_BUILD */
   out << "Cannot print proof. Proofs on not on." << endl;
 }
 
@@ -723,7 +721,6 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-#if IS_PROOFS_BUILD
   if (!ARITH_PROOF_ON())
   {
     return cr.d_farkasCoefficients == RationalVectorCPSentinel;
@@ -827,9 +824,6 @@ bool Constraint::wellFormedFarkasProof() const {
   return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
          && rhs.sgn() < 0;
 
-#else  /* IS_PROOFS_BUILD */
-  return true;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
