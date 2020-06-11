@@ -280,8 +280,8 @@ class TermRegistry
    * the caller of this method.
    */
   Node getRegisterTermAtomicLemma(Node n,
-                                       LengthStatus s,
-                                       std::map<Node, bool>& reqPhase);
+                                  LengthStatus s,
+                                  std::map<Node, bool>& reqPhase);
 };
 
 }  // namespace strings

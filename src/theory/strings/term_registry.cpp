@@ -287,8 +287,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   {
     Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
-    Trace("strings-assert")
-        << "(assert " << regTermLem << ")" << std::endl;
+    Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
     d_out.lemma(regTermLem);
   }
@@ -396,8 +395,7 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
   {
     Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
                            << std::endl;
-    Trace("strings-assert")
-        << "(assert " << lenLem << ")" << std::endl;
+    Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
     d_out.lemma(lenLem);
   }
@@ -422,8 +420,9 @@ const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
-Node TermRegistry::getRegisterTermAtomicLemma(
-    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
+Node TermRegistry::getRegisterTermAtomicLemma(Node n,
+                                              LengthStatus s,
+                                              std::map<Node, bool>& reqPhase)
 {
   if (n.isConst())
   {
