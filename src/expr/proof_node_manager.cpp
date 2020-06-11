@@ -133,8 +133,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     //  (= (= t1 t2) false)
     //  -------------------- SYMM
     //  (= false (= t1 t2))
-    bool pol, symm;
-    Node aPred = CDProof::getPredicateFact(a, pol, symm);
+    bool pol, flipEqualityPredIntro;
+    Node aPred = CDProof::getPredicateFact(a, pol, flipEqualityPredIntro);
     Trace("pnm-scope") << "  - try predicate fact " << aPred << "\n";
     if (!aPred.isNull())
     {
@@ -160,7 +160,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       if (foundMatch)
       {
         Trace("pnm-scope") << "- introduce explicit predicate " << aPred
-                           << " via " << (symm ? "[reoriented] " : "") << a
+                           << " via " << (flipEqualityPredIntro ? "[reoriented] " : "") << a
                            << " for " << fa.second.size() << " proof nodes"
                            << std::endl;
         std::shared_ptr<ProofNode> pfaa = mkAssume(flipPred ? symPred : aPred);
@@ -171,7 +171,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         }
         // maybe reorient equality, in which case update the pointer to the
         // justification of the assumption
-        if (symm)
+        if (flipEqualityPredIntro)
         {
           pfaa = mkNode(pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
                         pfaa,
@@ -179,7 +179,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
                         a[1].eqNode(a[0]));
         }
         PfRule updateRule =
-            symm ? PfRule::SYMM
+            flipEqualityPredIntro ? PfRule::SYMM
                  : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
         for (ProofNode* pfs : fa.second)
         {
