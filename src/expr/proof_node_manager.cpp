@@ -160,8 +160,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       if (foundMatch)
       {
         Trace("pnm-scope") << "- introduce explicit predicate " << aPred
-                           << " via " << (flipEqualityPredIntro ? "[reoriented] " : "") << a
-                           << " for " << fa.second.size() << " proof nodes"
+                           << " via "
+                           << (flipEqualityPredIntro ? "[reoriented] " : "")
+                           << a << " for " << fa.second.size() << " proof nodes"
                            << std::endl;
         std::shared_ptr<ProofNode> pfaa = mkAssume(flipPred ? symPred : aPred);
         // Potentially apply symmetry to the real assumption
@@ -178,9 +179,9 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
                         {},
                         a[1].eqNode(a[0]));
         }
-        PfRule updateRule =
-            flipEqualityPredIntro ? PfRule::SYMM
-                 : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
+        PfRule updateRule = flipEqualityPredIntro ? PfRule::SYMM
+                                                  : (pol ? PfRule::TRUE_INTRO
+                                                         : PfRule::FALSE_INTRO);
         for (ProofNode* pfs : fa.second)
         {
           Assert(pfs->getResult() == a);

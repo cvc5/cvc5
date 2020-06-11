@@ -1149,7 +1149,7 @@ public:
    d_toPropagate.pop();
 
    return p;
-  }
+ }
 
   void addVariable(ArithVar v);
   bool variableDatabaseIsSetup(ArithVar v) const;
