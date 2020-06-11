@@ -73,11 +73,11 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
+      d_pnm(new ProofNodeManager(pc)),
       d_state(c, u, d_equalityEngine, d_valuation),
       d_termReg(
-          d_state, d_equalityEngine, out, d_statistics, options::proofNew()),
+          d_state, d_equalityEngine, out, d_statistics, d_pnm.get()),
       d_im(nullptr),
-      d_pnm(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
       d_csolver(nullptr),
@@ -90,7 +90,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(new InferenceManager(
-      d_state, d_termReg, *extt, out, d_statistics, options::proofNew()));
+      d_state, d_termReg, *extt, out, d_statistics, d_pnm.get()));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(d_state, *d_im));
   d_csolver.reset(new CoreSolver(d_state, *d_im, d_termReg, *d_bsolver));
@@ -139,8 +139,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   {
     // add checkers
     d_sProofChecker.registerTo(pc);
-    // use the checker in the proof node manager
-    d_pnm.reset(new ProofNodeManager(pc));
   }
 }
 
@@ -153,14 +151,6 @@ void TheoryStrings::finishInit()
   TheoryModel* tm = d_valuation.getModel();
   // witness is used to eliminate str.from_code
   tm->setUnevaluatedKind(WITNESS);
-  if (d_pnm == nullptr)
-  {
-    // don't use checker
-    d_pnm.reset(new ProofNodeManager);
-  }
-  // inference manager must finish init
-  d_termReg.finishInit(d_pnm.get());
-  d_im->finishInit(d_pnm.get());
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {

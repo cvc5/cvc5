@@ -78,10 +78,8 @@ class InferenceManager
                    ExtTheory& e,
                    OutputChannel& out,
                    SequencesStatistics& statistics,
-                   bool pfEnabled = false);
+                   ProofNodeManager* pnm);
   ~InferenceManager() {}
-  /** finish init */
-  void finishInit(ProofNodeManager* pnm);
 
   /** send assumption
    *
@@ -318,10 +316,6 @@ class InferenceManager
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
   std::vector<InferInfo> d_pendingLem;
-  /** Whether proofs are enabled */
-  bool d_pfEnabled;
-  /** recursive explain */
-  bool d_recExplain;
 };
 
 }  // namespace strings

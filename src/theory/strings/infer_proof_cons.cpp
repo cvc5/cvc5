@@ -137,6 +137,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF_N:
     case Inference::EXTF_D:
     case Inference::EXTF_D_N:
+    case Inference::I_CONST_CONFLICT: 
     {
       if (!ps.d_children.empty())
       {
@@ -156,8 +157,6 @@ Node InferProofCons::convert(Inference infer,
       }
     }
     break;
-    // ========================== equal by substitution+rewriting+rewrite pred
-    case Inference::I_CONST_CONFLICT: break;
     // ========================== rewrite pred
     case Inference::EXTF_EQ_REW:
     case Inference::INFER_EMP:
@@ -669,7 +668,7 @@ Node InferProofCons::convert(Inference infer,
         }
         else
         {
-          Trace("strings-ipc-red") << "...failed to rewrite" << std::endl;
+          Trace("strings-ipc-red") << "...failed to reduce" << std::endl;
         }
       }
     }

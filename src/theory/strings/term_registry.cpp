@@ -40,7 +40,7 @@ TermRegistry::TermRegistry(SolverState& s,
                            eq::EqualityEngine& ee,
                            OutputChannel& out,
                            SequencesStatistics& statistics,
-                           bool pfEnabled)
+                           ProofNodeManager* pnm)
     : d_state(s),
       d_ee(ee),
       d_out(out),
@@ -54,7 +54,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_pfEnabled(pfEnabled)
+      d_epg(new EagerProofGenerator(pnm, s.getUserContext()))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -127,11 +127,6 @@ Node TermRegistry::lengthPositive(Node t)
   Node caseNEmpty = nm->mkNode(GT, tlen, zero);
   // (or (and (= (str.len t) 0) (= t "")) (> (str.len t) 0))
   return nm->mkNode(OR, caseEmpty, caseNEmpty);
-}
-
-void TermRegistry::finishInit(ProofNodeManager* pnm)
-{
-  d_epg.reset(new EagerProofGenerator(pnm, d_state.getUserContext()));
 }
 
 void TermRegistry::preRegisterTerm(TNode n)

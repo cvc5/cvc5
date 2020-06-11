@@ -2948,6 +2948,13 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
       return returnRewrite(node, x, Rewrite::REPLACE_RE_EVAL);
     }
   }
+  // str.replace_re( x, y, z ) ---> z ++ x if "" in y ---> true
+  String emptyStr("");
+  if (RegExpEntail::testConstStringInRegExp(emptyStr,0,y))
+  {
+    Node ret = nm->mkNode(STRING_CONCAT,z,x);
+    return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
+  }
   return node;
 }
 
