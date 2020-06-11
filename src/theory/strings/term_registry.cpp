@@ -65,7 +65,7 @@ TermRegistry::TermRegistry(SolverState& s,
 
 TermRegistry::~TermRegistry() {}
 
-Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t i)
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
