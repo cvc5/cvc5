@@ -121,13 +121,10 @@ void ProofNode::getFreeAssumptionsMap(
       {
         auto scopeCt = scopeDepth.find(a);
         Assert(scopeCt != scopeDepth.end());
-        if (scopeCt->second == 1)
+        scopeCt->second -= 1;
+        if (scopeCt->second == 0)
         {
           scopeDepth.erase(scopeCt);
-        }
-        else
-        {
-          scopeCt->second -= 1;
         }
       }
     }
