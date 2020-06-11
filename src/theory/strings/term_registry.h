@@ -52,10 +52,9 @@ class TermRegistry
   TermRegistry(SolverState& s,
                eq::EqualityEngine& ee,
                OutputChannel& out,
-               SequencesStatistics& statistics);
+               SequencesStatistics& statistics,
+               ProofNodeManager* pnm);
   ~TermRegistry();
-  /** finish init */
-  void finishInit(ProofNodeManager* pnm);
   /** The eager reduce routine
    *
    * Constructs a lemma for t that is incomplete, but communicates pertinent
@@ -271,7 +270,7 @@ class TermRegistry
    * If n is an atomic term, the method registerTermAtomic is called for n
    * and s = LENGTH_SPLIT and no lemma is returned.
    */
-  TrustNode getRegisterTermLemma(Node n);
+  Node getRegisterTermLemma(Node n);
   /**
    * Get the lemma required for registering the length information for
    * atomic term n given length status s. For details, see registerTermAtomic.
@@ -280,7 +279,7 @@ class TermRegistry
    * argument reqPhase, which should be processed by a call to requiredPhase by
    * the caller of this method.
    */
-  TrustNode getRegisterTermAtomicLemma(Node n,
+  Node getRegisterTermAtomicLemma(Node n,
                                        LengthStatus s,
                                        std::map<Node, bool>& reqPhase);
 };
