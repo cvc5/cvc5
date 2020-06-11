@@ -110,7 +110,19 @@ private:
    * TheoryArithPrivate generator, which stores closed proofs.
    */
   std::unique_ptr<EagerProofGenerator> d_pfGenEe;
-  /** A proof generator for TrustNodes sent to the theory. */
+  /** A proof generator for TrustNodes sent to TheoryArithPrivate.
+   *
+   * When TheoryArithPrivate requests an explanation from
+   * ArithCongruenceManager, it can request a TrustNode for that explanation.
+   * This proof generator is the one used in that TrustNode: it stores the
+   * (closed) proofs of implications proved by the
+   * ArithCongruenceManager/EqualityEngine.
+   *
+   * It is insufficient to just use the ProofGenerator from the ProofEqEngine,
+   * since sometimes the ArithCongruenceManager needs to add some
+   * arith-specific reasoning to extend the proof (e.g. rewriting the result
+   * into a normal form).
+   * */
   std::unique_ptr<EagerProofGenerator> d_pfGenExplain;
 
   /** Proof equality engine, wrapping the above class */
