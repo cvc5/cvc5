@@ -21,7 +21,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "options/arith_options.h"
 
 namespace CVC4 {

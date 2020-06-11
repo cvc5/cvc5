@@ -2083,8 +2083,10 @@ set(regress_2_tests
   regress2/strings/pfnew-slow-2020-04-17.smt2
   regress2/strings/pfnew-policy_variable.smt2
   regress2/strings/range-perf.smt2
-  regress2/strings/repl-repl.smt2
   regress2/strings/repl-repl-i-no-push.smt2
+  regress2/strings/repl-repl.smt2
+  regress2/strings/replace_re.smt2
+  regress2/strings/replace_re_all.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
@@ -2419,7 +2421,7 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
-  # no longer support option
+  # no longer support snorm option
   regress1/quantifiers/arith-snorm.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2

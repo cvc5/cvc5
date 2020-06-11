@@ -123,14 +123,21 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                        const std::vector<Node>& exp,
                                        MethodId ids = MethodId::SB_DEFAULT,
                                        MethodId idr = MethodId::RW_REWRITE);
-  /** get a rewriter Id from a node, return false if we fail */
+  /** get a method identifier from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
-  /** get method identifiers */
-  static bool getMethodIds(const std::vector<Node>& args,
-                           MethodId& ids,
-                           MethodId& idr,
-                           size_t index);
-  /** Add method identifiers ids and idr to args */
+  /**
+   * Get method identifiers from args starting at the given index. Store their
+   * values into ids, idr. This method returns false if args does not contain
+   * valid method identifiers at position index in args.
+   */
+  bool getMethodIds(const std::vector<Node>& args,
+                    MethodId& ids,
+                    MethodId& idr,
+                    size_t index);
+  /**
+   * Add method identifiers ids and idr as nodes to args. This does not add ids
+   * or idr if their values are the default ones.
+   */
   static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
 
   /** Register all rules owned by this rule checker into pc. */
