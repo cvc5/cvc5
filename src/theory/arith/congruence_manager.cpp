@@ -66,7 +66,7 @@ std::vector<Node> andComponents(TNode an)
   }
   else if (an.getKind() != Kind::AND)
   {
-    return { an };
+    return {an};
   }
   else
   {
@@ -76,7 +76,6 @@ std::vector<Node> andComponents(TNode an)
     return a;
   }
 }
-
 
 ArithCongruenceManager::Statistics::Statistics():
   d_watchedVariables("theory::arith::congruence::watchedVariables", 0),
@@ -265,8 +264,8 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
 }
 
 void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
-  Debug("arith::cong::notzero") << "Cong::watchedVariableCannotBeZero " << *c
-                       << std::endl;
+  Debug("arith::cong::notzero")
+      << "Cong::watchedVariableCannotBeZero " << *c << std::endl;
   ++(d_statistics.d_watchedVariableIsNotZero);
 
   ArithVar s = c->getVariable();
@@ -294,7 +293,8 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     }
     else
     {
-      Debug("arith::cong::notzero") << "  proof modification needed" << std::endl;
+      Debug("arith::cong::notzero")
+          << "  proof modification needed" << std::endl;
 
       // Four cases:
       //   c has form x_i = d, d > 0     => multiply c by -1 in Farkas proof
@@ -371,7 +371,7 @@ bool ArithCongruenceManager::propagate(TNode x){
     TrustNode texpC = explainInternal(x);
     Node expC = texpC.getNode();
     ConstraintCP negC = c->getNegation();
-    Node neg = Constraint::externalExplainByAssertions({ negC });
+    Node neg = Constraint::externalExplainByAssertions({negC});
     Node conf = expC.andNode(neg);
     Node final = flattenAnd(conf);
 
@@ -511,8 +511,8 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
   Node eq = isEquality ? lit : lit[0];
   Assert(eq.getKind() == Kind::EQUAL);
 
-  Trace("arith-ee") << "Assert to Eq " << lit
-                    << ", reason " << reason << std::endl;
+  Trace("arith-ee") << "Assert to Eq " << lit << ", reason " << reason
+                    << std::endl;
   if (options::proofNew())
   {
     if (CDProof::isSame(lit, reason))
@@ -528,7 +528,8 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
     {
       setProofFor(lit, pf);
       Trace("arith-pfee") << "Actually asserting" << std::endl;
-      if (Debug.isOn("arith-pfee")) {
+      if (Debug.isOn("arith-pfee"))
+      {
         Trace("arith-pfee") << "Proof: ";
         pf->printDebug(Trace("arith-pfee"));
         Trace("arith-pfee") << std::endl;
@@ -556,7 +557,6 @@ void ArithCongruenceManager::assertionToEqualityEngine(
   assertLitToEqualityEngine(lit, reason, pf);
 }
 
-
 bool ArithCongruenceManager::hasProofFor(TNode f) const
 {
   Assert(options::proofNew());
@@ -569,7 +569,8 @@ bool ArithCongruenceManager::hasProofFor(TNode f) const
   return d_pfGenEe->hasProofFor(sym);
 }
 
-void ArithCongruenceManager::setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const
+void ArithCongruenceManager::setProofFor(TNode f,
+                                         std::shared_ptr<ProofNode> pf) const
 {
   Assert(!hasProofFor(f));
   d_pfGenEe->mkTrustNode(f, pf);
@@ -588,8 +589,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(c->getValue().getNoninfinitesimalPart());
 
-
-  //No guarentee this is in normal form!
+  // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!
   Node eq = xAsNode.eqNode(asRational);
   d_keepAlive.push_back(eq);
@@ -621,13 +621,13 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   Node xAsNode = d_avariables.asNode(x);
   Node asRational = mkRationalNode(lb->getValue().getNoninfinitesimalPart());
 
-  //No guarentee this is in normal form!
+  // No guarentee this is in normal form!
   // Note though, that it happens to be in proof normal form!
   Node eq = xAsNode.eqNode(asRational);
   std::shared_ptr<ProofNode> pf;
   if (options::proofNew())
   {
-    pf = d_pnm->mkNode(PfRule::TRICHOTOMY, { pfLb, pfUb }, { eq });
+    pf = d_pnm->mkNode(PfRule::TRICHOTOMY, {pfLb, pfUb}, {eq});
   }
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);

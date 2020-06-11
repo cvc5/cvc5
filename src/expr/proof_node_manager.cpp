@@ -165,7 +165,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
                            << std::endl;
         std::shared_ptr<ProofNode> pfaa = mkAssume(flipPred ? symPred : aPred);
         // Potentially apply symmetry to the real assumption
-        if (flipPred) {
+        if (flipPred)
+        {
           pfaa = mkNode(PfRule::SYMM, pfaa, {}, aPred);
         }
         // maybe reorient equality, in which case update the pointer to the

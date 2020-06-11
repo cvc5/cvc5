@@ -1108,45 +1108,42 @@ private:
   friend class Constraint;
   
 public:
+ ConstraintDatabase(context::Context* satContext,
+                    context::Context* userContext,
+                    const ArithVariables& variables,
+                    ArithCongruenceManager& dm,
+                    RaiseConflict conflictCallBack,
+                    EagerProofGenerator* pfGen,
+                    ProofNodeManager* pnm);
 
-  ConstraintDatabase( context::Context* satContext,
-                      context::Context* userContext,
-                      const ArithVariables& variables,
-                      ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack,
-                      EagerProofGenerator* pfGen,
-                      ProofNodeManager* pnm);
+ ~ConstraintDatabase();
 
+ /** Adds a literal to the database. */
+ ConstraintP addLiteral(TNode lit);
 
-  ~ConstraintDatabase();
+ /**
+  * If hasLiteral() is true, returns the constraint.
+  * Otherwise, returns NullConstraint.
+  */
+ ConstraintP lookup(TNode literal) const;
 
-  /** Adds a literal to the database. */
-  ConstraintP addLiteral(TNode lit);
+ /**
+  * Returns true if the literal has been added to the database.
+  * This is a hash table lookup.
+  * It does not look in the database for an equivalent corresponding constraint.
+  */
+ bool hasLiteral(TNode literal) const;
 
-  /**
-   * If hasLiteral() is true, returns the constraint.
-   * Otherwise, returns NullConstraint.
-   */
-  ConstraintP lookup(TNode literal) const;
+ bool hasMorePropagations() const { return !d_toPropagate.empty(); }
 
-  /**
-   * Returns true if the literal has been added to the database.
-   * This is a hash table lookup.
-   * It does not look in the database for an equivalent corresponding constraint.
-   */
-  bool hasLiteral(TNode literal) const;
+ ConstraintCP nextPropagation()
+ {
+   Assert(hasMorePropagations());
 
-  bool hasMorePropagations() const{
-    return !d_toPropagate.empty();
-  }
+   ConstraintCP p = d_toPropagate.front();
+   d_toPropagate.pop();
 
-  ConstraintCP nextPropagation(){
-    Assert(hasMorePropagations());
-
-    ConstraintCP p = d_toPropagate.front();
-    d_toPropagate.pop();
-
-    return p;
+   return p;
   }
 
   void addVariable(ArithVar v);

@@ -1543,7 +1543,8 @@ TrustNode Constraint::externalExplainForPropagation() const
     }
     if (getProofLiteral() != getLiteral())
     {
-      pfFromAssumptions = d_database->d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, pfFromAssumptions, { getLiteral() });
+      pfFromAssumptions = d_database->d_pnm->mkNode(
+          PfRule::MACRO_SR_PRED_TRANSFORM, pfFromAssumptions, {getLiteral()});
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(getLiteral(), n, pf);

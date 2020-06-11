@@ -17,9 +17,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <map>
 #include <queue>
-#include <stdint.h>
 #include <vector>
 
 #include "context/cdhashset.h"
