@@ -54,9 +54,24 @@ void ProofNode::getFreeAssumptionsMap(
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;
-  // Maps an bound assumption to the number of bindings it is under
+  // Maps a bound assumption to the number of bindings it is under
   // e.g. in (SCOPE (SCOPE (ASSUME x) (x y)) (y)), y would be mapped to 2 at
   // (ASSUME x), and x would be mapped to 1.
+  //
+  // This map is used to track which nodes are in scope while traversing the
+  // DAG. The in-scope assumptions are keys in the map. They're removed when
+  // their binding count drops to zero. Let's annotate the above example to
+  // serve as an illustration:
+  //
+  //   (SCOPE0 (SCOPE1 (ASSUME x) (x y)) (y))
+  //
+  // This is how the map changes during the traversal:
+  //   after  previsiting SCOPE0: { y: 1 }
+  //   after  previsiting SCOPE1: { y: 2, x: 1 }
+  //   at                 ASSUME: { y: 2, x: 1 } (so x is in scope!)
+  //   after postvisiting SCOPE1: { y: 1 }
+  //   after postvisiting SCOPE2: {}
+  //
   std::unordered_map<Node, uint32_t, NodeHashFunction> scopeDepth;
   ProofNode* cur;
   visit.push_back(this);
