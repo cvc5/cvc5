@@ -432,6 +432,8 @@ libcvc4_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/eager_proof_generator.cpp
+  theory/eager_proof_generator.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -643,7 +645,6 @@ libcvc4_add_sources(
   theory/rewriter.h
   theory/rewriter_attributes.h
   theory/sep/theory_sep.cpp
-  theory/theory_rewriter.h
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
@@ -744,8 +745,13 @@ libcvc4_add_sources(
   theory/theory_model.h
   theory/theory_model_builder.cpp
   theory/theory_model_builder.h
+  theory/theory_proof_step_buffer.cpp
+  theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
+  theory/trust_node.cpp
+  theory/trust_node.h
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h
