@@ -39,8 +39,7 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
 TermRegistry::TermRegistry(SolverState& s,
                            eq::EqualityEngine& ee,
                            OutputChannel& out,
-                           SequencesStatistics& statistics,
-                           bool pfEnabled)
+                           SequencesStatistics& statistics)
     : d_state(s),
       d_ee(ee),
       d_out(out),
@@ -53,8 +52,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_registeredTypes(s.getUserContext()),
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
-      d_lengthLemmaTermsCache(s.getUserContext()),
-      d_pfEnabled(pfEnabled)
+      d_lengthLemmaTermsCache(s.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
