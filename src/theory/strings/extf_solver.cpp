@@ -56,6 +56,8 @@ ExtfSolver::ExtfSolver(context::Context* c,
   d_extt.addFunctionKind(kind::STRING_STOI);
   d_extt.addFunctionKind(kind::STRING_STRREPL);
   d_extt.addFunctionKind(kind::STRING_STRREPLALL);
+  d_extt.addFunctionKind(kind::STRING_REPLACE_RE);
+  d_extt.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
   d_extt.addFunctionKind(kind::STRING_STRCTN);
   d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
   d_extt.addFunctionKind(kind::STRING_LEQ);
@@ -180,8 +182,9 @@ bool ExtfSolver::doReduction(int effort, Node n)
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
            || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
-           || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
-           || k == STRING_TOUPPER || k == STRING_REV);
+           || k == STRING_STRREPLALL || k == STRING_REPLACE_RE
+           || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
+           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);

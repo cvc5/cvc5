@@ -354,6 +354,21 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
+void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
+                                           MethodId ids,
+                                           MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
+}
+
 }  // namespace builtin
 }  // namespace theory
 }  // namespace CVC4

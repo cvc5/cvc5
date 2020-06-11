@@ -118,6 +118,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
+  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE);
+  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
   d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER);
   d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER);
   d_equalityEngine.addFunctionKind(kind::STRING_REV);
