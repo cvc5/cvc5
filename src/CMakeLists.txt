@@ -432,6 +432,8 @@ libcvc4_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/eager_proof_generator.cpp
+  theory/eager_proof_generator.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
