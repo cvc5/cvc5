@@ -26,29 +26,30 @@ namespace CVC4 {
 namespace expr {
 
 /**
-  * This adds to the vector assump all formulas that are "free assumptions" of
-  * the proof whose root is this ProofNode. A free assumption is a formula F
-  * that is an argument (in d_args) of a ProofNode whose kind is ASSUME, and
-  * that proof node is not beneath an application of SCOPE containing F as an
-  * argument.
-  *
-  * This traverses the structure of the dag represented by this ProofNode.
-  * Its implementation is analogous to expr::getFreeVariables.
-  * 
-  * @param pn The proof node.
-  * @param assump The vector to add the free asumptions of pn to.
-  */
-void getFreeAssumptions(ProofNode * pn, std::vector<Node>& assump);
+ * This adds to the vector assump all formulas that are "free assumptions" of
+ * the proof whose root is this ProofNode. A free assumption is a formula F
+ * that is an argument (in d_args) of a ProofNode whose kind is ASSUME, and
+ * that proof node is not beneath an application of SCOPE containing F as an
+ * argument.
+ *
+ * This traverses the structure of the dag represented by this ProofNode.
+ * Its implementation is analogous to expr::getFreeVariables.
+ *
+ * @param pn The proof node.
+ * @param assump The vector to add the free asumptions of pn to.
+ */
+void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump);
 /**
  * Same as above, but maps assumptions to the proof pointer(s) for that
  * assumption. Notice that depending on how pn is constructed, there may be
  * multiple ProofNode that are ASSUME proofs of the same assumption.
- * 
-  * @param pn The proof node.
-  * @param assump The mapping to add the free asumptions of pn and their
-  * corresponding proof nodes to.
+ *
+ * @param pn The proof node.
+ * @param assump The mapping to add the free asumptions of pn and their
+ * corresponding proof nodes to.
  */
-void getFreeAssumptionsMap(ProofNode * pn, std::map<Node, std::vector<ProofNode*>>& amap);
+void getFreeAssumptionsMap(ProofNode* pn,
+                           std::map<Node, std::vector<ProofNode*>>& amap);
 
 }  // namespace expr
 }  // namespace CVC4

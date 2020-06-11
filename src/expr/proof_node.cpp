@@ -14,8 +14,8 @@
 
 #include "expr/proof_node.h"
 
-#include "expr/proof_node_to_sexpr.h"
 #include "expr/proof_node_algorithm.h"
+#include "expr/proof_node_to_sexpr.h"
 
 namespace CVC4 {
 
