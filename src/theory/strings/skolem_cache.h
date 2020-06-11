@@ -102,6 +102,16 @@ class SkolemCache
     // of b in a as the witness for contains( a, b ).
     SK_FIRST_CTN_PRE,
     SK_FIRST_CTN_POST,
+    // For sequence a and regular expression b,
+    // in_re(a, re.++(_*, b, _*)) =>
+    //    exists k_pre, k_match, k_post.
+    //       a = k_pre ++ k_match ++ k_post ^
+    //       ~in_re(k_pre ++ substr(k_match, 0, str.len(k_match) - 1),
+    //              re.++(_*, b, _*)) ^
+    //       in_re(k2, y)
+    SK_FIRST_MATCH_PRE,
+    SK_FIRST_MATCH,
+    SK_FIRST_MATCH_POST,
     // For integer b,
     // len( a ) > b =>
     //    exists k. a = k ++ a' ^ len( k ) = b
@@ -120,6 +130,14 @@ class SkolemCache
     //       k(x) is the end index of the x^th occurrence of b in a
     //   where n is the number of occurrences of b in a, and k(0)=0.
     SK_OCCUR_INDEX,
+    // For function k: Int -> Int
+    //   exists k.
+    //     forall 0 <= x < n,
+    //       k(x) is the length of the x^th occurrence of b in a (excluding
+    //       matches of empty strings)
+    //   where b is a regular expression, n is the number of occurrences of b
+    //   in a, and k(0)=0.
+    SK_OCCUR_LEN,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
