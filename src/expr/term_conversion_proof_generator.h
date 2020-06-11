@@ -78,6 +78,15 @@ class TermConversionProofGenerator : public ProofGenerator
   void addRewriteStep(Node t, Node s, ProofGenerator * pg);
   /** Same as above, for a single step */
   void addRewriteStep(Node t, Node s, ProofStep ps);
+  /** Same as above, with explicit arguments */
+  void addRewriteStep(Node t, Node s, 
+               PfRule id,
+               const std::vector<Node>& children,
+               const std::vector<Node>& args);
+  /** Has rewrite step for term t */
+  bool hasRewriteStep(Node t) const;
+  /** Get rewrite step for term t */
+  Node getRewriteStep(Node t) const;
   /** 
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps
@@ -87,6 +96,8 @@ class TermConversionProofGenerator : public ProofGenerator
    * @return The proof for f.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** Identify this generator (for debugging, etc..) */
+  std::string identify() const override;
  protected:
   typedef context::CDHashMap<Node, Node, NodeHashFunction>
       NodeNodeMap;
@@ -96,8 +107,6 @@ class TermConversionProofGenerator : public ProofGenerator
   LazyCDProof d_proof;
   /** map to rewritten forms */
   NodeNodeMap d_rewriteMap;
-  /** Get rewrite step */
-  Node getRewriteStep(Node t) const;
   /** 
    * Get the proof for term t. Returns a proof of t = t' where t' is the
    * result of rewriting t based on the rewrite steps registered to this class.

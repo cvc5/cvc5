@@ -15,6 +15,7 @@
 #include "expr/proof_node_manager.h"
 
 #include "expr/proof.h"
+#include "expr/proof_node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -84,7 +85,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   }
   // The free assumptions of the proof
   std::map<Node, std::vector<ProofNode*>> famap;
-  pf->getFreeAssumptionsMap(famap);
+  expr::getFreeAssumptionsMap(pf.get(), famap);
   std::unordered_set<Node, NodeHashFunction> acu;
   for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
   {

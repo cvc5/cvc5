@@ -29,16 +29,37 @@ TermConversionProofGenerator::~TermConversionProofGenerator()
 
 void TermConversionProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator * pg)
 {
-  Assert (getRewriteStep(t).isNull());
+  // should not rewrite term more than once
+  Assert (!hasRewriteStep(t));
   Node eq = t.eqNode(s);
   d_proof.addLazyStep(eq,pg);
+  d_rewriteMap[t] = s;
 }
 
 void TermConversionProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
-  Assert (getRewriteStep(t).isNull());
+  // should not rewrite term more than once
+  Assert (!hasRewriteStep(t));
   Node eq = t.eqNode(s);
   d_proof.addStep(eq,ps);
+  d_rewriteMap[t] = s;
+}
+
+void TermConversionProofGenerator::addRewriteStep(Node t, Node s, 
+              PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args)
+{
+  // should not rewrite term more than once
+  Assert (!hasRewriteStep(t));
+  Node eq = t.eqNode(s);
+  d_proof.addStep(eq,id,children,args);
+  d_rewriteMap[t] = s;
+}
+
+bool TermConversionProofGenerator::hasRewriteStep(Node t) const
+{
+  return !getRewriteStep(t).isNull();
 }
 
 std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofFor(Node f)
@@ -151,8 +172,8 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
         }
         if (childChanged) 
         {
-          rewritten[cur] = ret;
           ret = nm->mkNode(cur.getKind(), children);
+          rewritten[cur] = ret;
           // congruence to show (cur = ret)
           std::vector<Node> pfChildren;
           for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
@@ -214,6 +235,10 @@ Node TermConversionProofGenerator::getRewriteStep(Node t) const
      return Node::null();
    }
    return (*it).second;
+}
+std::string TermConversionProofGenerator::identify() const
+{
+  return "TermConversionProofGenerator";
 }
 
 }  // namespace CVC4

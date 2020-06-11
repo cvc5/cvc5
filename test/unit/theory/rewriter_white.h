@@ -23,6 +23,7 @@
 #include "expr/node_manager.h"
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -46,7 +47,7 @@ class RewriterWhite : public CxxTest::TestSuite
   SmtEngine* d_smt;
   SmtScope* d_scope;
   ProofNodeManager* d_pnm;
-  CDProof* d_proof;
+  TermConversionProofGenerator* d_tcpg;
 
  public:
   RewriterWhite() {}
@@ -63,12 +64,12 @@ class RewriterWhite : public CxxTest::TestSuite
     d_scope = new SmtScope(d_smt);
     d_smt->finalOptionsAreSet();
     d_pnm = new ProofNodeManager(d_smt->getTheoryEngine()->d_pchecker.get());
-    d_proof = new CDProof(d_pnm);
+    d_tcpg = new TermConversionProofGenerator(d_pnm);
   }
 
   void tearDown() override
   {
-    delete d_proof;
+    delete d_tcpg;
     delete d_pnm;
     delete d_scope;
     delete d_smt;
@@ -77,9 +78,9 @@ class RewriterWhite : public CxxTest::TestSuite
 
   void rewriteWithProof(Node t)
   {
-    Node tr = Rewriter::rewriteWithProof(t, d_proof);
+    Node tr = Rewriter::rewriteWithProof(t, d_tcpg);
     std::shared_ptr<ProofNode> pn =
-        d_proof->mkProof(d_nm->mkNode(kind::EQUAL, t, tr));
+        d_tcpg->getProofFor(d_nm->mkNode(kind::EQUAL, t, tr));
     std::cout << t << " ---> " << tr << std::endl;
     pn->printDebug(std::cout);
     TS_ASSERT(pn->isClosed());

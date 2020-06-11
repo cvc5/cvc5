@@ -23,6 +23,7 @@
 #include "expr/proof_node.h"
 
 namespace CVC4 {
+namespace expr {
 
 /**
   * This adds to the vector assump all formulas that are "free assumptions" of
@@ -49,7 +50,7 @@ void getFreeAssumptions(ProofNode * pn, std::vector<Node>& assump);
  */
 void getFreeAssumptionsMap(ProofNode * pn, std::map<Node, std::vector<ProofNode*>>& amap);
 
-
+}  // namespace expr
 }  // namespace CVC4
 
 #endif /* CVC4__EXPR__PROOF_NODE_ALGORITHM_H */
