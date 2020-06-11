@@ -88,8 +88,8 @@ Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t i)
     // x)))
     Node l = utils::mkNLength(t[0]);
     lemma = nm->mkNode(AND,
-                        nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                        nm->mkNode(LEQ, t, l));
+                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                       nm->mkNode(LEQ, t, l));
   }
   else if (tk == STRING_STOI)
   {
@@ -273,7 +273,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else if (n.getKind()!=STRING_STRCTN)
+  else if (n.getKind() != STRING_STRCTN)
   {
     // we don't send out eager reduction lemma for str.contains currently
     regTermLem = eagerReduce(n, &d_skCache);
