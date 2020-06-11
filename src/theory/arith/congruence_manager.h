@@ -104,12 +104,13 @@ private:
 
   /** proof manager */
   ProofNodeManager* d_pnm;
-  // A proof generator for storing proofs of facts that are asserted to the EQ
-  // engine. Note that these proofs **are not closed**, and assume the
-  // explanation of these facts. This is why this generator is separate from the
-  // TheoryArithPrivate generator, which stores closed proofs.
+  /** A proof generator for storing proofs of facts that are asserted to the EQ
+   * engine. Note that these proofs **are not closed**, and assume the
+   * explanation of these facts. This is why this generator is separate from the
+   * TheoryArithPrivate generator, which stores closed proofs.
+   */
   std::unique_ptr<EagerProofGenerator> d_pfGenEe;
-  // A proof generator for TrustNodes sent to the theory.
+  /** A proof generator for TrustNodes sent to the theory. */
   std::unique_ptr<EagerProofGenerator> d_pfGenExplain;
 
   /** Proof equality engine, wrapping the above class */
@@ -140,11 +141,12 @@ private:
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  // Assert this literal to the eq engine. Common functionality for
-  //   * assertionToEqualityEngine(..)
-  //   * equalsConstant(c)
-  //   * equalsConstant(lb, ub)
-  // If proofNew is off, then just asserts.
+  /** Assert this literal to the eq engine. Common functionality for
+   *   * assertionToEqualityEngine(..)
+   *   * equalsConstant(c)
+   *   * equalsConstant(lb, ub)
+   * If proofNew is off, then just asserts.
+   */
   void assertLitToEqualityEngine(Node lit,
                                  TNode reason,
                                  std::shared_ptr<ProofNode> pf);
@@ -154,11 +156,12 @@ private:
                                  TNode reason,
                                  std::shared_ptr<ProofNode> pf);
 
-  // Check for proof for this or a symmetric fact
-  //
-  // @returns whether this or a symmetric fact has a proof.
+  /** Check for proof for this or a symmetric fact
+   *
+   * @returns whether this or a symmetric fact has a proof.
+   */
   bool hasProofFor(TNode f) const;
-  // Sets the proof for this fact and the symmetric one.
+  /** Sets the proof for this fact and the symmetric one. */
   void setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const;
 
   /** Dequeues the delay queue and asserts these equalities.*/

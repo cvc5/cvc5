@@ -107,11 +107,11 @@ private:
   BoundInfoMap d_rowTracking;
 
   // For proofs
-  // Manages the proof nodes of this theory.
+  /** Manages the proof nodes of this theory. */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  // Checks the proof rules of this theory.
+  /** Checks the proof rules of this theory. */
   ArithProofRuleChecker d_checker;
-  // Stores proposition(node)/proof pairs.
+  /** Stores proposition(node)/proof pairs. */
   std::unique_ptr<EagerProofGenerator> d_pfGen;
 
   /**

@@ -476,8 +476,12 @@ class Constraint {
     return d_literal;
   }
 
-  // Gets a literal in the normal form suitable for proofs.
-  // That is, (sum of non-const monomials) >< const.
+  /** Gets a literal in the normal form suitable for proofs.
+   * That is, (sum of non-const monomials) >< const.
+   *
+   * This is a sister method to `getLiteral`, which returns a normal form
+   * literal, suitable for external solving use.
+   */
   Node getProofLiteral() const;
 
   /**
@@ -1095,8 +1099,9 @@ private:
   ArithCongruenceManager& d_congruenceManager;
 
   const context::Context * const d_satContext;
-  // Owned by the TheoryArithPrivate, used here.
+  /** Owned by the TheoryArithPrivate, used here. */
   EagerProofGenerator* d_pfGen;
+  /** Owned by the TheoryArithPrivate, used here. */
   ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
