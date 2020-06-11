@@ -18,7 +18,7 @@
 #include "base/output.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/constraint.h"
-
+#include "theory/arith/proof_macros.h"
 
 using namespace std;
 
@@ -510,7 +510,7 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   ConstraintCPVec bounds;
-  RationalVectorP coeffs = NULLPROOF(new RationalVector());
+  RationalVectorP coeffs = ARITH_NULLPROOF(new RationalVector());
   propagateRow(bounds, ridx, upperBound, c, coeffs);
   c->impliedByFarkas(bounds, coeffs, false);
   c->tryToPropagate();

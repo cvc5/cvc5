@@ -28,6 +28,7 @@
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/partial_model.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -101,6 +102,29 @@ private:
 
   eq::EqualityEngine d_ee;
 
+  /** proof manager */
+  ProofNodeManager* d_pnm;
+  /** A proof generator for storing proofs of facts that are asserted to the EQ
+   * engine. Note that these proofs **are not closed**, and assume the
+   * explanation of these facts. This is why this generator is separate from the
+   * TheoryArithPrivate generator, which stores closed proofs.
+   */
+  std::unique_ptr<EagerProofGenerator> d_pfGenEe;
+  /** A proof generator for TrustNodes sent to TheoryArithPrivate.
+   *
+   * When TheoryArithPrivate requests an explanation from
+   * ArithCongruenceManager, it can request a TrustNode for that explanation.
+   * This proof generator is the one used in that TrustNode: it stores the
+   * (closed) proofs of implications proved by the
+   * ArithCongruenceManager/EqualityEngine.
+   *
+   * It is insufficient to just use the ProofGenerator from the ProofEqEngine,
+   * since sometimes the ArithCongruenceManager needs to add some
+   * arith-specific reasoning to extend the proof (e.g. rewriting the result
+   * into a normal form).
+   * */
+  std::unique_ptr<EagerProofGenerator> d_pfGenExplain;
+
   /** Proof equality engine, wrapping the above class */
   std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
 
@@ -129,8 +153,28 @@ private:
   bool propagate(TNode x);
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
+  /** Assert this literal to the eq engine. Common functionality for
+   *   * assertionToEqualityEngine(..)
+   *   * equalsConstant(c)
+   *   * equalsConstant(lb, ub)
+   * If proofNew is off, then just asserts.
+   */
+  void assertLitToEqualityEngine(Node lit,
+                                 TNode reason,
+                                 std::shared_ptr<ProofNode> pf);
   /** This sends a shared term to the uninterpreted equality engine. */
-  void assertionToEqualityEngine(bool eq, ArithVar s, TNode reason);
+  void assertionToEqualityEngine(bool eq,
+                                 ArithVar s,
+                                 TNode reason,
+                                 std::shared_ptr<ProofNode> pf);
+
+  /** Check for proof for this or a symmetric fact
+   *
+   * @returns whether this or a symmetric fact has a proof.
+   */
+  bool hasProofFor(TNode f) const;
+  /** Sets the proof for this fact and the symmetric one. */
+  void setProofFor(TNode f, std::shared_ptr<ProofNode> pf) const;
 
   /** Dequeues the delay queue and asserts these equalities.*/
   void enableSharedTerms();

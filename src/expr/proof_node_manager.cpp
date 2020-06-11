@@ -98,6 +98,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     Trace("pnm-scope") << "- try matching free assumption " << a << "\n";
     // otherwise it may be due to symmetry?
     Node aeqSym = CDProof::getSymmFact(a);
+    Trace("pnm-scope") << "  - try sym " << aeqSym << "\n";
     if (!aeqSym.isNull())
     {
       if (ac.count(aeqSym))
@@ -132,36 +133,64 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     //  (= (= t1 t2) false)
     //  -------------------- SYMM
     //  (= false (= t1 t2))
-    bool pol, symm;
-    Node aPred = CDProof::getPredicateFact(a, pol, symm);
-    if (!aPred.isNull() && ac.count(aPred))
+    bool pol, flipEqualityPredIntro;
+    Node aPred = CDProof::getPredicateFact(a, pol, flipEqualityPredIntro);
+    Trace("pnm-scope") << "  - try predicate fact " << aPred << "\n";
+    if (!aPred.isNull())
     {
-      Trace("pnm-scope") << "- introduce explicit predicate " << aPred
-                         << " via " << (symm ? "[reoriented] " : "") << a
-                         << " for " << fa.second.size() << " proof nodes"
-                         << std::endl;
-      std::shared_ptr<ProofNode> pfaa = mkAssume(aPred);
-      ;
-      // maybe reorient equality, in which case update the pointer to the
-      // justification of the assumption
-      if (symm)
+      // Whether the predicate also needs to be flipped to a get a bound
+      // assumption.
+      bool flipPred = false;
+      // Whether we've found a path to a bound assumption.
+      bool foundMatch = false;
+      Node symPred;
+      if (ac.count(aPred))
       {
-        pfaa = mkNode(pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
-                      pfaa,
-                      {},
-                      a[1].eqNode(a[0]));
+        foundMatch = true;
       }
-      PfRule updateRule =
-          symm ? PfRule::SYMM
-               : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
-      for (ProofNode* pfs : fa.second)
+      else
       {
-        Assert(pfs->getResult() == a);
-        updateNode(pfs, updateRule, {pfaa}, {});
+        symPred = CDProof::getSymmFact(aPred);
+        if (!symPred.isNull() && ac.count(symPred))
+        {
+          foundMatch = true;
+          flipPred = true;
+        }
       }
-      Trace("pnm-scope") << "...finished" << std::endl;
-      acu.insert(aPred);
-      continue;
+      if (foundMatch)
+      {
+        Trace("pnm-scope") << "- introduce explicit predicate " << aPred
+                           << " via "
+                           << (flipEqualityPredIntro ? "[reoriented] " : "")
+                           << a << " for " << fa.second.size() << " proof nodes"
+                           << std::endl;
+        std::shared_ptr<ProofNode> pfaa = mkAssume(flipPred ? symPred : aPred);
+        // Potentially apply symmetry to the real assumption
+        if (flipPred)
+        {
+          pfaa = mkNode(PfRule::SYMM, pfaa, {}, aPred);
+        }
+        // maybe reorient equality, in which case update the pointer to the
+        // justification of the assumption
+        if (flipEqualityPredIntro)
+        {
+          pfaa = mkNode(pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+                        pfaa,
+                        {},
+                        a[1].eqNode(a[0]));
+        }
+        PfRule updateRule = flipEqualityPredIntro ? PfRule::SYMM
+                                                  : (pol ? PfRule::TRUE_INTRO
+                                                         : PfRule::FALSE_INTRO);
+        for (ProofNode* pfs : fa.second)
+        {
+          Assert(pfs->getResult() == a);
+          updateNode(pfs, updateRule, {pfaa}, {});
+        }
+        Trace("pnm-scope") << "...finished" << std::endl;
+        acu.insert(aPred);
+        continue;
+      }
     }
     // All free assumptions should be arguments to SCOPE.
     std::stringstream ss;

@@ -54,8 +54,25 @@ void ProofNode::getFreeAssumptionsMap(
   std::unordered_map<ProofNode*, bool> visited;
   std::unordered_map<ProofNode*, bool>::iterator it;
   std::vector<ProofNode*> visit;
-  // the current set of formulas bound by SCOPE
-  std::unordered_set<Node, NodeHashFunction> currentScope;
+  // Maps a bound assumption to the number of bindings it is under
+  // e.g. in (SCOPE (SCOPE (ASSUME x) (x y)) (y)), y would be mapped to 2 at
+  // (ASSUME x), and x would be mapped to 1.
+  //
+  // This map is used to track which nodes are in scope while traversing the
+  // DAG. The in-scope assumptions are keys in the map. They're removed when
+  // their binding count drops to zero. Let's annotate the above example to
+  // serve as an illustration:
+  //
+  //   (SCOPE0 (SCOPE1 (ASSUME x) (x y)) (y))
+  //
+  // This is how the map changes during the traversal:
+  //   after  previsiting SCOPE0: { y: 1 }
+  //   after  previsiting SCOPE1: { y: 2, x: 1 }
+  //   at                 ASSUME: { y: 2, x: 1 } (so x is in scope!)
+  //   after postvisiting SCOPE1: { y: 1 }
+  //   after postvisiting SCOPE2: {}
+  //
+  std::unordered_map<Node, uint32_t, NodeHashFunction> scopeDepth;
   ProofNode* cur;
   visit.push_back(this);
   do
@@ -71,7 +88,7 @@ void ProofNode::getFreeAssumptionsMap(
       {
         Assert(cur->d_args.size() == 1);
         Node f = cur->d_args[0];
-        if (currentScope.find(f) == currentScope.end())
+        if (!scopeDepth.count(f))
         {
           amap[f].push_back(cur);
         }
@@ -83,9 +100,7 @@ void ProofNode::getFreeAssumptionsMap(
           // mark that its arguments are bound in the current scope
           for (const Node& a : cur->d_args)
           {
-            // should not have assumption shadowing
-            Assert(currentScope.find(a) == currentScope.end());
-            currentScope.insert(a);
+            scopeDepth[a] += 1;
           }
           // will need to unbind the variables below
           visited[cur] = false;
@@ -104,7 +119,13 @@ void ProofNode::getFreeAssumptionsMap(
       // unbind its assumptions
       for (const Node& a : cur->d_args)
       {
-        currentScope.erase(a);
+        auto scopeCt = scopeDepth.find(a);
+        Assert(scopeCt != scopeDepth.end());
+        scopeCt->second -= 1;
+        if (scopeCt->second == 0)
+        {
+          scopeDepth.erase(scopeCt);
+        }
       }
     }
   } while (!visit.empty());
