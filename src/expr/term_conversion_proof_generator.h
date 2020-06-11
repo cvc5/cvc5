@@ -26,6 +26,39 @@ namespace CVC4 {
 
 /**
  * The term conversion proof generator.
+ * 
+ * This class is used for proofs of t = t', where t' is obtained from t by
+ * applying (context-free) small step rewrites on subterms of t. Its main
+ * interface functions are: 
+ * (1) addRewriteStep(t,s,<justification>) which notifies this class that t
+ * rewrites to s,
+ * (2) getProofFor(f) where f is any equality that can be justified by the
+ * rewrite steps given above.
+ * 
+ * For example, say we make the following calls:
+ *   addRewriteStep(a,b,P1)
+ *   addRewriteStep(f(a),c,P2)
+ *   addRewriteStep(c,d,P3)
+ * where P1 and P2 are proof steps. Afterwards, this class may justify any
+ * equality t = s where s is obtained by applying the rewrites a->b, f(a)->c,
+ * c->d, based on the strategy outlined below [***]. For example, the call to:
+ *   getProofFor(g(f(a),h(a),f(e)) = g(d,h(b),f(e)))
+ * will return the proof:
+ *   CONG(
+ *     TRANS(P2,P3),     ; f(a)=d
+ *     CONG(P1 :args h), ; h(a)=h(b)
+ *     REFL(:args f(e))  ; f(e)=f(e)
+ *   :args g)
+ * 
+ * [***] This class traverses the left hand side of a given equality-to-prove
+ * (the term g(f(a),h(a),e) in the above example) and "replays" the rewrite
+ * steps to obtain its rewritten form. To do so, it applies any available
+ * rewrite step both at pre-rewrite (pre-order traversal) and post-rewrite
+ * (post-order traversal). It thus does not require the user of this class to
+ * distinguish whether a rewrite is a pre-rewrite or a post-rewrite during
+ * addRewriteStep. In particular, notice that in the above example, we realize
+ * that f(a) --> c at pre-rewrite instead of post-rewriting a --> b and then
+ * ending with f(a)=f(b).
  */
 class TermConversionProofGenerator : public ProofGenerator
 {

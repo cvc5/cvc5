@@ -74,9 +74,14 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
   PRefProofGenerator prg(&d_proof);
   LazyCDProof pf(d_proof.getManager(), &prg);
   NodeManager * nm = NodeManager::currentNM();
+  // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct, 
+  // then pf is able to generate a proof of t=s.
+  // the final rewritten form of terms
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  // the rewritten form of terms we have processed so far
   std::unordered_map<TNode, Node, TNodeHashFunction> rewritten;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itr;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(t);
@@ -89,12 +94,12 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
     if (it == visited.end()) 
     {
       visited[cur] = Node::null();
-      // did we rewrite the current node (possibly at prerewrite)?
+      // did we rewrite the current node (possibly at pre-rewrite)?
       Node rcur = getRewriteStep(cur);
       if (!rcur.isNull())
       {
-        // TODO
-        Node eq = cur.eqNode(rcur);
+        // d_proof should have a proof of cur = rcur. Hence there is nothing
+        // to do here, as pf will reference prg to get the proof from d_proof.
         rewritten[cur] = rcur;
         visit.push_back(cur);
         visit.push_back(rcur);
@@ -107,66 +112,98 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
     } 
     else if (it->second.isNull()) 
     {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur )
+      itr = rewritten.find(cur);
+      if (itr!=rewritten.end())
       {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged) 
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-        // congruence here
-        std::vector<Node> pfChildren;
-        for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
+        // if it was rewritten, check the status of the rewritten node,
+        // which should be finished now
+        Node rcur = itr->second;
+        Assert (cur!=rcur);
+        // the final rewritten form of cur is the final form of rcur
+        Node rcurFinal = visited[rcur];
+        if (rcurFinal!=rcur)
         {
-          if (cur[i]==ret[i])
-          {
-            // ensure REFL proof for unchanged children
-            pf.addStep(cur[i].eqNode(cur[i]),PfRule::REFL, {}, {cur[i]});
-          }
-          pfChildren.push_back(cur[i].eqNode(ret[i]));
+          // must connect via TRANS
+          std::vector<Node> pfChildren;
+          pfChildren.push_back(cur.eqNode(rcur));
+          pfChildren.push_back(rcur.eqNode(rcurFinal));
+          Node result = cur.eqNode(rcurFinal);
+          pf.addStep(result, PfRule::TRANS, pfChildren, {});
         }
-        std::vector<Node> pfArgs;
-        Kind k = cur.getKind();
-        if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
-        {
-          pfArgs.push_back(cur.getOperator());
-        }
-        else
-        {
-          pfArgs.push_back(nm->operatorOf(k));
-        }
-        Node result = cur.eqNode(ret);
-        pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
-      }
-      // did we rewrite the current node?
-      Node rret = getRewriteStep(ret);
-      if (!rret.isNull())
-      {
-        rewritten[cur] = rret;
-        visit.push_back(cur);
-        visit.push_back(rret);
+        visited[cur] = rcurFinal;
       }
       else
       {
-        visited[cur] = ret;
+        Node ret = cur;
+        bool childChanged = false;
+        std::vector<Node> children;
+        if (cur.getMetaKind() == metakind::PARAMETERIZED) 
+        {
+          children.push_back(cur.getOperator());
+        }
+        for (const Node& cn : cur )
+        {
+          it = visited.find(cn);
+          Assert(it != visited.end());
+          Assert(!it->second.isNull());
+          childChanged = childChanged || cn != it->second;
+          children.push_back(it->second);
+        }
+        if (childChanged) 
+        {
+          rewritten[cur] = ret;
+          ret = nm->mkNode(cur.getKind(), children);
+          // congruence to show (cur = ret)
+          std::vector<Node> pfChildren;
+          for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
+          {
+            if (cur[i]==ret[i])
+            {
+              // ensure REFL proof for unchanged children
+              pf.addStep(cur[i].eqNode(cur[i]),PfRule::REFL, {}, {cur[i]});
+            }
+            pfChildren.push_back(cur[i].eqNode(ret[i]));
+          }
+          std::vector<Node> pfArgs;
+          Kind k = cur.getKind();
+          if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
+          {
+            pfArgs.push_back(cur.getOperator());
+          }
+          else
+          {
+            pfArgs.push_back(nm->operatorOf(k));
+          }
+          Node result = cur.eqNode(ret);
+          pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
+        }
+        // did we rewrite ret?
+        Node rret = getRewriteStep(ret);
+        if (!rret.isNull())
+        {
+          if (cur!=ret)
+          {
+            visit.push_back(cur);
+          }
+          // d_proof should have a proof of ret = rret, hence nothing to do
+          // here, for the same reasons as above.
+          rewritten[ret] = rret;
+          visit.push_back(ret);
+          visit.push_back(rret);
+        }
+        else
+        {
+          // it is final
+          visited[cur] = ret;
+        }
       }
     }
   } while (!visit.empty());
   Assert(visited.find(t) != visited.end());
   Assert(!visited.find(t)->second.isNull());
-  
-  
-  return nullptr;
+  // make the overall proof
+  Node teq = t.eqNode(visited[t]);
+  return pf.mkProof(teq);
 }
 
 Node TermConversionProofGenerator::getRewriteStep(Node t) const
