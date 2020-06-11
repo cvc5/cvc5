@@ -30,9 +30,9 @@ namespace prop {
 
 class CadicalSolver : public SatSolver
 {
- public:
-  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  friend class SatSolverFactory;
 
+ public:
   ~CadicalSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -62,6 +62,17 @@ class CadicalSolver : public SatSolver
   bool ok() const override;
 
  private:
+  /**
+   * Private to disallow creation outside of SatSolverFactory.
+   * Function init() must be called after creation.
+   */
+  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  /**
+   * Initialize SAT solver instance.
+   * Note: Split out to not call virtual functions in constructor.
+   */
+  void init();
+
   std::unique_ptr<CaDiCaL::Solver> d_solver;
 
   unsigned d_nextVarIdx;

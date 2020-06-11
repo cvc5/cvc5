@@ -373,7 +373,13 @@ protected:
    */
   bool isSet() const;
 
- /**
+  /**
+   * Is this a Sequence type?
+   * @return true if the type is a Sequence type
+   */
+  bool isSequence() const;
+
+  /**
    * Is this a datatype type?
    * @return true if the type is a datatype type
    */
@@ -515,15 +521,26 @@ class CVC4_PUBLIC ArrayType : public Type {
   Type getConstituentType() const;
 };/* class ArrayType */
 
-/** Class encapsulating an set type. */
+/** Class encapsulating a set type. */
 class CVC4_PUBLIC SetType : public Type {
  public:
   /** Construct from the base type */
   SetType(const Type& type = Type());
 
-  /** Get the index type */
+  /** Get the element type */
   Type getElementType() const;
-};/* class SetType */
+}; /* class SetType */
+
+/** Class encapsulating a sequence type. */
+class CVC4_PUBLIC SequenceType : public Type
+{
+ public:
+  /** Construct from the base type */
+  SequenceType(const Type& type = Type());
+
+  /** Get the element type */
+  Type getElementType() const;
+}; /* class SetType */
 
 /** Class encapsulating a user-defined sort. */
 class CVC4_PUBLIC SortType : public Type {

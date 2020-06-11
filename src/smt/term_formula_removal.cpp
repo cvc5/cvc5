@@ -138,9 +138,9 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       }
     }
   }
-  else if (node.getKind() == kind::CHOICE)
+  else if (node.getKind() == kind::WITNESS)
   {
-    // If a Hilbert choice function, witness the choice.
+    // If a witness choice
     //   For details on this operator, see
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant)
@@ -150,15 +150,15 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
       {
         // Make the skolem to witness the choice
         skolem = nodeManager->mkSkolem(
-            "choiceK",
+            "witnessK",
             nodeType,
-            "a skolem introduced due to term-level Hilbert choice removal");
+            "a skolem introduced due to term-level witness removal");
         d_skolem_cache.insert(node, skolem);
 
         Assert(node[0].getNumChildren() == 1);
 
         // The new assertion is the assumption that the body
-        // of the choice operator holds for the Skolem
+        // of the witness operator holds for the Skolem
         newAssertion = node[1].substitute(node[0][0], skolem);
       }
     }

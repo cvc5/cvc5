@@ -201,9 +201,9 @@ class TermDbSygus {
                       std::map<TypeNode, int>& var_count,
                       bool useSygusType = false);
   /** returns true if n is a cached free variable (in d_fv). */
-  bool isFreeVar(Node n) { return d_fv_stype.find(n) != d_fv_stype.end(); }
-  /** returns the index of n in the free variable cache (d_fv). */
-  int getVarNum(Node n) { return d_fv_num[n]; }
+  bool isFreeVar(Node n) const;
+  /** returns the identifier for a cached free variable. */
+  size_t getFreeVarId(Node n) const;
   /** returns true if n has a cached free variable (in d_fv). */
   bool hasFreeVar(Node n);
   /** get sygus proxy variable
@@ -373,8 +373,16 @@ class TermDbSygus {
   std::map<TypeNode, std::vector<Node> > d_fv[2];
   /** Maps free variables to the domain type they are associated with in d_fv */
   std::map<Node, TypeNode> d_fv_stype;
-  /** Maps free variables to their index in d_fv. */
-  std::map<Node, int> d_fv_num;
+  /** Id count for free variables terms */
+  std::map<TypeNode, size_t> d_fvTypeIdCounter;
+  /**
+   * Maps free variables to a unique identifier for their builtin type. Notice
+   * that, e.g. free variables of type Int and those that are of a sygus
+   * datatype type that encodes Int must have unique identifiers. This is
+   * to ensure that sygusToBuiltin for non-ground terms maps variables to
+   * unique variabales.
+   */
+  std::map<Node, size_t> d_fvId;
   /** recursive helper for hasFreeVar, visited stores nodes we have visited. */
   bool hasFreeVar(Node n, std::map<Node, bool>& visited);
   /** cache of getProxyVariable */
@@ -440,7 +448,6 @@ class TermDbSygus {
                         std::vector<TypeNode>& argts,
                         bool aggr = false);
 
-  TypeNode getSygusTypeForVar( Node v );
   Node getSygusNormalized( Node n, std::map< TypeNode, int >& var_count, std::map< Node, Node >& subs );
   Node getNormalized(TypeNode t, Node prog);
   unsigned getSygusTermSize( Node n );

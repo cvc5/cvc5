@@ -1,4 +1,4 @@
-; COMMAND-LINE: --strings-exp --rewrite-divk
+; COMMAND-LINE: --strings-exp
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
