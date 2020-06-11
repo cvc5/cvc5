@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lazy_proof.h
+/*! \file lazy_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Lazy proof utility
+ ** \brief Implementation of lazy proof utility
  **/
 
 #include "expr/lazy_proof.h"
@@ -127,11 +127,14 @@ void LazyCDProof::addLazyStep(Node expected,
                               bool forceOverwrite)
 {
   Assert(pg != nullptr);
-  NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
-  if (it != d_gens.end() && !forceOverwrite)
+  if (!forceOverwrite)
   {
-    // don't overwrite something that is already there
-    return;
+    NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
+    if (it != d_gens.end())
+    {
+      // don't overwrite something that is already there
+      return;
+    }
   }
   // just store now
   d_gens.insert(expected, pg);
