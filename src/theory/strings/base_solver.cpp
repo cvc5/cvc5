@@ -557,7 +557,7 @@ void BaseSolver::checkCardinality()
       {
         std::vector<Node> emptyVec;
         d_im.sendInference(
-            emptyVec, expn, cons, Inference::CARDINALITY, false, true);
+            emptyVec, expn, cons, Inference::CARDINALITY, true);
         return;
       }
     }
