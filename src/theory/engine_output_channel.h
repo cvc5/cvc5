@@ -32,7 +32,7 @@ namespace theory {
  * An output channel for Theory that passes messages back to a TheoryEngine
  * for a given Theory.
  *
- * Notice that is has interfaces trustedConflict and trustedLemma which are
+ * Notice that it has interfaces trustedConflict and trustedLemma which are
  * used for ensuring that proof generators are associated with the lemmas
  * and conflicts sent on this output channel.
  */
@@ -87,7 +87,6 @@ class EngineOutputChannel : public theory::OutputChannel
                            bool removable = false,
                            bool preprocess = false,
                            bool sendAtoms = false) override;
-
  protected:
   /**
    * Statistics for a particular theory.

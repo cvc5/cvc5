@@ -1625,6 +1625,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
     d_propEngine->assertLemma(lemmas[i], false, removable, rule, node);
+
   }
 
   // assert to decision engine

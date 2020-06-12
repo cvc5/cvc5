@@ -21,9 +21,8 @@
 
 using namespace std;
 
-using namespace CVC4::theory;
-
 namespace CVC4 {
+namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                        RemoveTermFormulas& tfr)
@@ -289,4 +288,5 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term, LazyCDProof* lp)
   return newTerm;
 }
 
+}  // namespace theory
 }  // namespace CVC4
