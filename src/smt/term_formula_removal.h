@@ -24,8 +24,8 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
-#include "expr/term_conversion_proof_generator.h"
 #include "expr/node.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "smt/dump.h"
 #include "theory/eager_proof_generator.h"
 #include "util/bool.h"
@@ -131,14 +131,14 @@ class RemoveTermFormulas {
    *
    * If pft is provided, then we provide it proofs of elimination steps, e.g.
    * (= (ite C a b) k).
-   * 
+   *
    * If pfa is provided, then we provide proofs of the new lemmas added to
    * assertions, e.g. (ite C (= k a) (= k b).
    */
   void run(std::vector<Node>& assertions,
            IteSkolemMap& iteSkolemMap,
            bool reportDeps = false,
-           TConvProofGenerator * pft = nullptr,
+           TConvProofGenerator* pft = nullptr,
            LazyCDProof* pfa = nullptr);
 
   /**
@@ -157,7 +157,7 @@ class RemoveTermFormulas {
            IteSkolemMap& iteSkolemMap,
            bool inQuant,
            bool inTerm,
-           TConvProofGenerator * pft,
+           TConvProofGenerator* pft,
            LazyCDProof* pfa);
 
   /**

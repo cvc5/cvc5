@@ -75,7 +75,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   // we use the existing proofs
   PRefProofGenerator prg(&d_proof);
   LazyCDProof lpf(d_proof.getManager(), &prg);
-  Node conc = getProofForRewriting(f[0],lpf);
+  Node conc = getProofForRewriting(f[0], lpf);
   if (conc != f)
   {
     Trace("tconv-pf-gen") << "...failed, mismatch: returned proof concludes "
@@ -84,23 +84,25 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
-  return lpf.mkProof(f);;
+  return lpf.mkProof(f);
+  ;
 }
 
-std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(Node f, ProofGenerator * pg)
+std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
+    Node f, ProofGenerator* pg)
 {
   // we use the existing proofs
   PRefProofGenerator prg(&d_proof);
   LazyCDProof lpf(d_proof.getManager(), &prg);
-  lpf.addLazyStep(f,pg);
+  lpf.addLazyStep(f, pg);
   // ------ from pg  ------- from getProofForRewriting
   // f                f = f'
   // ----------------------- MACRO_SR_PRED_TRANSFORM
   // f'
   Node conc = getProofForRewriting(f, lpf);
-  Assert (conc.getKind()==EQUAL);
+  Assert(conc.getKind() == EQUAL);
   Node fp = f;
-  if (conc[0]!=conc[1])
+  if (conc[0] != conc[1])
   {
     Node fp = conc[1];
     std::vector<Node> pfChildren;
@@ -109,7 +111,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(Node f, Proo
     std::vector<Node> pfArgs;
     pfArgs.push_back(fp);
     lpf.addStep(fp, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
-  }  
+  }
   return lpf.mkProof(fp);
 }
 

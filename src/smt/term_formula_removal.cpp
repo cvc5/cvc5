@@ -36,7 +36,7 @@ RemoveTermFormulas::~RemoveTermFormulas() {}
 void RemoveTermFormulas::run(std::vector<Node>& output,
                              IteSkolemMap& iteSkolemMap,
                              bool reportDeps,
-                             TConvProofGenerator * pft,
+                             TConvProofGenerator* pft,
                              LazyCDProof* pfa)
 {
   if (pft != nullptr || pfa != nullptr)
@@ -53,7 +53,8 @@ void RemoveTermFormulas::run(std::vector<Node>& output,
     // Do this in two steps to avoid Node problems(?)
     // Appears related to bug 512, splitting this into two lines
     // fixes the bug on clang on Mac OS
-    Node itesRemoved = run(output[i], output, iteSkolemMap, false, false, pft, pfa);
+    Node itesRemoved =
+        run(output[i], output, iteSkolemMap, false, false, pft, pfa);
     // In some calling contexts, not necessary to report dependence information.
     if (reportDeps &&
         (options::unsatCores() || options::fewerPreprocessingHoles())) {
@@ -73,7 +74,7 @@ Node RemoveTermFormulas::run(TNode node,
                              IteSkolemMap& iteSkolemMap,
                              bool inQuant,
                              bool inTerm,
-                             TConvProofGenerator * pft,
+                             TConvProofGenerator* pft,
                              LazyCDProof* pfa)
 {
   // Current node
@@ -301,7 +302,8 @@ Node RemoveTermFormulas::run(TNode node,
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      newAssertion = run(newAssertion, output, iteSkolemMap, false, false, pft, pfa);
+      newAssertion =
+          run(newAssertion, output, iteSkolemMap, false, false, pft, pfa);
 
       iteSkolemMap[skolem] = output.size();
       output.push_back(newAssertion);

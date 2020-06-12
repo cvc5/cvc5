@@ -211,7 +211,7 @@ void SharedTermsDatabase::assertLiteral(TNode lit)
     // Such literals must be handled as a special case here, since equality with
     // Boolean constants have a special status internally within equality
     // engine. In particular, the proofs constructed by EqProof conversion
-    // always produce proofs involving equalities with Boolean constants, and 
+    // always produce proofs involving equalities with Boolean constants, and
     // whose assumptions are only of the form P or (not P). However, in the
     // case that (= P true) (resp (= P false)) is itself an input to the
     // equality engine, we will explain in terms of P (resp. (not P)), which
@@ -229,16 +229,18 @@ void SharedTermsDatabase::assertLiteral(TNode lit)
     // case. In particular, SharedTermsDatabase is the only class that
     // asserts unrewritten equalities between Boolean terms to its equality
     // engine.
-    if (lit.getKind()==kind::EQUAL && (lit[0].getKind()==kind::CONST_BOOLEAN || lit[1].getKind()==kind::CONST_BOOLEAN))
+    if (lit.getKind() == kind::EQUAL
+        && (lit[0].getKind() == kind::CONST_BOOLEAN
+            || lit[1].getKind() == kind::CONST_BOOLEAN))
     {
       Node nlit = Rewriter::rewrite(lit);
-      if (!CDProof::isSame(lit,nlit))
+      if (!CDProof::isSame(lit, nlit))
       {
         // use a rewrite step as a fact
         std::vector<Node> pfChildren;
         pfChildren.push_back(lit);
         std::vector<Node> pfArgs;
-        d_pfee.assertFact(nlit,PfRule::MACRO_SR_PRED_ELIM,pfChildren,pfArgs);
+        d_pfee.assertFact(nlit, PfRule::MACRO_SR_PRED_ELIM, pfChildren, pfArgs);
         // Check for conflict
         checkForConflict();
         return;

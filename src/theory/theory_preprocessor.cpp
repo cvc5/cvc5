@@ -42,7 +42,6 @@ void TheoryPreprocessor::preprocess(TNode node,
                                     bool doTheoryPreprocess,
                                     LazyCDProof* lp)
 {
-
   std::shared_ptr<TConvProofGenerator> tg;
   if (lp != nullptr)
   {
@@ -50,8 +49,9 @@ void TheoryPreprocessor::preprocess(TNode node,
     tg = std::make_shared<TConvProofGenerator>(lp->getManager());
   }
   // Run theory preprocessing, maybe
-  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node, tg.get()) : Node(node);
-  
+  Node ppNode =
+      doTheoryPreprocess ? theoryPreprocess(node, tg.get()) : Node(node);
+
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
@@ -71,7 +71,7 @@ void TheoryPreprocessor::preprocess(TNode node,
       Node eq = node.eqNode(lemmas[0]);
       std::shared_ptr<ProofNode> ppf = tg->getProofFor(eq);
       Assert (ppf!=nullptr);
-      
+
 #else
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
@@ -124,7 +124,8 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion, TConvProofGenerator* tg)
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion,
+                                          TConvProofGenerator* tg)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;

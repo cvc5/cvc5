@@ -100,16 +100,16 @@ class TConvProofGenerator : public ProofGenerator
    * @return The proof for f.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** 
+  /**
    * Get tranform proof for f. Called when proof generator pg has a proof for
    * f. Returns a proof for f' where f' is the result of rewriting f based on
    * the steps registered to this class.
-   * 
+   *
    * @param f The equality fact to get the tranform proof for.
    * @param pg The proof generator that can prove f.
    * @return The proof for f', where f' is the rewritten form of f.
    */
-  std::shared_ptr<ProofNode> getTranformProofFor(Node f, ProofGenerator * pg);
+  std::shared_ptr<ProofNode> getTranformProofFor(Node f, ProofGenerator* pg);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
 
