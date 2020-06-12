@@ -88,7 +88,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_im.reset(
       new InferenceManager(c, u, d_state, d_termReg, *extt, out, d_statistics));
   // initialize the solvers
-  d_bsolver.reset(new BaseSolver(c, u, d_state, *d_im));
+  d_bsolver.reset(new BaseSolver(d_state, *d_im));
   d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
   d_esolver.reset(new ExtfSolver(c,
                                  u,
