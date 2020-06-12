@@ -44,13 +44,11 @@ void TheoryPreprocessor::preprocess(TNode node,
 {
 
   std::shared_ptr<TConvProofGenerator> tg;
-  /*
   if (lp != nullptr)
   {
     // make the proof generator
     tg = std::make_shared<TConvProofGenerator>(lp->getManager());
   }
-  */
   // Run theory preprocessing, maybe
   Node ppNode = doTheoryPreprocess ? theoryPreprocess(node, tg.get()) : Node(node);
   
@@ -69,14 +67,19 @@ void TheoryPreprocessor::preprocess(TNode node,
     // term formula removal.
     if (!CDProof::isSame(node, lemmas[0]))
     {
+#if 0
+      Node eq = node.eqNode(lemmas[0]);
+      std::shared_ptr<ProofNode> ppf = tg->getProofFor(eq);
+      Assert (ppf!=nullptr);
+      
+#else
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(lemmas[0]);
       lp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
+#endif
     }
-    // TODO: proof generator makes proof here
-
   }
 
   if (Debug.isOn("lemma-ites"))

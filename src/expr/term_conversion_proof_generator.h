@@ -96,10 +96,20 @@ class TConvProofGenerator : public ProofGenerator
    * t = t', where t' is the result of rewriting t based on the rewrite steps
    * registered to this class.
    *
-   * @param f The fact to get the proof for.
+   * @param f The equality fact to get the proof for.
    * @return The proof for f.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  /** 
+   * Get tranform proof for f. Called when proof generator pg has a proof for
+   * f. Returns a proof for f' where f' is the result of rewriting f based on
+   * the steps registered to this class.
+   * 
+   * @param f The equality fact to get the tranform proof for.
+   * @param pg The proof generator that can prove f.
+   * @return The proof for f', where f' is the rewritten form of f.
+   */
+  std::shared_ptr<ProofNode> getTranformProofFor(Node f, ProofGenerator * pg);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
 
@@ -115,7 +125,7 @@ class TConvProofGenerator : public ProofGenerator
    * Get the proof for term t. Returns a proof of t = t' where t' is the
    * result of rewriting t based on the rewrite steps registered to this class.
    */
-  std::shared_ptr<ProofNode> getProofForRewriting(Node t);
+  Node getProofForRewriting(Node t, LazyCDProof& pf);
 };
 
 }  // namespace CVC4

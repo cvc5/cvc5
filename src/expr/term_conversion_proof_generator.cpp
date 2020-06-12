@@ -72,30 +72,49 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     Assert(false);
     return nullptr;
   }
-  std::shared_ptr<ProofNode> pf = getProofForRewriting(f[0]);
-  if (pf == nullptr)
-  {
-    // failed to generate proof
-    Trace("tconv-pf-gen") << "...failed to get proof" << std::endl;
-    Assert(false);
-    return pf;
-  }
-  if (pf->getResult() != f)
+  // we use the existing proofs
+  PRefProofGenerator prg(&d_proof);
+  LazyCDProof lpf(d_proof.getManager(), &prg);
+  Node conc = getProofForRewriting(f[0],lpf);
+  if (conc != f)
   {
     Trace("tconv-pf-gen") << "...failed, mismatch: returned proof concludes "
-                          << pf->getResult() << std::endl;
+                          << conc << ", expected " << f << std::endl;
     Assert(false);
     return nullptr;
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
-  return pf;
+  return lpf.mkProof(f);;
 }
 
-std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
+std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(Node f, ProofGenerator * pg)
 {
   // we use the existing proofs
   PRefProofGenerator prg(&d_proof);
-  LazyCDProof pf(d_proof.getManager(), &prg);
+  LazyCDProof lpf(d_proof.getManager(), &prg);
+  lpf.addLazyStep(f,pg);
+  // ------ from pg  ------- from getProofForRewriting
+  // f                f = f'
+  // ----------------------- MACRO_SR_PRED_TRANSFORM
+  // f'
+  Node conc = getProofForRewriting(f, lpf);
+  Assert (conc.getKind()==EQUAL);
+  Node fp = f;
+  if (conc[0]!=conc[1])
+  {
+    Node fp = conc[1];
+    std::vector<Node> pfChildren;
+    pfChildren.push_back(f);
+    pfChildren.push_back(conc);
+    std::vector<Node> pfArgs;
+    pfArgs.push_back(fp);
+    lpf.addStep(fp, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+  }  
+  return lpf.mkProof(fp);
+}
+
+void TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
+{
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,
   // then pf is able to generate a proof of t=s.
@@ -228,9 +247,8 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
   } while (!visit.empty());
   Assert(visited.find(t) != visited.end());
   Assert(!visited.find(t)->second.isNull());
-  // make the overall proof
-  Node teq = t.eqNode(visited[t]);
-  return pf.mkProof(teq);
+  // return the conclusion of the overall proof
+  return t.eqNode(visited[t]);
 }
 
 Node TConvProofGenerator::getRewriteStep(Node t) const
