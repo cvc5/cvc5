@@ -257,11 +257,15 @@ public:
 
   /**
    * Given a kind k, create a lambda operator with the given builtin input type
-   * and an extra zero argument of that same type. Also creates a print
-   * callback since we do not want to print the lambda.
+   * and an extra zero argument of that same type.  For example, for k = LEQ and
+   * bArgType = Int, the operator will be lambda x : Int. x + 0.  Currently the
+   * supported input types are Real (thus also Int) and BitVector.
+   *
+   * This method also creates a print callback for the operator, saved via the
+   * argument spc, if the caller wishes to not print the lambda.
    */
   static Node createLambdaWithZeroArg(Kind k,
-                                      TypeNode bargtype,
+                                      TypeNode bArgType,
                                       std::shared_ptr<SygusPrintCallback> spc);
   //---------------- end grammar construction
 };

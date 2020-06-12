@@ -488,24 +488,24 @@ bool CegGrammarConstructor::isHandledType(TypeNode t)
 }
 
 Node CegGrammarConstructor::createLambdaWithZeroArg(
-    Kind k, TypeNode bargtype, std::shared_ptr<SygusPrintCallback> spc)
+    Kind k, TypeNode bArgType, std::shared_ptr<SygusPrintCallback> spc)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> opLArgs;
   std::vector<Expr> opLArgsExpr;
   // get the builtin type
-  opLArgs.push_back(nm->mkBoundVar(bargtype));
+  opLArgs.push_back(nm->mkBoundVar(bArgType));
   opLArgsExpr.push_back(opLArgs.back().toExpr());
   // build zarg
   Node zarg;
-  Assert(bargtype.isReal() || bargtype.isBitVector());
-  if (bargtype.isReal())
+  Assert(bArgType.isReal() || bArgType.isBitVector());
+  if (bArgType.isReal())
   {
     zarg = nm->mkConst(Rational(0));
   }
   else
   {
-    unsigned size = bargtype.getBitVectorSize();
+    unsigned size = bArgType.getBitVectorSize();
     zarg = bv::utils::mkZero(size);
   }
   Node body = nm->mkNode(k, zarg, opLArgs.back());
@@ -1167,7 +1167,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // This ensures that ( c1*x + c2*y >= 0 ) has the same weight as
       // e.g. ( x >= 0 ) or ( y >= 0 ).
       sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc, 0);
-      // define zero integer dtype
       // mark that predicates should be of the form (= pol 0) and (<= pol 0)
       itgat->second.second = true;
     }
