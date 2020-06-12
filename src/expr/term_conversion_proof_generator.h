@@ -31,7 +31,8 @@ namespace CVC4 {
  * applying (context-free) small step rewrites on subterms of t. Its main
  * interface functions are:
  * (1) addRewriteStep(t,s,<justification>) which notifies this class that t
- * rewrites to s,
+ * rewrites to s, where justification is either a proof generator or proof
+ * step,
  * (2) getProofFor(f) where f is any equality that can be justified by the
  * rewrite steps given above.
  *
@@ -85,7 +86,10 @@ class TConvProofGenerator : public ProofGenerator
                       const std::vector<Node>& args);
   /** Has rewrite step for term t */
   bool hasRewriteStep(Node t) const;
-  /** Get rewrite step for term t */
+  /** 
+   * Get rewrite step for term t, returns the s provided in a call to
+   * addRewriteStep if one exists, or null otherwise.
+   */
   Node getRewriteStep(Node t) const;
   /**
    * Get the proof for formula f. It should be the case that f is of the form

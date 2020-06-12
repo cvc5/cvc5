@@ -123,6 +123,9 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
       {
         // d_proof should have a proof of cur = rcur. Hence there is nothing
         // to do here, as pf will reference prg to get the proof from d_proof.
+        // It may be the case that rcur also rewrites, thus we cannot assign
+        // the final rewritten form for cur yet. Instead we revisit cur after
+        // finishing visiting rcur.
         rewritten[cur] = rcur;
         visit.push_back(cur);
         visit.push_back(rcur);
@@ -200,7 +203,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
           Node result = cur.eqNode(ret);
           pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
         }
-        // did we rewrite ret?
+        // did we rewrite ret (at post-rewrite)?
         Node rret = getRewriteStep(ret);
         if (!rret.isNull())
         {
@@ -209,7 +212,8 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
             visit.push_back(cur);
           }
           // d_proof should have a proof of ret = rret, hence nothing to do
-          // here, for the same reasons as above.
+          // here, for the same reasons as above. It also may be the case that
+          // rret rewrites, hence we must revisit ret.
           rewritten[ret] = rret;
           visit.push_back(ret);
           visit.push_back(rret);
