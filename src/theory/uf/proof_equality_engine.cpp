@@ -238,8 +238,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   Assert(conc != d_true);
   if (d_pfEnabled)
   {
-    PRefProofGenerator prg(&d_proof);
-    LazyCDProof tmpProof(d_pnm, &prg);
+    LazyCDProof tmpProof(d_pnm, &d_proof);
     LazyCDProof* curr;
     if (conc == d_false)
     {
@@ -271,8 +270,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << psb.getNumSteps() << " steps" << std::endl;
   if (d_pfEnabled)
   {
-    PRefProofGenerator prg(&d_proof);
-    LazyCDProof tmpProof(d_pnm, &prg);
+    LazyCDProof tmpProof(d_pnm, &d_proof);
     LazyCDProof* curr;
     if (conc == d_false)
     {
@@ -306,8 +304,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
                 << std::endl;
   if (d_pfEnabled)
   {
-    PRefProofGenerator prg(&d_proof);
-    LazyCDProof tmpProof(d_pnm, &prg);
+    LazyCDProof tmpProof(d_pnm, &d_proof);
     LazyCDProof* curr;
     if (conc == d_false)
     {
@@ -334,8 +331,7 @@ TrustNode ProofEqEngine::explain(Node conc)
   Trace("pfee") << "pfee::explain " << conc << std::endl;
   if (d_pfEnabled)
   {
-    PRefProofGenerator prg(&d_proof);
-    LazyCDProof tmpProof(d_pnm, &prg);
+    LazyCDProof tmpProof(d_pnm, &d_proof);
     std::vector<TNode> assumps;
     explainWithProof(conc, assumps, &tmpProof);
     return ensureProofForFact(
@@ -404,7 +400,7 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     Trace("pfee-proof") << "pfee::ensureProofForFact: make proof for fact"
                         << std::endl;
     // get the proof for conc
-    std::shared_ptr<ProofNode> pfBody = curr->mkProof(conc);
+    std::shared_ptr<ProofNode> pfBody = curr->getProofFor(conc);
     if (pfBody == nullptr)
     {
       Trace("pfee-proof")
@@ -776,7 +772,7 @@ std::shared_ptr<ProofNode> ProofEqEngine::FactProofGenerator::getProofFor(
   Trace("pfee-fact-gen") << "...return via step " << *(*it).second << std::endl;
   CDProof cdp(d_pnm);
   cdp.addStep(fact, *(*it).second);
-  return cdp.mkProof(fact);
+  return cdp.getProofFor(fact);
 }
 
 }  // namespace eq

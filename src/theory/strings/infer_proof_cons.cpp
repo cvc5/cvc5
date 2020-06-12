@@ -1026,7 +1026,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
     if (!factSym.isNull())
     {
       // Use the symmetric fact. There is no need to explictly make a
-      // SYMM proof, as this is handled by CDProof::mkProof below.
+      // SYMM proof, as this is handled by CDProof::getProofFor below.
       it = d_lazyFactMap.find(factSym);
     }
   }
@@ -1049,7 +1049,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
       return nullptr;
     }
   }
-  return pf.mkProof(fact);
+  return pf.getProofFor(fact);
 }
 
 std::string InferProofCons::identify() const

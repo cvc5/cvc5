@@ -73,8 +73,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // we use the existing proofs
-  PRefProofGenerator prg(&d_proof);
-  LazyCDProof lpf(d_proof.getManager(), &prg);
+  LazyCDProof lpf(d_proof.getManager(), &d_proof);
   Node conc = getProofForRewriting(f[0], lpf);
   if (conc != f)
   {
@@ -84,7 +83,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
-  return lpf.mkProof(f);
+  return lpf.getProofFor(f);
   ;
 }
 
@@ -92,8 +91,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
     Node f, ProofGenerator* pg)
 {
   // we use the existing proofs
-  PRefProofGenerator prg(&d_proof);
-  LazyCDProof lpf(d_proof.getManager(), &prg);
+  LazyCDProof lpf(d_proof.getManager(), &d_proof);
   lpf.addLazyStep(f, pg);
   // ------ from pg  ------- from getProofForRewriting
   // f                f = f'
@@ -113,7 +111,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
     pfArgs.push_back(fp);
     lpf.addStep(fp, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
   }
-  return lpf.mkProof(fp);
+  return lpf.getProofFor(fp);
 }
 
 Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
@@ -144,7 +142,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
       if (!rcur.isNull())
       {
         // d_proof should have a proof of cur = rcur. Hence there is nothing
-        // to do here, as pf will reference prg to get the proof from d_proof.
+        // to do here, as pf will reference d_proof to get its proof.
         // It may be the case that rcur also rewrites, thus we cannot assign
         // the final rewritten form for cur yet. Instead we revisit cur after
         // finishing visiting rcur.

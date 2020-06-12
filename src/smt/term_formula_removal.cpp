@@ -151,7 +151,7 @@ Node RemoveTermFormulas::run(TNode node,
               existsAssertion, PfRule::EXISTS_INTRO, pfChildren, pfArgs);
           Assert(d_tpg != nullptr);
           // store it in the proof generator managed by this class
-          d_tpg->setProofFor(existsAssertion, cdp.mkProof(existsAssertion));
+          d_tpg->setProofFor(existsAssertion, cdp.getProofFor(existsAssertion));
           newAssertionPg = d_tpg.get();
         }
       }

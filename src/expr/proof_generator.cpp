@@ -18,6 +18,18 @@
 
 namespace CVC4 {
 
+std::ostream& operator<<(std::ostream& out, CDPOverwrite opol)
+{
+  switch (opol)
+  {
+    case CDPOverwrite::ALWAYS: out << "ALWAYS"; break;
+    case CDPOverwrite::ASSUME_ONLY: out << "ASSUME_ONLY"; break;
+    case CDPOverwrite::NEVER: out << "NEVER"; break;
+    default: out << "CDPOverwrite:unknown"; break;
+  }
+  return out;
+}
+
 ProofGenerator::ProofGenerator() {}
 
 ProofGenerator::~ProofGenerator() {}
@@ -57,21 +69,6 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
     Assert(false) << "Failed to get proof from generator for fact " << f;
   }
   return false;
-}
-
-PRefProofGenerator::PRefProofGenerator(CDProof* cd) : d_proof(cd) {}
-
-PRefProofGenerator::~PRefProofGenerator() {}
-
-std::shared_ptr<ProofNode> PRefProofGenerator::getProofFor(Node f)
-{
-  Trace("pfgen") << "PRefProofGenerator::getProofFor: " << f << std::endl;
-  return d_proof->mkProof(f);
-}
-
-std::string PRefProofGenerator::identify() const
-{
-  return "PRefProofGenerator";
 }
 
 }  // namespace CVC4
