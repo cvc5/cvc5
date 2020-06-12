@@ -171,11 +171,14 @@ class SolverState
    *
    * Separate the string representatives in argument n into a partition cols
    * whose collections have equal length. The i^th vector in cols has length
-   * lts[i] for all elements in col.
+   * lts[i] for all elements in col. These vectors are furthmore separated
+   * by string-like type.
    */
-  void separateByLength(const std::vector<Node>& n,
-                        std::vector<std::vector<Node> >& cols,
-                        std::vector<Node>& lts);
+  void separateByLength(
+      const std::vector<Node>& n,
+      std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
+      std::map<TypeNode, std::vector<Node>>& lts);
+
  private:
   /** Common constants */
   Node d_zero;
