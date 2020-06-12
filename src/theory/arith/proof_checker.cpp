@@ -253,8 +253,8 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     }
     case PfRule::ARITH_OP_ELIM_AXIOM:
     {
-      Assert (children.empty());
-      Assert (args.size()==1);
+      Assert(children.empty());
+      Assert(args.size() == 1);
       Node t = SkolemManager::getSkolemForm(args[0]);
       Node ret = OperatorElim::getAxiomFor(t);
       return SkolemManager::getWitnessForm(ret);

@@ -92,7 +92,8 @@ void TheoryArith::addSharedTerm(TNode n){
   d_internal->addSharedTerm(n);
 }
 
-Node TheoryArith::ppRewrite(TNode atom, LazyCDProof* lp) {
+Node TheoryArith::ppRewrite(TNode atom, LazyCDProof* lp)
+{
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   return d_internal->ppRewrite(atom, lp);
 }

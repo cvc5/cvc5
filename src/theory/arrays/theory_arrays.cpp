@@ -316,8 +316,8 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
   return term;
 }
 
-
-Node TheoryArrays::ppRewrite(TNode term, LazyCDProof* lp) {
+Node TheoryArrays::ppRewrite(TNode term, LazyCDProof* lp)
+{
   if (!d_preprocess) return term;
   d_ppEqualityEngine.addTerm(term);
   switch (term.getKind()) {

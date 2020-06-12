@@ -1099,7 +1099,8 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n, LazyCDProof* lp) {
+Node TheoryArithPrivate::ppRewriteTerms(TNode n, LazyCDProof* lp)
+{
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
   }
@@ -1118,7 +1119,8 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n, LazyCDProof* lp) {
   return n;
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom, LazyCDProof* lp) {
+Node TheoryArithPrivate::ppRewrite(TNode atom, LazyCDProof* lp)
+{
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (options::arithRewriteEq())

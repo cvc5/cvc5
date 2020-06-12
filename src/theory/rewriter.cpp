@@ -153,7 +153,9 @@ Rewriter* Rewriter::getInstance()
   return smt::currentSmtEngine()->getRewriter();
 }
 
-Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, TermConversionProofGenerator* tcpg)
+Node Rewriter::rewriteTo(theory::TheoryId theoryId,
+                         Node node,
+                         TermConversionProofGenerator* tcpg)
 {
 #ifdef CVC4_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());
@@ -168,8 +170,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, TermConversionPro
 
   // Check if it's been cached already
   Node cached = getPostRewriteCache(theoryId, node);
-  if (!cached.isNull()
-      && (tcpg == nullptr || tcpg->hasRewriteStep(node)))
+  if (!cached.isNull() && (tcpg == nullptr || tcpg->hasRewriteStep(node)))
   {
     return cached;
   }
@@ -206,8 +207,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, TermConversionPro
       cached = getPreRewriteCache(rewriteStackTop.getTheoryId(),
                                   rewriteStackTop.d_node);
       if (cached.isNull()
-          || (tcpg != nullptr
-              && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
+          || (tcpg != nullptr && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
       {
         // Rewrite until fix-point is reached
         for(;;) {
@@ -217,14 +217,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, TermConversionPro
 
           if (tcpg != nullptr && rewriteStackTop.d_node != response.d_node)
           {
-            NodeManager * nm = NodeManager::currentNM();
+            NodeManager* nm = NodeManager::currentNM();
             Trace("t-rewrite") << "t-rew (pre) : " << rewriteStackTop.d_node
                                << " --> " << response.d_node << std::endl;
             tcpg->addRewriteStep(rewriteStackTop.d_node,
                                  response.d_node,
-                           PfRule::THEORY_REWRITE,
-                           {},
-                           {rewriteStackTop.d_node, nm->mkConst(true)});
+                                 PfRule::THEORY_REWRITE,
+                                 {},
+                                 {rewriteStackTop.d_node, nm->mkConst(true)});
           }
 
           // Put the rewritten node to the top of the stack
@@ -258,8 +258,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, TermConversionPro
                                  rewriteStackTop.d_node);
     // If not, go through the children
     if (cached.isNull()
-        || (tcpg != nullptr
-            && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
+        || (tcpg != nullptr && !tcpg->hasRewriteStep(rewriteStackTop.d_node)))
     {
       // The child we need to rewrite
       unsigned child = rewriteStackTop.d_nextChild++;
@@ -304,14 +303,14 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node, TermConversionPro
 
         if (tcpg != nullptr && rewriteStackTop.d_node != response.d_node)
         {
-          NodeManager * nm = NodeManager::currentNM();
+          NodeManager* nm = NodeManager::currentNM();
           Trace("t-rewrite") << "t-rew (post): " << rewriteStackTop.d_node
                              << " --> " << response.d_node << std::endl;
           tcpg->addRewriteStep(rewriteStackTop.d_node,
-                        response.d_node,
-                         PfRule::THEORY_REWRITE,
-                         {},
-                         {rewriteStackTop.d_node, nm->mkConst(false)});
+                               response.d_node,
+                               PfRule::THEORY_REWRITE,
+                               {},
+                               {rewriteStackTop.d_node, nm->mkConst(false)});
         }
 
         // We continue with the response we got

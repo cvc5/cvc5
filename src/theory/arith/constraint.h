@@ -1141,73 +1141,81 @@ public:
    return p;
  }
 
-  void addVariable(ArithVar v);
-  bool variableDatabaseIsSetup(ArithVar v) const;
-  void removeVariable(ArithVar v);
+ void addVariable(ArithVar v);
+ bool variableDatabaseIsSetup(ArithVar v) const;
+ void removeVariable(ArithVar v);
 
-  TrustNode eeExplain(ConstraintCP c) const;
-  void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
+ TrustNode eeExplain(ConstraintCP c) const;
+ void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
-  /**
-   * Returns a constraint with the variable v, the constraint type t, and a value
-   * dominated by r (explained below) if such a constraint exists in the database.
-   * If no such constraint exists, NullConstraint is returned.
-   *
-   * t must be either UpperBound or LowerBound.
-   * The returned value v is dominated:
-   *  If t is UpperBound, r <= v
-   *  If t is LowerBound, r >= v
-   *
-   * variableDatabaseIsSetup(v) must be true.
-   */
-  ConstraintP getBestImpliedBound(ArithVar v, ConstraintType t, const DeltaRational& r) const;
+ /**
+  * Returns a constraint with the variable v, the constraint type t, and a value
+  * dominated by r (explained below) if such a constraint exists in the
+  * database. If no such constraint exists, NullConstraint is returned.
+  *
+  * t must be either UpperBound or LowerBound.
+  * The returned value v is dominated:
+  *  If t is UpperBound, r <= v
+  *  If t is LowerBound, r >= v
+  *
+  * variableDatabaseIsSetup(v) must be true.
+  */
+ ConstraintP getBestImpliedBound(ArithVar v,
+                                 ConstraintType t,
+                                 const DeltaRational& r) const;
 
-  /** Returns the constraint, if it exists */
-  ConstraintP lookupConstraint(ArithVar v, ConstraintType t, const DeltaRational& r) const;
+ /** Returns the constraint, if it exists */
+ ConstraintP lookupConstraint(ArithVar v,
+                              ConstraintType t,
+                              const DeltaRational& r) const;
 
-  /**
-   * Returns a constraint with the variable v, the constraint type t and the value r.
-   * If there is such a constraint in the database already, it is returned.
-   * If there is no such constraint, this constraint is added to the database.
-   *
-   */
-  ConstraintP getConstraint(ArithVar v, ConstraintType t, const DeltaRational& r);
+ /**
+  * Returns a constraint with the variable v, the constraint type t and the
+  * value r. If there is such a constraint in the database already, it is
+  * returned. If there is no such constraint, this constraint is added to the
+  * database.
+  *
+  */
+ ConstraintP getConstraint(ArithVar v,
+                           ConstraintType t,
+                           const DeltaRational& r);
 
-  /**
-   * Returns a constraint of the given type for the value and variable
-   * for the given ValueCollection, vc.
-   * This is made if there is no such constraint.
-   */
-  ConstraintP ensureConstraint(ValueCollection& vc, ConstraintType t);
+ /**
+  * Returns a constraint of the given type for the value and variable
+  * for the given ValueCollection, vc.
+  * This is made if there is no such constraint.
+  */
+ ConstraintP ensureConstraint(ValueCollection& vc, ConstraintType t);
 
+ void deleteConstraintAndNegation(ConstraintP c);
 
-  void deleteConstraintAndNegation(ConstraintP c);
+ /**
+  * Outputs a minimal set of unate implications onto the vector for the
+  * variable. This outputs lemmas of the general forms
+  *     (= p c) implies (<= p d) for c < d, or
+  *     (= p c) implies (not (= p d)) for c != d.
+  */
+ void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
+ void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
 
-  /**
-   * Outputs a minimal set of unate implications onto the vector for the variable.
-   * This outputs lemmas of the general forms
-   *     (= p c) implies (<= p d) for c < d, or
-   *     (= p c) implies (not (= p d)) for c != d.
-   */
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+ /**
+  * Outputs a minimal set of unate implications onto the vector for the
+  * variable.
+  *
+  * If ineqs is true, this outputs lemmas of the general form
+  *     (<= p c) implies (<= p d) for c < d.
+  */
+ void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
+ void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
 
-  /**
-   * Outputs a minimal set of unate implications onto the vector for the variable.
-   *
-   * If ineqs is true, this outputs lemmas of the general form
-   *     (<= p c) implies (<= p d) for c < d.
-   */
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+ void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
+ void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
+ void unatePropEquality(ConstraintP curr,
+                        ConstraintP prevLB,
+                        ConstraintP prevUB);
 
-
-  void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
-  void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
-  void unatePropEquality(ConstraintP curr, ConstraintP prevLB, ConstraintP prevUB);
-
-  /** AntecendentID must be in range. */
-  ConstraintCP getAntecedent(AntecedentId p) const;
+ /** AntecendentID must be in range. */
+ ConstraintCP getAntecedent(AntecedentId p) const;
   
 private:
   /** returns true if cons is now in conflict. */

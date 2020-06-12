@@ -75,8 +75,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
       d_pnm(new ProofNodeManager(pc)),
       d_state(c, u, d_equalityEngine, d_valuation),
-      d_termReg(
-          d_state, d_equalityEngine, out, d_statistics, d_pnm.get()),
+      d_termReg(d_state, d_equalityEngine, out, d_statistics, d_pnm.get()),
       d_im(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
@@ -971,7 +970,8 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-Node TheoryStrings::ppRewrite(TNode atom, LazyCDProof* lp) {
+Node TheoryStrings::ppRewrite(TNode atom, LazyCDProof* lp)
+{
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)

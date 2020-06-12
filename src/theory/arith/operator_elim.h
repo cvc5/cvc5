@@ -16,10 +16,10 @@
 
 #include <map>
 
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -62,6 +62,7 @@ class OperatorElim : public EagerProofGenerator
    * eliminate the term n, which is determined by its top-most symbol.
    */
   static Node getAxiomFor(Node n);
+
  private:
   /** Logic info of the owner of this class */
   const LogicInfo& d_info;

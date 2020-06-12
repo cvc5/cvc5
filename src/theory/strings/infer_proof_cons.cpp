@@ -137,7 +137,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF_N:
     case Inference::EXTF_D:
     case Inference::EXTF_D_N:
-    case Inference::I_CONST_CONFLICT: 
+    case Inference::I_CONST_CONFLICT:
     {
       if (!ps.d_children.empty())
       {

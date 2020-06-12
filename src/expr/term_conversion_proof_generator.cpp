@@ -18,42 +18,45 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-TermConversionProofGenerator::TermConversionProofGenerator(ProofNodeManager* pnm,
-            context::Context* c) : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context)
+TermConversionProofGenerator::TermConversionProofGenerator(
+    ProofNodeManager* pnm, context::Context* c)
+    : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context)
 {
 }
 
-TermConversionProofGenerator::~TermConversionProofGenerator()
-{
-}
+TermConversionProofGenerator::~TermConversionProofGenerator() {}
 
-void TermConversionProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator * pg)
+void TermConversionProofGenerator::addRewriteStep(Node t,
+                                                  Node s,
+                                                  ProofGenerator* pg)
 {
   // should not rewrite term more than once
-  Assert (!hasRewriteStep(t));
+  Assert(!hasRewriteStep(t));
   Node eq = t.eqNode(s);
-  d_proof.addLazyStep(eq,pg);
+  d_proof.addLazyStep(eq, pg);
   d_rewriteMap[t] = s;
 }
 
 void TermConversionProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
   // should not rewrite term more than once
-  Assert (!hasRewriteStep(t));
+  Assert(!hasRewriteStep(t));
   Node eq = t.eqNode(s);
-  d_proof.addStep(eq,ps);
+  d_proof.addStep(eq, ps);
   d_rewriteMap[t] = s;
 }
 
-void TermConversionProofGenerator::addRewriteStep(Node t, Node s, 
-              PfRule id,
-              const std::vector<Node>& children,
-              const std::vector<Node>& args)
+void TermConversionProofGenerator::addRewriteStep(
+    Node t,
+    Node s,
+    PfRule id,
+    const std::vector<Node>& children,
+    const std::vector<Node>& args)
 {
   // should not rewrite term more than once
-  Assert (!hasRewriteStep(t));
+  Assert(!hasRewriteStep(t));
   Node eq = t.eqNode(s);
-  d_proof.addStep(eq,id,children,args);
+  d_proof.addStep(eq, id, children, args);
   d_rewriteMap[t] = s;
 }
 
@@ -64,38 +67,41 @@ bool TermConversionProofGenerator::hasRewriteStep(Node t) const
 
 std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofFor(Node f)
 {
-  Trace("tconv-pf-gen") << "TermConversionProofGenerator::getProofFor: " << f << std::endl;
-  if (f.getKind()!=EQUAL)
+  Trace("tconv-pf-gen") << "TermConversionProofGenerator::getProofFor: " << f
+                        << std::endl;
+  if (f.getKind() != EQUAL)
   {
     Trace("tconv-pf-gen") << "... fail, non-equality" << std::endl;
-    Assert (false);
+    Assert(false);
     return nullptr;
   }
   std::shared_ptr<ProofNode> pf = getProofForRewriting(f[0]);
-  if (pf==nullptr)
+  if (pf == nullptr)
   {
     // failed to generate proof
     Trace("tconv-pf-gen") << "...failed to get proof" << std::endl;
-    Assert (false);
+    Assert(false);
     return pf;
   }
-  if (pf->getResult()!=f)
+  if (pf->getResult() != f)
   {
-    Trace("tconv-pf-gen") << "...failed, mismatch: returned proof concludes " << pf->getResult() << std::endl;
-    Assert (false);
+    Trace("tconv-pf-gen") << "...failed, mismatch: returned proof concludes "
+                          << pf->getResult() << std::endl;
+    Assert(false);
     return nullptr;
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
   return pf;
 }
 
-std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(Node t)
+std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(
+    Node t)
 {
   // we use the existing proofs
   PRefProofGenerator prg(&d_proof);
   LazyCDProof pf(d_proof.getManager(), &prg);
-  NodeManager * nm = NodeManager::currentNM();
-  // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct, 
+  NodeManager* nm = NodeManager::currentNM();
+  // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,
   // then pf is able to generate a proof of t=s.
   // the final rewritten form of terms
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -106,13 +112,13 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(t);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
       visited[cur] = Node::null();
       // did we rewrite the current node (possibly at pre-rewrite)?
@@ -128,21 +134,21 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
       else
       {
         visit.push_back(cur);
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       itr = rewritten.find(cur);
-      if (itr!=rewritten.end())
+      if (itr != rewritten.end())
       {
         // if it was rewritten, check the status of the rewritten node,
         // which should be finished now
         Node rcur = itr->second;
-        Assert (cur!=rcur);
+        Assert(cur != rcur);
         // the final rewritten form of cur is the final form of rcur
         Node rcurFinal = visited[rcur];
-        if (rcurFinal!=rcur)
+        if (rcurFinal != rcur)
         {
           // must connect via TRANS
           std::vector<Node> pfChildren;
@@ -158,11 +164,11 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
         Node ret = cur;
         bool childChanged = false;
         std::vector<Node> children;
-        if (cur.getMetaKind() == metakind::PARAMETERIZED) 
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
         {
           children.push_back(cur.getOperator());
         }
-        for (const Node& cn : cur )
+        for (const Node& cn : cur)
         {
           it = visited.find(cn);
           Assert(it != visited.end());
@@ -170,7 +176,7 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
           childChanged = childChanged || cn != it->second;
           children.push_back(it->second);
         }
-        if (childChanged) 
+        if (childChanged)
         {
           ret = nm->mkNode(cur.getKind(), children);
           rewritten[cur] = ret;
@@ -178,10 +184,10 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
           std::vector<Node> pfChildren;
           for (size_t i = 0, size = cur.getNumChildren(); i < size; i++)
           {
-            if (cur[i]==ret[i])
+            if (cur[i] == ret[i])
             {
               // ensure REFL proof for unchanged children
-              pf.addStep(cur[i].eqNode(cur[i]),PfRule::REFL, {}, {cur[i]});
+              pf.addStep(cur[i].eqNode(cur[i]), PfRule::REFL, {}, {cur[i]});
             }
             pfChildren.push_back(cur[i].eqNode(ret[i]));
           }
@@ -202,7 +208,7 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
         Node rret = getRewriteStep(ret);
         if (!rret.isNull())
         {
-          if (cur!=ret)
+          if (cur != ret)
           {
             visit.push_back(cur);
           }
@@ -229,12 +235,12 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(No
 
 Node TermConversionProofGenerator::getRewriteStep(Node t) const
 {
-   NodeNodeMap::const_iterator it = d_rewriteMap.find(t);
-   if (it==d_rewriteMap.end())
-   {
-     return Node::null();
-   }
-   return (*it).second;
+  NodeNodeMap::const_iterator it = d_rewriteMap.find(t);
+  if (it == d_rewriteMap.end())
+  {
+    return Node::null();
+  }
+  return (*it).second;
 }
 std::string TermConversionProofGenerator::identify() const
 {

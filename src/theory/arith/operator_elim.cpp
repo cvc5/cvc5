@@ -144,8 +144,14 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
         Node zero = mkRationalNode(0);
         Node diff = nm->mkNode(MINUS, node[0], v);
         Node lem = mkInRange(diff, zero, one);
-        toIntSkolem = sm->mkSkolem(
-            v, lem, "toInt", "a conversion of a Real term to its Integer part", NodeManager::SKOLEM_DEFAULT, this, true);
+        toIntSkolem =
+            sm->mkSkolem(v,
+                         lem,
+                         "toInt",
+                         "a conversion of a Real term to its Integer part",
+                         NodeManager::SKOLEM_DEFAULT,
+                         this,
+                         true);
         d_to_int_skolem[node[0]] = toIntSkolem;
       }
       else
@@ -240,8 +246,13 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
                               nm->mkNode(
                                   PLUS, v, nm->mkConst(Rational(-1))))))));
         }
-        intVar = sm->mkSkolem(
-            v, lem, "linearIntDiv", "the result of an intdiv-by-k term", NodeManager::SKOLEM_DEFAULT, this, true);
+        intVar = sm->mkSkolem(v,
+                              lem,
+                              "linearIntDiv",
+                              "the result of an intdiv-by-k term",
+                              NodeManager::SKOLEM_DEFAULT,
+                              this,
+                              true);
         d_int_div_skolem[rw] = intVar;
       }
       else
@@ -250,8 +261,7 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
       }
       if (k == INTS_MODULUS_TOTAL)
       {
-        Node nn =
-            nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
+        Node nn = nm->mkNode(MINUS, num, nm->mkNode(MULT, den, intVar));
         return nn;
       }
       else
@@ -281,8 +291,13 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
         Node lem = nm->mkNode(IMPLIES,
                               den.eqNode(nm->mkConst(Rational(0))).negate(),
                               nm->mkNode(MULT, den, v).eqNode(num));
-        var = sm->mkSkolem(
-            v, lem, "nonlinearDiv", "the result of a non-linear div term", NodeManager::SKOLEM_DEFAULT, this, true);
+        var = sm->mkSkolem(v,
+                           lem,
+                           "nonlinearDiv",
+                           "the result of a non-linear div term",
+                           NodeManager::SKOLEM_DEFAULT,
+                           this,
+                           true);
         d_div_skolem[rw] = var;
       }
       else
@@ -371,8 +386,8 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
         {
           Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
           Node uf = skolemApp.eqNode(var);
-          Node nonNeg = nm->mkNode(
-              AND, nm->mkNode(MULT, var, var).eqNode(node[0]), uf);
+          Node nonNeg =
+              nm->mkNode(AND, nm->mkNode(MULT, var, var).eqNode(node[0]), uf);
 
           // sqrt(x) reduces to:
           // witness y. ite(x >= 0.0, y * y = x ^ y = Uf(x), y = Uf(x))
@@ -382,11 +397,10 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
           // satisfiable. On the original formula, this would require that we
           // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
           // model.
-          lem = nm->mkNode(
-              ITE,
-              nm->mkNode(GEQ, node[0], nm->mkConst(Rational(0))),
-              nonNeg,
-              uf);
+          lem = nm->mkNode(ITE,
+                           nm->mkNode(GEQ, node[0], nm->mkConst(Rational(0))),
+                           nonNeg,
+                           uf);
         }
         else
         {
@@ -419,9 +433,8 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
                                       ? TANGENT
                                       : (k == ARCCOSECANT
                                              ? COSECANT
-                                             : (k == ARCSECANT
-                                                    ? SECANT
-                                                    : COTANGENT))));
+                                             : (k == ARCSECANT ? SECANT
+                                                               : COTANGENT))));
           Node invTerm = nm->mkNode(rk, var);
           lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
         }
@@ -430,11 +443,11 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
             var,
             lem,
             "tfk",
-            "Skolem to eliminate a non-standard transcendental function", 
-            NodeManager::SKOLEM_DEFAULT, 
-            this, true
-                               );
-        Assert (ret.getKind()==WITNESS);
+            "Skolem to eliminate a non-standard transcendental function",
+            NodeManager::SKOLEM_DEFAULT,
+            this,
+            true);
+        Assert(ret.getKind() == WITNESS);
         d_nlin_inverse_skolem[node] = ret;
         return ret;
       }
@@ -447,10 +460,7 @@ Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
   return node;
 }
 
-Node OperatorElim::getAxiomFor(Node n)
-{
-  return Node::null();
-}
+Node OperatorElim::getAxiomFor(Node n) { return Node::null(); }
 
 Node OperatorElim::getArithSkolem(ArithSkolemId asi)
 {

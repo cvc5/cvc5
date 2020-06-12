@@ -87,7 +87,6 @@ class RemoveTermFormulas {
   std::unique_ptr<theory::EagerProofGenerator> d_tpg;
 
  public:
-
   RemoveTermFormulas(context::UserContext* u);
   ~RemoveTermFormulas();
 

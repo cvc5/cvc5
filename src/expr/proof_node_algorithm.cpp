@@ -17,7 +17,7 @@
 namespace CVC4 {
 namespace expr {
 
-void getFreeAssumptions(ProofNode * pn, std::vector<Node>& assump)
+void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump)
 {
   std::map<Node, std::vector<ProofNode*>> amap;
   getFreeAssumptionsMap(pn, amap);
@@ -27,8 +27,8 @@ void getFreeAssumptions(ProofNode * pn, std::vector<Node>& assump)
   }
 }
 
-void getFreeAssumptionsMap(ProofNode * pn,
-    std::map<Node, std::vector<ProofNode*>>& amap)
+void getFreeAssumptionsMap(ProofNode* pn,
+                           std::map<Node, std::vector<ProofNode*>>& amap)
 {
   // proof should not be cyclic
   // visited set false after preorder traversal, true after postorder traversal
