@@ -507,11 +507,9 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                         << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   uint32_t typeCardSize;
-  bool typeCardKnown = false;
   if (tn.isString())  // string-only
   {
     typeCardSize = d_cardSize;
-    typeCardKnown = true;
   }
   else
   {
