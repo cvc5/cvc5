@@ -177,9 +177,6 @@ bool LazyCDProof::hasGenerator(Node fact) const
   return it != d_gens.end();
 }
 
-std::string LazyCDProof::identify() const
-{
-  return "LazyCDProof";
-}
+std::string LazyCDProof::identify() const { return "LazyCDProof"; }
 
 }  // namespace CVC4

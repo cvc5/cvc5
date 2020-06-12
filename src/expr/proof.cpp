@@ -432,9 +432,6 @@ Node CDProof::getSymmFact(TNode f)
   return polarity ? symFact : symFact.notNode();
 }
 
-std::string CDProof::identify() const
-{
-  return "CDProof";
-}
+std::string CDProof::identify() const { return "CDProof"; }
 
 }  // namespace CVC4

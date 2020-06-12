@@ -22,10 +22,10 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "expr/proof_generator.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
-#include "expr/proof_generator.h"
 
 namespace CVC4 {
 
@@ -233,6 +233,7 @@ class CDProof : public ProofGenerator
   std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** identify */
   std::string identify() const override;
+
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>
       NodeProofNodeMap;

@@ -82,6 +82,7 @@ class LazyCDProof : public CDProof
   bool hasGenerator(Node fact) const;
   /** identify */
   std::string identify() const override;
+
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
       NodeProofGeneratorMap;

@@ -41,7 +41,9 @@ class TheoryPreprocessor
 
  public:
   /** Constructs a theory preprocessor */
-  TheoryPreprocessor(TheoryEngine& engine, RemoveTermFormulas& tfr, ProofNodeManager * pnm = nullptr);
+  TheoryPreprocessor(TheoryEngine& engine,
+                     RemoveTermFormulas& tfr,
+                     ProofNodeManager* pnm = nullptr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
   /** Clear the cache of this class */

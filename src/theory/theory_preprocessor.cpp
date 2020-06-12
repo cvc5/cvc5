@@ -25,8 +25,8 @@ namespace CVC4 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
-                                       RemoveTermFormulas& tfr, 
-                                       ProofNodeManager * pnm)
+                                       RemoveTermFormulas& tfr,
+                                       ProofNodeManager* pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
       d_ppCache(),
@@ -45,8 +45,7 @@ void TheoryPreprocessor::preprocess(TNode node,
                                     LazyCDProof* lp)
 {
   // Run theory preprocessing, maybe
-  Node ppNode =
-      doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
+  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
