@@ -49,7 +49,7 @@ void OperatorElim::checkNonLinearLogic(Node term)
   }
 }
 
-Node OperatorElim::eliminateOperatorsRec(Node n, LazyCDProof* lp)
+Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator * tg)
 {
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -97,12 +97,12 @@ Node OperatorElim::eliminateOperatorsRec(Node n, LazyCDProof* lp)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
-      Node retElim = eliminateOperators(ret, lp);
+      Node retElim = eliminateOperators(ret, tg);
       if (retElim != ret)
       {
         // recursively eliminate operators in result, since some eliminations
         // are defined in terms of other non-standard operators.
-        ret = eliminateOperatorsRec(retElim, lp);
+        ret = eliminateOperatorsRec(retElim, tg);
       }
       visited[cur] = ret;
     }
@@ -112,7 +112,7 @@ Node OperatorElim::eliminateOperatorsRec(Node n, LazyCDProof* lp)
   return visited[n];
 }
 
-Node OperatorElim::eliminateOperators(Node node, LazyCDProof* lp)
+Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator * tg)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();

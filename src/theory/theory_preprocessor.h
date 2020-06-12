@@ -21,13 +21,14 @@
 
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "expr/lazy_proof.h"
+#include "expr/term_conversion_proof_generator.h"
 
 namespace CVC4 {
 
 class LogicInfo;
 class TheoryEngine;
 class RemoveTermFormulas;
-class LazyCDProof;
 
 namespace theory {
 
@@ -73,7 +74,7 @@ class TheoryPreprocessor
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
   /** Helper for theoryPreprocess */
-  Node ppTheoryRewrite(TNode term, LazyCDProof* lp);
+  Node ppTheoryRewrite(TNode term, TConvProofGenerator * tg);
 };
 
 }  // namespace theory

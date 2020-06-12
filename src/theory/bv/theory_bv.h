@@ -110,7 +110,7 @@ class TheoryBV : public Theory {
 
   void enableCoreTheorySlicer();
 
-  Node ppRewrite(TNode t, LazyCDProof* lp) override;
+  Node ppRewrite(TNode t, TConvProofGenerator * tg) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 

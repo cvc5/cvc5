@@ -47,7 +47,7 @@ class RewriterWhite : public CxxTest::TestSuite
   SmtEngine* d_smt;
   SmtScope* d_scope;
   ProofNodeManager* d_pnm;
-  TermConversionProofGenerator* d_tcpg;
+  TConvProofGenerator* d_tcpg;
 
  public:
   RewriterWhite() {}
@@ -64,7 +64,7 @@ class RewriterWhite : public CxxTest::TestSuite
     d_scope = new SmtScope(d_smt);
     d_smt->finalOptionsAreSet();
     d_pnm = new ProofNodeManager(d_smt->getTheoryEngine()->d_pchecker.get());
-    d_tcpg = new TermConversionProofGenerator(d_pnm);
+    d_tcpg = new TConvProofGenerator(d_pnm);
   }
 
   void tearDown() override

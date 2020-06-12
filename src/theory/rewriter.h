@@ -64,7 +64,7 @@ class Rewriter {
    */
   static Node rewrite(TNode node);
 
-  static Node rewriteWithProof(TNode node, TermConversionProofGenerator* tcpg);
+  static Node rewriteWithProof(TNode node, TConvProofGenerator* tcpg);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -157,7 +157,7 @@ class Rewriter {
    */
   Node rewriteTo(theory::TheoryId theoryId,
                  Node node,
-                 TermConversionProofGenerator* tcpg = nullptr);
+                 TConvProofGenerator* tcpg = nullptr);
 
   /** Calls the pre-rewriter for the given theory */
   RewriteResponse preRewrite(theory::TheoryId theoryId, TNode n);

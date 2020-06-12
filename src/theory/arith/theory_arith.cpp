@@ -92,10 +92,10 @@ void TheoryArith::addSharedTerm(TNode n){
   d_internal->addSharedTerm(n);
 }
 
-Node TheoryArith::ppRewrite(TNode atom, LazyCDProof* lp)
+Node TheoryArith::ppRewrite(TNode atom, TConvProofGenerator * tg)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  return d_internal->ppRewrite(atom, lp);
+  return d_internal->ppRewrite(atom, tg);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {

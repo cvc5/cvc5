@@ -71,28 +71,29 @@ PR finished:
 (16) UF rules, UF checker [Haniel] (req 5)
 (18) Add LazyCDProof (req 11) *
 (21) static strings preprocess reduce (req 7)
+(27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
 (34) theory proof step buffer
+(36) term conversion proof generator
 (48) remove snorm option
 
 PRs ready:
 
 (0) Add proof option
-(6) Equality engine updates [Haniel] (req 0)
-(19) ProofNode update, TODO refactor free assumptions via proof_node_algorithm
+(19) ProofNode update, refactor free assumptions via proof_node_algorithm *
+(22) Strings base solver update (req 2) *
 (25) Arithmetic proof checker [Alex]
-(27) split theory engine *
 (33) split operator elimination from arith (req 28) *
 (35) Strings term registry update (req 13) *
-(36) term conversion proof generator
+(37) Rewriter proof producing [Andres] (req 36)
 (38) quantifiers proof checker (req 8) *
 (45) regexp operation refactor (req 3, 7, 8) *
 
 PRs future:
 
+(6) Equality engine updates [Haniel] (req 0)
 (17) rewriter new infrastructure "rewriteEqualityExt"
-(20) Eq proof conversion (req 6)
-(22) Strings core solver update (req 2)
+(20) Eq proof conversion [Haniel] (req 6)
 (23) Updates to proof node manager, including mkScope (req 19)
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager
@@ -100,7 +101,6 @@ PRs future:
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 12, 27)
-(37) Rewriter proof producing [Andres] (req 36)
 (39) TheoryEngine proof checker initialize all theories (req 27)
 (40) theory engine proof generator (req 13, 18)
 (41) SharedTermDatabase uses pfee (req 24)
@@ -114,5 +114,7 @@ PRs future:
 
 PRs wish list:
 
+- SAT solver proof producing
+- Proofs for theory rewrites
 - SEXPR simply typed
 - Proof kinds infrastructure

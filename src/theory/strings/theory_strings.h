@@ -336,7 +336,7 @@ class TheoryStrings : public Theory {
 
  public:
   // ppRewrite
-  Node ppRewrite(TNode atom, LazyCDProof* lp) override;
+  Node ppRewrite(TNode atom, TConvProofGenerator * tg) override;
 
  private:
   //-----------------------inference steps

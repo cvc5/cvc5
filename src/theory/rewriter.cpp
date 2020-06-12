@@ -101,7 +101,7 @@ Node Rewriter::rewrite(TNode node) {
   return getInstance()->rewriteTo(theoryOf(node), node);
 }
 
-Node Rewriter::rewriteWithProof(TNode node, TermConversionProofGenerator* tcpg)
+Node Rewriter::rewriteWithProof(TNode node, TConvProofGenerator* tcpg)
 {
   return getInstance()->rewriteTo(theoryOf(node), node, tcpg);
 }
@@ -155,7 +155,7 @@ Rewriter* Rewriter::getInstance()
 
 Node Rewriter::rewriteTo(theory::TheoryId theoryId,
                          Node node,
-                         TermConversionProofGenerator* tcpg)
+                         TConvProofGenerator* tcpg)
 {
 #ifdef CVC4_ASSERTIONS
   bool isEquality = node.getKind() == kind::EQUAL && (!node[0].getType().isBoolean());

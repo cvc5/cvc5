@@ -18,15 +18,15 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-TermConversionProofGenerator::TermConversionProofGenerator(
+TConvProofGenerator::TConvProofGenerator(
     ProofNodeManager* pnm, context::Context* c)
     : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context)
 {
 }
 
-TermConversionProofGenerator::~TermConversionProofGenerator() {}
+TConvProofGenerator::~TConvProofGenerator() {}
 
-void TermConversionProofGenerator::addRewriteStep(Node t,
+void TConvProofGenerator::addRewriteStep(Node t,
                                                   Node s,
                                                   ProofGenerator* pg)
 {
@@ -37,7 +37,7 @@ void TermConversionProofGenerator::addRewriteStep(Node t,
   d_rewriteMap[t] = s;
 }
 
-void TermConversionProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
+void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
   // should not rewrite term more than once
   Assert(!hasRewriteStep(t));
@@ -46,7 +46,7 @@ void TermConversionProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
   d_rewriteMap[t] = s;
 }
 
-void TermConversionProofGenerator::addRewriteStep(
+void TConvProofGenerator::addRewriteStep(
     Node t,
     Node s,
     PfRule id,
@@ -60,14 +60,14 @@ void TermConversionProofGenerator::addRewriteStep(
   d_rewriteMap[t] = s;
 }
 
-bool TermConversionProofGenerator::hasRewriteStep(Node t) const
+bool TConvProofGenerator::hasRewriteStep(Node t) const
 {
   return !getRewriteStep(t).isNull();
 }
 
-std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofFor(Node f)
+std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 {
-  Trace("tconv-pf-gen") << "TermConversionProofGenerator::getProofFor: " << f
+  Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << f
                         << std::endl;
   if (f.getKind() != EQUAL)
   {
@@ -94,7 +94,7 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofFor(Node f)
   return pf;
 }
 
-std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(
+std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(
     Node t)
 {
   // we use the existing proofs
@@ -233,7 +233,7 @@ std::shared_ptr<ProofNode> TermConversionProofGenerator::getProofForRewriting(
   return pf.mkProof(teq);
 }
 
-Node TermConversionProofGenerator::getRewriteStep(Node t) const
+Node TConvProofGenerator::getRewriteStep(Node t) const
 {
   NodeNodeMap::const_iterator it = d_rewriteMap.find(t);
   if (it == d_rewriteMap.end())
@@ -242,9 +242,9 @@ Node TermConversionProofGenerator::getRewriteStep(Node t) const
   }
   return (*it).second;
 }
-std::string TermConversionProofGenerator::identify() const
+std::string TConvProofGenerator::identify() const
 {
-  return "TermConversionProofGenerator";
+  return "TConvProofGenerator";
 }
 
 }  // namespace CVC4

@@ -135,6 +135,11 @@ struct preprocess_stack_element
 
 Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
 {
+  std::shared_ptr<TConvProofGenerator> tg;
+  if (lp!=nullptr)
+  {
+    // TODO: make the proof generator
+  }
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
   // spendResource();
@@ -176,7 +181,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current, lp);
+      Node ppRewritten = ppTheoryRewrite(current, tg.get());
       d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
@@ -238,13 +243,17 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
       }
     }
   }
+  if (lp!=nullptr)
+  {
+    // TODO: proof generator makes proof here
+  }
 
   // Return the substituted version
   return d_ppCache[assertion];
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term, LazyCDProof* lp)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator * tg)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
@@ -254,7 +263,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term, LazyCDProof* lp)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    return d_engine.theoryOf(term)->ppRewrite(term, lp);
+    return d_engine.theoryOf(term)->ppRewrite(term, tg);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -274,14 +283,14 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term, LazyCDProof* lp)
     unsigned i;
     for (i = 0; i < nc; ++i)
     {
-      newNode << ppTheoryRewrite(term[i], lp);
+      newNode << ppTheoryRewrite(term[i], tg);
     }
     newTerm = Rewriter::rewrite(Node(newNode));
   }
-  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, lp);
+  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, tg);
   if (newTerm != newTerm2)
   {
-    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2), lp);
+    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2), tg);
   }
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;

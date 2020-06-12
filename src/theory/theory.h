@@ -51,7 +51,7 @@ namespace CVC4 {
 
 class TheoryEngine;
 class ProofChecker;
-class LazyCDProof;
+class TConvProofGenerator;
 
 namespace theory {
 
@@ -589,7 +589,7 @@ class Theory {
    * the atom into an equivalent form.  This is only called just
    * before an input atom to the engine.
    */
-  virtual Node ppRewrite(TNode atom, LazyCDProof* lp) { return atom; }
+  virtual Node ppRewrite(TNode atom, TConvProofGenerator * tg) { return atom; }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

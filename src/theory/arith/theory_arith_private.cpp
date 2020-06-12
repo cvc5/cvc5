@@ -1099,7 +1099,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n, LazyCDProof* lp)
+Node TheoryArithPrivate::ppRewriteTerms(TNode n, TConvProofGenerator * tg)
 {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
@@ -1109,17 +1109,17 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n, LazyCDProof* lp)
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(n, lp);
+  Node nn = d_opElim.eliminateOperators(n, tg);
   if (nn != n)
   {
     // since elimination may introduce new operators to eliminate, we must
     // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn, lp);
+    return d_opElim.eliminateOperatorsRec(nn, tg);
   }
   return n;
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom, LazyCDProof* lp)
+Node TheoryArithPrivate::ppRewrite(TNode atom, TConvProofGenerator * tg)
 {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
@@ -1129,8 +1129,8 @@ Node TheoryArithPrivate::ppRewrite(TNode atom, LazyCDProof* lp)
     {
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      leq = ppRewriteTerms(leq, lp);
-      geq = ppRewriteTerms(geq, lp);
+      leq = ppRewriteTerms(leq, tg);
+      geq = ppRewriteTerms(geq, tg);
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
@@ -1138,7 +1138,7 @@ Node TheoryArithPrivate::ppRewrite(TNode atom, LazyCDProof* lp)
       return rewritten;
     }
   }
-  return ppRewriteTerms(atom, lp);
+  return ppRewriteTerms(atom, tg);
 }
 
 Theory::PPAssertStatus TheoryArithPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {

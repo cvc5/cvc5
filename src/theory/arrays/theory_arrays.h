@@ -186,7 +186,7 @@ class TheoryArrays : public Theory {
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom, LazyCDProof* lp) override;
+  Node ppRewrite(TNode atom, TConvProofGenerator * tg) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
