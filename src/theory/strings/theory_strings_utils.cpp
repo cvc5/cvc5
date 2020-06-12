@@ -274,6 +274,8 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
+bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
+
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {
   size_t i = start;

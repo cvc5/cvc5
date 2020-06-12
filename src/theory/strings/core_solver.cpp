@@ -707,15 +707,17 @@ void CoreSolver::getNormalForms(Node eqc,
   while( !eqc_i.isFinished() ){
     Node n = (*eqc_i);
     if( !d_bsolver.isCongruent(n) ){
-      if (n.isConst() || n.getKind() == STRING_CONCAT)
+      Kind nk = n.getKind();
+      bool isCLike = utils::isConstantLike(n);
+      if (isCLike || nk == STRING_CONCAT)
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
         NormalForm nf_curr;
-        if (n.isConst())
+        if (isCLike)
         {
           nf_curr.init(n);
         }
-        else if (n.getKind() == STRING_CONCAT)
+        else if (nk == STRING_CONCAT)
         {
           // set the base to n, we construct the other portions of nf_curr in
           // the following.
@@ -791,7 +793,8 @@ void CoreSolver::getNormalForms(Node eqc,
         }
         //if not equal to self
         std::vector<Node>& currv = nf_curr.d_nf;
-        if (currv.size() > 1 || (currv.size() == 1 && currv[0].isConst()))
+        if (currv.size() > 1
+            || (currv.size() == 1 && utils::isConstantLike(currv[0])))
         {
           // if in a build with assertions, check that normal form is acyclic
           if (Configuration::isAssertionBuild())

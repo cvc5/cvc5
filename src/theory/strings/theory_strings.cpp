@@ -388,9 +388,15 @@ bool TheoryStrings::collectModelInfoType(
         NormalForm& nfe = d_csolver->getNormalForm(eqc);
         if (nfe.d_nf.size() == 1)
         {
+          // is it an equivalence class with a seq.unit term?
+          if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+          {
+            pure_eq_assign[eqc] = nfe.d_nf[0];
+            Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
+          }
           // does it have a code and the length of these equivalence classes are
           // one?
-          if (d_termReg.hasStringCode() && lts_values[i] == d_one)
+          else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
           {
             EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_codeTerm.get().isNull())
@@ -444,7 +450,7 @@ bool TheoryStrings::collectModelInfoType(
       std::unique_ptr<SEnumLen> sel;
       Trace("strings-model") << "Cardinality of alphabet is "
                              << utils::getAlphabetCardinality() << std::endl;
-      if (tn.isString())
+      if (tn.isString())  // string-only
       {
         sel.reset(new StringEnumLen(
             currLen, currLen, utils::getAlphabetCardinality()));
@@ -560,7 +566,6 @@ bool TheoryStrings::collectModelInfoType(
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc, tn);
-      Assert(cc.isConst());
       Trace("strings-model")
           << "*** Determined constant " << cc << " for " << rn << std::endl;
       processed[rn] = cc;
@@ -568,11 +573,16 @@ bool TheoryStrings::collectModelInfoType(
       {
         // this should never happen due to the model soundness argument
         // for strings
-
         Unreachable() << "TheoryStrings::collectModelInfoType: "
                          "Inconsistent equality (unprocessed eqc)"
                       << std::endl;
         return false;
+      }
+      else if (!cc.isConst())
+      {
+        // the value may be specified by seq.unit components, ensure this
+        // is marked as the skeleton for constructing values in this class.
+        m->assertSkeleton(cc);
       }
     }
   }
