@@ -24,6 +24,7 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/context.h"
 #include "expr/lazy_proof.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "expr/node.h"
 #include "smt/dump.h"
 #include "theory/eager_proof_generator.h"
@@ -128,13 +129,17 @@ class RemoveTermFormulas {
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
    *
-   * If lcpAssert is provided, then we provide proofs of the new lemmas added to
-   * assertions.
+   * If pft is provided, then we provide it proofs of elimination steps, e.g.
+   * (= (ite C a b) k).
+   * 
+   * If pfa is provided, then we provide proofs of the new lemmas added to
+   * assertions, e.g. (ite C (= k a) (= k b).
    */
   void run(std::vector<Node>& assertions,
            IteSkolemMap& iteSkolemMap,
            bool reportDeps = false,
-           LazyCDProof* lpAssert = nullptr);
+           TConvProofGenerator * pft = nullptr,
+           LazyCDProof* pfa = nullptr);
 
   /**
    * Removes terms of the form (1), (2), (3) described above from node.
@@ -152,7 +157,8 @@ class RemoveTermFormulas {
            IteSkolemMap& iteSkolemMap,
            bool inQuant,
            bool inTerm,
-           LazyCDProof* lpAssert);
+           TConvProofGenerator * pft,
+           LazyCDProof* pfa);
 
   /**
    * Substitute under node using pre-existing cache.  Do not remove

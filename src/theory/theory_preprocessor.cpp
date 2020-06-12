@@ -42,15 +42,24 @@ void TheoryPreprocessor::preprocess(TNode node,
                                     bool doTheoryPreprocess,
                                     LazyCDProof* lp)
 {
-  // Run theory preprocessing, maybe
-  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node, lp) : Node(node);
 
+  std::shared_ptr<TConvProofGenerator> tg;
+  /*
+  if (lp != nullptr)
+  {
+    // make the proof generator
+    tg = std::make_shared<TConvProofGenerator>(lp->getManager());
+  }
+  */
+  // Run theory preprocessing, maybe
+  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node, tg.get()) : Node(node);
+  
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
   lemmas.updateRealAssertionsEnd();
-  // TODO: pass lp to run here
-  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(), false, nullptr);
+  // TODO: pass lp, tg to run here
+  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(), false, nullptr, nullptr);
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
 
   // justify the preprocessing step
@@ -66,29 +75,8 @@ void TheoryPreprocessor::preprocess(TNode node,
       pfArgs.push_back(lemmas[0]);
       lp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
     }
-#if 0
-    for (size_t i = 1, lsize = lemmas.size(); i < lsize; ++i)
-    {
-      // the witness form of other lemmas should rewrite to true
-      // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
-      //   forall x. k(x)=t[x]
-      // whose witness form rewrites
-      //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
-      std::vector<Node> pfChildren;
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(lemmas[i]);
-      Trace("te-tf-check") << "Checking additional lemma..." << std::endl;
-      Node cp = d_pchecker->checkDebug(PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs, lemmas[i], "te-tf-check");
-      Trace("te-tf-check") << "...result: " << cp << std::endl;
-      if (cp.isNull())
-      {
-        Node wt = SkolemManager::getWitnessForm(lemmas[i]);
-        wt = Rewriter::rewrite(wt);
-        Trace("te-tf-check") << "...witness form was " << wt << std::endl;
-      }
-      lp->addStep(lemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
-    }
-#endif
+    // TODO: proof generator makes proof here
+
   }
 
   if (Debug.isOn("lemma-ites"))
@@ -133,13 +121,8 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion, TConvProofGenerator* tg)
 {
-  std::shared_ptr<TConvProofGenerator> tg;
-  if (lp != nullptr)
-  {
-    // TODO: make the proof generator
-  }
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
   // spendResource();
@@ -181,7 +164,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current, tg.get());
+      Node ppRewritten = ppTheoryRewrite(current, tg);
       d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
@@ -243,11 +226,6 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
       }
     }
   }
-  if (lp != nullptr)
-  {
-    // TODO: proof generator makes proof here
-  }
-
   // Return the substituted version
   return d_ppCache[assertion];
 }

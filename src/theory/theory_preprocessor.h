@@ -62,7 +62,7 @@ class TheoryPreprocessor
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node theoryPreprocess(TNode node, LazyCDProof* lp);
+  Node theoryPreprocess(TNode node, TConvProofGenerator* tg);
 
  private:
   /** Reference to owning theory engine */

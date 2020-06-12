@@ -983,7 +983,17 @@ void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion, LazyCDProof* lp)
 {
-  return d_tpp.theoryPreprocess(assertion, lp);
+  std::shared_ptr<TConvProofGenerator> tg;
+  if (lp!=nullptr)
+  {
+    // TODO
+  }
+  Node ret = d_tpp.theoryPreprocess(assertion, tg.get());
+  if (lp!=nullptr)
+  {
+    // TODO
+  }
+  return ret;
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
