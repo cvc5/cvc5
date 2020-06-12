@@ -226,15 +226,6 @@ class CDProof
   bool addProof(std::shared_ptr<ProofNode> pn,
                 CDPOverwrite opolicy = CDPOverwrite::ASSUME_ONLY,
                 bool doCopy = false);
-  /**
-   * Get predicate equivalent to given fact, e.g. for (= false (= t1 t2)) is
-   * returned (= t1 t2). If the given fact in not of the form "equality between
-   * predicate and boolean constant" null is returned.
-   *
-   * The polarity of the predicate is saved in pol and in symm wether the
-   * predicate leads to the given fact or to its symmetric via TRUE/FALSE_INTRO.
-   */
-  static Node getPredicateFact(TNode f, bool& pol, bool& symm);
   /** Return true if fact already has a proof step */
   bool hasStep(Node fact);
   /** Get the proof manager for this proof */

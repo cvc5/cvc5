@@ -444,21 +444,4 @@ Node CDProof::getSymmFact(TNode f)
   return polarity ? symFact : symFact.notNode();
 }
 
-Node CDProof::getPredicateFact(TNode f, bool& pol, bool& symm)
-{
-  if (f.getKind() != kind::EQUAL
-      || ((f[0].getKind() != kind::CONST_BOOLEAN
-           || f[1].getKind() == kind::CONST_BOOLEAN)
-          && (f[1].getKind() != kind::CONST_BOOLEAN
-              || f[0].getKind() == kind::CONST_BOOLEAN)))
-  {
-    return Node::null();
-  }
-  unsigned cInd = f[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-  symm = cInd == 0;
-  pol = f[cInd].getConst<bool>();
-  Node fAtom = f[1 - cInd];
-  return pol ? fAtom : fAtom.notNode();
-}
-
 }  // namespace CVC4
