@@ -347,7 +347,7 @@ class TheoryEngine {
   SortInference d_sortInfer;
   
   /** The theory preprocessor */
-  TheoryPreprocessor d_tpp;
+  theory::TheoryPreprocessor d_tpp;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;

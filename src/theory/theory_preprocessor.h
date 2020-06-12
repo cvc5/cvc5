@@ -29,6 +29,8 @@ class TheoryEngine;
 class RemoveTermFormulas;
 class LazyCDProof;
 
+namespace theory {
+
 /**
  * The preprocessor used in TheoryEngine.
  */
@@ -73,6 +75,7 @@ class TheoryPreprocessor
   Node ppTheoryRewrite(TNode term);
 };
 
+}  // namespace theory
 }  // namespace CVC4
 
 #endif /* CVC4__THEORY__THEORY_PREPROCESSOR_H */
