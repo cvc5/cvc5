@@ -266,6 +266,19 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                    << std::endl;
     }
   }
+  // !!!!!!!!!!!!!!!! temporary, to support CI check for old proof system
+  if (options::proof())
+  {
+    options::proofNew.set(false);
+  }
+  if (options::proofNew())
+  {
+    if (!options::stringLenConc.wasSetByUser())
+    {
+      options::stringLenConc.set(true);
+      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
+    }
+  }
 
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
@@ -875,6 +888,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
   if (options::ufHo())
   {
+    // if higher-order, disable proof production
+    if (options::proofNew())
+    {
+      if (options::proofNew.wasSetByUser())
+      {
+        Warning() << "SmtEngine: turning off proof production (not yet "
+                     "supported with --uf-ho)\n";
+      }
+      options::proofNew.set(false);
+    }
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
@@ -1105,6 +1128,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (!options::cegqiPreRegInst.wasSetByUser())
     {
       options::cegqiPreRegInst.set(true);
+    }
+    // not compatible with proofs
+    if (options::proofNew())
+    {
+      if (options::proofNew.wasSetByUser())
+      {
+        Notice() << "SmtEngine: setting proof-new to false to support SyGuS"
+                 << std::endl;
+      }
+      options::proofNew.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus
