@@ -1504,7 +1504,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * conditions when there is a chain of equalities connecting two constant
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
-  STORE_ALL,
+  CONST_ARRAY,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
@@ -2002,6 +2002,33 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_REPLACE_ALL,
+  /**
+   * String replace regular expression match.
+   * Replaces the first match of a regular expression r in string s1 with
+   * string s2. If r does not match a substring of s1, s1 is returned
+   * unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE,
+  /**
+   * String replace all regular expression matches.
+   * Replaces all matches of a regular expression r in string s1 with string
+   * s2. If r does not match a substring of s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE_ALL,
   /**
    * String to lower case.
    * Parameters: 1

@@ -58,7 +58,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDfsIterable(cnd).inPostorder();
+    auto traversal = NodeDfsIterable(cnd, VisitOrder::POSTORDER);
     NodeDfsIterator i = traversal.begin();
     NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*i, tb);
@@ -79,7 +79,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDfsIterable(cnd).inPostorder();
+    auto traversal = NodeDfsIterable(cnd, VisitOrder::POSTORDER);
     NodeDfsIterator i = traversal.begin();
     NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*(i++), tb);
@@ -108,7 +108,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDfsIterable(cnd).inPostorder())
+    for (auto i : NodeDfsIterable(cnd, VisitOrder::POSTORDER))
     {
       ++count;
     }
@@ -122,7 +122,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDfsIterable(cnd).inPostorder())
+    for (auto i : NodeDfsIterable(cnd, VisitOrder::POSTORDER))
     {
       if (i.isConst())
       {
@@ -139,7 +139,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
 
-    auto traversal = NodeDfsIterable(top).inPostorder();
+    auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER);
 
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
@@ -155,7 +155,7 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {tb, eb, cnd, top};
 
-    auto traversal = NodeDfsIterable(top).inPostorder();
+    auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER);
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
@@ -170,8 +170,8 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {top};
 
-    auto traversal = NodeDfsIterable(top).inPostorder().skipIf(
-        [&cnd](TNode n) { return n == cnd; });
+    auto traversal = NodeDfsIterable(
+        top, VisitOrder::POSTORDER, [&cnd](TNode n) { return n == cnd; });
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
@@ -204,7 +204,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDfsIterable(cnd).inPreorder();
+    auto traversal = NodeDfsIterable(cnd, VisitOrder::PREORDER);
     NodeDfsIterator i = traversal.begin();
     NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*i, cnd);
@@ -225,7 +225,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node eb = d_nodeManager->mkConst(false);
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
-    auto traversal = NodeDfsIterable(cnd).inPreorder();
+    auto traversal = NodeDfsIterable(cnd, VisitOrder::PREORDER);
     NodeDfsIterator i = traversal.begin();
     NodeDfsIterator end = traversal.end();
     TS_ASSERT_EQUALS(*(i++), cnd);
@@ -241,7 +241,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDfsIterable(cnd).inPreorder())
+    for (auto i : NodeDfsIterable(cnd, VisitOrder::PREORDER))
     {
       ++count;
     }
@@ -255,7 +255,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
 
     size_t count = 0;
-    for (auto i : NodeDfsIterable(cnd).inPreorder())
+    for (auto i : NodeDfsIterable(cnd, VisitOrder::PREORDER))
     {
       if (i.isConst())
       {
@@ -272,7 +272,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
 
-    auto traversal = NodeDfsIterable(top).inPreorder();
+    auto traversal = NodeDfsIterable(top, VisitOrder::PREORDER);
 
     size_t count = std::count_if(traversal.begin(),
                                  traversal.end(),
@@ -288,7 +288,7 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {top, cnd, tb, eb};
 
-    auto traversal = NodeDfsIterable(top).inPreorder();
+    auto traversal = NodeDfsIterable(top, VisitOrder::PREORDER);
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
@@ -303,8 +303,8 @@ class NodePreorderTraversalBlack : public CxxTest::TestSuite
     Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
     std::vector<TNode> expected = {top, cnd, eb};
 
-    auto traversal = NodeDfsIterable(top).inPreorder().skipIf(
-        [&tb](TNode n) { return n == tb; });
+    auto traversal = NodeDfsIterable(
+        top, VisitOrder::PREORDER, [&tb](TNode n) { return n == tb; });
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));

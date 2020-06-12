@@ -43,8 +43,8 @@
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
-#include "theory/theory_preprocessor.h"
 #include "theory/theory.h"
+#include "theory/theory_preprocessor.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
@@ -345,7 +345,7 @@ class TheoryEngine {
 
   /** sort inference module */
   SortInference d_sortInfer;
-  
+
   /** The theory preprocessor */
   theory::TheoryPreprocessor d_tpp;
 

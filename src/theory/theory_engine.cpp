@@ -960,10 +960,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
   return solveStatus;
 }
 
-void TheoryEngine::preprocessStart()
-{
-  d_tpp.clearCache();
-}
+void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
   return d_tpp.theoryPreprocess(assertion);
@@ -1643,8 +1640,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   if (lemmas.size() > 1)
   {
     // the returned lemma is the conjunction of all additional lemmas.
-    retLemma =
-        NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
+    retLemma = NodeManager::currentNM()->mkNode(kind::AND, lemmas.ref());
   }
   return theory::LemmaStatus(retLemma, d_userContext->getLevel());
 }
