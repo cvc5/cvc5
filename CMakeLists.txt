@@ -88,19 +88,6 @@ set(RUNTIME_INSTALL_DIR bin)
 
 #-----------------------------------------------------------------------------#
 
-# Embed the installation prefix as an RPATH in the executable such that the
-# linker can find our libraries (such as libcvc4parser) when executing the cvc4
-# binary. This is for example useful when installing CVC4 with a custom prefix
-# on macOS (e.g. when using homebrew in a non-standard directory). If we do not
-# set this option, then the linker will not be able to find the required
-# libraries when trying to run CVC4.
-#
-# More information on RPATH in CMake:
-# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
-
-#-----------------------------------------------------------------------------#
-
 include(Helpers)
 
 #-----------------------------------------------------------------------------#
@@ -306,6 +293,17 @@ if(ENABLE_SHARED)
     set(ENABLE_STATIC_BINARY OFF)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
+
+  # Embed the installation prefix as an RPATH in the executable such that the
+  # linker can find our libraries (such as libcvc4parser) when executing the
+  # cvc4 binary. This is for example useful when installing CVC4 with a custom
+  # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
+  # we do not set this option, then the linker will not be able to find the
+  # required libraries when trying to run CVC4.
+  #
+  # More information on RPATH in CMake:
+  # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
