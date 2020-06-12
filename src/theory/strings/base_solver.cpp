@@ -436,9 +436,19 @@ void BaseSolver::checkCardinality()
   // are pairwise propagated to be equal. We do not require disequalities
   // between the lengths of each collection, since we split on disequalities
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  std::vector<std::vector<Node> > cols;
-  std::vector<Node> lts;
+  std::map<TypeNode, std::vector<std::vector<Node> > > cols;
+  std::map<TypeNode, std::vector<Node> > lts;
   d_state.separateByLength(d_stringsEqc, cols, lts);
+  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
+  {
+    checkCardinalityType(c.first, c.second, lts[c.first]);
+  }
+}
+
+void BaseSolver::checkCardinalityType(TypeNode tn,
+                                      std::vector<std::vector<Node> >& cols,
+                                      std::vector<Node>& lts)
+{
   NodeManager* nm = NodeManager::currentNM();
   Trace("strings-card") << "Check cardinality...." << std::endl;
   // for each collection
@@ -450,6 +460,11 @@ void BaseSolver::checkCardinality()
     if (cols[i].size() <= 1)
     {
       // no restriction on sets in the partition of size 1
+      continue;
+    }
+    if (!tn.isString())
+    {
+      // TODO (cvc4-projects #23): how to handle sequence for finite types?
       continue;
     }
     // size > c^k
