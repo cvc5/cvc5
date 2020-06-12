@@ -89,8 +89,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   if (node.getKind() == kind::ITE && !nodeType.isBoolean())
   {
     // Here, we eliminate the ITE if we are not Boolean and if we do not contain
-    // a bound variable.
-    if (!inQuant || !expr::hasBoundVar(node))
+    // a free variable.
+    if (!inQuant || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -111,7 +111,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   else if (node.getKind() == kind::LAMBDA)
   {
     // if a lambda, do lambda-lifting
-    if (!inQuant)
+    if (!inQuant || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -143,7 +143,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     // If a witness choice
     //   For details on this operator, see
     //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!inQuant)
+    if (!inQuant || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())

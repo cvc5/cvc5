@@ -78,12 +78,6 @@ private:
   };
   ArithCongruenceNotify d_notify;
 
-  /** module for shostak normalization, d_eqi_counter is how many pending merges
-   * in d_eq_infer we have processed */
-  std::unique_ptr<quantifiers::EqualityInference> d_eq_infer;
-  context::CDO<unsigned> d_eqi_counter;
-  Node d_true;
-
   context::CDList<Node> d_keepAlive;
 
   /** Store the propagations. */
@@ -140,9 +134,6 @@ private:
   void enqueueIntoNB(const std::set<TNode> all, NodeBuilder<>& nb);
 
   Node explainInternal(TNode internal);
-
-  void eqNotifyNewClass(TNode t);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
 public:
 
   ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseEqualityEngineConflict raiseConflict);
@@ -176,9 +167,6 @@ public:
 
 
   void addSharedTerm(Node x);
-
-  /** process inferred equalities based on Shostak normalization */
-  bool fixpointInfer();
   
   eq::EqualityEngine * getEqualityEngine() { return &d_ee; }
 
