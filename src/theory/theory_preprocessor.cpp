@@ -136,7 +136,7 @@ struct preprocess_stack_element
 Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
 {
   std::shared_ptr<TConvProofGenerator> tg;
-  if (lp!=nullptr)
+  if (lp != nullptr)
   {
     // TODO: make the proof generator
   }
@@ -243,7 +243,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
       }
     }
   }
-  if (lp!=nullptr)
+  if (lp != nullptr)
   {
     // TODO: proof generator makes proof here
   }
@@ -253,7 +253,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion, LazyCDProof* lp)
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator * tg)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator* tg)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())

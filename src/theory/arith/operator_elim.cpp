@@ -49,7 +49,7 @@ void OperatorElim::checkNonLinearLogic(Node term)
   }
 }
 
-Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator * tg)
+Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg)
 {
   Trace("arith-elim") << "Begin elim: " << n << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -112,7 +112,7 @@ Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator * tg)
   return visited[n];
 }
 
-Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator * tg)
+Node OperatorElim::eliminateOperators(Node node, TConvProofGenerator* tg)
 {
   NodeManager* nm = NodeManager::currentNM();
   SkolemManager* sm = nm->getSkolemManager();

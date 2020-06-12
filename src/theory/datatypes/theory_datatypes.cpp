@@ -697,7 +697,7 @@ void TheoryDatatypes::presolve()
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in, TConvProofGenerator * tg)
+Node TheoryDatatypes::ppRewrite(TNode in, TConvProofGenerator* tg)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 

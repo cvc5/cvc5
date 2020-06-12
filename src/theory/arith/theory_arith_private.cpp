@@ -1099,7 +1099,7 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n, TConvProofGenerator * tg)
+Node TheoryArithPrivate::ppRewriteTerms(TNode n, TConvProofGenerator* tg)
 {
   if(Theory::theoryOf(n) != THEORY_ARITH) {
     return n;
@@ -1119,7 +1119,7 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n, TConvProofGenerator * tg)
   return n;
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom, TConvProofGenerator * tg)
+Node TheoryArithPrivate::ppRewrite(TNode atom, TConvProofGenerator* tg)
 {
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 

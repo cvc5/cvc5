@@ -710,7 +710,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-Node TheoryBV::ppRewrite(TNode t, TConvProofGenerator * tg)
+Node TheoryBV::ppRewrite(TNode t, TConvProofGenerator* tg)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;

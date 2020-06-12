@@ -16,8 +16,8 @@
 
 #include <map>
 
-#include "expr/term_conversion_proof_generator.h"
 #include "expr/node.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/logic_info.h"
 
@@ -47,7 +47,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The (single step) eliminated form of n.
    */
-  Node eliminateOperators(Node n, TConvProofGenerator * tg);
+  Node eliminateOperators(Node n, TConvProofGenerator* tg);
   /**
    * Recursively ensure that n has no non-standard operators. This applies
    * the above method on all subterms of n.
@@ -55,7 +55,7 @@ class OperatorElim : public EagerProofGenerator
    * @param n The node to eliminate operators from.
    * @return The eliminated form of n.
    */
-  Node eliminateOperatorsRec(Node n, TConvProofGenerator * tg);
+  Node eliminateOperatorsRec(Node n, TConvProofGenerator* tg);
 
   /**
    * Get axiom for term n. This returns the axiom that this class uses to

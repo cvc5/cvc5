@@ -69,8 +69,7 @@ class TConvProofGenerator : public ProofGenerator
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    */
-  TConvProofGenerator(ProofNodeManager* pnm,
-                               context::Context* c = nullptr);
+  TConvProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr);
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.

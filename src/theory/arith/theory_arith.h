@@ -88,7 +88,7 @@ class TheoryArith : public Theory {
   void presolve() override;
   void notifyRestart() override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom, TConvProofGenerator * tg) override;
+  Node ppRewrite(TNode atom, TConvProofGenerator* tg) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }

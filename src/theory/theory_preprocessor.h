@@ -19,10 +19,10 @@
 
 #include <unordered_map>
 
-#include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
 #include "expr/lazy_proof.h"
+#include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
+#include "preprocessing/assertion_pipeline.h"
 
 namespace CVC4 {
 
@@ -74,7 +74,7 @@ class TheoryPreprocessor
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
   /** Helper for theoryPreprocess */
-  Node ppTheoryRewrite(TNode term, TConvProofGenerator * tg);
+  Node ppTheoryRewrite(TNode term, TConvProofGenerator* tg);
 };
 
 }  // namespace theory

@@ -1216,7 +1216,7 @@ public:
 
  /** AntecendentID must be in range. */
  ConstraintCP getAntecedent(AntecedentId p) const;
-  
+
 private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);

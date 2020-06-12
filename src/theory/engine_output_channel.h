@@ -87,6 +87,7 @@ class EngineOutputChannel : public theory::OutputChannel
                            bool removable = false,
                            bool preprocess = false,
                            bool sendAtoms = false) override;
+
  protected:
   /**
    * Statistics for a particular theory.

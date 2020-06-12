@@ -970,7 +970,7 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-Node TheoryStrings::ppRewrite(TNode atom, TConvProofGenerator * tg)
+Node TheoryStrings::ppRewrite(TNode atom, TConvProofGenerator* tg)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
