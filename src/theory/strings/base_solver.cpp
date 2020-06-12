@@ -522,7 +522,7 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // infinite cardinality, we are fine
       return;
     }
-    // TODO: how to handle sequence for finite types?
+    // TODO (cvc4-projects #23): how to handle sequence for finite types?
     return;
   }
   // for each collection
@@ -534,11 +534,6 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
     if (cols[i].size() <= 1)
     {
       // no restriction on sets in the partition of size 1
-      continue;
-    }
-    if (!tn.isString())
-    {
-      // TODO (cvc4-projects #23): how to handle sequence for finite types?
       continue;
     }
     // size > c^k
