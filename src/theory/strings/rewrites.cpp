@@ -113,6 +113,7 @@ const char* toString(Rewrite r)
     case Rewrite::RPL_X_Y_X_SIMP: return "RPL_X_Y_X_SIMP";
     case Rewrite::REPLACE_RE_EVAL: return "REPLACE_RE_EVAL";
     case Rewrite::REPLACE_RE_ALL_EVAL: return "REPLACE_RE_ALL_EVAL";
+    case Rewrite::REPLACE_RE_EMP_RE: return "REPLACE_RE_EMP_RE";
     case Rewrite::SPLIT_EQ: return "SPLIT_EQ";
     case Rewrite::SPLIT_EQ_STRIP_L: return "SPLIT_EQ_STRIP_L";
     case Rewrite::SPLIT_EQ_STRIP_R: return "SPLIT_EQ_STRIP_R";
