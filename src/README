@@ -77,7 +77,8 @@ PR finished:
 
 PRs ready:
 
-(6) Equality engine updates [Haniel]
+(0) Add proof option
+(6) Equality engine updates [Haniel] (req 0)
 (19) ProofNode update, TODO refactor free assumptions via proof_node_algorithm
 (25) Arithmetic proof checker [Alex]
 (27) split theory engine *
@@ -96,7 +97,7 @@ PRs future:
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager
 (29) CongruenceManager uses pfee [Alex] (req 24, 25)
-(30) Arithmetic operator elimination proof producing (req 25, 28, 33)
+(30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 12, 27)
 (37) Rewriter proof producing [Andres] (req 36)

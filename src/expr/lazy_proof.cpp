@@ -205,7 +205,7 @@ bool LazyCDProof::hasGenerator(Node fact) const
   }
   if (it == d_gens.end())
   {
-    // maybe theri is a predicate fact?
+    // maybe there is a predicate fact?
     bool pol, symm;
     Node factPred = CDProof::getPredicateFact(fact, pol, symm);
     if (factPred.isNull())

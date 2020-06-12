@@ -53,7 +53,7 @@ TheoryUF::TheoryUF(context::Context* c,
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_pnm(nullptr),
+      d_pnm(new ProofNodeManager(pc)),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_pfEqualityEngine(nullptr),
       d_conflict(c, false),
@@ -68,8 +68,6 @@ TheoryUF::TheoryUF(context::Context* c,
   if (pc != nullptr)
   {
     d_ufProofChecker.registerTo(pc);
-    // use the checker in the proof node manager
-    d_pnm.reset(new ProofNodeManager(pc));
   }
 }
 
@@ -98,12 +96,6 @@ void TheoryUF::finishInit() {
   {
     d_equalityEngine.addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
-  }
-  if (d_pnm == nullptr)
-  {
-    // don't use checker here. If proof production is enabled the checker will
-    // be set to the theory via setProofCheckr
-    d_pnm.reset(new ProofNodeManager);
   }
   d_pfEqualityEngine.reset(new eq::ProofEqEngine(getSatContext(),
                                                  getUserContext(),
