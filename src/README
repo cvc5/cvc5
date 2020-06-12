@@ -16,34 +16,23 @@ ProofGenerator
 EagerProofGenerator
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_generator.h
 
-// Must know what EqualityEngine is beyond here
-
 ProofEqEngine <=> EqualityEngine
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_equality_engine.h
 
 TrustNode
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/trust_node.h
 
-// Must know what OutputChannel is beyond here
-
-ProofOutputChannel <=> OutputChannel
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_output_channel.h
-
-
 SkolemManager
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_skolem_cache.h
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/skolem_manager.h
 
 
 // Specific checkers and proof_kinds
 
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/builtin/proof_checker.h
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/builtin/proof_kinds
 
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/booleans/proof_checker.h
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/booleans/proof_kinds
 
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_checker.h
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_kinds
 
 
 
@@ -94,6 +83,7 @@ PRs ready:
 (27) split theory engine *
 (33) split operator elimination from arith (req 28) *
 (35) Strings term registry update (req 13) *
+(36) term conversion proof generator
 (38) quantifiers proof checker (req 8) *
 (45) regexp operation refactor (req 3, 7, 8) *
 
@@ -109,7 +99,6 @@ PRs future:
 (30) Arithmetic operator elimination proof producing (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 12, 27)
-(36) term conversion proof generator TODO
 (37) Rewriter proof producing [Andres] (req 36)
 (39) TheoryEngine proof checker initialize all theories (req 27)
 (40) theory engine proof generator (req 13, 18)
