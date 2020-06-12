@@ -2003,6 +2003,33 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   STRING_REPLACE_ALL,
   /**
+   * String replace regular expression match.
+   * Replaces the first match of a regular expression r in string s1 with
+   * string s2. If r does not match a substring of s1, s1 is returned
+   * unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE,
+  /**
+   * String replace all regular expression matches.
+   * Replaces all matches of a regular expression r in string s1 with string
+   * s2. If r does not match a substring of s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE_ALL,
+  /**
    * String to lower case.
    * Parameters: 1
    *   -[1]: Term of String sort

@@ -536,6 +536,11 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // no restriction on sets in the partition of size 1
       continue;
     }
+    if (!tn.isString())
+    {
+      // TODO (cvc4-projects #23): how to handle sequence for finite types?
+      continue;
+    }
     // size > c^k
     unsigned card_need = 1;
     double curr = static_cast<double>(cols[i].size());

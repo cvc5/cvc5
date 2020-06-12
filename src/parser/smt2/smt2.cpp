@@ -160,6 +160,8 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_SUFFIX, "str.suffixof");
   addOperator(api::STRING_FROM_CODE, "str.from_code");
   addOperator(api::STRING_IS_DIGIT, "str.is_digit");
+  addOperator(api::STRING_REPLACE_RE, "str.replace_re");
+  addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");

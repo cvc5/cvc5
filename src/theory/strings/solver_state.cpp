@@ -342,9 +342,7 @@ void SolverState::separateByLength(
     Assert(!p.second.empty());
     // get the type of the collection
     TypeNode stn = p.second[0].getType();
-    cols[stn].push_back(std::vector<Node>());
-    cols[stn].back().insert(
-        cols[stn].back().end(), p.second.begin(), p.second.end());
+    cols[stn].emplace_back(p.second.begin(), p.second.end());
     lts[stn].push_back(leqc_to_eqc[p.first].first);
   }
 }

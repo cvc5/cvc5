@@ -3,6 +3,14 @@ This file contains a summary of important user-visible changes.
 Changes since 1.7
 =================
 
+New Features:
+* Strings: Full support of the new SMT-LIB standard for the theory of strings,
+  including:
+  * Support for `str.replace_re`, `str.replace_re_all`, `str.is_digit`,
+    `str.from_code`, `re.diff`, and `re.comp`
+  * Support for new operator names (e.g. `str.in_re` instead of `str.in.re`),
+    new escape sequences. The new syntax is enabled by default for smt2 files.
+
 Improvements:
 * API: Function definitions can now be requested to be global. If the `global`
   parameter is set to true, they persist after popping the user context.
