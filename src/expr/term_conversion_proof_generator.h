@@ -18,23 +18,23 @@
 #define CVC4__EXPR__TERM_CONVERSION_PROOF_GENERATOR_H
 
 #include "context/cdhashmap.h"
+#include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
-#include "expr/lazy_proof.h"
 
 namespace CVC4 {
 
 /**
  * The term conversion proof generator.
- * 
+ *
  * This class is used for proofs of t = t', where t' is obtained from t by
  * applying (context-free) small step rewrites on subterms of t. Its main
- * interface functions are: 
+ * interface functions are:
  * (1) addRewriteStep(t,s,<justification>) which notifies this class that t
  * rewrites to s,
  * (2) getProofFor(f) where f is any equality that can be justified by the
  * rewrite steps given above.
- * 
+ *
  * For example, say we make the following calls:
  *   addRewriteStep(a,b,P1)
  *   addRewriteStep(f(a),c,P2)
@@ -49,7 +49,7 @@ namespace CVC4 {
  *     CONG(P1 :args h), ; h(a)=h(b)
  *     REFL(:args f(e))  ; f(e)=f(e)
  *   :args g)
- * 
+ *
  * [***] This class traverses the left hand side of a given equality-to-prove
  * (the term g(f(a),h(a),e) in the above example) and "replays" the rewrite
  * steps to obtain its rewritten form. To do so, it applies any available
@@ -70,24 +70,25 @@ class TermConversionProofGenerator : public ProofGenerator
    * this class is context-independent.
    */
   TermConversionProofGenerator(ProofNodeManager* pnm,
-              context::Context* c = nullptr);
+                               context::Context* c = nullptr);
   ~TermConversionProofGenerator();
-  /** 
+  /**
    * Add rewrite step t --> s based on proof generator.
    */
-  void addRewriteStep(Node t, Node s, ProofGenerator * pg);
+  void addRewriteStep(Node t, Node s, ProofGenerator* pg);
   /** Same as above, for a single step */
   void addRewriteStep(Node t, Node s, ProofStep ps);
   /** Same as above, with explicit arguments */
-  void addRewriteStep(Node t, Node s, 
-               PfRule id,
-               const std::vector<Node>& children,
-               const std::vector<Node>& args);
+  void addRewriteStep(Node t,
+                      Node s,
+                      PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args);
   /** Has rewrite step for term t */
   bool hasRewriteStep(Node t) const;
   /** Get rewrite step for term t */
   Node getRewriteStep(Node t) const;
-  /** 
+  /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps
    * registered to this class.
@@ -98,16 +99,16 @@ class TermConversionProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+
  protected:
-  typedef context::CDHashMap<Node, Node, NodeHashFunction>
-      NodeNodeMap;
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   /** A dummy context used by this class if none is provided */
-  context::Context d_context;  
+  context::Context d_context;
   /** The (lazy) context dependent proof object. */
   LazyCDProof d_proof;
   /** map to rewritten forms */
   NodeNodeMap d_rewriteMap;
-  /** 
+  /**
    * Get the proof for term t. Returns a proof of t = t' where t' is the
    * result of rewriting t based on the rewrite steps registered to this class.
    */
