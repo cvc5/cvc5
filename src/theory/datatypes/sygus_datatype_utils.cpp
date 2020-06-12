@@ -101,24 +101,7 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   {
     return APPLY_UF;
   }
-  TypeNode tn = op.getType();
-  if (tn.isConstructor())
-  {
-    return APPLY_CONSTRUCTOR;
-  }
-  else if (tn.isSelector())
-  {
-    return APPLY_SELECTOR;
-  }
-  else if (tn.isTester())
-  {
-    return APPLY_TESTER;
-  }
-  else if (tn.isFunction())
-  {
-    return APPLY_UF;
-  }
-  return UNDEFINED_KIND;
+  return NodeManager::getKindForFunction(op);
 }
 
 struct SygusOpRewrittenAttributeId
