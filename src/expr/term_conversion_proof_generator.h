@@ -60,7 +60,7 @@ namespace CVC4 {
  * that f(a) --> c at pre-rewrite instead of post-rewriting a --> b and then
  * ending with f(a)=f(b).
  */
-class TermConversionProofGenerator : public ProofGenerator
+class TConvProofGenerator : public ProofGenerator
 {
  public:
   /** Constructor
@@ -69,9 +69,9 @@ class TermConversionProofGenerator : public ProofGenerator
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    */
-  TermConversionProofGenerator(ProofNodeManager* pnm,
+  TConvProofGenerator(ProofNodeManager* pnm,
                                context::Context* c = nullptr);
-  ~TermConversionProofGenerator();
+  ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
    */
