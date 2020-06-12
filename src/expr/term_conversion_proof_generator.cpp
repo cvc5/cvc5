@@ -18,17 +18,15 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-TConvProofGenerator::TConvProofGenerator(
-    ProofNodeManager* pnm, context::Context* c)
+TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
+                                         context::Context* c)
     : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context)
 {
 }
 
 TConvProofGenerator::~TConvProofGenerator() {}
 
-void TConvProofGenerator::addRewriteStep(Node t,
-                                                  Node s,
-                                                  ProofGenerator* pg)
+void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 {
   // should not rewrite term more than once
   Assert(!hasRewriteStep(t));
@@ -46,12 +44,11 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
   d_rewriteMap[t] = s;
 }
 
-void TConvProofGenerator::addRewriteStep(
-    Node t,
-    Node s,
-    PfRule id,
-    const std::vector<Node>& children,
-    const std::vector<Node>& args)
+void TConvProofGenerator::addRewriteStep(Node t,
+                                         Node s,
+                                         PfRule id,
+                                         const std::vector<Node>& children,
+                                         const std::vector<Node>& args)
 {
   // should not rewrite term more than once
   Assert(!hasRewriteStep(t));
@@ -94,8 +91,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   return pf;
 }
 
-std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(
-    Node t)
+std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
 {
   // we use the existing proofs
   PRefProofGenerator prg(&d_proof);
