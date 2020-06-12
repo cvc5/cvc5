@@ -102,9 +102,10 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   Node conc = getProofForRewriting(f, lpf);
   Assert(conc.getKind() == EQUAL);
   Node fp = f;
+  // if it doesn't rewrite, don't have to add any step
   if (conc[0] != conc[1])
   {
-    Node fp = conc[1];
+    fp = conc[1];
     std::vector<Node> pfChildren;
     pfChildren.push_back(f);
     pfChildren.push_back(conc);
@@ -115,7 +116,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   return lpf.mkProof(fp);
 }
 
-void TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
+Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
 {
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,

@@ -25,11 +25,13 @@ namespace CVC4 {
 namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
-                                       RemoveTermFormulas& tfr)
+                                       RemoveTermFormulas& tfr, 
+                                       ProofNodeManager * pnm)
     : d_engine(engine),
       d_logicInfo(engine.getLogicInfo()),
       d_ppCache(),
-      d_tfr(tfr)
+      d_tfr(tfr),
+      d_tpg(pnm ? new TConvProofGenerator(pnm) : nullptr)
 {
 }
 
@@ -42,21 +44,15 @@ void TheoryPreprocessor::preprocess(TNode node,
                                     bool doTheoryPreprocess,
                                     LazyCDProof* lp)
 {
-  std::shared_ptr<TConvProofGenerator> tg;
-  if (lp != nullptr)
-  {
-    // make the proof generator
-    tg = std::make_shared<TConvProofGenerator>(lp->getManager());
-  }
   // Run theory preprocessing, maybe
   Node ppNode =
-      doTheoryPreprocess ? theoryPreprocess(node, tg.get()) : Node(node);
+      doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
   lemmas.updateRealAssertionsEnd();
-  // TODO: pass lp, tg to run here
+  // TODO: pass lp, d_tpg to run here
   d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(), false, nullptr, nullptr);
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
 
@@ -69,10 +65,11 @@ void TheoryPreprocessor::preprocess(TNode node,
     {
 #if 0
       Node eq = node.eqNode(lemmas[0]);
-      std::shared_ptr<ProofNode> ppf = tg->getProofFor(eq);
+      std::shared_ptr<ProofNode> ppf = d_tpg->getTranformProofFor(node,lp);
       Assert (ppf!=nullptr);
-
+      Assert (ppf->getResult()==lemmas[0]);
 #else
+      // trusted big step
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
@@ -124,8 +121,7 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion,
-                                          TConvProofGenerator* tg)
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
@@ -168,7 +164,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion,
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current, tg);
+      Node ppRewritten = ppTheoryRewrite(current);
       d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
@@ -235,7 +231,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion,
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator* tg)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
@@ -245,17 +241,13 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator* tg)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    return d_engine.theoryOf(term)->ppRewrite(term, tg);
+    return d_engine.theoryOf(term)->ppRewrite(term, d_tpg.get());
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
-  Node newTerm;
+  Node newTerm = term;
   // do not rewrite inside quantifiers
-  if (term.isClosure())
-  {
-    newTerm = Rewriter::rewrite(term);
-  }
-  else
+  if (!term.isClosure())
   {
     NodeBuilder<> newNode(term.getKind());
     if (term.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -265,14 +257,16 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator* tg)
     unsigned i;
     for (i = 0; i < nc; ++i)
     {
-      newNode << ppTheoryRewrite(term[i], tg);
+      newNode << ppTheoryRewrite(term[i]);
     }
-    newTerm = Rewriter::rewrite(Node(newNode));
+    newTerm = Node(newNode);
   }
-  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, tg);
+  newTerm = Rewriter::rewrite(newTerm);
+  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, d_tpg.get());
   if (newTerm != newTerm2)
   {
-    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2), tg);
+    newTerm2 = Rewriter::rewrite(newTerm2);
+    newTerm = ppTheoryRewrite(newTerm2);
   }
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;

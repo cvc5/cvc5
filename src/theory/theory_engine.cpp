@@ -215,7 +215,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tpp(*this, iteRemover),
+      d_tpp(*this, iteRemover, d_pNodeManager.get()),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -983,12 +983,7 @@ void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion, LazyCDProof* lp)
 {
-  std::shared_ptr<TConvProofGenerator> tg;
-  if (lp != nullptr)
-  {
-    // TODO
-  }
-  Node ret = d_tpp.theoryPreprocess(assertion, tg.get());
+  Node ret = d_tpp.theoryPreprocess(assertion);
   if (lp != nullptr)
   {
     // TODO

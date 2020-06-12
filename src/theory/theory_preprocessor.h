@@ -41,7 +41,7 @@ class TheoryPreprocessor
 
  public:
   /** Constructs a theory preprocessor */
-  TheoryPreprocessor(TheoryEngine& engine, RemoveTermFormulas& tfr);
+  TheoryPreprocessor(TheoryEngine& engine, RemoveTermFormulas& tfr, ProofNodeManager * pnm = nullptr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
   /** Clear the cache of this class */
@@ -62,8 +62,7 @@ class TheoryPreprocessor
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node theoryPreprocess(TNode node, TConvProofGenerator* tg);
-
+  Node theoryPreprocess(TNode node);
  private:
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;
@@ -73,8 +72,10 @@ class TheoryPreprocessor
   NodeMap d_ppCache;
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
+  /** A term conversion proof generator */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
   /** Helper for theoryPreprocess */
-  Node ppTheoryRewrite(TNode term, TConvProofGenerator* tg);
+  Node ppTheoryRewrite(TNode term);
 };
 
 }  // namespace theory
