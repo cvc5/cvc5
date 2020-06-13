@@ -268,6 +268,22 @@ Node RemoveTermFormulas::run(TNode node,
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
     {
+      // justify the introduction of the skolem
+      if (pft != nullptr)
+      {
+        // notice this step is a no-op for witness
+        if (node.getKind()!=kind::WITNESS)
+        {
+          // ------------------- MACRO_SR_PRED_INTRO
+          // t = witness x. x=t
+          //
+          // The above step is trivial, since the skolems introduced above are
+          // all purification skolems. We record this equality in the term
+          // conversion proof generator.
+          pft->addRewriteStep(node, skolem, PfRule::MACRO_SR_PRED_INTRO, {}, {});
+        }
+      }
+      // justify the axiom that defines the skolem
       if (pfa != nullptr)
       {
         std::vector<Node> pfChildren;

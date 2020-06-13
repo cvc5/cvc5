@@ -102,7 +102,7 @@ PRs future:
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 12, 27)
 (39) TheoryEngine proof checker initialize all theories (req 27)
-(40) theory engine proof generator (req 13, 18)
+(40) theory engine proof generator (req 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24)
 (42) String rules, string checker (req 5, 17, 22)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
@@ -115,6 +115,7 @@ PRs future:
 PRs wish list:
 
 - SAT solver proof producing
+- CNF proof producing
 - Proofs for theory rewrites
 - SEXPR simply typed
 - Proof kinds infrastructure
