@@ -20,6 +20,7 @@
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
 #include "options/datatypes_options.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 using namespace CVC4;
