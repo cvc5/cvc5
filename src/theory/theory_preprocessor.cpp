@@ -249,7 +249,10 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
       Node termr = trn.getNode();
       if (d_tpg!=nullptr)
       {
-        d_tpg->addRewriteStep(term, termr, trn.getGenerator());
+        if (trn.getGenerator()!=nullptr)
+        {
+          d_tpg->addRewriteStep(term, termr, trn.getGenerator());
+        }
       }
       return termr;
     }
@@ -280,7 +283,10 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     Node newTerm2 = trn.getNode();
     if (d_tpg!=nullptr)
     {
-      d_tpg->addRewriteStep(newTerm, newTerm2, trn.getGenerator());
+      if (trn.getGenerator()!=nullptr)
+      {
+        d_tpg->addRewriteStep(newTerm, newTerm2, trn.getGenerator());
+      }
     }
     newTerm2 = rewriteWithProof(newTerm2);
     newTerm = ppTheoryRewrite(newTerm2);
@@ -298,7 +304,7 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
   {
     if (termr!=term)
     {
-      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {});
+      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
     }
   }
   return termr;
