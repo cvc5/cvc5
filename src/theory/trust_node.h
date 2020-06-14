@@ -103,7 +103,7 @@ class TrustNode
    * (1) A T-unsat conjunction conf to pass to OutputChannel::conflict,
    * (2) A valid T-formula lem to pass to OutputChannel::lemma,
    * (3) A conjunction of literals exp to return in Theory::explain(lit), or
-   * (4) A result, nr, of rewriting a term n.
+   * (4) A result of rewriting a term n into an equivalent one nr.
    *
    * Notice that this node does not necessarily correspond to a valid formula.
    * The call getProven() below retrieves a valid formula corresponding to

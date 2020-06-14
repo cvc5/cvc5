@@ -18,6 +18,7 @@
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
+#include "expr/skolem_manager.h"
 
 using namespace std;
 
@@ -48,7 +49,13 @@ void TheoryPreprocessor::preprocess(TNode node,
                                     LazyCDProof* lp)
 {
   // Run theory preprocessing, maybe
-  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
+  Node ppNode = node;
+  if (doTheoryPreprocess)
+  {
+    // run theory preprocessing
+    TrustNode trn = theoryPreprocess(node);
+    ppNode = trn.getNode();
+  }
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
@@ -123,7 +130,7 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
+TrustNode TheoryPreprocessor::theoryPreprocess(TNode assertion)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
@@ -229,7 +236,8 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
     }
   }
   // Return the substituted version
-  return d_ppCache[assertion];
+  Node res = d_ppCache[assertion];
+  return TrustNode::mkTrustRewrite(assertion, res, d_tpg.get());
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
@@ -302,10 +310,12 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
   // store rewrite step if tracking proofs and it rewrites
   if (d_tpg!=nullptr)
   {
+    /*
     if (termr!=term)
     {
-      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
+      d_tpg->addRewriteStep(terms, termrs, PfRule::REWRITE, {}, {term});
     }
+    */
   }
   return termr;
 }

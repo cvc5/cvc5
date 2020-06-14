@@ -64,7 +64,7 @@ class TheoryPreprocessor
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node theoryPreprocess(TNode node);
+  TrustNode theoryPreprocess(TNode node);
  private:
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;

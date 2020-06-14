@@ -982,38 +982,39 @@ void TheoryStrings::checkRegisterTermsNormalForms()
 TrustNode TheoryStrings::ppRewrite(TNode atom)
 {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  Node atomElim = atom;
+  Node atomRet = atom;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
-    atomElim = d_regexp_elim.eliminate(atom);
+    Node atomElim = d_regexp_elim.eliminate(atomRet);
     if (!atomElim.isNull())
     {
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
                            << " via regular expression elimination."
                            << std::endl;
+      atomRet = atomElim;
     }
   }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
     StringsPreprocess* p = d_esolver->getPreprocess();
-    Node ret = p->processAssertion(atomElim, new_nodes);
-    if( ret!=atom ){
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
-      for( unsigned i=0; i<new_nodes.size(); i++ ){
-        Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
+    Node ret = p->processAssertion(atomRet, new_nodes);
+    if( ret!=atomRet ){
+      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
+      for (const Node& lem : new_nodes){
+        Trace("strings-ppr") << "    lemma : " << lem << std::endl;
         ++(d_statistics.d_lemmasEagerPreproc);
-        d_out->lemma( new_nodes[i] );
+        d_out->lemma( lem );
       }
-      atomElim = ret;
+      atomRet = ret;
     }else{
       Assert(new_nodes.empty());
     }
   }
-  if (atomElim!=atom)
+  if (atomRet!=atom)
   {
-    return TrustNode::mkTrustRewrite(atom, atomElim, nullptr);
+    return TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
   }
   return TrustNode::null();
 }

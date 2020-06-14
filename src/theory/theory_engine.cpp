@@ -981,14 +981,11 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
-Node TheoryEngine::preprocess(TNode assertion, LazyCDProof* lp)
+Node TheoryEngine::preprocess(TNode assertion)
 {
-  Node ret = d_tpp.theoryPreprocess(assertion);
-  if (lp != nullptr)
-  {
-    // TODO
-  }
-  return ret;
+  TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  // TODO: return the trust node?
+  return trn.getNode();
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
