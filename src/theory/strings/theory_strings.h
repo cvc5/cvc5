@@ -340,7 +340,7 @@ class TheoryStrings : public Theory {
 
  public:
   // ppRewrite
-  Node ppRewrite(TNode atom, TConvProofGenerator* tg) override;
+  TrustNode ppRewrite(TNode atom) override;
 
  private:
   //-----------------------inference steps

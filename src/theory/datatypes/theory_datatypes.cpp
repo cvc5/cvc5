@@ -697,7 +697,7 @@ void TheoryDatatypes::presolve()
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in, TConvProofGenerator* tg)
+TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 
@@ -713,11 +713,11 @@ Node TheoryDatatypes::ppRewrite(TNode in, TConvProofGenerator* tg)
       nn = rew.size()==0 ? d_true :
                 ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
     }
-    return nn;
+    return TrustNode::mkTrustRewrite(in, nn, nullptr);
   }
 
   // nothing to do
-  return in;
+  return TrustNode::null();
 
 }
 

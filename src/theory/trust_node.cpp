@@ -26,6 +26,7 @@ const char* toString(TrustNodeKind tnk)
     case TrustNodeKind::CONFLICT: return "CONFLICT";
     case TrustNodeKind::LEMMA: return "LEMMA";
     case TrustNodeKind::PROP_EXP: return "PROP_EXP";
+    case TrustNodeKind::REWRITE: return "REWRITE";
     default: return "?";
   }
 }
@@ -59,6 +60,13 @@ TrustNode TrustNode::mkTrustPropExp(TNode lit, Node exp, ProofGenerator* g)
   return TrustNode(TrustNodeKind::PROP_EXP, pekey, g);
 }
 
+TrustNode TrustNode::mkTrustRewrite(TNode n, Node nr, ProofGenerator* g)
+{
+  Node rkey = getRewriteProven(n, nr);
+  Assert(g == nullptr || g->hasProofFor(rkey));
+  return TrustNode(TrustNodeKind::REWRITE, rkey, g);
+}
+
 TrustNode TrustNode::null()
 {
   return TrustNode(TrustNodeKind::INVALID, Node::null());
@@ -75,7 +83,12 @@ TrustNodeKind TrustNode::getKind() const { return d_tnk; }
 
 Node TrustNode::getNode() const
 {
-  return d_tnk == TrustNodeKind::LEMMA ? d_proven : d_proven[0];
+  switch(d_tnk)
+  {
+    case TrustNodeKind::LEMMA: return d_proven;
+    case TrustNodeKind::REWRITE: return d_proven[1];
+    default: return d_proven[0];
+  }
 }
 
 Node TrustNode::getProven() const { return d_proven; }
@@ -90,6 +103,11 @@ Node TrustNode::getLemmaProven(Node lem) { return lem; }
 Node TrustNode::getPropExpProven(TNode lit, Node exp)
 {
   return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
+}
+
+Node TrustNode::getRewriteProven(TNode n, Node nr)
+{
+  return n.eqNode(nr);
 }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)

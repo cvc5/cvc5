@@ -30,33 +30,8 @@ class OperatorElim : public EagerProofGenerator
  public:
   OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
   ~OperatorElim() {}
-  /**
-   * Eliminate operators in term n. If n has top symbol that is not a core
-   * one (including division, int division, mod, to_int, is_int, syntactic sugar
-   * transcendental functions), then we replace it by a form that eliminates
-   * that operator. This may involve the introduction of witness terms.
-   *
-   * One exception to the above rule is that we may leave certain applications
-   * like (/ 4 1) unchanged, since replacing this by 4 changes its type from
-   * real to int. This is important for some subtyping issues during
-   * expandDefinition. Moreover, applications like this can be eliminated
-   * trivially later by rewriting.
-   *
-   * This method is called both during expandDefinition and during ppRewrite.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The (single step) eliminated form of n.
-   */
-  Node eliminateOperators(Node n, TConvProofGenerator* tg);
-  /**
-   * Recursively ensure that n has no non-standard operators. This applies
-   * the above method on all subterms of n.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The eliminated form of n.
-   */
-  Node eliminateOperatorsRec(Node n, TConvProofGenerator* tg);
-
+  /** eliminate */
+  TrustNode eliminate(Node n);
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
    * eliminate the term n, which is determined by its top-most symbol.
@@ -103,6 +78,32 @@ class OperatorElim : public EagerProofGenerator
    * function-ness of e.g. division by zero is ignored.
    */
   std::map<ArithSkolemId, Node> d_arith_skolem;
+  /**
+   * Eliminate operators in term n. If n has top symbol that is not a core
+   * one (including division, int division, mod, to_int, is_int, syntactic sugar
+   * transcendental functions), then we replace it by a form that eliminates
+   * that operator. This may involve the introduction of witness terms.
+   *
+   * One exception to the above rule is that we may leave certain applications
+   * like (/ 4 1) unchanged, since replacing this by 4 changes its type from
+   * real to int. This is important for some subtyping issues during
+   * expandDefinition. Moreover, applications like this can be eliminated
+   * trivially later by rewriting.
+   *
+   * This method is called both during expandDefinition and during ppRewrite.
+   *
+   * @param n The node to eliminate operators from.
+   * @return The (single step) eliminated form of n.
+   */
+  Node eliminateOperators(Node n, TConvProofGenerator* tg);
+  /**
+   * Recursively ensure that n has no non-standard operators. This applies
+   * the above method on all subterms of n.
+   *
+   * @param n The node to eliminate operators from.
+   * @return The eliminated form of n.
+   */
+  Node eliminateOperatorsRec(Node n, TConvProofGenerator* tg);
   /** get arithmetic skolem
    *
    * Returns the Skolem in the above map for the given id, creating it if it

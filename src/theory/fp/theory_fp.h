@@ -50,7 +50,7 @@ class TheoryFp : public Theory {
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
-  Node ppRewrite(TNode node, TConvProofGenerator* tg) override;
+  TrustNode ppRewrite(TNode node) override;
 
   void check(Effort) override;
 

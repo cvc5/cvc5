@@ -49,6 +49,20 @@ void OperatorElim::checkNonLinearLogic(Node term)
   }
 }
 
+TrustNode OperatorElim::eliminate(Node n)
+{
+  TConvProofGenerator* tg = nullptr;
+  Node nn = eliminateOperators(n, tg);
+  if (nn != n)
+  {
+    // since elimination may introduce new operators to eliminate, we must
+    // recursively eliminate result
+    Node nnr = eliminateOperatorsRec(nn, tg);
+    return TrustNode::mkTrustRewrite(n, nnr, nullptr);
+  }
+  return TrustNode::null();
+}
+
 Node OperatorElim::eliminateOperatorsRec(Node n, TConvProofGenerator* tg)
 {
   Trace("arith-elim") << "Begin elim: " << n << std::endl;

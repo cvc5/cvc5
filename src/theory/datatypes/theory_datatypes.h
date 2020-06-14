@@ -307,7 +307,7 @@ private:
   void preRegisterTerm(TNode n) override;
   void finishInit() override;
   Node expandDefinition(Node n) override;
-  Node ppRewrite(TNode n, TConvProofGenerator* tg) override;
+  TrustNode ppRewrite(TNode n) override;
   void presolve() override;
   void addSharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;

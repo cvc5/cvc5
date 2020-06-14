@@ -240,7 +240,12 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    return d_engine.theoryOf(term)->ppRewrite(term, d_tpg.get());
+    TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
+    if (trn.isNull())
+    {
+      return term;
+    }
+    return trn.getNode();
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -261,9 +266,10 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     newTerm = Node(newNode);
   }
   newTerm = Rewriter::rewrite(newTerm);
-  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, d_tpg.get());
-  if (newTerm != newTerm2)
+  TrustNode trn = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
+  if (!trn.isNull())
   {
+    Node newTerm2 = trn.getNode();
     newTerm2 = Rewriter::rewrite(newTerm2);
     newTerm = ppTheoryRewrite(newTerm2);
   }
