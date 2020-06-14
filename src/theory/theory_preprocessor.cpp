@@ -37,7 +37,10 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 
 TheoryPreprocessor::~TheoryPreprocessor() {}
 
-void TheoryPreprocessor::clearCache() { d_ppCache.clear(); }
+void TheoryPreprocessor::clearCache() { 
+  d_ppCache.clear(); 
+  // TODO: clear rewrites from d_tpg
+}
 
 void TheoryPreprocessor::preprocess(TNode node,
                                     preprocessing::AssertionPipeline& lemmas,
@@ -241,11 +244,16 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   if (nc == 0)
   {
     TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
-    if (trn.isNull())
+    if (!trn.isNull())
     {
-      return term;
+      Node termr = trn.getNode();
+      if (d_tpg!=nullptr)
+      {
+        d_tpg->addRewriteStep(term, termr, trn.getGenerator());
+      }
+      return termr;
     }
-    return trn.getNode();
+    return term;
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -265,17 +273,35 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     }
     newTerm = Node(newNode);
   }
-  newTerm = Rewriter::rewrite(newTerm);
+  newTerm = rewriteWithProof(newTerm);
   TrustNode trn = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
   if (!trn.isNull())
   {
     Node newTerm2 = trn.getNode();
-    newTerm2 = Rewriter::rewrite(newTerm2);
+    if (d_tpg!=nullptr)
+    {
+      d_tpg->addRewriteStep(newTerm, newTerm2, trn.getGenerator());
+    }
+    newTerm2 = rewriteWithProof(newTerm2);
     newTerm = ppTheoryRewrite(newTerm2);
   }
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
   return newTerm;
+}
+
+Node TheoryPreprocessor::rewriteWithProof(Node term)
+{
+  Node termr = Rewriter::rewrite(term);
+  // store rewrite step if tracking proofs and it rewrites
+  if (d_tpg!=nullptr)
+  {
+    if (termr!=term)
+    {
+      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {});
+    }
+  }
+  return termr;
 }
 
 }  // namespace theory

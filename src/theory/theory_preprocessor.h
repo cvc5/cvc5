@@ -78,6 +78,8 @@ class TheoryPreprocessor
   std::unique_ptr<TConvProofGenerator> d_tpg;
   /** Helper for theoryPreprocess */
   Node ppTheoryRewrite(TNode term);
+  /** rewrite with proof, store REWRITE step in d_tpg. */
+  Node rewriteWithProof(Node term);
 };
 
 }  // namespace theory
