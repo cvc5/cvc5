@@ -713,7 +713,10 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
       nn = rew.size()==0 ? d_true :
                 ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
     }
-    return TrustNode::mkTrustRewrite(in, nn, nullptr);
+    if (in!=nn)
+    {
+      return TrustNode::mkTrustRewrite(in, nn, nullptr);
+    }
   }
 
   // nothing to do

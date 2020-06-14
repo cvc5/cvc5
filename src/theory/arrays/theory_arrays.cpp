@@ -350,7 +350,7 @@ TrustNode TheoryArrays::ppRewrite(TNode term)
     default:
       break;
   }
-  if (!ret.isNull())
+  if (!ret.isNull() && ret!=term)
   {
     return TrustNode::mkTrustRewrite(term, ret, nullptr);
   }

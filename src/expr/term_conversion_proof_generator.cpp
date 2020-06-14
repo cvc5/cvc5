@@ -28,6 +28,11 @@ TConvProofGenerator::~TConvProofGenerator() {}
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 {
+  if (t==s)
+  {
+    // nothing to do
+    return;
+  }
   // should not rewrite term more than once
   Assert(!hasRewriteStep(t));
   Node eq = t.eqNode(s);
@@ -37,6 +42,11 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
+  if (t==s)
+  {
+    // nothing to do
+    return;
+  }
   // should not rewrite term more than once
   Assert(!hasRewriteStep(t));
   Node eq = t.eqNode(s);
@@ -50,6 +60,11 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
+  if (t==s)
+  {
+    // nothing to do
+    return;
+  }
   // should not rewrite term more than once
   Assert(!hasRewriteStep(t));
   Node eq = t.eqNode(s);
