@@ -2239,8 +2239,6 @@ bool CoreSolver::isNormalFormPair( Node n1, Node n2 ) {
 void CoreSolver::checkNormalFormsDeq()
 {
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  std::vector< std::vector< Node > > cols;
-  std::vector< Node > lts;
   std::map< Node, std::map< Node, bool > > processed;
   
   const context::CDList<Node>& deqs = d_state.getDisequalityList();
@@ -2270,9 +2268,18 @@ void CoreSolver::checkNormalFormsDeq()
     }
   }
 
-  if (!d_im.hasProcessed())
+  if (d_im.hasProcessed())
   {
-    d_state.separateByLength(d_strings_eqc, cols, lts);
+    // added splitting lemma above
+    return;
+  }
+  // otherwise, look at pairs of equivalence classes with equal lengths
+  std::map<TypeNode, std::vector<std::vector<Node> > > colsT;
+  std::map<TypeNode, std::vector<Node> > ltsT;
+  d_state.separateByLength(d_strings_eqc, colsT, ltsT);
+  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& ct : colsT)
+  {
+    std::vector<std::vector<Node> >& cols = ct.second;
     for( unsigned i=0; i<cols.size(); i++ ){
       if (cols[i].size() > 1 && !d_im.hasPendingLemma())
       {
