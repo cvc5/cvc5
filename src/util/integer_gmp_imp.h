@@ -45,12 +45,12 @@ private:
    */
   const mpz_class& get_mpz() const { return d_value; }
 
+public:
+
   /**
    * Constructs an Integer by copying a GMP C++ primitive.
    */
   Integer(const mpz_class& val) : d_value(val) {}
-
-public:
 
   /** Constructs a rational with the value 0. */
   Integer() : d_value(0){}
@@ -81,7 +81,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of GMP data.
    */
-  mpz_class getValue() const
+  const mpz_class& getValue() const
   {
     return d_value;
   }
