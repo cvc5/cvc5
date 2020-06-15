@@ -494,7 +494,7 @@ enum class PfRule : uint32_t
   // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
   // Arguments: none
   // ----------------------------------------
-  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) F)) F*sigma)
+  // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemExists.
   SKOLEMIZE,
@@ -502,7 +502,7 @@ enum class PfRule : uint32_t
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
   // Arguments: (t1 ... tn)
   // ----------------------------------------
-  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
+  // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 
