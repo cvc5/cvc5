@@ -47,7 +47,7 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true),
       d_pnm(pnm),
       d_pfGenEe(new EagerProofGenerator(pnm, u)),
-      d_pfGenExplain(new EagerProofGenerator(pnm, u)),
+      d_pfGenExplain(new EagerProofGenerator(pnm, c)),
       d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm, options::proofNew()))
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
