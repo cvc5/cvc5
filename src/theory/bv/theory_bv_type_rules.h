@@ -339,6 +339,10 @@ class IntToBitVectorOpTypeRule
     if (n.getKind() == kind::INT_TO_BITVECTOR_OP)
     {
       size_t bvSize = n.getConst<IntToBitVector>();
+      if (bvSize == 0)
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
+      }
       return nodeManager->mkFunctionType(nodeManager->integerType(),
                                          nodeManager->mkBitVectorType(bvSize));
     }
