@@ -249,7 +249,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       //      lambda x. (ite (= x v1) true [...])
       //
       //  (2) lambda x. (not (= x v1)) ^ ... becomes
-      //      lambda x. (ite (= x v1) true [...])
+      //      lambda x. (ite (= x v1) false [...])
       //
       // Note the negateg cases of the lhs of the OR/AND operators above are
       // handled by pushing the recursion to the then-branch, with the
@@ -295,7 +295,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
           << "  process base : " << curr << std::endl;
       // Simple Boolean return cases, in which
       //  (1) lambda x. (= x v) becomes lambda x. (ite (= x v) true false)
-      //  (2) lambda x. v becomes lambda x. (ite (= v true) true false)
+      //  (2) lambda x. v becomes lambda x. (ite (= x v) true false)
       // Note the negateg cases of the bodies above are also handled.
       bool pol = ck != kind::NOT;
       index_eq = pol ? curr : curr[0];
