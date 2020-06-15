@@ -32,16 +32,23 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
       d_logicInfo(engine.getLogicInfo()),
       d_ppCache(),
       d_tfr(tfr),
-      d_tpg(pnm ? new TConvProofGenerator(pnm) : nullptr),
-      d_epg(pnm ? new EagerProofGenerator(pnm) : nullptr)
+      d_pfContext(),
+      d_tpg(pnm ? new TConvProofGenerator(pnm, &d_pfContext) : nullptr),
+      d_lp(pnm ? new LazyCDProof(pnm, nullptr, &d_pfContext) : nullptr)
 {
-  /*
-  // enable proofs in the term formula remover
-  if (pnm!=nullptr)
+  if (isProofEnabled())
   {
-    d_tfr.setProofChecker(pnm->getChecker());
+    /*
+    // enable proofs in the term formula remover
+    if (pnm!=nullptr)
+    {
+      d_tfr.setProofChecker(pnm->getChecker());
+    }
+    */
+    // push the proof context, since proof steps may be cleared on calls to
+    // clearCache() below.
+    d_pfContext.push();
   }
-  */
 }
 
 TheoryPreprocessor::~TheoryPreprocessor() {}
@@ -49,7 +56,12 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 void TheoryPreprocessor::clearCache()
 {
   d_ppCache.clear();
-  // TODO: clear rewrites from d_tpg
+  // clear proofs from d_tpg and d_lp using internal push/pop context
+  if (isProofEnabled())
+  {
+    d_pfContext.pop();
+    d_pfContext.push();
+  }
 }
 
 TrustNode TheoryPreprocessor::preprocess(TNode node,
@@ -57,13 +69,14 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<Node>& newSkolems,
                                          bool doTheoryPreprocess)
 {
+  // In this method, all rewriting steps of node are stored in d_tpg.
+  
   // Run theory preprocessing, maybe
   Node ppNode = node;
-  TrustNode tpp;
   if (doTheoryPreprocess)
   {
     // run theory preprocessing
-    tpp = theoryPreprocess(node);
+    TrustNode tpp = theoryPreprocess(node);
     ppNode = tpp.getNode();
   }
 
@@ -78,7 +91,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     {
       if (ttfr.getGenerator() != nullptr)
       {
-        // store as a rewrite
+        // store as a rewrite in d_tpg
         d_tpg->addRewriteStep(ppNode, retNode, ttfr.getGenerator());
       }
     }
@@ -107,20 +120,22 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     TrustNode trn = newLemmas[i];
     Assert(trn.getKind() == TrustNodeKind::LEMMA);
     Node assertion = trn.getNode();
-    // rewrite, possibly storing proof of rewrite
-    Node rewritten = rewriteWithProof(assertion);
+    // rewrite, which is independent of d_tpg, since additional lemmas
+    // are justified separately.
+    Node rewritten = Rewriter::rewrite(assertion);
     if (assertion != rewritten)
     {
       if (trn.getGenerator() != nullptr)
       {
-        // update the trust node
-        std::shared_ptr<ProofNode> tpfn =
-            d_tpg->getTranformProofFor(assertion, trn.getGenerator());
-        d_epg->setProofFor(rewritten, tpfn);
-        newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_epg.get());
+        Assert( d_lp!=nullptr );
+        // store in the lazy proof
+        d_lp->addLazyStep(assertion, trn.getGenerator());
+        d_lp->addStep(rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, {assertion}, {rewritten});
+        newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
       }
       else
       {
+        // not tracking proofs, just make new
         newLemmas[i] = TrustNode::mkTrustLemma(rewritten, nullptr);
       }
     }
