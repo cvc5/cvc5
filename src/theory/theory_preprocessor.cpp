@@ -59,10 +59,15 @@ void TheoryPreprocessor::preprocess(TNode node,
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
-  lemmas.push_back(ppNode);
-  lemmas.updateRealAssertionsEnd();
   // TODO: pass lp, d_tpg to run here
-  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(), false, nullptr, nullptr);
+  std::vector<TrustNode> rlemmas;
+  TrustNode tpp = d_tfr.run(ppNode, rlemmas, lemmas.getIteSkolemMap(), false);
+  lemmas.push_back(tpp.getNode());
+  lemmas.updateRealAssertionsEnd();
+  for (unsigned i=0, nrlemmas = rlemmas.size(); i<nrlemmas; i++)
+  {
+    lemmas.push_back(rlemmas[i].getNode());
+  }
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
 
   // justify the preprocessing step
@@ -251,20 +256,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
-    if (!trn.isNull())
-    {
-      Node termr = trn.getNode();
-      if (d_tpg!=nullptr)
-      {
-        if (trn.getGenerator()!=nullptr)
-        {
-          d_tpg->addRewriteStep(term, termr, trn.getGenerator());
-        }
-      }
-      return termr;
-    }
-    return term;
+    return preprocessWithProof(term);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -285,20 +277,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     newTerm = Node(newNode);
   }
   newTerm = rewriteWithProof(newTerm);
-  TrustNode trn = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
-  if (!trn.isNull())
-  {
-    Node newTerm2 = trn.getNode();
-    if (d_tpg!=nullptr)
-    {
-      if (trn.getGenerator()!=nullptr)
-      {
-        d_tpg->addRewriteStep(newTerm, newTerm2, trn.getGenerator());
-      }
-    }
-    newTerm2 = rewriteWithProof(newTerm2);
-    newTerm = ppTheoryRewrite(newTerm2);
-  }
+  newTerm = preprocessWithProof(newTerm);
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
   return newTerm;
@@ -310,12 +289,38 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
   // store rewrite step if tracking proofs and it rewrites
   if (d_tpg!=nullptr)
   {
-    if (termr!=term)
+    // may rewrite the same term more than once, thus check hasRewriteStep
+    if (termr!=term && !d_tpg->hasRewriteStep(term))
     {
       d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
     }
   }
   return termr;
+}
+
+Node TheoryPreprocessor::preprocessWithProof(Node term)
+{
+  // call ppRewrite for the given theory
+  TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
+  if (trn.isNull())
+  {
+    // no change, return original term
+    return term;
+  }
+  Node termr = trn.getNode();
+  if (d_tpg!=nullptr)
+  {
+    if (trn.getGenerator()!=nullptr)
+    {
+      d_tpg->addRewriteStep(term, termr, trn.getGenerator());
+    }
+    else
+    {
+      // TODO: small step trust?
+    }
+  }
+  termr = rewriteWithProof(termr);
+  return ppTheoryRewrite(termr);
 }
 
 }  // namespace theory

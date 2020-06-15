@@ -33,58 +33,39 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
 
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
-void RemoveTermFormulas::run(std::vector<Node>& output,
+theory::TrustNode RemoveTermFormulas::run(Node assertion,
+                             std::vector<theory::TrustNode>& newAsserts,
                              IteSkolemMap& iteSkolemMap,
-                             bool reportDeps,
-                             TConvProofGenerator* pft,
-                             LazyCDProof* pfa)
+                             bool reportDeps)
 {
-  if (pft != nullptr || pfa != nullptr)
-  {
-    // create the proof generator if not already done so
-    if (d_tpg == nullptr)
-    {
-      // use the proof manager of the given proof
-      d_tpg.reset(new theory::EagerProofGenerator(pfa->getManager()));
+  // Do this in two steps to avoid Node problems(?)
+  // Appears related to bug 512, splitting this into two lines
+  // fixes the bug on clang on Mac OS
+  Node itesRemoved =
+      run(assertion, newAsserts, iteSkolemMap, false, false);
+  // In some calling contexts, not necessary to report dependence information.
+  if (reportDeps &&
+      (options::unsatCores() || options::fewerPreprocessingHoles())) {
+    // new assertions have a dependence on the node
+    PROOF( ProofManager::currentPM()->addDependence(itesRemoved, assertion); )
+    unsigned n=0;
+    while(n < newAsserts.size()) {
+      PROOF( ProofManager::currentPM()->addDependence(newAsserts[n].getProven(), assertion); )
+      ++n;
     }
   }
-  size_t n = output.size();
-  for (unsigned i = 0, i_end = output.size(); i < i_end; ++ i) {
-    // Do this in two steps to avoid Node problems(?)
-    // Appears related to bug 512, splitting this into two lines
-    // fixes the bug on clang on Mac OS
-    Node itesRemoved =
-        run(output[i], output, iteSkolemMap, false, false, pft, pfa);
-    // In some calling contexts, not necessary to report dependence information.
-    if (reportDeps &&
-        (options::unsatCores() || options::fewerPreprocessingHoles())) {
-      // new assertions have a dependence on the node
-      PROOF( ProofManager::currentPM()->addDependence(itesRemoved, output[i]); )
-      while(n < output.size()) {
-        PROOF( ProofManager::currentPM()->addDependence(output[n], output[i]); )
-        ++n;
-      }
-    }
-    output[i] = itesRemoved;
-  }
+  return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, nullptr);
 }
 
 Node RemoveTermFormulas::run(TNode node,
-                             std::vector<Node>& output,
+                             std::vector<theory::TrustNode>& output,
                              IteSkolemMap& iteSkolemMap,
                              bool inQuant,
-                             bool inTerm,
-                             TConvProofGenerator* pft,
-                             LazyCDProof* pfa)
+                             bool inTerm)
 {
   // Current node
   Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << endl;
 
-  //if(node.isVar() || node.isConst()){
-  //   (options::biasedITERemoval() && !containsTermITE(node))){
-  //if(node.isVar()){
-  //  return Node(node);
-  //}
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
@@ -107,7 +88,7 @@ Node RemoveTermFormulas::run(TNode node,
   Node newAssertion;
   // the exists form of the assertion
   Node existsAssertion;
-  ProofGenerator* newAssertionPg = nullptr;
+  ProofGenerator* existsAssertionPg = nullptr;
   // Handle non-Boolean ITEs here. Boolean ones (within terms) are handled
   // in the "non-variable Boolean term within term" case below.
   if (node.getKind() == kind::ITE && !nodeType.isBoolean())
@@ -132,7 +113,7 @@ Node RemoveTermFormulas::run(TNode node,
             kind::ITE, node[0], skolem.eqNode(node[1]), skolem.eqNode(node[2]));
 
         // we justify it internally
-        if (pfa != nullptr)
+        if (isProofEnabled())
         {
           // --------------------------------------- REMOVE_TERM_FORMULA_AXIOM
           // (ite node[0] (= node node[1]) (= node node[2]))
@@ -142,17 +123,16 @@ Node RemoveTermFormulas::run(TNode node,
           std::vector<Node> pfArgs;
           pfArgs.push_back(node);
           Node conc = getAxiomFor(node);
-          CDProof cdp(pfa->getManager());
+          CDProof cdp(d_pnm.get());
           cdp.addStep(
               conc, PfRule::REMOVE_TERM_FORMULA_AXIOM, pfChildren, pfArgs);
           existsAssertion = sm->mkExistential(node, conc);
           pfChildren.push_back(conc);
           cdp.addStep(
               existsAssertion, PfRule::EXISTS_INTRO, pfChildren, pfArgs);
-          Assert(d_tpg != nullptr);
           // store it in the proof generator managed by this class
-          d_tpg->setProofFor(existsAssertion, cdp.getProofFor(existsAssertion));
-          newAssertionPg = d_tpg.get();
+          d_epg->setProofFor(existsAssertion, cdp.getProofFor(existsAssertion));
+          existsAssertionPg = d_epg.get();
         }
       }
     }
@@ -221,10 +201,10 @@ Node RemoveTermFormulas::run(TNode node,
         // constructing this witness term. This may not exist, in which case
         // the witness term was trivial to justify. This is the case e.g. for
         // purification witness terms.
-        if (pfa != nullptr)
+        if (isProofEnabled())
         {
           existsAssertion = nodeManager->mkNode(kind::EXISTS, node[0], node[1]);
-          newAssertionPg = sm->getProofGenerator(existsAssertion);
+          existsAssertionPg = sm->getProofGenerator(existsAssertion);
         }
       }
     }
@@ -268,28 +248,22 @@ Node RemoveTermFormulas::run(TNode node,
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
     {
-      // justify the introduction of the skolem
-      if (pft != nullptr)
+      // if proofs are enabled
+      if (isProofEnabled())
       {
-        // notice this step is a no-op for witness
-        if (node.getKind()!=kind::WITNESS)
-        {
-          // ------------------- MACRO_SR_PRED_INTRO
-          // t = witness x. x=t
-          //
-          // The above step is trivial, since the skolems introduced above are
-          // all purification skolems. We record this equality in the term
-          // conversion proof generator.
-          pft->addRewriteStep(node, skolem, PfRule::MACRO_SR_PRED_INTRO, {}, {});
-        }
-      }
-      // justify the axiom that defines the skolem
-      if (pfa != nullptr)
-      {
+        // justify the introduction of the skolem
+        // ------------------- MACRO_SR_PRED_INTRO
+        // t = witness x. x=t
+        // The above step is trivial, since the skolems introduced above are
+        // all purification skolems. We record this equality in the term
+        // conversion proof generator.
+        d_tpg->addRewriteStep(node, skolem, PfRule::MACRO_SR_PRED_INTRO, {}, {});
+        // justify the axiom that defines the skolem
         std::vector<Node> pfChildren;
         std::vector<Node> pfArgs;
+        LazyCDProof lp(d_pnm.get());
         // justify it
-        if (newAssertionPg != nullptr)
+        if (existsAssertionPg != nullptr)
         {
           // ------------------- from skolem manager
           // (exists x. P[x])
@@ -298,10 +272,10 @@ Node RemoveTermFormulas::run(TNode node,
           // where the latter conclusion should be the witness form of
           // newAssertion.
           // the existential is proven lazily by the provided proof generator
-          pfa->addLazyStep(existsAssertion, newAssertionPg);
+          lp.addLazyStep(existsAssertion, existsAssertionPg);
           // the skolemized form is proven as a step
           pfChildren.push_back(existsAssertion);
-          pfa->addStep(newAssertion, PfRule::SKOLEMIZE, pfChildren, pfArgs);
+          lp.addStep(newAssertion, PfRule::SKOLEMIZE, pfChildren, pfArgs);
         }
         else
         {
@@ -309,9 +283,10 @@ Node RemoveTermFormulas::run(TNode node,
           pfArgs.push_back(newAssertion);
           // ---------------- MACRO_SR_PRED_INTRO
           // newAssertion
-          pfa->addStep(
+          lp.addStep(
               newAssertion, PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
         }
+        d_epg->setProofFor(newAssertion, lp.getProofFor(newAssertion));
       }
       Debug("ite") << "*** term formula removal introduced " << skolem
                    << " for " << node << std::endl;
@@ -319,10 +294,12 @@ Node RemoveTermFormulas::run(TNode node,
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
       newAssertion =
-          run(newAssertion, output, iteSkolemMap, false, false, pft, pfa);
+          run(newAssertion, output, iteSkolemMap, false, false);
+          
+      theory::TrustNode trna = theory::TrustNode::mkTrustLemma(newAssertion, d_epg.get());
 
       iteSkolemMap[skolem] = output.size();
-      output.push_back(newAssertion);
+      output.push_back(trna);
     }
 
     // The representation is now the skolem
@@ -347,7 +324,7 @@ Node RemoveTermFormulas::run(TNode node,
   }
   // Remove the ITEs from the children
   for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, iteSkolemMap, inQuant, inTerm, pft, pfa);
+    Node newChild = run(*it, output, iteSkolemMap, inQuant, inTerm);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }
@@ -436,6 +413,21 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
     return nm->mkNode(kind::ITE, n[0], n.eqNode(n[1]), n.eqNode(n[2]));
   }
   return Node::null();
+}
+
+void RemoveTermFormulas::setProofChecker(ProofChecker * pc)
+{
+  if (d_tpg==nullptr)
+  {
+    d_pnm.reset(new ProofNodeManager(pc));
+    d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
+    d_epg.reset(new theory::EagerProofGenerator(d_pnm.get()));
+  }
+}
+
+bool RemoveTermFormulas::isProofEnabled() const
+{
+  return d_pnm!=nullptr;
 }
 
 }/* CVC4 namespace */

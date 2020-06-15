@@ -80,6 +80,8 @@ class TheoryPreprocessor
   Node ppTheoryRewrite(TNode term);
   /** rewrite with proof, store REWRITE step in d_tpg. */
   Node rewriteWithProof(Node term);
+  /** preprocess with proof */
+  Node preprocessWithProof(Node term);
 };
 
 }  // namespace theory

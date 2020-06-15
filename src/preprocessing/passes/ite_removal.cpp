@@ -35,8 +35,18 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   // Remove all of the ITE occurrences and normalize
-  d_preprocContext->getIteRemover()->run(
-      assertions->ref(), assertions->getIteSkolemMap(), true);
+  for (unsigned i = 0, size = assertions->size(); i < size; ++i)
+  {
+    std::vector<theory::TrustNode> newAsserts;
+    TrustNode trn = d_preprocContext->getIteRemover()->run(
+        (*assertions)[i], newAsserts, assertions->getIteSkolemMap(), true);
+    // process
+    assertions->replace(i, trn.getNode());
+    for (unsigned j=0, nnasserts = newAsserts.size(); j<nnasserts; j++)
+    {
+      assertions->ref().push_back(newAsserts[j].getNode());
+    }
+  }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)
   {
     assertions->replace(i, Rewriter::rewrite((*assertions)[i]));
