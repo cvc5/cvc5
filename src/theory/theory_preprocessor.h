@@ -65,6 +65,7 @@ class TheoryPreprocessor
    * have been removed.
    */
   TrustNode theoryPreprocess(TNode node);
+
  private:
   /** Reference to owning theory engine */
   TheoryEngine& d_engine;

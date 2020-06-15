@@ -26,10 +26,10 @@
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
-#include "theory/eager_proof_generator.h"
 #include "smt/dump.h"
-#include "util/bool.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
+#include "util/bool.h"
 #include "util/hash.h"
 
 namespace CVC4 {
@@ -85,11 +85,10 @@ class RemoveTermFormulas {
    * If pfa is provided, then we provide proofs of the new lemmas added to
    * assertions, e.g. (ite C (= k a) (= k b).
    */
-  theory::TrustNode run(
-    Node assertion,
-    std::vector<theory::TrustNode>& newAsserts,
-           IteSkolemMap& iteSkolemMap,
-           bool reportDeps = false);
+  theory::TrustNode run(Node assertion,
+                        std::vector<theory::TrustNode>& newAsserts,
+                        IteSkolemMap& iteSkolemMap,
+                        bool reportDeps = false);
 
   /**
    * Substitute under node using pre-existing cache.  Do not remove
@@ -102,9 +101,9 @@ class RemoveTermFormulas {
 
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
-  
+
   /** Set proof checker, also enabled proofs TODO: improve design */
-  void setProofChecker(ProofChecker * pc);
+  void setProofChecker(ProofChecker* pc);
 
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
@@ -113,6 +112,7 @@ class RemoveTermFormulas {
    *   (ite n1 (= (ite n1 n2 n3) n2) (= (ite n1 n2 n3) n3))
    */
   static Node getAxiomFor(Node n);
+
  private:
   typedef context::
       CDInsertHashMap<std::pair<Node, int>,
@@ -171,7 +171,6 @@ class RemoveTermFormulas {
    */
   std::unique_ptr<theory::EagerProofGenerator> d_epg;
 
-
   /**
    * Removes terms of the form (1), (2), (3) described above from node.
    * All additional assertions are pushed into
@@ -188,7 +187,7 @@ class RemoveTermFormulas {
            IteSkolemMap& iteSkolemMap,
            bool inQuant,
            bool inTerm);
-  
+
   /** Proofs enabled */
   bool isProofEnabled() const;
 };/* class RemoveTTE */

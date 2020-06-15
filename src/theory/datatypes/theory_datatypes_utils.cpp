@@ -19,11 +19,11 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
+#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
-#include "printer/sygus_print_callback.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

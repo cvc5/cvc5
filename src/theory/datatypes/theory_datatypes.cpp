@@ -713,7 +713,7 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
       nn = rew.size()==0 ? d_true :
                 ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
     }
-    if (in!=nn)
+    if (in != nn)
     {
       return TrustNode::mkTrustRewrite(in, nn, nullptr);
     }
@@ -721,7 +721,6 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
 
   // nothing to do
   return TrustNode::null();
-
 }
 
 void TheoryDatatypes::addSharedTerm(TNode t) {

@@ -103,15 +103,12 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
     return n;
   }
   // unknown rewriter
-  Assert(false)
-      << "BuiltinProofRuleChecker::applyRewrite: no rewriter for "
-      << idr << std::endl;
+  Assert(false) << "BuiltinProofRuleChecker::applyRewrite: no rewriter for "
+                << idr << std::endl;
   return n;
 }
 
-Node BuiltinProofRuleChecker::applySubstitution(Node n,
-                                                        Node exp,
-                                                        MethodId ids)
+Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 {
   TNode var, subs;
   if (ids == MethodId::SB_DEFAULT)
@@ -146,8 +143,9 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n,
   return n.substitute(var, subs);
 }
 
-Node BuiltinProofRuleChecker::applySubstitution(
-    Node n, const std::vector<Node>& exp, MethodId ids)
+Node BuiltinProofRuleChecker::applySubstitution(Node n,
+                                                const std::vector<Node>& exp,
+                                                MethodId ids)
 {
   Node curr = n;
   // apply substitution one at a time, in reverse order

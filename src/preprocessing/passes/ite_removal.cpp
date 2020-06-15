@@ -42,7 +42,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
         (*assertions)[i], newAsserts, assertions->getIteSkolemMap(), true);
     // process
     assertions->replace(i, trn.getNode());
-    for (unsigned j=0, nnasserts = newAsserts.size(); j<nnasserts; j++)
+    for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
     {
       assertions->ref().push_back(newAsserts[j].getNode());
     }

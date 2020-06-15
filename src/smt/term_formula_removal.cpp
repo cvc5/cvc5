@@ -33,24 +33,27 @@ RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
 
 RemoveTermFormulas::~RemoveTermFormulas() {}
 
-theory::TrustNode RemoveTermFormulas::run(Node assertion,
-                             std::vector<theory::TrustNode>& newAsserts,
-                             IteSkolemMap& iteSkolemMap,
-                             bool reportDeps)
+theory::TrustNode RemoveTermFormulas::run(
+    Node assertion,
+    std::vector<theory::TrustNode>& newAsserts,
+    IteSkolemMap& iteSkolemMap,
+    bool reportDeps)
 {
   // Do this in two steps to avoid Node problems(?)
   // Appears related to bug 512, splitting this into two lines
   // fixes the bug on clang on Mac OS
-  Node itesRemoved =
-      run(assertion, newAsserts, iteSkolemMap, false, false);
+  Node itesRemoved = run(assertion, newAsserts, iteSkolemMap, false, false);
   // In some calling contexts, not necessary to report dependence information.
-  if (reportDeps &&
-      (options::unsatCores() || options::fewerPreprocessingHoles())) {
+  if (reportDeps
+      && (options::unsatCores() || options::fewerPreprocessingHoles()))
+  {
     // new assertions have a dependence on the node
-    PROOF( ProofManager::currentPM()->addDependence(itesRemoved, assertion); )
-    unsigned n=0;
-    while(n < newAsserts.size()) {
-      PROOF( ProofManager::currentPM()->addDependence(newAsserts[n].getProven(), assertion); )
+    PROOF(ProofManager::currentPM()->addDependence(itesRemoved, assertion);)
+    unsigned n = 0;
+    while (n < newAsserts.size())
+    {
+      PROOF(ProofManager::currentPM()->addDependence(newAsserts[n].getProven(),
+                                                     assertion);)
       ++n;
     }
   }
@@ -257,7 +260,8 @@ Node RemoveTermFormulas::run(TNode node,
         // The above step is trivial, since the skolems introduced above are
         // all purification skolems. We record this equality in the term
         // conversion proof generator.
-        d_tpg->addRewriteStep(node, skolem, PfRule::MACRO_SR_PRED_INTRO, {}, {});
+        d_tpg->addRewriteStep(
+            node, skolem, PfRule::MACRO_SR_PRED_INTRO, {}, {});
         // justify the axiom that defines the skolem
         std::vector<Node> pfChildren;
         std::vector<Node> pfArgs;
@@ -293,10 +297,10 @@ Node RemoveTermFormulas::run(TNode node,
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      newAssertion =
-          run(newAssertion, output, iteSkolemMap, false, false);
-          
-      theory::TrustNode trna = theory::TrustNode::mkTrustLemma(newAssertion, d_epg.get());
+      newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
+
+      theory::TrustNode trna =
+          theory::TrustNode::mkTrustLemma(newAssertion, d_epg.get());
 
       iteSkolemMap[skolem] = output.size();
       output.push_back(trna);
@@ -415,9 +419,9 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
   return Node::null();
 }
 
-void RemoveTermFormulas::setProofChecker(ProofChecker * pc)
+void RemoveTermFormulas::setProofChecker(ProofChecker* pc)
 {
-  if (d_tpg==nullptr)
+  if (d_tpg == nullptr)
   {
     d_pnm.reset(new ProofNodeManager(pc));
     d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
@@ -425,9 +429,6 @@ void RemoveTermFormulas::setProofChecker(ProofChecker * pc)
   }
 }
 
-bool RemoveTermFormulas::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool RemoveTermFormulas::isProofEnabled() const { return d_pnm != nullptr; }
 
 }/* CVC4 namespace */

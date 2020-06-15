@@ -1000,19 +1000,23 @@ TrustNode TheoryStrings::ppRewrite(TNode atom)
     std::vector< Node > new_nodes;
     StringsPreprocess* p = d_esolver->getPreprocess();
     Node ret = p->processAssertion(atomRet, new_nodes);
-    if( ret!=atomRet ){
-      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
-      for (const Node& lem : new_nodes){
+    if (ret != atomRet)
+    {
+      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret
+                           << ", with " << new_nodes.size() << " lemmas."
+                           << std::endl;
+      for (const Node& lem : new_nodes)
+      {
         Trace("strings-ppr") << "    lemma : " << lem << std::endl;
         ++(d_statistics.d_lemmasEagerPreproc);
-        d_out->lemma( lem );
+        d_out->lemma(lem);
       }
       atomRet = ret;
     }else{
       Assert(new_nodes.empty());
     }
   }
-  if (atomRet!=atom)
+  if (atomRet != atom)
   {
     return TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
   }

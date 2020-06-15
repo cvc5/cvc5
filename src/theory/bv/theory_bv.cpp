@@ -791,9 +791,9 @@ TrustNode TheoryBV::ppRewrite(TNode t)
     d_abstractionModule->addInputAtom(res);
   }
   Debug("bv-pp-rewrite") << "to   " << res << "\n";
-  if (res!=t)
+  if (res != t)
   {
-    return TrustNode::mkTrustRewrite(t,res,nullptr);
+    return TrustNode::mkTrustRewrite(t, res, nullptr);
   }
   return TrustNode::null();
 }

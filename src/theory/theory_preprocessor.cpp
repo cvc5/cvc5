@@ -15,10 +15,10 @@
 #include "theory/theory_preprocessor.h"
 
 #include "expr/lazy_proof.h"
+#include "expr/skolem_manager.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
-#include "expr/skolem_manager.h"
 
 using namespace std;
 
@@ -38,8 +38,9 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 
 TheoryPreprocessor::~TheoryPreprocessor() {}
 
-void TheoryPreprocessor::clearCache() { 
-  d_ppCache.clear(); 
+void TheoryPreprocessor::clearCache()
+{
+  d_ppCache.clear();
   // TODO: clear rewrites from d_tpg
 }
 
@@ -64,7 +65,7 @@ void TheoryPreprocessor::preprocess(TNode node,
   TrustNode tpp = d_tfr.run(ppNode, rlemmas, lemmas.getIteSkolemMap(), false);
   lemmas.push_back(tpp.getNode());
   lemmas.updateRealAssertionsEnd();
-  for (unsigned i=0, nrlemmas = rlemmas.size(); i<nrlemmas; i++)
+  for (unsigned i = 0, nrlemmas = rlemmas.size(); i < nrlemmas; i++)
   {
     lemmas.push_back(rlemmas[i].getNode());
   }
@@ -287,10 +288,10 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
 {
   Node termr = Rewriter::rewrite(term);
   // store rewrite step if tracking proofs and it rewrites
-  if (d_tpg!=nullptr)
+  if (d_tpg != nullptr)
   {
     // may rewrite the same term more than once, thus check hasRewriteStep
-    if (termr!=term && !d_tpg->hasRewriteStep(term))
+    if (termr != term && !d_tpg->hasRewriteStep(term))
     {
       d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
     }
@@ -308,9 +309,9 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
     return term;
   }
   Node termr = trn.getNode();
-  if (d_tpg!=nullptr)
+  if (d_tpg != nullptr)
   {
-    if (trn.getGenerator()!=nullptr)
+    if (trn.getGenerator() != nullptr)
     {
       d_tpg->addRewriteStep(term, termr, trn.getGenerator());
     }

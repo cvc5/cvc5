@@ -28,7 +28,7 @@ TConvProofGenerator::~TConvProofGenerator() {}
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 {
-  if (t==s)
+  if (t == s)
   {
     // nothing to do
     return;
@@ -42,7 +42,7 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
-  if (t==s)
+  if (t == s)
   {
     // nothing to do
     return;
@@ -60,7 +60,7 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
-  if (t==s)
+  if (t == s)
   {
     // nothing to do
     return;

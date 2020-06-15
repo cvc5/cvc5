@@ -83,7 +83,7 @@ TrustNodeKind TrustNode::getKind() const { return d_tnk; }
 
 Node TrustNode::getNode() const
 {
-  switch(d_tnk)
+  switch (d_tnk)
   {
     case TrustNodeKind::LEMMA: return d_proven;
     case TrustNodeKind::REWRITE: return d_proven[1];
@@ -105,10 +105,7 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
   return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
 }
 
-Node TrustNode::getRewriteProven(TNode n, Node nr)
-{
-  return n.eqNode(nr);
-}
+Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {
