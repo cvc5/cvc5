@@ -55,10 +55,10 @@ class TheoryPreprocessor
    * assuming that lcp initially contains a proof of node. The flag
    * doTheoryPreprocess is whether we should run theory-specific preprocessing.
    */
-  void preprocess(TNode node,
-                  preprocessing::AssertionPipeline& lemmas,
-                  bool doTheoryPreprocess,
-                  LazyCDProof* lcp);
+  TrustNode preprocess(TNode node,
+                       std::vector<TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems,
+                       bool doTheoryPreprocess);
   /**
    * Runs theory specific preprocessing on the non-Boolean parts of
    * the formula.  This is only called on input assertions, after ITEs

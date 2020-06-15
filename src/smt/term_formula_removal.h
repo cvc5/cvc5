@@ -87,7 +87,7 @@ class RemoveTermFormulas {
    */
   theory::TrustNode run(Node assertion,
                         std::vector<theory::TrustNode>& newAsserts,
-                        IteSkolemMap& iteSkolemMap,
+                        std::vector<Node>& newSkolems,
                         bool reportDeps = false);
 
   /**
@@ -184,7 +184,7 @@ class RemoveTermFormulas {
    */
   Node run(TNode node,
            std::vector<theory::TrustNode>& newAsserts,
-           IteSkolemMap& iteSkolemMap,
+           std::vector<Node>& newSkolems,
            bool inQuant,
            bool inTerm);
 

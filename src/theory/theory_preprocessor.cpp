@@ -44,33 +44,26 @@ void TheoryPreprocessor::clearCache()
   // TODO: clear rewrites from d_tpg
 }
 
-void TheoryPreprocessor::preprocess(TNode node,
-                                    preprocessing::AssertionPipeline& lemmas,
-                                    bool doTheoryPreprocess,
-                                    LazyCDProof* lp)
+TrustNode TheoryPreprocessor::preprocess(TNode node,
+                       std::vector<TrustNode>& newLemmas,
+                       std::vector<Node>& newSkolems,
+                       bool doTheoryPreprocess)
 {
   // Run theory preprocessing, maybe
-  Node ppNode = node;
+  Node retNode = node;
   if (doTheoryPreprocess)
   {
     // run theory preprocessing
     TrustNode trn = theoryPreprocess(node);
-    ppNode = trn.getNode();
+    retNode = trn.getNode();
   }
 
   // Remove the ITEs
-  Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
-  // TODO: pass lp, d_tpg to run here
-  std::vector<TrustNode> rlemmas;
-  TrustNode tpp = d_tfr.run(ppNode, rlemmas, lemmas.getIteSkolemMap(), false);
-  lemmas.push_back(tpp.getNode());
-  lemmas.updateRealAssertionsEnd();
-  for (unsigned i = 0, nrlemmas = rlemmas.size(); i < nrlemmas; i++)
-  {
-    lemmas.push_back(rlemmas[i].getNode());
-  }
-  Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
+  Trace("te-tform-rm") << "Remove term formulas from " << retNode << std::endl;
+  TrustNode tret = d_tfr.run(retNode, newLemmas, newSkolems, false);
+  Trace("te-tform-rm") << "..done " << tret.getNode() << std::endl;
 
+#if 0
   // justify the preprocessing step
   if (lp != nullptr)
   {
@@ -78,41 +71,54 @@ void TheoryPreprocessor::preprocess(TNode node,
     // term formula removal.
     if (!CDProof::isSame(node, lemmas[0]))
     {
-#if 0
       Node eq = node.eqNode(lemmas[0]);
       std::shared_ptr<ProofNode> ppf = d_tpg->getTranformProofFor(node,lp);
       Assert (ppf!=nullptr);
       Assert (ppf->getResult()==lemmas[0]);
-#else
       // trusted big step
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(lemmas[0]);
       lp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
-#endif
     }
   }
+#endif
 
   if (Debug.isOn("lemma-ites"))
   {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
-    Debug("lemma-ites") << " + now have the following " << lemmas.size()
+    Debug("lemma-ites") << "removed ITEs from lemma: " << tret.getNode() << endl;
+    Debug("lemma-ites") << " + now have the following " << newLemmas.size()
                         << " lemma(s):" << endl;
-    for (std::vector<Node>::const_iterator i = lemmas.begin();
-         i != lemmas.end();
-         ++i)
-    {
-      Debug("lemma-ites") << " + " << *i << endl;
+  for (size_t i = 0, lsize = newLemmas.size(); i <= lsize; ++i)
+  {
+      Debug("lemma-ites") << " + " << newLemmas[i].getNode() << endl;
     }
     Debug("lemma-ites") << endl;
   }
 
   // now, rewrite the lemmas
-  Node retLemma;
-  for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
+  for (size_t i = 0, lsize = newLemmas.size(); i <= lsize; ++i)
   {
-    Node rewritten = Rewriter::rewrite(lemmas[i]);
+    // get the trust node to process
+    TrustNode trn = i==lsize ? tret : newLemmas[i];
+    Node assertion = trn.getNode();
+    // rewrite
+    Node rewritten = Rewriter::rewrite(assertion);
+    if (assertion!=rewritten)
+    {
+      // update the trust node
+      TrustNode trnRew = TrustNode::mkTrustLemma(rewritten, nullptr);
+      if (i==lsize)
+      {
+        tret = trnRew;
+      }
+      else
+      {
+        newLemmas[i] = trnRew;
+      }
+    }
+#if 0
     if (lp != nullptr)
     {
       if (!CDProof::isSame(rewritten, lemmas[i]))
@@ -125,8 +131,9 @@ void TheoryPreprocessor::preprocess(TNode node,
             rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
       }
     }
-    lemmas.replace(i, rewritten);
+#endif
   }
+  return tret;
 }
 
 struct preprocess_stack_element

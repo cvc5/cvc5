@@ -36,13 +36,13 @@ RemoveTermFormulas::~RemoveTermFormulas() {}
 theory::TrustNode RemoveTermFormulas::run(
     Node assertion,
     std::vector<theory::TrustNode>& newAsserts,
-    IteSkolemMap& iteSkolemMap,
+    std::vector<Node>& newSkolems,
     bool reportDeps)
 {
   // Do this in two steps to avoid Node problems(?)
   // Appears related to bug 512, splitting this into two lines
   // fixes the bug on clang on Mac OS
-  Node itesRemoved = run(assertion, newAsserts, iteSkolemMap, false, false);
+  Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps
       && (options::unsatCores() || options::fewerPreprocessingHoles()))
@@ -57,12 +57,14 @@ theory::TrustNode RemoveTermFormulas::run(
       ++n;
     }
   }
-  return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, nullptr);
+  // The rewriting of assertion can be justified by the term conversion proof
+  // generator d_tpg.
+  return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
 Node RemoveTermFormulas::run(TNode node,
                              std::vector<theory::TrustNode>& output,
-                             IteSkolemMap& iteSkolemMap,
+                             std::vector<Node>& newSkolems,
                              bool inQuant,
                              bool inTerm)
 {
@@ -297,13 +299,13 @@ Node RemoveTermFormulas::run(TNode node,
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      newAssertion = run(newAssertion, output, iteSkolemMap, false, false);
+      newAssertion = run(newAssertion, output, newSkolems, false, false);
 
       theory::TrustNode trna =
           theory::TrustNode::mkTrustLemma(newAssertion, d_epg.get());
 
-      iteSkolemMap[skolem] = output.size();
       output.push_back(trna);
+      newSkolems.push_back(skolem);
     }
 
     // The representation is now the skolem
@@ -328,7 +330,7 @@ Node RemoveTermFormulas::run(TNode node,
   }
   // Remove the ITEs from the children
   for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, iteSkolemMap, inQuant, inTerm);
+    Node newChild = run(*it, output, newSkolems, inQuant, inTerm);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }
