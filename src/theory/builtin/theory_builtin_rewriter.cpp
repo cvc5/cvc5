@@ -262,8 +262,12 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       bool pol = curr[0].getKind() != kind::NOT;
       bool inverted = (pol && ck == kind::AND) || (!pol && ck == kind::OR);
       index_eq = pol ? curr[0] : curr[0][0];
+      // processed : the value that is determined by the first child of curr
+      // remainder : the remaining children of curr
       Node processed, remainder;
-      processed = nm->mkConst(pol && !inverted);
+      // the value is the polarity of the first child or its inverse if we are
+      // in the inverted case
+      processed = nm->mkConst(!inverted? pol : !pol);
       // build an OR/AND with the remaining components
       if (curr.getNumChildren() == 2)
       {
