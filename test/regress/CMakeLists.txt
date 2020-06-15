@@ -361,6 +361,7 @@ set(regress_0_tests
   regress0/bv/fuzz41.smtv1.smt2
   regress0/bv/issue3621.smt2
   regress0/bv/issue-4075.smt2
+  regress0/bv/issue-4130.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
