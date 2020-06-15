@@ -46,7 +46,7 @@ void getFreeAssumptions(ProofNode* pn, std::vector<Node>& assump);
  * are each added to the range of the assumption.
  *
  * @param pn The proof node.
- * @param assump The mapping to add the free asumptions of pn and their
+ * @param amap The mapping to add the free asumptions of pn and their
  * corresponding proof nodes to.
  */
 void getFreeAssumptionsMap(ProofNode* pn,
