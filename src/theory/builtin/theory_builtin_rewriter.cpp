@@ -414,8 +414,8 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     }
     Trace("builtin-rewrite-debug2") << "  make array store all " << curr.getType() << " annotated : " << array_type << std::endl;
     Assert(curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
-    curr = nm->mkConst(ArrayStoreAll(
-        (static_cast<ArrayType>(array_type.toType())), curr.toExpr()));
+    curr = nm->mkConst(
+        ArrayStoreAll((ArrayType(array_type.toType())), curr.toExpr()));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must be constant)
     Trace("builtin-rewrite-debug2") << "  got constant base " << curr << std::endl;
