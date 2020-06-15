@@ -330,14 +330,18 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Node res2 = applySubstitutionRewrite(args[0], exp, ids, idr);
     // Trace("builtin-pfcheck")
     //    << "Returned " << res2 << " from " << args[0] << std::endl;
-    // can rewrite the witness forms
-    res1 = Rewriter::rewrite(SkolemManager::getWitnessForm(res1));
-    res2 = Rewriter::rewrite(SkolemManager::getWitnessForm(res2));
-    if (res1.isNull() || res1 != res2)
+    // if not already equal, do rewriting
+    if (res1!=res2)
     {
-      Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
-      Trace("builtin-pfcheck-debug") << res1 << " vs " << res2 << std::endl;
-      return Node::null();
+      // can rewrite the witness forms
+      res1 = Rewriter::rewrite(SkolemManager::getWitnessForm(res1));
+      res2 = Rewriter::rewrite(SkolemManager::getWitnessForm(res2));
+      if (res1.isNull() || res1 != res2)
+      {
+        Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
+        Trace("builtin-pfcheck-debug") << res1 << " vs " << res2 << std::endl;
+        return Node::null();
+      }
     }
     return args[0];
   }
@@ -351,7 +355,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::THEORY_PREPROCESS)
   {
-    Assert(children.size() == 1);
+    Assert(children.empty());
     Assert(args.size() == 1);
     return args[0];
   }

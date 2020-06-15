@@ -77,12 +77,16 @@ class TheoryPreprocessor
   RemoveTermFormulas& d_tfr;
   /** A term conversion proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
+  /** An eager proof generator, for additional lemmas. */
+  std::unique_ptr<EagerProofGenerator> d_epg;
   /** Helper for theoryPreprocess */
   Node ppTheoryRewrite(TNode term);
   /** rewrite with proof, store REWRITE step in d_tpg. */
   Node rewriteWithProof(Node term);
   /** preprocess with proof */
   Node preprocessWithProof(Node term);
+  /** Proofs enabled */
+  bool isProofEnabled() const;
 };
 
 }  // namespace theory

@@ -58,18 +58,25 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind() != NOT || children[0][0].getKind() != FORALL)
+    // can use either negated FORALL or EXISTS
+    if (children[0].getKind()!=EXISTS && (children[0].getKind() != NOT || children[0][0].getKind() != FORALL))
     {
       return Node::null();
     }
     SkolemManager* sm = nm->getSkolemManager();
-    std::vector<Node> echildren;
-    echildren.insert(
-        echildren.begin(), children[0][0].begin(), children[0][0].end());
-    Node exists = nm->mkNode(EXISTS, echildren);
+    Node exists;
+    if (children[0].getKind()==EXISTS)
+    {
+      exists = children[0];
+    }
+    else
+    {
+      std::vector<Node> echildren(children[0][0].begin(), children[0][0].end());
+      exists = nm->mkNode(EXISTS, echildren);
+    }
     std::vector<Node> skolems;
     Node res = sm->mkSkolemize(exists, skolems, "k");
-    return nm->mkNode(OR, children[0].notNode(), res);
+    return res;
   }
   else if (id == PfRule::INSTANTIATE)
   {
@@ -89,7 +96,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     }
     Node inst =
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    return nm->mkNode(OR, children[0].notNode(), inst);
+    return inst;
   }
 
   // no rule
