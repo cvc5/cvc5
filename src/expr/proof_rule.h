@@ -496,7 +496,8 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
-  // SkolemManager::mkSkolemExists.
+  // SkolemManager::mkSkolemize, returned in the skolems argument of that
+  // method.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
