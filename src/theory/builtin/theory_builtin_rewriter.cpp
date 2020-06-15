@@ -251,9 +251,14 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       //  (2) lambda x. (not (= x v1)) ^ ... becomes
       //      lambda x. (ite (= x v1) false [...])
       //
-      // Note the negateg cases of the lhs of the OR/AND operators above are
+      // Note the negated cases of the lhs of the OR/AND operators above are
       // handled by pushing the recursion to the then-branch, with the
-      // else-branch being the constant value.
+      // else-branch being the constant value. For example, the negated (1)
+      // would be
+      //  (1') lambda x. (not (= x v1)) v ... becomes
+      //       lambda x. (ite (= x v1) [...] true)
+      // thus requiring the rest of the disjunction to be further processed in
+      // the then-branch as the current value.
       bool pol = curr[0].getKind() != kind::NOT;
       bool inverted = (pol && ck == kind::AND) || (!pol && ck == kind::OR);
       index_eq = pol ? curr[0] : curr[0][0];
@@ -273,6 +278,9 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       {
         curr_val = remainder;
         next = processed;
+        // If the lambda contains more variables than the one being currently
+        // processed, the current value can be non-constant, since it'll be
+        // processed recursively below. Otherwise we fail.
         if (rec_bvl.isNull() && !curr_val.isConst())
         {
           Trace("builtin-rewrite-debug2")
