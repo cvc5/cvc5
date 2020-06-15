@@ -44,7 +44,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
         (*assertions)[i], newAsserts, newSkolems, true);
     // process
     assertions->replace(i, trn.getNode());
-    Assert (newSkolems.size()==newAsserts.size());
+    Assert(newSkolems.size() == newAsserts.size());
     for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
     {
       imap[newSkolems[j]] = assertions->size();

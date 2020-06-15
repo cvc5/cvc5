@@ -1625,16 +1625,16 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
   TrustNode tlemma = d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
-  
+
   // process the preprocessing
-  if (d_lazyProof!=nullptr)
+  if (d_lazyProof != nullptr)
   {
-    Assert (tlemma.getKind()==TrustNodeKind::REWRITE);
+    Assert(tlemma.getKind() == TrustNodeKind::REWRITE);
     Node lemmap = tlemma.getNode();
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
-      if (tlemma.getGenerator()!=nullptr)
+      if (tlemma.getGenerator() != nullptr)
       {
         d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
       }
@@ -1650,31 +1650,31 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       d_lazyProof->addStep(
           lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
     }
-    for (unsigned i=0, nsize = newLemmas.size(); i<nsize; i++)
+    for (unsigned i = 0, nsize = newLemmas.size(); i < nsize; i++)
     {
       TrustNode trn = newLemmas[i];
-      Assert (trn.getKind()==TrustNodeKind::LEMMA);
-      if (trn.getGenerator()!=nullptr)
+      Assert(trn.getKind() == TrustNodeKind::LEMMA);
+      if (trn.getGenerator() != nullptr)
       {
         d_lazyProof->addLazyStep(trn.getProven(), trn.getGenerator());
       }
     }
   }
-  
+
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline
   lemmas.push_back(tlemma.getNode());
   lemmas.updateRealAssertionsEnd();
-  Assert (newSkolems.size()==newLemmas.size());
-  for (size_t i=0, nsize = newLemmas.size(); i<nsize; i++)
+  Assert(newSkolems.size() == newLemmas.size());
+  for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)
   {
     // store skolem mapping here
     IteSkolemMap& imap = lemmas.getIteSkolemMap();
     imap[newSkolems[i]] = lemmas.size();
     lemmas.push_back(newLemmas[i].getNode());
   }
-  
+
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {

@@ -59,13 +59,14 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(children.size() == 1);
     Assert(args.empty());
     // can use either negated FORALL or EXISTS
-    if (children[0].getKind()!=EXISTS && (children[0].getKind() != NOT || children[0][0].getKind() != FORALL))
+    if (children[0].getKind() != EXISTS
+        && (children[0].getKind() != NOT || children[0][0].getKind() != FORALL))
     {
       return Node::null();
     }
     SkolemManager* sm = nm->getSkolemManager();
     Node exists;
-    if (children[0].getKind()==EXISTS)
+    if (children[0].getKind() == EXISTS)
     {
       exists = children[0];
     }

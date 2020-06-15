@@ -331,7 +331,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // Trace("builtin-pfcheck")
     //    << "Returned " << res2 << " from " << args[0] << std::endl;
     // if not already equal, do rewriting
-    if (res1!=res2)
+    if (res1 != res2)
     {
       // can rewrite the witness forms
       res1 = Rewriter::rewrite(SkolemManager::getWitnessForm(res1));

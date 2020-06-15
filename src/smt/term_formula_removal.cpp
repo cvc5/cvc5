@@ -262,8 +262,11 @@ Node RemoveTermFormulas::run(TNode node,
         // The above step is trivial, since the skolems introduced above are
         // all purification skolems. We record this equality in the term
         // conversion proof generator.
-        d_tpg->addRewriteStep(
-            node, skolem, PfRule::MACRO_SR_PRED_INTRO, {}, {node.eqNode(skolem)});
+        d_tpg->addRewriteStep(node,
+                              skolem,
+                              PfRule::MACRO_SR_PRED_INTRO,
+                              {},
+                              {node.eqNode(skolem)});
         // justify the axiom that defines the skolem
         std::vector<Node> pfChildren;
         std::vector<Node> pfArgs;
