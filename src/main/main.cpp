@@ -57,9 +57,9 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
-    cerr << "CVC4 Error:" << endl << e << endl << endl
-         << "Please use --help to get help on command-line options."
-         << endl;
+    cerr << "(error \"" << e << "\")" << endl
+         << endl
+         << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     {
       *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
-      *opts.getErr() << "CVC4 Error:" << endl << e << endl;
+      *opts.getErr() << "(error \"" << e << "\")" << endl;
     }
     if(opts.getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
