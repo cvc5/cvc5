@@ -38,13 +38,11 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
 {
   if (isProofEnabled())
   {
-    /*
     // enable proofs in the term formula remover
     if (pnm!=nullptr)
     {
       d_tfr.setProofChecker(pnm->getChecker());
     }
-    */
     // push the proof context, since proof steps may be cleared on calls to
     // clearCache() below.
     d_pfContext.push();

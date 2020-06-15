@@ -168,7 +168,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
   // directly.
   if (t.getKind() == WITNESS)
   {
-    return getOrMakeSkolem(t, prefix, comment, flags);
+    return getOrMakeSkolem(getWitnessForm(t), prefix, comment, flags);
   }
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);

@@ -169,7 +169,7 @@ class RemoveTermFormulas {
    * A proof generator for skolems we introduce that are based on axioms that
    * this class is responsible for.
    */
-  std::unique_ptr<theory::EagerProofGenerator> d_epg;
+  std::unique_ptr<LazyCDProof> d_lp;
 
   /**
    * Removes terms of the form (1), (2), (3) described above from node.
