@@ -302,6 +302,10 @@ class BitVectorRepeatTypeRule
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
     }
     unsigned repeatAmount = n.getOperator().getConst<BitVectorRepeat>();
+    if (repeatAmount == 0)
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting number of repeats > 0");
+    }
     return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
 }; /* class BitVectorRepeatTypeRule */
