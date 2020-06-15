@@ -42,17 +42,17 @@ Node QuantifiersProofRuleChecker::checkInternal(
     Assert(children.size() == 1);
     Assert(args.size() == 1);
     SkolemManager* sm = nm->getSkolemManager();
-    Node p = SkolemManager::getSkolemForm(children[0]);
-    Node t = SkolemManager::getSkolemForm(args[0]);
+    Node p = children[0];
+    Node t = args[0];
     Node exists = sm->mkExistential(t, p);
     if (id == PfRule::EXISTS_INTRO)
     {
-      return SkolemManager::getWitnessForm(exists);
+      return exists;
     }
     std::vector<Node> skolems;
     sm->mkSkolemize(exists, skolems, "k");
     Assert(skolems.size() == 1);
-    return SkolemManager::getWitnessForm(skolems[0]);
+    return skolems[0];
   }
   else if (id == PfRule::SKOLEMIZE)
   {
@@ -67,10 +67,8 @@ Node QuantifiersProofRuleChecker::checkInternal(
     echildren.insert(
         echildren.begin(), children[0][0].begin(), children[0][0].end());
     Node exists = nm->mkNode(EXISTS, echildren);
-    exists = SkolemManager::getSkolemForm(exists);
     std::vector<Node> skolems;
     Node res = sm->mkSkolemize(exists, skolems, "k");
-    res = SkolemManager::getWitnessForm(res);
     return nm->mkNode(OR, children[0].notNode(), res);
   }
   else if (id == PfRule::INSTANTIATE)
@@ -81,17 +79,16 @@ Node QuantifiersProofRuleChecker::checkInternal(
     {
       return Node::null();
     }
-    Node body = SkolemManager::getSkolemForm(children[0][1]);
+    Node body = children[0][1];
     std::vector<Node> vars;
     std::vector<Node> subs;
     for (unsigned i = 0, nargs = args.size(); i < nargs; i++)
     {
       vars.push_back(children[0][0][i]);
-      subs.push_back(SkolemManager::getSkolemForm(args[i]));
+      subs.push_back(args[i]);
     }
     Node inst =
         body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    inst = SkolemManager::getWitnessForm(inst);
     return nm->mkNode(OR, children[0].notNode(), inst);
   }
 

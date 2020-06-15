@@ -182,8 +182,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_pchecker(new ProofChecker),
-      d_pNodeManager(new ProofNodeManager(d_pchecker.get())),
+      d_pchecker(options::proofNew() ? new ProofChecker : nullptr),
+      d_pNodeManager(options::proofNew() ? new ProofNodeManager(d_pchecker.get())  : nullptr),
       d_lazyProof(
           options::proofNew()
               ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext)

@@ -69,56 +69,26 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
 }
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
-{
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nkr = applyRewriteExternal(nk, idr);
-  return SkolemManager::getWitnessForm(nkr);
-}
-
 Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
 {
-  Node nk = SkolemManager::getSkolemForm(n);
-  TheoryId tid = Theory::theoryOf(nk);
+  TheoryId tid = Theory::theoryOf(n);
   Rewriter* rewriter = Rewriter::getInstance();
-  Node nkr = preRewrite ? rewriter->preRewrite(tid, nk).d_node
-                        : rewriter->postRewrite(tid, nk).d_node;
-  return SkolemManager::getWitnessForm(nkr);
-}
-
-Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
-{
-  if (exp.isNull() || exp.getKind() != EQUAL)
-  {
-    return Node::null();
-  }
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp, ids);
-  return SkolemManager::getWitnessForm(nks);
-}
-
-Node BuiltinProofRuleChecker::applySubstitution(Node n,
-                                                const std::vector<Node>& exp,
-                                                MethodId ids)
-{
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp, ids);
-  return SkolemManager::getWitnessForm(nks);
+  Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
+                        : rewriter->postRewrite(tid, n).d_node;
+  return nkr;
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp, ids);
-  Node nksr = applyRewriteExternal(nks, idr);
-  return SkolemManager::getWitnessForm(nksr);
+  Node nks = applySubstitution(n, exp, ids);
+  return applyRewrite(nks, idr);
 }
 
-Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
+Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
   Trace("builtin-pfcheck-debug")
-      << "applyRewriteExternal (" << idr << "): " << n << std::endl;
+      << "applyRewrite (" << idr << "): " << n << std::endl;
   if (idr == MethodId::RW_REWRITE)
   {
     return Rewriter::rewrite(n);
@@ -134,51 +104,49 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
   }
   // unknown rewriter
   Assert(false)
-      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for "
+      << "BuiltinProofRuleChecker::applyRewrite: no rewriter for "
       << idr << std::endl;
   return n;
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
+Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                         Node exp,
                                                         MethodId ids)
 {
-  Assert(!exp.isNull());
-  Node expk = SkolemManager::getSkolemForm(exp);
   TNode var, subs;
   if (ids == MethodId::SB_DEFAULT)
   {
-    if (expk.getKind() != EQUAL)
+    if (exp.getKind() != EQUAL)
     {
       return Node::null();
     }
-    var = expk[0];
-    subs = expk[1];
+    var = exp[0];
+    subs = exp[1];
   }
   else if (ids == MethodId::SB_LITERAL)
   {
-    bool polarity = expk.getKind() != NOT;
-    var = polarity ? expk : expk[0];
+    bool polarity = exp.getKind() != NOT;
+    var = polarity ? exp : exp[0];
     subs = NodeManager::currentNM()->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
-    var = expk;
+    var = exp;
     subs = NodeManager::currentNM()->mkConst(true);
   }
   else
   {
-    Assert(false) << "BuiltinProofRuleChecker::applySubstitutionExternal: no "
+    Assert(false) << "BuiltinProofRuleChecker::applySubstitution: no "
                      "substitution for "
                   << ids << std::endl;
   }
   Trace("builtin-pfcheck-debug")
-      << "applySubstitutionExternal (" << ids << "): " << var << " -> " << subs
-      << " (from " << expk << ")" << std::endl;
+      << "applySubstitution (" << ids << "): " << var << " -> " << subs
+      << " (from " << exp << ")" << std::endl;
   return n.substitute(var, subs);
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(
+Node BuiltinProofRuleChecker::applySubstitution(
     Node n, const std::vector<Node>& exp, MethodId ids)
 {
   Node curr = n;
@@ -189,7 +157,7 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(
     {
       return Node::null();
     }
-    curr = applySubstitutionExternal(curr, exp[nexp - 1 - i], ids);
+    curr = applySubstitution(curr, exp[nexp - 1 - i], ids);
     if (curr.isNull())
     {
       break;
@@ -313,7 +281,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
-    res = Rewriter::rewrite(res);
+    res = Rewriter::rewrite(SkolemManager::getWitnessForm(res));
     if (!res.isConst() || !res.getConst<bool>())
     {
       Trace("builtin-pfcheck")
@@ -365,8 +333,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     // Trace("builtin-pfcheck")
     //    << "Returned " << res2 << " from " << args[0] << std::endl;
     // can rewrite the witness forms
-    res1 = Rewriter::rewrite(res1);
-    res2 = Rewriter::rewrite(res2);
+    res1 = Rewriter::rewrite(SkolemManager::getWitnessForm(res1));
+    res2 = Rewriter::rewrite(SkolemManager::getWitnessForm(res2));
     if (res1.isNull() || res1 != res2)
     {
       Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
@@ -393,9 +361,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Node t = SkolemManager::getSkolemForm(args[0]);
-    Node ret = RemoveTermFormulas::getAxiomFor(t);
-    return SkolemManager::getWitnessForm(ret);
+    return RemoveTermFormulas::getAxiomFor(args[0]);
   }
   // no rule
   return Node::null();

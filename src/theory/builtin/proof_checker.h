@@ -148,21 +148,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /**
-   * Apply rewrite (on Skolem form). id is the identifier of the rewriter.
-   */
-  static Node applyRewriteExternal(Node n, MethodId idr = MethodId::RW_REWRITE);
-  /**
-   * Apply substitution for n (on Skolem form), where exp is an equality
-   * (or set of equalities) in Witness form. Returns the result of
-   * n * sigma{ids}(exp), where sigma{ids} is a substitution based on method
-   * identifier ids.
-   */
-  static Node applySubstitutionExternal(Node n, Node exp, MethodId ids);
-  /** Same as above, for a list of substitutions in exp */
-  static Node applySubstitutionExternal(Node n,
-                                        const std::vector<Node>& exp,
-                                        MethodId ids);
 };
 
 }  // namespace builtin

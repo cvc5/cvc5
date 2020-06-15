@@ -310,12 +310,10 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
   // store rewrite step if tracking proofs and it rewrites
   if (d_tpg!=nullptr)
   {
-    /*
     if (termr!=term)
     {
-      d_tpg->addRewriteStep(terms, termrs, PfRule::REWRITE, {}, {term});
+      d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
     }
-    */
   }
   return termr;
 }

@@ -209,9 +209,9 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     }
     case PfRule::TRICHOTOMY:
     {
-      Node a = SkolemManager::getSkolemForm(negateProofLiteral(children[0]));
-      Node b = SkolemManager::getSkolemForm(negateProofLiteral(children[1]));
-      Node c = SkolemManager::getSkolemForm(args[0]);
+      Node a = negateProofLiteral(children[0]);
+      Node b = negateProofLiteral(children[1]);
+      Node c = args[0];
       if (a[0] == b[0] && b[0] == c[0] && a[1] == b[1] && b[1] == c[1])
       {
         std::set<Kind> cmps;
@@ -255,9 +255,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
     {
       Assert(children.empty());
       Assert(args.size() == 1);
-      Node t = SkolemManager::getSkolemForm(args[0]);
-      Node ret = OperatorElim::getAxiomFor(t);
-      return SkolemManager::getWitnessForm(ret);
+      return OperatorElim::getAxiomFor(args[0]);
     }
     default: return Node::null();
   }
