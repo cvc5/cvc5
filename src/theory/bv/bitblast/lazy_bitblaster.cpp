@@ -440,11 +440,13 @@ void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
 {
   int numAssertions = d_bv->numAssertions();
+  bool has_full_model =
+      numAssertions != 0 && d_fullModelAssertionLevel.get() == numAssertions;
+
   Debug("bv-equality-status")
       << "TLazyBitblaster::getEqualityStatus " << a << " = " << b << "\n";
   Debug("bv-equality-status")
-      << "BVSatSolver has full model? "
-      << (d_fullModelAssertionLevel.get() == numAssertions) << "\n";
+      << "BVSatSolver has full model? " << has_full_model << "\n";
 
   // First check if it trivially rewrites to false/true
   Node a_eq_b =
@@ -453,7 +455,7 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-  if (d_fullModelAssertionLevel.get() != numAssertions)
+  if (!has_full_model)
   {
     return theory::EQUALITY_UNKNOWN;
   }
