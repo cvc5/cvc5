@@ -62,6 +62,8 @@ private:
    */
   cln::cl_RA d_value;
 
+public:
+
   /**
    * Constructs a Rational from a mpq_class object.
    * Does a deep copy.
@@ -70,8 +72,6 @@ private:
    */
   //Rational(const mpq_class& val) : d_value(val) {  }
   Rational(const cln::cl_RA& val) : d_value(val) {  }
-
-public:
 
   /**
    * Creates a rational from a decimal string (e.g., <code>"1.5"</code>).
@@ -177,7 +177,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of CLN data.
    */
-  cln::cl_RA getValue() const
+  const cln::cl_RA& getValue() const
   {
     return d_value;
   }

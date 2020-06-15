@@ -47,11 +47,6 @@ private:
    * Only accessible to friend classes.
    */
   const cln::cl_I& get_cl_I() const { return d_value; }
-
-  /**
-   * Constructs an Integer by copying a CLN C++ primitive.
-   */
-  Integer(const cln::cl_I& val) : d_value(val) {}
   // Throws a std::invalid_argument on invalid input `s` for the given base.
   void readInt(const cln::cl_read_flags& flags,
                const std::string& s,
@@ -73,6 +68,11 @@ private:
   static unsigned long s_signedLongMax;
   static unsigned long s_unsignedLongMax;
 public:
+
+  /**
+   * Constructs an Integer by copying a CLN C++ primitive.
+   */
+  Integer(const cln::cl_I& val) : d_value(val) {}
 
   /** Constructs a rational with the value 0. */
   Integer() : d_value(0){}
@@ -110,7 +110,7 @@ public:
   /**
    * Returns a copy of d_value to enable public access of CLN data.
    */
-  cln::cl_I getValue() const
+  const cln::cl_I& getValue() const
   {
     return d_value;
   }
