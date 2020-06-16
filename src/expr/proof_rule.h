@@ -536,15 +536,16 @@ enum class PfRule : uint32_t
   // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
   // Arguments: none
   // ----------------------------------------
-  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) F)) F*sigma)
+  // Conclusion: F*sigma
   // sigma maps x1 ... xn to their representative skolems obtained by
-  // SkolemManager::mkSkolemExists.
+  // SkolemManager::mkSkolemize, returned in the skolems argument of that
+  // method.
   SKOLEMIZE,
   // ======== Instantiate
   // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
   // Arguments: (t1 ... tn)
   // ----------------------------------------
-  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
+  // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 
@@ -710,7 +711,7 @@ enum class PfRule : uint32_t
   // Arguments: (t)
   // ---------------------
   // Conclusion: (and R (= t w))
-  // where w = StringsPreprocess::reduce(t, R, ...).
+  // where w = strings::StringsPreprocess::reduce(t, R, ...).
   // In other words, R is the reduction predicate for extended term t, and w is
   //   (witness ((z T)) (= z t))
   // Notice that the free variables of R are w and the free variables of t.
@@ -720,7 +721,7 @@ enum class PfRule : uint32_t
   // Arguments: (t, id?)
   // ---------------------
   // Conclusion: R
-  // where R = StringsPreprocess::eagerReduce(t, id).
+  // where R = strings::TermRegistry::eagerReduce(t, id).
   STRING_EAGER_REDUCTION,
   //======================== Regular expressions
   // ======== Regular expression intersection
@@ -752,6 +753,13 @@ enum class PfRule : uint32_t
   // L. corresponding to the one-step unfolding of the premise, optimized for
   // fixed length of component i of the regular expression concatenation R.
   RE_UNFOLD_NEG_CONCAT_FIXED,
+  // ======== Regular expression elimination
+  // Children: (P:F)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: R
+  // where R = strings::RegExpElimination::eliminate(F).
+  RE_ELIM,
   //======================== Code points
   // Children: none
   // Arguments: (t, s)

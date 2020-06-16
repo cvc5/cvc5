@@ -1723,15 +1723,22 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
   {
     // all BUILTIN should be handled
     Assert(from != THEORY_BUILTIN);
+    // TODO: enable
+    /*
+    if (options::proofNewPedantic())
+    {
+      AlwaysAssert(false) << "THEORY_LEMMA : "
+                          << p << " from " << from << std::endl;
+    }
+    */
     // untrusted theory lemma
-    std::vector<Node> children;
     std::vector<Node> args;
     args.push_back(p);
     unsigned tid = static_cast<unsigned>(from);
     Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
     args.push_back(tidn);
     // add the step, should always succeed;
-    d_lazyProof->addStep(p, PfRule::THEORY_LEMMA, children, args);
+    d_lazyProof->addStep(p, PfRule::THEORY_LEMMA, {}, args);
   }
 }
 
@@ -2261,6 +2268,14 @@ theory::TrustNode TheoryEngine::getExplanation(
         unsigned tid = static_cast<unsigned>(it->first);
         Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
         pfArgs.push_back(tidn);
+        // TODO: enable
+        /*
+        if (options::proofNewPedantic())
+        {
+          AlwaysAssert(false) << "THEORY_LEMMA during explanation : "
+                              << proven << " from " << ttid << std::endl;
+        }
+        */
         lcp->addStep(proven, PfRule::THEORY_LEMMA, pfChildren, pfArgs);
       }
       std::vector<Node> pfChildren;

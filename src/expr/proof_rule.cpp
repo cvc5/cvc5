@@ -115,6 +115,7 @@ const char* toString(PfRule id)
     case PfRule::RE_UNFOLD_NEG: return "RE_UNFOLD_NEG";
     case PfRule::RE_UNFOLD_NEG_CONCAT_FIXED:
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
+    case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     //================================================= Arith rules
     case PfRule::SCALE_SUM_UPPER_BOUNDS: return "SCALE_SUM_UPPER_BOUNDS";
