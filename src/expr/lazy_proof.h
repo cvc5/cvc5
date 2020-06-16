@@ -95,7 +95,7 @@ class LazyCDProof : public CDProof
    * robust to symmetry of (dis)equality. It updates isSym to true if a
    * proof generator for the symmetric form of fact was provided.
    */
-  ProofGenerator* getGeneratorFor(Node fact, bool& isSym, bool& isPredEq);
+  ProofGenerator* getGeneratorFor(Node fact, bool& isSym);
 };
 
 }  // namespace CVC4

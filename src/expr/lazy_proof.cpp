@@ -59,8 +59,8 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
       if (cur->getRule() == PfRule::ASSUME)
       {
         Node afact = cur->getResult();
-        bool isSym = false, isPredEq = false;
-        ProofGenerator* pg = getGeneratorFor(afact, isSym, isPredEq);
+        bool isSym = false;
+        ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
           Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
@@ -126,8 +126,7 @@ void LazyCDProof::addLazyStep(Node expected,
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
-                                             bool& isSym,
-                                             bool& isPredEq)
+                                             bool& isSym)
 {
   isSym = false;
   NodeProofGeneratorMap::const_iterator it = d_gens.find(fact);

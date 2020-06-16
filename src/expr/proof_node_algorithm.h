@@ -1,4 +1,4 @@
-/*********************
+/*********************                                                        */
 /*! \file proof_node_algorithm.h
  ** \verbatim
  ** Top contributors (to current version):

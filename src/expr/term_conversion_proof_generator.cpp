@@ -33,8 +33,12 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
     // nothing to do
     return;
   }
-  // should not rewrite term more than once
-  Assert(!hasRewriteStep(t));
+  // should not rewrite term to two different things
+  if (hasRewriteStep(t))
+  {
+    Assert (getRewriteStep(t)==s);
+    return;
+  }
   Node eq = t.eqNode(s);
   d_proof.addLazyStep(eq, pg);
   d_rewriteMap[t] = s;
@@ -47,8 +51,12 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
     // nothing to do
     return;
   }
-  // should not rewrite term more than once
-  Assert(!hasRewriteStep(t));
+  // should not rewrite term to two different things
+  if (hasRewriteStep(t))
+  {
+    Assert (getRewriteStep(t)==s);
+    return;
+  }
   Node eq = t.eqNode(s);
   d_proof.addStep(eq, ps);
   d_rewriteMap[t] = s;
@@ -65,8 +73,12 @@ void TConvProofGenerator::addRewriteStep(Node t,
     // nothing to do
     return;
   }
-  // should not rewrite term more than once
-  Assert(!hasRewriteStep(t));
+  // should not rewrite term to two different things
+  if (hasRewriteStep(t))
+  {
+    Assert (getRewriteStep(t)==s);
+    return;
+  }
   Node eq = t.eqNode(s);
   d_proof.addStep(eq, id, children, args);
   d_rewriteMap[t] = s;

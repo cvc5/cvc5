@@ -214,8 +214,11 @@ Node RemoveTermFormulas::run(TNode node,
           // (exists x. node[1])
           // -------------------- SKOLEMIZE
           // node[1] * { x -> skolem }
-          d_lp->addLazyStep(existsAssertion,
-                            sm->getProofGenerator(existsAssertion));
+          ProofGenerator * expg = sm->getProofGenerator(existsAssertion);
+          if (expg!=nullptr)
+          {
+            d_lp->addLazyStep(existsAssertion, expg);
+          }
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }
