@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; EXPECT: (error "Parse Error: issue-4075.smt2:10.26: expecting number of repeats > 0
 ; EXPECT:
 ; EXPECT:  (simplify ((_ repeat 0) b))

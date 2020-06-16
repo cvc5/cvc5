@@ -1,3 +1,4 @@
+; REQUIRES: no-competition
 ; COMMAND-LINE: --incremental
 ; EXPECT: sat
 ; EXPECT: sat
