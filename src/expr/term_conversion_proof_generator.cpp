@@ -36,7 +36,7 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
   // should not rewrite term to two different things
   if (hasRewriteStep(t))
   {
-    Assert (getRewriteStep(t)==s);
+    Assert(getRewriteStep(t) == s);
     return;
   }
   Node eq = t.eqNode(s);
@@ -54,7 +54,7 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
   // should not rewrite term to two different things
   if (hasRewriteStep(t))
   {
-    Assert (getRewriteStep(t)==s);
+    Assert(getRewriteStep(t) == s);
     return;
   }
   Node eq = t.eqNode(s);
@@ -76,7 +76,7 @@ void TConvProofGenerator::addRewriteStep(Node t,
   // should not rewrite term to two different things
   if (hasRewriteStep(t))
   {
-    Assert (getRewriteStep(t)==s);
+    Assert(getRewriteStep(t) == s);
     return;
   }
   Node eq = t.eqNode(s);
