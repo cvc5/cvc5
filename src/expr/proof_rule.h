@@ -499,7 +499,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F true)
   TRUE_INTRO,
   // ======== True elim
-  // Children: (P:(= F true)
+  // Children: (P:(= F true))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: F
@@ -511,7 +511,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= F false)
   FALSE_INTRO,
   // ======== False elim
-  // Children: (P:(= F false)
+  // Children: (P:(= F false))
   // Arguments: none
   // ----------------------------------------
   // Conclusion: (not F)

@@ -422,6 +422,8 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/sygus_datatype_utils.cpp
+  theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
   theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
