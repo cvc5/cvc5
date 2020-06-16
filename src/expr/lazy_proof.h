@@ -52,7 +52,7 @@ class LazyCDProof : public CDProof
    * additionally call proof generators to generate proofs for ASSUME nodes that
    * don't yet have a concrete proof.
    */
-  std::shared_ptr<ProofNode> mkProof(Node fact) override;
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Add step by generator
    *
    * This method stores that expected can be proven by proof generator pg if
@@ -62,7 +62,7 @@ class LazyCDProof : public CDProof
    * It is important to note that pg is asked to provide a proof for expected
    * only when no other call for the fact expected is provided via the addStep
    * method of this class. In particular, pg is asked to prove expected when it
-   * appears as the conclusion of an ASSUME leaf within CDProof::mkProof.
+   * appears as the conclusion of an ASSUME leaf within CDProof::getProofFor.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
@@ -80,6 +80,8 @@ class LazyCDProof : public CDProof
   bool hasGenerators() const;
   /** Does the given fact have an explicitly provided generator? */
   bool hasGenerator(Node fact) const;
+  /** identify */
+  std::string identify() const override;
 
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
