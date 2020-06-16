@@ -709,7 +709,8 @@ void LFSCProof::toStream(std::ostream& out) const
     // collects the atoms in the assertions
     Debug("pf::pm") << std::endl
                     << "LFSCProof::toStream: Colleting atoms from assertions "
-                    << used_assertions << "\n" << push;
+                    << used_assertions << "\n"
+                    << push;
     for (TNode used_assertion : used_assertions)
     {
       collectAtoms(used_assertion, atoms, d_cnfProof);
