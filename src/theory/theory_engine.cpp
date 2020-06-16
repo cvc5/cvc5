@@ -1630,7 +1630,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(lemmas[i], false, removable, rule, node);
+    d_propEngine->assertLemma(lemmas[i], i == 0 && negated, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume lemmas[0] to be not negated.
