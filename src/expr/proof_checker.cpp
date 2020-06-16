@@ -25,12 +25,8 @@ Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {
-  // convert to witness form
-  std::vector<Node> childrenw = children;
-  std::vector<Node> argsw = args;
-  Node res = checkInternal(id, childrenw, argsw);
-  // res is in terms of witness form, convert back to Skolem form
-  return res;
+  // call instance-specific checkInternal method
+  return checkInternal(id, children, args);
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
