@@ -56,7 +56,7 @@ class TheoryPreprocessor
    * removal. For each lemma in newLemmas, we add the corresponding skolem that
    * the lemma defines. The flag doTheoryPreprocess is whether we should run
    * theory-specific preprocessing.
-   * 
+   *
    * @param node The assertion to preprocess,
    * @param newLemmas The lemmas to add to the set of assertions,
    * @param newSkolems The skolems that newLemmas correspond to,
