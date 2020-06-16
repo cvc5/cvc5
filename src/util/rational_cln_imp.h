@@ -20,10 +20,11 @@
 #ifndef CVC4__RATIONAL_H
 #define CVC4__RATIONAL_H
 
-#include <gmp.h>
+#include <cassert>
+
 #include <string>
 #include <sstream>
-#include <cassert>
+
 #include <cln/rational.h>
 #include <cln/input.h>
 #include <cln/io.h>
@@ -57,20 +58,16 @@ namespace CVC4 {
 class CVC4_PUBLIC Rational {
 private:
   /**
-   * Stores the value of the rational is stored in a C++ GMP rational class.
-   * Using this instead of mpq_t allows for easier destruction.
+   * Stores the value of the rational in a C++ CLN rational class.
    */
   cln::cl_RA d_value;
 
 public:
 
   /**
-   * Constructs a Rational from a mpq_class object.
+   * Constructs a Rational from a cln::cl_RA object.
    * Does a deep copy.
-   * Assumes that the value is in canonical form, and thus does not
-   * have to call canonicalize() on the value.
    */
-  //Rational(const mpq_class& val) : d_value(val) {  }
   Rational(const cln::cl_RA& val) : d_value(val) {  }
 
   /**
@@ -89,7 +86,7 @@ public:
    *
    * Throws std::invalid_argument if the string is not a valid rational.
    * For more information about what is a valid rational string,
-   * see GMP's documentation for mpq_set_str().
+   * see CLN's documentation for read_rational.
    */
   explicit Rational(const char* s, unsigned base = 10)
   {

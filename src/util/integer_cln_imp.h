@@ -20,14 +20,15 @@
 #ifndef CVC4__INTEGER_H
 #define CVC4__INTEGER_H
 
-#include <cln/input.h>
-#include <cln/integer.h>
-#include <cln/integer_io.h>
-#include <cln/modinteger.h>
 #include <iostream>
 #include <limits>
 #include <sstream>
 #include <string>
+
+#include <cln/input.h>
+#include <cln/integer.h>
+#include <cln/integer_io.h>
+#include <cln/modinteger.h>
 
 #include "base/exception.h"
 
@@ -79,9 +80,7 @@ public:
 
   /**
    * Constructs a Integer from a C string.
-   * Throws std::invalid_argument if the string is not a valid rational.
-   * For more information about what is a valid rational string,
-   * see GMP's documentation for mpq_set_str().
+   * Throws std::invalid_argument if the string is not a valid integer.
    */
   explicit Integer(const char* sp, unsigned base = 10)
   {
