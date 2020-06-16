@@ -229,8 +229,6 @@ class CDProof : public ProofGenerator
    * null if none exist.
    */
   static Node getSymmFact(TNode f);
-  /** Get proof for fact, or nullptr if it does not exist. */
-  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** identify */
   std::string identify() const override;
 
@@ -243,6 +241,8 @@ class CDProof : public ProofGenerator
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
+  /** Get proof for fact, or nullptr if it does not exist. */
+  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**

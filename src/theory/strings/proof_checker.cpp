@@ -18,6 +18,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/regexp_elim.h"
 #include "theory/strings/term_registry.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
@@ -47,6 +48,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::RE_UNFOLD_POS, this);
   pc->registerChecker(PfRule::RE_UNFOLD_NEG, this);
   pc->registerChecker(PfRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
+  pc->registerChecker(PfRule::RE_ELIM, this);
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
 }
 
@@ -433,6 +435,12 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       conc = RegExpOpr::reduceRegExpNegConcatFixed(skChild, reLen, index);
     }
     return conc;
+  }
+  else if (id == PfRule::RE_ELIM)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    return RegExpElimination::eliminate(children[0]);
   }
   else if (id == PfRule::STRING_CODE_INJ)
   {
