@@ -262,6 +262,14 @@ struct ArrayEqRangeTypeRule
         throw TypeCheckingExceptionPrivate(
             n, "eqrange upper index type does not match array index type");
       }
+      if (!indexType.isBitVector() && !indexType.isFloatingPoint()
+          && !indexType.isInteger() && !indexType.isReal())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n,
+            "eqrange only supports bit-vectors, floating-points, integers, and "
+            "reals as index type");
+      }
     }
     return nodeManager->booleanType();
   }

@@ -275,6 +275,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       logic.enableQuantifiers();
       logic.lock();
     }
+    // Allows to answer sat more often by default.
     if (!options::fmfBound.wasSetByUser())
     {
       options::fmfBound.set(true);

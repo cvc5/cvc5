@@ -1,6 +1,6 @@
 (set-logic QF_AUFBV)
 (set-option :arrays-exp true)
-(set-option :quiet true) ; Suppress Warning
+(set-option :quiet true) ; Suppress check-model warnings involving quantifiers
 (set-info :status sat)
 (declare-fun a1 () (Array (_ BitVec 2) (_ BitVec 2)))
 (declare-fun a2 () (Array (_ BitVec 2) (_ BitVec 2)))
