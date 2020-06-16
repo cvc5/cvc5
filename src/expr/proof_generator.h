@@ -24,7 +24,7 @@ namespace CVC4 {
 
 class CDProof;
 
-/** An overwrite policy for CDProof below */
+/** An overwrite policy for CDProof */
 enum class CDPOverwrite : uint32_t
 {
   // always overwrite an existing step.
