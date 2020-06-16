@@ -64,13 +64,9 @@ This file uses the API to make a sat call equivalent to the following benchmark:
 (get-model)
  */
 
-public
-class Relations
-{
- public
-  static void main(String[] args)
-  {
-    System.load("/usr/local/lib/libcvc4jni.so");
+public class Relations {
+  public static void main(String[] args) {
+    System.loadLibrary("cvc4jni");
 
     ExprManager manager = new ExprManager();
     SmtEngine smtEngine = new SmtEngine(manager);
@@ -134,9 +130,12 @@ class Relations
     // (assert (not (= females (as emptyset (Set (Tuple Person))))))
     Expr femaleSetIsNotEmpty = manager.mkExpr(Kind.NOT, isEmpty2);
 
-    // (assert (= (intersection males females) (as emptyset (Set (Tuple Person)))))
-    Expr malesFemalesIntersection = manager.mkExpr(Kind.INTERSECTION, males, females);
-    Expr malesAndFemalesAreDisjoint = manager.mkExpr(Kind.EQUAL, malesFemalesIntersection, emptySetExpr);
+    // (assert (= (intersection males females) (as emptyset (Set (Tuple
+    // Person)))))
+    Expr malesFemalesIntersection =
+        manager.mkExpr(Kind.INTERSECTION, males, females);
+    Expr malesAndFemalesAreDisjoint =
+        manager.mkExpr(Kind.EQUAL, malesFemalesIntersection, emptySetExpr);
 
     // (assert (not (= father (as emptyset (Set (Tuple Person Person))))))
     // (assert (not (= mother (as emptyset (Set (Tuple Person Person))))))
@@ -157,11 +156,13 @@ class Relations
 
     // (assert (= parent (union father mother)))
     Expr unionFatherMother = manager.mkExpr(Kind.UNION, father, mother);
-    Expr parentIsFatherOrMother = manager.mkExpr(Kind.EQUAL, parent, unionFatherMother);
+    Expr parentIsFatherOrMother =
+        manager.mkExpr(Kind.EQUAL, parent, unionFatherMother);
 
     // (assert (= parent (union father mother)))
     Expr transitiveClosure = manager.mkExpr(Kind.TCLOSURE, parent);
-    Expr descendantFormula = manager.mkExpr(Kind.EQUAL, descendant, transitiveClosure);
+    Expr descendantFormula =
+        manager.mkExpr(Kind.EQUAL, descendant, transitiveClosure);
 
     // (assert (= parent (union father mother)))
     Expr transpose = manager.mkExpr(Kind.TRANSPOSE, descendant);
@@ -176,28 +177,29 @@ class Relations
     vectorExpr vectorExpr = new vectorExpr();
     vectorExpr.add(x);
     Expr quantifiedVariables = manager.mkExpr(Kind.BOUND_VAR_LIST, x);
-    Expr noSelfAncestor = manager.mkExpr(Kind.FORALL, quantifiedVariables, notMember);
+    Expr noSelfAncestor =
+        manager.mkExpr(Kind.FORALL, quantifiedVariables, notMember);
 
     // formulas
     Expr formula1 = manager.mkExpr(Kind.AND,
-                                             peopleAreTheUniverse,
-                                             maleSetIsNotEmpty,
-                                             femaleSetIsNotEmpty,
-                                             malesAndFemalesAreDisjoint);
+        peopleAreTheUniverse,
+        maleSetIsNotEmpty,
+        femaleSetIsNotEmpty,
+        malesAndFemalesAreDisjoint);
 
     Expr formula2 = manager.mkExpr(Kind.AND,
-                                             formula1,
-                                             fatherIsNotEmpty,
-                                             motherIsNotEmpty,
-                                             fathersAreMales,
-                                             mothersAreFemales);
+        formula1,
+        fatherIsNotEmpty,
+        motherIsNotEmpty,
+        fathersAreMales,
+        mothersAreFemales);
 
     Expr formula3 = manager.mkExpr(Kind.AND,
-                                             formula2,
-                                             parentIsFatherOrMother,
-                                             descendantFormula,
-                                             ancestorFormula,
-                                             noSelfAncestor);
+        formula2,
+        parentIsFatherOrMother,
+        descendantFormula,
+        ancestorFormula,
+        noSelfAncestor);
 
     // check sat
     Result result = smtEngine.checkSat(formula3);

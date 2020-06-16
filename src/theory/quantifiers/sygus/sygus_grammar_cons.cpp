@@ -20,7 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"

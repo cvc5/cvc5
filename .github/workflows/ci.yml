@@ -82,6 +82,12 @@ jobs:
         python3 -m pip install \
           Cython==0.29 --install-option="--no-cython-compile"
 
+    - name: Install Pytest
+      if: matrix.python-bindings
+      run: |
+        python3 -m pip install pytest
+        python3 -m pytest --version
+
     - name: Restore Dependencies
       id: restore-deps
       uses: actions/cache@v1
@@ -159,6 +165,12 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
+
+    - name: Run Pytest
+      if: matrix.python-bindings
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples

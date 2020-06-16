@@ -429,15 +429,6 @@ header = "options/arith_options.h"
   help       = "apply pseudo boolean rewrites"
 
 [[option]]
-  name       = "sNormInferEq"
-  category   = "regular"
-  long       = "snorm-infer-eq"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "infer equalities based on Shostak normalization"
-
-[[option]]
   name       = "nlExt"
   category   = "regular"
   long       = "nl-ext"

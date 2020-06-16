@@ -250,6 +250,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint hasOp() except +
         Op getOp() except +
         bint isNull() except +
+        bint isConst() except +
         Term getConstArrayBase() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
