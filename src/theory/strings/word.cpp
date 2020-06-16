@@ -71,7 +71,8 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
         seq.push_back(c.toExpr());
       }
     }
-    return NodeManager::currentNM()->mkConst(ExprSequence(tn.toType(), seq));
+    return NodeManager::currentNM()->mkConst(
+        ExprSequence(tn.getSequenceElementType().toType(), seq));
   }
   Unimplemented();
   return Node::null();
@@ -88,17 +89,17 @@ size_t Word::getLength(TNode x)
   {
     return x.getConst<ExprSequence>().getSequence().size();
   }
-  Unimplemented();
+  Unimplemented() << "Word::getLength on " << x;
   return 0;
 }
 
 std::vector<Node> Word::getChars(TNode x)
 {
   Kind k = x.getKind();
+  std::vector<Node> ret;
+  NodeManager* nm = NodeManager::currentNM();
   if (k == CONST_STRING)
   {
-    std::vector<Node> ret;
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<unsigned> ccVec;
     const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
     for (unsigned chVal : cvec)
@@ -112,11 +113,16 @@ std::vector<Node> Word::getChars(TNode x)
   }
   else if (k == CONST_SEQUENCE)
   {
+    Type t = x.getConst<ExprSequence>().getType();
     const Sequence& sx = x.getConst<ExprSequence>().getSequence();
-    return sx.getVec();
+    const std::vector<Node>& vec = sx.getVec();
+    for (const Node& v : vec)
+    {
+      ret.push_back(nm->mkConst(ExprSequence(t, {v.toExpr()})));
+    }
+    return ret;
   }
   Unimplemented();
-  std::vector<Node> ret;
   return ret;
 }
 
