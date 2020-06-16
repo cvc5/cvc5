@@ -69,48 +69,49 @@ PR finished:
 (14) Builtin rules, builtin checker (req 5)
 (15) Boolean rules, boolean checker [Haniel] (req 5)
 (16) UF rules, UF checker [Haniel] (req 5)
-(18) Add LazyCDProof (req 11) *
+(18) Add LazyCDProof (req 11)
+(19) ProofNode update, refactor free assumptions via proof_node_algorithm
 (21) static strings preprocess reduce (req 7)
+(22) Strings base solver update (req 2)
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
 (34) theory proof step buffer
 (36) term conversion proof generator
+(38) quantifiers proof checker (req 8)
 (48) remove snorm option
 
 PRs ready:
 
 (0) Add proof option
-(19) ProofNode update, refactor free assumptions via proof_node_algorithm *
-(22) Strings base solver update (req 2) *
+(23) Updates to proof node manager, including mkScope (req 19) *
 (25) Arithmetic proof checker [Alex]
 (33) split operator elimination from arith (req 28) *
 (35) Strings term registry update (req 13) *
 (37) Rewriter proof producing [Andres] (req 36)
-(38) quantifiers proof checker (req 8) *
 (45) regexp operation refactor (req 3, 7, 8) *
+(49) re elim static *
 
 PRs future:
 
 (6) Equality engine updates [Haniel] (req 0)
 (17) rewriter new infrastructure "rewriteEqualityExt"
 (20) Eq proof conversion [Haniel] (req 6)
-(23) Updates to proof node manager, including mkScope (req 19)
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
-(26) strings infer info update "noExplain", all calls to InferenceManager
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35)
 (29) CongruenceManager uses pfee [Alex] (req 24, 25)
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
-(32) Add trustedConflict/trustedLemma to output channel (req 12, 27)
+(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
 (39) TheoryEngine proof checker initialize all theories (req 27)
-(40) theory engine proof generator (req 13, 18, 23)
+(40) theory engine proof generator (req 11, 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24)
 (42) String rules, string checker (req 5, 17, 22)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 41)
-(46) theory engine proof generator (req 11, 18, 23)
-(47) TheoryUF proof producing (req 24)
-(48) theory preprocess and term formula removal proof producing TODO (req 27, 36, 38, 39, 40)
-(49) strings term registry proof producing (req 32, 35)
+(46) strings term registry proof producing (req 32, 35)
+(47) TheoryUF proof producing [Haniel] (req 24)
+(48) term formula removal proof producing (req 36, 38)
+(50) theory preprocess proof producing (req 27, 48)
 
 PRs wish list:
 
