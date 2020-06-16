@@ -230,7 +230,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
   Assert(!visited.find(t)->second.isNull());
   // make the overall proof
   Node teq = t.eqNode(visited[t]);
-  return pf.mkProof(teq);
+  return pf.getProofFor(teq);
 }
 
 Node TConvProofGenerator::getRewriteStep(Node t) const
