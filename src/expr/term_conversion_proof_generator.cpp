@@ -94,8 +94,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
 {
   // we use the existing proofs
-  PRefProofGenerator prg(&d_proof);
-  LazyCDProof pf(d_proof.getManager(), &prg);
+  LazyCDProof pf(d_proof.getManager(), &d_proof);
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,
   // then pf is able to generate a proof of t=s.
