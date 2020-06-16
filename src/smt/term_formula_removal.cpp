@@ -27,7 +27,11 @@ using namespace std;
 namespace CVC4 {
 
 RemoveTermFormulas::RemoveTermFormulas(context::UserContext* u)
-    : d_tfCache(u), d_skolem_cache(u), d_pnm(nullptr), d_tpg(nullptr), d_lp(nullptr)
+    : d_tfCache(u),
+      d_skolem_cache(u),
+      d_pnm(nullptr),
+      d_tpg(nullptr),
+      d_lp(nullptr)
 {
 }
 
@@ -120,17 +124,19 @@ Node RemoveTermFormulas::run(TNode node,
         if (isProofEnabled())
         {
           // ---------------------- REMOVE_TERM_FORMULA_AXIOM
-          // (ite node[0] 
+          // (ite node[0]
           //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
           //      (= node node[2]))           node = skolem
           // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
           // (ite node[0] (= skolem node[1]) (= skolem node[2]))
           Node axiom = getAxiomFor(node);
-          d_lp->addStep(
-              axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
+          d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
           Node eq = node.eqNode(skolem);
           d_lp->addStep(eq, PfRule::MACRO_SR_PRED_INTRO, {}, {eq});
-          d_lp->addStep(newAssertion, PfRule::MACRO_SR_PRED_TRANSFORM, {axiom, eq}, {newAssertion});
+          d_lp->addStep(newAssertion,
+                        PfRule::MACRO_SR_PRED_TRANSFORM,
+                        {axiom, eq},
+                        {newAssertion});
           newAssertionPg = d_lp.get();
         }
       }
@@ -202,12 +208,14 @@ Node RemoveTermFormulas::run(TNode node,
         // purification witness terms.
         if (isProofEnabled())
         {
-          Node existsAssertion = nodeManager->mkNode(kind::EXISTS, node[0], node[1]);
+          Node existsAssertion =
+              nodeManager->mkNode(kind::EXISTS, node[0], node[1]);
           // -------------------- from skolem manager
           // (exists x. node[1])
           // -------------------- SKOLEMIZE
           // node[1] * { x -> skolem }
-          d_lp->addLazyStep(existsAssertion, sm->getProofGenerator(existsAssertion));
+          d_lp->addLazyStep(existsAssertion,
+                            sm->getProofGenerator(existsAssertion));
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }

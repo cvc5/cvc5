@@ -486,7 +486,8 @@ Node RegExpElimination::eliminateStar(Node atom)
   bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
   Node index = nm->mkBoundVar(nm->integerType());
-  Node substr_ch = nm->mkNode(STRING_SUBSTR, x, index, nm->mkConst(Rational(1)));
+  Node substr_ch =
+      nm->mkNode(STRING_SUBSTR, x, index, nm->mkConst(Rational(1)));
   substr_ch = Rewriter::rewrite(substr_ch);
   // handle the case where it is purely characters
   for (const Node& r : disj)
@@ -561,9 +562,7 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
         Node res = nm->mkNode(FORALL, bvl, body);
         res = nm->mkNode(
-            AND,
-            nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(zero),
-            res);
+            AND, nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(zero), res);
         // e.g.
         //    x in ("abc")* --->
         //    forall k. 0 <= k < (len( x ) div 3) => substr(x,3*k,3) = "abc" ^

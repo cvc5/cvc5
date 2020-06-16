@@ -39,7 +39,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
   if (isProofEnabled())
   {
     // enable proofs in the term formula remover
-    if (pnm!=nullptr)
+    if (pnm != nullptr)
     {
       d_tfr.setProofChecker(pnm->getChecker());
     }
@@ -68,7 +68,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          bool doTheoryPreprocess)
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
-  
+
   // Run theory preprocessing, maybe
   Node ppNode = node;
   if (doTheoryPreprocess)
@@ -125,10 +125,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     {
       if (trn.getGenerator() != nullptr)
       {
-        Assert( d_lp!=nullptr );
+        Assert(d_lp != nullptr);
         // store in the lazy proof
         d_lp->addLazyStep(assertion, trn.getGenerator());
-        d_lp->addStep(rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, {assertion}, {rewritten});
+        d_lp->addStep(rewritten,
+                      PfRule::MACRO_SR_PRED_TRANSFORM,
+                      {assertion},
+                      {rewritten});
         newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
       }
       else
