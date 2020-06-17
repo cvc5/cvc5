@@ -17,7 +17,7 @@
     this.em = em;
   }
 
-  public $javaclassname(ExprManager em, $typemap(jboxtype, TTYPE) t) {
+  public $javaclassname(ExprManager em, $typemap(jstype, TTYPE) t) {
     this(t);
     this.em = em;
   }
@@ -35,7 +35,7 @@
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
 %typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<TTYPE, VTYPE> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter< TTYPE, VTYPE > "java.util.Iterator<$typemap(jboxtype, VTYPE)>";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter< TTYPE, VTYPE > "java.util.Iterator<$typemap(jstype, VTYPE)>";
 
 // add some functions to the Java side (do it here because there's no way to do these in C++)
 %typemap(javacode) CVC4::JavaIteratorAdapter<TTYPE, VTYPE> "
@@ -43,7 +43,7 @@
     throw new java.lang.UnsupportedOperationException();
   }
 
-  public $typemap(jboxtype, VTYPE) next() {
+  public $typemap(jstype, VTYPE) next() {
     if(hasNext()) {
       return getNext();
     } else {

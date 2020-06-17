@@ -20,7 +20,7 @@
 %}
 
 %define SWIG_STD_VECTOR_EM(CTYPE, CONST_REFERENCE)
-%typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jboxtype, CTYPE)>"
+%typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jstype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
 
 %typemap(javabody) std::vector< CTYPE > %{
@@ -60,22 +60,22 @@
     }
   }
 
-  public $javaclassname(ExprManager em, Iterable<$typemap(jboxtype, CTYPE)> initialElements) {
+  public $javaclassname(ExprManager em, Iterable<$typemap(jstype, CTYPE)> initialElements) {
     this(em);
     for ($typemap(jstype, CTYPE) element : initialElements) {
       add(element);
     }
   }
 
-  public $typemap(jboxtype, CTYPE) get(int index) {
+  public $typemap(jstype, CTYPE) get(int index) {
     return doGet(index);
   }
 
-  public $typemap(jboxtype, CTYPE) set(int index, $typemap(jboxtype, CTYPE) e) {
+  public $typemap(jstype, CTYPE) set(int index, $typemap(jstype, CTYPE) e) {
     return doSet(index, e);
   }
 
-  public boolean add($typemap(jboxtype, CTYPE) e) {
+  public boolean add($typemap(jstype, CTYPE) e) {
     modCount++;
     doAdd(e);
     return true;

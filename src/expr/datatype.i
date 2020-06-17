@@ -38,9 +38,6 @@
 %ignore CVC4::DatatypeConstructorIterator;
 %ignore CVC4::DatatypeConstructorArgIterator;
 
-// %feature("valuewrapper") CVC4::DatatypeUnresolvedType;
-// %feature("valuewrapper") CVC4::DatatypeConstructor;
-
 %ignore CVC4::DatatypeIndexConstant::operator!=(const DatatypeIndexConstant&) const;
 %rename(equals) CVC4::DatatypeIndexConstant::operator==(const DatatypeIndexConstant&) const;
 %rename(less) CVC4::DatatypeIndexConstant::operator<(const DatatypeIndexConstant&) const;
