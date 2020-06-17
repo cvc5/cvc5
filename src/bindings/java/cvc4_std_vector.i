@@ -20,11 +20,12 @@
 
 %fragment("SWIG_VectorSize", "header", fragment="SWIG_JavaIntFromSize_t") {
 SWIGINTERN jint SWIG_VectorSize(size_t size) {
-  jint sz = SWIG_JavaIntFromSize_t(size);
-  if (sz == -1)
+  static const jint JINT_MAX = 0x7FFFFFFF;
+  if (size > static_cast<size_t>(JINT_MAX))
+  {
     throw std::out_of_range("vector size is too large to fit into a Java int");
-  return sz;
-}
+  }
+  return static_cast<jint>(size);
 }
 
 %define SWIG_STD_VECTOR_EM(CTYPE, CONST_REFERENCE)
