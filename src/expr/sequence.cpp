@@ -252,6 +252,20 @@ bool Sequence::hasSuffix(const Sequence& y) const
   return true;
 }
 
+Sequence Sequence::update(size_t i, const Sequence& t) const
+{
+  Assert(d_type == t.d_type);
+  if (i < size())
+  {
+    std::vector<Node> vec;
+    vec.insert(vec.begin(), d_seq.begin(), d_seq.begin() + i);
+    vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
+    vec.insert(vec.end(), d_seq.begin() + i + 1, d_seq.end());
+    return Sequence(d_type, vec);
+  }
+  return *this;
+}
+
 Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
 {
   Assert(d_type == s.d_type);

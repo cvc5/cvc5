@@ -77,6 +77,8 @@ class Sequence
   bool hasPrefix(const Sequence& y) const;
   /** Returns true if y is a suffix of this */
   bool hasSuffix(const Sequence& y) const;
+  /** Replace the character at index i in this sequence with t */
+  Sequence update(size_t i, const Sequence& t) const;
   /** Replace the first occurrence of s in this sequence with t */
   Sequence replace(const Sequence& s, const Sequence& t) const;
   /** Return the subsequence of this sequence starting at index i */
