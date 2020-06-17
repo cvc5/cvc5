@@ -27,6 +27,7 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
   }
   return static_cast<jint>(size);
 }
+}
 
 %define SWIG_STD_VECTOR_EM(CTYPE, CONST_REFERENCE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jstype, CTYPE)>"
