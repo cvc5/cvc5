@@ -200,8 +200,8 @@ class ExtendedRewriter
   /** Partial substitute
    *
    * Applies the substitution specified by assign to n, recursing only beneath
-   * terms whose Kind appears in rkinds (when rkinds is empty), and additional
-   * always disallow recursing beneath WITNESS.
+   * terms whose Kind appears in rkinds (when rkinds is empty), and additionally
+   * never recursing beneath WITNESS.
    */
   Node partialSubstitute(Node n,
                          std::map<Node, Node>& assign,
