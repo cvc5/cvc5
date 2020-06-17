@@ -1397,6 +1397,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteSubstr(node);
   }
+  else if (nk == kind::STRING_UPDATE)
+  {
+    retNode = rewriteUpdate(node);
+  }
   else if (nk == kind::STRING_STRCTN)
   {
     retNode = rewriteContains(node);
@@ -1788,6 +1792,53 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
+  return node;
+}
+
+Node SequencesRewriter::rewriteUpdate(Node node)
+{
+  Assert(node.getKind() == kind::STRING_UPDATE);
+
+  NodeManager* nm = NodeManager::currentNM();
+  
+  if (node[0].isConst())
+  {
+    if (Word::isEmpty(node[0]))
+    {
+      Node ret = node[0];
+      return returnRewrite(node, ret, Rewrite::UPD_EMPTYSTR);
+    }
+    // rewriting for constant arguments
+    if (node[1].isConst())
+    {
+      Node s = node[0];
+      CVC4::Rational rMaxInt(String::maxSize());
+      if (node[1].getConst<Rational>() > rMaxInt)
+      {
+        // start beyond the maximum size of strings
+        // thus, it must be beyond the end point of this string
+        return returnRewrite(node, node[0], Rewrite::UPD_CONST_INDEX_MAX_OOB);
+      }
+      else if (node[1].getConst<Rational>().sgn() < 0)
+      {
+        // start before the beginning of the string
+        Node ret = Word::mkEmptyWord(node.getType());
+        return returnRewrite(node, ret, Rewrite::UPD_CONST_INDEX_NEG);
+      }
+      uint32_t start = node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      if (start >= Word::getLength(node[0]))
+      {
+        // start beyond the end of the string
+        return returnRewrite(node, node[0], Rewrite::UPD_CONST_INDEX_OOB);
+      }
+      // compute the update
+      Node pre = Word::substr(s,0,start);
+      Node post = Word::substr(s,start+1);
+      Node ret = nm->mkNode(STRING_CONCAT,pre,node[2],post);
+      return returnRewrite(node, ret, Rewrite::UPD_EVAL);
+    }
+  }
+  
   return node;
 }
 

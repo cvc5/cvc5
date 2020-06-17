@@ -96,6 +96,39 @@ class StringSubstrTypeRule
   }
 };
 
+
+class StringUpdateTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in update");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in update");
+      }
+      t2 = n[2].getType(check);
+      if (!t2.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an string replace term in update");
+      }
+    }
+    return t;
+  }
+};
+
 class StringAtTypeRule
 {
  public:

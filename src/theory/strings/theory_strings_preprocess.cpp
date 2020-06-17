@@ -114,6 +114,14 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, substr( s, n, m ) = skt
     retNode = skt;
   }
+  else if (t.getKind() == kind::STRING_UPDATE)
+  {
+    // processing term:  substr( s, n, m )
+    Node s = t[0];
+    Node n = t[1];
+    Node m = t[2];
+    
+  }
   else if (t.getKind() == kind::STRING_STRIDOF)
   {
     // processing term:  indexof( x, y, n )
