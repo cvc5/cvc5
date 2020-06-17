@@ -563,6 +563,11 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
   Node new_ret;
   // all kinds are legal to substitute over : hence we give the empty map
   std::map<Kind, bool> bcp_kinds;
+  bcp_kinds[AND] = true;
+  bcp_kinds[OR] = true;
+  bcp_kinds[NOT] = true;
+  bcp_kinds[ITE] = true;
+  bcp_kinds[EQUAL] = true;
   new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, n);
   if (!new_ret.isNull())
   {
