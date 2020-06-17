@@ -16,6 +16,7 @@
 
 #include "theory/strings/regexp_operation.h"
 
+#include "expr/node_algorithm.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/regexp_entail.h"
@@ -1022,20 +1023,34 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
   {
     std::vector<Node> nvec;
     std::vector<Node> cc;
+    // get the (valid) existential for this membership
+    Node eform = getExistsForRegExpConcatMem(mem);
+    SkolemManager* sm = nm->getSkolemManager();
+    // Notice that this rule does not introduce witness terms, instead it
+    // uses skolems in the conclusion of the proof rule directly. Thus,
+    // the existential eform does not need to be explicitly justified by a
+    // proof here, since it is only being used as an intermediate formula in
+    // this inference. Hence we do not pass a proof generator to mkSkolemize.
+    std::vector<Node> skolems;
+    sm->mkSkolemize(eform, skolems, "rc", "regexp concat skolem");
+    Assert(skolems.size() == r.getNumChildren());
     // Look up skolems for each of the components. If sc has optimizations
     // enabled, this will return arguments of str.to_re.
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
     {
-      Node index = nm->mkConst(Rational(i));
-      // make the skolem
-      Node sk = sc->mkSkolemCached(
-          mem, index, SkolemCache::SK_RE_CONCAT_COMPONENT, "rc");
-      cc.push_back(sk);
-      nvec.push_back(nm->mkNode(STRING_IN_REGEXP, sk, r[i]));
+      if (r[i].getKind() == STRING_TO_REGEXP)
+      {
+        // optimization, just take the body
+        skolems[i] = r[i][0];
+      }
+      else
+      {
+        nvec.push_back(nm->mkNode(STRING_IN_REGEXP, skolems[i], r[i]));
+      }
     }
     // (str.in_re x (re.++ R1 .... Rn)) =>
     // (and (str.in_re k1 R1) ... (str.in_re kn Rn) (= x (str.++ k1 ... kn)))
-    Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, cc));
+    Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, skolems));
     nvec.push_back(lem);
     conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
   }
@@ -1192,24 +1207,6 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
   }
 }
 
-bool RegExpOpr::testNoRV(Node r) {
-  std::map< Node, bool >::const_iterator itr = d_norv_cache.find(r);
-  if(itr != d_norv_cache.end()) {
-    return itr->second;
-  } else {
-    if(r.getKind() == kind::REGEXP_RV) {
-      return false;
-    } else if(r.getNumChildren() > 1) {
-      for(unsigned int i=0; i<r.getNumChildren(); i++) {
-        if(!testNoRV(r[i])) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-}
-
 Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node > cache, unsigned cnt ) {
   //Assert(checkConstRegExp(r1) && checkConstRegExp(r2));
   if(r1 > r2) {
@@ -1329,7 +1326,8 @@ Node RegExpOpr::intersectInternal( Node r1, Node r2, std::map< PairNodes, Node >
       }
     }
     Trace("regexp-int-debug") << "  ... try testing no RV of " << mkString(rNode) << std::endl;
-    if(testNoRV(rNode)) {
+    if (!expr::hasSubtermKind(REGEXP_RV, rNode))
+    {
       d_inter_cache[p] = rNode;
     }
   }
@@ -1383,8 +1381,7 @@ Node RegExpOpr::removeIntersection(Node r) {
           }
           else
           {
-            bool spflag = false;
-            ret = intersect(ret, it->second, spflag);
+            ret = intersect(ret, it->second);
           }
         }
         else
@@ -1418,22 +1415,25 @@ Node RegExpOpr::removeIntersection(Node r) {
   return visited[r];
 }
 
-Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
-  if(checkConstRegExp(r1) && checkConstRegExp(r2)) {
-    Node rr1 = removeIntersection(r1);
-    Node rr2 = removeIntersection(r2);
-    std::map< PairNodes, Node > cache;
-    Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
-    Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
-    Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ")" << std::endl;
-    Node retNode = intersectInternal(rr1, rr2, cache, 1);
-    Trace("regexp-intersect") << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ") =\n\t" << mkString(retNode) << std::endl;
-    Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
-    return retNode;
-  } else {
-    spflag = true;
+Node RegExpOpr::intersect(Node r1, Node r2)
+{
+  if (!checkConstRegExp(r1) || !checkConstRegExp(r2))
+  {
     return Node::null();
   }
+  Node rr1 = removeIntersection(r1);
+  Node rr2 = removeIntersection(r2);
+  std::map<PairNodes, Node> cache;
+  Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
+  Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
+  Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1)
+                            << ",\n\t" << mkString(r2) << ")" << std::endl;
+  Node retNode = intersectInternal(rr1, rr2, cache, 1);
+  Trace("regexp-intersect")
+      << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t" << mkString(r2)
+      << ") =\n\t" << mkString(retNode) << std::endl;
+  Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
+  return retNode;
 }
 
 //printing
@@ -1565,6 +1565,50 @@ bool RegExpOpr::regExpIncludes(Node r1, Node r2)
   bool result = RegExpEntail::regExpIncludes(r1, r2);
   d_inclusionCache[std::make_pair(r1, r2)] = result;
   return result;
+}
+
+/**
+ * Associating formulas with their "exists form", or an existentially
+ * quantified formula that is equivalent to it. This is currently used
+ * for regular expression memberships in the method below.
+ */
+struct ExistsFormAttributeId
+{
+};
+typedef expr::Attribute<ExistsFormAttributeId, Node> ExistsFormAttribute;
+
+Node RegExpOpr::getExistsForRegExpConcatMem(Node mem)
+{
+  // get or make the exists form of the membership
+  ExistsFormAttribute efa;
+  if (mem.hasAttribute(efa))
+  {
+    // already computed
+    return mem.getAttribute(efa);
+  }
+  Assert(mem.getKind() == STRING_IN_REGEXP);
+  Node x = mem[0];
+  Node r = mem[1];
+  Assert(r.getKind() == REGEXP_CONCAT);
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode xtn = x.getType();
+  std::vector<Node> vars;
+  std::vector<Node> mems;
+  for (const Node& rc : r)
+  {
+    Node v = nm->mkBoundVar(xtn);
+    vars.push_back(v);
+    mems.push_back(nm->mkNode(STRING_IN_REGEXP, v, rc));
+  }
+  Node sconcat = nm->mkNode(STRING_CONCAT, vars);
+  Node eq = x.eqNode(sconcat);
+  mems.insert(mems.begin(), eq);
+  Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
+  Node ebody = nm->mkNode(AND, mems);
+  Node eform = nm->mkNode(EXISTS, bvl, ebody);
+  mem.setAttribute(efa, eform);
+  Trace("regexp-opr") << "Exists form " << mem << " : " << eform << std::endl;
+  return eform;
 }
 
 }/* CVC4::theory::strings namespace */

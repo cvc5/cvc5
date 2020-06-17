@@ -34,12 +34,8 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
   NodeLazyCDProofMap::iterator it = d_proofs.find(p);
   if (it == d_proofs.end())
   {
-    // we will prove this
+    // we will prove the fact p using the proof from lpf.
     d_proofs.insert(p, lpf);
-  }
-  else
-  {
-    // Assert(false);
   }
   return trn;
 }
@@ -70,7 +66,7 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   Node conclusion = f[1];
 
   // get the proof for conclusion
-  std::shared_ptr<ProofNode> pfb = lcp->mkProof(conclusion);
+  std::shared_ptr<ProofNode> pfb = lcp->getProofFor(conclusion);
   // call the scope method of proof node manager
   std::shared_ptr<ProofNode> pf = d_pnm->mkScope(pfb, scopeAssumps);
   return pf;

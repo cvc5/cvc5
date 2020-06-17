@@ -16,34 +16,23 @@ ProofGenerator
 EagerProofGenerator
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_generator.h
 
-// Must know what EqualityEngine is beyond here
-
 ProofEqEngine <=> EqualityEngine
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_equality_engine.h
 
 TrustNode
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/trust_node.h
 
-// Must know what OutputChannel is beyond here
-
-ProofOutputChannel <=> OutputChannel
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/proof_output_channel.h
-
-
 SkolemManager
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_skolem_cache.h
+https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/skolem_manager.h
 
 
 // Specific checkers and proof_kinds
 
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/builtin/proof_checker.h
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/builtin/proof_kinds
 
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/booleans/proof_checker.h
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/booleans/proof_kinds
 
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_checker.h
-https://github.com/ajreynol/CVC4/blob/stringsPf/src/theory/uf/proof_kinds
 
 
 
@@ -71,50 +60,63 @@ PR finished:
 (4) SkolemManager (previously ProofSkolemCache)
 (5) ProofChecker improve tracing, features
 (7) strings SkolemCache uses SkolemManager (req 4)
+(8) refactor mkSkolemExists
 (9) Proof step buffer (req 5)
+(10) Update CDProof (req 9, 16)
+(11) ProofGenerator (req 10)
+(12) Add TrustNode (req 11)
+(13) Add EagerProofGenerator (req 11, 12)
 (14) Builtin rules, builtin checker (req 5)
-(15) Boolean rules, boolean checker (Haniel) (req 5)
-(16) UF rules, UF checker (Haniel) (req 5)
+(15) Boolean rules, boolean checker [Haniel] (req 5)
+(16) UF rules, UF checker [Haniel] (req 5)
+(18) Add LazyCDProof (req 11)
+(19) ProofNode update, refactor free assumptions via proof_node_algorithm
+(21) static strings preprocess reduce (req 7)
+(22) Strings base solver update (req 2)
+(27) split theory engine
+(28) ProofSkolemCache -> SkolemManager
+(34) theory proof step buffer
+(36) term conversion proof generator
+(38) quantifiers proof checker (req 8)
+(48) remove snorm option
 
 PRs ready:
 
-(6) Equality engine updates (Haniel)
-(8) regexp operation (req 7)
-(10) Update CDProof (req 9, 16)
-(21) static strings preprocess reduce (req 7) *
-(28) ProofSkolemCache -> SkolemManager *
-(32) split theory engine *
-(33) split operator elimination from arith (req 28)
-(34) theory proof step buffer
+(0) Add proof option
+(23) Updates to proof node manager, including mkScope (req 19) *
+(25) Arithmetic proof checker [Alex]
+(33) split operator elimination from arith (req 28) *
+(35) Strings term registry update (req 13) *
+(37) Rewriter proof producing [Andres] (req 36)
+(45) regexp operation refactor (req 3, 7, 8) *
+(49) re elim static *
 
 PRs future:
 
-(11) ProofGenerator (req 10)
-(12) Add TrustNode (req 11)
-(13) Add EagerProofGenerator (req 11)
+(6) Equality engine updates [Haniel] (req 0)
 (17) rewriter new infrastructure "rewriteEqualityExt"
-(18) Add LazyCDProof (req 11)
-(19) Split EngineOutputChannel from TheoryEngine to its own file (req 12)
-(20) Eq proof conversion (req 6)
-(22) String rules, string checker (req 5, 17)
-(23) ProofEqEngine (req 10, 18)
-(24) SharedTermDatabase uses pfee (req 23)
-(25) CongruenceManager uses pfee (req 23)
-(26) strings infer info update "noExplain", all calls to InferenceManager
-(27) strings InferProofCons (req 1, 3, 18, 26, 34)
-(29) Arithmetic proof checker (Alex)
-(30) Arithmetic operator elimination (req 28, 29)
-(31) update strings inference manager to use ProofEqEngine (req 23, 26)
-
-
-- ProofNode update (refactor free assumptions via visitor?)
-- Rewriter proof producing (Andres)
-- Strings term registry update
-- Strings core solver update
-- TheoryEngine proof checker initialize all theories
-- TheoryEngine explanation proof producing
+(20) Eq proof conversion [Haniel] (req 6)
+(24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35)
+(29) CongruenceManager uses pfee [Alex] (req 24, 25)
+(30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
+(31) update strings inference manager to use ProofEqEngine (req 24, 26)
+(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
+(39) TheoryEngine proof checker initialize all theories (req 27)
+(40) theory engine proof generator (req 11, 13, 18, 23)
+(41) SharedTermDatabase uses pfee (req 24)
+(42) String rules, string checker (req 5, 17, 22)
+(43) strings InferProofCons (req 13, 18, 26, 34, 42)
+(44) TheoryEngine explanation proof producing (req 12, 41)
+(46) strings term registry proof producing (req 32, 35)
+(47) TheoryUF proof producing [Haniel] (req 24)
+(48) term formula removal proof producing (req 36, 38)
+(50) theory preprocess proof producing (req 27, 48)
 
 PRs wish list:
 
-- SEXPR simply typed?
-- Proof kinds infrastructure???
+- SAT solver proof producing
+- CNF proof producing
+- Proofs for theory rewrites
+- SEXPR simply typed
+- Proof kinds infrastructure

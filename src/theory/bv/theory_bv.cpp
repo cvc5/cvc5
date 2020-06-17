@@ -710,7 +710,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-Node TheoryBV::ppRewrite(TNode t)
+TrustNode TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
@@ -791,7 +791,11 @@ Node TheoryBV::ppRewrite(TNode t)
     d_abstractionModule->addInputAtom(res);
   }
   Debug("bv-pp-rewrite") << "to   " << res << "\n";
-  return res;
+  if (res != t)
+  {
+    return TrustNode::mkTrustRewrite(t, res, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::presolve() {

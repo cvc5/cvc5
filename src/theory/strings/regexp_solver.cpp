@@ -471,11 +471,9 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       rcti = rct;
       continue;
     }
-    bool spflag = false;
-    Node resR = d_regexp_opr.intersect(mi[1], m[1], spflag);
+    Node resR = d_regexp_opr.intersect(mi[1], m[1]);
     // intersection should be computable
     Assert(!resR.isNull());
-    Assert(!spflag);
     if (resR == d_emptyRegexp)
     {
       // conflict, explain
@@ -608,7 +606,8 @@ bool RegExpSolver::deriveRegExp(Node x,
   Trace("regexp-derive") << "RegExpSolver::deriveRegExp: x=" << x
                          << ", r= " << r << std::endl;
   CVC4::String s = getHeadConst(x);
-  if (!s.empty() && d_regexp_opr.checkConstRegExp(r))
+  // only allow RE_DERIVE for concrete constant regular expressions
+  if (!s.empty() && d_regexp_opr.getRegExpConstType(r) == RE_C_CONRETE_CONSTANT)
   {
     Node conc = Node::null();
     Node dc = r;

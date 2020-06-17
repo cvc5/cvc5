@@ -18,18 +18,6 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-std::ostream& operator<<(std::ostream& out, CDPOverwrite opol)
-{
-  switch (opol)
-  {
-    case CDPOverwrite::ALWAYS: out << "ALWAYS"; break;
-    case CDPOverwrite::ASSUME_ONLY: out << "ASSUME_ONLY"; break;
-    case CDPOverwrite::NEVER: out << "NEVER"; break;
-    default: out << "CDPOverwrite:unknown"; break;
-  }
-  return out;
-}
-
 CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
     : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
 {
@@ -37,7 +25,7 @@ CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
 
 CDProof::~CDProof() {}
 
-std::shared_ptr<ProofNode> CDProof::mkProof(Node fact)
+std::shared_ptr<ProofNode> CDProof::getProofFor(Node fact)
 {
   std::shared_ptr<ProofNode> pf = getProofSymm(fact);
   if (pf != nullptr)
@@ -176,12 +164,14 @@ bool CDProof::addStep(Node expected,
   }
 
   // TODO: this isnt necessary if we forbid SYMM from user
+  // the user may have provided SYMM of an assumption
   if (id == PfRule::SYMM)
   {
     Assert(pchildren.size() == 1);
     if (isAssumption(pchildren[0].get()))
     {
-      // the step we are constructing is an assumption, no use
+      // the step we are constructing is a (symmetric fact of an) assumption, so
+      // there is no use adding it to the proof.
       return true;
     }
   }
@@ -442,21 +432,6 @@ Node CDProof::getSymmFact(TNode f)
   return polarity ? symFact : symFact.notNode();
 }
 
-Node CDProof::getPredicateFact(TNode f, bool& pol, bool& symm)
-{
-  if (f.getKind() != kind::EQUAL
-      || ((f[0].getKind() != kind::CONST_BOOLEAN
-           || f[1].getKind() == kind::CONST_BOOLEAN)
-          && (f[1].getKind() != kind::CONST_BOOLEAN
-              || f[0].getKind() == kind::CONST_BOOLEAN)))
-  {
-    return Node::null();
-  }
-  unsigned cInd = f[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-  symm = cInd == 0;
-  pol = f[cInd].getConst<bool>();
-  Node fAtom = f[1 - cInd];
-  return pol ? fAtom : fAtom.notNode();
-}
+std::string CDProof::identify() const { return "CDProof"; }
 
 }  // namespace CVC4

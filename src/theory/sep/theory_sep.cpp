@@ -89,12 +89,6 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
 /////////////////////////////////////////////////////////////////////////////
 
 
-
-Node TheorySep::ppRewrite(TNode term) {
-  Trace("sep-pp") << "ppRewrite : " << term << std::endl;
-  return term;
-}
-
 Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
 
   return PP_ASSERT_STATUS_UNSOLVED;

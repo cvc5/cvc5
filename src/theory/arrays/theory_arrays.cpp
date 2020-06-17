@@ -316,16 +316,20 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
   return term;
 }
 
-
-Node TheoryArrays::ppRewrite(TNode term) {
-  if (!d_preprocess) return term;
+TrustNode TheoryArrays::ppRewrite(TNode term)
+{
+  if (!d_preprocess)
+  {
+    return TrustNode::null();
+  }
   d_ppEqualityEngine.addTerm(term);
+  Node ret;
   switch (term.getKind()) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
       if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
-        return NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
+        ret = NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
       }
       break;
     }
@@ -335,18 +339,22 @@ Node TheoryArrays::ppRewrite(TNode term) {
       if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
         Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
         Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
-        return outer;
+        ret = outer;
       }
       break;
     }
     case kind::EQUAL: {
-      return solveWrite(term, d_solveWrite, d_solveWrite2, true);
+      ret = solveWrite(term, d_solveWrite, d_solveWrite2, true);
       break;
     }
     default:
       break;
   }
-  return term;
+  if (!ret.isNull() && ret != term)
+  {
+    return TrustNode::mkTrustRewrite(term, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 

@@ -97,9 +97,14 @@ class DummyTheory : public Theory {
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo)
-      : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
+  DummyTheory(Context* ctxt,
+              UserContext* uctxt,
+              OutputChannel& out,
+              Valuation valuation,
+              const LogicInfo& logicInfo,
+              ProofChecker* pc)
+      : Theory(
+            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pc)
   {}
 
   TheoryRewriter* getTheoryRewriter() { return nullptr; }
@@ -180,8 +185,12 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(
-        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_dummy = new DummyTheory(d_ctxt,
+                              d_uctxt,
+                              d_outputChannel,
+                              Valuation(NULL),
+                              *d_logicInfo,
+                              nullptr);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);

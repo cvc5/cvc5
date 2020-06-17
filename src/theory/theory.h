@@ -588,7 +588,7 @@ class Theory {
    * the atom into an equivalent form.  This is only called just
    * before an input atom to the engine.
    */
-  virtual Node ppRewrite(TNode atom) { return atom; }
+  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

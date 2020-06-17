@@ -1,4 +1,4 @@
-; COMMAND-LINE: --bv-print-consts-in-binary
+; COMMAND-LINE:
 ; EXPECT: sat
 ; EXPECT: ((x #b0001))
 (set-option :produce-models true)

@@ -318,6 +318,9 @@ libcvc4_add_sources(
   theory/arith/nl/transcendental_solver.h
   theory/arith/operator_elim.cpp
   theory/arith/operator_elim.h
+  theory/arith/proof_checker.cpp
+  theory/arith/proof_checker.h
+  theory/arith/proof_macros.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
   theory/arith/partial_model.cpp
@@ -421,6 +424,8 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/sygus_datatype_utils.cpp
+  theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
   theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
@@ -653,9 +658,6 @@ libcvc4_add_sources(
   theory/rewriter.h
   theory/rewriter_attributes.h
   theory/sep/theory_sep.cpp
-  theory/theory_rewriter.h
-  theory/trust_node.cpp
-  theory/trust_node.h
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
@@ -766,8 +768,11 @@ libcvc4_add_sources(
   theory/theory_preprocessor.h
   theory/theory_proof_step_buffer.cpp
   theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
+  theory/trust_node.cpp
+  theory/trust_node.h
   theory/type_enumerator.h
   theory/type_set.cpp
   theory/type_set.h

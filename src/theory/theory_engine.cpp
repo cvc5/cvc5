@@ -182,8 +182,10 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_pchecker(new ProofChecker),
-      d_pNodeManager(new ProofNodeManager(d_pchecker.get())),
+      d_pchecker(options::proofNew() ? new ProofChecker : nullptr),
+      d_pNodeManager(options::proofNew()
+                         ? new ProofNodeManager(d_pchecker.get())
+                         : nullptr),
       d_lazyProof(
           options::proofNew()
               ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext)
@@ -215,7 +217,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tpp(*this, iteRemover),
+      d_tpp(*this, iteRemover, d_pNodeManager.get()),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -981,8 +983,11 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
-Node TheoryEngine::preprocess(TNode assertion) {
-  return d_tpp.theoryPreprocess(assertion);
+Node TheoryEngine::preprocess(TNode assertion)
+{
+  TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  // TODO: return the trust node?
+  return trn.getNode();
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1599,9 +1604,9 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
+  Node lemma = negated ? node.notNode() : Node(node);
   if (d_lazyProof != nullptr)
   {
-    Node lemma = negated ? node.notNode() : Node(node);
     // the lemma should have a proof
     if (!d_lazyProof->hasStep(lemma) && !d_lazyProof->hasGenerator(lemma))
     {
@@ -1616,29 +1621,64 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     }
   }
 
-  // FIXME
-  std::shared_ptr<LazyCDProof> lcp;
+  // call preprocessor
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  TrustNode tlemma = d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
+
+  // process the preprocessing
   if (d_lazyProof != nullptr)
   {
-    Trace("te-proof-exp") << "TheoryEngine::lemma: process " << node
-                          << std::endl;
-    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+    Assert(tlemma.getKind() == TrustNodeKind::REWRITE);
+    Node lemmap = tlemma.getNode();
+    // only need to do anything if lemmap changed in a non-trivial way
+    if (!CDProof::isSame(lemmap, lemma))
+    {
+      if (tlemma.getGenerator() != nullptr)
+      {
+        d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
+      }
+      // ---------- from d_lazyProof -------------- from theory preprocess
+      // lemma                       lemma = lemmap
+      // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+      // lemmap
+      std::vector<Node> pfChildren;
+      pfChildren.push_back(lemma);
+      pfChildren.push_back(tlemma.getProven());
+      std::vector<Node> pfArgs;
+      pfArgs.push_back(lemmap);
+      d_lazyProof->addStep(
+          lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+    }
+    for (unsigned i = 0, nsize = newLemmas.size(); i < nsize; i++)
+    {
+      TrustNode trn = newLemmas[i];
+      Assert(trn.getKind() == TrustNodeKind::LEMMA);
+      if (trn.getGenerator() != nullptr)
+      {
+        d_lazyProof->addLazyStep(trn.getProven(), trn.getGenerator());
+      }
+    }
   }
-  // the assertion pipeline storing the lemmas
+
+  // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
-  // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess, lcp.get());
+  // make the assertion pipeline
+  lemmas.push_back(tlemma.getNode());
+  lemmas.updateRealAssertionsEnd();
+  Assert(newSkolems.size() == newLemmas.size());
+  for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)
+  {
+    // store skolem mapping here
+    IteSkolemMap& imap = lemmas.getIteSkolemMap();
+    imap[newSkolems[i]] = lemmas.size();
+    lemmas.push_back(newLemmas[i].getNode());
+  }
+
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(
-        lemmas[i], i == 0 && negated, removable, rule, node);
-  }
-
-  // WARNING: Below this point don't assume lemmas[0] to be not negated.
-  if(negated) {
-    lemmas.replace(0, lemmas[0].notNode());
-    negated = false;
+    d_propEngine->assertLemma(lemmas[i], false, removable, rule, node);
   }
 
   // assert to decision engine
@@ -1683,15 +1723,22 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
   {
     // all BUILTIN should be handled
     Assert(from != THEORY_BUILTIN);
+    // TODO: enable
+    /*
+    if (options::proofNewPedantic())
+    {
+      AlwaysAssert(false) << "THEORY_LEMMA : "
+                          << p << " from " << from << std::endl;
+    }
+    */
     // untrusted theory lemma
-    std::vector<Node> children;
     std::vector<Node> args;
     args.push_back(p);
     unsigned tid = static_cast<unsigned>(from);
     Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
     args.push_back(tidn);
     // add the step, should always succeed;
-    d_lazyProof->addStep(p, PfRule::THEORY_LEMMA, children, args);
+    d_lazyProof->addStep(p, PfRule::THEORY_LEMMA, {}, args);
   }
 }
 
@@ -2221,6 +2268,14 @@ theory::TrustNode TheoryEngine::getExplanation(
         unsigned tid = static_cast<unsigned>(it->first);
         Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
         pfArgs.push_back(tidn);
+        // TODO: enable
+        /*
+        if (options::proofNewPedantic())
+        {
+          AlwaysAssert(false) << "THEORY_LEMMA during explanation : "
+                              << proven << " from " << ttid << std::endl;
+        }
+        */
         lcp->addStep(proven, PfRule::THEORY_LEMMA, pfChildren, pfArgs);
       }
       std::vector<Node> pfChildren;

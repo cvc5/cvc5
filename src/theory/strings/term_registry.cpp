@@ -40,7 +40,7 @@ TermRegistry::TermRegistry(SolverState& s,
                            eq::EqualityEngine& ee,
                            OutputChannel& out,
                            SequencesStatistics& statistics,
-                           bool pfEnabled)
+                           ProofNodeManager* pnm)
     : d_state(s),
       d_ee(ee),
       d_out(out),
@@ -54,7 +54,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_pfEnabled(pfEnabled)
+      d_epg(new EagerProofGenerator(pnm, s.getUserContext()))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -129,11 +129,6 @@ Node TermRegistry::lengthPositive(Node t)
   return nm->mkNode(OR, caseEmpty, caseNEmpty);
 }
 
-void TermRegistry::finishInit(ProofNodeManager* pnm)
-{
-  d_epg.reset(new EagerProofGenerator(d_state.getUserContext(), pnm));
-}
-
 void TermRegistry::preRegisterTerm(TNode n)
 {
   if (d_preregisteredTerms.find(n) != d_preregisteredTerms.end())
@@ -148,9 +143,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   if (!options::stringExp())
   {
     if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_STRREPLALL || k == STRING_STRCTN
-        || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
-        || k == STRING_REV)
+        || k == STRING_STRREPL || k == STRING_STRREPLALL
+        || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
+        || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
+        || k == STRING_TOUPPER || k == STRING_REV)
     {
       std::stringstream ss;
       ss << "Term of kind " << k

@@ -28,11 +28,9 @@ Node ProofRuleChecker::check(PfRule id,
   // convert to witness form
   std::vector<Node> childrenw = children;
   std::vector<Node> argsw = args;
-  SkolemManager::convertToWitnessFormVec(childrenw);
-  SkolemManager::convertToWitnessFormVec(argsw);
   Node res = checkInternal(id, childrenw, argsw);
   // res is in terms of witness form, convert back to Skolem form
-  return SkolemManager::getSkolemForm(res);
+  return res;
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
@@ -93,7 +91,7 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
 
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
-      d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
+    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleChecks);
   smtStatisticsRegistry()->registerStat(&d_totalRuleChecks);

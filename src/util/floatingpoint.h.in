@@ -333,6 +333,13 @@ namespace CVC4 {
       return this->fpl;
     }
 
+    /* Return string representation.
+     *
+     * If printAsIndexed is true then it prints
+     * the bit-vector components of the FP value as indexed symbols, otherwise
+     * in binary notation. */
+    std::string toString(bool printAsIndexed = false) const;
+
     // Gives the corresponding IEEE-754 transfer format
     BitVector pack (void) const;
 
@@ -526,17 +533,10 @@ namespace CVC4 {
   */
 
   inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) CVC4_PUBLIC;
-  inline std::ostream& operator <<(std::ostream& os, const FloatingPoint& fp) {
-    BitVector bv(fp.pack());
-
-    unsigned largestSignificandBit = fp.t.significand() - 2; // -1 for -inclusive, -1 for hidden
-    unsigned largestExponentBit = (fp.t.exponent() - 1) + (largestSignificandBit + 1);
-
-    return os
-      << "(fp #b" << bv.extract(largestExponentBit + 1, largestExponentBit + 1)
-      << " #b" << bv.extract(largestExponentBit, largestSignificandBit + 1)
-      << " #b" << bv.extract(largestSignificandBit, 0)
-      << ")";
+  inline std::ostream& operator<<(std::ostream& os, const FloatingPoint& fp)
+  {
+    // print in binary notation
+    return os << fp.toString();
   }
 
   inline std::ostream& operator <<(std::ostream& os, const FloatingPointSize& fps) CVC4_PUBLIC;

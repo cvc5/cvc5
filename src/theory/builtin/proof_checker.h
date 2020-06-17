@@ -123,16 +123,23 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
                                        const std::vector<Node>& exp,
                                        MethodId ids = MethodId::SB_DEFAULT,
                                        MethodId idr = MethodId::RW_REWRITE);
-  /** get a rewriter Id from a node, return false if we fail */
+  /** get a method identifier from a node, return false if we fail */
   static bool getMethodId(TNode n, MethodId& i);
-  /** get method identifiers */
-  static bool getMethodIds(const std::vector<Node>& args,
+  /**
+   * Get method identifiers from args starting at the given index. Store their
+   * values into ids, idr. This method returns false if args does not contain
+   * valid method identifiers at position index in args.
+   */
+  bool getMethodIds(const std::vector<Node>& args,
                     MethodId& ids,
                     MethodId& idr,
                     size_t index);
-  /** Add method identifiers ids and idr to args */
+  /**
+   * Add method identifiers ids and idr as nodes to args. This does not add ids
+   * or idr if their values are the default ones.
+   */
   static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
-  
+
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
 
@@ -141,21 +148,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-  /**
-   * Apply rewrite (on Skolem form). id is the identifier of the rewriter.
-   */
-  static Node applyRewriteExternal(Node n, MethodId idr = MethodId::RW_REWRITE);
-  /**
-   * Apply substitution for n (on Skolem form), where exp is an equality
-   * (or set of equalities) in Witness form. Returns the result of
-   * n * sigma{ids}(exp), where sigma{ids} is a substitution based on method
-   * identifier ids.
-   */
-  static Node applySubstitutionExternal(Node n, Node exp, MethodId ids);
-  /** Same as above, for a list of substitutions in exp */
-  static Node applySubstitutionExternal(Node n,
-                                        const std::vector<Node>& exp,
-                                        MethodId ids);
 };
 
 }  // namespace builtin

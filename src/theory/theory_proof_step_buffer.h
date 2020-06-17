@@ -19,9 +19,9 @@
 
 #include <vector>
 
-#include "theory/builtin/proof_checker.h"
-#include "expr/proof_step_buffer.h"
 #include "expr/node.h"
+#include "expr/proof_step_buffer.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace theory {
@@ -37,16 +37,16 @@ class TheoryProofStepBuffer : public ProofStepBuffer
   ~TheoryProofStepBuffer() {}
   //---------------------------- utilities builtin proof rules
   /**
-   * Apply macro transform. If this method returns true, it adds proof step(s)
-   * to the buffer that conclude tgt from premises src, exp. In particular,
-   * it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method should be
-   * applied when src and tgt are equivalent formulas assuming exp.
+   * Apply predicate transform. If this method returns true, it adds (at most
+   * one) proof step to the buffer that conclude tgt from premises src, exp. In
+   * particular, it may attempt to apply MACRO_SR_PRED_TRANSFORM. This method
+   * should be applied when src and tgt are equivalent formulas assuming exp.
    */
   bool applyPredTransform(Node src,
-                            Node tgt,
-                            const std::vector<Node>& exp,
-                            MethodId ids = MethodId::SB_DEFAULT,
-                            MethodId idr = MethodId::RW_REWRITE);
+                          Node tgt,
+                          const std::vector<Node>& exp,
+                          MethodId ids = MethodId::SB_DEFAULT,
+                          MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply predicate introduction. If this method returns true, it adds proof
    * step(s) to the buffer that conclude tgt from premises exp. In particular,
@@ -54,23 +54,25 @@ class TheoryProofStepBuffer : public ProofStepBuffer
    * applied when tgt is equivalent to true assuming exp.
    */
   bool applyPredIntro(Node tgt,
-                        const std::vector<Node>& exp,
-                        MethodId ids = MethodId::SB_DEFAULT,
-                        MethodId idr = MethodId::RW_REWRITE);
+                      const std::vector<Node>& exp,
+                      MethodId ids = MethodId::SB_DEFAULT,
+                      MethodId idr = MethodId::RW_REWRITE);
   /**
    * Apply predicate elimination. This method returns the result of applying
    * the rule MACRO_SR_PRED_ELIM on src, exp. The returned formula is equivalent
-   * to src assuming exp.
+   * to src assuming exp. If the return value is equivalent to src, then no
+   * proof step is added to this buffer, since this step is a no-op in this
+   * case.
+   *
+   * Notice that in contrast to the other rules above, predicate elimination
+   * never fails and proves a formula that is not explicitly given as an
+   * argument tgt. Thus, the return value of this method is Node not bool.
    */
   Node applyPredElim(Node src,
-                       const std::vector<Node>& exp,
-                       MethodId ids = MethodId::SB_DEFAULT,
-                       MethodId idr = MethodId::RW_REWRITE);
+                     const std::vector<Node>& exp,
+                     MethodId ids = MethodId::SB_DEFAULT,
+                     MethodId idr = MethodId::RW_REWRITE);
   //---------------------------- end utilities builtin proof rules
-
- private:
-  /** the queued proof steps */
-  std::vector<std::pair<Node, ProofStep>> d_steps;
 };
 
 }  // namespace theory

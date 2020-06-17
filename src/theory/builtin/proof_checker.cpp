@@ -15,6 +15,7 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "smt/term_formula_removal.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -61,63 +62,33 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
-  // trust coarse-grained theory lemmas for now: register null checker
+  // we dont' use the checker currently, since lemmas may contain witness
   pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::THEORY_PREPROCESS, this);
-  pc->registerChecker(PfRule::REWRITE_PREPROCESS, this);
-}
-
-Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
-{
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nkr = applyRewriteExternal(n, idr);
-  return SkolemManager::getWitnessForm(nkr);
+  pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
 }
 
 Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
 {
-  Node nk = SkolemManager::getSkolemForm(n);
-  TheoryId tid = Theory::theoryOf(nk);
+  TheoryId tid = Theory::theoryOf(n);
   Rewriter* rewriter = Rewriter::getInstance();
-  Node nkr = preRewrite ? rewriter->preRewrite(tid, nk).d_node
-                        : rewriter->postRewrite(tid, nk).d_node;
-  return SkolemManager::getWitnessForm(nkr);
-}
-
-Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
-{
-  if (exp.isNull() || exp.getKind() != EQUAL)
-  {
-    return Node::null();
-  }
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp, ids);
-  return SkolemManager::getWitnessForm(nks);
-}
-
-Node BuiltinProofRuleChecker::applySubstitution(Node n,
-                                                const std::vector<Node>& exp,
-                                                MethodId ids)
-{
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp, ids);
-  return SkolemManager::getWitnessForm(nks);
+  Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
+                        : rewriter->postRewrite(tid, n).d_node;
+  return nkr;
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nks = applySubstitutionExternal(nk, exp, ids);
-  Node nksr = applyRewriteExternal(nks, idr);
-  return SkolemManager::getWitnessForm(nksr);
+  Node nks = applySubstitution(n, exp, ids);
+  return applyRewrite(nks, idr);
 }
 
-Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
+Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
   Trace("builtin-pfcheck-debug")
-      << "applyRewriteExternal (" << idr << "): " << n << std::endl;
+      << "applyRewrite (" << idr << "): " << n << std::endl;
   if (idr == MethodId::RW_REWRITE)
   {
     return Rewriter::rewrite(n);
@@ -132,53 +103,49 @@ Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
     return n;
   }
   // unknown rewriter
-  Assert(false)
-      << "BuiltinProofRuleChecker::applyRewriteExternal: no rewriter for "
-      << idr << std::endl;
+  Assert(false) << "BuiltinProofRuleChecker::applyRewrite: no rewriter for "
+                << idr << std::endl;
   return n;
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
-                                                        Node exp,
-                                                        MethodId ids)
+Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
 {
-  Assert(!exp.isNull());
-  Node expk = SkolemManager::getSkolemForm(exp);
   TNode var, subs;
   if (ids == MethodId::SB_DEFAULT)
   {
-    if (expk.getKind() != EQUAL)
+    if (exp.getKind() != EQUAL)
     {
       return Node::null();
     }
-    var = expk[0];
-    subs = expk[1];
+    var = exp[0];
+    subs = exp[1];
   }
   else if (ids == MethodId::SB_LITERAL)
   {
-    bool polarity = expk.getKind() != NOT;
-    var = polarity ? expk : expk[0];
+    bool polarity = exp.getKind() != NOT;
+    var = polarity ? exp : exp[0];
     subs = NodeManager::currentNM()->mkConst(polarity);
   }
   else if (ids == MethodId::SB_FORMULA)
   {
-    var = expk;
+    var = exp;
     subs = NodeManager::currentNM()->mkConst(true);
   }
   else
   {
-    Assert(false) << "BuiltinProofRuleChecker::applySubstitutionExternal: no "
+    Assert(false) << "BuiltinProofRuleChecker::applySubstitution: no "
                      "substitution for "
                   << ids << std::endl;
   }
   Trace("builtin-pfcheck-debug")
-      << "applySubstitutionExternal (" << ids << "): " << var << " -> " << subs
-      << " (from " << expk << ")" << std::endl;
+      << "applySubstitution (" << ids << "): " << var << " -> " << subs
+      << " (from " << exp << ")" << std::endl;
   return n.substitute(var, subs);
 }
 
-Node BuiltinProofRuleChecker::applySubstitutionExternal(
-    Node n, const std::vector<Node>& exp, MethodId ids)
+Node BuiltinProofRuleChecker::applySubstitution(Node n,
+                                                const std::vector<Node>& exp,
+                                                MethodId ids)
 {
   Node curr = n;
   // apply substitution one at a time, in reverse order
@@ -188,7 +155,7 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(
     {
       return Node::null();
     }
-    curr = applySubstitutionExternal(curr, exp[nexp - 1 - i], ids);
+    curr = applySubstitution(curr, exp[nexp - 1 - i], ids);
     if (curr.isNull())
     {
       break;
@@ -312,7 +279,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     // **** NOTE: can rewrite the witness form here. This enables certain lemmas
     // to be provable, e.g. (= k t) where k is a purification Skolem for t.
-    res = Rewriter::rewrite(res);
+    res = Rewriter::rewrite(SkolemManager::getWitnessForm(res));
     if (!res.isConst() || !res.getConst<bool>())
     {
       Trace("builtin-pfcheck")
@@ -363,14 +330,18 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Node res2 = applySubstitutionRewrite(args[0], exp, ids, idr);
     // Trace("builtin-pfcheck")
     //    << "Returned " << res2 << " from " << args[0] << std::endl;
-    // can rewrite the witness forms
-    res1 = Rewriter::rewrite(res1);
-    res2 = Rewriter::rewrite(res2);
-    if (res1.isNull() || res1 != res2)
+    // if not already equal, do rewriting
+    if (res1 != res2)
     {
-      Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
-      Trace("builtin-pfcheck-debug") << res1 << " vs " << res2 << std::endl;
-      return Node::null();
+      // can rewrite the witness forms
+      res1 = Rewriter::rewrite(SkolemManager::getWitnessForm(res1));
+      res2 = Rewriter::rewrite(SkolemManager::getWitnessForm(res2));
+      if (res1.isNull() || res1 != res2)
+      {
+        Trace("builtin-pfcheck") << "Failed to match results" << std::endl;
+        Trace("builtin-pfcheck-debug") << res1 << " vs " << res2 << std::endl;
+        return Node::null();
+      }
     }
     return args[0];
   }
@@ -379,19 +350,20 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 2);
     Assert(args[0].getType().isBoolean());
+    // TODO?
     return args[0];
   }
   else if (id == PfRule::THEORY_PREPROCESS)
   {
-    Assert(children.size() == 1);
+    Assert(children.empty());
     Assert(args.size() == 1);
     return args[0];
   }
-  if (id == PfRule::REWRITE_PREPROCESS)
+  else if (id == PfRule::REMOVE_TERM_FORMULA_AXIOM)
   {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    return applyRewrite(children[0]);
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    return RemoveTermFormulas::getAxiomFor(args[0]);
   }
   // no rule
   return Node::null();
@@ -425,10 +397,9 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
-
 void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
-                                   MethodId ids,
-                                   MethodId idr)
+                                           MethodId ids,
+                                           MethodId idr)
 {
   bool ndefRewriter = (idr != MethodId::RW_REWRITE);
   if (ids != MethodId::SB_DEFAULT || ndefRewriter)

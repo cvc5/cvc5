@@ -41,6 +41,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::NOT_XOR_ELIM2, this);
   pc->registerChecker(PfRule::ITE_ELIM1, this);
   pc->registerChecker(PfRule::ITE_ELIM2, this);
+  pc->registerChecker(PfRule::CONTRA, this);
   pc->registerChecker(PfRule::NOT_ITE_ELIM1, this);
   pc->registerChecker(PfRule::NOT_ITE_ELIM2, this);
   pc->registerChecker(PfRule::NOT_AND, this);
@@ -352,6 +353,18 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(
         kind::OR, children[0][0], children[0][2]);
+  }
+  if (id == PfRule::CONTRA)
+  {
+    Assert(children.size() == 2);
+    if (children[1].getKind() == Kind::NOT && children[0] == children[1][0])
+    {
+      return NodeManager::currentNM()->mkConst(false);
+    }
+    else
+    {
+      return Node::null();
+    }
   }
   if (id == PfRule::NOT_ITE_ELIM1)
   {

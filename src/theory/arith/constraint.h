@@ -75,9 +75,9 @@
 #ifndef CVC4__THEORY__ARITH__CONSTRAINT_H
 #define CVC4__THEORY__ARITH__CONSTRAINT_H
 
-#include <unordered_map>
 #include <list>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "base/configuration_private.h"
@@ -85,12 +85,14 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "proof/proof.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
+#include "theory/arith/proof_macros.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -303,17 +305,13 @@ struct ConstraintRule {
    * We do however use all of the constraints by requiring non-zero
    * coefficients.
    */
-#if IS_PROOFS_BUILD
   RationalVectorCP d_farkasCoefficients;
-#endif /* IS_PROOFS_BUILD */
   ConstraintRule()
     : d_constraint(NullConstraint)
     , d_proofType(NoAP)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-#if IS_PROOFS_BUILD
     d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt)
@@ -321,18 +319,14 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-#if IS_PROOFS_BUILD
     d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
   }
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
     : d_constraint(con)
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-#if IS_PROOFS_BUILD
     d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
@@ -340,10 +334,8 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
-#if IS_PROOFS_BUILD
+    Assert(ARITH_PROOF_ON() || coeffs == RationalVectorCPSentinel);
     d_farkasCoefficients = coeffs;
-#endif /* IS_PROOFS_BUILD */
   }
 
   void print(std::ostream& out) const;
@@ -353,6 +345,7 @@ struct ConstraintRule {
 class Constraint {
 
   friend class ConstraintDatabase;
+  friend class ArithCongruenceManager;
 
  public:
   /**
@@ -420,7 +413,7 @@ class Constraint {
    * Returns a lemma that is assumed to be true for the rest of the user context.
    * Constraint must be an equality or disequality.
    */
-  Node split();
+  TrustNode split();
 
   bool canBePropagated() const {
     return d_canBePropagated;
@@ -472,6 +465,14 @@ class Constraint {
     Assert(hasLiteral());
     return d_literal;
   }
+
+  /** Gets a literal in the normal form suitable for proofs.
+   * That is, (sum of non-const monomials) >< const.
+   *
+   * This is a sister method to `getLiteral`, which returns a normal form
+   * literal, suitable for external solving use.
+   */
+  Node getProofLiteral() const;
 
   /**
    * Set the node as having a proof and being an assumption.
@@ -549,9 +550,7 @@ class Constraint {
    * This is the minimum fringe of the implication tree s.t.
    * every constraint is assertedToTheTheory() or hasEqualityEngineProof().
    */
-  Node externalExplainByAssertions() const {
-    return externalExplain(AssertionOrderSentinel);
-  }
+  TrustNode externalExplainByAssertions() const;
 
   /**
    * Writes an explanation of a constraint into the node builder.
@@ -564,8 +563,10 @@ class Constraint {
    * This is not appropriate for propagation!
    * Use explainForPropagation() instead.
    */
-  void externalExplainByAssertions(NodeBuilder<>& nb) const{
-    externalExplain(nb, AssertionOrderSentinel);
+  std::shared_ptr<ProofNode> externalExplainByAssertions(
+      NodeBuilder<>& nb) const
+  {
+    return externalExplain(nb, AssertionOrderSentinel);
   }
 
   /* Equivalent to calling externalExplainByAssertions on all constraints in b */
@@ -592,22 +593,19 @@ class Constraint {
    * The constraint must have a proof.
    * The constraint cannot be an assumption.
    *
-   * This is the minimum fringe of the implication tree (excluding the constraint itself)
-   * s.t. every constraint is assertedToTheTheory() or hasEqualityEngineProof().
+   * This is the minimum fringe of the implication tree (excluding the
+   * constraint itself) s.t. every constraint is assertedToTheTheory() or
+   * hasEqualityEngineProof().
+   *
+   * All return conjuncts were asserted before this constraint.
    */
-  Node externalExplainForPropagation() const {
-    Assert(hasProof());
-    Assert(!isAssumption());
-    Assert(!isInternalAssumption());
-    return externalExplain(d_assertionOrder);
-  }
+  TrustNode externalExplainForPropagation() const;
 
   /**
    * Explain the constraint and its negation in terms of assertions.
    * The constraint must be in conflict.
    */
-  Node externalExplainConflict() const;
-
+  TrustNode externalExplainConflict() const;
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -786,7 +784,7 @@ class Constraint {
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
 
-      PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
+      ARITH_PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
         delete crp->d_farkasCoefficients;
       });
     }
@@ -850,17 +848,18 @@ class Constraint {
   /** Returns coefficients for the proofs for farkas cancellation. */
   static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
 
-  Node externalExplain(AssertionOrder order) const;
-
   /**
    * Returns an explanation of that was assertedBefore(order).
    * The constraint must have a proof.
    * The constraint cannot be selfExplaining().
    *
+   * If `buildProof` is set, then proof steps are added for the explanation.
+   *
    * This is the minimum fringe of the implication tree
    * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
    */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+  std::shared_ptr<ProofNode> externalExplain(NodeBuilder<>& nb,
+                                             AssertionOrder order) const;
 
   static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
 
@@ -873,7 +872,7 @@ class Constraint {
   }
 
   inline RationalVectorCP getFarkasCoefficients() const {
-    return NULLPROOF(getConstraintRule().d_farkasCoefficients);
+    return ARITH_NULLPROOF(getConstraintRule().d_farkasCoefficients);
   }
   
   void debugPrint() const;
@@ -1090,6 +1089,10 @@ private:
   ArithCongruenceManager& d_congruenceManager;
 
   const context::Context * const d_satContext;
+  /** Owned by the TheoryArithPrivate, used here. */
+  EagerProofGenerator* d_pfGen;
+  /** Owned by the TheoryArithPrivate, used here. */
+  ProofNodeManager* d_pnm;
 
   RaiseConflict d_raiseConflict;
 
@@ -1100,112 +1103,120 @@ private:
   friend class Constraint;
   
 public:
+ ConstraintDatabase(context::Context* satContext,
+                    context::Context* userContext,
+                    const ArithVariables& variables,
+                    ArithCongruenceManager& dm,
+                    RaiseConflict conflictCallBack,
+                    EagerProofGenerator* pfGen,
+                    ProofNodeManager* pnm);
 
-  ConstraintDatabase( context::Context* satContext,
-                      context::Context* userContext,
-                      const ArithVariables& variables,
-                      ArithCongruenceManager& dm,
-                      RaiseConflict conflictCallBack);
+ ~ConstraintDatabase();
 
-  ~ConstraintDatabase();
+ /** Adds a literal to the database. */
+ ConstraintP addLiteral(TNode lit);
 
-  /** Adds a literal to the database. */
-  ConstraintP addLiteral(TNode lit);
+ /**
+  * If hasLiteral() is true, returns the constraint.
+  * Otherwise, returns NullConstraint.
+  */
+ ConstraintP lookup(TNode literal) const;
 
-  /**
-   * If hasLiteral() is true, returns the constraint.
-   * Otherwise, returns NullConstraint.
-   */
-  ConstraintP lookup(TNode literal) const;
+ /**
+  * Returns true if the literal has been added to the database.
+  * This is a hash table lookup.
+  * It does not look in the database for an equivalent corresponding constraint.
+  */
+ bool hasLiteral(TNode literal) const;
 
-  /**
-   * Returns true if the literal has been added to the database.
-   * This is a hash table lookup.
-   * It does not look in the database for an equivalent corresponding constraint.
-   */
-  bool hasLiteral(TNode literal) const;
+ bool hasMorePropagations() const { return !d_toPropagate.empty(); }
 
-  bool hasMorePropagations() const{
-    return !d_toPropagate.empty();
-  }
+ ConstraintCP nextPropagation()
+ {
+   Assert(hasMorePropagations());
 
-  ConstraintCP nextPropagation(){
-    Assert(hasMorePropagations());
+   ConstraintCP p = d_toPropagate.front();
+   d_toPropagate.pop();
 
-    ConstraintCP p = d_toPropagate.front();
-    d_toPropagate.pop();
+   return p;
+ }
 
-    return p;
-  }
+ void addVariable(ArithVar v);
+ bool variableDatabaseIsSetup(ArithVar v) const;
+ void removeVariable(ArithVar v);
 
-  void addVariable(ArithVar v);
-  bool variableDatabaseIsSetup(ArithVar v) const;
-  void removeVariable(ArithVar v);
+ TrustNode eeExplain(ConstraintCP c) const;
+ void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
 
-  TrustNode eeExplain(ConstraintCP c) const;
-  void eeExplain(ConstraintCP c, NodeBuilder<>& nb) const;
+ /**
+  * Returns a constraint with the variable v, the constraint type t, and a value
+  * dominated by r (explained below) if such a constraint exists in the
+  * database. If no such constraint exists, NullConstraint is returned.
+  *
+  * t must be either UpperBound or LowerBound.
+  * The returned value v is dominated:
+  *  If t is UpperBound, r <= v
+  *  If t is LowerBound, r >= v
+  *
+  * variableDatabaseIsSetup(v) must be true.
+  */
+ ConstraintP getBestImpliedBound(ArithVar v,
+                                 ConstraintType t,
+                                 const DeltaRational& r) const;
 
-  /**
-   * Returns a constraint with the variable v, the constraint type t, and a value
-   * dominated by r (explained below) if such a constraint exists in the database.
-   * If no such constraint exists, NullConstraint is returned.
-   *
-   * t must be either UpperBound or LowerBound.
-   * The returned value v is dominated:
-   *  If t is UpperBound, r <= v
-   *  If t is LowerBound, r >= v
-   *
-   * variableDatabaseIsSetup(v) must be true.
-   */
-  ConstraintP getBestImpliedBound(ArithVar v, ConstraintType t, const DeltaRational& r) const;
+ /** Returns the constraint, if it exists */
+ ConstraintP lookupConstraint(ArithVar v,
+                              ConstraintType t,
+                              const DeltaRational& r) const;
 
-  /** Returns the constraint, if it exists */
-  ConstraintP lookupConstraint(ArithVar v, ConstraintType t, const DeltaRational& r) const;
+ /**
+  * Returns a constraint with the variable v, the constraint type t and the
+  * value r. If there is such a constraint in the database already, it is
+  * returned. If there is no such constraint, this constraint is added to the
+  * database.
+  *
+  */
+ ConstraintP getConstraint(ArithVar v,
+                           ConstraintType t,
+                           const DeltaRational& r);
 
-  /**
-   * Returns a constraint with the variable v, the constraint type t and the value r.
-   * If there is such a constraint in the database already, it is returned.
-   * If there is no such constraint, this constraint is added to the database.
-   *
-   */
-  ConstraintP getConstraint(ArithVar v, ConstraintType t, const DeltaRational& r);
+ /**
+  * Returns a constraint of the given type for the value and variable
+  * for the given ValueCollection, vc.
+  * This is made if there is no such constraint.
+  */
+ ConstraintP ensureConstraint(ValueCollection& vc, ConstraintType t);
 
-  /**
-   * Returns a constraint of the given type for the value and variable
-   * for the given ValueCollection, vc.
-   * This is made if there is no such constraint.
-   */
-  ConstraintP ensureConstraint(ValueCollection& vc, ConstraintType t);
+ void deleteConstraintAndNegation(ConstraintP c);
 
+ /**
+  * Outputs a minimal set of unate implications onto the vector for the
+  * variable. This outputs lemmas of the general forms
+  *     (= p c) implies (<= p d) for c < d, or
+  *     (= p c) implies (not (= p d)) for c != d.
+  */
+ void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
+ void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
 
-  void deleteConstraintAndNegation(ConstraintP c);
+ /**
+  * Outputs a minimal set of unate implications onto the vector for the
+  * variable.
+  *
+  * If ineqs is true, this outputs lemmas of the general form
+  *     (<= p c) implies (<= p d) for c < d.
+  */
+ void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
+ void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
 
-  /**
-   * Outputs a minimal set of unate implications onto the vector for the variable.
-   * This outputs lemmas of the general forms
-   *     (= p c) implies (<= p d) for c < d, or
-   *     (= p c) implies (not (= p d)) for c != d.
-   */
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+ void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
+ void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
+ void unatePropEquality(ConstraintP curr,
+                        ConstraintP prevLB,
+                        ConstraintP prevUB);
 
-  /**
-   * Outputs a minimal set of unate implications onto the vector for the variable.
-   *
-   * If ineqs is true, this outputs lemmas of the general form
-   *     (<= p c) implies (<= p d) for c < d.
-   */
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
-  void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+ /** AntecendentID must be in range. */
+ ConstraintCP getAntecedent(AntecedentId p) const;
 
-
-  void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
-  void unatePropUpperBound(ConstraintP curr, ConstraintP prev);
-  void unatePropEquality(ConstraintP curr, ConstraintP prevLB, ConstraintP prevUB);
-
-  /** AntecendentID must be in range. */
-  ConstraintCP getAntecedent(AntecedentId p) const;
-  
 private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);
