@@ -29,7 +29,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              ProofNodeManager* pnm,
                              bool pfEnabled,
                              bool recExplain)
-    : EagerProofGenerator(u, pnm),
+    : EagerProofGenerator(pnm, u),
       d_ee(ee),
       d_pnm(pnm),
       d_proof(pnm, nullptr, c),

@@ -73,11 +73,10 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
+      d_pnm(new ProofNodeManager(pc)),
       d_state(c, u, d_equalityEngine, d_valuation),
-      d_termReg(
-          d_state, d_equalityEngine, out, d_statistics, options::proofNew()),
+      d_termReg(d_state, d_equalityEngine, out, d_statistics, d_pnm.get()),
       d_im(nullptr),
-      d_pnm(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
       d_csolver(nullptr),
@@ -90,7 +89,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(new InferenceManager(
-      d_state, d_termReg, *extt, out, d_statistics, options::proofNew()));
+      d_state, d_termReg, *extt, out, d_statistics, d_pnm.get()));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(d_state, *d_im));
   d_csolver.reset(new CoreSolver(d_state, *d_im, d_termReg, *d_bsolver));
@@ -110,6 +109,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_TO_CODE);
+  d_equalityEngine.addFunctionKind(kind::SEQ_UNIT);
 
   // extended functions
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
@@ -119,6 +119,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_STOI);
   d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
+  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE);
+  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
   d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER);
   d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER);
@@ -136,8 +139,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   {
     // add checkers
     d_sProofChecker.registerTo(pc);
-    // use the checker in the proof node manager
-    d_pnm.reset(new ProofNodeManager(pc));
   }
 }
 
@@ -150,14 +151,6 @@ void TheoryStrings::finishInit()
   TheoryModel* tm = d_valuation.getModel();
   // witness is used to eliminate str.from_code
   tm->setUnevaluatedKind(WITNESS);
-  if (d_pnm == nullptr)
-  {
-    // don't use checker
-    d_pnm.reset(new ProofNodeManager);
-  }
-  // inference manager must finish init
-  d_termReg.finishInit(d_pnm.get());
-  d_im->finishInit(d_pnm.get());
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
@@ -304,7 +297,14 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
                        std::unordered_set<Node, NodeHashFunction> >& rst :
        repSet)
   {
-    if (!collectModelInfoType(rst.first, rst.second, m))
+    // get partition of strings of equal lengths, per type
+    std::map<TypeNode, std::vector<std::vector<Node> > > colT;
+    std::map<TypeNode, std::vector<Node> > ltsT;
+    std::vector<Node> repVec(rst.second.begin(), rst.second.end());
+    d_state.separateByLength(repVec, colT, ltsT);
+    // now collect model info for the type
+    TypeNode st = rst.first;
+    if (!collectModelInfoType(st, rst.second, colT[st], ltsT[st], m))
     {
       return false;
     }
@@ -315,14 +315,12 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
 bool TheoryStrings::collectModelInfoType(
     TypeNode tn,
     const std::unordered_set<Node, NodeHashFunction>& repSet,
+    std::vector<std::vector<Node> >& col,
+    std::vector<Node>& lts,
     TheoryModel* m)
 {
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<Node> nodes(repSet.begin(), repSet.end());
   std::map< Node, Node > processed;
-  std::vector< std::vector< Node > > col;
-  std::vector< Node > lts;
-  d_state.separateByLength(nodes, col, lts);
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
   std::map<unsigned, Node> values_used;
@@ -453,7 +451,7 @@ bool TheoryStrings::collectModelInfoType(
       }
       else
       {
-        Unimplemented() << "Collect model info not implemented for type " << tn;
+        sel.reset(new SeqEnumLen(tn, nullptr, currLen, currLen));
       }
       for (const Node& eqc : pure_eq)
       {
@@ -529,13 +527,15 @@ bool TheoryStrings::collectModelInfoType(
   }
   Trace("strings-model") << "String Model : Pure Assigned." << std::endl;
   //step 4 : assign constants to all other equivalence classes
-  for( unsigned i=0; i<nodes.size(); i++ ){
-    if( processed.find( nodes[i] )==processed.end() ){
-      NormalForm& nf = d_csolver->getNormalForm(nodes[i]);
+  for (const Node& rn : repSet)
+  {
+    if (processed.find(rn) == processed.end())
+    {
+      NormalForm& nf = d_csolver->getNormalForm(rn);
       if (Trace.isOn("strings-model"))
       {
         Trace("strings-model")
-            << "Construct model for " << nodes[i] << " based on normal form ";
+            << "Construct model for " << rn << " based on normal form ";
         for (unsigned j = 0, size = nf.d_nf.size(); j < size; j++)
         {
           Node n = nf.d_nf[j];
@@ -561,9 +561,10 @@ bool TheoryStrings::collectModelInfoType(
       }
       Node cc = utils::mkNConcat(nc, tn);
       Assert(cc.isConst());
-      Trace("strings-model") << "*** Determined constant " << cc << " for " << nodes[i] << std::endl;
-      processed[nodes[i]] = cc;
-      if (!m->assertEquality(nodes[i], cc, true))
+      Trace("strings-model")
+          << "*** Determined constant " << cc << " for " << rn << std::endl;
+      processed[rn] = cc;
+      if (!m->assertEquality(rn, cc, true))
       {
         // this should never happen due to the model soundness argument
         // for strings
@@ -978,7 +979,8 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-Node TheoryStrings::ppRewrite(TNode atom) {
+Node TheoryStrings::ppRewrite(TNode atom, TConvProofGenerator* tg)
+{
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)

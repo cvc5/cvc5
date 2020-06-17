@@ -471,11 +471,9 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       rcti = rct;
       continue;
     }
-    bool spflag = false;
-    Node resR = d_regexp_opr.intersect(mi[1], m[1], spflag);
+    Node resR = d_regexp_opr.intersect(mi[1], m[1]);
     // intersection should be computable
     Assert(!resR.isNull());
-    Assert(!spflag);
     if (resR == d_emptyRegexp)
     {
       // conflict, explain

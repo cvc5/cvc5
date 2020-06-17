@@ -121,6 +121,7 @@ class TheoryEngine {
   friend class SharedTermsDatabase;
   friend class theory::EngineOutputChannel;
   friend class theory::quantifiers::TermDb;
+  friend class theory::EngineOutputChannel;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
@@ -375,7 +376,7 @@ class TheoryEngine {
   SortInference d_sortInfer;
 
   /** The theory preprocessor */
-  TheoryPreprocessor d_tpp;
+  theory::TheoryPreprocessor d_tpp;
 
   /** Time spent in theory combination */
   TimerStat d_combineTheoriesTime;
@@ -477,7 +478,6 @@ class TheoryEngine {
   }
 
  private:
-
   /**
    * Queue of nodes for pre-registration.
    */
@@ -546,7 +546,7 @@ class TheoryEngine {
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node preprocess(TNode node);
+  Node preprocess(TNode node, LazyCDProof* lp = nullptr);
 
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);

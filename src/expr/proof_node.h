@@ -91,19 +91,6 @@ class ProofNode
   /** get what this node proves, or the null node if this is an invalid proof */
   Node getResult() const;
   /**
-   * This adds to the vector assump all formulas that are "free assumptions" of
-   * the proof whose root is this ProofNode. A free assumption is a formula F
-   * that is an argument (in d_args) of a ProofNode whose kind is ASSUME, and
-   * that proof node is not beneath an application of SCOPE containing F as an
-   * argument.
-   *
-   * This traverses the structure of the dag represented by this ProofNode.
-   * Its implementation is analogous to expr::getFreeVariables.
-   */
-  void getFreeAssumptions(std::vector<Node>& assump);
-  /** Same as above, but maps assumptions to the proof pointer */
-  void getFreeAssumptionsMap(std::map<Node, std::vector<ProofNode*>>& amap);
-  /**
    * Returns true if this is a closed proof (i.e. it has no free assumptions).
    */
   bool isClosed();

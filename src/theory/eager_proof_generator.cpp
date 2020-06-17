@@ -19,18 +19,24 @@
 namespace CVC4 {
 namespace theory {
 
-EagerProofGenerator::EagerProofGenerator(context::Context* c,
-                                         ProofNodeManager* pnm)
+EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
+                                         context::Context* c)
     : d_pnm(pnm), d_proofs(c == nullptr ? &d_context : c)
 {
 }
 
+void EagerProofGenerator::setProofFor(Node f, std::shared_ptr<ProofNode> pf)
+{
+  // pf should prove f
+  Assert(pf->getResult() == f);
+  d_proofs[f] = pf;
+}
 void EagerProofGenerator::setProofForConflict(Node conf,
                                               std::shared_ptr<ProofNode> pf)
 {
   // Normalize based on key
   Node ckey = TrustNode::getConflictProven(conf);
-  d_proofs[ckey] = pf;
+  setProofFor(ckey, pf);
 }
 
 void EagerProofGenerator::setProofForLemma(Node lem,
@@ -38,7 +44,7 @@ void EagerProofGenerator::setProofForLemma(Node lem,
 {
   // Normalize based on key
   Node lkey = TrustNode::getLemmaProven(lem);
-  d_proofs[lkey] = pf;
+  setProofFor(lkey, pf);
 }
 
 void EagerProofGenerator::setProofForPropExp(TNode lit,
@@ -47,7 +53,7 @@ void EagerProofGenerator::setProofForPropExp(TNode lit,
 {
   // Normalize based on key
   Node pekey = TrustNode::getPropExpProven(lit, exp);
-  d_proofs[pekey] = pf;
+  setProofFor(pekey, pf);
 }
 
 std::shared_ptr<ProofNode> EagerProofGenerator::getProofFor(Node f)
@@ -96,7 +102,18 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
   return mkTrustNode(n, pf, isConflict);
 }
 
-TrustNode EagerProofGenerator::assertSplit(Node f)
+TrustNode EagerProofGenerator::mkTrustedPropagation(
+    Node n, Node exp, std::shared_ptr<ProofNode> pf)
+{
+  if (pf == nullptr)
+  {
+    return TrustNode::null();
+  }
+  setProofForPropExp(n, exp, pf);
+  return TrustNode::mkTrustPropExp(n, exp, this);
+}
+
+TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());

@@ -24,8 +24,7 @@
 namespace CVC4 {
 
 /**
- * An abstract proof generator class, to be used in combination with
- * ProofOutputChannel (see theory/proof_output_channel.h).
+ * An abstract proof generator class.
  *
  * A proof generator is intended to be used as a utility e.g. in theory
  * solvers for constructing and storing proofs internally. A theory may have
@@ -33,12 +32,15 @@ namespace CVC4 {
  * way of justifying lemmas or conflicts.
  *
  * A proof generator has two main interfaces for generating proofs:
- * (1) getProofFor, and (2) addProofTo. The latter is optional. If no
- * implementation is provided, then addProofTo(f, pf) calls getProofFor(f) and
- * links the top node of the returned proof into pf. Note that addProofTo can be
- * overridden by an instance of this class as an optimization to call
- * CDProof::addStep instead of CDProof::addProof for the top-most step of the
- * proof of f.
+ * (1) getProofFor, and (2) addProofTo. The latter is optional.
+ *
+ * The addProofTo method can be used as an optimization for avoiding
+ * the construction of the ProofNode for a given fact.
+ *
+ * If no implementation of addProofTo is provided, then addProofTo(f, pf)
+ * calls getProofFor(f) and links the topmost ProofNode of the returned proof
+ * into pf. Note this top-most ProofNode can be avoided in the addProofTo
+ * method.
  */
 class ProofGenerator
 {

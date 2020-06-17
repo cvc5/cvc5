@@ -832,6 +832,63 @@ Node EqProof::addToProof(
       }
     }
 #endif
+    // (= t true/false) case, in which t is not a Boolean variable
+    if (d_node.getKind() == kind::EQUAL
+        && ((d_node[0].getKind() == kind::CONST_BOOLEAN
+             && d_node[1].getKind() != kind::CONST_BOOLEAN)
+            || (d_node[1].getKind() == kind::CONST_BOOLEAN
+                && d_node[0].getKind() != kind::CONST_BOOLEAN)))
+    {
+      Trace("eqproof-conv")
+          << "EqProof::addToProof: add an intro step for " << d_node << "\n";
+      unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
+      std::vector<Node> introChildren;
+      PfRule introRule;
+      if (d_node[constIndex].getConst<bool>())
+      {
+        introRule = PfRule::TRUE_INTRO;
+        Node introChild = d_node[1 - constIndex];
+        introChildren.push_back(introChild);
+        // track it and, if it's an equality, its symmetric
+        assumptions.insert(introChild);
+        if (introChild.getKind() == kind::EQUAL)
+        {
+          assumptions.insert(introChild[1].eqNode(introChild[0]));
+        }
+      }
+      else
+      {
+        introRule = PfRule::FALSE_INTRO;
+        Node introChild = d_node[1 - constIndex].notNode();
+        introChildren.push_back(introChild);
+        // track it and, if it's a negated equality, its symmetric
+        assumptions.insert(introChild);
+        if (introChild[0].getKind() == kind::EQUAL)
+        {
+          assumptions.insert(
+              introChild[0][1].eqNode(introChild[0][0]).notNode());
+        }
+      }
+      // the assumption can be e.g. (= false (= t1 t2)) in which case the
+      // necessary proof to be built is
+      //     --------------- ASSUME
+      //     (not (= t1 t2))
+      //  -------------------- FALSE_INTRO
+      //  (= (= t1 t2) false)
+      //  -------------------- SYMM
+      //  (= false (= t1 t2))
+      //
+      // with the SYMM step happening automatically whenever the assumption is
+      // used in the proof p
+      Node introConclusion =
+          constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
+      if (!p->addStep(introConclusion, introRule, introChildren, {}))
+      {
+        Assert(false) << "EqProof::addToProof: couldn't add " << introRule
+                      << " from " << d_node[1 - constIndex].notNode() << " to "
+                      << introConclusion << "\n";
+      }
+    }
     if (!p->addStep(d_node, PfRule::ASSUME, {}, {d_node}))
     {
       Assert(false) << "EqProof::addToProof: couldn't add assumption\n";

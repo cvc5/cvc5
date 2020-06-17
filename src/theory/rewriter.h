@@ -19,7 +19,7 @@
 #pragma once
 
 #include "expr/node.h"
-#include "expr/proof.h"
+#include "expr/term_conversion_proof_generator.h"
 #include "theory/theory_rewriter.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -64,7 +64,7 @@ class Rewriter {
    */
   static Node rewrite(TNode node);
 
-  static Node rewriteWithProof(TNode node, CDProof* proof);
+  static Node rewriteWithProof(TNode node, TConvProofGenerator* tcpg);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -157,7 +157,7 @@ class Rewriter {
    */
   Node rewriteTo(theory::TheoryId theoryId,
                  Node node,
-                 CDProof* proof = nullptr);
+                 TConvProofGenerator* tcpg = nullptr);
 
   /** Calls the pre-rewriter for the given theory */
   RewriteResponse preRewrite(theory::TheoryId theoryId, TNode n);

@@ -273,6 +273,11 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
+  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
+      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+  {
+    return false;
+  }
   if (expr::hasSubterm(val, x))
   {
     return false;

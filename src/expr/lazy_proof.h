@@ -29,7 +29,7 @@ namespace CVC4 {
 /**
  * A (context-dependent) lazy proof. This class is an extension of CDProof
  * that additionally maps facts to proof generators in a context-dependent
- * manner. It extends CDProof with additional method, addLazyStep, for adding
+ * manner. It extends CDProof with an additional method, addLazyStep for adding
  * steps to a proof via a given proof generator.
  */
 class LazyCDProof : public CDProof
@@ -49,7 +49,7 @@ class LazyCDProof : public CDProof
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
-   * additionally proof generators to generate proofs for ASSUME nodes that
+   * additionally call proof generators to generate proofs for ASSUME nodes that
    * don't yet have a concrete proof.
    */
   std::shared_ptr<ProofNode> mkProof(Node fact) override;
@@ -60,9 +60,9 @@ class LazyCDProof : public CDProof
    * the current context (according to the context c provided to this class).
    *
    * It is important to note that pg is asked to provide a proof for expected
-   * only when no other call for expected is provided via addStep. In
-   * particular, pg is asked to prove expected when it appears as the conclusion
-   * of an ASSUME leaf within mkProof.
+   * only when no other call for the fact expected is provided via the addStep
+   * method of this class. In particular, pg is asked to prove expected when it
+   * appears as the conclusion of an ASSUME leaf within CDProof::mkProof.
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
@@ -88,7 +88,11 @@ class LazyCDProof : public CDProof
   NodeProofGeneratorMap d_gens;
   /** The default proof generator */
   ProofGenerator* d_defaultGen;
-  /** Get generator for fact, or nullptr if it doesnt exist */
+  /**
+   * Get generator for fact, or nullptr if it doesnt exist. This method is
+   * robust to symmetry of (dis)equality. It updates isSym to true if a
+   * proof generator for the symmetric form of fact was provided.
+   */
   ProofGenerator* getGeneratorFor(Node fact, bool& isSym, bool& isPredEq);
 };
 

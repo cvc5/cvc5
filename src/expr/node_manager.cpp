@@ -171,6 +171,9 @@ NodeManager::~NodeManager() {
 
   NodeManagerScope nms(this);
 
+  // Destroy skolem manager before cleaning up attributes and zombies
+  d_skManager = nullptr;
+
   {
     ScopedBool dontGC(d_inReclaimZombies);
     // hopefully by this point all SmtEngines have been deleted
@@ -233,7 +236,6 @@ NodeManager::~NodeManager() {
   // defensive coding, in case destruction-order issues pop up (they often do)
   delete d_resourceManager;
   d_resourceManager = NULL;
-  d_skManager = nullptr;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
   delete d_registrations;

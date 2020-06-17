@@ -21,9 +21,8 @@
 
 using namespace std;
 
-using namespace CVC4::theory;
-
 namespace CVC4 {
+namespace theory {
 
 TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
                                        RemoveTermFormulas& tfr)
@@ -41,52 +40,46 @@ void TheoryPreprocessor::clearCache() { d_ppCache.clear(); }
 void TheoryPreprocessor::preprocess(TNode node,
                                     preprocessing::AssertionPipeline& lemmas,
                                     bool doTheoryPreprocess,
-                                    LazyCDProof* lcp)
+                                    LazyCDProof* lp)
 {
-  // Run theory preprocessing, maybe
-  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
 
+  std::shared_ptr<TConvProofGenerator> tg;
+  if (lp != nullptr)
+  {
+    // make the proof generator
+    tg = std::make_shared<TConvProofGenerator>(lp->getManager());
+  }
+  // Run theory preprocessing, maybe
+  Node ppNode = doTheoryPreprocess ? theoryPreprocess(node, tg.get()) : Node(node);
+  
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
   lemmas.push_back(ppNode);
   lemmas.updateRealAssertionsEnd();
-  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap());
+  // TODO: pass lp, tg to run here
+  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap(), false, nullptr, nullptr);
   Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
 
   // justify the preprocessing step
-  if (lcp != nullptr)
+  if (lp != nullptr)
   {
+    // currently this is a trusted step that combines theory preprocessing and
+    // term formula removal.
     if (!CDProof::isSame(node, lemmas[0]))
     {
+#if 0
+      Node eq = node.eqNode(lemmas[0]);
+      std::shared_ptr<ProofNode> ppf = tg->getProofFor(eq);
+      Assert (ppf!=nullptr);
+      
+#else
       std::vector<Node> pfChildren;
       pfChildren.push_back(node);
       std::vector<Node> pfArgs;
       pfArgs.push_back(lemmas[0]);
-      lcp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
-    }
-#if 0
-    for (size_t i = 1, lsize = lemmas.size(); i < lsize; ++i)
-    {
-      // the witness form of other lemmas should rewrite to true
-      // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
-      //   forall x. k(x)=t[x]
-      // whose witness form rewrites
-      //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
-      std::vector<Node> pfChildren;
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(lemmas[i]);
-      Trace("te-tf-check") << "Checking additional lemma..." << std::endl;
-      Node cp = d_pchecker->checkDebug(PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs, lemmas[i], "te-tf-check");
-      Trace("te-tf-check") << "...result: " << cp << std::endl;
-      if (cp.isNull())
-      {
-        Node wt = SkolemManager::getWitnessForm(lemmas[i]);
-        wt = Rewriter::rewrite(wt);
-        Trace("te-tf-check") << "...witness form was " << wt << std::endl;
-      }
-      lcp->addStep(lemmas[i], PfRule::MACRO_SR_PRED_INTRO, pfChildren, pfArgs);
-    }
+      lp->addStep(lemmas[0], PfRule::THEORY_PREPROCESS, pfChildren, pfArgs);
 #endif
+    }
   }
 
   if (Debug.isOn("lemma-ites"))
@@ -108,7 +101,7 @@ void TheoryPreprocessor::preprocess(TNode node,
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
     Node rewritten = Rewriter::rewrite(lemmas[i]);
-    if (lcp != nullptr)
+    if (lp != nullptr)
     {
       if (!CDProof::isSame(rewritten, lemmas[i]))
       {
@@ -116,7 +109,7 @@ void TheoryPreprocessor::preprocess(TNode node,
         pfChildren.push_back(lemmas[i]);
         std::vector<Node> pfArgs;
         pfArgs.push_back(rewritten);
-        lcp->addStep(
+        lp->addStep(
             rewritten, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
       }
     }
@@ -131,7 +124,7 @@ struct preprocess_stack_element
   preprocess_stack_element(TNode n) : node(n), children_added(false) {}
 };
 
-Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
+Node TheoryPreprocessor::theoryPreprocess(TNode assertion, TConvProofGenerator* tg)
 {
   Trace("theory::preprocess")
       << "TheoryPreprocessor::theoryPreprocess(" << assertion << ")" << endl;
@@ -174,7 +167,7 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
     // If this is an atom, we preprocess its terms with the theory ppRewriter
     if (Theory::theoryOf(current) != THEORY_BOOL)
     {
-      Node ppRewritten = ppTheoryRewrite(current);
+      Node ppRewritten = ppTheoryRewrite(current, tg);
       d_ppCache[current] = ppRewritten;
       Assert(Rewriter::rewrite(d_ppCache[current]) == d_ppCache[current]);
       continue;
@@ -236,13 +229,12 @@ Node TheoryPreprocessor::theoryPreprocess(TNode assertion)
       }
     }
   }
-
   // Return the substituted version
   return d_ppCache[assertion];
 }
 
 // Recursively traverse a term and call the theory rewriter on its sub-terms
-Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
+Node TheoryPreprocessor::ppTheoryRewrite(TNode term, TConvProofGenerator* tg)
 {
   NodeMap::iterator find = d_ppCache.find(term);
   if (find != d_ppCache.end())
@@ -252,7 +244,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    return d_engine.theoryOf(term)->ppRewrite(term);
+    return d_engine.theoryOf(term)->ppRewrite(term, tg);
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -272,18 +264,19 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     unsigned i;
     for (i = 0; i < nc; ++i)
     {
-      newNode << ppTheoryRewrite(term[i]);
+      newNode << ppTheoryRewrite(term[i], tg);
     }
     newTerm = Rewriter::rewrite(Node(newNode));
   }
-  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
+  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm, tg);
   if (newTerm != newTerm2)
   {
-    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));
+    newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2), tg);
   }
   d_ppCache[term] = newTerm;
   Trace("theory-pp") << "ppTheoryRewrite returning " << newTerm << "}" << endl;
   return newTerm;
 }
 
+}  // namespace theory
 }  // namespace CVC4

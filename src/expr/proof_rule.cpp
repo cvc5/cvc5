@@ -37,7 +37,7 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
-    case PfRule::REWRITE_PREPROCESS: return "REWRITE_PREPROCESS";
+    case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::RESOLUTION: return "RESOLUTION";
@@ -98,6 +98,8 @@ const char* toString(PfRule id)
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
     //================================================= Quantifiers rules
+    case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
+    case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     //================================================= String rules
@@ -125,6 +127,7 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
 
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

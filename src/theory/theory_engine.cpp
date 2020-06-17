@@ -981,8 +981,19 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
-Node TheoryEngine::preprocess(TNode assertion) {
-  return d_tpp.theoryPreprocess(assertion);
+Node TheoryEngine::preprocess(TNode assertion, LazyCDProof* lp)
+{
+  std::shared_ptr<TConvProofGenerator> tg;
+  if (lp!=nullptr)
+  {
+    // TODO
+  }
+  Node ret = d_tpp.theoryPreprocess(assertion, tg.get());
+  if (lp!=nullptr)
+  {
+    // TODO
+  }
+  return ret;
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1599,9 +1610,9 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   }
 
   // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
+  Node lemma = negated ? node.notNode() : Node(node);
   if (d_lazyProof != nullptr)
   {
-    Node lemma = negated ? node.notNode() : Node(node);
     // the lemma should have a proof
     if (!d_lazyProof->hasStep(lemma) && !d_lazyProof->hasGenerator(lemma))
     {
@@ -1616,29 +1627,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     }
   }
 
-  // FIXME
-  std::shared_ptr<LazyCDProof> lcp;
-  if (d_lazyProof != nullptr)
-  {
-    Trace("te-proof-exp") << "TheoryEngine::lemma: process " << node
-                          << std::endl;
-    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
-  }
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess, lcp.get());
+  d_tpp.preprocess(lemma, lemmas, preprocess, d_lazyProof.get());
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(
-        lemmas[i], i == 0 && negated, removable, rule, node);
-  }
-
-  // WARNING: Below this point don't assume lemmas[0] to be not negated.
-  if(negated) {
-    lemmas.replace(0, lemmas[0].notNode());
-    negated = false;
+    d_propEngine->assertLemma(lemmas[i], false, removable, rule, node);
   }
 
   // assert to decision engine

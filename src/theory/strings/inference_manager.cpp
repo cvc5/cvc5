@@ -33,36 +33,25 @@ InferenceManager::InferenceManager(SolverState& s,
                                    ExtTheory& e,
                                    OutputChannel& out,
                                    SequencesStatistics& statistics,
-                                   bool pfEnabled)
+                                   ProofNodeManager* pnm)
     : d_state(s),
       d_termReg(tr),
       d_extt(e),
       d_out(out),
       d_statistics(statistics),
-      d_pfee(nullptr),
-      d_ipc(nullptr),
-      d_pfEnabled(pfEnabled)
+      d_pfee(new eq::ProofEqEngine(d_state.getSatContext(),
+                                   d_state.getUserContext(),
+                                   *d_state.getEqualityEngine(),
+                                   pnm,
+                                   options::proofNew())),
+      d_ipc(new InferProofCons(
+          d_state.getSatContext(), pnm, d_statistics, options::proofNew()))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  // whether to recursively explain
-  d_recExplain = false;
-}
-
-void InferenceManager::finishInit(ProofNodeManager* pnm)
-{
-  // now that proof node manager is setup, we initialize proof equality engine
-  d_pfee.reset(new eq::ProofEqEngine(d_state.getSatContext(),
-                                     d_state.getUserContext(),
-                                     *d_state.getEqualityEngine(),
-                                     pnm,
-                                     d_pfEnabled,
-                                     d_recExplain));
-  d_ipc.reset(new InferProofCons(
-      d_state.getSatContext(), pnm, d_statistics, d_pfEnabled));
 }
 
 void InferenceManager::sendAssumption(TNode lit)
@@ -346,32 +335,11 @@ void InferenceManager::doPendingFacts()
     {
       ii.d_conc = fact;
       preProcessFact(fact);
-      if (!d_recExplain)
-      {
-        // notify fact
-        d_ipc->notifyFact(ii);
-        // assert to equality engine using proof generator interface for
-        // assertFact.
-        d_pfee->assertFact(fact, cexp, d_ipc.get());
-      }
-      else
-      {
-        bool useBuffer = false;
-        ProofStep ps;
-        // convert to proof rule(s)
-        Node conc = d_ipc->convert(ii, ps, useBuffer);
-        Assert(conc == fact);
-        preProcessFact(conc);
-        // assert to equality engine
-        if (useBuffer)
-        {
-          d_pfee->assertFact(fact, cexp, *d_ipc->getBuffer());
-        }
-        else
-        {
-          d_pfee->assertFact(fact, ps.d_rule, ps.d_children, ps.d_args);
-        }
-      }
+      // notify fact
+      d_ipc->notifyFact(ii);
+      // assert to equality engine using proof generator interface for
+      // assertFact.
+      d_pfee->assertFact(fact, cexp, d_ipc.get());
       // may be in conflict
       if (d_state.isInConflict())
       {

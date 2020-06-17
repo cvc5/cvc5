@@ -22,10 +22,10 @@
 #include "expr/node.h"
 #include "expr/proof_checker.h"
 #include "expr/proof_rule.h"
-#include "theory/theory_proof_step_buffer.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/sequences_stats.h"
+#include "theory/theory_proof_step_buffer.h"
 #include "theory/uf/proof_equality_engine.h"
 
 namespace CVC4 {

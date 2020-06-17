@@ -15,6 +15,7 @@
 #include "expr/proof_node_manager.h"
 
 #include "expr/proof.h"
+#include "expr/proof_node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -66,13 +67,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     std::shared_ptr<ProofNode> pf,
     std::vector<Node>& assumps,
     bool ensureClosed,
-    bool doMinimize)
+    bool doMinimize,
+    Node expected)
 {
   std::vector<std::shared_ptr<ProofNode>> pfChildren;
   pfChildren.push_back(pf);
   if (!ensureClosed)
   {
-    return mkNode(PfRule::SCOPE, pfChildren, assumps);
+    return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
   }
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
@@ -83,7 +85,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   }
   // The free assumptions of the proof
   std::map<Node, std::vector<ProofNode*>> famap;
-  pf->getFreeAssumptionsMap(famap);
+  expr::getFreeAssumptionsMap(pf.get(), famap);
   std::unordered_set<Node, NodeHashFunction> acu;
   for (const std::pair<const Node, std::vector<ProofNode*>>& fa : famap)
   {
@@ -97,6 +99,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     Trace("pnm-scope") << "- try matching free assumption " << a << "\n";
     // otherwise it may be due to symmetry?
     Node aeqSym = CDProof::getSymmFact(a);
+    Trace("pnm-scope") << "  - try sym " << aeqSym << "\n";
     if (!aeqSym.isNull())
     {
       if (ac.count(aeqSym))
@@ -119,48 +122,6 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         acu.insert(aeqSym);
         continue;
       }
-    }
-    // otherwise it may be due to the predicate equality business?
-    //
-    // the assumption can be e.g. (= false (= t1 t2)) in which case the
-    // necessary proof to be built is
-    //
-    //     --------------- ASSUME
-    //     (not (= t1 t2))
-    //  -------------------- FALSE_INTRO
-    //  (= (= t1 t2) false)
-    //  -------------------- SYMM
-    //  (= false (= t1 t2))
-    bool pol, symm;
-    Node aPred = CDProof::getPredicateFact(a, pol, symm);
-    if (!aPred.isNull() && ac.count(aPred))
-    {
-      Trace("pnm-scope") << "- introduce explicit predicate " << aPred
-                         << " via " << (symm ? "[reoriented] " : "") << a
-                         << " for " << fa.second.size() << " proof nodes"
-                         << std::endl;
-      std::shared_ptr<ProofNode> pfaa = mkAssume(aPred);
-      ;
-      // maybe reorient equality, in which case update the pointer to the
-      // justification of the assumption
-      if (symm)
-      {
-        pfaa = mkNode(pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
-                      pfaa,
-                      {},
-                      a[1].eqNode(a[0]));
-      }
-      PfRule updateRule =
-          symm ? PfRule::SYMM
-               : (pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO);
-      for (ProofNode* pfs : fa.second)
-      {
-        Assert(pfs->getResult() == a);
-        updateNode(pfs, updateRule, {pfaa}, {});
-      }
-      Trace("pnm-scope") << "...finished" << std::endl;
-      acu.insert(aPred);
-      continue;
     }
     // All free assumptions should be arguments to SCOPE.
     std::stringstream ss;
@@ -197,28 +158,28 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     assumps.clear();
     assumps.insert(assumps.end(), ac.begin(), ac.end());
   }
-  Node expected;
+  Node minExpected;
   NodeManager* nm = NodeManager::currentNM();
   Node exp;
   Node conc = pf->getResult();
   if (assumps.empty())
   {
     Assert(!conc.isConst());
-    expected = conc;
+    minExpected = conc;
   }
   else
   {
     exp = assumps.size() == 1 ? assumps[0] : nm->mkNode(AND, assumps);
     if (conc.isConst() && !conc.getConst<bool>())
     {
-      expected = exp.notNode();
+      minExpected = exp.notNode();
     }
     else
     {
-      expected = nm->mkNode(IMPLIES, exp, conc);
+      minExpected = nm->mkNode(IMPLIES, exp, conc);
     }
   }
-  return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
+  return mkNode(PfRule::SCOPE, pfChildren, assumps, minExpected);
 }
 
 bool ProofNodeManager::updateNode(

@@ -15,6 +15,7 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "smt/term_formula_removal.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -61,17 +62,17 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
-  // trust coarse-grained theory lemmas for now: register null checker
+  // we dont' use the checker currently, since lemmas may contain witness
   pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::THEORY_PREPROCESS, this);
-  pc->registerChecker(PfRule::REWRITE_PREPROCESS, this);
+  pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
 }
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
   Node nk = SkolemManager::getSkolemForm(n);
-  Node nkr = applyRewriteExternal(n, idr);
+  Node nkr = applyRewriteExternal(nk, idr);
   return SkolemManager::getWitnessForm(nkr);
 }
 
@@ -379,6 +380,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 2);
     Assert(args[0].getType().isBoolean());
+    // TODO?
     return args[0];
   }
   else if (id == PfRule::THEORY_PREPROCESS)
@@ -387,11 +389,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     return args[0];
   }
-  if (id == PfRule::REWRITE_PREPROCESS)
+  else if (id == PfRule::REMOVE_TERM_FORMULA_AXIOM)
   {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    return applyRewrite(children[0]);
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node t = SkolemManager::getSkolemForm(args[0]);
+    Node ret = RemoveTermFormulas::getAxiomFor(t);
+    return SkolemManager::getWitnessForm(ret);
   }
   // no rule
   return Node::null();
@@ -425,10 +429,9 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
   return true;
 }
 
-
 void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
-                                   MethodId ids,
-                                   MethodId idr)
+                                           MethodId ids,
+                                           MethodId idr)
 {
   bool ndefRewriter = (idr != MethodId::RW_REWRITE);
   if (ids != MethodId::SB_DEFAULT || ndefRewriter)

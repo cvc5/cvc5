@@ -1377,6 +1377,13 @@ public:
 
 };/* class Comparison */
 
+/*
+ * Proof Normal Form:
+ *
+ * Proof normal form is the polynomial associated with an arith_var >< a
+ * constant, where >< is one of not =, =, >=, >, <=, <.
+ */
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

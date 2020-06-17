@@ -44,6 +44,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::NOT_XOR_ELIM2, this);
   pc->registerChecker(PfRule::ITE_ELIM1, this);
   pc->registerChecker(PfRule::ITE_ELIM2, this);
+  pc->registerChecker(PfRule::CONTRA, this);
   pc->registerChecker(PfRule::NOT_ITE_ELIM1, this);
   pc->registerChecker(PfRule::NOT_ITE_ELIM2, this);
   pc->registerChecker(PfRule::NOT_AND, this);
@@ -100,41 +101,41 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
   }
-  if (id == PfRule::REMOVE_FALSE_LITERAL)
-  {
-    Assert(children.size() == 1);
-    Assert(args.empty());
-    if (children[0].getKind() != kind::OR)
-    {
-      Node nk = SkolemManager::getSkolemForm(children[0]);
-      Node nkr = Rewriter::rewrite(nk);
-      return SkolemManager::getWitnessForm(nkr);
-    }
-    NodeManager* nm = NodeManager::currentNM();
-    unsigned i, size = children[0].getNumChildren();
-    std::vector<Node> clauseNodes;
-    Node falseNode = nm->mkConst<bool>(false);
-    for (unsigned i = 0; i < size; ++i)
-    {
-      if (Rewriter::rewrite(SkolemManager::getSkolemForm(children[0][i])) == falseNode)
-      {
-        i++;
-        break;
-      }
-      else
-      {
-        clauseNodes.push_back(children[0][i]);
-      }
-    }
-    if (i < size)
-    {
-      clauseNodes.insert(clauseNodes.end(), clauseNodes.begin() + i,  clauseNodes.end());
-    }
-    return clauseNodes.empty()
-               ? falseNode
-               : clauseNodes.size() == 1 ? clauseNodes[0]
-                                         : nm->mkNode(kind::OR, clauseNodes);
-  }
+  // if (id == PfRule::REMOVE_FALSE_LITERAL)
+  // {
+  //   Assert(children.size() == 1);
+  //   Assert(args.empty());
+  //   if (children[0].getKind() != kind::OR)
+  //   {
+  //     Node nk = SkolemManager::getSkolemForm(children[0]);
+  //     Node nkr = Rewriter::rewrite(nk);
+  //     return SkolemManager::getWitnessForm(nkr);
+  //   }
+  //   NodeManager* nm = NodeManager::currentNM();
+  //   unsigned i, size = children[0].getNumChildren();
+  //   std::vector<Node> clauseNodes;
+  //   Node falseNode = nm->mkConst<bool>(false);
+  //   for (i = 0; i < size; ++i)
+  //   {
+  //     if (Rewriter::rewrite(SkolemManager::getSkolemForm(children[0][i])) == falseNode)
+  //     {
+  //       i++;
+  //       break;
+  //     }
+  //     else
+  //     {
+  //       clauseNodes.push_back(children[0][i]);
+  //     }
+  //   }
+  //   if (i < size)
+  //   {
+  //     clauseNodes.insert(clauseNodes.end(), clauseNodes.begin() + i,  clauseNodes.end());
+  //   }
+  //   return clauseNodes.empty()
+  //              ? falseNode
+  //              : clauseNodes.size() == 1 ? clauseNodes[0]
+  //                                        : nm->mkNode(kind::OR, clauseNodes);
+  // }
   if (id == PfRule::FACTORING || id == PfRule::REORDERING)
   {
     Assert(children.size() == 1);
@@ -401,6 +402,18 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(
         kind::OR, children[0][0], children[0][2]);
+  }
+  if (id == PfRule::CONTRA)
+  {
+    Assert(children.size() == 2);
+    if (children[1].getKind() == Kind::NOT && children[0] == children[1][0])
+    {
+      return NodeManager::currentNM()->mkConst(false);
+    }
+    else
+    {
+      return Node::null();
+    }
   }
   if (id == PfRule::NOT_ITE_ELIM1)
   {

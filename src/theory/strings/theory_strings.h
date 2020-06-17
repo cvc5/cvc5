@@ -228,14 +228,14 @@ class TheoryStrings : public Theory {
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** A proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
   /** The solver state object */
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
   /** The (custom) output channel of the theory of strings */
   std::unique_ptr<InferenceManager> d_im;
-  /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
 
  private:
   std::map< Node, Node > d_eqc_to_len_term;
@@ -287,13 +287,17 @@ class TheoryStrings : public Theory {
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
-   * tn in the current context, which are stored in repSet.
+   * tn in the current context, which are stored in repSet. Furthermore,
+   * col is a partition of repSet where equivalence classes are grouped into
+   * sets having equal length, where these lengths are stored in lts.
    *
    * Returns false if a conflict is discovered while doing this assignment.
    */
   bool collectModelInfoType(
       TypeNode tn,
       const std::unordered_set<Node, NodeHashFunction>& repSet,
+      std::vector<std::vector<Node> >& col,
+      std::vector<Node>& lts,
       TheoryModel* m);
 
   /** assert pending fact
@@ -336,7 +340,7 @@ class TheoryStrings : public Theory {
 
  public:
   // ppRewrite
-  Node ppRewrite(TNode atom) override;
+  Node ppRewrite(TNode atom, TConvProofGenerator* tg) override;
 
  private:
   //-----------------------inference steps

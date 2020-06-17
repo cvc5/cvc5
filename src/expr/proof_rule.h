@@ -178,7 +178,7 @@ enum class PfRule : uint32_t
   //
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
-  MACRO_SR_PRED_TRANSFORM,  
+  MACRO_SR_PRED_TRANSFORM,
   // ======== Theory Rewrite
   // Children: none
   // Arguments: (t, preRewrite?)
@@ -210,12 +210,12 @@ enum class PfRule : uint32_t
   // P1:F, P2:(= F G) -> G by EQUIV_ELIM1 on P2 then RESOLUTION on P1 and the
   // result.
   THEORY_PREPROCESS,
-  // ======== Theory preprocess
-  // Children: P:F
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: Rewriter::Rewrite(F)
-  REWRITE_PREPROCESS,
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
 
   //================================================= Boolean rules
   // ======== Split
@@ -572,19 +572,33 @@ enum class PfRule : uint32_t
   FALSE_ELIM,
 
   //================================================= Quantifiers rules
+  // ======== Witness intro
+  // Children: (P:F[t])
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (= t (witness ((x T)) F[x]))
+  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  WITNESS_INTRO,
+  // ======== Exists intro
+  // Children: (P:F[t])
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (exists ((x T)) F[x])
+  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  EXISTS_INTRO,
   // ======== Skolemize
-  // Children: (P:(exists ((x1 T1) ... (xn Tn)) P))
+  // Children: (P:(exists ((x1 T1) ... (xn Tn)) F))
   // Arguments: none
   // ----------------------------------------
-  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) P)) P*sigma)
+  // Conclusion: (or (not (exists ((x1 T1) ... (xn Tn)) F)) F*sigma)
   // sigma maps x1 ... xn to their representative skolems obtained by
   // SkolemManager::mkSkolemExists.
   SKOLEMIZE,
   // ======== Instantiate
-  // Children: (P:(forall ((x1 T1) ... (xn Tn)) P))
+  // Children: (P:(forall ((x1 T1) ... (xn Tn)) F))
   // Arguments: (t1 ... tn)
   // ----------------------------------------
-  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) P)) P*sigma)
+  // Conclusion: (or (not (forall ((x1 T1) ... (xn Tn)) F)) F*sigma)
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 
@@ -803,8 +817,14 @@ enum class PfRule : uint32_t
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
-  // Children: (P1:(><1 l1 r1), ... , Pn(><n ln rn))
-  //           where each ><i is a (possibly negated) >, >=, =
+  // Note: an ArithLiteral is a term of the form (>< poly const)
+  // where
+  //   >< is >=, >, ==, <, <=, or not(== ...).
+  //   poly is a polynomial
+  //   const is a rational constant
+
+  // Children: (P1:l1, ..., Pn:ln)
+  //           where each li is an ArithLiteral
   //           not(= ...) is dis-allowed!
   //
   // Arguments: (k1, ..., kn), non-zero reals
@@ -814,31 +834,44 @@ enum class PfRule : uint32_t
   //    its ki is negative). >< is always one of <, <=
   //    NB: this implies that lower bounds must have negative ki,
   //                      and upper bounds must have positive ki.
+  //    t1 is the sum of the polynomials.
+  //    t2 is the sum of the constants.
   SCALE_SUM_UPPER_BOUNDS,
 
   // ======== Tightening Strict Integer Upper Bounds
-  // Children: (P:(not (>= i c)))
+  // Children: (P:(< i c))
+  //         where i has integer type.
   // Arguments: none
   // ---------------------
-  // Conclusion: (not (> i greatestIntLessThan(c)}))
+  // Conclusion: (<= i greatestIntLessThan(c)})
   INT_TIGHT_UB,
 
   // ======== Tightening Strict Integer Lower Bounds
   // Children: (P:(> i c))
+  //         where i has integer type.
   // Arguments: none
   // ---------------------
   // Conclusion: (>= i leastIntGreaterThan(c)})
   INT_TIGHT_LB,
 
-  // ======== Tightening Integer Upper Bounds
+  // ======== Trichotomy of the reals
   // Children: (A B)
   // Arguments: (C)
   // ---------------------
   // Conclusion: (C),
-  //                 where (not A) (not B)        and C
-  //                   are (> x c) (not (>= x c)) and (= x c)
+  //                 where (not A) (not B) and C
+  //                   are (> x c) (< x c) and (= x c)
   //                   in some order
+  //                 note that "not" here denotes arithmetic negation, flipping
+  //                 >= to <, etc.
   TRICHOTOMY,
+
+  // ======== Arithmetic operator elimination
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  ARITH_OP_ELIM_AXIOM,
 
   // ======== Int Trust
   // Children: (P1 ... Pn)

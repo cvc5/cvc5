@@ -68,6 +68,15 @@ header = "options/datatypes_options.h"
   help       = "when applicable, blast splitting lemmas for all variables at once"
 
 [[option]]
+  name       = "dtNestedRec"
+  category   = "regular"
+  long       = "dt-nested-rec"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "allow nested recursion in datatype definitions"
+
+[[option]]
   name       = "dtSharedSelectors"
   category   = "regular"
   long       = "dt-share-sel"

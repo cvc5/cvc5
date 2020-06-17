@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lazy_proof.h
+/*! \file lazy_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Lazy proof utility
+ ** \brief Implementation of lazy proof utility
  **/
 
 #include "expr/lazy_proof.h"
@@ -65,22 +65,7 @@ std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
         {
           Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
                                 << afact << std::endl;
-          Node afactGen;
-          if (isPredEq)
-          {
-            bool pol, symm;
-            afactGen = CDProof::getPredicateFact(afact, pol, symm);
-            // add directly to cdproof
-            CDProof* cdpf = static_cast<CDProof*>(this);
-            cdpf->addStep(!symm ? afact : afact[1].eqNode(afact[0]),
-                          pol ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
-                          {afactGen},
-                          {});
-          }
-          else
-          {
-            afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
-          }
+          Node afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
           Assert(!afactGen.isNull());
           // use the addProofTo interface
           if (!pg->addProofTo(afactGen, this))
@@ -129,13 +114,14 @@ void LazyCDProof::addLazyStep(Node expected,
   Trace("lazy-cdproof-add")
       << "LazyCDProof::addLazyStep: adding step for " << expected << "\n";
   Assert(pg != nullptr);
-  NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
-  if (it != d_gens.end() && !forceOverwrite)
+  if (!forceOverwrite)
   {
-    Trace("lazy-cdproof-add")
-        << "LazyCDProof::addLazyStep: ...already registered\n";
-    // don't overwrite something that is already there
-    return;
+    NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
+    if (it != d_gens.end())
+    {
+      // don't overwrite something that is already there
+      return;
+    }
   }
   // just store now
   d_gens.insert(expected, pg);
@@ -164,20 +150,6 @@ ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
     isSym = true;
     return (*it).second;
   }
-  // could be predicate equality
-  bool pol, symm;
-  Node factPred = CDProof::getPredicateFact(fact, pol, symm);
-  if (factPred.isNull())
-  {
-    // can't be predicate equality, return the default generator
-    return d_defaultGen;
-  }
-  it = d_gens.find(factPred);
-  if (it != d_gens.end())
-  {
-    isPredEq = true;
-    return (*it).second;
-  }
   // return the default generator
   return d_defaultGen;
 }
@@ -203,17 +175,6 @@ bool LazyCDProof::hasGenerator(Node fact) const
   if (!factSym.isNull())
   {
     it = d_gens.find(factSym);
-  }
-  if (it == d_gens.end())
-  {
-    // maybe theri is a predicate fact?
-    bool pol, symm;
-    Node factPred = CDProof::getPredicateFact(fact, pol, symm);
-    if (factPred.isNull())
-    {
-      return false;
-    }
-    it = d_gens.find(factPred);
   }
   return it != d_gens.end();
 }

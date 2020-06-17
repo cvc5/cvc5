@@ -17,9 +17,10 @@
 
 #pragma once
 
+#include <stdint.h>
+
 #include <map>
 #include <queue>
-#include <stdint.h>
 #include <vector>
 
 #include "context/cdhashset.h"
@@ -31,6 +32,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "expr/proof_generator.h"
 #include "options/arith_options.h"
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
@@ -51,12 +53,15 @@
 #include "theory/arith/normal_form.h"
 #include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
+#include "theory/arith/proof_checker.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private_forward.h"
+#include "theory/eager_proof_generator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/dense_map.h"
 #include "util/integer.h"
@@ -100,6 +105,14 @@ private:
   //context::CDO<bool> d_nlIncomplete;
 
   BoundInfoMap d_rowTracking;
+
+  // For proofs
+  /** Manages the proof nodes of this theory. */
+  std::unique_ptr<ProofNodeManager> d_pnm;
+  /** Checks the proof rules of this theory. */
+  ArithProofRuleChecker d_checker;
+  /** Stores proposition(node)/proof pairs. */
+  std::unique_ptr<EagerProofGenerator> d_pfGen;
 
   /**
    * The constraint database associated with the theory.
@@ -359,9 +372,6 @@ private:
    */
   bool safeToReset() const;
 
-  /** Proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
-
   /** This keeps track of difference equalities. Mostly for sharing. */
   ArithCongruenceManager d_congruenceManager;
   context::CDO<bool> d_cmEnabled;
@@ -418,7 +428,7 @@ private:
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
   // handle linear /, div, mod, and also is_int, to_int
-  Node ppRewriteTerms(TNode atom);
+  Node ppRewriteTerms(TNode atom, TConvProofGenerator* tg);
 
  public:
   TheoryArithPrivate(TheoryArith& containing,
@@ -456,7 +466,7 @@ private:
   void presolve();
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+  Node ppRewrite(TNode atom, TConvProofGenerator* tg);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
@@ -660,7 +670,9 @@ private:
     (d_containing.d_out)->setIncomplete();
     d_nlIncomplete = true;
   }
+  void outputTrustedLemma(TrustNode lem);
   void outputLemma(TNode lem);
+  void outputTrustedConflict(TrustNode conf);
   void outputConflict(TNode lit);
   void outputPropagate(TNode lit);
   void outputRestart();

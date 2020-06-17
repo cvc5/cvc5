@@ -176,12 +176,14 @@ bool CDProof::addStep(Node expected,
   }
 
   // TODO: this isnt necessary if we forbid SYMM from user
+  // the user may have provided SYMM of an assumption
   if (id == PfRule::SYMM)
   {
     Assert(pchildren.size() == 1);
     if (isAssumption(pchildren[0].get()))
     {
-      // the step we are constructing is an assumption, no use
+      // the step we are constructing is a (symmetric fact of an) assumption, so
+      // there is no use adding it to the proof.
       return true;
     }
   }
@@ -440,23 +442,6 @@ Node CDProof::getSymmFact(TNode f)
   }
   Node symFact = fatom[1].eqNode(fatom[0]);
   return polarity ? symFact : symFact.notNode();
-}
-
-Node CDProof::getPredicateFact(TNode f, bool& pol, bool& symm)
-{
-  if (f.getKind() != kind::EQUAL
-      || ((f[0].getKind() != kind::CONST_BOOLEAN
-           || f[1].getKind() == kind::CONST_BOOLEAN)
-          && (f[1].getKind() != kind::CONST_BOOLEAN
-              || f[0].getKind() == kind::CONST_BOOLEAN)))
-  {
-    return Node::null();
-  }
-  unsigned cInd = f[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-  symm = cInd == 0;
-  pol = f[cInd].getConst<bool>();
-  Node fAtom = f[1 - cInd];
-  return pol ? fAtom : fAtom.notNode();
 }
 
 }  // namespace CVC4

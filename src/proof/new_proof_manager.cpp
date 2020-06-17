@@ -15,6 +15,7 @@
 #include "proof/new_proof_manager.h"
 
 #include "base/check.h"
+#include "expr/proof_node_algorithm.h"
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
@@ -247,19 +248,14 @@ void NewProofManager::addResolutionStep(Minisat::Solver::TLit lit)
 {
   prop::SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
   Assert(d_litToNode.find(satLit) != d_litToNode.end());
-  if (Debug.isOn("newproof::sat"))
-  {
-    Debug("newproof::sat") << "NewProofManager::addResolutionStep: justify lit "
-                           << lit << "\n";
-  }
-  Debug("newproof::sat") << push;
+  Debug("newproof::sat") << push
+                         << "NewProofManager::addResolutionStep: justify lit "
+                         << lit << "\n";
   tryJustifyingLit(~satLit);
   d_resolution.push_back(
       std::pair<Node, Node>(d_litToNode[~satLit], d_litToNode[satLit]));
-  Debug("newproof::sat") << pop;
-  Debug("newproof::sat") << "NewProofManager::addResolutionStep: "
-                         << toSatLiteral<Minisat::Solver>(~lit) << " ["
-                         << d_litToNode[satLit] << "]\n";
+  Debug("newproof::sat") << pop << "NewProofManager::addResolutionStep: ["
+                         << satLit << "] " << ~satLit << "\n";
 }
 
 void NewProofManager::addResolutionStep(Minisat::Solver::TClause& clause,
@@ -278,15 +274,17 @@ void NewProofManager::addResolutionStep(Minisat::Solver::TClause& clause,
     registerClause(clause);
     Debug("newproof::sat") << pop;
   }
-  if (Debug.isOn("newproof::sat"))
-  {
-    Debug("newproof::sat") << "NewProofManager::addResolutionStep: "
-                           << clause.proofId() << ": ";
-    printClause(clause);
-    Debug("newproof::sat") << "[" << d_litToNode[satLit] << "]\n";
-  }
   d_resolution.push_back(std::pair<Node, Node>(
       d_clauseIdToNode[clause.proofId()], d_litToNode[satLit]));
+  if (Debug.isOn("newproof::sat"))
+  {
+    Debug("newproof::sat") << "NewProofManager::addResolutionStep: [" << satLit
+                           << "] ";
+    printClause(clause);
+    Debug("newproof::sat") << "\nNewProofManager::addResolutionStep:\t"
+                           << clause.proofId() << " : "
+                           << d_clauseIdToNode[clause.proofId()] << "\n";
+  }
 }
 
 void NewProofManager::endResChain(Minisat::Solver::TLit lit)
@@ -562,7 +560,7 @@ void NewProofManager::printInternalProof()
     pn->printDebug(out);
     Trace("newproof-debug") << "Proof of " << p.second << ":\n\t" << out.str()
                       << "\n";
-    pn->getFreeAssumptions(assumptions);
+    expr::getFreeAssumptions(pn, assumptions);
   }
   Trace("newproof-debug")
       << "NewProofManager::printInternalProof: all free assumptions:\n";
@@ -590,7 +588,7 @@ void NewProofManager::printInternalProof()
   std::shared_ptr<ProofNode> pf = d_cdproof->mkProof(falseNode);
   pf->printDebug(out);
   assumptions.clear();
-  pf->getFreeAssumptions(assumptions);
+  expr::getFreeAssumptions(pf.get(), assumptions);
   Trace("newproof") << out.str() << "\nAssumptions: " << assumptions.size()
                     << "\n"
                     << push;
