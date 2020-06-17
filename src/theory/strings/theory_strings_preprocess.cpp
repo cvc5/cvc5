@@ -116,11 +116,42 @@ Node StringsPreprocess::reduce(Node t,
   }
   else if (t.getKind() == kind::STRING_UPDATE)
   {
-    // processing term:  substr( s, n, m )
+    // processing term:  update( s, n, t )
     Node s = t[0];
     Node n = t[1];
-    Node m = t[2];
+    Node t = t[2];
+    Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node ls = nm->mkNode(STRING_LENGTH, s);
+    //start point is greater than or equal zero
+    Node c1 = nm->mkNode(GEQ, n, zero);
+    //start point is less than end of string
+    Node c2 = nm->mkNode(GT, ls, n);
+    Node cond = nm->mkNode(AND, c1, c2);
+    // n + 1
+    Node np1 = nm->mkNode(PLUS, n, one);
     
+    Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = sc->mkSkolemCached(s, np1, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node a1 = skt.eqNode(nm->mkNode(STRING_CONCAT, sk1, t, sk2));
+    //length of first skolem is second argument
+    Node a2 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    Node lmn1 = nm->mkNode(MINUS, ls, np1);
+    Node a3 = nm->mkNode(STRING_LENGTH, sk2).eqNode(lmn1);
+
+    Node b1 = nm->mkNode(AND, a1, a2, a3);
+    Node b2 = skt.eqNode(s);
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+
+    // assert:
+    // IF    n >=0 AND n < len( s )
+    // THEN: skt = sk1 ++ t ++ sk2 AND
+    //       len( sk1 ) = n AND
+    //       len( sk2 ) = len( s )-(n+1)
+    // ELSE: skt = s
+    asserts.push_back(lemma);
+    
+    // Thus, str.update( s, n, t ) = skt
+    retNode = skt;
   }
   else if (t.getKind() == kind::STRING_STRIDOF)
   {
