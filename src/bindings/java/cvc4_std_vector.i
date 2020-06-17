@@ -12,12 +12,20 @@
  */
 
 %include <std_common.i>
-%include <std_vector.i>
 
 %{
 #include <vector>
 #include <stdexcept>
 %}
+
+%fragment("SWIG_VectorSize", "header", fragment="SWIG_JavaIntFromSize_t") {
+SWIGINTERN jint SWIG_VectorSize(size_t size) {
+  jint sz = SWIG_JavaIntFromSize_t(size);
+  if (sz == -1)
+    throw std::out_of_range("vector size is too large to fit into a Java int");
+  return sz;
+}
+}
 
 %define SWIG_STD_VECTOR_EM(CTYPE, CONST_REFERENCE)
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jstype, CTYPE)>"
