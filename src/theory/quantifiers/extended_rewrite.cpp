@@ -1554,7 +1554,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
         // we disallow witness here, due to unsoundness when applying contextual
         // substitutions over witness terms (see #4620).
         Kind k = cur.getKind();
-        if (k!=WITNESS && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
+        if (k != WITNESS && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
         {
           visited[cur] = Node::null();
           visit.push_back(cur);
@@ -1599,13 +1599,13 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 }
 
 Node ExtendedRewriter::partialSubstitute(Node n,
-                        std::vector<Node>& vars,
-                        std::vector<Node>& subs,
-                        std::map<Kind, bool>& rkinds)
+                                         std::vector<Node>& vars,
+                                         std::vector<Node>& subs,
+                                         std::map<Kind, bool>& rkinds)
 {
-  Assert (vars.size()==subs.size());
+  Assert(vars.size() == subs.size());
   std::map<Node, Node> assign;
-  for (size_t i=0, nvars=vars.size(); i<nvars; i++)
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
   {
     assign[vars[i]] = subs[i];
   }
