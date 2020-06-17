@@ -1939,7 +1939,7 @@ enum CVC4_PUBLIC Kind : int32_t
   STRING_SUBSTR,
   /**
    * String update.
-   * Updates a string s at index i by replacing that character with t. 
+   * Updates a string s at index i by replacing that character with t.
    * If the start index is negative, the start index is greater than the
    * length of the string, or the length is negative, the result is s.
    * Parameters: 3

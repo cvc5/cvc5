@@ -502,8 +502,7 @@ EvalResult Evaluator::evalInternal(
           }
           else
           {
-            results[currNode] =
-                EvalResult(s.update(i.toUnsignedInt(),t));
+            results[currNode] = EvalResult(s.update(i.toUnsignedInt(), t));
           }
           break;
         }

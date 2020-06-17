@@ -122,18 +122,18 @@ Node StringsPreprocess::reduce(Node t,
     Node t = t[2];
     Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node ls = nm->mkNode(STRING_LENGTH, s);
-    //start point is greater than or equal zero
+    // start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
-    //start point is less than end of string
+    // start point is less than end of string
     Node c2 = nm->mkNode(GT, ls, n);
     Node cond = nm->mkNode(AND, c1, c2);
     // n + 1
     Node np1 = nm->mkNode(PLUS, n, one);
-    
+
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 = sc->mkSkolemCached(s, np1, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node a1 = skt.eqNode(nm->mkNode(STRING_CONCAT, sk1, t, sk2));
-    //length of first skolem is second argument
+    // length of first skolem is second argument
     Node a2 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
     Node lmn1 = nm->mkNode(MINUS, ls, np1);
     Node a3 = nm->mkNode(STRING_LENGTH, sk2).eqNode(lmn1);
@@ -149,7 +149,7 @@ Node StringsPreprocess::reduce(Node t,
     //       len( sk2 ) = len( s )-(n+1)
     // ELSE: skt = s
     asserts.push_back(lemma);
-    
+
     // Thus, str.update( s, n, t ) = skt
     retNode = skt;
   }

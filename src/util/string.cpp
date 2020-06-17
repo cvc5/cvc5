@@ -403,7 +403,7 @@ bool String::hasSuffix(const String& y) const
 
 String String::update(std::size_t i, const String& t) const
 {
-  if (i<size())
+  if (i < size())
   {
     std::vector<unsigned> vec;
     vec.insert(vec.begin(), d_str.begin(), d_str.begin() + i);

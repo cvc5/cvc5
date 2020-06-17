@@ -142,7 +142,7 @@ enum class Rewrite : uint32_t
   SS_START_NEG,
   SS_STRIP_END_PT,
   SS_STRIP_START_PT,
-  // 
+  //
   UPD_EVAL,
   UPD_EMPTYSTR,
   UPD_CONST_INDEX_MAX_OOB,

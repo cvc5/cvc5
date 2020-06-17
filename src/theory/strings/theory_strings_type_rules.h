@@ -96,7 +96,6 @@ class StringSubstrTypeRule
   }
 };
 
-
 class StringUpdateTypeRule
 {
  public:

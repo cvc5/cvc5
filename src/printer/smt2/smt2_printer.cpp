@@ -1189,7 +1189,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CONCAT: return "str.++";
   case kind::STRING_LENGTH: return v == z3str_variant ? "Length" : "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
-  case kind::STRING_UPDATE: return "str.update" ;
+  case kind::STRING_UPDATE: return "str.update";
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
