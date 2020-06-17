@@ -46,7 +46,7 @@ class RewriterWhite : public CxxTest::TestSuite
   NodeManager* d_nm;
   SmtEngine* d_smt;
   SmtScope* d_scope;
-  Rewriter * d_rewriter;
+  Rewriter* d_rewriter;
 
  public:
   RewriterWhite() {}
@@ -78,10 +78,9 @@ class RewriterWhite : public CxxTest::TestSuite
   void rewriteWithProof(Node t)
   {
     TrustNode tr = d_rewriter->rewriteWithProof(t);
-    ProofGenerator * pg = tr.getGenerator();
-    TS_ASSERT( pg != nullptr );
-    std::shared_ptr<ProofNode> pn =
-        pg->getProofFor(tr.getProven());
+    ProofGenerator* pg = tr.getGenerator();
+    TS_ASSERT(pg != nullptr);
+    std::shared_ptr<ProofNode> pn = pg->getProofFor(tr.getProven());
     std::cout << t << " ---> " << tr << std::endl;
     pn->printDebug(std::cout);
     TS_ASSERT(pn->isClosed());

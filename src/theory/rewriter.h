@@ -21,8 +21,8 @@
 #include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/theory_rewriter.h"
-#include "util/unsafe_interrupt_exception.h"
 #include "theory/trust_node.h"
+#include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
 namespace theory {
@@ -71,9 +71,9 @@ class Rewriter {
    * to setProofChecker prior to this call.
    */
   TrustNode rewriteWithProof(TNode node);
-  
+
   /** set proof checker */
-  void setProofChecker(ProofChecker * pc);
+  void setProofChecker(ProofChecker* pc);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to

@@ -104,15 +104,15 @@ Node Rewriter::rewrite(TNode node) {
 TrustNode Rewriter::rewriteWithProof(TNode node)
 {
   // must set the proof checker before calling this
-  Assert (d_tpg!=nullptr);
+  Assert(d_tpg != nullptr);
   Node ret = getInstance()->rewriteTo(theoryOf(node), node, d_tpg.get());
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
-void Rewriter::setProofChecker(ProofChecker * pc)
+void Rewriter::setProofChecker(ProofChecker* pc)
 {
   // if not already initialized with proof support
-  if (d_tpg==nullptr)
+  if (d_tpg == nullptr)
   {
     d_pnm.reset(new ProofNodeManager(pc));
     d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
