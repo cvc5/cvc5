@@ -204,13 +204,13 @@ class ExtendedRewriter
    * never recursing beneath WITNESS.
    */
   Node partialSubstitute(Node n,
-                         std::map<Node, Node>& assign,
-                         std::map<Kind, bool>& rkinds);
+                         const std::map<Node, Node>& assign,
+                         const std::map<Kind, bool>& rkinds);
   /** same as above, with vectors */
   Node partialSubstitute(Node n,
-                         std::vector<Node>& vars,
-                         std::vector<Node>& subs,
-                         std::map<Kind, bool>& rkinds);
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs,
+                         const std::map<Kind, bool>& rkinds);
   /** solve equality
    *
    * If this function returns a non-null node n', then n' is equivalent to n

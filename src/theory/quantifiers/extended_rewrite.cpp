@@ -1527,11 +1527,12 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 }
 
 Node ExtendedRewriter::partialSubstitute(Node n,
-                                         std::map<Node, Node>& assign,
-                                         std::map<Kind, bool>& rkinds)
+                                         const std::map<Node, Node>& assign,
+                                         const std::map<Kind, bool>& rkinds)
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::map<Node, Node>::const_iterator ita;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -1543,7 +1544,7 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 
     if (it == visited.end())
     {
-      std::map<Node, Node>::iterator ita = assign.find(cur);
+      ita = assign.find(cur);
       if (ita != assign.end())
       {
         visited[cur] = ita->second;
@@ -1600,9 +1601,9 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 }
 
 Node ExtendedRewriter::partialSubstitute(Node n,
-                                         std::vector<Node>& vars,
-                                         std::vector<Node>& subs,
-                                         std::map<Kind, bool>& rkinds)
+                                         const std::vector<Node>& vars,
+                                         const std::vector<Node>& subs,
+                                         const std::map<Kind, bool>& rkinds)
 {
   Assert(vars.size() == subs.size());
   std::map<Node, Node> assign;
