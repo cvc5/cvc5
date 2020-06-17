@@ -3,6 +3,21 @@ This file contains a summary of important user-visible changes.
 Changes since 1.7
 =================
 
+New Features:
+* Strings: Full support of the new SMT-LIB standard for the theory of strings,
+  including:
+  * Support for `str.replace_re`, `str.replace_re_all`, `str.is_digit`,
+    `str.from_code`, `re.diff`, and `re.comp`
+  * Support for new operator names (e.g. `str.in_re` instead of `str.in.re`),
+    new escape sequences. The new syntax is enabled by default for smt2 files.
+* Support for syntax-guided synthesis (SyGuS) problems in the new API. C++
+  examples of the SyGuS API can be found in `./examples/api/sygus_*.cpp`.
+* Support for higher-order constraints. This includes treating function sorts
+  (constructible by `->`) as first-class sorts and handling partially applied
+  function symbols. Support for higher-order constraints can be enabled by
+  the option `--uf-ho`.
+* Support for set comprehension binders `comprehension`.
+
 Improvements:
 * API: Function definitions can now be requested to be global. If the `global`
   parameter is set to true, they persist after popping the user context.
@@ -23,6 +38,12 @@ Changes:
   notation and as indexed symbols with the new option
   --bv-print-consts-as-indexed-symbols. The option
   --bv-print-consts-in-binary has been removed.
+* Updated to SyGuS language version 2.0 by default. This is the last release
+  that will support the SyGuS language version 1.0 (`--lang=sygus1`). A
+  script is provided to convert version 1.0 files to version 2.0, see
+  `./contrib/sygus-v1-to-v2.sh`.
+* Support for user-provided rewrite rule quantifiers have been removed.
+* Support for certain option aliases have been removed.
 
 Changes since 1.6
 =================

@@ -360,6 +360,9 @@ set(regress_0_tests
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
   regress0/bv/issue3621.smt2
+  regress0/bv/issue-4075.smt2
+  regress0/bv/issue-4076.smt2
+  regress0/bv/issue-4130.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
@@ -1502,7 +1505,6 @@ set(regress_1_tests
   regress1/quantifiers/anti-sk-simp.smt2
   regress1/quantifiers/ari118-bv-2occ-x.smt2
   regress1/quantifiers/arith-rec-fun.smt2
-  regress1/quantifiers/arith-snorm.smt2
   regress1/quantifiers/array-unsat-simp3.smt2
   regress1/quantifiers/bi-artm-s.smt2
   regress1/quantifiers/bignum_quant.smt2
@@ -1775,6 +1777,7 @@ set(regress_1_tests
   regress1/strings/issue3357.smt2
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
+  regress1/strings/issue4608-re-derive.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -2082,8 +2085,10 @@ set(regress_2_tests
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/range-perf.smt2
-  regress2/strings/repl-repl.smt2
   regress2/strings/repl-repl-i-no-push.smt2
+  regress2/strings/repl-repl.smt2
+  regress2/strings/replace_re.smt2
+  regress2/strings/replace_re_all.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
@@ -2418,6 +2423,8 @@ set(regression_disabled_tests
   regress1/nl/NAVIGATION2.smt2
   # sat or unknown in different builds
   regress1/nl/issue3307.smt2
+  # no longer support snorm option
+  regress1/quantifiers/arith-snorm.smt2
   # ajreynol: different error messages on production and debug:
   regress1/quantifiers/macro-subtype-param.smt2
   # times out with competition build:
