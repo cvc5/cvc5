@@ -561,7 +561,9 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
     return Node::null();
   }
   Node new_ret;
-  // all kinds are legal to substitute over : hence we give the empty map
+  // We substitute only over the Boolean skeleton of the formula. Notice that
+  // we disallow witness here, due to unsoundness when applying contextual
+  // substitutions over witness terms (see #4620).
   std::map<Kind, bool> bcp_kinds;
   bcp_kinds[AND] = true;
   bcp_kinds[OR] = true;
