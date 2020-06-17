@@ -81,12 +81,12 @@
     return true;
   }
 
-  public void add(int index, $typemap(jboxtype, CTYPE) e) {
+  public void add(int index, $typemap(jstype, CTYPE) e) {
     modCount++;
     doAdd(index, e);
   }
 
-  public $typemap(jboxtype, CTYPE) remove(int index) {
+  public $typemap(jstype, CTYPE) remove(int index) {
     modCount++;
     return doRemove(index);
   }
