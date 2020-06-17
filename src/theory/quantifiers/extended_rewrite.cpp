@@ -489,7 +489,8 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       // reverse substitution to opposite child
       // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r
       // We can use ordinary substitute since the result of the substitution
-      // is not being returned.
+      // is not being returned. In other words, nn is only being used to query
+      // whether the second branch is a generalization of the first.
       Node nn =
           t2.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       if (nn != t2)
