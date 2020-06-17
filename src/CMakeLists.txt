@@ -652,6 +652,12 @@ libcvc4_add_sources(
   theory/quantifiers_engine.h
   theory/rep_set.cpp
   theory/rep_set.h
+  theory/rewrite_db.cpp
+  theory/rewrite_db.h
+  theory/rewrite_db_term_process.cpp
+  theory/rewrite_db_term_process.h
+  theory/rewrite_proof_rule.cpp
+  theory/rewrite_proof_rule.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h
