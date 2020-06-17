@@ -117,7 +117,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SExprKeyword.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Model.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Printer.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__options__InstFormatMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_MaybeT_CVC4__Rational_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Type.java
