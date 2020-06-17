@@ -13,6 +13,8 @@
  **/
 
 #include "theory/booleans/proof_checker.h"
+#include "expr/skolem_manager.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -23,6 +25,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
+  pc->registerChecker(PfRule::REMOVE_FALSE_LITERAL, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
@@ -98,6 +101,41 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
   }
+  // if (id == PfRule::REMOVE_FALSE_LITERAL)
+  // {
+  //   Assert(children.size() == 1);
+  //   Assert(args.empty());
+  //   if (children[0].getKind() != kind::OR)
+  //   {
+  //     Node nk = SkolemManager::getSkolemForm(children[0]);
+  //     Node nkr = Rewriter::rewrite(nk);
+  //     return SkolemManager::getWitnessForm(nkr);
+  //   }
+  //   NodeManager* nm = NodeManager::currentNM();
+  //   unsigned i, size = children[0].getNumChildren();
+  //   std::vector<Node> clauseNodes;
+  //   Node falseNode = nm->mkConst<bool>(false);
+  //   for (i = 0; i < size; ++i)
+  //   {
+  //     if (Rewriter::rewrite(SkolemManager::getSkolemForm(children[0][i])) == falseNode)
+  //     {
+  //       i++;
+  //       break;
+  //     }
+  //     else
+  //     {
+  //       clauseNodes.push_back(children[0][i]);
+  //     }
+  //   }
+  //   if (i < size)
+  //   {
+  //     clauseNodes.insert(clauseNodes.end(), clauseNodes.begin() + i,  clauseNodes.end());
+  //   }
+  //   return clauseNodes.empty()
+  //              ? falseNode
+  //              : clauseNodes.size() == 1 ? clauseNodes[0]
+  //                                        : nm->mkNode(kind::OR, clauseNodes);
+  // }
   if (id == PfRule::FACTORING || id == PfRule::REORDERING)
   {
     Assert(children.size() == 1);
@@ -129,6 +167,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.size() > 1);
     Assert(args.size() == children.size() - 1);
+    Trace("bool-pfcheck") << "chain_res:\n" << push;
     std::vector<Node> clauseNodes;
     for (unsigned i = 0, childrenSize = children.size(); i < childrenSize; ++i)
     {
@@ -143,10 +182,15 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       {
         elim.insert(args[i-1].negate());
       }
+      Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
       // only add to conclusion nodes that are not in elimination set. First get
-      // the nodes. The child must be either a non-unit clause or a literal
+      // the nodes.
+      //
+      // Since unit clauses can also be OR nodes, we rely on the invariant that
+      // non-unit clauses will not occur themselves in their elimination sets.
+      // If they do then they must be unit.
       std::vector<Node> lits;
-      if (children[i].getKind() == kind::OR)
+      if (children[i].getKind() == kind::OR && elim.count(children[i]) == 0)
       {
         lits.insert(lits.end(), children[i].begin(), children[i].end());
       }
@@ -154,14 +198,19 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       {
         lits.push_back(children[i]);
       }
+      Trace("bool-pfcheck") << i << ": clause lits: " << lits << "\n";
+      std::vector<Node> added;
       for (unsigned j = 0, size = lits.size(); j < size; ++j)
       {
         if (elim.count(lits[j]) == 0)
         {
           clauseNodes.push_back(lits[j]);
+          added.push_back(lits[j]);
         }
       }
+      Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
     }
+    Trace("bool-pfcheck") <<"clause: " << clauseNodes << "\n" << pop;
     NodeManager* nm = NodeManager::currentNM();
     return clauseNodes.empty()
                ? nm->mkConst<bool>(false)

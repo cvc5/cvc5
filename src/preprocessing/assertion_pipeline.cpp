@@ -16,8 +16,10 @@
 #include "preprocessing/assertion_pipeline.h"
 
 #include "expr/node_manager.h"
+#include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
+#include "proof/new_proof_manager.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -61,6 +63,17 @@ void AssertionPipeline::push_back(Node n, bool isAssumption)
 void AssertionPipeline::replace(size_t i, Node n)
 {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
+  if (CVC4::options::proofNew() && d_nodes[i] != n
+      && (d_nodes[i].getKind() != kind::EQUAL || n.getKind() != kind::EQUAL
+          || d_nodes[i][0] != n[1] || d_nodes[i][1] != n[0]))
+  {
+    Node nk = SkolemManager::getSkolemForm(n);
+    // assertion changed and it was not just reordering a symmetry. The latter
+    // test is necessary to prevent a cyclic proof
+    Trace("newproof") << "AssertionPipeline::replace: from " << d_nodes[i]
+                      << " to " << nk << ", witness form " << n << "\n";
+    NewProofManager::currentPM()->addStep(nk, PfRule::TRUST, {d_nodes[i]}, {nk});
+  }
   d_nodes[i] = n;
 }
 

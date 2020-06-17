@@ -245,6 +245,14 @@ enum class PfRule : uint32_t
   //   let C_1' = C_1 (from P_1),
   //   for each i > 1, C_i' = C_i <>_L_i C_{i-1}'
   CHAIN_RESOLUTION,
+  // ======== Remove False Literals
+  // Children: (P:(or F_1 ... F_{i-1} F_i F_i+1 ... F_n))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: (or F_1 ... F_{i-1} F_i+1 ... F_n)
+  // where
+  //  (= Rewriter(F_i) false) and (not (= Rewriter(F_j) false)), for 1 <= j < i
+  REMOVE_FALSE_LITERAL,
   // ======== Factoring
   // Children: (P:C1)
   // Arguments: (C2)

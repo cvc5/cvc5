@@ -42,6 +42,7 @@ const char* toString(PfRule id)
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
+    case PfRule::REMOVE_FALSE_LITERAL: return "REMOVE_FALSE_LITERAL";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
     case PfRule::AND_ELIM: return "AND_ELIM";

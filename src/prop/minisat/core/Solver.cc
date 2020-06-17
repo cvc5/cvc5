@@ -936,6 +936,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           PROOF( ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p)); )
           if (CVC4::options::proofNew())
           {
+            NewProofManager::currentPM()->registerClause(ca[confl]);
             NewProofManager::currentPM()->addResolutionStep(ca[confl], p);
           }
         }
