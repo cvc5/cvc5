@@ -1068,7 +1068,9 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
             Node ccs = n[j];
             if (i != j)
             {
-              // substitution is only applicable to compatible kinds
+              // Substitution is only applicable to compatible kinds. We always
+              // use the partialSubstitute method to avoid substitution into
+              // witness terms.
               ccs = partialSubstitute(ccs, vars, subs, bcp_kinds);
               childrenChanged = childrenChanged || n[j] != ccs;
             }
