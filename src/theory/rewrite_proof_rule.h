@@ -25,8 +25,8 @@ namespace CVC4 {
 namespace theory {
 
 /**
-  * The definition of a (conditional) rewrite rule.
-  */
+ * The definition of a (conditional) rewrite rule.
+ */
 class RewritePfRule
 {
  public:
@@ -38,6 +38,7 @@ class RewritePfRule
   Node d_eq;
   /** initialize this rule */
   void init(const std::string& name, const std::vector<Node>& cond, Node eq);
+
  private:
   /** the ordered list of free variables */
   std::vector<Node> d_fvs;

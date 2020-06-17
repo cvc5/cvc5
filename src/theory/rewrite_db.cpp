@@ -25,7 +25,7 @@ RewriteDb::RewriteDb() : d_idCounter(0)
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
-  
+
 unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -37,7 +37,8 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   Node tmpi = d_rdtp.toInternal(tmp);
 
   // must canonize
-  Trace("rewrite-db") << "Add rule " << name << ": " << cond << " => " << a << " == " << b << std::endl;
+  Trace("rewrite-db") << "Add rule " << name << ": " << cond << " => " << a
+                      << " == " << b << std::endl;
   Node cr = d_canon.getCanonicalTerm(tmpi, false, false);
 
   Node condC = cr[1];
@@ -85,7 +86,7 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   */
 
   Node eqC = cr[0];
-  Assert (eqC.getKind()==EQUAL);
+  Assert(eqC.getKind() == EQUAL);
 
   // add to discrimination tree
   Trace("proof-db-debug") << "Add (canonical) rule " << eqC << std::endl;
@@ -97,7 +98,7 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   return d_idCounter;
 }
 
-void RewriteDb::getMatches(Node a, Node b, expr::NotifyMatch * ntm)
+void RewriteDb::getMatches(Node a, Node b, expr::NotifyMatch* ntm)
 {
   Node eq = a.eqNode(b);
   d_mt.getMatches(eq, ntm);
@@ -105,4 +106,3 @@ void RewriteDb::getMatches(Node a, Node b, expr::NotifyMatch * ntm)
 
 }  // namespace theory
 }  // namespace CVC4
-

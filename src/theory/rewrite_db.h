@@ -19,8 +19,8 @@
 
 #include <map>
 
-#include "expr/node.h"
 #include "expr/match_trie.h"
+#include "expr/node.h"
 #include "expr/term_canonize.h"
 #include "theory/rewrite_db_term_process.h"
 #include "theory/rewrite_proof_rule.h"
@@ -28,19 +28,20 @@
 namespace CVC4 {
 namespace theory {
 
-/** 
+/**
  * A database of conditional rewrite rules.
  */
 class RewriteDb
 {
-public:
+ public:
   RewriteDb();
-  ~RewriteDb(){}
+  ~RewriteDb() {}
   /** Add rule, return its identifier */
   unsigned addRule(Node a, Node b, Node cond, const std::string& name);
   /** get matches */
-  void getMatches(Node a, Node b, expr::NotifyMatch * ntm);
-private:
+  void getMatches(Node a, Node b, expr::NotifyMatch* ntm);
+
+ private:
   /** common constants */
   Node d_true;
   Node d_false;
@@ -56,8 +57,7 @@ private:
   unsigned d_idCounter;
 };
 
-
-  //TrustNode prove(Node a, Node b);
+// TrustNode prove(Node a, Node b);
 
 }  // namespace theory
 }  // namespace CVC4

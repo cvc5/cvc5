@@ -24,8 +24,8 @@ namespace CVC4 {
 namespace theory {
 
 void RewritePfRule::init(const std::string& name,
-                       const std::vector<Node>& cond,
-                       Node eq)
+                         const std::vector<Node>& cond,
+                         Node eq)
 {
   d_name = name;
   d_cond.clear();
