@@ -46,8 +46,7 @@ class RewriterWhite : public CxxTest::TestSuite
   NodeManager* d_nm;
   SmtEngine* d_smt;
   SmtScope* d_scope;
-  ProofNodeManager* d_pnm;
-  TConvProofGenerator* d_tcpg;
+  Rewriter * d_rewriter;
 
  public:
   RewriterWhite() {}
@@ -63,14 +62,14 @@ class RewriterWhite : public CxxTest::TestSuite
     d_smt->setOption("proof-new", "true");
     d_scope = new SmtScope(d_smt);
     d_smt->finalOptionsAreSet();
-    d_pnm = new ProofNodeManager(d_smt->getTheoryEngine()->d_pchecker.get());
-    d_tcpg = new TConvProofGenerator(d_pnm);
+    // make a rewriter with proof generation
+    d_rewriter = new Rewriter;
+    d_rewriter->setProofChecker(d_smt->getTheoryEngine()->d_pchecker.get());
   }
 
   void tearDown() override
   {
-    delete d_tcpg;
-    delete d_pnm;
+    delete d_rewriter;
     delete d_scope;
     delete d_smt;
     delete d_em;
@@ -78,9 +77,11 @@ class RewriterWhite : public CxxTest::TestSuite
 
   void rewriteWithProof(Node t)
   {
-    Node tr = Rewriter::rewriteWithProof(t, d_tcpg);
+    TrustNode tr = d_rewriter->rewriteWithProof(t);
+    ProofGenerator * pg = tr.getGenerator();
+    TS_ASSERT( pg != nullptr );
     std::shared_ptr<ProofNode> pn =
-        d_tcpg->getProofFor(d_nm->mkNode(kind::EQUAL, t, tr));
+        pg->getProofFor(tr.getProven());
     std::cout << t << " ---> " << tr << std::endl;
     pn->printDebug(std::cout);
     TS_ASSERT(pn->isClosed());
