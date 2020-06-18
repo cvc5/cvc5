@@ -556,7 +556,7 @@ void NewProofManager::printInternalProof()
   {
     std::stringstream out;
     // make this guy search for a proof module factoring and reordering
-    ProofNode* pn = d_cdproof->mkProof(p.second).get();
+    ProofNode* pn = d_cdproof->getProofFor(p.second).get();
     pn->printDebug(out);
     Trace("newproof-debug") << "Proof of " << p.second << ":\n\t" << out.str()
                       << "\n";
@@ -570,7 +570,7 @@ void NewProofManager::printInternalProof()
   {
     Trace("newproof-debug") << "NewProofManager::printInternalProof:\t "
                       << assumptions[i] << "\n";
-    std::shared_ptr<ProofNode> pn = teProof->mkProof(assumptions[i]);
+    std::shared_ptr<ProofNode> pn = teProof->getProofFor(assumptions[i]);
     std::stringstream out;
     pn->printDebug(out);
     Trace("newproof-debug") << "NewProofManager::printInternalProof:\t " << out.str()
@@ -585,7 +585,7 @@ void NewProofManager::printInternalProof()
   // Assert(d_cdproof->hasStep(falseNode))
   //     << "UNSAT but no proof step for " << falseNode << "\n";
   std::stringstream out;
-  std::shared_ptr<ProofNode> pf = d_cdproof->mkProof(falseNode);
+  std::shared_ptr<ProofNode> pf = d_cdproof->getProofFor(falseNode);
   pf->printDebug(out);
   assumptions.clear();
   expr::getFreeAssumptions(pf.get(), assumptions);

@@ -69,13 +69,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
 }
 
-Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
-{
-  Node nk = SkolemManager::getSkolemForm(n);
-  Node nkr = applyRewriteExternal(nk, idr);
-  return SkolemManager::getWitnessForm(nkr);
-}
-
 Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
 {
   TheoryId tid = Theory::theoryOf(n);
@@ -370,9 +363,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() == 1);
-    Node t = SkolemManager::getSkolemForm(args[0]);
-    Node ret = RemoveTermFormulas::getAxiomFor(t);
-    return SkolemManager::getWitnessForm(ret);
+    return RemoveTermFormulas::getAxiomFor(args[0]);
   }
   // no rule
   return Node::null();
