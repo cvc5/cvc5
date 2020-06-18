@@ -196,8 +196,8 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     return false;
   }
   // symmetry or reflexivity, applied potentially to non-Booleans?
-  //if (CDProof::isSame(eqi[0], eqi[1]))
-  if (eqi[0]==eqi[1])
+  // if (CDProof::isSame(eqi[0], eqi[1]))
+  if (eqi[0] == eqi[1])
   {
     idb = DslPfRule::REFL;
     d_pcache[eqi] = idb;
@@ -248,7 +248,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
-    Assert (cur.getKind()==kind::EQUAL);
+    Assert(cur.getKind() == kind::EQUAL);
     if (it == visited.end())
     {
       visit.push_back(cur);
@@ -265,7 +265,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
         if (itd->second == DslPfRule::REFL)
         {
           // trivial proof
-          Assert (cur[0]==cur[1]);
+          Assert(cur[0] == cur[1]);
           d_proof.addStep(cur, PfRule::REFL, {}, {cur[0]});
         }
         else if (itd->second == DslPfRule::EVAL)
@@ -299,8 +299,8 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           }
           for (const Node& cond : rpr.d_cond)
           {
-            Node sc = cond.substitute(
-                vs.begin(), vs.end(), ss.begin(), ss.end());
+            Node sc =
+                cond.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
             ps.push_back(sc);
           }
         }
@@ -321,12 +321,12 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
   return true;
 }
 
-bool RewriteDbProofCons::unify(Node s,
-                  Node n,
-  std::unordered_map<TNode, TNode, TNodeHashFunction>& subs)
+bool RewriteDbProofCons::unify(
+    Node s, Node n, std::unordered_map<TNode, TNode, TNodeHashFunction>& subs)
 {
   std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
-  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator it;
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
+      it;
   std::unordered_map<TNode, TNode, TNodeHashFunction>::iterator subsIt;
   std::vector<std::pair<TNode, TNode>> stack;
   stack.emplace_back(n, s);
@@ -341,7 +341,7 @@ bool RewriteDbProofCons::unify(Node s,
       continue;
     }
     it = visited.find(curr);
-    if (it!=visited.end())
+    if (it != visited.end())
     {
       // already processed
       continue;
@@ -349,12 +349,12 @@ bool RewriteDbProofCons::unify(Node s,
     visited.insert(curr);
     if (curr.first.getNumChildren() == 0)
     {
-      if (curr.first.getKind()==kind::BOUND_VARIABLE)
+      if (curr.first.getKind() == kind::BOUND_VARIABLE)
       {
         subsIt = subs.find(curr.first);
         if (subsIt != subs.end())
         {
-          if(curr.second != subsIt->second)
+          if (curr.second != subsIt->second)
           {
             return false;
           }
@@ -387,10 +387,9 @@ bool RewriteDbProofCons::unify(Node s,
         stack.push_back({curr.first[i], curr.second[i]});
       }
     }
-  }
-  while (!stack.empty());
+  } while (!stack.empty());
   return true;
 }
-  
+
 }  // namespace theory
 }  // namespace CVC4

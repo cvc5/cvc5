@@ -87,7 +87,7 @@ class RewriteDbProofCons : public ProofGenerator
   /** unify */
   static bool unify(Node s,
                     Node n,
-  std::unordered_map<TNode, TNode, TNodeHashFunction>& subs);
+                    std::unordered_map<TNode, TNode, TNodeHashFunction>& subs);
 };
 
 }  // namespace theory
