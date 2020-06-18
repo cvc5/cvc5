@@ -108,19 +108,22 @@
   }
 %}
 
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) Type {
+  this(null, $imcall, true);
+}
+
 %typemap(javaconstruct) CVC4::Type {
   this(null, $imcall, true);
 }
+
 
 %typemap(javaout) CVC4::Type {
   return new Type(this.em, $jnicall, true);
 }
 
-namespace std {
-  template<> class vector<CVC4::Type> {
-    SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
-  };
-}
+SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
+
 %typemap(javaout) CVC4::Type {
   return new Type(this.em, $jnicall, true);
 }
@@ -194,11 +197,8 @@ namespace std {
   }
 %}
 
-namespace std {
-  template<> class vector<CVC4::DatatypeType> {
-    SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
-  };
-}
+SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
+
 %typemap(javaout) CVC4::DatatypeType {
   return new DatatypeType(this.em, $jnicall, true);
 }

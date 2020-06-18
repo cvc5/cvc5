@@ -87,11 +87,7 @@
 
 %include "bindings/java/cvc4_std_vector.i"
 
-namespace std {
-  template<> class vector<CVC4::Datatype> {
-    SWIG_STD_VECTOR_EM(CVC4::Datatype, const CVC4::Datatype&)
-  };
-}
+SWIG_STD_VECTOR_EM(CVC4::Datatype, const CVC4::Datatype&)
 
 %extend CVC4::Datatype {
 %typemap(javaout) const CVC4::Datatype& {

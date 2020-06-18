@@ -71,15 +71,9 @@
   return new Expr(this.em, $jnicall, true);
 }
 
-namespace std {
-  template<> class vector<CVC4::Expr> {
-    SWIG_STD_VECTOR_EM(CVC4::Expr, const CVC4::Expr&)
-  };
+SWIG_STD_VECTOR_EM(CVC4::Expr, const CVC4::Expr&)
+SWIG_STD_VECTOR_EM(std::vector<CVC4::Expr>, const std::vector<CVC4::Expr>&)
 
-  template<> class vector<vector<CVC4::Expr>> {
-    SWIG_STD_VECTOR_EM(std::vector<CVC4::Expr>, const std::vector<CVC4::Expr>&)
-  };
-}
 %template(vectorExpr) std::vector<CVC4::Expr>;
 %typemap(javaout) std::vector<CVC4::Expr> {
   return new vectorExpr(this.em, $jnicall, true);
@@ -88,15 +82,6 @@ namespace std {
   return new vectorExpr(this.em, $jnicall, false);
 }
 %template(vectorVectorExpr) std::vector<std::vector<CVC4::Expr>>;
-
-// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
-%typemap(javaconstruct) Type {
-  this(null, $imcall, true);
-}
-
-%typemap(javaconstruct) CVC4::Type {
-  this(null, $imcall, true);
-}
 
 %javamethodmodifiers CVC4::Expr::operator=(const Expr&) "protected";
 

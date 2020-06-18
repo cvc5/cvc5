@@ -30,6 +30,10 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
 }
 
 %define SWIG_STD_VECTOR_EM(CTYPE, CONST_REFERENCE)
+
+namespace std {
+  template<> class vector<CTYPE> {
+
 %typemap(javabase) std::vector< CTYPE > "java.util.AbstractList<$typemap(jstype, CTYPE)>"
 %typemap(javainterfaces) std::vector< CTYPE > "java.util.RandomAccess"
 
@@ -53,11 +57,6 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
     return (obj == null) ? 0 : obj.swigCPtr;
   }
 %}
-
-// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
-%typemap(javaconstruct) vector<CTYPE> {
-  this(null, $imcall, true);
-}
 
 %typemap(javaconstruct) std::vector<CTYPE> {
   this(null, $imcall, true);
@@ -196,5 +195,12 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
         }
       }
     }
+  };
+}
+
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) vector<CTYPE> {
+  this(null, $imcall, true);
+}
 
 %enddef
