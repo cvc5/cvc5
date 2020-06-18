@@ -22,8 +22,25 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+  
+const char* toString(DslPfRule drule)
+{
+  switch (drule)
+  {
+    case DslPfRule::FAIL: return "FAIL";
+    case DslPfRule::TRIVIAL: return "TRIVIAL";
+    case DslPfRule::EVAL: return "EVAL";
+    default: return "USER_?";
+  }
+}
 
-void RewritePfRule::init(const std::string& name,
+std::ostream& operator<<(std::ostream& out, DslPfRule drule)
+{
+  out << toString(drule);
+  return out;
+}
+
+void RewriteProofRule::init(const std::string& name,
                          const std::vector<Node>& cond,
                          Node eq)
 {

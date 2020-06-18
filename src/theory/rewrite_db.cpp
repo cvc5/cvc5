@@ -21,14 +21,14 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-RewriteDb::RewriteDb() : d_idCounter(0)
+RewriteDb::RewriteDb() : d_idCounter(DslPfRule::USER_START)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
 
-unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
+DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node eq = a.eqNode(b);
@@ -61,11 +61,11 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   else if (!condC.getConst<bool>())
   {
     // skip those with false condition
-    return 0;
+    return DslPfRule::FAIL;
   }
   // make as expected matching: top symbol of all conditions is equality
   // this means (not p) becomes (= p false), p becomes (= p true)
-  for (unsigned i = 0, nconds = conds.size(); i < nconds; i++)
+  for (size_t i = 0, nconds = conds.size(); i < nconds; i++)
   {
     if (conds[i].getKind() == NOT)
     {
@@ -86,10 +86,12 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   d_mt.addTerm(eqC);
 
   // initialize rule
-  d_idCounter++;
-  d_rewDbRule[d_idCounter].init(name, conds, eqC);
-  d_concToRules[eqC].push_back(d_idCounter);
-  return d_idCounter;
+  DslPfRule ret = d_idCounter;
+  // increment the counter
+  d_idCounter = DslPfRule(static_cast<uint32_t>(d_idCounter)+1);
+  d_rewDbRule[ret].init(name, conds, eqC);
+  d_concToRules[eqC].push_back(ret);
+  return ret;
 }
 
 void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
@@ -97,16 +99,16 @@ void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
   d_mt.getMatches(eq, ntm);
 }
 
-const RewritePfRule& RewriteDb::getRule(unsigned id) const
+const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
 {
-  std::map<unsigned, RewritePfRule>::const_iterator it = d_rewDbRule.find(id);
+  std::map<DslPfRule, RewriteProofRule>::const_iterator it = d_rewDbRule.find(id);
   Assert(it != d_rewDbRule.end());
   return it->second;
 }
 
-const std::vector<unsigned>& RewriteDb::getRuleIdsForConclusion(Node eq) const
+const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(Node eq) const
 {
-  std::map<Node, std::vector<unsigned> >::const_iterator it =
+  std::map<Node, std::vector<DslPfRule> >::const_iterator it =
       d_concToRules.find(eq);
   if (it != d_concToRules.end())
   {

@@ -34,10 +34,9 @@ class RewriteDbProofCons : public ProofGenerator
  public:
   RewriteDbProofCons(RewriteDb& db, ProofNodeManager * pnm);
   /** Prove? */
-  bool prove(Node a, Node b, unsigned recDepth);
+  bool prove(Node a, Node b, unsigned recDepth, bool ensureProof=false);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
-
  private:
   /** Notify class for the match trie */
   class RdpcMatchTrieNotify : public expr::NotifyMatch
@@ -60,7 +59,7 @@ class RewriteDbProofCons : public ProofGenerator
   /** the evaluator utility */
   Evaluator d_eval;
   /** cache for exists rule */
-  std::unordered_map<Node, bool, NodeHashFunction> d_pcache;
+  std::unordered_map<Node, DslPfRule, NodeHashFunction> d_pcache;
   /** the maximum depth tried for rules that have failed */
   std::unordered_map<Node, unsigned, NodeHashFunction> d_pcacheFailMaxDepth;
   /** common constants */
@@ -71,9 +70,13 @@ class RewriteDbProofCons : public ProofGenerator
   /** current recursion limit */
   unsigned d_currRecLimit;
   /** prove internal */
-  bool proveInternal(Node eqi);
-  /** prove internal base */
-  bool proveInternalBase(Node eqi, bool& success);
+  DslPfRule proveInternal(Node eqi);
+  /** prove internal base eqi * { vars -> subs } */
+  bool proveInternalBase(Node eqi,
+                   const std::vector<Node>& vars,
+                   const std::vector<Node>& subs, DslPfRule& id);
+  /** ensure proof for proven fact */
+  bool ensureProofInternal(Node eqi);
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.

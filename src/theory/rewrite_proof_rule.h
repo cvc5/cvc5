@@ -24,10 +24,32 @@
 namespace CVC4 {
 namespace theory {
 
+enum class DslPfRule : uint32_t
+{
+  FAIL = 0,
+  TRIVIAL,
+  EVAL,
+  USER_START
+};
+/**
+ * Converts a DSL proof rule to a string. 
+ * @param drule The DSL proof rule
+ * @return The name of the DSL proof rule
+ */
+const char* toString(DslPfRule drule);
+/**
+ * Writes a DSL proof rule name to a stream.
+ *
+ * @param out The stream to write to
+ * @param drule The DSL proof rule to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, DslPfRule drule);
+
 /**
  * The definition of a (conditional) rewrite rule.
  */
-class RewritePfRule
+class RewriteProofRule
 {
  public:
   /** The name of the rule */

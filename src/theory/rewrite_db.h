@@ -37,13 +37,13 @@ class RewriteDb
   RewriteDb();
   ~RewriteDb() {}
   /** Add rule, return its identifier */
-  unsigned addRule(Node a, Node b, Node cond, const std::string& name);
+  DslPfRule addRule(Node a, Node b, Node cond, const std::string& name);
   /** get matches */
   void getMatches(Node eq, expr::NotifyMatch* ntm);
   /** get rule for id */
-  const RewritePfRule& getRule(unsigned id) const;
+  const RewriteProofRule& getRule(DslPfRule id) const;
   /** get ids for conclusion */
-  const std::vector<unsigned>& getRuleIdsForConclusion(Node eq) const;
+  const std::vector<DslPfRule>& getRuleIdsForConclusion(Node eq) const;
 
  private:
   /** common constants */
@@ -54,13 +54,13 @@ class RewriteDb
   /** The match trie */
   expr::MatchTrie d_mt;
   /** map ids to rewrite db rule information */
-  std::map<unsigned, RewritePfRule> d_rewDbRule;
+  std::map<DslPfRule, RewriteProofRule> d_rewDbRule;
   /** map conclusions to proof ids */
-  std::map<Node, std::vector<unsigned> > d_concToRules;
+  std::map<Node, std::vector<DslPfRule> > d_concToRules;
   /** dummy empty vector */
-  std::vector<unsigned> d_emptyVec;
+  std::vector<DslPfRule> d_emptyVec;
   /** currently allocating id */
-  unsigned d_idCounter;
+  DslPfRule d_idCounter;
 };
 
 // TrustNode prove(Node a, Node b);
