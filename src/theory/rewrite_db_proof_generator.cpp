@@ -41,7 +41,7 @@ bool RewriteDbProofCons::prove(Node a,
     // the getMatches routine.
     d_currRecLimit = recLimit + 1;
     // Otherwise, we call the main prove internal method, which recurisvely
-    // tries to find a match whose conditions can be proven
+    // tries to find a matched conclusion whose conditions can be proven
     id = proveInternal(eqi);
   }
   // clear the proof caches? use attributes instead?
@@ -72,7 +72,7 @@ DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
   d_currRecLimit--;
   d_db.getMatches(eqi, &d_notify);
   d_currRecLimit++;
-  // if we cached it, we succeeded
+  // if we cached it during the above call, we succeeded
   std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator it =
       d_pcache.find(eqi);
   if (it != d_pcache.end())
@@ -115,7 +115,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     for (const Node& cond : rpr.d_cond)
     {
       Assert(cond.getKind() == kind::EQUAL);
-      // must recurse, substitute to get the condition-to-prove
+      // substitute to get the condition-to-prove
       Node sc =
           cond.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       DslPfRule cid;
@@ -131,7 +131,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         // already holds, continue
         continue;
       }
-      // save
+      // save, to check below
       recPremises.push_back(sc);
     }
     if (condSuccess)
@@ -151,19 +151,19 @@ bool RewriteDbProofCons::notifyMatch(Node s,
           break;
         }
       }
-    }
-    if (condSuccess)
-    {
-      // successfully found instance of rule
-      if (Trace.isOn("rew-db-infer"))
+      if (condSuccess)
       {
-        Node se = RewriteDbTermProcess::toExternal(s);
-        Trace("rew-db-infer")
-            << "INFER " << se << " by " << rpr.d_name << std::endl;
+        // successfully found instance of rule
+        if (Trace.isOn("rew-db-infer"))
+        {
+          Node se = RewriteDbTermProcess::toExternal(s);
+          Trace("rew-db-infer")
+              << "INFER " << se << " by " << rpr.d_name << std::endl;
+        }
+        d_pcache[s] = id;
+        // don't need to notify any further matches, we are done
+        return false;
       }
-      d_pcache[s] = id;
-      // don't need to notify any further matches
-      return false;
     }
   }
   // want to keep getting notify calls
@@ -196,9 +196,10 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     return false;
   }
   // symmetry or reflexivity, applied potentially to non-Booleans?
-  if (CDProof::isSame(eqi[0], eqi[1]))
+  //if (CDProof::isSame(eqi[0], eqi[1]))
+  if (eqi[0]==eqi[1])
   {
-    idb = DslPfRule::TRIVIAL;
+    idb = DslPfRule::REFL;
     d_pcache[eqi] = idb;
     return true;
   }
@@ -210,11 +211,12 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     return false;
   }
   Node bev = d_eval.eval(eqi[1], {}, {}, false);
-  if (aev.isNull())
+  if (bev.isNull())
   {
+    // does not evaluate
     return false;
   }
-  // check to see if it matches
+  // we can evaluate both sides, check to see if the values are the same
   if (aev == bev)
   {
     idb = DslPfRule::EVAL;
@@ -246,6 +248,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
+    Assert (cur.getKind()==kind::EQUAL);
     if (it == visited.end())
     {
       visit.push_back(cur);
@@ -259,8 +262,11 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
         itd = d_pcache.find(cur);
         Assert(itd != d_pcache.end());
         Assert(itd->second != DslPfRule::FAIL);
-        if (itd->second == DslPfRule::TRIVIAL)
+        if (itd->second == DslPfRule::REFL)
         {
+          // trivial proof
+          Assert (cur[0]==cur[1]);
+          d_proof.addStep(cur, PfRule::REFL, {}, {cur[0]});
         }
         else if (itd->second == DslPfRule::EVAL)
         {
@@ -277,14 +283,24 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           // build the premises
           std::vector<Node>& ps = premises[cur];
           const RewriteProofRule& rpr = d_db.getRule(itd->second);
-          // TODO: compute premises based on the used substitution
-          std::vector<Node> vars;
-          std::vector<Node> subs;
-          // unify(rpr.d_eq, cur);
+          // compute premises based on the used substitution
+          std::unordered_map<TNode, TNode, TNodeHashFunction> subs;
+          if (!unify(rpr.d_eq, cur, subs))
+          {
+            Assert(false);
+            return false;
+          }
+          std::vector<Node> vs;
+          std::vector<Node> ss;
+          for (const std::pair<const TNode, TNode>& sp : subs)
+          {
+            vs.push_back(sp.first);
+            ss.push_back(sp.second);
+          }
           for (const Node& cond : rpr.d_cond)
           {
             Node sc = cond.substitute(
-                vars.begin(), vars.end(), subs.begin(), subs.end());
+                vs.begin(), vs.end(), ss.begin(), ss.end());
             ps.push_back(sc);
           }
         }
@@ -305,5 +321,76 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
   return true;
 }
 
+bool RewriteDbProofCons::unify(Node s,
+                  Node n,
+  std::unordered_map<TNode, TNode, TNodeHashFunction>& subs)
+{
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator it;
+  std::unordered_map<TNode, TNode, TNodeHashFunction>::iterator subsIt;
+  std::vector<std::pair<TNode, TNode>> stack;
+  stack.emplace_back(n, s);
+  std::pair<TNode, TNode> curr;
+  do
+  {
+    curr = stack.back();
+    stack.pop_back();
+    if (curr.first == curr.second)
+    {
+      // holds trivially
+      continue;
+    }
+    it = visited.find(curr);
+    if (it!=visited.end())
+    {
+      // already processed
+      continue;
+    }
+    visited.insert(curr);
+    if (curr.first.getNumChildren() == 0)
+    {
+      if (curr.first.getKind()==kind::BOUND_VARIABLE)
+      {
+        subsIt = subs.find(curr.first);
+        if (subsIt != subs.end())
+        {
+          if(curr.second != subsIt->second)
+          {
+            return false;
+          }
+        }
+        else if (!curr.first.getType().isComparableTo(curr.second.getType()))
+        {
+          // should be matching with polymorphic operators, hence the
+          // types may differ
+          return false;
+        }
+        else
+        {
+          subs.emplace(curr.first, curr.second);
+        }
+      }
+      else
+      {
+        return false;
+      }
+    }
+    else
+    {
+      if (curr.first.getNumChildren() != curr.second.getNumChildren()
+          || curr.first.getOperator() != curr.second.getOperator())
+      {
+        return false;
+      }
+      for (size_t i = 0, nchild = curr.first.getNumChildren(); i < nchild; ++i)
+      {
+        stack.push_back({curr.first[i], curr.second[i]});
+      }
+    }
+  }
+  while (!stack.empty());
+  return true;
+}
+  
 }  // namespace theory
 }  // namespace CVC4

@@ -28,7 +28,7 @@ const char* toString(DslPfRule drule)
   switch (drule)
   {
     case DslPfRule::FAIL: return "FAIL";
-    case DslPfRule::TRIVIAL: return "TRIVIAL";
+    case DslPfRule::REFL: return "REFL";
     case DslPfRule::EVAL: return "EVAL";
     default: return "USER_?";
   }

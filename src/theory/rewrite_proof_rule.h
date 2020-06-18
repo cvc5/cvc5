@@ -27,7 +27,7 @@ namespace theory {
 enum class DslPfRule : uint32_t
 {
   FAIL = 0,
-  TRIVIAL,
+  REFL,
   EVAL,
   USER_START
 };
