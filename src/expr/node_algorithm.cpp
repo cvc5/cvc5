@@ -634,5 +634,82 @@ void getComponentTypes(
   } while (!toProcess.empty());
 }
 
+bool unify(Node x,
+           Node y,
+           std::unordered_map<Node, Node, NodeHashFunction>& subs)
+{
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
+      it;
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator subsIt;
+
+  std::vector<std::pair<TNode, TNode>> stack;
+  stack.emplace_back(x, y);
+  std::pair<TNode, TNode> curr;
+
+  while (!stack.empty())
+  {
+    curr = stack.back();
+    stack.pop_back();
+    if (curr.first == curr.second)
+    {
+      // holds trivially
+      continue;
+    }
+    it = visited.find(curr);
+    if (it != visited.end())
+    {
+      // already processed
+      continue;
+    }
+    visited.insert(curr);
+    if (curr.first.getNumChildren() == 0)
+    {
+      // if the two subterms are not equal and the first one is a bound
+      // variable...
+      if (curr.first.getKind() == kind::BOUND_VARIABLE)
+      {
+        // and we have not seen this variable before...
+        subsIt = subs.find(curr.first);
+        if (subsIt == subs.cend())
+        {
+          // add the two subterms to `sub`
+          subs.emplace(curr.first, curr.second);
+        }
+        else
+        {
+          // if we saw this variable before, make sure that (now and before) it
+          // maps to the same subterm
+          if (curr.second != subsIt->second)
+          {
+            return false;
+          }
+        }
+      }
+      else
+      {
+        // the two subterms are not equal
+        return false;
+      }
+    }
+    else
+    {
+      // if the two term are not equal, at least make sure that they have the
+      // same number of children and that their operators are equal
+      if (curr.first.getNumChildren() != curr.second.getNumChildren()
+          || curr.first.getOperator() != curr.second.getOperator())
+      {
+        return false;
+      }
+      // recurse on children
+      for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
+      {
+        stack.push_back({curr.first[i], curr.second[i]});
+      }
+    }
+  }
+  return true;
+}
+
 }  // namespace expr
 }  // namespace CVC4

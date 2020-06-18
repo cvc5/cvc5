@@ -157,7 +157,7 @@ void getOperatorsMap(
 
 /*
  * Substitution of Nodes in a capture avoiding way.
- * If x occurs free in n and it is substituted by a term t 
+ * If x occurs free in n and it is substituted by a term t
  * and t includes some variable y that is bound in n,
  * then using alpha conversion y is replaced with a fresh bound variable
  * before the substitution.
@@ -166,9 +166,9 @@ void getOperatorsMap(
 Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 
 /**
- * Same as substituteCaptureAvoiding above, but with a 
- * simultaneous substitution of a vector of variables.  
- * Elements in source will be replaced by their corresponding element in dest. 
+ * Same as substituteCaptureAvoiding above, but with a
+ * simultaneous substitution of a vector of variables.
+ * Elements in source will be replaced by their corresponding element in dest.
  * Both vectors should have the same size.
  */
 Node substituteCaptureAvoiding(TNode n,
@@ -184,6 +184,28 @@ Node substituteCaptureAvoiding(TNode n,
  */
 void getComponentTypes(
     TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
+
+/** unify
+ *
+ * Given two builtin terms `x` and `y` containing free variables, unify
+ * returns true if `y` is an instance of `x`. In which case, `subs` is a
+ * mapping from the free variables in `x` to corresponding terms in `y` such
+ * that: x * subs = y (where * denotes application of substitution).
+ *
+ * For example, given:
+ * x = (+ a (* F 2)) (F denotes a free variable)
+ * y = (+ a (* b 2))
+ * then a call to unify should return `true` with subs = {F -> b}
+ *
+ * @param x the term (containing free vars) to compare an instance term
+ * against
+ * @param y the instance term in question
+ * @param subs the mapping from free vars in `x` to terms in `y`
+ * @return weather or not `y` is an instance of `x`
+ */
+bool unify(Node x,
+           Node y,
+           std::unordered_map<Node, Node, NodeHashFunction>& subs);
 
 }  // namespace expr
 }  // namespace CVC4
