@@ -19,7 +19,8 @@
 namespace CVC4 {
 namespace theory {
 
-RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db) : d_notify(*this), d_db(db), d_eval()
+RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db)
+    : d_notify(*this), d_db(db), d_eval()
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -30,9 +31,9 @@ bool RewriteDbProofCons::prove(Node a, Node b, unsigned recLimit)
 {
   Node eq = a.eqNode(b);
   Node eqi = RewriteDbTermProcess::toInternal(eq);
-  d_currRecLimit = recLimit+1;
+  d_currRecLimit = recLimit + 1;
   unsigned id = proveInternal(eqi);
-  return id!=0;
+  return id != 0;
 }
 
 std::string RewriteDbProofCons::identify() const
@@ -42,8 +43,8 @@ std::string RewriteDbProofCons::identify() const
 
 unsigned RewriteDbProofCons::proveInternal(Node eqi)
 {
-  Assert (d_currRecLimit>0);
-  Assert (eqi.getKind()==EQUAL);
+  Assert(d_currRecLimit > 0);
+  Assert(eqi.getKind() == kind::EQUAL);
   std::unordered_map<Node, unsigned, NodeHashFunction>::iterator it =
       d_pcache.find(eqi);
   if (it != d_pcache.end())
@@ -53,17 +54,23 @@ unsigned RewriteDbProofCons::proveInternal(Node eqi)
       // proof exists, return
       return it->second;
     }
-    Assert (d_pcacheFailMaxDepth.find(eqi)!=d_pcacheFailMaxDepth.end());
-    if (d_currRecLimit<=d_pcacheFailMaxDepth[eqi])
+    Assert(d_pcacheFailMaxDepth.find(eqi) != d_pcacheFailMaxDepth.end());
+    if (d_currRecLimit <= d_pcacheFailMaxDepth[eqi])
     {
       return 0;
     }
   }
   // use base methods to see if eqi holds
-  unsigned idb = proveInternalBase(eqi);
-  if (idb!=0)
+  unsigned idb = 0;
+  if (proveInternalBase(eqi, idb))
   {
     d_pcache[eqi] = idb;
+    // this could be a provable failure (e.g. eqi is a literal evaluating to
+    // false).
+    if (idb==0)
+    {
+      d_pcacheFailMaxDepth[eqi] = 0;
+    }
     return idb;
   }
   // Otherwise, call the get matches routine. This will call notifyMatch below
@@ -84,16 +91,15 @@ unsigned RewriteDbProofCons::proveInternal(Node eqi)
 }
 
 bool RewriteDbProofCons::notifyMatch(Node s,
-              Node n,
-              std::vector<Node>& vars,
-              std::vector<Node>& subs)
+                                     Node n,
+                                     std::vector<Node>& vars,
+                                     std::vector<Node>& subs)
 {
   // get the rule identifiers for the conclusion
   const std::vector<unsigned>& ids = d_db.getRuleIdsForConclusion(n);
-  Assert (!ids.empty());
-  // check each rule instance
-  bool retVal = true;
-  bool recurse = d_currRecLimit>0;
+  Assert(!ids.empty());
+  // check each rule instance, succeed if one proves
+  bool recurse = d_currRecLimit > 0;
   for (unsigned id : ids)
   {
     const RewritePfRule& rpr = d_db.getRule(id);
@@ -146,9 +152,9 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   return true;
 }
 
-unsigned RewriteDbProofCons::proveInternalBase(Node eqi)
-{
-  return 0;
+bool RewriteDbProofCons::proveInternalBase(Node eqi, unsigned& id) 
+{ 
+  return false;
 }
 
 }  // namespace theory

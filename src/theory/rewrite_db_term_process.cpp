@@ -20,7 +20,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-  
+
 struct RdtpInternalAttributeId
 {
 };
@@ -31,25 +31,17 @@ struct RdtpExternalAttributeId
 };
 typedef expr::Attribute<RdtpExternalAttributeId, Node> RdtpExternalAttribute;
 
-
-Node RewriteDbTermProcess::toInternal(Node n)
-{
-  return convert(n, true);
-}
-Node RewriteDbTermProcess::toExternal(Node n)
-{
-  return convert(n, false);
-}
+Node RewriteDbTermProcess::toInternal(Node n) { return convert(n, true); }
+Node RewriteDbTermProcess::toExternal(Node n) { return convert(n, false); }
 
 Node RewriteDbTermProcess::convert(Node n, bool toInternal)
 {
-
   if (n.isNull())
   {
     return n;
   }
-  Trace("rdtp-debug") << "RewriteDbTermProcess::convert: " << toInternal
-                            << " " << n << std::endl;
+  Trace("rdtp-debug") << "RewriteDbTermProcess::convert: " << toInternal << " "
+                      << n << std::endl;
   RdtpInternalAttribute ria;
   RdtpExternalAttribute rea;
   NodeManager* nm = NodeManager::currentNM();
@@ -82,7 +74,7 @@ Node RewriteDbTermProcess::convert(Node n, bool toInternal)
         {
           visit.push_back(cur.getOperator());
         }
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second.isNull())
@@ -133,7 +125,7 @@ Node RewriteDbTermProcess::computeInternal(Node n)
   Kind ck = n.getKind();
   if (ck == CONST_STRING)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     // "ABC" is (str.++ "A" (str.++ "B" "C"))
     const std::vector<unsigned>& vec = n.getConst<String>().getVec();
     if (vec.size() <= 1)
@@ -158,16 +150,16 @@ Node RewriteDbTermProcess::computeInternal(Node n)
   {
     if (n[0].isConst())
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       return nm->mkConst(-n[0].getConst<Rational>());
     }
   }
   else if (ExprManager::isNAryKind(ck) && n.getNumChildren() >= 2)
   {
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
     // convert to binary
-    std::vector<Node> children(n.begin(),n.end());
+    std::vector<Node> children(n.begin(), n.end());
     std::reverse(children.begin(), children.end());
     Node ret = children[0];
     for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
@@ -190,32 +182,27 @@ Node RewriteDbTermProcess::computeExternal(Node n)
       // flatten to n-ary
       std::vector<Node> children;
       children.push_back(n[0]);
-      children.insert(children.end(),n[1].begin(), n[1].end());
-      NodeManager * nm = NodeManager::currentNM();
+      children.insert(children.end(), n[1].begin(), n[1].end());
+      NodeManager* nm = NodeManager::currentNM();
       return nm->mkNode(ck, children);
     }
-    else if (n[1].getKind() == CONST_STRING
-              && n[0].getKind() == CONST_STRING)
+    else if (n[1].getKind() == CONST_STRING && n[0].getKind() == CONST_STRING)
     {
       // flatten (non-empty) constants
-      const std::vector<unsigned>& v0 =
-          n[0].getConst<String>().getVec();
-      const std::vector<unsigned>& v1 =
-          n[1].getConst<String>().getVec();
+      const std::vector<unsigned>& v0 = n[0].getConst<String>().getVec();
+      const std::vector<unsigned>& v1 = n[1].getConst<String>().getVec();
       if (v0.size() == 1 && !v1.empty())
       {
         std::vector<unsigned> vres;
         vres.push_back(v0[0]);
         vres.insert(vres.end(), v1.begin(), v1.end());
-        NodeManager * nm = NodeManager::currentNM();
+        NodeManager* nm = NodeManager::currentNM();
         return nm->mkConst(String(vres));
       }
     }
   }
   return n;
 }
-
-
 
 }  // namespace theory
 }  // namespace CVC4

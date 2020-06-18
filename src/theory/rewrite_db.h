@@ -44,6 +44,7 @@ class RewriteDb
   const RewritePfRule& getRule(unsigned id) const;
   /** get ids for conclusion */
   const std::vector<unsigned>& getRuleIdsForConclusion(Node eq) const;
+
  private:
   /** common constants */
   Node d_true;

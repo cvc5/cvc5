@@ -22,23 +22,22 @@
 #include "expr/match_trie.h"
 #include "expr/node.h"
 #include "expr/proof_generator.h"
-#include "theory/rewrite_db.h"
 #include "theory/evaluator.h"
+#include "theory/rewrite_db.h"
 
 namespace CVC4 {
 namespace theory {
 
-
-  
 class RewriteDbProofCons : public ProofGenerator
-{ 
+{
  public:
   RewriteDbProofCons(RewriteDb& db);
   /** Prove? */
   bool prove(Node a, Node b, unsigned recDepth);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
-private:  
+
+ private:
   /** Notify class for the match trie */
   class RdpcMatchTrieNotify : public expr::NotifyMatch
   {
@@ -71,15 +70,15 @@ private:
   /** prove internal */
   unsigned proveInternal(Node eqi);
   /** prove internal base */
-  unsigned proveInternalBase(Node eqi);
+  bool proveInternalBase(Node eqi, unsigned& id);
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.
    */
   bool notifyMatch(Node s,
-              Node n,
-              std::vector<Node>& vars,
-              std::vector<Node>& subs);
+                   Node n,
+                   std::vector<Node>& vars,
+                   std::vector<Node>& subs);
 };
 
 }  // namespace theory

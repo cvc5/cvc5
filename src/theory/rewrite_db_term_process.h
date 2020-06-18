@@ -49,6 +49,7 @@ class RewriteDbTermProcess
    * Inverse of the above translation
    */
   static Node toExternal(Node n);
+
  private:
   /** convert */
   static Node convert(Node n, bool toInternal);

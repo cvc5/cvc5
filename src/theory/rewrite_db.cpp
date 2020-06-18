@@ -100,14 +100,15 @@ void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
 const RewritePfRule& RewriteDb::getRule(unsigned id) const
 {
   std::map<unsigned, RewritePfRule>::const_iterator it = d_rewDbRule.find(id);
-  Assert (it!=d_rewDbRule.end());
+  Assert(it != d_rewDbRule.end());
   return it->second;
 }
 
 const std::vector<unsigned>& RewriteDb::getRuleIdsForConclusion(Node eq) const
 {
-  std::map<Node, std::vector<unsigned> >::const_iterator it = d_concToRules.find(eq);
-  if (it!=d_concToRules.end())
+  std::map<Node, std::vector<unsigned> >::const_iterator it =
+      d_concToRules.find(eq);
+  if (it != d_concToRules.end())
   {
     return it->second;
   }
