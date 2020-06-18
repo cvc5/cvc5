@@ -72,9 +72,7 @@ class RewriteDbProofCons : public ProofGenerator
   /** prove internal */
   DslPfRule proveInternal(Node eqi);
   /** prove internal base eqi * { vars -> subs } */
-  bool proveInternalBase(Node eqi,
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs, DslPfRule& id);
+  bool proveInternalBase(Node eqi, DslPfRule& id);
   /** ensure proof for proven fact */
   bool ensureProofInternal(Node eqi);
   /**

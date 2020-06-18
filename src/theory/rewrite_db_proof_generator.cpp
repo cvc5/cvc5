@@ -30,32 +30,23 @@ RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db, ProofNodeManager * pnm)
 bool RewriteDbProofCons::prove(Node a, Node b, unsigned recLimit, bool ensureProof)
 {
   DslPfRule id;
-  // add one to recursion limit, since it is decremented whenever we initiate
-  // the getMatches routine.
-  d_currRecLimit = recLimit + 1;
   Node eq = a.eqNode(b);
   Node eqi = RewriteDbTermProcess::toInternal(eq);
-  if (CDProof::isSame(eqi[0],eqi[1]))
+  if (!proveInternalBase(eqi, id))
   {
-    id = DslPfRule::TRIVIAL;
+    // add one to recursion limit, since it is decremented whenever we initiate
+    // the getMatches routine.
+    d_currRecLimit = recLimit + 1;
+    // Otherwise, we call the main prove internal method, which recurisvely
+    // tries to find a match whose conditions can be proven
+    id = proveInternal(eqi);
   }
-  else 
-  {
-    if (!proveInternalBase(eqi, {}, {}, id))
-    {
-      // Otherwise, we call the main prove internal method, which recurisvely
-      // tries to find a match whose conditions can be proven
-      id = proveInternal(eqi);
-    }
-    // clear the proof caches? use attributes instead?
-    d_pcache.clear();
-    d_pcacheFailMaxDepth.clear();
-  }
+  // clear the proof caches? use attributes instead?
+  d_pcache.clear();
+  d_pcacheFailMaxDepth.clear();
   bool success = (id != DslPfRule::FAIL);
   if (success && ensureProof)
   {
-    // should revert to the previous recursion limit
-    Assert (d_currRecLimit==recLimit + 1);
     // ensure proof exists
     ensureProofInternal(eqi);
     Assert (d_proof.hasStep(eqi));
@@ -70,32 +61,19 @@ std::string RewriteDbProofCons::identify() const
 
 DslPfRule RewriteDbProofCons::proveInternal(Node eqi)
 {
+  // eqi should not hold trivially and should not be cached
   Assert(d_currRecLimit > 0);
-  Assert(eqi.getKind() == kind::EQUAL);
-  std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator it =
-      d_pcache.find(eqi);
-  if (it != d_pcache.end())
-  {
-    if (it->second != DslPfRule::FAIL)
-    {
-      // proof exists, return
-      return it->second;
-    }
-    Assert(d_pcacheFailMaxDepth.find(eqi) != d_pcacheFailMaxDepth.end());
-    if (d_currRecLimit <= d_pcacheFailMaxDepth[eqi])
-    {
-      return it->second;
-    }
-  }
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
   // decrease the recursion depth
   d_currRecLimit--;
   d_db.getMatches(eqi, &d_notify);
   d_currRecLimit++;
-  it = d_pcache.find(eqi);
+  // if we cached it, we succeeded
+  std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator it = d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
+    Assert (it->second!=DslPfRule::FAIL);
     return it->second;
   }
   // store failure, and its maximum depth
@@ -127,36 +105,46 @@ bool RewriteDbProofCons::notifyMatch(Node s,
       // can't recurse and has conditions, continue
       continue;
     }
+    // first, check which premises are non-trivial, and if there is a trivial
+    // failure.
+    std::vector<Node> recPremises;
     for (const Node& cond : rpr.d_cond)
     {
       Assert (cond.getKind()==kind::EQUAL);
+      // must recurse, substitute to get the condition-to-prove
+      Node sc =
+          cond.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       DslPfRule cid;
-      // check whether condition holds?
-      if (!proveInternalBase(cond,vars,subs,cid))
+      // check whether condition is already known to hold or not hold
+      if (proveInternalBase(sc,cid))
       {
-        // must recurse, substitute to get the condition-to-prove
-        Node sc =
-            cond.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-        // symmetry or reflexivity, applied potentially to non-Booleans?
-        if (CDProof::isSame(sc[0], sc[1]))
+        if (cid==DslPfRule::FAIL)
         {
-          // ?
-          d_pcache[sc] = DslPfRule::TRIVIAL;
+          // does not hold, we fail
+          condSuccess = false;
+          break;
         }
-        else
+        // already holds, continue
+        continue;
+      }
+      // save
+      recPremises.push_back(sc);
+    }
+    if (condSuccess)
+    {
+      // if no trivial failures, go back and try to recursively prove
+      for (const Node& sc : recPremises)
+      {
+        Trace("rew-db-infer-sc") << "Check condition: " << sc << std::endl;
+        // recursively check if the condition holds
+        DslPfRule cid = proveInternal(sc);
+        condSuccess = (cid!=DslPfRule::FAIL);
+        if (!condSuccess)
         {
-          Trace("rew-db-infer-sc") << "Check condition: " << sc << std::endl;
-          Assert(sc.getType().isBoolean());
-          // recursively check if the condition holds
-          cid = proveInternal(sc);
-          condSuccess = (cid!=DslPfRule::FAIL);
-          if (!condSuccess)
-          {
-            // print reason for failure
-            Trace("rew-db")
-                << "required: " << sc << " for " << rpr.d_name << std::endl;
-            break;
-          }
+          // print reason for failure
+          Trace("rew-db")
+              << "required: " << sc << " for " << rpr.d_name << std::endl;
+          break;
         }
       }
     }
@@ -178,25 +166,50 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   return true;
 }
 
-bool RewriteDbProofCons::proveInternalBase(Node eqi,
-                   const std::vector<Node>& vars,
-                   const std::vector<Node>& subs, DslPfRule& idb) 
+bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb) 
 { 
-  Assert (eqi.getKind()==kind::EQUAL);
+  Assert(eqi.getKind() == kind::EQUAL);
+  // already cached?
+  std::unordered_map<Node, DslPfRule, NodeHashFunction>::iterator it =
+      d_pcache.find(eqi);
+  if (it != d_pcache.end())
+  {
+    if (it->second != DslPfRule::FAIL)
+    {
+      // proof exists, return
+      idb = it->second;
+      return true;
+    }
+    Assert(d_pcacheFailMaxDepth.find(eqi) != d_pcacheFailMaxDepth.end());
+    if (d_currRecLimit <= d_pcacheFailMaxDepth[eqi])
+    {
+      idb = it->second;
+      return true;
+    }
+    // Will not succeed below, since we know we've already tried. Hence, we 
+    // are in a situation where we have yet to succeed to prove eqi for some
+    // depth, but we are currently trying at a higher maximum depth.
+    return false;
+  }
+  // symmetry or reflexivity, applied potentially to non-Booleans?
+  if (CDProof::isSame(eqi[0], eqi[1]))
+  {
+    idb = DslPfRule::TRIVIAL;
+    d_pcache[eqi] = idb;
+    return true;
+  }
   // evaluate the two sides of the equality, without help of the rewriter
-  Node aev = d_eval.eval(eqi[0], vars, subs, false);
+  Node aev = d_eval.eval(eqi[0], {}, {}, false);
   if (aev.isNull())
   {
     // does not evaluate
     return false;
   }
-  Node bev = d_eval.eval(eqi[1], vars, subs, false);
+  Node bev = d_eval.eval(eqi[1], {}, {}, false);
   if (aev.isNull())
   {
     return false;
   }
-  // to cache, we must now construct the node
-  Node eqis = eqi.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
   // check to see if it matches
   if (aev == bev)
   {
@@ -206,10 +219,10 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi,
   {
     idb = DslPfRule::FAIL;
     // failure relies on nothing, depth is 0
-    d_pcacheFailMaxDepth[eqis] = 0;
+    d_pcacheFailMaxDepth[eqi] = 0;
   }
   // cache it
-  d_pcache[eqis] = idb;
+  d_pcache[eqi] = idb;
   return true;
 }
 
@@ -240,7 +253,10 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
         itd = d_pcache.find(cur);
         Assert (itd != d_pcache.end());
         Assert (itd->second != DslPfRule::FAIL);
-        if (itd->second==DslPfRule::EVAL)
+        if (itd->second==DslPfRule::TRIVIAL)
+        {
+        }
+        else if (itd->second==DslPfRule::EVAL)
         {
           visited[cur] = true;
           // trivial evaluation
