@@ -5,7 +5,7 @@
  * Note: The SWIG library is under a different license than SWIG itself. See
  * https://github.com/swig/swig/blob/master/LICENSE for details.
  *
- * This file define the macro SWIG_STD_VECTOR_EM to wrap a C++ std::vector for
+ * This file defines the macro SWIG_STD_VECTOR_EM to wrap a C++ std::vector for
  * Java, similar to the SWIG library. The core difference is that the utilities
  * in this file add a reference to an ExprManager to keep it alive as long as
  * the vector lives.
