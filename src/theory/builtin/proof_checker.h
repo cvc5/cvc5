@@ -43,6 +43,8 @@ enum class MethodId : uint32_t
   RW_REWRITE,
   // Rewriter::rewriteExtEquality(n)
   RW_REWRITE_EQ_EXT,
+  // Evaluator::evaluate(n)
+  RW_EVALUATE,
   // identity
   RW_IDENTITY,
   //---------------------------- Substitutions

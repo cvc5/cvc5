@@ -17,6 +17,7 @@
 #include "expr/skolem_manager.h"
 #include "smt/term_formula_removal.h"
 #include "theory/rewriter.h"
+#include "theory/evaluator.h"
 #include "theory/theory.h"
 
 using namespace CVC4::kind;
@@ -30,6 +31,7 @@ const char* toString(MethodId id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
+    case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
@@ -96,6 +98,11 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   else if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
     return Rewriter::rewriteEqualityExt(n);
+  }
+  else if (idr == MethodId::RW_EVALUATE)
+  {
+    Evaluator eval;
+    return eval.eval(n,{},{},false);
   }
   else if (idr == MethodId::RW_IDENTITY)
   {

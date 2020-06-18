@@ -24,6 +24,7 @@
 #include "expr/proof_generator.h"
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
+#include "expr/proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -31,7 +32,7 @@ namespace theory {
 class RewriteDbProofCons : public ProofGenerator
 {
  public:
-  RewriteDbProofCons(RewriteDb& db);
+  RewriteDbProofCons(RewriteDb& db, ProofNodeManager * pnm);
   /** Prove? */
   bool prove(Node a, Node b, unsigned recDepth);
   /** Identify this generator (for debugging, etc..) */
@@ -59,18 +60,20 @@ class RewriteDbProofCons : public ProofGenerator
   /** the evaluator utility */
   Evaluator d_eval;
   /** cache for exists rule */
-  std::unordered_map<Node, unsigned, NodeHashFunction> d_pcache;
+  std::unordered_map<Node, bool, NodeHashFunction> d_pcache;
   /** the maximum depth tried for rules that have failed */
   std::unordered_map<Node, unsigned, NodeHashFunction> d_pcacheFailMaxDepth;
   /** common constants */
   Node d_true;
   Node d_false;
+  /** A CDProof */
+  CDProof d_proof;
   /** current recursion limit */
   unsigned d_currRecLimit;
   /** prove internal */
-  unsigned proveInternal(Node eqi);
+  bool proveInternal(Node eqi);
   /** prove internal base */
-  bool proveInternalBase(Node eqi, unsigned& id);
+  bool proveInternalBase(Node eqi, bool& success);
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.

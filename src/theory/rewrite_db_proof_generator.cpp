@@ -19,8 +19,8 @@
 namespace CVC4 {
 namespace theory {
 
-RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db)
-    : d_notify(*this), d_db(db), d_eval()
+RewriteDbProofCons::RewriteDbProofCons(RewriteDb& db, ProofNodeManager * pnm)
+    : d_notify(*this), d_db(db), d_eval(), d_proof(pnm)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -41,11 +41,11 @@ std::string RewriteDbProofCons::identify() const
   return "RewriteDbProofCons";
 }
 
-unsigned RewriteDbProofCons::proveInternal(Node eqi)
+bool RewriteDbProofCons::proveInternal(Node eqi)
 {
   Assert(d_currRecLimit > 0);
   Assert(eqi.getKind() == kind::EQUAL);
-  std::unordered_map<Node, unsigned, NodeHashFunction>::iterator it =
+  std::unordered_map<Node, bool, NodeHashFunction>::iterator it =
       d_pcache.find(eqi);
   if (it != d_pcache.end())
   {
@@ -61,17 +61,12 @@ unsigned RewriteDbProofCons::proveInternal(Node eqi)
     }
   }
   // use base methods to see if eqi holds
-  unsigned idb = 0;
-  if (proveInternalBase(eqi, idb))
+  bool success;
+  if (proveInternalBase(eqi, success))
   {
-    d_pcache[eqi] = idb;
     // this could be a provable failure (e.g. eqi is a literal evaluating to
     // false).
-    if (idb==0)
-    {
-      d_pcacheFailMaxDepth[eqi] = 0;
-    }
-    return idb;
+    return success;
   }
   // Otherwise, call the get matches routine. This will call notifyMatch below
   // for each matching rewrite rule conclusion in the database
@@ -85,7 +80,7 @@ unsigned RewriteDbProofCons::proveInternal(Node eqi)
     return it->second;
   }
   // store failure, and its maximum depth
-  d_pcache[eqi] = 0;
+  d_pcache[eqi] = false;
   d_pcacheFailMaxDepth[eqi] = d_currRecLimit;
   return 0;
 }
@@ -95,6 +90,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
                                      std::vector<Node>& vars,
                                      std::vector<Node>& subs)
 {
+  Assert (s.getType().isComparableTo(n.getType()));
+  Assert (vars.size()==subs.size());
   // get the rule identifiers for the conclusion
   const std::vector<unsigned>& ids = d_db.getRuleIdsForConclusion(n);
   Assert(!ids.empty());
@@ -106,33 +103,37 @@ bool RewriteDbProofCons::notifyMatch(Node s,
 
     // do its conditions hold?
     bool condSuccess = true;
+    std::vector<Node> premises;
     Trace("rew-db") << "Check rule " << rpr.d_name << std::endl;
+    if (!recurse && !rpr.d_cond.empty())
+    {
+      // can't recurse and has conditions, continue
+      continue;
+    }
     for (const Node& cond : rpr.d_cond)
     {
-      // check whether condition holds? Only do so if we are allowed to recurse
-      condSuccess = false;
-      if (recurse)
+      // check whether condition holds?
+      // substitute
+      Node sc =
+          cond.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      Trace("rew-db-infer-sc") << "Check condition: " << sc << std::endl;
+      Assert(sc.getType().isBoolean());
+      // recursively check if the condition holds
+      condSuccess = proveInternal(sc);
+      if (Trace.isOn("rew-db"))
       {
-        // substitute
-        Node sc =
-            cond.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-        Trace("rew-db-infer-sc") << "Check condition: " << sc << std::endl;
-        Assert(sc.getType().isBoolean());
-        // recursively check if the condition holds
-        condSuccess = proveInternal(sc);
-        if (Trace.isOn("rew-db"))
+        if (!condSuccess)
         {
-          if (!condSuccess)
-          {
-            Trace("rew-db")
-                << "required: " << sc << " for " << rpr.d_name << std::endl;
-          }
+          // print reason for failure
+          Trace("rew-db")
+              << "required: " << sc << " for " << rpr.d_name << std::endl;
         }
       }
       if (!condSuccess)
       {
         break;
       }
+      premises.push_back(sc);
     }
     if (condSuccess)
     {
@@ -143,7 +144,8 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         Trace("rew-db-infer")
             << "INFER " << se << " by " << rpr.d_name << std::endl;
       }
-      d_pcache[s] = id;
+      //d_proof.addStep(premises,
+      d_pcache[s] = true;
       // don't need to notify any further matches
       return false;
     }
@@ -152,9 +154,45 @@ bool RewriteDbProofCons::notifyMatch(Node s,
   return true;
 }
 
-bool RewriteDbProofCons::proveInternalBase(Node eqi, unsigned& id) 
+bool RewriteDbProofCons::proveInternalBase(Node eqi, bool& success) 
 { 
-  return false;
+  Assert (eqi.getKind()==kind::EQUAL);
+  // symmetry or reflexivity, applied potentially to non-Booleans
+  if (CDProof::isSame(eqi[0], eqi[1]))
+  {
+    // TODO: store proof
+    if (eqi[0]==eqi[1])
+    {
+      d_proof.addStep(eqi, PfRule::REFL, {}, {eqi[0]});
+    }
+    d_pcache[eqi] = true;
+    return true;
+  }
+  // evaluate
+  Node aev = d_eval.eval(eqi[0], {}, {}, false);
+  if (aev.isNull())
+  {
+    // does not evaluate
+    return false;
+  }
+  Node bev = d_eval.eval(eqi[1], {}, {}, false);
+  if (aev.isNull())
+  {
+    return false;
+  }
+  // check to see if it matches
+  success = (aev == bev);
+  d_pcache[eqi] = success;
+  if (success)
+  {
+    // store proof
+  }
+  else
+  {
+    // failure relies on nothing, depth is 0
+    d_pcacheFailMaxDepth[eqi] = 0;
+  }
+  return true;
 }
 
 }  // namespace theory

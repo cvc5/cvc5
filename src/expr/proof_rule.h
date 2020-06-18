@@ -114,12 +114,8 @@ enum class PfRule : uint32_t
   // Conclusion: (= t t')
   // where
   //   t' is
-  //   toWitness(Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
-  //   toSkolem(...) converts terms from witness form to Skolem form,
-  //   toWitness(...) converts terms from Skolem form to witness form.
+  //   Rewriter{idr}(t*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
-  // Notice that:
-  //   toSkolem(t')=Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1))
   // In other words, from the point of view of Skolem forms, this rule
   // transforms t to t' by standard substitution + rewriting.
   //
@@ -137,7 +133,7 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
   // where ids and idr are method identifiers.
   //
   // Notice that we apply rewriting on the witness form of F, meaning that this
@@ -157,7 +153,7 @@ enum class PfRule : uint32_t
   // Conclusion: F'
   // where
   //   F' is
-  //   toWitness(Rewriter{idr}(toSkolem(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)).
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)).
   // where ids and idr are method identifiers.
   //
   // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
@@ -173,12 +169,21 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(toWitness(G)*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== DSL Rewrite
+  // Children: (P1:F1 ... Pn:Fn)
+  // Arguments: (id, F)
+  // ----------------------------------------
+  // Conclusion: F
+  // Where (G1, ..., Gn) => G is DSL rewrite rule # id, and
+  //  G1*sigma = F1, ..., Gn*sigma = Fn, G*sigma = F
+  // for some substitution sigma.
+  DSL_REWRITE,
   // ======== Theory Rewrite
   // Children: none
   // Arguments: (t, preRewrite?)

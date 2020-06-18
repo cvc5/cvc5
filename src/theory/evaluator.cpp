@@ -140,27 +140,36 @@ Node Evaluator::eval(
   {
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
     results[p.first] =
-        evalInternal(p.second, args, vals, evalAsNode, results, useRewriter);
+        evalInternal(p.second, args, vals, evalAsNode, results);
     if (results[p.first].d_tag == EvalResult::INVALID)
     {
       // could not evaluate, use the evalAsNode map
-      evalAsNode[p.first] = evalAsNode[p.second];
+      std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
+          evalAsNode.find(p.second);
+      Assert(itn != evalAsNode.end());
+      Node val = itn->second;
+      if (useRewriter)
+      {
+        val = Rewriter::rewrite(val);
+      }
+      evalAsNode[p.first] = val;
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
   Node ret =
-      evalInternal(n, args, vals, evalAsNode, results, useRewriter).toNode();
+      evalInternal(n, args, vals, evalAsNode, results).toNode();
   // if we failed to evaluate
-  if (ret.isNull())
+  if (ret.isNull() && useRewriter)
   {
     // should be stored in the evaluation-as-node map
     std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
         evalAsNode.find(n);
     Assert(itn != evalAsNode.end());
-    ret = itn->second;
+    ret = Rewriter::rewrite(itn->second);
   }
-  // should be the same as substitution + rewriting
-  Assert(!useRewriter
+  // should be the same as substitution + rewriting, or possibly null if
+  // useRewriter is false
+  Assert((ret.isNull() && !useRewriter)
          || ret
                 == Rewriter::rewrite(n.substitute(
                        args.begin(), args.end(), vals.begin(), vals.end())));
@@ -172,8 +181,7 @@ EvalResult Evaluator::evalInternal(
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
     std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
-    bool useRewriter) const
+    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const
 {
   std::vector<TNode> queue;
   queue.emplace_back(n);
@@ -280,7 +288,6 @@ EvalResult Evaluator::evalInternal(
         currNodeVal = vals[pos];
         // Don't need to reconstruct since range of substitution should already
         // be normalized.
-        Assert(vals[pos] == Rewriter::rewrite(vals[pos]));
         needsReconstruct = false;
       }
       else if (currNode.getKind() == kind::APPLY_UF)
@@ -324,7 +331,7 @@ EvalResult Evaluator::evalInternal(
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
         results[currNode] = evalInternal(
-            op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
+            op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
         Trace("evaluator") << "Evaluated via arguments to "
                            << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)
@@ -900,9 +907,9 @@ Node Evaluator::reconstruct(
   // of the children.
   Node nn = nm->mkNode(n.getKind(), echildren);
   Trace("evaluator") << "Evaluator: reconstructed " << nn << std::endl;
-  // Use rewriting. Notice we do not need to substitute here since
-  // all substitutions should already have been applied recursively.
-  return Rewriter::rewrite(nn);
+  // Return node, without rewriting. Notice we do not need to substitute here
+  // since all substitutions should already have been applied recursively.
+  return nn;
 }
 
 }  // namespace theory
