@@ -43,17 +43,19 @@ class RewriteDbTermProcess
    * the proof checker. This means that n-ary applications are converted
    * to (left-associative) chains.
    */
-  Node toInternal(Node n);
+  static Node toInternal(Node n);
   /** convert to external
    *
    * Inverse of the above translation
    */
-  Node toExternal(Node n);
-
+  static Node toExternal(Node n);
  private:
-  /** Map from nodes to their internal representation */
-  std::unordered_map<Node, Node, NodeHashFunction> d_internal;
-  std::unordered_map<Node, Node, NodeHashFunction> d_external;
+  /** convert */
+  static Node convert(Node n, bool toInternal);
+  /** convert to internal */
+  static Node computeInternal(Node n);
+  /** convert to external */
+  static Node computeExternal(Node n);
 };
 
 }  // namespace theory

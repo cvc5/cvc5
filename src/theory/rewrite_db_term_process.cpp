@@ -14,116 +14,47 @@
 
 #include "theory/rewrite_db_term_process.h"
 
+#include "expr/attribute.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
+  
+struct RdtpInternalAttributeId
+{
+};
+typedef expr::Attribute<RdtpInternalAttributeId, Node> RdtpInternalAttribute;
+
+struct RdtpExternalAttributeId
+{
+};
+typedef expr::Attribute<RdtpExternalAttributeId, Node> RdtpExternalAttribute;
+
 
 Node RewriteDbTermProcess::toInternal(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = d_internal.find(cur);
-
-    if (it == d_internal.end())
-    {
-      d_internal[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = d_internal.find(cn);
-        Assert(it != d_internal.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      Node ret;
-      Kind ck = cur.getKind();
-      if (ck == CONST_STRING)
-      {
-        // "ABC" is (str.++ "A" (str.++ "B" "C"))
-        const std::vector<unsigned>& vec = cur.getConst<String>().getVec();
-        if (vec.size() <= 1)
-        {
-          ret = cur;
-        }
-        else
-        {
-          std::vector<unsigned> v(vec.begin(), vec.end());
-          std::reverse(v.begin(), v.end());
-          std::vector<unsigned> tmp;
-          tmp.push_back(v[0]);
-          ret = nm->mkConst(String(tmp));
-          tmp.pop_back();
-          for (unsigned i = 1, size = v.size(); i < size; i++)
-          {
-            tmp.push_back(v[i]);
-            ret = nm->mkNode(STRING_CONCAT, nm->mkConst(String(tmp)), ret);
-            tmp.pop_back();
-          }
-        }
-      }
-      else if (ck == UMINUS)
-      {
-        if (children[0].isConst())
-        {
-          ret = nm->mkConst(-children[0].getConst<Rational>());
-        }
-      }
-      else if (ExprManager::isNAryKind(ck) && children.size() >= 2)
-      {
-        Assert(cur.getMetaKind() != kind::metakind::PARAMETERIZED);
-        // convert to binary
-        std::reverse(children.begin(), children.end());
-        ret = children[0];
-        for (unsigned i = 1, nchild = children.size(); i < nchild; i++)
-        {
-          ret = nm->mkNode(ck, children[i], ret);
-        }
-      }
-      if (ret.isNull())
-      {
-        if (childChanged)
-        {
-          ret = nm->mkNode(ck, children);
-        }
-        else
-        {
-          ret = cur;
-        }
-      }
-      d_internal[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(d_internal.find(n) != d_internal.end());
-  Assert(!d_internal.find(n)->second.isNull());
-  return d_internal[n];
+  return convert(n, true);
 }
-
 Node RewriteDbTermProcess::toExternal(Node n)
 {
+  return convert(n, false);
+}
+
+Node RewriteDbTermProcess::convert(Node n, bool toInternal)
+{
+
+  if (n.isNull())
+  {
+    return n;
+  }
+  Trace("rdtp-debug") << "RewriteDbTermProcess::convert: " << toInternal
+                            << " " << n << std::endl;
+  RdtpInternalAttribute ria;
+  RdtpExternalAttribute rea;
   NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator it;
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -131,81 +62,160 @@ Node RewriteDbTermProcess::toExternal(Node n)
   {
     cur = visit.back();
     visit.pop_back();
-    it = d_external.find(cur);
+    it = visited.find(cur);
 
-    if (it == d_external.end())
+    if (it == visited.end())
     {
-      d_external[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
+      if (toInternal && cur.hasAttribute(ria))
       {
-        visit.push_back(cn);
+        visited[cur] = cur.getAttribute(ria);
+      }
+      else if (!toInternal && cur.hasAttribute(rea))
+      {
+        visited[cur] = cur.getAttribute(rea);
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        if (cur.getMetaKind() == metakind::PARAMETERIZED)
+        {
+          visit.push_back(cur.getOperator());
+        }
+        visit.insert(visit.end(),cur.begin(),cur.end());
       }
     }
     else if (it->second.isNull())
     {
+      Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
-        children.push_back(cur.getOperator());
+        it = visited.find(cur.getOperator());
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cur.getOperator() != it->second;
+        children.push_back(it->second);
       }
       for (const Node& cn : cur)
       {
-        it = d_external.find(cn);
-        Assert(it != d_external.end());
+        it = visited.find(cn);
+        Assert(it != visited.end());
         Assert(!it->second.isNull());
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      Node ret;
-      Kind ck = cur.getKind();
-      if (ExprManager::isNAryKind(ck))
+      if (childChanged)
       {
-        Assert(children.size() == 2);
-        if (children[1].getKind() == ck)
-        {
-          // flatten to n-ary
-          Node cc = children[1];
-          children.pop_back();
-          for (const Node& ccc : cc)
-          {
-            children.push_back(ccc);
-          }
-          ret = nm->mkNode(ck, children);
-        }
-        else if (children[1].getKind() == CONST_STRING
-                 && children[0].getKind() == CONST_STRING)
-        {
-          // flatten (non-empty) constants
-          const std::vector<unsigned>& v0 =
-              children[0].getConst<String>().getVec();
-          const std::vector<unsigned>& v1 =
-              children[1].getConst<String>().getVec();
-          if (v0.size() == 1 && !v1.empty())
-          {
-            std::vector<unsigned> vres;
-            vres.push_back(v0[0]);
-            vres.insert(vres.end(), v1.begin(), v1.end());
-            ret = nm->mkConst(String(vres));
-          }
-        }
+        ret = nm->mkNode(cur.getKind(), children);
       }
-      else if (childChanged)
+      if (toInternal)
       {
-        ret = nm->mkNode(ck, children);
+        ret = computeInternal(ret);
+        cur.setAttribute(ria, ret);
       }
-      if (ret.isNull())
+      else
       {
-        ret = cur;
+        ret = computeExternal(ret);
+        cur.setAttribute(rea, ret);
       }
-      d_external[cur] = ret;
+      visited[cur] = ret;
     }
   } while (!visit.empty());
-  Assert(d_external.find(n) != d_external.end());
-  Assert(!d_external.find(n)->second.isNull());
-  return d_external[n];
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
+
+Node RewriteDbTermProcess::computeInternal(Node n)
+{
+  Kind ck = n.getKind();
+  if (ck == CONST_STRING)
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    // "ABC" is (str.++ "A" (str.++ "B" "C"))
+    const std::vector<unsigned>& vec = n.getConst<String>().getVec();
+    if (vec.size() <= 1)
+    {
+      return n;
+    }
+    std::vector<unsigned> v(vec.begin(), vec.end());
+    std::reverse(v.begin(), v.end());
+    std::vector<unsigned> tmp;
+    tmp.push_back(v[0]);
+    Node ret = nm->mkConst(String(tmp));
+    tmp.pop_back();
+    for (unsigned i = 1, size = v.size(); i < size; i++)
+    {
+      tmp.push_back(v[i]);
+      ret = nm->mkNode(STRING_CONCAT, nm->mkConst(String(tmp)), ret);
+      tmp.pop_back();
+    }
+    return ret;
+  }
+  else if (ck == UMINUS)
+  {
+    if (n[0].isConst())
+    {
+      NodeManager * nm = NodeManager::currentNM();
+      return nm->mkConst(-n[0].getConst<Rational>());
+    }
+  }
+  else if (ExprManager::isNAryKind(ck) && n.getNumChildren() >= 2)
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    Assert(n.getMetaKind() != kind::metakind::PARAMETERIZED);
+    // convert to binary
+    std::vector<Node> children(n.begin(),n.end());
+    std::reverse(children.begin(), children.end());
+    Node ret = children[0];
+    for (unsigned i = 1, nchild = n.getNumChildren(); i < nchild; i++)
+    {
+      ret = nm->mkNode(ck, children[i], ret);
+    }
+    return ret;
+  }
+  return n;
+}
+
+Node RewriteDbTermProcess::computeExternal(Node n)
+{
+  Kind ck = n.getKind();
+  if (ExprManager::isNAryKind(ck))
+  {
+    Assert(n.getNumChildren() == 2);
+    if (n[1].getKind() == ck)
+    {
+      // flatten to n-ary
+      std::vector<Node> children;
+      children.push_back(n[0]);
+      children.insert(children.end(),n[1].begin(), n[1].end());
+      NodeManager * nm = NodeManager::currentNM();
+      return nm->mkNode(ck, children);
+    }
+    else if (n[1].getKind() == CONST_STRING
+              && n[0].getKind() == CONST_STRING)
+    {
+      // flatten (non-empty) constants
+      const std::vector<unsigned>& v0 =
+          n[0].getConst<String>().getVec();
+      const std::vector<unsigned>& v1 =
+          n[1].getConst<String>().getVec();
+      if (v0.size() == 1 && !v1.empty())
+      {
+        std::vector<unsigned> vres;
+        vres.push_back(v0[0]);
+        vres.insert(vres.end(), v1.begin(), v1.end());
+        NodeManager * nm = NodeManager::currentNM();
+        return nm->mkConst(String(vres));
+      }
+    }
+  }
+  return n;
+}
+
+
 
 }  // namespace theory
 }  // namespace CVC4

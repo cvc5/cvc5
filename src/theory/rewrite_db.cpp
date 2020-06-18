@@ -14,6 +14,8 @@
 
 #include "theory/rewrite_db.h"
 
+#include "theory/rewrite_db_term_process.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -31,10 +33,10 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   NodeManager* nm = NodeManager::currentNM();
   Node eq = a.eqNode(b);
   // we canonize left-to-right, hence we should traverse in the opposite
-  // order, since we index based on conclusion
+  // order, since we index based on conclusion, we make a dummy node here
   Node tmp = nm->mkNode(IMPLIES, eq, cond);
   // convert to internal
-  Node tmpi = d_rdtp.toInternal(tmp);
+  Node tmpi = RewriteDbTermProcess::toInternal(tmp);
 
   // must canonize
   Trace("rewrite-db") << "Add rule " << name << ": " << cond << " => " << a
@@ -74,16 +76,7 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
       conds[i] = conds[i].eqNode(d_true);
     }
   }
-  /*
-  // register with side condition utility
-  for (const Node& c : conds)
-  {
-    if (d_sceval.registerSideCondition(c))
-    {
-      d_hasSc.insert(c);
-    }
-  }
-  */
+  // register side conditions?
 
   Node eqC = cr[0];
   Assert(eqC.getKind() == EQUAL);
@@ -95,13 +88,30 @@ unsigned RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   // initialize rule
   d_idCounter++;
   d_rewDbRule[d_idCounter].init(name, conds, eqC);
+  d_concToRules[eqC].push_back(d_idCounter);
   return d_idCounter;
 }
 
-void RewriteDb::getMatches(Node a, Node b, expr::NotifyMatch* ntm)
+void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
 {
-  Node eq = a.eqNode(b);
   d_mt.getMatches(eq, ntm);
+}
+
+const RewritePfRule& RewriteDb::getRule(unsigned id) const
+{
+  std::map<unsigned, RewritePfRule>::const_iterator it = d_rewDbRule.find(id);
+  Assert (it!=d_rewDbRule.end());
+  return it->second;
+}
+
+const std::vector<unsigned>& RewriteDb::getRuleIdsForConclusion(Node eq) const
+{
+  std::map<Node, std::vector<unsigned> >::const_iterator it = d_concToRules.find(eq);
+  if (it!=d_concToRules.end())
+  {
+    return it->second;
+  }
+  return d_emptyVec;
 }
 
 }  // namespace theory
