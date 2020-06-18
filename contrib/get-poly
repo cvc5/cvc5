@@ -7,9 +7,8 @@ version="v0.1.8"
 
 check_dep_dir "$POLY_DIR"
 setup_dep \
-  "https://github.com/nafur/libpoly/archive/cxx.tar.gz" "$POLY_DIR"
-# TODO(Gereon): Change back to upstream once everything is merged
-#  "https://github.com/SRI-CSL/libpoly/archive/$version.tar.gz"
+  "https://github.com/SRI-CSL/libpoly/archive/master.tar.gz" "$POLY_DIR"
+# TODO(Gereon): Go back to fixed version with the next release
 
 pwd
 cd "$POLY_DIR/build/"
