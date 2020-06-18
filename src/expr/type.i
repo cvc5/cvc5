@@ -137,6 +137,7 @@ SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -150,6 +151,7 @@ SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -163,6 +165,7 @@ SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -176,6 +179,7 @@ SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -189,6 +193,7 @@ SWIG_STD_VECTOR_EM(CVC4::Type, const CVC4::Type&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -212,6 +217,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -225,6 +231,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -238,6 +245,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -251,6 +259,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -264,6 +273,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -277,6 +287,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -290,6 +301,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -303,6 +315,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -316,6 +329,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -329,6 +343,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -342,6 +357,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -355,6 +371,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -368,6 +385,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
 
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
+    swigCPtr = cPtr;
     swigCMemOwn = cMemoryOwn;
   }
 
@@ -382,6 +400,7 @@ SWIG_STD_VECTOR_EM(CVC4::DatatypeType, const CVC4::DatatypeType&)
   protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
     super(em, CVC4JNI.$javaclassname_SWIGUpcast(cPtr), cMemoryOwn);
     swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
   }
 
   protected static long getCPtr($javaclassname obj) {
