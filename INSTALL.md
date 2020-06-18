@@ -120,6 +120,12 @@ dependency.
 with --check-proofs. It can be installed using the `contrib/get-lfsc` script.  
 Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 
+### libpoly (Optional polynomial library)
+
+[libpoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based nonlinear reasoning.
+It can be installed using the `contrib/get-poly` script.
+Configure CVC4 with `configure.sh --poly` to build with this dependency.
+
 ### SWIG >= 3.0.x (Simplified Wrapper and Interface Generator)
 
 SWIG 3.0.x (and a JDK) is necessary to build the Java API.
