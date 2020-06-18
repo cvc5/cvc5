@@ -187,21 +187,22 @@ void getComponentTypes(
 
 /** unify
  *
- * Given two builtin terms `x` and `y` containing free variables, unify
- * returns true if `y` is an instance of `x`. In which case, `subs` is a
- * mapping from the free variables in `x` to corresponding terms in `y` such
- * that: x * subs = y (where * denotes application of substitution).
+ * Given two terms `x` and `y` containing free variables, unify returns
+ * true if `y` is an instance of `x`. In which case, `subs` is a mapping
+ * from the free variables in `x` to corresponding terms in `y` such that:
+ *
+ * x * subs = y (where * denotes application of substitution).
  *
  * For example, given:
  * x = (+ a (* F 2)) (F denotes a free variable)
  * y = (+ a (* b 2))
- * then a call to unify should return `true` with subs = {F -> b}
+ * then a call to unify should return `true` with subs = {(F, b)}
  *
  * @param x the term (containing free vars) to compare an instance term
  * against
  * @param y the instance term in question
  * @param subs the mapping from free vars in `x` to terms in `y`
- * @return weather or not `y` is an instance of `x`
+ * @return whether or not `y` is an instance of `x`
  */
 bool unify(Node x,
            Node y,
