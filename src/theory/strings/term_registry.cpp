@@ -2,9 +2,9 @@
 /*! \file term_registry.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -76,9 +76,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   if (!options::stringExp())
   {
     if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_STRREPLALL || k == STRING_STRCTN
-        || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
-        || k == STRING_REV)
+        || k == STRING_STRREPL || k == STRING_STRREPLALL
+        || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
+        || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
+        || k == STRING_TOUPPER || k == STRING_REV)
     {
       std::stringstream ss;
       ss << "Term of kind " << k
@@ -88,6 +89,12 @@ void TermRegistry::preRegisterTerm(TNode n)
   }
   if (k == EQUAL)
   {
+    if (n[0].getType().isRegExp())
+    {
+      std::stringstream ss;
+      ss << "Equality between regular expressions is not supported";
+      throw LogicException(ss.str());
+    }
     d_ee.addTriggerEquality(n);
     return;
   }
@@ -224,6 +231,10 @@ void TermRegistry::registerTerm(Node n, int effort)
     regTermLem = nm->mkNode(AND,
                             nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
                             nm->mkNode(LEQ, n, len));
+  }
+  else if (n.getKind() == STRING_STOI)
+  {
+    regTermLem = nm->mkNode(GEQ, n, nm->mkConst(Rational(-1)));
   }
   if (!regTermLem.isNull())
   {
@@ -364,6 +375,13 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
                                               LengthStatus s,
                                               std::map<Node, bool>& reqPhase)
 {
+  if (n.isConst())
+  {
+    // No need to send length for constant terms. This case may be triggered
+    // for cases where the skolem cache automatically replaces a skolem by
+    // a constant.
+    return Node::null();
+  }
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
   Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
@@ -421,14 +439,6 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     // n ---> "". Since this method is only called on non-constants n, it must
     // be that n = "" ^ len( n ) = 0 does not rewrite to true.
     Assert(false);
-  }
-
-  // additionally add len( x ) >= 0 ?
-  if (options::stringLenGeqZ())
-  {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite(n_len_geq);
-    lems.push_back(n_len_geq);
   }
 
   if (lems.empty())

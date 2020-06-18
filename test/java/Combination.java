@@ -2,9 +2,9 @@
 /*! \file Combination.java
  ** \verbatim
  ** Top contributors (to current version):
- **   Pat Hawks
+ **   Pat Hawks, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,10 +16,10 @@
  **/
 
 import static org.junit.Assert.assertEquals;
+
+import edu.stanford.CVC4.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import edu.nyu.acsys.CVC4.*;
 
 public class Combination {
   static {
@@ -78,10 +78,8 @@ public class Combination {
                 p_f_y);                         // p(f(y))
     smt.assertFormula(assumptions);
 
-    assertEquals(
-        Result.Validity.VALID,
-        smt.query(em.mkExpr(Kind.DISTINCT, x, y)).isValid()
-    );
+    assertEquals(Result.Entailment.ENTAILED,
+        smt.checkEntailed(em.mkExpr(Kind.DISTINCT, x, y)).isEntailed());
 
     assertEquals(
         Result.Sat.SAT,

@@ -2,9 +2,9 @@
 /*! \file theory_strings_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,6 +81,16 @@ Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
  * Returns the rewritten form of the length of string term t.
  */
 Node mkNLength(Node t);
+
+/**
+ * Returns (pre t n), which is (str.substr t 0 n).
+ */
+Node mkPrefix(Node t, Node n);
+
+/**
+ * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
+ */
+Node mkSuffix(Node t, Node n);
 
 /**
  * Get constant component. Returns the string constant represented by the

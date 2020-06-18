@@ -2,9 +2,9 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -61,6 +61,18 @@ TheoryRewriter* TheoryArith::getTheoryRewriter()
 
 void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
+}
+
+void TheoryArith::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
+      && getLogicInfo().areTranscendentalsUsed())
+  {
+    // witness is used to eliminate square root
+    tm->setUnevaluatedKind(kind::WITNESS);
+  }
 }
 
 Node TheoryArith::expandDefinition(Node node)

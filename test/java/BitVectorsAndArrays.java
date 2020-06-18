@@ -2,9 +2,9 @@
 /*! \file BitVectorsAndArrays.java
  ** \verbatim
  ** Top contributors (to current version):
- **   Pat Hawks
+ **   Pat Hawks, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,10 +16,10 @@
  **/
 
 import static org.junit.Assert.assertEquals;
+
+import edu.stanford.CVC4.*;
 import org.junit.Before;
 import org.junit.Test;
-
-import edu.nyu.acsys.CVC4.*;
 
 public class BitVectorsAndArrays {
   static {
@@ -78,7 +78,8 @@ public class BitVectorsAndArrays {
 
     vectorExpr assertions = new vectorExpr();
     for (int i = 1; i < k; ++i) {
-      index = em.mkConst(new BitVector(index_size, new edu.nyu.acsys.CVC4.Integer(i)));
+      index = em.mkConst(
+          new BitVector(index_size, new edu.stanford.CVC4.Integer(i)));
       Expr new_current = em.mkExpr(Kind.BITVECTOR_MULT, two, old_current);
       // current[i] = 2 * current[i-1]
       current_array = em.mkExpr(Kind.STORE, current_array, index, new_current);

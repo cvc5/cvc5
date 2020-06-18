@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -634,13 +634,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   {
     case kind::EQUAL:
     {
-      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0]))
+      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1]))
+      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[1], in[0]);
@@ -652,7 +652,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
               && node[0].isConst()))
       {
         Node extract = node[0].isConst() ? node[1] : node[0];
-        if (extract[0].getKind() == kind::VARIABLE)
+        if (extract[0].isVar())
         {
           Node c = node[0].isConst() ? node[0] : node[1];
 
@@ -688,8 +688,11 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
           }
           Node concat = utils::mkConcat(children);
           Assert(utils::getSize(concat) == utils::getSize(extract[0]));
-          outSubstitutions.addSubstitution(extract[0], concat);
-          return PP_ASSERT_STATUS_SOLVED;
+          if (isLegalElimination(extract[0], concat))
+          {
+            outSubstitutions.addSubstitution(extract[0], concat);
+            return PP_ASSERT_STATUS_SOLVED;
+          }
         }
       }
     }

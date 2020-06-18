@@ -2,9 +2,9 @@
 /*! \file smt2.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
+ **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -97,6 +97,13 @@ class Smt2 : public Parser
   bool isOperatorEnabled(const std::string& name) const;
 
   bool isTheoryEnabled(theory::TheoryId theory) const;
+
+  /**
+   * Checks if higher-order support is enabled.
+   *
+   * @return true if higher-order support is enabled, false otherwise
+   */
+  bool isHoEnabled() const;
 
   bool logicIsSet() override;
 

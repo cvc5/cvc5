@@ -2,10 +2,10 @@
 /*! \file floatingpoint.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Martin Brain, Tim King
+ **   Martin Brain, Haniel Barbosa, Mathias Preiner
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "util/integer.h"
 
 #include <math.h>
+#include <limits>
 
 #ifdef CVC4_USE_SYMFPU
 #include "symfpu/core/add.h"
@@ -920,15 +921,26 @@ static FloatingPointLiteral constructorHelperBitVector(
       Integer significand(0);
 #endif
       Integer signedSignificand(sign * significand);
-      
-      // Only have pow(uint32_t) so we should check this.
-      Assert(this->t.significand() <= 32);
+
+      // We only have multiplyByPow(uint32_t) so we can't convert all numbers.
+      // As we convert Integer -> unsigned int -> uint32_t we need that
+      // unsigned int is not smaller than uint32_t
+      static_assert(sizeof(unsigned int) >= sizeof(uint32_t),
+		    "Conversion float -> real could loose data");
+#ifdef CVC4_ASSERTIONS
+      // Note that multipling by 2^n requires n bits of space (worst case)
+      // so, in effect, these tests limit us to cases where the resultant
+      // number requires up to 2^32 bits = 512 megabyte to represent.
+      Integer shiftLimit(std::numeric_limits<uint32_t>::max());
+#endif
 
       if (!(exp.strictlyNegative())) {
+	Assert(exp <= shiftLimit);
 	Integer r(signedSignificand.multiplyByPow2(exp.toUnsignedInt()));
 	return PartialRational(Rational(r), true);
       } else {
 	Integer one(1U);
+	Assert((-exp) <= shiftLimit);
 	Integer q(one.multiplyByPow2((-exp).toUnsignedInt()));
 	Rational r(signedSignificand, q);
 	return PartialRational(r, true);
@@ -947,6 +959,41 @@ static FloatingPointLiteral constructorHelperBitVector(
     return bv;
   }
 
-
+std::string FloatingPoint::toString(bool printAsIndexed) const
+{
+  std::string str;
+  // retrive BV value
+  BitVector bv(pack());
+  unsigned largestSignificandBit =
+      t.significand() - 2;  // -1 for -inclusive, -1 for hidden
+  unsigned largestExponentBit =
+      (t.exponent() - 1) + (largestSignificandBit + 1);
+  BitVector v[3];
+  v[0] = bv.extract(largestExponentBit + 1, largestExponentBit + 1);
+  v[1] = bv.extract(largestExponentBit, largestSignificandBit + 1);
+  v[2] = bv.extract(largestSignificandBit, 0);
+  str.append("(fp ");
+  for (unsigned i = 0; i < 3; ++i)
+  {
+    if (printAsIndexed)
+    {
+      str.append("(_ bv");
+      str.append(v[i].getValue().toString());
+      str.append(" ");
+      str.append(std::to_string(v[i].getSize()));
+      str.append(")");
+    }
+    else
+    {
+      str.append("#b");
+      str.append(v[i].toString());
+    }
+    if (i < 2)
+    {
+      str.append(" ");
+    }
+  }
+  return str;
+}
 
 }/* CVC4 namespace */

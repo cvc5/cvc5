@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,6 +42,7 @@ namespace CVC4 {
 
 class StatisticsRegistry;
 class ResourceManager;
+class SkolemManager;
 
 class DType;
 
@@ -112,6 +113,9 @@ class NodeManager {
   StatisticsRegistry* d_statisticsRegistry;
 
   ResourceManager* d_resourceManager;
+
+  /** The skolem manager */
+  std::shared_ptr<SkolemManager> d_skManager;
 
   /**
    * A list of registrations on d_options to that call into d_resourceManager.
@@ -405,6 +409,8 @@ public:
 
   /** Get this node manager's resource manager */
   ResourceManager* getResourceManager() { return d_resourceManager; }
+  /** Get this node manager's skolem manager */
+  SkolemManager* getSkolemManager() { return d_skManager.get(); }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const
@@ -443,6 +449,20 @@ public:
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
+
+  /** Get corresponding application kind for function
+   *
+   * Different functional nodes are applied differently, according to their
+   * type. For example, uninterpreted functions (of FUNCTION_TYPE) are applied
+   * via APPLY_UF, while constructors (of CONSTRUCTOR_TYPE) via
+   * APPLY_CONSTRUCTOR. This method provides the correct application according
+   * to which functional type fun has.
+   *
+   * @param fun The functional node
+   * @return the correct application kind for fun. If fun's type is not function
+   * like (see TypeNode::isFunctionLike), then UNDEFINED_KIND is returned.
+   */
+  static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
 
@@ -525,13 +545,13 @@ public:
    * "SKOLEM_NO_NOTIFY | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
    * cannot be composed in such a manner.
    */
-  enum SkolemFlags {
-    SKOLEM_DEFAULT = 0,   /**< default behavior */
-    SKOLEM_NO_NOTIFY = 1, /**< do not notify subscribers */
-    SKOLEM_EXACT_NAME = 2,/**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4  /**< global vars appear in models even after a pop */
-  };/* enum SkolemFlags */
-
+  enum SkolemFlags
+  {
+    SKOLEM_DEFAULT = 0,    /**< default behavior */
+    SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
+    SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
+    SKOLEM_IS_GLOBAL = 4   /**< global vars appear in models even after a pop */
+  };
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
@@ -875,8 +895,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
-  /** Make the type of arrays with the given parameterization */
+  /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of sequences with the given parameterization */
+  TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
