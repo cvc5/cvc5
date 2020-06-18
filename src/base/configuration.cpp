@@ -136,6 +136,7 @@ std::string Configuration::copyright() {
      << "\n\n";
 
   if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
+      || Configuration::isBuiltWithPoly()
       || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
@@ -151,6 +152,11 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithLfsc()) {
       ss << "  LFSC Proof Checker\n"
          << "  See http://github.com/CVC4/LFSC for copyright and\n"
+         << "  licensing information.\n\n";
+    }
+    if (Configuration::isBuiltWithPoly()) {
+      ss << "  libpoly polynomial library\n"
+         << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
          << "  licensing information.\n\n";
     }
     if (Configuration::isBuiltWithCadical())
@@ -267,6 +273,10 @@ bool Configuration::isBuiltWithReadline() {
 
 bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
+}
+
+bool Configuration::isBuiltWithPoly() {
+  return IS_POLY_BUILD;
 }
 
 bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }
