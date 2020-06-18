@@ -665,6 +665,11 @@ bool unify(Node x,
     visited.insert(curr);
     if (curr.first.getNumChildren() == 0)
     {
+      if (!curr.first.getType().isComparableTo(curr.second.getType()))
+      {
+        // the two subterms have different types
+        return false;
+      }
       // if the two subterms are not equal and the first one is a bound
       // variable...
       if (curr.first.getKind() == kind::BOUND_VARIABLE)
