@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2947,6 +2947,13 @@ Node SequencesRewriter::rewriteReplaceRe(Node node)
     {
       return returnRewrite(node, x, Rewrite::REPLACE_RE_EVAL);
     }
+  }
+  // str.replace_re( x, y, z ) ---> z ++ x if "" in y ---> true
+  String emptyStr("");
+  if (RegExpEntail::testConstStringInRegExp(emptyStr, 0, y))
+  {
+    Node ret = nm->mkNode(STRING_CONCAT, z, x);
+    return returnRewrite(node, ret, Rewrite::REPLACE_RE_EMP_RE);
   }
   return node;
 }

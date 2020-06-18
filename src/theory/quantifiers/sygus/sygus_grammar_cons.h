@@ -2,9 +2,9 @@
 /*! \file sygus_grammar_cons.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Yoni Zohar, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -100,7 +100,7 @@ public:
   *   - term_irrelevant: a set of terms that should not be included in the
   *      grammar.
   *   - include_cons: a set of operators such that if this set is not empty,
-  *     its elements that are in the default grammar (and only them) 
+  *     its elements that are in the default grammar (and only them)
   *     will be included.
   */
  static TypeNode mkSygusDefaultType(
@@ -248,8 +248,25 @@ public:
       std::set<Type>& unres);
 
   // helper function for mkSygusTemplateType
-  static TypeNode mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl, 
-                                          const std::string& fun, unsigned& tcount );
+  static TypeNode mkSygusTemplateTypeRec(Node templ,
+                                         Node templ_arg,
+                                         TypeNode templ_arg_sygus_type,
+                                         Node bvl,
+                                         const std::string& fun,
+                                         unsigned& tcount);
+
+  /**
+   * Given a kind k, create a lambda operator with the given builtin input type
+   * and an extra zero argument of that same type.  For example, for k = LEQ and
+   * bArgType = Int, the operator will be lambda x : Int. x + 0.  Currently the
+   * supported input types are Real (thus also Int) and BitVector.
+   *
+   * This method also creates a print callback for the operator, saved via the
+   * argument spc, if the caller wishes to not print the lambda.
+   */
+  static Node createLambdaWithZeroArg(Kind k,
+                                      TypeNode bArgType,
+                                      std::shared_ptr<SygusPrintCallback> spc);
   //---------------- end grammar construction
 };
 
