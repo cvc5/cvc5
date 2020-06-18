@@ -139,8 +139,7 @@ Node Evaluator::eval(
   for (const std::pair<const Node, Node>& p : visited)
   {
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
-    results[p.first] =
-        evalInternal(p.second, args, vals, evalAsNode, results);
+    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results);
     if (results[p.first].d_tag == EvalResult::INVALID)
     {
       // could not evaluate, use the evalAsNode map
@@ -156,8 +155,7 @@ Node Evaluator::eval(
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret =
-      evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
   // if we failed to evaluate
   if (ret.isNull() && useRewriter)
   {
@@ -330,8 +328,8 @@ EvalResult Evaluator::evalInternal(
         // favor avoiding this copy for performance reasons.
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
-        results[currNode] = evalInternal(
-            op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
+        results[currNode] =
+            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
         Trace("evaluator") << "Evaluated via arguments to "
                            << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)

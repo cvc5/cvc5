@@ -88,7 +88,7 @@ DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
   // initialize rule
   DslPfRule ret = d_idCounter;
   // increment the counter
-  d_idCounter = DslPfRule(static_cast<uint32_t>(d_idCounter)+1);
+  d_idCounter = DslPfRule(static_cast<uint32_t>(d_idCounter) + 1);
   d_rewDbRule[ret].init(name, conds, eqC);
   d_concToRules[eqC].push_back(ret);
   return ret;
@@ -101,7 +101,8 @@ void RewriteDb::getMatches(Node eq, expr::NotifyMatch* ntm)
 
 const RewriteProofRule& RewriteDb::getRule(DslPfRule id) const
 {
-  std::map<DslPfRule, RewriteProofRule>::const_iterator it = d_rewDbRule.find(id);
+  std::map<DslPfRule, RewriteProofRule>::const_iterator it =
+      d_rewDbRule.find(id);
   Assert(it != d_rewDbRule.end());
   return it->second;
 }

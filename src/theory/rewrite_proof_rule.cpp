@@ -22,7 +22,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-  
+
 const char* toString(DslPfRule drule)
 {
   switch (drule)
@@ -41,8 +41,8 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule)
 }
 
 void RewriteProofRule::init(const std::string& name,
-                         const std::vector<Node>& cond,
-                         Node eq)
+                            const std::vector<Node>& cond,
+                            Node eq)
 {
   d_name = name;
   d_cond.clear();

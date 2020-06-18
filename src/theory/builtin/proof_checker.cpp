@@ -16,8 +16,8 @@
 
 #include "expr/skolem_manager.h"
 #include "smt/term_formula_removal.h"
-#include "theory/rewriter.h"
 #include "theory/evaluator.h"
+#include "theory/rewriter.h"
 #include "theory/theory.h"
 
 using namespace CVC4::kind;
@@ -102,7 +102,7 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   else if (idr == MethodId::RW_EVALUATE)
   {
     Evaluator eval;
-    return eval.eval(n,{},{},false);
+    return eval.eval(n, {}, {}, false);
   }
   else if (idr == MethodId::RW_IDENTITY)
   {

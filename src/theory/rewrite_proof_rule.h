@@ -32,7 +32,7 @@ enum class DslPfRule : uint32_t
   USER_START
 };
 /**
- * Converts a DSL proof rule to a string. 
+ * Converts a DSL proof rule to a string.
  * @param drule The DSL proof rule
  * @return The name of the DSL proof rule
  */

@@ -21,10 +21,10 @@
 
 #include "expr/match_trie.h"
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "expr/proof_generator.h"
 #include "theory/evaluator.h"
 #include "theory/rewrite_db.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -32,11 +32,12 @@ namespace theory {
 class RewriteDbProofCons : public ProofGenerator
 {
  public:
-  RewriteDbProofCons(RewriteDb& db, ProofNodeManager * pnm);
+  RewriteDbProofCons(RewriteDb& db, ProofNodeManager* pnm);
   /** Prove? */
-  bool prove(Node a, Node b, unsigned recDepth, bool ensureProof=false);
+  bool prove(Node a, Node b, unsigned recDepth, bool ensureProof = false);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
+
  private:
   /** Notify class for the match trie */
   class RdpcMatchTrieNotify : public expr::NotifyMatch
