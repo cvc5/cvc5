@@ -4348,7 +4348,7 @@ void TheoryArithPrivate::presolve(){
     callCount = callCount + 1;
   }
 
-  vector<Node> lemmas;
+  vector<TrustNode> lemmas;
   if(!options::incrementalSolving()) {
     switch(options::arithUnateLemmaMode()){
       case options::ArithUnateLemmaMode::NO: break;
@@ -4366,11 +4366,11 @@ void TheoryArithPrivate::presolve(){
     }
   }
 
-  vector<Node>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
+  vector<TrustNode>::const_iterator i = lemmas.begin(), i_end = lemmas.end();
   for(; i != i_end; ++i){
-    Node lem = *i;
+    TrustNode lem = *i;
     Debug("arith::oldprop") << " lemma lemma duck " <<lem << endl;
-    outputLemma(lem);
+    outputTrustedLemma(lem);
   }
 
   if (d_nonlinearExtension != nullptr)

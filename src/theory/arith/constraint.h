@@ -1189,14 +1189,24 @@ public:
 
  void deleteConstraintAndNegation(ConstraintP c);
 
+ void proveOr(std::vector<TrustNode>& out,
+              ConstraintP a,
+              ConstraintP b,
+              bool negateSecond) const;
+ void implies(std::vector<TrustNode>& out, ConstraintP a, ConstraintP b) const;
+ void mutuallyExclusive(std::vector<TrustNode>& out,
+                        ConstraintP a,
+                        ConstraintP b) const;
+
  /**
   * Outputs a minimal set of unate implications onto the vector for the
   * variable. This outputs lemmas of the general forms
   *     (= p c) implies (<= p d) for c < d, or
   *     (= p c) implies (not (= p d)) for c != d.
   */
- void outputUnateEqualityLemmas(std::vector<Node>& lemmas) const;
- void outputUnateEqualityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+ void outputUnateEqualityLemmas(std::vector<TrustNode>& lemmas) const;
+ void outputUnateEqualityLemmas(std::vector<TrustNode>& lemmas,
+                                ArithVar v) const;
 
  /**
   * Outputs a minimal set of unate implications onto the vector for the
@@ -1205,8 +1215,9 @@ public:
   * If ineqs is true, this outputs lemmas of the general form
   *     (<= p c) implies (<= p d) for c < d.
   */
- void outputUnateInequalityLemmas(std::vector<Node>& lemmas) const;
- void outputUnateInequalityLemmas(std::vector<Node>& lemmas, ArithVar v) const;
+ void outputUnateInequalityLemmas(std::vector<TrustNode>& lemmas) const;
+ void outputUnateInequalityLemmas(std::vector<TrustNode>& lemmas,
+                                  ArithVar v) const;
 
  void unatePropLowerBound(ConstraintP curr, ConstraintP prev);
  void unatePropUpperBound(ConstraintP curr, ConstraintP prev);

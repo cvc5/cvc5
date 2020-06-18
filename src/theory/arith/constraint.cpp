@@ -2043,30 +2043,82 @@ Node Constraint::getProofLiteral() const
   return neg ? posLit.negate() : posLit;
 }
 
-void implies(std::vector<Node>& out, ConstraintP a, ConstraintP b){
+void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
+                                 ConstraintP a,
+                                 ConstraintP b,
+                                 bool negateSecond) const
+{
+  Node la = a->getLiteral();
+  Node lb = b->getLiteral();
+  Node orN = (la < lb) ? la.orNode(lb) : lb.orNode(la);
+  if (options::proofNew())
+  {
+    Assert(b->getNegation()->getType() == ConstraintType::LowerBound
+           || b->getNegation()->getType() == ConstraintType::UpperBound);
+    auto nm = NodeManager::currentNM();
+    auto pf_neg_la = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                                   {d_pnm->mkAssume(la.negate())},
+                                   {a->getNegation()->getProofLiteral()});
+    auto pf_neg_lb = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                                   {d_pnm->mkAssume(lb.negate())},
+                                   {b->getNegation()->getProofLiteral()});
+    int sndSign = negateSecond ? -1 : 1;
+    auto bot_pf =
+        d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
+                      {d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                                     {pf_neg_la, pf_neg_lb},
+                                     {nm->mkConst<Rational>(-1 * sndSign),
+                                      nm->mkConst<Rational>(sndSign)})},
+                      {nm->mkConst(false)});
+    std::vector<Node> as;
+    std::transform(orN.begin(), orN.end(), std::back_inserter(as), [](Node n) {
+      return n.negate();
+    });
+    auto pf = d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM,
+        {d_pnm->mkNode(PfRule::NOT_AND, {d_pnm->mkScope(bot_pf, as)}, {})},
+        {orN});
+    out.push_back(d_pfGen->mkTrustNode(orN, pf));
+  }
+  else
+  {
+    out.push_back(TrustNode::mkTrustLemma(orN));
+  }
+}
+
+void ConstraintDatabase::implies(std::vector<TrustNode>& out,
+                                 ConstraintP a,
+                                 ConstraintP b) const
+{
   Node la = a->getLiteral();
   Node lb = b->getLiteral();
 
   Node neg_la = (la.getKind() == kind::NOT)? la[0] : la.notNode();
 
   Assert(lb != neg_la);
-  Node orderOr = (lb < neg_la) ? lb.orNode(neg_la) : neg_la.orNode(lb);
-  out.push_back(orderOr);
+  Assert(b->getNegation()->getType() == ConstraintType::LowerBound
+         || b->getNegation()->getType() == ConstraintType::UpperBound);
+  proveOr(out,
+          a->getNegation(),
+          b,
+          b->getNegation()->getType() == ConstraintType::LowerBound);
 }
 
-void mutuallyExclusive(std::vector<Node>& out, ConstraintP a, ConstraintP b){
+void ConstraintDatabase::mutuallyExclusive(std::vector<TrustNode>& out,
+                                           ConstraintP a,
+                                           ConstraintP b) const
+{
   Node la = a->getLiteral();
   Node lb = b->getLiteral();
 
-  Node neg_la = (la.getKind() == kind::NOT)? la[0] : la.notNode();
-  Node neg_lb = (lb.getKind() == kind::NOT)? lb[0] : lb.notNode();
-
-  Assert(neg_la != neg_lb);
-  Node orderOr = (neg_la < neg_lb) ? neg_la.orNode(neg_lb) : neg_lb.orNode(neg_la);
-  out.push_back(orderOr);
+  Node neg_la = la.negate();
+  Node neg_lb = lb.negate();
+  proveOr(out, a->getNegation(), b->getNegation(), true);
 }
 
-void ConstraintDatabase::outputUnateInequalityLemmas(std::vector<Node>& out, ArithVar v) const{
+void ConstraintDatabase::outputUnateInequalityLemmas(
+    std::vector<TrustNode>& out, ArithVar v) const
+{
   SortedConstraintMap& scm = getVariableSCM(v);
   SortedConstraintMapConstIterator scm_iter = scm.begin();
   SortedConstraintMapConstIterator scm_end = scm.end();
@@ -2087,8 +2139,9 @@ void ConstraintDatabase::outputUnateInequalityLemmas(std::vector<Node>& out, Ari
   }
 }
 
-void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& out, ArithVar v) const{
-
+void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<TrustNode>& out,
+                                                   ArithVar v) const
+{
   vector<ConstraintP> equalities;
 
   SortedConstraintMap& scm = getVariableSCM(v);
@@ -2129,7 +2182,7 @@ void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& out, Arith
       vc.getUpperBound() : eq->getStrictlyWeakerUpperBound(true, false);
 
     if(hasUB && hasLB && !eq->isSplit()){
-      out.push_back(eq->split().getNode());
+      out.push_back(eq->split());
     }
     if(lb != NullConstraint){
       implies(out, eq, lb);
@@ -2140,13 +2193,17 @@ void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& out, Arith
   }
 }
 
-void ConstraintDatabase::outputUnateEqualityLemmas(std::vector<Node>& lemmas) const{
+void ConstraintDatabase::outputUnateEqualityLemmas(
+    std::vector<TrustNode>& lemmas) const
+{
   for(ArithVar v = 0, N = d_varDatabases.size(); v < N; ++v){
     outputUnateEqualityLemmas(lemmas, v);
   }
 }
 
-void ConstraintDatabase::outputUnateInequalityLemmas(std::vector<Node>& lemmas) const{
+void ConstraintDatabase::outputUnateInequalityLemmas(
+    std::vector<TrustNode>& lemmas) const
+{
   for(ArithVar v = 0, N = d_varDatabases.size(); v < N; ++v){
     outputUnateInequalityLemmas(lemmas, v);
   }
