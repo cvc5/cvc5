@@ -58,6 +58,11 @@
   }
 %}
 
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) Expr {
+  this(null, $imcall, true);
+}
+
 %typemap(javaconstruct) CVC4::Expr {
   this(null, $imcall, true);
 }
@@ -83,6 +88,11 @@ namespace std {
   return new vectorExpr(this.em, $jnicall, false);
 }
 %template(vectorVectorExpr) std::vector<std::vector<CVC4::Expr>>;
+
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) Type {
+  this(null, $imcall, true);
+}
 
 %typemap(javaconstruct) CVC4::Type {
   this(null, $imcall, true);

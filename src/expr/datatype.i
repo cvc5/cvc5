@@ -145,6 +145,11 @@ namespace std {
   }
 %}
 
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) DatatypeConstructor {
+  this(null, $imcall, true);
+}
+
 %typemap(javaconstruct) CVC4::DatatypeConstructor {
   this(null, $imcall, true);
 }
@@ -196,6 +201,11 @@ namespace std {
     ss << *$self;
     return ss.str();
   }
+}
+
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) Datatype {
+  this(null, $imcall, true);
 }
 
 %typemap(javaconstruct) CVC4::Datatype {

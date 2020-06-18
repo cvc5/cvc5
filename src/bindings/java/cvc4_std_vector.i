@@ -54,7 +54,12 @@ SWIGINTERN jint SWIG_VectorSize(size_t size) {
   }
 %}
 
-%typemap(javaconstruct) std::vector< CTYPE > {
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) vector<CTYPE> {
+  this(null, $imcall, true);
+}
+
+%typemap(javaconstruct) std::vector<CTYPE> {
   this(null, $imcall, true);
 }
 

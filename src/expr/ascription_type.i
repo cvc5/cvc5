@@ -25,6 +25,11 @@
   }
 %}
 
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) AscriptionType {
+  this(null, $imcall, true);
+}
+
 %typemap(javaconstruct) CVC4::AscriptionType {
   this(null, $imcall, true);
 }
