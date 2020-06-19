@@ -66,8 +66,8 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
 
 Node SygusInterpol::mkPredicate(const std::string& name)
 {
-	Node itp;
-	return itp;
+  Node itp;
+  return itp;
 }
 
 void SygusInterpol::mkSygusConjecture(Node itp,
