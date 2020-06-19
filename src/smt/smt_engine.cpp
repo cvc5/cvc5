@@ -2,9 +2,9 @@
 /*! \file smt_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -760,6 +760,7 @@ void SmtEngine::finishInit()
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
     d_assertionList = new (true) AssertionList(getUserContext());
+    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
   }
 
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
@@ -847,6 +848,8 @@ SmtEngine::~SmtEngine()
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
     }
+
+    d_globalDefineFunRecLemmas.reset();
 
     if(d_assertionList != NULL) {
       d_assertionList->deleteSelf();
@@ -1190,7 +1193,8 @@ void SmtEngine::debugCheckFunctionBody(Expr formula,
 
 void SmtEngine::defineFunction(Expr func,
                                const std::vector<Expr>& formals,
-                               Expr formula)
+                               Expr formula,
+                               bool global)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -1202,7 +1206,7 @@ void SmtEngine::defineFunction(Expr func,
   ss << language::SetLanguage(
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-  DefineFunctionCommand c(ss.str(), func, formals, formula);
+  DefineFunctionCommand c(ss.str(), func, formals, formula, global);
   addToModelCommandAndDump(
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
@@ -1231,13 +1235,22 @@ void SmtEngine::defineFunction(Expr func,
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
   // d_haveAdditions = true;
   Debug("smt") << "definedFunctions insert " << funcNode << " " << formNode << endl;
-  d_definedFunctions->insert(funcNode, def);
+
+  if (global)
+  {
+    d_definedFunctions->insertAtContextLevelZero(funcNode, def);
+  }
+  else
+  {
+    d_definedFunctions->insert(funcNode, def);
+  }
 }
 
 void SmtEngine::defineFunctionsRec(
     const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr> >& formals,
-    const std::vector<Expr>& formulas)
+    const std::vector<std::vector<Expr>>& formals,
+    const std::vector<Expr>& formulas,
+    bool global)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -1274,7 +1287,7 @@ void SmtEngine::defineFunctionsRec(
     std::vector<api::Term> tFormulas =
         api::exprVectorToTerms(d_solver, formulas);
     Dump("raw-benchmark") << DefineFunctionRecCommand(
-        d_solver, tFuncs, tFormals, tFormulas);
+        d_solver, tFuncs, tFormals, tFormulas, global);
   }
 
   ExprManager* em = getExprManager();
@@ -1314,17 +1327,28 @@ void SmtEngine::defineFunctionsRec(
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
     Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
-    if (d_assertionList != NULL)
+    if (d_assertionList != nullptr)
     {
       d_assertionList->push_back(e);
     }
-    d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
+    if (global && d_globalDefineFunRecLemmas != nullptr)
+    {
+      // Global definitions are asserted at check-sat-time because we have to
+      // make sure that they are always present
+      Assert(!language::isInputLangSygus(options::inputLanguage()));
+      d_globalDefineFunRecLemmas->emplace_back(Node::fromExpr(e));
+    }
+    else
+    {
+      d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
+    }
   }
 }
 
 void SmtEngine::defineFunctionRec(Expr func,
                                   const std::vector<Expr>& formals,
-                                  Expr formula)
+                                  Expr formula,
+                                  bool global)
 {
   std::vector<Expr> funcs;
   funcs.push_back(func);
@@ -1332,7 +1356,7 @@ void SmtEngine::defineFunctionRec(Expr func,
   formals_multi.push_back(formals);
   std::vector<Expr> formulas;
   formulas.push_back(formula);
-  defineFunctionsRec(funcs, formals_multi, formulas);
+  defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
 bool SmtEngine::isDefinedFunction( Expr func ){
@@ -1670,6 +1694,17 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
         d_assertionList->push_back(e);
       }
       d_private->addFormula(e.getNode(), inUnsatCore, true, true);
+    }
+
+    if (d_globalDefineFunRecLemmas != nullptr)
+    {
+      // Global definitions are asserted at check-sat-time because we have to
+      // make sure that they are always present (they are essentially level
+      // zero assertions)
+      for (const Node& lemma : *d_globalDefineFunRecLemmas)
+      {
+        d_private->addFormula(lemma, false, true, false, false);
+      }
     }
 
     r = check();

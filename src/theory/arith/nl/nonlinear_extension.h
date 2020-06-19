@@ -2,9 +2,9 @@
 /*! \file nonlinear_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -147,8 +147,8 @@ class NonlinearExtension
    * involve e.g. solving for variables in nonlinear equations.
    *
    * Notice that in the former case, the lemmas it constructs are not sent out
-   * immediately. Instead, they are put in temporary vectors d_cmiLemmas
-   * and d_cmiLemmasPp, which are then sent out (if necessary) when a last call
+   * immediately. Instead, they are put in temporary vector d_cmiLemmas, which
+   * are then sent out (if necessary) when a last call
    * effort check is issued to this class.
    */
   void interceptModel(std::map<Node, Node>& arithModel);
@@ -173,17 +173,12 @@ class NonlinearExtension
    * described in Reynolds et al. FroCoS 2017 that are based on ruling out
    * the current candidate model.
    *
-   * This function returns true if a lemma was added to the vector lems/lemsPp.
+   * This function returns true if a lemma was added to the vector lems.
    * Otherwise, it returns false. In the latter case, the model object d_model
    * may have information regarding how to construct a model, in the case that
    * we determined the problem is satisfiable.
-   *
-   * The argument lemSE is the "side effect" of the lemmas in mlems and mlemsPp
-   * (for details, see checkLastCall).
    */
-  bool modelBasedRefinement(std::vector<Node>& mlems,
-                            std::vector<Node>& mlemsPp,
-                            std::map<Node, NlLemmaSideEffect>& lemSE);
+  bool modelBasedRefinement(std::vector<NlLemma>& mlems);
 
   /** check last call
    *
@@ -192,32 +187,24 @@ class NonlinearExtension
    *
    * xts : the list of (non-reduced) extended terms in the current context.
    *
-   * This method adds lemmas to arguments lems, lemsPp, and wlems, each of
+   * This method adds lemmas to arguments lems and wlems, each of
    * which are intended to be sent out on the output channel of TheoryArith
    * under certain conditions.
    *
-   * If the set lems or lemsPp is non-empty, then no further processing is
+   * If the set lems is non-empty, then no further processing is
    * necessary. The last call effort check should terminate and these
-   * lemmas should be sent. The set lemsPp is distinguished from lems since
-   * the preprocess flag on the lemma(...) call should be set to true.
+   * lemmas should be sent.
    *
    * The "waiting" lemmas wlems contain lemmas that should be sent on the
    * output channel as a last resort. In other words, only if we are not
    * able to establish SAT via a call to checkModel(...) should wlems be
    * considered. This set typically contains tangent plane lemmas.
-   *
-   * The argument lemSE is the "side effect" of the lemmas from the previous
-   * three calls. If a lemma is mapping to a side effect, it should be
-   * processed via a call to processSideEffect(...) immediately after the
-   * lemma is sent (if it is indeed sent on this call to check).
    */
   int checkLastCall(const std::vector<Node>& assertions,
                     const std::vector<Node>& false_asserts,
                     const std::vector<Node>& xts,
-                    std::vector<Node>& lems,
-                    std::vector<Node>& lemsPp,
-                    std::vector<Node>& wlems,
-                    std::map<Node, NlLemmaSideEffect>& lemSE);
+                    std::vector<NlLemma>& lems,
+                    std::vector<NlLemma>& wlems);
 
   /** get assertions
    *
@@ -259,7 +246,7 @@ class NonlinearExtension
    */
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
-                  std::vector<Node>& lemmas,
+                  std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
 
@@ -271,21 +258,22 @@ class NonlinearExtension
    * the number of lemmas added to out. We do not add lemmas that have already
    * been sent on the output channel of TheoryArith.
    */
-  unsigned filterLemmas(std::vector<Node>& lemmas, std::vector<Node>& out);
+  unsigned filterLemmas(std::vector<NlLemma>& lemmas,
+                        std::vector<NlLemma>& out);
   /** singleton version of above */
-  unsigned filterLemma(Node lem, std::vector<Node>& out);
+  unsigned filterLemma(NlLemma lem, std::vector<NlLemma>& out);
 
   /**
    * Send lemmas in out on the output channel of theory of arithmetic.
    */
-  void sendLemmas(const std::vector<Node>& out,
-                  bool preprocess,
-                  std::map<Node, NlLemmaSideEffect>& lemSE);
+  void sendLemmas(const std::vector<NlLemma>& out);
   /** Process side effect se */
-  void processSideEffect(const NlLemmaSideEffect& se);
+  void processSideEffect(const NlLemma& se);
 
   /** cache of all lemmas sent on the output channel (user-context-dependent) */
   NodeSet d_lemmas;
+  /** Same as above, for preprocessed lemmas */
+  NodeSet d_lemmasPp;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
@@ -316,14 +304,10 @@ class NonlinearExtension
    */
   NlSolver d_nlSlv;
   /**
-   * The lemmas we computed during collectModelInfo. We store two vectors of
-   * lemmas to be sent out on the output channel of TheoryArith. The first
-   * is not preprocessed, the second is.
+   * The lemmas we computed during collectModelInfo, to be sent out on the
+   * output channel of TheoryArith.
    */
-  std::vector<Node> d_cmiLemmas;
-  std::vector<Node> d_cmiLemmasPp;
-  /** the side effects of the above lemmas */
-  std::map<Node, NlLemmaSideEffect> d_cmiLemmasSE;
+  std::vector<NlLemma> d_cmiLemmas;
   /**
    * The approximations computed during collectModelInfo. For details, see
    * NlModel::getModelValueRepair.

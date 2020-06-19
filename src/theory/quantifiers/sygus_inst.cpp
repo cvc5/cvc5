@@ -2,7 +2,7 @@
 /*! \file sygus_inst.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -18,7 +18,7 @@
 #include <unordered_set>
 
 #include "expr/node_algorithm.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/synth_engine.h"

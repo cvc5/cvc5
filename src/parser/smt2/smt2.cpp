@@ -2,9 +2,9 @@
 /*! \file smt2.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -156,6 +156,8 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_CHARAT, "str.at");
   addOperator(api::STRING_INDEXOF, "str.indexof");
   addOperator(api::STRING_REPLACE, "str.replace");
+  addOperator(api::STRING_REPLACE_RE, "str.replace_re");
+  addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");

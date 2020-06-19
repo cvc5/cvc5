@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -171,6 +171,9 @@ NodeManager::~NodeManager() {
 
   NodeManagerScope nms(this);
 
+  // Destroy skolem manager before cleaning up attributes and zombies
+  d_skManager = nullptr;
+
   {
     ScopedBool dontGC(d_inReclaimZombies);
     // hopefully by this point all SmtEngines have been deleted
@@ -233,7 +236,6 @@ NodeManager::~NodeManager() {
   // defensive coding, in case destruction-order issues pop up (they often do)
   delete d_resourceManager;
   d_resourceManager = NULL;
-  d_skManager = nullptr;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
   delete d_registrations;

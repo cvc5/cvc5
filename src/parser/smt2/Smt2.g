@@ -2,9 +2,9 @@
 /*! \file Smt2.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -361,8 +361,12 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       // we allow overloading for function definitions
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED, true);
-      cmd->reset(new DefineFunctionCommand(
-          name, func.getExpr(), api::termVectorToExprs(terms), expr.getExpr()));
+      cmd->reset(
+          new DefineFunctionCommand(name,
+                                    func.getExpr(),
+                                    api::termVectorToExprs(terms),
+                                    expr.getExpr(),
+                                    PARSER_STATE->getGlobalDeclarations()));
     }
   | DECLARE_DATATYPE_TOK datatypeDefCommand[false, cmd]
   | DECLARE_DATATYPES_TOK datatypesDefCommand[false, cmd]
@@ -1203,7 +1207,8 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
       if( !flattenVars.empty() ){
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
-      cmd->reset(new DefineFunctionRecCommand(SOLVER, func, bvs, expr));
+      cmd->reset(new DefineFunctionRecCommand(
+          SOLVER, func, bvs, expr, PARSER_STATE->getGlobalDeclarations()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -1267,7 +1272,11 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "define-funs-rec"));
       }
       cmd->reset(
-          new DefineFunctionRecCommand(SOLVER, funcs, formals, func_defs));
+          new DefineFunctionRecCommand(SOLVER,
+                                       funcs,
+                                       formals,
+                                       func_defs,
+                                       PARSER_STATE->getGlobalDeclarations()));
     }
   ;
 
@@ -1357,14 +1366,21 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { cmd->reset(seq.release()); }
 
   | DEFINE_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    ( symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    ( // (define f t)
+      symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       term[e,e2]
-      { api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
+      {
+        api::Term func = PARSER_STATE->bindVar(name, e.getSort(),
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(name, func.getExpr(), e.getExpr()));
+        cmd->reset(
+            new DefineFunctionCommand(name,
+                                      func.getExpr(),
+                                      e.getExpr(),
+                                      PARSER_STATE->getGlobalDeclarations()));
       }
-    | LPAREN_TOK
+    | // (define (f (v U) ...) t)
+      LPAREN_TOK
       symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
       { PARSER_STATE->checkUserSymbol(name); }
       sortedVarList[sortedVarNames] RPAREN_TOK
@@ -1374,7 +1390,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         terms = PARSER_STATE->bindBoundVars(sortedVarNames);
       }
       term[e,e2]
-      { PARSER_STATE->popScope();
+      {
+        PARSER_STATE->popScope();
         // declare the name down here (while parsing term, signature
         // must not be extended with the name itself; no recursion
         // permitted)
@@ -1390,11 +1407,16 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
         }
         api::Term func = PARSER_STATE->bindVar(name, tt,
                                         ExprManager::VAR_FLAG_DEFINED);
-        cmd->reset(new DefineFunctionCommand(
-            name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
+        cmd->reset(
+            new DefineFunctionCommand(name,
+                                      func.getExpr(),
+                                      api::termVectorToExprs(terms),
+                                      e.getExpr(),
+                                      PARSER_STATE->getGlobalDeclarations()));
       }
     )
-  | DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+  | // (define-const x U t)
+    DEFINE_CONST_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     { PARSER_STATE->checkUserSymbol(name); }
     sortSymbol[t,CHECK_DECLARED]
@@ -1404,14 +1426,19 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       terms = PARSER_STATE->bindBoundVars(sortedVarNames);
     }
     term[e, e2]
-    { PARSER_STATE->popScope();
+    {
+      PARSER_STATE->popScope();
       // declare the name down here (while parsing term, signature
       // must not be extended with the name itself; no recursion
       // permitted)
       api::Term func = PARSER_STATE->bindVar(name, t,
                                       ExprManager::VAR_FLAG_DEFINED);
-      cmd->reset(new DefineFunctionCommand(
-          name, func.getExpr(), api::termVectorToExprs(terms), e.getExpr()));
+      cmd->reset(
+          new DefineFunctionCommand(name,
+                                    func.getExpr(),
+                                    api::termVectorToExprs(terms),
+                                    e.getExpr(),
+                                    PARSER_STATE->getGlobalDeclarations()));
     }
 
   | SIMPLIFY_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -2209,7 +2236,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       std::string name = sexpr.getValue();
       // bind name to expr with define-fun
       Command* c = new DefineNamedFunctionCommand(
-          name, func.getExpr(), std::vector<Expr>(), expr.getExpr());
+          name, func.getExpr(), std::vector<Expr>(), expr.getExpr(), PARSER_STATE->getGlobalDeclarations());
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1273,22 +1273,27 @@ std::string DefineTypeCommand::getCommandName() const { return "define-sort"; }
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
-                                             Expr formula)
+                                             Expr formula,
+                                             bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(),
-      d_formula(formula)
+      d_formula(formula),
+      d_global(global)
 {
 }
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
                                              const std::vector<Expr>& formals,
-                                             Expr formula)
+                                             Expr formula,
+                                             bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(formals),
-      d_formula(formula)
+      d_formula(formula),
+      d_global(global)
+
 {
 }
 
@@ -1305,7 +1310,7 @@ void DefineFunctionCommand::invoke(SmtEngine* smtEngine)
   {
     if (!d_func.isNull())
     {
-      smtEngine->defineFunction(d_func, d_formals, d_formula);
+      smtEngine->defineFunction(d_func, d_formals, d_formula, d_global);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1326,12 +1331,13 @@ Command* DefineFunctionCommand::exportTo(ExprManager* exprManager,
             back_inserter(formals),
             ExportTransformer(exprManager, variableMap));
   Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineFunctionCommand(d_symbol, func, formals, formula);
+  return new DefineFunctionCommand(d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineFunctionCommand::clone() const
 {
-  return new DefineFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+  return new DefineFunctionCommand(
+      d_symbol, d_func, d_formals, d_formula, d_global);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1347,8 +1353,9 @@ DefineNamedFunctionCommand::DefineNamedFunctionCommand(
     const std::string& id,
     Expr func,
     const std::vector<Expr>& formals,
-    Expr formula)
-    : DefineFunctionCommand(id, func, formals, formula)
+    Expr formula,
+    bool global)
+    : DefineFunctionCommand(id, func, formals, formula, global)
 {
 }
 
@@ -1372,12 +1379,14 @@ Command* DefineNamedFunctionCommand::exportTo(
             back_inserter(formals),
             ExportTransformer(exprManager, variableMap));
   Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineNamedFunctionCommand(d_symbol, func, formals, formula);
+  return new DefineNamedFunctionCommand(
+      d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineNamedFunctionCommand::clone() const
 {
-  return new DefineNamedFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+  return new DefineNamedFunctionCommand(
+      d_symbol, d_func, d_formals, d_formula, d_global);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1388,8 +1397,9 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
     api::Solver* solver,
     api::Term func,
     const std::vector<api::Term>& formals,
-    api::Term formula)
+    api::Term formula, bool global)
     : Command(solver)
+    , d_global(global)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1400,12 +1410,9 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
     api::Solver* solver,
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
-    const std::vector<api::Term>& formulas)
-    : Command(solver)
+    const std::vector<api::Term>& formulas, bool global)
+    : Command(solver), d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
 {
-  d_funcs.insert(d_funcs.end(), funcs.begin(), funcs.end());
-  d_formals.insert(d_formals.end(), formals.begin(), formals.end());
-  d_formulas.insert(d_formulas.end(), formulas.begin(), formulas.end());
 }
 
 const std::vector<api::Term>& DefineFunctionRecCommand::getFunctions() const
@@ -1428,7 +1435,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_solver->defineFunsRec(d_funcs, d_formals, d_formulas);
+    d_solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1441,38 +1448,12 @@ Command* DefineFunctionRecCommand::exportTo(
     ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
   Unimplemented();
-
-#if 0
-  std::vector<Expr> funcs;
-  for (unsigned i = 0, size = d_funcs.size(); i < size; i++)
-  {
-    Expr func = d_funcs[i].exportTo(
-        exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
-    funcs.push_back(func);
-  }
-  std::vector<std::vector<Expr>> formals;
-  for (unsigned i = 0, size = d_formals.size(); i < size; i++)
-  {
-    std::vector<Expr> formals_c;
-    transform(d_formals[i].begin(),
-              d_formals[i].end(),
-              back_inserter(formals_c),
-              ExportTransformer(exprManager, variableMap));
-    formals.push_back(formals_c);
-  }
-  std::vector<Expr> formulas;
-  for (unsigned i = 0, size = d_formulas.size(); i < size; i++)
-  {
-    Expr formula = d_formulas[i].exportTo(exprManager, variableMap);
-    formulas.push_back(formula);
-  }
-  return new DefineFunctionRecCommand(funcs, formals, formulas);
-#endif
 }
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_solver, d_funcs, d_formals, d_formulas);
+  return new DefineFunctionRecCommand(
+      d_solver, d_funcs, d_formals, d_formulas, d_global);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const

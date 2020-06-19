@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -352,6 +352,21 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
     }
   }
   return true;
+}
+
+void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
+                                           MethodId ids,
+                                           MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
 }
 
 }  // namespace builtin
