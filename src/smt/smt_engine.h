@@ -955,8 +955,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Check that a solution to an interpolation conjecture is indeed a solution.
    *
-   * The check is made by determining that the assertions imply
-   * the solution of the interpolation problem (interpol), and the solution
+   * The check is made by determining that the assertions imply the solution of the interpolation problem (interpol), and the solution
    * implies the goal (conj). If these criteria are not met, an internal error
    * is thrown.
    */
