@@ -48,6 +48,7 @@ class RewriteDb
   const RewriteProofRule& getRule(DslPfRule id) const;
   /** get ids for conclusion */
   const std::vector<DslPfRule>& getRuleIdsForConclusion(Node eq) const;
+
  private:
   /** common constants */
   Node d_true;

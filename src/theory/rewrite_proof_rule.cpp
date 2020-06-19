@@ -14,8 +14,8 @@
 
 #include "theory/rewrite_proof_rule.h"
 
-#include "theory/rewrite_db_term_process.h"
 #include "theory/rewrite_db_sc.h"
+#include "theory/rewrite_db_term_process.h"
 
 #include "expr/node_algorithm.h"
 
@@ -41,10 +41,7 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule)
   return out;
 }
 
-RewriteProofRule::RewriteProofRule() : d_name("")
-{
-  
-}
+RewriteProofRule::RewriteProofRule() : d_name("") {}
 
 void RewriteProofRule::init(const std::string& name,
                             const std::vector<Node>& cond,
@@ -133,7 +130,7 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
         {
           std::stringstream ss;
           ss << "k" << (scs.size() + 1);
-          Node k = nm->mkBoundVar(ss.str(),cur.getType());
+          Node k = nm->mkBoundVar(ss.str(), cur.getType());
           Node scEq = ret.eqNode(k);
           scs.push_back(scEq);
           ret = k;
@@ -147,22 +144,15 @@ Node RewriteProofRule::purifySideConditions(Node n, std::vector<Node>& scs)
   return visited[n];
 }
 
-const std::string& RewriteProofRule::getName() const
-{
-  return d_name;
-}
+const std::string& RewriteProofRule::getName() const { return d_name; }
 
-bool RewriteProofRule::hasConditions() const
-{
-  return !d_cond.empty();
-}
+bool RewriteProofRule::hasConditions() const { return !d_cond.empty(); }
 
-bool RewriteProofRule::hasSideConditions() const
-{
-  return !d_scs.empty();
-}
+bool RewriteProofRule::hasSideConditions() const { return !d_scs.empty(); }
 
-bool RewriteProofRule::getConditions(const std::vector<Node>& vs, const std::vector<Node>& ss, std::vector<Node>& vcs) const
+bool RewriteProofRule::getConditions(const std::vector<Node>& vs,
+                                     const std::vector<Node>& ss,
+                                     std::vector<Node>& vcs) const
 {
   if (!d_scs.empty())
   {
@@ -171,27 +161,30 @@ bool RewriteProofRule::getConditions(const std::vector<Node>& vs, const std::vec
   // otherwise, just substitute into each condition
   for (const Node& c : d_cond)
   {
-    Node sc = c.substitute(vs.begin(),vs.end(), ss.begin(), ss.end());
+    Node sc = c.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
     vcs.push_back(sc);
   }
   return true;
 }
 
-bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs, const std::vector<Node>& ss, std::vector<Node>& vcs) const
+bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs,
+                                         const std::vector<Node>& ss,
+                                         std::vector<Node>& vcs) const
 {
   // the side condition substitution
   std::vector<Node> vctx = vs;
   std::vector<Node> sctx = ss;
   for (const Node& sc : d_scs)
   {
-    Assert (sc.getKind()==kind::EQUAL);
+    Assert(sc.getKind() == kind::EQUAL);
     Node sct = sc[0];
-    Assert (sct.getKind()==kind::APPLY_UF);
+    Assert(sct.getKind() == kind::APPLY_UF);
     Node f = sct.getOperator();
     std::vector<Node> scArgs;
     for (const Node& a : sct)
     {
-      Node sa = a.substitute(vctx.begin(),vctx.end(), sctx.begin(), sctx.end());
+      Node sa =
+          a.substitute(vctx.begin(), vctx.end(), sctx.begin(), sctx.end());
       scArgs.push_back(sa);
     }
     // evaluate the side condition
@@ -207,17 +200,13 @@ bool RewriteProofRule::runSideConditions(const std::vector<Node>& vs, const std:
   }
   for (const Node& c : d_cond)
   {
-    Node sc = c.substitute(vctx.begin(),vctx.end(), sctx.begin(), sctx.end());
+    Node sc = c.substitute(vctx.begin(), vctx.end(), sctx.begin(), sctx.end());
     vcs.push_back(sc);
   }
   return true;
 }
 
-Node RewriteProofRule::getConclusion() const
-{
-  return d_conc;
-}
-
+Node RewriteProofRule::getConclusion() const { return d_conc; }
 
 }  // namespace theory
 }  // namespace CVC4

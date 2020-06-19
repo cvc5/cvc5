@@ -112,12 +112,12 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     // Get the conditions, substituted { vars -> subs } and with side conditions
     // evaluated.
     std::vector<Node> vcs;
-    if (!rpr.getConditions(vars,subs,vcs))
+    if (!rpr.getConditions(vars, subs, vcs))
     {
       // cannot get conditions, likely due to failed side condition
       continue;
     }
-    
+
     // First, check which premises are non-trivial, and if there is a trivial
     // failure. Those that are non-trivial are added to condToProve.
     std::vector<Node> condToProve;
@@ -306,7 +306,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
             ss.push_back(sp.second);
           }
           // get the conditions, store into premises of cur.
-          if (!rpr.getConditions(vs,ss,ps))
+          if (!rpr.getConditions(vs, ss, ps))
           {
             Assert(false);
             // failed a side condition?

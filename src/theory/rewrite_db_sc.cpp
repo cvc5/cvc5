@@ -21,13 +21,13 @@ namespace theory {
 
 RewriteDbSc::RewriteDbSc() {}
 
-bool RewriteDbSc::isSideCondition(Node f) { 
+bool RewriteDbSc::isSideCondition(Node f)
+{
   // TODO: AUTO-GENERATE based on rewrite_rules files
-  return false; 
+  return false;
 }
 
-Node RewriteDbSc::evaluate(Node f,
-                                                 const std::vector<Node>& args)
+Node RewriteDbSc::evaluate(Node f, const std::vector<Node>& args)
 {
   // TODO: AUTO-GENERATE based on rewrite_rules files
   return Node::null();

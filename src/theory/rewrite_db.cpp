@@ -26,7 +26,7 @@ RewriteDb::RewriteDb() : d_idCounter(DslPfRule::USER_START)
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  //TODO: AUTO-GENERATE
+  // TODO: AUTO-GENERATE
 }
 
 DslPfRule RewriteDb::addRule(Node a, Node b, Node cond, const std::string& name)
@@ -118,7 +118,6 @@ const std::vector<DslPfRule>& RewriteDb::getRuleIdsForConclusion(Node eq) const
   }
   return d_emptyVec;
 }
-
 
 }  // namespace theory
 }  // namespace CVC4

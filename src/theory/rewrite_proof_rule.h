@@ -61,24 +61,29 @@ class RewriteProofRule
   bool hasConditions() const;
   /** Does this rule have side conditions? */
   bool hasSideConditions() const;
-  /** 
+  /**
    * Get the conditions in context { vs -> ss }. This may involve running the
    * side conditions of this method.
    */
-  bool getConditions(const std::vector<Node>& vs, const std::vector<Node>& ss, std::vector<Node>& vcs) const;
+  bool getConditions(const std::vector<Node>& vs,
+                     const std::vector<Node>& ss,
+                     std::vector<Node>& vcs) const;
   /** Get conclusion of the rule */
   Node getConclusion() const;
+
  private:
-  /** 
+  /**
    * Purify side conditions from term n, store introduced side condition
    * applications into scs.
    */
   Node purifySideConditions(Node n, std::vector<Node>& scs);
-  /** 
+  /**
    * Run side conditions in context { vs -> ss }, add the resulting conditions
    * to check into the vector vcs.
    */
-  bool runSideConditions(const std::vector<Node>& vs, const std::vector<Node>& ss, std::vector<Node>& vcs) const;
+  bool runSideConditions(const std::vector<Node>& vs,
+                         const std::vector<Node>& ss,
+                         std::vector<Node>& vcs) const;
   /** The name of the rule */
   std::string d_name;
   /** The side conditions of the rule */
