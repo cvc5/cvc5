@@ -270,7 +270,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
-    if (options::produceAbducts() || options::produceInterpols() != options::ProduceInterpols::NONE || options::sygusInference()
+    if (options::produceAbducts() ||     options::produceInterpols() != options::ProduceInterpols::NONE || options::sygusInference()
         || options::sygusRewSynthInput() || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
@@ -295,7 +295,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
-			 || options::produceInterpols() != options::ProduceInterpols::NONE
+       || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -1025,7 +1025,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     // template inference for invariant synthesis, and single invocation
     // techniques.
     bool reqBasicSygus = false;
-    if (options::produceAbducts() || options::produceInterpols() != options::ProduceInterpols::NONE)
+    if (options::produceAbducts()    || options::produceInterpols() != options::ProduceInterpols::NONE)
     {
       // if doing abduction or interpolation, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
@@ -1364,11 +1364,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput() || options::produceAbducts() || options::produceInterpols() != options::ProduceInterpols::NONE)
+    if (options::sygusRewSynthInput() ||    options::produceAbducts() || options::produceInterpols() != options::ProduceInterpols::NONE)
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : (options::produceAbducts() ? "--produce-abducts": "--produce-interpols"));
+                                               : (options::produceAbducts() ? "--produce-abducts": "--produce-interpols"));
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }
