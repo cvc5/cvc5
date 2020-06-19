@@ -103,6 +103,14 @@ enum class PfRule : uint32_t
   // where idr is a MethodId identifier, which determines the kind of rewriter
   // to apply, e.g. Rewriter::rewrite.
   REWRITE,
+  // ======== Evaluate
+  // Children: none
+  // Arguments: (t)
+  // ----------------------------------------
+  // Conclusion: (= t Evaluator::evaluate(t))
+  // Note this can be seen as syntax sugar for:
+  //   (REWRITE t MethodId::RW_EVALUATE)
+  EVALUATE,
   // ======== Substitution + Rewriting equality introduction
   //
   // In this rule, we provide a term t and conclude that it is equal to its

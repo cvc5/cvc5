@@ -14,6 +14,7 @@
 
 #include "theory/rewrite_db_proof_generator.h"
 
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
 
 namespace CVC4 {
@@ -54,6 +55,8 @@ bool RewriteDbProofCons::prove(Node a,
     ensureProofInternal(eqi);
     Assert(d_proof.hasStep(eqi));
   }
+  // clear the evaluate cache?
+  d_evalCache.clear();
   return success;
 }
 
@@ -211,13 +214,13 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
     return true;
   }
   // evaluate the two sides of the equality, without help of the rewriter
-  Node aev = d_eval.eval(eqi[0], {}, {}, false);
+  Node aev = doEvaluate(eqi[0]);
   if (aev.isNull())
   {
     // does not evaluate
     return false;
   }
-  Node bev = d_eval.eval(eqi[1], {}, {}, false);
+  Node bev = doEvaluate(eqi[1]);
   if (bev.isNull())
   {
     // does not evaluate
@@ -241,7 +244,6 @@ bool RewriteDbProofCons::proveInternalBase(Node eqi, DslPfRule& idb)
 
 bool RewriteDbProofCons::ensureProofInternal(Node eqi)
 {
-  // Node evalMethodNode = builitin::mkMethodId(MethodId::RW_EVALUATE);
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::unordered_map<TNode, std::vector<Node>, TNodeHashFunction> premises;
@@ -278,17 +280,30 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
         else if (itd->second == DslPfRule::EVAL)
         {
           visited[cur] = true;
-          // trivial evaluation
-          std::vector<Node> pfArgs;
-          pfArgs.push_back(cur);
-          // TODO: add rewrite id specifying evaluate?
-          d_proof.addStep(cur, PfRule::MACRO_SR_PRED_INTRO, {}, pfArgs);
+          Assert (cur.getKind()==kind::EQUAL);
+          std::vector<Node> transc;
+          for (unsigned i=0; i<2; i++)
+          {
+            Node curv = doEvaluate(cur[i]);
+            if (curv==cur[i])
+            {
+              continue;
+            }
+            Node eq = cur[i].eqNode(curv);
+            // flip orientation for second child
+            transc.push_back(i==1 ? curv.eqNode(cur[i]) : eq);
+            // trivial evaluation, add evaluation method id
+            d_proof.addStep(eq, PfRule::EVALUATE, {}, {cur[i]});
+          }
+          if (transc.size()==2)
+          {
+            // do transitivity if both sides evaluate
+            d_proof.addStep(cur, PfRule::TRANS, transc, {});
+          }
         }
         else
         {
           visited[cur] = false;
-          // build the premises
-          std::vector<Node>& ps = premises[cur];
           const RewriteProofRule& rpr = d_db.getRule(itd->second);
           // compute premises based on the used substitution
           std::unordered_map<TNode, TNode, TNodeHashFunction> subs;
@@ -306,7 +321,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
             ss.push_back(sp.second);
           }
           // get the conditions, store into premises of cur.
-          if (!rpr.getConditions(vs, ss, ps))
+          if (!rpr.getConditions(vs, ss, premises[cur]))
           {
             Assert(false);
             // failed a side condition?
@@ -328,6 +343,18 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
     }
   } while (!visit.empty());
   return true;
+}
+
+Node RewriteDbProofCons::doEvaluate(Node n)
+{
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator itv = d_evalCache.find(n);
+  if (itv!=d_evalCache.end())
+  {
+    return itv->second;
+  }
+  Node nev = d_eval.eval(n, {}, {}, false);
+  d_evalCache[n] = nev;
+  return nev;
 }
 
 bool RewriteDbProofCons::unify(

@@ -29,6 +29,7 @@ const char* toString(PfRule id)
     //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
+    case PfRule::EVALUATE: return "EVALUATE";
     case PfRule::TRUST: return "TRUST";
     case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";

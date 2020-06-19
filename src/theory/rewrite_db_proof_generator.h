@@ -66,6 +66,8 @@ class RewriteDbProofCons : public ProofGenerator
   std::unordered_map<Node, DslPfRule, NodeHashFunction> d_pcache;
   /** the maximum depth tried for rules that have failed */
   std::unordered_map<Node, unsigned, NodeHashFunction> d_pcacheFailMaxDepth;
+  /** the evaluation cache */
+  std::unordered_map<Node, Node, NodeHashFunction> d_evalCache;
   /** common constants */
   Node d_true;
   Node d_false;
@@ -79,6 +81,8 @@ class RewriteDbProofCons : public ProofGenerator
   bool proveInternalBase(Node eqi, DslPfRule& id);
   /** ensure proof for proven fact */
   bool ensureProofInternal(Node eqi);
+  /** do evaluate */
+  Node doEvaluate(Node n);
   /**
    * A notification that s is equal to n * { vars -> subs }. This function
    * should return false if we do not wish to be notified of further matches.

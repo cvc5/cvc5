@@ -60,6 +60,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::TRUST, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
+  pc->registerChecker(PfRule::EVALUATE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
@@ -236,12 +237,19 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(1 <= args.size() && args.size() <= 2);
-    MethodId ids = MethodId::RW_REWRITE;
-    if (args.size() == 2 && !getMethodId(args[1], ids))
+    MethodId idr = MethodId::RW_REWRITE;
+    if (args.size() == 2 && !getMethodId(args[1], idr))
     {
       return Node::null();
     }
-    Node res = applyRewrite(args[0]);
+    Node res = applyRewrite(args[0], idr);
+    return args[0].eqNode(res);
+  }
+  else if (id == PfRule::EVALUATE)
+  {
+    Assert(children.empty());
+    Assert (args.size()==1);
+    Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::THEORY_REWRITE)
