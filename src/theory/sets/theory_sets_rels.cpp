@@ -2,9 +2,9 @@
 /*! \file theory_sets_rels.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Paul Meng, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Paul Meng, Piotr Trojanek
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
