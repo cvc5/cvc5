@@ -65,6 +65,12 @@ class StatisticsRegistry;
 
 /* -------------------------------------------------------------------------- */
 
+namespace api {
+class Solver;
+}  // namespace api
+
+/* -------------------------------------------------------------------------- */
+
 namespace context {
   class Context;
   class UserContext;
@@ -126,6 +132,7 @@ namespace theory {
 
 class CVC4_PUBLIC SmtEngine
 {
+  friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
@@ -206,6 +213,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the logic information currently set. */
   LogicInfo getLogicInfo() const;
+
+  /** Get the logic information set by the user. */
+  LogicInfo getUserLogicInfo() const;
 
   /**
    * Set information about the script executing.
@@ -875,6 +885,9 @@ class CVC4_PUBLIC SmtEngine
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
 
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
+
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
 
@@ -1082,6 +1095,9 @@ class CVC4_PUBLIC SmtEngine
 
   /* Members -------------------------------------------------------------- */
 
+  /** Solver instance that owns this SmtEngine instance. */
+  api::Solver* d_solver = nullptr;
+
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;
   /** User level context */
@@ -1197,9 +1213,13 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Command*> d_defineCommands;
 
   /**
-   * The logic we're in.
+   * The logic we're in. This logic may be an extension of the logic set by the
+   * user.
    */
   LogicInfo d_logic;
+
+  /** The logic set by the user. */
+  LogicInfo d_userLogic;
 
   /**
    * Keep a copy of the original option settings (for reset()).

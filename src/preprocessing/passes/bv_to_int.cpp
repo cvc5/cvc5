@@ -184,43 +184,41 @@ Node BVToInt::eliminationPass(Node n)
         (d_eliminationCache.find(current) != d_eliminationCache.end());
     bool inRebuildCache =
         (d_rebuildCache.find(current) != d_rebuildCache.end());
-    if (!inRebuildCache)
+    if (!inEliminationCache)
     {
-      // current is not the elimination of any previously-visited node
-      if (!inEliminationCache)
-      {
-        // current hasn't been eliminated yet.
-        // eliminate operators from it
-        Node currentEliminated =
-            FixpointRewriteStrategy<RewriteRule<UdivZero>,
-                                    RewriteRule<SdivEliminate>,
-                                    RewriteRule<SremEliminate>,
-                                    RewriteRule<SmodEliminate>,
-                                    RewriteRule<RepeatEliminate>,
-                                    RewriteRule<ZeroExtendEliminate>,
-                                    RewriteRule<SignExtendEliminate>,
-                                    RewriteRule<RotateRightEliminate>,
-                                    RewriteRule<RotateLeftEliminate>,
-                                    RewriteRule<CompEliminate>,
-                                    RewriteRule<SleEliminate>,
-                                    RewriteRule<SltEliminate>,
-                                    RewriteRule<SgtEliminate>,
-                                    RewriteRule<SgeEliminate>,
-                                    RewriteRule<ShlByConst>,
-                                    RewriteRule<LshrByConst> >::apply(current);
-        // save in the cache
-        d_eliminationCache[current] = currentEliminated;
-        // put the eliminated node in the rebuild cache, but mark that it hasn't
-        // yet been rebuilt by assigning null.
-        d_rebuildCache[currentEliminated] = Node();
-        // Push the eliminated node to the stack
-        toVisit.push_back(currentEliminated);
-        // Add the children to the stack for future processing.
-        toVisit.insert(
-            toVisit.end(), currentEliminated.begin(), currentEliminated.end());
-      }
+      // current hasn't been eliminated yet.
+      // eliminate operators from it
+      Node currentEliminated =
+          FixpointRewriteStrategy<RewriteRule<UdivZero>,
+                                  RewriteRule<SdivEliminate>,
+                                  RewriteRule<SremEliminate>,
+                                  RewriteRule<SmodEliminate>,
+                                  RewriteRule<RepeatEliminate>,
+                                  RewriteRule<ZeroExtendEliminate>,
+                                  RewriteRule<SignExtendEliminate>,
+                                  RewriteRule<RotateRightEliminate>,
+                                  RewriteRule<RotateLeftEliminate>,
+                                  RewriteRule<CompEliminate>,
+                                  RewriteRule<SleEliminate>,
+                                  RewriteRule<SltEliminate>,
+                                  RewriteRule<SgtEliminate>,
+                                  RewriteRule<SgeEliminate>,
+                                  RewriteRule<ShlByConst>,
+                                  RewriteRule<LshrByConst> >::apply(current);
+      // save in the cache
+      d_eliminationCache[current] = currentEliminated;
+      // also assign the eliminated now to itself to avoid revisiting.
+      d_eliminationCache[currentEliminated] = currentEliminated;
+      // put the eliminated node in the rebuild cache, but mark that it hasn't
+      // yet been rebuilt by assigning null.
+      d_rebuildCache[currentEliminated] = Node();
+      // Push the eliminated node to the stack
+      toVisit.push_back(currentEliminated);
+      // Add the children to the stack for future processing.
+      toVisit.insert(
+          toVisit.end(), currentEliminated.begin(), currentEliminated.end());
     }
-    else
+    if (inRebuildCache)
     {
       // current was already added to the rebuild cache.
       if (d_rebuildCache[current].isNull())
