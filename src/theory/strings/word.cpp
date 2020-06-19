@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,24 +27,14 @@ Node Word::mkEmptyWord(TypeNode tn)
 {
   if (tn.isString())
   {
-    return mkEmptyWord(CONST_STRING);
+    std::vector<unsigned> vec;
+    return NodeManager::currentNM()->mkConst(String(vec));
   }
   else if (tn.isSequence())
   {
     std::vector<Expr> seq;
     return NodeManager::currentNM()->mkConst(
         ExprSequence(tn.getSequenceElementType().toType(), seq));
-  }
-  Unimplemented();
-  return Node::null();
-}
-
-Node Word::mkEmptyWord(Kind k)
-{
-  if (k == CONST_STRING)
-  {
-    std::vector<unsigned> vec;
-    return NodeManager::currentNM()->mkConst(String(vec));
   }
   Unimplemented();
   return Node::null();
@@ -81,7 +71,8 @@ Node Word::mkWordFlatten(const std::vector<Node>& xs)
         seq.push_back(c.toExpr());
       }
     }
-    return NodeManager::currentNM()->mkConst(ExprSequence(tn.toType(), seq));
+    return NodeManager::currentNM()->mkConst(
+        ExprSequence(tn.getSequenceElementType().toType(), seq));
   }
   Unimplemented();
   return Node::null();
@@ -98,17 +89,17 @@ size_t Word::getLength(TNode x)
   {
     return x.getConst<ExprSequence>().getSequence().size();
   }
-  Unimplemented();
+  Unimplemented() << "Word::getLength on " << x;
   return 0;
 }
 
 std::vector<Node> Word::getChars(TNode x)
 {
   Kind k = x.getKind();
+  std::vector<Node> ret;
+  NodeManager* nm = NodeManager::currentNM();
   if (k == CONST_STRING)
   {
-    std::vector<Node> ret;
-    NodeManager* nm = NodeManager::currentNM();
     std::vector<unsigned> ccVec;
     const std::vector<unsigned>& cvec = x.getConst<String>().getVec();
     for (unsigned chVal : cvec)
@@ -120,8 +111,18 @@ std::vector<Node> Word::getChars(TNode x)
     }
     return ret;
   }
+  else if (k == CONST_SEQUENCE)
+  {
+    Type t = x.getConst<ExprSequence>().getType();
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const std::vector<Node>& vec = sx.getVec();
+    for (const Node& v : vec)
+    {
+      ret.push_back(nm->mkConst(ExprSequence(t, {v.toExpr()})));
+    }
+    return ret;
+  }
   Unimplemented();
-  std::vector<Node> ret;
   return ret;
 }
 
