@@ -33,9 +33,6 @@ class Word
   /** make empty constant of type tn */
   static Node mkEmptyWord(TypeNode tn);
 
-  /** make empty constant of kind k */
-  static Node mkEmptyWord(Kind k);
-
   /** make word from constants in (non-empty) vector vec */
   static Node mkWordFlatten(const std::vector<Node>& xs);
 
