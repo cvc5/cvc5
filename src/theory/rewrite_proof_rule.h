@@ -52,16 +52,41 @@ std::ostream& operator<<(std::ostream& out, DslPfRule drule);
 class RewriteProofRule
 {
  public:
+  RewriteProofRule();
+  /** initialize this rule */
+  void init(const std::string& name, const std::vector<Node>& cond, Node conc);
+  /** get name */
+  const std::string& getName() const;
+  /** Does this rule have conditions? */
+  bool hasConditions() const;
+  /** Does this rule have side conditions? */
+  bool hasSideConditions() const;
+  /** 
+   * Get the conditions in context { vs -> ss }. This may involve running the
+   * side conditions of this method.
+   */
+  bool getConditions(const std::vector<Node>& vs, const std::vector<Node>& ss, std::vector<Node>& vcs) const;
+  /** Get conclusion of the rule */
+  Node getConclusion() const;
+ private:
+  /** 
+   * Purify side conditions from term n, store introduced side condition
+   * applications into scs.
+   */
+  Node purifySideConditions(Node n, std::vector<Node>& scs);
+  /** 
+   * Run side conditions in context { vs -> ss }, add the resulting conditions
+   * to check into the vector vcs.
+   */
+  bool runSideConditions(const std::vector<Node>& vs, const std::vector<Node>& ss, std::vector<Node>& vcs) const;
   /** The name of the rule */
   std::string d_name;
+  /** The side conditions of the rule */
+  std::vector<Node> d_scs;
   /** The conditions of the rule */
   std::vector<Node> d_cond;
   /** The conclusion of the rule (an equality) */
-  Node d_eq;
-  /** initialize this rule */
-  void init(const std::string& name, const std::vector<Node>& cond, Node eq);
-
- private:
+  Node d_conc;
   /** the ordered list of free variables */
   std::vector<Node> d_fvs;
   /** number of free variables */

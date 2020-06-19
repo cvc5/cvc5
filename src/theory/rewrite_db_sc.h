@@ -26,17 +26,17 @@ namespace CVC4 {
 namespace theory {
 
 /**
- * A database of conditional rewrite rules.
+ * Management of side conditions for rewrite rules.
  */
-class RdbSideConditionEvaluator
+class RewriteDbSc
 {
  public:
-  RdbSideConditionEvaluator();
-  ~RdbSideConditionEvaluator() {}
+  RewriteDbSc();
+  ~RewriteDbSc() {}
   /** is side condition */
   static bool isSideCondition(Node f);
   /** run side condition */
-  static Node runSideCondition(Node f, const std::vector<Node>& args);
+  static Node evaluate(Node f, const std::vector<Node>& args);
 };
 
 // TrustNode prove(Node a, Node b);

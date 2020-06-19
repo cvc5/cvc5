@@ -103,24 +103,31 @@ bool RewriteDbProofCons::notifyMatch(Node s,
     const RewriteProofRule& rpr = d_db.getRule(id);
     // do its conditions hold?
     bool condSuccess = true;
-    Trace("rew-db") << "Check rule " << rpr.d_name << std::endl;
-    if (!recurse && !rpr.d_cond.empty())
+    Trace("rew-db") << "Check rule " << rpr.getName() << std::endl;
+    if (!recurse && rpr.hasConditions())
     {
       // can't recurse and has conditions, continue
       continue;
     }
-    // first, check which premises are non-trivial, and if there is a trivial
-    // failure.
-    std::vector<Node> recPremises;
-    for (const Node& cond : rpr.d_cond)
+    // Get the conditions, substituted { vars -> subs } and with side conditions
+    // evaluated.
+    std::vector<Node> vcs;
+    if (!rpr.getConditions(vars,subs,vcs))
+    {
+      // cannot get conditions, likely due to failed side condition
+      continue;
+    }
+    
+    // First, check which premises are non-trivial, and if there is a trivial
+    // failure. Those that are non-trivial are added to condToProve.
+    std::vector<Node> condToProve;
+    for (const Node& cond : vcs)
     {
       Assert(cond.getKind() == kind::EQUAL);
       // substitute to get the condition-to-prove
-      Node sc =
-          cond.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       DslPfRule cid;
       // check whether condition is already known to hold or not hold
-      if (proveInternalBase(sc, cid))
+      if (proveInternalBase(cond, cid))
       {
         if (cid == DslPfRule::FAIL)
         {
@@ -132,20 +139,20 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         continue;
       }
       // save, to check below
-      recPremises.push_back(sc);
+      condToProve.push_back(cond);
     }
     if (condSuccess)
     {
       // if no trivial failures, go back and try to recursively prove
-      for (const Node& sc : recPremises)
+      for (const Node& cond : condToProve)
       {
-        Trace("rew-db-infer-sc") << "Check condition: " << sc << std::endl;
+        Trace("rew-db-infer-sc") << "Check condition: " << cond << std::endl;
         // recursively check if the condition holds
-        DslPfRule cid = proveInternal(sc);
+        DslPfRule cid = proveInternal(cond);
         if (cid == DslPfRule::FAIL)
         {
           // print reason for failure
-          Trace("rew-db") << "required: " << sc << " for " << rpr.d_name
+          Trace("rew-db") << "required: " << cond << " for " << rpr.getName()
                           << std::endl;
           condSuccess = false;
           break;
@@ -158,7 +165,7 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         {
           Node se = RewriteDbTermProcess::toExternal(s);
           Trace("rew-db-infer")
-              << "INFER " << se << " by " << rpr.d_name << std::endl;
+              << "INFER " << se << " by " << rpr.getName() << std::endl;
         }
         d_pcache[s] = id;
         // don't need to notify any further matches, we are done
@@ -285,11 +292,12 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           const RewriteProofRule& rpr = d_db.getRule(itd->second);
           // compute premises based on the used substitution
           std::unordered_map<TNode, TNode, TNodeHashFunction> subs;
-          if (!unify(rpr.d_eq, cur, subs))
+          if (!unify(rpr.getConclusion(), cur, subs))
           {
             Assert(false);
             return false;
           }
+          // build the substitution context
           std::vector<Node> vs;
           std::vector<Node> ss;
           for (const std::pair<const TNode, TNode>& sp : subs)
@@ -297,11 +305,12 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
             vs.push_back(sp.first);
             ss.push_back(sp.second);
           }
-          for (const Node& cond : rpr.d_cond)
+          // get the conditions, store into premises of cur.
+          if (!rpr.getConditions(vs,ss,ps))
           {
-            Node sc =
-                cond.substitute(vs.begin(), vs.end(), ss.begin(), ss.end());
-            ps.push_back(sc);
+            Assert(false);
+            // failed a side condition?
+            return false;
           }
         }
       }

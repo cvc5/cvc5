@@ -19,13 +19,17 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-RdbSideConditionEvaluator::RdbSideConditionEvaluator() {}
+RewriteDbSc::RewriteDbSc() {}
 
-bool RdbSideConditionEvaluator::isSideCondition(Node f) { return false; }
+bool RewriteDbSc::isSideCondition(Node f) { 
+  // TODO: AUTO-GENERATE based on rewrite_rules files
+  return false; 
+}
 
-Node RdbSideConditionEvaluator::runSideCondition(Node f,
+Node RewriteDbSc::evaluate(Node f,
                                                  const std::vector<Node>& args)
 {
+  // TODO: AUTO-GENERATE based on rewrite_rules files
   return Node::null();
 }
 
