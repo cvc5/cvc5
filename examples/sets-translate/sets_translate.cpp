@@ -341,16 +341,26 @@ int main(int argc, char* argv[])
       DefineFunctionCommand* definefun = dynamic_cast<DefineFunctionCommand*>(cmd);
 
       Command* new_cmd = NULL;
-      if(assert) {
+      if (assert)
+      {
         Expr newexpr = m.collectSortsExpr(assert->getExpr());
         new_cmd = new AssertCommand(newexpr);
-      } else if(declarefun) {
+      }
+      else if (declarefun)
+      {
         Expr newfunc = m.collectSortsExpr(declarefun->getFunction());
-        new_cmd = new DeclareFunctionCommand(declarefun->getSymbol(), newfunc, declarefun->getType());
-      } else if(definefun) {
+        new_cmd = new DeclareFunctionCommand(
+            declarefun->getSymbol(), newfunc, declarefun->getType());
+      }
+      else if (definefun)
+      {
         Expr newfunc = m.collectSortsExpr(definefun->getFunction());
         Expr newformula = m.collectSortsExpr(definefun->getFormula());
-        new_cmd = new DefineFunctionCommand(definefun->getSymbol(), newfunc, definefun->getFormals(), newformula);
+        new_cmd = new DefineFunctionCommand(definefun->getSymbol(),
+                                            newfunc,
+                                            definefun->getFormals(),
+                                            newformula,
+                                            false);
       }
 
       if(new_cmd == NULL) {
