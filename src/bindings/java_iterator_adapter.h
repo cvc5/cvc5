@@ -46,6 +46,8 @@ class JavaIteratorAdapter
         "value_type must be convertible from T::const_iterator::value_type");
   }
 
+  JavaIteratorAdapter() = delete;
+
   bool hasNext() { return d_it != d_t.end(); }
 
   value_type getNext()
