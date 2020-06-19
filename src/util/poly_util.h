@@ -3,7 +3,6 @@
 #ifndef CVC4__POLY_UTIL_H
 #define CVC4__POLY_UTIL_H
 
-#include <poly/polyxx.h>
 
 #include <map>
 
@@ -11,6 +10,10 @@
 #include "util/integer.h"
 #include "util/rational.h"
 #include "util/real_algebraic_number.h"
+
+#ifdef CVC4_POLY_IMP
+
+#include <poly/polyxx.h>
 
 namespace CVC4 {
 /** Utilities for working with libpoly.
@@ -71,5 +74,7 @@ RealAlgebraicNumber to_ran_with_refinement(poly::UPolynomial&& p,
 
 }  // namespace poly_utils
 }  // namespace CVC4
+
+#endif
 
 #endif /* CVC4__POLY_UTIL_H */

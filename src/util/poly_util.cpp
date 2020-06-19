@@ -1,5 +1,7 @@
 #include "poly_util.h"
 
+#ifdef CVC4_POLY_IMP
+
 #include <poly/polyxx.h>
 
 #include <map>
@@ -185,3 +187,5 @@ RealAlgebraicNumber to_ran_with_refinement(poly::UPolynomial&& p,
 
 }  // namespace poly_utils
 }  // namespace CVC4
+
+#endif
