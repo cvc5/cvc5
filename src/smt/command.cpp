@@ -2182,7 +2182,7 @@ void GetInterpolCommand::invoke(SmtEngine* smtEngine)
 void GetInterpolCommand::printResult(std::ostream& out,
                                      uint32_t verbosity) const
 {
-  if (!ok())  // TODO why??
+  if (!ok())
   {
     this->Command::printResult(out, verbosity);
   }
@@ -2193,7 +2193,6 @@ void GetInterpolCommand::printResult(std::ostream& out,
     {
       out << "(define-fun " << d_name << " () Bool " << d_result << ")"
           << std::endl;
-      // TODO also output as func?
     }
     else
     {
