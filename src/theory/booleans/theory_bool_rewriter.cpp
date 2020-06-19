@@ -157,8 +157,16 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
     if (!done) {
       return flattenNode(n, /* trivialNode = */ tt, /* skipNode = */ ff);
     }
-    // x v x --> x
-    if (n.getNumChildren() == 2 && n[0] == n[1])
+    // x v ... v x --> x
+    unsigned ind, size;
+    for (ind = 0, size = n.getNumChildren(); ind < size - 1; ++ind)
+    {
+      if (n[ind] != n[ind+1])
+      {
+        break;
+      }
+    }
+    if (ind == size - 1)
     {
       return RewriteResponse(REWRITE_AGAIN, n[0]);
     }
@@ -177,8 +185,16 @@ RewriteResponse TheoryBoolRewriter::preRewrite(TNode n) {
       Debug("bool-flatten") << n << ": " << ret.d_node << std::endl;
       return ret;
     }
-    // x ^ x --> x
-    if (n.getNumChildren() == 2 && n[0] == n[1])
+    // x ^ ... ^ x --> x
+    unsigned ind, size;
+    for (ind = 0, size = n.getNumChildren(); ind < size - 1; ++ind)
+    {
+      if (n[ind] != n[ind+1])
+      {
+        break;
+      }
+    }
+    if (ind == size - 1)
     {
       return RewriteResponse(REWRITE_AGAIN, n[0]);
     }
