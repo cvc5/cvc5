@@ -661,23 +661,23 @@ header = "options/smt_options.h"
   help       = "support the get-interpol command"
 	help_mode  = "Interpolants grammar mode"
 [[option.mode.NONE]]
-	name = "none"
-	help = "don't compute interpolats"
+  name = "none"
+  help = "don't compute interpolants"
 [[option.mode.DEFAULT]]
-	name = "default"
-	help = "use the default grammar for the theory or the user-defined grammar"
+  name = "default"
+  help = "use the default grammar for the theory or the user-defined grammar if given"
 [[option.mode.ASSUMPTIONS]]
-	name = "assumptions"
-	help = "use only operators that occur in the assumptions"
+  name = "assumptions"
+  help = "use only operators that occur in the assumptions"
 [[option.mode.CONCLUSION]]
-	name = "conclusion"
-	help = "use only operators that occur in the conclusion"
+  name = "conclusion"
+  help = "use only operators that occur in the conclusion"
 [[option.mode.SHARED]]
-	name = "shared"
-	help = "use only operators that occur both in the assumptions and the conclusion"
+  name = "shared"
+  help = "use only operators that occur both in the assumptions and the conclusion"
 [[option.mode.ALL]]
-	name = "all"
-	help = "use only operators that occur either in the assumptions or the conclusion"
+  name = "all"
+  help = "use only operators that occur either in the assumptions or the conclusion"
 
 [[option]]
   name       = "produceAbducts"
