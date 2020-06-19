@@ -1,6 +1,7 @@
 configure_file(floatingpoint.h.in floatingpoint.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
+configure_file(real_algebraic_number.h.in real_algebraic_number.h)
 
 libcvc4_add_sources(
   abstract_value.cpp
@@ -59,4 +60,8 @@ endif()
 
 if(CVC4_USE_GMP_IMP)
   libcvc4_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
+endif()
+
+if(CVC4_USE_POLY_IMP)
+  libcvc4_add_sources(real_algebraic_number_poly_imp.cpp)
 endif()

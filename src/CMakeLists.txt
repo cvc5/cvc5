@@ -1004,9 +1004,11 @@ install(FILES
           util/integer_cln_imp.h
           util/integer_gmp_imp.h
           util/maybe.h
+          util/poly_util.h
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
+          util/real_algebraic_number_poly_imp.h
           util/regexp.h
           util/resource_manager.h
           util/result.h
@@ -1018,6 +1020,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/util)
 
