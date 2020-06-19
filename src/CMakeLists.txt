@@ -417,6 +417,8 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/sygus_datatype_utils.cpp
+  theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
   theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
@@ -434,6 +436,8 @@ libcvc4_add_sources(
   theory/decision_strategy.h
   theory/eager_proof_generator.cpp
   theory/eager_proof_generator.h
+  theory/engine_output_channel.cpp
+  theory/engine_output_channel.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -530,6 +534,8 @@ libcvc4_add_sources(
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/proof_checker.cpp
+  theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -745,6 +751,8 @@ libcvc4_add_sources(
   theory/theory_model.h
   theory/theory_model_builder.cpp
   theory/theory_model_builder.h
+  theory/theory_preprocessor.cpp
+  theory/theory_preprocessor.h
   theory/theory_proof_step_buffer.cpp
   theory/theory_proof_step_buffer.h
   theory/theory_rewriter.h

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -281,13 +281,17 @@ class TheoryStrings : public Theory {
   /** Collect model info for type tn
    *
    * Assigns model values (in m) to all relevant terms of the string-like type
-   * tn in the current context, which are stored in repSet.
+   * tn in the current context, which are stored in repSet. Furthermore,
+   * col is a partition of repSet where equivalence classes are grouped into
+   * sets having equal length, where these lengths are stored in lts.
    *
    * Returns false if a conflict is discovered while doing this assignment.
    */
   bool collectModelInfoType(
       TypeNode tn,
       const std::unordered_set<Node, NodeHashFunction>& repSet,
+      std::vector<std::vector<Node> >& col,
+      std::vector<Node>& lts,
       TheoryModel* m);
 
   /** assert pending fact

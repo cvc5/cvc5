@@ -361,6 +361,9 @@ set(regress_0_tests
   regress0/bv/fuzz40.smtv1.smt2
   regress0/bv/fuzz41.smtv1.smt2
   regress0/bv/issue3621.smt2
+  regress0/bv/issue-4075.smt2
+  regress0/bv/issue-4076.smt2
+  regress0/bv/issue-4130.smt2
   regress0/bv/int_to_bv_err_on_demand_1.smt2
   regress0/bv/mul-neg-unsat.smt2
   regress0/bv/mul-negpow2.smt2
@@ -918,6 +921,7 @@ set(regress_0_tests
   regress0/simplification_bug2.smtv1.smt2
   regress0/smallcnf.cvc
   regress0/smt2output.smt2
+  regress0/smtlib/define-fun-rec-logic.smt2
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/issue4028.smt2
@@ -1547,6 +1551,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4062-cegqi-aux.smt2
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
+  regress1/quantifiers/issue4620-erq-witness-unsound.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1775,6 +1780,7 @@ set(regress_1_tests
   regress1/strings/issue3357.smt2
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
+  regress1/strings/issue4608-re-derive.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
