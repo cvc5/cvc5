@@ -357,6 +357,18 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+
+  if (options::solveBVAsInt() > 0)
+  {
+    /**
+     * Operations on 1 bits are better handled as Boolean operations
+     * than as integer operations.
+     * Therefore, we enable bv-to-bool, which runs before
+     * the translation to integers.
+     */
+    options::bitvectorToBool.set(true);
+  }
+
   // Disable options incompatible with unsat cores and proofs or output an
   // error if enabled explicitly
   if (options::unsatCores() || options::proof())
@@ -413,16 +425,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       options::preSkolemQuant.set(false);
     }
 
-    if (options::solveBVAsInt() > 0)
-    {
-      /**
-       * Operations on 1 bits are better handled as Boolean operations
-       * than as integer operations.
-       * Therefore, we enable bv-to-bool, which runs before
-       * the translation to integers.
-       */
-      options::bitvectorToBool.set(true);
-    }
 
     if (options::bitvectorToBool())
     {
