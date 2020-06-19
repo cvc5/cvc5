@@ -2,9 +2,9 @@
 /*! \file solver_state.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -297,31 +297,39 @@ std::pair<bool, Node> SolverState::entailmentCheck(options::TheoryOfMode mode,
   return d_valuation.entailmentCheck(mode, lit);
 }
 
-void SolverState::separateByLength(const std::vector<Node>& n,
-                                   std::vector<std::vector<Node> >& cols,
-                                   std::vector<Node>& lts)
+void SolverState::separateByLength(
+    const std::vector<Node>& n,
+    std::map<TypeNode, std::vector<std::vector<Node>>>& cols,
+    std::map<TypeNode, std::vector<Node>>& lts)
 {
   unsigned leqc_counter = 0;
-  std::map<Node, unsigned> eqc_to_leqc;
-  std::map<unsigned, Node> leqc_to_eqc;
+  // map (length, type) to an equivalence class identifier
+  std::map<std::pair<Node, TypeNode>, unsigned> eqc_to_leqc;
+  // backwards map
+  std::map<unsigned, std::pair<Node, TypeNode>> leqc_to_eqc;
+  // Collection of eqc for each identifier. Notice that some identifiers may
+  // not have an associated length in the mappings above, if the length of
+  // an equivalence class is unknown.
   std::map<unsigned, std::vector<Node> > eqc_to_strings;
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& eqc : n)
   {
     Assert(d_ee.getRepresentative(eqc) == eqc);
+    TypeNode tnEqc = eqc.getType();
     EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (!lt.isNull())
     {
       lt = nm->mkNode(STRING_LENGTH, lt);
       Node r = d_ee.getRepresentative(lt);
-      if (eqc_to_leqc.find(r) == eqc_to_leqc.end())
+      std::pair<Node, TypeNode> lkey(r, tnEqc);
+      if (eqc_to_leqc.find(lkey) == eqc_to_leqc.end())
       {
-        eqc_to_leqc[r] = leqc_counter;
-        leqc_to_eqc[leqc_counter] = r;
+        eqc_to_leqc[lkey] = leqc_counter;
+        leqc_to_eqc[leqc_counter] = lkey;
         leqc_counter++;
       }
-      eqc_to_strings[eqc_to_leqc[r]].push_back(eqc);
+      eqc_to_strings[eqc_to_leqc[lkey]].push_back(eqc);
     }
     else
     {
@@ -331,9 +339,11 @@ void SolverState::separateByLength(const std::vector<Node>& n,
   }
   for (const std::pair<const unsigned, std::vector<Node> >& p : eqc_to_strings)
   {
-    cols.push_back(std::vector<Node>());
-    cols.back().insert(cols.back().end(), p.second.begin(), p.second.end());
-    lts.push_back(leqc_to_eqc[p.first]);
+    Assert(!p.second.empty());
+    // get the type of the collection
+    TypeNode stn = p.second[0].getType();
+    cols[stn].emplace_back(p.second.begin(), p.second.end());
+    lts[stn].push_back(leqc_to_eqc[p.first].first);
   }
 }
 

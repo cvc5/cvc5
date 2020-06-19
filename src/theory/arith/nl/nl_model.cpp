@@ -2,9 +2,9 @@
 /*! \file nl_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -213,7 +213,7 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 bool NlModel::checkModel(const std::vector<Node>& assertions,
                          const std::vector<Node>& false_asserts,
                          unsigned d,
-                         std::vector<Node>& lemmas,
+                         std::vector<NlLemma>& lemmas,
                          std::vector<Node>& gs)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
@@ -478,7 +478,7 @@ void NlModel::addTautology(Node n)
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,
-                                  std::vector<Node>& lemmas)
+                                  std::vector<NlLemma>& lemmas)
 {
   Node seq = eq;
   if (!d_check_model_vars.empty())

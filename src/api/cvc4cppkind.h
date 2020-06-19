@@ -2,9 +2,9 @@
 /*! \file cvc4cppkind.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2002,6 +2002,33 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   STRING_REPLACE_ALL,
+  /**
+   * String replace regular expression match.
+   * Replaces the first match of a regular expression r in string s1 with
+   * string s2. If r does not match a substring of s1, s1 is returned
+   * unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE,
+  /**
+   * String replace all regular expression matches.
+   * Replaces all matches of a regular expression r in string s1 with string
+   * s2. If r does not match a substring of s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE_ALL,
   /**
    * String to lower case.
    * Parameters: 1
