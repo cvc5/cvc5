@@ -52,7 +52,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     const std::vector<Node>& assumptions, const Node& conclusion)
 {
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
-      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
+						std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
   return result;
 }
 
