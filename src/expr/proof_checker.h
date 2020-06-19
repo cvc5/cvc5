@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -77,7 +77,7 @@ class ProofRuleChecker
   /**
    * This checks a single step in a proof. It is identical to check above
    * except that children and args have been converted to "witness form"
-   * (see ProofSkolemCache). Likewise, its output should be in witness form.
+   * (see SkolemManager). Likewise, its output should be in witness form.
    *
    * @param id The id of the proof node to check
    * @param children The premises of the proof node to check. These are nodes
@@ -100,6 +100,8 @@ class ProofCheckerStatistics
   ~ProofCheckerStatistics();
   /** Counts the number of checks for each kind of proof rule */
   HistogramStat<PfRule> d_ruleChecks;
+  /** Total number of rule checks */
+  IntStat d_totalRuleChecks;
 };
 
 /** A class for checking proofs */

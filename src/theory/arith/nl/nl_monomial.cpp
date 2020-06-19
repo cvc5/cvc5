@@ -2,9 +2,9 @@
 /*! \file nl_monomial.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -276,7 +276,7 @@ Node MonomialDb::getContainsDiff(Node a, Node b) const
 {
   std::map<Node, std::map<Node, Node> >::const_iterator it =
       d_m_contain_mult.find(a);
-  if (it == d_m_contain_umult.end())
+  if (it == d_m_contain_mult.end())
   {
     return Node::null();
   }

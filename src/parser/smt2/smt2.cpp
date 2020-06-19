@@ -2,9 +2,9 @@
 /*! \file smt2.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -156,6 +156,8 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_CHARAT, "str.at");
   addOperator(api::STRING_INDEXOF, "str.indexof");
   addOperator(api::STRING_REPLACE, "str.replace");
+  addOperator(api::STRING_REPLACE_RE, "str.replace_re");
+  addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
     addOperator(api::STRING_TOLOWER, "str.tolower");
@@ -1535,7 +1537,7 @@ void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
   Debug("parser") << "parseOpApplyTypeAscription : " << p << " " << type
                   << std::endl;
   // (as const (Array T1 T2))
-  if (p.d_kind == api::STORE_ALL)
+  if (p.d_kind == api::CONST_ARRAY)
   {
     if (!type.isArray())
     {
@@ -1701,7 +1703,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
   // Second phase: apply the arguments to the parse op
   const Options& opts = d_solver->getExprManager()->getOptions();
   // handle special cases
-  if (p.d_kind == api::STORE_ALL && !p.d_type.isNull())
+  if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {
     if (args.size() != 1)
     {

@@ -2,9 +2,9 @@
 /*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,15 +31,6 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
-    //================================================= Equality rules
-    case PfRule::REFL: return "REFL";
-    case PfRule::SYMM: return "SYMM";
-    case PfRule::TRANS: return "TRANS";
-    case PfRule::CONG: return "CONG";
-    case PfRule::TRUE_INTRO: return "TRUE_INTRO";
-    case PfRule::TRUE_ELIM: return "TRUE_ELIM";
-    case PfRule::FALSE_INTRO: return "FALSE_INTRO";
-    case PfRule::FALSE_ELIM: return "FALSE_ELIM";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::AND_ELIM: return "AND_ELIM";
@@ -85,6 +76,20 @@ const char* toString(PfRule id)
     case PfRule::CNF_ITE_NEG1: return "CNF_ITE_NEG1";
     case PfRule::CNF_ITE_NEG2: return "CNF_ITE_NEG2";
     case PfRule::CNF_ITE_NEG3: return "CNF_ITE_NEG3";
+    //================================================= Equality rules
+    case PfRule::REFL: return "REFL";
+    case PfRule::SYMM: return "SYMM";
+    case PfRule::TRANS: return "TRANS";
+    case PfRule::CONG: return "CONG";
+    case PfRule::TRUE_INTRO: return "TRUE_INTRO";
+    case PfRule::TRUE_ELIM: return "TRUE_ELIM";
+    case PfRule::FALSE_INTRO: return "FALSE_INTRO";
+    case PfRule::FALSE_ELIM: return "FALSE_ELIM";
+    //================================================= Quantifiers rules
+    case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
+    case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
+    case PfRule::SKOLEMIZE: return "SKOLEMIZE";
+    case PfRule::INSTANTIATE: return "INSTANTIATE";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -122,9 +122,10 @@ Printer* Printer::getPrinter(OutputLanguage lang)
       lang = language::toOutputLanguage(options::inputLanguage());
      }
    }
-   if(lang == language::output::LANG_AUTO) {
-      lang = language::output::LANG_CVC4; // default
-    }
+   if (lang == language::output::LANG_AUTO)
+   {
+     lang = language::output::LANG_SMTLIB_V2_6;  // default
+   }
   }
   if(d_printers[lang] == NULL) {
     d_printers[lang] = makePrinter(lang);

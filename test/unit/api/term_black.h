@@ -2,9 +2,9 @@
 /*! \file term_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,6 +43,7 @@ class TermBlack : public CxxTest::TestSuite
   void testTermChildren();
   void testSubstitute();
   void testIsConst();
+  void testConstArray();
 
  private:
   Solver d_solver;
@@ -751,4 +752,20 @@ void TermBlack::testIsConst()
   TS_ASSERT(!onepone.isConst());
   Term tnull;
   TS_ASSERT_THROWS(tnull.isConst(), CVC4ApiException&);
+}
+
+void TermBlack::testConstArray()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+  Term a = d_solver.mkConst(arrsort, "a");
+  Term one = d_solver.mkReal(1);
+  Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  TS_ASSERT(!a.isConst());
+  TS_ASSERT(constarr.isConst());
+
+  TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
+  TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
+  TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
 }
