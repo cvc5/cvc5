@@ -65,52 +65,46 @@ TermRegistry::TermRegistry(SolverState& s,
 
 TermRegistry::~TermRegistry() {}
 
-Node TermRegistry::eagerReduce(Node t, SkolemCache* sc, uint32_t i)
+Node TermRegistry::eagerReduce(Node t, SkolemCache* sc)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node lemma;
   Kind tk = t.getKind();
-  if (i == 0)
+  if (tk == STRING_TO_CODE)
   {
-    if (tk == STRING_TO_CODE)
-    {
-      // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
-      Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
-      Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
-      Node code_range = nm->mkNode(
-          AND,
-          nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
-          nm->mkNode(
-              LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
-      lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
-    }
-    else if (tk == STRING_STRIDOF)
-    {
-      // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
-      // x)))
-      Node l = utils::mkNLength(t[0]);
-      lemma = nm->mkNode(AND,
-                         nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
-                         nm->mkNode(LEQ, t, l));
-    }
-    else if (tk == STRING_STOI)
-    {
-      // (>= (str.to_int x) (- 1))
-      lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
-    }
+    // ite( str.len(s)==1, 0 <= str.code(s) < |A|, str.code(s)=-1 )
+    Node code_len = utils::mkNLength(t[0]).eqNode(nm->mkConst(Rational(1)));
+    Node code_eq_neg1 = t.eqNode(nm->mkConst(Rational(-1)));
+    Node code_range = nm->mkNode(
+        AND,
+        nm->mkNode(GEQ, t, nm->mkConst(Rational(0))),
+        nm->mkNode(
+            LT, t, nm->mkConst(Rational(utils::getAlphabetCardinality()))));
+    lemma = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
   }
-  else if (i == 1)
+  else if (tk == STRING_STRIDOF)
   {
-    if (tk == STRING_STRCTN)
-    {
-      // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
-      Node sk1 =
-          sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-      Node sk2 =
-          sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
-      lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
-      lemma = nm->mkNode(ITE, t, lemma, t[0].eqNode(t[1]).notNode());
-    }
+    // (and (>= (str.indexof x y n) (- 1)) (<= (str.indexof x y n) (str.len
+    // x)))
+    Node l = utils::mkNLength(t[0]);
+    lemma = nm->mkNode(AND,
+                       nm->mkNode(GEQ, t, nm->mkConst(Rational(-1))),
+                       nm->mkNode(LEQ, t, l));
+  }
+  else if (tk == STRING_STOI)
+  {
+    // (>= (str.to_int x) (- 1))
+    lemma = nm->mkNode(GEQ, t, nm->mkConst(Rational(-1)));
+  }
+  else if (tk == STRING_STRCTN)
+  {
+    // ite( (str.contains s r), (= s (str.++ sk1 r sk2)), (not (= s r)))
+    Node sk1 =
+        sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_PRE, "sc1");
+    Node sk2 =
+        sc->mkSkolemCached(t[0], t[1], SkolemCache::SK_FIRST_CTN_POST, "sc2");
+    lemma = t[0].eqNode(utils::mkNConcat(sk1, t[1], sk2));
+    lemma = nm->mkNode(ITE, t, lemma, t[0].eqNode(t[1]).notNode());
   }
   return lemma;
 }
@@ -279,9 +273,10 @@ void TermRegistry::registerTerm(Node n, int effort)
     //  for concat/const/replace, introduce proxy var and state length relation
     regTermLem = getRegisterTermLemma(n);
   }
-  else
+  else if (n.getKind() != STRING_STRCTN)
   {
-    Node eagerRedLemma = eagerReduce(n, &d_skCache, 0);
+    // we don't send out eager reduction lemma for str.contains currently
+    Node eagerRedLemma = eagerReduce(n, &d_skCache);
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it
