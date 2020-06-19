@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Francois Bobot
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::inst;
 
 bool CandidateGenerator::isLegalCandidate( Node n ){
-  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
+  return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
 CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)

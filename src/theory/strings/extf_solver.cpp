@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file ext_solver.cpp
+/*! \file extf_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -56,6 +56,8 @@ ExtfSolver::ExtfSolver(context::Context* c,
   d_extt.addFunctionKind(kind::STRING_STOI);
   d_extt.addFunctionKind(kind::STRING_STRREPL);
   d_extt.addFunctionKind(kind::STRING_STRREPLALL);
+  d_extt.addFunctionKind(kind::STRING_REPLACE_RE);
+  d_extt.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
   d_extt.addFunctionKind(kind::STRING_STRCTN);
   d_extt.addFunctionKind(kind::STRING_IN_REGEXP);
   d_extt.addFunctionKind(kind::STRING_LEQ);
@@ -180,8 +182,9 @@ bool ExtfSolver::doReduction(int effort, Node n)
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
            || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
-           || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
-           || k == STRING_TOUPPER || k == STRING_REV);
+           || k == STRING_STRREPLALL || k == STRING_REPLACE_RE
+           || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
+           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -235,6 +238,8 @@ void ExtfSolver::checkExtfEval(int effort)
   NodeManager* nm = NodeManager::currentNM();
   bool has_nreduce = false;
   std::vector<Node> terms = d_extt.getActive();
+  // the set of terms we have done extf inferences for
+  std::unordered_set<Node, NodeHashFunction> inferProcessed;
   for (const Node& n : terms)
   {
     // Setup information about n, including if it is equal to a constant.
@@ -415,16 +420,22 @@ void ExtfSolver::checkExtfEval(int effort)
               effort == 0 ? Inference::EXTF_D : Inference::EXTF_D_N;
           d_im.sendInternalInference(einfo.d_exp, nrcAssert, infer);
         }
-        to_reduce = nrc;
+        // We must use the original n here to avoid circular justifications for
+        // why extended functions are reduced below. In particular, to_reduce
+        // should never be a duplicate of another term considered in the block
+        // of code for checkExtfInference below.
+        to_reduce = n;
       }
     }
     else
     {
       to_reduce = n;
     }
-    // if not reduced
-    if (!to_reduce.isNull())
+    // if not reduced and not processed
+    if (!to_reduce.isNull()
+        && inferProcessed.find(to_reduce) == inferProcessed.end())
     {
+      inferProcessed.insert(to_reduce);
       Assert(effort < 3);
       if (effort == 1)
       {
@@ -650,7 +661,7 @@ Node ExtfSolver::getCurrentSubstitutionFor(int effort,
     return mv;
   }
   Node nr = d_state.getRepresentative(n);
-  Node c = d_bsolver.explainConstantEqc(n, nr, exp);
+  Node c = d_bsolver.explainBestContentEqc(n, nr, exp);
   if (!c.isNull())
   {
     return c;

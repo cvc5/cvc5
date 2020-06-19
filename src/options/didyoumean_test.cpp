@@ -2,9 +2,9 @@
 /*! \file didyoumean_test.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King
+ **   Kshitij Bansal, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -165,9 +165,9 @@ set<string> getDebugTags() {
   a.insert("bvminisat");
   a.insert("bvminisat::explain");
   a.insert("bvminisat::search");
-  a.insert("cbqi");
-  a.insert("cbqi-debug");
-  a.insert("cbqi-prop-as-dec");
+  a.insert("cegqi");
+  a.insert("cegqi-debug");
+  a.insert("cegqi-prop-as-dec");
   a.insert("cd_set_collection");
   a.insert("cdlist");
   a.insert("cdlist:cmm");
@@ -605,7 +605,7 @@ set<string> getOptionStrings() {
       "literal-matching",
       "enable-cbqi",
       "no-enable-cbqi",
-      "cbqi-recurse",
+      "cegqi-recurse",
       "no-cbqi-recurse",
       "user-pat",
       "flip-decision",

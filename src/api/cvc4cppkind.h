@@ -2,9 +2,9 @@
 /*! \file cvc4cppkind.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -134,15 +134,42 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   LAMBDA,
   /**
-   * Hilbert choice (epsilon) expression.
+   * The syntax of a witness term is similar to a quantified formula except that
+   * only one bound variable is allowed.
+   * The term (witness ((x T)) F) returns an element x of type T
+   * and asserts F.
+   *
+   * The witness operator behaves like the description operator
+   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
+   * that satisfies F. But if such x exists, the witness operator does not
+   * enforce the axiom that ensures uniqueness up to logical equivalence:
+   * forall x. F \equiv G => witness x. F =  witness x. G
+   *
+   * For example if there are 2 elements of type T that satisfy F, then the
+   * following formula is satisfiable:
+   * (distinct
+   *    (witness ((x Int)) F)
+   *    (witness ((x Int)) F))
+   *
+   * This kind is primarily used internally, but may be returned in models
+   * (e.g. for arithmetic terms in non-linear queries). However, it is not
+   * supported by the parser. Moreover, the user of the API should be cautious
+   * when using this operator. In general, all witness terms
+   * (witness ((x Int)) F) should be such that (exists ((x Int)) F) is a valid
+   * formula. If this is not the case, then the semantics in formulas that use
+   * witness terms may be unintuitive. For example, the following formula is
+   * unsatisfiable:
+   * (or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))
+   * whereas notice that (or (= z 0) (not (= z 0))) is true for any z.
+   *
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
-   *   -[2]: Hilbert choice body
+   *   -[2]: Witness body
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  CHOICE,
+  WITNESS,
 
   /* Boolean --------------------------------------------------------------- */
 
@@ -1477,7 +1504,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * conditions when there is a chain of equalities connecting two constant
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
-  STORE_ALL,
+  CONST_ARRAY,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
@@ -1934,7 +1961,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRCTN,
+  STRING_CONTAINS,
   /**
    * String index-of.
    * Returns the index of a substring s2 in a string s1 starting at index i. If
@@ -1948,7 +1975,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRIDOF,
+  STRING_INDEXOF,
   /**
    * String replace.
    * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
@@ -1961,7 +1988,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPL,
+  STRING_REPLACE,
   /**
    * String replace all.
    * Replaces all occurrences of a string s2 in a string s1 with string s3.
@@ -1974,7 +2001,34 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPLALL,
+  STRING_REPLACE_ALL,
+  /**
+   * String replace regular expression match.
+   * Replaces the first match of a regular expression r in string s1 with
+   * string s2. If r does not match a substring of s1, s1 is returned
+   * unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE,
+  /**
+   * String replace all regular expression matches.
+   * Replaces all matches of a regular expression r in string s1 with string
+   * s2. If r does not match a substring of s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE_ALL,
   /**
    * String to lower case.
    * Parameters: 1
@@ -2086,7 +2140,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_ITOS,
+  STRING_FROM_INT,
   /**
    * String to integer (total function).
    * If the string does not contain an integer or the integer is negative, the
@@ -2096,7 +2150,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_STOI,
+  STRING_TO_INT,
   /**
    * Constant string.
    * Parameters:

@@ -2,9 +2,9 @@
 /*! \file options_handler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Aina Niemetz
+ **   Tim King, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -140,10 +140,11 @@ public:
 template<class T>
 void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 {
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
+#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL) \
+    && !defined(CVC4_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
-     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL";
+     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
   throw OptionException(ss.str());
 #endif
 }

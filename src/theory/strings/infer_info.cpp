@@ -2,9 +2,9 @@
 /*! \file infer_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,6 +35,7 @@ const char* toString(Inference i)
     case Inference::F_ENDPOINT_EMP: return "F_ENDPOINT_EMP";
     case Inference::F_ENDPOINT_EQ: return "F_ENDPOINT_EQ";
     case Inference::F_NCTN: return "F_NCTN";
+    case Inference::N_EQ_CONF: return "N_EQ_CONF";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
@@ -92,7 +93,41 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_id(Inference::NONE), d_index(0), d_rev(false) {}
+InferInfo::InferInfo() : d_id(Inference::NONE) {}
+
+bool InferInfo::isTrivial() const
+{
+  Assert(!d_conc.isNull());
+  return d_conc.isConst() && d_conc.getConst<bool>();
+}
+
+bool InferInfo::isConflict() const
+{
+  Assert(!d_conc.isNull());
+  return d_conc.isConst() && !d_conc.getConst<bool>() && d_antn.empty();
+}
+
+bool InferInfo::isFact() const
+{
+  Assert(!d_conc.isNull());
+  TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
+  return !atom.isConst() && atom.getKind() != kind::OR && d_antn.empty();
+}
+
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
+{
+  out << "(infer " << ii.d_id << " " << ii.d_conc;
+  if (!ii.d_ant.empty())
+  {
+    out << " :ant (" << ii.d_ant << ")";
+  }
+  if (!ii.d_antn.empty())
+  {
+    out << " :antn (" << ii.d_antn << ")";
+  }
+  out << ")";
+  return out;
+}
 
 }  // namespace strings
 }  // namespace theory

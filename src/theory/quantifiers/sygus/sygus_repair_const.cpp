@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -256,7 +256,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     }
   }
 
-  Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
+  Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
   bool needExport = true;
   ExprManagerMapCollection varMap;
@@ -268,7 +268,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
       || r.asSatisfiabilityResult().isUnknown())
   {
-    Trace("cegqi-engine") << "...failed" << std::endl;
+    Trace("sygus-engine") << "...failed" << std::endl;
     return false;
   }
   std::vector<Node> sk_sygus_m;
@@ -300,7 +300,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     Node scsk = csk.substitute(
         sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
     repair_cv.push_back(scsk);
-    if (Trace.isOn("sygus-repair-const") || Trace.isOn("cegqi-engine"))
+    if (Trace.isOn("sygus-repair-const") || Trace.isOn("sygus-engine"))
     {
       std::stringstream sss;
       Printer::getPrinter(options::outputLanguage())
@@ -308,8 +308,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
     }
   }
-  Trace("cegqi-engine") << "...success:" << std::endl;
-  Trace("cegqi-engine") << ss.str();
+  Trace("sygus-engine") << "...success:" << std::endl;
+  Trace("sygus-engine") << ss.str();
   Trace("sygus-repair-const")
       << "Repaired constants in solution : " << std::endl;
   Trace("sygus-repair-const") << ss.str();

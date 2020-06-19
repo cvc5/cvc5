@@ -2,9 +2,9 @@
 /*! \file cadical.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean
+ **   Mathias Preiner, Aina Niemetz, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,9 +30,9 @@ namespace prop {
 
 class CadicalSolver : public SatSolver
 {
- public:
-  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  friend class SatSolverFactory;
 
+ public:
   ~CadicalSolver() override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
@@ -62,6 +62,17 @@ class CadicalSolver : public SatSolver
   bool ok() const override;
 
  private:
+  /**
+   * Private to disallow creation outside of SatSolverFactory.
+   * Function init() must be called after creation.
+   */
+  CadicalSolver(StatisticsRegistry* registry, const std::string& name = "");
+  /**
+   * Initialize SAT solver instance.
+   * Note: Split out to not call virtual functions in constructor.
+   */
+  void init();
+
   std::unique_ptr<CaDiCaL::Solver> d_solver;
 
   unsigned d_nextVarIdx;

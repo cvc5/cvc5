@@ -2,9 +2,9 @@
 /*! \file driver_unified.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Morgan Deters, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -157,9 +157,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         opts.setInputLanguage(language::input::LANG_CVC4);
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
-        opts.setInputLanguage(language::input::LANG_SYGUS);
-        //since there is no sygus output language, set this to SMT lib 2
-        //opts.setOutputLanguage(language::output::LANG_SMTLIB_V2_0);
+        // version 2 sygus is the default
+        opts.setInputLanguage(language::input::LANG_SYGUS_V2);
       }
     }
   }

@@ -276,14 +276,6 @@ header = "options/arith_options.h"
   help       = "use quick explain to minimize the sum of infeasibility conflicts"
 
 [[option]]
-  name       = "rewriteDivk"
-  category   = "regular"
-  long       = "rewrite-divk"
-  type       = "bool"
-  default    = "false"
-  help       = "rewrite division and mod when by a constant into linear terms"
-
-[[option]]
   name       = "trySolveIntStandardEffort"
   category   = "regular"
   long       = "se-solve-int"
@@ -435,15 +427,6 @@ header = "options/arith_options.h"
   default    = "false"
   read_only  = true
   help       = "apply pseudo boolean rewrites"
-
-[[option]]
-  name       = "sNormInferEq"
-  category   = "regular"
-  long       = "snorm-infer-eq"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "infer equalities based on Shostak normalization"
 
 [[option]]
   name       = "nlExt"

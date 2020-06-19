@@ -2,9 +2,9 @@
 /*! \file sygus_invariance.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -92,13 +92,16 @@ void EquivSygusInvarianceTest::init(
   // compute the current examples
   d_bvr = bvr;
   Assert(tds != nullptr);
-  ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
-  if (eec != nullptr)
+  if (aconj != nullptr)
   {
-    // get the result of evaluating bvr on the examples of enumerator e.
-    eec->evaluateVec(bvr, d_exo, false);
-    d_conj = aconj;
-    d_enum = e;
+    ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
+    if (eec != nullptr)
+    {
+      // get the result of evaluating bvr on the examples of enumerator e.
+      eec->evaluateVec(bvr, d_exo, false);
+      d_conj = aconj;
+      d_enum = e;
+    }
   }
 }
 
