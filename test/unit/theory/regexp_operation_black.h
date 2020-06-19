@@ -58,6 +58,7 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   void tearDown() override
   {
     delete d_regExpOpr;
+    delete d_skc;
     delete d_scope;
     delete d_smt;
     delete d_em;
