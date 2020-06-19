@@ -19,19 +19,15 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-RdbSideConditionEvaluator::RdbSideConditionEvaluator()
-{
-}
+RdbSideConditionEvaluator::RdbSideConditionEvaluator() {}
 
-bool RdbSideConditionEvaluator::isSideCondition(Node f)
-{
-  return false;
-}
+bool RdbSideConditionEvaluator::isSideCondition(Node f) { return false; }
 
-Node RdbSideConditionEvaluator::runSideCondition(Node f, const std::vector<Node>& args)
+Node RdbSideConditionEvaluator::runSideCondition(Node f,
+                                                 const std::vector<Node>& args)
 {
   return Node::null();
 }
-  
+
 }  // namespace theory
 }  // namespace CVC4

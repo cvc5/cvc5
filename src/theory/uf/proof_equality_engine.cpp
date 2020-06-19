@@ -33,7 +33,7 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
       d_proof(pnm, nullptr, c),
       d_factPg(c, pnm),
       d_keep(c),
-      d_pfEnabled(pnm!=nullptr)
+      d_pfEnabled(pnm != nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);

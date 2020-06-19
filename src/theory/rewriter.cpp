@@ -225,7 +225,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // Rewrite until fix-point is reached
         for(;;) {
           // Perform the pre-rewrite
-          RewriteResponse response = preRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
+          RewriteResponse response = preRewrite(
+              rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
 
           // Put the rewritten node to the top of the stack
           rewriteStackTop.d_node = response.d_node;
@@ -298,8 +299,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       // Done with all pre-rewriting, so let's do the post rewrite
       for(;;) {
         // Do the post-rewrite
-        RewriteResponse response =
-            postRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
+        RewriteResponse response = postRewrite(
+            rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
 
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.d_node);
@@ -367,8 +368,9 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   Unreachable();
 } /* Rewriter::rewriteTo() */
 
-RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId, TNode n,
-                 TConvProofGenerator* tcpg)
+RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId,
+                                     TNode n,
+                                     TConvProofGenerator* tcpg)
 {
   Kind k = n.getKind();
   std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn =
@@ -379,7 +381,7 @@ RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId, TNode n,
     {
       // call the trust rewrite response interface
       TrustRewriteResponse tresponse =
-        d_theoryRewriters[theoryId]->preRewriteWithProof(n);
+          d_theoryRewriters[theoryId]->preRewriteWithProof(n);
       // process the trust rewrite response: store the proof step into
       // tcpg if necessary and then convert to rewrite response.
       return processTrustRewriteResponse(tresponse, true, tcpg);
@@ -389,8 +391,9 @@ RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId, TNode n,
   return fn(&d_re, n);
 }
 
-RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId, TNode n,
-                 TConvProofGenerator* tcpg)
+RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId,
+                                      TNode n,
+                                      TConvProofGenerator* tcpg)
 {
   Kind k = n.getKind();
   std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn =
@@ -401,7 +404,7 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId, TNode n,
     {
       // same as above, for post-rewrite
       TrustRewriteResponse tresponse =
-        d_theoryRewriters[theoryId]->postRewriteWithProof(n);
+          d_theoryRewriters[theoryId]->postRewriteWithProof(n);
       return processTrustRewriteResponse(tresponse, false, tcpg);
     }
     return d_theoryRewriters[theoryId]->postRewrite(n);
@@ -409,27 +412,27 @@ RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId, TNode n,
   return fn(&d_re, n);
 }
 
-
-RewriteResponse Rewriter::processTrustRewriteResponse(const TrustRewriteResponse& tresponse,
-                                            bool isPre,
-                TConvProofGenerator* tcpg)
+RewriteResponse Rewriter::processTrustRewriteResponse(
+    const TrustRewriteResponse& tresponse,
+    bool isPre,
+    TConvProofGenerator* tcpg)
 {
-  Assert (tcpg!=nullptr);
+  Assert(tcpg != nullptr);
   TrustNode trn = tresponse.d_node;
-  Assert (trn.getKind()==TrustNodeKind::REWRITE);
+  Assert(trn.getKind() == TrustNodeKind::REWRITE);
   Node proven = trn.getProven();
   if (proven[0] != proven[1])
   {
-    ProofGenerator * pg = trn.getGenerator();
-    if (pg==nullptr)
+    ProofGenerator* pg = trn.getGenerator();
+    if (pg == nullptr)
     {
       // add small step trusted rewrite
       NodeManager* nm = NodeManager::currentNM();
       tcpg->addRewriteStep(proven[0],
-                          proven[1],
-                          PfRule::THEORY_REWRITE,
-                          {},
-                          {proven[0], nm->mkConst(isPre)});
+                           proven[1],
+                           PfRule::THEORY_REWRITE,
+                           {},
+                           {proven[0], nm->mkConst(isPre)});
     }
     else
     {

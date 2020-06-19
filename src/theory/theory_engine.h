@@ -392,8 +392,7 @@ class TheoryEngine {
                context::UserContext* userContext,
                RemoveTermFormulas& iteRemover,
                const LogicInfo& logic,
-               ProofNodeManager * pnm
-              );
+               ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();

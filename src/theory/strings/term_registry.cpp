@@ -285,7 +285,7 @@ void TermRegistry::registerTerm(Node n, int effort)
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it
-      if (d_epg!=nullptr)
+      if (d_epg != nullptr)
       {
         regTermLem = d_epg->mkTrustNode(
             eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
@@ -388,7 +388,7 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   Node ret = nm->mkNode(AND, eq, ceq);
 
   // it is a simple rewrite to justify this
-  if (d_epg!=nullptr)
+  if (d_epg != nullptr)
   {
     return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
   }
@@ -512,7 +512,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Assert(!case_emptyr.getConst<bool>());
   }
 
-  if (d_epg!=nullptr)
+  if (d_epg != nullptr)
   {
     return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
   }

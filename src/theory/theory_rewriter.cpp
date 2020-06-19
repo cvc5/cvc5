@@ -19,16 +19,22 @@
 namespace CVC4 {
 namespace theory {
 
-TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status, Node n, Node nr, ProofGenerator * pg) : d_status(status){
-  d_node = TrustNode::mkTrustRewrite(n,nr,pg);
+TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
+                                           Node n,
+                                           Node nr,
+                                           ProofGenerator* pg)
+    : d_status(status)
+{
+  d_node = TrustNode::mkTrustRewrite(n, nr, pg);
 }
-  
+
 TrustRewriteResponse TheoryRewriter::postRewriteWithProof(TNode node)
 {
   RewriteResponse response = postRewrite(node);
   // TODO
   // by default, we return a trust rewrite response with no proof generator
-  return TrustRewriteResponse(response.d_status, node, response.d_node, nullptr);
+  return TrustRewriteResponse(
+      response.d_status, node, response.d_node, nullptr);
 }
 
 TrustRewriteResponse TheoryRewriter::preRewriteWithProof(TNode node)
@@ -36,9 +42,9 @@ TrustRewriteResponse TheoryRewriter::preRewriteWithProof(TNode node)
   RewriteResponse response = postRewrite(node);
   // TODO
   // by default, we return a trust rewrite response with no proof generator
-  return TrustRewriteResponse(response.d_status, node, response.d_node, nullptr);
+  return TrustRewriteResponse(
+      response.d_status, node, response.d_node, nullptr);
 }
 
 }  // namespace theory
 }  // namespace CVC4
-

@@ -57,7 +57,10 @@ struct RewriteResponse
 /** Same as above, with trust node instead of node. */
 struct TrustRewriteResponse
 {
-  TrustRewriteResponse(RewriteStatus status, Node n, Node nr, ProofGenerator * pg);
+  TrustRewriteResponse(RewriteStatus status,
+                       Node n,
+                       Node nr,
+                       ProofGenerator* pg);
   /** The status of the rewrite */
   const RewriteStatus d_status;
   /** The trust node corresponding to the rewrite */
@@ -102,14 +105,14 @@ class TheoryRewriter
    * @param node The node to rewrite
    */
   virtual RewriteResponse preRewrite(TNode node) = 0;
-  
+
   /**
    * Performs a pre-rewrite step, with proofs.
    *
    * @param node The node to rewrite
    */
   virtual TrustRewriteResponse preRewriteWithProof(TNode node);
-  
+
   /** rewrite equality extended
    *
    * This method returns a formula that is equivalent to the equality between

@@ -178,23 +178,18 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo,
-               ProofNodeManager * pnm)
+                           ProofNodeManager* pnm)
     : d_propEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
       d_pchecker(pnm ? pnm->getChecker() : nullptr),
       d_pnm(pnm),
-      d_lazyProof(
-          d_pnm!=nullptr
-              ? new LazyCDProof(d_pnm, nullptr, d_userContext)
-              : nullptr),
-      d_tepg(
-          new TheoryEngineProofGenerator(d_pnm, d_userContext)),
-      d_sharedTerms(this,
-                    context,
-                    userContext,
-                    d_pnm),
+      d_lazyProof(d_pnm != nullptr
+                      ? new LazyCDProof(d_pnm, nullptr, d_userContext)
+                      : nullptr),
+      d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
+      d_sharedTerms(this, context, userContext, d_pnm),
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),

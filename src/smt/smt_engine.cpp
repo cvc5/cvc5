@@ -50,6 +50,8 @@
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node_manager.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -104,8 +106,8 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/rewriter.h"
 #include "theory/rewrite_db.h"
+#include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -116,8 +118,6 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node_manager.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -715,13 +715,13 @@ void SmtEngine::finishInit()
 
   // ensure that our heuristics are properly set up
   setDefaults(*this, d_logic);
-  
+
   if (options::proofNew())
   {
     d_pchecker.reset(new ProofChecker);
     d_pnm.reset(new ProofNodeManager(d_pchecker.get()));
   }
-  
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)

@@ -169,17 +169,19 @@ class Rewriter {
                  TConvProofGenerator* tcpg = nullptr);
 
   /** Calls the pre-rewriter for the given theory */
-  RewriteResponse preRewrite(theory::TheoryId theoryId, TNode n,
-                 TConvProofGenerator* tcpg = nullptr);
+  RewriteResponse preRewrite(theory::TheoryId theoryId,
+                             TNode n,
+                             TConvProofGenerator* tcpg = nullptr);
 
   /** Calls the post-rewriter for the given theory */
-  RewriteResponse postRewrite(theory::TheoryId theoryId, TNode n,
-                 TConvProofGenerator* tcpg = nullptr);
+  RewriteResponse postRewrite(theory::TheoryId theoryId,
+                              TNode n,
+                              TConvProofGenerator* tcpg = nullptr);
   /** processes a trust rewrite response */
-  RewriteResponse processTrustRewriteResponse(const TrustRewriteResponse& tresponse,
-                                              bool isPre,
-                 TConvProofGenerator* tcpg); 
-
+  RewriteResponse processTrustRewriteResponse(
+      const TrustRewriteResponse& tresponse,
+      bool isPre,
+      TConvProofGenerator* tcpg);
 
   /**
    * Calls the equality-rewriter for the given theory.

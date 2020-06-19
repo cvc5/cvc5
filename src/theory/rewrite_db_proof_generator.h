@@ -33,7 +33,7 @@ class RewriteDbProofCons : public ProofGenerator
 {
  public:
   RewriteDbProofCons(RewriteDb& db, ProofNodeManager* pnm);
-  /** 
+  /**
    * Prove (= a b) with recursion limit recLimit. If ensureProof is true, then
    * we ensure a proof is generated for (= a b) internally.
    */
