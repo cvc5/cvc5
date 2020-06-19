@@ -131,7 +131,7 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
               != result[*d_boolTypeNode].end());
   }
 
-  void testUnify()
+  void testMatch()
   {
     TypeNode integer = d_nodeManager->integerType();
 
