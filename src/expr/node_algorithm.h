@@ -187,25 +187,25 @@ void getComponentTypes(
 
 /** unify
  *
- * Given two terms `x` and `y` containing free variables, unify returns
- * true if `y` is an instance of `x`. In which case, `subs` is a mapping
- * from the free variables in `x` to corresponding terms in `y` such that:
+ * Given two terms `n1` and `n2` containing free variables, unify returns true
+ * if `n2` is an instance of `n1`. In which case, `subs` is a mapping from the
+ * free variables in `n1` to corresponding terms in `n2` such that:
  *
- * x * subs = y (where * denotes application of substitution).
+ * n1 * subs = n2 (where * denotes application of substitution).
  *
  * For example, given:
- * x = (+ a (* F 2)) (F denotes a free variable)
- * y = (+ a (* b 2))
- * then a call to unify should return `true` with subs = {(F, b)}
+ * n1 = (+ a (* x 2)) (x denotes a free variable)
+ * n2 = (+ a (* b 2))
+ * a call to unify should return `true` with subs = {(x, b)}
  *
- * @param x the term (containing free vars) to compare an instance term
+ * @param n1 the term (containing free vars) to compare an instance term
  * against
- * @param y the instance term in question
- * @param subs the mapping from free vars in `x` to terms in `y`
- * @return whether or not `y` is an instance of `x`
+ * @param n2 the instance term in question
+ * @param subs the mapping from free vars in `n1` to terms in `n2`
+ * @return whether or not `n2` is an instance of `n1`
  */
-bool unify(Node x,
-           Node y,
+bool unify(Node n1,
+           Node n2,
            std::unordered_map<Node, Node, NodeHashFunction>& subs);
 
 }  // namespace expr

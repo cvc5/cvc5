@@ -699,8 +699,13 @@ bool unify(Node x,
     }
     else
     {
-      // if the two term are not equal, at least make sure that they have the
-      // same number of children and that their operators are equal
+      // if the two subterms are not equal, make sure that their operators are
+      // equal
+      // we compare operators instead of kinds because different terms may have
+      // the same kind (both `(id x)` and `(square x)` have kind APPLY_UF)
+      // since many builtin operators like `PLUS` allow arbitrary number of
+      // arguments, we also need to check if the two subterms have the same
+      // number of children
       if (curr.first.getNumChildren() != curr.second.getNumChildren()
           || curr.first.getOperator() != curr.second.getOperator())
       {
@@ -709,7 +714,7 @@ bool unify(Node x,
       // recurse on children
       for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
       {
-        stack.push_back({curr.first[i], curr.second[i]});
+        stack.emplace_back(curr.first[i], curr.second[i]);
       }
     }
   }
