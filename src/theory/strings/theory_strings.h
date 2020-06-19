@@ -65,18 +65,21 @@ class TheoryStrings : public Theory {
                 OutputChannel& out, Valuation valuation,
                 const LogicInfo& logicInfo);
   ~TheoryStrings();
-
   /** finish initialization */
   void finishInit() override;
-
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
+  /** Get the theory rewriter of this class */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** Set the master equality engine */
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-  std::string identify() const override { return std::string("TheoryStrings"); }
+  /** Identify this theory */
+  std::string identify() const override;
+  /** Propagate */
   void propagate(Effort e) override;
-  bool propagate(TNode literal);
+  /** Explain */
   Node explain(TNode literal) override;
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
+  /** Get the equality engine */
+  eq::EqualityEngine* getEqualityEngine() override;
+  /** Get current substitution */
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
@@ -108,19 +111,8 @@ class TheoryStrings : public Theory {
    * model. Return false if a contradiction is discovered.
    */
   bool collectModelInfo(TheoryModel* m) override;
-  //--------------------------- helper functions
-  /** get normal string
-   *
-   * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp.
-   *
-   * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
-   */
-  Node getNormalString(Node x, std::vector<Node>& nf_exp);
-  //-------------------------- end helper functions
-
-  // NotifyClass for equality engine
+ private:
+  /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
   public:
    NotifyClass(TheoryStrings& ts) : d_str(ts), d_state(ts.d_state) {}
@@ -190,56 +182,8 @@ class TheoryStrings : public Theory {
     /** The solver state of the theory of strings */
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
-
- private:
-  /** Commonly used constants */
-  Node d_true;
-  Node d_false;
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
-  /** the cardinality of the alphabet */
-  uint32_t d_cardSize;
-  /** The notify class */
-  NotifyClass d_notify;
-  /**
-   * Statistics for the theory of strings/sequences. All statistics for these
-   * theories is collected in this object.
-   */
-  SequencesStatistics d_statistics;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-  /** The solver state object */
-  SolverState d_state;
-  /** The term registry for this theory */
-  TermRegistry d_termReg;
-  /** The (custom) output channel of the theory of strings */
-  std::unique_ptr<InferenceManager> d_im;
-  /** The theory rewriter for this theory. */
-  StringsRewriter d_rewriter;
-  /**
-   * The base solver, responsible for reasoning about congruent terms and
-   * inferring constants for equivalence classes.
-   */
-  std::unique_ptr<BaseSolver> d_bsolver;
-  /**
-   * The core solver, responsible for reasoning about string concatenation
-   * with length constraints.
-   */
-  std::unique_ptr<CoreSolver> d_csolver;
-  /**
-   * Extended function solver, responsible for reductions and simplifications
-   * involving extended string functions.
-   */
-  std::unique_ptr<ExtfSolver> d_esolver;
-  /** regular expression solver module */
-  std::unique_ptr<RegExpSolver> d_rsolver;
-  /** regular expression elimination module */
-  RegExpElimination d_regexp_elim;
-  /** Strings finite model finding decision strategy */
-  StringsFmf d_stringsFmf;
-  /** The representation of the strategy */
-  Strategy d_strat;
+  /** propagate method */
+  bool propagate(TNode literal);
   /** compute care graph */
   void computeCareGraph() override;
   /**
@@ -306,6 +250,54 @@ class TheoryStrings : public Theory {
   void runInferStep(InferStep s, int effort);
   /** run strategy for effort e */
   void runStrategy(Theory::Effort e);
+  /** Commonly used constants */
+  Node d_true;
+  Node d_false;
+  Node d_zero;
+  Node d_one;
+  Node d_neg_one;
+  /** the cardinality of the alphabet */
+  uint32_t d_cardSize;
+  /** The notify class */
+  NotifyClass d_notify;
+  /**
+   * Statistics for the theory of strings/sequences. All statistics for these
+   * theories is collected in this object.
+   */
+  SequencesStatistics d_statistics;
+  /** Equaltity engine */
+  eq::EqualityEngine d_equalityEngine;
+  /** The solver state object */
+  SolverState d_state;
+  /** The term registry for this theory */
+  TermRegistry d_termReg;
+  /** The (custom) output channel of the theory of strings */
+  std::unique_ptr<InferenceManager> d_im;
+  /** The theory rewriter for this theory. */
+  StringsRewriter d_rewriter;
+  /**
+   * The base solver, responsible for reasoning about congruent terms and
+   * inferring constants for equivalence classes.
+   */
+  std::unique_ptr<BaseSolver> d_bsolver;
+  /**
+   * The core solver, responsible for reasoning about string concatenation
+   * with length constraints.
+   */
+  std::unique_ptr<CoreSolver> d_csolver;
+  /**
+   * Extended function solver, responsible for reductions and simplifications
+   * involving extended string functions.
+   */
+  std::unique_ptr<ExtfSolver> d_esolver;
+  /** regular expression solver module */
+  std::unique_ptr<RegExpSolver> d_rsolver;
+  /** regular expression elimination module */
+  RegExpElimination d_regexp_elim;
+  /** Strings finite model finding decision strategy */
+  StringsFmf d_stringsFmf;
+  /** The representation of the strategy */
+  Strategy d_strat;
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */

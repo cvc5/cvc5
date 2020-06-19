@@ -110,6 +110,9 @@ TheoryStrings::~TheoryStrings() {
 
 }
 
+TheoryRewriter* TheoryStrings::getTheoryRewriter() { return &d_rewriter; }
+std::string TheoryStrings::identify() const { return std::string("TheoryStrings"); }
+eq::EqualityEngine* TheoryStrings::getEqualityEngine() { return &d_equalityEngine; }
 void TheoryStrings::finishInit()
 {
   TheoryModel* tm = d_valuation.getModel();

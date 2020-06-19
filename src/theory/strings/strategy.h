@@ -93,12 +93,6 @@ class Strategy
   void initializeStrategy();
 
  private:
-  /** is strategy initialized */
-  bool d_strategy_init;
-  /** the strategy */
-  std::vector<std::pair<InferStep, int> > d_infer_steps;
-  /** the range (begin, end) of steps to run at given efforts */
-  std::map<Theory::Effort, std::pair<unsigned, unsigned> > d_strat_steps;
   /** add strategy step
    *
    * This adds (s,effort) as a strategy step to the vectors d_infer_steps and
@@ -107,6 +101,12 @@ class Strategy
    * a BREAK to the strategy following this step.
    */
   void addStrategyStep(InferStep s, int effort = 0, bool addBreak = true);
+  /** is strategy initialized */
+  bool d_strategy_init;
+  /** the strategy */
+  std::vector<std::pair<InferStep, int> > d_infer_steps;
+  /** the range (begin, end) of steps to run at given efforts */
+  std::map<Theory::Effort, std::pair<unsigned, unsigned> > d_strat_steps;
 }; /* class Strategy */
 
 }  // namespace strings
