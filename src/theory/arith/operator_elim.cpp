@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_arith_private.cpp
+/*! \file operator_elim.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
@@ -9,10 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief [[ Add one-line brief description here ]]
- **
- ** [[ Add lengthier description here ]]
- ** \todo document this file
+ ** \brief Implementation of operator elimination for arithmetic
  **/
 
 #include "theory/arith/operator_elim.h"
