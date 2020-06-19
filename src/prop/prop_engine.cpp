@@ -99,11 +99,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_satSolver, d_registrar, userContext, rm, true);
   if (options::proofNew())
   {
-    d_pfCnfStream.reset(new ProofCnfStream(satContext,
-                                           userContext,
-                                           d_cnfStream,
-                                           d_pnm.get(),
-                                           options::proofNew()));
+    d_pfCnfStream.reset(new ProofCnfStream(
+        userContext, *d_cnfStream, d_pNodeManager.get(), options::proofNew()));
   }
 
   d_theoryProxy = new TheoryProxy(
@@ -146,7 +143,14 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_pfCnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->convertAndAssert(node, false, false);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  }
 }
 
 void PropEngine::assertLemma(TNode node, bool negated,
@@ -157,7 +161,14 @@ void PropEngine::assertLemma(TNode node, bool negated,
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_pfCnfStream->convertAndAssert(node, removable, negated, rule, from);
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->convertAndAssert(node, removable, negated);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  }
 }
 
 void PropEngine::addAssertionsToDecisionEngine(
@@ -286,7 +297,17 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const 
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
-void PropEngine::ensureLiteral(TNode n) { d_pfCnfStream->ensureLiteral(n); }
+void PropEngine::ensureLiteral(TNode n)
+{
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->ensureLiteral(n);
+  }
+  else
+  {
+    d_cnfStream->ensureLiteral(n);
+  }
+}
 
 void PropEngine::push() {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";

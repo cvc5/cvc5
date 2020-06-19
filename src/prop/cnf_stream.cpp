@@ -39,6 +39,9 @@
 namespace CVC4 {
 namespace prop {
 
+using namespace std;
+using namespace kind;
+
 CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
                      context::Context* context, bool fullLitToNodeMap,
                      std::string name)
@@ -212,12 +215,6 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     }
     d_nodeToLiteralMap.insert(node, lit);
     d_nodeToLiteralMap.insert(node.notNode(), ~lit);
-    if (CVC4::options::proofNew())
-    {
-      NewProofManager* pm = NewProofManager::currentPM();
-      pm->addLitDef(lit, node);
-      pm->addLitDef(~lit, node.notNode());
-    }
   } else {
     lit = getLiteral(node);
   }
@@ -307,40 +304,11 @@ SatLiteral TseitinCnfStream::handleXor(TNode xorNode) {
 
   SatLiteral xorLit = newLiteral(xorNode);
 
-  bool added;
-  added = assertClause(xorNode.negate(), a, b, ~xorLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, xorNode.notNode(), xorNode[0], xorNode[1]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_XOR_POS1, {}, {xorNode});
-  }
-  added = assertClause(xorNode.negate(), ~a, ~b, ~xorLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR,
-        xorNode.notNode(), xorNode[0].notNode(), xorNode[1].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_XOR_POS2, {}, {xorNode});
-  }
-  added = assertClause(xorNode, a, ~b, xorLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, xorNode, xorNode[0], xorNode[1].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_XOR_NEG2, {}, {xorNode});
-  }
-  added = assertClause(xorNode, ~a, b, xorLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = NodeManager::currentNM()->mkNode(
-        kind::OR, xorNode, xorNode[0].notNode(), xorNode[1]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_XOR_NEG1, {}, {xorNode});
-  }
+  assertClause(xorNode.negate(), a, b, ~xorLit);
+  assertClause(xorNode.negate(), ~a, ~b, ~xorLit);
+  assertClause(xorNode, a, ~b, xorLit);
+  assertClause(xorNode, ~a, b, xorLit);
+
   return xorLit;
 }
 
@@ -364,40 +332,19 @@ SatLiteral TseitinCnfStream::handleOr(TNode orNode) {
   // Get the literal for this node
   SatLiteral orLit = newLiteral(orNode);
 
-  bool added;
-  NodeManager* nm = NodeManager::currentNM();
-
   // lit <- (a_1 | a_2 | a_3 | ... | a_n)
   // lit | ~(a_1 | a_2 | a_3 | ... | a_n)
   // (lit | ~a_1) & (lit | ~a_2) & (lit & ~a_3) & ... & (lit & ~a_n)
-  for (unsigned i = 0; i < n_children; ++i)
-  {
-    added = assertClause(orNode, orLit, ~clause[i]);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, orNode, orNode[i].notNode());
-      Node iNode = nm->mkConst<Rational>(i);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::CNF_OR_NEG, {}, {orNode, iNode});
-    }
+  for(unsigned i = 0; i < n_children; ++i) {
+    assertClause(orNode, orLit, ~clause[i]);
   }
 
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
   // ~lit | a_1 | a_2 | a_3 | ... | a_n
   clause[n_children] = ~orLit;
   // This needs to go last, as the clause might get modified by the SAT solver
-  added = assertClause(orNode.negate(), clause);
-  if (CVC4::options::proofNew() && added)
-  {
-    std::vector<Node> disjuncts{orNode.notNode()};
-    for (unsigned i = 0; i < n_children; ++i)
-    {
-      disjuncts.push_back(orNode[i]);
-    }
-    Node clauseNode = nm->mkNode(kind::OR, disjuncts);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_OR_POS, {}, {orNode});
-  }
+  assertClause(orNode.negate(), clause);
+
   // Return the literal
   return orLit;
 }
@@ -422,22 +369,11 @@ SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
   // Get the literal for this node
   SatLiteral andLit = newLiteral(andNode);
 
-  bool added;
-  NodeManager* nm = NodeManager::currentNM();
-
   // lit -> (a_1 & a_2 & a_3 & ... & a_n)
   // ~lit | (a_1 & a_2 & a_3 & ... & a_n)
   // (~lit | a_1) & (~lit | a_2) & ... & (~lit | a_n)
-  for (unsigned i = 0; i < n_children; ++i)
-  {
-    added = assertClause(andNode.negate(), ~andLit, ~clause[i]);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, andNode.notNode(), andNode[i]);
-      Node iNode = nm->mkConst<Rational>(i);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::CNF_AND_POS, {}, {andNode, iNode});
-    }
+  for(unsigned i = 0; i < n_children; ++i) {
+    assertClause(andNode.negate(), ~andLit, ~clause[i]);
   }
 
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
@@ -445,18 +381,8 @@ SatLiteral TseitinCnfStream::handleAnd(TNode andNode) {
   // lit | ~a_1 | ~a_2 | ~a_3 | ... | ~a_n
   clause[n_children] = andLit;
   // This needs to go last, as the clause might get modified by the SAT solver
-  added = assertClause(andNode, clause);
-  if (CVC4::options::proofNew() && added)
-  {
-    std::vector<Node> disjuncts{andNode};
-    for (unsigned i = 0; i < n_children; ++i)
-    {
-      disjuncts.push_back(andNode[i].notNode());
-    }
-    Node clauseNode = nm->mkNode(kind::OR, disjuncts);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_AND_NEG, {}, {andNode});
-  }
+  assertClause(andNode, clause);
+
   return andLit;
 }
 
@@ -473,39 +399,16 @@ SatLiteral TseitinCnfStream::handleImplies(TNode impliesNode) {
 
   SatLiteral impliesLit = newLiteral(impliesNode);
 
-  bool added;
-  NodeManager* nm = NodeManager::currentNM();
   // lit -> (a->b)
   // ~lit | ~ a | b
-  added = assertClause(impliesNode.negate(), ~impliesLit, ~a, b);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR,
-        impliesNode.notNode(), impliesNode[0].notNode(), impliesNode[1]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_IMPLIES_POS, {}, {impliesNode});
-  }
+  assertClause(impliesNode.negate(), ~impliesLit, ~a, b);
 
   // (a->b) -> lit
   // ~(~a | b) | lit
   // (a | l) & (~b | l)
-  added = assertClause(impliesNode, a, impliesLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, impliesNode, impliesNode[0]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {impliesNode});
-  }
-  added = assertClause(impliesNode, ~b, impliesLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, impliesNode, impliesNode[1].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {impliesNode});
-  }
+  assertClause(impliesNode, a, impliesLit);
+  assertClause(impliesNode, ~b, impliesLit);
+
   return impliesLit;
 }
 
@@ -524,50 +427,20 @@ SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
   // Get the now literal
   SatLiteral iffLit = newLiteral(iffNode);
 
-  bool added;
-  NodeManager* nm = NodeManager::currentNM();
-
   // lit -> ((a-> b) & (b->a))
   // ~lit | ((~a | b) & (~b | a))
   // (~a | b | ~lit) & (~b | a | ~lit)
-  added = assertClause(iffNode.negate(), ~a, b, ~iffLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iffNode.notNode(), iffNode[0].notNode(), iffNode[1]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_EQUIV_POS1, {}, {iffNode});
-  }
-  added = assertClause(iffNode.negate(), a, ~b, ~iffLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iffNode.notNode(), iffNode[0], iffNode[1].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_EQUIV_POS2, {}, {iffNode});
-  }
+  assertClause(iffNode.negate(), ~a, b, ~iffLit);
+  assertClause(iffNode.negate(), a, ~b, ~iffLit);
 
   // (a<->b) -> lit
   // ~((a & b) | (~a & ~b)) | lit
   // (~(a & b)) & (~(~a & ~b)) | lit
   // ((~a | ~b) & (a | b)) | lit
   // (~a | ~b | lit) & (a | b | lit)
-  added = assertClause(iffNode, ~a, ~b, iffLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iffNode, iffNode[0].notNode(), iffNode[1].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_EQUIV_NEG2, {}, {iffNode});
-  }
-  added = assertClause(iffNode, a, b, iffLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode =
-        nm->mkNode(kind::OR, iffNode, iffNode[0], iffNode[1]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {iffNode});
-  }
+  assertClause(iffNode, ~a, ~b, iffLit);
+  assertClause(iffNode, a, b, iffLit);
+
   return iffLit;
 }
 
@@ -595,38 +468,15 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
 
   SatLiteral iteLit = newLiteral(iteNode);
 
-  bool added;
-  NodeManager* nm = NodeManager::currentNM();
   // If ITE is true then one of the branches is true and the condition
   // implies which one
   // lit -> (ite b t e)
   // lit -> (t | e) & (b -> t) & (!b -> e)
   // lit -> (t | e) & (!b | t) & (b | e)
   // (!lit | t | e) & (!lit | !b | t) & (!lit | b | e)
-  added = assertClause(iteNode.negate(), ~iteLit, thenLit, elseLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode =
-        nm->mkNode(kind::OR, iteNode.notNode(), iteNode[1], iteNode[2]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_POS3, {}, {iteNode});
-  }
-  added = assertClause(iteNode.negate(), ~iteLit, ~condLit, thenLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iteNode.notNode(), iteNode[0].notNode(), iteNode[1]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_POS1, {}, {iteNode});
-  }
-  added = assertClause(iteNode.negate(), ~iteLit, condLit, elseLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iteNode.notNode(), iteNode[0], iteNode[2]);
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_POS2, {}, {iteNode});
-  }
+  assertClause(iteNode.negate(), ~iteLit, thenLit, elseLit);
+  assertClause(iteNode.negate(), ~iteLit, ~condLit, thenLit);
+  assertClause(iteNode.negate(), ~iteLit, condLit, elseLit);
 
   // If ITE is false then one of the branches is false and the condition
   // implies which one
@@ -634,30 +484,10 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   // !lit -> (!t | !e) & (b -> !t) & (!b -> !e)
   // !lit -> (!t | !e) & (!b | !t) & (b | !e)
   // (lit | !t | !e) & (lit | !b | !t) & (lit | b | !e)
-  added = assertClause(iteNode, iteLit, ~thenLit, ~elseLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iteNode, iteNode[1].notNode(), iteNode[2].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_NEG3, {}, {iteNode});
-  }
-  added = assertClause(iteNode, iteLit, ~condLit, ~thenLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iteNode, iteNode[0].notNode(), iteNode[1].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_NEG1, {}, {iteNode});
-  }
-  added = assertClause(iteNode, iteLit, condLit, ~elseLit);
-  if (CVC4::options::proofNew() && added)
-  {
-    Node clauseNode = nm->mkNode(
-        kind::OR, iteNode, iteNode[0], iteNode[2].notNode());
-    NewProofManager::currentPM()->addStep(
-        clauseNode, PfRule::CNF_ITE_NEG2, {}, {iteNode});
-  }
+  assertClause(iteNode, iteLit, ~thenLit, ~elseLit);
+  assertClause(iteNode, iteLit, ~condLit, ~thenLit);
+  assertClause(iteNode, iteLit, condLit, ~elseLit);
+
   return iteLit;
 }
 
@@ -717,44 +547,22 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
   Assert(node.getKind() == AND);
   if (!negated) {
     // If the node is a conjunction, we handle each conjunct separately
-    unsigned index = 0;
-    NodeManager* nm = NodeManager::currentNM();
-    for (TNode::const_iterator conjunct = node.begin(), node_end = node.end();
-         conjunct != node_end;
-         ++conjunct)
-    {
+    for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
+        conjunct != node_end; ++conjunct ) {
       PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(*conjunct, node););
-      if (CVC4::options::proofNew())
-      {
-        // Create a proof step for each n_i
-        Node iNode = nm->mkConst<Rational>(index++);
-        NewProofManager::currentPM()->addStep(
-            *conjunct, PfRule::AND_ELIM, {node}, {iNode});
-      }
       convertAndAssert(*conjunct, false);
     }
   } else {
     // If the node is a disjunction, we construct a clause and assert it
-    unsigned nChildren = node.getNumChildren();
+    int nChildren = node.getNumChildren();
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
-    for(unsigned i = 0; i < nChildren; ++ disjunct, ++ i) {
+    for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
       Assert(disjunct != node.end());
       clause[i] = toCNF(*disjunct, true);
     }
     Assert(disjunct == node.end());
-    bool added = assertClause(node.negate(), clause);
-    if (CVC4::options::proofNew() && added)
-    {
-      std::vector<Node> disjuncts;
-      for (unsigned i = 0; i < nChildren; ++i)
-      {
-        disjuncts.push_back(node[i].notNode());
-      }
-      Node clauseNode = NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
-    }
+    assertClause(node.negate(), clause);
   }
 }
 
@@ -762,34 +570,21 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
   Assert(node.getKind() == OR);
   if (!negated) {
     // If the node is a disjunction, we construct a clause and assert it
-    unsigned nChildren = node.getNumChildren();
+    int nChildren = node.getNumChildren();
     SatClause clause(nChildren);
     TNode::const_iterator disjunct = node.begin();
-    for(unsigned i = 0; i < nChildren; ++ disjunct, ++ i) {
+    for(int i = 0; i < nChildren; ++ disjunct, ++ i) {
       Assert(disjunct != node.end());
       clause[i] = toCNF(*disjunct, false);
     }
     Assert(disjunct == node.end());
     assertClause(node, clause);
- } else {
+  } else {
     // If the node is a conjunction, we handle each conjunct separately
-    unsigned index = 0;
-    NodeManager* nm = NodeManager::currentNM();
-    for (TNode::const_iterator conjunct = node.begin(), node_end = node.end();
-         conjunct != node_end;
-         ++conjunct)
-    {
-      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence((*conjunct).negate(),
-                                                         node.negate()););
-      if (CVC4::options::proofNew())
-      {
-        // Create a proof step for each (not n_i)
-        Node iNode = nm->mkConst<Rational>(index++);
-        NewProofManager::currentPM()->addStep((*conjunct).notNode(),
-                                              PfRule::NOT_OR_ELIM,
-                                              {node.notNode()},
-                                              {iNode});
-      }
+    for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
+        conjunct != node_end; ++conjunct ) {
+      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate()););
+      convertAndAssert(*conjunct, true);
     }
   }
 }
@@ -799,56 +594,28 @@ void TseitinCnfStream::convertAndAssertXor(TNode node, bool negated) {
     // p XOR q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
-    bool added;
-    NodeManager* nm = NodeManager::currentNM();
     // Construct the clauses (p => !q) and (!q => p)
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = ~q;
-    added = assertClause(node, clause1);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode =
-          nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
-      NewProofManager::currentPM()->addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
-    }
+    assertClause(node, clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = q;
-    added = assertClause(node, clause2);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode =
-          nm->mkNode(kind::OR, node[0], node[1]);
-      NewProofManager::currentPM()->addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
-    }
+    assertClause(node, clause2);
   } else {
     // !(p XOR q) is the same as p <=> q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
-    bool added;
-    NodeManager* nm = NodeManager::currentNM();
     // Construct the clauses (p => q) and (q => p)
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = q;
-    added = assertClause(node.negate(), clause1);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
-    }
+    assertClause(node.negate(), clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = ~q;
-    added = assertClause(node.negate(), clause2);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
-    }
+    assertClause(node.negate(), clause2);
   }
 }
 
@@ -857,57 +624,28 @@ void TseitinCnfStream::convertAndAssertIff(TNode node, bool negated) {
     // p <=> q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
-    bool added;
-    NodeManager* nm = NodeManager::currentNM();
     // Construct the clauses (p => q) and (q => p)
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = q;
-    added = assertClause(node, clause1);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
-    }
+    assertClause(node, clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = ~q;
-    added = assertClause(node, clause2);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
-    }
+    assertClause(node, clause2);
   } else {
     // !(p <=> q) is the same as p XOR q
     SatLiteral p = toCNF(node[0], false);
     SatLiteral q = toCNF(node[1], false);
-    bool added;
-    NodeManager* nm = NodeManager::currentNM();
     // Construct the clauses (p => !q) and (!q => p)
     SatClause clause1(2);
     clause1[0] = ~p;
     clause1[1] = ~q;
-    added = assertClause(node.negate(), clause1);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode =
-          nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
-    }
+    assertClause(node.negate(), clause1);
     SatClause clause2(2);
     clause2[0] = p;
     clause2[1] = q;
-    added = assertClause(node.negate(), clause2);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
-    }
+    assertClause(node.negate(), clause2);
   }
 }
 
@@ -920,30 +658,13 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
     SatClause clause(2);
     clause[0] = ~p;
     clause[1] = q;
-    bool added = assertClause(node, clause);
-    if (CVC4::options::proofNew() && added)
-    {
-      Node clauseNode = NodeManager::currentNM()->mkNode(
-          kind::OR, node[0].notNode(), node[1]);
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::IMPLIES_ELIM, {node}, {});
-    }
+    assertClause(node, clause);
   } else {// Construct the
     PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[0], node.negate()););
     PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[1].negate(), node.negate()););
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], false);
-    if (CVC4::options::proofNew())
-    {
-      NewProofManager::currentPM()->addStep(
-          node[0], PfRule::NOT_IMPLIES_ELIM1, {node.notNode()}, {});
-    }
     convertAndAssert(node[1], true);
-    if (CVC4::options::proofNew())
-    {
-      NewProofManager::currentPM()->addStep(
-          node[1].notNode(), PfRule::NOT_IMPLIES_ELIM2, {node.notNode()}, {});
-    }
   }
 }
 
@@ -952,8 +673,6 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
   SatLiteral p = toCNF(node[0], false);
   SatLiteral q = toCNF(node[1], negated);
   SatLiteral r = toCNF(node[2], negated);
-  bool added;
-  NodeManager* nm = NodeManager::currentNM();
   // Construct the clauses:
   // (p => q) and (!p => r)
   //
@@ -966,40 +685,11 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
   SatClause clause1(2);
   clause1[0] = ~p;
   clause1[1] = q;
-  added = assertClause(nnode, clause1);
-  if (CVC4::options::proofNew() && added)
-  {
-    if (!negated)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
-      NewProofManager::currentPM()->addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
-    }
-    else
-    {
-      Node clauseNode =
-          nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_ITE_ELIM1, {node.notNode()}, {});
-    }
-  }
+  assertClause(nnode, clause1);
   SatClause clause2(2);
   clause2[0] = p;
   clause2[1] = r;
-  added = assertClause(nnode, clause2);
-  if (CVC4::options::proofNew() && added)
-  {
-    if (!negated)
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[2]);
-      NewProofManager::currentPM()->addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
-    }
-    else
-    {
-      Node clauseNode = nm->mkNode(kind::OR, node[0], node[2].notNode());
-      NewProofManager::currentPM()->addStep(
-          clauseNode, PfRule::NOT_ITE_ELIM2, {node.notNode()}, {});
-    }
-  }
+  assertClause(nnode, clause2);
 }
 
 // At the top level we must ensure that all clauses that are asserted are
@@ -1078,14 +768,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
       nnode = node.negate();
     }
     // Atoms
-    SatLiteral lit = toCNF(node, negated);
-    bool added = assertClause(nnode, lit);
-    if (CVC4::options::proofNew() && added)
-    {
-      NewProofManager* pm = NewProofManager::currentPM();
-      pm->registerClause(lit);
-      pm->addStep(nnode, PfRule::ASSUME, {}, {nnode});
-    }
+    assertClause(nnode, toCNF(node, negated));
   }
     break;
   }

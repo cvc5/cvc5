@@ -28,9 +28,9 @@
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "proof/new_proof_manager.h"
 #include "proof/proof_manager.h"
 #include "prop/registrar.h"
+#include "prop/proof_cnf_stream.h"
 #include "prop/theory_proxy.h"
 
 namespace CVC4 {
@@ -38,12 +38,15 @@ namespace CVC4 {
 namespace prop {
 
 class PropEngine;
+class ProofCnfStream;
 
 /**
  * Comments for the behavior of the whole class... [??? -Chris]
  * @author Tim King <taking@cs.nyu.edu>
  */
 class CnfStream {
+  friend ProofCnfStream;
+
  public:
   /** Cache of what nodes have been registered to a literal. */
   typedef context::CDInsertHashMap<SatLiteral, TNode, SatLiteralHashFunction>

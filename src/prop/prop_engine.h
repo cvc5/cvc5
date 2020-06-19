@@ -27,6 +27,7 @@
 #include "expr/node.h"
 #include "options/options.h"
 #include "preprocessing/assertion_pipeline.h"
+#include "prop/proof_cnf_stream.h"
 #include "proof/proof_manager.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
