@@ -225,20 +225,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
         // Rewrite until fix-point is reached
         for(;;) {
           // Perform the pre-rewrite
-          RewriteResponse response =
-              preRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node);
-
-          if (tcpg != nullptr && rewriteStackTop.d_node != response.d_node)
-          {
-            NodeManager* nm = NodeManager::currentNM();
-            Trace("t-rewrite") << "t-rew (pre) : " << rewriteStackTop.d_node
-                               << " --> " << response.d_node << std::endl;
-            tcpg->addRewriteStep(rewriteStackTop.d_node,
-                                 response.d_node,
-                                 PfRule::THEORY_REWRITE,
-                                 {},
-                                 {rewriteStackTop.d_node, nm->mkConst(true)});
-          }
+          RewriteResponse response = preRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
 
           // Put the rewritten node to the top of the stack
           rewriteStackTop.d_node = response.d_node;
@@ -312,19 +299,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
       for(;;) {
         // Do the post-rewrite
         RewriteResponse response =
-            postRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node);
-
-        if (tcpg != nullptr && rewriteStackTop.d_node != response.d_node)
-        {
-          NodeManager* nm = NodeManager::currentNM();
-          Trace("t-rewrite") << "t-rew (post): " << rewriteStackTop.d_node
-                             << " --> " << response.d_node << std::endl;
-          tcpg->addRewriteStep(rewriteStackTop.d_node,
-                               response.d_node,
-                               PfRule::THEORY_REWRITE,
-                               {},
-                               {rewriteStackTop.d_node, nm->mkConst(false)});
-        }
+            postRewrite(rewriteStackTop.getTheoryId(), rewriteStackTop.d_node, tcpg);
 
         // We continue with the response we got
         TheoryId newTheoryId = theoryOf(response.d_node);
@@ -392,28 +367,77 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   Unreachable();
 } /* Rewriter::rewriteTo() */
 
-RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId, TNode n)
+RewriteResponse Rewriter::preRewrite(theory::TheoryId theoryId, TNode n,
+                 TConvProofGenerator* tcpg)
 {
   Kind k = n.getKind();
   std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn =
       (k == kind::EQUAL) ? d_preRewritersEqual[theoryId] : d_preRewriters[k];
   if (fn == nullptr)
   {
+    if (tcpg != nullptr)
+    {
+      // call the trust rewrite response interface
+      TrustRewriteResponse tresponse =
+        d_theoryRewriters[theoryId]->preRewriteWithProof(n);
+      // process the trust rewrite response: store the proof step into
+      // tcpg if necessary and then convert to rewrite response.
+      return processTrustRewriteResponse(tresponse, true, tcpg);
+    }
     return d_theoryRewriters[theoryId]->preRewrite(n);
   }
   return fn(&d_re, n);
 }
 
-RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId, TNode n)
+RewriteResponse Rewriter::postRewrite(theory::TheoryId theoryId, TNode n,
+                 TConvProofGenerator* tcpg)
 {
   Kind k = n.getKind();
   std::function<RewriteResponse(RewriteEnvironment*, TNode)> fn =
       (k == kind::EQUAL) ? d_postRewritersEqual[theoryId] : d_postRewriters[k];
   if (fn == nullptr)
   {
+    if (tcpg != nullptr)
+    {
+      // same as above, for post-rewrite
+      TrustRewriteResponse tresponse =
+        d_theoryRewriters[theoryId]->postRewriteWithProof(n);
+      return processTrustRewriteResponse(tresponse, false, tcpg);
+    }
     return d_theoryRewriters[theoryId]->postRewrite(n);
   }
   return fn(&d_re, n);
+}
+
+
+RewriteResponse Rewriter::processTrustRewriteResponse(const TrustRewriteResponse& tresponse,
+                                            bool isPre,
+                TConvProofGenerator* tcpg)
+{
+  Assert (tcpg!=nullptr);
+  TrustNode trn = tresponse.d_node;
+  Assert (trn.getKind()==TrustNodeKind::REWRITE);
+  Node proven = trn.getProven();
+  if (proven[0] != proven[1])
+  {
+    ProofGenerator * pg = trn.getGenerator();
+    if (pg==nullptr)
+    {
+      // add small step trusted rewrite
+      NodeManager* nm = NodeManager::currentNM();
+      tcpg->addRewriteStep(proven[0],
+                          proven[1],
+                          PfRule::THEORY_REWRITE,
+                          {},
+                          {proven[0], nm->mkConst(isPre)});
+    }
+    else
+    {
+      // store proven rewrite step
+      tcpg->addRewriteStep(proven[0], proven[1], pg);
+    }
+  }
+  return RewriteResponse(tresponse.d_status, trn.getNode());
 }
 
 void Rewriter::clearCaches() {

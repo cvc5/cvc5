@@ -105,6 +105,7 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
+#include "theory/rewrite_db.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/substitutions.h"
@@ -656,6 +657,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_propEngine(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_rewriteDb(nullptr),
       d_definedFunctions(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),

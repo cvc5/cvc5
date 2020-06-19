@@ -656,6 +656,8 @@ libcvc4_add_sources(
   theory/rewrite_db.h
   theory/rewrite_db_proof_generator.cpp
   theory/rewrite_db_proof_generator.h
+  theory/rewrite_db_sc.cpp
+  theory/rewrite_db_sc.h
   theory/rewrite_db_term_process.cpp
   theory/rewrite_db_term_process.h
   theory/rewrite_proof_rule.cpp
@@ -774,6 +776,7 @@ libcvc4_add_sources(
   theory/theory_preprocessor.h
   theory/theory_proof_step_buffer.cpp
   theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.cpp
   theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h

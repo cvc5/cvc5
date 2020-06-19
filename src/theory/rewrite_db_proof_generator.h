@@ -33,8 +33,11 @@ class RewriteDbProofCons : public ProofGenerator
 {
  public:
   RewriteDbProofCons(RewriteDb& db, ProofNodeManager* pnm);
-  /** Prove? */
-  bool prove(Node a, Node b, unsigned recDepth, bool ensureProof = false);
+  /** 
+   * Prove (= a b) with recursion limit recLimit. If ensureProof is true, then
+   * we ensure a proof is generated for (= a b) internally.
+   */
+  bool prove(Node a, Node b, unsigned recLimit, bool ensureProof = false);
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
 

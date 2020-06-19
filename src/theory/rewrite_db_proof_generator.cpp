@@ -142,12 +142,12 @@ bool RewriteDbProofCons::notifyMatch(Node s,
         Trace("rew-db-infer-sc") << "Check condition: " << sc << std::endl;
         // recursively check if the condition holds
         DslPfRule cid = proveInternal(sc);
-        condSuccess = (cid != DslPfRule::FAIL);
-        if (!condSuccess)
+        if (cid == DslPfRule::FAIL)
         {
           // print reason for failure
           Trace("rew-db") << "required: " << sc << " for " << rpr.d_name
                           << std::endl;
+          condSuccess = false;
           break;
         }
       }

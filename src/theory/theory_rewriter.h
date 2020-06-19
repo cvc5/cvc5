@@ -20,6 +20,7 @@
 #define CVC4__THEORY__THEORY_REWRITER_H
 
 #include "expr/node.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -53,6 +54,16 @@ struct RewriteResponse
   RewriteResponse(RewriteStatus status, Node n) : d_status(status), d_node(n) {}
 }; /* struct RewriteResponse */
 
+/** Same as above, with trust node instead of node. */
+struct TrustRewriteResponse
+{
+  TrustRewriteResponse(RewriteStatus status, Node n, Node nr, ProofGenerator * pg);
+  /** The status of the rewrite */
+  const RewriteStatus d_status;
+  /** The trust node corresponding to the rewrite */
+  TrustNode d_node;
+};
+
 /**
  * The interface that a theory rewriter has to implement.
  *
@@ -80,11 +91,25 @@ class TheoryRewriter
   virtual RewriteResponse postRewrite(TNode node) = 0;
 
   /**
+   * Performs a pre-rewrite step, with proofs.
+   *
+   * @param node The node to rewrite
+   */
+  virtual TrustRewriteResponse postRewriteWithProof(TNode node);
+  /**
    * Performs a post-rewrite step.
    *
    * @param node The node to rewrite
    */
   virtual RewriteResponse preRewrite(TNode node) = 0;
+  
+  /**
+   * Performs a pre-rewrite step, with proofs.
+   *
+   * @param node The node to rewrite
+   */
+  virtual TrustRewriteResponse preRewriteWithProof(TNode node);
+  
   /** rewrite equality extended
    *
    * This method returns a formula that is equivalent to the equality between

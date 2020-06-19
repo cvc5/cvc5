@@ -109,6 +109,7 @@ namespace smt {
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class RewriteDb;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -1109,6 +1110,11 @@ class CVC4_PUBLIC SmtEngine
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+  
+  /** 
+   * The rewrite proof database.
+   */
+  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
