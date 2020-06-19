@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
@@ -1666,8 +1667,8 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c)
 
 static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
 {
-  const vector<Expr>& funcs = c->getFunctions();
-  const vector<vector<Expr> >& formals = c->getFormals();
+  const vector<api::Term>& funcs = c->getFunctions();
+  const vector<vector<api::Term> >& formals = c->getFormals();
   out << "(define-fun";
   if (funcs.size() > 1)
   {
@@ -1690,10 +1691,10 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
     }
     out << funcs[i] << " (";
     // print its type signature
-    vector<Expr>::const_iterator itf = formals[i].begin();
+    vector<api::Term>::const_iterator itf = formals[i].begin();
     for (;;)
     {
-      out << "(" << (*itf) << " " << (*itf).getType() << ")";
+      out << "(" << (*itf) << " " << (*itf).getSort() << ")";
       ++itf;
       if (itf != formals[i].end())
       {
@@ -1704,8 +1705,8 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
         break;
       }
     }
-    Type type = funcs[i].getType();
-    type = static_cast<FunctionType>(type).getRangeType();
+    api::Sort type = funcs[i].getSort();
+    type = type.getFunctionCodomainSort();
     out << ") " << type;
     if (funcs.size() > 1)
     {
@@ -1716,7 +1717,7 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   {
     out << ") (";
   }
-  const vector<Expr>& formulas = c->getFormulas();
+  const vector<api::Term>& formulas = c->getFormulas();
   for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {
     if (i > 0)
