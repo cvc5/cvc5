@@ -2,7 +2,6 @@
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
-(set-option :produce-models true)
 (declare-fun a ((_ BitVec 2)) Int)
 (declare-fun b (Int) (_ BitVec 2))
 (declare-const c Int)

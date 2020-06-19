@@ -2,9 +2,9 @@
 /*! \file Smt2.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1208,7 +1208,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
         expr = PARSER_STATE->mkHoApply( expr, flattenVars );
       }
       cmd->reset(new DefineFunctionRecCommand(
-          func.getExpr(), api::termVectorToExprs(bvs), expr.getExpr(), PARSER_STATE->getGlobalDeclarations()));
+          SOLVER, func, bvs, expr, PARSER_STATE->getGlobalDeclarations()));
     }
   | DEFINE_FUNS_REC_TOK
     { PARSER_STATE->checkThatLogicIsSet();}
@@ -1271,15 +1271,12 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
             "Number of functions defined does not match number listed in "
             "define-funs-rec"));
       }
-      std::vector<std::vector<Expr>> eformals;
-      for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
-      {
-        eformals.push_back(api::termVectorToExprs(formals[i]));
-      }
       cmd->reset(
-          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
-                                       eformals,
-                                       api::termVectorToExprs(func_defs), PARSER_STATE->getGlobalDeclarations()));
+          new DefineFunctionRecCommand(SOLVER,
+                                       funcs,
+                                       formals,
+                                       func_defs,
+                                       PARSER_STATE->getGlobalDeclarations()));
     }
   ;
 

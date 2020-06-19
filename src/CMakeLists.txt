@@ -316,6 +316,8 @@ libcvc4_add_sources(
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
   theory/arith/simplex.cpp
@@ -716,6 +718,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strategy.cpp
+  theory/strings/strategy.h
   theory/strings/strings_entail.cpp
   theory/strings/strings_entail.h
   theory/strings/strings_fmf.cpp
