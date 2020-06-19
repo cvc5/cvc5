@@ -2,9 +2,9 @@
 /*! \file Datatypes.java
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Morgan Deters, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,11 +32,11 @@ public class Datatypes {
     // symbols are assigned to its constructors, selectors, and testers.
 
     Datatype consListSpec = new Datatype(em, "list"); // give a name
-    DatatypeConstructor cons = new DatatypeConstructor("cons");
+    DatatypeConstructor cons = new DatatypeConstructor(em, "cons");
     cons.addArg("head", em.integerType());
     cons.addArg("tail", new DatatypeSelfType()); // a list
     consListSpec.addConstructor(cons);
-    DatatypeConstructor nil = new DatatypeConstructor("nil");
+    DatatypeConstructor nil = new DatatypeConstructor(em, "nil");
     consListSpec.addConstructor(nil);
 
     System.out.println("spec is:");

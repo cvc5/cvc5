@@ -1,102 +1,108 @@
 %{
 #include "expr/expr.h"
-
-#ifdef SWIGJAVA
-
-#include "bindings/java_iterator_adapter.h"
-#include "bindings/java_stream_adapters.h"
-
-#endif /* SWIGJAVA */
 %}
 
-#ifdef SWIGPYTHON
-%rename(doApply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
-#else /* SWIGPYTHON */
-%rename(apply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
-#endif /* SWIGPYTHON */
-
-#ifdef SWIGJAVA
-%typemap(javabody) CVC4::Expr %{
-  private long swigCPtr;
-  protected boolean swigCMemOwn;
-
-  protected $javaclassname(long cPtr, boolean cMemoryOwn) {
-    swigCMemOwn = cMemoryOwn;
-    swigCPtr = cPtr;
-    this.em = SmtEngine.mkRef(getExprManager()); // keep ref to em in SWIG proxy class
-  }
-
-  protected static long getCPtr($javaclassname obj) {
-    return (obj == null) ? 0 : obj.swigCPtr;
-  }
-%}
-%javamethodmodifiers CVC4::Expr::operator=(const Expr&) "protected";
-%typemap(javacode) CVC4::Expr %{
-  // a ref is kept here to keep Java GC from collecting the ExprManager
-  // before the Expr
-  private Object em;
-
-  public Expr assign(Expr e) {
-    Expr r = assignInternal(e);
-    this.em = SmtEngine.mkRef(getExprManager()); // keep ref to em in SWIG proxy class
-    return r;
-  }
-%}
-%typemap(javaconstruct) Expr {
-    this($imcall, true);
-    this.em = SmtEngine.mkRef(getExprManager()); // keep ref to em in SWIG proxy class
-  }
-%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") CVC4::Expr {
-    SmtEngine.dlRef(em);
-    em = null;
-    if (swigCPtr != 0) {
-      if (swigCMemOwn) {
-        swigCMemOwn = false;
-        CVC4JNI.delete_Expr(swigCPtr);
-      }
-      swigCPtr = 0;
-    }
-  }
-#endif /* SWIGJAVA */
-
+%ignore CVC4::Expr::Expr(const Expr&);
+// This is currently the only function that would require bindings for
+// `std::unordered_map<Expr, Expr, ExprHashFunction>` and is better implemented
+// at the Java/Python level if needed. Thus, we ignore it here.
+%ignore CVC4::Expr::substitute(const std::unordered_map<Expr, Expr, ExprHashFunction> map) const;
 %ignore CVC4::operator<<(std::ostream&, const Expr&);
 %ignore CVC4::operator<<(std::ostream&, const TypeCheckingException&);
-
+// Ignore because we would not know which ExprManager the Expr belongs to
+%ignore CVC4::TypeCheckingException::getExpression() const;
 %ignore CVC4::expr::operator<<(std::ostream&, ExprSetDepth);
 %ignore CVC4::expr::operator<<(std::ostream&, ExprPrintTypes);
 %ignore CVC4::expr::operator<<(std::ostream&, ExprDag);
 %ignore CVC4::expr::operator<<(std::ostream&, ExprSetLanguage);
-
-%rename(assignInternal) CVC4::Expr::operator=(const Expr&);
-%rename(equals) CVC4::Expr::operator==(const Expr&) const;
+%ignore CVC4::Expr::operator=(const Expr&);
 %ignore CVC4::Expr::operator!=(const Expr&) const;
+%ignore CVC4::Expr::operator bool() const;// can just use isNull()
+
+%rename(equals) CVC4::Expr::operator==(const Expr&) const;
 %rename(less) CVC4::Expr::operator<(const Expr&) const;
 %rename(lessEqual) CVC4::Expr::operator<=(const Expr&) const;
 %rename(greater) CVC4::Expr::operator>(const Expr&) const;
 %rename(greaterEqual) CVC4::Expr::operator>=(const Expr&) const;
 
 %rename(getChild) CVC4::Expr::operator[](unsigned i) const;
-%ignore CVC4::Expr::operator bool() const;// can just use isNull()
-
-namespace CVC4 {
-  namespace expr {
-    %ignore exportInternal;
-  }/* CVC4::expr namespace */
-}/* CVC4 namespace */
 
 #ifdef SWIGJAVA
+
+// For the Java bindings, we implement `getExprManager()` at the Java level
+// because we can't map back the C++ point to the Java object
+%ignore CVC4::Expr::getExprManager() const;
+%rename(apply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
+
+%typemap(javabody) CVC4::Expr %{
+  private long swigCPtr;
+  protected boolean swigCMemOwn;
+  private ExprManager em;
+
+  protected $javaclassname(ExprManager em, long cPtr, boolean cMemoryOwn) {
+    swigCMemOwn = cMemoryOwn;
+    swigCPtr = cPtr;
+    this.em = em; // keep ref to em in SWIG proxy class
+  }
+
+  protected static long getCPtr($javaclassname obj) {
+    return (obj == null) ? 0 : obj.swigCPtr;
+  }
+
+  public ExprManager getExprManager() throws edu.stanford.CVC4.Exception {
+    return this.em;
+  }
+
+  public JavaIteratorAdapter_Expr iterator() {
+    return new JavaIteratorAdapter_Expr(this.em, this);
+  }
+%}
+
+// Workaround for https://github.com/swig/swig/commit/63a5a8af88271559a7b170794b4c61c30b8934ea
+%typemap(javaconstruct) Expr {
+  this(null, $imcall, true);
+}
+
+%typemap(javaconstruct) CVC4::Expr {
+  this(null, $imcall, true);
+}
+
+%typemap(javaout) CVC4::Expr {
+  return new Expr(this.em, $jnicall, true);
+}
+
+SWIG_STD_VECTOR_EM(CVC4::Expr, const CVC4::Expr&)
+SWIG_STD_VECTOR_EM(std::vector<CVC4::Expr>, const std::vector<CVC4::Expr>&)
+
+%template(vectorExpr) std::vector<CVC4::Expr>;
+%typemap(javaout) std::vector<CVC4::Expr> {
+  return new vectorExpr(this.em, $jnicall, true);
+}
+%typemap(javaout) const std::vector<CVC4::Expr>& {
+  return new vectorExpr(this.em, $jnicall, false);
+}
+%template(vectorVectorExpr) std::vector<std::vector<CVC4::Expr>>;
+
+%javamethodmodifiers CVC4::Expr::operator=(const Expr&) "protected";
+
+%typemap(javaout) const CVC4::AscriptionType& {
+  return new AscriptionType(this.em, $jnicall, $owner);
+}
+
+%typemap(javaout) const CVC4::EmptySet& {
+  return new EmptySet(this.em, $jnicall, $owner);
+}
+
+%typemap(javaout) const CVC4::ExprSequence& {
+  return new ExprSequence(this.em, $jnicall, $owner);
+}
 
 // Instead of Expr::begin() and end(), create an
 // iterator() method on the Java side that returns a Java-style
 // Iterator.
 %ignore CVC4::Expr::begin() const;
 %ignore CVC4::Expr::end() const;
-%extend CVC4::Expr {
-  CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> iterator()
-  {
-    return CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr>(*$self);
-  }
-}
+%ignore CVC4::Expr::const_iterator;
 
 // Expr is "iterable" on the Java side
 %typemap(javainterfaces) CVC4::Expr "java.lang.Iterable<edu.stanford.CVC4.Expr>";
@@ -122,6 +128,10 @@ namespace CVC4 {
 %javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr>::getNext() "private";
 
 #endif /* SWIGJAVA */
+
+#ifdef SWIGPYTHON
+%rename(doApply) CVC4::ExprHashFunction::operator()(CVC4::Expr) const;
+#endif /* SWIGPYTHON */
 
 %include "expr/expr.h"
 
@@ -156,11 +166,7 @@ namespace CVC4 {
 
 #ifdef SWIGJAVA
 
-%include "bindings/java_iterator_adapter.h"
-%include "bindings/java_stream_adapters.h"
-
+SWIG_JAVA_ITERATOR_ADAPTER(CVC4::Expr, CVC4::Expr)
 %template(JavaIteratorAdapter_Expr) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr>;
 
 #endif /* SWIGJAVA */
-
-%include "expr/expr.h"

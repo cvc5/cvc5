@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -224,9 +224,6 @@ inline const bool getBit(Expr expr, unsigned i) {
   Integer bit = expr.getConst<BitVector>().extract(i, i).getValue();
   return (bit == 1u);
 }
-
-void collectAtoms(TNode node, std::set<Node>& seen);
-
 
 }
 }
