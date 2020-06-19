@@ -111,6 +111,7 @@ class TheoryStrings : public Theory {
    * model. Return false if a contradiction is discovered.
    */
   bool collectModelInfo(TheoryModel* m) override;
+
  private:
   /** NotifyClass for equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
