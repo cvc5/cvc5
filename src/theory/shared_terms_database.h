@@ -161,8 +161,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   SharedTermsDatabase(TheoryEngine* theoryEngine,
                       context::Context* context,
                       context::UserContext* userContext,
-                      ProofNodeManager* pnm,
-                      bool pfEnabled);
+                      ProofNodeManager* pnm);
   ~SharedTermsDatabase();
 
   /**

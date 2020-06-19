@@ -116,6 +116,8 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node_manager.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -657,6 +659,8 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_propEngine(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_pchecker(nullptr),
+      d_pnm(nullptr),
       d_rewriteDb(nullptr),
       d_definedFunctions(nullptr),
       d_assertionList(nullptr),
@@ -712,13 +716,20 @@ void SmtEngine::finishInit()
   // ensure that our heuristics are properly set up
   setDefaults(*this, d_logic);
   
+  if (options::proofNew())
+  {
+    d_pchecker.reset(new ProofChecker);
+    d_pnm.reset(new ProofNodeManager(d_pchecker.get()));
+  }
+  
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine.reset(new TheoryEngine(getContext(),
                                         getUserContext(),
                                         d_private->d_iteRemover,
-                                        const_cast<const LogicInfo&>(d_logic)));
+                                        const_cast<const LogicInfo&>(d_logic),
+                                        d_pnm.get()));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -883,6 +894,8 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
+    d_pchecker.reset(nullptr);
+    d_pnm.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);

@@ -148,12 +148,10 @@ class TheoryEngine {
   const LogicInfo& d_logicInfo;
 
   //--------------------------------- new proofs
-  /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_pchecker;
-
-  /** A proof node manager based on the above checker */
-  std::unique_ptr<ProofNodeManager> d_pNodeManager;
-
+  /** Proof checker used by this theory engine, if proofs are enabled */
+  ProofChecker* d_pchecker;
+  /** Proof node manager used by this theory engine, if proofs are enabled */
+  ProofNodeManager* d_pnm;
   /** The lazy proof object
    *
    * This stores instructions for how to construct proofs for all theory lemmas.
@@ -393,7 +391,9 @@ class TheoryEngine {
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
                RemoveTermFormulas& iteRemover,
-               const LogicInfo& logic);
+               const LogicInfo& logic,
+               ProofNodeManager * pnm
+              );
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -412,14 +412,12 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
-    // pass proof checker if we are proof producing
-    ProofChecker* pc = d_lazyProof != nullptr ? d_pchecker.get() : nullptr;
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
                                               d_logicInfo,
-                                              pc);
+                                              d_pchecker);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }

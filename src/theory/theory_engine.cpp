@@ -177,26 +177,24 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
-                           const LogicInfo& logicInfo)
+                           const LogicInfo& logicInfo,
+               ProofNodeManager * pnm)
     : d_propEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_pchecker(options::proofNew() ? new ProofChecker : nullptr),
-      d_pNodeManager(options::proofNew()
-                         ? new ProofNodeManager(d_pchecker.get())
-                         : nullptr),
+      d_pchecker(pnm ? pnm->getChecker() : nullptr),
+      d_pnm(pnm),
       d_lazyProof(
-          options::proofNew()
-              ? new LazyCDProof(d_pNodeManager.get(), nullptr, d_userContext)
+          d_pnm!=nullptr
+              ? new LazyCDProof(d_pnm, nullptr, d_userContext)
               : nullptr),
       d_tepg(
-          new TheoryEngineProofGenerator(d_pNodeManager.get(), d_userContext)),
+          new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_sharedTerms(this,
                     context,
                     userContext,
-                    d_pNodeManager.get(),
-                    d_lazyProof != nullptr),
+                    d_pnm),
       d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
@@ -217,7 +215,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_propagatedLiterals(context),
       d_propagatedLiteralsIndex(context, 0),
       d_atomRequests(context),
-      d_tpp(*this, iteRemover, d_pNodeManager.get()),
+      d_tpp(*this, iteRemover, d_pnm),
       d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
       d_true(),
       d_false(),
@@ -1926,7 +1924,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   {
     Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion
                           << std::endl;
-    lcp.reset(new LazyCDProof(d_pNodeManager.get()));
+    lcp.reset(new LazyCDProof(d_pnm));
   }
   unsigned i = 0; // Index of the current literal we are processing
 

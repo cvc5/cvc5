@@ -26,8 +26,7 @@ namespace CVC4 {
 SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
                                          context::Context* context,
                                          context::UserContext* userContext,
-                                         ProofNodeManager* pnm,
-                                         bool pfEnabled)
+                                         ProofNodeManager* pnm)
     : ContextNotifyObj(context),
       d_statSharedTerms("theory::shared_terms", 0),
       d_addedSharedTermsSize(context, 0),
@@ -36,7 +35,7 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_registeredEqualities(context),
       d_EENotify(*this),
       d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
-      d_pfee(context, userContext, d_equalityEngine, pnm, pfEnabled),
+      d_pfee(context, userContext, d_equalityEngine, pnm),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
       d_conflictPolarity()

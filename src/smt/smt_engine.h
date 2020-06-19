@@ -58,6 +58,8 @@ class DecisionEngine;
 class TheoryEngine;
 
 class ProofManager;
+class ProofChecker;
+class ProofNodeManager;
 
 class Model;
 class LogicRequest;
@@ -1110,11 +1112,15 @@ class CVC4_PUBLIC SmtEngine
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
-  
-  /** 
-   * The rewrite proof database.
-   */
+
+  //--------------------------------- new proofs
+  /** For the new proofs module */
+  std::unique_ptr<ProofChecker> d_pchecker;
+  /** A proof node manager based on the above checker */
+  std::unique_ptr<ProofNodeManager> d_pnm;
+  /** The rewrite proof database. */
   std::unique_ptr<theory::RewriteDb> d_rewriteDb;
+  //--------------------------------- end new proofs
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;

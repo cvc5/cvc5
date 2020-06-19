@@ -53,9 +53,12 @@ TheoryUF::TheoryUF(context::Context* c,
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_pnm(new ProofNodeManager(pc)),
+      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
-      d_pfEqualityEngine(nullptr),
+      d_pfEqualityEngine(new eq::ProofEqEngine(c,
+                                                 u,
+                                                 d_equalityEngine,
+                                                 d_pnm.get())),
       d_conflict(c, false),
       d_functionsTerms(c),
       d_symb(u, instanceName)
@@ -97,11 +100,6 @@ void TheoryUF::finishInit() {
     d_equalityEngine.addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
   }
-  d_pfEqualityEngine.reset(new eq::ProofEqEngine(getSatContext(),
-                                                 getUserContext(),
-                                                 d_equalityEngine,
-                                                 d_pnm.get(),
-                                                 options::proofNew()));
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {

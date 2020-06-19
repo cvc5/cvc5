@@ -48,7 +48,7 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_pnm(pnm),
       d_pfGenEe(new EagerProofGenerator(pnm, u)),
       d_pfGenExplain(new EagerProofGenerator(pnm, c)),
-      d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm, options::proofNew()))
+      d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm))
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);

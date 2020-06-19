@@ -34,7 +34,7 @@ InferProofCons::InferProofCons(context::Context* c,
                                bool pfEnabled)
     : d_pnm(pnm),
       d_lazyFactMap(c),
-      d_psb(pnm->getChecker()),
+      d_psb(pnm!=nullptr ? pnm->getChecker() : nullptr),
       d_statistics(statistics),
       d_pfEnabled(pfEnabled)
 {

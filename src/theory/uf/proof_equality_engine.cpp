@@ -26,17 +26,14 @@ namespace eq {
 ProofEqEngine::ProofEqEngine(context::Context* c,
                              context::UserContext* u,
                              EqualityEngine& ee,
-                             ProofNodeManager* pnm,
-                             bool pfEnabled,
-                             bool recExplain)
+                             ProofNodeManager* pnm)
     : EagerProofGenerator(pnm, u),
       d_ee(ee),
       d_pnm(pnm),
       d_proof(pnm, nullptr, c),
       d_factPg(c, pnm),
       d_keep(c),
-      d_pfEnabled(pfEnabled),
-      d_recExplain(recExplain)
+      d_pfEnabled(pnm!=nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
@@ -589,44 +586,14 @@ void ProofEqEngine::explainWithProof(Node lit,
     Assert(d_ee.hasTerm(atom[1]));
     if (!polarity)
     {
-      if (d_recExplain)
-      {
-        if (!d_ee.areDisequal(atom[0], atom[1], true))
-        {
-          // TODO: it appears that this is necessary for assumptions that caused
-          // a conflict
-          assumps.push_back(lit);
-          return;
-        }
-      }
-      else
-      {
-        // ensure the explanation exists
-        AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
-      }
-    }
-    else
-    {
-      // Assert(d_ee.areEqual(atom[0], atom[1]));
+      // ensure the explanation exists
+      AlwaysAssert(d_ee.areDisequal(atom[0], atom[1], true));
     }
     d_ee.explainEquality(atom[0], atom[1], polarity, tassumps, pf.get());
   }
   else
   {
-    if (d_recExplain)
-    {
-      if (!d_ee.hasTerm(atom))
-      {
-        // TODO: it appears that this is necessary for assumptions that caused
-        // a conflict
-        assumps.push_back(lit);
-        return;
-      }
-    }
-    else
-    {
-      Assert(d_ee.hasTerm(atom));
-    }
+    Assert(d_ee.hasTerm(atom));
     d_ee.explainPredicate(atom, polarity, tassumps, pf.get());
   }
   Trace("pfee-proof") << "...got " << tassumps << std::endl;
@@ -636,22 +603,6 @@ void ProofEqEngine::explainWithProof(Node lit,
     if (a == lit)
     {
       assumps.push_back(a);
-    }
-    else if (d_recExplain)
-    {
-      if (a.getKind() == AND)
-      {
-        for (const Node& ac : a)
-        {
-          // recurse
-          explainWithProof(ac, assumps, curr);
-        }
-      }
-      else
-      {
-        // recurse
-        explainWithProof(a, assumps, curr);
-      }
     }
     else if (std::find(assumps.begin(), assumps.end(), a) == assumps.end())
     {

@@ -42,8 +42,7 @@ InferenceManager::InferenceManager(SolverState& s,
       d_pfee(new eq::ProofEqEngine(d_state.getSatContext(),
                                    d_state.getUserContext(),
                                    *d_state.getEqualityEngine(),
-                                   pnm,
-                                   options::proofNew())),
+                                   pnm)),
       d_ipc(new InferProofCons(
           d_state.getSatContext(), pnm, d_statistics, options::proofNew()))
 {

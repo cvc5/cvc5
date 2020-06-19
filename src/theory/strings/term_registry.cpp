@@ -54,7 +54,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(new EagerProofGenerator(pnm, s.getUserContext()))
+      d_epg(pnm ? new EagerProofGenerator(pnm, s.getUserContext()) : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -285,10 +285,15 @@ void TermRegistry::registerTerm(Node n, int effort)
     if (!eagerRedLemma.isNull())
     {
       // if there was an eager reduction, we make the trust node for it
-      std::vector<Node> argsRed;
-      argsRed.push_back(n);
-      regTermLem = d_epg->mkTrustNode(
-          eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, argsRed);
+      if (d_epg!=nullptr)
+      {
+        regTermLem = d_epg->mkTrustNode(
+            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
+      }
+      else
+      {
+        regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+      }
     }
   }
   if (!regTermLem.isNull())
@@ -383,9 +388,11 @@ TrustNode TermRegistry::getRegisterTermLemma(Node n)
   Node ret = nm->mkNode(AND, eq, ceq);
 
   // it is a simple rewrite to justify this
-  std::vector<Node> argsPred;
-  argsPred.push_back(ret);
-  return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, argsPred);
+  if (d_epg!=nullptr)
+  {
+    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
+  }
+  return TrustNode::mkTrustLemma(ret, nullptr);
 }
 
 void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
@@ -505,9 +512,11 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Assert(!case_emptyr.getConst<bool>());
   }
 
-  std::vector<Node> targs;
-  targs.push_back(n);
-  return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, targs);
+  if (d_epg!=nullptr)
+  {
+    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
+  }
+  return TrustNode::mkTrustLemma(lenLemma, nullptr);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
