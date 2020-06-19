@@ -2,9 +2,9 @@
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Dejan Jovanovic
+ **   Tim King, Dejan Jovanovic, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/constraint.h"
-#include "theory/quantifiers/equality_infer.h"
 #include "options/arith_options.h"
 
 namespace CVC4 {
@@ -37,8 +36,6 @@ ArithCongruenceManager::ArithCongruenceManager(
     : d_inConflict(c),
       d_raiseConflict(raiseConflict),
       d_notify(*this),
-      d_eq_infer(),
-      d_eqi_counter(0, c),
       d_keepAlive(c),
       d_propagatations(c),
       d_explanationMap(c),
@@ -50,11 +47,6 @@ ArithCongruenceManager::ArithCongruenceManager(
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
-  //module to infer additional equalities based on normalization
-  if( options::sNormInferEq() ){
-    d_eq_infer.reset(new quantifiers::EqualityInference(c, true));
-    d_true = NodeManager::currentNM()->mkConst( true );
-  }
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
@@ -116,12 +108,10 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TN
   d_acm.propagate(t1.eqNode(t2));
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
-  d_acm.eqNotifyNewClass(t);
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPreMerge(TNode t1, TNode t2) {
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, TNode t2) {
-  d_acm.eqNotifyPostMerge(t1,t2);
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }
@@ -360,19 +350,6 @@ Node ArithCongruenceManager::explainInternal(TNode internal){
   }
 }
 
-void ArithCongruenceManager::eqNotifyNewClass(TNode t) {
-  if( d_eq_infer ){
-    d_eq_infer->eqNotifyNewClass(t);
-    fixpointInfer();
-  }
-}
-void ArithCongruenceManager::eqNotifyPostMerge(TNode t1, TNode t2) {
-  if( d_eq_infer ){
-    d_eq_infer->eqNotifyMerge(t1, t2);
-    fixpointInfer();
-  }
-}
-
 Node ArithCongruenceManager::explain(TNode external){
   Trace("arith-ee") << "Ask for explanation of " << external << std::endl;
   Node internal = externalToInternal(external);
@@ -468,53 +445,6 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
 
 void ArithCongruenceManager::addSharedTerm(Node x){
   d_ee.addTriggerTerm(x, THEORY_ARITH);
-}
-
-bool ArithCongruenceManager::fixpointInfer() {
-  if( d_eq_infer ){
-    while(! inConflict() && d_eqi_counter.get()<d_eq_infer->getNumPendingMerges() ) {
-      Trace("snorm-infer-eq-debug") << "Processing " << d_eqi_counter.get() << " / " << d_eq_infer->getNumPendingMerges() << std::endl;
-      Node eq = d_eq_infer->getPendingMerge( d_eqi_counter.get() );
-      Trace("snorm-infer-eq") << "ArithCongruenceManager : Infer by normalization : " << eq << std::endl;
-      if( !d_ee.areEqual( eq[0], eq[1] ) ){
-        Node eq_exp = d_eq_infer->getPendingMergeExplanation( d_eqi_counter.get() );
-        Trace("snorm-infer-eq") << "           explanation : " << eq_exp << std::endl;
-        //regress explanation
-        std::vector<TNode> assumptions;
-        if( eq_exp.getKind()==kind::AND ){
-          for( unsigned i=0; i<eq_exp.getNumChildren(); i++ ){
-            explain( eq_exp[i], assumptions );
-          }
-        }else if( eq_exp.getKind()==kind::EQUAL ){
-          explain( eq_exp, assumptions );
-        }else{
-          //eq_exp should be true
-          Assert(eq_exp == d_true);
-        }
-        Node req_exp;
-        if( assumptions.empty() ){
-          req_exp = d_true;
-        }else{
-          std::set<TNode> assumptionSet;
-          assumptionSet.insert(assumptions.begin(), assumptions.end());
-          if( assumptionSet.size()==1 ){
-            req_exp = assumptions[0];
-          }else{
-            NodeBuilder<> conjunction(kind::AND);
-            enqueueIntoNB(assumptionSet, conjunction);
-            req_exp = conjunction;
-          }
-        }
-        Trace("snorm-infer-eq") << " regressed explanation : " << req_exp << std::endl;
-        d_ee.assertEquality( eq, true, req_exp );
-        d_keepAlive.push_back( req_exp );
-      }else{
-        Trace("snorm-infer-eq") << "...already equal." << std::endl;
-      }
-      d_eqi_counter = d_eqi_counter.get() + 1;
-    }
-  }
-  return inConflict();
 }
 
 }/* CVC4::theory::arith namespace */

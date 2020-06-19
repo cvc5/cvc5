@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,7 @@
 
 #include "expr/proof_checker.h"
 
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
@@ -28,11 +28,11 @@ Node ProofRuleChecker::check(PfRule id,
   // convert to witness form
   std::vector<Node> childrenw = children;
   std::vector<Node> argsw = args;
-  ProofSkolemCache::convertToWitnessFormVec(childrenw);
-  ProofSkolemCache::convertToWitnessFormVec(argsw);
+  SkolemManager::convertToWitnessFormVec(childrenw);
+  SkolemManager::convertToWitnessFormVec(argsw);
   Node res = checkInternal(id, childrenw, argsw);
   // res is in terms of witness form, convert back to Skolem form
-  return ProofSkolemCache::getSkolemForm(res);
+  return SkolemManager::getSkolemForm(res);
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
@@ -92,14 +92,17 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
-    : d_ruleChecks("ProofCheckerStatistics::ruleChecks")
+    : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
+    d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleChecks);
+  smtStatisticsRegistry()->registerStat(&d_totalRuleChecks);
 }
 
 ProofCheckerStatistics::~ProofCheckerStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleChecks);
+  smtStatisticsRegistry()->unregisterStat(&d_totalRuleChecks);
 }
 
 Node ProofChecker::check(ProofNode* pn, Node expected)
@@ -123,6 +126,7 @@ Node ProofChecker::check(
   }
   // record stat
   d_stats.d_ruleChecks << id;
+  ++d_stats.d_totalRuleChecks;
   Trace("pfcheck") << "ProofChecker::check: " << id << std::endl;
   std::vector<Node> cchildren;
   for (const std::shared_ptr<ProofNode>& pc : children)
@@ -183,6 +187,8 @@ Node ProofChecker::checkDebug(PfRule id,
   {
     Trace(traceTag) << " success" << std::endl;
   }
+  Trace(traceTag) << "cchildren: " << cchildren << std::endl;
+  Trace(traceTag) << "     args: " << args << std::endl;
   return res;
 }
 

@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -271,6 +271,11 @@ void Theory::debugPrintFacts() const{
 bool Theory::isLegalElimination(TNode x, TNode val)
 {
   Assert(x.isVar());
+  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
+      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+  {
+    return false;
+  }
   if (expr::hasSubterm(val, x))
   {
     return false;

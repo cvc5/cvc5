@@ -2,9 +2,9 @@
 /*! \file node_algorithm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -622,13 +622,13 @@ void getComponentTypes(
     TypeNode curr = toProcess.back();
     toProcess.pop_back();
     // if not already visited
-    if (types.find(t) == types.end())
+    if (types.find(curr) == types.end())
     {
-      types.insert(t);
+      types.insert(curr);
       // get component types from the children
-      for (unsigned i = 0, nchild = t.getNumChildren(); i < nchild; i++)
+      for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
       {
-        toProcess.push_back(t[i]);
+        toProcess.push_back(curr[i]);
       }
     }
   } while (!toProcess.empty());

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,7 @@
 
 #include "theory/builtin/proof_checker.h"
 
-#include "expr/proof_skolem_cache.h"
+#include "expr/skolem_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -63,9 +63,9 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
 
 Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 {
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nkr = applyRewriteExternal(nk, idr);
-  return ProofSkolemCache::getWitnessForm(nkr);
+  return SkolemManager::getWitnessForm(nkr);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
@@ -74,27 +74,27 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
   {
     return Node::null();
   }
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
-  return ProofSkolemCache::getWitnessForm(nks);
+  return SkolemManager::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitution(Node n,
                                                 const std::vector<Node>& exp,
                                                 MethodId ids)
 {
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
-  return ProofSkolemCache::getWitnessForm(nks);
+  return SkolemManager::getWitnessForm(nks);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {
-  Node nk = ProofSkolemCache::getSkolemForm(n);
+  Node nk = SkolemManager::getSkolemForm(n);
   Node nks = applySubstitutionExternal(nk, exp, ids);
   Node nksr = applyRewriteExternal(nks, idr);
-  return ProofSkolemCache::getWitnessForm(nksr);
+  return SkolemManager::getWitnessForm(nksr);
 }
 
 Node BuiltinProofRuleChecker::applyRewriteExternal(Node n, MethodId idr)
@@ -122,7 +122,7 @@ Node BuiltinProofRuleChecker::applySubstitutionExternal(Node n,
                                                         MethodId ids)
 {
   Assert(!exp.isNull());
-  Node expk = ProofSkolemCache::getSkolemForm(exp);
+  Node expk = SkolemManager::getSkolemForm(exp);
   TNode var, subs;
   if (ids == MethodId::SB_DEFAULT)
   {
@@ -352,6 +352,21 @@ bool BuiltinProofRuleChecker::getMethodIds(const std::vector<Node>& args,
     }
   }
   return true;
+}
+
+void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
+                                           MethodId ids,
+                                           MethodId idr)
+{
+  bool ndefRewriter = (idr != MethodId::RW_REWRITE);
+  if (ids != MethodId::SB_DEFAULT || ndefRewriter)
+  {
+    args.push_back(mkMethodId(ids));
+  }
+  if (ndefRewriter)
+  {
+    args.push_back(mkMethodId(idr));
+  }
 }
 
 }  // namespace builtin

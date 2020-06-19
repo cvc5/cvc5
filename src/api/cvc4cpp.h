@@ -2,9 +2,9 @@
 /*! \file cvc4cpp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
+ **   Aina Niemetz, Andrew Reynolds, Abdalrhman Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -900,6 +900,13 @@ class CVC4_PUBLIC Term
   bool isConst() const;
 
   /**
+   *  Return the base (element stored at all indices) of a constant array
+   *  throws an exception if the kind is not CONST_ARRAY
+   *  @return the base value
+   */
+  Term getConstArrayBase() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
@@ -1664,6 +1671,17 @@ class CVC4_PUBLIC Datatype
    * @return true if this datatype is well-founded
    */
   bool isWellFounded() const;
+
+  /**
+   * Does this datatype have nested recursion? This method returns false if a
+   * value of this datatype includes a subterm of its type that is nested
+   * beneath a non-datatype type constructor. For example, a datatype
+   * T containing a constructor having a selector with range type (Set T) has
+   * nested recursion.
+   *
+   * @return true if this datatype has nested recursion
+   */
+  bool hasNestedRecursion() const;
 
   /**
    * @return a string representation of this datatype
@@ -2842,12 +2860,15 @@ class CVC4_PUBLIC Solver
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFun(const std::string& symbol,
                  const std::vector<Term>& bound_vars,
                  Sort sort,
-                 Term term) const;
+                 Term term,
+                 bool global = false) const;
   /**
    * Define n-ary function.
    * SMT-LIB: ( define-fun <function_def> )
@@ -2855,11 +2876,14 @@ class CVC4_PUBLIC Solver
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFun(Term fun,
                  const std::vector<Term>& bound_vars,
-                 Term term) const;
+                 Term term,
+                 bool global = false) const;
 
   /**
    * Define recursive function.
@@ -2868,12 +2892,15 @@ class CVC4_PUBLIC Solver
    * @param bound_vars the parameters to this function
    * @param sort the sort of the return value of this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFunRec(const std::string& symbol,
                     const std::vector<Term>& bound_vars,
                     Sort sort,
-                    Term term) const;
+                    Term term,
+                    bool global = false) const;
 
   /**
    * Define recursive function.
@@ -2882,11 +2909,14 @@ class CVC4_PUBLIC Solver
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   Term defineFunRec(Term fun,
                     const std::vector<Term>& bound_vars,
-                    Term term) const;
+                    Term term,
+                    bool global = false) const;
 
   /**
    * Define recursive functions.
@@ -2895,11 +2925,14 @@ class CVC4_PUBLIC Solver
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
    * @param term the list of function bodies of the functions
+   * @param global determines whether this definition is global (i.e. persists
+   *               when popping the context)
    * @return the function
    */
   void defineFunsRec(const std::vector<Term>& funs,
                      const std::vector<std::vector<Term>>& bound_vars,
-                     const std::vector<Term>& terms) const;
+                     const std::vector<Term>& terms,
+                     bool global = false) const;
 
   /**
    * Echo a given string to the given output stream.

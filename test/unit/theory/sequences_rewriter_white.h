@@ -2,9 +2,9 @@
 /*! \file sequences_rewriter_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -704,6 +704,228 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
       Node rhs = d_nm->mkNode(
           kind::STRING_CONCAT, ab, d_nm->mkNode(kind::STRING_STRREPL, x, c, y));
       sameNormalForm(lhs, rhs);
+    }
+  }
+
+  void testRewriteReplaceRe()
+  {
+    TypeNode intType = d_nm->integerType();
+    TypeNode strType = d_nm->stringType();
+
+    std::vector<Node> emptyVec;
+    Node sigStar = d_nm->mkNode(kind::REGEXP_STAR,
+                                d_nm->mkNode(kind::REGEXP_SIGMA, emptyVec));
+    Node foo = d_nm->mkConst(String("FOO"));
+    Node a = d_nm->mkConst(String("A"));
+    Node b = d_nm->mkConst(String("B"));
+    Node re = d_nm->mkNode(kind::REGEXP_CONCAT,
+                           d_nm->mkNode(kind::STRING_TO_REGEXP, a),
+                           sigStar,
+                           d_nm->mkNode(kind::STRING_TO_REGEXP, b));
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "AZZZB"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "FOO"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE, d_nm->mkConst(String("AZZZB")), re, foo);
+      Node res = d_nm->mkConst(::CVC4::String("FOO"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZAZZZBZZB"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "ZFOOZZB"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE, d_nm->mkConst(String("ZAZZZBZZB")), re, foo);
+      Node res = d_nm->mkConst(::CVC4::String("ZFOOZZB"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZAZZZBZAZB"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "ZFOOZAZB"
+    {
+      Node t = d_nm->mkNode(kind::STRING_REPLACE_RE,
+                            d_nm->mkConst(String("ZAZZZBZAZB")),
+                            re,
+                            foo);
+      Node res = d_nm->mkConst(::CVC4::String("ZFOOZAZB"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZZZ"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "ZZZ"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE, d_nm->mkConst(String("ZZZ")), re, foo);
+      Node res = d_nm->mkConst(::CVC4::String("ZZZ"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZZZ"
+    //   re.all
+    //   "FOO")
+    //
+    // "FOOZZZ"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE, d_nm->mkConst(String("ZZZ")), sigStar, foo);
+      Node res = d_nm->mkConst(::CVC4::String("FOOZZZ"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   ""
+    //   re.all
+    //   "FOO")
+    //
+    // "FOO"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE, d_nm->mkConst(String("")), sigStar, foo);
+      Node res = d_nm->mkConst(::CVC4::String("FOO"));
+      sameNormalForm(t, res);
+    }
+  }
+
+  void testRewriteReplaceReAll()
+  {
+    TypeNode intType = d_nm->integerType();
+    TypeNode strType = d_nm->stringType();
+
+    std::vector<Node> emptyVec;
+    Node sigStar = d_nm->mkNode(kind::REGEXP_STAR,
+                                d_nm->mkNode(kind::REGEXP_SIGMA, emptyVec));
+    Node foo = d_nm->mkConst(String("FOO"));
+    Node a = d_nm->mkConst(String("A"));
+    Node b = d_nm->mkConst(String("B"));
+    Node re = d_nm->mkNode(kind::REGEXP_CONCAT,
+                           d_nm->mkNode(kind::STRING_TO_REGEXP, a),
+                           sigStar,
+                           d_nm->mkNode(kind::STRING_TO_REGEXP, b));
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "AZZZB"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "FOO"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE_ALL, d_nm->mkConst(String("AZZZB")), re, foo);
+      Node res = d_nm->mkConst(::CVC4::String("FOO"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZAZZZBZZB"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "ZFOOZZB"
+    {
+      Node t = d_nm->mkNode(kind::STRING_REPLACE_RE_ALL,
+                            d_nm->mkConst(String("ZAZZZBZZB")),
+                            re,
+                            foo);
+      Node res = d_nm->mkConst(::CVC4::String("ZFOOZZB"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZAZZZBZAZB"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "ZFOOZFOO"
+    {
+      Node t = d_nm->mkNode(kind::STRING_REPLACE_RE_ALL,
+                            d_nm->mkConst(String("ZAZZZBZAZB")),
+                            re,
+                            foo);
+      Node res = d_nm->mkConst(::CVC4::String("ZFOOZFOO"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZZZ"
+    //   (re.++ (str.to_re "A") re.all (str.to_re "B"))
+    //   "FOO")
+    //
+    // "ZZZ"
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE_ALL, d_nm->mkConst(String("ZZZ")), re, foo);
+      Node res = d_nm->mkConst(::CVC4::String("ZZZ"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   "ZZZ"
+    //   re.all
+    //   "FOO")
+    //
+    // "FOOFOOFOO"
+    {
+      Node t = d_nm->mkNode(kind::STRING_REPLACE_RE_ALL,
+                            d_nm->mkConst(String("ZZZ")),
+                            sigStar,
+                            foo);
+      Node res = d_nm->mkConst(::CVC4::String("FOOFOOFOO"));
+      sameNormalForm(t, res);
+    }
+
+    // Same normal form:
+    //
+    // (str.replace_re
+    //   ""
+    //   re.all
+    //   "FOO")
+    //
+    // ""
+    {
+      Node t = d_nm->mkNode(
+          kind::STRING_REPLACE_RE_ALL, d_nm->mkConst(String("")), sigStar, foo);
+      Node res = d_nm->mkConst(::CVC4::String(""));
+      sameNormalForm(t, res);
     }
   }
 

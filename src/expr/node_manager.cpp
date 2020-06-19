@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,6 +27,7 @@
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_manager_listeners.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -95,6 +96,7 @@ NodeManager::NodeManager(ExprManager* exprManager)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
       d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -111,6 +113,7 @@ NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
     : d_options(new Options()),
       d_statisticsRegistry(new StatisticsRegistry()),
       d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+      d_skManager(new SkolemManager),
       d_registrations(new ListenerRegistrationList()),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
@@ -167,6 +170,9 @@ NodeManager::~NodeManager() {
   // destruction of operators, because they get GCed.
 
   NodeManagerScope nms(this);
+
+  // Destroy skolem manager before cleaning up attributes and zombies
+  d_skManager = nullptr;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);

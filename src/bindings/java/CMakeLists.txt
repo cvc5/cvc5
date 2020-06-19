@@ -97,7 +97,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/LastExceptionBuffer.java
   ${CMAKE_CURRENT_BINARY_DIR}/LogicException.java
   ${CMAKE_CURRENT_BINARY_DIR}/LogicInfo.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Map_ExprExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/ModalException.java
   ${CMAKE_CURRENT_BINARY_DIR}/OptionException.java
   ${CMAKE_CURRENT_BINARY_DIR}/Options.java
@@ -107,10 +106,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/Rational.java
   ${CMAKE_CURRENT_BINARY_DIR}/RationalHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/RealType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Record.java
-  ${CMAKE_CURRENT_BINARY_DIR}/RecordHashFunction.java
-  ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdate.java
-  ${CMAKE_CURRENT_BINARY_DIR}/RecordUpdateHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/RecoverableModalException.java
   ${CMAKE_CURRENT_BINARY_DIR}/RegExpLoop.java
   ${CMAKE_CURRENT_BINARY_DIR}/RegExpRepeat.java
@@ -122,19 +117,14 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SExprKeyword.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Model.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Printer.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__options__InstFormatMode.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Listener.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_ListenerCollection__Registration.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_MaybeT_CVC4__Rational_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Type.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__istream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__ostream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__shared_ptrT_CVC4__SygusPrintCallback_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__string.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__unordered_mapT_CVC4__Expr_CVC4__ProofLetCount_CVC4__ExprHashFunction_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__DatatypeConstructorArg_t.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__DatatypeConstructor_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__pairT_CVC4__Expr_CVC4__Expr_t_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__vectorT_std__string_t_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SelectorType.java
@@ -147,7 +137,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/Statistics.java
   ${CMAKE_CURRENT_BINARY_DIR}/StatisticsBase.java
   ${CMAKE_CURRENT_BINARY_DIR}/StringType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SygusPrintCallback.java
   ${CMAKE_CURRENT_BINARY_DIR}/TesterType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TheoryId.java
   ${CMAKE_CURRENT_BINARY_DIR}/TupleUpdate.java
@@ -163,13 +152,10 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/UnsafeInterruptException.java
   ${CMAKE_CURRENT_BINARY_DIR}/UnsatCore.java
   ${CMAKE_CURRENT_BINARY_DIR}/VariableTypeMap.java
-  ${CMAKE_CURRENT_BINARY_DIR}/hashmapExpr.java
-  ${CMAKE_CURRENT_BINARY_DIR}/pairStringType.java
   ${CMAKE_CURRENT_BINARY_DIR}/setOfType.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorDatatype.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorDatatypeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorExpr.java
-  ${CMAKE_CURRENT_BINARY_DIR}/vectorPairStringType.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorSExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorString.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorType.java

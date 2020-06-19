@@ -2,9 +2,9 @@
 /*! \file nl_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include "context/context.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
@@ -152,7 +153,7 @@ class NlModel
   bool checkModel(const std::vector<Node>& assertions,
                   const std::vector<Node>& false_asserts,
                   unsigned d,
-                  std::vector<Node>& lemmas,
+                  std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   /**
    * Set that we have used an approximation during this check. This flag is
@@ -233,7 +234,7 @@ class NlModel
    * For instance, if eq reduces to a univariate quadratic equation with no
    * root, we send a conflict clause of the form a*x^2 + b*x + c != 0.
    */
-  bool solveEqualitySimple(Node eq, unsigned d, std::vector<Node>& lemmas);
+  bool solveEqualitySimple(Node eq, unsigned d, std::vector<NlLemma>& lemmas);
 
   /** simple check model for transcendental functions for literal
    *

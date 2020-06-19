@@ -21,7 +21,7 @@
 #include "expr/sygus_datatype.h"
 #include "options/smt_options.h"
 #include "printer/sygus_print_callback.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
