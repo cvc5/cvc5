@@ -188,13 +188,6 @@ If you choose to use CVC4 with GNU Readline support, you are licensing CVC4
 under that same license.
 (Usually CVC4's license is more permissive; see above discussion.)
 
-### libboost_thread: The Boost C++ threading library (Portfolio Builds)
-
-The [Boost](http://www.boost.org) C++ threading library (often packaged
-independently of the Boost base library) is needed to run CVC4 in "portfolio"
-(multithreaded) mode.
-Check your distribution for a package named "libboost-thread-dev" or similar.
-
 ### Boost C++ base libraries (Examples)
 
 The [Boost](http://www.boost.org) C++ base library is needed for some examples
