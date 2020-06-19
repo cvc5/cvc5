@@ -634,7 +634,7 @@ void getComponentTypes(
   } while (!toProcess.empty());
 }
 
-bool unify(Node x,
+bool match(Node x,
            Node y,
            std::unordered_map<Node, Node, NodeHashFunction>& subs)
 {

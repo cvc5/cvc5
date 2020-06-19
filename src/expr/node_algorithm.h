@@ -185,9 +185,9 @@ Node substituteCaptureAvoiding(TNode n,
 void getComponentTypes(
     TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
 
-/** unify
+/** match
  *
- * Given two terms `n1` and `n2` containing free variables, unify returns true
+ * Given two terms `n1` and `n2` containing free variables, match returns true
  * if `n2` is an instance of `n1`. In which case, `subs` is a mapping from the
  * free variables in `n1` to corresponding terms in `n2` such that:
  *
@@ -196,7 +196,7 @@ void getComponentTypes(
  * For example, given:
  * n1 = (+ a (* x 2)) (x denotes a free variable)
  * n2 = (+ a (* b 2))
- * a call to unify should return `true` with subs = {(x, b)}
+ * a call to match should return `true` with subs = {(x, b)}
  *
  * @param n1 the term (containing free vars) to compare an instance term
  * against
@@ -204,7 +204,7 @@ void getComponentTypes(
  * @param subs the mapping from free vars in `n1` to terms in `n2`
  * @return whether or not `n2` is an instance of `n1`
  */
-bool unify(Node n1,
+bool match(Node n1,
            Node n2,
            std::unordered_map<Node, Node, NodeHashFunction>& subs);
 
