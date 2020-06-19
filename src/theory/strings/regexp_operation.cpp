@@ -42,7 +42,7 @@ RegExpOpr::RegExpOpr(SkolemCache* sc)
           NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma)),
       d_sc(sc)
 {
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
+  d_emptyString = Word::mkEmptyWord(NodeManager::currentNM()->stringType());
 
   d_emptySingleton =
       NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
