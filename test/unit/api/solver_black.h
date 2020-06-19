@@ -86,8 +86,10 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFun();
   void testDefineFunGlobal();
   void testDefineFunRec();
+  void testDefineFunRecWrongLogic();
   void testDefineFunRecGlobal();
   void testDefineFunsRec();
+  void testDefineFunsRecWrongLogic();
   void testDefineFunsRecGlobal();
 
   void testUFIteration();
@@ -1117,6 +1119,19 @@ void SolverBlack::testDefineFunRec()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testDefineFunRecWrongLogic()
+{
+  d_solver->setLogic("QF_BV");
+  Sort bvSort = d_solver->mkBitVectorSort(32);
+  Sort funSort = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
+  Term b = d_solver->mkVar(bvSort, "b");
+  Term v = d_solver->mkConst(bvSort, "v");
+  Term f = d_solver->mkConst(funSort, "f");
+  TS_ASSERT_THROWS(d_solver->defineFunRec("f", {}, bvSort, v),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->defineFunRec(f, {b, b}, v), CVC4ApiException&);
+}
+
 void SolverBlack::testDefineFunRecGlobal()
 {
   Sort bSort = d_solver->getBooleanSort();
@@ -1212,6 +1227,23 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS(
       slv.defineFunsRec({f12, f22}, {{b12, b112}, {b42}}, {v12, v2}),
       CVC4ApiException&);
+}
+
+void SolverBlack::testDefineFunsRecWrongLogic()
+{
+  d_solver->setLogic("QF_BV");
+  Sort uSort = d_solver->mkUninterpretedSort("u");
+  Sort bvSort = d_solver->mkBitVectorSort(32);
+  Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
+  Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
+  Term b = d_solver->mkVar(bvSort, "b");
+  Term u = d_solver->mkVar(uSort, "u");
+  Term v1 = d_solver->mkConst(bvSort, "v1");
+  Term v2 = d_solver->mkConst(d_solver->getIntegerSort(), "v2");
+  Term f1 = d_solver->mkConst(funSort1, "f1");
+  Term f2 = d_solver->mkConst(funSort2, "f2");
+  TS_ASSERT_THROWS(d_solver->defineFunsRec({f1, f2}, {{b, b}, {u}}, {v1, v2}),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testDefineFunsRecGlobal()
