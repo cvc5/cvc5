@@ -100,8 +100,8 @@
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/sygus_abduct.h"
-#include "theory/quantifiers/sygus/sygus_interpol.h"
+ #include "theory/quantifiers/sygus/sygus_abduct.h"
+ #include "theory/quantifiers/sygus/sygus_interpol.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -2028,39 +2028,39 @@ Result SmtEngine::checkSynth()
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_private->d_sygusVars.empty())
     {
-      Node boundVars =
-          d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
-			body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
-			Trace("smt") << "...constructed exists " << body << std::endl;
-		}
-		if (!d_private->d_sygusFunSymbols.empty())
-		{
-			Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
-					d_private->d_sygusFunSymbols);
-			body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
-		}
-		Trace("smt") << "...constructed forall " << body << std::endl;
+			Node boundVars =
+				d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
+		body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
+		Trace("smt") << "...constructed exists " << body << std::endl;
+	}
+	if (!d_private->d_sygusFunSymbols.empty())
+	{
+		Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+				d_private->d_sygusFunSymbols);
+		body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
+	}
+	Trace("smt") << "...constructed forall " << body << std::endl;
 
-		// set attribute for synthesis conjecture
-		setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
+	// set attribute for synthesis conjecture
+	setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
 
-		Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
-		Dump("raw-benchmark") << CheckSynthCommand();
+	Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+	Dump("raw-benchmark") << CheckSynthCommand();
 
-    d_private->d_sygusConjectureStale = false;
+   d_private->d_sygusConjectureStale = false;
 
-    if (options::incrementalSolving())
-    {
-      // we push a context so that this conjecture is removed if we modify it
-      // later
-      internalPush();
-      assertFormula(body.toExpr(), true);
-    }
-    else
-    {
-      query = body.toExpr();
-    }
-  }
+   if (options::incrementalSolving())
+   {
+     // we push a context so that this conjecture is removed if we modify it
+     // later
+     internalPush();
+     assertFormula(body.toExpr(), true);
+   }
+   else
+   {
+     query = body.toExpr();
+   }
+ }
 
   Result r = checkSatisfiability(query, true, false);
 
@@ -3149,9 +3149,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getInterpol(const Expr& conj,
-                            const Type& grammarType,
-                            Expr& interpol)
+bool SmtEngine::getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol)
 {
   return false;
 }
