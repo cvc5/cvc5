@@ -39,7 +39,7 @@ TrustRewriteResponse TheoryRewriter::postRewriteWithProof(TNode node)
 
 TrustRewriteResponse TheoryRewriter::preRewriteWithProof(TNode node)
 {
-  RewriteResponse response = postRewrite(node);
+  RewriteResponse response = preRewrite(node);
   // TODO
   // by default, we return a trust rewrite response with no proof generator
   return TrustRewriteResponse(

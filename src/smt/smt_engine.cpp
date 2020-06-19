@@ -720,6 +720,10 @@ void SmtEngine::finishInit()
   {
     d_pchecker.reset(new ProofChecker);
     d_pnm.reset(new ProofNodeManager(d_pchecker.get()));
+    // make the rewrite database
+    d_rewriteDb.reset(new RewriteDb);
+    // enable proof support in the rewriter
+    d_rewriter->setProofChecker(d_pchecker.get());
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
