@@ -1397,9 +1397,9 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
     api::Solver* solver,
     api::Term func,
     const std::vector<api::Term>& formals,
-    api::Term formula, bool global)
-    : Command(solver)
-    , d_global(global)
+    api::Term formula,
+    bool global)
+    : Command(solver), d_global(global)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1410,8 +1410,13 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
     api::Solver* solver,
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
-    const std::vector<api::Term>& formulas, bool global)
-    : Command(solver), d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
+    const std::vector<api::Term>& formulas,
+    bool global)
+    : Command(solver),
+      d_funcs(funcs),
+      d_formals(formals),
+      d_formulas(formulas),
+      d_global(global)
 {
 }
 
