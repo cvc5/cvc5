@@ -114,6 +114,15 @@ It can be installed using the `contrib/get-cryptominisat` script.
 Configure CVC4 with `configure.sh --cryptominisat` to build with this
 dependency.
 
+### Kissat (Optional SAT solver)
+
+[Kissat](https://github.com/arminbiere/kissat)
+is a SAT solver that can be used for solving bit-vector problems with eager
+bit-blasting. This dependency may improve performance.
+It can be installed using the `contrib/get-kissat` script.  
+Configure CVC4 with `configure.sh --kissat` to build with this
+dependency.
+
 ### LFSC (The LFSC Proof Checker)
 
 [LFSC](https://github.com/CVC4/LFSC) is required to check proofs internally
