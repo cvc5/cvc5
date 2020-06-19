@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -565,6 +565,30 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
   Unreachable();
 }
 
+void collectAtoms(TNode node, std::set<Node>& seen, CnfProof* cnfProof)
+{
+  Debug("pf::pm::atoms") << "collectAtoms: Colleting atoms from " << node
+                         << "\n";
+  if (seen.find(node) != seen.end())
+  {
+    Debug("pf::pm::atoms") << "collectAtoms:\t already seen\n";
+    return;
+  }
+  // if I have a SAT literal for a node, save it, unless this node is a
+  // negation, in which case its underlying will be collected downstream
+  if (cnfProof->hasLiteral(node) && node.getKind() != kind::NOT)
+  {
+    Debug("pf::pm::atoms") << "collectAtoms: has SAT literal, save\n";
+    seen.insert(node);
+  }
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
+    Debug("pf::pm::atoms") << push;
+    collectAtoms(node[i], seen, cnfProof);
+    Debug("pf::pm::atoms") << pop;
+  }
+}
+
 void LFSCProof::toStream(std::ostream& out) const
 {
   TimerStat::CodeTimer proofProductionTimer(
@@ -683,10 +707,15 @@ void LFSCProof::toStream(std::ostream& out) const
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
     // collects the atoms in the assertions
+    Debug("pf::pm") << std::endl
+                    << "LFSCProof::toStream: Colleting atoms from assertions "
+                    << used_assertions << "\n"
+                    << push;
     for (TNode used_assertion : used_assertions)
     {
-      utils::collectAtoms(used_assertion, atoms);
+      collectAtoms(used_assertion, atoms, d_cnfProof);
     }
+    Debug("pf::pm") << pop;
 
     std::set<Node>::iterator atomIt;
     Debug("pf::pm") << std::endl
