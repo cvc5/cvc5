@@ -2,9 +2,9 @@
 /*! \file base_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,10 +41,7 @@ class BaseSolver
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
-  BaseSolver(context::Context* c,
-             context::UserContext* u,
-             SolverState& s,
-             InferenceManager& im);
+  BaseSolver(SolverState& s, InferenceManager& im);
   ~BaseSolver();
 
   //-----------------------inference steps
