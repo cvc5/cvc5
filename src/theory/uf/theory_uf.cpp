@@ -210,7 +210,7 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(Node node)
+TrustNode TheoryUF::expandDefinition(Node node)
 {
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
@@ -225,10 +225,10 @@ Node TheoryUF::expandDefinition(Node node)
     {
       Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
                           << node << " to " << ret << std::endl;
-      return ret;
+      return TrustNode::mkTrustRewrite(node, ret, nullptr);
     }
   }
-  return node;
+  return TrustNode::null();
 }
 
 void TheoryUF::preRegisterTerm(TNode node) {

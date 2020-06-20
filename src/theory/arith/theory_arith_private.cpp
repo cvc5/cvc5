@@ -4933,16 +4933,10 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-Node TheoryArithPrivate::expandDefinition(Node node)
+TrustNode TheoryArithPrivate::expandDefinition(Node node)
 {
   // call eliminate operators
-  TrustNode trn = d_opElim.eliminate(node);
-  if (trn.isNull())
-  {
-    // no change
-    return node;
-  }
-  return trn.getNode();
+  return d_opElim.eliminate(node);
 }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){

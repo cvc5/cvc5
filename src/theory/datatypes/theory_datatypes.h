@@ -306,7 +306,7 @@ private:
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
   void finishInit() override;
-  Node expandDefinition(Node n) override;
+  TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
   void presolve() override;
   void addSharedTerm(TNode t) override;

@@ -82,7 +82,7 @@ class TheoryBV : public Theory {
 
   void finishInit() override;
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 

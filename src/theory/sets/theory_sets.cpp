@@ -100,7 +100,7 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
-Node TheorySets::expandDefinition(Node n)
+TrustNode TheorySets::expandDefinition(Node n)
 {
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE

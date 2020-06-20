@@ -738,7 +738,8 @@ Node ProcessAssertions::expandDefinitions(
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
-        node = t->expandDefinition(n);
+        TrustNode trn = t->expandDefinition(n);
+        node = trn.isNull() ? Node(n) : trn.getNode();
       }
 
       // the partial functions can fall through, in which case we still

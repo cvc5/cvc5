@@ -79,7 +79,7 @@ void TheoryArith::finishInit()
   }
 }
 
-Node TheoryArith::expandDefinition(Node node)
+TrustNode TheoryArith::expandDefinition(Node node)
 {
   return d_internal->expandDefinition(node);
 }

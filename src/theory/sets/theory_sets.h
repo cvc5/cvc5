@@ -56,7 +56,7 @@ class TheorySets : public Theory
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
-  Node expandDefinition(Node n) override;
+  TrustNode expandDefinition(Node n) override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
   void propagate(Effort) override;

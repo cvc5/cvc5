@@ -45,7 +45,7 @@ class ProofPostProcessor
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Kinds of proof rules we are eliminating */
-  std::unordered_set<PfRule> d_elimRules;
+  std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
 };
 
 }  // namespace smt

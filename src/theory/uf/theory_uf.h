@@ -206,7 +206,7 @@ private:
   void finishInit() override;
 
   void check(Effort) override;
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 

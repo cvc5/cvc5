@@ -45,7 +45,7 @@ class TheoryFp : public Theory {
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;

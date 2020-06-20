@@ -446,7 +446,7 @@ private:
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  Node expandDefinition(Node node);
+  TrustNode expandDefinition(Node node);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 

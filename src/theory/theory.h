@@ -459,10 +459,10 @@ class Theory {
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
    */
-  virtual Node expandDefinition(Node node)
+  virtual TrustNode expandDefinition(Node node)
   {
     // by default, do nothing
-    return node;
+    return TrustNode::null();
   }
 
   /**

@@ -559,7 +559,7 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(Node n)
+TrustNode TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   // must ensure the type is well founded and has no nested recursion if
@@ -584,6 +584,7 @@ Node TheoryDatatypes::expandDefinition(Node n)
       }
     }
   }
+  Node n_ret;
   switch (n.getKind())
   {
     case kind::APPLY_SELECTOR:
@@ -609,14 +610,13 @@ Node TheoryDatatypes::expandDefinition(Node n)
       Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
       if (options::dtRewriteErrorSel())
       {
-        return sel;
+        n_ret = sel;
       }
       else
       {
         Node tester = c.getTester();
         Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
         tst = Rewriter::rewrite(tst);
-        Node n_ret;
         if (tst == d_true)
         {
           n_ret = sel;
@@ -636,7 +636,6 @@ Node TheoryDatatypes::expandDefinition(Node n)
         // n_ret = Rewriter::rewrite( n_ret );
         Trace("dt-expand") << "Expand def : " << n << " to " << n_ret
                            << std::endl;
-        return n_ret;
       }
     }
     break;
@@ -682,14 +681,18 @@ Node TheoryDatatypes::expandDefinition(Node n)
                           << b[b.getNumChildren() - 1] << std::endl;
         }
       }
-      Node n_ret = b;
+      n_ret = b;
       Debug("tuprec") << "return " << n_ret << std::endl;
-      return n_ret;
     }
     break;
-    default: return n; break;
+    default:
+      break;
   }
-  Unreachable();
+  if (!n_ret.isNull())
+  {
+    return TrustNode::mkTrustRewrite(n, n_ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryDatatypes::presolve()

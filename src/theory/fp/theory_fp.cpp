@@ -383,7 +383,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   return uf;
 }
 
-Node TheoryFp::expandDefinition(Node node)
+TrustNode TheoryFp::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                << std::endl;
@@ -430,9 +430,9 @@ Node TheoryFp::expandDefinition(Node node)
   if (res != node) {
     Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node,res, nullptr);
   }
-
-  return res;
+  return TrustNode::null();
 }
 
 TrustNode TheoryFp::ppRewrite(TNode node)
