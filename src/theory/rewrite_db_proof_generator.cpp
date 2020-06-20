@@ -307,7 +307,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           visited[cur] = false;
           const RewriteProofRule& rpr = d_db.getRule(itd->second);
           // compute premises based on the used substitution
-          std::unordered_map<TNode, TNode, TNodeHashFunction> subs;
+          std::unordered_map<Node, Node, NodeHashFunction> subs;
           if (!expr::match(rpr.getConclusion(), cur, subs))
           {
             Assert(false);
@@ -316,7 +316,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           // build the substitution context
           std::vector<Node> vs;
           std::vector<Node> ss;
-          for (const std::pair<const TNode, TNode>& sp : subs)
+          for (const std::pair<const Node, Node>& sp : subs)
           {
             vs.push_back(sp.first);
             ss.push_back(sp.second);

@@ -90,6 +90,7 @@ PRs ready:
 (23) Updates to proof node manager, including mkScope (req 19) *
 (25) Arithmetic proof checker [Alex]
 (37) Rewriter proof producing [Andres] (req 36)
+(39) TheoryEngine proof checker initialize all theories (req 27)
 (45) regexp operation refactor (req 3, 7, 8) *
 (51) TrustNode rewrite kind
 
@@ -103,10 +104,9 @@ PRs future:
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
-(39) TheoryEngine proof checker initialize all theories (req 27)
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24)
-(42) String rules, string checker (req 5, 17, 22)
+(42) String rules, string checker (req 5, 17, 22, 45)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 41)
 (46) strings term registry proof producing (req 32, 35)
@@ -116,13 +116,13 @@ PRs future:
 (53) CNF proof producing [Haniel]
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
-(56) DSL rewrite rule database
-(57) DSL rewrite rule compilation, including side condition utility [Andres] TODO
-(58) DSL rewrite rule proof generator
+(56) DSL rewrite rule database (req 54)
+(57) DSL rewrite rule compilation, including side condition utility [Andres] TODO (req 56)
+(58) DSL rewrite rule proof generator (req 57)
+(59) proof post-processor, add expand interface to checkers
 
 PRs wish list:
 
 - SAT solver proof producing
-- Proofs for theory rewrites
 - SEXPR simply typed
-- Proof kinds infrastructure
+- Proof kinds infrastructure?

@@ -39,8 +39,6 @@ class RewriteDbSc
   static Node evaluate(Node f, const std::vector<Node>& args);
 };
 
-// TrustNode prove(Node a, Node b);
-
 }  // namespace theory
 }  // namespace CVC4
 
