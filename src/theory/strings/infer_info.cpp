@@ -93,7 +93,7 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_id(Inference::NONE) {}
+InferInfo::InferInfo() : d_id(Inference::NONE), d_idRev(false) {}
 
 bool InferInfo::isTrivial() const
 {
@@ -117,6 +117,10 @@ bool InferInfo::isFact() const
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
 {
   out << "(infer " << ii.d_id << " " << ii.d_conc;
+  if (ii.d_idRev)
+  {
+    out << " :rev";
+  }
   if (!ii.d_ant.empty())
   {
     out << " :ant (" << ii.d_ant << ")";
