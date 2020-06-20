@@ -607,8 +607,6 @@ Node InferProofCons::convert(Inference infer,
       Node atom = polarity ? ps.d_children[0] : ps.d_children[0][0];
       std::vector<Node> args;
       args.push_back(atom);
-      // variant 1 for eager reduction
-      args.push_back(nm->mkConst(Rational(1)));
       Node res = d_psb.tryStep(PfRule::STRING_EAGER_REDUCTION, {}, args);
       if (res.isNull())
       {
