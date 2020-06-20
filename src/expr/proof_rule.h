@@ -167,6 +167,12 @@ enum class PfRule : uint32_t
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
 
   //================================================= Boolean rules
   // ======== Split
