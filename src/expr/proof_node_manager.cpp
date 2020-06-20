@@ -191,14 +191,15 @@ bool ProofNodeManager::updateNode(
   return updateNodeInternal(pn, id, children, args, true);
 }
 
-bool ProofNodeManager::updateNode(ProofNode * pn, ProofNode * pnr)
+bool ProofNodeManager::updateNode(ProofNode* pn, ProofNode* pnr)
 {
-  if (pn->getResult()!=pnr->getResult())
+  if (pn->getResult() != pnr->getResult())
   {
     return false;
   }
   // can shortcut re-check of rule
-  return updateNodeInternal(pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
+  return updateNodeInternal(
+      pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
 }
 
 Node ProofNodeManager::checkInternal(

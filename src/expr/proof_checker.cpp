@@ -50,9 +50,9 @@ Node ProofRuleChecker::checkArg(PfRule id, Node arg)
 }
 
 bool ProofRuleChecker::expand(PfRule id,
-             const std::vector<Node>& children,
-             const std::vector<Node>& args,
-              CDProof* cdp)
+                              const std::vector<Node>& children,
+                              const std::vector<Node>& args,
+                              CDProof* cdp)
 {
   // no change, return false
   return false;
@@ -262,14 +262,14 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   d_checker[id] = psc;
 }
 
-ProofRuleChecker * ProofChecker::getCheckerFor(PfRule id)
+ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
 {
   std::map<PfRule, ProofRuleChecker*>::const_iterator it = d_checker.find(id);
-  if (it==d_checker.end())
+  if (it == d_checker.end())
   {
     return nullptr;
   }
   return it->second;
 }
-  
+
 }  // namespace CVC4

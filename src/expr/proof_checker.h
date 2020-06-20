@@ -73,14 +73,15 @@ class ProofRuleChecker
 
   /** Register all rules owned by this rule checker into pc. */
   virtual void registerTo(ProofChecker* pc) {}
-  /** 
+  /**
    * Expand the proof rule application, store steps in cdp. Return true if
    * the proof changed.
    */
   virtual bool expand(PfRule id,
-             const std::vector<Node>& children,
-             const std::vector<Node>& args,
-              CDProof* cdp);
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
+
  protected:
   /**
    * This checks a single step in a proof.
@@ -165,7 +166,8 @@ class ProofChecker
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
   /** get checker for */
-  ProofRuleChecker * getCheckerFor(PfRule id);
+  ProofRuleChecker* getCheckerFor(PfRule id);
+
  private:
   /** statistics class */
   ProofCheckerStatistics d_stats;

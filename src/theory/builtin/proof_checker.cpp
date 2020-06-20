@@ -248,7 +248,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::EVALUATE)
   {
     Assert(children.empty());
-    Assert (args.size()==1);
+    Assert(args.size() == 1);
     Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
     return args[0].eqNode(res);
   }
@@ -427,11 +427,10 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
   }
 }
 
-
 bool BuiltinProofRuleChecker::expand(PfRule id,
-            const std::vector<Node>& children,
-            const std::vector<Node>& args,
-            CDProof* cdp)
+                                     const std::vector<Node>& children,
+                                     const std::vector<Node>& args,
+                                     CDProof* cdp)
 {
   return false;
 }

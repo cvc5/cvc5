@@ -27,22 +27,23 @@ namespace CVC4 {
 namespace smt {
 
 /**
- * 
+ *
  */
 class ProofPostProcessor
 {
  public:
-  ProofPostProcessor(ProofNodeManager * pnm);
+  ProofPostProcessor(ProofNodeManager* pnm);
   ~ProofPostProcessor() {}
-  /** 
+  /**
    * Indicate that the given proof rule should be eliminated
    */
   void eliminate(PfRule rule);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
+
  private:
   /** The proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule> d_elimRules;
 };

@@ -280,22 +280,22 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
         else if (itd->second == DslPfRule::EVAL)
         {
           visited[cur] = true;
-          Assert (cur.getKind()==kind::EQUAL);
+          Assert(cur.getKind() == kind::EQUAL);
           std::vector<Node> transc;
-          for (unsigned i=0; i<2; i++)
+          for (unsigned i = 0; i < 2; i++)
           {
             Node curv = doEvaluate(cur[i]);
-            if (curv==cur[i])
+            if (curv == cur[i])
             {
               continue;
             }
             Node eq = cur[i].eqNode(curv);
             // flip orientation for second child
-            transc.push_back(i==1 ? curv.eqNode(cur[i]) : eq);
+            transc.push_back(i == 1 ? curv.eqNode(cur[i]) : eq);
             // trivial evaluation, add evaluation method id
             d_proof.addStep(eq, PfRule::EVALUATE, {}, {cur[i]});
           }
-          if (transc.size()==2)
+          if (transc.size() == 2)
           {
             // do transitivity if both sides evaluate
             d_proof.addStep(cur, PfRule::TRANS, transc, {});
@@ -347,8 +347,9 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
 
 Node RewriteDbProofCons::doEvaluate(Node n)
 {
-  std::unordered_map<Node, Node, NodeHashFunction>::iterator itv = d_evalCache.find(n);
-  if (itv!=d_evalCache.end())
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator itv =
+      d_evalCache.find(n);
+  if (itv != d_evalCache.end())
   {
     return itv->second;
   }

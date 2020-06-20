@@ -141,7 +141,7 @@ class ProofNodeManager
    * pn and pnr prove the same fact, otherwise false is returned and pn is
    * unchanged.
    */
-  bool updateNode(ProofNode * pn, ProofNode * pnr);
+  bool updateNode(ProofNode* pn, ProofNode* pnr);
   /** Get the underlying proof checker */
   ProofChecker* getChecker() const;
 
@@ -162,17 +162,18 @@ class ProofNodeManager
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args,
                      Node expected);
-  /** 
+  /**
    * Update node internal, return true if successful. This is called by
    * the update node methods above. The argument needsCheck is whether we
    * need to check the correctness of the rule application. This is false
    * for the updateNode routine where pnr is an (already checked) proof node.
    */
-  bool updateNodeInternal(ProofNode* pn,
-                  PfRule id,
-                  const std::vector<std::shared_ptr<ProofNode>>& children,
-                  const std::vector<Node>& args,
-                  bool needsCheck);
+  bool updateNodeInternal(
+      ProofNode* pn,
+      PfRule id,
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      const std::vector<Node>& args,
+      bool needsCheck);
 };
 
 }  // namespace CVC4

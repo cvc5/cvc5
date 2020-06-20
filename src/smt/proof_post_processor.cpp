@@ -23,20 +23,17 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-ProofPostProcessor::ProofPostProcessor(ProofNodeManager * pnm) : d_pnm(pnm)
+ProofPostProcessor::ProofPostProcessor(ProofNodeManager* pnm) : d_pnm(pnm)
 {
   // always eliminate macro rules (add to d_elimRules?)
 }
 
-void ProofPostProcessor::eliminate(PfRule rule)
-{
-  d_elimRules.insert(rule);
-}
+void ProofPostProcessor::eliminate(PfRule rule) { d_elimRules.insert(rule); }
 
 void ProofPostProcessor::process(std::shared_ptr<ProofNode> pf)
 {
   Trace("pf-process") << "ProofPostProcessor::process" << std::endl;
-  ProofChecker * pc = d_pnm->getChecker();
+  ProofChecker* pc = d_pnm->getChecker();
   std::unordered_set<ProofNode*> visited;
   std::unordered_set<ProofNode*>::iterator it;
   std::vector<ProofNode*> visit;
@@ -51,14 +48,15 @@ void ProofPostProcessor::process(std::shared_ptr<ProofNode> pf)
       visited.insert(cur);
       // should it be eliminated?
       PfRule id = cur->getRule();
-      if (d_elimRules.find(id)!=d_elimRules.end())
+      if (d_elimRules.find(id) != d_elimRules.end())
       {
         // process using checker?
-        ProofRuleChecker * prc = pc->getCheckerFor(id);
-        if (prc!=nullptr)
+        ProofRuleChecker* prc = pc->getCheckerFor(id);
+        if (prc != nullptr)
         {
           EagerProofGenerator epg(d_pnm);
-          const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
+          const std::vector<std::shared_ptr<ProofNode>>& cc =
+              cur->getChildren();
           std::vector<Node> ccn;
           for (const std::shared_ptr<ProofNode>& cp : cc)
           {
@@ -69,11 +67,11 @@ void ProofPostProcessor::process(std::shared_ptr<ProofNode> pf)
           }
           LazyCDProof lcp(d_pnm, &epg);
           // only if expand
-          if (prc->expand(id,ccn,cur->getArguments(),&lcp))
+          if (prc->expand(id, ccn, cur->getArguments(), &lcp))
           {
             // build the proof, which should be closed
             std::shared_ptr<ProofNode> npn = lcp.getProofFor(cur->getResult());
-            Assert (npn->isClosed());
+            Assert(npn->isClosed());
             // then, update the original proof node based on this one
             d_pnm->updateNode(cur, npn.get());
           }
