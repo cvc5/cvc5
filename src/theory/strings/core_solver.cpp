@@ -753,7 +753,6 @@ Node CoreSolver::getConclusion(Node x,
     }
     Node eq1 = x.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk1, y)
                               : nm->mkNode(STRING_CONCAT, y, sk1));
-    // eq1 = nm->mkNode(AND, eq1, nm->mkNode(GEQ, sk1, d_one));
 
     if (rule == PfRule::CONCAT_LPROP)
     {
@@ -763,7 +762,6 @@ Node CoreSolver::getConclusion(Node x,
     {
       Node eq2 = y.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk2, x)
                                 : nm->mkNode(STRING_CONCAT, x, sk2));
-      // eq2 = nm->mkNode(AND, eq2, nm->mkNode(GEQ, sk2, d_one));
       // make agnostic to x/y
       conc = x < y ? nm->mkNode(OR, eq1, eq2) : nm->mkNode(OR, eq2, eq1);
     }
@@ -1645,10 +1643,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // will do split on length
       lenConstraint = nm->mkNode(EQUAL, xLenTerm, yLenTerm).negate();
       lcVec.push_back(lenConstraint);
-    }
-    else
-    {
-      //utils::flattenOp(AND, lenConstraint, lcVec);
     }
 
     NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, iinfo.d_ant);
