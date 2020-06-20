@@ -1587,16 +1587,16 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // get the node
   Node node = tlemma.getNode();
   Node lemma = tlemma.getProven();
-  
+
   // when proofs are enabled, we ensure the trust node has a generator by
   // adding a trust step to the lazy proof maintained by this class
   if (options::proofNew())
   {
     // ensure proof: set THEORY_LEMMA if no generator is provided
-    if (tlemma.getGenerator()==nullptr)
+    if (tlemma.getGenerator() == nullptr)
     {
       // internal lemmas should have generators
-      Assert (from != THEORY_LAST);
+      Assert(from != THEORY_LAST);
       // untrusted theory lemma
       std::vector<Node> args;
       args.push_back(lemma);
@@ -1661,7 +1661,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       TrustNode trn = newLemmas[i];
       Assert(trn.getKind() == TrustNodeKind::LEMMA);
       // e.g. term formula removal should produce proofs:
-      //Assert (trn.getGenerator() != nullptr);
+      // Assert (trn.getGenerator() != nullptr);
       if (trn.getGenerator() != nullptr)
       {
         d_lazyProof->addLazyStep(trn.getProven(), trn.getGenerator());
@@ -1786,8 +1786,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       {
         // store the explicit step, which should come from a different
         // generator, e.g. d_tepg.
-        Assert (tncExp.getGenerator()!=nullptr);
-        Assert (tncExp.getGenerator()!=d_lazyProof.get());
+        Assert(tncExp.getGenerator() != nullptr);
+        Assert(tncExp.getGenerator() != d_lazyProof.get());
         d_lazyProof->addLazyStep(tncExp.getProven(), tncExp.getGenerator());
         // ------------------------- explained  ---------- from theory
         // fullConflict => conflict              ~conflict
@@ -2213,8 +2213,7 @@ theory::TrustNode TheoryEngine::getExplanation(
         // tExp
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
-        lcp->addStep(
-            tConc, PfRule::MACRO_SR_PRED_TRANSFORM, {tExp}, {tConc});
+        lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, {tExp}, {tConc});
         continue;
       }
       if (tExp == tConc)

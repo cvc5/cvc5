@@ -350,7 +350,7 @@ class TheoryEngine {
                             ProofRule rule,
                             bool removable,
                             bool preprocess,
-                            theory::TheoryId atomsTo = theory::THEORY_LAST, 
+                            theory::TheoryId atomsTo = theory::THEORY_LAST,
                             theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
