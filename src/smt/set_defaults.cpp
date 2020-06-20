@@ -271,6 +271,12 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::proofNew.set(false);
   }
+  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
+  // with new proof system
+  if (options::unsatCores())
+  {
+    options::proofNew.set(false);
+  }
   if (options::proofNew())
   {
     if (!options::stringLenConc.wasSetByUser())
