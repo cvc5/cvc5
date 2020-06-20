@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
@@ -632,6 +633,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRIDOF:
   case kind::STRING_STRREPL:
   case kind::STRING_STRREPLALL:
+  case kind::STRING_REPLACE_RE:
+  case kind::STRING_REPLACE_RE_ALL:
   case kind::STRING_TOLOWER:
   case kind::STRING_TOUPPER:
   case kind::STRING_REV:
@@ -1191,6 +1194,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL: return "str.replace_all";
+  case kind::STRING_REPLACE_RE: return "str.replace_re";
+  case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1662,8 +1667,8 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c)
 
 static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
 {
-  const vector<Expr>& funcs = c->getFunctions();
-  const vector<vector<Expr> >& formals = c->getFormals();
+  const vector<api::Term>& funcs = c->getFunctions();
+  const vector<vector<api::Term> >& formals = c->getFormals();
   out << "(define-fun";
   if (funcs.size() > 1)
   {
@@ -1686,10 +1691,10 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
     }
     out << funcs[i] << " (";
     // print its type signature
-    vector<Expr>::const_iterator itf = formals[i].begin();
+    vector<api::Term>::const_iterator itf = formals[i].begin();
     for (;;)
     {
-      out << "(" << (*itf) << " " << (*itf).getType() << ")";
+      out << "(" << (*itf) << " " << (*itf).getSort() << ")";
       ++itf;
       if (itf != formals[i].end())
       {
@@ -1700,8 +1705,8 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
         break;
       }
     }
-    Type type = funcs[i].getType();
-    type = static_cast<FunctionType>(type).getRangeType();
+    api::Sort type = funcs[i].getSort();
+    type = type.getFunctionCodomainSort();
     out << ") " << type;
     if (funcs.size() > 1)
     {
@@ -1712,7 +1717,7 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   {
     out << ") (";
   }
-  const vector<Expr>& formulas = c->getFormulas();
+  const vector<api::Term>& formulas = c->getFormulas();
   for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {
     if (i > 0)

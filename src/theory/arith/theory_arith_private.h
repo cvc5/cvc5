@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,15 +35,12 @@
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
@@ -51,9 +48,8 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
@@ -421,40 +417,13 @@ private:
   // handle linear /, div, mod, and also is_int, to_int
   Node ppRewriteTerms(TNode atom);
 
-  /**
-   * Called when a non-linear term n is given to this class. Throw an exception
-   * if the logic is linear.
-   */
-  void checkNonLinearLogic(Node term);
-  /**
-   * Eliminate operators in term n. If n has top symbol that is not a core
-   * one (including division, int division, mod, to_int, is_int, syntactic sugar
-   * transcendental functions), then we replace it by a form that eliminates
-   * that operator. This may involve the introduction of witness terms.
-   *
-   * One exception to the above rule is that we may leave certain applications
-   * like (/ 4 1) unchanged, since replacing this by 4 changes its type from
-   * real to int. This is important for some subtyping issues during
-   * expandDefinition. Moreover, applications like this can be eliminated
-   * trivially later by rewriting.
-   *
-   * This method is called both during expandDefinition and during ppRewrite.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The (single step) eliminated form of n.
-   */
-  Node eliminateOperators(Node n);
-  /**
-   * Recursively ensure that n has no non-standard operators. This applies
-   * the above method on all subterms of n.
-   *
-   * @param n The node to eliminate operators from.
-   * @return The eliminated form of n.
-   */
-  Node eliminateOperatorsRec(Node n);
-
  public:
-  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheoryArithPrivate(TheoryArith& containing,
+                     context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     Valuation valuation,
+                     const LogicInfo& logicInfo);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
@@ -862,60 +831,10 @@ private:
 
   Statistics d_statistics;
 
-  enum class ArithSkolemId
-  {
-    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
-    DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
-    INT_DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x mod 0 */
-    MOD_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
-    SQRT,
-  };
-
-  /**
-   * Function symbols used to implement:
-   * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
-   * division function ("/"),
-   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with
-   * partial function "div",
-   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial
-   * function "mod".
-   *
-   * If the option arithNoPartialFun() is enabled, then the range of this map
-   * stores Skolem constants instead of Skolem functions, meaning that the
-   * function-ness of e.g. division by zero is ignored.
-   */
-  std::map<ArithSkolemId, Node> d_arith_skolem;
-  /** get arithmetic skolem
-   *
-   * Returns the Skolem in the above map for the given id, creating it if it
-   * does not already exist.
-   */
-  Node getArithSkolem(ArithSkolemId asi);
-  /** get arithmetic skolem application
-   *
-   * By default, this returns the term f( n ), where f is the Skolem function
-   * for the identifier asi.
-   *
-   * If the option arithNoPartialFun is enabled, this returns f, where f is
-   * the Skolem constant for the identifier asi.
-   */
-  Node getArithSkolemApp(Node n, ArithSkolemId asi);
-
-  /**
-   *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
-   *  non-linear operators that are introduced during ppRewriteTerms.
-   */
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  NodeMap d_to_int_skolem;
-  NodeMap d_div_skolem;
-  NodeMap d_int_div_skolem;
-  NodeMap d_nlin_inverse_skolem;
-
   /** The theory rewriter for this theory. */
   ArithRewriter d_rewriter;
+  /** The operator elimination utility */
+  OperatorElim d_opElim;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

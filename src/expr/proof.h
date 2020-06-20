@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,24 +22,12 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "expr/proof_generator.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
 #include "expr/proof_step_buffer.h"
 
 namespace CVC4 {
-
-/** An overwrite policy for CDProof below */
-enum class CDPOverwrite : uint32_t
-{
-  // always overwrite an existing step.
-  ALWAYS,
-  // overwrite ASSUME with non-ASSUME steps.
-  ASSUME_ONLY,
-  // never overwrite an existing step.
-  NEVER,
-};
-/** Writes a overwrite policy name to a stream. */
-std::ostream& operator<<(std::ostream& out, CDPOverwrite opol);
 
 /**
  * A (context-dependent) proof.
@@ -143,7 +131,7 @@ std::ostream& operator<<(std::ostream& out, CDPOverwrite opol);
  * of ID_2. More generally, CDProof::isSame(F,G) returns true if F and G are
  * essentially the same formula according to this class.
  */
-class CDProof
+class CDProof : public ProofGenerator
 {
  public:
   CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
@@ -161,7 +149,7 @@ class CDProof
    * returned proof may be updated by further calls to this class. The caller
    * should call ProofNode::clone if they want to own it.
    */
-  virtual std::shared_ptr<ProofNode> mkProof(Node fact);
+  std::shared_ptr<ProofNode> getProofFor(Node fact) override;
   /** Add step
    *
    * @param expected The intended conclusion of this proof step. This must be
@@ -241,6 +229,8 @@ class CDProof
    * null if none exist.
    */
   static Node getSymmFact(TNode f);
+  /** identify */
+  std::string identify() const override;
 
  protected:
   typedef context::CDHashMap<Node, std::shared_ptr<ProofNode>, NodeHashFunction>

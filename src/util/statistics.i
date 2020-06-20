@@ -64,12 +64,12 @@
 
 %include <std_pair.i>
 %include <std_string.i>
-%include <std_vector.i>
 
-%include "bindings/java_iterator_adapter.h"
 %include "util/sexpr.h"
 
 %template(Statistic) std::pair<std::string, CVC4::SExpr>;
+
+%feature("valuewrapper") CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> >;
 %template(JavaIteratorAdapter_StatisticsBase) CVC4::JavaIteratorAdapter<CVC4::StatisticsBase, std::pair<std::string, CVC4::SExpr> >;
 
 #endif /* SWIGJAVA */

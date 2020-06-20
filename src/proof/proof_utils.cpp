@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,19 +20,6 @@
 
 namespace CVC4 {
 namespace utils {
-
-void collectAtoms(TNode node, std::set<Node>& seen) {
-  if (seen.find(node) != seen.end())
-    return;
-  if (theory::Theory::theoryOf(node) != theory::THEORY_BOOL || node.isVar()) {
-      seen.insert(node);
-      return;
-  }
-
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    collectAtoms(node[i], seen);
-  }
-}
 
 std::string toLFSCKind(Kind kind) {
   switch(kind) {
