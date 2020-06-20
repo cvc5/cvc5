@@ -440,7 +440,7 @@ void CoreSolver::checkFlatForm(std::vector<Node>& eqc,
       // is conflicting by arithmetic len(a.b)=len(a)+len(b)!=len(a)
       // when len(b)!=0. Although if we do not infer this conflict eagerly,
       // it may be applied (see #3272).
-      d_im.sendInference(exp, conc, infType, isRev);
+      d_im.sendInference(exp, conc, infType);
       if (d_state.isInConflict())
       {
         return;
@@ -1262,7 +1262,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         // can infer that this string must be empty
         Node eq = nfkv[index_k].eqNode(emp);
         Assert(!d_state.areEqual(emp, nfkv[index_k]));
-        d_im.sendInference(curr_exp, eq, Inference::N_ENDPOINT_EMP, isRev);
+        d_im.sendInference(curr_exp, eq, Inference::N_ENDPOINT_EMP);
         index_k++;
       }
       break;
@@ -1305,7 +1305,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       if (x.isConst() && y.isConst())
       {
         // if both are constant, its just a constant conflict
-        d_im.sendInference(ant, d_false, Inference::N_CONST, isRev, true);
+        d_im.sendInference(ant, d_false, Inference::N_CONST, true);
         return;
       }
       // `x` and `y` have the same length. We infer that the two components
@@ -1320,7 +1320,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       // set the explanation for length
       Node lant = utils::mkAnd(lenExp);
       ant.push_back(lant);
-      d_im.sendInference(ant, eq, Inference::N_UNIFY, isRev);
+      d_im.sendInference(ant, eq, Inference::N_UNIFY);
       break;
     }
     else if ((!x.isConst() && index == nfiv.size() - rproc - 1)
@@ -1359,7 +1359,6 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         d_im.sendInference(antec,
                            eqn[0].eqNode(eqn[1]),
                            Inference::N_ENDPOINT_EQ,
-                           isRev,
                            true);
       }
       else
@@ -1805,7 +1804,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
       d_im.sendInference(
-          iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, false, true);
+          iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, true);
       return ProcessLoopResult::CONFLICT;
     }
   }
@@ -2103,7 +2102,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
                              antecLen,
                              conc,
                              Inference::DEQ_DISL_FIRST_CHAR_STRING_SPLIT,
-                             false,
                              true);
           return;
         }
@@ -2143,7 +2141,6 @@ void CoreSolver::processDeq(Node ni, Node nj)
                              antecLen,
                              conc,
                              Inference::DEQ_DISL_STRINGS_SPLIT,
-                             false,
                              true);
         }
 
@@ -2239,7 +2236,7 @@ bool CoreSolver::processSimpleDeq(std::vector<Node>& nfi,
       Node conc = cc.size() == 1
                       ? cc[0]
                       : NodeManager::currentNM()->mkNode(kind::AND, cc);
-      d_im.sendInference(ant, conc, Inference::DEQ_NORM_EMP, isRev, true);
+      d_im.sendInference(ant, conc, Inference::DEQ_NORM_EMP, true);
       return true;
     }
 
@@ -2524,7 +2521,7 @@ void CoreSolver::checkLengthsEqc() {
       {
         Node eq = llt.eqNode(lc);
         ei->d_normalizedLength.set(eq);
-        d_im.sendInference(ant, eq, Inference::LEN_NORM, false, true);
+        d_im.sendInference(ant, eq, Inference::LEN_NORM, true);
       }
     }
   }
