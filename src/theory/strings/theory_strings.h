@@ -81,7 +81,7 @@ class TheoryStrings : public Theory {
   /** Propagate */
   void propagate(Effort e) override;
   /** Explain */
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
   /** Get the equality engine */
   eq::EqualityEngine* getEqualityEngine() override;
   /** Get current substitution */
@@ -110,7 +110,7 @@ class TheoryStrings : public Theory {
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** preprocess rewrite */
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
   /**
    * Get all relevant information in this theory regarding the current
    * model. Return false if a contradiction is discovered.

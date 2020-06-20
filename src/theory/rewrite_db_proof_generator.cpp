@@ -16,6 +16,7 @@
 
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
+#include "expr/node_algorithm.h"
 
 namespace CVC4 {
 namespace theory {
@@ -307,7 +308,7 @@ bool RewriteDbProofCons::ensureProofInternal(Node eqi)
           const RewriteProofRule& rpr = d_db.getRule(itd->second);
           // compute premises based on the used substitution
           std::unordered_map<TNode, TNode, TNodeHashFunction> subs;
-          if (!unify(rpr.getConclusion(), cur, subs))
+          if (!expr::match(rpr.getConclusion(), cur, subs))
           {
             Assert(false);
             return false;
@@ -356,76 +357,6 @@ Node RewriteDbProofCons::doEvaluate(Node n)
   Node nev = d_eval.eval(n, {}, {}, false);
   d_evalCache[n] = nev;
   return nev;
-}
-
-bool RewriteDbProofCons::unify(
-    Node s, Node n, std::unordered_map<TNode, TNode, TNodeHashFunction>& subs)
-{
-  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
-  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
-      it;
-  std::unordered_map<TNode, TNode, TNodeHashFunction>::iterator subsIt;
-  std::vector<std::pair<TNode, TNode>> stack;
-  stack.emplace_back(n, s);
-  std::pair<TNode, TNode> curr;
-  do
-  {
-    curr = stack.back();
-    stack.pop_back();
-    if (curr.first == curr.second)
-    {
-      // holds trivially
-      continue;
-    }
-    it = visited.find(curr);
-    if (it != visited.end())
-    {
-      // already processed
-      continue;
-    }
-    visited.insert(curr);
-    if (curr.first.getNumChildren() == 0)
-    {
-      if (curr.first.getKind() == kind::BOUND_VARIABLE)
-      {
-        subsIt = subs.find(curr.first);
-        if (subsIt != subs.end())
-        {
-          if (curr.second != subsIt->second)
-          {
-            return false;
-          }
-        }
-        else if (!curr.first.getType().isComparableTo(curr.second.getType()))
-        {
-          // should be matching with polymorphic operators, hence the
-          // types may differ
-          return false;
-        }
-        else
-        {
-          subs.emplace(curr.first, curr.second);
-        }
-      }
-      else
-      {
-        return false;
-      }
-    }
-    else
-    {
-      if (curr.first.getNumChildren() != curr.second.getNumChildren()
-          || curr.first.getOperator() != curr.second.getOperator())
-      {
-        return false;
-      }
-      for (size_t i = 0, nchild = curr.first.getNumChildren(); i < nchild; ++i)
-      {
-        stack.push_back({curr.first[i], curr.second[i]});
-      }
-    }
-  } while (!stack.empty());
-  return true;
 }
 
 }  // namespace theory

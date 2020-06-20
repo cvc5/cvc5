@@ -75,26 +75,27 @@ PR finished:
 (22) Strings base solver update (req 2)
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
+(33) split operator elimination from arith (req 28)
 (34) theory proof step buffer
+(35) Strings term registry update (req 13)
 (36) term conversion proof generator
 (38) quantifiers proof checker (req 8)
 (48) remove snorm option
+(49) re elim static
 
 PRs ready:
 
-(0) Add proof option
+(0) Add proof option *
+(17) rewriter new infrastructure "rewriteEqualityExt"
 (23) Updates to proof node manager, including mkScope (req 19) *
 (25) Arithmetic proof checker [Alex]
-(33) split operator elimination from arith (req 28) *
-(35) Strings term registry update (req 13) *
 (37) Rewriter proof producing [Andres] (req 36)
 (45) regexp operation refactor (req 3, 7, 8) *
-(49) re elim static *
+(51) TrustNode rewrite kind
 
 PRs future:
 
 (6) Equality engine updates [Haniel] (req 0)
-(17) rewriter new infrastructure "rewriteEqualityExt"
 (20) Eq proof conversion [Haniel] (req 6)
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35)
@@ -110,13 +111,18 @@ PRs future:
 (44) TheoryEngine explanation proof producing (req 12, 41)
 (46) strings term registry proof producing (req 32, 35)
 (47) TheoryUF proof producing [Haniel] (req 24)
-(48) term formula removal proof producing (req 36, 38)
-(50) theory preprocess proof producing (req 27, 48)
+(50) theory preprocess proof producing (req 27, 48, 51)
+(52) term formula removal proof producing (req 36, 38, 51)
+(53) CNF proof producing [Haniel]
+(54) DSL rewrite rule
+(55) DSL rewrite rule term processor
+(56) DSL rewrite rule database
+(57) DSL rewrite rule compilation, including side condition utility [Andres] TODO
+(58) DSL rewrite rule proof generator
 
 PRs wish list:
 
 - SAT solver proof producing
-- CNF proof producing
 - Proofs for theory rewrites
 - SEXPR simply typed
 - Proof kinds infrastructure
