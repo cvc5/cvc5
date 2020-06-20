@@ -436,6 +436,8 @@ class TheoryEngine {
     return d_propEngine;
   }
 
+  inline ProofChecker* getProofChecker() const { return d_pchecker; }
+
   /**
    * Get a pointer to the underlying sat context.
    */

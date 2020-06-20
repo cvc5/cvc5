@@ -248,8 +248,6 @@ class PropEngine
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
 
-  /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pNodeManager;
   /** Proof-producing CNF converter */

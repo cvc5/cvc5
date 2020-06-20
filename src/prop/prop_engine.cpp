@@ -78,9 +78,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_satSolver(NULL),
       d_registrar(NULL),
       d_cnfStream(NULL),
-      d_pchecker(options::proofNew() ? new ProofChecker : nullptr),
       d_pNodeManager(options::proofNew()
-                         ? new ProofNodeManager(d_pchecker.get())
+                         ? new ProofNodeManager(te->getProofChecker())
                          : nullptr),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
