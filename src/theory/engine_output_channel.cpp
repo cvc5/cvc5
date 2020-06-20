@@ -89,6 +89,7 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
   theory::LemmaStatus result =
       d_engine->lemma(tlem.getNode(),
                       rule,
+                      false,
                       removable,
                       preprocess,
                       sendAtoms ? d_theory : theory::THEORY_LAST);
@@ -239,7 +240,7 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
   // here.
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   theory::LemmaStatus result =
-      d_engine->lemma(tlem.getNode(), RULE_SPLIT, removable, false, d_theory);
+      d_engine->lemma(tlem.getNode(), RULE_SPLIT, false, removable, false, d_theory);
   return result;
 }
 
@@ -333,6 +334,7 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
   // now, call the normal interface for lemma
   return d_engine->lemma(plem.getNode(),
                          RULE_INVALID,
+                         false,
                          removable,
                          preprocess,
                          sendAtoms ? d_theory : theory::THEORY_LAST);
