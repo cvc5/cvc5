@@ -221,6 +221,9 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint isFloatingPoint() except +
         bint isDatatype() except +
         bint isParametricDatatype() except +
+        bint isConstructor() except +
+        bint isSelector() except +
+        bint isTester() except +
         bint isFunction() except +
         bint isPredicate() except +
         bint isTuple() except +

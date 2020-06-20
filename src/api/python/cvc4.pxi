@@ -990,6 +990,15 @@ cdef class Sort:
     def isParametricDatatype(self):
         return self.csort.isParametricDatatype()
 
+    def isConstructor(self):
+        return self.csort.isConstructor()
+
+    def isSelector(self):
+        return self.csort.isSelector()
+
+    def isTester(self):
+        return self.csort.isTester()
+
     def isFunction(self):
         return self.csort.isFunction()
 
