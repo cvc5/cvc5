@@ -37,8 +37,6 @@ bool StringsEntail::canConstantContainConcat(Node c,
                                              int& lastc)
 {
   Assert(c.isConst());
-  CVC4::String t = c.getConst<String>();
-  const std::vector<unsigned>& tvec = t.getVec();
   Assert(n.getKind() == STRING_CONCAT);
   // must find constant components in order
   size_t pos = 0;
@@ -50,19 +48,20 @@ bool StringsEntail::canConstantContainConcat(Node c,
     {
       firstc = firstc == -1 ? i : firstc;
       lastc = i;
-      CVC4::String s = n[i].getConst<String>();
-      size_t new_pos = t.find(s, pos);
+      size_t new_pos = Word::find(c, n[i], pos);
       if (new_pos == std::string::npos)
       {
         return false;
       }
       else
       {
-        pos = new_pos + s.size();
+        pos = new_pos + Word::getLength(n[i]);
       }
     }
     else if (n[i].getKind() == STRING_ITOS && ArithEntail::check(n[i][0]))
     {
+      Assert(c.getType().isString());
+      const std::vector<unsigned>& tvec = c.getConst<String>().getVec();
       // find the first occurrence of a digit starting at pos
       while (pos < tvec.size() && !String::isDigit(tvec[pos]))
       {
@@ -116,7 +115,8 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
 {
   Assert(dir == 1 || dir == -1);
   Assert(nr.empty());
-  Node zero = NodeManager::currentNM()->mkConst(CVC4::Rational(0));
+  NodeManager* nm = NodeManager::currentNM();
+  Node zero = nm->mkConst(CVC4::Rational(0));
   bool ret = false;
   bool success;
   unsigned sindex = 0;
@@ -139,18 +139,16 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
           if (lbr.sgn() > 0)
           {
             Assert(ArithEntail::check(curr, true));
-            CVC4::String s = n1[sindex_use].getConst<String>();
-            Node ncl =
-                NodeManager::currentNM()->mkConst(CVC4::Rational(s.size()));
-            Node next_s =
-                NodeManager::currentNM()->mkNode(MINUS, lowerBound, ncl);
+            Node s = n1[sindex_use];
+            size_t slen = Word::getLength(s);
+            Node ncl = nm->mkConst(CVC4::Rational(slen));
+            Node next_s = nm->mkNode(MINUS, lowerBound, ncl);
             next_s = Rewriter::rewrite(next_s);
             Assert(next_s.isConst());
             // we can remove the entire constant
             if (next_s.getConst<Rational>().sgn() >= 0)
             {
-              curr = Rewriter::rewrite(
-                  NodeManager::currentNM()->mkNode(MINUS, curr, ncl));
+              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, ncl));
               success = true;
               sindex++;
             }
@@ -160,25 +158,20 @@ bool StringsEntail::stripSymbolicLength(std::vector<Node>& n1,
               // lower bound minus the length of a concrete string is negative,
               // hence lowerBound cannot be larger than long max
               Assert(lbr < Rational(String::maxSize()));
-              curr = Rewriter::rewrite(
-                  NodeManager::currentNM()->mkNode(MINUS, curr, lowerBound));
+              curr = Rewriter::rewrite(nm->mkNode(MINUS, curr, lowerBound));
               uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
-              Assert(lbsize < s.size());
+              Assert(lbsize < slen);
               if (dir == 1)
               {
                 // strip partially from the front
-                nr.push_back(
-                    NodeManager::currentNM()->mkConst(s.prefix(lbsize)));
-                n1[sindex_use] = NodeManager::currentNM()->mkConst(
-                    s.suffix(s.size() - lbsize));
+                nr.push_back(Word::prefix(s, lbsize));
+                n1[sindex_use] = Word::suffix(s, slen - lbsize);
               }
               else
               {
                 // strip partially from the back
-                nr.push_back(
-                    NodeManager::currentNM()->mkConst(s.suffix(lbsize)));
-                n1[sindex_use] = NodeManager::currentNM()->mkConst(
-                    s.prefix(s.size() - lbsize));
+                nr.push_back(Word::suffix(s, lbsize));
+                n1[sindex_use] = Word::prefix(s, slen - lbsize);
               }
               ret = true;
             }
@@ -496,8 +489,6 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
 {
   Assert(nb.empty());
   Assert(ne.empty());
-
-  NodeManager* nm = NodeManager::currentNM();
   bool changed = false;
   // for ( forwards, backwards ) direction
   for (unsigned r = 0; r < 2; r++)
@@ -509,7 +500,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       bool removeComponent = false;
       Node n1cmp = n1[index0];
 
-      if (n1cmp.isConst() && n1cmp.getConst<String>().size() == 0)
+      if (n1cmp.isConst() && Word::isEmpty(n1cmp))
       {
         return false;
       }
@@ -522,14 +513,15 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
           << ", dir = " << dir << std::endl;
       if (n1cmp.isConst())
       {
-        CVC4::String s = n1cmp.getConst<String>();
+        Node s = n1cmp;
+        size_t slen = Word::getLength(s);
         // overlap is an overapproximation of the number of characters
         // n2[index1] can match in s
-        unsigned overlap = s.size();
+        unsigned overlap = Word::getLength(s);
         if (n2[index1].isConst())
         {
-          CVC4::String t = n2[index1].getConst<String>();
-          std::size_t ret = r == 0 ? s.find(t) : s.rfind(t);
+          Node t = n2[index1];
+          std::size_t ret = r == 0 ? Word::find(s, t) : Word::rfind(s, t);
           if (ret == std::string::npos)
           {
             if (n1.size() == 1)
@@ -545,7 +537,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // This is used to partially strip off the endpoint
               // e.g. str.contains( str.++( "abc", x ), str.++( "cd", y ) ) -->
               // str.contains( str.++( "c", x ), str.++( "cd", y ) )
-              overlap = r == 0 ? s.overlap(t) : t.overlap(s);
+              overlap = r == 0 ? Word::overlap(s, t) : Word::overlap(t, s);
             }
             else
             {
@@ -553,19 +545,20 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
               // if there is no overlap
               //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
               //        --> str.contains( x, "a" )
-              removeComponent = ((r == 0 ? s.overlap(t) : t.overlap(s)) == 0);
+              removeComponent =
+                  ((r == 0 ? Word::overlap(s, t) : Word::overlap(t, s)) == 0);
             }
           }
           else if (sss.empty())  // only if not substr
           {
-            Assert(ret < s.size());
+            Assert(ret < slen);
             // can strip off up to the find position, e.g.
             // str.contains( str.++( "abc", x ), str.++( "b", y ) ) -->
             // str.contains( str.++( "bc", x ), str.++( "b", y ) ),
             // and
             // str.contains( str.++( x, "abbd" ), str.++( y, "b" ) ) -->
             // str.contains( str.++( x, "abb" ), str.++( y, "b" ) )
-            overlap = s.size() - ret;
+            overlap = slen - ret;
           }
         }
         else
@@ -573,7 +566,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
           // inconclusive
         }
         // process the overlap
-        if (overlap < s.size())
+        if (overlap < slen)
         {
           changed = true;
           if (overlap == 0)
@@ -586,13 +579,13 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
             // component
             if (r == 0)
             {
-              nb.push_back(nm->mkConst(s.prefix(s.size() - overlap)));
-              n1[index0] = nm->mkConst(s.suffix(overlap));
+              nb.push_back(Word::prefix(s, slen - overlap));
+              n1[index0] = Word::suffix(s, overlap);
             }
             else
             {
-              ne.push_back(nm->mkConst(s.suffix(s.size() - overlap)));
-              n1[index0] = nm->mkConst(s.prefix(overlap));
+              ne.push_back(Word::suffix(s, slen - overlap));
+              n1[index0] = Word::prefix(s, overlap);
             }
           }
         }
@@ -601,8 +594,8 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       {
         if (n2[index1].isConst())
         {
+          Assert(n2[index1].getType().isString());
           CVC4::String t = n2[index1].getConst<String>();
-
           if (n1.size() == 1)
           {
             // if n1.size()==1, then if n2[index1] is not a number, we can drop

@@ -4,6 +4,8 @@ Changes since 1.7
 =================
 
 New Features:
+* New C++ and Python API: CVC4 has a new, more streamlined API. We plan to
+  make CVC4 1.8 the last version that ships with the legacy API.
 * Strings: Full support of the new SMT-LIB standard for the theory of strings,
   including:
   * Support for `str.replace_re`, `str.replace_re_all`, `str.is_digit`,
@@ -17,12 +19,22 @@ New Features:
   function symbols. Support for higher-order constraints can be enabled by
   the option `--uf-ho`.
 * Support for set comprehension binders `comprehension`.
+* Eager bit-blasting: Support for SAT solver Kissat.
 
 Improvements:
 * API: Function definitions can now be requested to be global. If the `global`
   parameter is set to true, they persist after popping the user context.
+* Java/Python bindings: The bindings now allow users to catch exceptions
+* Arithmetic: Performance improvements
+  * Linear solver: New lemmas inspired by unit-cube tests
+  * Non-linear solver: Expanded set of axioms
+* Ackermannization: The Ackermannization preprocessing pass now supports
+  uninterpreted sorts and as a result all QF_UFBV problems are supported in
+  combination with eager bit blasting.
 
 Changes:
+* CVC language: Models printed in the CVC language now include an explicit end
+  marker to facilitate the communication over pipes with CVC4.
 * API change: `SmtEngine::query()` has been renamed to
   `SmtEngine::checkEntailed()` and `Result::Validity` has been renamed to
   `Result::Entailment` along with corresponding changes to the enum values.
@@ -44,6 +56,7 @@ Changes:
   `./contrib/sygus-v1-to-v2.sh`.
 * Support for user-provided rewrite rule quantifiers have been removed.
 * Support for certain option aliases have been removed.
+* Support for parallel portfolio builds has been removed.
 
 Changes since 1.6
 =================

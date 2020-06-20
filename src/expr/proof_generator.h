@@ -18,10 +18,24 @@
 #define CVC4__EXPR__PROOF_GENERATOR_H
 
 #include "expr/node.h"
-#include "expr/proof.h"
 #include "expr/proof_node.h"
 
 namespace CVC4 {
+
+class CDProof;
+
+/** An overwrite policy for CDProof */
+enum class CDPOverwrite : uint32_t
+{
+  // always overwrite an existing step.
+  ALWAYS,
+  // overwrite ASSUME with non-ASSUME steps.
+  ASSUME_ONLY,
+  // never overwrite an existing step.
+  NEVER,
+};
+/** Writes a overwrite policy name to a stream. */
+std::ostream& operator<<(std::ostream& out, CDPOverwrite opol);
 
 /**
  * An abstract proof generator class.
@@ -89,27 +103,6 @@ class ProofGenerator
   virtual bool hasProofFor(Node f) { return true; }
   /** Identify this generator (for debugging, etc..) */
   virtual std::string identify() const = 0;
-};
-
-class CDProof;
-
-/**
- * A "copy on demand" proof generator which returns proof nodes based on a
- * reference to another CDProof.
- */
-class PRefProofGenerator : public ProofGenerator
-{
- public:
-  PRefProofGenerator(CDProof* cd);
-  ~PRefProofGenerator();
-  /** Get proof for */
-  std::shared_ptr<ProofNode> getProofFor(Node f) override;
-  /** Identify this generator (for debugging, etc..) */
-  std::string identify() const override;
-
- protected:
-  /** The reference proof */
-  CDProof* d_proof;
 };
 
 }  // namespace CVC4
