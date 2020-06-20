@@ -29,8 +29,8 @@
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "proof/proof_manager.h"
-#include "prop/registrar.h"
 #include "prop/proof_cnf_stream.h"
+#include "prop/registrar.h"
 #include "prop/theory_proxy.h"
 
 namespace CVC4 {

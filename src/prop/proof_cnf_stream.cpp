@@ -56,7 +56,8 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         break;
       }
       CVC4_FALLTHROUGH;
-    default: {
+    default:
+    {
       // negate
       Node nnode = negated ? node.negate() : static_cast<Node>(node);
       // Atoms
@@ -434,8 +435,7 @@ SatLiteral ProofCnfStream::toCNF(TNode node, bool negated)
       lit = node[0].getType().isBoolean() ? handleIff(node)
                                           : d_cnfStream.convertAtom(node);
       break;
-    default: {
-      lit = d_cnfStream.convertAtom(node);
+    default: { lit = d_cnfStream.convertAtom(node);
     }
     break;
   }

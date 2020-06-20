@@ -67,7 +67,6 @@ class ProofCnfStream
    */
   void ensureLiteral(TNode n, bool noPreregistration = false);
 
-
   /**
    * Transforms the node into CNF recursively.
    * @param node the formula to transform

@@ -141,9 +141,6 @@ std::ostream& operator<<(std::ostream& out, PfRule id)
   return out;
 }
 
-size_t PfRuleHashFunction::operator()(PfRule id) const 
-{
-  return id;
-}
+size_t PfRuleHashFunction::operator()(PfRule id) const { return id; }
 
 }  // namespace CVC4

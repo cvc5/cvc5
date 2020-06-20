@@ -115,10 +115,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   NodeManager* nm = NodeManager::currentNM();
   if (d_pfCnfStream)
   {
-    d_pfCnfStream->convertAndAssert(
-        nm->mkConst(true), false, false);
-    d_pfCnfStream->convertAndAssert(
-        nm->mkConst(false).notNode(), false, false);
+    d_pfCnfStream->convertAndAssert(nm->mkConst(true), false, false);
+    d_pfCnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
   }
   else
   {

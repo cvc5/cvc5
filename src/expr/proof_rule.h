@@ -872,9 +872,10 @@ const char* toString(PfRule id);
 std::ostream& operator<<(std::ostream& out, PfRule id);
 
 /** Hash function for proof rules */
-struct PfRuleHashFunction {
+struct PfRuleHashFunction
+{
   size_t operator()(PfRule id) const;
-};/* struct KindHashFunction */
+}; /* struct KindHashFunction */
 
 }  // namespace CVC4
 
