@@ -2,9 +2,9 @@
 /*! \file word.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,9 +32,6 @@ class Word
  public:
   /** make empty constant of type tn */
   static Node mkEmptyWord(TypeNode tn);
-
-  /** make empty constant of kind k */
-  static Node mkEmptyWord(Kind k);
 
   /** make word from constants in (non-empty) vector vec */
   static Node mkWordFlatten(const std::vector<Node>& xs);
