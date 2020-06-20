@@ -1419,7 +1419,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
         // E.g. "abc" ++ ... = "bc" ++ ... ---> conflict
         std::vector<Node> antec;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, antec);
-        d_im.sendInference(antec, d_false, Inference::N_CONST, isRev, true);
+        d_im.sendInference(antec, d_false, Inference::N_CONST, true);
         break;
       }
     }
