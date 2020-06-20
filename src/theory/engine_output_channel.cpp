@@ -239,8 +239,8 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
   // It is easy to make proofs for splits, which we intentionally do not do
   // here.
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
-  theory::LemmaStatus result =
-      d_engine->lemma(tlem.getNode(), RULE_SPLIT, false, removable, false, d_theory);
+  theory::LemmaStatus result = d_engine->lemma(
+      tlem.getNode(), RULE_SPLIT, false, removable, false, d_theory);
   return result;
 }
 
