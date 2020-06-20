@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -483,6 +483,13 @@ TypeNode NodeManager::getType(TNode n, bool check)
 }
 
 Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, const std::string& comment, int flags) {
+  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
+  {
+    Assert(type.isBoolean());
+    // Notice that prefix/comment is ignored, since boolean term variables
+    // do not have names.
+    return mkBooleanTermVariable();
+  }
   Node n = NodeBuilder<0>(this, kind::SKOLEM);
   setAttribute(n, TypeAttr(), type);
   setAttribute(n, TypeCheckedAttr(), true);
