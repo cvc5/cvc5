@@ -104,7 +104,7 @@ class SygusInterpol
    * up the grammar by only using the operators from conj. In SHARED option, it
    * will set up the grammar by only using the operators shared by axioms and
    * conj. In ALL option, it will set up the grammar by only using the operators
-   * from axioms or conj.
+   * from either axioms or conj.
    */
   TypeNode setSynthGrammar(const TypeNode& itpGType,
                            const std::vector<Node>& axioms,
@@ -151,21 +151,21 @@ class SygusInterpol
   // The logic for the local copy of SMT engine (d_subsolver).
   LogicInfo d_logic;
 
-  // symbols from axioms and conjecture
+  // symbols from axioms and conjecture.
   std::vector<Node> d_syms;
-  // shared symbols between axioms and conjecture
+  // shared symbols between axioms and conjecture.
   std::vector<Node> d_symsShared;
-  // free variables created from d_syms
+  // free variables created from d_syms.
   std::vector<Node> d_vars;
-  // variables created from d_syms for formal argument list
+  // variables created from d_syms for formal argument list.
   std::vector<Node> d_vlvs;
-  // free variables created from d_symsShared
+  // free variables created from d_symsShared.
   std::vector<Node> d_varsShared;
-  // variables created from d_symShared for formal argument list
+  // variables created from d_symShared for formal argument list.
   std::vector<Node> d_vlvsShared;
-  // types of shared variables between axioms and conjecture
+  // types of shared variables between axioms and conjecture.
   std::vector<TypeNode> d_varTypesShared;
-  // formal argument list of the interpol-to-synthesis
+  // formal argument list of the interpol-to-synthesis.
   Node d_abvlShared;
 
   // the sygus conjecture to synthesis for interpolation problem
