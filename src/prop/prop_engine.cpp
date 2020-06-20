@@ -78,6 +78,11 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_satSolver(NULL),
       d_registrar(NULL),
       d_cnfStream(NULL),
+      d_pchecker(options::proofNew() ? new ProofChecker : nullptr),
+      d_pNodeManager(options::proofNew()
+                         ? new ProofNodeManager(d_pchecker.get())
+                         : nullptr),
+      d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)
 {
@@ -92,6 +97,11 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
       d_satSolver, d_registrar, userContext, rm, true);
+  if (options::proofNew())
+  {
+    d_pfCnfStream.reset(new ProofCnfStream(
+        userContext, *d_cnfStream, d_pNodeManager.get(), options::proofNew()));
+  }
 
   d_theoryProxy = new TheoryProxy(
       this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
@@ -104,9 +114,19 @@ PropEngine::PropEngine(TheoryEngine* te,
          );
 
   NodeManager* nm = NodeManager::currentNM();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
-  d_cnfStream->convertAndAssert(
-      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->convertAndAssert(
+        nm->mkConst(true), false, false);
+    d_pfCnfStream->convertAndAssert(
+        nm->mkConst(false).notNode(), false, false);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
+    d_cnfStream->convertAndAssert(
+        nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
+  }
 }
 
 PropEngine::~PropEngine() {
@@ -123,7 +143,14 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->convertAndAssert(node, false, false);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  }
 }
 
 void PropEngine::assertLemma(TNode node, bool negated,
@@ -134,7 +161,14 @@ void PropEngine::assertLemma(TNode node, bool negated,
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->convertAndAssert(node, removable, negated);
+  }
+  else
+  {
+    d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  }
 }
 
 void PropEngine::addAssertionsToDecisionEngine(
@@ -263,8 +297,16 @@ void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const 
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
-void PropEngine::ensureLiteral(TNode n) {
-  d_cnfStream->ensureLiteral(n);
+void PropEngine::ensureLiteral(TNode n)
+{
+  if (d_pfCnfStream)
+  {
+    d_pfCnfStream->ensureLiteral(n);
+  }
+  else
+  {
+    d_cnfStream->ensureLiteral(n);
+  }
 }
 
 void PropEngine::push() {

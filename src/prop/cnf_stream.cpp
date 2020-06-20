@@ -67,7 +67,7 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
       d_resourceManager(rm)
 {}
 
-void CnfStream::assertClause(TNode node, SatClause& c) {
+bool CnfStream::assertClause(TNode node, SatClause& c) {
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
   if(Dump.isOn("clauses")) {
     if(c.size() == 1) {
@@ -88,38 +88,44 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
     d_cnfProof->pushCurrentDefinition(node);
   }
 
-  ClauseId clause_id = d_satSolver->addClause(c, d_removable);
-  if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
+  ClauseId clauseId = d_satSolver->addClause(c, d_removable);
 
-  if (PROOF_ON() && d_cnfProof)
+  if (clauseId != ClauseIdUndef && PROOF_ON() && d_cnfProof)
   {
-    if (clause_id != ClauseIdError)
+    if (clauseId != ClauseIdError)
     {
-      d_cnfProof->registerConvertedClause(clause_id);
+      d_cnfProof->registerConvertedClause(clauseId);
     }
     d_cnfProof->popCurrentDefinition();
   };
+  return clauseId != ClauseIdUndef;
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a) {
+bool CnfStream::assertClause(TNode node, SatLiteral a)
+{
   SatClause clause(1);
   clause[0] = a;
-  assertClause(node, clause);
+  return assertClause(node, clause);
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b) {
+bool CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b)
+{
   SatClause clause(2);
   clause[0] = a;
   clause[1] = b;
-  assertClause(node, clause);
+  return assertClause(node, clause);
 }
 
-void CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b, SatLiteral c) {
+bool CnfStream::assertClause(TNode node,
+                                 SatLiteral a,
+                                 SatLiteral b,
+                                 SatLiteral c)
+{
   SatClause clause(3);
   clause[0] = a;
   clause[1] = b;
   clause[2] = c;
-  assertClause(node, clause);
+  return assertClause(node, clause);
 }
 
 bool CnfStream::hasLiteral(TNode n) const {
@@ -526,11 +532,7 @@ SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
       break;
     default:
       {
-        //TODO make sure this does not contain any boolean substructure
         nodeLit = convertAtom(node);
-        //Unreachable();
-        //Node atomic = handleNonAtomicNode(node);
-        //return isCached(atomic) ? lookupInCache(atomic) : convertAtom(atomic);
       }
       break;
     }
@@ -673,6 +675,9 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
   SatLiteral r = toCNF(node[2], negated);
   // Construct the clauses:
   // (p => q) and (!p => r)
+  //
+  // Note that below q and r can be used directly because whether they are
+  // negated has been push to the literal definitions above
   Node nnode = node;
   if( negated ){
     nnode = node.negate();
