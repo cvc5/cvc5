@@ -271,14 +271,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::proofNew.set(false);
   }
-  if (options::proofNew())
-  {
-    if (!options::stringLenConc.wasSetByUser())
-    {
-      options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
-    }
-  }
 
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
@@ -1494,6 +1486,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
+  }
+  // !!!!!!!!!!!!!!!! temporary, until proof-new is functional
+  if (options::proofNew())
+  {
+    throw OptionException("--proof-new is not yet supported.");
   }
 }
 
