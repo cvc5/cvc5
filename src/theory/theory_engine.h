@@ -343,29 +343,15 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    * @param node the lemma
-   * @param negated should the lemma be asserted negated
    * @param removable can the lemma be remove (restrictions apply)
    * @param needAtoms if not THEORY_LAST, then
    */
   theory::LemmaStatus lemma(theory::TrustNode node,
                             ProofRule rule,
-                            bool negated,
                             bool removable,
                             bool preprocess,
-                            theory::TheoryId atomsTo);
-
-  /**
-   * Process trust node. This method ensures that the proof for the proven node
-   * of trn is stored as a lazy step in the lazy proof (d_lazyProof) maintained
-   * by this class, referencing the proof generator of the trust node. The
-   * argument from specifies the theory responsible for this trust node. If
-   * no generator is provided, then a (eager) THEORY_LEMMA step is added to
-   * the lazy proof.
-   *
-   * @param trn The trust node to process
-   * @param from The id of the theory responsible for the trust node.
-   */
-  void processTrustNode(theory::TrustNode trn, theory::TheoryId from);
+                            theory::TheoryId atomsTo = theory::THEORY_LAST, 
+                            theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);

@@ -89,10 +89,10 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
   theory::LemmaStatus result =
       d_engine->lemma(tlem,
                       rule,
-                      false,
                       removable,
                       preprocess,
-                      sendAtoms ? d_theory : theory::THEORY_LAST);
+                      sendAtoms ? d_theory : theory::THEORY_LAST,
+                      d_theory);
   return result;
 }
 
@@ -235,9 +235,12 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
 
   Debug("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
                        << std::endl;
+  // Notice that this interface should not be used when proofs are enabled.
+  // It is easy to make proofs for splits, which we intentionally do not do
+  // here.
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   theory::LemmaStatus result =
-      d_engine->lemma(tlem, RULE_SPLIT, false, removable, false, d_theory);
+      d_engine->lemma(tlem, RULE_SPLIT, removable, false, d_theory, d_theory);
   return result;
 }
 
@@ -331,10 +334,10 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
   // now, call the normal interface for lemma
   return d_engine->lemma(plem,
                          RULE_INVALID,
-                         false,
                          removable,
                          preprocess,
-                         sendAtoms ? d_theory : theory::THEORY_LAST);
+                         sendAtoms ? d_theory : theory::THEORY_LAST,
+                         d_theory);
 }
 
 }  // namespace theory
