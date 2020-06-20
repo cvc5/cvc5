@@ -140,7 +140,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
-
+  /** expand */
+  bool expand(PfRule id,
+             const std::vector<Node>& children,
+             const std::vector<Node>& args,
+              CDProof* cdp) override;
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */
   Node checkInternal(PfRule id,

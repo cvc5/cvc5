@@ -427,6 +427,15 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
   }
 }
 
+
+bool BuiltinProofRuleChecker::expand(PfRule id,
+            const std::vector<Node>& children,
+            const std::vector<Node>& args,
+            CDProof* cdp)
+{
+  return false;
+}
+
 }  // namespace builtin
 }  // namespace theory
 }  // namespace CVC4

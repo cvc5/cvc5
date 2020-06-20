@@ -900,6 +900,7 @@ SmtEngine::~SmtEngine()
 #endif
     d_pchecker.reset(nullptr);
     d_pnm.reset(nullptr);
+    d_rewriteDb.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);

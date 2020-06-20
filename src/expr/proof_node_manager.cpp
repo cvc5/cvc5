@@ -188,6 +188,52 @@ bool ProofNodeManager::updateNode(
     const std::vector<std::shared_ptr<ProofNode>>& children,
     const std::vector<Node>& args)
 {
+  return updateNodeInternal(pn, id, children, args, true);
+}
+
+bool ProofNodeManager::updateNode(ProofNode * pn, ProofNode * pnr)
+{
+  if (pn->getResult()!=pnr->getResult())
+  {
+    return false;
+  }
+  // can shortcut re-check of rule
+  return updateNodeInternal(pn, pnr->getRule(), pnr->getChildren(), pnr->getArguments(), false);
+}
+
+Node ProofNodeManager::checkInternal(
+    PfRule id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    Node expected)
+{
+  Node res;
+  if (d_checker)
+  {
+    // check with the checker, which takes expected as argument
+    res = d_checker->check(id, children, args, expected);
+    Assert(!res.isNull())
+        << "ProofNodeManager::checkInternal: failed to check proof";
+  }
+  else
+  {
+    // otherwise we trust the expected value, if it exists
+    Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
+                                  "or expected value provided";
+    res = expected;
+  }
+  return res;
+}
+
+ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
+
+bool ProofNodeManager::updateNodeInternal(
+    ProofNode* pn,
+    PfRule id,
+    const std::vector<std::shared_ptr<ProofNode>>& children,
+    const std::vector<Node>& args,
+    bool needsCheck)
+{
   // ---------------- check for cyclic
   std::unordered_map<const ProofNode*, bool> visited;
   std::unordered_map<const ProofNode*, bool>::iterator it;
@@ -234,45 +280,22 @@ bool ProofNodeManager::updateNode(
   // should have already computed what is proven
   Assert(!pn->d_proven.isNull())
       << "ProofNodeManager::updateProofNode: invalid proof provided";
-  // We expect to prove the same thing as before
-  Node res = checkInternal(id, children, args, pn->d_proven);
-  if (res.isNull())
+  if (needsCheck)
   {
-    // if it was invalid, then we do not update
-    return false;
+    // We expect to prove the same thing as before
+    Node res = checkInternal(id, children, args, pn->d_proven);
+    if (res.isNull())
+    {
+      // if it was invalid, then we do not update
+      return false;
+    }
+    // proven field should already be the same as the result
+    Assert(res == pn->d_proven);
   }
 
   // we update its value
   pn->setValue(id, children, args);
-  // proven field should already be the same as the result
-  Assert(res == pn->d_proven);
   return true;
 }
-
-Node ProofNodeManager::checkInternal(
-    PfRule id,
-    const std::vector<std::shared_ptr<ProofNode>>& children,
-    const std::vector<Node>& args,
-    Node expected)
-{
-  Node res;
-  if (d_checker)
-  {
-    // check with the checker, which takes expected as argument
-    res = d_checker->check(id, children, args, expected);
-    Assert(!res.isNull())
-        << "ProofNodeManager::checkInternal: failed to check proof";
-  }
-  else
-  {
-    // otherwise we trust the expected value, if it exists
-    Assert(!expected.isNull()) << "ProofNodeManager::checkInternal: no checker "
-                                  "or expected value provided";
-    res = expected;
-  }
-  return res;
-}
-
-ProofChecker* ProofNodeManager::getChecker() const { return d_checker; }
 
 }  // namespace CVC4
