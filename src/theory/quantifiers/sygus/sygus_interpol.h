@@ -89,7 +89,8 @@ class SygusInterpol
    * interpol-to-synthesis, stored in d_abvlShared.
    *
    * The argument needsShared denotes if we want to restrict the argument list
-   * of the interpol-to-synthesis to be over shared variables or all the variables.
+   * of the interpol-to-synthesis to be over shared variables or all the
+   * variables.
    */
   void createVariables(bool needsShared);
 
