@@ -1578,13 +1578,15 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
                                         bool negated,
                                         bool removable,
                                         bool preprocess,
-                                        theory::TheoryId atomsTo) {
+                                        theory::TheoryId atomsTo)
+{
   // For resource-limiting (also does a time check).
   // spendResource();
-  Assert (tlemma.getKind()==TrustNodeKind::LEMMA || tlemma.getKind()==TrustNodeKind::CONFLICT);
-  Assert (negated == (tlemma.getKind()==TrustNodeKind::CONFLICT));
+  Assert(tlemma.getKind() == TrustNodeKind::LEMMA
+         || tlemma.getKind() == TrustNodeKind::CONFLICT);
+  Assert(negated == (tlemma.getKind() == TrustNodeKind::CONFLICT));
   // FIXME
-  //processTrustNode(tlemma);
+  // processTrustNode(tlemma);
   Node node = tlemma.getNode();
 
   // Do we need to check atoms
@@ -1627,7 +1629,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   // call preprocessor
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  TrustNode tplemma = d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
+  TrustNode tplemma =
+      d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
 
   // process the preprocessing
   if (d_lazyProof != nullptr)
@@ -1747,7 +1750,7 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
 
 void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 {
-  Assert (tconflict.getKind()==TrustNodeKind::CONFLICT);
+  Assert(tconflict.getKind() == TrustNodeKind::CONFLICT);
   TNode conflict = tconflict.getNode();
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
                             << theoryId << ")" << endl;
@@ -1756,9 +1759,10 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
   // THEORY_LEMMA),
   // (2) The lazy proof contains an explicitly provided proof generator,
   // (3) The conflict being processed is a propagatation of false.
-  //AlwaysAssert(
+  // AlwaysAssert(
   //    d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
-  //    || d_lazyProof->hasGenerator(conflict.notNode()) || conflict == d_false);
+  //    || d_lazyProof->hasGenerator(conflict.notNode()) || conflict ==
+  //    d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1832,11 +1836,11 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       }
     }
     // pass the processed trust node
-    TrustNode tconf = TrustNode::mkTrustConflict(fullConflict,d_lazyProof.get());
+    TrustNode tconf =
+        TrustNode::mkTrustConflict(fullConflict, d_lazyProof.get());
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
     lemma(tconf, RULE_CONFLICT, true, true, false, THEORY_LAST);
-
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));

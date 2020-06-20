@@ -14,9 +14,9 @@
 
 #include "theory/rewrite_db_proof_generator.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewrite_db_term_process.h"
-#include "expr/node_algorithm.h"
 
 namespace CVC4 {
 namespace theory {

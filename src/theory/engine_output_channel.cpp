@@ -304,8 +304,9 @@ void EngineOutputChannel::handleUserAttribute(const char* attr,
 void EngineOutputChannel::trustedConflict(TrustNode pconf)
 {
   Assert(pconf.getKind() == TrustNodeKind::CONFLICT);
-  Trace("theory::conflict") << "EngineOutputChannel<" << d_theory
-                            << ">::conflict(" << pconf.getNode() << ")" << std::endl;
+  Trace("theory::conflict")
+      << "EngineOutputChannel<" << d_theory << ">::conflict(" << pconf.getNode()
+      << ")" << std::endl;
   if (pconf.getGenerator() != nullptr)
   {
     ++d_statistics.trustedConflicts;

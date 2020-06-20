@@ -209,7 +209,7 @@ class TheorySetsPrivate {
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
   TrustNode expandDefinition(Node n);
-  
+
   void presolve();
 
   void propagate(Theory::Effort);

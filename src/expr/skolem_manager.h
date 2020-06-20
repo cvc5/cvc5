@@ -146,7 +146,7 @@ class SkolemManager
                       const std::string& prefix,
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
-  /** 
+  /**
    * Make Boolean term variable for term t. This is a special case of
    * mkPurifySkolem above, where the returned term has kind
    * BOOLEAN_TERM_VARIABLE.

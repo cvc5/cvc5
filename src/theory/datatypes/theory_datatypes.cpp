@@ -685,8 +685,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
       Debug("tuprec") << "return " << n_ret << std::endl;
     }
     break;
-    default:
-      break;
+    default: break;
   }
   if (!n_ret.isNull())
   {
