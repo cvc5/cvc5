@@ -635,8 +635,9 @@ void TheoryEngine::combineTheories() {
       pfArgs.push_back(equality);
       d_lazyProof->addStep(split, PfRule::SPLIT, pfChildren, pfArgs);
     }
+    TrustNode tsplit = TrustNode::mkTrustLemma(split, d_lazyProof.get());
 
-    lemma(split, RULE_INVALID, false, false, false, carePair.d_theory);
+    lemma(tsplit, RULE_INVALID, false, false, false, carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -1128,8 +1129,10 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     if (!normalizedLiteral.getConst<bool>()) {
       // Mark the propagation for explanations
       if (markPropagation(normalizedLiteral, originalAssertion, toTheoryId, fromTheoryId)) {
+        // special case, trust node has no proof generator?
+        TrustNode trnn = TrustNode::mkTrustConflict(normalizedLiteral);
         // Get the explanation (conflict will figure out where it came from)
-        conflict(normalizedLiteral, toTheoryId);
+        conflict(trnn, toTheoryId);
       } else {
         Unreachable();
       }
@@ -1570,7 +1573,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
   }
 }
 
-theory::LemmaStatus TheoryEngine::lemma(TNode node,
+theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
                                         ProofRule rule,
                                         bool negated,
                                         bool removable,
@@ -1578,6 +1581,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
+  Assert (tlemma.getKind()==TrustNodeKind::LEMMA || tlemma.getKind()==TrustNodeKind::CONFLICT);
+  Assert (negated == (tlemma.getKind()==TrustNodeKind::CONFLICT));
+  // FIXME
+  //processTrustNode(tlemma);
+  Node node = tlemma.getNode();
 
   // Do we need to check atoms
   if (atomsTo != theory::THEORY_LAST) {
@@ -1598,6 +1606,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
 
   // if d_lazyProof is enabled, then d_lazyProof contains a proof of n.
   Node lemma = negated ? node.notNode() : Node(node);
+  /*
   if (d_lazyProof != nullptr)
   {
     // the lemma should have a proof
@@ -1613,23 +1622,24 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       Trace("te-proof") << "Proof for lemma: " << lemma << std::endl;
     }
   }
+  */
 
   // call preprocessor
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  TrustNode tlemma = d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
+  TrustNode tplemma = d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
 
   // process the preprocessing
   if (d_lazyProof != nullptr)
   {
-    Assert(tlemma.getKind() == TrustNodeKind::REWRITE);
-    Node lemmap = tlemma.getNode();
+    Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
+    Node lemmap = tplemma.getNode();
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
-      if (tlemma.getGenerator() != nullptr)
+      if (tplemma.getGenerator() != nullptr)
       {
-        d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
+        d_lazyProof->addLazyStep(tplemma.getProven(), tplemma.getGenerator());
       }
       // ---------- from d_lazyProof -------------- from theory preprocess
       // lemma                       lemma = lemmap
@@ -1637,7 +1647,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
       // lemmap
       std::vector<Node> pfChildren;
       pfChildren.push_back(lemma);
-      pfChildren.push_back(tlemma.getProven());
+      pfChildren.push_back(tplemma.getProven());
       std::vector<Node> pfArgs;
       pfArgs.push_back(lemmap);
       d_lazyProof->addStep(
@@ -1657,7 +1667,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline
-  lemmas.push_back(tlemma.getNode());
+  lemmas.push_back(tplemma.getNode());
   lemmas.updateRealAssertionsEnd();
   Assert(newSkolems.size() == newLemmas.size());
   for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)
@@ -1735,8 +1745,10 @@ void TheoryEngine::processTrustNode(theory::TrustNode trn,
   }
 }
 
-void TheoryEngine::conflict(TNode conflict, TheoryId theoryId)
+void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 {
+  Assert (tconflict.getKind()==TrustNodeKind::CONFLICT);
+  TNode conflict = tconflict.getNode();
   Trace("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", "
                             << theoryId << ")" << endl;
   // If proofNew is enabled, then either:
@@ -1744,9 +1756,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId)
   // THEORY_LEMMA),
   // (2) The lazy proof contains an explicitly provided proof generator,
   // (3) The conflict being processed is a propagatation of false.
-  AlwaysAssert(
-      d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
-      || d_lazyProof->hasGenerator(conflict.notNode()) || conflict == d_false);
+  //AlwaysAssert(
+  //    d_lazyProof == nullptr || d_lazyProof->hasStep(conflict.notNode())
+  //    || d_lazyProof->hasGenerator(conflict.notNode()) || conflict == d_false);
 
   Trace("dtview::conflict") << ":THEORY-CONFLICT: " << conflict << std::endl;
 
@@ -1819,10 +1831,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId)
             fullConflictNeg, PfRule::MACRO_SR_PRED_TRANSFORM, children, args);
       }
     }
-
+    // pass the processed trust node
+    TrustNode tconf = TrustNode::mkTrustConflict(fullConflict,d_lazyProof.get());
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(tconf, RULE_CONFLICT, true, true, false, THEORY_LAST);
 
   } else {
     // When only one theory, the conflict should need no processing
@@ -1852,7 +1865,8 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId)
         ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
       });
 
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    // pass the trust node
+    lemma(tconflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
   }
 
   PROOF({

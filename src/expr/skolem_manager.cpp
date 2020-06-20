@@ -176,6 +176,12 @@ Node SkolemManager::mkPurifySkolem(Node t,
   return k;
 }
 
+Node SkolemManager::mkBooleanTermVariable(Node t)
+{
+  // FIXME
+  return NodeManager::currentNM()->mkBooleanTermVariable();
+}
+
 Node SkolemManager::mkExistential(Node t, Node p)
 {
   Assert(p.getType().isBoolean());

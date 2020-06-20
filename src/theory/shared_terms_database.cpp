@@ -270,8 +270,7 @@ void SharedTermsDatabase::checkForConflict() {
       conflict = conflict.notNode();
     }
     TrustNode trnc = d_pfee.assertConflict(conflict);
-    d_theoryEngine->processTrustNode(trnc, THEORY_BUILTIN);
-    d_theoryEngine->conflict(trnc.getNode(), THEORY_BUILTIN);
+    d_theoryEngine->conflict(trnc, THEORY_BUILTIN);
     d_conflictLHS = d_conflictRHS = Node::null();
   }
 }

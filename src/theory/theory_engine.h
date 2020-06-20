@@ -266,7 +266,7 @@ class TheoryEngine {
   /**
    * Called by the theories to notify of a conflict.
    */
-  void conflict(TNode conflict, theory::TheoryId theoryId);
+  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -347,7 +347,7 @@ class TheoryEngine {
    * @param removable can the lemma be remove (restrictions apply)
    * @param needAtoms if not THEORY_LAST, then
    */
-  theory::LemmaStatus lemma(TNode node,
+  theory::LemmaStatus lemma(theory::TrustNode node,
                             ProofRule rule,
                             bool negated,
                             bool removable,

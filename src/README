@@ -41,10 +41,10 @@ High level changes needed:
 - Theory use trustedLemma / trustedConflict.
 - TheoryEngine owns a ProofChecker that can check any kind of proof in proof_kinds files.
 - Based on proof_kinds, we auto-generate:
-(1) The PfRule enumeration,
-(2) Printing for PfRule,
-(3) Initialization of the ProofChecker owned by TheoryEngine,
-(4) The code for checking (?) Probably only for rewrites
+--- The PfRule enumeration,
+--- Printing for PfRule,
+--- Initialization of the ProofChecker owned by TheoryEngine,
+--- The code for checking (?) Probably only for rewrites
 
 Notes:
 - Theory does not need to be concerned what a ProofNode is. It manages TrustNode objects but doesnt care about their contents.
@@ -90,7 +90,6 @@ PRs ready:
 (23) Updates to proof node manager, including mkScope (req 19) *
 (25) Arithmetic proof checker [Alex]
 (37) Rewriter proof producing [Andres] (req 36)
-(39) TheoryEngine proof checker initialize all theories (req 27)
 (45) regexp operation refactor (req 3, 7, 8) *
 (51) TrustNode rewrite kind
 
@@ -104,6 +103,7 @@ PRs future:
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
+(39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24)
 (42) String rules, string checker (req 5, 17, 22, 45)
