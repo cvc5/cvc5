@@ -162,7 +162,7 @@ void PropEngine::assertLemma(TNode node, bool negated,
   // Assert as (possibly) removable
   if (d_pfCnfStream)
   {
-    d_pfCnfStream->convertAndAssert(node, removable, negated);
+    d_pfCnfStream->convertAndAssert(node, negated, removable);
   }
   else
   {

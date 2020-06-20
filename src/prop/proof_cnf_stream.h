@@ -54,10 +54,10 @@ class ProofCnfStream
   /**
    * Converts and asserts a formula.
    * @param node node to convert and assert
-   * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
+   * @param removable whether the sat solver can choose to remove the clauses
    */
-  void convertAndAssert(TNode node, bool removable, bool negated);
+  void convertAndAssert(TNode node, bool negated, bool removable);
 
   /**
    * Ensure that the given node will have a designated SAT literal that is
