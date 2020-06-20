@@ -221,6 +221,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Sort() except +
         bint operator==(const Sort&) except +
         bint operator!=(const Sort&) except +
+        bint operator<(const Sort&) except +
+        bint operator>(const Sort&) except +
+        bint operator<=(const Sort&) except +
+        bint operator>=(const Sort&) except +
         bint isBoolean() except +
         bint isInteger() except +
         bint isReal() except +
@@ -244,6 +248,8 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint isSortConstructor() except +
         bint isFirstClass() except +
         bint isFunctionLike() except +
+        bint isSubsortOf(Sort s) except +
+        bint isComparableTo(Sort s) except +
         Datatype getDatatype() except +
         Sort instantiate(const vector[Sort]& params) except +
         size_t getConstructorArity() except +

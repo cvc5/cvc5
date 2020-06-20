@@ -993,6 +993,18 @@ cdef class Sort:
     def __ne__(self, Sort other):
         return self.csort != other.csort
 
+    def __lt__(self, Sort other):
+        return self.csort < other.csort
+
+    def __gt__(self, Sort other):
+        return self.csort > other.csort
+
+    def __le__(self, Sort other):
+        return self.csort <= other.csort
+
+    def __ge__(self, Sort other):
+        return self.csort >= other.csort
+
     def __str__(self):
         return self.csort.toString().decode()
 
@@ -1070,6 +1082,12 @@ cdef class Sort:
 
     def isFunctionLike(self):
         return self.csort.isFunctionLike()
+
+    def isSubsortOf(self, Sort sort):
+        return self.csort.isSubsortOf(sort.csort)
+
+    def isComparableTo(self, Sort sort):
+        return self.csort.isComparableTo(sort.csort)
 
     def getDatatype(self):
         cdef Datatype d = Datatype()
