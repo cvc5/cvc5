@@ -85,8 +85,12 @@ Node TrustNode::getNode() const
 {
   switch (d_tnk)
   {
+    // the node of lemma is the node itself
     case TrustNodeKind::LEMMA: return d_proven;
+    // the node of the rewrite is the right hand side of EQUAL
     case TrustNodeKind::REWRITE: return d_proven[1];
+    // the node of an explained propagation is the antecendant of an IMPLIES
+    // the node of a conflict is underneath a NOT
     default: return d_proven[0];
   }
 }
