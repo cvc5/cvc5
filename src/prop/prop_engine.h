@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,6 +29,7 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/proof_cnf_stream.h"
 #include "proof/proof_manager.h"
+#include "prop/proof_cnf_stream.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -248,8 +249,6 @@ class PropEngine
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
 
-  /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pNodeManager;
   /** Proof-producing CNF converter */

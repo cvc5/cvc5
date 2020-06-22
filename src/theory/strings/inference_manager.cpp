@@ -2,9 +2,9 @@
 /*! \file inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,8 +42,7 @@ InferenceManager::InferenceManager(SolverState& s,
       d_pfee(new eq::ProofEqEngine(d_state.getSatContext(),
                                    d_state.getUserContext(),
                                    *d_state.getEqualityEngine(),
-                                   pnm,
-                                   options::proofNew())),
+                                   pnm)),
       d_ipc(new InferProofCons(
           d_state.getSatContext(), pnm, d_statistics, options::proofNew()))
 {

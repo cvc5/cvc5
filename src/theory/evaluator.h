@@ -2,9 +2,9 @@
 /*! \file evaluator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -94,15 +94,16 @@ class Evaluator
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals) const;
+            const std::vector<Node>& vals,
+            bool useRewriter = true) const;
   /**
    * Same as above, but with a precomputed visited map.
    */
-  Node eval(
-      TNode n,
-      const std::vector<Node>& args,
-      const std::vector<Node>& vals,
-      const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+  Node eval(TNode n,
+            const std::vector<Node>& args,
+            const std::vector<Node>& vals,
+            const std::unordered_map<Node, Node, NodeHashFunction>& visited,
+            bool useRewriter = true) const;
 
  private:
   /**

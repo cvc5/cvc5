@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,7 @@
 
 #include "expr/skolem_manager.h"
 #include "smt/term_formula_removal.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -30,6 +31,7 @@ const char* toString(MethodId id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
+    case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
@@ -58,6 +60,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::TRUST, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
+  pc->registerChecker(PfRule::EVALUATE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
@@ -96,6 +99,11 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   else if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
     return Rewriter::rewriteEqualityExt(n);
+  }
+  else if (idr == MethodId::RW_EVALUATE)
+  {
+    Evaluator eval;
+    return eval.eval(n, {}, {}, false);
   }
   else if (idr == MethodId::RW_IDENTITY)
   {
@@ -229,12 +237,19 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(1 <= args.size() && args.size() <= 2);
-    MethodId ids = MethodId::RW_REWRITE;
-    if (args.size() == 2 && !getMethodId(args[1], ids))
+    MethodId idr = MethodId::RW_REWRITE;
+    if (args.size() == 2 && !getMethodId(args[1], idr))
     {
       return Node::null();
     }
-    Node res = applyRewrite(args[0]);
+    Node res = applyRewrite(args[0], idr);
+    return args[0].eqNode(res);
+  }
+  else if (id == PfRule::EVALUATE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::THEORY_REWRITE)
@@ -410,6 +425,14 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
   {
     args.push_back(mkMethodId(idr));
   }
+}
+
+bool BuiltinProofRuleChecker::expand(PfRule id,
+                                     const std::vector<Node>& children,
+                                     const std::vector<Node>& args,
+                                     CDProof* cdp)
+{
+  return false;
 }
 
 }  // namespace builtin

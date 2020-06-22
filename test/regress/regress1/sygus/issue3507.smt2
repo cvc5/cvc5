@@ -1,5 +1,5 @@
 ; EXPECT: sat
-; COMMAND-LINE: --sygus-inference --uf-ho
+; COMMAND-LINE: --sygus-inference --uf-ho --quiet
 (set-logic ALL)
 ; (set-option :produce-models true)
 (declare-fun f (Int) Bool)

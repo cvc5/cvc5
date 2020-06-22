@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
+ **   Morgan Deters, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -58,11 +58,18 @@ class DecisionEngine;
 class TheoryEngine;
 
 class ProofManager;
-class NewProofManager;
+class ProofChecker;
+class ProofNodeManager;
 
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
+
+/* -------------------------------------------------------------------------- */
+
+namespace api {
+class Solver;
+}  // namespace api
 
 /* -------------------------------------------------------------------------- */
 
@@ -111,6 +118,7 @@ namespace smt {
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class RewriteDb;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -128,6 +136,7 @@ namespace theory {
 
 class CVC4_PUBLIC SmtEngine
 {
+  friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
@@ -210,6 +219,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the logic information currently set. */
   LogicInfo getLogicInfo() const;
+
+  /** Get the logic information set by the user. */
+  LogicInfo getUserLogicInfo() const;
 
   /**
    * Set information about the script executing.
@@ -879,6 +891,9 @@ class CVC4_PUBLIC SmtEngine
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
 
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
+
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
 
@@ -899,6 +914,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
+  /** Get a pointer to the ProofChecker owned by this SmtEngine. */
+  ProofChecker* getProofChecker() { return d_pchecker.get(); }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
@@ -1089,6 +1107,9 @@ class CVC4_PUBLIC SmtEngine
 
   /* Members -------------------------------------------------------------- */
 
+  /** Solver instance that owns this SmtEngine instance. */
+  api::Solver* d_solver = nullptr;
+
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;
   /** User level context */
@@ -1118,6 +1139,15 @@ class CVC4_PUBLIC SmtEngine
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+
+  //--------------------------------- new proofs
+  /** For the new proofs module */
+  std::unique_ptr<ProofChecker> d_pchecker;
+  /** A proof node manager based on the above checker */
+  std::unique_ptr<ProofNodeManager> d_pnm;
+  /** The rewrite proof database. */
+  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
+  //--------------------------------- end new proofs
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
@@ -1206,9 +1236,13 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Command*> d_defineCommands;
 
   /**
-   * The logic we're in.
+   * The logic we're in. This logic may be an extension of the logic set by the
+   * user.
    */
   LogicInfo d_logic;
+
+  /** The logic set by the user. */
+  LogicInfo d_userLogic;
 
   /**
    * Keep a copy of the original option settings (for reset()).

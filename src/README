@@ -41,10 +41,10 @@ High level changes needed:
 - Theory use trustedLemma / trustedConflict.
 - TheoryEngine owns a ProofChecker that can check any kind of proof in proof_kinds files.
 - Based on proof_kinds, we auto-generate:
-(1) The PfRule enumeration,
-(2) Printing for PfRule,
-(3) Initialization of the ProofChecker owned by TheoryEngine,
-(4) The code for checking (?) Probably only for rewrites
+--- The PfRule enumeration,
+--- Printing for PfRule,
+--- Initialization of the ProofChecker owned by TheoryEngine,
+--- The code for checking (?) Probably only for rewrites
 
 Notes:
 - Theory does not need to be concerned what a ProofNode is. It manages TrustNode objects but doesnt care about their contents.
@@ -75,26 +75,27 @@ PR finished:
 (22) Strings base solver update (req 2)
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
+(33) split operator elimination from arith (req 28)
 (34) theory proof step buffer
+(35) Strings term registry update (req 13)
 (36) term conversion proof generator
 (38) quantifiers proof checker (req 8)
 (48) remove snorm option
+(49) re elim static
 
 PRs ready:
 
-(0) Add proof option
+(0) Add proof option *
+(17) rewriter new infrastructure "rewriteEqualityExt"
 (23) Updates to proof node manager, including mkScope (req 19) *
 (25) Arithmetic proof checker [Alex]
-(33) split operator elimination from arith (req 28) *
-(35) Strings term registry update (req 13) *
 (37) Rewriter proof producing [Andres] (req 36)
 (45) regexp operation refactor (req 3, 7, 8) *
-(49) re elim static *
+(51) TrustNode rewrite kind
 
 PRs future:
 
 (6) Equality engine updates [Haniel] (req 0)
-(17) rewriter new infrastructure "rewriteEqualityExt"
 (20) Eq proof conversion [Haniel] (req 6)
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35)
@@ -102,21 +103,26 @@ PRs future:
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
-(39) TheoryEngine proof checker initialize all theories (req 27)
+(39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24)
-(42) String rules, string checker (req 5, 17, 22)
+(42) String rules, string checker (req 5, 17, 22, 45)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 41)
 (46) strings term registry proof producing (req 32, 35)
 (47) TheoryUF proof producing [Haniel] (req 24)
-(48) term formula removal proof producing (req 36, 38)
-(50) theory preprocess proof producing (req 27, 48)
+(50) theory preprocess proof producing (req 27, 48, 51)
+(52) term formula removal proof producing (req 36, 38, 51)
+(53) CNF proof producing [Haniel]
+(54) DSL rewrite rule
+(55) DSL rewrite rule term processor
+(56) DSL rewrite rule database (req 54)
+(57) DSL rewrite rule compilation, including side condition utility [Andres] TODO (req 56)
+(58) DSL rewrite rule proof generator (req 57)
+(59) proof post-processor, add expand interface to checkers
 
 PRs wish list:
 
 - SAT solver proof producing
-- CNF proof producing
-- Proofs for theory rewrites
 - SEXPR simply typed
-- Proof kinds infrastructure
+- Proof kinds infrastructure?

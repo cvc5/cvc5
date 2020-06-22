@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -195,15 +195,16 @@ void TheoryBV::finishInit()
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
-Node TheoryBV::expandDefinition(Node node)
+TrustNode TheoryBV::expandDefinition(Node node)
 {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
+  Node ret;
   switch (node.getKind()) {
   case kind::BITVECTOR_SDIV:
   case kind::BITVECTOR_SREM:
   case kind::BITVECTOR_SMOD:
-    return TheoryBVRewriter::eliminateBVSDiv(node);
+    ret = TheoryBVRewriter::eliminateBVSDiv(node);
     break;
 
   case kind::BITVECTOR_UDIV:
@@ -213,7 +214,8 @@ Node TheoryBV::expandDefinition(Node node)
 
     if (options::bitvectorDivByZeroConst()) {
       Kind kind = node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UREM_TOTAL;
-      return nm->mkNode(kind, node[0], node[1]);
+      ret = nm->mkNode(kind, node[0], node[1]);
+      break;
     }
 
     TNode num = node[0], den = node[1];
@@ -222,17 +224,18 @@ Node TheoryBV::expandDefinition(Node node)
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    return node;
+    ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
   }
     break;
 
   default:
-    return node;
     break;
   }
-
-  Unreachable();
+  if (!ret.isNull())
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::preRegisterTerm(TNode node) {

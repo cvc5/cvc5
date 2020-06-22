@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file theory_strings.h
+/*! \file term_registry.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Tim King
+ **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,10 +64,9 @@ class TermRegistry
    *
    * @param t The node to reduce,
    * @param sc The Skolem cache to use for new variables,
-   * @param i An identifier for the variant of the reduction,
    * @return The eager reduction for t.
    */
-  static Node eagerReduce(Node t, SkolemCache* sc, uint32_t i = 0);
+  static Node eagerReduce(Node t, SkolemCache* sc);
   /**
    * Returns a lemma indicating that the length of a term t whose type is
    * string-like has positive length. The exact form of this lemma depends

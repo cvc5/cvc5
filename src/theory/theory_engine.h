@@ -2,9 +2,9 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -148,12 +148,10 @@ class TheoryEngine {
   const LogicInfo& d_logicInfo;
 
   //--------------------------------- new proofs
-  /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_pchecker;
-
-  /** A proof node manager based on the above checker */
-  std::unique_ptr<ProofNodeManager> d_pNodeManager;
-
+  /** Proof checker used by this theory engine, if proofs are enabled */
+  ProofChecker* d_pchecker;
+  /** Proof node manager used by this theory engine, if proofs are enabled */
+  ProofNodeManager* d_pnm;
   /** The lazy proof object
    *
    * This stores instructions for how to construct proofs for all theory lemmas.
@@ -268,7 +266,7 @@ class TheoryEngine {
   /**
    * Called by the theories to notify of a conflict.
    */
-  void conflict(TNode conflict, theory::TheoryId theoryId);
+  void conflict(theory::TrustNode conflict, theory::TheoryId theoryId);
 
   /**
    * Debugging flag to ensure that shutdown() is called before the
@@ -345,29 +343,15 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    * @param node the lemma
-   * @param negated should the lemma be asserted negated
    * @param removable can the lemma be remove (restrictions apply)
    * @param needAtoms if not THEORY_LAST, then
    */
-  theory::LemmaStatus lemma(TNode node,
+  theory::LemmaStatus lemma(theory::TrustNode node,
                             ProofRule rule,
-                            bool negated,
                             bool removable,
                             bool preprocess,
-                            theory::TheoryId atomsTo);
-
-  /**
-   * Process trust node. This method ensures that the proof for the proven node
-   * of trn is stored as a lazy step in the lazy proof (d_lazyProof) maintained
-   * by this class, referencing the proof generator of the trust node. The
-   * argument from specifies the theory responsible for this trust node. If
-   * no generator is provided, then a (eager) THEORY_LEMMA step is added to
-   * the lazy proof.
-   *
-   * @param trn The trust node to process
-   * @param from The id of the theory responsible for the trust node.
-   */
-  void processTrustNode(theory::TrustNode trn, theory::TheoryId from);
+                            theory::TheoryId atomsTo = theory::THEORY_LAST,
+                            theory::TheoryId from = theory::THEORY_LAST);
 
   /** Enusre that the given atoms are send to the given theory */
   void ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::TheoryId theory);
@@ -393,7 +377,8 @@ class TheoryEngine {
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
                RemoveTermFormulas& iteRemover,
-               const LogicInfo& logic);
+               const LogicInfo& logic,
+               ProofNodeManager* pnm);
 
   /** Destroys a theory engine */
   ~TheoryEngine();
@@ -412,14 +397,12 @@ class TheoryEngine {
   {
     Assert(d_theoryTable[theoryId] == NULL && d_theoryOut[theoryId] == NULL);
     d_theoryOut[theoryId] = new theory::EngineOutputChannel(this, theoryId);
-    // pass proof checker if we are proof producing
-    ProofChecker* pc = d_lazyProof != nullptr ? d_pchecker.get() : nullptr;
     d_theoryTable[theoryId] = new TheoryClass(d_context,
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
                                               d_logicInfo,
-                                              pc);
+                                              d_pchecker);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
@@ -439,15 +422,7 @@ class TheoryEngine {
     return d_propEngine;
   }
 
-  inline ProofNodeManager* getProofNodeManager() const
-  {
-    return d_pNodeManager.get();
-  }
-
-  inline LazyCDProof* getLazyProof() const
-  {
-    return d_lazyProof.get();
-  }
+  inline ProofChecker* getProofChecker() const { return d_pchecker; }
 
   /**
    * Get a pointer to the underlying sat context.

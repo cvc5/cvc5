@@ -52,23 +52,17 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #ifdef SWIGPYTHON
 %pythonappend CVC4::SmtEngine::SmtEngine %{
-  # Hold a reference to the ExprManager to make sure that Python keeps the
-  # ExprManager alive as long as the SmtEngine exists
-  self.em = em
+  self.thisown = 0
+%}
+%pythonappend CVC4::ExprManager::ExprManager %{
+  self.thisown = 0
 %}
 #endif /* SWIGPYTHON */
 
-%template(vectorType) std::vector< CVC4::Type >;
-%template(vectorExpr) std::vector< CVC4::Expr >;
 %template(vectorUnsignedInt) std::vector< unsigned int >;
-%template(vectorVectorExpr) std::vector< std::vector< CVC4::Expr > >;
-%template(vectorDatatypeType) std::vector< CVC4::DatatypeType >;
 %template(vectorSExpr) std::vector< CVC4::SExpr >;
 %template(vectorString) std::vector< std::string >;
-%template(vectorPairStringType) std::vector< std::pair< std::string, CVC4::Type > >;
-%template(pairStringType) std::pair< std::string, CVC4::Type >;
 %template(setOfType) std::set< CVC4::Type >;
-%template(hashmapExpr) std::unordered_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
 // This is unfortunate, but seems to be necessary; if we leave NULL
 // defined, swig will expand it to "(void*) 0", and some of swig's
@@ -76,9 +70,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 #undef NULL
 
 #ifdef SWIGJAVA
-
-#include "bindings/java_iterator_adapter.h"
-#include "bindings/java_stream_adapters.h"
 
 // Map C++ exceptions of type CVC4::Exception to Java exceptions of type
 // edu.stanford.CVC4.Exception
@@ -92,6 +83,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   return $null;
 }
 
+%include "bindings/java_iterator_adapter.i"
 %include "java/typemaps.i" // primitive pointers and references
 %include "java/std_string.i" // map std::string to java.lang.String
 %include "java/arrays_java.i" // C arrays to Java arrays
@@ -197,6 +189,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+%include "bindings/java_stream_adapters.h"
+
 #endif /* SWIGJAVA */
 
 // TIM:
@@ -232,8 +226,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/ascription_type.i"
 %include "expr/emptyset.i"
 %include "expr/expr_sequence.i"
-%include "expr/datatype.i"
-%include "expr/record.i"
 %include "proof/unsat_core.i"
 
 // TIM:
@@ -245,6 +237,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 // TIM:
 // The remainder of the includes:
+%include "expr/datatype.i"
 %include "expr/expr.i"
 %include "expr/expr_manager.i"
 %include "expr/variable_type_map.i"
@@ -253,6 +246,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "smt/logic_exception.i"
 %include "theory/logic_info.i"
 %include "theory/theory_id.i"
+
+%include "expr/array_store_all.i"
 
 // Tim: This should come after "theory/logic_info.i".
 %include "smt/smt_engine.i"

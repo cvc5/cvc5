@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -67,7 +67,8 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
       d_resourceManager(rm)
 {}
 
-bool CnfStream::assertClause(TNode node, SatClause& c) {
+bool CnfStream::assertClause(TNode node, SatClause& c)
+{
   Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
   if(Dump.isOn("clauses")) {
     if(c.size() == 1) {
@@ -117,9 +118,9 @@ bool CnfStream::assertClause(TNode node, SatLiteral a, SatLiteral b)
 }
 
 bool CnfStream::assertClause(TNode node,
-                                 SatLiteral a,
-                                 SatLiteral b,
-                                 SatLiteral c)
+                             SatLiteral a,
+                             SatLiteral b,
+                             SatLiteral c)
 {
   SatClause clause(3);
   clause[0] = a;

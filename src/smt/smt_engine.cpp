@@ -2,9 +2,9 @@
 /*! \file smt_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
@@ -50,6 +51,8 @@
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node_manager.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -105,6 +108,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/rewrite_db.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -656,8 +660,10 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
-      d_newProofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
+      d_pchecker(nullptr),
+      d_pnm(nullptr),
+      d_rewriteDb(nullptr),
       d_definedFunctions(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),
@@ -713,13 +719,24 @@ void SmtEngine::finishInit()
   // ensure that our heuristics are properly set up
   setDefaults(*this, d_logic);
 
+  if (options::proofNew())
+  {
+    d_pchecker.reset(new ProofChecker);
+    d_pnm.reset(new ProofNodeManager(d_pchecker.get()));
+    // make the rewrite database
+    d_rewriteDb.reset(new RewriteDb);
+    // enable proof support in the rewriter
+    d_rewriter->setProofChecker(d_pchecker.get());
+  }
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine.reset(new TheoryEngine(getContext(),
                                         getUserContext(),
                                         d_private->d_iteRemover,
-                                        const_cast<const LogicInfo&>(d_logic)));
+                                        const_cast<const LogicInfo&>(d_logic),
+                                        d_pnm.get()));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -890,6 +907,9 @@ SmtEngine::~SmtEngine()
     d_proofManager.reset(nullptr);
     d_newProofManager.reset(nullptr);
 #endif
+    d_pchecker.reset(nullptr);
+    d_pnm.reset(nullptr);
+    d_rewriteDb.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -915,6 +935,7 @@ void SmtEngine::setLogic(const LogicInfo& logic)
                          "finished initializing.");
   }
   d_logic = logic;
+  d_userLogic = logic;
   setLogicInternal();
 }
 
@@ -941,6 +962,14 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+LogicInfo SmtEngine::getUserLogicInfo() const
+{
+  // Lock the logic to make sure that this logic can be queried. We create a
+  // copy of the user logic here to keep this method const.
+  LogicInfo res = d_userLogic;
+  res.lock();
+  return res;
+}
 void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
 std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
@@ -949,6 +978,7 @@ void SmtEngine::setLogicInternal()
       << "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run";
   d_logic.lock();
+  d_userLogic.lock();
 }
 
 void SmtEngine::setProblemExtended()
@@ -1276,8 +1306,16 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
+    std::vector<api::Term> tFuncs = api::exprVectorToTerms(d_solver, funcs);
+    std::vector<std::vector<api::Term>> tFormals;
+    for (const std::vector<Expr>& formal : formals)
+    {
+      tFormals.emplace_back(api::exprVectorToTerms(d_solver, formal));
+    }
+    std::vector<api::Term> tFormulas =
+        api::exprVectorToTerms(d_solver, formulas);
     Dump("raw-benchmark") << DefineFunctionRecCommand(
-        funcs, formals, formulas, global);
+        d_solver, tFuncs, tFormals, tFormulas, global);
   }
 
   ExprManager* em = getExprManager();

@@ -2,9 +2,9 @@
 /*! \file set_defaults.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -271,6 +271,12 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     options::proofNew.set(false);
   }
+  // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
+  // with new proof system
+  if (options::unsatCores())
+  {
+    options::proofNew.set(false);
+  }
   if (options::proofNew())
   {
     if (!options::stringLenConc.wasSetByUser())
@@ -370,6 +376,18 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+
+  if (options::solveBVAsInt() > 0)
+  {
+    /**
+     * Operations on 1 bits are better handled as Boolean operations
+     * than as integer operations.
+     * Therefore, we enable bv-to-bool, which runs before
+     * the translation to integers.
+     */
+    options::bitvectorToBool.set(true);
+  }
+
   // Disable options incompatible with unsat cores and proofs or output an
   // error if enabled explicitly
   if (options::unsatCores() || options::proof())
@@ -426,16 +444,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       options::preSkolemQuant.set(false);
     }
 
-    if (options::solveBVAsInt() > 0)
-    {
-      /**
-       * Operations on 1 bits are better handled as Boolean operations
-       * than as integer operations.
-       * Therefore, we enable bv-to-bool, which runs before
-       * the translation to integers.
-       */
-      options::bitvectorToBool.set(true);
-    }
 
     if (options::bitvectorToBool())
     {

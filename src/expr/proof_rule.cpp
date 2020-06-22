@@ -2,9 +2,9 @@
 /*! \file proof_rule.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,12 +29,14 @@ const char* toString(PfRule id)
     //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
+    case PfRule::EVALUATE: return "EVALUATE";
     case PfRule::TRUST: return "TRUST";
     case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::DSL_REWRITE: return "DSL_REWRITE";
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
@@ -142,6 +144,11 @@ std::ostream& operator<<(std::ostream& out, PfRule id)
 {
   out << toString(id);
   return out;
+}
+
+size_t PfRuleHashFunction::operator()(PfRule id) const
+{
+  return static_cast<size_t>(id);
 }
 
 }  // namespace CVC4

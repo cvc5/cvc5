@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,6 +43,8 @@ enum class MethodId : uint32_t
   RW_REWRITE,
   // Rewriter::rewriteExtEquality(n)
   RW_REWRITE_EQ_EXT,
+  // Evaluator::evaluate(n)
+  RW_EVALUATE,
   // identity
   RW_IDENTITY,
   //---------------------------- Substitutions
@@ -69,35 +71,32 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   BuiltinProofRuleChecker() {}
   ~BuiltinProofRuleChecker() {}
   /**
-   * Apply rewrite on n (in witness form). This encapsulates the exact behavior
-   * of a REWRITE step in a proof. Rewriting is performed on the Skolem form of
-   * n.
+   * Apply rewrite on n (in skolem form). This encapsulates the exact behavior
+   * of a REWRITE step in a proof.
    *
-   * @param n The node (in witness form) to rewrite,
+   * @param n The node to rewrite,
    * @param idr The method identifier of the rewriter, by default RW_REWRITE
    * specifying a call to Rewriter::rewrite.
    * @return The rewritten form of n.
    */
   static Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
-   * Apply small-step rewrite on n in witness form (either pre- or
+   * Apply small-step rewrite on n in skolem form (either pre- or
    * post-rewrite). This encapsulates the exact behavior of a THEORY_REWRITE
-   * step in a proof. Rewriting is performed on the Skolem form of n.
+   * step in a proof.
    *
-   * @param n The node (in witness form) to rewrite
+   * @param n The node to rewrite
    * @param preRewrite If true, performs a pre-rewrite or a post-rewrite
    * otherwise
    * @return The rewritten form of n
    */
   static Node applyTheoryRewrite(Node n, bool preRewrite);
   /**
-   * Apply substitution on n (in witness form). This encapsulates the exact
-   * behavior of a SUBS step in a proof. Substitution is on the Skolem form of
-   * n.
+   * Apply substitution on n in skolem form. This encapsulates the exact
+   * behavior of a SUBS step in a proof.
    *
-   * @param n The node (in witness form) to substitute,
-   * @param exp The (set of) equalities (in witness form) corresponding to the
-   * substitution
+   * @param n The node to substitute,
+   * @param exp The (set of) equalities corresponding to the substitution
    * @param ids The method identifier of the substitution, by default SB_DEFAULT
    * specifying that lhs/rhs of equalities are interpreted as a substitution.
    * @return The substituted form of n.
@@ -112,9 +111,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    *
    * Combines the above two steps.
    *
-   * @param n The node (in witness form) to substitute and rewrite,
-   * @param exp The (set of) equalities (in witness form) corresponding to the
-   * substitution
+   * @param n The node to substitute and rewrite,
+   * @param exp The (set of) equalities corresponding to the substitution
    * @param ids The method identifier of the substitution.
    * @param idr The method identifier of the rewriter.
    * @return The substituted, rewritten form of n.
@@ -142,6 +140,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
 
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
+  /** expand */
+  bool expand(PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp) override;
 
  protected:
   /** Return the conclusion of the given proof step, or null if it is invalid */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -174,6 +174,12 @@ Node SkolemManager::mkPurifySkolem(Node t,
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
   t.setAttribute(psa, k);
   return k;
+}
+
+Node SkolemManager::mkBooleanTermVariable(Node t)
+{
+  // FIXME
+  return NodeManager::currentNM()->mkBooleanTermVariable();
 }
 
 Node SkolemManager::mkExistential(Node t, Node p)

@@ -2,9 +2,9 @@
 /*! \file java_iterator_adapter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Andres Noetzli, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -45,6 +45,8 @@ class JavaIteratorAdapter
                             value_type>(),
         "value_type must be convertible from T::const_iterator::value_type");
   }
+
+  JavaIteratorAdapter() = delete;
 
   bool hasNext() { return d_it != d_t.end(); }
 

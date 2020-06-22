@@ -2,9 +2,9 @@
 /*! \file congruence_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Dejan Jovanovic
+ **   Tim King, Dejan Jovanovic, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,7 +48,7 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_pnm(pnm),
       d_pfGenEe(new EagerProofGenerator(pnm, u)),
       d_pfGenExplain(new EagerProofGenerator(pnm, c)),
-      d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm, options::proofNew()))
+      d_pfee(new eq::ProofEqEngine(c, u, d_ee, pnm))
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);

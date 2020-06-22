@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -53,9 +53,10 @@ TheoryUF::TheoryUF(context::Context* c,
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_pnm(new ProofNodeManager(pc)),
+      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
-      d_pfEqualityEngine(nullptr),
+      d_pfEqualityEngine(
+          new eq::ProofEqEngine(c, u, d_equalityEngine, d_pnm.get())),
       d_conflict(c, false),
       d_functionsTerms(c),
       d_symb(u, instanceName)
@@ -97,11 +98,6 @@ void TheoryUF::finishInit() {
     d_equalityEngine.addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
   }
-  d_pfEqualityEngine.reset(new eq::ProofEqEngine(getSatContext(),
-                                                 getUserContext(),
-                                                 d_equalityEngine,
-                                                 d_pnm.get(),
-                                                 options::proofNew()));
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {
@@ -221,7 +217,7 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(Node node)
+TrustNode TheoryUF::expandDefinition(Node node)
 {
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
@@ -236,10 +232,10 @@ Node TheoryUF::expandDefinition(Node node)
     {
       Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
                           << node << " to " << ret << std::endl;
-      return ret;
+      return TrustNode::mkTrustRewrite(node, ret, nullptr);
     }
   }
-  return node;
+  return TrustNode::null();
 }
 
 void TheoryUF::preRegisterTerm(TNode node) {

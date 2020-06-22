@@ -245,6 +245,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/process_assertions.cpp
   smt/process_assertions.h
+  smt/proof_post_processor.cpp
+  smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/smt_engine.cpp
@@ -325,6 +327,8 @@ libcvc4_add_sources(
   theory/arith/proof_macros.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
   theory/arith/simplex.cpp
@@ -656,6 +660,16 @@ libcvc4_add_sources(
   theory/quantifiers_engine.h
   theory/rep_set.cpp
   theory/rep_set.h
+  theory/rewrite_db.cpp
+  theory/rewrite_db.h
+  theory/rewrite_db_proof_generator.cpp
+  theory/rewrite_db_proof_generator.h
+  theory/rewrite_db_sc.cpp
+  theory/rewrite_db_sc.h
+  theory/rewrite_db_term_process.cpp
+  theory/rewrite_db_term_process.h
+  theory/rewrite_proof_rule.cpp
+  theory/rewrite_proof_rule.h
   theory/rewriter.cpp
   theory/rewriter.h
   theory/rewriter_attributes.h
@@ -729,6 +743,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strategy.cpp
+  theory/strings/strategy.h
   theory/strings/strings_entail.cpp
   theory/strings/strings_entail.h
   theory/strings/strings_fmf.cpp
@@ -770,6 +786,7 @@ libcvc4_add_sources(
   theory/theory_preprocessor.h
   theory/theory_proof_step_buffer.cpp
   theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.cpp
   theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h

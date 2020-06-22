@@ -318,14 +318,9 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     }
     else if (id == PfRule::STRING_EAGER_REDUCTION)
     {
-      Assert(args.size() <= 2);
-      uint32_t i = 0;
-      if (args.size() >= 2)
-      {
-        getUInt32(args[1], i);
-      }
+      Assert(args.size() == 1);
       SkolemCache skc(false);
-      ret = TermRegistry::eagerReduce(t, &skc, i);
+      ret = TermRegistry::eagerReduce(t, &skc);
     }
     else if (id == PfRule::STRING_LENGTH_POS)
     {

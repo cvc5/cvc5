@@ -2,9 +2,9 @@
 /*! \file rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Andres Noetzli, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include "expr/node.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "theory/theory_rewriter.h"
+#include "theory/trust_node.h"
 #include "util/unsafe_interrupt_exception.h"
 
 namespace CVC4 {
@@ -64,7 +65,15 @@ class Rewriter {
    */
   static Node rewrite(TNode node);
 
-  static Node rewriteWithProof(TNode node, TConvProofGenerator* tcpg);
+  /**
+   * Rewrite with proof production, which is managed by the term conversion
+   * proof generator managed by this class (d_tpg). This method requires a call
+   * to setProofChecker prior to this call.
+   */
+  TrustNode rewriteWithProof(TNode node);
+
+  /** set proof checker */
+  void setProofChecker(ProofChecker* pc);
 
   /**
    * Rewrites the equality node using theoryOf() to determine which rewriter to
@@ -160,10 +169,19 @@ class Rewriter {
                  TConvProofGenerator* tcpg = nullptr);
 
   /** Calls the pre-rewriter for the given theory */
-  RewriteResponse preRewrite(theory::TheoryId theoryId, TNode n);
+  RewriteResponse preRewrite(theory::TheoryId theoryId,
+                             TNode n,
+                             TConvProofGenerator* tcpg = nullptr);
 
   /** Calls the post-rewriter for the given theory */
-  RewriteResponse postRewrite(theory::TheoryId theoryId, TNode n);
+  RewriteResponse postRewrite(theory::TheoryId theoryId,
+                              TNode n,
+                              TConvProofGenerator* tcpg = nullptr);
+  /** processes a trust rewrite response */
+  RewriteResponse processTrustRewriteResponse(
+      const TrustRewriteResponse& tresponse,
+      bool isPre,
+      TConvProofGenerator* tcpg);
 
   /**
    * Calls the equality-rewriter for the given theory.
@@ -198,6 +216,10 @@ class Rewriter {
 
   RewriteEnvironment d_re;
 
+  /** The proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
+  /** The proof generator */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
 #ifdef CVC4_ASSERTIONS
   std::unique_ptr<std::unordered_set<Node, NodeHashFunction>> d_rewriteStack =
       nullptr;
