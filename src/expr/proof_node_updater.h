@@ -33,8 +33,8 @@ namespace CVC4 {
 class ProofNodeUpdaterCallback
 {
  public:
-  ProofNodeUpdaterCallback() {}
-  virtual ~ProofNodeUpdaterCallback() {}
+  ProofNodeUpdaterCallback();
+  virtual ~ProofNodeUpdaterCallback();
   /** Should proof pn be updated? */
   virtual bool shouldUpdate(ProofNode* pn) = 0;
   /**

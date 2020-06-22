@@ -20,6 +20,9 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
+ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
+  
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb)
     : d_pnm(pnm), d_cb(cb)
