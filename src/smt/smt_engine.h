@@ -623,8 +623,8 @@ class CVC4_PUBLIC SmtEngine
   /**
    * This method asks this SMT engine to find an interpolant with respect to
    * the current assertion stack (call it A) and the conjecture (call it B). If
-   * this method returns true, then interpolant is set to a formula I such that A ^
-   * ~I and I ^ ~B are both unsatisfiable.
+   * this method returns true, then interpolant is set to a formula I such that
+   * A ^ ~I and I ^ ~B are both unsatisfiable.
    *
    * The argument grammarType is a sygus datatype type that encodes the syntax
    * restrictions on the shapes of possible solutions.
