@@ -143,11 +143,13 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, 
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }
 
-void ArithCongruenceManager::raiseConflict(Node conflict){
+void ArithCongruenceManager::raiseConflict(Node conflict,
+                                           std::shared_ptr<ProofNode> pf)
+{
   Assert(!inConflict());
   Debug("arith::conflict") << "difference manager conflict   " << conflict << std::endl;
   d_inConflict.raise();
-  d_raiseConflict.raiseEEConflict(conflict);
+  d_raiseConflict.raiseEEConflict(conflict, pf);
 }
 bool ArithCongruenceManager::inConflict() const{
   return d_inConflict.isRaised();
@@ -344,11 +346,22 @@ bool ArithCongruenceManager::propagate(TNode x){
     if(rewritten.getConst<bool>()){
       return true;
     }else{
+      // x rewrites to false.
       ++(d_statistics.d_conflicts);
       TrustNode trn = explainInternal(x);
       Node conf = flattenAnd(trn.getNode());
-      raiseConflict(conf);
       Debug("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
+      if (options::proofNew())
+      {
+        auto pf = trn.getGenerator()->getProofFor(trn.getProven());
+        auto confPf = d_pnm->mkNode(
+            PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {conf.negate()});
+        raiseConflict(conf, confPf);
+      }
+      else
+      {
+        raiseConflict(conf);
+      }
       return false;
     }
   }

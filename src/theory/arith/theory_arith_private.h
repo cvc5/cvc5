@@ -319,7 +319,9 @@ private:
 
   /** This is only used by simplex at the moment. */
   context::CDO<Node> d_blackBoxConflict;
-public:
+  context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
+
+ public:
 
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
@@ -335,9 +337,9 @@ public:
   // void raiseConflict(ConstraintCP a, ConstraintCP b, ConstraintCP c);
 
   /** This is a conflict that is magically known to hold. */
-  void raiseBlackBoxConflict(Node bb);
+  void raiseBlackBoxConflict(Node bb, std::shared_ptr<ProofNode> pf = nullptr);
 
-private:
+ private:
 
   inline bool conflictQueueEmpty() const {
     return d_conflicts.empty();

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "expr/node.h"
+#include "expr/proof_node.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/bound_counts.h"
 #include "theory/arith/constraint_forward.h"
@@ -177,7 +178,7 @@ public:
   RaiseEqualityEngineConflict(TheoryArithPrivate& ta);
 
   /* If you are not an equality engine, don't use this! */
-  void raiseEEConflict(Node n) const;
+  void raiseEEConflict(Node n, std::shared_ptr<ProofNode> pf) const;
 };
 
 class BoundCountingLookup {

@@ -899,6 +899,13 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   INT_TRUST,
 
+  // ======== Int Generic Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  ARITH_TRUST,
+
   //================================================= Unknown rule
   UNKNOWN,
 };

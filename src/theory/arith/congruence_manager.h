@@ -128,8 +128,9 @@ private:
   /** Proof equality engine, wrapping the above class */
   std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
 
-  void raiseConflict(Node conflict);
-public:
+  void raiseConflict(Node conflict, std::shared_ptr<ProofNode> pf = nullptr);
+
+ public:
 
   bool inConflict() const;
 

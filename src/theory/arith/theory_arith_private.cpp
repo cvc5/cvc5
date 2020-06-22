@@ -130,6 +130,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_tableauResetPeriod(10),
       d_conflicts(c),
       d_blackBoxConflict(c, Node::null()),
+      d_blackBoxConflictPf(c, std::shared_ptr<ProofNode>(nullptr)),
       d_congruenceManager(c,
                           u,
                           d_constraintDatabase,
@@ -534,8 +535,17 @@ void TheoryArithPrivate::raiseConflict(ConstraintCP a){
   d_conflicts.push_back(a);
 }
 
-void TheoryArithPrivate::raiseBlackBoxConflict(Node bb){
-  if(d_blackBoxConflict.get().isNull()){
+void TheoryArithPrivate::raiseBlackBoxConflict(Node bb,
+                                               std::shared_ptr<ProofNode> pf)
+{
+  Debug("arith::bb") << "raiseBlackBoxConflict: " << bb << std::endl;
+  if (d_blackBoxConflict.get().isNull())
+  {
+    if (options::proofNew())
+    {
+      Debug("arith::bb") << "  with proof " << pf << std::endl;
+      d_blackBoxConflictPf.set(pf);
+    }
     d_blackBoxConflict = bb;
   }
 }
@@ -1998,7 +2008,15 @@ void TheoryArithPrivate::outputConflicts(){
       bb = flattenAndSort(bb);
       Debug("arith::conflict") << "(normalized to) " << bb << endl;
     }
-    outputConflict(bb);
+    if (options::proofNew() && d_blackBoxConflictPf.get())
+    {
+      auto confPf = d_blackBoxConflictPf.get();
+      outputTrustedConflict(d_pfGen->mkTrustNode(bb, confPf, true));
+    }
+    else
+    {
+      outputConflict(bb);
+    }
   }
 }
 
