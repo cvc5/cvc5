@@ -202,7 +202,7 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   if (nc == 0)
   {
     TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
-    return trn.isNull() ? Node(Term) : trn.getNode();
+    return trn.isNull() ? Node(term) : trn.getNode();
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
