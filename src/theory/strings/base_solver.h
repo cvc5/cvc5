@@ -2,9 +2,9 @@
 /*! \file base_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,10 +41,7 @@ class BaseSolver
   using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
 
  public:
-  BaseSolver(context::Context* c,
-             context::UserContext* u,
-             SolverState& s,
-             InferenceManager& im);
+  BaseSolver(SolverState& s, InferenceManager& im);
   ~BaseSolver();
 
   //-----------------------inference steps
@@ -200,6 +197,19 @@ class BaseSolver
                                        std::vector<Node>& vecc,
                                        bool ensureConst = true,
                                        bool isConst = true);
+  /**
+   * Check cardinality for type tn. This adds a lemma corresponding to
+   * cardinality for terms of type tn, if applicable.
+   *
+   * @param tn The string-like type of terms we are considering,
+   * @param cols The list of collections of equivalence classes. This is a
+   * partition of all string equivalence classes, grouped by those with equal
+   * lengths.
+   * @param lts The length of each of the collections in cols.
+   */
+  void checkCardinalityType(TypeNode tn,
+                            std::vector<std::vector<Node> >& cols,
+                            std::vector<Node>& lts);
   /** The solver state object */
   SolverState& d_state;
   /** The (custom) output channel of the theory of strings */

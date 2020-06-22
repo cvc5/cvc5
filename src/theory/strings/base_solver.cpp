@@ -2,9 +2,9 @@
 /*! \file base_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,11 +27,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-BaseSolver::BaseSolver(context::Context* c,
-                       context::UserContext* u,
-                       SolverState& s,
-                       InferenceManager& im)
-    : d_state(s), d_im(im), d_congruent(c)
+BaseSolver::BaseSolver(SolverState& s, InferenceManager& im)
+    : d_state(s), d_im(im), d_congruent(s.getSatContext())
 {
   d_false = NodeManager::currentNM()->mkConst(false);
   d_cardSize = utils::getAlphabetCardinality();
@@ -323,8 +320,10 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
               Node nrr = d_state.getRepresentative(n[count]);
               Assert(!d_eqcInfo[nrr].d_bestContent.isNull()
                      && d_eqcInfo[nrr].d_bestContent.isConst());
+              // must flatten to avoid nested AND in explanations
+              utils::flattenOp(AND, d_eqcInfo[nrr].d_exp, exp);
+              // now explain equality to base
               d_im.addToExplanation(n[count], d_eqcInfo[nrr].d_base, exp);
-              exp.push_back(d_eqcInfo[nrr].d_exp);
             }
             else
             {
@@ -353,9 +352,13 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
             bei.d_base = n;
-            bei.d_exp = utils::mkAnd(exp);
+            if (!exp.empty())
+            {
+              bei.d_exp = utils::mkAnd(exp);
+            }
             Trace("strings-debug")
-                << "Set eqc best content " << n << " to " << nct << std::endl;
+                << "Set eqc best content " << n << " to " << nct
+                << ", explanation = " << bei.d_exp << std::endl;
           }
         }
       }
@@ -370,11 +373,12 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
         BaseEqcInfo& bei = d_eqcInfo[nr];
         if (!bei.d_bestContent.isConst())
         {
-          Trace("strings-debug")
-              << "Set eqc const " << n << " to " << c << std::endl;
           bei.d_bestContent = c;
           bei.d_base = n;
           bei.d_exp = utils::mkAnd(exp);
+          Trace("strings-debug")
+              << "Set eqc const " << n << " to " << c
+              << ", explanation = " << bei.d_exp << std::endl;
         }
         else if (c != bei.d_bestContent)
         {
@@ -432,9 +436,19 @@ void BaseSolver::checkCardinality()
   // are pairwise propagated to be equal. We do not require disequalities
   // between the lengths of each collection, since we split on disequalities
   // between lengths of string terms that are disequal (DEQ-LENGTH-SP).
-  std::vector<std::vector<Node> > cols;
-  std::vector<Node> lts;
+  std::map<TypeNode, std::vector<std::vector<Node> > > cols;
+  std::map<TypeNode, std::vector<Node> > lts;
   d_state.separateByLength(d_stringsEqc, cols, lts);
+  for (std::pair<const TypeNode, std::vector<std::vector<Node> > >& c : cols)
+  {
+    checkCardinalityType(c.first, c.second, lts[c.first]);
+  }
+}
+
+void BaseSolver::checkCardinalityType(TypeNode tn,
+                                      std::vector<std::vector<Node> >& cols,
+                                      std::vector<Node>& lts)
+{
   NodeManager* nm = NodeManager::currentNM();
   Trace("strings-card") << "Check cardinality...." << std::endl;
   // for each collection
@@ -446,6 +460,11 @@ void BaseSolver::checkCardinality()
     if (cols[i].size() <= 1)
     {
       // no restriction on sets in the partition of size 1
+      continue;
+    }
+    if (!tn.isString())
+    {
+      // TODO (cvc4-projects #23): how to handle sequence for finite types?
       continue;
     }
     // size > c^k
@@ -472,8 +491,10 @@ void BaseSolver::checkCardinality()
     else
     {
       // find the minimimum constant that we are unknown to be disequal from, or
-      // otherwise stop if we increment such that cardinality does not apply
-      unsigned r = 0;
+      // otherwise stop if we increment such that cardinality does not apply.
+      // We always start with r=1 since by the invariants of our term registry,
+      // a term is either equal to the empty string, or has length >= 1.
+      unsigned r = 1;
       bool success = true;
       while (r < card_need && success)
       {
@@ -530,8 +551,8 @@ void BaseSolver::checkCardinality()
       Node k_node = nm->mkConst(Rational(int_k));
       // add cardinality lemma
       Node dist = nm->mkNode(DISTINCT, cols[i]);
-      std::vector<Node> vec_node;
-      vec_node.push_back(dist);
+      std::vector<Node> expn;
+      expn.push_back(dist);
       for (std::vector<Node>::iterator itr1 = cols[i].begin();
            itr1 != cols[i].end();
            ++itr1)
@@ -540,7 +561,7 @@ void BaseSolver::checkCardinality()
         if (len != lr)
         {
           Node len_eq_lr = len.eqNode(lr);
-          vec_node.push_back(len_eq_lr);
+          expn.push_back(len_eq_lr);
         }
       }
       Node len = nm->mkNode(STRING_LENGTH, cols[i][0]);
@@ -551,7 +572,7 @@ void BaseSolver::checkCardinality()
       {
         std::vector<Node> emptyVec;
         d_im.sendInference(
-            emptyVec, vec_node, cons, Inference::CARDINALITY, true);
+            emptyVec, expn, cons, Inference::CARDINALITY, true);
         return;
       }
     }

@@ -66,10 +66,10 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions,
   // store or process assertions
 }
 
-std::vector<Node> CadSolver::checkInitialRefine()
+std::vector<NlLemma> CadSolver::checkInitialRefine()
 {
   Trace("cad-check") << "CadSolver::checkInitialRefine" << std::endl;
-  std::vector<Node> lems;
+  std::vector<NlLemma> lems;
 
   // add lemmas corresponding to easy conflicts or refinements based on
   // the assertions/terms given in initLastCall.
@@ -77,10 +77,10 @@ std::vector<Node> CadSolver::checkInitialRefine()
   return lems;
 }
 
-std::vector<Node> CadSolver::checkFullRefine()
+std::vector<NlLemma> CadSolver::checkFullRefine()
 {
   Trace("cad-check") << "CadSolver::checkFullRefine";
-  std::vector<Node> lems;
+  std::vector<NlLemma> lems;
 
   // Run a complete check on assertions/terms given in initLastCall. In other
   // words, do not return any lemmas if

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -935,15 +935,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      std::vector<std::vector<Expr>> eformals;
-      for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
-      {
-        eformals.push_back(api::termVectorToExprs(formals[i]));
-      }
       cmd->reset(
-          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
-                                       eformals,
-                                       api::termVectorToExprs(formulas)));
+          new DefineFunctionRecCommand(SOLVER, funcs, formals, formulas, true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1159,11 +1152,11 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           api::Term func = PARSER_STATE->mkVar(
               *i,
-              t.getType(),
+              api::Sort(SOLVER, t.getType()),
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
           Command* decl =
-              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
+              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr(), true);
           seq->addCommand(decl);
         }
       }
@@ -1654,7 +1647,7 @@ tupleStore[CVC4::api::Term& f]
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
       f2 = SOLVER->mkTerm(
-          api::APPLY_SELECTOR, api::Term(dt[0][k].getSelector()), f);
+          api::APPLY_SELECTOR, api::Term(SOLVER, dt[0][k].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1687,7 +1680,7 @@ recordStore[CVC4::api::Term& f]
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
       f2 = SOLVER->mkTerm(
-          api::APPLY_SELECTOR, api::Term(dt[0][id].getSelector()), f);
+          api::APPLY_SELECTOR, api::Term(SOLVER, dt[0][id].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1831,7 +1824,9 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
-          f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
+          f = SOLVER->mkTerm(api::APPLY_SELECTOR,
+                             api::Term(SOLVER, dt[0][id].getSelector()),
+                             f);
         }
       | k=numeral
         {
@@ -1846,7 +1841,9 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(ss.str());
           }
           const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
-          f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()), f);
+          f = SOLVER->mkTerm(api::APPLY_SELECTOR,
+                             api::Term(SOLVER, dt[0][k].getSelector()),
+                             f);
         }
       )
     )*
@@ -1857,7 +1854,7 @@ postfixTerm[CVC4::api::Term& f]
     | ABS_TOK LPAREN formula[f] RPAREN
       { f = MK_TERM(CVC4::api::ABS, f); }
     | DIVISIBLE_TOK LPAREN formula[f] COMMA n=numeral RPAREN
-      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE,n), f); }
+      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE, n), f); }
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -1868,7 +1865,7 @@ postfixTerm[CVC4::api::Term& f]
     )
     ( typeAscription[f, t]
       {
-        f = PARSER_STATE->applyTypeAscription(f,t).getExpr();
+        f = PARSER_STATE->applyTypeAscription(f,t);
       }
     )?
   ;
@@ -1885,8 +1882,8 @@ relationTerm[CVC4::api::Term& f]
       args.push_back(f);
       types.push_back(f.getSort());
       api::Sort t = SOLVER->mkTupleSort(types);
-      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-      args.insert( args.begin(), api::Term(dt[0].getConstructor()) );
+      const Datatype& dt = Datatype(((DatatypeType)t.getType()).getDatatype());
+      args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
   | IDEN_TOK LPAREN formula[f] RPAREN
@@ -2136,7 +2133,7 @@ simpleTerm[CVC4::api::Term& f]
         }
         api::Sort dtype = SOLVER->mkTupleSort(types);
         const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-        args.insert( args.begin(), dt[0].getConstructor() );
+        args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
       }
     }
@@ -2146,7 +2143,9 @@ simpleTerm[CVC4::api::Term& f]
     { std::vector<api::Sort> types;
       api::Sort dtype = SOLVER->mkTupleSort(types);
       const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor())); }
+      f = MK_TERM(api::APPLY_CONSTRUCTOR,
+                  api::Term(SOLVER, dt[0].getConstructor()));
+    }
 
     /* empty record literal */
   | PARENHASH HASHPAREN
@@ -2154,7 +2153,8 @@ simpleTerm[CVC4::api::Term& f]
       api::Sort dtype = SOLVER->mkRecordSort(
           std::vector<std::pair<std::string, api::Sort>>());
       const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor()));
+      f = MK_TERM(api::APPLY_CONSTRUCTOR,
+                  api::Term(SOLVER, dt[0].getConstructor()));
     }
     /* empty set literal */
   | LBRACE RBRACE
@@ -2252,7 +2252,7 @@ simpleTerm[CVC4::api::Term& f]
       }
       api::Sort dtype = SOLVER->mkRecordSort(typeIds);
       const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
+      args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
 
@@ -2360,8 +2360,9 @@ constructorDef[CVC4::api::DatatypeDecl& type]
   std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    { 
-      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id));
+    {
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(
+          SOLVER->mkDatatypeConstructorDecl(id)));
     }
     ( LPAREN
       selector[&ctor]

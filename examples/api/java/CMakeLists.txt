@@ -5,6 +5,7 @@ set(EXAMPLES_API_JAVA
   #CVC4Streams
   Combination
   Datatypes
+  Exceptions
   FloatingPointArith
   HelloWorld
   LinearArith

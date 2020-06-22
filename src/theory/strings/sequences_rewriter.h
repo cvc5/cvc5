@@ -2,9 +2,9 @@
 /*! \file sequences_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -204,6 +204,33 @@ class SequencesRewriter : public TheoryRewriter
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
   Node rewriteReplaceInternal(Node node);
+  /** rewrite regular expression replace
+   *
+   * This method implements rewrite rules that apply to terms of the form
+   * str.replace_re(s, r, t).
+   *
+   * @param node The node to rewrite
+   * @return The rewritten node
+   */
+  Node rewriteReplaceRe(Node node);
+  /** rewrite regular expression replace
+   *
+   * This method implements rewrite rules that apply to terms of the form
+   * str.replace_re_all(s, r, t).
+   *
+   * @param node The node to rewrite
+   * @return The rewritten node
+   */
+  Node rewriteReplaceReAll(Node node);
+  /**
+   * Returns the first, shortest sequence in n that matches r.
+   *
+   * @param n The constant string or sequence to search in.
+   * @param r The regular expression to search for.
+   * @return A pair holding the start position and the end position of the
+   *         match or a pair of string::npos if r does not appear in n.
+   */
+  std::pair<size_t, size_t> firstMatch(Node n, Node r);
   /** rewrite string reverse
    *
    * This is the entry point for post-rewriting terms n of the form

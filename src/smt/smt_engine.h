@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
+ **   Morgan Deters, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,6 +62,12 @@ class ProofManager;
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
+
+/* -------------------------------------------------------------------------- */
+
+namespace api {
+class Solver;
+}  // namespace api
 
 /* -------------------------------------------------------------------------- */
 
@@ -126,6 +132,7 @@ namespace theory {
 
 class CVC4_PUBLIC SmtEngine
 {
+  friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
@@ -140,6 +147,27 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
  public:
   /* .......................................................................  */
+
+  /**
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
+   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+   */
+  enum SmtMode
+  {
+    // the initial state of the solver
+    SMT_MODE_START,
+    // normal state of the solver, after assert/push/pop/declare/define
+    SMT_MODE_ASSERT,
+    // immediately after a check-sat returning "sat"
+    SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
+    // immediately after a check-sat returning "unsat"
+    SMT_MODE_UNSAT,
+    // immediately after a successful call to get-abduct
+    SMT_MODE_ABDUCT
+  };
 
   /** Construct an SmtEngine with the given expression manager.  */
   SmtEngine(ExprManager* em);
@@ -162,6 +190,9 @@ class CVC4_PUBLIC SmtEngine
   /** Return the user context level.  */
   size_t getNumUserLevels() { return d_userLevels.size(); }
 
+  /** Return the current mode of the solver. */
+  SmtMode getSmtMode() { return d_smtMode; }
+
   /**
    * Set the logic of the script.
    * @throw ModalException, LogicException
@@ -183,11 +214,17 @@ class CVC4_PUBLIC SmtEngine
   /** Get the logic information currently set. */
   LogicInfo getLogicInfo() const;
 
+  /** Get the logic information set by the user. */
+  LogicInfo getUserLogicInfo() const;
+
   /**
    * Set information about the script executing.
    * @throw OptionException, ModalException
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value);
+
+  /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
+  bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
   CVC4::SExpr getInfo(const std::string& key) const;
@@ -263,15 +300,18 @@ class CVC4_PUBLIC SmtEngine
    *   (lambda (formals) formula)
    * This adds func to the list of defined functions, which indicates that
    * all occurrences of func should be expanded during expandDefinitions.
-   * This method expects input such that:
-   * - func : a variable of function type that expects the arguments in
-   *          formals,
-   * - formals : a list of BOUND_VARIABLE expressions,
-   * - formula does not contain func.
+   *
+   * @param func a variable of function type that expects the arguments in
+   *             formal
+   * @param formals a list of BOUND_VARIABLE expressions
+   * @param formula The body of the function, must not contain func
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
-                      Expr formula);
+                      Expr formula,
+                      bool global = false);
 
   /** Return true if given expression is a defined function. */
   bool isDefinedFunction(Expr func);
@@ -290,17 +330,22 @@ class CVC4_PUBLIC SmtEngine
    * - func[i] : a variable of function type that expects the arguments in
    *             formals[i], and
    * - formals[i] : a list of BOUND_VARIABLE expressions.
+   *
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
    */
   void defineFunctionsRec(const std::vector<Expr>& funcs,
-                          const std::vector<std::vector<Expr> >& formals,
-                          const std::vector<Expr>& formulas);
+                          const std::vector<std::vector<Expr>>& formals,
+                          const std::vector<Expr>& formulas,
+                          bool global = false);
   /**
    * Define function recursive
    * Same as above, but for a single function.
    */
   void defineFunctionRec(Expr func,
                          const std::vector<Expr>& formals,
-                         Expr formula);
+                         Expr formula,
+                         bool global = false);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -835,33 +880,13 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDList<Expr> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
-  /** The types for the recursive function definitions */
-  typedef context::CDList<Node> NodeList;
-
-  /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT
-  };
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
@@ -1070,6 +1095,9 @@ class CVC4_PUBLIC SmtEngine
 
   /* Members -------------------------------------------------------------- */
 
+  /** Solver instance that owns this SmtEngine instance. */
+  api::Solver* d_solver = nullptr;
+
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;
   /** User level context */
@@ -1133,9 +1161,15 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in interactive mode.
+   * getAssertions().  Only maintained if in incremental mode.
    */
   AssertionList* d_assertionList;
+
+  /**
+   * List of lemmas generated for global recursive function definitions. We
+   * assert this list of definitions in each check-sat call.
+   */
+  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
 
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
@@ -1179,9 +1213,13 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Command*> d_defineCommands;
 
   /**
-   * The logic we're in.
+   * The logic we're in. This logic may be an extension of the logic set by the
+   * user.
    */
   LogicInfo d_logic;
+
+  /** The logic set by the user. */
+  LogicInfo d_userLogic;
 
   /**
    * Keep a copy of the original option settings (for reset()).

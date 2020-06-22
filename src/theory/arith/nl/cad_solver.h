@@ -55,13 +55,13 @@ class CadSolver
    * This should be a heuristic incomplete check that only introduces a
    * small number of new terms in the lemmas it returns.
    */
-  std::vector<Node> checkInitialRefine();
+  std::vector<NlLemma> checkInitialRefine();
   /** check full refine
    *
    * This should be a complete check that returns at least one lemma to
    * rule out the current model.
    */
-  std::vector<Node> checkFullRefine();
+  std::vector<NlLemma> checkFullRefine();
   /** preprocess assertions check model
    *
    * This modifies the given assertions in preparation for running a call

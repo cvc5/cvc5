@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -254,7 +254,10 @@ public:
     tryGoodInput("DATATYPE list = nil | cons(car:INT,cdr:list) END; DATATYPE cons = null END;");
     tryGoodInput("DATATYPE tree = node(data:list), list = cons(car:tree,cdr:list) | nil END;");
     //tryGoodInput("DATATYPE tree = node(data:[list,list,ARRAY tree OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
-    tryGoodInput("DATATYPE trex = Foo | Bar END; DATATYPE tree = node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list OF tree,cdr:BITVECTOR(32)) END;");
+    tryGoodInput(
+        "DATATYPE trex = Foo | Bar END; DATATYPE tree = "
+        "node(data:[list,list,ARRAY trex OF list]), list = cons(car:ARRAY list "
+        "OF tree,cdr:BITVECTOR(32)) END;");
   }
 
   void testBadCvc4Inputs() {

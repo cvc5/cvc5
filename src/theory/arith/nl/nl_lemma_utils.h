@@ -2,9 +2,9 @@
 /*! \file nl_lemma_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,16 +27,24 @@ namespace nl {
 class NlModel;
 
 /**
- * A side effect of adding a lemma in the non-linear solver. This is used
- * to specify how the state of the non-linear solver should update. This
- * includes:
+ * The data structure for a single lemma to process by the non-linear solver,
+ * including the lemma itself and whether it should be preprocessed (see
+ * OutputChannel::lemma).
+ *
+ * This also includes data structures that encapsulate the side effect of adding
+ * this lemma in the non-linear solver. This is used to specify how the state of
+ * the non-linear solver should update. This includes:
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-struct NlLemmaSideEffect
+struct NlLemma
 {
-  NlLemmaSideEffect() {}
-  ~NlLemmaSideEffect() {}
+  NlLemma(Node lem) : d_lemma(lem), d_preprocess(false) {}
+  ~NlLemma() {}
+  /** The lemma */
+  Node d_lemma;
+  /** Whether to preprocess the lemma */
+  bool d_preprocess;
   /** secant points to add
    *
    * A member (tf, d, c) in this vector indicates that point c should be added
@@ -48,6 +56,10 @@ struct NlLemmaSideEffect
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
 };
+/**
+ * Writes a non-linear lemma to a stream.
+ */
+std::ostream& operator<<(std::ostream& out, NlLemma& n);
 
 struct SortNlModel
 {

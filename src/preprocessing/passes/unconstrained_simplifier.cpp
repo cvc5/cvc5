@@ -2,9 +2,9 @@
 /*! \file unconstrained_simplifier.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andres Noetzli, Tim King
+ **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -90,6 +90,15 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
       {
         d_unconstrained.insert(current);
       }
+    }
+    else if (current.isClosure())
+    {
+      // Throw an exception. This should never happen in practice unless the
+      // user specifically enabled unconstrained simplification in an illegal
+      // logic.
+      throw LogicException(
+          "Cannot use unconstrained simplification in this logic, due to "
+          "(possibly internally introduced) quantified formula.");
     }
     else
     {
