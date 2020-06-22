@@ -621,13 +621,13 @@ class CVC4_PUBLIC SmtEngine
   Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
 
   /**
-   * This method asks this SMT engine to find an interpolation with respect to
+   * This method asks this SMT engine to find an interpolant with respect to
    * the current assertion stack (call it A) and the conjecture (call it B). If
-   * this method returns true, then interpol is set to a formula I such that A ^
+   * this method returns true, then interpolant is set to a formula I such that A ^
    * ~I and I ^ ~B are both unsatisfiable.
    *
    * The argument grammarType is a sygus datatype type that encodes the syntax
-   * restrictions on the shape of possible solutions.
+   * restrictions on the shapes of possible solutions.
    *
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
@@ -953,7 +953,7 @@ class CVC4_PUBLIC SmtEngine
   void checkSynthSolution();
 
   /**
-   * Check that a solution to an interpolation conjecture is indeed a solution.
+   * Check that a solution to an interpolation problem is indeed a solution.
    *
    * The check is made by determining that the assertions imply the solution of
    * the interpolation problem (interpol), and the solution implies the goal

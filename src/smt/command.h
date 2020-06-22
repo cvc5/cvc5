@@ -1062,8 +1062,8 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
 
 /** The command (get-interpol s B)
  *
- * This command asks for an interpolation from the current set of assertions and
- * conjecture (goal) given by the argument B.
+ * This command asks for an interpolant from the current set of assertions and
+ * conjecture (goal) B.
  *
  * The symbol s is the name for the interpolation predicate. If we successfully
  * find a predicate P, then the output response of this command is: (define-fun
@@ -1078,7 +1078,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
 
   /** Get the conjecture of the interpolation query */
   Expr getConjecture() const;
-  /** Get the grammar type given for the interpolation query */
+  /** Get the grammar sygus datatype type given for the interpolation query */
   Type getGrammarType() const;
   /** Get the result of the query, which is the solution to the interpolation
    * query. */
