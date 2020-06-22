@@ -7,6 +7,7 @@ set(java_test_src_files
   BitVectorsAndArrays.java
   Combination.java
   HelloWorld.java
+  Issue2846.java
   LinearArith.java
 )
 
