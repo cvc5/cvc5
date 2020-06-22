@@ -42,25 +42,11 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
   return pn;
 }
 
-std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
-    PfRule id,
-    std::shared_ptr<ProofNode> child1,
-    const std::vector<Node>& args,
-    Node expected)
-{
-  std::vector<std::shared_ptr<ProofNode>> children;
-  children.push_back(child1);
-  return mkNode(id, children, args, expected);
-}
-
 std::shared_ptr<ProofNode> ProofNodeManager::mkAssume(Node fact)
 {
   Assert(!fact.isNull());
   Assert(fact.getType().isBoolean());
-  std::vector<std::shared_ptr<ProofNode>> children;
-  std::vector<Node> args;
-  args.push_back(fact);
-  return mkNode(PfRule::ASSUME, children, args, fact);
+  return mkNode(PfRule::ASSUME, {}, {fact}, fact);
 }
 
 std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
@@ -70,19 +56,14 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     bool doMinimize,
     Node expected)
 {
-  std::vector<std::shared_ptr<ProofNode>> pfChildren;
-  pfChildren.push_back(pf);
   if (!ensureClosed)
   {
-    return mkNode(PfRule::SCOPE, pfChildren, assumps, expected);
+    return mkNode(PfRule::SCOPE, {pf}, assumps, expected);
   }
   Trace("pnm-scope") << "ProofNodeManager::mkScope " << assumps << std::endl;
   // we first ensure the assumptions are flattened
-  std::unordered_set<Node, NodeHashFunction> ac;
-  for (const TNode& a : assumps)
-  {
-    ac.insert(a);
-  }
+  std::unordered_set<Node, NodeHashFunction> ac{assumps.begin(), assumps.end()};
+
   // The free assumptions of the proof
   std::map<Node, std::vector<ProofNode*>> famap;
   expr::getFreeAssumptionsMap(pf.get(), famap);
@@ -131,7 +112,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     {
       ss << "- assumption: " << aprint << std::endl;
     }
-    AlwaysAssert(false) << "Generated a proof that is not closed by the scope: "
+    Unreachable() << "Generated a proof that is not closed by the scope: "
                         << ss.str() << std::endl;
   }
   if (acu.size() < ac.size())
@@ -154,7 +135,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   }
   else if (ac.size() < assumps.size())
   {
-    // always must remove duplicates
+    // remove duplicates to avoid redundant literals in clauses
     assumps.clear();
     assumps.insert(assumps.end(), ac.begin(), ac.end());
   }
@@ -179,7 +160,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       minExpected = nm->mkNode(IMPLIES, exp, conc);
     }
   }
-  return mkNode(PfRule::SCOPE, pfChildren, assumps, minExpected);
+  return mkNode(PfRule::SCOPE, {pf}, assumps, minExpected);
 }
 
 bool ProofNodeManager::updateNode(
@@ -268,7 +249,7 @@ bool ProofNodeManager::updateNodeInternal(
           cp->printDebug(ss);
           ss << std::endl;
         }
-        AlwaysAssert(false) << ss.str();
+        Unreachable() << ss.str();
       }
       for (const std::shared_ptr<ProofNode>& cp : cur->d_children)
       {

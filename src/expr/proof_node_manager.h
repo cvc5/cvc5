@@ -73,20 +73,15 @@ class ProofNodeManager
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       Node expected = Node::null());
-  /** Construct proof node, single child version */
-  std::shared_ptr<ProofNode> mkNode(PfRule id,
-                                    std::shared_ptr<ProofNode> child1,
-                                    const std::vector<Node>& args,
-                                    Node expected = Node::null());
   /**
    * Make the proof node corresponding to the assumption of fact.
    *
    * @param fact The fact to assume.
-   * @return The assume proof of fact.
+   * @return The ASSUME proof of fact.
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
   /**
-   * Make scope having body pf and arguments (assumptions-to-close) assump.
+   * Make scope having body pf and arguments (assumptions-to-close) assumps.
    * If ensureClosed is true, then this method throws an assertion failure if
    * the returned proof is not closed. This is the case if a free assumption
    * of pf is missing from the vector assumps.
