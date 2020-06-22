@@ -67,9 +67,13 @@ class NodeDfsIterator
   // Dereference
   reference operator*();
   // Equals
-  bool operator==(const NodeDfsIterator&) const;
+  // It is not constant, because an unitilized node must be initialized before
+  // comparison
+  bool operator==(NodeDfsIterator&);
   // Not equals
-  bool operator!=(const NodeDfsIterator&) const;
+  // It is not constant, because an unitilized node must be initialized before
+  // comparison
+  bool operator!=(NodeDfsIterator&);
 
  private:
   // While we're not at an appropriate visit (see d_postorder), advance.
