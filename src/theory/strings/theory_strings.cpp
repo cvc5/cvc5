@@ -190,8 +190,8 @@ bool TheoryStrings::propagate(TNode literal) {
   return ok;
 }
 
-
-TrustNode TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain(TNode literal)
+{
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
   d_im->explain(literal, assumptions);
@@ -201,7 +201,7 @@ TrustNode TheoryStrings::explain( TNode literal ){
   }else if( assumptions.size()==1 ){
     ret = assumptions[0];
   }else{
-    ret = NodeManager::currentNM()->mkNode( kind::AND, assumptions );
+    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
   }
   return TrustNode::mkTrustPropExp(literal, ret, nullptr);
 }
@@ -706,10 +706,12 @@ void TheoryStrings::conflict(TNode a, TNode b){
   {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
     d_state.setConflict();
-    TrustNode conflictNode = explain( a.eqNode(b) );
-    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode.getNode() << std::endl;
+    TrustNode conflictNode = explain(a.eqNode(b));
+    Trace("strings-conflict")
+        << "CONFLICT: Eq engine conflict : " << conflictNode.getNode()
+        << std::endl;
     ++(d_statistics.d_conflictsEqEngine);
-    d_out->conflict( conflictNode.getNode() );
+    d_out->conflict(conflictNode.getNode());
   }
 }
 
