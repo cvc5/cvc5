@@ -29,10 +29,10 @@
 #include "preprocessing/assertion_pipeline.h"
 #include "proof/proof_manager.h"
 #include "prop/proof_cnf_stream.h"
+#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
-#include "theory/trust_node.h"
 
 namespace CVC4 {
 

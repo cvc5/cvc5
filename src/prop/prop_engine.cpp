@@ -153,9 +153,10 @@ void PropEngine::assertFormula(TNode node) {
 void PropEngine::assertLemma(theory::TrustNode trn,
                              bool removable,
                              ProofRule rule,
-                             TNode from) {
+                             TNode from)
+{
   Node node = trn.getNode();
-  bool negated = trn.getKind()==theory::TrustNodeKind::CONFLICT;
+  bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
   //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 

@@ -1658,7 +1658,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     }
   }
   // must update the trust lemma
-  if (lemmap!=lemma)
+  if (lemmap != lemma)
   {
     tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
   }
