@@ -33,7 +33,8 @@ class TheoryBuiltin : public Theory
                 context::UserContext* u,
                 OutputChannel& out,
                 Valuation valuation,
-                const LogicInfo& logicInfo);
+                const LogicInfo& logicInfo,
+                ProofChecker* pc);
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 

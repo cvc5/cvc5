@@ -31,8 +31,9 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo)
+                             const LogicInfo& logicInfo,
+                             ProofChecker* pc)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pc)
 {
 }
 
