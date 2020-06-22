@@ -23,17 +23,16 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-ProofPostProcessor::ProofPostProcessor(ProofNodeManager* pnm) : d_pnm(pnm)
+ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb) : d_pnm(pnm), d_cb(cb)
 {
   // always eliminate macro rules (add to d_elimRules?)
 }
 
-void ProofPostProcessor::eliminate(PfRule rule) { d_elimRules.insert(rule); }
+//void ProofNodeUpdater::eliminate(PfRule rule) { d_elimRules.insert(rule); }
 
-void ProofPostProcessor::process(std::shared_ptr<ProofNode> pf)
+void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
 {
-  Trace("pf-process") << "ProofPostProcessor::process" << std::endl;
-  ProofChecker* pc = d_pnm->getChecker();
+  Trace("pf-process") << "ProofNodeUpdater::process" << std::endl;
   std::unordered_set<ProofNode*> visited;
   std::unordered_set<ProofNode*>::iterator it;
   std::vector<ProofNode*> visit;
@@ -46,46 +45,40 @@ void ProofPostProcessor::process(std::shared_ptr<ProofNode> pf)
     if (it == visited.end())
     {
       visited.insert(cur);
-      // should it be eliminated?
-      PfRule id = cur->getRule();
-      if (d_elimRules.find(id) != d_elimRules.end())
+      // should it be updated?
+      if (d_cb.shouldUpdate(cur))
       {
-        // process using checker?
-        ProofRuleChecker* prc = pc->getCheckerFor(id);
-        if (prc != nullptr)
+        PfRule id = cur->getRule();
+        LazyCDProof lcp(d_pnm);
+        const std::vector<std::shared_ptr<ProofNode>>& cc =
+            cur->getChildren();
+        std::vector<Node> ccn;
+        for (const std::shared_ptr<ProofNode>& cp : cc)
         {
-          EagerProofGenerator epg(d_pnm);
-          const std::vector<std::shared_ptr<ProofNode>>& cc =
-              cur->getChildren();
-          std::vector<Node> ccn;
-          for (const std::shared_ptr<ProofNode>& cp : cc)
-          {
-            Node cpres = cp->getResult();
-            ccn.push_back(cpres);
-            // store in the eager proof generator
-            epg.setProofFor(cpres, cp);
-          }
-          LazyCDProof lcp(d_pnm, &epg);
-          // only if expand
-          if (prc->expand(id, ccn, cur->getArguments(), &lcp))
-          {
-            // build the proof, which should be closed
-            std::shared_ptr<ProofNode> npn = lcp.getProofFor(cur->getResult());
-            Assert(npn->isClosed());
-            // then, update the original proof node based on this one
-            d_pnm->updateNode(cur, npn.get());
-          }
+          Node cpres = cp->getResult();
+          ccn.push_back(cpres);
+          // store in the proof
+          lcp.addProof(cp);
         }
-      }
-      const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
-      // now, process children
-      for (const std::shared_ptr<ProofNode>& cp : ccp)
-      {
-        visit.push_back(cp.get());
+        // only if the callback updated the node
+        if (d_cb.update(id, ccn, cur->getArguments(), &lcp))
+        {
+          // build the proof, which should be closed
+          std::shared_ptr<ProofNode> npn = lcp.getProofFor(cur->getResult());
+          Assert(npn->isClosed());
+          // then, update the original proof node based on this one
+          d_pnm->updateNode(cur, npn.get());
+        }
+        const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
+        // now, process children
+        for (const std::shared_ptr<ProofNode>& cp : ccp)
+        {
+          visit.push_back(cp.get());
+        }
       }
     }
   } while (!visit.empty());
-  Trace("pf-process") << "ProofPostProcessor::process: finished" << std::endl;
+  Trace("pf-process") << "ProofNodeUpdater::process: finished" << std::endl;
 }
 
 }  // namespace smt
