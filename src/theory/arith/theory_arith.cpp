@@ -75,7 +75,11 @@ void TheoryArith::finishInit()
       && getLogicInfo().areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
-    tm->setUnevaluatedKind(kind::WITNESS);
+    tm->setUnevaluatedKind(kind::WITNESS);    
+    // we only need to add the operators that are not syntax sugar	
+    tm->setUnevaluatedKind(kind::EXPONENTIAL);
+    tm->setUnevaluatedKind(kind::SINE);
+    tm->setUnevaluatedKind(kind::PI);
   }
 }
 
@@ -96,7 +100,12 @@ void TheoryArith::addSharedTerm(TNode n){
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  return d_internal->ppRewrite(atom);
+  Node ret = d_internal->ppRewrite(atom);
+  if (ret!=atom)
+  {
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -119,7 +128,7 @@ bool TheoryArith::needsCheckLastEffort() {
 TrustNode TheoryArith::explain(TNode n) 
 { 
   Node exp = d_internal->explain(n);
-  return TrustNode::mkTrustPropExpr(n,exp,nullptr);
+  return TrustNode::mkTrustPropExp(n,exp,nullptr);
 }
 
 bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {

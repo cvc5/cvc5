@@ -15,7 +15,6 @@
 #include "theory/strings/theory_strings.h"
 
 #include "expr/kind.h"
-#include "options/smt_options.h"
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "smt/logic_exception.h"
@@ -45,9 +44,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
-      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_state(c, u, d_equalityEngine, d_valuation),
-      d_termReg(d_state, d_equalityEngine, out, d_statistics, d_pnm.get()),
+      d_termReg(d_state, d_equalityEngine, out, d_statistics, nullptr),
       d_im(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
@@ -59,12 +57,14 @@ TheoryStrings::TheoryStrings(context::Context* c,
   setupExtTheory();
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
-  d_im.reset(new InferenceManager(
-      d_state, d_termReg, *extt, out, d_statistics, d_pnm.get()));
+  d_im.reset(
+      new InferenceManager(c, u, d_state, d_termReg, *extt, out, d_statistics));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(d_state, *d_im));
-  d_csolver.reset(new CoreSolver(d_state, *d_im, d_termReg, *d_bsolver));
-  d_esolver.reset(new ExtfSolver(d_state,
+  d_csolver.reset(new CoreSolver(c, u, d_state, *d_im, d_termReg, *d_bsolver));
+  d_esolver.reset(new ExtfSolver(c,
+                                 u,
+                                 d_state,
                                  *d_im,
                                  d_termReg,
                                  d_rewriter,
@@ -73,7 +73,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  *extt,
                                  d_statistics));
   d_rsolver.reset(new RegExpSolver(
-      d_state, *d_im, d_termReg, *d_csolver, *d_esolver, d_statistics));
+      d_state, *d_im, *d_csolver, *d_esolver, d_statistics, c, u));
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -105,12 +105,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
-
-  if (pc != nullptr)
-  {
-    // add checkers
-    d_sProofChecker.registerTo(pc);
-  }
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -196,11 +190,18 @@ bool TheoryStrings::propagate(TNode literal) {
   return ok;
 }
 
-TrustNode TheoryStrings::explain(TNode literal)
-{
+
+Node TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
-  TrustNode trn = d_im->explain(literal);
-  return trn;
+  std::vector< TNode > assumptions;
+  d_im->explain(literal, assumptions);
+  if( assumptions.empty() ){
+    return d_true;
+  }else if( assumptions.size()==1 ){
+    return assumptions[0];
+  }else{
+    return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
+  }
 }
 
 bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
@@ -699,19 +700,16 @@ bool TheoryStrings::needsCheckLastEffort() {
 
 /** Conflict when merging two constants */
 void TheoryStrings::conflict(TNode a, TNode b){
-  if (d_state.isInConflict())
+  if (!d_state.isInConflict())
   {
-    // already in conflict
-    return;
+    Debug("strings-conflict") << "Making conflict..." << std::endl;
+    d_state.setConflict();
+    Node conflictNode;
+    conflictNode = explain( a.eqNode(b) );
+    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+    ++(d_statistics.d_conflictsEqEngine);
+    d_out->conflict( conflictNode );
   }
-  Debug("strings-conflict") << "Making conflict..." << std::endl;
-  d_state.setConflict();
-  eq::ProofEqEngine* pfee = d_im->getProofEqEngine();
-  TrustNode conf = pfee->assertConflict(a.eqNode(b));
-  Trace("strings-conflict")
-      << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
-  ++(d_statistics.d_conflictsEqEngine);
-  d_out->trustedConflict(conf);
 }
 
 void TheoryStrings::eqNotifyNewClass(TNode t){
@@ -888,7 +886,7 @@ void TheoryStrings::checkCodes()
         if (!d_state.areEqual(cc, vc))
         {
           std::vector<Node> emptyVec;
-          d_im->sendInference(emptyVec, vc.eqNode(cc), Inference::CODE_PROXY);
+          d_im->sendInference(emptyVec, cc.eqNode(vc), Inference::CODE_PROXY);
         }
         const_codes.push_back(vc);
       }
