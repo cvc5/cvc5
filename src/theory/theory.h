@@ -43,12 +43,14 @@
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
+class ProofChecker;
 
 namespace theory {
 
@@ -104,6 +106,9 @@ class Theory {
 
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
+
+  /** Pointer to proof checker */
+  ProofChecker* d_pchecker;
 
   /**
    * The assertFact() queue.
@@ -199,6 +204,7 @@ class Theory {
          OutputChannel& out,
          Valuation valuation,
          const LogicInfo& logicInfo,
+         ProofChecker* pc,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -453,10 +459,10 @@ class Theory {
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
    */
-  virtual Node expandDefinition(Node node)
+  virtual TrustNode expandDefinition(Node node)
   {
     // by default, do nothing
-    return node;
+    return TrustNode::null();
   }
 
   /**
@@ -534,7 +540,8 @@ class Theory {
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual Node explain(TNode n) {
+  virtual TrustNode explain(TNode n)
+  {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
@@ -581,7 +588,7 @@ class Theory {
    * the atom into an equivalent form.  This is only called just
    * before an input atom to the engine.
    */
-  virtual Node ppRewrite(TNode atom) { return atom; }
+  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after

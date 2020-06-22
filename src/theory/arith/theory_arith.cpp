@@ -31,13 +31,17 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
-                         OutputChannel& out, Valuation valuation,
-                         const LogicInfo& logicInfo)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
-    , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
-    , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
-    , d_proofRecorder(nullptr)
+TheoryArith::TheoryArith(context::Context* c,
+                         context::UserContext* u,
+                         OutputChannel& out,
+                         Valuation valuation,
+                         const LogicInfo& logicInfo,
+                         ProofChecker* pc)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pc),
+      d_internal(
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pc)),
+      d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
   if (options::nlExt()) {
@@ -72,16 +76,13 @@ void TheoryArith::finishInit()
   {
     // witness is used to eliminate square root
     tm->setUnevaluatedKind(kind::WITNESS);
-    // we only need to add the operators that are not syntax sugar
-    tm->setUnevaluatedKind(kind::EXPONENTIAL);
-    tm->setUnevaluatedKind(kind::SINE);
-    tm->setUnevaluatedKind(kind::PI);
   }
 }
 
-Node TheoryArith::expandDefinition(Node node)
+TrustNode TheoryArith::expandDefinition(Node node)
 {
-  return d_internal->expandDefinition(node);
+  Node expNode = d_internal->expandDefinition(node);
+  return TrustNode::mkTrustRewrite(node,expNode,nullptr);
 }
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -92,7 +93,8 @@ void TheoryArith::addSharedTerm(TNode n){
   d_internal->addSharedTerm(n);
 }
 
-Node TheoryArith::ppRewrite(TNode atom) {
+TrustNode TheoryArith::ppRewrite(TNode atom)
+{
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   return d_internal->ppRewrite(atom);
 }
@@ -114,8 +116,10 @@ bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-Node TheoryArith::explain(TNode n) {
-  return d_internal->explain(n);
+TrustNode TheoryArith::explain(TNode n) 
+{ 
+  Node exp = d_internal->explain(n);
+  return TrustNode::mkTrustPropExpr(n,exp,nullptr);
 }
 
 bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {

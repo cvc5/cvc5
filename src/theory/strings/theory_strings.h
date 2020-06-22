@@ -25,12 +25,14 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "theory/output_channel.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
@@ -61,9 +63,12 @@ class TheoryStrings : public Theory {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
  public:
-  TheoryStrings(context::Context* c, context::UserContext* u,
-                OutputChannel& out, Valuation valuation,
-                const LogicInfo& logicInfo);
+  TheoryStrings(context::Context* c,
+                context::UserContext* u,
+                OutputChannel& out,
+                Valuation valuation,
+                const LogicInfo& logicInfo,
+                ProofChecker* pc);
   ~TheoryStrings();
   /** finish initialization */
   void finishInit() override;
@@ -76,7 +81,7 @@ class TheoryStrings : public Theory {
   /** Propagate */
   void propagate(Effort e) override;
   /** Explain */
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
   /** Get the equality engine */
   eq::EqualityEngine* getEqualityEngine() override;
   /** Get current substitution */
@@ -95,7 +100,7 @@ class TheoryStrings : public Theory {
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
-  Node expandDefinition(Node n) override;
+  TrustNode expandDefinition(Node n) override;
   /** Check at effort e */
   void check(Effort e) override;
   /** needs check last effort */
@@ -105,7 +110,7 @@ class TheoryStrings : public Theory {
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** preprocess rewrite */
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
   /**
    * Get all relevant information in this theory regarding the current
    * model. Return false if a contradiction is discovered.
@@ -268,6 +273,8 @@ class TheoryStrings : public Theory {
   SequencesStatistics d_statistics;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** A proof node manager */
+  std::unique_ptr<ProofNodeManager> d_pnm;
   /** The solver state object */
   SolverState d_state;
   /** The term registry for this theory */
@@ -276,6 +283,8 @@ class TheoryStrings : public Theory {
   std::unique_ptr<InferenceManager> d_im;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
+  /** The proof rule checker */
+  StringProofRuleChecker d_sProofChecker;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.

@@ -45,13 +45,15 @@ TheoryUF::TheoryUF(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
+                   ProofChecker* pc,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, instanceName),
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pc, instanceName),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
+      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_conflict(c, false),
       d_functionsTerms(c),
@@ -61,6 +63,11 @@ TheoryUF::TheoryUF(context::Context* c,
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
+
+  if (pc != nullptr)
+  {
+    d_ufProofChecker.registerTo(pc);
+  }
 }
 
 TheoryUF::~TheoryUF() {
@@ -159,7 +166,7 @@ void TheoryUF::check(Effort level) {
         }else{
           // support for cardinality constraints is not enabled, set incomplete
           d_out->setIncomplete();
-        } 
+        }
       }
       //needed for models
       if( options::produceModels() ){
@@ -201,7 +208,7 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(Node node)
+TrustNode TheoryUF::expandDefinition(Node node)
 {
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
@@ -216,10 +223,10 @@ Node TheoryUF::expandDefinition(Node node)
     {
       Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
                           << node << " to " << ret << std::endl;
-      return ret;
+      return TrustNode::mkTrustRewrite(node, ret, nullptr);
     }
   }
-  return node;
+  return TrustNode::null();
 }
 
 void TheoryUF::preRegisterTerm(TNode node) {
@@ -304,8 +311,9 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
   Debug("pf::uf") << std::endl;
 }
 
-Node TheoryUF::explain(TNode literal) {
-  return explain(literal, NULL);
+TrustNode TheoryUF::explain(TNode literal)
+{
+  return d_pfEqualityEngine.get()->explain(literal);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
@@ -349,12 +357,22 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: begin presolve()" << endl;
   if(options::ufSymmetryBreaker()) {
     vector<Node> newClauses;
+    // would need to make this proof producing, which is not supposed to be
+    // something easy...
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      d_out->lemma(*i);
+      if (options::proofNew())
+      {
+        TrustNode tlemma = TrustNode::mkTrustLemma(*i);
+        d_out->trustedLemma(tlemma);
+      }
+      else
+      {
+        d_out->lemma(*i);
+      }
     }
   }
   if( d_thss ){
