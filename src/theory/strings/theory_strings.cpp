@@ -706,11 +706,10 @@ void TheoryStrings::conflict(TNode a, TNode b){
   {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
     d_state.setConflict();
-    Node conflictNode;
-    conflictNode = explain( a.eqNode(b) );
-    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+    TrustNode conflictNode = explain( a.eqNode(b) );
+    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode.getNode() << std::endl;
     ++(d_statistics.d_conflictsEqEngine);
-    d_out->conflict( conflictNode );
+    d_out->conflict( conflictNode.getNode() );
   }
 }
 
