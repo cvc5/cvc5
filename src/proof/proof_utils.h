@@ -225,8 +225,5 @@ inline const bool getBit(Expr expr, unsigned i) {
   return (bit == 1u);
 }
 
-void collectAtoms(TNode node, std::set<Node>& seen);
-
-
 }
 }

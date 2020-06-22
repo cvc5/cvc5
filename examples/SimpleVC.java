@@ -52,8 +52,7 @@ public class SimpleVC {
     Expr twox_plus_y_geq_3 = em.mkExpr(Kind.GEQ, twox_plus_y, three);
 
     Expr formula =
-      new Expr(em.mkExpr(Kind.AND, x_positive, y_positive)).
-      impExpr(new Expr(twox_plus_y_geq_3));
+        em.mkExpr(Kind.AND, x_positive, y_positive).impExpr(twox_plus_y_geq_3);
 
     System.out.println(
         "Checking entailment of formula " + formula + " with CVC4.");

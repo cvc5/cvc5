@@ -32,11 +32,11 @@ public class Datatypes {
     // symbols are assigned to its constructors, selectors, and testers.
 
     Datatype consListSpec = new Datatype(em, "list"); // give a name
-    DatatypeConstructor cons = new DatatypeConstructor("cons");
+    DatatypeConstructor cons = new DatatypeConstructor(em, "cons");
     cons.addArg("head", em.integerType());
     cons.addArg("tail", new DatatypeSelfType()); // a list
     consListSpec.addConstructor(cons);
-    DatatypeConstructor nil = new DatatypeConstructor("nil");
+    DatatypeConstructor nil = new DatatypeConstructor(em, "nil");
     consListSpec.addConstructor(nil);
 
     System.out.println("spec is:");
