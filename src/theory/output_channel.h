@@ -215,7 +215,6 @@ class OutputChannel {
   {
     Unreachable() << "OutputChannel::trustedLemma: no implementation"
                   << std::endl;
-    return lemma(lem.getNode(), removable, preprocess, sendAtoms);
   }
   //---------------------------- end new proof
 }; /* class OutputChannel */
