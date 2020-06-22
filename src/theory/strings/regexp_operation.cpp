@@ -2,9 +2,9 @@
 /*! \file regexp_operation.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Tianyi Liang, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,7 +40,7 @@ RegExpOpr::RegExpOpr()
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
+  d_emptyString = Word::mkEmptyWord(NodeManager::currentNM()->stringType());
 
   d_emptySingleton =
       NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
