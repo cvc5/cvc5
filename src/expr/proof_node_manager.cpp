@@ -113,7 +113,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
       ss << "- assumption: " << aprint << std::endl;
     }
     Unreachable() << "Generated a proof that is not closed by the scope: "
-                        << ss.str() << std::endl;
+                  << ss.str() << std::endl;
   }
   if (acu.size() < ac.size())
   {
