@@ -1358,13 +1358,16 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
   this->Printer::toStream(out, m);
   out << ")" << endl;
   //print the heap model, if it exists
-  Expr h, neq;
-  if( m.getHeapModel( h, neq ) ){
+  Expr h, nil;
+  if (m.getHeapModel(h, nil))
+  {
     // description of the heap+what nil is equal to fully describes model
     out << "(heap" << endl;
     out << h << endl;
-    out << neq << endl;
-    out << ")" << std::endl;
+    out << ")" << endl;
+    out << "(nil" << endl;
+    out << nil << endl;
+    out << ")" << endl;
   }
 }
 
