@@ -888,7 +888,6 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext,
       d_one(1),
       d_negOne(-1)
 {
-
 }
 
 SortedConstraintMap& ConstraintDatabase::getVariableSCM(ArithVar v) const{
@@ -1560,8 +1559,8 @@ TrustNode Constraint::externalExplainConflict() const
   Node n = safeConstructNary(nb);
   if (options::proofNew())
   {
-    auto pfNot2 =
-        d_database->d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});
+    auto pfNot2 = d_database->d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});
     std::vector<Node> lits;
     if (n.getKind() == Kind::AND)
     {

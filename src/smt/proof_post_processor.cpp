@@ -23,12 +23,14 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb) : d_pnm(pnm), d_cb(cb)
+ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
+                                   ProofNodeUpdaterCallback& cb)
+    : d_pnm(pnm), d_cb(cb)
 {
   // always eliminate macro rules (add to d_elimRules?)
 }
 
-//void ProofNodeUpdater::eliminate(PfRule rule) { d_elimRules.insert(rule); }
+// void ProofNodeUpdater::eliminate(PfRule rule) { d_elimRules.insert(rule); }
 
 void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
 {
@@ -50,8 +52,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       {
         PfRule id = cur->getRule();
         LazyCDProof lcp(d_pnm);
-        const std::vector<std::shared_ptr<ProofNode>>& cc =
-            cur->getChildren();
+        const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
         std::vector<Node> ccn;
         for (const std::shared_ptr<ProofNode>& cp : cc)
         {

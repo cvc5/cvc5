@@ -26,15 +26,15 @@
 namespace CVC4 {
 namespace smt {
 
-/** 
+/**
  * A virtual callback class for updating ProofNode. An example use case of this
  * class is to eliminate a proof rule by expansion.
  */
 class ProofNodeUpdaterCallback
 {
-public:
-  ProofNodeUpdaterCallback(){}
-  virtual ~ProofNodeUpdaterCallback(){}
+ public:
+  ProofNodeUpdaterCallback() {}
+  virtual ~ProofNodeUpdaterCallback() {}
   /** Should proof pn be updated? */
   virtual bool shouldUpdate(ProofNode* pn) = 0;
   /**
@@ -46,7 +46,7 @@ public:
                       const std::vector<Node>& args,
                       CDProof* cdp);
 };
-  
+
 /**
  * A generic class for updating ProofNode. It is parameterized by a callback
  * class. It runs this callback on all subproofs of a provided ProofNode
@@ -60,13 +60,14 @@ class ProofNodeUpdater
   ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
   /** Kinds of proof rules we are eliminating */
-  //std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  // std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
 };
 
 }  // namespace smt

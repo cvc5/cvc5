@@ -452,13 +452,13 @@ class Theory {
    * null TrustNode may be returned. This is an optimization to avoid
    * constructing the trivial equality (= node node) internally within
    * TrustNode.
-   * 
+   *
    * The purpose of this method is typically to eliminate the operators in node
    * that are syntax sugar that cannot otherwise be eliminated during rewriting.
    * For example, division relies on the introduction of an uninterpreted
    * function for the divide-by-zero case, which we do not introduce with
    * the rewriter, since this function may be cached in a non-global fashion.
-   * 
+   *
    * Some theories have kinds that are effectively definitions and should be
    * expanded before they are handled.  Definitions allow a much wider range of
    * actions than the normal forms given by the rewriter. However no
