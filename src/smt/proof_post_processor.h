@@ -20,55 +20,36 @@
 #include <map>
 #include <unordered_set>
 
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "expr/proof_node_updater.h"
 
 namespace CVC4 {
 namespace smt {
 
 /**
- * A virtual callback class for updating ProofNode. An example use case of this
- * class is to eliminate a proof rule by expansion.
+ * A callback class used by SmtEngine for post-processing proof nodes using
+ * expand methods.
  */
-class ProofNodeUpdaterCallback
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofNodeUpdaterCallback() {}
-  virtual ~ProofNodeUpdaterCallback() {}
+  ProofPostprocessCallback(ProofNodeManager* pnm);
+  ~ProofPostprocessCallback() {}
+  /** set eliminate rule */
+  void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
-  virtual bool shouldUpdate(ProofNode* pn) = 0;
-  /**
-   * Update the proof rule application, store steps in cdp. Return true if
-   * the proof changed.
-   */
-  virtual bool update(PfRule id,
+  bool shouldUpdate(ProofNode* pn) override;
+  /** Update the proof rule application. */
+  bool update(PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
-                      CDProof* cdp);
-};
-
-/**
- * A generic class for updating ProofNode. It is parameterized by a callback
- * class. It runs this callback on all subproofs of a provided ProofNode
- * application that meet some criteria (ProofNodeUpdaterCallback::shouldUpdate)
- * and overwrites them based on the update procedure of the callback
- * (ProofNodeUpdaterCallback::update).
- */
-class ProofNodeUpdater
-{
- public:
-  ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
-  /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
-
+                      CDProof* cdp) override;
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  /** The callback */
-  ProofNodeUpdaterCallback& d_cb;
   /** Kinds of proof rules we are eliminating */
-  // std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
 };
+
 
 }  // namespace smt
 }  // namespace CVC4
