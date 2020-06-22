@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,12 +27,12 @@ LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
 
 LazyCDProof::~LazyCDProof() {}
 
-std::shared_ptr<ProofNode> LazyCDProof::mkProof(Node fact)
+std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 {
   Trace("lazy-cdproof") << "LazyCDProof::mkLazyProof " << fact << std::endl;
   // make the proof, which should always be non-null, since we construct an
   // assumption in the worst case.
-  std::shared_ptr<ProofNode> opf = CDProof::mkProof(fact);
+  std::shared_ptr<ProofNode> opf = CDProof::getProofFor(fact);
   Assert(opf != nullptr);
   if (!hasGenerators())
   {
@@ -175,5 +175,7 @@ bool LazyCDProof::hasGenerator(Node fact) const
   }
   return it != d_gens.end();
 }
+
+std::string LazyCDProof::identify() const { return "LazyCDProof"; }
 
 }  // namespace CVC4
