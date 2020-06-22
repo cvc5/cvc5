@@ -26,7 +26,6 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
-#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -121,9 +120,6 @@ private:
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
-
-  /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;

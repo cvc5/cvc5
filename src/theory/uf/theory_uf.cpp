@@ -53,7 +53,6 @@ TheoryUF::TheoryUF(context::Context* c,
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_conflict(c, false),
       d_functionsTerms(c),
