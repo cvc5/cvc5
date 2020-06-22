@@ -44,7 +44,7 @@ class ProofNodeUpdaterCallback
   virtual bool update(PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
-                      CDProof* cdp);
+                      CDProof* cdp) = 0;
 };
 
 /**

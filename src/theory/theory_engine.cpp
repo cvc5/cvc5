@@ -1630,13 +1630,13 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   std::vector<Node> newSkolems;
   TrustNode tplemma =
       d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
+  Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
+  Node lemmap = tplemma.getNode();
 
   // process the preprocessing
   if (options::proofNew())
   {
     Assert(d_lazyProof != nullptr);
-    Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
-    Node lemmap = tplemma.getNode();
     // only need to do anything if lemmap changed in a non-trivial way
     if (!CDProof::isSame(lemmap, lemma))
     {
@@ -1656,17 +1656,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       d_lazyProof->addStep(
           lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
     }
-    for (unsigned i = 0, nsize = newLemmas.size(); i < nsize; i++)
-    {
-      TrustNode trn = newLemmas[i];
-      Assert(trn.getKind() == TrustNodeKind::LEMMA);
-      // e.g. term formula removal should produce proofs:
-      // Assert (trn.getGenerator() != nullptr);
-      if (trn.getGenerator() != nullptr)
-      {
-        d_lazyProof->addLazyStep(trn.getProven(), trn.getGenerator());
-      }
-    }
+  }
+  // must update the trust lemma
+  if (lemmap!=lemma)
+  {
+    tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
   }
 
   // must use an assertion pipeline due to decision engine below
@@ -1684,9 +1678,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // assert lemmas to prop engine
-  for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
+  d_propEngine->assertLemma(tlemma, removable, rule, node);
+  for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    d_propEngine->assertLemma(lemmas[i], false, removable, rule, node);
+    d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
 
   // assert to decision engine
