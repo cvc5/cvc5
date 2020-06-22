@@ -77,7 +77,7 @@ class TheoryStrings : public Theory {
   /** Propagate */
   void propagate(Effort e) override;
   /** Explain */
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
   /** Get the equality engine */
   eq::EqualityEngine* getEqualityEngine() override;
   /** Get current substitution */
