@@ -531,17 +531,16 @@ class CVC4_PUBLIC Integer
 
  private:
   /**
-   * Stores the value of the rational is stored in a C++ GMP integer class.
-   * Using this instead of mpz_t allows for easier destruction.
-   */
-  mpz_class d_value;
-
-  /**
    * Gets a reference to the gmp data that backs up the integer.
    * Only accessible to friend classes.
    */
   const mpz_class& get_mpz() const { return d_value; }
 
+  /**
+   * Stores the value of the rational is stored in a C++ GMP integer class.
+   * Using this instead of mpz_t allows for easier destruction.
+   */
+  mpz_class d_value;
 }; /* class Integer */
 
 struct IntegerHashFunction
