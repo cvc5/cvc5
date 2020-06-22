@@ -25,14 +25,20 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm)
   // always eliminate macro rules (add to d_elimRules?)
 }
 
-void ProofPostprocessCallback::setEliminateRule(PfRule rule) { d_elimRules.insert(rule); }
+void ProofPostprocessCallback::setEliminateRule(PfRule rule)
+{
+  d_elimRules.insert(rule);
+}
 
-bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn) { return d_elimRules.find(pn->getRule())!=d_elimRules.end(); }
+bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn)
+{
+  return d_elimRules.find(pn->getRule()) != d_elimRules.end();
+}
 
 bool ProofPostprocessCallback::update(PfRule id,
-                    const std::vector<Node>& children,
-                    const std::vector<Node>& args,
-                    CDProof* cdp)
+                                      const std::vector<Node>& children,
+                                      const std::vector<Node>& args,
+                                      CDProof* cdp)
 {
   // TODO
   return false;

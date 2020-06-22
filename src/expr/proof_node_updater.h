@@ -20,9 +20,9 @@
 #include <map>
 #include <unordered_set>
 
+#include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 

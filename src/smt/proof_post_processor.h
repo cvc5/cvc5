@@ -40,16 +40,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   bool shouldUpdate(ProofNode* pn) override;
   /** Update the proof rule application. */
   bool update(PfRule id,
-                      const std::vector<Node>& children,
-                      const std::vector<Node>& args,
-                      CDProof* cdp) override;
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp) override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
 };
-
 
 }  // namespace smt
 }  // namespace CVC4
