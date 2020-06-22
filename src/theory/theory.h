@@ -446,6 +446,19 @@ class Theory {
   virtual void finishInit() { }
 
   /**
+   * Expand definitions in the term node. This returns a term that is
+   * equivalent to node. It wraps this term in a TrustNode of kind
+   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
+   * null TrustNode may be returned. This is an optimization to avoid
+   * constructing the trivial equality (= node node) internally within
+   * TrustNode.
+   *
+   * The purpose of this method is typically to eliminate the operators in node
+   * that are syntax sugar that cannot otherwise be eliminated during rewriting.
+   * For example, division relies on the introduction of an uninterpreted
+   * function for the divide-by-zero case, which we do not introduce with
+   * the rewriter, since this function may be cached in a non-global fashion.
+   *
    * Some theories have kinds that are effectively definitions and should be
    * expanded before they are handled.  Definitions allow a much wider range of
    * actions than the normal forms given by the rewriter. However no
@@ -586,7 +599,11 @@ class Theory {
    * Given an atom of the theory coming from the input formula, this
    * method can be overridden in a theory implementation to rewrite
    * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine.
+   * before an input atom to the engine. The result of the method is
+   * wrapped in a TrustNode of kind TrustNodeKind::REWRITE, which carries
+   * information about the proof generator for the rewrite. Similarly to
+   * expandDefinition, this method may return the null TrustNode if atom
+   * is unchanged.
    */
   virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
