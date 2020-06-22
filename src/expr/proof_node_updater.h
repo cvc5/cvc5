@@ -20,9 +20,9 @@
 #include <map>
 #include <unordered_set>
 
+#include "expr/proof.h"
 #include "expr/proof_node.h"
 #include "expr/proof_node_manager.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 
@@ -33,8 +33,8 @@ namespace CVC4 {
 class ProofNodeUpdaterCallback
 {
  public:
-  ProofNodeUpdaterCallback() {}
-  virtual ~ProofNodeUpdaterCallback() {}
+  ProofNodeUpdaterCallback();
+  virtual ~ProofNodeUpdaterCallback();
   /** Should proof pn be updated? */
   virtual bool shouldUpdate(ProofNode* pn) = 0;
   /**
