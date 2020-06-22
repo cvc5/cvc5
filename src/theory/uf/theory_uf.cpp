@@ -310,9 +310,10 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
   Debug("pf::uf") << std::endl;
 }
 
-TrustNode TheoryUF::explain(TNode literal)
+TrustNode TheoryUF::explain(TNode literal) 
 {
-  return explain(literal, NULL);
+  Node exp = explain(literal, NULL);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
@@ -363,15 +364,7 @@ void TheoryUF::presolve() {
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      if (options::proofNew())
-      {
-        TrustNode tlemma = TrustNode::mkTrustLemma(*i);
-        d_out->trustedLemma(tlemma);
-      }
-      else
-      {
-        d_out->lemma(*i);
-      }
+      d_out->lemma(*i);
     }
   }
   if( d_thss ){
