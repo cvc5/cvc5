@@ -72,6 +72,27 @@ RealAlgebraicNumber to_ran_with_refinement(poly::UPolynomial&& p,
                                            const Rational& lower,
                                            const Rational upper);
 
+std::size_t total_degree(const poly::Polynomial& p);
+
+/** Collects information about a single variable in a set of polynomials.
+ * Used for determining a variable ordering.
+ */
+struct VariableInformation {
+    poly::Variable var;
+    /** Maximum degree of this variable. */
+    std::size_t max_degree = 0;
+    /** Maximum degree of the leading coefficient of this variable. */
+    std::size_t max_lc_degree = 0;
+    /** Maximum of total degrees of terms that contain this variable. */
+    std::size_t max_terms_tdegree = 0;
+    /** Sum of degrees of this variable. */
+    std::size_t sum_degree = 0;
+    /** Number of terms that contain this variable. */
+    std::size_t num_terms = 0;
+};
+
+void get_variable_information(VariableInformation& vi, const poly::Polynomial& poly);
+
 }  // namespace poly_utils
 }  // namespace CVC4
 
