@@ -72,6 +72,10 @@ void TheoryArith::finishInit()
   {
     // witness is used to eliminate square root
     tm->setUnevaluatedKind(kind::WITNESS);
+    // we only need to add the operators that are not syntax sugar
+    tm->setUnevaluatedKind(kind::EXPONENTIAL);
+    tm->setUnevaluatedKind(kind::SINE);
+    tm->setUnevaluatedKind(kind::PI);
   }
 }
 
