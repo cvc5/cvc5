@@ -35,6 +35,11 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              ProofChecker* pc)
     : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pc)
 {
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_bProofChecker.registerTo(pc);
+  }
 }
 
 std::string TheoryBuiltin::identify() const

@@ -37,9 +37,15 @@ TheoryBool::TheoryBool(context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
-                       const LogicInfo& logicInfo)
-    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo)
+                       const LogicInfo& logicInfo,
+                       ProofChecker* pc)
+    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pc)
 {
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_bProofChecker.registerTo(pc);
+  }
 }
 
 Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -66,22 +72,6 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
 
   return Theory::ppAssert(in, outSubstitutions);
 }
-
-/*
-void TheoryBool::check(Effort level) {
-  if (done() && !fullEffort(level)) {
-    return;
-  }
-  while (!done())
-  {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.assertion;
-  }
-  if( Theory::fullEffort(level) ){
-  }
-}  
-*/
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */
