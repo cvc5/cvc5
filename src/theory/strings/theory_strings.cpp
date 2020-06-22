@@ -191,17 +191,19 @@ bool TheoryStrings::propagate(TNode literal) {
 }
 
 
-Node TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain( TNode literal ){
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
   d_im->explain(literal, assumptions);
+  Node ret;
   if( assumptions.empty() ){
-    return d_true;
+    ret = d_true;
   }else if( assumptions.size()==1 ){
-    return assumptions[0];
+    ret = assumptions[0];
   }else{
-    return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
+    ret = NodeManager::currentNM()->mkNode( kind::AND, assumptions );
   }
+  return TrustNode::mkTrustPropExp(literal, ret, nullptr);
 }
 
 bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
