@@ -21,19 +21,6 @@
 namespace CVC4 {
 namespace utils {
 
-void collectAtoms(TNode node, std::set<Node>& seen) {
-  if (seen.find(node) != seen.end())
-    return;
-  if (theory::Theory::theoryOf(node) != theory::THEORY_BOOL || node.isVar()) {
-      seen.insert(node);
-      return;
-  }
-
-  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
-    collectAtoms(node[i], seen);
-  }
-}
-
 std::string toLFSCKind(Kind kind) {
   switch(kind) {
     // core kinds

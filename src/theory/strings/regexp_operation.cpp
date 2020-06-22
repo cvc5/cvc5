@@ -40,7 +40,7 @@ RegExpOpr::RegExpOpr()
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
 {
-  d_emptyString = Word::mkEmptyWord(CONST_STRING);
+  d_emptyString = Word::mkEmptyWord(NodeManager::currentNM()->stringType());
 
   d_emptySingleton =
       NodeManager::currentNM()->mkNode(STRING_TO_REGEXP, d_emptyString);
