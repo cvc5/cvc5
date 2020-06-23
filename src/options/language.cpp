@@ -29,15 +29,13 @@ Language LANG_SMTLIB_V2_END = LANG_SMTLIB_V2_6;
 
 bool isInputLang_smt2(InputLanguage lang)
 {
-  return (lang >= input::LANG_SMTLIB_V2_0 && lang <= input::LANG_SMTLIB_V2_END)
-         || lang == input::LANG_Z3STR;
+  return lang >= input::LANG_SMTLIB_V2_0 && lang <= input::LANG_SMTLIB_V2_END;
 }
 
 bool isOutputLang_smt2(OutputLanguage lang)
 {
-  return (lang >= output::LANG_SMTLIB_V2_0
-          && lang <= output::LANG_SMTLIB_V2_END)
-         || lang == output::LANG_Z3STR;
+  return lang >= output::LANG_SMTLIB_V2_0
+          && lang <= output::LANG_SMTLIB_V2_END;
 }
 
 bool isInputLang_smt2_5(InputLanguage lang, bool exact)
@@ -148,6 +146,7 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return output::LANG_TPTP;
+  }
   else if (language == "sygus" || language == "LANG_SYGUS"
            || language == "sygus2" || language == "LANG_SYGUS_V2")
   {
@@ -183,6 +182,7 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_SMTLIB_V2_6;
   } else if(language == "tptp" || language == "LANG_TPTP") {
     return input::LANG_TPTP;
+  }
   else if (language == "sygus2" || language == "LANG_SYGUS_V2")
   {
     return input::LANG_SYGUS_V2;
