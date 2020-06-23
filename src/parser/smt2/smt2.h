@@ -60,9 +60,6 @@ class Smt2 : public Parser
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<api::Term, std::string> d_lastNamedTerm;
-  // for sygus
-  std::vector<api::Term> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
-      d_sygusFunSymbols;
 
  protected:
   Smt2(api::Solver* solver,
@@ -282,8 +279,6 @@ class Smt2 : public Parser
   }
   /** Are we using a sygus language? */
   bool sygus() const;
-  /** Are we using the sygus version 1.0 format? */
-  bool sygus_v1() const;
   /** Are we using the sygus version 2.0 format? */
   bool sygus_v2() const;
 
@@ -342,91 +337,6 @@ class Smt2 : public Parser
 
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
-
-  /** Make abstract value
-   *
-   * Abstract values are used for processing get-value calls. The argument
-   * name should be such that isAbstractValue(name) is true.
-   */
-  api::Term mkAbstractValue(const std::string& name);
-
-  void mkSygusConstantsForType(const api::Sort& type,
-                               std::vector<api::Term>& ops);
-
-  void processSygusGTerm(
-      CVC4::SygusGTerm& sgt,
-      int index,
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
-      const std::vector<api::Term>& sygus_vars,
-      std::map<api::Sort, api::Sort>& sygus_to_builtin,
-      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
-      api::Sort& ret,
-      bool isNested = false);
-
-  bool pushSygusDatatypeDef(
-      api::Sort t,
-      std::string& dname,
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
-
-  bool popSygusDatatypeDef(
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym);
-
-  void setSygusStartIndex(const std::string& fun,
-                          int startIndex,
-                          std::vector<api::DatatypeDecl>& datatypes,
-                          std::vector<api::Sort>& sorts,
-                          std::vector<std::vector<ParseOp>>& ops);
-
-  void mkSygusDatatype(api::DatatypeDecl& dt,
-                       std::vector<ParseOp>& ops,
-                       std::vector<std::string>& cnames,
-                       std::vector<std::vector<api::Sort>>& cargs,
-                       std::vector<std::string>& unresolved_gterm_sym,
-                       std::map<api::Sort, api::Sort>& sygus_to_builtin);
-
-  /**
-   * Adds a constructor to sygus datatype dt whose sygus operator is term.
-   *
-   * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
-   * types they correspond to. This map indicates how the argument term should
-   * be interpreted (instances of symbols from the domain of ntsToUnres
-   * correspond to constructor arguments).
-   *
-   * The sygus operator that is actually added to dt corresponds to replacing
-   * each occurrence of non-terminal symbols from the domain of ntsToUnres
-   * with bound variables via purifySygusGTerm, and binding these variables
-   * via a lambda.
-   */
-  void addSygusConstructorTerm(
-      api::DatatypeDecl& dt,
-      api::Term term,
-      std::map<api::Term, api::Sort>& ntsToUnres) const;
-  /**
-   * This adds constructors to dt for sygus variables in sygusVars whose
-   * type is argument type. This method should be called when the sygus grammar
-   * term (Variable type) is encountered.
-   */
-  void addSygusConstructorVariables(api::DatatypeDecl& dt,
-                                    const std::vector<api::Term>& sygusVars,
-                                    api::Sort type) const;
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -537,50 +447,6 @@ class Smt2 : public Parser
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
   //------------------------- end processing parse operators
  private:
-  std::map<api::Term, api::Sort> d_sygus_bound_var_type;
-
-  api::Sort processSygusNestedGTerm(
-      int sub_dt_index,
-      std::string& sub_dname,
-      std::vector<api::DatatypeDecl>& datatypes,
-      std::vector<api::Sort>& sorts,
-      std::vector<std::vector<ParseOp>>& ops,
-      std::vector<std::vector<std::string>>& cnames,
-      std::vector<std::vector<std::vector<api::Sort>>>& cargs,
-      std::vector<bool>& allow_const,
-      std::vector<std::vector<std::string>>& unresolved_gterm_sym,
-      std::map<api::Sort, api::Sort>& sygus_to_builtin,
-      std::map<api::Sort, api::Term>& sygus_to_builtin_expr,
-      api::Sort sub_ret);
-
-  /** make sygus bound var list
-   *
-   * This is used for converting non-builtin sygus operators to lambda
-   * expressions. It takes as input a datatype and constructor index (for
-   * naming) and a vector of type ltypes.
-   * It appends a bound variable to lvars for each type in ltypes, and returns
-   * a bound variable list whose children are lvars.
-   */
-  api::Term makeSygusBoundVarList(api::DatatypeDecl& dt,
-                                  unsigned i,
-                                  const std::vector<api::Sort>& ltypes,
-                                  std::vector<api::Term>& lvars);
-
-  /** Purify sygus grammar term
-   *
-   * This returns a term where all occurrences of non-terminal symbols (those
-   * in the domain of ntsToUnres) are replaced by fresh variables. For each
-   * variable replaced in this way, we add the fresh variable it is replaced
-   * with to args, and the unresolved type corresponding to the non-terminal
-   * symbol to cargs (constructor args). In other words, args contains the
-   * free variables in the term returned by this method (which should be bound
-   * by a lambda), and cargs contains the types of the arguments of the
-   * sygus constructor.
-   */
-  api::Term purifySygusGTerm(api::Term term,
-                             std::map<api::Term, api::Sort>& ntsToUnres,
-                             std::vector<api::Term>& args,
-                             std::vector<api::Sort>& cargs) const;
 
   void addArithmeticOperators();
 
