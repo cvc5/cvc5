@@ -2,7 +2,7 @@
 /*! \file combination.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Aina Niemetz, Makai Mann
+ **   Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -18,86 +18,122 @@
 
 #include <iostream>
 
-#include <cvc4/cvc4.h>
+#include <cvc4/api/cvc4cpp.h>
 
 using namespace std;
-using namespace CVC4;
+using namespace CVC4::api;
 
-void prefixPrintGetValue(SmtEngine& smt, Expr e, int level = 0){
-  for(int i = 0; i < level; ++i){ cout << '-'; }
-  cout << "smt.getValue(" << e << ") -> " << smt.getValue(e) << endl;
+void prefixPrintGetValue(Solver& slv, Term t, int level = 0)
+{
+  cout << "slv.getValue(" << t << "): " << slv.getValue(t) << endl;
 
-  if(e.hasOperator() && e.getOperator().getKind() != kind::BUILTIN){
-    prefixPrintGetValue(smt, e.getOperator(), level + 1);
-  }
-
-  for(Expr::const_iterator term_i = e.begin(), term_end = e.end();
-      term_i != term_end; ++term_i)
+  for (const Term& c : t)
   {
-    Expr curr = *term_i;
-    prefixPrintGetValue(smt, curr, level + 1);
+    prefixPrintGetValue(slv, c, level + 1);
   }
 }
 
-
-int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
-  smt.setOption("produce-models", true); // Produce Models
-  smt.setOption("output-language", "cvc4"); // Set the output-language to CVC's
-  smt.setOption("dag-thresh", 0); //Disable dagifying the output
-  smt.setLogic(string("QF_UFLIRA"));
+int main()
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");  // Produce Models
+  slv.setOption("output-language", "cvc4"); // Set the output-language to CVC's
+  slv.setOption("dag-thresh", "0"); // Disable dagifying the output
+  slv.setOption("output-language", "smt2"); // use smt-lib v2 as output language
+  slv.setLogic(string("QF_UFLIRA"));
 
   // Sorts
-  SortType u = em.mkSort("u");
-  Type integer = em.integerType();
-  Type boolean = em.booleanType();
-  Type uToInt = em.mkFunctionType(u, integer);
-  Type intPred = em.mkFunctionType(integer, boolean);
+  Sort u = slv.mkUninterpretedSort("u");
+  Sort integer = slv.getIntegerSort();
+  Sort boolean = slv.getBooleanSort();
+  Sort uToInt = slv.mkFunctionSort(u, integer);
+  Sort intPred = slv.mkFunctionSort(integer, boolean);
 
   // Variables
-  Expr x = em.mkVar("x", u);
-  Expr y = em.mkVar("y", u);
+  Term x = slv.mkConst(u, "x");
+  Term y = slv.mkConst(u, "y");
 
   // Functions
-  Expr f = em.mkVar("f", uToInt);
-  Expr p = em.mkVar("p", intPred);
+  Term f = slv.mkConst(uToInt, "f");
+  Term p = slv.mkConst(intPred, "p");
 
   // Constants
-  Expr zero = em.mkConst(Rational(0));
-  Expr one = em.mkConst(Rational(1));
+  Term zero = slv.mkReal(0);
+  Term one = slv.mkReal(1);
 
   // Terms
-  Expr f_x = em.mkExpr(kind::APPLY_UF, f, x);
-  Expr f_y = em.mkExpr(kind::APPLY_UF, f, y);
-  Expr sum = em.mkExpr(kind::PLUS, f_x, f_y);
-  Expr p_0 = em.mkExpr(kind::APPLY_UF, p, zero);
-  Expr p_f_y = em.mkExpr(kind::APPLY_UF, p, f_y);
+  Term f_x = slv.mkTerm(APPLY_UF, f, x);
+  Term f_y = slv.mkTerm(APPLY_UF, f, y);
+  Term sum = slv.mkTerm(PLUS, f_x, f_y);
+  Term p_0 = slv.mkTerm(APPLY_UF, p, zero);
+  Term p_f_y = slv.mkTerm(APPLY_UF, p, f_y);
 
-  // Construct the assumptions
-  Expr assumptions =
-    em.mkExpr(kind::AND,
-              em.mkExpr(kind::LEQ, zero, f_x), // 0 <= f(x)
-              em.mkExpr(kind::LEQ, zero, f_y), // 0 <= f(y)
-              em.mkExpr(kind::LEQ, sum, one),  // f(x) + f(y) <= 1
-              p_0.notExpr(),                   // not p(0)
-              p_f_y);                          // p(f(y))
-  smt.assertFormula(assumptions);
+  // Construct the assertions
+  Term assertions = slv.mkTerm(AND,
+      vector<Term>{
+      slv.mkTerm(LEQ, zero, f_x),  // 0 <= f(x)
+      slv.mkTerm(LEQ, zero, f_y),  // 0 <= f(y)
+      slv.mkTerm(LEQ, sum, one),   // f(x) + f(y) <= 1
+      p_0.notTerm(),               // not p(0)
+      p_f_y                        // p(f(y))
+      });
+  slv.assertFormula(assertions);
 
-  cout << "Given the following assumptions:" << endl
-       << assumptions << endl
-       << "Prove x /= y is entailed. "
-       << "CVC4 says: " << smt.checkEntailed(em.mkExpr(kind::DISTINCT, x, y))
-       << "." << endl;
+  cout << "Given the following assertions:" << endl
+       << assertions << endl << endl;
 
-  cout << "Now we call checksat on a trivial query to show that" << endl
-       << "the assumptions are satisfiable: "
-       << smt.checkSat(em.mkConst(true)) << "."<< endl;
-
-  cout << "Finally, after a SAT call, we recursively call smt.getValue(...) on "
-       << "all of the assumptions to see what the satisfying model looks like."
+  cout << "Prove x /= y is entailed. " << endl
+       << "CVC4: " << slv.checkEntailed(slv.mkTerm(DISTINCT, x, y)) << "."
+       << endl
        << endl;
-  prefixPrintGetValue(smt, assumptions);
+
+  cout << "Call checkSat to show that the assertions are satisfiable. "
+       << endl
+       << "CVC4: "
+       << slv.checkSat() << "."<< endl << endl;
+
+  cout << "Call slv.getValue(...) on terms of interest."
+       << endl;
+  cout << "slv.getValue(" << f_x << "): " << slv.getValue(f_x) << endl;
+  cout << "slv.getValue(" << f_y << "): " << slv.getValue(f_y) << endl;
+  cout << "slv.getValue(" << sum << "): " << slv.getValue(sum) << endl;
+  cout << "slv.getValue(" << p_0 << "): " << slv.getValue(p_0) << endl;
+  cout << "slv.getValue(" << p_f_y << "): " << slv.getValue(p_f_y)
+       << endl << endl;
+
+  cout << "Alternatively, iterate over assertions and call slv.getValue(...) "
+       << "on all terms."
+       << endl;
+  prefixPrintGetValue(slv, assertions);
+
+  cout << endl << endl << "Alternatively, print the model." << endl << endl;
+
+  slv.printModel(cout);
+
+  cout << endl;
+  cout << "You can also use nested loops to iterate over terms." << endl;
+  for (Term::const_iterator it = assertions.begin();
+       it != assertions.end();
+       ++it)
+  {
+    cout << "term: " << *it << endl;
+    for (Term::const_iterator it2 = (*it).begin();
+         it2 != (*it).end();
+         ++it2)
+    {
+      cout << " + child: " << *it2 << std::endl;
+    }
+  }
+  cout << endl;
+  cout << "Alternatively, you can also use for-each loops." << endl;
+  for (const Term& t : assertions)
+  {
+    cout << "term: " << t << endl;
+    for (const Term& c : t)
+    {
+      cout << " + child: " << c << endl;
+    }
+  }
 
   return 0;
 }
