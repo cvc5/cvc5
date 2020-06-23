@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file bitvectors-new.cpp
+/*! \file bitvectors.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Makai Mann

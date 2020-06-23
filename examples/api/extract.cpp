@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file extract-new.cpp
+/*! \file extract.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Makai Mann

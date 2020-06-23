@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file combination-new.cpp
+/*! \file combination.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds

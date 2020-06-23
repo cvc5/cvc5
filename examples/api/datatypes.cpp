@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file datatypes-new.cpp
+/*! \file datatypes.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Reynolds, Makai Mann

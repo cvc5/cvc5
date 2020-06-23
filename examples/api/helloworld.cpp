@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file helloworld-new.cpp
+/*! \file helloworld.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file linear_arith-new.cpp
+/*! \file linear_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz

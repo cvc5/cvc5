@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file strings-new.cpp
+/*! \file strings.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
