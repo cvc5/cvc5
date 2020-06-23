@@ -22,7 +22,6 @@
 #include "prop/cnf_stream.h"
 #include "prop/prop_engine.h"
 #include "proof/cnf_proof.h"
-#include "proof/new_proof_manager.h"
 #include "smt/command.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
@@ -219,6 +218,8 @@ bool TheoryProxy::isDecisionEngineDone() {
 SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
 }
+
+PropEngine* TheoryProxy::getPropEngine() { return d_propEngine; }
 
 void TheoryProxy::dumpStatePop() {
   if(Dump.isOn("state")) {

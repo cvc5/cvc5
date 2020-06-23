@@ -78,7 +78,6 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
-#include "proof/new_proof_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
@@ -704,7 +703,6 @@ SmtEngine::SmtEngine(ExprManager* em)
   // that options::proof() is set correctly yet.
 #ifdef CVC4_PROOF
   d_proofManager.reset(new ProofManager(getUserContext()));
-  d_newProofManager.reset(new NewProofManager());
 #endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
@@ -811,11 +809,6 @@ void SmtEngine::finishInit()
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-  // can only be called after theroy engine has been set up
-  if (CVC4::options::proofNew())
-  {
-    d_newProofManager.get()->setProofNodeManager();
-  }
   d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
@@ -905,7 +898,6 @@ SmtEngine::~SmtEngine()
     // theory solvers.
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
-    d_newProofManager.reset(nullptr);
 #endif
     d_pchecker.reset(nullptr);
     d_pnm.reset(nullptr);
@@ -1801,11 +1793,11 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                  << "(" << assumptions << ") => " << r << endl;
 
     // Print the new proof if any
-    if (options::proofNew()
-        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      d_newProofManager.get()->printInternalProof();
-    }
+    // if (options::proofNew()
+    //     && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    // {
+    //   d_newProofManager.get()->printInternalProof();
+    // }
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)

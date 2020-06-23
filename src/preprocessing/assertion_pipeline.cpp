@@ -19,7 +19,6 @@
 #include "expr/skolem_manager.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
-#include "proof/new_proof_manager.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {

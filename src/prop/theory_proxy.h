@@ -91,6 +91,8 @@ class TheoryProxy
   /** Shorthand for Dump("state") << PopCommand() */
   void dumpStatePop();
 
+  PropEngine* getPropEngine();
+
  private:
   /** The prop engine we are using. */
   PropEngine* d_propEngine;

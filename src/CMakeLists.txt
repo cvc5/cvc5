@@ -145,8 +145,6 @@ libcvc4_add_sources(
   proof/lfsc_proof_printer.h
   proof/lrat/lrat_proof.cpp
   proof/lrat/lrat_proof.h
-  proof/new_proof_manager.cpp
-  proof/new_proof_manager.h
   proof/proof.h
   proof/proof_manager.cpp
   proof/proof_manager.h

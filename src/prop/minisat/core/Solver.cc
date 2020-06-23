@@ -31,7 +31,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "options/smt_options.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "proof/new_proof_manager.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/minisat/minisat.h"
@@ -219,10 +218,6 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       asynch_interrupt(false)
 {
   PROOF(ProofManager::currentPM()->initSatProof(this);)
-  if (CVC4::options::proofNew())
-  {
-    NewProofManager::currentPM()->setSatSolver(this);
-  }
 
   // Create the constant variables
   varTrue = newVar(true, false, false);
@@ -406,7 +401,7 @@ CRef Solver::reason(Var x) {
           ProofManager::getCnfProof()->popCurrentAssertion(););
     if (CVC4::options::proofNew())
     {
-      NewProofManager::currentPM()->registerClause(ca[real_reason]);
+      d_proxy->getPropEngine()->registerClause(ca[real_reason]);
     }
     vardata[x] = VarData(real_reason, level(x), user_level(x), intro_level(x), trail_index(x));
     clauses_removable.push(real_reason);
@@ -501,9 +496,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
             if (CVC4::options::proofNew())
             {
-              NewProofManager* pm = NewProofManager::currentPM();
-              pm->registerClause(ps[0]);
-              pm->finalizeProof(ps[0]);
+              PropEngine* pe = d_proxy->getPropEngine();
+              pe->registerClause(ps[0]);
+              pe->finalizeProof(ps[0]);
             }
             return ok = false;
           }
@@ -531,13 +526,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 )
           if (CVC4::options::proofNew())
           {
-            NewProofManager::currentPM()->registerClause(ca[cr]);
+            d_proxy->getPropEngine()->registerClause(ca[cr]);
           }
           if(ps.size() == falseLiteralsCount) {
             PROOF( ProofManager::getSatProof()->finalizeProof(cr); )
             if (CVC4::options::proofNew())
             {
-              NewProofManager::currentPM()->finalizeProof(ca[cr].proofId());
+              d_proxy->getPropEngine()->finalizeProof(ca[cr].proofId());
             }
             return ok = false;
           }
@@ -582,14 +577,14 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             }
             if (CVC4::options::proofNew())
             {
-              NewProofManager* pm = NewProofManager::currentPM();
+              PropEngine* pe = d_proxy->getPropEngine();
               if (ca[confl].size() == 1)
               {
-                pm->finalizeProof(ca[confl][0]);
+                pe->finalizeProof(ca[confl][0]);
               }
               else
               {
-                pm->finalizeProof(ca[confl].proofId());
+                pe->finalizeProof(ca[confl].proofId());
               }
             }
           }
@@ -872,7 +867,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     PROOF( ProofManager::getSatProof()->startResChain(confl); )
     if (CVC4::options::proofNew())
     {
-      NewProofManager::currentPM()->startResChain(ca[confl]);
+      d_proxy->getPropEngine()->startResChain(ca[confl]);
     }
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
@@ -919,7 +914,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
               PROOF(ProofManager::getSatProof()->resolveOutUnit(q);)
               if (CVC4::options::proofNew())
               {
-                NewProofManager::currentPM()->addResolutionStep(q);
+                d_proxy->getPropEngine()->addResolutionStep(q);
               }
             }
           }
@@ -936,8 +931,9 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           PROOF( ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p)); )
           if (CVC4::options::proofNew())
           {
-            NewProofManager::currentPM()->registerClause(ca[confl]);
-            NewProofManager::currentPM()->addResolutionStep(ca[confl], p);
+            PropEngine* pe = d_proxy->getPropEngine();
+            pe->registerClause(ca[confl]);
+            pe->addResolutionStep(ca[confl], p);
           }
         }
 
@@ -977,8 +973,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                   Debug("newproof::sat")
                       << "Solver::analyze: redundant lit "
                       << toSatLiteral<Minisat::Solver>(out_learnt[i]) << "\n";
-                  NewProofManager::currentPM()->addResolutionStep(
-                      out_learnt[i]);
+                  d_proxy->getPropEngine()->addResolutionStep(out_learnt[i]);
                 }
                 // Literal is redundant, to be safe, mark the level as current assertion level
                 // TODO: maybe optimize
@@ -1489,7 +1484,7 @@ lbool Solver::search(int nof_conflicts)
                 PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
                 if (CVC4::options::proofNew())
                 {
-                  NewProofManager::currentPM()->finalizeProof(ca[confl].proofId());
+                  d_proxy->getPropEngine()->finalizeProof(ca[confl].proofId());
                 }
                 return l_False;
             }
@@ -1506,9 +1501,9 @@ lbool Solver::search(int nof_conflicts)
                 PROOF( ProofManager::getSatProof()->endResChain(learnt_clause[0]); )
                 if (CVC4::options::proofNew())
                 {
-                  NewProofManager* pm = NewProofManager::currentPM();
-                  pm->registerClause(learnt_clause[0]);
-                  pm->endResChain(learnt_clause[0]);
+                  PropEngine* pe = d_proxy->getPropEngine();
+                  pe->registerClause(learnt_clause[0]);
+                  pe->endResChain(learnt_clause[0]);
                 }
 
             } else {
@@ -1531,9 +1526,9 @@ lbool Solver::search(int nof_conflicts)
                             ->endResChain(id););
               if (CVC4::options::proofNew())
               {
-                NewProofManager* pm = NewProofManager::currentPM();
-                pm->registerClause(ca[cr]);
-                pm->endResChain(ca[cr]);
+                PropEngine* pe = d_proxy->getPropEngine();
+                pe->registerClause(ca[cr]);
+                pe->endResChain(ca[cr]);
               }
             }
 
@@ -2029,7 +2024,7 @@ CRef Solver::updateLemmas() {
             ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def););
       if (CVC4::options::proofNew())
       {
-        NewProofManager::currentPM()->registerClause(ca[lemma_ref]);
+        d_proxy->getPropEngine()->registerClause(ca[lemma_ref]);
       }
       if (removable) {
         clauses_removable.push(lemma_ref);
