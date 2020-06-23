@@ -158,9 +158,12 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_statistics(),
       d_opElim(logicInfo)
 {
-  // TODO: based on logic, could not create this?
-  d_nonlinearExtension = new nl::NonlinearExtension(
-      containing, d_congruenceManager.getEqualityEngine());
+  // only need to create if non-linear logic
+  if (!d_info.isLinear())
+  {
+    d_nonlinearExtension = new nl::NonlinearExtension(
+        containing, d_congruenceManager.getEqualityEngine());
+  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
