@@ -50,25 +50,26 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** The proof checker of the manager */
-  ProofChecker * d_pchecker;
+  ProofChecker* d_pchecker;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
   /** update internal */
   Node updateInternal(PfRule id,
-              const std::vector<Node>& children,
-              const std::vector<Node>& args,
-              CDProof* cdp);
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
 };
 
 /** The proof postprocessor module */
 class ProofPostproccess
 {
-public:
+ public:
   ProofPostproccess(ProofNodeManager* pnm);
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
-private:
+
+ private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
   /** The proof node updater */
