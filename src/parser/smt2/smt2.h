@@ -352,11 +352,6 @@ class Smt2 : public Parser
     if (name.length() > 1 && name[0] == '-'
         && name.find_first_not_of("0123456789", 1) == std::string::npos)
     {
-      if (sygus_v1())
-      {
-        // "-1" is allowed in SyGuS version 1.0
-        return;
-      }
       std::stringstream ss;
       ss << notes << "You may have intended to apply unary minus: `(- "
          << name.substr(1) << ")'\n";

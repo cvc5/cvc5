@@ -568,16 +568,6 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     }
   }
 
-  if (sygus_v1())
-  {
-    // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
-    if(name == "Arrays") {
-      name = "A";
-    }else if(name == "Reals") {
-      name = "LRA";
-    }
-  }
-
   d_logicSet = true;
   d_logic = name;
 
@@ -957,18 +947,9 @@ api::Term Smt2::parseOpToExpr(ParseOp& p)
   }
   else if (!isDeclared(p.d_name, SYM_VARIABLE))
   {
-    if (sygus_v1() && p.d_name[0] == '-'
-        && p.d_name.find_first_not_of("0123456789", 1) == std::string::npos)
-    {
-      // allow unary minus in sygus version 1
-      expr = d_solver->mkReal(p.d_name);
-    }
-    else
-    {
-      std::stringstream ss;
-      ss << "Symbol " << p.d_name << " is not declared.";
-      parseError(ss.str());
-    }
+    std::stringstream ss;
+    ss << "Symbol " << p.d_name << " is not declared.";
+    parseError(ss.str());
   }
   else
   {
