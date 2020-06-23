@@ -338,6 +338,13 @@ class Smt2 : public Parser
   /** Does name denote an abstract value? (of the form '@n' for numeral n). */
   bool isAbstractValue(const std::string& name);
 
+  /** Make abstract value
+   *
+   * Abstract values are used for processing get-value calls. The argument
+   * name should be such that isAbstractValue(name) is true.
+   */
+  api::Term mkAbstractValue(const std::string& name);
+  
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.
