@@ -1462,8 +1462,11 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
     if (detectLoop(nfi, nfj, index, lhsLoopIdx, rhsLoopIdx, rproc))
     {
       // We are dealing with a looping word equation.
+      // Note we could make this code also run in the reverse direction, but
+      // this is not implemented currently.
       if (!isRev)
-      {  // FIXME
+      {
+        // add temporarily to the antecedant of iinfo.
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, iinfo.d_ant);
         ProcessLoopResult plr =
             processLoop(lhsLoopIdx != -1 ? nfi : nfj,
@@ -1481,6 +1484,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
           break;
         }
         Assert(plr == ProcessLoopResult::SKIPPED);
+        // not processing an inference here, undo changes to ant
+        iinfo.d_ant.clear();
       }
     }
 
@@ -1822,6 +1827,8 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
       Node expNonEmpty = d_state.explainNonEmpty(t);
       if (expNonEmpty.isNull())
       {
+        // no antecedants necessary
+        iinfo.d_ant.clear();
         // try to make t equal to empty to avoid loop
         iinfo.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
         iinfo.d_id = Inference::LEN_SPLIT_EMP;
