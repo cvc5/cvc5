@@ -214,6 +214,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {SELECT, CVC4::Kind::SELECT},
     {STORE, CVC4::Kind::STORE},
     {CONST_ARRAY, CVC4::Kind::STORE_ALL},
+    {EQ_RANGE, CVC4::Kind::EQ_RANGE},
     /* Datatypes ----------------------------------------------------------- */
     {APPLY_SELECTOR, CVC4::Kind::APPLY_SELECTOR},
     {APPLY_CONSTRUCTOR, CVC4::Kind::APPLY_CONSTRUCTOR},

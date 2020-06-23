@@ -73,3 +73,12 @@ header = "options/arrays_options.h"
   type       = "int"
   default    = "2"
   help       = "propagation effort for arrays: 0 is none, 1 is some, 2 is full"
+
+[[option]]
+  name       = "arraysExp"
+  category   = "experimental"
+  long       = "arrays-exp"
+  type       = "bool"
+  default    = "false"
+  help       = "enable experimental features in the theory of arrays"
+

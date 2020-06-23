@@ -642,6 +642,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
     addOperator(api::SELECT, "select");
     addOperator(api::STORE, "store");
+    addOperator(api::EQ_RANGE, "eqrange");
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_BV)) {
@@ -1823,6 +1824,11 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       api::Term ret = d_solver->mkTerm(api::UMINUS, args[0]);
       Debug("parser") << "applyParseOp: return uminus " << ret << std::endl;
       return ret;
+    }
+    if (kind == api::EQ_RANGE && d_solver->getOption("arrays-exp") != "true")
+    {
+      parseError(
+          "eqrange predicate requires option --arrays-exp to be enabled.");
     }
     api::Term ret = d_solver->mkTerm(kind, args);
     Debug("parser") << "applyParseOp: return default builtin " << ret
