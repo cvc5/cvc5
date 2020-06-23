@@ -2,9 +2,9 @@
 /*! \file strings.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Tim King
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,86 +16,80 @@
 
 #include <iostream>
 
-#include <cvc4/cvc4.h>
-#include <cvc4/options/set_language.h>
+#include <cvc4/api/cvc4cpp.h>
 
-using namespace CVC4;
+using namespace CVC4::api;
 
-int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
+int main()
+{
+  Solver slv;
 
   // Set the logic
-  smt.setLogic("S");
-
+  slv.setLogic("S");
   // Produce models
-  smt.setOption("produce-models", true);
-
+  slv.setOption("produce-models", "true");
   // The option strings-exp is needed
-  smt.setOption("strings-exp", true);
-
+  slv.setOption("strings-exp", "true");
   // Set output language to SMTLIB2
-  std::cout << language::SetLanguage(language::output::LANG_SMTLIB_V2);
+  slv.setOption("output-language", "smt2");
 
   // String type
-  Type string = em.stringType();
+  Sort string = slv.getStringSort();
 
   // std::string
-  std::string std_str_ab("ab");
-  // CVC4::String
-  CVC4::String cvc4_str_ab(std_str_ab);
-  CVC4::String cvc4_str_abc("abc");
+  std::string str_ab("ab");
   // String constants
-  Expr ab  = em.mkConst(cvc4_str_ab);
-  Expr abc = em.mkConst(CVC4::String("abc"));
+  Term ab  = slv.mkString(str_ab);
+  Term abc = slv.mkString("abc");
   // String variables
-  Expr x = em.mkVar("x", string);
-  Expr y = em.mkVar("y", string);
-  Expr z = em.mkVar("z", string);
+  Term x = slv.mkConst(string, "x");
+  Term y = slv.mkConst(string, "y");
+  Term z = slv.mkConst(string, "z");
 
   // String concatenation: x.ab.y
-  Expr lhs = em.mkExpr(kind::STRING_CONCAT, x, ab, y);
+  Term lhs = slv.mkTerm(STRING_CONCAT, x, ab, y);
   // String concatenation: abc.z
-  Expr rhs = em.mkExpr(kind::STRING_CONCAT, abc, z);
+  Term rhs = slv.mkTerm(STRING_CONCAT, abc, z);
   // x.ab.y = abc.z
-  Expr formula1 = em.mkExpr(kind::EQUAL, lhs, rhs);
+  Term formula1 = slv.mkTerm(EQUAL, lhs, rhs);
 
   // Length of y: |y|
-  Expr leny = em.mkExpr(kind::STRING_LENGTH, y);
+  Term leny = slv.mkTerm(STRING_LENGTH, y);
   // |y| >= 0
-  Expr formula2 = em.mkExpr(kind::GEQ, leny, em.mkConst(Rational(0)));
+  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkReal(0));
 
   // Regular expression: (ab[c-e]*f)|g|h
-  Expr r = em.mkExpr(kind::REGEXP_UNION,
-    em.mkExpr(kind::REGEXP_CONCAT,
-      em.mkExpr(kind::STRING_TO_REGEXP, em.mkConst(String("ab"))),
-      em.mkExpr(kind::REGEXP_STAR,
-        em.mkExpr(kind::REGEXP_RANGE, em.mkConst(String("c")), em.mkConst(String("e")))),
-      em.mkExpr(kind::STRING_TO_REGEXP, em.mkConst(String("f")))),
-    em.mkExpr(kind::STRING_TO_REGEXP, em.mkConst(String("g"))),
-    em.mkExpr(kind::STRING_TO_REGEXP, em.mkConst(String("h"))));
+  Term r = slv.mkTerm(REGEXP_UNION,
+    slv.mkTerm(REGEXP_CONCAT,
+      slv.mkTerm(STRING_TO_REGEXP, slv.mkString("ab")),
+      slv.mkTerm(REGEXP_STAR,
+        slv.mkTerm(REGEXP_RANGE, slv.mkString("c"), slv.mkString("e"))),
+      slv.mkTerm(STRING_TO_REGEXP, slv.mkString("f"))),
+    slv.mkTerm(STRING_TO_REGEXP, slv.mkString("g")),
+    slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
 
   // String variables
-  Expr s1 = em.mkVar("s1", string);
-  Expr s2 = em.mkVar("s2", string);
+  Term s1 = slv.mkConst(string, "s1");
+  Term s2 = slv.mkConst(string, "s2");
   // String concatenation: s1.s2
-  Expr s = em.mkExpr(kind::STRING_CONCAT, s1, s2);
+  Term s = slv.mkTerm(STRING_CONCAT, s1, s2);
 
   // s1.s2 in (ab[c-e]*f)|g|h
-  Expr formula3 = em.mkExpr(kind::STRING_IN_REGEXP, s, r);
+  Term formula3 = slv.mkTerm(STRING_IN_REGEXP, s, r);
 
   // Make a query
-  Expr q = em.mkExpr(kind::AND,
+  Term q = slv.mkTerm(AND,
     formula1,
     formula2,
     formula3);
 
   // check sat
-  Result result = smt.checkSat(q);
+  Result result = slv.checkSatAssuming(q);
   std::cout << "CVC4 reports: " << q << " is " << result << "." << std::endl;
 
-  if(result == Result::SAT) {
-    std::cout << "  x  = " << smt.getValue(x) << std::endl;
-    std::cout << "  s1.s2 = " << smt.getValue(s) << std::endl;
+  if(result.isSat())
+  {
+    std::cout << "  x  = " << slv.getValue(x) << std::endl;
+    std::cout << "  s1.s2 = " << slv.getValue(s) << std::endl;
   }
 }

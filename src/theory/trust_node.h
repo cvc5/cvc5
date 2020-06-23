@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,6 +31,7 @@ enum class TrustNodeKind : uint32_t
   CONFLICT,
   LEMMA,
   PROP_EXP,
+  REWRITE,
   INVALID
 };
 /**
@@ -87,6 +88,10 @@ class TrustNode
   static TrustNode mkTrustPropExp(TNode lit,
                                   Node exp,
                                   ProofGenerator* g = nullptr);
+  /** Make a proven node for rewrite */
+  static TrustNode mkTrustRewrite(TNode n,
+                                  Node nr,
+                                  ProofGenerator* g = nullptr);
   /** The null proven node */
   static TrustNode null();
   ~TrustNode() {}
@@ -96,8 +101,9 @@ class TrustNode
    *
    * This is the node that is used in a common interface, either:
    * (1) A T-unsat conjunction conf to pass to OutputChannel::conflict,
-   * (2) A valid T-formula lem to pass to OutputChannel::lemma, or
-   * (3) A conjunction of literals exp to return in Theory::explain(lit).
+   * (2) A valid T-formula lem to pass to OutputChannel::lemma,
+   * (3) A conjunction of literals exp to return in Theory::explain(lit), or
+   * (4) A result of rewriting a term n into an equivalent one nr.
    *
    * Notice that this node does not necessarily correspond to a valid formula.
    * The call getProven() below retrieves a valid formula corresponding to
@@ -110,7 +116,8 @@ class TrustNode
    * for the above cases:
    * (1) (not conf), for conflicts,
    * (2) lem, for lemmas,
-   * (3) (=> exp lit), for propagations from explanations.
+   * (3) (=> exp lit), for propagations from explanations,
+   * (4) (= n nr), for results of rewriting.
    *
    * When constructing this trust node, the proof generator should be able to
    * provide a proof for this fact.
@@ -125,8 +132,10 @@ class TrustNode
   static Node getConflictProven(Node conf);
   /** Get the proven formula corresponding to a lemma call */
   static Node getLemmaProven(Node lem);
-  /** Get the proven formula corresponding to explanations for propagation*/
+  /** Get the proven formula corresponding to explanations for propagation */
   static Node getPropExpProven(TNode lit, Node exp);
+  /** Get the proven formula corresponding to a rewrite */
+  static Node getRewriteProven(TNode n, Node nr);
 
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);

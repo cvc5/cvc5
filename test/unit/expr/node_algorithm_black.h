@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -129,5 +129,69 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     TS_ASSERT(result[*d_boolTypeNode].size() == 1);
     TS_ASSERT(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL))
               != result[*d_boolTypeNode].end());
+  }
+
+  void testMatch()
+  {
+    TypeNode integer = d_nodeManager->integerType();
+
+    Node one = d_nodeManager->mkConst(Rational(1));
+    Node two = d_nodeManager->mkConst(Rational(2));
+
+    Node x = d_nodeManager->mkBoundVar(integer);
+    Node a = d_nodeManager->mkSkolem("a", integer);
+
+    Node n1 = d_nodeManager->mkNode(MULT, two, x);
+    std::unordered_map<Node, Node, NodeHashFunction> subs;
+
+    // check reflexivity
+    TS_ASSERT(match(n1, n1, subs));
+    TS_ASSERT_EQUALS(subs.size(), 0);
+
+    Node n2 = d_nodeManager->mkNode(MULT, two, a);
+    subs.clear();
+
+    // check instance
+    TS_ASSERT(match(n1, n2, subs));
+    TS_ASSERT_EQUALS(subs.size(), 1);
+    TS_ASSERT_EQUALS(subs[x], a);
+
+    // should return false for flipped arguments (match is not symmetric)
+    TS_ASSERT(!match(n2, n1, subs));
+
+    n2 = d_nodeManager->mkNode(MULT, one, a);
+
+    // should return false since n2 is not an instance of n1
+    TS_ASSERT(!match(n1, n2, subs));
+
+    n2 = d_nodeManager->mkNode(NONLINEAR_MULT, two, a);
+
+    // should return false for similar operators
+    TS_ASSERT(!match(n1, n2, subs));
+
+    n2 = d_nodeManager->mkNode(MULT, two, a, one);
+
+    // should return false for different number of arguments
+    TS_ASSERT(!match(n1, n2, subs));
+
+    n1 = x;
+    n2 = d_nodeManager->mkConst(true);
+
+    // should return false for different types
+    TS_ASSERT(!match(n1, n2, subs));
+
+    n1 = d_nodeManager->mkNode(MULT, x, x);
+    n2 = d_nodeManager->mkNode(MULT, two, a);
+
+    // should return false for contradictory substitutions
+    TS_ASSERT(!match(n1, n2, subs));
+
+    n2 = d_nodeManager->mkNode(MULT, a, a);
+    subs.clear();
+
+    // implementation: check if the cache works correctly
+    TS_ASSERT(match(n1, n2, subs));
+    TS_ASSERT_EQUALS(subs.size(), 1);
+    TS_ASSERT_EQUALS(subs[x], a);
   }
 };

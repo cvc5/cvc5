@@ -2,9 +2,9 @@
 /*! \file cvc4cppkind.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1505,6 +1505,23 @@ enum CVC4_PUBLIC Kind : int32_t
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
   CONST_ARRAY,
+  /**
+   * Equality over arrays a and b over a given range [i,j], i.e.,
+   * \forall k . i <= k <= j --> a[k] = b[k]
+   *
+   * Parameters: 4
+   *   -[1]: First array
+   *   -[2]: Second array
+   *   -[3]: Lower bound of range (inclusive)
+   *   -[4]: Uppper bound of range (inclusive)
+   * Create with:
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   *
+   * Note: We currently support the creation of array equalities over index
+   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
+   * required to support this operator.
+   */
+  EQ_RANGE,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
