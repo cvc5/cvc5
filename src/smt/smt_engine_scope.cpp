@@ -46,17 +46,6 @@ ProofManager* currentProofManager() {
 #endif /* IS_PROOFS_BUILD */
 }
 
-NewProofManager* currentNewProofManager() {
-#if IS_PROOFS_BUILD
-  Assert(s_smtEngine_current != NULL);
-  return s_smtEngine_current->getNewProofManager();
-#else  /* IS_PROOFS_BUILD */
-  InternalError()
-      << "proofs/unsat cores are not on, but NewProofManager requested";
-  return NULL;
-#endif /* IS_PROOFS_BUILD */
-}
-
 SmtScope::SmtScope(const SmtEngine* smt)
     : NodeManagerScope(smt->d_nodeManager),
       d_oldSmtEngine(s_smtEngine_current) {

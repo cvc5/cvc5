@@ -38,7 +38,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 namespace CVC4 {
 template <class Solver> class TSatProof;
-class NewProofManager;
 
 namespace prop {
   class TheoryProxy;
@@ -57,7 +56,6 @@ class Solver {
   /** The only two CVC4 entry points to the private solver data */
   friend class CVC4::prop::TheoryProxy;
   friend class CVC4::TSatProof<Minisat::Solver>;
-  friend class CVC4::NewProofManager;
 
 public:
   static CRef TCRef_Undef;
@@ -65,7 +63,7 @@ public:
 
   typedef Var TVar;
   typedef Lit TLit;
-  typedef Clause TClause; 
+  typedef Clause TClause;
   typedef CRef TCRef;
   typedef vec<Lit> TLitVec;
 
@@ -205,7 +203,7 @@ public:
     lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
 
-    void    toDimacs     (); 
+    void    toDimacs     ();
     void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
     void    toDimacs     (const char *file, const vec<Lit>& assumps);
     void    toDimacs     (FILE* f, Clause& c, vec<Var>& map, Var& max);

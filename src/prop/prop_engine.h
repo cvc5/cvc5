@@ -297,6 +297,7 @@ class PropEngine
 
   Node getClauseNode(SatLiteral satLit);
   Node getClauseNode(Minisat::Solver::TClause& clause);
+  void printClause(const Minisat::Solver::TClause& clause);
 
   std::unordered_set<Node, NodeHashFunction> d_clauseSet;
 
