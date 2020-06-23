@@ -1260,7 +1260,6 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<EmptyCommand>(out, c)
       || tryToStream<EchoCommand>(out, c, d_variant)
       || tryToStream<SynthFunCommand>(out, c)
-      || tryToStream<DeclareSygusPrimedVarCommand>(out, c)
       || tryToStream<DeclareSygusFunctionCommand>(out, c)
       || tryToStream<DeclareSygusVarCommand>(out, c)
       || tryToStream<SygusConstraintCommand>(out, c)
@@ -2123,12 +2122,6 @@ static void toStream(std::ostream& out, const DeclareSygusFunctionCommand* c)
   argTypes.pop_back();
 
   out << " (" << argTypes << ") " << ft.getRangeType() << ')';
-}
-
-static void toStream(std::ostream& out, const DeclareSygusPrimedVarCommand* c)
-{
-  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
-      << ' ' << c->getType() << ')';
 }
 
 static void toStream(std::ostream& out, const DeclareSygusVarCommand* c)
