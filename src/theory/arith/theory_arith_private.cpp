@@ -159,7 +159,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_opElim(logicInfo)
 {
   // only need to create if non-linear logic
-  if (!logicInfo.isLinear())
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension = new nl::NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
