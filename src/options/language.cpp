@@ -34,8 +34,7 @@ bool isInputLang_smt2(InputLanguage lang)
 
 bool isOutputLang_smt2(OutputLanguage lang)
 {
-  return lang >= output::LANG_SMTLIB_V2_0
-          && lang <= output::LANG_SMTLIB_V2_END;
+  return lang >= output::LANG_SMTLIB_V2_0 && lang <= output::LANG_SMTLIB_V2_END;
 }
 
 bool isInputLang_smt2_5(InputLanguage lang, bool exact)

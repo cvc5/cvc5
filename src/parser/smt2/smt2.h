@@ -344,7 +344,7 @@ class Smt2 : public Parser
    * name should be such that isAbstractValue(name) is true.
    */
   api::Term mkAbstractValue(const std::string& name);
-  
+
   /**
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
    *
@@ -490,7 +490,7 @@ class Smt2 : public Parser
                              std::map<api::Term, api::Sort>& ntsToUnres,
                              std::vector<api::Term>& args,
                              std::vector<api::Sort>& cargs) const;
-                             
+
   void addArithmeticOperators();
 
   void addTranscendentalOperators();
