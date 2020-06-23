@@ -81,6 +81,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_pNodeManager(options::proofNew()
                          ? new ProofNodeManager(te->getProofChecker())
                          : nullptr),
+      d_proof(pnm, userContext),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)
@@ -94,8 +95,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
-  d_cnfStream = new CVC4::prop::TseitinCnfStream(
-      d_satSolver, d_registrar, userContext, rm, true);
+  d_cnfStream =
+      new TseitinCnfStream(d_satSolver, d_registrar, userContext, rm, true);
   if (options::proofNew())
   {
     d_pfCnfStream.reset(new ProofCnfStream(
@@ -389,6 +390,412 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const {
   }
 
   return true;
+}
+
+void PropEngine::printClause(const Minisat::Solver::TClause& clause)
+{
+  for (unsigned i = 0, size = clause.size(); i < size; ++i)
+  {
+    SatLiteral satLit = toSatLiteral<Minisat::Solver>(clause[i]);
+    Trace("sat-proof") << satLit << " ";
+  }
+}
+
+Node PropEngine::getClauseNode(SatLiteral satLit)
+{
+  Assert(d_cnfStream->d_literalToNodeMap.find(satLit)
+         != d_cnfStream->d_literalToNodeMap.end())
+      << "PropEngine::getClauseNode: literal " << satLit << " undefined.\n";
+  return d_cnfStream->d_literalToNodeMap[satLit];
+}
+
+Node PropEngine::getClauseNode(Minisat::Solver::TClause& clause)
+{
+  std::vector<Node> clauseNodes;
+  for (unsigned i = 0, size = clause.size(); i < size; ++i)
+  {
+    SatLiteral satLit = toSatLiteral<Minisat::Solver>(clause[i]);
+    Assert(d_cnfStream->d_literalToNodeMap.find(satLit)
+           != d_cnfStream->d_literalToNodeMap.end())
+        << "PropEngine::getClauseNode: literal " << satLit << " undefined\n";
+    clauseNodes.push_back(d_cnfStream->d_literalToNodeMap[satLit]);
+  }
+  return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
+}
+
+Node NewProofManager::factorAndReorder(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // remove duplicates
+  std::set<Node> clauseSet{n.begin(), n.end()};
+  std::vector<Node> children{clauseSet.begin(), clauseSet.end()};
+  // if factoring changed
+  if (children.size() < n.getNumChildren())
+  {
+    Node factored = children.empty()
+                        ? nm->mkConst<bool>(false)
+                        : children.size() == 1 ? children[0]
+                                               : nm->mkNode(kind::OR, children);
+    d_proof->addStep(factored, PfRule::FACTORING, {n}, {factored});
+    n = factored;
+  }
+  // nothing to order
+  if (children.size() < 2)
+  {
+    return n;
+  }
+  // order
+  std::sort(children.begin(), children.end());
+  Node ordered = nm->mkNode(kind::OR, children);
+  // if ordering changed
+  if (ordered != n)
+  {
+    d_proof->addStep(ordered, PfRule::REORDERING, {n}, {ordered});
+  }
+  return ordered;
+}
+
+
+void PropEngine::registerClause(Minisat::Solver::TLit lit)
+{
+  registerClause(toSatLiteral<Minisat::Solver>(lit));
+}
+
+void PropEngine::registerClause(SatLiteral satLit)
+{
+  Node clauseNode = getClauseNode(satLit);
+  if (d_clauseSet.count(clauseNode))
+  {
+    Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit
+                       << " already registered\n";
+    return;
+  }
+  d_clauseSet.insert(clauseNode);
+  // register in proof as assumption, which should be filled later, since it's
+  // not possible yet to know, in general, how this literal came to be. Some
+  // components register facts eagerly, like the theory engine, but other
+  // lazily, like CNF stream and internal SAT solver propagation.
+  d_proof->addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
+  Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
+}
+
+void PropEngine::registerClause(Minisat::Solver::TClause& clause)
+{
+  Node clauseNode = getClauseNode(clause);
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::registerClause: TClause: ";
+    printClause(clause);
+    Trace("sat-proof") << "\n";
+  }
+  if (d_clauseSet.count(clauseNode))
+  {
+    Trace("sat-proof")
+        << "PropEngine::registerClause: clause already registered\n";
+    return;
+  }
+  d_clauseSet.insert(clauseNode);
+  // Rewrite clauseNode before proceeding. This is so ordering is consistent
+  clauseNode = factorAndReorder(clauseNode);
+  d_clauseSet.insert(clauseNode);
+  // register in proof as assumption, which should be filled later, since it's
+  // not possible yet to know, in general, how this clause came to be. Some
+  // components register facts eagerly, like the theory engine, but other
+  // lazily, like CNF stream and internal SAT solver propagation.
+  d_proof->addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
+  Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
+                     << clauseNode << "\n";
+}
+
+void PropEngine::startResChain(Minisat::Solver::TClause& start)
+{
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::startResChain: ";
+    printClause(start);
+    Trace("sat-proof") << "\n";
+  }
+  d_resolution.push_back(
+      std::pair<Node, Node>(getClauseNode(start), Node::null()));
+}
+
+void PropEngine::addResolutionStep(Minisat::Solver::TLit lit)
+{
+  SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
+  Trace("sat-proof") << push << "PropEngine::addResolutionStep: justify lit "
+                     << satLit << "\n";
+  tryJustifyingLit(~satLit);
+  d_resolution.push_back(
+      std::pair<Node, Node>(d_cnfStream->d_literalToNodeMap[~satLit],
+                            d_cnfStream->d_literalToNodeMap[satLit]));
+  Trace("sat-proof") << pop << "PropEngine::addResolutionStep: [" << satLit
+                         << "] " << ~satLit << "\n";
+}
+
+void PropEngine::addResolutionStep(Minisat::Solver::TClause& clause,
+                                   Minisat::Solver::TLit lit)
+{
+  // pivot is given as in the second clause, so we store its negation (which
+  // will be removed positivly from the first clause and negatively from the
+  // second)
+  SatLiteral satLit = toSatLiteral<Minisat::Solver>(~lit);
+  Node clauseNode = getClauseNode(clause);
+  // clause has not been registered yet
+  if (d_clauseSet.count(clauseNode))
+  {
+    Trace("sat-proof") << push;
+    registerClause(clause);
+    Trace("sat-proof") << pop;
+  }
+  d_resolution.push_back(std::pair<Node, Node>(
+      clauseNode, d_cnfStream->d_literalToNodeMap[satLit]));
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::addResolutionStep: [" << satLit << "] ";
+    printClause(clause);
+    Trace("sat-proof") << "\nPropEngine::addResolutionStep:\t" << clauseNode
+                       << "\n";
+  }
+}
+
+void PropEngine::endResChain(Minisat::Solver::TLit lit)
+{
+  SatLiteral satLit = toSatLiteral<Minisat::Solver>(lit);
+  Trace("sat-proof") << "PropEngine::endResChain: chain_res for " << satLit;
+  endResChain(getClauseNode(satLit));
+}
+
+void PropEngine::endResChain(Minisat::Solver::TClause& clause)
+{
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::endResChain: chain_res for ";
+    printClause(clause);
+  }
+  endResChain(getClauseNode(clause));
+}
+
+// id is the conclusion
+void PropEngine::endResChain(Node conclusion)
+{
+  Trace("sat-proof") << ", " << conclusion << "\n";
+  std::vector<Node> children, args;
+  for (unsigned i = 0, size = d_resolution.size(); i < size; ++i)
+  {
+    children.push_back(d_resolution[i].first);
+    Trace("sat-proof") << "PropEngine::endResChain:   ";
+    if (i > 0)
+    {
+      Trace("sat-proof")
+          << "[" << d_cnfStream->d_nodeToLiteralMap[d_resolution[i].second]
+          << "] ";
+    }
+    // special case for clause being a single literal corresponding itself to a
+    // clause, which is indicated by the pivot being of the form (not or ...)
+    if (d_resolution[i].first.getKind() == kind::OR
+        && !(d_resolution[i].second.getKind() == kind::NOT
+             && d_resolution[i].second[0].getKind() == kind::OR))
+    {
+      for (unsigned j = 0, sizeJ = d_resolution[i].first.getNumChildren();
+           j < sizeJ;
+           ++j)
+      {
+        Trace("sat-proof")
+            << d_cnfStream->d_nodeToLiteralMap[d_resolution[i].first[j]];
+        if (j < sizeJ - 1)
+        {
+          Trace("sat-proof") << ", ";
+        }
+      }
+    }
+    else
+    {
+      Trace("sat-proof")
+          << d_cnfStream->d_nodeToLiteralMap[d_resolution[i].first];
+    }
+    Trace("sat-proof") << " : ";
+    if (i > 0)
+    {
+      args.push_back(d_resolution[i].second);
+      Trace("sat-proof") << "[" << d_resolution[i].second << "] ";
+    }
+    Trace("sat-proof") << d_resolution[i].first << "\n";
+  }
+  // clearing
+  d_resolution.clear();
+  // since the conclusion can be both reordered and without duplucates and the
+  // SAT solver does not record this information, we must recompute it here so
+  // the proper CHAIN_RESOLUTION step can be created
+  // compute chain resolution conclusion
+  Node chainConclusion = d_pNodeManager->getChecker()->checkDebug(
+      PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "newproof::sat");
+  // create step
+  d_proof->addStep(chainConclusion, PfRule::CHAIN_RESOLUTION, children, args);
+  if (chainConclusion != conclusion)
+  {
+    // if this happens that chainConclusion needs to be factored and/or
+    // reordered, which in either case can be done only if it's not a unit
+    // clause.
+    CVC4_UNUSED Node reducedChainConclusion = factorAndReorder(chainConclusion);
+    Assert(reducedChainConclusion == conclusion)
+        << "given res chain conclusion " << conclusion
+        << "\ndifferent from chain_res " << chainConclusion
+        << "\n+ reordering + factoring " << reducedChainConclusion;
+  }
+}
+
+void PropEngine::tryJustifyingLit(SatLiteral lit)
+{
+  Node litNode = getClauseNode(lit);
+  Trace("sat-proof") << push << "PropEngine::tryJustifyingLit: Lit: " << lit
+                     << "[" << litNode << "]\n";
+  if (d_clauseSet.count(litNode))
+  {
+    Trace("sat-proof") << "PropEngine::tryJustifyingLit: not "
+                          "registered as clause\n"
+                       << pop;
+    return;
+  }
+  Minisat::Solver::TCRef reasonRef =
+      d_satSolver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
+  if (reasonRef == Minisat::Solver::TCRef_Undef)
+  {
+    Trace("sat-proof") << "PropEngine::tryJustifyingLit: no SAT reason\n"
+                           << pop;
+    return;
+  }
+  Assert(reasonRef >= 0 && reasonRef < d_satSolver->ca.size())
+      << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
+      << d_satSolver->ca.size() << "\n";
+  // Here, the call to resolveUnit() can reallocate memory in the
+  // clause allocator.  So reload reason ptr each time.
+  const Minisat::Solver::TClause& initialReason = d_satSolver->ca[reasonRef];
+  unsigned currentReason_size = initialReason.size();
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::tryJustifyingLit: with clause: ";
+    printClause(initialReason);
+    Trace("sat-proof") << "\n";
+  }
+  // add the reason clause first
+  Assert(initialReason.proofId() != 0);
+  Assert(d_clauseIdToNode.find(initialReason.proofId())
+         != d_clauseIdToNode.end());
+  std::vector<Node> children{d_clauseIdToNode[initialReason.proofId()]}, args;
+  Trace("sat-proof") << push;
+  for (unsigned i = 0; i < currentReason_size; ++i)
+  {
+    const Minisat::Solver::TClause& currentReason = d_satSolver->ca[reasonRef];
+    Assert(currentReason_size == static_cast<unsigned>(currentReason.size()));
+    currentReason_size = currentReason.size();
+    SatLiteral curr_lit =
+        toSatLiteral<Minisat::Solver>(currentReason[i]);
+    // ignore the lit we are trying to justify...
+    if (curr_lit == lit)
+    {
+      continue;
+    }
+    tryJustifyingLit(~curr_lit);
+    // save to resolution chain premises / arguments
+    Assert(d_cnfStream->d_literalToNodeMap.find(curr_lit)
+           != d_cnfStream->d_literalToNodeMap.end());
+    children.push_back(d_cnfStream->d_literalToNodeMap[~curr_lit]);
+    args.push_back(d_cnfStream->d_literalToNodeMap[curr_lit]);
+  }
+  Trace("sat-proof") << pop;
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::tryJustifyingLit: chain_res for "
+                           << litNode << " with clauses:\n";
+    for (unsigned i = 0, size = children.size(); i < size; ++i)
+    {
+      Trace("sat-proof")
+          << "PropEngine::tryJustifyingLit:   " << children[i];
+      if (i > 0)
+      {
+        Trace("sat-proof") << " [" << args[i - 1] << "]";
+      }
+      Trace("sat-proof") << "\n";
+    }
+  }
+  // only build resolution if not cyclic
+  d_proof->addStep(litNode, PfRule::CHAIN_RESOLUTION, children, args);
+  Trace("sat-proof") << pop;
+}
+
+void PropEngine::finalizeProof(Node inConflictNode,
+                               const std::vector<SatLiteral>& inConflict)
+{
+  Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
+  Trace("sat-proof") << "PropEngine::finalizeProof: conflicting clause node: "
+                     << clauseNode << "\n";
+  // nothing to do
+  if (clauseNode == falseNode)
+  {
+    return;
+  }
+  // since this clause is conflicting, I must be able to resolve away each of
+  // its literals l_1...l_n. Each literal ~l_i must be justifiable
+  //
+  // Either ~l_i is the conclusion of some previous, already built, step or from
+  // a subproof to be computed.
+  //
+  // For each l_i, a resolution step is created with the id of the step allowing
+  // the derivation of ~l_i, whose pivot in the inConflict will be l_i. All
+  // resolution steps will be saved in the given reasons vector.
+  Trace("sat-proof") << push;
+  // premises and arguments for final resolution
+  std::vector<Node> children{clauseNode}, args;
+  for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
+  {
+    Assert(d_cnfStream->d_literalToNodeMap.find(inConflict[i])
+           != d_cnfStream->d_literalToNodeMap.end());
+    tryJustifyingLit(~inConflict[i]);
+    // save to resolution chain premises / arguments
+    children.push_back(d_cnfStream->d_literalToNodeMap[~inConflict[i]]);
+    args.push_back(d_cnfStream->d_literalToNodeMap[inConflict[i]]);
+  }
+  Trace("sat-proof") << pop;
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof")
+        << "PropEngine::finalizeProof: chain_res for false with clauses:\n";
+    for (unsigned i = 0, size = children.size(); i < size; ++i)
+    {
+      Trace("sat-proof") << "PropEngine::finalizeProof:   " << children[i];
+      if (i > 0)
+      {
+        Trace("sat-proof") << " [" << args[i - 1] << "]";
+      }
+      Trace("sat-proof") << "\n";
+    }
+  }
+  // only build resolution if not cyclic
+  d_proof->addStep(falseNode, PfRule::CHAIN_RESOLUTION, children, args);
+}
+
+void PropEngine::finalizeProof(Minisat::Solver::TLit inConflict)
+{
+  SatLiteral satLit = toSatLiteral<Minisat::Solver>(inConflict);
+  Trace("sat-proof") << "PropEngine::finalizeProof: conflicting satLit: "
+                     << satLit << "\n";
+  finalizeProof(getClauseNode(satLit), {satLit});
+}
+
+void PropEngine::finalizeProof(Minisat::Solver::TClause& inConflict)
+{
+  if (Trace.isOn("sat-proof"))
+  {
+    Trace("sat-proof") << "PropEngine::finalizeProof: conflicting clause: ";
+    printClause(inConflict);
+    Trace("sat-proof") << "\n";
+  }
+  std::vector<SatLiteral> clause;
+  for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
+  {
+    clause.push_back(inConflict[i]);
+  }
+  finalizeProof(getClauseNode(inConflict), clause);
 }
 
 }/* CVC4::prop namespace */

@@ -30,6 +30,8 @@
 #include "prop/proof_cnf_stream.h"
 #include "proof/proof_manager.h"
 #include "prop/proof_cnf_stream.h"
+#include "prop/minisat/core/Solver.h"
+#include "prop/sat_solver_types.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -216,6 +218,37 @@ class PropEngine
    */
   bool properExplanation(TNode node, TNode expl) const;
 
+  /*------------------------------ BEGIN SAT proof interface */
+  void registerClause(Minisat::Solver::TLit lit);
+  void registerClause(SatLiteral satLit);
+  void registerClause(Minisat::Solver::TClause& clause);
+  void startResChain(Minisat::Solver::TClause& start);
+  // resolution with unit clause ~lit, to be justified
+  void addResolutionStep(Minisat::Solver::TLit lit);
+  // resolution with clause using lit as pivot. Sign determines whether it's
+  // being removed positively from the given clause or the implicit one it's
+  // being resolved against
+  void addResolutionStep(Minisat::Solver::TClause& clause,
+                         Minisat::Solver::TLit lit);
+  void endResChain(Minisat::Solver::TLit lit);
+  void endResChain(Minisat::Solver::TClause& clause);
+  void endResChain(Node conclusion);
+  void finalizeProof(ClauseId conflict_id);
+  void finalizeProof(Node inConflictNode,
+                     const std::vector<SatLiteral>& inConflict);
+  void finalizeProof(Minisat::Solver::TLit inConflict);
+  void finalizeProof(Minisat::Solver::TClause& inConflict);
+
+  /**
+   * if given node is a clause, normalize it by ordering (according to node ids)
+   * and removal of duplicates.
+   */
+  Node factorAndReorder(Node n);
+
+  CDProof* getProof() { return &d_proof; }
+
+  /*------------------------------ END SAT proof interface */
+
  private:
   /** Dump out the satisfying assignment (after SAT result) */
   void printSatisfyingAssignment();
@@ -251,8 +284,21 @@ class PropEngine
 
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pNodeManager;
+  /** The User-context-dependent proof object */
+  CDProof d_proof;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
+
+  /** resolution steps accumulator for chain resolution */
+  std::vector<std::pair<Node, Node>> d_resolution;
+
+  /** If lit is not already justified, try to. Otherwise no-op. */
+  void tryJustifyingLit(prop::SatLiteral lit);
+
+  Node getClauseNode(SatLiteral satLit);
+  Node getClauseNode(Minisat::Solver::TClause& clause);
+
+  std::unordered_set<Node, NodeHashFunction> d_clauseSet;
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;

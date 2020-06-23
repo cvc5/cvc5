@@ -109,7 +109,7 @@ class ProofCnfStream
   CnfStream& d_cnfStream;
   /** the proof node manager */
   ProofNodeManager* d_pnm;
-  /** The SAT-context-dependent proof object */
+  /** The User-context-dependent proof object */
   CDProof d_proof;
   /** The default proof generator (for simple facts) */
   /**

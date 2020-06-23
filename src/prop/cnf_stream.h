@@ -46,6 +46,7 @@ class ProofCnfStream;
  * @author Tim King <taking@cs.nyu.edu>
  */
 class CnfStream {
+  friend PropEngine;
   friend ProofCnfStream;
 
  public:

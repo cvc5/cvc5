@@ -85,7 +85,6 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   if (CVC4::options::proofNew())
   {
-    NewProofManager* pm = NewProofManager::currentPM();
     Trace("newproof-explain")
         << "TheoryProxy::explainPropagation: explanation of lit " << l << "["
         << lNode << "] is " << theoryExplanation << " to prove "
@@ -93,16 +92,16 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     Node proven = tte.getProven();
     Assert(tte.getGenerator());
     Assert(tte.getGenerator()->getProofFor(proven));
-    pm->getProof()->addProof(tte.getGenerator()->getProofFor(proven));
+    CDProof* pf = d_propEngine->getProof();
+    pf->addProof(tte.getGenerator()->getProofFor(proven));
     Assert(proven[1] == lNode);
     NodeManager* nm = NodeManager::currentNM();
-
     Node clauseImpliesElim =
         nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
     Trace("newproof") << "TheoryProxy::explainPropagation: adding "
                       << PfRule::IMPLIES_ELIM << " rule to conclude "
                       << clauseImpliesElim << "\n";
-    pm->addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+    pf->addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
     // need to eliminate AND
     if (proven[0].getKind() == kind::AND)
     {
@@ -116,15 +115,15 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
       disjunctsRes.push_back(proven[1]);
       Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
       // add proof steps to convert into clause
-      pm->addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+      pf->addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
       Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
-      pm->addStep(clauseRes,
+      pf->addStep(clauseRes,
                   PfRule::RESOLUTION,
                   {clauseAndNeg, clauseImpliesElim},
                   {proven[0]});
       // Rewrite clauseNode before proceeding. This is so ordering/factoring is
       // consistent with the clause that is added to the SAT solver
-      Node clauseExplanation = pm->factorAndReorder(clauseRes);
+      Node clauseExplanation = d_propEngine->factorAndReorder(clauseRes);
       Trace("newproof") << "TheoryProxy::explainPropagation: processed first "
                            "disjunct to conclude "
                         << clauseExplanation << "\n";

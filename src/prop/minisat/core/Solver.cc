@@ -532,7 +532,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             PROOF( ProofManager::getSatProof()->finalizeProof(cr); )
             if (CVC4::options::proofNew())
             {
-              d_proxy->getPropEngine()->finalizeProof(ca[cr].proofId());
+              d_proxy->getPropEngine()->finalizeProof(ca[cr]);
             }
             return ok = false;
           }
@@ -584,7 +584,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
               }
               else
               {
-                pe->finalizeProof(ca[confl].proofId());
+                pe->finalizeProof(ca[confl]);
               }
             }
           }
@@ -1484,7 +1484,7 @@ lbool Solver::search(int nof_conflicts)
                 PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
                 if (CVC4::options::proofNew())
                 {
-                  d_proxy->getPropEngine()->finalizeProof(ca[confl].proofId());
+                  d_proxy->getPropEngine()->finalizeProof(ca[confl]);
                 }
                 return l_False;
             }
