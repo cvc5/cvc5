@@ -412,7 +412,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     // initialize the non-linear solver
     d_nlSlv.initLastCall(assertions, false_asserts, xts);
     // initialize the trancendental function solver
-    d_trSlv.initLastCall(assertions, false_asserts, xts, lemmas, lemsPp);
+    d_trSlv.initLastCall(assertions, false_asserts, xts, lemmas);
   }
   if (options::nlCad())
   {
