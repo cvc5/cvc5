@@ -883,6 +883,103 @@ api::Term Smt2::mkAbstractValue(const std::string& name)
   return d_solver->mkAbstractValue(name.substr(1));
 }
 
+
+void Smt2::addSygusConstructorTerm(
+    api::DatatypeDecl& dt,
+    api::Term term,
+    std::map<api::Term, api::Sort>& ntsToUnres) const
+{
+  Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
+  // At this point, we should know that dt is well founded, and that its
+  // builtin sygus operators are well-typed.
+  // Now, purify each occurrence of a non-terminal symbol in term, replace by
+  // free variables. These become arguments to constructors. Notice we must do
+  // a tree traversal in this function, since unique paths to the same term
+  // should be treated as distinct terms.
+  // Notice that let expressions are forbidden in the input syntax of term, so
+  // this does not lead to exponential behavior with respect to input size.
+  std::vector<api::Term> args;
+  std::vector<api::Sort> cargs;
+  api::Term op = purifySygusGTerm(term, ntsToUnres, args, cargs);
+  std::stringstream ssCName;
+  ssCName << op.getKind();
+  Trace("parser-sygus2") << "Purified operator " << op
+                         << ", #args/cargs=" << args.size() << "/"
+                         << cargs.size() << std::endl;
+  std::shared_ptr<SygusPrintCallback> spc;
+  // callback prints as the expression
+  spc = std::make_shared<printer::SygusExprPrintCallback>(
+      op.getExpr(), api::termVectorToExprs(args));
+  if (!args.empty())
+  {
+    api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
+    // its operator is a lambda
+    op = d_solver->mkTerm(api::LAMBDA, lbvl, op);
+  }
+  Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
+                         << std::endl;
+  dt.getDatatype().addSygusConstructor(
+      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
+}
+
+api::Term Smt2::purifySygusGTerm(api::Term term,
+                                 std::map<api::Term, api::Sort>& ntsToUnres,
+                                 std::vector<api::Term>& args,
+                                 std::vector<api::Sort>& cargs) const
+{
+  Trace("parser-sygus2-debug")
+      << "purifySygusGTerm: " << term
+      << " #nchild=" << term.getExpr().getNumChildren() << std::endl;
+  std::map<api::Term, api::Sort>::iterator itn = ntsToUnres.find(term);
+  if (itn != ntsToUnres.end())
+  {
+    api::Term ret = d_solver->mkVar(term.getSort());
+    Trace("parser-sygus2-debug")
+        << "...unresolved non-terminal, intro " << ret << std::endl;
+    args.push_back(api::Term(d_solver, ret.getExpr()));
+    cargs.push_back(itn->second);
+    return ret;
+  }
+  std::vector<api::Term> pchildren;
+  bool childChanged = false;
+  for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
+  {
+    Trace("parser-sygus2-debug")
+        << "......purify child " << i << " : " << term[i] << std::endl;
+    api::Term ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
+    pchildren.push_back(ptermc);
+    childChanged = childChanged || ptermc != term[i];
+  }
+  if (!childChanged)
+  {
+    Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
+    return term;
+  }
+  api::Term nret = d_solver->mkTerm(term.getOp(), pchildren);
+  Trace("parser-sygus2-debug")
+      << "...child changed, return " << nret << std::endl;
+  return nret;
+}
+
+void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
+                                        const std::vector<api::Term>& sygusVars,
+                                        api::Sort type) const
+{
+  // each variable of appropriate type becomes a sygus constructor in dt.
+  for (unsigned i = 0, size = sygusVars.size(); i < size; i++)
+  {
+    api::Term v = sygusVars[i];
+    if (v.getSort() == type)
+    {
+      std::stringstream ss;
+      ss << v;
+      std::vector<api::Sort> cargs;
+      dt.getDatatype().addSygusConstructor(
+          v.getExpr(), ss.str(), api::sortVectorToTypes(cargs));
+    }
+  }
+}
+
 InputLanguage Smt2::getLanguage() const
 {
   return d_solver->getExprManager()->getOptions().getInputLanguage();
