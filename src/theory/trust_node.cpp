@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@ const char* toString(TrustNodeKind tnk)
     case TrustNodeKind::CONFLICT: return "CONFLICT";
     case TrustNodeKind::LEMMA: return "LEMMA";
     case TrustNodeKind::PROP_EXP: return "PROP_EXP";
+    case TrustNodeKind::REWRITE: return "REWRITE";
     default: return "?";
   }
 }
@@ -59,6 +60,13 @@ TrustNode TrustNode::mkTrustPropExp(TNode lit, Node exp, ProofGenerator* g)
   return TrustNode(TrustNodeKind::PROP_EXP, pekey, g);
 }
 
+TrustNode TrustNode::mkTrustRewrite(TNode n, Node nr, ProofGenerator* g)
+{
+  Node rkey = getRewriteProven(n, nr);
+  Assert(g == nullptr || g->hasProofFor(rkey));
+  return TrustNode(TrustNodeKind::REWRITE, rkey, g);
+}
+
 TrustNode TrustNode::null()
 {
   return TrustNode(TrustNodeKind::INVALID, Node::null());
@@ -75,7 +83,16 @@ TrustNodeKind TrustNode::getKind() const { return d_tnk; }
 
 Node TrustNode::getNode() const
 {
-  return d_tnk == TrustNodeKind::LEMMA ? d_proven : d_proven[0];
+  switch (d_tnk)
+  {
+    // the node of lemma is the node itself
+    case TrustNodeKind::LEMMA: return d_proven;
+    // the node of the rewrite is the right hand side of EQUAL
+    case TrustNodeKind::REWRITE: return d_proven[1];
+    // the node of an explained propagation is the antecendant of an IMPLIES
+    // the node of a conflict is underneath a NOT
+    default: return d_proven[0];
+  }
 }
 
 Node TrustNode::getProven() const { return d_proven; }
@@ -91,6 +108,8 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
 {
   return NodeManager::currentNM()->mkNode(kind::IMPLIES, exp, lit);
 }
+
+Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {

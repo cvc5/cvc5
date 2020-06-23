@@ -2,9 +2,9 @@
 /*! \file node_algorithm.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
+ **   Andrew Reynolds, Andres Noetzli, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -157,7 +157,7 @@ void getOperatorsMap(
 
 /*
  * Substitution of Nodes in a capture avoiding way.
- * If x occurs free in n and it is substituted by a term t 
+ * If x occurs free in n and it is substituted by a term t
  * and t includes some variable y that is bound in n,
  * then using alpha conversion y is replaced with a fresh bound variable
  * before the substitution.
@@ -166,9 +166,9 @@ void getOperatorsMap(
 Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 
 /**
- * Same as substituteCaptureAvoiding above, but with a 
- * simultaneous substitution of a vector of variables.  
- * Elements in source will be replaced by their corresponding element in dest. 
+ * Same as substituteCaptureAvoiding above, but with a
+ * simultaneous substitution of a vector of variables.
+ * Elements in source will be replaced by their corresponding element in dest.
  * Both vectors should have the same size.
  */
 Node substituteCaptureAvoiding(TNode n,
@@ -184,6 +184,29 @@ Node substituteCaptureAvoiding(TNode n,
  */
 void getComponentTypes(
     TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types);
+
+/** match
+ *
+ * Given two terms `n1` and `n2` containing free variables, match returns true
+ * if `n2` is an instance of `n1`. In which case, `subs` is a mapping from the
+ * free variables in `n1` to corresponding terms in `n2` such that:
+ *
+ * n1 * subs = n2 (where * denotes application of substitution).
+ *
+ * For example, given:
+ * n1 = (+ a (* x 2)) (x denotes a free variable)
+ * n2 = (+ a (* b 2))
+ * a call to match should return `true` with subs = {(x, b)}
+ *
+ * @param n1 the term (containing free vars) to compare an instance term
+ * against
+ * @param n2 the instance term in question
+ * @param subs the mapping from free vars in `n1` to terms in `n2`
+ * @return whether or not `n2` is an instance of `n1`
+ */
+bool match(Node n1,
+           Node n2,
+           std::unordered_map<Node, Node, NodeHashFunction>& subs);
 
 }  // namespace expr
 }  // namespace CVC4
