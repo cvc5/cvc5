@@ -1455,7 +1455,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
       expr = PARSER_STATE->applyParseOp(p, args);
     }
   | /* a let or sygus let binding */
-    LPAREN_TOK (
+    LPAREN_TOK 
       LET_TOK LPAREN_TOK
       { PARSER_STATE->pushScope(true); }
       ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
@@ -1471,24 +1471,7 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           } else {
             names.insert(name);
           }
-          binders.push_back(std::make_pair(name, expr)); } )+ |
-      SYGUS_LET_TOK LPAREN_TOK
-      { PARSER_STATE->pushScope(true); }
-      ( LPAREN_TOK symbol[name,CHECK_NONE,SYM_VARIABLE]
-        sortSymbol[type,CHECK_DECLARED]
-        term[expr, f2]
-        RPAREN_TOK
-        // this is a parallel let, so we have to save up all the contributions
-        // of the let and define them only later on
-        { if(names.count(name) == 1) {
-            std::stringstream ss;
-            ss << "warning: symbol `" << name << "' bound multiple times by let;"
-               << " the last binding will be used, shadowing earlier ones";
-            PARSER_STATE->warning(ss.str());
-          } else {
-            names.insert(name);
-          }
-          binders.push_back(std::make_pair(name, expr)); } )+ )
+          binders.push_back(std::make_pair(name, expr)); } )+
     { // now implement these bindings
       for (const std::pair<std::string, api::Term>& binder : binders)
       {
@@ -2335,7 +2318,7 @@ GET_ABDUCT_TOK : 'get-abduct';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands
-SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';;
+SYNTH_FUN_TOK : { PARSER_STATE->sygus() }?'synth-fun';
 SYNTH_INV_TOK : { PARSER_STATE->sygus()}?'synth-inv';
 CHECK_SYNTH_TOK : { PARSER_STATE->sygus()}?'check-synth';
 DECLARE_VAR_TOK : { PARSER_STATE->sygus()}?'declare-var';
