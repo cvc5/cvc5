@@ -1074,7 +1074,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
  public:
   GetInterpolCommand();
   GetInterpolCommand(const std::string& name, Expr conj);
-	/** The argument gtype is the grammar of the interpolation query */
+  /** The argument gtype is the grammar of the interpolation query */
   GetInterpolCommand(const std::string& name, Expr conj, const Type& gtype);
 
   /** Get the conjecture of the interpolation query */
