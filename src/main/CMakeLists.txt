@@ -6,6 +6,8 @@ set(libmain_src_files
   interactive_shell.cpp
   interactive_shell.h
   main.h
+  time_limit.cpp
+  time_limit.h
   util.cpp
 )
 
@@ -44,7 +46,7 @@ set_target_properties(cvc4-bin
   PROPERTIES
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-target_link_libraries(cvc4-bin cvc4 cvc4parser)
+target_link_libraries(cvc4-bin cvc4 cvc4parser rt)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
