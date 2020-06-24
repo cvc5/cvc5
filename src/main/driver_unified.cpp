@@ -32,6 +32,7 @@
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
+#include "main/time_limit.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -94,6 +95,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   cvc4_init();
 
   progPath = argv[0];
+
+  std::unique_ptr<TimeLimitListener> time_limit_listener(new TimeLimitListener(opts));
+  opts.registerTlimitListener(time_limit_listener.get(), true);
 
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
