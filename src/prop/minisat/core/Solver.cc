@@ -1484,7 +1484,14 @@ lbool Solver::search(int nof_conflicts)
                 PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
                 if (CVC4::options::proofNew())
                 {
-                  d_proxy->getPropEngine()->finalizeProof(ca[confl]);
+                  if (confl == CRef_Lazy)
+                  {
+                    d_proxy->getPropEngine()->finalizeProof();
+                  }
+                  else
+                  {
+                    d_proxy->getPropEngine()->finalizeProof(ca[confl]);
+                  }
                 }
                 return l_False;
             }
@@ -1959,7 +1966,7 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-        Assert(!PROOF_ON());
+        Assert(!PROOF_ON() && !CVC4::options::proofNew());
         conflict = CRef_Lazy;
         backtrackLevel = 0;
         Debug("minisat::lemmas") << "Solver::updateLemmas(): found empty clause" << std::endl;
@@ -2037,7 +2044,7 @@ CRef Solver::updateLemmas() {
     // If the lemma is propagating enqueue its literal (or set the conflict)
     if (conflict == CRef_Undef && value(lemma[0]) != l_True) {
       if (lemma.size() == 1 || (value(lemma[1]) == l_False && trail_index(var(lemma[1])) < backtrack_index)) {
-        if (PROOF_ON() && lemma.size() == 1)
+        if (PROOF_ON()&& lemma.size() == 1)
         {
           Node cnf_assertion = lemmas_cnf_assertion[j].first;
           Node cnf_def = lemmas_cnf_assertion[j].second;
@@ -2061,7 +2068,7 @@ CRef Solver::updateLemmas() {
             PROOF( ProofManager::getSatProof()->storeUnitConflict(lemma[0], LEARNT); );
             if (CVC4::options::proofNew())
             {
-              Unreachable() << "Minisat: unsupported case for new proofs\n";
+              d_proxy->getPropEngine()->storeUnitConflict(lemma[0]);
             }
           }
         } else {

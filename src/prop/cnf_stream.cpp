@@ -198,20 +198,23 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
-  Debug("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom << ")" << endl;
+  Debug("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom << ")\n" << push;
   Assert(node.getKind() != kind::NOT);
 
   // Get the literal for this node
   SatLiteral lit;
   if (!hasLiteral(node)) {
+    Debug("cnf") << d_name << "::newLiteral: node already registered\n";
     // If no literal, we'll make one
     if (node.getKind() == kind::CONST_BOOLEAN) {
+      Debug("cnf") << d_name << "::newLiteral: boolean const\n";
       if (node.getConst<bool>()) {
         lit = SatLiteral(d_satSolver->trueVar());
       } else {
         lit = SatLiteral(d_satSolver->falseVar());
       }
     } else {
+      Debug("cnf") << d_name << "::newLiteral: new var\n";
       lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, preRegister, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
@@ -234,10 +237,8 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     d_registrar->preRegister(node);
     d_removable = backupRemovable;
   }
-
   // Here, you can have it
-  Debug("cnf") << "newLiteral(" << node << ") => " << lit << endl;
-
+  Debug("cnf") << "newLiteral(" << node << ") => " << lit << "\n" << pop;
   return lit;
 }
 

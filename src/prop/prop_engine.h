@@ -237,9 +237,10 @@ class PropEngine
   void finalizeProof(ClauseId conflict_id);
   void finalizeProof(Node inConflictNode,
                      const std::vector<SatLiteral>& inConflict);
-  void finalizeProof(Minisat::Solver::TLit inConflict);
   void finalizeProof(Minisat::Solver::TClause& inConflict);
-
+  void finalizeProof(Minisat::Solver::TLit inConflict);
+  void finalizeProof();
+  void storeUnitConflict(Minisat::Solver::TLit inConflict);
   /**
    * if given node is a clause, normalize it by ordering (according to node ids)
    * and removal of duplicates.
@@ -301,6 +302,7 @@ class PropEngine
   void printClause(const Minisat::Solver::TClause& clause);
 
   std::unordered_set<Node, NodeHashFunction> d_clauseSet;
+  SatLiteral d_conflictLit;
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;

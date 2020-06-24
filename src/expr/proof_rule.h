@@ -268,7 +268,7 @@ enum class PfRule : uint32_t
   REMOVE_FALSE_LITERAL,
   // ======== Factoring
   // Children: (P:C1)
-  // Arguments: (C2)
+  // Arguments: ()
   // ---------------------
   // Conclusion: C2
   // where

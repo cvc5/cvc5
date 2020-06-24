@@ -136,7 +136,38 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
   //              : clauseNodes.size() == 1 ? clauseNodes[0]
   //                                        : nm->mkNode(kind::OR, clauseNodes);
   // }
-  if (id == PfRule::FACTORING || id == PfRule::REORDERING)
+  if (id == PfRule::FACTORING)
+  {
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != kind::OR)
+    {
+      return Node::null();
+    }
+    // remove duplicates while keeping the order of children
+    std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+    std::vector<Node> disjuncts;
+    unsigned size = children[0].getNumChildren();
+    for (unsigned i = 0; i < size; ++i)
+    {
+      if (clauseSet.count(children[0][i]))
+      {
+        continue;
+      }
+      disjuncts.push_back(children[0][i]);
+      clauseSet.insert(children[0][i]);
+    }
+    if (disjuncts.size() == size)
+    {
+      return Node::null();
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    return disjuncts.empty()
+               ? nm->mkConst<bool>(false)
+               : disjuncts.size() == 1 ? disjuncts[0]
+                                       : nm->mkNode(kind::OR, disjuncts);
+  }
+  if (id == PfRule::REORDERING)
   {
     Assert(children.size() == 1);
     Assert(args.size() == 1);
@@ -159,6 +190,8 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     if (clauseSet1 != clauseSet2)
     {
+      Trace("bool-pfcheck") << id << ": clause set1: " << clauseSet1 << "\n"
+                            << id << ": clause set2: " << clauseSet2 << "\n";
       return Node::null();
     }
     return args[0];

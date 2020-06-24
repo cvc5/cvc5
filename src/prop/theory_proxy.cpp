@@ -89,44 +89,52 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
         << "TheoryProxy::explainPropagation: explanation of lit " << l << "["
         << lNode << "] is " << theoryExplanation << " to prove "
         << tte.getProven() << "\n";
-    Node proven = tte.getProven();
-    Assert(tte.getGenerator());
-    Assert(tte.getGenerator()->getProofFor(proven));
     CDProof* pf = d_propEngine->getProof();
-    pf->addProof(tte.getGenerator()->getProofFor(proven));
-    Assert(proven[1] == lNode);
-    NodeManager* nm = NodeManager::currentNM();
-    Node clauseImpliesElim =
-        nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
-    Trace("newproof") << "TheoryProxy::explainPropagation: adding "
-                      << PfRule::IMPLIES_ELIM << " rule to conclude "
-                      << clauseImpliesElim << "\n";
-    pf->addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
-    // need to eliminate AND
-    if (proven[0].getKind() == kind::AND)
+    Node proven = tte.getProven();
+    // no generator, use as assumption
+    if (!tte.getGenerator())
     {
-      std::vector<Node> disjunctsAndNeg{proven[0]};
-      std::vector<Node> disjunctsRes;
-      for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+      pf->addStep(proven, PfRule::ASSUME, {}, {proven});
+    }
+    else
+    {
+      Assert(tte.getGenerator()->getProofFor(proven));
+
+      pf->addProof(tte.getGenerator()->getProofFor(proven));
+      Assert(proven[1] == lNode);
+      NodeManager* nm = NodeManager::currentNM();
+      Node clauseImpliesElim =
+          nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+      Trace("newproof") << "TheoryProxy::explainPropagation: adding "
+                        << PfRule::IMPLIES_ELIM << " rule to conclude "
+                        << clauseImpliesElim << "\n";
+      pf->addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+      // need to eliminate AND
+      if (proven[0].getKind() == kind::AND)
       {
-        disjunctsAndNeg.push_back(proven[0][i].notNode());
-        disjunctsRes.push_back(proven[0][i].notNode());
+        std::vector<Node> disjunctsAndNeg{proven[0]};
+        std::vector<Node> disjunctsRes;
+        for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+        {
+          disjunctsAndNeg.push_back(proven[0][i].notNode());
+          disjunctsRes.push_back(proven[0][i].notNode());
+        }
+        disjunctsRes.push_back(proven[1]);
+        Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
+        // add proof steps to convert into clause
+        pf->addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+        Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
+        pf->addStep(clauseRes,
+                    PfRule::RESOLUTION,
+                    {clauseAndNeg, clauseImpliesElim},
+                    {proven[0]});
+        // Rewrite clauseNode before proceeding. This is so ordering/factoring
+        // is consistent with the clause that is added to the SAT solver
+        Node clauseExplanation = d_propEngine->factorAndReorder(clauseRes);
+        Trace("newproof") << "TheoryProxy::explainPropagation: processed first "
+                             "disjunct to conclude "
+                          << clauseExplanation << "\n";
       }
-      disjunctsRes.push_back(proven[1]);
-      Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
-      // add proof steps to convert into clause
-      pf->addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
-      Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
-      pf->addStep(clauseRes,
-                  PfRule::RESOLUTION,
-                  {clauseAndNeg, clauseImpliesElim},
-                  {proven[0]});
-      // Rewrite clauseNode before proceeding. This is so ordering/factoring is
-      // consistent with the clause that is added to the SAT solver
-      Node clauseExplanation = d_propEngine->factorAndReorder(clauseRes);
-      Trace("newproof") << "TheoryProxy::explainPropagation: processed first "
-                           "disjunct to conclude "
-                        << clauseExplanation << "\n";
     }
   }
   PROOF({

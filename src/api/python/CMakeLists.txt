@@ -12,7 +12,7 @@ include_directories(${CMAKE_CURRENT_LIST_DIR})         # cvc4kinds.pxd
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
-# TEMP: Only needed while expr/kind.h is public in the C++ api
+.# TEMP: Only needed while expr/kind.h is public in the C++ api
 include_directories("${CMAKE_BINARY_DIR}/src/")
 
 # Generate cvc4kinds.{pxd,pyx}
