@@ -29,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
@@ -906,6 +907,7 @@ void SmtEngine::setLogic(const LogicInfo& logic)
                          "finished initializing.");
   }
   d_logic = logic;
+  d_userLogic = logic;
   setLogicInternal();
 }
 
@@ -932,6 +934,14 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+LogicInfo SmtEngine::getUserLogicInfo() const
+{
+  // Lock the logic to make sure that this logic can be queried. We create a
+  // copy of the user logic here to keep this method const.
+  LogicInfo res = d_userLogic;
+  res.lock();
+  return res;
+}
 void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
 std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
@@ -940,6 +950,7 @@ void SmtEngine::setLogicInternal()
       << "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run";
   d_logic.lock();
+  d_userLogic.lock();
 }
 
 void SmtEngine::setProblemExtended()
@@ -1267,8 +1278,16 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
+    std::vector<api::Term> tFuncs = api::exprVectorToTerms(d_solver, funcs);
+    std::vector<std::vector<api::Term>> tFormals;
+    for (const std::vector<Expr>& formal : formals)
+    {
+      tFormals.emplace_back(api::exprVectorToTerms(d_solver, formal));
+    }
+    std::vector<api::Term> tFormulas =
+        api::exprVectorToTerms(d_solver, formulas);
     Dump("raw-benchmark") << DefineFunctionRecCommand(
-        funcs, formals, formulas, global);
+        d_solver, tFuncs, tFormals, tFormulas, global);
   }
 
   ExprManager* em = getExprManager();

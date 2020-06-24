@@ -165,6 +165,23 @@ header = "options/smt_options.h"
   help       = "output proofs after every UNSAT/VALID response"
 
 [[option]]
+  name       = "proofNew"
+  category   = "regular"
+  long       = "proof-new"
+  type       = "bool"
+  default    = "false"
+  help       = "do proof production using the new infrastructure"
+
+[[option]]
+  name       = "proofNewPedantic"
+  category   = "regular"
+  long       = "proof-new-pedantic"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
+
+[[option]]
   name       = "dumpInstantiations"
   category   = "regular"
   long       = "dump-instantiations"

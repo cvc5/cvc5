@@ -1,5 +1,5 @@
-CVC4 prerelease version 1.8.
-============================
+CVC4 prerelease version 1.9
+===========================
 
 ## Building CVC4
 
@@ -114,6 +114,15 @@ It can be installed using the `contrib/get-cryptominisat` script.
 Configure CVC4 with `configure.sh --cryptominisat` to build with this
 dependency.
 
+### Kissat (Optional SAT solver)
+
+[Kissat](https://github.com/arminbiere/kissat)
+is a SAT solver that can be used for solving bit-vector problems with eager
+bit-blasting. This dependency may improve performance.
+It can be installed using the `contrib/get-kissat` script.  
+Configure CVC4 with `configure.sh --kissat` to build with this
+dependency.
+
 ### LFSC (The LFSC Proof Checker)
 
 [LFSC](https://github.com/CVC4/LFSC) is required to check proofs internally
@@ -178,13 +187,6 @@ Note that GNU Readline is covered by the [GNU General Public License, version 3]
 If you choose to use CVC4 with GNU Readline support, you are licensing CVC4
 under that same license.
 (Usually CVC4's license is more permissive; see above discussion.)
-
-### libboost_thread: The Boost C++ threading library (Portfolio Builds)
-
-The [Boost](http://www.boost.org) C++ threading library (often packaged
-independently of the Boost base library) is needed to run CVC4 in "portfolio"
-(multithreaded) mode.
-Check your distribution for a package named "libboost-thread-dev" or similar.
 
 ### Boost C++ base libraries (Examples)
 

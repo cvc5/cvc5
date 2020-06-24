@@ -39,6 +39,11 @@
 
 namespace CVC4 {
 
+namespace api {
+class Solver;
+class Term;
+}  // namespace api
+
 class SmtEngine;
 class Command;
 class CommandStatus;
@@ -186,27 +191,11 @@ class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
 
 class CVC4_PUBLIC Command
 {
- protected:
-  /**
-   * This field contains a command status if the command has been
-   * invoked, or NULL if it has not.  This field is either a
-   * dynamically-allocated pointer, or it's a pointer to the singleton
-   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
-   * it avoids the need to dynamically allocate memory in the common
-   * case of a successful command.
-   */
-  const CommandStatus* d_commandStatus;
-
-  /**
-   * True if this command is "muted"---i.e., don't print "success" on
-   * successful execution.
-   */
-  bool d_muted;
-
  public:
   typedef CommandPrintSuccess printsuccess;
 
   Command();
+  Command(api::Solver* solver);
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -281,6 +270,25 @@ class CVC4_PUBLIC Command
     Expr operator()(Expr e) { return e.exportTo(d_exprManager, d_variableMap); }
     Type operator()(Type t) { return t.exportTo(d_exprManager, d_variableMap); }
   }; /* class Command::ExportTransformer */
+
+  /** The solver instance that this command is associated with. */
+  api::Solver* d_solver;
+
+  /**
+   * This field contains a command status if the command has been
+   * invoked, or NULL if it has not.  This field is either a
+   * dynamically-allocated pointer, or it's a pointer to the singleton
+   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
+   * it avoids the need to dynamically allocate memory in the common
+   * case of a successful command.
+   */
+  const CommandStatus* d_commandStatus;
+
+  /**
+   * True if this command is "muted"---i.e., don't print "success" on
+   * successful execution.
+   */
+  bool d_muted;
 };   /* class Command */
 
 /**
@@ -498,18 +506,20 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
 class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 {
  public:
-  DefineFunctionRecCommand(Expr func,
-                           const std::vector<Expr>& formals,
-                           Expr formula,
+  DefineFunctionRecCommand(api::Solver* solver,
+                           api::Term func,
+                           const std::vector<api::Term>& formals,
+                           api::Term formula,
                            bool global);
-  DefineFunctionRecCommand(const std::vector<Expr>& funcs,
-                           const std::vector<std::vector<Expr> >& formals,
-                           const std::vector<Expr>& formula,
+  DefineFunctionRecCommand(api::Solver* solver,
+                           const std::vector<api::Term>& funcs,
+                           const std::vector<std::vector<api::Term> >& formals,
+                           const std::vector<api::Term>& formula,
                            bool global);
 
-  const std::vector<Expr>& getFunctions() const;
-  const std::vector<std::vector<Expr> >& getFormals() const;
-  const std::vector<Expr>& getFormulas() const;
+  const std::vector<api::Term>& getFunctions() const;
+  const std::vector<std::vector<api::Term> >& getFormals() const;
+  const std::vector<api::Term>& getFormulas() const;
 
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
@@ -519,11 +529,11 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 
  protected:
   /** functions we are defining */
-  std::vector<Expr> d_funcs;
+  std::vector<api::Term> d_funcs;
   /** formal arguments for each of the functions we are defining */
-  std::vector<std::vector<Expr> > d_formals;
+  std::vector<std::vector<api::Term> > d_formals;
   /** formulas corresponding to the bodies of the functions we are defining */
-  std::vector<Expr> d_formulas;
+  std::vector<api::Term> d_formulas;
   /**
    * Stores whether this definition is global (i.e. should persist when
    * popping the user context.

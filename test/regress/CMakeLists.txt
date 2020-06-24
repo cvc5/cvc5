@@ -215,8 +215,9 @@ set(regress_0_tests
   regress0/bv/bv_to_int2.smt2
   regress0/bv/bv_to_int_bvmul1.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
-  regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bv_to_int_bitwise.smt2
+  regress0/bv/bv_to_int_elim_err.smt2
+  regress0/bv/bv_to_int_zext.smt2
   regress0/bv/bvuf_to_intuf.smt2
   regress0/bv/bvuf_to_intuf_smtlib.smt2
   regress0/bv/bvuf_to_intuf_sorts.smt2
@@ -472,6 +473,9 @@ set(regress_0_tests
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
   regress0/simple-dump-model.smt2
+  regress0/eqrange1.smt2
+  regress0/eqrange2.smt2
+  regress0/eqrange3.smt2
   regress0/expect/scrub.01.smtv1.smt2
   regress0/expect/scrub.03.smt2
   regress0/expect/scrub.06.cvc
@@ -920,6 +924,7 @@ set(regress_0_tests
   regress0/simplification_bug2.smtv1.smt2
   regress0/smallcnf.cvc
   regress0/smt2output.smt2
+  regress0/smtlib/define-fun-rec-logic.smt2
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/global-decls.smt2
   regress0/smtlib/issue4028.smt2
