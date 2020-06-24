@@ -95,12 +95,12 @@ class SolverBlack : public CxxTest::TestSuite
   void testUFIteration();
 
   void testGetInfo();
-	void testGetInterpolant();
+  void testGetInterpolant();
   void testGetOp();
-	void testGetOption();
-	void testGetUnsatAssumptions1();
-	void testGetUnsatAssumptions2();
-	void testGetUnsatAssumptions3();
+  void testGetOption();
+  void testGetUnsatAssumptions1();
+  void testGetUnsatAssumptions2();
+  void testGetUnsatAssumptions3();
   void testGetUnsatCore1();
   void testGetUnsatCore2();
   void testGetUnsatCore3();
@@ -1296,7 +1296,7 @@ void SolverBlack::testGetInfo()
 
 void SolverBlack::testGetInterpolant()
 {
-	//TODO
+  // TODO
 }
 
 void SolverBlack::testGetOp()

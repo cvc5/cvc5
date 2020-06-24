@@ -2133,16 +2133,18 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
-GetInterpolCommand::GetInterpolCommand(api::Solver* solver, const std::string& name, api::Term conj)
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj)
     : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
 GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
-		const std::string& name,
+                                       const std::string& name,
                                        api::Term conj,
                                        const Type& gtype)
     : Command(solver),
-		d_name(name),
+      d_name(name),
       d_conj(conj),
       d_sygus_grammar_type(gtype),
       d_resultStatus(false)
@@ -2199,7 +2201,7 @@ void GetInterpolCommand::printResult(std::ostream& out,
 Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
                                       ExprManagerMapCollection& variableMap)
 {
-	Unimplemented();
+  Unimplemented();
 }
 
 Command* GetInterpolCommand::clone() const

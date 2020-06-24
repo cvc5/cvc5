@@ -1412,8 +1412,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (options::sygusRewSynthInput() || options::produceAbducts())
     {
       std::stringstream ss;
-      ss << (options::sygusRewSynthInput()
-                 ? "--sygus-rr-synth-input" : "--produce-abducts");
+      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
+                                           : "--produce-abducts");
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }
