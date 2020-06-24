@@ -669,15 +669,15 @@ header = "options/smt_options.h"
 [[option.mode.ASSUMPTIONS]]
   name = "assumptions"
   help = "use only operators that occur in the assumptions"
-[[option.mode.CONCLUSION]]
-  name = "conclusion"
-  help = "use only operators that occur in the conclusion"
+[[option.mode.CONJECTURE]]
+  name = "conjecture"
+  help = "use only operators that occur in the conjecture"
 [[option.mode.SHARED]]
   name = "shared"
-  help = "use only operators that occur both in the assumptions and the conclusion"
+  help = "use only operators that occur both in the assumptions and the conjecture"
 [[option.mode.ALL]]
   name = "all"
-  help = "use only operators that occur either in the assumptions or the conclusion"
+  help = "use only operators that occur either in the assumptions or the conjecture"
 
 [[option]]
   name       = "produceAbducts"

@@ -3014,8 +3014,10 @@ class CVC4_PUBLIC Solver
    * Get an interpolant
    * SMT-LIB: ( get-interpol B )
    * Requires to enable option 'produce-interpols'.
-   * @return a Term I such that A->I and I->B are valid, where A is the current
+	 * @param B the conjecture term
+	 * @param output a Term I such that A->I and I->B are valid, where A is the current
    * set of assertions and B is given in the input.
+	 * @return true if it gets I successfully, false otherwise.
    */
   bool getInterpolant(Term B, Term& output) const;
 
