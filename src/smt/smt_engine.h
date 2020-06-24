@@ -877,7 +877,7 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the ProofChecker owned by this SmtEngine. */
   ProofChecker* getProofChecker() { return d_pchecker.get(); }
-  
+
   /* .......................................................................  */
  private:
   /* .......................................................................  */

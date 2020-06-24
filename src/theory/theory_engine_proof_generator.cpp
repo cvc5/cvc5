@@ -37,7 +37,7 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
     // we will prove the fact p using the proof from lpf.
     d_proofs.insert(p, lpf);
     // TEMPORARY:FORCE
-    //std::shared_ptr<ProofNode> pfn = getProofFor(p);
+    // std::shared_ptr<ProofNode> pfn = getProofFor(p);
   }
   return trn;
 }

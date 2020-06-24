@@ -116,9 +116,9 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
 }
 
 bool BuiltinProofRuleChecker::getSubstitution(Node exp,
-                              TNode& var,
-                              TNode& subs,
-                              MethodId ids)
+                                              TNode& var,
+                                              TNode& subs,
+                                              MethodId ids)
 {
   if (ids == MethodId::SB_DEFAULT)
   {

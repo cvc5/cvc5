@@ -34,7 +34,7 @@ enum class TConvPolicy : uint32_t
 };
 /** Writes a term conversion policy name to a stream. */
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol);
-  
+
 /**
  * The term conversion proof generator.
  *
@@ -83,7 +83,9 @@ class TConvProofGenerator : public ProofGenerator
    * @param tpol The policy for applying rewrite steps of this class. For
    * details, see d_policy.
    */
-  TConvProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr, TConvPolicy pol=TConvPolicy::FIXPOINT);
+  TConvProofGenerator(ProofNodeManager* pnm,
+                      context::Context* c = nullptr,
+                      TConvPolicy pol = TConvPolicy::FIXPOINT);
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
@@ -134,7 +136,7 @@ class TConvProofGenerator : public ProofGenerator
   LazyCDProof d_proof;
   /** map to rewritten forms */
   NodeNodeMap d_rewriteMap;
-  /** 
+  /**
    * Policy for how rewrites are applied to terms. As a simple example, say we
    * have registered the rewrite steps:
    *   addRewriteStep( a, f(c), p1 )

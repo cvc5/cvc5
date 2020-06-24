@@ -14,9 +14,9 @@
 
 #include "smt/proof_post_processor.h"
 
+#include "smt/smt_engine.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "smt/smt_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -24,7 +24,8 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
-ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine * smte)
+ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
+                                                   SmtEngine* smte)
     : d_pnm(pnm), d_smte(smte), d_pchecker(pnm ? pnm->getChecker() : nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -211,7 +212,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     Node t = args[0];
     // get the kind of substitution
     MethodId ids = MethodId::SB_DEFAULT;
-    if (args.size()>=2)
+    if (args.size() >= 2)
     {
       builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
     }
@@ -221,17 +222,21 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
       TNode var, subs;
       builtin::BuiltinProofRuleChecker::getSubstitution(c, var, subs, ids);
       // apply the substitution
-      Node ts = t.substitute(var,subs);
-      if (ts!=t)
+      Node ts = t.substitute(var, subs);
+      if (ts != t)
       {
         TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
         // ensure cdp has proof of var = subs
         Node veqs = var.eqNode(subs);
-        if (veqs!=c)
+        if (veqs != c)
         {
           // should be true intro or false intro
-          Assert (subs.isConst());
-          cdp->addStep(veqs, subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, {c}, {});
+          Assert(subs.isConst());
+          cdp->addStep(
+              veqs,
+              subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+              {c},
+              {});
         }
         tcpg.addRewriteStep(var, subs, cdp);
         Node eq = t.eqNode(ts);
@@ -239,8 +244,8 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
         std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
         // should give a proof, if not, then tcpg does not agree with the
         // substitution.
-        Assert (pfn!=nullptr);
-        if (pfn!=nullptr)
+        Assert(pfn != nullptr);
+        if (pfn != nullptr)
         {
           // add to the children of the transitivity step
           tchildren.push_back(eq);
@@ -251,7 +256,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
       }
     }
     Node finalEq = args[0].eqNode(t);
-    if (tchildren.size()>1)
+    if (tchildren.size() > 1)
     {
       cdp->addStep(finalEq, PfRule::TRANS, tchildren, {});
     }
@@ -266,18 +271,19 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   {
     // TODO
     // automatically expand THEORY_REWRITE as well here ?
-    Rewriter * rr = d_smte->getRewriter();
+    Rewriter* rr = d_smte->getRewriter();
     // get the kind of substitution
     MethodId idr = MethodId::RW_REWRITE;
-    if (args.size()>=2)
+    if (args.size() >= 2)
     {
       builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
     }
-    if (idr==MethodId::RW_REWRITE)
+    if (idr == MethodId::RW_REWRITE)
     {
       // use rewrite with proof interface
       TrustNode trn = rr->rewriteWithProof(args[0]);
-      std::shared_ptr<ProofNode> pfn = trn.getGenerator()->getProofFor(trn.getProven());
+      std::shared_ptr<ProofNode> pfn =
+          trn.getGenerator()->getProofFor(trn.getProven());
       cdp->addProof(pfn);
     }
     // TODO
@@ -288,7 +294,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   return Node::null();
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine * smte)
+ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte)
     : d_cb(pnm, smte), d_updater(pnm, d_cb)
 {
 }

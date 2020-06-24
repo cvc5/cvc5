@@ -23,9 +23,9 @@
 #include "expr/proof_node_updater.h"
 
 namespace CVC4 {
-  
+
 class SmtEngine;
-  
+
 namespace smt {
 
 /**
@@ -35,7 +35,7 @@ namespace smt {
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine * smte);
+  ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine* smte);
   ~ProofPostprocessCallback() {}
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
@@ -53,7 +53,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** The proof node manager */
   ProofNodeManager* d_pnm;
   /** Pointer to the SmtEngine, which should have proofs enabled */
-  SmtEngine * d_smte;
+  SmtEngine* d_smte;
   /** The proof checker of the manager */
   ProofChecker* d_pchecker;
   /** Kinds of proof rules we are eliminating */
@@ -69,7 +69,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 class ProofPostproccess
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm, SmtEngine * smte);
+  ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte);
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

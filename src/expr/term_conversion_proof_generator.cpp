@@ -17,7 +17,7 @@
 using namespace CVC4::kind;
 
 namespace CVC4 {
-  
+
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
 {
   switch (tcpol)
@@ -26,11 +26,11 @@ std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
     case TConvPolicy::ONCE: out << "ONCE"; break;
     default: out << "TConvPolicy:unknown"; break;
   }
-  return out;  
+  return out;
 }
 
 TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c, 
+                                         context::Context* c,
                                          TConvPolicy tpol)
     : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context), d_policy(tpol)
 {
@@ -182,7 +182,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
       {
         // d_proof should have a proof of cur = rcur. Hence there is nothing
         // to do here, as pf will reference d_proof to get its proof.
-        if (d_policy==TConvPolicy::FIXPOINT)
+        if (d_policy == TConvPolicy::FIXPOINT)
         {
           // It may be the case that rcur also rewrites, thus we cannot assign
           // the final rewritten form for cur yet. Instead we revisit cur after
@@ -210,7 +210,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
       {
         // only can generate partially rewritten nodes when rewrite again is
         // true.
-        Assert (d_policy!=TConvPolicy::ONCE);
+        Assert(d_policy != TConvPolicy::ONCE);
         // if it was rewritten, check the status of the rewritten node,
         // which should be finished now
         Node rcur = itr->second;
@@ -276,9 +276,9 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
         // did we rewrite ret (at post-rewrite)?
         Node rret;
         // only if not ONCE policy, which only does pre-rewrite
-        if (d_policy!=TConvPolicy::ONCE)
+        if (d_policy != TConvPolicy::ONCE)
         {
-         rret = getRewriteStep(ret);
+          rret = getRewriteStep(ret);
         }
         if (!rret.isNull())
         {
