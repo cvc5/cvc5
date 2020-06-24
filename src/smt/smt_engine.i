@@ -28,6 +28,8 @@
 
 #endif // SWIGJAVA
 
+%ignore CVC4::SmtEngine::getRewriter();
+%ignore CVC4::SmtEngine::getProofChecker();
 %ignore CVC4::SmtEngine::setLogic(const char*);
 %ignore CVC4::SmtEngine::setReplayStream(ExprStream* exprStream);
 %ignore CVC4::smt::currentProofManager();
