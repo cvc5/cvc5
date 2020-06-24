@@ -35,7 +35,7 @@ target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 # test. Do not link against main-test in any other case.
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC4DRIVER)
-target_link_libraries(main-test cvc4 cvc4parser rt)
+target_link_libraries(main-test cvc4 cvc4parser)
 
 #-----------------------------------------------------------------------------#
 # cvc4 binary configuration
@@ -46,7 +46,7 @@ set_target_properties(cvc4-bin
   PROPERTIES
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-target_link_libraries(cvc4-bin cvc4 cvc4parser rt)
+target_link_libraries(cvc4-bin cvc4 cvc4parser)
 if(PROGRAM_PREFIX)
   install(PROGRAMS
     $<TARGET_FILE:cvc4-bin>
