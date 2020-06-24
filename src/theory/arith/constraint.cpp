@@ -678,7 +678,7 @@ void ConstraintRule::print(std::ostream& out) const {
   if (d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel)
   {
     const ConstraintDatabase& database = d_constraint->getDatabase();
-    
+
     size_t coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffs->size()-1 : 0;
     AntecedentId p = d_antecedentEnd;
     // must have at least one antecedent
@@ -778,7 +778,7 @@ bool Constraint::wellFormedFarkasProof() const {
     default:
       return false;
     }
-    
+
     if(coeffIterator == coeffBegin){ return false; }
     --coeffIterator;
     --p;
@@ -888,7 +888,6 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext,
       d_one(1),
       d_negOne(-1)
 {
-  
 }
 
 SortedConstraintMap& ConstraintDatabase::getVariableSCM(ArithVar v) const{
@@ -1105,7 +1104,7 @@ TrustNode Constraint::split()
     std::vector<Node> a = {leqNode.negate(), geqNode.negate()};
     auto notAndNotPf = d_database->d_pnm->mkScope(botPf, a);
     auto orNotNotPf =
-        d_database->d_pnm->mkNode(PfRule::NOT_AND, notAndNotPf, {});
+        d_database->d_pnm->mkNode(PfRule::NOT_AND, {notAndNotPf}, {});
     auto orPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {orNotNotPf}, {lemma});
     trustedLemma = d_database->d_pfGen->mkTrustNode(lemma, orPf);
@@ -1169,7 +1168,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
     return isNot ? hit->getNegation(): hit;
   }else{
     Comparison negCmp = Comparison::parseNormalForm(negationNode);
-    
+
     ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
@@ -1296,7 +1295,7 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
-  
+
   if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Debug("constraints::wffp"));
   }
@@ -1406,7 +1405,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   coeffs != RationalVectorSentinal,
  *   coeffs->size() = a.size() + 1,
  *   for i in [0,a.size) : coeff[i] corresponds to a[i], and
- *   coeff.back() corresponds to the current constraint. 
+ *   coeff.back() corresponds to the current constraint.
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
   if (Debug.isOn("constraints::pf")) {
@@ -1538,7 +1537,7 @@ TrustNode Constraint::externalExplainForPropagation() const
     if (getProofLiteral() != getLiteral())
     {
       pfFromAssumptions = d_database->d_pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, pfFromAssumptions, {getLiteral()});
+          PfRule::MACRO_SR_PRED_TRANSFORM, {pfFromAssumptions}, {getLiteral()});
     }
     auto pf = d_database->d_pnm->mkScope(pfFromAssumptions, assumptions);
     return d_database->d_pfGen->mkTrustedPropagation(getLiteral(), n, pf);
@@ -1560,8 +1559,8 @@ TrustNode Constraint::externalExplainConflict() const
   Node n = safeConstructNary(nb);
   if (options::proofNew())
   {
-    auto pfNot2 =
-        d_database->d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, pf1, {not2});
+    auto pfNot2 = d_database->d_pnm->mkNode(
+        PfRule::MACRO_SR_PRED_TRANSFORM, {pf1}, {not2});
     std::vector<Node> lits;
     if (n.getKind() == Kind::AND)
     {
@@ -1676,7 +1675,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
       if (getWitness() != getProofLiteral())
       {
         pf = d_database->d_pnm->mkNode(
-            PfRule::MACRO_SR_PRED_TRANSFORM, pf, {getProofLiteral()});
+            PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {getProofLiteral()});
       }
     }
   }else if(hasEqualityEngineProof()){
@@ -1692,18 +1691,18 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         for (const auto& h : exp.getNode())
         {
           hypotheses.push_back(d_database->d_pnm->mkNode(
-              PfRule::TRUE_INTRO, d_database->d_pnm->mkAssume(h), {}));
+              PfRule::TRUE_INTRO, {d_database->d_pnm->mkAssume(h)}, {}));
         }
       }
       else
       {
         hypotheses.push_back(d_database->d_pnm->mkNode(
             PfRule::TRUE_INTRO,
-            d_database->d_pnm->mkAssume(exp.getNode()),
+            {d_database->d_pnm->mkAssume(exp.getNode())},
             {}));
       }
       pf = d_database->d_pnm->mkNode(
-          PfRule::MACRO_SR_PRED_TRANSFORM, hypotheses, {getProofLiteral()});
+          PfRule::MACRO_SR_PRED_TRANSFORM, {hypotheses}, {getProofLiteral()});
     }
     Debug("pf::arith::explain")
         << "    explanation: " << exp.getNode() << std::endl;

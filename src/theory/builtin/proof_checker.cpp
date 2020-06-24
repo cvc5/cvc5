@@ -65,8 +65,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
-  // we dont' use the checker currently, since lemmas may contain witness
-  pc->registerChecker(PfRule::THEORY_LEMMA, nullptr);
+  pc->registerChecker(PfRule::THEORY_LEMMA, this);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::THEORY_PREPROCESS, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);

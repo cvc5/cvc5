@@ -33,6 +33,7 @@
 #include "prop/minisat/minisat.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/sat_solver_types.h"
+#include "theory/trust_node.h"
 #include "util/resource_manager.h"
 #include "util/result.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -95,14 +96,11 @@ class PropEngine
    * The formula can be removed by the SAT solver after backtracking lower
    * than the (SAT and SMT) level at which it was asserted.
    *
-   * @param node the formula to assert
-   * @param negated whether the node should be considered to be negated
-   * at the top level (or not)
+   * @param trn the trust node storing the formula to assert
    * @param removable whether this lemma can be quietly removed based
    * on an activity heuristic (or not)
    */
-  void assertLemma(TNode node,
-                   bool negated,
+  void assertLemma(theory::TrustNode trn,
                    bool removable,
                    ProofRule rule,
                    TNode from = TNode::null());

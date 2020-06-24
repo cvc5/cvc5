@@ -54,6 +54,7 @@ Notes:
 
 PR finished:
 
+(0) Add proof option
 (1) Add ProofNode printing as dag via SExpr
 (2) Strings solver state minor update
 (3) string rewrite for re inclusion
@@ -82,16 +83,19 @@ PR finished:
 (38) quantifiers proof checker (req 8)
 (48) remove snorm option
 (49) re elim static
+(51) TrustNode rewrite kind
 
 PRs ready:
 
-(0) Add proof option *
 (17) rewriter new infrastructure "rewriteEqualityExt"
 (23) Updates to proof node manager, including mkScope (req 19) *
 (25) Arithmetic proof checker [Alex]
+(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27) *
 (37) Rewriter proof producing [Andres] (req 36)
+(39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (45) regexp operation refactor (req 3, 7, 8) *
-(51) TrustNode rewrite kind
+(50) term formula removal proof producing (req 36, 38, 51)
+(60) proof node updater utility (req 23)
 
 PRs future:
 
@@ -100,29 +104,27 @@ PRs future:
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35)
 (29) CongruenceManager uses pfee [Alex] (req 24, 25)
-(30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
-(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
-(39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (41) SharedTermDatabase uses pfee (req 24)
 (42) String rules, string checker (req 5, 17, 22, 45)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 41)
 (46) strings term registry proof producing (req 32, 35)
-(47) TheoryUF proof producing [Haniel] (req 24)
-(50) theory preprocess proof producing (req 27, 48, 51)
-(52) term formula removal proof producing (req 36, 38, 51)
+(47) TheoryUF proof producing [Haniel] (req 24, 39)
+(52) theory preprocess proof producing (req 27, 48, 51, 50)
 (53) CNF proof producing [Haniel]
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
-(57) DSL rewrite rule compilation, including side condition utility [Andres] TODO (req 56)
 (58) DSL rewrite rule proof generator (req 57)
 (59) proof post-processor, add expand interface to checkers
 
 PRs wish list:
 
+(30) Arithmetic operator elimination proof producing (req 25, 28, 33)
 - SAT solver proof producing
 - SEXPR simply typed
+(56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?
+- SMT engine proof postprocessor (req 60)

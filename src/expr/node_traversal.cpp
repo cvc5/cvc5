@@ -63,8 +63,11 @@ TNode& NodeDfsIterator::operator*()
   return d_current;
 }
 
-bool NodeDfsIterator::operator==(const NodeDfsIterator& other) const
+bool NodeDfsIterator::operator==(NodeDfsIterator& other)
 {
+  // Unitialize this node, and the other, before comparing.
+  initializeIfUninitialized();
+  other.initializeIfUninitialized();
   // The stack and current node uniquely represent traversal state. We need not
   // use the scheduled node set.
   //
@@ -74,7 +77,7 @@ bool NodeDfsIterator::operator==(const NodeDfsIterator& other) const
   return d_stack == other.d_stack && d_current == other.d_current;
 }
 
-bool NodeDfsIterator::operator!=(const NodeDfsIterator& other) const
+bool NodeDfsIterator::operator!=(NodeDfsIterator& other)
 {
   return !(*this == other);
 }

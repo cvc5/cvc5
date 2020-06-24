@@ -20,32 +20,60 @@
 #include <map>
 #include <unordered_set>
 
-#include "expr/proof_node.h"
-#include "expr/proof_node_manager.h"
+#include "expr/proof_node_updater.h"
 
 namespace CVC4 {
 namespace smt {
 
 /**
- *
+ * A callback class used by SmtEngine for post-processing proof nodes using
+ * expand methods.
  */
-class ProofPostProcessor
+class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostProcessor(ProofNodeManager* pnm);
-  ~ProofPostProcessor() {}
-  /**
-   * Indicate that the given proof rule should be eliminated
-   */
-  void eliminate(PfRule rule);
+  ProofPostprocessCallback(ProofNodeManager* pnm);
+  ~ProofPostprocessCallback() {}
+  /** set eliminate rule */
+  void setEliminateRule(PfRule rule);
+  /** Should proof pn be updated? */
+  bool shouldUpdate(ProofNode* pn) override;
+  /** Update the proof rule application. */
+  bool update(PfRule id,
+              const std::vector<Node>& children,
+              const std::vector<Node>& args,
+              CDProof* cdp) override;
+
+ private:
+  /** Common constants */
+  Node d_true;
+  /** The proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The proof checker of the manager */
+  ProofChecker* d_pchecker;
+  /** Kinds of proof rules we are eliminating */
+  std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  /** update internal */
+  Node updateInternal(PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp);
+};
+
+/** The proof postprocessor module */
+class ProofPostproccess
+{
+ public:
+  ProofPostproccess(ProofNodeManager* pnm);
+  ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
-  /** Kinds of proof rules we are eliminating */
-  std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  /** The post process callback */
+  ProofPostprocessCallback d_cb;
+  /** The proof node updater */
+  ProofNodeUpdater d_updater;
 };
 
 }  // namespace smt

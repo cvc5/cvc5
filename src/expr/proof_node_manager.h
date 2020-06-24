@@ -73,11 +73,6 @@ class ProofNodeManager
       const std::vector<std::shared_ptr<ProofNode>>& children,
       const std::vector<Node>& args,
       Node expected = Node::null());
-  /** Construct proof node, single child version */
-  std::shared_ptr<ProofNode> mkNode(PfRule id,
-                                    std::shared_ptr<ProofNode> child1,
-                                    const std::vector<Node>& args,
-                                    Node expected = Node::null());
   /**
    * Make the proof node corresponding to the assumption of fact.
    *

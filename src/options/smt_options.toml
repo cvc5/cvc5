@@ -170,7 +170,7 @@ header = "options/smt_options.h"
   long       = "proof-new"
   type       = "bool"
   default    = "true"
-  help       = "do proof production in the new format"
+  help       = "do proof production using the new infrastructure"
 
 [[option]]
   name       = "proofNewPedantic"
