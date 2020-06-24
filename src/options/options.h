@@ -63,7 +63,7 @@ class CVC4_PUBLIC Options {
   /** Listeners for options::rlimit. */
   ListenerCollection d_rlimitListeners;
 
-  /** Listeners for options::tlimit-per. */
+  /** Listeners for options::rlimit-per. */
   ListenerCollection d_rlimitPerListeners;
 
   /** Listeners for options::defaultExprDepth. */
