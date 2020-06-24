@@ -1890,11 +1890,9 @@ theory::TrustNode TheoryEngine::getExplanation(
 
   Node conclusion = explanationVector[0].d_node;
   std::shared_ptr<LazyCDProof> lcp;
-  bool simpleExplain = true;
-  TrustNode simpleTrn;
   if (d_lazyProof != nullptr)
   {
-    Trace("te-proof-exp") << "TheoryEngine::getExplanation " << conclusion
+    Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
     lcp.reset(new LazyCDProof(d_pnm));
   }
@@ -1941,7 +1939,6 @@ theory::TrustNode TheoryEngine::getExplanation(
         args.push_back(toExplain.d_node);
         lcp->addStep(
             toExplain.d_node, PfRule::MACRO_SR_PRED_INTRO, children, args);
-        simpleExplain = false;
       }
       continue;
     }
@@ -2020,9 +2017,10 @@ theory::TrustNode TheoryEngine::getExplanation(
             Trace("te-proof-exp")
                 << "- t-explained cached: " << toExplain.d_node << " by "
                 << (*find).second.d_node << std::endl;
-            // delay explanation, use a dummy trust node
+            // delay explanation, use a dummy trust node that says that
+            // (*find).second.d_node explains toExplain.d_node.
             TrustNode tnRewExp = TrustNode::mkTrustPropExp(
-                (*find).second.d_node, toExplain.d_node, nullptr);
+                toExplain.d_node, (*find).second.d_node, nullptr);
             texplains.push_back(
                 std::pair<TheoryId, TrustNode>(THEORY_LAST, tnRewExp));
           }
@@ -2154,9 +2152,17 @@ theory::TrustNode TheoryEngine::getExplanation(
     }
     expNode = conjunction;
   }
-
   if (lcp != nullptr)
   {
+    if (Trace.isOn("te-proof-exp"))
+    {
+      Trace("te-proof-exp") << "Explanation is:" << std::endl;
+      for (const Node& e : exp)
+      {
+        Trace("te-proof-exp") << "  " << e << std::endl;
+      }
+      Trace("te-proof-exp") << "=== Replay explanations..." << std::endl;
+    }
     // Now, go back and add the necessary steps of theory explanations, i.e.
     // add those that prove things that aren't in the final explanation.
     for (std::vector<std::pair<TheoryId, TrustNode>>::reverse_iterator
@@ -2170,17 +2176,20 @@ theory::TrustNode TheoryEngine::getExplanation(
       Node proven = trn.getProven();
       Assert(proven.getKind() == kind::IMPLIES);
       Node tConc = proven[1];
+      Trace("te-proof-exp") << "- Process " << trn << std::endl;
       if (exp.find(tConc) != exp.end())
       {
         // already added to proof
+        Trace("te-proof-exp") << "...already added" << std::endl;
         continue;
       }
-      if (tConc.getKind() == kind::EQUAL)
+      Node symTConc = CDProof::getSymmFact(tConc);
+      if (!symTConc.isNull())
       {
-        Node tConcSym = tConc[1].eqNode(tConc[0]);
-        if (exp.find(tConcSym) != exp.end())
+        if (exp.find(symTConc) != exp.end())
         {
           // symmetric direction
+          Trace("te-proof-exp") << "...already added (SYMM)" << std::endl;
           continue;
         }
       }
@@ -2200,7 +2209,7 @@ theory::TrustNode TheoryEngine::getExplanation(
           std::vector<Node> pfChildren;
           pfChildren.insert(pfChildren.end(), tConc.begin(), tConc.end());
           lcp->addStep(tConc, PfRule::AND_INTRO, pfChildren, {});
-          simpleExplain = false;
+          Trace("te-proof-exp") << "...via AND_INTRO" << std::endl;
           continue;
         }
         // otherwise should hold by rewriting
@@ -2209,11 +2218,13 @@ theory::TrustNode TheoryEngine::getExplanation(
         // ---- MACRO_SR_PRED_TRANSFORM
         // tConc
         lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, {tExp}, {tConc});
+        Trace("te-proof-exp") << "...via MACRO_SR_PRED_TRANSFORM" << std::endl;
         continue;
       }
       if (tExp == tConc)
       {
         // trivial
+        Trace("te-proof-exp") << "...trivial" << std::endl;
         continue;
       }
       // ------------- Via theory
@@ -2222,11 +2233,12 @@ theory::TrustNode TheoryEngine::getExplanation(
       // tConc
       if (trn.getGenerator() != nullptr)
       {
+        Trace("te-proof-exp") << "...via theory generator" << std::endl;
         lcp->addLazyStep(proven, trn.getGenerator());
       }
       else
       {
-        Trace("te-proof-exp") << "...trust THEORY_LEMMA" << std::endl;
+        Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
         std::vector<Node> pfArgs;
         pfArgs.push_back(proven);
@@ -2250,20 +2262,6 @@ theory::TrustNode TheoryEngine::getExplanation(
       pfArgs.push_back(tConc);
       pfArgs.push_back(mkMethodId(MethodId::SB_FORMULA));
       lcp->addStep(tConc, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
-      if (simpleExplain)
-      {
-        if (simpleTrn.isNull())
-        {
-          // as an optimization, it may be a simple explanation, so we
-          // remember the trust node for now
-          simpleTrn = trn;
-        }
-        else
-        {
-          // multiple theories involved, not simple
-          simpleExplain = false;
-        }
-      }
     }
 
     // doesn't work currently due to reordering of assumptions

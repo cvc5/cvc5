@@ -208,7 +208,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     //   TRANS( CONG{f}( a=g(b) ), CONG{f}( CONG{g}( b = c ) ) )
     // Notice that more optimal proofs are possible that do a single traversal:
     //   CONG{f}( TRANS( a=g(b), CONG{g}( b=c ) ) )
-    // This is significantly more challenging and is not addressed here.
+    // This is significantly more challenging and is not done here.
     Node t = args[0];
     // get the kind of substitution
     MethodId ids = MethodId::SB_DEFAULT;
@@ -269,24 +269,44 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   }
   else if (id == PfRule::REWRITE)
   {
-    // TODO
-    // automatically expand THEORY_REWRITE as well here ?
-    Rewriter* rr = d_smte->getRewriter();
-    // get the kind of substitution
+    // get the kind of rewrite
     MethodId idr = MethodId::RW_REWRITE;
     if (args.size() >= 2)
     {
       builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
     }
-    if (idr == MethodId::RW_REWRITE)
+    Node ret = builtin::BuiltinProofRuleChecker::applyRewrite(args[0], idr);
+    Node eq = args[0].eqNode(ret);
+    if (idr == MethodId::RW_REWRITE || idr==MethodId::RW_REWRITE_EQ_EXT)
     {
+      // rewrites from theory::Rewriter
+      // automatically expand THEORY_REWRITE as well here if set
+      bool elimTR = (d_elimRules.find(PfRule::THEORY_REWRITE) != d_elimRules.end());
+      bool isExtEq = (idr==MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
-      TrustNode trn = rr->rewriteWithProof(args[0]);
+      Rewriter* rr = d_smte->getRewriter();
+      TrustNode trn = rr->rewriteWithProof(args[0], elimTR, isExtEq);
       std::shared_ptr<ProofNode> pfn =
           trn.getGenerator()->getProofFor(trn.getProven());
       cdp->addProof(pfn);
+      Assert (trn.getNode()==ret);
     }
-    // TODO
+    else if (idr == MethodId::RW_EVALUATE)
+    {
+      // change to evaluate, which is never eliminated
+      cdp->addStep(eq, PfRule::EVALUATE, {}, {args[0]});
+    }
+    else
+    {
+      // don't know how to eliminate
+      return Node::null();
+    }
+    if (args[0]==ret)
+    {
+      // should not be necessary typically
+      cdp->addStep(eq, PfRule::REFL, {}, {args[0]});
+    }
+    return eq;
   }
 
   // THEORY_LEMMA, THEORY_PREPROCESS?
