@@ -177,6 +177,22 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
     TS_ASSERT_EQUALS(actual, expected);
   }
+
+  void testSkipAll()
+  {
+    Node tb = d_nodeManager->mkConst(true);
+    Node eb = d_nodeManager->mkConst(false);
+    Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+    Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+    std::vector<TNode> expected = {};
+
+    auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER,
+        [](TNode n) { return true; });
+
+    std::vector<TNode> actual;
+    std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
+    TS_ASSERT_EQUALS(actual, expected);
+  }
 };
 
 class NodePreorderTraversalBlack : public CxxTest::TestSuite

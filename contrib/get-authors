@@ -62,6 +62,7 @@ while [ $# -gt 0 ]; do
     sed 's/makaimann/Makai Mann/' | \
     sed 's/Martin Brain/Martin/' | \
     sed 's/Martin/Martin Brain/' | \
+    sed 's/nafur/Gereon Kremer/' | \
     sed 's/justinxu421/Justin Xu/' | \
     sed 's/yoni206/Yoni Zohar/' | \
     sed 's/ayveejay/Andrew V. Jones/' | \
