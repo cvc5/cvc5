@@ -23,11 +23,6 @@
 namespace CVC4 {
 namespace expr {
 
-
-void TlimitListener::notify() {
-  d_rm->setTimeLimit(options::cumulativeMillisecondLimit(), true);
-}
-
 void TlimitPerListener::notify() {
   d_rm->setTimeLimit(options::perCallMillisecondLimit(), false);
 }

@@ -25,15 +25,6 @@
 namespace CVC4 {
 namespace expr {
 
-class TlimitListener : public Listener {
- public:
-  TlimitListener(ResourceManager* rm) : d_rm(rm) {}
-  void notify() override;
-
- private:
-  ResourceManager* d_rm;
-};
-
 class TlimitPerListener : public Listener {
  public:
   TlimitPerListener(ResourceManager* rm) : d_rm(rm) {}

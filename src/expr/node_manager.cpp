@@ -147,16 +147,11 @@ void NodeManager::init() {
   if((*d_options)[options::perCallMillisecondLimit] != 0) {
     d_resourceManager->setTimeLimit((*d_options)[options::perCallMillisecondLimit], false);
   }
-  if((*d_options)[options::cumulativeMillisecondLimit] != 0) {
-    d_resourceManager->setTimeLimit((*d_options)[options::cumulativeMillisecondLimit], true);
-  }
   if((*d_options)[options::cpuTime]) {
     d_resourceManager->useCPUTime(true);
   }
 
   // Do not notify() upon registration as these were handled manually above.
-  d_registrations->add(d_options->registerTlimitListener(
-      new TlimitListener(d_resourceManager), false));
   d_registrations->add(d_options->registerTlimitPerListener(
       new TlimitPerListener(d_resourceManager), false));
   d_registrations->add(d_options->registerRlimitListener(
