@@ -522,13 +522,13 @@ void PropEngine::startResChain(Minisat::Solver::TClause& start)
 void PropEngine::addResolutionStep(Minisat::Solver::TLit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Trace("sat-proof") << push << "PropEngine::addResolutionStep: justify lit "
+  Trace("sat-proof") << CVC4::push << "PropEngine::addResolutionStep: justify lit "
                      << satLit << "\n";
   tryJustifyingLit(~satLit);
   d_resolution.push_back(
       std::pair<Node, Node>(d_cnfStream->d_literalToNodeMap[~satLit],
                             d_cnfStream->d_literalToNodeMap[satLit]));
-  Trace("sat-proof") << pop << "PropEngine::addResolutionStep: [" << satLit
+  Trace("sat-proof") << CVC4::pop << "PropEngine::addResolutionStep: [" << satLit
                      << "] " << ~satLit << "\n";
 }
 
@@ -543,9 +543,9 @@ void PropEngine::addResolutionStep(Minisat::Solver::TClause& clause,
   // clause has not been registered yet
   if (d_clauseSet.count(clauseNode))
   {
-    Trace("sat-proof") << push;
+    Trace("sat-proof") << CVC4::push;
     registerClause(clause);
-    Trace("sat-proof") << pop;
+    Trace("sat-proof") << CVC4::pop;
   }
   d_resolution.push_back(std::pair<Node, Node>(
       clauseNode, d_cnfStream->d_literalToNodeMap[satLit]));
@@ -647,13 +647,13 @@ void PropEngine::endResChain(Node conclusion)
 void PropEngine::tryJustifyingLit(SatLiteral lit)
 {
   Node litNode = getClauseNode(lit);
-  Trace("sat-proof") << push << "PropEngine::tryJustifyingLit: Lit: " << lit
+  Trace("sat-proof") << CVC4::push << "PropEngine::tryJustifyingLit: Lit: " << lit
                      << "[" << litNode << "]\n";
   if (d_clauseSet.count(litNode))
   {
     Trace("sat-proof") << "PropEngine::tryJustifyingLit: not "
                           "registered as clause\n"
-                       << pop;
+                       << CVC4::pop;
     return;
   }
   Minisat::Solver::TCRef reasonRef =
@@ -661,7 +661,7 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
   if (reasonRef == Minisat::Solver::TCRef_Undef)
   {
     Trace("sat-proof") << "PropEngine::tryJustifyingLit: no SAT reason\n"
-                       << pop;
+                       << CVC4::pop;
     return;
   }
   Assert(reasonRef >= 0 && reasonRef < d_satSolver->ca.size())
@@ -682,7 +682,7 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
   Assert(d_clauseIdToNode.find(initialReason.proofId())
          != d_clauseIdToNode.end());
   std::vector<Node> children{d_clauseIdToNode[initialReason.proofId()]}, args;
-  Trace("sat-proof") << push;
+  Trace("sat-proof") << CVC4::push;
   for (unsigned i = 0; i < currentReason_size; ++i)
   {
     const Minisat::Solver::TClause& currentReason = d_satSolver->ca[reasonRef];
@@ -701,7 +701,7 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
     children.push_back(d_cnfStream->d_literalToNodeMap[~curr_lit]);
     args.push_back(d_cnfStream->d_literalToNodeMap[curr_lit]);
   }
-  Trace("sat-proof") << pop;
+  Trace("sat-proof") << CVC4::pop;
   if (Trace.isOn("sat-proof"))
   {
     Trace("sat-proof") << "PropEngine::tryJustifyingLit: chain_res for "
@@ -718,7 +718,7 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
   }
   // only build resolution if not cyclic
   d_proof.addStep(litNode, PfRule::CHAIN_RESOLUTION, children, args);
-  Trace("sat-proof") << pop;
+  Trace("sat-proof") << CVC4::pop;
 }
 
 void PropEngine::finalizeProof(Node inConflictNode,
@@ -741,7 +741,7 @@ void PropEngine::finalizeProof(Node inConflictNode,
   // For each l_i, a resolution step is created with the id of the step allowing
   // the derivation of ~l_i, whose pivot in the inConflict will be l_i. All
   // resolution steps will be saved in the given reasons vector.
-  Trace("sat-proof") << push;
+  Trace("sat-proof") << CVC4::push;
   // premises and arguments for final resolution
   std::vector<Node> children{clauseNode}, args;
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
@@ -753,7 +753,7 @@ void PropEngine::finalizeProof(Node inConflictNode,
     children.push_back(d_cnfStream->d_literalToNodeMap[~inConflict[i]]);
     args.push_back(d_cnfStream->d_literalToNodeMap[inConflict[i]]);
   }
-  Trace("sat-proof") << pop;
+  Trace("sat-proof") << CVC4::pop;
   if (Trace.isOn("sat-proof"))
   {
     Trace("sat-proof")
