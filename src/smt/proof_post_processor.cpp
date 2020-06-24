@@ -277,19 +277,20 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     }
     Node ret = builtin::BuiltinProofRuleChecker::applyRewrite(args[0], idr);
     Node eq = args[0].eqNode(ret);
-    if (idr == MethodId::RW_REWRITE || idr==MethodId::RW_REWRITE_EQ_EXT)
+    if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
       // rewrites from theory::Rewriter
       // automatically expand THEORY_REWRITE as well here if set
-      bool elimTR = (d_elimRules.find(PfRule::THEORY_REWRITE) != d_elimRules.end());
-      bool isExtEq = (idr==MethodId::RW_REWRITE_EQ_EXT);
+      bool elimTR =
+          (d_elimRules.find(PfRule::THEORY_REWRITE) != d_elimRules.end());
+      bool isExtEq = (idr == MethodId::RW_REWRITE_EQ_EXT);
       // use rewrite with proof interface
       Rewriter* rr = d_smte->getRewriter();
       TrustNode trn = rr->rewriteWithProof(args[0], elimTR, isExtEq);
       std::shared_ptr<ProofNode> pfn =
           trn.getGenerator()->getProofFor(trn.getProven());
       cdp->addProof(pfn);
-      Assert (trn.getNode()==ret);
+      Assert(trn.getNode() == ret);
     }
     else if (idr == MethodId::RW_EVALUATE)
     {
@@ -301,7 +302,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
       // don't know how to eliminate
       return Node::null();
     }
-    if (args[0]==ret)
+    if (args[0] == ret)
     {
       // should not be necessary typically
       cdp->addStep(eq, PfRule::REFL, {}, {args[0]});

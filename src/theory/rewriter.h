@@ -81,7 +81,7 @@ class Rewriter {
    * Rewrite with proof production, which is managed by the term conversion
    * proof generator managed by this class (d_tpg). This method requires a call
    * to setProofChecker prior to this call.
-   * 
+   *
    * @param node The node to rewrite.
    * @param elimTheoryRewrite Whether we also want fine-grained proofs for
    * THEORY_REWRITE steps.
@@ -90,12 +90,13 @@ class Rewriter {
    * @return The trust node of kind TrustNodeKind::REWRITE that contains the
    * rewritten form of node.
    */
-  TrustNode rewriteWithProof(TNode node, bool elimTheoryRewrite=false,
-                             bool isExtEq=false);
+  TrustNode rewriteWithProof(TNode node,
+                             bool elimTheoryRewrite = false,
+                             bool isExtEq = false);
 
   /** Set proof checker */
   void setProofChecker(ProofChecker* pc);
-  
+
   /**
    * Garbage collects the rewrite caches.
    */

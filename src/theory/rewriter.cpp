@@ -101,14 +101,17 @@ Node Rewriter::rewrite(TNode node) {
   return getInstance()->rewriteTo(theoryOf(node), node);
 }
 
-TrustNode Rewriter::rewriteWithProof(TNode node, bool elimTheoryRewrite, bool isExtEq)
+TrustNode Rewriter::rewriteWithProof(TNode node,
+                                     bool elimTheoryRewrite,
+                                     bool isExtEq)
 {
   // must set the proof checker before calling this
   Assert(d_tpg != nullptr);
   if (isExtEq)
   {
     // TODO
-    //return getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExtWithProof(
+    // return
+    // getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExtWithProof(
     //  node);
   }
   Node ret = getInstance()->rewriteTo(theoryOf(node), node, d_tpg.get());
