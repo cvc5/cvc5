@@ -15,6 +15,8 @@
 #include "smt/proof_post_processor.h"
 
 #include "theory/builtin/proof_checker.h"
+#include "theory/rewriter.h"
+#include "smt/smt_engine.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -22,8 +24,8 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
-ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm)
-    : d_pnm(pnm), d_pchecker(pnm ? pnm->getChecker() : nullptr)
+ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine * smte)
+    : d_pnm(pnm), d_smte(smte), d_pchecker(pnm ? pnm->getChecker() : nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -200,12 +202,85 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   }
   else if (id == PfRule::SUBS)
   {
-    // TODO
+    // This does a term conversion proof *for each* substitution.
+    // The proof of f(a) * { a -> g(b) } * { b -> c } = f(g(c)) is:
+    //   TRANS( CONG{f}( a=g(b) ), CONG{f}( CONG{g}( b = c ) ) )
+    // Notice that more optimal proofs are possible that do a single traversal:
+    //   CONG{f}( TRANS( a=g(b), CONG{g}( b=c ) ) )
+    // This is significantly more challenging and is not addressed here.
+    Node t = args[0];
+    // get the kind of substitution
+    MethodId ids = MethodId::SB_DEFAULT;
+    if (args.size()>=2)
+    {
+      builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
+    }
+    std::vector<Node> tchildren;
+    for (const Node& c : children)
+    {
+      TNode var, subs;
+      builtin::BuiltinProofRuleChecker::getSubstitution(c, var, subs, ids);
+      // apply the substitution
+      Node ts = t.substitute(var,subs);
+      if (ts!=t)
+      {
+        TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
+        // ensure cdp has proof of var = subs
+        Node veqs = var.eqNode(subs);
+        if (veqs!=c)
+        {
+          // should be true intro or false intro
+          Assert (subs.isConst());
+          cdp->addStep(veqs, subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO, {c}, {});
+        }
+        tcpg.addRewriteStep(var, subs, cdp);
+        Node eq = t.eqNode(ts);
+        // add the proof constructed by the term conversion utility
+        std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
+        // should give a proof, if not, then tcpg does not agree with the
+        // substitution.
+        Assert (pfn!=nullptr);
+        if (pfn!=nullptr)
+        {
+          // add to the children of the transitivity step
+          tchildren.push_back(eq);
+          cdp->addProof(pfn);
+        }
+        // update term
+        t = ts;
+      }
+    }
+    Node finalEq = args[0].eqNode(t);
+    if (tchildren.size()>1)
+    {
+      cdp->addStep(finalEq, PfRule::TRANS, tchildren, {});
+    }
+    else if (tchildren.empty())
+    {
+      // should not be necessary typically
+      cdp->addStep(finalEq, PfRule::REFL, {}, {t});
+    }
+    return finalEq;
   }
   else if (id == PfRule::REWRITE)
   {
     // TODO
     // automatically expand THEORY_REWRITE as well here ?
+    Rewriter * rr = d_smte->getRewriter();
+    // get the kind of substitution
+    MethodId idr = MethodId::RW_REWRITE;
+    if (args.size()>=2)
+    {
+      builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
+    }
+    if (idr==MethodId::RW_REWRITE)
+    {
+      // use rewrite with proof interface
+      TrustNode trn = rr->rewriteWithProof(args[0]);
+      std::shared_ptr<ProofNode> pfn = trn.getGenerator()->getProofFor(trn.getProven());
+      cdp->addProof(pfn);
+    }
+    // TODO
   }
 
   // THEORY_LEMMA, THEORY_PREPROCESS?
@@ -213,8 +288,8 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   return Node::null();
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm)
-    : d_cb(pnm), d_updater(pnm, d_cb)
+ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine * smte)
+    : d_cb(pnm, smte), d_updater(pnm, d_cb)
 {
 }
 

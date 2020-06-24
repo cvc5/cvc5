@@ -115,14 +115,16 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   return n;
 }
 
-Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
+bool BuiltinProofRuleChecker::getSubstitution(Node exp,
+                              TNode& var,
+                              TNode& subs,
+                              MethodId ids)
 {
-  TNode var, subs;
   if (ids == MethodId::SB_DEFAULT)
   {
     if (exp.getKind() != EQUAL)
     {
-      return Node::null();
+      return false;
     }
     var = exp[0];
     subs = exp[1];
@@ -143,6 +145,17 @@ Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
     Assert(false) << "BuiltinProofRuleChecker::applySubstitution: no "
                      "substitution for "
                   << ids << std::endl;
+    return false;
+  }
+  return true;
+}
+
+Node BuiltinProofRuleChecker::applySubstitution(Node n, Node exp, MethodId ids)
+{
+  TNode var, subs;
+  if (!getSubstitution(exp, var, subs, ids))
+  {
+    return Node::null();
   }
   Trace("builtin-pfcheck-debug")
       << "applySubstitution (" << ids << "): " << var << " -> " << subs

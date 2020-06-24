@@ -91,6 +91,15 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * @return The rewritten form of n
    */
   static Node applyTheoryRewrite(Node n, bool preRewrite);
+  /** 
+   * Get substitution. Updates vars/subs to the substitution specified by
+   * exp for the substitution method ids.
+   */
+  static bool getSubstitution(Node exp,
+                              TNode& var,
+                              TNode& subs,
+                              MethodId ids = MethodId::SB_DEFAULT);
+  
   /**
    * Apply substitution on n in skolem form. This encapsulates the exact
    * behavior of a SUBS step in a proof.
