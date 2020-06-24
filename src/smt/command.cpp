@@ -2133,24 +2133,25 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
-GetInterpolCommand::GetInterpolCommand() {}
-GetInterpolCommand::GetInterpolCommand(const std::string& name, Expr conj)
-    : d_name(name), d_conj(conj), d_resultStatus(false)
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver, const std::string& name, api::Term conj)
+    : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
-GetInterpolCommand::GetInterpolCommand(const std::string& name,
-                                       Expr conj,
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+		const std::string& name,
+                                       api::Term conj,
                                        const Type& gtype)
-    : d_name(name),
+    : Command(solver),
+		d_name(name),
       d_conj(conj),
       d_sygus_grammar_type(gtype),
       d_resultStatus(false)
 {
 }
 
-Expr GetInterpolCommand::getConjecture() const { return d_conj; }
+api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
 Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
-Expr GetInterpolCommand::getResult() const { return d_result; }
+api::Term GetInterpolCommand::getResult() const { return d_result; }
 
 void GetInterpolCommand::invoke(SmtEngine* smtEngine)
 {
@@ -2158,12 +2159,12 @@ void GetInterpolCommand::invoke(SmtEngine* smtEngine)
   {
     if (d_sygus_grammar_type.isNull())
     {
-      d_resultStatus = smtEngine->getInterpol(d_conj, d_result);
+      d_resultStatus = d_solver->getInterpolant(d_conj, d_result);
     }
     else
     {
       d_resultStatus =
-          smtEngine->getInterpol(d_conj, d_sygus_grammar_type, d_result);
+          d_solver->getInterpolant(d_conj, d_sygus_grammar_type, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2198,16 +2199,12 @@ void GetInterpolCommand::printResult(std::ostream& out,
 Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
                                       ExprManagerMapCollection& variableMap)
 {
-  GetInterpolCommand* c =
-      new GetInterpolCommand(d_name, d_conj.exportTo(exprManager, variableMap));
-  c->d_result = d_result.exportTo(exprManager, variableMap);
-  c->d_resultStatus = d_resultStatus;
-  return c;
+	Unimplemented();
 }
 
 Command* GetInterpolCommand::clone() const
 {
-  GetInterpolCommand* c = new GetInterpolCommand(d_name, d_conj);
+  GetInterpolCommand* c = new GetInterpolCommand(d_solver, d_name, d_conj);
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;
   return c;

@@ -1060,10 +1060,9 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     // template inference for invariant synthesis, and single invocation
     // techniques.
     bool reqBasicSygus = false;
-    if (options::produceAbducts()
-        || options::produceInterpols() != options::ProduceInterpols::NONE)
+    if (options::produceAbducts())
     {
-      // if doing abduction or interpolation, we should filter strong solutions
+      // if doing abduction, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
       {
         options::sygusFilterSolMode.set(options::SygusFilterSolMode::STRONG);
@@ -1410,14 +1409,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput() || options::produceAbducts()
-        || options::produceInterpols() != options::ProduceInterpols::NONE)
+    if (options::sygusRewSynthInput() || options::produceAbducts())
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput()
-                 ? "--sygus-rr-synth-input"
-                 : (options::produceAbducts() ? "--produce-abducts"
-                                              : "--produce-interpols"));
+                 ? "--sygus-rr-synth-input" : "--produce-abducts");
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }

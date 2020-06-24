@@ -3012,20 +3012,32 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol B )
+   * SMT-LIB: ( get-interpol <term> )
    * Requires to enable option 'produce-interpols'.
-   * @param B the conjecture term
+   * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
-   * current set of assertions and B is given in the input.
+   *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
-  bool getInterpolant(Term B, Term& output) const;
+  bool getInterpolant(Term conj, Term& output) const;
 
-  /**
-   * Print the model of a satisfiable query to the given output stream.
-   * Requires to enable option 'produce-models'.
-   * @param out the output stream
-   */
+	/**
+	 * Get an interpolant
+	 * SMT-LIB: ( get-interpol <term> )
+	 * Requires to enable option 'produce-interpols'.
+	 * @param conj the conjecture term
+	 * @param gtype the grammar for the interpolant I
+	 * @param output a Term I such that A->I and I->B are valid, where A is the
+	 *        current set of assertions and B is given in the input by conj.
+	 * @return true if it gets I successfully, false otherwise.
+	 */
+	bool getInterpolant(Term conj, const Type& gtype, Term& output) const;
+
+	/**
+	 * Print the model of a satisfiable query to the given output stream.
+	 * Requires to enable option 'produce-models'.
+	 * @param out the output stream
+	 */
   void printModel(std::ostream& out) const;
 
   /**

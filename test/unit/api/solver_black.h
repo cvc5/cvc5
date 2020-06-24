@@ -95,11 +95,12 @@ class SolverBlack : public CxxTest::TestSuite
   void testUFIteration();
 
   void testGetInfo();
+	void testGetInterpolant();
   void testGetOp();
-  void testGetOption();
-  void testGetUnsatAssumptions1();
-  void testGetUnsatAssumptions2();
-  void testGetUnsatAssumptions3();
+	void testGetOption();
+	void testGetUnsatAssumptions1();
+	void testGetUnsatAssumptions2();
+	void testGetUnsatAssumptions3();
   void testGetUnsatCore1();
   void testGetUnsatCore2();
   void testGetUnsatCore3();
@@ -1291,6 +1292,11 @@ void SolverBlack::testGetInfo()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver->getInfo("name"));
   TS_ASSERT_THROWS(d_solver->getInfo("asdf"), CVC4ApiException&);
+}
+
+void SolverBlack::testGetInterpolant()
+{
+	//TODO
 }
 
 void SolverBlack::testGetOp()
