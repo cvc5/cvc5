@@ -252,47 +252,61 @@ Result PropEngine::checkSat() {
   return Result(result == SAT_VALUE_TRUE ? Result::SAT : Result::UNSAT);
 }
 
-Node PropEngine::getValue(TNode node) const {
+Node PropEngine::getValue(TNode node) const
+{
   Assert(node.getType().isBoolean());
   Assert(d_cnfStream->hasLiteral(node));
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
   SatValue v = d_satSolver->value(lit);
-  if(v == SAT_VALUE_TRUE) {
+  if (v == SAT_VALUE_TRUE)
+  {
     return NodeManager::currentNM()->mkConst(true);
-  } else if(v == SAT_VALUE_FALSE) {
+  }
+  else if (v == SAT_VALUE_FALSE)
+  {
     return NodeManager::currentNM()->mkConst(false);
-  } else {
+  }
+  else
+  {
     Assert(v == SAT_VALUE_UNKNOWN);
     return Node::null();
   }
 }
 
-bool PropEngine::isSatLiteral(TNode node) const {
+bool PropEngine::isSatLiteral(TNode node) const
+{
   return d_cnfStream->hasLiteral(node);
 }
 
-bool PropEngine::hasValue(TNode node, bool& value) const {
+bool PropEngine::hasValue(TNode node, bool& value) const
+{
   Assert(node.getType().isBoolean());
   Assert(d_cnfStream->hasLiteral(node));
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 
   SatValue v = d_satSolver->value(lit);
-  if(v == SAT_VALUE_TRUE) {
+  if (v == SAT_VALUE_TRUE)
+  {
     value = true;
     return true;
-  } else if(v == SAT_VALUE_FALSE) {
+  }
+  else if (v == SAT_VALUE_FALSE)
+  {
     value = false;
     return true;
-  } else {
+  }
+  else
+  {
     Assert(v == SAT_VALUE_UNKNOWN);
     return false;
   }
 }
 
-void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const {
+void PropEngine::getBooleanVariables(std::vector<TNode>& outputVariables) const
+{
   d_cnfStream->getBooleanVariables(outputVariables);
 }
 
@@ -308,13 +322,15 @@ void PropEngine::ensureLiteral(TNode n)
   }
 }
 
-void PropEngine::push() {
+void PropEngine::push()
+{
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->push();
   Debug("prop") << "push()" << endl;
 }
 
-void PropEngine::pop() {
+void PropEngine::pop()
+{
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
@@ -326,16 +342,16 @@ void PropEngine::resetTrail()
   Debug("prop") << "resetTrail()" << endl;
 }
 
-unsigned PropEngine::getAssertionLevel() const {
+unsigned PropEngine::getAssertionLevel() const
+{
   return d_satSolver->getAssertionLevel();
 }
 
-bool PropEngine::isRunning() const {
-  return d_inCheckSat;
-}
+bool PropEngine::isRunning() const { return d_inCheckSat; }
 void PropEngine::interrupt()
 {
-  if(! d_inCheckSat) {
+  if (!d_inCheckSat)
+  {
     return;
   }
 
@@ -349,9 +365,12 @@ void PropEngine::spendResource(ResourceManager::Resource r)
   d_resourceManager->spendResource(r);
 }
 
-bool PropEngine::properExplanation(TNode node, TNode expl) const {
-  if(! d_cnfStream->hasLiteral(node)) {
-    Trace("properExplanation") << "properExplanation(): Failing because node "
+bool PropEngine::properExplanation(TNode node, TNode expl) const
+{
+  if (!d_cnfStream->hasLiteral(node))
+  {
+    Trace("properExplanation")
+        << "properExplanation(): Failing because node "
                                << "being explained doesn't have a SAT literal ?!" << std::endl
                                << "properExplanation(): The node is: " << node << std::endl;
     return false;
@@ -362,30 +381,44 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const {
   for(TNode::kinded_iterator i = expl.begin(kind::AND),
         i_end = expl.end(kind::AND);
       i != i_end;
-      ++i) {
-    if(! d_cnfStream->hasLiteral(*i)) {
-      Trace("properExplanation") << "properExplanation(): Failing because one of explanation "
+       ++i)
+  {
+    if (!d_cnfStream->hasLiteral(*i))
+    {
+      Trace("properExplanation")
+          << "properExplanation(): Failing because one of explanation "
                                  << "nodes doesn't have a SAT literal" << std::endl
-                                 << "properExplanation(): The explanation node is: " << *i << std::endl;
+          << "properExplanation(): The explanation node is: " << *i
+          << std::endl;
       return false;
     }
 
     SatLiteral iLit = d_cnfStream->getLiteral(*i);
 
-    if(iLit == nodeLit) {
-      Trace("properExplanation") << "properExplanation(): Failing because the node" << std::endl
+    if (iLit == nodeLit)
+    {
+      Trace("properExplanation")
+          << "properExplanation(): Failing because the node" << std::endl
                                  << "properExplanation(): " << node << std::endl
-                                 << "properExplanation(): cannot be made to explain itself!" << std::endl;
+          << "properExplanation(): cannot be made to explain itself!"
+          << std::endl;
       return false;
     }
 
-    if(! d_satSolver->properExplanation(nodeLit, iLit)) {
-      Trace("properExplanation") << "properExplanation(): SAT solver told us that node" << std::endl
+    if (!d_satSolver->properExplanation(nodeLit, iLit))
+    {
+      Trace("properExplanation")
+          << "properExplanation(): SAT solver told us that node" << std::endl
                                  << "properExplanation(): " << *i << std::endl
-                                 << "properExplanation(): is not part of a proper explanation node for" << std::endl
+          << "properExplanation(): is not part of a proper explanation node for"
+          << std::endl
                                  << "properExplanation(): " << node << std::endl
-                                 << "properExplanation(): Perhaps it one of the two isn't assigned or the explanation" << std::endl
-                                 << "properExplanation(): node wasn't propagated before the node being explained" << std::endl;
+          << "properExplanation(): Perhaps it one of the two isn't assigned or "
+             "the explanation"
+          << std::endl
+          << "properExplanation(): node wasn't propagated before the node "
+             "being explained"
+          << std::endl;
       return false;
     }
   }
@@ -410,7 +443,7 @@ Node PropEngine::getClauseNode(SatLiteral satLit)
   return d_cnfStream->d_literalToNodeMap[satLit];
 }
 
-Node PropEngine::getClauseNode(Minisat::Solver::TClause& clause)
+Node PropEngine::getClauseNode(const Minisat::Solver::TClause& clause)
 {
   std::vector<Node> clauseNodes;
   for (unsigned i = 0, size = clause.size(); i < size; ++i)
@@ -522,14 +555,15 @@ void PropEngine::startResChain(Minisat::Solver::TClause& start)
 void PropEngine::addResolutionStep(Minisat::Solver::TLit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
-  Trace("sat-proof") << CVC4::push << "PropEngine::addResolutionStep: justify lit "
-                     << satLit << "\n";
+  Trace("sat-proof") << CVC4::push
+                     << "PropEngine::addResolutionStep: justify lit " << satLit
+                     << "\n";
   tryJustifyingLit(~satLit);
   d_resolution.push_back(
       std::pair<Node, Node>(d_cnfStream->d_literalToNodeMap[~satLit],
                             d_cnfStream->d_literalToNodeMap[satLit]));
-  Trace("sat-proof") << CVC4::pop << "PropEngine::addResolutionStep: [" << satLit
-                     << "] " << ~satLit << "\n";
+  Trace("sat-proof") << CVC4::pop << "PropEngine::addResolutionStep: ["
+                     << satLit << "] " << ~satLit << "\n";
 }
 
 void PropEngine::addResolutionStep(Minisat::Solver::TClause& clause,
@@ -647,8 +681,9 @@ void PropEngine::endResChain(Node conclusion)
 void PropEngine::tryJustifyingLit(SatLiteral lit)
 {
   Node litNode = getClauseNode(lit);
-  Trace("sat-proof") << CVC4::push << "PropEngine::tryJustifyingLit: Lit: " << lit
-                     << "[" << litNode << "]\n";
+  Trace("sat-proof") << CVC4::push
+                     << "PropEngine::tryJustifyingLit: Lit: " << lit << "["
+                     << litNode << "]\n";
   if (d_clauseSet.count(litNode))
   {
     Trace("sat-proof") << "PropEngine::tryJustifyingLit: not "
@@ -656,20 +691,21 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
                        << CVC4::pop;
     return;
   }
-  Minisat::Solver::TCRef reasonRef =
-      d_satSolver->reason(Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
+  Minisat::Solver::TCRef reasonRef = d_satSolver->getSolver()->reason(
+      Minisat::var(MinisatSatSolver::toMinisatLit(lit)));
   if (reasonRef == Minisat::Solver::TCRef_Undef)
   {
     Trace("sat-proof") << "PropEngine::tryJustifyingLit: no SAT reason\n"
                        << CVC4::pop;
     return;
   }
-  Assert(reasonRef >= 0 && reasonRef < d_satSolver->ca.size())
+  Assert(reasonRef >= 0 && reasonRef < d_satSolver->getSolver()->ca.size())
       << "reasonRef " << reasonRef << " and d_satSolver->ca.size() "
-      << d_satSolver->ca.size() << "\n";
+      << d_satSolver->getSolver()->ca.size() << "\n";
   // Here, the call to resolveUnit() can reallocate memory in the
   // clause allocator.  So reload reason ptr each time.
-  const Minisat::Solver::TClause& initialReason = d_satSolver->ca[reasonRef];
+  const Minisat::Solver::TClause& initialReason =
+      d_satSolver->getSolver()->ca[reasonRef];
   unsigned currentReason_size = initialReason.size();
   if (Trace.isOn("sat-proof"))
   {
@@ -678,14 +714,12 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
     Trace("sat-proof") << "\n";
   }
   // add the reason clause first
-  Assert(initialReason.proofId() != 0);
-  Assert(d_clauseIdToNode.find(initialReason.proofId())
-         != d_clauseIdToNode.end());
-  std::vector<Node> children{d_clauseIdToNode[initialReason.proofId()]}, args;
+  std::vector<Node> children{getClauseNode(initialReason)}, args;
   Trace("sat-proof") << CVC4::push;
   for (unsigned i = 0; i < currentReason_size; ++i)
   {
-    const Minisat::Solver::TClause& currentReason = d_satSolver->ca[reasonRef];
+    const Minisat::Solver::TClause& currentReason =
+        d_satSolver->getSolver()->ca[reasonRef];
     Assert(currentReason_size == static_cast<unsigned>(currentReason.size()));
     currentReason_size = currentReason.size();
     SatLiteral curr_lit = MinisatSatSolver::toSatLiteral(currentReason[i]);
@@ -726,9 +760,9 @@ void PropEngine::finalizeProof(Node inConflictNode,
 {
   Node falseNode = NodeManager::currentNM()->mkConst<bool>(false);
   Trace("sat-proof") << "PropEngine::finalizeProof: conflicting clause node: "
-                     << clauseNode << "\n";
+                     << inConflictNode << "\n";
   // nothing to do
-  if (clauseNode == falseNode)
+  if (inConflictNode == falseNode)
   {
     return;
   }
@@ -743,7 +777,7 @@ void PropEngine::finalizeProof(Node inConflictNode,
   // resolution steps will be saved in the given reasons vector.
   Trace("sat-proof") << CVC4::push;
   // premises and arguments for final resolution
-  std::vector<Node> children{clauseNode}, args;
+  std::vector<Node> children{inConflictNode}, args;
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
     Assert(d_cnfStream->d_literalToNodeMap.find(inConflict[i])
@@ -791,7 +825,7 @@ void PropEngine::finalizeProof(Minisat::Solver::TClause& inConflict)
   std::vector<SatLiteral> clause;
   for (unsigned i = 0, size = inConflict.size(); i < size; ++i)
   {
-    clause.push_back(inConflict[i]);
+    clause.push_back(MinisatSatSolver::toSatLiteral(inConflict[i]));
   }
   finalizeProof(getClauseNode(inConflict), clause);
 }

@@ -79,6 +79,8 @@ public:
 
   bool isDecision(SatVariable decn) const override;
 
+  Minisat::SimpSolver* getSolver() { return d_minisat; }
+
  private:
 
   /** The SatSolver used */

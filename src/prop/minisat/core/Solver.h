@@ -40,6 +40,7 @@ namespace CVC4 {
 template <class Solver> class TSatProof;
 
 namespace prop {
+  class PropEngine;
   class TheoryProxy;
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
@@ -54,6 +55,7 @@ namespace Minisat {
 class Solver {
 
   /** The only two CVC4 entry points to the private solver data */
+  friend class CVC4::prop::PropEngine;
   friend class CVC4::prop::TheoryProxy;
   friend class CVC4::TSatProof<Minisat::Solver>;
 

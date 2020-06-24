@@ -30,6 +30,7 @@
 #include "prop/proof_cnf_stream.h"
 #include "proof/proof_manager.h"
 #include "prop/proof_cnf_stream.h"
+#include "prop/minisat/minisat.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/sat_solver_types.h"
 #include "util/resource_manager.h"
@@ -271,7 +272,7 @@ class PropEngine
   TheoryProxy* d_theoryProxy;
 
   /** The SAT solver proxy */
-  DPLLSatSolverInterface* d_satSolver;
+  MinisatSatSolver* d_satSolver;
 
   /** List of all of the assertions that need to be made */
   std::vector<Node> d_assertionList;
@@ -296,7 +297,7 @@ class PropEngine
   void tryJustifyingLit(prop::SatLiteral lit);
 
   Node getClauseNode(SatLiteral satLit);
-  Node getClauseNode(Minisat::Solver::TClause& clause);
+  Node getClauseNode(const Minisat::Solver::TClause& clause);
   void printClause(const Minisat::Solver::TClause& clause);
 
   std::unordered_set<Node, NodeHashFunction> d_clauseSet;
