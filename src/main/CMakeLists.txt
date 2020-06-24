@@ -35,7 +35,7 @@ target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 # test. Do not link against main-test in any other case.
 add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC4DRIVER)
-target_link_libraries(main-test cvc4 cvc4parser)
+target_link_libraries(main-test cvc4 cvc4parser rt)
 
 #-----------------------------------------------------------------------------#
 # cvc4 binary configuration
