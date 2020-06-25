@@ -1,3 +1,5 @@
+; COMMAND-LINE: --no-proof-new
+; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)
 (declare-fun x () String)
