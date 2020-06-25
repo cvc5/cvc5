@@ -158,7 +158,9 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_statistics(),
       d_opElim(logicInfo)
 {
-  if( options::nlExt() ){
+  // only need to create if non-linear logic
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
     d_nonlinearExtension = new nl::NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
   }
@@ -1263,7 +1265,8 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
 
-    if( !options::nlExt() ){
+    if (d_nonlinearExtension == nullptr)
+    {
       d_nlIncomplete = true;
     }
 
@@ -1274,7 +1277,8 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
 
     markSetup(vlNode);
   }else{
-    if( !options::nlExt() ){
+    if (d_nonlinearExtension == nullptr)
+    {
       if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE || 
           vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
         d_nlIncomplete = true;
@@ -1440,8 +1444,9 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
-  
-  if( options::nlExt() ){
+
+  if (d_nonlinearExtension != nullptr)
+  {
     d_containing.getExtTheory()->registerTermRec( n );
   }
 
@@ -3322,7 +3327,8 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   if(effortLevel == Theory::EFFORT_LAST_CALL){
-    if( options::nlExt() ){
+    if (d_nonlinearExtension != nullptr)
+    {
       d_nonlinearExtension->check(effortLevel);
     }
     return;
@@ -3646,7 +3652,8 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
 
   if(!emmittedConflictOrSplit && effortLevel>=Theory::EFFORT_FULL){
-    if( options::nlExt() ){
+    if (d_nonlinearExtension != nullptr)
+    {
       d_nonlinearExtension->check( effortLevel );
     }
   }
@@ -3849,7 +3856,8 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
 }
 
 bool TheoryArithPrivate::needsCheckLastEffort() {
-  if( options::nlExt() ){
+  if (d_nonlinearExtension != nullptr)
+  {
     return d_nonlinearExtension->needsCheckLastEffort();
   }else{
     return false;
@@ -3886,7 +3894,8 @@ Node TheoryArithPrivate::explain(TNode n)
 }
 
 bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if( options::nlExt() ){
+  if (d_nonlinearExtension != nullptr)
+  {
     return d_nonlinearExtension->getCurrentSubstitution( effort, vars, subs, exp );
   }else{
     return false;
@@ -3895,7 +3904,8 @@ bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >
 
 bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
                                        std::vector<Node>& exp) {
-  if (options::nlExt()) {
+  if (d_nonlinearExtension != nullptr)
+  {
     std::pair<bool, Node> reduced =
         d_nonlinearExtension->isExtfReduced(effort, n, on, exp);
     if (!reduced.second.isNull()) {
@@ -4143,7 +4153,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-        if (options::nlExt())
+        if (d_nonlinearExtension != nullptr)
         {
           // Let non-linear extension inspect the values before they are sent
           // to the theory model.
@@ -4162,7 +4172,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
       }
     }
   }
-  if (options::nlExt())
+  if (d_nonlinearExtension != nullptr)
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
@@ -4312,7 +4322,7 @@ void TheoryArithPrivate::presolve(){
     outputLemma(lem);
   }
 
-  if (options::nlExt())
+  if (d_nonlinearExtension != nullptr)
   {
     d_nonlinearExtension->presolve();
   }
