@@ -96,8 +96,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   progPath = argv[0];
 
-  std::unique_ptr<TimeLimitListener> time_limit_listener(new TimeLimitListener(opts));
-  opts.registerTlimitListener(time_limit_listener.get(), true);
+  std::unique_ptr<ListenerCollection::Registration> time_limit_listener(
+    opts.registerTlimitListener(new TimeLimitListener(opts), true)
+  );
 
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
