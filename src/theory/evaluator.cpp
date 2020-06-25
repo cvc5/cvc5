@@ -139,7 +139,7 @@ Node Evaluator::eval(
   for (const std::pair<const Node, Node>& p : visited)
   {
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
-    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results);
+    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results, useRewriter);
     if (results[p.first].d_tag == EvalResult::INVALID)
     {
       // could not evaluate, use the evalAsNode map
@@ -155,7 +155,7 @@ Node Evaluator::eval(
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret = evalInternal(n, args, vals, evalAsNode, results, useRewriter).toNode();
   // if we failed to evaluate
   if (ret.isNull() && useRewriter)
   {

@@ -137,7 +137,8 @@ class Evaluator
       const std::vector<Node>& args,
       const std::vector<Node>& vals,
       std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const;
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
+      bool useRewriter) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination
