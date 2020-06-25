@@ -674,13 +674,13 @@ header = "options/smt_options.h"
   long       = "produce-interpols=MODE"
   type       = "ProduceInterpols"
   default    = "NONE"
-  read_only  = true
-  help       = "support the get-interpol command"
-	help_mode  = "Interpolants grammar mode"
-[[option.mode.NONE]]
-  name = "none"
-  help = "don't compute interpolants"
-[[option.mode.DEFAULT]]
+	read_only  = true
+	help       = "support the get-interpol command"
+  	help_mode  = "Interpolants grammar mode"
+	  [[option.mode.NONE]]
+	name = "none"
+	help = "don't compute interpolants"
+	[[option.mode.DEFAULT]]
   name = "default"
   help = "use the default grammar for the theory or the user-defined grammar if given"
 [[option.mode.ASSUMPTIONS]]

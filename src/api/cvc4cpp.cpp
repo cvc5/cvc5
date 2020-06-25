@@ -4693,10 +4693,10 @@ void Solver::pop(uint32_t nscopes) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(Term B, Term& output) const {
+bool Solver::getInterpolant(Term conj, Term& output) const {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Expr result;
-  bool success = d_smtEngine->getInterpol(*B.d_expr, result);
+  bool success = d_smtEngine->getInterpol(*conj.d_expr, result);
   if (success) {
     output = Term(output.d_solver, result);
   }
@@ -4704,11 +4704,11 @@ bool Solver::getInterpolant(Term B, Term& output) const {
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(Term B, const Type& gtype, Term& output) const
+bool Solver::getInterpolant(Term conj, const Type& gtype, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Expr result;
-  bool success = d_smtEngine->getInterpol(*B.d_expr, gtype, result);
+  bool success = d_smtEngine->getInterpol(*conj.d_expr, gtype, result);
   if (success)
   {
     output = Term(output.d_solver, result);
