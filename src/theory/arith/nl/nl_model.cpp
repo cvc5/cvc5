@@ -211,13 +211,12 @@ int NlModel::compareValue(Node i, Node j, bool isAbsolute) const
 }
 
 bool NlModel::checkModel(const std::vector<Node>& assertions,
-                         const std::vector<Node>& false_asserts,
                          unsigned d,
                          std::vector<NlLemma>& lemmas,
                          std::vector<Node>& gs)
 {
   Trace("nl-ext-cm-debug") << "  solve for equalities..." << std::endl;
-  for (const Node& atom : false_asserts)
+  for (const Node& atom : assertions)
   {
     // see if it corresponds to a univariate polynomial equation of degree two
     if (atom.getKind() == EQUAL)
@@ -489,6 +488,7 @@ bool NlModel::solveEqualitySimple(Node eq,
     {
       if (seq.getConst<bool>())
       {
+        // already true
         d_check_model_solved[eq] = Node::null();
         return true;
       }
