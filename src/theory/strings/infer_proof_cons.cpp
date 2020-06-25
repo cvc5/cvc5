@@ -562,7 +562,7 @@ Node InferProofCons::convert(Inference infer,
       else
       {
         ps.d_rule = PfRule::SPLIT;
-        Assert (ps.d_children.empty());
+        Assert(ps.d_children.empty());
         ps.d_args.push_back(conc[0]);
       }
     }

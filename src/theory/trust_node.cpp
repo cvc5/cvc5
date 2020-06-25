@@ -109,7 +109,7 @@ Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {
-  out << "(trust " << n.getNode() << ")";
+  out << "(" << n.getKind() << " " << n.getProven() << ")";
   return out;
 }
 
