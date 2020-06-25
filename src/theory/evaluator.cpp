@@ -179,7 +179,8 @@ EvalResult Evaluator::evalInternal(
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
     std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const
+    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
+    bool useRewriter) const
 {
   std::vector<TNode> queue;
   queue.emplace_back(n);
@@ -335,7 +336,7 @@ EvalResult Evaluator::evalInternal(
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
         results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
+            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
         Trace("evaluator") << "Evaluated via arguments to "
                            << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)
