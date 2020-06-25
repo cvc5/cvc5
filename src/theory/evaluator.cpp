@@ -255,6 +255,12 @@ EvalResult Evaluator::evalInternal(
         // successfully evaluated, and the children that did not.
         Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
         currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
+        if (useRewriter)
+        {
+          // Rewrite the result now, if we use the rewriter. We will see below
+          // if we are able to turn it into a valid EvalResult.
+          currNodeVal = Rewriter::rewrite(currNodeVal);
+        }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
