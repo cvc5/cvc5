@@ -122,7 +122,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Type.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__istream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__ostream.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__shared_ptrT_CVC4__SygusPrintCallback_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__string.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_CVC4__DatatypeConstructorArg_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__vectorT_std__pairT_CVC4__Expr_CVC4__Expr_t_t.java

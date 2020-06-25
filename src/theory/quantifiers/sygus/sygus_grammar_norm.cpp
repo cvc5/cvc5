@@ -18,7 +18,6 @@
 #include "expr/datatype.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -84,8 +83,7 @@ SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
 
 void SygusGrammarNorm::TypeObject::addConsInfo(
     SygusGrammarNorm* sygus_norm,
-    const DTypeConstructor& cons,
-    std::shared_ptr<SygusPrintCallback> spc)
+    const DTypeConstructor& cons)
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
@@ -472,7 +470,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   {
     unsigned oi = op_pos[i];
     Assert(oi < dt.getNumConstructors());
-    to.addConsInfo(this, dt[oi], dtt[oi].getSygusPrintCallback());
+    to.addConsInfo(this, dt[oi]);
   }
   /* Build normalize datatype */
   if (Trace.isOn("sygus-grammar-normalize"))

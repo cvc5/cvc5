@@ -15,8 +15,6 @@
 %rename(get) CVC4::Datatype::operator[](size_t) const;
 %rename(get) CVC4::Datatype::operator[](std::string) const;
 
-%ignore CVC4::SygusPrintCallback;
-
 %rename(apply) CVC4::DatatypeHashFunction::operator()(const Datatype&) const;
 %ignore CVC4::DatatypeHashFunction::operator()(const Datatype*) const;
 %rename(apply) CVC4::DatatypeHashFunction::operator()(const DatatypeConstructor&) const;

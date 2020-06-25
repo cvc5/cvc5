@@ -1468,28 +1468,20 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
     {
       int cIndex = Datatype::indexOf(n.getOperator().toExpr());
       Assert(!dt[cIndex].getSygusOp().isNull());
-      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback().get();
-      if (spc != nullptr && options::sygusPrintCallbacks())
+      if (n.getNumChildren() > 0)
       {
-        spc->toStreamSygus(this, out, n.toExpr());
+        out << "(";
       }
-      else
+      // print operator without letification (the fifth argument is set to 0).
+      toStream(out, dt[cIndex].getSygusOp(), -1, false, 0);
+      if (n.getNumChildren() > 0)
       {
-        if (n.getNumChildren() > 0)
+        for (Node nc : n)
         {
-          out << "(";
+          out << " ";
+          toStreamSygus(out, nc);
         }
-        // print operator without letification (the fifth argument is set to 0).
-        toStream(out, dt[cIndex].getSygusOp(), -1, false, 0);
-        if (n.getNumChildren() > 0)
-        {
-          for (Node nc : n)
-          {
-            out << " ";
-            toStreamSygus(out, nc);
-          }
-          out << ")";
-        }
+        out << ")";
       }
       return;
     }

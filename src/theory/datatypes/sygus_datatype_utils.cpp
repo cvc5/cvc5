@@ -19,7 +19,6 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
@@ -663,24 +662,6 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
           Trace("dtsygus-gen-debug")
               << "    Arg #" << k << ": " << argtNew << std::endl;
           cargs.push_back(argtNew);
-        }
-        // callback prints as the expression
-        std::shared_ptr<SygusPrintCallback> spc;
-        std::vector<Expr> args;
-        if (op.getKind() == LAMBDA)
-        {
-          Node opBody = op[1];
-          for (const Node& v : op[0])
-          {
-            args.push_back(v.toExpr());
-          }
-          spc = std::make_shared<printer::SygusExprPrintCallback>(
-              opBody.toExpr(), args);
-        }
-        else if (cargs.empty())
-        {
-          spc = std::make_shared<printer::SygusExprPrintCallback>(op.toExpr(),
-                                                                  args);
         }
         std::stringstream ss;
         ss << ops.getKind();

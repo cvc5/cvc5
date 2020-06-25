@@ -266,7 +266,6 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 void Datatype::addSygusConstructor(Expr op,
                                    const std::string& cname,
                                    const std::vector<Type>& cargs,
-                                   std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   // avoid name clashes
@@ -288,7 +287,6 @@ void Datatype::addSygusConstructor(Expr op,
 void Datatype::addSygusConstructor(Kind k,
                                    const std::string& cname,
                                    const std::vector<Type>& cargs,
-                                   std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   ExprManagerScope ems(*d_em);
@@ -526,15 +524,12 @@ DatatypeConstructor::DatatypeConstructor(std::string name, unsigned weight)
   d_internal = std::make_shared<DTypeConstructor>(name, weight);
 }
 
-void DatatypeConstructor::setSygus(Expr op,
-                                   std::shared_ptr<SygusPrintCallback> spc)
+void DatatypeConstructor::setSygus(Expr op)
 {
   PrettyCheckArgument(
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   Node opn = Node::fromExpr(op);
   d_internal->setSygus(op);
-  // print callback lives at the expression level currently
-  d_sygus_pc = spc;
 }
 
 const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
@@ -624,13 +619,6 @@ unsigned DatatypeConstructor::getWeight() const
       isResolved(), this, "this datatype constructor is not yet resolved");
   ExprManagerScope ems(d_constructor);
   return d_internal->getWeight();
-}
-
-std::shared_ptr<SygusPrintCallback> DatatypeConstructor::getSygusPrintCallback() const
-{
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_pc;
 }
 
 Cardinality DatatypeConstructor::getCardinality(Type t) const
