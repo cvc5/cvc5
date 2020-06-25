@@ -606,48 +606,6 @@ std::string DeclareSygusVarCommand::getCommandName() const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class DeclareSygusPrimedVarCommand */
-/* -------------------------------------------------------------------------- */
-
-DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(
-    const std::string& id, Type t)
-    : DeclarationDefinitionCommand(id), d_type(t)
-{
-}
-
-Type DeclareSygusPrimedVarCommand::getType() const { return d_type; }
-
-void DeclareSygusPrimedVarCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    smtEngine->declareSygusPrimedVar(d_symbol, d_type);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* DeclareSygusPrimedVarCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new DeclareSygusPrimedVarCommand(
-      d_symbol, d_type.exportTo(exprManager, variableMap));
-}
-
-Command* DeclareSygusPrimedVarCommand::clone() const
-{
-  return new DeclareSygusPrimedVarCommand(d_symbol, d_type);
-}
-
-std::string DeclareSygusPrimedVarCommand::getCommandName() const
-{
-  return "declare-primed-var";
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DeclareSygusFunctionCommand                                          */
 /* -------------------------------------------------------------------------- */
 
