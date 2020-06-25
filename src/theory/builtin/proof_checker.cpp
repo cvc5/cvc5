@@ -15,7 +15,6 @@
 #include "theory/builtin/proof_checker.h"
 
 #include "expr/skolem_manager.h"
-#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -29,7 +28,6 @@ const char* toString(MethodId id)
   switch (id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
-    case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
@@ -57,7 +55,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
-  pc->registerChecker(PfRule::EVALUATE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
@@ -78,11 +75,6 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   if (idr == MethodId::RW_REWRITE)
   {
     return Rewriter::rewrite(n);
-  }
-  else if (idr == MethodId::RW_EVALUATE)
-  {
-    Evaluator eval;
-    return eval.eval(n, {}, {}, false);
   }
   else if (idr == MethodId::RW_IDENTITY)
   {
@@ -230,13 +222,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0], idr);
-    return args[0].eqNode(res);
-  }
-  else if (id == PfRule::EVALUATE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
