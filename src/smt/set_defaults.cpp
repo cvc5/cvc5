@@ -291,10 +291,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
-    if (options::produceAbducts()
-        || options::produceInterpols() != options::ProduceInterpols::NONE
-        || options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusInst())
+     if (options::produceAbducts()
+         || options::produceInterpols() != options::ProduceInterpols::NONE
+         || options::sygusInference() || options::sygusRewSynthInput()
+         || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -317,11 +317,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceAbducts()
-       || options::produceInterpols() != options::ProduceInterpols::NONE
-       || options::modelCoresMode() != options::ModelCoresMode::NONE
-       || options::blockModelsMode() != options::BlockModelsMode::NONE)
-      && !options::produceAssertions())
+        || options::produceAbducts()
+        || options::produceInterpols() != options::ProduceInterpols::NONE
+        || options::modelCoresMode() != options::ModelCoresMode::NONE
+        || options::blockModelsMode() != options::BlockModelsMode::NONE)
+       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
              << "option requiring assertions." << std::endl;
