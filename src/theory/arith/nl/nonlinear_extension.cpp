@@ -435,7 +435,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   //-----------------------------------initial lemmas for transcendental
   if (options::nlExt())
   {
-    //functions
+    // functions
     lemmas = d_trSlv.checkTranscendentalInitialRefine();
     filterLemmas(lemmas, lems);
     if (!lems.empty())
@@ -495,7 +495,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     // introduce new monomials
     filterLemmas(lemmas, lems);
 
-    if (options::nlExtTangentPlanes() && options::nlExtTangentPlanesInterleave())
+    if (options::nlExtTangentPlanes()
+        && options::nlExtTangentPlanesInterleave())
     {
       lemmas = d_nlSlv.checkTangentPlanes();
       filterLemmas(lemmas, lems);
@@ -525,8 +526,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       filterLemmas(lemmas, lems);
       if (!lems.empty())
       {
-        Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                        << std::endl;
+        Trace("nl-ext") << "  ...finished with " << lems.size()
+                        << " new lemmas." << std::endl;
         return lems.size();
       }
     }
@@ -539,14 +540,15 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       filterLemmas(lemmas, lems);
       if (!lems.empty())
       {
-        Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
-                        << std::endl;
+        Trace("nl-ext") << "  ...finished with " << lems.size()
+                        << " new lemmas." << std::endl;
         return lems.size();
       }
     }
 
     //------------------------------------tangent planes
-    if (options::nlExtTangentPlanes() && !options::nlExtTangentPlanesInterleave())
+    if (options::nlExtTangentPlanes()
+        && !options::nlExtTangentPlanesInterleave())
     {
       lemmas = d_nlSlv.checkTangentPlanes();
       filterLemmas(lemmas, wlems);
@@ -557,7 +559,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
       filterLemmas(lemmas, wlems);
     }
   }
-  
+
   Trace("nl-ext") << "  ...finished with " << wlems.size() << " waiting lemmas."
                   << std::endl;
 
@@ -784,7 +786,8 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       }
 
       // we are incomplete
-      if (options::nlExt() && options::nlExtIncPrecision() && d_model.usedApproximate())
+      if (options::nlExt() && options::nlExtIncPrecision()
+          && d_model.usedApproximate())
       {
         d_trSlv.incrementTaylorDegree();
         needsRecheck = true;
