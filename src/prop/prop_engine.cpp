@@ -160,12 +160,12 @@ void PropEngine::assertLemma(theory::TrustNode trn,
 {
   Node node = trn.getNode();
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
-  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
-
   // Assert as (possibly) removable
   if (d_pfCnfStream)
   {
+    Assert(trn.getGenerator());
+    d_proof.addLazyStep(node, trn.getGenerator());
     d_pfCnfStream->convertAndAssert(node, negated, removable);
   }
   else
