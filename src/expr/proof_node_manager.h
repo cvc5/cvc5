@@ -77,11 +77,11 @@ class ProofNodeManager
    * Make the proof node corresponding to the assumption of fact.
    *
    * @param fact The fact to assume.
-   * @return The assume proof of fact.
+   * @return The ASSUME proof of fact.
    */
   std::shared_ptr<ProofNode> mkAssume(Node fact);
   /**
-   * Make scope having body pf and arguments (assumptions-to-close) assump.
+   * Make scope having body pf and arguments (assumptions-to-close) assumps.
    * If ensureClosed is true, then this method throws an assertion failure if
    * the returned proof is not closed. This is the case if a free assumption
    * of pf is missing from the vector assumps.
@@ -95,9 +95,16 @@ class ProofNodeManager
    * so that y=x matches the free assumption. The returned proof is:
    *   SCOPE(TRANS( SYMM( ASSUME( y=x ) ), ASSUME( y=z ) ) :args { y=x, y=z })
    *
+   * When ensureClosed is true, duplicates are eliminated from assumps. The
+   * reason for this is due to performance, since in this method, assumps is
+   * converted to an unordered_set to do the above check and hence it is a
+   * convienient time to eliminate duplicate literals.
+   *
    * Additionally, if both ensureClosed and doMinimize are true, assumps is
-   * updated to contain exactly the free asumptions of pf. The minimized
-   * vector is passed as arguments to the SCOPE.
+   * updated to contain exactly the free asumptions of pf. This also includes
+   * having no duplicates.
+   *
+   * In each case, the update vector assumps is passed as arguments to SCOPE.
    *
    * @param pf The body of the proof,
    * @param assumps The assumptions-to-close of the scope,

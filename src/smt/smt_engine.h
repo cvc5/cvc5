@@ -407,16 +407,6 @@ class CVC4_PUBLIC SmtEngine
   void declareSygusVar(const std::string& id, Expr var, Type type);
 
   /**
-   * Store information for debugging sygus invariants setup.
-   *
-   * Since in SyGuS the commands "declare-primed-var" are not necessary for
-   * building invariant constraints, we only use them to check that the number
-   * of variables declared corresponds to the number of arguments of the
-   * invariant-to-synthesize.
-   */
-  void declareSygusPrimedVar(const std::string& id, Type type);
-
-  /**
    * Add a function variable declaration.
    *
    * Is SyGuS semantics declared functions are treated in the same manner as

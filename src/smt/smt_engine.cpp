@@ -1893,15 +1893,6 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
   // don't need to set that the conjecture is stale
 }
 
-void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
-{
-  SmtScope smts(this);
-  finalOptionsAreSet();
-  // do nothing (the command is spurious)
-  Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
-  // don't need to set that the conjecture is stale
-}
-
 void SmtEngine::declareSygusFunctionVar(const std::string& id,
                                         Expr var,
                                         Type type)

@@ -70,18 +70,15 @@ class EngineOutputChannel : public theory::OutputChannel
   /**
    * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
    * sends conf on the output channel of this class whose proof can be generated
-   * by the generator pfg. It calls TheoryEngine::processTrustNode,
-   * which ensures that the generator pfg is associated with conf in the
-   * lazy proof owned by the theory engine of this class.
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as calling OutputChannel::lemma on conf.
    */
   void trustedConflict(TrustNode pconf) override;
   /**
    * Let plem be the pair (Node lem, ProofGenerator * pfg).
    * Send lem on the output channel of this class whose proof can be generated
    * by the generator pfg. Apart from pfg, the interface for this method is
-   * the same as OutputChannel. It calls TheoryEngine::processTrustNode,
-   * which ensures that the generator pfg is associated with lem in the
-   * lazy proof owned by the theory engine of this class.
+   * the same as calling OutputChannel::lemma on lem.
    */
   LemmaStatus trustedLemma(TrustNode plem,
                            bool removable = false,

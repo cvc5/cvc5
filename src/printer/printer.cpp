@@ -52,14 +52,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   case LANG_CVC4:
     return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
 
-  case LANG_Z3STR:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::z3str_variant));
-
-  case LANG_SYGUS_V1:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
-
   case LANG_SYGUS_V2:
     // sygus version 2.0 does not have discrepancies with smt2, hence we use
     // a normal smt2 variant here.

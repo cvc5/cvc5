@@ -2,7 +2,7 @@
 /*! \file integer_gmp_imp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Liana Hadarean, Morgan Deters
+ **   Tim King, Gereon Kremer, Liana Hadarean
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
