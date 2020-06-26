@@ -82,7 +82,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_pNodeManager(options::proofNew()
                          ? new ProofNodeManager(te->getProofChecker())
                          : nullptr),
-      d_proof(d_pNodeManager.get(), userContext),
+      d_proof(d_pNodeManager.get(), nullptr, userContext),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)

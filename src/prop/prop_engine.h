@@ -245,7 +245,7 @@ class PropEngine
    */
   Node factorAndReorder(Node n);
 
-  CDProof* getProof() { return &d_proof; }
+  LazyCDProof* getProof() { return &d_proof; }
 
   /*------------------------------ END SAT proof interface */
 
@@ -285,7 +285,7 @@ class PropEngine
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pNodeManager;
   /** The User-context-dependent proof object */
-  CDProof d_proof;
+  LazyCDProof d_proof;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
 
