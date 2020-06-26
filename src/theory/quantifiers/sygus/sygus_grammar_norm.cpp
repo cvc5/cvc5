@@ -105,7 +105,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(
   }
 
   d_sdt.addConstructor(
-      sygus_op, cons.getName(), consTypes, spc, cons.getWeight());
+      sygus_op, cons.getName(), consTypes, cons.getWeight());
 }
 
 void SygusGrammarNorm::TypeObject::initializeDatatype(
@@ -223,7 +223,6 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     to.d_sdt.addConstructor(iden_op,
                             "id",
                             ctypes,
-                            printer::SygusEmptyPrintCallback::getEmptyPC(),
                             0);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding  " << t << " to " << to.d_unres_tn << "\n";
@@ -265,7 +264,6 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   to.d_sdt.addConstructor(iden_op,
                           "id_next",
                           ctypes,
-                          printer::SygusEmptyPrintCallback::getEmptyPC(),
                           0);
 }
 

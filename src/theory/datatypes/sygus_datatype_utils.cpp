@@ -666,7 +666,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
         std::stringstream ss;
         ss << ops.getKind();
         Trace("dtsygus-gen-debug") << "Add constructor : " << ops << std::endl;
-        sdts.back().addConstructor(ops, ss.str(), cargs, spc);
+        sdts.back().addConstructor(ops, ss.str(), cargs);
       }
       Trace("dtsygus-gen-debug")
           << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;

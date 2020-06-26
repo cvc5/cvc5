@@ -1202,7 +1202,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
       std::vector<TypeNode> cargsEmpty;
       // make boolean variables weight as non-nullary constructors
-      sdtBool.addConstructor(sygus_vars[i], ss.str(), cargsEmpty, nullptr, 1);
+      sdtBool.addConstructor(sygus_vars[i], ss.str(), cargsEmpty, 1);
     }
   }
   // add constants
@@ -1284,7 +1284,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       if (zarg)
       {
-        Node op = createLambdaWithZeroArg(kind, types[i], spc);
+        Node op = createLambdaWithZeroArg(kind, types[i]);
         ssop << "leq_" << types[i];
         sdtBool.addConstructor(op, ssop.str(), cargs);
       }

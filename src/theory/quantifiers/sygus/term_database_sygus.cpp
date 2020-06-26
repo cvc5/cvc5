@@ -729,9 +729,9 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
     }
     else
     {
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-      Trace(c) << ss.str();
+      // use external conversion
+      Node bn = n.isConst() ? datatypes::utils::sygusToBuiltin(n, true) : n;
+      Trace(c) << bn;
     }
   }
 }

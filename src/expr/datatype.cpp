@@ -274,7 +274,7 @@ void Datatype::addSygusConstructor(Expr op,
   std::string name = ss.str();
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
   DatatypeConstructor c(name, cweight);
-  c.setSygus(op, spc);
+  c.setSygus(op);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
     std::stringstream sname;
@@ -291,7 +291,7 @@ void Datatype::addSygusConstructor(Kind k,
 {
   ExprManagerScope ems(*d_em);
   Expr op = d_em->operatorOf(k);
-  addSygusConstructor(op, cname, cargs, spc, weight);
+  addSygusConstructor(op, cname, cargs, weight);
 }
 
 void Datatype::setTuple() {

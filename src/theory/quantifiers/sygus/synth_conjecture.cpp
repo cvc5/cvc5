@@ -1163,8 +1163,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         else
         {
-          Printer::getPrinter(options::outputLanguage())
-              ->toStreamSygus(out, sol);
+          Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
+          out << bsol;
         }
         out << ")" << std::endl;
       }
