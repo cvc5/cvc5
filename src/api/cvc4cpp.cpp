@@ -33,6 +33,9 @@
 
 #include "api/cvc4cpp.h"
 
+#include <cstring>
+#include <sstream>
+
 #include "base/check.h"
 #include "base/configuration.h"
 #include "expr/expr.h"
@@ -49,12 +52,10 @@
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
+#include "theory/theory_model.h"
 #include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
-
-#include <cstring>
-#include <sstream>
 
 namespace CVC4 {
 namespace api {
@@ -4670,6 +4671,56 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
     res.push_back(Term(this, d_smtEngine->getValue(*terms[i].d_expr)));
   }
   return res;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::getSeparationHeapTerm() const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(
+      d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
+      << "Cannot obtain separation logic expressions if not using the "
+         "separation logic theory.";
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  CVC4_API_CHECK(CVC4::options::produceModels())
+      << "Cannot get separation heap term unless model generation is enabled "
+         "(try --produce-models)";
+  CVC4_API_CHECK(d_smtEngine->getSmtMode()
+                 != SmtEngine::SmtMode::SMT_MODE_UNSAT)
+      << "Cannot get separtion heap term when in unsat mode.";
+
+  theory::TheoryModel* m =
+      d_smtEngine->getAvailableModel("get separation logic heap and nil");
+  Expr heap, nil;
+  bool hasHeapModel = m->getHeapModel(heap, nil);
+  CVC4_API_CHECK(hasHeapModel)
+      << "Failed to obtain heap term from theory model.";
+  return Term(this, d_smtEngine->getSepHeapExpr());
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::getSeparationNilTerm() const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(
+      d_smtEngine->getLogicInfo().isTheoryEnabled(theory::THEORY_SEP))
+      << "Cannot obtain separation logic expressions if not using the "
+         "separation logic theory.";
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  CVC4_API_CHECK(CVC4::options::produceModels())
+      << "Cannot get separation nil term unless model generation is enabled "
+         "(try --produce-models)";
+  CVC4_API_CHECK(d_smtEngine->getSmtMode()
+                 != SmtEngine::SmtMode::SMT_MODE_UNSAT)
+      << "Cannot get separtion nil term when in unsat mode.";
+
+  theory::TheoryModel* m =
+      d_smtEngine->getAvailableModel("get separation logic heap and nil");
+  Expr heap, nil;
+  bool hasHeapModel = m->getHeapModel(heap, nil);
+  CVC4_API_CHECK(hasHeapModel)
+      << "Failed to obtain nil term from theory model.";
+  return Term(this, nil);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
