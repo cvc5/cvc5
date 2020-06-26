@@ -2321,7 +2321,7 @@ std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
   return std::string("th_arrays_dec");
 }
 
-Node TheoryArrays::expandDefinition(Node node)
+TrustNode TheoryArrays::expandDefinition(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind kind = node.getKind();
@@ -2371,9 +2371,10 @@ Node TheoryArrays::expandDefinition(Node node)
                          nm->mkNode(kind::SELECT, a, k),
                          nm->mkNode(kind::SELECT, b, k));
     Node implies = nm->mkNode(kind::IMPLIES, range, eq);
-    return nm->mkNode(kind::FORALL, bvl, implies);
+    Node ret = nm->mkNode(kind::FORALL, bvl, implies);
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
-  return node;
+  return TrustNode::null();
 }
 
 }/* CVC4::theory::arrays namespace */

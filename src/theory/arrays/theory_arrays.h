@@ -154,7 +154,7 @@ class TheoryArrays : public Theory {
 
   std::string identify() const override { return std::string("TheoryArrays"); }
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
