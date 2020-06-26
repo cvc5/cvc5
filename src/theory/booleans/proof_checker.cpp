@@ -25,7 +25,6 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SPLIT, this);
   pc->registerChecker(PfRule::RESOLUTION, this);
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
-  pc->registerChecker(PfRule::REMOVE_FALSE_LITERAL, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
@@ -101,41 +100,6 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
   }
-  // if (id == PfRule::REMOVE_FALSE_LITERAL)
-  // {
-  //   Assert(children.size() == 1);
-  //   Assert(args.empty());
-  //   if (children[0].getKind() != kind::OR)
-  //   {
-  //     Node nk = SkolemManager::getSkolemForm(children[0]);
-  //     Node nkr = Rewriter::rewrite(nk);
-  //     return SkolemManager::getWitnessForm(nkr);
-  //   }
-  //   NodeManager* nm = NodeManager::currentNM();
-  //   unsigned i, size = children[0].getNumChildren();
-  //   std::vector<Node> clauseNodes;
-  //   Node falseNode = nm->mkConst<bool>(false);
-  //   for (i = 0; i < size; ++i)
-  //   {
-  //     if (Rewriter::rewrite(SkolemManager::getSkolemForm(children[0][i])) == falseNode)
-  //     {
-  //       i++;
-  //       break;
-  //     }
-  //     else
-  //     {
-  //       clauseNodes.push_back(children[0][i]);
-  //     }
-  //   }
-  //   if (i < size)
-  //   {
-  //     clauseNodes.insert(clauseNodes.end(), clauseNodes.begin() + i,  clauseNodes.end());
-  //   }
-  //   return clauseNodes.empty()
-  //              ? falseNode
-  //              : clauseNodes.size() == 1 ? clauseNodes[0]
-  //                                        : nm->mkNode(kind::OR, clauseNodes);
-  // }
   if (id == PfRule::FACTORING)
   {
     Assert(children.size() == 1);

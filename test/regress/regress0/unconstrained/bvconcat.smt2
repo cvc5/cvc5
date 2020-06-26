@@ -20,7 +20,7 @@
  (not
   (=
    (a2
-    (ite 
+    (ite
      (= (concat (bvlshr (bvashr (bvudiv x0 x1) (bvurem x2 x3)) (bvudiv x4 x5)) (bvurem x6 x7)) ((_ extract 19 0) v3))
      v2
      6)

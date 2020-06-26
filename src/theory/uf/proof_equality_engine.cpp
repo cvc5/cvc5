@@ -57,20 +57,6 @@ bool ProofEqEngine::assertAssume(TNode lit)
   return d_ee.assertPredicate(atom, polarity, lit);
 }
 
-bool ProofEqEngine::assertAssumeEquality(TNode atom, bool polarity, TNode lit)
-{
-  Trace("pfee") << "pfee::assertAssumeEquality " << atom << ", pol " << polarity
-                << ", lit " << lit << std::endl;
-  return d_ee.assertEquality(atom, polarity, lit);
-}
-
-bool ProofEqEngine::assertAssumePredicate(TNode atom, bool polarity, TNode lit)
-{
-  Trace("pfee") << "pfee::assertAssumePredicate " << atom << ", pol "
-                << polarity << ", lit " << lit << std::endl;
-  return d_ee.assertPredicate(atom, polarity, lit);
-}
-
 bool ProofEqEngine::assertFact(Node lit,
                                PfRule id,
                                const std::vector<Node>& exp,

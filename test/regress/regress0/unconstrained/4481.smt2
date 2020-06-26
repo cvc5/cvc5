@@ -1,4 +1,4 @@
-; COMMAND-LINE: --unconstrained-simp
+; COMMAND-LINE: --unconstrained-simp --no-proof-new
 ; EXPECT: (error "Cannot use unconstrained simplification in this logic, due to (possibly internally introduced) quantified formula.")
 ; EXIT: 1
 (set-logic ALL)

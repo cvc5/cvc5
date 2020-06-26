@@ -111,8 +111,6 @@ void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
                               bool forceOverwrite)
 {
-  Trace("lazy-cdproof-add")
-      << "LazyCDProof::addLazyStep: adding step for " << expected << "\n";
   Assert(pg != nullptr);
   if (!forceOverwrite)
   {

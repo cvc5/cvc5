@@ -1792,12 +1792,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
 
-    // Print the new proof if any
-    // if (options::proofNew()
-    //     && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    // {
-    //   d_newProofManager.get()->printInternalProof();
-    // }
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)

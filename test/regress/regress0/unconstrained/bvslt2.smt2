@@ -1,4 +1,4 @@
-; COMMAND-LINE: --unconstrained-simp --no-check-models
+; COMMAND-LINE: --unconstrained-simp --no-check-models --no-proof-new
 (set-logic QF_AUFBVLIA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")
@@ -21,7 +21,7 @@
  (not
   (=
    (a2
-    (ite 
+    (ite
      (bvslt x0 x1)
      v2
      6)

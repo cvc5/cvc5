@@ -70,21 +70,6 @@ class ProofEqEngine : public EagerProofGenerator
    * holds in the equality engine, this method returns false.
    */
   bool assertAssume(TNode lit);
-  /** as above, but specialized for the equality case
-   *
-   * @param atom the equality atom in the literal
-   * @param polarity the polarity of the literal
-   * @param lit the literal
-   */
-  bool assertAssumeEquality(TNode atom, bool polarity, TNode lit);
-  /** as above, but specialized for the predicate case
-   *
-   * @param atom the predicate atom in the literal
-   * @param polarity the polarity of the literal
-   * @param lit the literal
-   */
-  bool assertAssumePredicate(TNode atom, bool polarity, TNode lit);
-
   //-------------------------- assert fact
   /**
    * Assert the literal lit by proof step id, given explanation exp and

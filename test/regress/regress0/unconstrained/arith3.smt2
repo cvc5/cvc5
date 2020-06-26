@@ -1,4 +1,4 @@
-; COMMAND-LINE: --unconstrained-simp --no-check-models
+; COMMAND-LINE: --unconstrained-simp --no-check-models --no-proof-new
 (set-logic QF_AUFLIRA)
 (set-info :smt-lib-version 2.0)
 (set-info :category "crafted")

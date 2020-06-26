@@ -327,7 +327,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // proofs or output an error if enabled explicitly. It is also currently
   // incompatible with arithmetic, force the option off.
   if (options::incrementalSolving() || options::unsatCores()
-      || options::proof())
+      || options::proof() || options::proofNew())
   {
     if (options::unconstrainedSimp())
     {

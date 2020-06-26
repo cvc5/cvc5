@@ -36,11 +36,11 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 
+using namespace std;
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace prop {
-
-using namespace std;
-using namespace kind;
 
 CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
                      context::Context* context, bool fullLitToNodeMap,
