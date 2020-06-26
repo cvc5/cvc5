@@ -31,6 +31,9 @@ namespace CVC4 {
 /**
  * A simple proof generator class used by the theory engine. This class
  * stores proofs for TheoryEngine::getExplanation.
+ *
+ * Notice that this class could be made general purpose. Its main feature is
+ * storing lazy proofs for facts in a context-dependent manner.
  */
 class TheoryEngineProofGenerator : public ProofGenerator
 {

@@ -213,15 +213,12 @@ enum class PfRule : uint32_t
 
   //================================================= Processing rules
   // ======== Theory preprocess
-  // Children: P:F
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: TheoryEngine::preprocess(F)
-  //
-  // In general preprocessing steps should be a macro:
-  //
-  // P1:F, P2:(= F G) -> G by EQUIV_ELIM1 on P2 then RESOLUTION on P1 and the
-  // result.
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = Theory::ppRewrite(t) for some
+  // theory. Notice this is a "trusted" rule.
   THEORY_PREPROCESS,
   // ======== Remove Term Formulas Axiom
   // Children: none
