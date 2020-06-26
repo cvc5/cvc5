@@ -100,10 +100,12 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
       {
         if (node[1][i] == node[0][0])
         {
-          Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> " << node[1][1-i] << std::endl;
-          // based on the witness terms we construct, this should be a legal elimination
-          Assert (!expr::hasSubterm(node[1][1 - i], node[0][0]));
-          Assert (node[1][i].getType().isSubtypeOf(node[0][0].getType()));
+          Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
+                                   << node[1][1 - i] << std::endl;
+          // based on the witness terms we construct, this should be a legal
+          // elimination
+          Assert(!expr::hasSubterm(node[1][1 - i], node[0][0]));
+          Assert(node[1][i].getType().isSubtypeOf(node[0][0].getType()));
           return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
         }
       }
