@@ -4674,7 +4674,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::getSeparationHeapTerm() const
+Term Solver::getSeparationHeap() const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(

@@ -3007,7 +3007,7 @@ class CVC4_PUBLIC Solver
    * When using separation logic, obtain the term for the heap.
    * @return The term for the heap
    */
-  Term getSeparationHeapTerm() const;
+  Term getSeparationHeap() const;
 
   /**
    * When using separation logic, obtain the term for nil.

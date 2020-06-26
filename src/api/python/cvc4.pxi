@@ -917,9 +917,9 @@ cdef class Solver:
         term.cterm = self.csolver.getValue(t.cterm)
         return term
 
-    def getSeparationHeapTerm(self):
+    def getSeparationHeap(self):
         cdef Term term = Term()
-        term.cterm = self.csolver.getSeparationHeapTerm()
+        term.cterm = self.csolver.getSeparationHeap()
         return term
 
     def getSeparationNilTerm(self):

@@ -80,7 +80,7 @@ int validate_exception(void)
   /* test the heap expression */
   try
   {
-    Term heap_expr = slv.getSeparationHeapTerm();
+    Term heap_expr = slv.getSeparationHeap();
   }
   catch (const CVC4ApiException& e)
   {
@@ -182,7 +182,7 @@ int validate_getters(void)
   }
 
   /* Obtain our separation logic terms from the solver */
-  Term heap_expr = slv.getSeparationHeapTerm();
+  Term heap_expr = slv.getSeparationHeap();
   Term nil_expr = slv.getSeparationNilTerm();
 
   /* If the heap is not a separating conjunction, bail-out */
