@@ -235,9 +235,6 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
 
   Debug("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
                        << std::endl;
-  // Notice that this interface should not be used when proofs are enabled.
-  // It is easy to make proofs for splits, which we intentionally do not do
-  // here.
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   theory::LemmaStatus result =
       d_engine->lemma(tlem, RULE_SPLIT, removable, false, d_theory, d_theory);
@@ -262,8 +259,8 @@ void EngineOutputChannel::conflict(TNode conflictNode,
   Assert(!proof);  // Theory shouldn't be producing proofs yet
   ++d_statistics.conflicts;
   d_engine->d_outputChannelUsed = true;
-  TrustNode tuConf = TrustNode::mkTrustConflict(conflictNode);
-  d_engine->conflict(tuConf, d_theory);
+  TrustNode tConf = TrustNode::mkTrustConflict(conflictNode);
+  d_engine->conflict(tConf, d_theory);
 }
 
 void EngineOutputChannel::demandRestart()
