@@ -86,6 +86,9 @@ class SkolemManager
    * @param pg The proof generator for this skolem. If non-null, this proof
    * generator must respond to a call to getProofFor(exists v. pred) during
    * the lifetime of the current node manager.
+   * @param retWitness Whether we wish to return the witness term for the
+   * given Skolem, which notice is of the form (witness v. pred), where pred
+   * is in Skolem form.
    * @return The skolem whose witness form is registered by this class.
    */
   Node mkSkolem(Node v,
@@ -93,7 +96,8 @@ class SkolemManager
                 const std::string& prefix,
                 const std::string& comment = "",
                 int flags = NodeManager::SKOLEM_DEFAULT,
-                ProofGenerator* pg = nullptr);
+                ProofGenerator* pg = nullptr,
+                bool retWitness = false);
   /**
    * Make skolemized form of existentially quantified formula q, and store its
    * Skolems into the argument skolems.
@@ -142,6 +146,12 @@ class SkolemManager
                       const std::string& prefix,
                       const std::string& comment = "",
                       int flags = NodeManager::SKOLEM_DEFAULT);
+  /**
+   * Make Boolean term variable for term t. This is a special case of
+   * mkPurifySkolem above, where the returned term has kind
+   * BOOLEAN_TERM_VARIABLE.
+   */
+  Node mkBooleanTermVariable(Node t);
   /**
    * Get proof generator for existentially quantified formula q. This returns
    * the proof generator that was provided in a call to mkSkolem above.
