@@ -92,9 +92,19 @@ Node TrustNode::getNode() const
 }
 
 Node TrustNode::getProven() const { return d_proven; }
+
 ProofGenerator* TrustNode::getGenerator() const { return d_gen; }
 
 bool TrustNode::isNull() const { return d_proven.isNull(); }
+
+std::shared_ptr<ProofNode> TrustNode::toProofNode()
+{
+  if (d_gen==nullptr)
+  {
+    return nullptr;
+  }
+  return d_gen->getProofFor(d_proven);
+}
 
 Node TrustNode::getConflictProven(Node conf) { return conf.notNode(); }
 

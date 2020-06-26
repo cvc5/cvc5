@@ -49,15 +49,6 @@ Node ProofRuleChecker::checkArg(PfRule id, Node arg)
   return check(id, {}, {arg});
 }
 
-bool ProofRuleChecker::expand(PfRule id,
-                              const std::vector<Node>& children,
-                              const std::vector<Node>& args,
-                              CDProof* cdp)
-{
-  // no change, return false
-  return false;
-}
-
 Node ProofRuleChecker::mkAnd(const std::vector<Node>& a)
 {
   if (a.empty())

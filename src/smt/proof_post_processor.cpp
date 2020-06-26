@@ -46,11 +46,6 @@ bool ProofPostprocessCallback::update(PfRule id,
                                       const std::vector<Node>& args,
                                       CDProof* cdp)
 {
-  ProofRuleChecker* prc = d_pchecker->getCheckerFor(id);
-  if (prc != nullptr)
-  {
-    return prc->expand(id, children, args, cdp);
-  }
   Node ret = updateInternal(id, children, args, cdp);
   return !ret.isNull();
 }

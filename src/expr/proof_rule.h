@@ -211,10 +211,12 @@ enum class PfRule : uint32_t
   // did not provide a proof for a lemma or conflict.
   THEORY_LEMMA,
   // ======== Theory preprocess
-  // Children: (F)
-  // Arguments: none
+  // Children: none
+  // Arguments: (F)
   // ---------------------------------------------------------------
-  // Conclusion: TheoryEngine::preprocess(F).
+  // Conclusion: F
+  // where F is an equality of the form t = Theory::ppRewrite(t) for some
+  // theory. Notice this is a "trusted" rule.
   THEORY_PREPROCESS,
   // ======== Remove Term Formulas Axiom
   // Children: none

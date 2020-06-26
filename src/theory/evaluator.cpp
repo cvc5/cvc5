@@ -139,7 +139,7 @@ Node Evaluator::eval(
   for (const std::pair<const Node, Node>& p : visited)
   {
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
-    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results);
+    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results, useRewriter);
     if (results[p.first].d_tag == EvalResult::INVALID)
     {
       // could not evaluate, use the evalAsNode map
@@ -155,7 +155,7 @@ Node Evaluator::eval(
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret = evalInternal(n, args, vals, evalAsNode, results, useRewriter).toNode();
   // if we failed to evaluate
   if (ret.isNull() && useRewriter)
   {
@@ -179,7 +179,8 @@ EvalResult Evaluator::evalInternal(
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
     std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const
+    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
+    bool useRewriter) const
 {
   std::vector<TNode> queue;
   queue.emplace_back(n);
@@ -255,6 +256,12 @@ EvalResult Evaluator::evalInternal(
         // successfully evaluated, and the children that did not.
         Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
         currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
+        if (useRewriter)
+        {
+          // Rewrite the result now, if we use the rewriter. We will see below
+          // if we are able to turn it into a valid EvalResult.
+          currNodeVal = Rewriter::rewrite(currNodeVal);
+        }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
@@ -329,7 +336,7 @@ EvalResult Evaluator::evalInternal(
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
         results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
+            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
         Trace("evaluator") << "Evaluated via arguments to "
                            << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)

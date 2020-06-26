@@ -273,10 +273,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
-    // NOTE: technically a macro:
-    // (TRANS
-    //   (SUBS P1 ... Pn t)
-    //   (REWRITE <t.substitute(xn,tn). ... .substitute(x1,t1)>))
     Assert(1 <= args.size() && args.size() <= 3);
     MethodId ids, idr;
     if (!getMethodIds(args, ids, idr, 1))
@@ -290,9 +286,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   {
     Trace("builtin-pfcheck") << "Check " << id << " " << children.size() << " "
                              << args.size() << std::endl;
-    // NOTE: technically a macro:
-    // (TRUE_ELIM
-    //   (MACRO_SR_EQ_INTRO <children> <args>[0]))
     Assert(1 <= args.size() && args.size() <= 3);
     MethodId ids, idr;
     if (!getMethodIds(args, ids, idr, 1))
@@ -321,11 +314,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
                              << args.size() << std::endl;
     Assert(children.size() >= 1);
     Assert(args.size() <= 2);
-    // NOTE: technically a macro:
-    // (TRUE_ELIM
-    //   (TRANS
-    //     (SYMM (MACRO_SR_EQ_INTRO <children>[1:] F))
-    //     (TRUE_INTRO <children>[0])))
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     MethodId ids, idr;
@@ -352,11 +340,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     std::vector<Node> exp;
     exp.insert(exp.end(), children.begin() + 1, children.end());
     Node res1 = applySubstitutionRewrite(children[0], exp, ids, idr);
-    // Trace("builtin-pfcheck")
-    //    << "Returned " << res1 << std::endl;
     Node res2 = applySubstitutionRewrite(args[0], exp, ids, idr);
-    // Trace("builtin-pfcheck")
-    //    << "Returned " << res2 << " from " << args[0] << std::endl;
     // if not already equal, do rewriting
     if (res1 != res2)
     {
@@ -437,14 +421,6 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
   {
     args.push_back(mkMethodId(idr));
   }
-}
-
-bool BuiltinProofRuleChecker::expand(PfRule id,
-                                     const std::vector<Node>& children,
-                                     const std::vector<Node>& args,
-                                     CDProof* cdp)
-{
-  return false;
 }
 
 }  // namespace builtin
