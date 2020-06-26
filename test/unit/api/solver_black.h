@@ -1534,7 +1534,7 @@ void SolverBlack::testGetSeparationHeapTerm1()
   d_solver->setOption("produce-models", "true");
   Term t = d_solver->mkTrue();
   d_solver->assertFormula(t);
-  TS_ASSERT_THROWS(d_solver->getSeparationHeapTerm(), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
 }
 
 void SolverBlack::testGetSeparationHeapTerm2()
@@ -1543,7 +1543,7 @@ void SolverBlack::testGetSeparationHeapTerm2()
   d_solver->setOption("incremental", "false");
   d_solver->setOption("produce-models", "false");
   checkSimpleSeparationConstraints(d_solver.get());
-  TS_ASSERT_THROWS(d_solver->getSeparationHeapTerm(), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
 }
 
 void SolverBlack::testGetSeparationHeapTerm3()
@@ -1554,7 +1554,7 @@ void SolverBlack::testGetSeparationHeapTerm3()
   Term t = d_solver->mkFalse();
   d_solver->assertFormula(t);
   d_solver->checkSat();
-  TS_ASSERT_THROWS(d_solver->getSeparationHeapTerm(), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
 }
 
 void SolverBlack::testGetSeparationHeapTerm4()
@@ -1565,7 +1565,7 @@ void SolverBlack::testGetSeparationHeapTerm4()
   Term t = d_solver->mkTrue();
   d_solver->assertFormula(t);
   d_solver->checkSat();
-  TS_ASSERT_THROWS(d_solver->getSeparationHeapTerm(), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
 }
 
 void SolverBlack::testGetSeparationHeapTerm5()
@@ -1574,7 +1574,7 @@ void SolverBlack::testGetSeparationHeapTerm5()
   d_solver->setOption("incremental", "false");
   d_solver->setOption("produce-models", "true");
   checkSimpleSeparationConstraints(d_solver.get());
-  TS_ASSERT_THROWS_NOTHING(d_solver->getSeparationHeapTerm());
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSeparationHeap());
 }
 
 void SolverBlack::testGetSeparationNilTerm1()
