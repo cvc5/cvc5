@@ -575,6 +575,49 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
                      << clauseNode << "\n";
 }
 
+void PropEngine::explainPropagation(theory::TrustNode trn)
+{
+  Node proven = trn.getProven();
+  Trace("sat-proof") << "PropEngine::explainPropagation: proven explanation"
+                     << proven << "\n";
+  Assert(trn.getGenerator());
+  d_proof.addLazyStep(proven, trn.getGenerator());
+  // since the propagation is added directly to the SAT solver via theoryProxy,
+  // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
+  NodeManager* nm = NodeManager::currentNM();
+  Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+  Trace("sat-proof") << "PropEngine::explainPropagation: adding "
+                     << PfRule::IMPLIES_ELIM << " rule to conclude "
+                     << clauseImpliesElim << "\n";
+  d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  // need to eliminate AND
+  if (proven[0].getKind() == kind::AND)
+  {
+    std::vector<Node> disjunctsAndNeg{proven[0]};
+    std::vector<Node> disjunctsRes;
+    for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+    {
+      disjunctsAndNeg.push_back(proven[0][i].notNode());
+      disjunctsRes.push_back(proven[0][i].notNode());
+    }
+    disjunctsRes.push_back(proven[1]);
+    Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
+    // add proof steps to convert into clause
+    d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+    Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
+    d_proof.addStep(clauseRes,
+                PfRule::RESOLUTION,
+                {clauseAndNeg, clauseImpliesElim},
+                {proven[0]});
+    // Rewrite clauseNode before proceeding. This is so ordering/factoring
+    // is consistent with the clause that is added to the SAT solver
+    Node clauseExplanation = factorAndReorder(clauseRes);
+    Trace("sat-proof") << "PropEngine::explainPropagation: processed first "
+                          "disjunct to conclude "
+                       << clauseExplanation << "\n";
+  }
+}
+
 void PropEngine::startResChain(Minisat::Solver::TClause& start)
 {
   if (Trace.isOn("sat-proof"))

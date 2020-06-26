@@ -85,57 +85,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   if (CVC4::options::proofNew())
   {
-    Trace("newproof-explain")
-        << "TheoryProxy::explainPropagation: explanation of lit " << l << "["
-        << lNode << "] is " << theoryExplanation << " to prove "
-        << tte.getProven() << "\n";
-    CDProof* pf = d_propEngine->getProof();
-    Node proven = tte.getProven();
-    // no generator, use as assumption
-    if (!tte.getGenerator())
-    {
-      pf->addStep(proven, PfRule::ASSUME, {}, {proven});
-    }
-    else
-    {
-      Assert(tte.getGenerator()->getProofFor(proven));
-
-      pf->addProof(tte.getGenerator()->getProofFor(proven));
-      Assert(proven[1] == lNode);
-      NodeManager* nm = NodeManager::currentNM();
-      Node clauseImpliesElim =
-          nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
-      Trace("newproof") << "TheoryProxy::explainPropagation: adding "
-                        << PfRule::IMPLIES_ELIM << " rule to conclude "
-                        << clauseImpliesElim << "\n";
-      pf->addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
-      // need to eliminate AND
-      if (proven[0].getKind() == kind::AND)
-      {
-        std::vector<Node> disjunctsAndNeg{proven[0]};
-        std::vector<Node> disjunctsRes;
-        for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
-        {
-          disjunctsAndNeg.push_back(proven[0][i].notNode());
-          disjunctsRes.push_back(proven[0][i].notNode());
-        }
-        disjunctsRes.push_back(proven[1]);
-        Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
-        // add proof steps to convert into clause
-        pf->addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
-        Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
-        pf->addStep(clauseRes,
-                    PfRule::RESOLUTION,
-                    {clauseAndNeg, clauseImpliesElim},
-                    {proven[0]});
-        // Rewrite clauseNode before proceeding. This is so ordering/factoring
-        // is consistent with the clause that is added to the SAT solver
-        Node clauseExplanation = d_propEngine->factorAndReorder(clauseRes);
-        Trace("newproof") << "TheoryProxy::explainPropagation: processed first "
-                             "disjunct to conclude "
-                          << clauseExplanation << "\n";
-      }
-    }
+    d_propEngine->explainPropagation(tte);
   }
   PROOF({
       ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
@@ -161,16 +111,15 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
     explanation.push_back(l);
     explanation.push_back(~d_cnfStream->getLiteral(theoryExplanation));
   }
-  if (CVC4::options::proofNew())
+  if (Trace.isOn("sat-proof"))
   {
-    Trace("newproof") << "TheoryProxy::explainPropagation: clause for lit is ";
-
+    Trace("sat-proof") << "PropEngine::explainPropagation: clause for lit is ";
     for (unsigned i = 0, size = explanation.size(); i < size; ++i)
     {
-      Trace("newproof") << explanation[i] << " ["
-                        << d_cnfStream->getNode(explanation[i]) << "] ";
+      Trace("sat-proof") << explanation[i] << " ["
+                         << d_cnfStream->getNode(explanation[i]) << "] ";
     }
-    Trace("newproof") << "\n";
+    Trace("sat-proof") << "\n";
   }
 }
 

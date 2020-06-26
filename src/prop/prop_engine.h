@@ -221,6 +221,9 @@ class PropEngine
   void registerClause(Minisat::Solver::TLit lit);
   void registerClause(SatLiteral satLit);
   void registerClause(Minisat::Solver::TClause& clause);
+
+  void explainPropagation(theory::TrustNode trn);
+
   void startResChain(Minisat::Solver::TClause& start);
   // resolution with unit clause ~lit, to be justified
   void addResolutionStep(Minisat::Solver::TLit lit);
