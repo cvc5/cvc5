@@ -100,9 +100,22 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
       {
         if (node[1][i] == node[0][0])
         {
+          // based on the witness terms we construct, this should be a legal elimination
+          Assert (!expr::hasSubterm(node[1][i], node[0][0]));
+          Assert (node[1][i].getType().isSubtypeOf(node[0][0].getType()));
           return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
         }
       }
+    }
+    else if (node[1] == node[0][0])
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             NodeManager::currentNM()->mkConst(true));
+    }
+    else if (node[1].getKind() == kind::NOT && node[1][0] == node[0][0])
+    {
+      return RewriteResponse(REWRITE_DONE,
+                             NodeManager::currentNM()->mkConst(false));
     }
     return RewriteResponse(REWRITE_DONE, node);
   }else{ 
