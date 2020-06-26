@@ -675,38 +675,6 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
   Type d_type;
 };
 
-/** Declares a sygus primed variable, for invariant problems
- *
- * We do not actually build expressions for the declared variables because they
- * are unnecessary for building SyGuS problems.
- */
-class CVC4_PUBLIC DeclareSygusPrimedVarCommand
-    : public DeclarationDefinitionCommand
-{
- public:
-  DeclareSygusPrimedVarCommand(const std::string& id, Type type);
-  /** returns the declared primed variable's type */
-  Type getType() const;
-
-  /** invokes this command
-   *
-   * The type of the primed variable is communicated to the SMT engine for
-   * debugging purposes when a synthesis conjecture is built later on.
-   */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  /** creates a copy of this command */
-  Command* clone() const override;
-  /** returns this command's name */
-  std::string getCommandName() const override;
-
- protected:
-  /** the type of the declared primed variable */
-  Type d_type;
-};
-
 /** Declares a sygus universal function variable */
 class CVC4_PUBLIC DeclareSygusFunctionCommand
     : public DeclarationDefinitionCommand

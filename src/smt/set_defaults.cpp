@@ -272,6 +272,22 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::proofNew.set(false);
   }
 
+  if (options::arraysExp())
+  {
+    if (!logic.isQuantified())
+    {
+      logic = logic.getUnlockedCopy();
+      logic.enableQuantifiers();
+      logic.lock();
+    }
+    // Allows to answer sat more often by default.
+    if (!options::fmfBound.wasSetByUser())
+    {
+      options::fmfBound.set(true);
+      Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
+    }
+  }
+
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
@@ -1425,12 +1441,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     disableModels = true;
     sOptNoModel = "minisat-elimination";
-  }
-  else if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
-           && !options::nlExt())
-  {
-    disableModels = true;
-    sOptNoModel = "nonlinear arithmetic without nl-ext";
   }
   else if (options::globalNegate())
   {
