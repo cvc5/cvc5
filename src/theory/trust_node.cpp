@@ -99,7 +99,7 @@ bool TrustNode::isNull() const { return d_proven.isNull(); }
 
 std::shared_ptr<ProofNode> TrustNode::toProofNode()
 {
-  if (d_gen==nullptr)
+  if (d_gen == nullptr)
   {
     return nullptr;
   }

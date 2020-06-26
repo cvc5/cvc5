@@ -128,7 +128,7 @@ class TrustNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
-  /** 
+  /**
    * Gets the proof node for this trust node, which is obtained by
    * calling the generator's getProofFor method on the proven node.
    */
