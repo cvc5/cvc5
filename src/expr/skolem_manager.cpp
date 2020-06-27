@@ -178,8 +178,7 @@ Node SkolemManager::mkPurifySkolem(Node t,
 
 Node SkolemManager::mkBooleanTermVariable(Node t)
 {
-  // FIXME
-  return NodeManager::currentNM()->mkBooleanTermVariable();
+  return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
 }
 
 Node SkolemManager::mkExistential(Node t, Node p)
@@ -333,7 +332,16 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   }
   NodeManager* nm = NodeManager::currentNM();
   // make the new skolem
-  Node k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  Node k;
+  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
+  {
+    Assert (w.getType().isBoolean());
+    k = nm->mkBooleanTermVariable();
+  }
+  else
+  {
+    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  }
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);

@@ -1678,9 +1678,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // assert lemmas to prop engine
+  Assert (!options::proofNew() || tlemma.getGenerator()!=nullptr);
   d_propEngine->assertLemma(tlemma, removable, rule, node);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
+    Assert (!options::proofNew() || newLemmas[i].getGenerator()!=nullptr);
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
 
