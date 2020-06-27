@@ -1,8 +1,0 @@
-//======================== Assume and Scope
-
-// ======== Split
-// Children: none
-// Arguments: (F)
-// ---------------------
-// Conclusion: (or F (not F))
-SPLIT 0 1 ::CVC4::theory::booleans::BoolProofRuleChecker
