@@ -262,6 +262,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                     std::reverse(mchildren_ss.begin(), mchildren_ss.end());
                     std::reverse(children_ss.begin(), children_ss.end());
                   }
+                  Trace("regexp-ext-rewrite-debug") << "- recursive call required repeat star" << std::endl;
                   Trace("regexp-ext-rewrite-debug") << push;
                   Node rets = simpleRegexpConsume(mchildren_ss, children_ss, t);
                   Trace("regexp-ext-rewrite-debug") << pop;
