@@ -48,7 +48,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
         do_next = false;
         Node xc = mchildren[mchildren.size() - 1];
         Node rc = children[children.size() - 1];
-        Trace("regexp-ext-rewrite-debug") << "* " << xc << " in " << rc << std::endl;
+        Trace("regexp-ext-rewrite-debug")
+            << "* " << xc << " in " << rc << std::endl;
         Assert(rc.getKind() != REGEXP_CONCAT);
         Assert(xc.getKind() != STRING_CONCAT);
         if (rc.getKind() == STRING_TO_REGEXP)
@@ -62,7 +63,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
           }
           else if (rc[0].isConst() && Word::isEmpty(rc[0]))
           {
-            Trace("regexp-ext-rewrite-debug") << "- ignore empty RE" << std::endl;
+            Trace("regexp-ext-rewrite-debug")
+                << "- ignore empty RE" << std::endl;
             // ignore and continue
             children.pop_back();
             do_next = true;
@@ -73,8 +75,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             size_t index;
             Node s = Word::splitConstant(xc, rc[0], index, t == 0);
             Trace("regexp-ext-rewrite-debug")
-                << "- CRE: Regexp const split : " << xc << " " << rc[0] << " -> "
-                << s << " " << index << " " << t << std::endl;
+                << "- CRE: Regexp const split : " << xc << " " << rc[0]
+                << " -> " << s << " " << index << " " << t << std::endl;
             if (s.isNull())
             {
               Trace("regexp-ext-rewrite-debug")
@@ -161,7 +163,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                 // one conjunct cannot be satisfied, return false
                 if (rc.getKind() == REGEXP_INTER)
                 {
-                  Trace("regexp-ext-rewrite-debug") << "...return " << ret << std::endl;
+                  Trace("regexp-ext-rewrite-debug")
+                      << "...return " << ret << std::endl;
                   return ret;
                 }
               }
@@ -196,12 +199,15 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
               {
                 // all disjuncts cannot be satisfied, return false
                 Assert(rc.getKind() == REGEXP_UNION);
-                Trace("regexp-ext-rewrite-debug") << "...return false" << std::endl;
+                Trace("regexp-ext-rewrite-debug")
+                    << "...return false" << std::endl;
                 return nm->mkConst(false);
               }
               else
               {
-                Trace("regexp-ext-rewrite-debug") << "- same result, try again, children now " << children << std::endl;
+                Trace("regexp-ext-rewrite-debug")
+                    << "- same result, try again, children now " << children
+                    << std::endl;
                 // all branches led to the same result
                 children.pop_back();
                 mchildren.pop_back();
@@ -262,12 +268,12 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                     std::reverse(mchildren_ss.begin(), mchildren_ss.end());
                     std::reverse(children_ss.begin(), children_ss.end());
                   }
-                  Trace("regexp-ext-rewrite-debug") << "- recursive call required repeat star" << std::endl;
+                  Trace("regexp-ext-rewrite-debug")
+                      << "- recursive call required repeat star" << std::endl;
                   Trace("regexp-ext-rewrite-debug") << push;
                   Node rets = simpleRegexpConsume(mchildren_ss, children_ss, t);
                   Trace("regexp-ext-rewrite-debug") << pop;
-                  if (rets
-                          .isNull())
+                  if (rets.isNull())
                   {
                     can_skip = true;
                   }

@@ -335,7 +335,7 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   Node k;
   if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
   {
-    Assert (w.getType().isBoolean());
+    Assert(w.getType().isBoolean());
     k = nm->mkBooleanTermVariable();
   }
   else

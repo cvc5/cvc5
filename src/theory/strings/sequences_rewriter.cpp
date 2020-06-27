@@ -1321,7 +1321,7 @@ Node SequencesRewriter::rewriteMembership(TNode node)
             // Iterate again if the node changed. It may not have changed if
             // nothing was consumed from mchildren (e.g. if the body of the
             // re.* accepts the empty string.
-            success = (retNode!=prev);
+            success = (retNode != prev);
           }
         }
       }
