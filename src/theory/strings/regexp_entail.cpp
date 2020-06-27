@@ -280,8 +280,8 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                 }
                 if (!can_skip)
                 {
-                  TypeNode rtype = nm->regExpType();
-                  Node prev = utils::mkConcat(mchildren, rtype);
+                  TypeNode stype = nm->stringType();
+                  Node prev = utils::mkConcat(mchildren, stype);
                   Trace("regexp-ext-rewrite-debug")
                       << "- can't skip" << std::endl;
                   // take the result of fully consuming once
@@ -292,7 +292,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                   mchildren.clear();
                   mchildren.insert(
                       mchildren.end(), mchildren_s.begin(), mchildren_s.end());
-                  Node curr = utils::mkConcat(mchildren, rtype);
+                  Node curr = utils::mkConcat(mchildren, stype);
                   do_next = (prev != curr);
                   Trace("regexp-ext-rewrite-debug")
                       << "- do_next = " << do_next << std::endl;
