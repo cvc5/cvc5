@@ -1433,6 +1433,18 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
           proofRecipe->addStep(proofStep);
         }
       });
+    if (options::proofNew())
+    {
+      // check if no generator, if so, add THEORY_LEMMA
+      if (texplanation.getGenerator()==nullptr)
+      {
+        Node proven = texplanation.getProven();
+        unsigned tid = static_cast<unsigned>(theoryOf(atom)->getId());
+        Node tidn = NodeManager::currentNM()->mkConst(Rational(tid));
+        d_lazyProof->addStep(proven, PfRule::THEORY_LEMMA, {}, {proven, tidn});
+        texplanation = TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
+      }
+    }
     return texplanation;
   }
 
