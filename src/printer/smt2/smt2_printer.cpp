@@ -1458,43 +1458,6 @@ void Smt2Printer::toStream(std::ostream& out,
   }
 }
 
-void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
-{
-  if (n.getKind() == kind::APPLY_CONSTRUCTOR)
-  {
-    TypeNode tn = n.getType();
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    if (dt.isSygus())
-    {
-      int cIndex = Datatype::indexOf(n.getOperator().toExpr());
-      Assert(!dt[cIndex].getSygusOp().isNull());
-      if (n.getNumChildren() > 0)
-      {
-        out << "(";
-      }
-      // print operator without letification (the fifth argument is set to 0).
-      toStream(out, dt[cIndex].getSygusOp(), -1, false, 0);
-      if (n.getNumChildren() > 0)
-      {
-        for (Node nc : n)
-        {
-          out << " ";
-          toStreamSygus(out, nc);
-        }
-        out << ")";
-      }
-      return;
-    }
-  }
-  Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
-  if (p.isNull())
-  {
-    p = n;
-  }
-  // cannot convert term to analog, print original, without letification.
-  toStream(out, p, -1, false, 0);
-}
-
 static void toStream(std::ostream& out, const AssertCommand* c)
 {
   out << "(assert " << c->getExpr() << ")";
@@ -2052,8 +2015,6 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
     //   name
     //   sygus type
     //   constructors in order
-    Printer* sygus_printer =
-        Printer::getPrinter(language::output::LANG_SYGUS_V2);
     do
     {
       Type curr = typesToPrint.front();
@@ -2087,7 +2048,8 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
         }
         Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
         // now, print it
-        sygus_printer->toStreamSygus(types_list, consToPrint);
+        // FIXME
+        //sygus_printer->toStreamSygus(types_list, consToPrint);
         types_list << ' ';
       }
       types_list << "))\n";

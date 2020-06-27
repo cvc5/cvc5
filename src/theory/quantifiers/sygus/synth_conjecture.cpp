@@ -372,7 +372,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         for (const Node& fc : fail_cvs)
         {
           std::stringstream ss;
-          Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, fc);
+          TermDbSygus::toStreamSygus(ss, fc);
           Trace("sygus-engine") << ss.str() << " ";
         }
         Trace("sygus-engine") << std::endl;
@@ -429,7 +429,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
+        TermDbSygus::toStreamSygus(ss, onv);
         Trace("sygus-engine") << terms[i] << " -> ";
         if (nv.isNull())
         {

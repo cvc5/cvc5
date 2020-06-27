@@ -723,17 +723,17 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    if (n.isNull())
-    {
-      Trace(c) << n;
-    }
-    else
-    {
-      // use external conversion
-      Node bn = n.isConst() ? datatypes::utils::sygusToBuiltin(n, true) : n;
-      Trace(c) << bn;
-    }
+    std::stringstream ss;
+    toStreamSygus(ss, n);
+    Trace(c) << ss.str();
   }
+}
+
+void TermDbSygus::toStreamSygus(std::ostream& out, Node n)
+{
+  // use external conversion
+  Node bn = n.isConst() ? datatypes::utils::sygusToBuiltin(n, true) : n;
+  out << bn;
 }
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
