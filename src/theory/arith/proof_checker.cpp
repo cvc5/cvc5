@@ -29,8 +29,8 @@ namespace arith {
 
 void ArithProofRuleChecker::registerTo(ProofChecker* pc)
 {
-  pc->registerChecker(PfRule::SCALE_SUM_UPPER_BOUNDS, this);
-  pc->registerChecker(PfRule::TRICHOTOMY, this);
+  pc->registerChecker(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS, this);
+  pc->registerChecker(PfRule::ARITH_TRICHOTOMY, this);
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
   pc->registerChecker(PfRule::INT_TIGHT_LB, this);
   pc->registerChecker(PfRule::INT_TRUST, this);
@@ -57,7 +57,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
   }
   switch (id)
   {
-    case PfRule::SCALE_SUM_UPPER_BOUNDS:
+    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS:
     {
       // Children: (P1:l1, ..., Pn:ln)
       //           where each li is an ArithLiteral
@@ -211,7 +211,7 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
         return nm->mkNode(kind::LEQ, children[0][0], rational);
       }
     }
-    case PfRule::TRICHOTOMY:
+    case PfRule::ARITH_TRICHOTOMY:
     {
       Node a = negateProofLiteral(children[0]);
       Node b = negateProofLiteral(children[1]);

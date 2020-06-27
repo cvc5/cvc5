@@ -91,8 +91,8 @@ const char* toString(PfRule id)
     case PfRule::SKOLEMIZE: return "SKOLEMIZE";
     case PfRule::INSTANTIATE: return "INSTANTIATE";
     //================================================= Arith rules
-    case PfRule::SCALE_SUM_UPPER_BOUNDS: return "SCALE_SUM_UPPER_BOUNDS";
-    case PfRule::TRICHOTOMY: return "TRICHOTOMY";
+    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
