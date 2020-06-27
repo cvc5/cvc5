@@ -82,7 +82,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_pNodeManager(options::proofNew()
                          ? new ProofNodeManager(te->getProofChecker())
                          : nullptr),
-      d_proof(d_pNodeManager.get(), userContext),
+      d_proof(d_pNodeManager.get(), nullptr, userContext),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)
@@ -160,12 +160,12 @@ void PropEngine::assertLemma(theory::TrustNode trn,
 {
   Node node = trn.getNode();
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
-  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
-
   // Assert as (possibly) removable
   if (d_pfCnfStream)
   {
+    Assert(trn.getGenerator());
+    d_proof.addLazyStep(node, trn.getGenerator());
     d_pfCnfStream->convertAndAssert(node, negated, removable);
   }
   else
@@ -543,6 +543,9 @@ void PropEngine::registerClause(SatLiteral satLit)
   // not possible yet to know, in general, how this literal came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
+
+  // TODO this should be a lazy step with a generator that will query the proof
+  // cnf stream
   d_proof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
   Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
 }
@@ -570,9 +573,55 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
+
+  // TODO this should be a lazy step with a generator that will query the proof
+  // cnf stream
   d_proof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
   Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
                      << clauseNode << "\n";
+}
+
+void PropEngine::explainPropagation(theory::TrustNode trn)
+{
+  Node proven = trn.getProven();
+  Trace("sat-proof") << "PropEngine::explainPropagation: proven explanation"
+                     << proven << "\n";
+  Assert(trn.getGenerator());
+  d_proof.addLazyStep(proven, trn.getGenerator());
+  // since the propagation is added directly to the SAT solver via theoryProxy,
+  // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
+  NodeManager* nm = NodeManager::currentNM();
+  Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+  Trace("sat-proof") << "PropEngine::explainPropagation: adding "
+                     << PfRule::IMPLIES_ELIM << " rule to conclude "
+                     << clauseImpliesElim << "\n";
+  d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  // need to eliminate AND
+  if (proven[0].getKind() == kind::AND)
+  {
+    std::vector<Node> disjunctsAndNeg{proven[0]};
+    std::vector<Node> disjunctsRes;
+    for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+    {
+      disjunctsAndNeg.push_back(proven[0][i].notNode());
+      disjunctsRes.push_back(proven[0][i].notNode());
+    }
+    disjunctsRes.push_back(proven[1]);
+    Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
+    // add proof steps to convert into clause
+    d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+    Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
+    d_proof.addStep(clauseRes,
+                PfRule::RESOLUTION,
+                {clauseAndNeg, clauseImpliesElim},
+                {proven[0]});
+    // Rewrite clauseNode before proceeding. This is so ordering/factoring
+    // is consistent with the clause that is added to the SAT solver
+    Node clauseExplanation = factorAndReorder(clauseRes);
+    Trace("sat-proof") << "PropEngine::explainPropagation: processed first "
+                          "disjunct to conclude "
+                       << clauseExplanation << "\n";
+  }
 }
 
 void PropEngine::startResChain(Minisat::Solver::TClause& start)

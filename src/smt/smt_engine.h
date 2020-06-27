@@ -60,6 +60,7 @@ class TheoryEngine;
 class ProofManager;
 class ProofChecker;
 class ProofNodeManager;
+class CDProof;
 
 class Model;
 class LogicRequest;
@@ -546,6 +547,7 @@ class CVC4_PUBLIC SmtEngine
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
 
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -1076,6 +1078,8 @@ class CVC4_PUBLIC SmtEngine
    */
   bool getAbductInternal(Expr& abd);
 
+  void setFinalProof();
+
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
@@ -1130,6 +1134,12 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<ProofNodeManager> d_pnm;
   /** The rewrite proof database. */
   std::unique_ptr<theory::RewriteDb> d_rewriteDb;
+
+  /** The final proof produced by this SMT engine
+   *
+   * Combines the proofs of preprocessing, prop engine and theory engine, to be
+   * connected by setFinalProof(). */
+  std::unique_ptr<CDProof> d_finalProof;
   //--------------------------------- end new proofs
 
   /** An index of our defined functions */

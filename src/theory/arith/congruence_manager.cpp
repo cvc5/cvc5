@@ -323,6 +323,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     }
     Assert(pf->getResult() == disEq);
   }
+  d_keepAlive.push_back(reason);
   assertionToEqualityEngine(false, s, reason, pf);
 }
 
@@ -518,6 +519,9 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
     if (CDProof::isSame(lit, reason))
     {
       Trace("arith-pfee") << "Asserting only, b/c implied by symm" << std::endl;
+      // The equality engine doesn't ref-count for us...
+      d_keepAlive.push_back(eq);
+      d_keepAlive.push_back(reason);
       d_ee.assertEquality(eq, isEquality, reason);
     }
     else if (hasProofFor(lit))
@@ -534,11 +538,15 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
         pf->printDebug(Trace("arith-pfee"));
         Trace("arith-pfee") << std::endl;
       }
+      // The proof equality engine *does* ref-count for us...
       d_pfee->assertFact(lit, reason, d_pfGenEe.get());
     }
   }
   else
   {
+    // The equality engine doesn't ref-count for us...
+    d_keepAlive.push_back(eq);
+    d_keepAlive.push_back(reason);
     d_ee.assertEquality(eq, isEquality, reason);
   }
 }
