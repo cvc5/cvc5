@@ -1,5 +1,12 @@
 This file contains a summary of important user-visible changes.
 
+Changes since 1.8
+=================
+
+Improvements:
+* New API: Added functions to retrieve the heap/nil term when using separation
+  logic.
+
 Changes since 1.7
 =================
 
