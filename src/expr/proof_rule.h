@@ -507,6 +507,7 @@ enum class PfRule : uint32_t
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 
+  // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
   //   >< is >=, >, ==, <, <=, or not(== ...).
