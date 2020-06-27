@@ -663,6 +663,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_pchecker(nullptr),
       d_pnm(nullptr),
       d_rewriteDb(nullptr),
+      d_finalProof(nullptr),
       d_definedFunctions(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),
@@ -902,6 +903,7 @@ SmtEngine::~SmtEngine()
     d_pchecker.reset(nullptr);
     d_pnm.reset(nullptr);
     d_rewriteDb.reset(nullptr);
+    d_finalProof.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -1791,6 +1793,12 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
+
+    if (options::dumpProofs() && options::proofNew()
+        && d_smtMode == SMT_MODE_UNSAT)
+    {
+      printProof();
+    }
 
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
@@ -3053,6 +3061,24 @@ const Proof& SmtEngine::getProof()
 #else /* IS_PROOFS_BUILD */
   throw ModalException("This build of CVC4 doesn't have proof support.");
 #endif /* IS_PROOFS_BUILD */
+}
+
+void SmtEngine::setFinalProof()
+{
+  d_finalProof.reset(new CDProof(d_pnm.get()));
+  d_finalProof->addProof(d_propEngine->getProof()->getProofFor(
+      NodeManager::currentNM()->mkConst(false))->clone());
+}
+
+void SmtEngine::printProof()
+{
+  setFinalProof();
+  Assert(d_finalProof);
+  Assert(d_finalProof->getProofFor(NodeManager::currentNM()->mkConst(false)));
+  *options::out() << "Proof node for false:\n";
+  d_finalProof->getProofFor(NodeManager::currentNM()->mkConst(false))
+      ->printDebug(*options::out());
+  *options::out() << "\n==========\n";
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

@@ -72,7 +72,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  if (options::checkProofs() || options::dumpProofs())
+  if (options::checkProofs() || (options::dumpProofs() && !options::proofNew()))
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
     options::proof.set(true);

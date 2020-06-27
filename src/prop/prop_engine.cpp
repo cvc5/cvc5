@@ -543,6 +543,9 @@ void PropEngine::registerClause(SatLiteral satLit)
   // not possible yet to know, in general, how this literal came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
+
+  // TODO this should be a lazy step with a generator that will query the proof
+  // cnf stream
   d_proof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
   Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
 }
@@ -570,6 +573,9 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
+
+  // TODO this should be a lazy step with a generator that will query the proof
+  // cnf stream
   d_proof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
   Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
                      << clauseNode << "\n";

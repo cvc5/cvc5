@@ -20,6 +20,7 @@
 #define CVC4__DUMP_H
 
 #include "base/output.h"
+#include "expr/proof_node.h"
 #include "smt/command.h"
 
 namespace CVC4 {
@@ -40,6 +41,15 @@ class CVC4_PUBLIC CVC4dumpstream
     return *this;
   }
 
+  CVC4dumpstream& operator<<(ProofNode* pn)
+  {
+    if (d_os != nullptr)
+    {
+      pn->printDebug(*d_os);
+    }
+    return *this;
+  }
+
  private:
   std::ostream* d_os;
 }; /* class CVC4dumpstream */
@@ -56,6 +66,7 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream() {}
   CVC4dumpstream(std::ostream& os) {}
   CVC4dumpstream& operator<<(const Command& c) { return *this; }
+  CVC4dumpstream& operator<<(ProofNode* pn) { return *this; }
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
