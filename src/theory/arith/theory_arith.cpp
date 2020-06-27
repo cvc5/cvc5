@@ -40,7 +40,9 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     , d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  if (options::nlExt()) {
+  // if logic is non-linear
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
     setupExtTheory();
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
     getExtTheory()->addFunctionKind(kind::EXPONENTIAL);

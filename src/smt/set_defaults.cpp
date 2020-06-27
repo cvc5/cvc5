@@ -1442,12 +1442,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     disableModels = true;
     sOptNoModel = "minisat-elimination";
   }
-  else if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
-           && !options::nlExt())
-  {
-    disableModels = true;
-    sOptNoModel = "nonlinear arithmetic without nl-ext";
-  }
   else if (options::globalNegate())
   {
     disableModels = true;

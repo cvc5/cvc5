@@ -151,7 +151,6 @@ class NlModel
    * d is a degree indicating how precise our computations are.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
                   unsigned d,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
