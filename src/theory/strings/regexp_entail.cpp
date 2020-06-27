@@ -50,7 +50,14 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
         Node rc = children[children.size() - 1];
         Assert(rc.getKind() != REGEXP_CONCAT);
         Assert(xc.getKind() != STRING_CONCAT);
-        if (rc.getKind() == STRING_TO_REGEXP)
+        if (xc.isConst() && Word::isEmpty(xc))
+        {
+          Trace("regexp-ext-rewrite-debug") << "...ignore empty" << std::endl;
+          // ignore and continue
+          mchildren.pop_back();
+          do_next = true;
+        }
+        else if (rc.getKind() == STRING_TO_REGEXP)
         {
           if (xc == rc[0])
           {
@@ -95,14 +102,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
         {
           // check for constants
           CVC4::String s = xc.getConst<String>();
-          if (Word::isEmpty(xc))
-          {
-            Trace("regexp-ext-rewrite-debug") << "...ignore empty" << std::endl;
-            // ignore and continue
-            mchildren.pop_back();
-            do_next = true;
-          }
-          else if (rc.getKind() == REGEXP_RANGE || rc.getKind() == REGEXP_SIGMA)
+          if (rc.getKind() == REGEXP_RANGE || rc.getKind() == REGEXP_SIGMA)
           {
             std::vector<unsigned> ssVec;
             ssVec.push_back(t == 0 ? s.back() : s.front());
@@ -135,7 +135,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
             // see if any/each child does not work
             bool result_valid = true;
             Node result;
-            Node emp_s = nm->mkConst(::CVC4::String(""));
+            Node emp_s = nm->mkConst(String(""));
             for (unsigned i = 0; i < rc.getNumChildren(); i++)
             {
               std::vector<Node> mchildren_s;
@@ -148,6 +148,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
                 // one conjunct cannot be satisfied, return false
                 if (rc.getKind() == REGEXP_INTER)
                 {
+                  Trace("regexp-ext-rewrite-debug") << "...return " << ret << std::endl;
                   return ret;
                 }
               }
@@ -182,6 +183,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
               {
                 // all disjuncts cannot be satisfied, return false
                 Assert(rc.getKind() == REGEXP_UNION);
+                Trace("regexp-ext-rewrite-debug") << "...return false" << std::endl;
                 return nm->mkConst(false);
               }
               else
@@ -286,6 +288,7 @@ Node RegExpEntail::simpleRegexpConsume(std::vector<Node>& mchildren,
       std::reverse(mchildren.begin(), mchildren.end());
     }
   }
+  Trace("regexp-ext-rewrite-debug") << "...finished" << std::endl;
   return Node::null();
 }
 
