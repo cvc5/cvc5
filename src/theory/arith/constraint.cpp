@@ -1096,7 +1096,7 @@ TrustNode Constraint::split()
     auto ltPf = d_database->d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {nGeqPf}, {ltNode});
     auto sumPf = d_database->d_pnm->mkNode(
-        PfRule::SCALE_SUM_UPPER_BOUNDS,
+        PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
         {gtPf, ltPf},
         {nm->mkConst<Rational>(-1), nm->mkConst<Rational>(1)});
     auto botPf = d_database->d_pnm->mkNode(
@@ -1769,7 +1769,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
 
           // Apply the scaled-sum rule.
           std::shared_ptr<ProofNode> sumPf = d_database->d_pnm->mkNode(
-              PfRule::SCALE_SUM_UPPER_BOUNDS, farkasChildren, farkasCoeffs);
+              PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS, farkasChildren, farkasCoeffs);
 
           // Provable rewrite the result
           auto botPf = d_database->d_pnm->mkNode(
@@ -1816,7 +1816,7 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
         }
         case ArithProofType::TrichotomyAP:
         {
-          pf = d_database->d_pnm->mkNode(PfRule::TRICHOTOMY,
+          pf = d_database->d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY,
                                          children,
                                          {getProofLiteral()},
                                          getProofLiteral());

@@ -24,6 +24,7 @@
 #include "expr/node_manager.h"
 #include "util/integer.h"
 #include "util/rational.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::expr;
@@ -36,6 +37,7 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
   NodeManagerScope* d_scope;
   TypeNode* d_intTypeNode;
   TypeNode* d_boolTypeNode;
+  TypeNode* d_bvTypeNode;
 
  public:
   void setUp() override
@@ -44,6 +46,7 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     d_scope = new NodeManagerScope(d_nodeManager);
     d_intTypeNode = new TypeNode(d_nodeManager->integerType());
     d_boolTypeNode = new TypeNode(d_nodeManager->booleanType());
+    d_bvTypeNode = new TypeNode(d_nodeManager->mkBitVectorType(2));
   }
 
   void tearDown() override
@@ -107,16 +110,24 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
     Node plus = d_nodeManager->mkNode(PLUS, x, x);
     Node mul = d_nodeManager->mkNode(MULT, x, x);
-    Node eq = d_nodeManager->mkNode(EQUAL, plus, mul);
+    Node eq1 = d_nodeManager->mkNode(EQUAL, plus, mul);
 
+    Node y = d_nodeManager->mkSkolem("y", d_nodeManager->mkBitVectorType(4));
+    Node ext1 = theory::bv::utils::mkExtract(y, 1, 0);
+    Node ext2 = theory::bv::utils::mkExtract(y, 3, 2);
+    Node eq2 = d_nodeManager->mkNode(EQUAL, ext1, ext2);
+
+    Node formula = d_nodeManager->mkNode(AND, eq1, eq2);
+    
     // call function
-    expr::getOperatorsMap(eq, result);
+    expr::getOperatorsMap(formula, result);
 
     // Verify result
-    // We should have only integer and boolean as types
-    TS_ASSERT(result.size() == 2);
+    // We should have only integer, bv and boolean as types
+    TS_ASSERT(result.size() == 3);
     TS_ASSERT(result.find(*d_intTypeNode) != result.end());
     TS_ASSERT(result.find(*d_boolTypeNode) != result.end());
+    TS_ASSERT(result.find(*d_bvTypeNode) != result.end());
 
     // in integers, we should only have plus and mult as operators
     TS_ASSERT(result[*d_intTypeNode].size() == 2);
@@ -125,10 +136,21 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     TS_ASSERT(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT))
               != result[*d_intTypeNode].end());
 
-    // in booleans, we should only have "=" as an operator.
-    TS_ASSERT(result[*d_boolTypeNode].size() == 1);
+    // in booleans, we should only have "=" and "and" as an operator.
+    TS_ASSERT(result[*d_boolTypeNode].size() == 2);
     TS_ASSERT(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL))
               != result[*d_boolTypeNode].end());
+    TS_ASSERT(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(AND))
+              != result[*d_boolTypeNode].end());
+
+    //in bv, we should only have "extract" as an operator.
+    TS_ASSERT(result[*d_boolTypeNode].size() == 2);
+    Node extractOp1 = d_nodeManager->mkConst<BitVectorExtract>(BitVectorExtract(1, 0));
+    Node extractOp2 = d_nodeManager->mkConst<BitVectorExtract>(BitVectorExtract(3, 2));
+    TS_ASSERT(result[*d_bvTypeNode].find(extractOp1)
+              != result[*d_bvTypeNode].end());
+    TS_ASSERT(result[*d_bvTypeNode].find(extractOp2)
+              != result[*d_bvTypeNode].end());
   }
 
   void testMatch()

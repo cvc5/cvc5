@@ -4838,7 +4838,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
         // Prove bottom.
         auto sumPf = d_pnm->mkNode(
-            PfRule::SCALE_SUM_UPPER_BOUNDS, conflictPfs, farkasCoefficients);
+            PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS, conflictPfs, farkasCoefficients);
         auto botPf = d_pnm->mkNode(
             PfRule::MACRO_SR_PRED_TRANSFORM, {sumPf}, {nm->mkConst(false)});
 

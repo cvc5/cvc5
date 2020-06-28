@@ -827,6 +827,7 @@ enum class PfRule : uint32_t
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
+  // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
   //   >< is >=, >, ==, <, <=, or not(== ...).
@@ -846,7 +847,7 @@ enum class PfRule : uint32_t
   //                      and upper bounds must have positive ki.
   //    t1 is the sum of the polynomials.
   //    t2 is the sum of the constants.
-  SCALE_SUM_UPPER_BOUNDS,
+  ARITH_SCALE_SUM_UPPER_BOUNDS,
 
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
@@ -874,7 +875,7 @@ enum class PfRule : uint32_t
   //                   in some order
   //                 note that "not" here denotes arithmetic negation, flipping
   //                 >= to <, etc.
-  TRICHOTOMY,
+  ARITH_TRICHOTOMY,
 
   // ======== Arithmetic operator elimination
   // Children: none

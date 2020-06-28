@@ -220,7 +220,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   if (options::proofNew())
   {
     pf = d_pnm->mkNode(
-        PfRule::TRICHOTOMY, {pfLb, pfUb}, {eqC->getProofLiteral()});
+        PfRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eqC->getProofLiteral()});
     pf = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {eq});
   }
 
@@ -309,7 +309,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
       const auto isZeroPf = d_pnm->mkAssume(isZero);
       const auto nm = NodeManager::currentNM();
       const auto sumPf = d_pnm->mkNode(
-          PfRule::SCALE_SUM_UPPER_BOUNDS,
+          PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
           {isZeroPf, pf},
           // Trick for getting correct, opposing signs.
           {nm->mkConst(Rational(-1 * cSign)), nm->mkConst(Rational(cSign))});
@@ -635,7 +635,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   std::shared_ptr<ProofNode> pf;
   if (options::proofNew())
   {
-    pf = d_pnm->mkNode(PfRule::TRICHOTOMY, {pfLb, pfUb}, {eq});
+    pf = d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eq});
   }
   d_keepAlive.push_back(eq);
   d_keepAlive.push_back(reason);
