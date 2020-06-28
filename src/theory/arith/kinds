@@ -133,4 +133,15 @@ nullaryoperator PI "pi"
 
 typerule PI ::CVC4::theory::arith::RealNullaryOperatorTypeRule
 
+
+constant IAND_OP \
+	::CVC4::IntAnd \
+	"::CVC4::UnsignedHashFunction< ::CVC4::IntAnd >" \
+	"util/iand.h" \
+	"operator for integer AND; payload is an instance of the CVC4::IntAnd class"
+parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
+
+typerule IAND_OP ::CVC4::theory::arith::IAndOpTypeRule
+typerule IAND ::CVC4::theory::arith::IAndTypeRule
+
 endtheory

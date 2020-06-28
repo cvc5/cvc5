@@ -25,6 +25,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/theory.h"
+#include "util/iand.h"
 
 namespace CVC4 {
 namespace theory {
@@ -101,8 +102,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::PLUS:
       return preRewritePlus(t);
     case kind::MULT:
-    case kind::NONLINEAR_MULT:
-      return preRewriteMult(t);  
+    case kind::NONLINEAR_MULT: return preRewriteMult(t);
+    case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
     case kind::EXPONENTIAL:
     case kind::SINE:
     case kind::COSINE:
@@ -165,8 +166,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::PLUS:
       return postRewritePlus(t);
     case kind::MULT:
-    case kind::NONLINEAR_MULT:
-      return postRewriteMult(t);    
+    case kind::NONLINEAR_MULT: return postRewriteMult(t);
+    case kind::IAND: return postRewriteIAnd(t);
     case kind::EXPONENTIAL:
     case kind::SINE:
     case kind::COSINE:
@@ -371,6 +372,50 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   return RewriteResponse(REWRITE_DONE, res.getNode());
 }
 
+RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
+{
+  Assert(t.getKind() == kind::IAND);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
+  if (t[0].isConst() && t[1].isConst())
+  {
+    size_t bsize = t.getOperator().getConst<IntAnd>().d_size;
+    Node iToBvop = nm->mkConst(IntToBitVector(bsize));
+    Node arg1 = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvop, t[0]);
+    Node arg2 = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvop, t[1]);
+    Node bvand = nm->mkNode(kind::BITVECTOR_AND, arg1, arg2);
+    Node ret = nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
+  else if (t[0] > t[1])
+  {
+    // ((_ iand k) x y) ---> ((_ iand k) y x) if x > y by node ordering
+    Node ret = nm->mkNode(kind::IAND, t.getOperator(), t[1], t[0]);
+    return RewriteResponse(REWRITE_AGAIN, ret);
+  }
+  else if (t[0] == t[1])
+  {
+    // ((_ iand k) x x) ---> x
+    return RewriteResponse(REWRITE_DONE, t[0]);
+  }
+  // simplifications involving constants
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (!t[i].isConst())
+    {
+      continue;
+    }
+    if (t[i].getConst<Rational>().sgn() == 0)
+    {
+      // ((_ iand k) 0 y) ---> 0
+      return RewriteResponse(REWRITE_DONE, t[i]);
+    }
+    // TODO ((_ iand k) 2^k-1 y) ---> y
+
+    // constants c out of bounds can be normalized to (mod c 2^k)
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
 
 RewriteResponse ArithRewriter::preRewriteTranscendental(TNode t) {
   return RewriteResponse(REWRITE_DONE, t);
