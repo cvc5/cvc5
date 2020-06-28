@@ -507,6 +507,70 @@ enum class PfRule : uint32_t
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 
+  // ======== Adding Inequalities
+  // Note: an ArithLiteral is a term of the form (>< poly const)
+  // where
+  //   >< is >=, >, ==, <, <=, or not(== ...).
+  //   poly is a polynomial
+  //   const is a rational constant
+
+  // Children: (P1:l1, ..., Pn:ln)
+  //           where each li is an ArithLiteral
+  //           not(= ...) is dis-allowed!
+  //
+  // Arguments: (k1, ..., kn), non-zero reals
+  // ---------------------
+  // Conclusion: (>< (* k t1) (* k t2))
+  //    where >< is the fusion of the combination of the ><i, (flipping each it
+  //    its ki is negative). >< is always one of <, <=
+  //    NB: this implies that lower bounds must have negative ki,
+  //                      and upper bounds must have positive ki.
+  //    t1 is the sum of the polynomials.
+  //    t2 is the sum of the constants.
+  ARITH_SCALE_SUM_UPPER_BOUNDS,
+
+  // ======== Tightening Strict Integer Upper Bounds
+  // Children: (P:(< i c))
+  //         where i has integer type.
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (<= i greatestIntLessThan(c)})
+  INT_TIGHT_UB,
+
+  // ======== Tightening Strict Integer Lower Bounds
+  // Children: (P:(> i c))
+  //         where i has integer type.
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (>= i leastIntGreaterThan(c)})
+  INT_TIGHT_LB,
+
+  // ======== Trichotomy of the reals
+  // Children: (A B)
+  // Arguments: (C)
+  // ---------------------
+  // Conclusion: (C),
+  //                 where (not A) (not B) and C
+  //                   are (> x c) (< x c) and (= x c)
+  //                   in some order
+  //                 note that "not" here denotes arithmetic negation, flipping
+  //                 >= to <, etc.
+  ARITH_TRICHOTOMY,
+
+  // ======== Arithmetic operator elimination
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  ARITH_OP_ELIM_AXIOM,
+
+  // ======== Int Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  INT_TRUST,
+
   //================================================= Unknown rule
   UNKNOWN,
 };

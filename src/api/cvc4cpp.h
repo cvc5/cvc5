@@ -3004,6 +3004,18 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
   /**
+   * When using separation logic, obtain the term for the heap.
+   * @return The term for the heap
+   */
+  Term getSeparationHeap() const;
+
+  /**
+   * When using separation logic, obtain the term for nil.
+   * @return The term for nil
+   */
+  Term getSeparationNilTerm() const;
+
+  /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB: ( pop <numeral> )
    * @param nscopes the number of levels to pop
