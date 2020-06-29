@@ -73,11 +73,11 @@ if(TARGET CVC4::cvc4jar)
   find_package(Java REQUIRED)
   include(UseJava)
 
-  get_target_property(CVC4_JAR CVC4::cvc4jar JAR_FILE)
-
-  add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
-
   ## disabled until bindings for the new API are in place (issue #2284)
+  # get_target_property(CVC4_JAR CVC4::cvc4jar JAR_FILE)
+  #
+  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
+  #
   # add_test(
   #   NAME java/SimpleVC
   #   COMMAND
