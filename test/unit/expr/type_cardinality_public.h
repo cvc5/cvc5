@@ -17,12 +17,13 @@
 #include <cxxtest/TestSuite.h>
 
 #include <iostream>
-#include <string>
 #include <sstream>
+#include <string>
 
+#include "api/cvc4cpp.h"
+#include "expr/expr_manager.h"
 #include "expr/kind.h"
 #include "expr/type.h"
-#include "expr/expr_manager.h"
 #include "util/cardinality.h"
 
 using namespace CVC4;
@@ -30,12 +31,14 @@ using namespace CVC4::kind;
 using namespace std;
 
 class TypeCardinalityPublic : public CxxTest::TestSuite {
-  ExprManager* d_em;
-
  public:
-  void setUp() override { d_em = new ExprManager(); }
+  void setUp() override
+  {
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
+  }
 
-  void tearDown() override { delete d_em; }
+  void tearDown() override { delete d_slv; }
 
   void testTheBasics()
   {
@@ -226,4 +229,7 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
     }
   }
 
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_em;
 };/* TypeCardinalityPublic */
