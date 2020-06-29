@@ -77,14 +77,15 @@ if(TARGET CVC4::cvc4jar)
 
   add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
 
-  add_test(
-    NAME java/SimpleVC
-    COMMAND
-      ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
-        -Djava.library.path=${CVC4_JNI_PATH}
-        SimpleVC
-  )
+  ## disabled until bindings for the new API are in place (issue #2284)
+  # add_test(
+  #   NAME java/SimpleVC
+  #   COMMAND
+  #     ${Java_JAVA_EXECUTABLE}
+  #       -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
+  #       -Djava.library.path=${CVC4_JNI_PATH}
+  #       SimpleVC
+  # )
 
   add_subdirectory(api/java)
 endif()
