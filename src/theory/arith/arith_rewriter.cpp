@@ -410,9 +410,6 @@ RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
       // ((_ iand k) 0 y) ---> 0
       return RewriteResponse(REWRITE_DONE, t[i]);
     }
-    // TODO ((_ iand k) 2^k-1 y) ---> y
-
-    // constants c out of bounds can be normalized to (mod c 2^k)
   }
   return RewriteResponse(REWRITE_DONE, t);
 }
