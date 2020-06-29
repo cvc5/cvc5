@@ -16,6 +16,7 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include "api/cvc4cpp.h"
 #include "expr/array_store_all.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
@@ -27,18 +28,14 @@ using namespace CVC4;
 using namespace std;
 
 class ArrayStoreAllBlack : public CxxTest::TestSuite {
-  ExprManager* d_em;
-
  public:
   void setUp() override
   {
-    d_em = new ExprManager();
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
   }
 
-  void tearDown() override
-  {
-    delete d_em;
-  }
+  void tearDown() override { delete d_slv; }
 
   void testStoreAll() {
     Type usort = d_em->mkSort("U");
@@ -80,4 +77,7 @@ class ArrayStoreAllBlack : public CxxTest::TestSuite {
                                    d_em->mkConst(Rational(0)))));
   }
 
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_em;
 }; /* class ArrayStoreAllBlack */

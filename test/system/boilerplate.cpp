@@ -19,18 +19,14 @@
 #include <iostream>
 #include <sstream>
 
-#include "expr/expr.h"
-#include "smt/smt_engine.h"
+#include "api/cvc4cpp.h"
 
-using namespace CVC4;
+using namespace CVC4::api;
 using namespace std;
 
 int main() {
-  ExprManager em;
-  Options opts;
-  SmtEngine smt(&em);
-  Result r = smt.checkEntailed(em.mkConst(true));
-
-  return (Result::ENTAILED == r) ? 0 : 1;
+  Solver slv;
+  Result r = slv.checkEntailed(slv.mkBoolean(true));
+  return r.isEntailed() ? 0 : 1;
 }
 
