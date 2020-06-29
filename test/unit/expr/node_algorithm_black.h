@@ -32,13 +32,6 @@ using namespace CVC4::kind;
 
 class NodeAlgorithmBlack : public CxxTest::TestSuite
 {
- private:
-  NodeManager* d_nodeManager;
-  NodeManagerScope* d_scope;
-  TypeNode* d_intTypeNode;
-  TypeNode* d_boolTypeNode;
-  TypeNode* d_bvTypeNode;
-
  public:
   void setUp() override
   {
@@ -51,8 +44,9 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
 
   void tearDown() override
   {
-    delete d_intTypeNode;
+    delete d_bvTypeNode;
     delete d_boolTypeNode;
+    delete d_intTypeNode;
     delete d_scope;
     delete d_nodeManager;
   }
@@ -216,4 +210,11 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(subs.size(), 1);
     TS_ASSERT_EQUALS(subs[x], a);
   }
+
+ private:
+  NodeManager* d_nodeManager;
+  NodeManagerScope* d_scope;
+  TypeNode* d_intTypeNode;
+  TypeNode* d_boolTypeNode;
+  TypeNode* d_bvTypeNode;
 };
