@@ -36,6 +36,10 @@ ${includes}
 
 namespace CVC4 {
 
+namespace api {
+class Solver;
+}
+
 class Expr;
 class SmtEngine;
 class NodeManager;
@@ -45,7 +49,8 @@ struct ExprManagerMapCollection;
 class ResourceManager;
 
 class CVC4_PUBLIC ExprManager {
-private:
+ private:
+  friend api::Solver;
   /** The internal node manager */
   NodeManager* d_nodeManager;
 
