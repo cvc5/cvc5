@@ -75,6 +75,16 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         {
           d_unconstrained.erase(current);
         }
+        else
+        {
+          // Also erase the children from the visited-once set when we visit a
+          // node a second time, otherwise variables in this node are not
+          // erased from the set of unconstrained variables.
+          for (TNode childNode : current)
+          {
+            toVisit.push_back(unc_preprocess_stack_element(childNode, current));
+          }
+        }
       }
       ++find->second;
       continue;
