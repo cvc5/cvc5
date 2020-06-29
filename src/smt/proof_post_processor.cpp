@@ -198,12 +198,22 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   }
   else if (id == PfRule::SUBS)
   {
-    // This does a term conversion proof *for each* substitution.
+    // Notice that a naive way to reconstruct SUBS is to do a term conversion
+    // proof for each substitution.
     // The proof of f(a) * { a -> g(b) } * { b -> c } = f(g(c)) is:
-    //   TRANS( CONG{f}( a=g(b) ), CONG{f}( CONG{g}( b = c ) ) )
-    // Notice that more optimal proofs are possible that do a single traversal:
+    //   TRANS( CONG{f}( a=g(b) ), CONG{f}( CONG{g}( b=c ) ) )
+    // Notice that more optimal proofs are possible that do a single traversal
+    // over t. This is done by applying later substitutions to the range of
+    // previous substitutions, until a final simultaneous substitution is
+    // applied to t.  For instance, in the above example, we first prove:
+    //   CONG{g}( b = c )
+    // by applying the second substitution { b -> c } to the range of the first,
+    // giving us a proof of g(b)=g(c). We then construct the updated proof
+    // by tranitivity:
+    //   TRANS( a=g(b), CONG{g}( b=c ) )
+    // We then apply the substitution { a -> g(c), b -> c } to f(a), to obtain:
     //   CONG{f}( TRANS( a=g(b), CONG{g}( b=c ) ) )
-    // This is significantly more challenging and is not done here.
+    // which notice is more compact than the proof above.
     Node t = args[0];
     // get the kind of substitution
     MethodId ids = MethodId::SB_DEFAULT;
@@ -211,56 +221,93 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     {
       builtin::BuiltinProofRuleChecker::getMethodId(args[1], ids);
     }
-    std::vector<Node> tchildren;
-    for (const Node& c : children)
+    std::vector<std::shared_ptr<CDProof>> pfs;
+    std::vector<Node> vvec;
+    std::vector<Node> svec;
+    std::vector<ProofGenerator *> pgs;
+    for (size_t i=0, nchild = children.size(); i<nchild; i++)
     {
+      // process in reverse order
+      size_t index = nchild-(i+1);
+      // get the substitution
       TNode var, subs;
-      builtin::BuiltinProofRuleChecker::getSubstitution(c, var, subs, ids);
-      // apply the substitution
-      Node ts = t.substitute(var, subs);
-      if (ts != t)
+      builtin::BuiltinProofRuleChecker::getSubstitution(children[index], var, subs, ids);
+      // apply the current substitution to the range
+      if (!vvec.empty())
       {
-        TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
-        // ensure cdp has proof of var = subs
-        Node veqs = var.eqNode(subs);
-        if (veqs != c)
+        Node ss = subs.substitute(vvec.begin(),vvec.end(),svec.begin(),svec.end());
+        if (ss!=subs)
         {
-          // should be true intro or false intro
-          Assert(subs.isConst());
-          cdp->addStep(
-              veqs,
-              subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
-              {c},
-              {});
+          // make the proof for the tranitivity step
+          std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
+          pfs.push_back(pf);
+          // prove the updated substitution
+          TConvProofGenerator tcg(d_pnm, nullptr, TConvPolicy::ONCE);
+          // add previous rewrite steps
+          for (unsigned j=0, nvars=vvec.size(); j<nvars; j++)
+          {
+            tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+          }
+          // get the proof for the update to the current substitution
+          Node seqss = subs.eqNode(ss);
+          std::shared_ptr<ProofNode> pfn = tcg.getProofFor(seqss);
+          Assert (pfn!=nullptr);
+          // add the proof
+          pf->addProof(pfn);
+          // get proof for children[i] from cdp
+          pfn = cdp->getProofFor(children[i]);
+          pf->addProof(pfn);
+          // ensure we have a proof of var = subs
+          Node veqs = var.eqNode(subs);
+          if (veqs != children[index])
+          {
+            // should be true intro or false intro
+            Assert(subs.isConst());
+            pf->addStep(
+                veqs,
+                subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+                {children[index]},
+                {});
+          }
+          pf->addStep(var.eqNode(ss),PfRule::TRANS, {veqs,seqss}, {});
+          // add to the substitution
+          vvec.push_back(var);
+          svec.push_back(ss);
+          pgs.push_back(pf.get());
+          continue;
         }
-        tcpg.addRewriteStep(var, subs, cdp);
-        Node eq = t.eqNode(ts);
-        // add the proof constructed by the term conversion utility
-        std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
-        // should give a proof, if not, then tcpg does not agree with the
-        // substitution.
-        Assert(pfn != nullptr);
-        if (pfn != nullptr)
-        {
-          // add to the children of the transitivity step
-          tchildren.push_back(eq);
-          cdp->addProof(pfn);
-        }
-        // update term
-        t = ts;
+      }
+      // just use equality from CDProof
+      vvec.push_back(var);
+      svec.push_back(subs);
+      pgs.push_back(cdp);
+    }
+    Node ts = t.substitute(vvec.begin(),vvec.end(),svec.begin(),svec.end());
+    Node eq = t.eqNode(ts);
+    if (ts!=t)
+    {
+      // should be implied by the substitution now
+      TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
+      for (unsigned j=0, nvars=vvec.size(); j<nvars; j++)
+      {
+        tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
+      }
+      // add the proof constructed by the term conversion utility
+      std::shared_ptr<ProofNode> pfn = tcpg.getProofFor(eq);
+      // should give a proof, if not, then tcpg does not agree with the
+      // substitution.
+      Assert(pfn != nullptr);
+      if (pfn != nullptr)
+      {
+        cdp->addProof(pfn);
       }
     }
-    Node finalEq = args[0].eqNode(t);
-    if (tchildren.size() > 1)
-    {
-      cdp->addStep(finalEq, PfRule::TRANS, tchildren, {});
-    }
-    else if (tchildren.empty())
+    else
     {
       // should not be necessary typically
-      cdp->addStep(finalEq, PfRule::REFL, {}, {t});
+      cdp->addStep(eq, PfRule::REFL, {}, {t});
     }
-    return finalEq;
+    return eq;
   }
   else if (id == PfRule::REWRITE)
   {
