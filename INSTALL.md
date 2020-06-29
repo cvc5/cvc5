@@ -7,6 +7,7 @@ CVC4 prerelease version 1.9
     ./configure.sh   # use --prefix to specify a prefix (default: /usr/local)
                      # use --name=<PATH> for custom build directory
     cd <build_dir>   # default is ./build
+    cmake .
     make             # use -jN for parallel build with N threads
     make check       # to run default set of tests
     make install     # to install into the prefix specified above
