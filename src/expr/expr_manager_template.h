@@ -88,7 +88,6 @@ class CVC4_PUBLIC ExprManager {
   /** A list of datatypes owned by this expr manager. */
   std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
- public:
   /**
    * Creates an expression manager with default options.
    */
@@ -102,6 +101,7 @@ class CVC4_PUBLIC ExprManager {
    */
   explicit ExprManager(const Options& options);
 
+ public:
   /**
    * Destroys the expression manager. No will be deallocated at this point, so
    * any expression references that used to be managed by this expression
