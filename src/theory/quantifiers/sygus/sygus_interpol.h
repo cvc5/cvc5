@@ -27,9 +27,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 /**
- * A utility that turns a set of quantifier-free assertions into a sygus conjecture that encodes an interpolation problem. In detail, if our
- * input formula is F( x ) for free symbols x, and is partitioned into axioms Fa
- * and conjecture Fc then the sygus conjecture we construct is:
+ * A utility that turns a set of quantifier-free assertions into a sygus
+ * conjecture that encodes an interpolation problem. In detail, if our input
+ * formula is F( x ) for free symbols x, and is partitioned into axioms Fa and
+ * conjecture Fc then the sygus conjecture we construct is:
  *
  * exists A. forall x. ( (Fa( x ) => A( x )) ^ (A( x ) => Fc( x )) )
  *
