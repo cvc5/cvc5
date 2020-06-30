@@ -23,7 +23,7 @@ ProofCnfStream::ProofCnfStream(context::UserContext* u,
                                bool pfEnabled)
     : d_cnfStream(cnfStream),
       d_pnm(pnm),
-      d_proof(pnm, u),
+      d_proof(pnm, nullptr, u),
       d_pfEnabled(pfEnabled)
 {
 }
@@ -37,12 +37,24 @@ bool ProofCnfStream::hasProofFor(Node f) { return d_proof.hasStep(f); }
 
 std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
 
-void ProofCnfStream::convertAndAssert(TNode node, bool negated, bool removable)
+void ProofCnfStream::convertAndAssert(TNode node,
+                                      bool negated,
+                                      bool removable,
+                                      ProofGenerator* pg)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")\n";
   d_removable = removable;
+  Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
+  if (pg)
+  {
+    d_proof.addLazyStep(toJustify, pg);
+  }
+  else
+  {
+    d_proof.addStep(toJustify, PfRule::ASSUME, {}, {toJustify});
+  }
   convertAndAssert(node, negated);
 }
 
@@ -72,9 +84,10 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
       // Atoms
       SatLiteral lit = toCNF(node, negated);
       bool added = d_cnfStream.assertClause(nnode, lit);
-      if (d_pfEnabled && added)
+      if (d_pfEnabled && negated && added && nnode != node.notNode())
       {
-        d_proof.addStep(nnode, PfRule::ASSUME, {}, {nnode});
+        d_proof.addStep(
+            nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
       }
     }
   }

@@ -118,8 +118,9 @@ PropEngine::PropEngine(TheoryEngine* te,
   NodeManager* nm = NodeManager::currentNM();
   if (d_pfCnfStream)
   {
-    d_pfCnfStream->convertAndAssert(nm->mkConst(true), false, false);
-    d_pfCnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
+    d_pfCnfStream->convertAndAssert(nm->mkConst(true), false, false, nullptr);
+    d_pfCnfStream->convertAndAssert(
+        nm->mkConst(false).notNode(), false, false, nullptr);
   }
   else
   {
@@ -145,7 +146,7 @@ void PropEngine::assertFormula(TNode node) {
   // Assert as non-removable
   if (d_pfCnfStream)
   {
-    d_pfCnfStream->convertAndAssert(node, false, false);
+    d_pfCnfStream->convertAndAssert(node, false, false, nullptr);
   }
   else
   {
@@ -165,8 +166,8 @@ void PropEngine::assertLemma(theory::TrustNode trn,
   if (d_pfCnfStream)
   {
     Assert(trn.getGenerator());
-    d_proof.addLazyStep(node, trn.getGenerator());
-    d_pfCnfStream->convertAndAssert(node, negated, removable);
+    d_pfCnfStream->convertAndAssert(
+        node, negated, removable, trn.getGenerator());
   }
   else
   {

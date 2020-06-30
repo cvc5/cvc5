@@ -62,7 +62,10 @@ class ProofCnfStream : public ProofGenerator
    * @param negated whether we are asserting the node negated
    * @param removable whether the sat solver can choose to remove the clauses
    */
-  void convertAndAssert(TNode node, bool negated, bool removable);
+  void convertAndAssert(TNode node,
+                        bool negated,
+                        bool removable,
+                        ProofGenerator* pg);
 
   /**
    * Ensure that the given node will have a designated SAT literal that is
@@ -125,7 +128,7 @@ class ProofCnfStream : public ProofGenerator
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The User-context-dependent proof object */
-  CDProof d_proof;
+  LazyCDProof d_proof;
   /** The default proof generator (for simple facts) */
   /**
    * Whether proofs are enabled. If this flag is false, then this class acts
