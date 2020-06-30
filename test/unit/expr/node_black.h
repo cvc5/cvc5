@@ -68,7 +68,7 @@ class NodeBlack : public CxxTest::TestSuite {
     Options::parseOptions(&opts, 2, argv);
     free(argv[0]);
     free(argv[1]);
-    d_slv = new api::Solver(opts);
+    d_slv = new api::Solver(&opts);
 
     d_nodeManager = new NodeManager(NULL);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
