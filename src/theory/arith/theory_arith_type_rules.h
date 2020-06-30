@@ -87,6 +87,49 @@ public:
   }
 };/* class RealNullaryOperatorTypeRule */
 
+class IAndOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (n.getKind() != kind::IAND_OP)
+    {
+      InternalError() << "IAND_OP typerule invoked for IAND_OP kind";
+    }
+    TypeNode iType = nodeManager->integerType();
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(iType);
+    argTypes.push_back(iType);
+    return nodeManager->mkFunctionType(argTypes, iType);
+  }
+}; /* class IAndOpTypeRule */
+
+class IAndTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (n.getKind() != kind::IAND)
+    {
+      InternalError() << "IAND typerule invoked for IAND kind";
+    }
+    if (check)
+    {
+      TypeNode arg1 = n[0].getType(check);
+      TypeNode arg2 = n[1].getType(check);
+      if (!arg1.isInteger() || !arg2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting integer terms");
+      }
+    }
+    return nodeManager->integerType();
+  }
+}; /* class BitVectorConversionTypeRule */
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
