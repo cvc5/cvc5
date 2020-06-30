@@ -17,6 +17,7 @@ libcvc4_add_sources(
   floatingpoint.cpp
   gmp_util.h
   hash.h
+  iand.h
   index.cpp
   index.h
   maybe.h

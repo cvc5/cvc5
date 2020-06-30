@@ -418,7 +418,6 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
-  sygus1                         SyGuS version 1.0 \n\
   sygus | sygus2                 SyGuS version 2.0\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
@@ -430,7 +429,6 @@ Languages currently supported as arguments to the --output-lang option:\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
-  z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   ast                            internal format (simple syntax trees)\n\
 ";
 
