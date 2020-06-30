@@ -117,13 +117,6 @@ class IAndSolver
    *     ((_ iand k) x y) = Rewriter::rewrite(((_ iand k) M(x) M(y)))
    */
   Node valueBasedLemma(Node i);
-  /**
-   * Sum-based refinement lemma for i of the form ((_ iand k) x y). Returns:
-   * i = 2^0*min(x[0],y[0])+...2^{k-1}*min(x[k-1],y[k-1])
-   * where x[i] is x div i mod 2
-   * and min is defined with an ite.
-   */
-  Node sumBasedLemma(Node i);
   /** Bitwise refinement lemma for i of the form ((_ iand k) x y). Returns:
    *   x[j1] = y[j1] ^ ... ^ x[jn] = y[jn]
    *   where j1, ..., jn with n < k are the bit indices where M(x) ^ M(y)

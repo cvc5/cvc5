@@ -164,12 +164,7 @@ std::vector<NlLemma> IAndSolver::checkFullRefine()
       // ************* additional lemma schemas go here
       if (options::iandMode() == options::IandMode::SUM)
       {
-        Node lem = sumBasedLemma(i);
-        Trace("iand-lemma")
-            << "IAndSolver::Lemma: " << lem << " ; SUM_REFINE" << std::endl;
-        NlLemma nlem(lem);
-        nlem.d_preprocess = true;
-        lems.push_back(nlem);
+        // add lemmas based on sum mode
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
@@ -274,21 +269,6 @@ Node IAndSolver::valueBasedLemma(Node i)
 }
 
 bool oneBitAnd(bool a, bool b) { return (a && b); }
-
-Node IAndSolver::sumBasedLemma(Node i)
-{
-  Assert(i.getKind() == IAND);
-  Node x = i[0];
-  Node y = i[1];
-  size_t bvsize = i.getOperator().getConst<IntAnd>().d_size;
-  uint64_t granularity = options::BVAndIntegerGranularity();
-  NodeManager* nm = NodeManager::currentNM();
-  Node lem = nm->mkNode(EQUAL,
-                        i,
-                        CVC4::preprocessing::passes::BVToInt::createBitwiseNode(
-                            x, y, bvsize, granularity, &oneBitAnd));
-  return lem;
-}
 
 Node IAndSolver::bitwiseLemma(Node i)
 {
