@@ -27,8 +27,6 @@ libcvc4_add_sources(
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h
-  node_manager_listeners.cpp
-  node_manager_listeners.h
   node_self_iterator.h
   node_trie.cpp
   node_trie.h

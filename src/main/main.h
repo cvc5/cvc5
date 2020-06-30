@@ -66,8 +66,16 @@ void cvc4_shutdown() noexcept;
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-/** Actual Cvc4 driver functions **/
-int runCvc4(int argc, char* argv[], CVC4::Options&);
+/**
+ * This method runs cvc4 with the given command line options. It updates
+ * the options argument to the option object used by the solver created on
+ * this run.
+ */
+int runCvc4(int argc, char* argv[], CVC4::Options*&);
+/**
+ * Prints the usage of cvc4 on the output channel of the provided options
+ * object. The flag full is whether full details are given for this output.
+ */
 void printUsage(CVC4::Options&, bool full = false);
 
 #endif /* CVC4__MAIN__MAIN_H */

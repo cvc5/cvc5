@@ -48,14 +48,15 @@ void setNoLimitCPU() {
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
-CommandExecutor::CommandExecutor(Options& options)
-    : d_solver(new api::Solver(&options)),
+CommandExecutor::CommandExecutor()
+    : d_solver(new api::Solver),
       d_smtEngine(d_solver->getSmtEngine()),
-      d_options(options),
       d_stats("driver"),
       d_result()
 {
 }
+
+Options& CommandExecutor::getOptions() { return d_solver->getOptions(); }
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
@@ -73,7 +74,9 @@ void CommandExecutor::safeFlushStatistics(int fd) const
 
 bool CommandExecutor::doCommand(Command* cmd)
 {
-  if( d_options.getParseOnly() ) {
+  Options& opts = d_solver->getOptions();
+  if (opts.getParseOnly())
+  {
     return true;
   }
 
@@ -91,8 +94,9 @@ bool CommandExecutor::doCommand(Command* cmd)
 
     return status;
   } else {
-    if(d_options.getVerbosity() > 2) {
-      *d_options.getOut() << "Invoking: " << *cmd << std::endl;
+    if (opts.getVerbosity() > 2)
+    {
+      *opts.getOut() << "Invoking: " << *cmd << std::endl;
     }
 
     return doCommandSingleton(cmd);
@@ -101,24 +105,29 @@ bool CommandExecutor::doCommand(Command* cmd)
 
 void CommandExecutor::reset()
 {
-  if (d_options.getStatistics())
+  Options& opts = d_solver->getOptions();
+  if (opts.getStatistics())
   {
-    flushStatistics(*d_options.getErr());
+    flushStatistics(*opts.getErr());
   }
   /* We have to keep options passed via CL on reset. These options are stored
-   * in CommandExecutor::d_options (populated and created in the driver), and
-   * CommandExecutor::d_options only contains *these* options since the
+   * in CommandExecutor::opts (populated and created in the driver), and
+   * CommandExecutor::opts only contains *these* options since the
    * NodeManager copies the options into a new options object before SmtEngine
    * configures additional options based on the given CL options.
-   * We can thus safely reuse CommandExecutor::d_options here. */
-  d_solver.reset(new api::Solver(&d_options));
+   * We can thus safely reuse CommandExecutor::opts here. */
+  Options optCopy;
+  optCopy.copyValues(d_solver->getOptions());
+  d_solver.reset(new api::Solver(&optCopy));
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
+  Options& opts = d_solver->getOptions();
   bool status = true;
-  if(d_options.getVerbosity() >= -1) {
-    status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
+  if (opts.getVerbosity() >= -1)
+  {
+    status = smtEngineInvoke(d_smtEngine, cmd, opts.getOut());
   } else {
     status = smtEngineInvoke(d_smtEngine, cmd, NULL);
   }
@@ -137,10 +146,11 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
     d_result = res = csy->getResult();
   }
 
-  if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {
+  if ((cs != NULL || q != NULL) && opts.getStatsEveryQuery())
+  {
     std::ostringstream ossCurStats;
     flushStatistics(ossCurStats);
-    std::ostream& err = *d_options.getErr();
+    std::ostream& err = *opts.getErr();
     printStatsIncremental(err, d_lastStatistics, ossCurStats.str());
     d_lastStatistics = ossCurStats.str();
   }
@@ -148,20 +158,19 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (d_options.getDumpModels()
+    if (opts.getDumpModels()
         && (res.asSatisfiabilityResult() == Result::SAT
             || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE)))
     {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getDumpProofs()
-        && res.asSatisfiabilityResult() == Result::UNSAT)
+    if (opts.getDumpProofs() && res.asSatisfiabilityResult() == Result::UNSAT)
     {
       getterCommands.emplace_back(new GetProofCommand());
     }
 
-    if (d_options.getDumpInstantiations()
-        && ((d_options.getInstFormatMode() != options::InstFormatMode::SZS
+    if (opts.getDumpInstantiations()
+        && ((opts.getInstFormatMode() != options::InstFormatMode::SZS
              && (res.asSatisfiabilityResult() == Result::SAT
                  || (res.isUnknown()
                      && res.whyUnknown() == Result::INCOMPLETE)))
@@ -170,19 +179,21 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
       getterCommands.emplace_back(new GetInstantiationsCommand());
     }
 
-    if (d_options.getDumpSynth() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (opts.getDumpSynth() && res.asSatisfiabilityResult() == Result::UNSAT)
+    {
       getterCommands.emplace_back(new GetSynthSolutionCommand());
     }
 
-    if (d_options.getDumpUnsatCores() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (opts.getDumpUnsatCores()
+        && res.asSatisfiabilityResult() == Result::UNSAT)
+    {
       getterCommands.emplace_back(new GetUnsatCoreCommand());
     }
 
     if (!getterCommands.empty()) {
       // set no time limit during dumping if applicable
-      if (d_options.getForceNoLimitCpuWhileDump()) {
+      if (opts.getForceNoLimitCpuWhileDump())
+      {
         setNoLimitCPU();
       }
       for (const auto& getterCommand : getterCommands) {
@@ -306,19 +317,22 @@ void CommandExecutor::printStatsFilterZeros(std::ostream& out,
 }
 
 void CommandExecutor::flushOutputStreams() {
-  if(d_options.getStatistics()) {
-    if(d_options.getStatsHideZeros() == false) {
-      flushStatistics(*(d_options.getErr()));
+  Options& opts = d_solver->getOptions();
+  if (opts.getStatistics())
+  {
+    if (opts.getStatsHideZeros() == false)
+    {
+      flushStatistics(*(opts.getErr()));
     } else {
       std::ostringstream ossStats;
       flushStatistics(ossStats);
-      printStatsFilterZeros(*(d_options.getErr()), ossStats.str());
+      printStatsFilterZeros(*(opts.getErr()), ossStats.str());
     }
   }
 
   // make sure out and err streams are flushed too
-  d_options.flushOut();
-  d_options.flushErr();
+  opts.flushOut();
+  opts.flushErr();
 }
 
 }/* CVC4::main namespace */

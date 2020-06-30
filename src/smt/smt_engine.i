@@ -28,6 +28,7 @@
 
 #endif // SWIGJAVA
 
+%ignore CVC4::SmtEngine::getResourceManager();
 %ignore CVC4::SmtEngine::setLogic(const char*);
 %ignore CVC4::SmtEngine::setReplayStream(ExprStream* exprStream);
 %ignore CVC4::smt::currentProofManager();

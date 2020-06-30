@@ -97,12 +97,6 @@ public:
 
   unsigned long limitHandler(std::string option, std::string optarg);
 
-  void notifyTlimit(const std::string& option);
-  void notifyTlimitPer(const std::string& option);
-  void notifyRlimit(const std::string& option);
-  void notifyRlimitPer(const std::string& option);
-
-
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(std::string option, int depth);
   void setDefaultDagThreshPredicate(std::string option, int dag);

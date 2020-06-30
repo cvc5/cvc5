@@ -50,7 +50,7 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
 
 class NodeBlack : public CxxTest::TestSuite {
  private:
-  Options opts;
+  api::Solver* d_slv;
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode* d_booleanType;
@@ -59,15 +59,17 @@ class NodeBlack : public CxxTest::TestSuite {
  public:
   void setUp() override
   {
+    // setup a solver so that options are in scope
+    Options opts;
     char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-lang=ast");
     Options::parseOptions(&opts, 2, argv);
     free(argv[0]);
     free(argv[1]);
+    d_slv = new api::Solver(opts);
 
-    d_nodeManager = new NodeManager(NULL, opts);
-    d_scope = new NodeManagerScope(d_nodeManager);
+    d_nodeManager = new NodeManager(NULL);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
     d_realType = new TypeNode(d_nodeManager->realType());
   }
@@ -78,6 +80,7 @@ class NodeBlack : public CxxTest::TestSuite {
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;
+    delete d_slv;
   }
 
   bool imp(bool a, bool b) const { return (!a) || (b); }

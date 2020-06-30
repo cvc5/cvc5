@@ -319,8 +319,7 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 
 bool Smt2::isHoEnabled() const
 {
-  return getLogic().isHigherOrder()
-         && d_solver->getExprManager()->getOptions().getUfHo();
+  return getLogic().isHigherOrder() && d_solver->getOptions().getUfHo();
 }
 
 bool Smt2::logicIsSet() {
@@ -982,7 +981,7 @@ void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
 
 InputLanguage Smt2::getLanguage() const
 {
-  return d_solver->getExprManager()->getOptions().getInputLanguage();
+  return d_solver->getOptions().getInputLanguage();
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -1145,7 +1144,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   // Second phase: apply the arguments to the parse op
-  const Options& opts = d_solver->getExprManager()->getOptions();
+  const Options& opts = d_solver->getOptions();
   // handle special cases
   if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {

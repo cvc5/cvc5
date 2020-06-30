@@ -2026,7 +2026,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Constructor.
-   * @param opts a pointer to a solver options object (for parser only)
+   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
   Solver(Options* opts = nullptr);
@@ -3221,6 +3221,10 @@ class CVC4_PUBLIC Solver
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
+
+  // !!! This is only temporarily available until options are refactored at
+  // the driver level. !!!
+  Options& getOptions(void);
 
  private:
   /* Helper to convert a vector of internal types to sorts. */

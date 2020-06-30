@@ -171,8 +171,12 @@ class CVC4_PUBLIC SmtEngine
     SMT_MODE_INTERPOL
   };
 
-  /** Construct an SmtEngine with the given expression manager.  */
-  SmtEngine(ExprManager* em);
+  /**
+   * Construct an SmtEngine with the given expression manager.
+   * If provided, optr is a set of options that should initialize the values
+   * of the options object owned by this class.
+   */
+  SmtEngine(ExprManager* em, Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -248,7 +252,14 @@ class CVC4_PUBLIC SmtEngine
   /** Is this an internal subsolver? */
   bool isInternalSubsolver() const;
 
-  /** set the input name */
+  /**
+   * Notify that we are now parsing the input with the given filename.
+   * This call sets the filename maintained by this SmtEngine for bookkeeping
+   * and also makes a copy of the current options of this SmtEngine. This
+   * is required so that the SMT-LIB command (reset) returns the SmtEngine
+   * to a state where its options were prior to parsing but after e.g.
+   * reading command line options.
+   */
   void setFilename(std::string filename);
   /** return the input name (if any) */
   std::string getFilename() const;
@@ -878,6 +889,12 @@ class CVC4_PUBLIC SmtEngine
    */
   void setExpressionName(Expr e, const std::string& name);
 
+  /** Get the options object (const and non-const versions) */
+  Options& getOptions();
+  const Options& getOptions() const;
+
+  /** Get the resource manager of this SMT engine */
+  ResourceManager* getResourceManager();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -1321,6 +1338,18 @@ class CVC4_PUBLIC SmtEngine
 
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
+  /** The options object */
+  Options d_options;
+  /**
+   * Manager for limiting time and abstract resource usage.
+   */
+  std::unique_ptr<ResourceManager> d_resourceManager;
+  /**
+   * The global scope object. Upon creation of this SmtEngine, it becomes the
+   * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
+   * or another SmtEngine is created.
+   */
+  std::unique_ptr<smt::SmtScope> d_scope;
   /*---------------------------- sygus commands  ---------------------------*/
 
   /**

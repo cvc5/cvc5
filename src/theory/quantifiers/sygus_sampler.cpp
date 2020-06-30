@@ -19,6 +19,8 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/lazy_trie.h"
 #include "util/bitvector.h"
 #include "util/random.h"
@@ -820,8 +822,8 @@ void SygusSampler::checkEquivalent(Node bv, Node bvr)
       return;
     }
     // we have detected unsoundness in the rewriter
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    std::ostream* out = nodeManagerOptions.getOut();
+    Options& sopts = smt::currentSmtEngine()->getOptions();
+    std::ostream* out = sopts.getOut();
     (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
     // debugging information
     (*out) << "Terms are not equivalent for : " << std::endl;

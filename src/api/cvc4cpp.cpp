@@ -2598,12 +2598,11 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  Options* o = opts == nullptr ? new Options() : opts;
-  d_exprMgr.reset(new ExprManager(*o));
-  d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
+  d_exprMgr.reset(new ExprManager);
+  d_smtEngine.reset(new SmtEngine(d_exprMgr.get(), opts));
   d_smtEngine->setSolver(this);
-  d_rng.reset(new Random((*o)[options::seed]));
-  if (opts == nullptr) delete o;
+  Options& o = d_smtEngine->getOptions();
+  d_rng.reset(new Random(o[options::seed]));
 }
 
 Solver::~Solver() {}
@@ -5187,6 +5186,12 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
+
+/**
+ * !!! This is only temporarily available until the parser is fully migrated to
+ * the new API. !!!
+ */
+Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */
