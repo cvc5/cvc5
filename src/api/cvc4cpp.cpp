@@ -4744,6 +4744,31 @@ void Solver::pop(uint32_t nscopes) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+bool Solver::getInterpolant(Term conj, Term& output) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Expr result;
+  bool success = d_smtEngine->getInterpol(*conj.d_expr, result);
+  if (success) {
+    output = Term(output.d_solver, result);
+  }
+  return success;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+bool Solver::getInterpolant(Term conj, const Type& gtype, Term& output) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Expr result;
+  bool success = d_smtEngine->getInterpol(*conj.d_expr, gtype, result);
+  if (success)
+  {
+    output = Term(output.d_solver, result);
+  }
+  return success;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 void Solver::printModel(std::ostream& out) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;

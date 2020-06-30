@@ -17,14 +17,15 @@
 #include <cxxtest/TestSuite.h>
 
 //Used in some of the tests
-#include <vector>
 #include <sstream>
+#include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
-#include "expr/node_value.h"
+#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node.h"
+#include "expr/node_value.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
@@ -40,8 +41,9 @@ class TheoryBlack : public CxxTest::TestSuite {
  public:
   void setUp() override
   {
-    d_em = new ExprManager();
-    d_smt = new SmtEngine(d_em);
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
+    d_smt = d_slv->getSmtEngine();
     d_scope = new SmtScope(d_smt);
     // Ensure that the SMT engine is fully initialized (required for the
     // rewriter)
@@ -53,8 +55,7 @@ class TheoryBlack : public CxxTest::TestSuite {
   void tearDown() override
   {
     delete d_scope;
-    delete d_smt;
-    delete d_em;
+    delete d_slv;
   }
 
   void testArrayConst() {
@@ -149,6 +150,7 @@ class TheoryBlack : public CxxTest::TestSuite {
   }
 
  private:
+  api::Solver* d_slv;
   ExprManager* d_em;
   SmtEngine* d_smt;
   NodeManager* d_nm;
