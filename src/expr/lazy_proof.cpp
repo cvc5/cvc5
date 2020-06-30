@@ -112,6 +112,8 @@ void LazyCDProof::addLazyStep(Node expected,
                               bool forceOverwrite)
 {
   Assert(pg != nullptr);
+  Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
+                        << " set to generator " << pg->identify() << "\n";
   if (!forceOverwrite)
   {
     NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);

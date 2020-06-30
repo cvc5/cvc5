@@ -42,7 +42,7 @@ namespace prop {
  * use this class to manage proofs that are justified by its underlying CNF
  * stream.
  */
-class ProofCnfStream
+class ProofCnfStream : public ProofGenerator
 {
  public:
   ProofCnfStream(context::UserContext* u,
@@ -50,6 +50,11 @@ class ProofCnfStream
                  ProofNodeManager* pnm,
                  bool pfEnabled = true);
   ~ProofCnfStream() {}
+
+  std::shared_ptr<ProofNode> getProofFor(Node f) override;
+  bool hasProofFor(Node f) override;
+  /** identify */
+  std::string identify() const override;
 
   /**
    * Converts and asserts a formula.
@@ -74,6 +79,16 @@ class ProofCnfStream
    * @return the literal representing the root of the formula
    */
   SatLiteral toCNF(TNode node, bool negated = false);
+
+  /**
+   * Normalizes a clause (an OR node) according to factoring and reordering,
+   * i.e. removes duplicates and reorders literals (according to node ids).
+   *
+   * @param n the clause to be normalized
+   * @param p the proof to which steps corresponding to the normalization will
+   * be added
+   */
+  static Node factorAndReorder(Node n, CDProof* p);
 
  private:
   /**

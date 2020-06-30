@@ -242,11 +242,6 @@ class PropEngine
   void finalizeProof(Minisat::Solver::TLit inConflict);
   void finalizeProof();
   void storeUnitConflict(Minisat::Solver::TLit inConflict);
-  /**
-   * if given node is a clause, normalize it by ordering (according to node ids)
-   * and removal of duplicates.
-   */
-  Node factorAndReorder(Node n);
 
   LazyCDProof* getProof() { return &d_proof; }
 

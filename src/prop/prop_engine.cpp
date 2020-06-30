@@ -458,70 +458,10 @@ Node PropEngine::getClauseNode(const Minisat::Solver::TClause& clause)
         << "PropEngine::getClauseNode: literal " << satLit << " undefined\n";
     clauseNodes.push_back(d_cnfStream->d_literalToNodeMap[satLit]);
   }
+  // the ordering is done because throughout at the node level clauses are used
+  // module their node id ordering
+  std::sort(clauseNodes.begin(), clauseNodes.end());
   return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
-}
-
-Node PropEngine::factorAndReorder(Node n)
-{
-  Trace("sat-proof-norm") << "PropEngine::factorAndReorder: normalize node: "
-                          << n << "\n";
-  if (n.getKind() != kind::OR)
-  {
-    Trace("sat-proof-norm") << "PropEngine::factorAndReorder: nothing to do\n";
-    return n;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  // remove duplicates while keeping the order of children
-  std::unordered_set<TNode, TNodeHashFunction> clauseSet;
-  std::vector<Node> children;
-  unsigned size = n.getNumChildren();
-  for (unsigned i = 0; i < size; ++i)
-  {
-    if (clauseSet.count(n[i]))
-    {
-      continue;
-    }
-    children.push_back(n[i]);
-    clauseSet.insert(n[i]);
-  }
-  // if factoring changed
-  if (children.size() < size)
-  {
-    Node factored = children.empty()
-                        ? nm->mkConst<bool>(false)
-                        : children.size() == 1 ? children[0]
-                                               : nm->mkNode(kind::OR, children);
-    // don't overwrite what already has a proof step to avoid cycles
-    d_proof.addStep(
-        factored, PfRule::FACTORING, {n}, {}, false, CDPOverwrite::NEVER);
-    n = factored;
-  }
-  Trace("sat-proof-norm") << "PropEngine::factorAndReorder: factored node: "
-                          << n << ", factored children " << children << "\n";
-  // nothing to order
-  if (children.size() < 2)
-  {
-    return n;
-  }
-  // order
-  std::sort(children.begin(), children.end());
-  Trace("sat-proof-norm") << "PropEngine::factorAndReorder: sorted children: "
-                          << children << "\n";
-  Node ordered = nm->mkNode(kind::OR, children);
-  // if ordering changed
-  if (ordered != n)
-  {
-    // don't overwrite what already has a proof step to avoid cycles
-    d_proof.addStep(ordered,
-                    PfRule::REORDERING,
-                    {n},
-                    {ordered},
-                    false,
-                    CDPOverwrite::NEVER);
-  }
-  Trace("sat-proof-norm") << "PropEngine::factorAndReorder: orderd node: "
-                          << ordered << "\n";
-  return ordered;
 }
 
 void PropEngine::registerClause(Minisat::Solver::TLit lit)
@@ -542,11 +482,10 @@ void PropEngine::registerClause(SatLiteral satLit)
   // register in proof as assumption, which should be filled later, since it's
   // not possible yet to know, in general, how this literal came to be. Some
   // components register facts eagerly, like the theory engine, but other
-  // lazily, like CNF stream and internal SAT solver propagation.
-
+  // lazily, like CNF stream and internal SAT solver
   // TODO this should be a lazy step with a generator that will query the proof
   // cnf stream
-  d_proof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
+  d_proof.addLazyStep(clauseNode, d_pfCnfStream.get());
   Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
 }
 
@@ -566,17 +505,11 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
     return;
   }
   d_clauseSet.insert(clauseNode);
-  // Rewrite clauseNode before proceeding. This is so ordering is consistent
-  clauseNode = factorAndReorder(clauseNode);
-  d_clauseSet.insert(clauseNode);
   // register in proof as assumption, which should be filled later, since it's
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
-
-  // TODO this should be a lazy step with a generator that will query the proof
-  // cnf stream
-  d_proof.addStep(clauseNode, PfRule::ASSUME, {}, {clauseNode});
+  d_proof.addLazyStep(clauseNode, d_pfCnfStream.get());
   Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
                      << clauseNode << "\n";
 }
@@ -596,6 +529,7 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
                      << PfRule::IMPLIES_ELIM << " rule to conclude "
                      << clauseImpliesElim << "\n";
   d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  Node clauseExp;
   // need to eliminate AND
   if (proven[0].getKind() == kind::AND)
   {
@@ -610,18 +544,22 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
     Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
     // add proof steps to convert into clause
     d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
-    Node clauseRes = nm->mkNode(kind::OR, disjunctsRes);
-    d_proof.addStep(clauseRes,
-                PfRule::RESOLUTION,
-                {clauseAndNeg, clauseImpliesElim},
-                {proven[0]});
-    // Rewrite clauseNode before proceeding. This is so ordering/factoring
-    // is consistent with the clause that is added to the SAT solver
-    Node clauseExplanation = factorAndReorder(clauseRes);
-    Trace("sat-proof") << "PropEngine::explainPropagation: processed first "
-                          "disjunct to conclude "
-                       << clauseExplanation << "\n";
+    clauseExp = nm->mkNode(kind::OR, disjunctsRes);
+    d_proof.addStep(clauseExp,
+                    PfRule::RESOLUTION,
+                    {clauseAndNeg, clauseImpliesElim},
+                    {proven[0]});
   }
+  else
+  {
+    clauseExp = clauseImpliesElim;
+  }
+  // Rewrite clauseNode before proceeding. This is so ordering/factoring
+  // is consistent with the clause that is added to the SAT solver
+  clauseExp = ProofCnfStream::factorAndReorder(clauseExp, &d_proof);
+  Trace("sat-proof") << "PropEngine::explainPropagation: processed first "
+                        "disjunct to conclude "
+                     << clauseExp << "\n";
 }
 
 void PropEngine::startResChain(Minisat::Solver::TClause& start)
@@ -709,8 +647,9 @@ void PropEngine::endResChain(Node conclusion)
           << "[" << d_cnfStream->d_nodeToLiteralMap[d_resolution[i].second]
           << "] ";
     }
-    // special case for clause (or l1 ... ln) being a single literal corresponding itself to a
-    // clause, which is indicated by the pivot being of the form (not (or l1 ... ln))
+    // special case for clause (or l1 ... ln) being a single literal
+    // corresponding itself to a clause, which is indicated by the pivot being
+    // of the form (not (or l1 ... ln))
     if (d_resolution[i].first.getKind() == kind::OR
         && !(d_resolution[i].second.getKind() == kind::NOT
              && d_resolution[i].second[0].getKind() == kind::OR
@@ -761,11 +700,14 @@ void PropEngine::endResChain(Node conclusion)
     // if this happens that chainConclusion needs to be factored and/or
     // reordered, which in either case can be done only if it's not a unit
     // clause.
-    CVC4_UNUSED Node reducedChainConclusion = factorAndReorder(chainConclusion);
+    CVC4_UNUSED Node reducedChainConclusion =
+        ProofCnfStream::factorAndReorder(chainConclusion, &d_proof);
     Assert(reducedChainConclusion == conclusion
-           || reducedChainConclusion == factorAndReorder(conclusion))
+           || reducedChainConclusion
+                  == ProofCnfStream::factorAndReorder(conclusion, &d_proof))
         << "given res chain conclusion " << conclusion
-        << "\nafter factorAndReorder " << factorAndReorder(conclusion)
+        << "\nafter factorAndReorder "
+        << ProofCnfStream::factorAndReorder(conclusion, &d_proof)
         << "\nis different from chain_res " << chainConclusion
         << "\nafter factorAndReorder " << reducedChainConclusion;
   }

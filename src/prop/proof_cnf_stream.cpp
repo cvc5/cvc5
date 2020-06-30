@@ -28,6 +28,15 @@ ProofCnfStream::ProofCnfStream(context::UserContext* u,
 {
 }
 
+std::shared_ptr<ProofNode> ProofCnfStream::getProofFor(Node f)
+{
+  return d_proof.getProofFor(f);
+}
+
+bool ProofCnfStream::hasProofFor(Node f) { return d_proof.hasStep(f); }
+
+std::string ProofCnfStream::identify() const { return "ProofCnfStream"; }
+
 void ProofCnfStream::convertAndAssert(TNode node, bool negated, bool removable)
 {
   Trace("cnf") << "ProofCnfStream::convertAndAssert(" << node
@@ -109,6 +118,9 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       }
       Node clauseNode = NodeManager::currentNM()->mkNode(kind::OR, disjuncts);
       d_proof.addStep(clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
+      // justify normalized clause as well, since that's what will be saved in
+      // the SAT solver and registered with prop engine
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
 }
@@ -165,6 +177,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
     // Construct the clause (p v q)
     SatClause clause2(2);
@@ -175,6 +188,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
   else
@@ -193,6 +207,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
     // Construct the clause ~q v p
     SatClause clause2(2);
@@ -203,6 +218,7 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
 }
@@ -225,6 +241,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
     // Construct the clauses ~q v p
     SatClause clause2(2);
@@ -235,6 +252,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
   else
@@ -255,6 +273,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
     // Construct the clauses q v p
     SatClause clause2(2);
@@ -266,6 +285,7 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
 }
@@ -287,6 +307,7 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
       Node clauseNode = NodeManager::currentNM()->mkNode(
           kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::IMPLIES_ELIM, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
   else
@@ -334,12 +355,14 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
     else
     {
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM1, {node.notNode()}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
   // (p v r)
@@ -354,11 +377,13 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
     else
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM2, {node.notNode()}, {});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
 }
@@ -472,6 +497,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
       Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[i]);
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
@@ -489,6 +515,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     }
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_AND_NEG, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   return lit;
 }
@@ -522,6 +549,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
       Node clauseNode = nm->mkNode(kind::OR, node, node[i].notNode());
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
+      ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
     }
   }
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
@@ -538,6 +566,7 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     }
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_OR_POS, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   return lit;
 }
@@ -558,6 +587,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node.notNode(), node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node.negate(), ~a, ~b, ~lit);
   if (d_pfEnabled && added)
@@ -565,6 +595,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node.notNode(), node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node, a, ~b, lit);
   if (d_pfEnabled && added)
@@ -572,6 +603,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node, node[0], node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node, ~a, b, lit);
   if (d_pfEnabled && added)
@@ -579,6 +611,7 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node, node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   return lit;
 }
@@ -605,6 +638,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node.negate(), a, ~b, ~lit);
   if (d_pfEnabled && added)
@@ -612,6 +646,7 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0], node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   // (a<->b) -> lit
   // ~((a & b) | (~a & ~b)) | lit
@@ -624,12 +659,14 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node, a, b, lit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   return lit;
 }
@@ -654,6 +691,7 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_POS, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   // (a->b) -> lit
   // ~(~a | b) | lit
@@ -663,12 +701,14 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node, ~b, lit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   return lit;
 }
@@ -699,6 +739,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   {
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[1], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS3, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, ~condLit, thenLit);
   if (d_pfEnabled && added)
@@ -706,12 +747,14 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[0], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   // If ITE is false then one of the branches is false and the condition
   // implies which one
@@ -725,6 +768,7 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[1].notNode(), node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG3, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node, lit, ~condLit, ~thenLit);
   if (d_pfEnabled && added)
@@ -732,14 +776,79 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG1, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG2, {}, {node});
+    ProofCnfStream::factorAndReorder(clauseNode, &d_proof);
   }
   return lit;
+}
+
+Node ProofCnfStream::factorAndReorder(Node n, CDProof* p)
+{
+  Trace("sat-proof-norm") << "PropEngine::factorAndReorder: normalize node: "
+                          << n << "\n";
+  if (n.getKind() != kind::OR)
+  {
+    Trace("sat-proof-norm") << "PropEngine::factorAndReorder: nothing to do\n";
+    return n;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  // remove duplicates while keeping the order of children
+  std::unordered_set<TNode, TNodeHashFunction> clauseSet;
+  std::vector<Node> children;
+  unsigned size = n.getNumChildren();
+  for (unsigned i = 0; i < size; ++i)
+  {
+    if (clauseSet.count(n[i]))
+    {
+      continue;
+    }
+    children.push_back(n[i]);
+    clauseSet.insert(n[i]);
+  }
+  // if factoring changed
+  if (children.size() < size)
+  {
+    Node factored = children.empty()
+                        ? nm->mkConst<bool>(false)
+                        : children.size() == 1 ? children[0]
+                                               : nm->mkNode(kind::OR, children);
+    // don't overwrite what already has a proof step to avoid cycles
+    p->addStep(
+        factored, PfRule::FACTORING, {n}, {}, false, CDPOverwrite::NEVER);
+    n = factored;
+  }
+  Trace("sat-proof-norm") << "factorAndReorder: factored node: " << n
+                          << ", factored children " << children << "\n";
+  // nothing to order
+  if (children.size() < 2)
+  {
+    return n;
+  }
+  // order
+  std::sort(children.begin(), children.end());
+  Trace("sat-proof-norm") << "factorAndReorder: sorted children: " << children
+                          << "\n";
+  Node ordered = nm->mkNode(kind::OR, children);
+  // if ordering changed
+  if (ordered != n)
+  {
+    // don't overwrite what already has a proof step to avoid cycles
+    p->addStep(ordered,
+               PfRule::REORDERING,
+               {n},
+               {ordered},
+               false,
+               CDPOverwrite::NEVER);
+  }
+  Trace("sat-proof-norm") << "factorAndReorder: orderd node: " << ordered
+                          << "\n";
+  return ordered;
 }
 
 }  // namespace prop
