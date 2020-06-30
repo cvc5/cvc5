@@ -735,8 +735,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   {
     addSuccess = false;
     // try a new core
-    std::unique_ptr<SmtEngine> checkSol;
-    initializeSubsolver(checkSol);
+    std::unique_ptr<SmtEngine> checkSol(
+        new SmtEngine(NodeManager::currentNM()->toExprManager()));
+    initializeSubsolver(checkSol.get());
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(d_sc);
@@ -775,8 +776,9 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         {
           // In terms of Variant #2, this is the check "if S ^ U is unsat"
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
-          std::unique_ptr<SmtEngine> checkSc;
-          initializeSubsolver(checkSc);
+          std::unique_ptr<SmtEngine> checkSc(
+              new SmtEngine(NodeManager::currentNM()->toExprManager()));
+          initializeSubsolver(checkSc.get());
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
