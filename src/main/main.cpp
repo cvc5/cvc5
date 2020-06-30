@@ -50,33 +50,29 @@ using namespace CVC4::language;
  * Put everything in runCvc4().
  */
 int main(int argc, char* argv[]) {
-  // Pointer to the options used during the runCvc4 method. This pointer is
-  // updated by that method so that we print errors and statistics to the
-  // proper places below.
-  Options* opts = nullptr;
+  Options opts;
   try {
     return runCvc4(argc, argv, opts);
   } catch(OptionException& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *opts->getOut() << "unknown" << endl;
+    *opts.getOut() << "unknown" << endl;
 #endif
     cerr << "(error \"" << e << "\")" << endl
          << endl
          << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
-    *opts->getOut() << "unknown" << endl;
+    *opts.getOut() << "unknown" << endl;
 #endif
-    if (language::isOutputLang_smt2(opts->getOutputLanguage()))
+    if (language::isOutputLang_smt2(opts.getOutputLanguage()))
     {
-      *opts->getOut() << "(error \"" << e << "\")" << endl;
+      *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
-      *opts->getErr() << "(error \"" << e << "\")" << endl;
+      *opts.getErr() << "(error \"" << e << "\")" << endl;
     }
-    if (opts->getStatistics() && pExecutor != NULL)
-    {
+    if(opts.getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
-      pExecutor->flushStatistics(*opts->getErr());
+      pExecutor->flushStatistics(*opts.getErr());
     }
   }
   exit(1);

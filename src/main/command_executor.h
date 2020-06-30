@@ -41,11 +41,12 @@ class CommandExecutor
  protected:
   std::unique_ptr<api::Solver> d_solver;
   SmtEngine* d_smtEngine;
+  Options& d_options;
   StatisticsRegistry d_stats;
   Result d_result;
 
  public:
-  CommandExecutor();
+  CommandExecutor(Options& options);
 
   virtual ~CommandExecutor()
   {
@@ -68,9 +69,6 @@ class CommandExecutor
     return d_stats;
   }
 
-  /** Get the options object */
-  Options& getOptions();
-
   SmtEngine* getSmtEngine() { return d_smtEngine; }
 
   /**
@@ -92,6 +90,9 @@ class CommandExecutor
 protected:
   /** Executes treating cmd as a singleton */
   virtual bool doCommandSingleton(CVC4::Command* cmd);
+
+private:
+  CommandExecutor();
 
 }; /* class CommandExecutor */
 

@@ -81,18 +81,11 @@ void printUsage(Options& opts, bool full) {
   }
 }
 
-int runCvc4(int argc, char* argv[], Options*& optsPtr)
-{
+int runCvc4(int argc, char* argv[], Options& opts) {
+
   // Timer statistic
   pTotalTime = new TimerStat("totalTime");
   pTotalTime->start();
-
-  // Create the command executor to execute the parsed commands.
-  // This must come before modifying the options, since the SMT engine needs
-  // to react to changes made to the options e.g. during command line parsing.
-  pExecutor = new CommandExecutor;
-  Options& opts = pExecutor->getOptions();
-  optsPtr = &opts;
 
   // For the signal handlers' benefit
   pOptions = &opts;
@@ -102,24 +95,19 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
 
   progPath = argv[0];
 
-  // Parse the options from the command line
+  // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
 
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;
 
-  if (opts.getHelp())
-  {
+  if( opts.getHelp() ) {
     printUsage(opts, true);
     exit(1);
-  }
-  else if (opts.getLanguageHelp())
-  {
+  } else if( opts.getLanguageHelp() ) {
     Options::printLanguageHelp(*(opts.getOut()));
     exit(1);
-  }
-  else if (opts.getVersion())
-  {
+  } else if( opts.getVersion() ) {
     *(opts.getOut()) << Configuration::about().c_str() << flush;
     exit(0);
   }
@@ -140,8 +128,7 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
   const bool inputFromStdin = filenames.empty() || filenames[0] == "-";
 
   // if we're reading from stdin on a TTY, default to interactive mode
-  if (!opts.wasSetByUserInteractive())
-  {
+  if(!opts.wasSetByUserInteractive()) {
     opts.setInteractive(inputFromStdin && isatty(fileno(stdin)));
   }
 
@@ -154,8 +141,7 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
   }
   const char* filename = filenameStr.c_str();
 
-  if (opts.getInputLanguage() == language::input::LANG_AUTO)
-  {
+  if(opts.getInputLanguage() == language::input::LANG_AUTO) {
     if( inputFromStdin ) {
       // We can't do any fancy detection on stdin
       opts.setInputLanguage(language::input::LANG_CVC4);
@@ -171,13 +157,13 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
         opts.setInputLanguage(language::input::LANG_CVC4);
       } else if((len >= 3 && !strcmp(".sy", filename + len - 3))
                 || (len >= 3 && !strcmp(".sl", filename + len - 3))) {
+        // version 2 sygus is the default
         opts.setInputLanguage(language::input::LANG_SYGUS_V2);
       }
     }
   }
 
-  if (opts.getOutputLanguage() == language::output::LANG_AUTO)
-  {
+  if(opts.getOutputLanguage() == language::output::LANG_AUTO) {
     opts.setOutputLanguage(language::toOutputLanguage(opts.getInputLanguage()));
   }
 
@@ -194,6 +180,9 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
   // important even for muzzled builds (to get result output right)
   (*(opts.getOut())) << language::SetLanguage(opts.getOutputLanguage());
 
+  // Create the command executor to execute the parsed commands
+  pExecutor = new CommandExecutor(opts);
+
   int returnValue = 0;
   {
     // Timer statistic
@@ -204,33 +193,25 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
     ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
-
-    // Set filename in smt engine. This also signals to the SmtEngine that
-    // we are starting to parse. This means that the this is the moment where
-    // the SmtEngine makes a copy of its original options, so that reset
-    // restores its options to their state at this point.
+    // set filename in smt engine
     pExecutor->getSmtEngine()->setFilename(filenameStr);
 
     // Parse and execute commands until we are done
     Command* cmd;
     bool status = true;
-    if (opts.getInteractive() && inputFromStdin)
-    {
-      if (opts.getTearDownIncremental() > 0)
-      {
+    if(opts.getInteractive() && inputFromStdin) {
+      if(opts.getTearDownIncremental() > 0) {
         throw OptionException(
             "--tear-down-incremental doesn't work in interactive mode");
       }
-      if (!opts.wasSetByUserIncrementalSolving())
-      {
+      if(!opts.wasSetByUserIncrementalSolving()) {
         cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
       }
       InteractiveShell shell(pExecutor->getSolver());
-      if (opts.getInteractivePrompt())
-      {
+      if(opts.getInteractivePrompt()) {
         Message() << Configuration::getPackageName()
                   << " " << Configuration::getVersionString();
         if(Configuration::isGitBuild()) {
@@ -259,17 +240,23 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
         }
         delete cmd;
       }
-    }
-    else if (opts.getTearDownIncremental() > 0)
-    {
-      if (!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1)
-      {
+    } else if( opts.getTearDownIncremental() > 0) {
+      if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
         cmd = new SetOptionCommand("incremental", SExpr(true));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
         delete cmd;
+        // if(opts.wasSetByUserIncrementalSolving()) {
+        //   throw OptionException(
+        //     "--tear-down-incremental incompatible with --incremental");
+        // }
+
+        // cmd = new SetOptionCommand("incremental", SExpr(false));
+        // cmd->setMuted(true);
+        // pExecutor->doCommand(cmd);
+        // delete cmd;
       }
 
       ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
@@ -304,8 +291,7 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
         }
 
         if(dynamic_cast<PushCommand*>(cmd) != NULL) {
-          if (needReset >= opts.getTearDownIncremental())
-          {
+          if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               if (interrupted) break;
@@ -333,8 +319,7 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
           }
         } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
           allCommands.pop_back(); // fixme leaks cmds here
-          if (needReset >= opts.getTearDownIncremental())
-          {
+          if (needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
@@ -361,8 +346,7 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
           }
         } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
                   dynamic_cast<QueryCommand*>(cmd) != NULL) {
-          if (needReset >= opts.getTearDownIncremental())
-          {
+          if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
@@ -425,8 +409,7 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
         delete cmd;
       }
     } else {
-      if (!opts.wasSetByUserIncrementalSolving())
-      {
+      if(!opts.wasSetByUserIncrementalSolving()) {
         cmd = new SetOptionCommand("incremental", SExpr(false));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
@@ -503,13 +486,11 @@ int runCvc4(int argc, char* argv[], Options*& optsPtr)
     pExecutor->flushOutputStreams();
 
 #ifdef CVC4_DEBUG
-    if (opts.getEarlyExit() && opts.wasSetByUserEarlyExit())
-    {
+    if(opts.getEarlyExit() && opts.wasSetByUserEarlyExit()) {
       _exit(returnValue);
     }
 #else /* CVC4_DEBUG */
-    if (opts.getEarlyExit())
-    {
+    if(opts.getEarlyExit()) {
       _exit(returnValue);
     }
 #endif /* CVC4_DEBUG */
