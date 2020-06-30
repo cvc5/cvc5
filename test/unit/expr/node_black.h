@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
