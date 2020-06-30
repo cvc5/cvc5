@@ -239,6 +239,7 @@ public:
      case kind::INTS_DIVISION_TOTAL:
      case kind::INTS_MODULUS_TOTAL:
      case kind::DIVISION_TOTAL: return isDivMember(n);
+     case kind::IAND: return isIAndMember(n);
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:
@@ -264,6 +265,7 @@ public:
  }
 
   static bool isLeafMember(Node n);
+  static bool isIAndMember(Node n);
   static bool isDivMember(Node n);
   bool isDivLike() const{
     return isDivMember(getNode());
