@@ -1,20 +1,19 @@
 set(EXAMPLES_API_JAVA
-  BitVectors
-  BitVectorsAndArrays
   ## disabled until bindings for the new API are in place (issue #2284)
-  #CVC4Streams
-  Combination
-  Datatypes
-  Exceptions
-  FloatingPointArith
-  HelloWorld
-  LinearArith
-  ## disabled until bindings for the new API are in place (issue #2284)
-  #PipedInput
-  Relations
-  Statistics
-  Strings
-  UnsatCores
+  # BitVectors
+  # BitVectorsAndArrays
+  # CVC4Streams
+  # Combination
+  # Datatypes
+  # Exceptions
+  # FloatingPointArith
+  # HelloWorld
+  # LinearArith
+  # PipedInput
+  # Relations
+  # Statistics
+  # Strings
+  # UnsatCores
 )
 
 foreach(example ${EXAMPLES_API_JAVA})
