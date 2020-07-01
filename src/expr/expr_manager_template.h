@@ -59,12 +59,6 @@ class CVC4_PUBLIC ExprManager {
   IntStat* d_exprStatistics[kind::LAST_KIND];
 
   /**
-   * Returns the internal node manager.  This should only be used by
-   * internal users, i.e. the friend classes.
-   */
-  NodeManager* getNodeManager() const;
-
-  /**
    * Check some things about a newly-created DatatypeType.
    */
   void checkResolvedDatatype(DatatypeType dtt) const;
@@ -97,6 +91,13 @@ class CVC4_PUBLIC ExprManager {
    * manager and are left-over are bad.
    */
   ~ExprManager();
+
+  /**
+   * Returns the internal node manager.  This should only be used by
+   * internal users, i.e. the friend classes.
+   * !!!! temporarily public, will be deleted when Expr layer is removed.
+   */
+  NodeManager* getNodeManager() const;
 
   /** Get the type for booleans */
   BooleanType booleanType() const;

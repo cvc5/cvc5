@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "smt/smt_engine.h"
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
@@ -51,16 +51,16 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
 
 class NodeBlack : public CxxTest::TestSuite {
  private:
-  api::Solver* d_slv;
+  std::unique_ptr<SmtEngine> d_smt;
+  std::unique_ptr<ExprManager> d_em;
   NodeManager* d_nodeManager;
-  NodeManagerScope* d_scope;
-  TypeNode* d_booleanType;
-  TypeNode* d_realType;
+  TypeNode d_booleanType;
+  TypeNode d_realType;
 
  public:
   void setUp() override
   {
-    // setup a solver so that options are in scope
+    // setup a SMT engine so that options are in scope
     Options opts;
     char* argv[2];
     argv[0] = strdup("");
@@ -68,20 +68,18 @@ class NodeBlack : public CxxTest::TestSuite {
     Options::parseOptions(&opts, 2, argv);
     free(argv[0]);
     free(argv[1]);
-    d_slv = new api::Solver(&opts);
 
-    d_nodeManager = new NodeManager(NULL);
-    d_booleanType = new TypeNode(d_nodeManager->booleanType());
-    d_realType = new TypeNode(d_nodeManager->realType());
+    d_em.reset(new ExprManager(nullptr));
+    d_nodeManager = d_em->getNodeManager();
+    d_smt.reset(new SmtEngine(d_em, &opts));
+    d_booleanType = d_nodeManager->booleanType();
+    d_realType = d_nodeManager->realType();
   }
 
   void tearDown() override
   {
-    delete d_realType;
-    delete d_booleanType;
-    delete d_scope;
-    delete d_nodeManager;
-    delete d_slv;
+    d_smt.reset(nullptr);
+    d_em.reset(nullptr);
   }
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
@@ -118,12 +116,12 @@ class NodeBlack : public CxxTest::TestSuite {
   void testOperatorEquals() {
     Node a, b, c;
 
-    b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    b = d_nodeManager->mkSkolem("b", d_booleanType);
 
     a = b;
     c = a;
 
-    Node d = d_nodeManager->mkSkolem("d", *d_booleanType);
+    Node d = d_nodeManager->mkSkolem("d", d_booleanType);
 
     TS_ASSERT(a == a);
     TS_ASSERT(a == b);
@@ -152,12 +150,12 @@ class NodeBlack : public CxxTest::TestSuite {
   void testOperatorNotEquals() {
     Node a, b, c;
 
-    b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    b = d_nodeManager->mkSkolem("b", d_booleanType);
 
     a = b;
     c = a;
 
-    Node d = d_nodeManager->mkSkolem("d", *d_booleanType);
+    Node d = d_nodeManager->mkSkolem("d", d_booleanType);
 
     /*structed assuming operator == works */
     TS_ASSERT(iff(a != a, !(a == a)));
@@ -212,7 +210,7 @@ class NodeBlack : public CxxTest::TestSuite {
   void testOperatorAssign() {
     Node a, b;
     Node c = d_nodeManager->mkNode(
-        NOT, d_nodeManager->mkSkolem("c", *d_booleanType));
+        NOT, d_nodeManager->mkSkolem("c", d_booleanType));
 
     b = c;
     TS_ASSERT(b == c);
@@ -328,8 +326,8 @@ class NodeBlack : public CxxTest::TestSuite {
   void testIteNode() {
     /*Node iteNode(const Node& thenpart, const Node& elsepart) const;*/
 
-    Node a = d_nodeManager->mkSkolem("a", *d_booleanType);
-    Node b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    Node a = d_nodeManager->mkSkolem("a", d_booleanType);
+    Node b = d_nodeManager->mkSkolem("b", d_booleanType);
 
     Node cnd = d_nodeManager->mkNode(OR, a, b);
     Node thenBranch = d_nodeManager->mkConst(true);
@@ -387,8 +385,8 @@ class NodeBlack : public CxxTest::TestSuite {
   void testGetKind() {
     /*inline Kind getKind() const; */
 
-    Node a = d_nodeManager->mkSkolem("a", *d_booleanType);
-    Node b = d_nodeManager->mkSkolem("b", *d_booleanType);
+    Node a = d_nodeManager->mkSkolem("a", d_booleanType);
+    Node b = d_nodeManager->mkSkolem("b", d_booleanType);
 
     Node n = d_nodeManager->mkNode(NOT, a);
     TS_ASSERT(NOT == n.getKind());
@@ -396,8 +394,8 @@ class NodeBlack : public CxxTest::TestSuite {
     n = d_nodeManager->mkNode(EQUAL, a, b);
     TS_ASSERT(EQUAL == n.getKind());
 
-    Node x = d_nodeManager->mkSkolem("x", *d_realType);
-    Node y = d_nodeManager->mkSkolem("y", *d_realType);
+    Node x = d_nodeManager->mkSkolem("x", d_realType);
+    Node y = d_nodeManager->mkSkolem("y", d_realType);
 
     n = d_nodeManager->mkNode(PLUS, x, y);
     TS_ASSERT(PLUS == n.getKind());
@@ -474,9 +472,9 @@ class NodeBlack : public CxxTest::TestSuite {
   // test iterators
   void testIterator() {
     NodeBuilder<> b;
-    Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
-    Node y = d_nodeManager->mkSkolem("y", *d_booleanType);
-    Node z = d_nodeManager->mkSkolem("z", *d_booleanType);
+    Node x = d_nodeManager->mkSkolem("x", d_booleanType);
+    Node y = d_nodeManager->mkSkolem("y", d_booleanType);
+    Node z = d_nodeManager->mkSkolem("z", d_booleanType);
     Node n = b << x << y << z << kind::AND;
 
     {  // iterator
@@ -721,7 +719,7 @@ class NodeBlack : public CxxTest::TestSuite {
   //  This is for demonstrating what a certain type of user error looks like.
   //   Node level0(){
   //     NodeBuilder<> nb(kind::AND);
-  //     Node x = d_nodeManager->mkSkolem("x", *d_booleanType);
+  //     Node x = d_nodeManager->mkSkolem("x", d_booleanType);
   //     nb << x;
   //     nb << x;
   //     return Node(nb.constructNode());
