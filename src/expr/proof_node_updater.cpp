@@ -16,7 +16,6 @@
 
 #include "expr/lazy_proof.h"
 
-using namespace CVC4::kind;
 
 namespace CVC4 {
 
