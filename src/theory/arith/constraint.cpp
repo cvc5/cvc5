@@ -2053,8 +2053,7 @@ void ConstraintDatabase::proveOr(std::vector<TrustNode>& out,
   Node orN = (la < lb) ? la.orNode(lb) : lb.orNode(la);
   if (options::proofNew())
   {
-    Assert(b->getNegation()->getType() == ConstraintType::LowerBound
-           || b->getNegation()->getType() == ConstraintType::UpperBound);
+    Assert(b->getNegation()->getType() != ConstraintType::Disequality);
     auto nm = NodeManager::currentNM();
     auto pf_neg_la = d_pnm->mkNode(PfRule::MACRO_SR_PRED_TRANSFORM,
                                    {d_pnm->mkAssume(la.negate())},
