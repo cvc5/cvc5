@@ -10,7 +10,7 @@ set(CVC4_MINOR   9) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
-set(CVC4_EXTRAVERSION "")
+set(CVC4_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
 set(CVC4_SOVERSION 7)

@@ -1673,7 +1673,6 @@ bool SygusExtension::checkValue(Node n,
   }
   TypeNode tn = n.getType();
   const DType& dt = tn.getDType();
-  Assert(dt.isSygus());
 
   // ensure that the expected size bound is met
   int cindex = utils::indexOf(vn.getOperator());

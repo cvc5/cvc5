@@ -473,6 +473,9 @@ set(regress_0_tests
   regress0/distinct.smtv1.smt2
   regress0/dump-unsat-core-full.smt2
   regress0/simple-dump-model.smt2
+  regress0/eqrange1.smt2
+  regress0/eqrange2.smt2
+  regress0/eqrange3.smt2
   regress0/expect/scrub.01.smtv1.smt2
   regress0/expect/scrub.03.smt2
   regress0/expect/scrub.06.cvc
@@ -963,6 +966,8 @@ set(regress_0_tests
   regress0/strings/issue3657-evalLeq.smt2
   regress0/strings/issue4070.smt2
   regress0/strings/issue4376.smt2
+  regress0/strings/issue4662-consume-nterm.smt2
+  regress0/strings/issue4674-recomp-nf.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1175,6 +1180,7 @@ set(regress_0_tests
   regress0/unconstrained/bvult5.smt2
   regress0/unconstrained/geq.smt2
   regress0/unconstrained/gt.smt2
+  regress0/unconstrained/issue4644.smt2
   regress0/unconstrained/ite.smt2
   regress0/unconstrained/leq.smt2
   regress0/unconstrained/lt.smt2
@@ -1522,6 +1528,7 @@ set(regress_1_tests
   regress1/quantifiers/dump-inst-i.smt2
   regress1/quantifiers/dump-inst-proof.smt2
   regress1/quantifiers/dump-inst.smt2
+  regress1/quantifiers/eqrange_ex_1.smt2
   regress1/quantifiers/ext-ex-deq-trigger.smt2
   regress1/quantifiers/extract-nproc.smt2
   regress1/quantifiers/f993-loss-easy.smt2

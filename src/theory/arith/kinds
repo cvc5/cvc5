@@ -133,4 +133,18 @@ nullaryoperator PI "pi"
 
 typerule PI ::CVC4::theory::arith::RealNullaryOperatorTypeRule
 
+# Integer AND, which is parameterized by a (positive) bitwidth k.
+# ((_ iand k) i1 i2) is equivalent to:
+# (bv2int (bvand ((_ int2bv k) i1) ((_ int2bv k) i2)))
+# for all integers i1, i2.
+constant IAND_OP \
+	::CVC4::IntAnd \
+	"::CVC4::UnsignedHashFunction< ::CVC4::IntAnd >" \
+	"util/iand.h" \
+	"operator for integer AND; payload is an instance of the CVC4::IntAnd class"
+parameterized IAND IAND_OP 2 "integer version of AND operator; first parameter is an IAND_OP, second and third are integer terms"
+
+typerule IAND_OP ::CVC4::theory::arith::IAndOpTypeRule
+typerule IAND ::CVC4::theory::arith::IAndTypeRule
+
 endtheory
