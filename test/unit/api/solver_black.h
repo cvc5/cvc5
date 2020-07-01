@@ -395,7 +395,7 @@ void SolverBlack::testMkSequenceSort()
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkSequenceSort(d_solver->getBooleanSort()));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkSequenceSort(
-      d_solver->mkSequenceSort((d_solver->getIntegerSort()))));
+      d_solver->mkSequenceSort(d_solver->getIntegerSort())));
   Solver slv;
   TS_ASSERT_THROWS(slv.mkSequenceSort(d_solver->getIntegerSort()),
                    CVC4ApiException&);
@@ -558,8 +558,7 @@ void SolverBlack::testMkEmptySequence()
   Solver slv;
   Sort s = d_solver->mkSequenceSort(d_solver->getBooleanSort());
   TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptySequence(s));
-  TS_ASSERT_THROWS(d_solver->mkEmptySequence(d_solver->getBooleanSort()),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptySequence(d_solver->getBooleanSort()));
   TS_ASSERT_THROWS(slv.mkEmptySequence(s), CVC4ApiException&);
 }
 

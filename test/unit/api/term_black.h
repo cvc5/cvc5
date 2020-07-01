@@ -787,5 +787,5 @@ void TermBlack::testConstSequenceElements()
   // A seq.unit app is not a constant sequence (regardless of whether it is
   // applied to a constant).
   Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
-  TS_ASSERT_THROWS(su.getConstSequenceElements()), CVC4ApiException&);
+  TS_ASSERT_THROWS(su.getConstSequenceElements(), CVC4ApiException&);
 }
