@@ -1,3 +1,5 @@
+; Deps: sat.plf smt.plf th_base.plf
+
 (check
 (% s sort
 (% a (term s)

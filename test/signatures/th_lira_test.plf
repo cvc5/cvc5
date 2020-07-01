@@ -1,4 +1,4 @@
-; Depends On: th_lira.plf
+; Deps: th_lira.plf
 ;; Proof (from predicates on linear polynomials) that the following imply bottom
 ;
 ; -x - 1/2 y + 2 >= 0

@@ -1,3 +1,5 @@
+; Deps: sat.plf smt.plf th_base.plf th_bv.plf th_bv_bitblast.plf
+
 ; (a = b) ^ (a = b & 00000) ^ (b = 11111) is UNSAT
 
 (check
