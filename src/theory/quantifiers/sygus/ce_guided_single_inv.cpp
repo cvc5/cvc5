@@ -378,7 +378,7 @@ bool CegSingleInv::solve()
   std::unique_ptr<SmtEngine> siSmt;
   initializeSubsolver(siSmt, siq);
   Result r = siSmt->checkSat();
-  Trace("cegqi-si") << "Result: " << r << std::endl;
+  Trace("sygus-si") << "Result: " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
     // conjecture is infeasible or unknown
@@ -399,7 +399,7 @@ bool CegSingleInv::solve()
     Assert(qn.getKind() == FORALL);
     std::vector<std::vector<Expr> > tvecs;
     siSmt->getInstantiationTermVectors(q, tvecs);
-    Trace("cegqi-si") << "#instantiations of " << q << "=" << tvecs.size()
+    Trace("sygus-si") << "#instantiations of " << q << "=" << tvecs.size()
                       << std::endl;
     std::vector<Node> vars;
     for (const Node& v : qn[0])
