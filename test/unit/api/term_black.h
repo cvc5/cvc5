@@ -44,6 +44,7 @@ class TermBlack : public CxxTest::TestSuite
   void testSubstitute();
   void testIsConst();
   void testConstArray();
+  void testConstSequenceElements();
 
  private:
   Solver d_solver;
@@ -768,4 +769,24 @@ void TermBlack::testConstArray()
   TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
   TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
   TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
+}
+
+
+void TermBlack::testConstSequenceElements()
+{
+  Sort realsort = d_solver.getRealSort();
+  Sort seqsort = d_solver.mkSequenceSort(realsort);
+  Term s = d_solver.mkEmptySequence(seqsort);
+
+  TS_ASSERT(s.isConst());
+
+  TS_ASSERT_EQUALS(s.getKind(), CONST_SEQUENCE);
+  // empty sequence has zero elements
+  std::vector<Term> cs = s.getConstSequenceElements();
+  TS_ASSERT(cs.empty());
+  
+  // A seq.unit app is not a constant sequence (regardless of whether it is
+  // applied to a constant).
+  Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
+  TS_ASSERT_THROWS(su.getConstSequenceElements()), CVC4ApiException&);
 }
