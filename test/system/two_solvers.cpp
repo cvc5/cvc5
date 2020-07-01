@@ -17,20 +17,16 @@
 #include <iostream>
 #include <sstream>
 
-#include "expr/expr.h"
-#include "smt/smt_engine.h"
+#include "api/cvc4cpp.h"
 
-using namespace CVC4;
+using namespace CVC4::api;
 using namespace std;
 
 int main() {
-  ExprManager em;
-  Options opts;
-  SmtEngine smt(&em);
-  SmtEngine smt2(&em);
-  Result r = smt.checkEntailed(em.mkConst(true));
-  Result r2 = smt2.checkEntailed(em.mkConst(true));
-
-  return r == Result::ENTAILED && r2 == Result::ENTAILED ? 0 : 1;
+  Solver s1;
+  Solver s2;
+  Result r = s1.checkEntailed(s1.mkBoolean(true));
+  Result r2 = s2.checkEntailed(s2.mkBoolean(true));
+  return r.isEntailed() && r2.isEntailed() ? 0 : 1;
 }
 

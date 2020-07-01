@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
+#include "api/cvc4cpp.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -137,8 +138,15 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
         bool needExport = false;
-        ExprManager em(nm->getOptions());
-        std::unique_ptr<SmtEngine> rrChecker;
+
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // This is only temporarily until we have separate options for each
+        // SmtEngine instance. We should reuse the same ExprManager with
+        // a different SmtEngine (and different options) here, eventually.
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        api::Solver slv(&nm->getOptions());
+        ExprManager* em = slv.getExprManager();
+        SmtEngine* rrChecker = slv.getSmtEngine();
         ExprManagerMapCollection varMap;
         initializeChecker(rrChecker, em, varMap, crr, needExport);
         Result r = rrChecker->checkSat();
@@ -175,7 +183,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
               if (needExport)
               {
-                Expr erefv = refv.toExpr().exportTo(&em, varMap);
+                Expr erefv = refv.toExpr().exportTo(em, varMap);
                 val = Node::fromExpr(rrChecker->getValue(erefv).exportTo(
                     nm->toExprManager(), varMap));
               }

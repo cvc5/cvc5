@@ -89,8 +89,8 @@ class ExprMiner
    * (for instance, model values) must be exported to the current expression
    * manager.
    */
-  void initializeChecker(std::unique_ptr<SmtEngine>& smte,
-                         ExprManager& em,
+  void initializeChecker(SmtEngine* smte,
+                         ExprManager* em,
                          ExprManagerMapCollection& varMap,
                          Node query,
                          bool& needExport);

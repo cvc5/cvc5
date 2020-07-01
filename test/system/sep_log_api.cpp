@@ -22,10 +22,9 @@
 #include <iostream>
 #include <sstream>
 
-#include "expr/expr.h"
-#include "smt/smt_engine.h"
+#include "api/cvc4cpp.h"
 
-using namespace CVC4;
+using namespace CVC4::api;
 using namespace std;
 
 /**
@@ -34,33 +33,31 @@ using namespace std;
  */
 int validate_exception(void)
 {
-  ExprManager em;
-  Options opts;
-  SmtEngine smt(&em);
+  Solver slv;
 
   /*
    * Setup some options for CVC4 -- we explictly want to use a simplistic
    * theory (e.g., QF_IDL)
    */
-  smt.setLogic("QF_IDL");
-  smt.setOption("produce-models", SExpr("true"));
-  smt.setOption("incremental", SExpr("false"));
+  slv.setLogic("QF_IDL");
+  slv.setOption("produce-models", "true");
+  slv.setOption("incremental", "false");
 
   /* Our integer type */
-  Type integer(em.integerType());
+  Sort integer = slv.getIntegerSort();
 
   /* Our SMT constants */
-  Expr x(em.mkVar("x", integer));
-  Expr y(em.mkVar("y", integer));
+  Term x = slv.mkConst(integer, "x");
+  Term y = slv.mkConst(integer, "y");
 
   /* y > x */
-  Expr y_gt_x(em.mkExpr(kind::GT, y, x));
+  Term y_gt_x(slv.mkTerm(Kind::GT, y, x));
 
   /* assert it */
-  smt.assertFormula(y_gt_x);
+  slv.assertFormula(y_gt_x);
 
   /* check */
-  Result r(smt.checkSat());
+  Result r(slv.checkSat());
 
   /* If this is UNSAT, we have an issue; so bail-out */
   if (!r.isSat())
@@ -83,9 +80,9 @@ int validate_exception(void)
   /* test the heap expression */
   try
   {
-    Expr heap_expr(smt.getSepHeapExpr());
+    Term heap_expr = slv.getSeparationHeap();
   }
-  catch (const CVC4::RecoverableModalException& e)
+  catch (const CVC4ApiException& e)
   {
     caught_on_heap = true;
 
@@ -99,9 +96,9 @@ int validate_exception(void)
   /* test the nil expression */
   try
   {
-    Expr nil_expr(smt.getSepNilExpr());
+    Term nil_expr = slv.getSeparationNilTerm();
   }
-  catch (const CVC4::RecoverableModalException& e)
+  catch (const CVC4ApiException& e)
   {
     caught_on_nil = true;
 
@@ -127,60 +124,56 @@ int validate_exception(void)
  */
 int validate_getters(void)
 {
-  ExprManager em;
-  Options opts;
-  SmtEngine smt(&em);
+  Solver slv;
 
   /* Setup some options for CVC4 */
-  smt.setLogic("QF_ALL_SUPPORTED");
-  smt.setOption("produce-models", SExpr("true"));
-  smt.setOption("incremental", SExpr("false"));
+  slv.setLogic("QF_ALL_SUPPORTED");
+  slv.setOption("produce-models", "true");
+  slv.setOption("incremental", "false");
 
   /* Our integer type */
-  Type integer(em.integerType());
+  Sort integer = slv.getIntegerSort();
 
   /* A "random" constant */
-  Rational val_for_random_constant(Rational(0xDEADBEEF));
-  Expr random_constant(em.mkConst(val_for_random_constant));
+  Term random_constant = slv.mkReal(0xDEADBEEF);
 
   /* Another random constant */
-  Rational val_for_expr_nil_val(Rational(0xFBADBEEF));
-  Expr expr_nil_val(em.mkConst(val_for_expr_nil_val));
+  Term expr_nil_val = slv.mkReal(0xFBADBEEF);
 
   /* Our nil term */
-  Expr nil(em.mkNullaryOperator(integer, kind::SEP_NIL));
+  Term nil = slv.mkSepNil(integer);
 
   /* Our SMT constants */
-  Expr x(em.mkVar("x", integer));
-  Expr y(em.mkVar("y", integer));
-  Expr p1(em.mkVar("p1", integer));
-  Expr p2(em.mkVar("p2", integer));
+  Term x = slv.mkConst(integer, "x");
+  Term y = slv.mkConst(integer, "y");
+  Term p1 = slv.mkConst(integer, "p1");
+  Term p2 = slv.mkConst(integer, "p2");
 
   /* Constraints on x and y */
-  Expr x_equal_const(em.mkExpr(kind::EQUAL, x, random_constant));
-  Expr y_gt_x(em.mkExpr(kind::GT, y, x));
+  Term x_equal_const = slv.mkTerm(Kind::EQUAL, x, random_constant);
+  Term y_gt_x = slv.mkTerm(Kind::GT, y, x);
 
   /* Points-to expressions */
-  Expr p1_to_x(em.mkExpr(kind::SEP_PTO, p1, x));
-  Expr p2_to_y(em.mkExpr(kind::SEP_PTO, p2, y));
+  Term p1_to_x = slv.mkTerm(Kind::SEP_PTO, p1, x);
+  Term p2_to_y = slv.mkTerm(Kind::SEP_PTO, p2, y);
 
   /* Heap -- the points-to have to be "starred"! */
-  Expr heap(em.mkExpr(kind::SEP_STAR, p1_to_x, p2_to_y));
+  Term heap = slv.mkTerm(Kind::SEP_STAR, p1_to_x, p2_to_y);
 
   /* Constain "nil" to be something random */
-  Expr fix_nil(em.mkExpr(kind::EQUAL, nil, expr_nil_val));
+  Term fix_nil = slv.mkTerm(Kind::EQUAL, nil, expr_nil_val);
 
   /* Add it all to the solver! */
-  smt.assertFormula(x_equal_const);
-  smt.assertFormula(y_gt_x);
-  smt.assertFormula(heap);
-  smt.assertFormula(fix_nil);
+  slv.assertFormula(x_equal_const);
+  slv.assertFormula(y_gt_x);
+  slv.assertFormula(heap);
+  slv.assertFormula(fix_nil);
 
   /*
    * Incremental is disabled due to using separation logic, so don't query
    * twice!
    */
-  Result r(smt.checkSat());
+  Result r(slv.checkSat());
 
   /* If this is UNSAT, we have an issue; so bail-out */
   if (!r.isSat())
@@ -189,43 +182,41 @@ int validate_getters(void)
   }
 
   /* Obtain our separation logic terms from the solver */
-  Expr heap_expr(smt.getSepHeapExpr());
-  Expr nil_expr(smt.getSepNilExpr());
+  Term heap_expr = slv.getSeparationHeap();
+  Term nil_expr = slv.getSeparationNilTerm();
 
   /* If the heap is not a separating conjunction, bail-out */
-  if (heap_expr.getKind() != kind::SEP_STAR)
+  if (heap_expr.getKind() != Kind::SEP_STAR)
   {
     return -1;
   }
 
   /* If nil is not a direct equality, bail-out */
-  if (nil_expr.getKind() != kind::EQUAL)
+  if (nil_expr.getKind() != Kind::EQUAL)
   {
     return -1;
   }
 
   /* Obtain the values for our "pointers" */
-  Rational val_for_p1(smt.getValue(p1).getConst<CVC4::Rational>());
-  Rational val_for_p2(smt.getValue(p2).getConst<CVC4::Rational>());
+  Term val_for_p1 = slv.getValue(p1);
+  Term val_for_p2 = slv.getValue(p2);
 
   /* We need to make sure we find both pointers in the heap */
   bool checked_p1(false);
   bool checked_p2(false);
 
   /* Walk all the children */
-  for (Expr child : heap_expr.getChildren())
+  for (const Term& child : heap_expr)
   {
     /* If we don't have a PTO operator, bail-out */
-    if (child.getKind() != kind::SEP_PTO)
+    if (child.getKind() != Kind::SEP_PTO)
     {
       return -1;
     }
 
     /* Find both sides of the PTO operator */
-    Rational addr(
-        smt.getValue(child.getChildren().at(0)).getConst<CVC4::Rational>());
-    Rational value(
-        smt.getValue(child.getChildren().at(1)).getConst<CVC4::Rational>());
+    Term addr = slv.getValue(child[0]);
+    Term value = slv.getValue(child[1]);
 
     /* If the current address is the value for p1 */
     if (addr == val_for_p1)
@@ -233,7 +224,7 @@ int validate_getters(void)
       checked_p1 = true;
 
       /* If it doesn't match the random constant, we have a problem */
-      if (value != val_for_random_constant)
+      if (value != random_constant)
       {
         return -1;
       }
@@ -250,7 +241,8 @@ int validate_getters(void)
        * than the random constant -- if we get a value that is LTE, then
        * something has gone wrong!
        */
-      if (value <= val_for_random_constant)
+      if (std::stoll(value.toString())
+          <= std::stoll(random_constant.toString()))
       {
         return -1;
       }
@@ -274,14 +266,13 @@ int validate_getters(void)
   }
 
   /* We now get our value for what nil is */
-  Rational value_for_nil =
-      smt.getValue(nil_expr.getChildren().at(1)).getConst<CVC4::Rational>();
+  Term value_for_nil = slv.getValue(nil_expr[1]);
 
   /*
    * The value for nil from the solver should be the value we originally tied
    * nil to
    */
-  if (value_for_nil != val_for_expr_nil_val)
+  if (value_for_nil != expr_nil_val)
   {
     return -1;
   }

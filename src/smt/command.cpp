@@ -606,48 +606,6 @@ std::string DeclareSygusVarCommand::getCommandName() const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class DeclareSygusPrimedVarCommand */
-/* -------------------------------------------------------------------------- */
-
-DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(
-    const std::string& id, Type t)
-    : DeclarationDefinitionCommand(id), d_type(t)
-{
-}
-
-Type DeclareSygusPrimedVarCommand::getType() const { return d_type; }
-
-void DeclareSygusPrimedVarCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    smtEngine->declareSygusPrimedVar(d_symbol, d_type);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* DeclareSygusPrimedVarCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new DeclareSygusPrimedVarCommand(
-      d_symbol, d_type.exportTo(exprManager, variableMap));
-}
-
-Command* DeclareSygusPrimedVarCommand::clone() const
-{
-  return new DeclareSygusPrimedVarCommand(d_symbol, d_type);
-}
-
-std::string DeclareSygusPrimedVarCommand::getCommandName() const
-{
-  return "declare-primed-var";
-}
-
-/* -------------------------------------------------------------------------- */
 /* class DeclareSygusFunctionCommand                                          */
 /* -------------------------------------------------------------------------- */
 
@@ -2131,6 +2089,90 @@ Command* GetSynthSolutionCommand::clone() const
 std::string GetSynthSolutionCommand::getCommandName() const
 {
   return "get-instantiations";
+}
+
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj)
+    : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj,
+                                       const Type& gtype)
+    : Command(solver),
+      d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
+
+api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
+Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
+api::Term GetInterpolCommand::getResult() const { return d_result; }
+
+void GetInterpolCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = d_solver->getInterpolant(d_conj, d_result);
+    }
+    else
+    {
+      d_resultStatus =
+          d_solver->getInterpolant(d_conj, d_sygus_grammar_type, d_result);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetInterpolCommand::printResult(std::ostream& out,
+                                     uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
+                                      ExprManagerMapCollection& variableMap)
+{
+  Unimplemented();
+}
+
+Command* GetInterpolCommand::clone() const
+{
+  GetInterpolCommand* c = new GetInterpolCommand(d_solver, d_name, d_conj);
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetInterpolCommand::getCommandName() const
+{
+  return "get-interpol";
 }
 
 GetAbductCommand::GetAbductCommand() {}
