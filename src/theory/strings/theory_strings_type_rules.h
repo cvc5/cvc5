@@ -2,9 +2,9 @@
 /*! \file theory_strings_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,9 @@
 
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+
+#include "expr/expr_sequence.h"
+#include "expr/sequence.h"
 
 namespace CVC4 {
 namespace theory {
@@ -317,6 +320,53 @@ public:
     return nodeManager->regExpType();
   }
 };
+
+class ConstSequenceTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::CONST_SEQUENCE);
+    return n.getConst<ExprSequence>().getSequence().getType();
+  }
+};
+
+class SeqUnitTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    return nodeManager->mkSequenceType(n[0].getType(check));
+  }
+};
+
+/** Properties of the sequence type */
+struct SequenceProperties
+{
+  static Cardinality computeCardinality(TypeNode type)
+  {
+    Assert(type.getKind() == kind::SEQUENCE_TYPE);
+    return Cardinality::INTEGERS;
+  }
+  /** A sequence is well-founded if its element type is */
+  static bool isWellFounded(TypeNode type)
+  {
+    return type[0].isWellFounded();
+  }
+  /** Make ground term for sequence type (return the empty sequence) */
+  static Node mkGroundTerm(TypeNode type)
+  {
+    Assert(type.isSequence());
+    // empty sequence
+    std::vector<Expr> seq;
+    return NodeManager::currentNM()->mkConst(
+        ExprSequence(SequenceType(type.toType()), seq));
+  }
+}; /* struct SequenceProperties */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

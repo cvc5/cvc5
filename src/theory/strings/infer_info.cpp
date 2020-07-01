@@ -2,9 +2,9 @@
 /*! \file infer_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,8 @@ const char* toString(Inference i)
     case Inference::I_CONST_MERGE: return "I_CONST_MERGE";
     case Inference::I_CONST_CONFLICT: return "I_CONST_CONFLICT";
     case Inference::I_NORM: return "I_NORM";
+    case Inference::UNIT_INJ: return "UNIT_INJ";
+    case Inference::UNIT_CONST_CONFLICT: return "UNIT_CONST_CONFLICT";
     case Inference::CARD_SP: return "CARD_SP";
     case Inference::CARDINALITY: return "CARDINALITY";
     case Inference::I_CYCLE_E: return "I_CYCLE_E";

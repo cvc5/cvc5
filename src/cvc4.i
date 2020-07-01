@@ -1,3 +1,8 @@
+// Declare that all functions in the interface can throw exceptions of type
+// CVC4::Exception and exceptions in general. SWIG catches those exceptions and
+// turns them into target language exceptions via "throws" typemaps.
+%catches(CVC4::Exception,...);
+
 %import "bindings/swig.h"
 
 %include "stdint.i"
@@ -35,6 +40,7 @@ using namespace CVC4;
 #include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
+#include "util/iand.h"
 #include "util/integer.h"
 #include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -47,23 +53,17 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #ifdef SWIGPYTHON
 %pythonappend CVC4::SmtEngine::SmtEngine %{
-  # Hold a reference to the ExprManager to make sure that Python keeps the
-  # ExprManager alive as long as the SmtEngine exists
-  self.em = em
+  self.thisown = 0
+%}
+%pythonappend CVC4::ExprManager::ExprManager %{
+  self.thisown = 0
 %}
 #endif /* SWIGPYTHON */
 
-%template(vectorType) std::vector< CVC4::Type >;
-%template(vectorExpr) std::vector< CVC4::Expr >;
 %template(vectorUnsignedInt) std::vector< unsigned int >;
-%template(vectorVectorExpr) std::vector< std::vector< CVC4::Expr > >;
-%template(vectorDatatypeType) std::vector< CVC4::DatatypeType >;
 %template(vectorSExpr) std::vector< CVC4::SExpr >;
 %template(vectorString) std::vector< std::string >;
-%template(vectorPairStringType) std::vector< std::pair< std::string, CVC4::Type > >;
-%template(pairStringType) std::pair< std::string, CVC4::Type >;
 %template(setOfType) std::set< CVC4::Type >;
-%template(hashmapExpr) std::unordered_map< CVC4::Expr, CVC4::Expr, CVC4::ExprHashFunction >;
 
 // This is unfortunate, but seems to be necessary; if we leave NULL
 // defined, swig will expand it to "(void*) 0", and some of swig's
@@ -72,81 +72,19 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 #ifdef SWIGJAVA
 
-#include "bindings/java_iterator_adapter.h"
-#include "bindings/java_stream_adapters.h"
+// Map C++ exceptions of type CVC4::Exception to Java exceptions of type
+// edu.stanford.CVC4.Exception
+// 
+// As suggested in:
+// http://www.swig.org/Doc3.0/SWIGDocumentation.html#Java_exception_typemap
+%typemap(throws, throws="edu.stanford.CVC4.Exception") CVC4::Exception {
+  jclass excep = jenv->FindClass("edu/stanford/CVC4/Exception");
+  if (excep)
+    jenv->ThrowNew(excep, $1.what());
+  return $null;
+}
 
-%exception %{
-  try {
-    $action
-  } catch(CVC4::Exception& e) {
-    std::stringstream ss;
-    ss << e.what() << ": " << e.getMessage();
-    std::string explanation = ss.str();
-    SWIG_JavaThrowException(jenv, SWIG_JavaRuntimeException, explanation.c_str());
-  }
-%}
-
-// Create a mapping from C++ Exceptions to Java Exceptions.
-// This is in a couple of throws typemaps, simply because it's sensitive to SWIG's concept of which namespace we're in.
-%typemap(throws) Exception %{
-  std::string name = "edu/stanford/CVC4/$1_type";
-  /*
-  size_t i = name.find("::");
-  if(i != std::string::npos) {
-    size_t j = name.rfind("::");
-    assert(i <= j);
-    name.replace(i, j - i + 2, "/");
-  }
-  */
-  jclass clazz = jenv->FindClass(name.c_str());
-  assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
-  jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-  assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
-  assert(t != NULL && jenv->ExceptionOccurred() == NULL);
-  int status = jenv->Throw(t);
-  assert(status == 0);
-%}
-%typemap(throws) CVC4::Exception %{
-  std::string name = "edu/stanford/$1_type";
-  size_t i = name.find("::");
-  if(i != std::string::npos) {
-    size_t j = name.rfind("::");
-    assert(i <= j);
-    name.replace(i, j - i + 2, "/");
-  }
-  jclass clazz = jenv->FindClass(name.c_str());
-  assert(clazz != NULL && jenv->ExceptionOccurred() == NULL);
-  jmethodID method = jenv->GetMethodID(clazz, "<init>", "(JZ)V");
-  assert(method != NULL && jenv->ExceptionOccurred() == NULL);
-  jthrowable t = static_cast<jthrowable>(jenv->NewObject(clazz, method, reinterpret_cast<uintptr_t>(new $1_type($1)), true));
-  assert(t != NULL && jenv->ExceptionOccurred() == NULL);
-  int status = jenv->Throw(t);
-  assert(status == 0);
-%}
-
-%typemap(throws) CVC4::ModalException = CVC4::Exception;
-%typemap(throws) CVC4::LogicException = CVC4::Exception;
-%typemap(throws) CVC4::OptionException = CVC4::Exception;
-%typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
-%typemap(throws) CVC4::AssertionException = CVC4::Exception;
-
-%typemap(throws) CVC4::TypeCheckingException = CVC4::Exception;
-%typemap(throws) CVC4::ScopeException = CVC4::Exception;
-%typemap(throws) CVC4::IllegalArgumentException = CVC4::Exception;
-%typemap(throws) IllegalArgumentException = Exception;
-%typemap(throws) CVC4::AssertionException = CVC4::Exception;
-
-// TIM: Really unclear why both of these are required
-%typemap(throws) CVC4::UnsafeInterruptException = CVC4::Exception;
-%typemap(throws) UnsafeInterruptException = CVC4::Exception;
-%typemap(throws) CVC4::parser::InputStreamException = CVC4::Exception;
-
-// Generate an error if the mapping from C++ CVC4 Exception to Java CVC4 Exception doesn't exist above
-%typemap(throws) SWIGTYPE, SWIGTYPE &, SWIGTYPE *, SWIGTYPE [], SWIGTYPE [ANY] %{
-#error "exception $1_type doesn't map to Java correctly---please edit src/cvc4.i and add it"
-%}
-
+%include "bindings/java_iterator_adapter.i"
 %include "java/typemaps.i" // primitive pointers and references
 %include "java/std_string.i" // map std::string to java.lang.String
 %include "java/arrays_java.i" // C arrays to Java arrays
@@ -252,6 +190,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
   JCALL3(ReleaseByteArrayElements, jenv, ba, bae, 0);
 }
 
+%include "bindings/java_stream_adapters.h"
+
 #endif /* SWIGJAVA */
 
 // TIM:
@@ -267,6 +207,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/integer.i"
 %include "util/rational.i"
 %include "util/bitvector.i"
+%include "util/iand.i"
 %include "util/floatingpoint.i"
 
 // Tim: The remainder of util/.
@@ -287,8 +228,6 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "expr/ascription_type.i"
 %include "expr/emptyset.i"
 %include "expr/expr_sequence.i"
-%include "expr/datatype.i"
-%include "expr/record.i"
 %include "proof/unsat_core.i"
 
 // TIM:
@@ -300,6 +239,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 
 // TIM:
 // The remainder of the includes:
+%include "expr/datatype.i"
 %include "expr/expr.i"
 %include "expr/expr_manager.i"
 %include "expr/variable_type_map.i"
@@ -308,6 +248,8 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "smt/logic_exception.i"
 %include "theory/logic_info.i"
 %include "theory/theory_id.i"
+
+%include "expr/array_store_all.i"
 
 // Tim: This should come after "theory/logic_info.i".
 %include "smt/smt_engine.i"

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -122,7 +122,7 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = true;
   }
-  else if (isString() || isRegExp() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal())
   {
     ret = false;
   }
@@ -245,6 +245,10 @@ bool TypeNode::isClosedEnumerable()
     {
       ret = getSetElementType().isClosedEnumerable();
     }
+    else if (isSequence())
+    {
+      ret = getSequenceElementType().isClosedEnumerable();
+    }
     else if (isDatatype())
     {
       // avoid infinite loops: initially set to true
@@ -300,11 +304,7 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
-bool TypeNode::isStringLike() const
-{
-  // TODO (cvc4-projects #23): sequence here
-  return isString();
-}
+bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
@@ -351,6 +351,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
     return !leastCommonTypeNode(*this, t).isNull();
   }
   return false;
+}
+
+TypeNode TypeNode::getSequenceElementType() const
+{
+  Assert(isSequence());
+  return (*this)[0];
 }
 
 TypeNode TypeNode::getBaseType() const {

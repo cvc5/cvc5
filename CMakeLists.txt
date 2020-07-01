@@ -6,14 +6,14 @@ cmake_minimum_required(VERSION 3.2)
 project(cvc4)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   8) # Minor component of the version of CVC4.
+set(CVC4_MINOR   9) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
 set(CVC4_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 6)
+set(CVC4_SOVERSION 7)
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)
@@ -85,19 +85,6 @@ list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 set(INCLUDE_INSTALL_DIR include)
 set(LIBRARY_INSTALL_DIR lib)
 set(RUNTIME_INSTALL_DIR bin)
-
-#-----------------------------------------------------------------------------#
-
-# Embed the installation prefix as an RPATH in the executable such that the
-# linker can find our libraries (such as libcvc4parser) when executing the cvc4
-# binary. This is for example useful when installing CVC4 with a custom prefix
-# on macOS (e.g. when using homebrew in a non-standard directory). If we do not
-# set this option, then the linker will not be able to find the required
-# libraries when trying to run CVC4.
-#
-# More information on RPATH in CMake:
-# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 
 #-----------------------------------------------------------------------------#
 
@@ -306,6 +293,17 @@ if(ENABLE_SHARED)
     set(ENABLE_STATIC_BINARY OFF)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
+
+  # Embed the installation prefix as an RPATH in the executable such that the
+  # linker can find our libraries (such as libcvc4parser) when executing the
+  # cvc4 binary. This is for example useful when installing CVC4 with a custom
+  # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
+  # we do not set this option, then the linker will not be able to find the
+  # required libraries when trying to run CVC4.
+  #
+  # More information on RPATH in CMake:
+  # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
@@ -719,6 +717,14 @@ else()
   )
 endif()
 
+if("${CMAKE_GENERATOR}" STREQUAL "Ninja")
+  set(BUILD_COMMAND_NAME "ninja")
+else()
+  set(BUILD_COMMAND_NAME "make")
+endif()
+
 message("")
-message("Now just type make, followed by make check or make install.")
+message("Now just type '${BUILD_COMMAND_NAME}', "
+        "followed by '${BUILD_COMMAND_NAME} check' "
+        "or '${BUILD_COMMAND_NAME} install'.")
 message("")

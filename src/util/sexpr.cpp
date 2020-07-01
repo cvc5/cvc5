@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -272,7 +272,6 @@ void SExpr::toStreamRec(std::ostream& out, const SExpr& sexpr,
 
 bool SExpr::languageQuotesKeywords(OutputLanguage language) {
   switch (language) {
-    case language::output::LANG_SYGUS_V1:
     case language::output::LANG_TPTP:
       return true;
     case language::output::LANG_AST:

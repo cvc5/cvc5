@@ -2,9 +2,9 @@
 /*! \file smt_engine_subsolver.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 
 #include "theory/smt_engine_subsolver.h"
 
+#include "api/cvc4cpp.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/rewriter.h"
@@ -40,16 +41,14 @@ Result quickCheck(Node& query)
   return Result(Result::SAT_UNKNOWN, Result::REQUIRES_FULL_CHECK);
 }
 
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte)
+void initializeSubsolver(SmtEngine* smte)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  smte.reset(new SmtEngine(nm->toExprManager()));
   smte->setIsInternalSubsolver();
   smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
 }
 
-void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
-                                   ExprManager& em,
+void initializeSubsolverWithExport(SmtEngine* smte,
+                                   ExprManager* em,
                                    ExprManagerMapCollection& varMap,
                                    Node query,
                                    bool needsTimeout,
@@ -62,14 +61,13 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
   // OptionException.
   try
   {
-    smte.reset(new SmtEngine(&em));
     smte->setIsInternalSubsolver();
     if (needsTimeout)
     {
       smte->setTimeLimit(timeout, true);
     }
     smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
-    Expr equery = query.toExpr().exportTo(&em, varMap);
+    Expr equery = query.toExpr().exportTo(em, varMap);
     smte->assertFormula(equery);
   }
   catch (const CVC4::ExportUnsupportedException& e)
@@ -82,13 +80,13 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
   }
 }
 
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query)
+void initializeSubsolver(SmtEngine* smte, Node query)
 {
   initializeSubsolver(smte);
   smte->assertFormula(query.toExpr());
 }
 
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Node query)
+Result checkWithSubsolver(SmtEngine* smte, Node query)
 {
   Assert(query.getType().isBoolean());
   Result r = quickCheck(query);
@@ -130,19 +128,33 @@ Result checkWithSubsolver(Node query,
     }
     return r;
   }
-  std::unique_ptr<SmtEngine> smte;
+
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // This is only temporarily until we have separate options for each
+  // SmtEngine instance. We should reuse the same ExprManager with
+  // a different SmtEngine (and different options) here, eventually.
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  std::unique_ptr<SmtEngine> simpleSmte;
+  std::unique_ptr<api::Solver> slv;
+  ExprManager* em = nullptr;
+  SmtEngine* smte = nullptr;
   ExprManagerMapCollection varMap;
   NodeManager* nm = NodeManager::currentNM();
-  ExprManager em(nm->getOptions());
   bool needsExport = false;
   if (needsTimeout)
   {
+    slv.reset(new api::Solver(&nm->getOptions()));
+    em = slv->getExprManager();
+    smte = slv->getSmtEngine();
     needsExport = true;
     initializeSubsolverWithExport(
         smte, em, varMap, query, needsTimeout, timeout);
   }
   else
   {
+    em = nm->toExprManager();
+    simpleSmte.reset(new SmtEngine(em));
+    smte = simpleSmte.get();
     initializeSubsolver(smte, query);
   }
   r = smte->checkSat();
@@ -153,7 +165,7 @@ Result checkWithSubsolver(Node query,
       Expr val;
       if (needsExport)
       {
-        Expr ev = v.toExpr().exportTo(&em, varMap);
+        Expr ev = v.toExpr().exportTo(em, varMap);
         val = smte->getValue(ev).exportTo(nm->toExprManager(), varMap);
       }
       else

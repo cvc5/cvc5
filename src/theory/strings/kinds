@@ -23,6 +23,10 @@ operator STRING_LEQ 2 "string less than or equal"
 operator STRING_STRIDOF 3 "string indexof"
 operator STRING_STRREPL 3 "string replace"
 operator STRING_STRREPLALL 3 "string replace all"
+operator STRING_REPLACE_RE 3 "string replace regular expression match"
+operator STRING_REPLACE_RE_ALL 3 "string replace all regular expression matches"
+typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
+typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_IS_DIGIT 1 "string isdigit, returns true if argument is a string of length one that represents a digit"
@@ -58,11 +62,26 @@ constant CONST_STRING \
     "util/string.h" \
     "a string of characters"
 
+# the type
+operator SEQUENCE_TYPE 1 "seuence type, takes as parameter the type of the elements"
+cardinality SEQUENCE_TYPE \
+    "::CVC4::theory::strings::SequenceProperties::computeCardinality(%TYPE%)" \
+    "theory/strings/theory_strings_type_rules.h"
+well-founded SEQUENCE_TYPE \
+    "::CVC4::theory::strings::SequenceProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)" \
+    "theory/strings/theory_strings_type_rules.h"
+enumerator SEQUENCE_TYPE \
+    "::CVC4::theory::strings::SequenceEnumerator" \
+    "theory/strings/type_enumerator.h"
+
 constant CONST_SEQUENCE \
     ::CVC4::ExprSequence \
     ::CVC4::ExprSequenceHashFunction \
     "expr/expr_sequence.h" \
     "a sequence of characters"
+
+operator SEQ_UNIT 1 "a sequence of length one"
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
@@ -143,5 +162,10 @@ typerule STRING_TO_CODE "SimpleTypeRule<RInteger, AString>"
 typerule STRING_FROM_CODE "SimpleTypeRule<RString, AInteger>"
 typerule STRING_TOUPPER "SimpleTypeRule<RString, AString>"
 typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
+
+### sequence specific operators
+
+typerule CONST_SEQUENCE ::CVC4::theory::strings::ConstSequenceTypeRule
+typerule SEQ_UNIT ::CVC4::theory::strings::SeqUnitTypeRule
 
 endtheory

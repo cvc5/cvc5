@@ -2,9 +2,9 @@
 /*! \file word.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,11 +33,8 @@ class Word
   /** make empty constant of type tn */
   static Node mkEmptyWord(TypeNode tn);
 
-  /** make empty constant of kind k */
-  static Node mkEmptyWord(Kind k);
-
   /** make word from constants in (non-empty) vector vec */
-  static Node mkWord(const std::vector<Node>& xs);
+  static Node mkWordFlatten(const std::vector<Node>& xs);
 
   /** Return the length of word x */
   static size_t getLength(TNode x);
@@ -139,6 +136,8 @@ class Word
    * Notice that x.overlap(y) = y.roverlap(x)
    */
   static std::size_t roverlap(TNode x, TNode y);
+  /** Return true if word x is a repetition of the same character */
+  static bool isRepeated(TNode x);
   /** Split constant
    *
    * This returns the suffix remainder (resp. prefix remainder when isRev is

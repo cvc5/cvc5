@@ -2,9 +2,9 @@
 /*! \file synth_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -169,8 +169,9 @@ void SynthEngine::assignConjecture(Node q)
     if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
     {
       // create new smt engine to do quantifier elimination
-      std::unique_ptr<SmtEngine> smt_qe;
-      initializeSubsolver(smt_qe);
+      std::unique_ptr<SmtEngine> smt_qe(
+          new SmtEngine(NodeManager::currentNM()->toExprManager()));
+      initializeSubsolver(smt_qe.get());
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."
                          << std::endl;

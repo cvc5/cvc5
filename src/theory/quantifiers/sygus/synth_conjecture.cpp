@@ -2,9 +2,9 @@
 /*! \file synth_conjecture.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,7 +21,7 @@
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"

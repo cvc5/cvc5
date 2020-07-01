@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,9 +19,10 @@
 #include <sstream>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "base/exception.h"
-#include "expr/expr_manager.h"
 #include "expr/expr.h"
+#include "expr/expr_manager.h"
 #include "options/options.h"
 
 using namespace CVC4;
@@ -29,27 +30,6 @@ using namespace CVC4::kind;
 using namespace std;
 
 class ExprPublic : public CxxTest::TestSuite {
-private:
-
-  Options opts;
-
-  ExprManager* d_em;
-
-  Expr* a_bool;
-  Expr* b_bool;
-  Expr* c_bool_and;
-  Expr* and_op;
-  Expr* plus_op;
-  Type* fun_type;
-  Expr* fun_op;
-  Expr* d_apply_fun_bool;
-  Expr* null;
-
-  Expr* i1;
-  Expr* i2;
-  Expr* r1;
-  Expr* r2;
-
  public:
   void setUp() override
   {
@@ -62,7 +42,8 @@ private:
       free(argv[0]);
       free(argv[1]);
 
-      d_em = new ExprManager(opts);
+      d_slv = new api::Solver(&opts);
+      d_em = d_slv->getExprManager();
 
       a_bool = new Expr(d_em->mkVar("a", d_em->booleanType()));
       b_bool = new Expr(d_em->mkVar("b", d_em->booleanType()));
@@ -105,7 +86,7 @@ private:
       delete b_bool;
       delete a_bool;
 
-      delete d_em;
+      delete d_slv;
     }
     catch (Exception& e)
     {
@@ -466,4 +447,25 @@ private:
     TS_ASSERT(r1->getExprManager() == d_em);
     TS_ASSERT(r2->getExprManager() == d_em);
   }
+
+ private:
+  Options opts;
+
+  api::Solver* d_slv;
+  ExprManager* d_em;
+
+  Expr* a_bool;
+  Expr* b_bool;
+  Expr* c_bool_and;
+  Expr* and_op;
+  Expr* plus_op;
+  Type* fun_type;
+  Expr* fun_op;
+  Expr* d_apply_fun_bool;
+  Expr* null;
+
+  Expr* i1;
+  Expr* i2;
+  Expr* r1;
+  Expr* r2;
 };

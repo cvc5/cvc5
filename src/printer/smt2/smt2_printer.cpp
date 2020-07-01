@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
@@ -146,31 +147,25 @@ void Smt2Printer::toStream(std::ostream& out,
           << n.getConst<FloatingPointSize>().significand()
           << ")";
       break;
-    case kind::CONST_BITVECTOR: {
+    case kind::CONST_BITVECTOR:
+    {
       const BitVector& bv = n.getConst<BitVector>();
-      const Integer& x = bv.getValue();
-      unsigned width = bv.getSize();
-      if (d_variant == sygus_variant || options::bvPrintConstsInBinary())
+      if (options::bvPrintConstsAsIndexedSymbols())
       {
-        out << "#b" << bv.toString();
+        out << "(_ bv" << bv.getValue() << " " << bv.getSize() << ")";
       }
       else
       {
-        out << "(_ ";
-        out << "bv" << x << " " << width;
-        out << ")";
+        out << "#b" << bv.toString();
       }
-
-      // //out << "#b";
-
-      // while(n-- > 0) {
-      //   out << (x.testBit(n) ? '1' : '0');
-      // }
       break;
     }
     case kind::CONST_FLOATINGPOINT:
-      out << n.getConst<FloatingPoint>();
+    {
+      out << n.getConst<FloatingPoint>().toString(
+          options::bvPrintConstsAsIndexedSymbols());
       break;
+    }
     case kind::CONST_ROUNDINGMODE:
       switch (n.getConst<RoundingMode>()) {
       case roundNearestTiesToEven : out << "roundNearestTiesToEven"; break;
@@ -292,26 +287,22 @@ void Smt2Printer::toStream(std::ostream& out,
       out << "(_ int2bv " << n.getConst<IntToBitVector>().d_size << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
-      // out << "to_fp_bv "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.significand()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
-      // out << "to_fp_fp "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPFloatingPoint>().t.significand()
           << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
-      // out << "to_fp_real "
       out << "(_ to_fp " << n.getConst<FloatingPointToFPReal>().t.exponent()
           << ' ' << n.getConst<FloatingPointToFPReal>().t.significand() << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
-      // out << "to_fp_signed "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
           << n.getConst<FloatingPointToFPSignedBitVector>().t.significand()
@@ -598,40 +589,14 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::PARTIAL_SELECT_0:
   case kind::PARTIAL_SELECT_1:
   case kind::ARRAY_TYPE:
-    out << smtKindString(k, d_variant) << " ";
-    break;
+  case kind::EQ_RANGE: out << smtKindString(k, d_variant) << " "; break;
 
   // string theory
   case kind::STRING_CONCAT:
-    if(d_variant == z3str_variant) {
-      out << "Concat ";
-      for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-        toStream(out, n[i], -1, types, TypeNode::null());
-        if(i + 1 < n.getNumChildren()) {
-          out << ' ';
-        }
-        if(i + 2 < n.getNumChildren()) {
-          out << "(Concat ";
-        }
-      }
-      for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
-        out << ")";
-      }
-      return;
-    }
     out << "str.++ ";
     break;
   case kind::STRING_IN_REGEXP: {
     stringstream ss;
-    if(d_variant == z3str_variant && stringifyRegexp(n[1], ss)) {
-      out << "= ";
-      toStream(out, n[0], -1, types, TypeNode::null());
-      out << " ";
-      Node str = NodeManager::currentNM()->mkConst(String(ss.str()));
-      toStream(out, str, -1, types, TypeNode::null());
-      out << ")";
-      return;
-    }
     out << smtKindString(k, d_variant) << " ";
     break;
   }
@@ -642,6 +607,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRIDOF:
   case kind::STRING_STRREPL:
   case kind::STRING_STRREPLALL:
+  case kind::STRING_REPLACE_RE:
+  case kind::STRING_REPLACE_RE_ALL:
   case kind::STRING_TOLOWER:
   case kind::STRING_TOUPPER:
   case kind::STRING_REV:
@@ -1077,6 +1044,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::ARRAY_TYPE: return "Array";
   case kind::PARTIAL_SELECT_0: return "partial_select_0";
   case kind::PARTIAL_SELECT_1: return "partial_select_1";
+  case kind::EQ_RANGE:
+    return "eqrange";
 
     // bv theory
   case kind::BITVECTOR_CONCAT: return "concat";
@@ -1194,13 +1163,15 @@ static string smtKindString(Kind k, Variant v)
 
   //string theory
   case kind::STRING_CONCAT: return "str.++";
-  case kind::STRING_LENGTH: return v == z3str_variant ? "Length" : "str.len";
+  case kind::STRING_LENGTH: return "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL: return "str.replace_all";
+  case kind::STRING_REPLACE_RE: return "str.replace_re";
+  case kind::STRING_REPLACE_RE_ALL: return "str.replace_re_all";
   case kind::STRING_TOLOWER: return "str.tolower";
   case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_REV: return "str.rev";
@@ -1289,7 +1260,6 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<EmptyCommand>(out, c)
       || tryToStream<EchoCommand>(out, c, d_variant)
       || tryToStream<SynthFunCommand>(out, c)
-      || tryToStream<DeclareSygusPrimedVarCommand>(out, c)
       || tryToStream<DeclareSygusFunctionCommand>(out, c)
       || tryToStream<DeclareSygusVarCommand>(out, c)
       || tryToStream<SygusConstraintCommand>(out, c)
@@ -1672,8 +1642,8 @@ static void toStream(std::ostream& out, const DefineFunctionCommand* c)
 
 static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
 {
-  const vector<Expr>& funcs = c->getFunctions();
-  const vector<vector<Expr> >& formals = c->getFormals();
+  const vector<api::Term>& funcs = c->getFunctions();
+  const vector<vector<api::Term> >& formals = c->getFormals();
   out << "(define-fun";
   if (funcs.size() > 1)
   {
@@ -1696,10 +1666,10 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
     }
     out << funcs[i] << " (";
     // print its type signature
-    vector<Expr>::const_iterator itf = formals[i].begin();
+    vector<api::Term>::const_iterator itf = formals[i].begin();
     for (;;)
     {
-      out << "(" << (*itf) << " " << (*itf).getType() << ")";
+      out << "(" << (*itf) << " " << (*itf).getSort() << ")";
       ++itf;
       if (itf != formals[i].end())
       {
@@ -1710,8 +1680,8 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
         break;
       }
     }
-    Type type = funcs[i].getType();
-    type = static_cast<FunctionType>(type).getRangeType();
+    api::Sort type = funcs[i].getSort();
+    type = type.getFunctionCodomainSort();
     out << ") " << type;
     if (funcs.size() > 1)
     {
@@ -1722,7 +1692,7 @@ static void toStream(std::ostream& out, const DefineFunctionRecCommand* c)
   {
     out << ") (";
   }
-  const vector<Expr>& formulas = c->getFormulas();
+  const vector<api::Term>& formulas = c->getFormulas();
   for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {
     if (i > 0)
@@ -1856,12 +1826,7 @@ static void toStream(std::ostream& out,
                      const SetBenchmarkLogicCommand* c,
                      Variant v)
 {
-  // Z3-str doesn't have string-specific logic strings(?), so comment it
-  if(v == z3str_variant) {
-    out << "; (set-logic " << c->getLogic() << ")";
-  } else {
-    out << "(set-logic " << c->getLogic() << ")";
-  }
+  out << "(set-logic " << c->getLogic() << ")";
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v)
@@ -2025,7 +1990,7 @@ static void toStream(std::ostream& out, const CommentCommand* c, Variant v)
   string s = c->getComment();
   size_t pos = 0;
   while((pos = s.find_first_of('"', pos)) != string::npos) {
-    s.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    s.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(set-info :notes \"" << s << "\")";
@@ -2039,7 +2004,7 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
   // escape all double-quotes
   size_t pos = 0;
   while((pos = s.find('"', pos)) != string::npos) {
-    s.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    s.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(echo \"" << s << "\")";
@@ -2159,12 +2124,6 @@ static void toStream(std::ostream& out, const DeclareSygusFunctionCommand* c)
   out << " (" << argTypes << ") " << ft.getRangeType() << ')';
 }
 
-static void toStream(std::ostream& out, const DeclareSygusPrimedVarCommand* c)
-{
-  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
-      << ' ' << c->getType() << ')';
-}
-
 static void toStream(std::ostream& out, const DeclareSygusVarCommand* c)
 {
   out << '(' << c->getCommandName() << ' ' << c->getVar() << ' ' << c->getType()
@@ -2244,7 +2203,7 @@ static void errorToStream(std::ostream& out, std::string message, Variant v) {
   // escape all double-quotes
   size_t pos = 0;
   while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    message.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
@@ -2274,9 +2233,6 @@ static OutputLanguage variantToLanguage(Variant variant)
   switch(variant) {
   case smt2_0_variant:
     return language::output::LANG_SMTLIB_V2_0;
-  case z3str_variant:
-    return language::output::LANG_Z3STR;
-  case sygus_variant: return language::output::LANG_SYGUS_V1;
   case no_variant:
   default: return language::output::LANG_SMTLIB_V2_6;
   }
