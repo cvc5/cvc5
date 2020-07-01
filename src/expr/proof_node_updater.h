@@ -54,7 +54,8 @@ class ProofNodeUpdaterCallback
  * ProofNode application that meet some criteria
  * (ProofNodeUpdaterCallback::shouldUpdate)
  * and overwrites them based on the update procedure of the callback
- * (ProofNodeUpdaterCallback::update).
+ * (ProofNodeUpdaterCallback::update), which uses local CDProof objects that
+ * should be filled in the callback for each ProofNode to update.
  */
 class ProofNodeUpdater
 {
