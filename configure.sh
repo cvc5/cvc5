@@ -45,14 +45,12 @@ The following flags enable optional features (disable with --no-<option name>).
   --unit-testing           support for unit testing
   --python2                prefer using Python 2 (also for Python bindings)
   --python3                prefer using Python 3 (also for Python bindings)
+  --python-bindings        build Python bindings based on new C++ API
+  --java-bindings          build Java bindings based on new C++ API
+  --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
-
-The following options configure parameterized features.
-
-  --language-bindings[=java,python,all]
-                          specify language bindings to build
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -134,6 +132,7 @@ proofs=default
 python2=default
 python3=default
 python_bindings=default
+java_bindings=default
 readline=default
 shared=default
 static_binary=default
@@ -145,9 +144,6 @@ ubsan=default
 unit_testing=default
 valgrind=default
 win64=default
-
-language_bindings_java=default
-language_bindings_python=default
 
 abc_dir=default
 antlr_dir=default
@@ -278,6 +274,14 @@ do
     --python3) python3=ON;;
     --no-python3) python3=OFF;;
 
+    --python-bindings) python_bindings=ON;;
+    --no-python-bindings) python_bindings=OFF;;
+
+    --java-bindings) java_bindings=ON;;
+    --no-java-bindings) java_bindings=OFF;;
+
+    --all-bindings) python_bindings=ON;;
+
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
 
@@ -286,23 +290,6 @@ do
 
     --readline) readline=ON;;
     --no-readline) readline=OFF;;
-
-    --language-bindings) die "missing argument to $1 (try -h)" ;;
-    --language-bindings=*)
-      lang="${1##*=}"
-      IFS=','
-      for l in $lang; do
-        case $l in
-          java) language_bindings_java=ON ;;
-          python) language_bindings_python=ON ;;
-          all)
-            language_bindings_python=ON
-            language_bindings_java=ON ;;
-          *) die "invalid language binding '$l' specified  (try -h)" ;;
-        esac
-      done
-      unset IFS
-      ;;
 
     --abc-dir) die "missing argument to $1 (try -h)" ;;
     --abc-dir=*) abc_dir=${1##*=} ;;
@@ -404,6 +391,10 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2"
 [ $python3 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON3=$python3"
+[ $python_bindings != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
+[ $java_bindings != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \
@@ -428,12 +419,6 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc"
 [ $symfpu != default ] \
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
-
-[ $language_bindings_java != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$language_bindings_java"
-[ $language_bindings_python != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$language_bindings_python"
-
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$antlr_dir" != default ] \

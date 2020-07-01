@@ -197,12 +197,12 @@ See [Testing CVC4](#Testing-CVC4) below for more details.
 
 ## Language bindings
 
-CVC4 provides a complete and flexible C++ API (see `examples/api` for examples).
-It further provides Java (see `examples/SimpleVC.java` and `examples/api/java`)
-and Python (see `examples/SimpleVC.py`) API bindings.
+CVC4 provides a complete and flexible C++ API (see `examples/api` for
+examples). It further provides Java (see `examples/SimpleVC.java` and
+`examples/api/java`) and Python (see `examples/api/python`) API bindings.
 
-Configure CVC4 with `configure.sh --language-bindings=[java,python,all]`
-to build with language bindings.  
+Configure CVC4 with `configure.sh --<lang>-bindings` to build with language
+bindings bindings for `<lang>`.
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.

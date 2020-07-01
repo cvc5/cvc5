@@ -16,7 +16,7 @@ jobs:
 
         include:
           - name: production
-            config: production --language-bindings=python --lfsc
+            config: production --all-bindings --lfsc
             cache-key: production
             python-bindings: true
             check-examples: true
