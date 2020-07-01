@@ -837,6 +837,9 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying ExprManager. */
   ExprManager* getExprManager() const { return d_exprManager; }
 
+  /** Permit access to the underlying NodeManager. */
+  NodeManager* getNodeManager() const;
+
   /** Export statistics from this SmtEngine. */
   Statistics getStatistics() const;
 

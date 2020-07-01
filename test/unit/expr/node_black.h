@@ -22,7 +22,7 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
+#include "smt/smt_engine.h"
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
@@ -51,8 +51,9 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
 
 class NodeBlack : public CxxTest::TestSuite {
  private:
-  std::unique_ptr<api::Solver> d_slv;
+  ExprManager* d_em;
   NodeManager* d_nodeManager;
+  SmtEngine* d_smt;
  public:
   void setUp() override
   {
@@ -65,11 +66,15 @@ class NodeBlack : public CxxTest::TestSuite {
     free(argv[0]);
     free(argv[1]);
 
-    d_slv.reset(new api::Solver(&opts));
-    d_nodeManager = d_slv->getExprManager()->getNodeManager();
+    d_em = new ExprManager();
+    d_smt = new SmtEngine(d_em, &opts);
+    d_nodeManager = d_smt->getNodeManager();
   }
 
-  void tearDown() override { d_slv.reset(nullptr); }
+  void tearDown() override { 
+    delete d_smt;
+    delete d_em;
+  }
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
   bool iff(bool a, bool b) const { return (a && b) || ((!a) && (!b)); }
