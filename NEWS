@@ -13,6 +13,7 @@ Improvements:
 
 Changes:
 * SyGuS: Removed support for SyGuS-IF 1.0.
+* Removed Java and Python bindings for the legacy API
 
 Changes since 1.7
 =================

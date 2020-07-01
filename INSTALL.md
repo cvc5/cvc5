@@ -129,11 +129,6 @@ dependency.
 with --check-proofs. It can be installed using the `contrib/get-lfsc` script.  
 Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 
-### SWIG >= 3.0.x (Simplified Wrapper and Interface Generator)
-
-SWIG 3.0.x (and a JDK) is necessary to build the Java API.
-See [Language Bindings](#language-bindings) below for build instructions.
-
 ### CLN >= v1.3 (Class Library for Numbers)
 
 [CLN](http://www.ginac.de/CLN)
@@ -208,11 +203,7 @@ and Python (see `examples/SimpleVC.py`) API bindings.
 
 Configure CVC4 with `configure.sh --language-bindings=[java,python,all]`
 to build with language bindings.  
-Note that this requires SWIG >= 3.0.x.
 
-In principle, since we use SWIG to generate the native Java and PythonAPI,
-we could support other languages as well. However, using CVC4 from other
-languages is not supported, nor expected to work, at this time.
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.
 
