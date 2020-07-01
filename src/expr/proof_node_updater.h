@@ -39,7 +39,8 @@ class ProofNodeUpdaterCallback
   virtual bool shouldUpdate(ProofNode* pn) = 0;
   /**
    * Update the proof rule application, store steps in cdp. Return true if
-   * the proof changed.
+   * the proof changed. It can be assumed that cdp contains proofs of each
+   * fact in children.
    */
   virtual bool update(PfRule id,
                       const std::vector<Node>& children,
@@ -49,8 +50,9 @@ class ProofNodeUpdaterCallback
 
 /**
  * A generic class for updating ProofNode. It is parameterized by a callback
- * class. It runs this callback on all subproofs of a provided ProofNode
- * application that meet some criteria (ProofNodeUpdaterCallback::shouldUpdate)
+ * class. Its process method runs this callback on all subproofs of a provided
+ * ProofNode application that meet some criteria
+ * (ProofNodeUpdaterCallback::shouldUpdate)
  * and overwrites them based on the update procedure of the callback
  * (ProofNodeUpdaterCallback::update).
  */
@@ -58,7 +60,10 @@ class ProofNodeUpdater
 {
  public:
   ProofNodeUpdater(ProofNodeManager* pnm, ProofNodeUpdaterCallback& cb);
-  /** post-process */
+  /**
+   * Post-process, which performs the main post-processing technique described
+   * above.
+   */
   void process(std::shared_ptr<ProofNode> pf);
 
  private:
@@ -66,8 +71,6 @@ class ProofNodeUpdater
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
-  /** Kinds of proof rules we are eliminating */
-  // std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
 };
 
 }  // namespace CVC4

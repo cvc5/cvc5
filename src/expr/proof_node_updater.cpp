@@ -47,7 +47,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       if (d_cb.shouldUpdate(cur))
       {
         PfRule id = cur->getRule();
-        LazyCDProof lcp(d_pnm);
+        // use CDProof to open a scope for which the callback updates
+        CDProof cpf(d_pnm);
         const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
         std::vector<Node> ccn;
         for (const std::shared_ptr<ProofNode>& cp : cc)
@@ -55,13 +56,13 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
           Node cpres = cp->getResult();
           ccn.push_back(cpres);
           // store in the proof
-          lcp.addProof(cp);
+          cpf.addProof(cp);
         }
         // only if the callback updated the node
-        if (d_cb.update(id, ccn, cur->getArguments(), &lcp))
+        if (d_cb.update(id, ccn, cur->getArguments(), &cpf))
         {
           // build the proof, which should be closed
-          std::shared_ptr<ProofNode> npn = lcp.getProofFor(cur->getResult());
+          std::shared_ptr<ProofNode> npn = cpf.getProofFor(cur->getResult());
           Assert(npn->isClosed());
           // then, update the original proof node based on this one
           d_pnm->updateNode(cur, npn.get());
