@@ -47,12 +47,17 @@ class TheoryEngineProofGenerator : public ProofGenerator
   /**
    * Make trust explanation. Called when lpf has a proof of (=> exp lit). This
    * stores lpf in the map d_proofs below and returns the trust node for this
-   * propagation, which has TrustNodeKind TrustNodeKind::PROP_EXP.
+   * propagation, which has TrustNodeKind TrustNodeKind::PROP_EXP. If this
+   * explanation already exists, then the previous explanation is taken, which
+   * also suffices for proving the implication.
    */
   theory::TrustNode mkTrustExplain(TNode lit,
                                    Node exp,
                                    std::shared_ptr<LazyCDProof> lpf);
-  /** Get proof for */
+  /**
+   * Get proof for, which expects implications corresponding to explained
+   * propagations (=> exp lit) registered by the above method.
+   */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
   std::string identify() const override;
