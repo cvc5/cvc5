@@ -69,7 +69,7 @@ class NodeBlack : public CxxTest::TestSuite {
     free(argv[0]);
     free(argv[1]);
 
-    d_em.reset(new ExprManager(nullptr));
+    d_em.reset(new ExprManager);
     d_nodeManager = d_em->getNodeManager();
     d_smt.reset(new SmtEngine(d_em, &opts));
     d_booleanType = d_nodeManager->booleanType();
