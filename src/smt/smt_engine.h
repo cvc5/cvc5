@@ -260,7 +260,7 @@ class CVC4_PUBLIC SmtEngine
    * to a state where its options were prior to parsing but after e.g.
    * reading command line options.
    */
-  void setFilename(std::string filename);
+  void notifyStartParsing(std::string filename);
   /** return the input name (if any) */
   std::string getFilename() const;
 

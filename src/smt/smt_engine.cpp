@@ -978,7 +978,7 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   return res;
 }
 
-void SmtEngine::setFilename(std::string filename)
+void SmtEngine::notifyStartParsing(std::string filename)
 {
   d_filename = filename;
 
