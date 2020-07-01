@@ -210,6 +210,7 @@ class ParserBlack
   }
 
   void tearDown() {
+    d_solver.reset(nullptr);
   }
 
  private:

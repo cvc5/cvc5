@@ -165,7 +165,7 @@ class SolverBlack : public CxxTest::TestSuite
 
 void SolverBlack::setUp() { d_solver.reset(new Solver()); }
 
-void SolverBlack::tearDown() {}
+void SolverBlack::tearDown() { d_solver.reset(nullptr); }
 
 void SolverBlack::testGetBooleanSort()
 {
