@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/datatype.h"
 #include "expr/expr.h"
 #include "expr/type.h"
@@ -1037,6 +1038,58 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  protected:
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
+
+/** The command (get-interpol s B)
+ *
+ * This command asks for an interpolant from the current set of assertions and
+ * conjecture (goal) B.
+ *
+ * The symbol s is the name for the interpolation predicate. If we successfully
+ * find a predicate P, then the output response of this command is: (define-fun
+ * s () Bool P)
+ */
+class CVC4_PUBLIC GetInterpolCommand : public Command
+{
+ public:
+  GetInterpolCommand(api::Solver* solver,
+                     const std::string& name,
+                     api::Term conj);
+  /** The argument gtype is the grammar of the interpolation query */
+  GetInterpolCommand(api::Solver* solver,
+                     const std::string& name,
+                     api::Term conj,
+                     const Type& gtype);
+
+  /** Get the conjecture of the interpolation query */
+  api::Term getConjecture() const;
+  /** Get the grammar sygus datatype type given for the interpolation query */
+  Type getGrammarType() const;
+  /** Get the result of the query, which is the solution to the interpolation
+   * query. */
+  api::Term getResult() const;
+
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+
+ protected:
+  /** The name of the interpolation predicate */
+  std::string d_name;
+  /** The conjecture of the interpolation query */
+  api::Term d_conj;
+  /**
+   * The (optional) grammar of the interpolation query, expressed as a sygus
+   * datatype type.
+   */
+  Type d_sygus_grammar_type;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  api::Term d_result;
+}; /* class GetInterpolCommand */
 
 /** The command (get-abduct s B (G)?)
  *

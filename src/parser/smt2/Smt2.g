@@ -1136,6 +1136,17 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name,e.getExpr(), t.getType()));
     }
+  | GET_INTERPOL_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+    }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    term[e,e2]
+    (
+      sygusGrammar[t, terms, name]
+    )?
+    {
+      cmd->reset(new GetInterpolCommand(SOLVER, name, e, t.getType()));
+    }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
     sortSymbol[t, CHECK_DECLARED]
@@ -2315,6 +2326,7 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
+GET_INTERPOL_TOK : 'get-interpol';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands

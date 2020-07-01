@@ -491,7 +491,13 @@ void getOperatorsMap(
       // add the current operator to the result
       if (cur.hasOperator())
       {
-        ops[tn].insert(NodeManager::currentNM()->operatorOf(cur.getKind()));
+       Node o;
+       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+         o = cur.getOperator();
+       } else {
+         o = NodeManager::currentNM()->operatorOf(cur.getKind());
+       }
+        ops[tn].insert(o);
       }
       // add children to visit in the future
       for (TNode cn : cur)

@@ -169,8 +169,9 @@ void SynthEngine::assignConjecture(Node q)
     if (!sip.isPurelySingleInvocation() && sip.isNonGroundSingleInvocation())
     {
       // create new smt engine to do quantifier elimination
-      std::unique_ptr<SmtEngine> smt_qe;
-      initializeSubsolver(smt_qe);
+      std::unique_ptr<SmtEngine> smt_qe(
+          new SmtEngine(NodeManager::currentNM()->toExprManager()));
+      initializeSubsolver(smt_qe.get());
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."
                          << std::endl;

@@ -19,6 +19,7 @@
 #include <sstream>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/exception.h"
 #include "context/context.h"
@@ -33,16 +34,13 @@ using namespace CVC4::context;
 using namespace std;
 
 class SymbolTableBlack : public CxxTest::TestSuite {
-private:
-
-  ExprManager* d_exprManager;
-
  public:
   void setUp() override
   {
     try
     {
-      d_exprManager = new ExprManager;
+      d_slv = new api::Solver();
+      d_exprManager = d_slv->getExprManager();
     }
     catch (Exception& e)
     {
@@ -54,7 +52,7 @@ private:
   void tearDown() override
   {
     try {
-      delete d_exprManager;
+      delete d_slv;
     }
     catch (Exception& e)
     {
@@ -164,4 +162,8 @@ private:
     // TODO: What kind of exception gets thrown here?
     TS_ASSERT_THROWS(symtab.popScope(), ScopeException&);
   }
+
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_exprManager;
 };/* class SymbolTableBlack */
