@@ -392,8 +392,10 @@ void SolverBlack::testMkSetSort()
 
 void SolverBlack::testMkSequenceSort()
 {
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkSequenceSort(d_solver->getBooleanSort()));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkSequenceSort(d_solver->mkSequenceSort((d_solver->getIntegerSort()))));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->mkSequenceSort(d_solver->getBooleanSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkSequenceSort(
+      d_solver->mkSequenceSort((d_solver->getIntegerSort()))));
   Solver slv;
   TS_ASSERT_THROWS(slv.mkSequenceSort(d_solver->getIntegerSort()),
                    CVC4ApiException&);

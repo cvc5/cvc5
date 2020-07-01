@@ -771,7 +771,6 @@ void TermBlack::testConstArray()
   TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
 }
 
-
 void TermBlack::testConstSequenceElements()
 {
   Sort realsort = d_solver.getRealSort();
@@ -784,7 +783,7 @@ void TermBlack::testConstSequenceElements()
   // empty sequence has zero elements
   std::vector<Term> cs = s.getConstSequenceElements();
   TS_ASSERT(cs.empty());
-  
+
   // A seq.unit app is not a constant sequence (regardless of whether it is
   // applied to a constant).
   Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
