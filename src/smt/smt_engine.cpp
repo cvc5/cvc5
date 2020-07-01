@@ -2962,6 +2962,12 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
+void SmtEngine::checkInterpol(Expr interpol,
+                              const std::vector<Expr>& easserts,
+                              const Node& conj)
+{
+}
+
 void SmtEngine::checkAbduct(Expr a)
 {
   Assert(a.getType().isBoolean());
@@ -3196,6 +3202,19 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
         ->mkConst(n_e.getKind() == kind::EXISTS)
         .toExpr();
   }
+}
+
+bool SmtEngine::getInterpol(const Expr& conj,
+                            const Type& grammarType,
+                            Expr& interpol)
+{
+  return false;
+}
+
+bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+{
+  Type grammarType;
+  return getInterpol(conj, grammarType, interpol);
 }
 
 bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)

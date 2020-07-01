@@ -52,6 +52,7 @@ TheoryArith::TheoryArith(context::Context* c,
     getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
     getExtTheory()->addFunctionKind(kind::SINE);
     getExtTheory()->addFunctionKind(kind::PI);
+    getExtTheory()->addFunctionKind(kind::IAND);
   }
 }
 
