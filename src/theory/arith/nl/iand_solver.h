@@ -117,12 +117,6 @@ class IAndSolver
    *     ((_ iand k) x y) = Rewriter::rewrite(((_ iand k) M(x) M(y)))
    */
   Node valueBasedLemma(Node i);
-  /** Bitwise refinement lemma for i of the form ((_ iand k) x y). Returns:
-   *   x[j1] = y[j1] ^ ... ^ x[jn] = y[jn]
-   *   where j1, ..., jn with n < k are the bit indices where M(x) ^ M(y)
-   *   does not match M(((_ iand k) x y))
-   */
-  Node bitwiseLemma(Node i);
 }; /* class IAndSolver */
 
 }  // namespace nl

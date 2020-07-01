@@ -98,19 +98,6 @@ std::vector<NlLemma> IAndSolver::checkInitialRefine()
       conj.push_back(nm->mkNode(LEQ, i, i[1]));
       // x=y => iand(x,y)=x
       conj.push_back(nm->mkNode(IMPLIES, i[0].eqNode(i[1]), i.eqNode(i[0])));
-      //(= (+ (iand x y) (ior x y)) (+ x y))
-      // Node ior = mkIOr(k,i[0],i[1]);
-      // conj.push_back(i.eqNode(nm->mkNode(MINUS, nm->mkNode(PLUS, i[0], i[1]),
-      // ior)));
-      //(>= (ior x y) x)
-      // conj.push_back(nm->mkNode(GEQ, ior, i[0]));
-      //(>= (ior x y) y)
-      // conj.push_back(nm->mkNode(GEQ, ior, i[1]));
-      //(= (iand x (inot y)) (- x (iand x y)))
-      // TODO
-      //(= (- x y) (- (iand x (inot y)) (iand (inot x) y)))
-      // TODO
-
       Node lem = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       Trace("iand-lemma") << "IAndSolver::Lemma: " << lem << " ; INIT_REFINE"
                           << std::endl;
@@ -168,12 +155,7 @@ std::vector<NlLemma> IAndSolver::checkFullRefine()
       }
       else if (options::iandMode() == options::IandMode::BITWISE)
       {
-        Node lem = bitwiseLemma(i);
-        Trace("iand-lemma")
-            << "IAndSolver::Lemma: " << lem << " ; BITWISE_REFINE" << std::endl;
-        NlLemma nlem(lem);
-        nlem.d_preprocess = true;
-        lems.push_back(nlem);
+        // add lemmas based on sum mode
       }
       else
       {
