@@ -57,7 +57,8 @@ Node SkolemManager::mkSkolem(Node v,
   // store the mapping to proof generator if it exists
   if (pg != nullptr)
   {
-    // we cache based on the original (Skolem) form
+    // We cache based on the original (Skolem) form, since the user of this
+    // method operates on Skolem forms.
     Node q = nm->mkNode(EXISTS, bvl, pred);
     // Notice this may overwrite an existing proof generator. This does not
     // matter since either should be able to prove q.
