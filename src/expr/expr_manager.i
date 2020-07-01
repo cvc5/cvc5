@@ -2,6 +2,7 @@
 #include "expr/expr_manager.h"
 %}
 
+%ignore CVC4::ExprManager::getNodeManager();
 %ignore CVC4::ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapCollection& vmap);
 %ignore CVC4::stats::getStatisticsRegistry(ExprManager*);
 %ignore CVC4::ExprManager::getResourceManager();
