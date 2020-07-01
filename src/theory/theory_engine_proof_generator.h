@@ -45,7 +45,7 @@ class TheoryEngineProofGenerator : public ProofGenerator
   TheoryEngineProofGenerator(ProofNodeManager* pnm, context::UserContext* u);
   ~TheoryEngineProofGenerator() {}
   /**
-   * Make trust explanation. Called when lpf has of proof of (=> exp lit). This
+   * Make trust explanation. Called when lpf has a proof of (=> exp lit). This
    * stores lpf in the map d_proofs below and returns the trust node for this
    * propagation, which has TrustNodeKind TrustNodeKind::PROP_EXP.
    */
