@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -89,7 +89,6 @@ Parser* ParserBuilder::build()
   Parser* parser = NULL;
   switch (d_lang)
   {
-    case language::input::LANG_SYGUS_V1:
     case language::input::LANG_SYGUS_V2:
       parser = new Smt2(d_solver, input, d_strictMode, d_parseOnly);
       break;

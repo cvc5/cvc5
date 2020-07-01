@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1090,13 +1090,6 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   else
   {
     performCheck = true;
-  }
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //with bounded integers, skip every other last call,
-    // since matching loops may occur with infinite quantification
-    if( d_ierCounter_lc%2==0 && options::fmfBound() ){
-      performCheck = false;
-    }
   }
   return performCheck;
 }

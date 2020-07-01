@@ -6,14 +6,14 @@ cmake_minimum_required(VERSION 3.2)
 project(cvc4)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   8) # Minor component of the version of CVC4.
+set(CVC4_MINOR   9) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
 set(CVC4_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 6)
+set(CVC4_SOVERSION 7)
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)

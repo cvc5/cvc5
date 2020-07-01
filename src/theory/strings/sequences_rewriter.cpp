@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1320,9 +1320,13 @@ Node SequencesRewriter::rewriteMembership(TNode node)
           }
           else
           {
+            Node prev = retNode;
             retNode = nm->mkNode(
                 STRING_IN_REGEXP, utils::mkConcat(mchildren, stype), r);
-            success = true;
+            // Iterate again if the node changed. It may not have changed if
+            // nothing was consumed from mchildren (e.g. if the body of the
+            // re.* accepts the empty string.
+            success = (retNode != prev);
           }
         }
       }

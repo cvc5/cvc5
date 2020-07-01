@@ -2,9 +2,9 @@
 /*! \file smt_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,6 +29,7 @@
 #include <utility>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/configuration.h"
 #include "base/configuration_private.h"
@@ -906,6 +907,7 @@ void SmtEngine::setLogic(const LogicInfo& logic)
                          "finished initializing.");
   }
   d_logic = logic;
+  d_userLogic = logic;
   setLogicInternal();
 }
 
@@ -932,6 +934,14 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+LogicInfo SmtEngine::getUserLogicInfo() const
+{
+  // Lock the logic to make sure that this logic can be queried. We create a
+  // copy of the user logic here to keep this method const.
+  LogicInfo res = d_userLogic;
+  res.lock();
+  return res;
+}
 void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
 std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
@@ -940,6 +950,7 @@ void SmtEngine::setLogicInternal()
       << "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run";
   d_logic.lock();
+  d_userLogic.lock();
 }
 
 void SmtEngine::setProblemExtended()
@@ -1267,8 +1278,16 @@ void SmtEngine::defineFunctionsRec(
 
   if (Dump.isOn("raw-benchmark"))
   {
+    std::vector<api::Term> tFuncs = api::exprVectorToTerms(d_solver, funcs);
+    std::vector<std::vector<api::Term>> tFormals;
+    for (const std::vector<Expr>& formal : formals)
+    {
+      tFormals.emplace_back(api::exprVectorToTerms(d_solver, formal));
+    }
+    std::vector<api::Term> tFormulas =
+        api::exprVectorToTerms(d_solver, formulas);
     Dump("raw-benchmark") << DefineFunctionRecCommand(
-        funcs, formals, formulas, global);
+        d_solver, tFuncs, tFormals, tFormulas, global);
   }
 
   ExprManager* em = getExprManager();
@@ -1851,15 +1870,6 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
-  // don't need to set that the conjecture is stale
-}
-
-void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
-{
-  SmtScope smts(this);
-  finalOptionsAreSet();
-  // do nothing (the command is spurious)
-  Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
   // don't need to set that the conjecture is stale
 }
 
@@ -2924,6 +2934,12 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
+void SmtEngine::checkInterpol(Expr interpol,
+                              const std::vector<Expr>& easserts,
+                              const Node& conj)
+{
+}
+
 void SmtEngine::checkAbduct(Expr a)
 {
   Assert(a.getType().isBoolean());
@@ -3140,6 +3156,19 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
         ->mkConst(n_e.getKind() == kind::EXISTS)
         .toExpr();
   }
+}
+
+bool SmtEngine::getInterpol(const Expr& conj,
+                            const Type& grammarType,
+                            Expr& interpol)
+{
+  return false;
+}
+
+bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+{
+  Type grammarType;
+  return getInterpol(conj, grammarType, interpol);
 }
 
 bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)

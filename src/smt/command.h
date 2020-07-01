@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/datatype.h"
 #include "expr/expr.h"
 #include "expr/type.h"
@@ -38,6 +39,11 @@
 #include "util/sexpr.h"
 
 namespace CVC4 {
+
+namespace api {
+class Solver;
+class Term;
+}  // namespace api
 
 class SmtEngine;
 class Command;
@@ -186,27 +192,11 @@ class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
 
 class CVC4_PUBLIC Command
 {
- protected:
-  /**
-   * This field contains a command status if the command has been
-   * invoked, or NULL if it has not.  This field is either a
-   * dynamically-allocated pointer, or it's a pointer to the singleton
-   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
-   * it avoids the need to dynamically allocate memory in the common
-   * case of a successful command.
-   */
-  const CommandStatus* d_commandStatus;
-
-  /**
-   * True if this command is "muted"---i.e., don't print "success" on
-   * successful execution.
-   */
-  bool d_muted;
-
  public:
   typedef CommandPrintSuccess printsuccess;
 
   Command();
+  Command(api::Solver* solver);
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -281,6 +271,25 @@ class CVC4_PUBLIC Command
     Expr operator()(Expr e) { return e.exportTo(d_exprManager, d_variableMap); }
     Type operator()(Type t) { return t.exportTo(d_exprManager, d_variableMap); }
   }; /* class Command::ExportTransformer */
+
+  /** The solver instance that this command is associated with. */
+  api::Solver* d_solver;
+
+  /**
+   * This field contains a command status if the command has been
+   * invoked, or NULL if it has not.  This field is either a
+   * dynamically-allocated pointer, or it's a pointer to the singleton
+   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
+   * it avoids the need to dynamically allocate memory in the common
+   * case of a successful command.
+   */
+  const CommandStatus* d_commandStatus;
+
+  /**
+   * True if this command is "muted"---i.e., don't print "success" on
+   * successful execution.
+   */
+  bool d_muted;
 };   /* class Command */
 
 /**
@@ -498,18 +507,20 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
 class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 {
  public:
-  DefineFunctionRecCommand(Expr func,
-                           const std::vector<Expr>& formals,
-                           Expr formula,
+  DefineFunctionRecCommand(api::Solver* solver,
+                           api::Term func,
+                           const std::vector<api::Term>& formals,
+                           api::Term formula,
                            bool global);
-  DefineFunctionRecCommand(const std::vector<Expr>& funcs,
-                           const std::vector<std::vector<Expr> >& formals,
-                           const std::vector<Expr>& formula,
+  DefineFunctionRecCommand(api::Solver* solver,
+                           const std::vector<api::Term>& funcs,
+                           const std::vector<std::vector<api::Term> >& formals,
+                           const std::vector<api::Term>& formula,
                            bool global);
 
-  const std::vector<Expr>& getFunctions() const;
-  const std::vector<std::vector<Expr> >& getFormals() const;
-  const std::vector<Expr>& getFormulas() const;
+  const std::vector<api::Term>& getFunctions() const;
+  const std::vector<std::vector<api::Term> >& getFormals() const;
+  const std::vector<api::Term>& getFormulas() const;
 
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
@@ -519,11 +530,11 @@ class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 
  protected:
   /** functions we are defining */
-  std::vector<Expr> d_funcs;
+  std::vector<api::Term> d_funcs;
   /** formal arguments for each of the functions we are defining */
-  std::vector<std::vector<Expr> > d_formals;
+  std::vector<std::vector<api::Term> > d_formals;
   /** formulas corresponding to the bodies of the functions we are defining */
-  std::vector<Expr> d_formulas;
+  std::vector<api::Term> d_formulas;
   /**
    * Stores whether this definition is global (i.e. should persist when
    * popping the user context.
@@ -662,38 +673,6 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
   /** the declared variable */
   Expr d_var;
   /** the declared variable's type */
-  Type d_type;
-};
-
-/** Declares a sygus primed variable, for invariant problems
- *
- * We do not actually build expressions for the declared variables because they
- * are unnecessary for building SyGuS problems.
- */
-class CVC4_PUBLIC DeclareSygusPrimedVarCommand
-    : public DeclarationDefinitionCommand
-{
- public:
-  DeclareSygusPrimedVarCommand(const std::string& id, Type type);
-  /** returns the declared primed variable's type */
-  Type getType() const;
-
-  /** invokes this command
-   *
-   * The type of the primed variable is communicated to the SMT engine for
-   * debugging purposes when a synthesis conjecture is built later on.
-   */
-  void invoke(SmtEngine* smtEngine) override;
-  /** exports command to given expression manager */
-  Command* exportTo(ExprManager* exprManager,
-                    ExprManagerMapCollection& variableMap) override;
-  /** creates a copy of this command */
-  Command* clone() const override;
-  /** returns this command's name */
-  std::string getCommandName() const override;
-
- protected:
-  /** the type of the declared primed variable */
   Type d_type;
 };
 
@@ -1059,6 +1038,58 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
  protected:
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
+
+/** The command (get-interpol s B)
+ *
+ * This command asks for an interpolant from the current set of assertions and
+ * conjecture (goal) B.
+ *
+ * The symbol s is the name for the interpolation predicate. If we successfully
+ * find a predicate P, then the output response of this command is: (define-fun
+ * s () Bool P)
+ */
+class CVC4_PUBLIC GetInterpolCommand : public Command
+{
+ public:
+  GetInterpolCommand(api::Solver* solver,
+                     const std::string& name,
+                     api::Term conj);
+  /** The argument gtype is the grammar of the interpolation query */
+  GetInterpolCommand(api::Solver* solver,
+                     const std::string& name,
+                     api::Term conj,
+                     const Type& gtype);
+
+  /** Get the conjecture of the interpolation query */
+  api::Term getConjecture() const;
+  /** Get the grammar sygus datatype type given for the interpolation query */
+  Type getGrammarType() const;
+  /** Get the result of the query, which is the solution to the interpolation
+   * query. */
+  api::Term getResult() const;
+
+  void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+
+ protected:
+  /** The name of the interpolation predicate */
+  std::string d_name;
+  /** The conjecture of the interpolation query */
+  api::Term d_conj;
+  /**
+   * The (optional) grammar of the interpolation query, expressed as a sygus
+   * datatype type.
+   */
+  Type d_sygus_grammar_type;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  api::Term d_result;
+}; /* class GetInterpolCommand */
 
 /** The command (get-abduct s B (G)?)
  *

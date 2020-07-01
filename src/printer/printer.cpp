@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -51,14 +51,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
 
   case LANG_CVC4:
     return unique_ptr<Printer>(new printer::cvc::CvcPrinter());
-
-  case LANG_Z3STR:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::z3str_variant));
-
-  case LANG_SYGUS_V1:
-    return unique_ptr<Printer>(
-        new printer::smt2::Smt2Printer(printer::smt2::sygus_variant));
 
   case LANG_SYGUS_V2:
     // sygus version 2.0 does not have discrepancies with smt2, hence we use

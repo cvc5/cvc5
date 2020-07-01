@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2310,6 +2310,61 @@ Node TheoryArrays::TheoryArraysDecisionStrategy::getNextDecisionRequest()
 std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
 {
   return std::string("th_arrays_dec");
+}
+
+Node TheoryArrays::expandDefinition(Node node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Kind kind = node.getKind();
+
+  /* Expand
+   *
+   *   (eqrange a b i j)
+   *
+   * to
+   *
+   *  forall k . i <= k <= j => a[k] = b[k]
+   *
+   */
+  if (kind == kind::EQ_RANGE)
+  {
+    TNode a = node[0];
+    TNode b = node[1];
+    TNode i = node[2];
+    TNode j = node[3];
+    Node k = nm->mkBoundVar(i.getType());
+    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, k);
+    TypeNode type = k.getType();
+
+    Kind kle;
+    Node range;
+    if (type.isBitVector())
+    {
+      kle = kind::BITVECTOR_ULE;
+    }
+    else if (type.isFloatingPoint())
+    {
+      kle = kind::FLOATINGPOINT_LEQ;
+    }
+    else if (type.isInteger() || type.isReal())
+    {
+      kle = kind::LEQ;
+    }
+    else
+    {
+      Unimplemented() << "Type " << type << " is not supported for predicate "
+                      << kind;
+    }
+
+    range = nm->mkNode(kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
+
+    Node eq = nm->mkNode(kind::EQUAL,
+                         nm->mkNode(kind::SELECT, a, k),
+                         nm->mkNode(kind::SELECT, b, k));
+    Node implies = nm->mkNode(kind::IMPLIES, range, eq);
+    return nm->mkNode(kind::FORALL, bvl, implies);
+  }
+  return node;
 }
 
 }/* CVC4::theory::arrays namespace */

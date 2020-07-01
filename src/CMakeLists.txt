@@ -316,6 +316,8 @@ libcvc4_add_sources(
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
   theory/arith/simplex.cpp
@@ -417,6 +419,8 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/sygus_datatype_utils.cpp
+  theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
   theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
@@ -532,6 +536,8 @@ libcvc4_add_sources(
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/proof_checker.cpp
+  theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -712,6 +718,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strategy.cpp
+  theory/strings/strategy.h
   theory/strings/strings_entail.cpp
   theory/strings/strings_entail.h
   theory/strings/strings_fmf.cpp
@@ -993,6 +1001,7 @@ install(FILES
           util/divisible.h
           util/gmp_util.h
           util/hash.h
+          util/iand.h
           util/integer_cln_imp.h
           util/integer_gmp_imp.h
           util/maybe.h

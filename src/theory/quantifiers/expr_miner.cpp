@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "api/cvc4cpp.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -68,8 +69,8 @@ Node ExprMiner::convertToSkolem(Node n)
   return n.substitute(sfvs.begin(), sfvs.end(), sks.begin(), sks.end());
 }
 
-void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
-                                  ExprManager& em,
+void ExprMiner::initializeChecker(SmtEngine* checker,
+                                  ExprManager* em,
                                   ExprManagerMapCollection& varMap,
                                   Node query,
                                   bool& needExport)
@@ -110,10 +111,16 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  // This is only temporarily until we have separate options for each
+  // SmtEngine instance. We should reuse the same ExprManager with
+  // a different SmtEngine (and different options) here, eventually.
+  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   NodeManager* nm = NodeManager::currentNM();
   bool needExport = false;
-  ExprManager em(nm->getOptions());
-  std::unique_ptr<SmtEngine> smte;
+  api::Solver slv(&nm->getOptions());
+  ExprManager* em = slv.getExprManager();
+  SmtEngine* smte = slv.getSmtEngine();
   ExprManagerMapCollection varMap;
   initializeChecker(smte, em, varMap, queryr, needExport);
   return smte->checkSat();

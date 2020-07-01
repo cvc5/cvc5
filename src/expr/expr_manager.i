@@ -2,29 +2,105 @@
 #include "expr/expr_manager.h"
 %}
 
-%typemap(javacode) CVC4::ExprManager %{
-  // a ref is kept here to keep Java GC from collecting the Options
-  // before the ExprManager
-  private Object options;
-%}
-%typemap(javaconstruct) ExprManager {
-    this($imcall, true);
-    this.options = SmtEngine.mkRef(options); // keep ref to options in SWIG proxy class
-  }
-%typemap(javadestruct, methodname="delete", methodmodifiers="public synchronized") CVC4::ExprManager {
-    SmtEngine.dlRef(options);
-    options = null;
-    if (swigCPtr != 0) {
-      if (swigCMemOwn) {
-        swigCMemOwn = false;
-        CVC4JNI.delete_ExprManager(swigCPtr);
-      }
-      swigCPtr = 0;
-    }
-  }
-
+%ignore CVC4::ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapCollection& vmap);
 %ignore CVC4::stats::getStatisticsRegistry(ExprManager*);
 %ignore CVC4::ExprManager::getResourceManager();
+%ignore CVC4::ExprManager::mkRecordType(const Record& rec);
+%ignore CVC4::ExprManager::safeFlushStatistics(int fd) const;
+
+#ifdef SWIGJAVA
+
+%typemap(javaout) CVC4::Expr {
+  return new Expr(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::Type {
+  return new Type(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::ArrayType {
+  return new ArrayType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::BitVectorType {
+  return new BitVectorType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::BooleanType {
+  return new BooleanType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::ConstructorType {
+  return new ConstructorType(this, $jnicall, true);
+}
+
+%typemap(javaout) const CVC4::Datatype& {
+  return new Datatype(this, $jnicall, false);
+}
+
+%typemap(javaout) CVC4::DatatypeType {
+  return new DatatypeType(this, $jnicall, true);
+}
+
+%typemap(javaout) std::vector<CVC4::DatatypeType> {
+  return new vectorDatatypeType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::FloatingPointType {
+  return new FloatingPointType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::FunctionType {
+  return new FunctionType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::SelectorType {
+  return new SelectorType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::StringType {
+  return new StringType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::RegExpType {
+  return new RegExpType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::RealType {
+  return new RealType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::SetType {
+  return new SetType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::SExprType {
+  return new SExprType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::SortType {
+  return new SortType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::SortConstructorType {
+  return new SortConstructorType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::TesterType {
+  return new TesterType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::IntegerType {
+  return new IntegerType(this, $jnicall, true);
+}
+
+%typemap(javaout) CVC4::RoundingModeType {
+  return new RoundingModeType(this, $jnicall, true);
+}
+
+%javamethodmodifiers CVC4::ExprManager::exportType(const Type& t, ExprManager* em, ExprManagerMapCollection& vmap) "public";
+
+#endif /* SWIGJAVA */
 
 %include "expr/expr_manager.h"
 
@@ -53,7 +129,6 @@
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::kind::Kind_t>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::DatatypeIndexConstant>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::TupleUpdate>;
-%template(mkConst) CVC4::ExprManager::mkConst<CVC4::RecordUpdate>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::Rational>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::BitVector>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::EmptySet>;
@@ -74,5 +149,3 @@
 %template(mkConst) CVC4::ExprManager::mkConst<bool>;
 %template(mkConst) CVC4::ExprManager::mkConst<CVC4::RoundingMode>;
 #endif
-
-%include "expr/expr_manager.h"

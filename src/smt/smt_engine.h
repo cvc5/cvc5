@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
+ **   Morgan Deters, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,6 +62,12 @@ class ProofManager;
 class Model;
 class LogicRequest;
 class StatisticsRegistry;
+
+/* -------------------------------------------------------------------------- */
+
+namespace api {
+class Solver;
+}  // namespace api
 
 /* -------------------------------------------------------------------------- */
 
@@ -126,6 +132,7 @@ namespace theory {
 
 class CVC4_PUBLIC SmtEngine
 {
+  friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
@@ -159,7 +166,9 @@ class CVC4_PUBLIC SmtEngine
     // immediately after a check-sat returning "unsat"
     SMT_MODE_UNSAT,
     // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT
+    SMT_MODE_ABDUCT,
+    // immediately after a successful call to get-interpol
+    SMT_MODE_INTERPOL
   };
 
   /** Construct an SmtEngine with the given expression manager.  */
@@ -206,6 +215,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the logic information currently set. */
   LogicInfo getLogicInfo() const;
+
+  /** Get the logic information set by the user. */
+  LogicInfo getUserLogicInfo() const;
 
   /**
    * Set information about the script executing.
@@ -392,16 +404,6 @@ class CVC4_PUBLIC SmtEngine
    * are assumed to be universally quantified.
    */
   void declareSygusVar(const std::string& id, Expr var, Type type);
-
-  /**
-   * Store information for debugging sygus invariants setup.
-   *
-   * Since in SyGuS the commands "declare-primed-var" are not necessary for
-   * building invariant constraints, we only use them to check that the number
-   * of variables declared corresponds to the number of arguments of the
-   * invariant-to-synthesize.
-   */
-  void declareSygusPrimedVar(const std::string& id, Type type);
 
   /**
    * Add a function variable declaration.
@@ -617,6 +619,23 @@ class CVC4_PUBLIC SmtEngine
    * throw@ Exception
    */
   Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
+
+  /**
+   * This method asks this SMT engine to find an interpolant with respect to
+   * the current assertion stack (call it A) and the conjecture (call it B). If
+   * this method returns true, then interpolant is set to a formula I such that
+   * A ^ ~I and I ^ ~B are both unsatisfiable.
+   *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shapes of possible solutions.
+   *
+   * This method invokes a separate copy of the SMT engine for solving the
+   * corresponding sygus problem for generating such a solution.
+   */
+  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+
+  /** Same as above, but without user-provided grammar restrictions */
+  bool getInterpol(const Expr& conj, Expr& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -875,6 +894,9 @@ class CVC4_PUBLIC SmtEngine
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
 
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
+
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
 
@@ -932,6 +954,18 @@ class CVC4_PUBLIC SmtEngine
    * unsatisfiable. If not, then the found solutions are wrong.
    */
   void checkSynthSolution();
+
+  /**
+   * Check that a solution to an interpolation problem is indeed a solution.
+   *
+   * The check is made by determining that the assertions imply the solution of
+   * the interpolation problem (interpol), and the solution implies the goal
+   * (conj). If these criteria are not met, an internal error is thrown.
+   */
+  void checkInterpol(Expr interpol,
+                     const std::vector<Expr>& easserts,
+                     const Node& conj);
+
   /**
    * Check that a solution to an abduction conjecture is indeed a solution.
    *
@@ -1055,6 +1089,7 @@ class CVC4_PUBLIC SmtEngine
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+
   /**
    * Get abduct internal.
    *
@@ -1081,6 +1116,9 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Expr> getExpandedAssertions();
 
   /* Members -------------------------------------------------------------- */
+
+  /** Solver instance that owns this SmtEngine instance. */
+  api::Solver* d_solver = nullptr;
 
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;
@@ -1197,9 +1235,13 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Command*> d_defineCommands;
 
   /**
-   * The logic we're in.
+   * The logic we're in. This logic may be an extension of the logic set by the
+   * user.
    */
   LogicInfo d_logic;
+
+  /** The logic set by the user. */
+  LogicInfo d_userLogic;
 
   /**
    * Keep a copy of the original option settings (for reset()).

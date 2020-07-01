@@ -2,9 +2,9 @@
 /*! \file set_defaults.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -266,12 +266,35 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
                    << std::endl;
     }
   }
+  // !!!!!!!!!!!!!!!! temporary, to support CI check for old proof system
+  if (options::proof())
+  {
+    options::proofNew.set(false);
+  }
+
+  if (options::arraysExp())
+  {
+    if (!logic.isQuantified())
+    {
+      logic = logic.getUnlockedCopy();
+      logic.enableQuantifiers();
+      logic.lock();
+    }
+    // Allows to answer sat more often by default.
+    if (!options::fmfBound.wasSetByUser())
+    {
+      options::fmfBound.set(true);
+      Trace("smt") << "turning on fmf-bound, for arrays-exp" << std::endl;
+    }
+  }
 
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
-    if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput() || options::sygusInst())
+    if (options::produceAbducts()
+        || options::produceInterpols() != options::ProduceInterpols::NONE
+        || options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -295,6 +318,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
+       || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -357,6 +381,18 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
+
+  if (options::solveBVAsInt() > 0)
+  {
+    /**
+     * Operations on 1 bits are better handled as Boolean operations
+     * than as integer operations.
+     * Therefore, we enable bv-to-bool, which runs before
+     * the translation to integers.
+     */
+    options::bitvectorToBool.set(true);
+  }
+
   // Disable options incompatible with unsat cores and proofs or output an
   // error if enabled explicitly
   if (options::unsatCores() || options::proof())
@@ -413,16 +449,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       options::preSkolemQuant.set(false);
     }
 
-    if (options::solveBVAsInt() > 0)
-    {
-      /**
-       * Operations on 1 bits are better handled as Boolean operations
-       * than as integer operations.
-       * Therefore, we enable bv-to-bool, which runs before
-       * the translation to integers.
-       */
-      options::bitvectorToBool.set(true);
-    }
 
     if (options::bitvectorToBool())
     {
@@ -875,6 +901,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
   if (options::ufHo())
   {
+    // if higher-order, disable proof production
+    if (options::proofNew())
+    {
+      if (options::proofNew.wasSetByUser())
+      {
+        Warning() << "SmtEngine: turning off proof production (not yet "
+                     "supported with --uf-ho)\n";
+      }
+      options::proofNew.set(false);
+    }
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
     if (options::mbqiMode() != options::MbqiMode::NONE)
@@ -1105,6 +1141,16 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     if (!options::cegqiPreRegInst.wasSetByUser())
     {
       options::cegqiPreRegInst.set(true);
+    }
+    // not compatible with proofs
+    if (options::proofNew())
+    {
+      if (options::proofNew.wasSetByUser())
+      {
+        Notice() << "SmtEngine: setting proof-new to false to support SyGuS"
+                 << std::endl;
+      }
+      options::proofNew.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus
@@ -1399,12 +1445,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     disableModels = true;
     sOptNoModel = "minisat-elimination";
   }
-  else if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
-           && !options::nlExt())
-  {
-    disableModels = true;
-    sOptNoModel = "nonlinear arithmetic without nl-ext";
-  }
   else if (options::globalNegate())
   {
     disableModels = true;
@@ -1461,6 +1501,11 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
         "Note that in a QF_BV problem UF symbols can be introduced for "
         "division. "
         "Try --bv-div-zero-const to interpret division by zero as a constant.");
+  }
+  // !!!!!!!!!!!!!!!! temporary, until proof-new is functional
+  if (options::proofNew())
+  {
+    throw OptionException("--proof-new is not yet supported.");
   }
 }
 

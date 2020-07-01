@@ -2,7 +2,7 @@
 /*! \file node_traversal_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir
+ **   Alex Ozdemir, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -172,6 +172,22 @@ class NodePostorderTraversalBlack : public CxxTest::TestSuite
 
     auto traversal = NodeDfsIterable(
         top, VisitOrder::POSTORDER, [&cnd](TNode n) { return n == cnd; });
+
+    std::vector<TNode> actual;
+    std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));
+    TS_ASSERT_EQUALS(actual, expected);
+  }
+
+  void testSkipAll()
+  {
+    Node tb = d_nodeManager->mkConst(true);
+    Node eb = d_nodeManager->mkConst(false);
+    Node cnd = d_nodeManager->mkNode(XOR, tb, eb);
+    Node top = d_nodeManager->mkNode(XOR, cnd, cnd);
+    std::vector<TNode> expected = {};
+
+    auto traversal = NodeDfsIterable(top, VisitOrder::POSTORDER,
+        [](TNode n) { return true; });
 
     std::vector<TNode> actual;
     std::copy(traversal.begin(), traversal.end(), std::back_inserter(actual));

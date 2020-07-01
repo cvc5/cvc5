@@ -2,9 +2,9 @@
 /*! \file smt_engine_subsolver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,7 @@ namespace theory {
  * This function initializes the smt engine smte as a subsolver, e.g. it
  * creates a new SMT engine and sets the options of the current SMT engine.
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte);
+void initializeSubsolver(SmtEngine* smte);
 
 /**
  * Initialize Smt subsolver with exporting
@@ -52,14 +52,14 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte);
  * manager.
  *
  * @param smte The smt engine pointer to initialize
- * @param em Reference to the expression manager to use
+ * @param em Reference to the expression manager used by smte
  * @param varMap Map used for exporting expressions
  * @param query The query to check
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
-                                   ExprManager& em,
+void initializeSubsolverWithExport(SmtEngine* smte,
+                                   ExprManager* em,
                                    ExprManagerMapCollection& varMap,
                                    Node query,
                                    bool needsTimeout = false,
@@ -73,7 +73,7 @@ void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
  * exporting since the Options and ExprManager are tied together.
  * TODO: eliminate this dependency (cvc4-projects #120).
  */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
+void initializeSubsolver(SmtEngine* smte, Node query);
 
 /**
  * This returns the result of checking the satisfiability of formula query.
@@ -81,7 +81,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
  * If necessary, smte is initialized to the SMT engine that checked its
  * satisfiability.
  */
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
+Result checkWithSubsolver(SmtEngine* smte, Node query);
 
 /**
  * This returns the result of checking the satisfiability of formula query.

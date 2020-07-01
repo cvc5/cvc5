@@ -2,9 +2,9 @@
 /*! \file expr_miner.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -89,8 +89,8 @@ class ExprMiner
    * (for instance, model values) must be exported to the current expression
    * manager.
    */
-  void initializeChecker(std::unique_ptr<SmtEngine>& smte,
-                         ExprManager& em,
+  void initializeChecker(SmtEngine* smte,
+                         ExprManager* em,
                          ExprManagerMapCollection& varMap,
                          Node query,
                          bool& needExport);

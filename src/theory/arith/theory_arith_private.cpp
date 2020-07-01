@@ -2,9 +2,9 @@
 /*! \file theory_arith_private.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Tim King, Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -156,12 +156,11 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_to_int_skolem(u),
-      d_div_skolem(u),
-      d_int_div_skolem(u),
-      d_nlin_inverse_skolem(u)
+      d_opElim(logicInfo)
 {
-  if( options::nlExt() ){
+  // only need to create if non-linear logic
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
     d_nonlinearExtension = new nl::NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
   }
@@ -1088,425 +1087,14 @@ Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  Node nn = eliminateOperators(n);
+  Node nn = d_opElim.eliminateOperators(n);
   if (nn != n)
   {
     // since elimination may introduce new operators to eliminate, we must
     // recursively eliminate result
-    return eliminateOperatorsRec(nn);
+    return d_opElim.eliminateOperatorsRec(nn);
   }
   return n;
-}
-
-void TheoryArithPrivate::checkNonLinearLogic(Node term)
-{
-  if (getLogicInfo().isLinear())
-  {
-    Trace("arith-logic") << "ERROR: Non-linear term in linear logic: " << term
-                         << std::endl;
-    std::stringstream serr;
-    serr << "A non-linear fact was asserted to arithmetic in a linear logic."
-         << std::endl;
-    serr << "The fact in question: " << term << endl;
-    throw LogicException(serr.str());
-  }
-}
-
-Node TheoryArithPrivate::eliminateOperatorsRec(Node n)
-{
-  Trace("arith-elim") << "Begin elim: " << n << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<Node, Node, TNodeHashFunction> visited;
-  std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
-  std::vector<Node> visit;
-  Node cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (Theory::theoryOf(cur) != THEORY_ARITH)
-    {
-      visited[cur] = cur;
-    }
-    else if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      if (childChanged)
-      {
-        ret = nm->mkNode(cur.getKind(), children);
-      }
-      Node retElim = eliminateOperators(ret);
-      if (retElim != ret)
-      {
-        // recursively eliminate operators in result, since some eliminations
-        // are defined in terms of other non-standard operators.
-        ret = eliminateOperatorsRec(retElim);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
-Node TheoryArithPrivate::eliminateOperators(Node node)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  SkolemManager* sm = nm->getSkolemManager();
-
-  Kind k = node.getKind();
-  switch (k)
-  {
-    case kind::TANGENT:
-    case kind::COSECANT:
-    case kind::SECANT:
-    case kind::COTANGENT:
-    {
-      // these are eliminated by rewriting
-      return Rewriter::rewrite(node);
-      break;
-    }
-    case kind::TO_INTEGER:
-    case kind::IS_INTEGER:
-    {
-      Node toIntSkolem;
-      NodeMap::const_iterator it = d_to_int_skolem.find(node[0]);
-      if (it == d_to_int_skolem.end())
-      {
-        // node[0] - 1 < toIntSkolem <= node[0]
-        // -1 < toIntSkolem - node[0] <= 0
-        // 0 <= node[0] - toIntSkolem < 1
-        Node v = nm->mkBoundVar(nm->integerType());
-        Node one = mkRationalNode(1);
-        Node zero = mkRationalNode(0);
-        Node diff = nm->mkNode(kind::MINUS, node[0], v);
-        Node lem = mkInRange(diff, zero, one);
-        toIntSkolem = sm->mkSkolem(
-            v, lem, "toInt", "a conversion of a Real term to its Integer part");
-        toIntSkolem = SkolemManager::getWitnessForm(toIntSkolem);
-        d_to_int_skolem[node[0]] = toIntSkolem;
-      }
-      else
-      {
-        toIntSkolem = (*it).second;
-      }
-      if (k == kind::IS_INTEGER)
-      {
-        return nm->mkNode(kind::EQUAL, node[0], toIntSkolem);
-      }
-      Assert(k == kind::TO_INTEGER);
-      return toIntSkolem;
-    }
-
-    case kind::INTS_DIVISION_TOTAL:
-    case kind::INTS_MODULUS_TOTAL:
-    {
-      Node den = Rewriter::rewrite(node[1]);
-      Node num = Rewriter::rewrite(node[0]);
-      Node intVar;
-      Node rw = nm->mkNode(k, num, den);
-      NodeMap::const_iterator it = d_int_div_skolem.find(rw);
-      if (it == d_int_div_skolem.end())
-      {
-        Node v = nm->mkBoundVar(nm->integerType());
-        Node lem;
-        Node leqNum = nm->mkNode(LEQ, nm->mkNode(MULT, den, v), num);
-        if (den.isConst())
-        {
-          const Rational& rat = den.getConst<Rational>();
-          if (num.isConst() || rat == 0)
-          {
-            // just rewrite
-            return Rewriter::rewrite(node);
-          }
-          if (rat > 0)
-          {
-            lem = nm->mkNode(
-                AND,
-                leqNum,
-                nm->mkNode(
-                    LT,
-                    num,
-                    nm->mkNode(MULT,
-                               den,
-                               nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))));
-          }
-          else
-          {
-            lem = nm->mkNode(
-                AND,
-                leqNum,
-                nm->mkNode(
-                    LT,
-                    num,
-                    nm->mkNode(
-                        MULT,
-                        den,
-                        nm->mkNode(PLUS, v, nm->mkConst(Rational(-1))))));
-          }
-        }
-        else
-        {
-          checkNonLinearLogic(node);
-          lem = nm->mkNode(
-              AND,
-              nm->mkNode(
-                  IMPLIES,
-                  nm->mkNode(GT, den, nm->mkConst(Rational(0))),
-                  nm->mkNode(
-                      AND,
-                      leqNum,
-                      nm->mkNode(
-                          LT,
-                          num,
-                          nm->mkNode(
-                              MULT,
-                              den,
-                              nm->mkNode(PLUS, v, nm->mkConst(Rational(1))))))),
-              nm->mkNode(
-                  IMPLIES,
-                  nm->mkNode(LT, den, nm->mkConst(Rational(0))),
-                  nm->mkNode(
-                      AND,
-                      leqNum,
-                      nm->mkNode(
-                          LT,
-                          num,
-                          nm->mkNode(
-                              MULT,
-                              den,
-                              nm->mkNode(
-                                  PLUS, v, nm->mkConst(Rational(-1))))))));
-        }
-        intVar = sm->mkSkolem(
-            v, lem, "linearIntDiv", "the result of an intdiv-by-k term");
-        intVar = SkolemManager::getWitnessForm(intVar);
-        d_int_div_skolem[rw] = intVar;
-      }
-      else
-      {
-        intVar = (*it).second;
-      }
-      if (k == kind::INTS_MODULUS_TOTAL)
-      {
-        Node nn =
-            nm->mkNode(kind::MINUS, num, nm->mkNode(kind::MULT, den, intVar));
-        return nn;
-      }
-      else
-      {
-        return intVar;
-      }
-      break;
-    }
-    case kind::DIVISION_TOTAL:
-    {
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
-      if (den.isConst())
-      {
-        // No need to eliminate here, can eliminate via rewriting later.
-        // Moreover, rewriting may change the type of this node from real to
-        // int, which impacts certain issues with subtyping.
-        return node;
-      }
-      checkNonLinearLogic(node);
-      Node var;
-      Node rw = nm->mkNode(k, num, den);
-      NodeMap::const_iterator it = d_div_skolem.find(rw);
-      if (it == d_div_skolem.end())
-      {
-        Node v = nm->mkBoundVar(nm->realType());
-        Node lem = nm->mkNode(IMPLIES,
-                              den.eqNode(nm->mkConst(Rational(0))).negate(),
-                              nm->mkNode(MULT, den, v).eqNode(num));
-        var = sm->mkSkolem(
-            v, lem, "nonlinearDiv", "the result of a non-linear div term");
-        var = SkolemManager::getWitnessForm(var);
-        d_div_skolem[rw] = var;
-      }
-      else
-      {
-        var = (*it).second;
-      }
-      return var;
-      break;
-    }
-    case kind::DIVISION:
-    {
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
-      Node ret = nm->mkNode(kind::DIVISION_TOTAL, num, den);
-      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
-      {
-        checkNonLinearLogic(node);
-        Node divByZeroNum = getArithSkolemApp(num, ArithSkolemId::DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        ret = nm->mkNode(kind::ITE, denEq0, divByZeroNum, ret);
-      }
-      return ret;
-      break;
-    }
-
-    case kind::INTS_DIVISION:
-    {
-      // partial function: integer div
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
-      Node ret = nm->mkNode(kind::INTS_DIVISION_TOTAL, num, den);
-      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
-      {
-        checkNonLinearLogic(node);
-        Node intDivByZeroNum =
-            getArithSkolemApp(num, ArithSkolemId::INT_DIV_BY_ZERO);
-        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        ret = nm->mkNode(kind::ITE, denEq0, intDivByZeroNum, ret);
-      }
-      return ret;
-      break;
-    }
-
-    case kind::INTS_MODULUS:
-    {
-      // partial function: mod
-      Node num = Rewriter::rewrite(node[0]);
-      Node den = Rewriter::rewrite(node[1]);
-      Node ret = nm->mkNode(kind::INTS_MODULUS_TOTAL, num, den);
-      if (!den.isConst() || den.getConst<Rational>().sgn() == 0)
-      {
-        checkNonLinearLogic(node);
-        Node modZeroNum = getArithSkolemApp(num, ArithSkolemId::MOD_BY_ZERO);
-        Node denEq0 = nm->mkNode(kind::EQUAL, den, nm->mkConst(Rational(0)));
-        ret = nm->mkNode(kind::ITE, denEq0, modZeroNum, ret);
-      }
-      return ret;
-      break;
-    }
-
-    case kind::ABS:
-    {
-      return nm->mkNode(kind::ITE,
-                        nm->mkNode(kind::LT, node[0], nm->mkConst(Rational(0))),
-                        nm->mkNode(kind::UMINUS, node[0]),
-                        node[0]);
-      break;
-    }
-    case kind::SQRT:
-    case kind::ARCSINE:
-    case kind::ARCCOSINE:
-    case kind::ARCTANGENT:
-    case kind::ARCCOSECANT:
-    case kind::ARCSECANT:
-    case kind::ARCCOTANGENT:
-    {
-      checkNonLinearLogic(node);
-      // eliminate inverse functions here
-      NodeMap::const_iterator it = d_nlin_inverse_skolem.find(node);
-      if (it == d_nlin_inverse_skolem.end())
-      {
-        Node var = nm->mkBoundVar(nm->realType());
-        Node lem;
-        if (k == kind::SQRT)
-        {
-          Node skolemApp = getArithSkolemApp(node[0], ArithSkolemId::SQRT);
-          Node uf = skolemApp.eqNode(var);
-          Node nonNeg = nm->mkNode(
-              kind::AND, nm->mkNode(kind::MULT, var, var).eqNode(node[0]), uf);
-
-          // sqrt(x) reduces to:
-          // witness y. ite(x >= 0.0, y * y = x ^ y = Uf(x), y = Uf(x))
-          //
-          // Uf(x) makes sure that the reduction still behaves like a function,
-          // otherwise the reduction of (x = 1) ^ (sqrt(x) != sqrt(1)) would be
-          // satisfiable. On the original formula, this would require that we
-          // simultaneously interpret sqrt(1) as 1 and -1, which is not a valid
-          // model.
-          lem = nm->mkNode(
-              kind::ITE,
-              nm->mkNode(kind::GEQ, node[0], nm->mkConst(Rational(0))),
-              nonNeg,
-              uf);
-        }
-        else
-        {
-          Node pi = mkPi();
-
-          // range of the skolem
-          Node rlem;
-          if (k == kind::ARCSINE || k == ARCTANGENT || k == ARCCOSECANT)
-          {
-            Node half = nm->mkConst(Rational(1) / Rational(2));
-            Node pi2 = nm->mkNode(kind::MULT, half, pi);
-            Node npi2 = nm->mkNode(kind::MULT, nm->mkConst(Rational(-1)), pi2);
-            // -pi/2 < var <= pi/2
-            rlem = nm->mkNode(
-                AND, nm->mkNode(LT, npi2, var), nm->mkNode(LEQ, var, pi2));
-          }
-          else
-          {
-            // 0 <= var < pi
-            rlem = nm->mkNode(AND,
-                              nm->mkNode(LEQ, nm->mkConst(Rational(0)), var),
-                              nm->mkNode(LT, var, pi));
-          }
-
-          Kind rk = k == kind::ARCSINE
-                        ? kind::SINE
-                        : (k == kind::ARCCOSINE
-                               ? kind::COSINE
-                               : (k == kind::ARCTANGENT
-                                      ? kind::TANGENT
-                                      : (k == kind::ARCCOSECANT
-                                             ? kind::COSECANT
-                                             : (k == kind::ARCSECANT
-                                                    ? kind::SECANT
-                                                    : kind::COTANGENT))));
-          Node invTerm = nm->mkNode(rk, var);
-          lem = nm->mkNode(AND, rlem, invTerm.eqNode(node[0]));
-        }
-        Assert(!lem.isNull());
-        Node ret = sm->mkSkolem(
-            var,
-            lem,
-            "tfk",
-            "Skolem to eliminate a non-standard transcendental function");
-        ret = SkolemManager::getWitnessForm(ret);
-        d_nlin_inverse_skolem[node] = ret;
-        return ret;
-      }
-      return (*it).second;
-      break;
-    }
-
-    default: break;
-  }
-  return node;
 }
 
 Node TheoryArithPrivate::ppRewrite(TNode atom) {
@@ -1677,7 +1265,8 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
       throw LogicException("A non-linear fact was asserted to arithmetic in a linear logic.");
     }
 
-    if( !options::nlExt() ){
+    if (d_nonlinearExtension == nullptr)
+    {
       d_nlIncomplete = true;
     }
 
@@ -1688,7 +1277,8 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
 
     markSetup(vlNode);
   }else{
-    if( !options::nlExt() ){
+    if (d_nonlinearExtension == nullptr)
+    {
       if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE || 
           vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
         d_nlIncomplete = true;
@@ -1854,8 +1444,9 @@ void TheoryArithPrivate::setupAtom(TNode atom) {
 
 void TheoryArithPrivate::preRegisterTerm(TNode n) {
   Debug("arith::preregister") <<"begin arith::preRegisterTerm("<< n <<")"<< endl;
-  
-  if( options::nlExt() ){
+
+  if (d_nonlinearExtension != nullptr)
+  {
     d_containing.getExtTheory()->registerTermRec( n );
   }
 
@@ -3736,7 +3327,8 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
 
   if(effortLevel == Theory::EFFORT_LAST_CALL){
-    if( options::nlExt() ){
+    if (d_nonlinearExtension != nullptr)
+    {
       d_nonlinearExtension->check(effortLevel);
     }
     return;
@@ -4060,7 +3652,8 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }//if !emmittedConflictOrSplit && fullEffort(effortLevel) && !hasIntegerModel()
 
   if(!emmittedConflictOrSplit && effortLevel>=Theory::EFFORT_FULL){
-    if( options::nlExt() ){
+    if (d_nonlinearExtension != nullptr)
+    {
       d_nonlinearExtension->check( effortLevel );
     }
   }
@@ -4263,7 +3856,8 @@ void TheoryArithPrivate::debugPrintModel(std::ostream& out) const{
 }
 
 bool TheoryArithPrivate::needsCheckLastEffort() {
-  if( options::nlExt() ){
+  if (d_nonlinearExtension != nullptr)
+  {
     return d_nonlinearExtension->needsCheckLastEffort();
   }else{
     return false;
@@ -4300,7 +3894,8 @@ Node TheoryArithPrivate::explain(TNode n)
 }
 
 bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if( options::nlExt() ){
+  if (d_nonlinearExtension != nullptr)
+  {
     return d_nonlinearExtension->getCurrentSubstitution( effort, vars, subs, exp );
   }else{
     return false;
@@ -4309,7 +3904,8 @@ bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >
 
 bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
                                        std::vector<Node>& exp) {
-  if (options::nlExt()) {
+  if (d_nonlinearExtension != nullptr)
+  {
     std::pair<bool, Node> reduced =
         d_nonlinearExtension->isExtfReduced(effort, n, on, exp);
     if (!reduced.second.isNull()) {
@@ -4557,7 +4153,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
         Node qNode = mkRationalNode(qmodel);
         Debug("arith::collectModelInfo") << "m->assertEquality(" << term << ", " << qmodel << ", true)" << endl;
-        if (options::nlExt())
+        if (d_nonlinearExtension != nullptr)
         {
           // Let non-linear extension inspect the values before they are sent
           // to the theory model.
@@ -4576,7 +4172,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
       }
     }
   }
-  if (options::nlExt())
+  if (d_nonlinearExtension != nullptr)
   {
     // Non-linear may repair values to satisfy non-linear constraints (see
     // documentation for NonlinearExtension::interceptModel).
@@ -4726,7 +4322,7 @@ void TheoryArithPrivate::presolve(){
     outputLemma(lem);
   }
 
-  if (options::nlExt())
+  if (d_nonlinearExtension != nullptr)
   {
     d_nonlinearExtension->presolve();
   }
@@ -5218,154 +4814,15 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
 Node TheoryArithPrivate::expandDefinition(Node node)
 {
   // call eliminate operators
-  Node nn = eliminateOperators(node);
+  Node nn = d_opElim.eliminateOperators(node);
   if (nn != node)
   {
     // since elimination may introduce new operators to eliminate, we must
     // recursively eliminate result
-    return eliminateOperatorsRec(nn);
+    return d_opElim.eliminateOperatorsRec(nn);
   }
   return node;
 }
-
-Node TheoryArithPrivate::getArithSkolem(ArithSkolemId asi)
-{
-  std::map<ArithSkolemId, Node>::iterator it = d_arith_skolem.find(asi);
-  if (it == d_arith_skolem.end())
-  {
-    NodeManager* nm = NodeManager::currentNM();
-
-    TypeNode tn;
-    std::string name;
-    std::string desc;
-    switch (asi)
-    {
-      case ArithSkolemId::DIV_BY_ZERO:
-        tn = nm->realType();
-        name = std::string("divByZero");
-        desc = std::string("partial real division");
-        break;
-      case ArithSkolemId::INT_DIV_BY_ZERO:
-        tn = nm->integerType();
-        name = std::string("intDivByZero");
-        desc = std::string("partial int division");
-        break;
-      case ArithSkolemId::MOD_BY_ZERO:
-        tn = nm->integerType();
-        name = std::string("modZero");
-        desc = std::string("partial modulus");
-        break;
-      case ArithSkolemId::SQRT:
-        tn = nm->realType();
-        name = std::string("sqrtUf");
-        desc = std::string("partial sqrt");
-        break;
-      default: Unhandled();
-    }
-
-    Node skolem;
-    if (options::arithNoPartialFun())
-    {
-      // partial function: division
-      skolem = nm->mkSkolem(name, tn, desc, NodeManager::SKOLEM_EXACT_NAME);
-    }
-    else
-    {
-      // partial function: division
-      skolem = nm->mkSkolem(name,
-                            nm->mkFunctionType(tn, tn),
-                            desc,
-                            NodeManager::SKOLEM_EXACT_NAME);
-    }
-    d_arith_skolem[asi] = skolem;
-    return skolem;
-  }
-  return it->second;
-}
-
-Node TheoryArithPrivate::getArithSkolemApp(Node n, ArithSkolemId asi)
-{
-  Node skolem = getArithSkolem(asi);
-  if (!options::arithNoPartialFun())
-  {
-    skolem = NodeManager::currentNM()->mkNode(APPLY_UF, skolem, n);
-  }
-  return skolem;
-}
-
-// InferBoundsResult TheoryArithPrivate::inferBound(TNode term, const
-// InferBoundsParameters& param){
-//   Node t = Rewriter::rewrite(term);
-//   Assert(Polynomial::isMember(t));
-//   Polynomial p = Polynomial::parsePolynomial(t);
-//   if(p.containsConstant()){
-//     Constant c = p.getHead().getConstant();
-//     if(p.isConstant()){
-//       InferBoundsResult res(t, param.findLowerBound());
-//       res.setBound((DeltaRational)c.getValue(), mkBoolNode(true));
-//       return res;
-//     }else{
-//       Polynomial tail = p.getTail();
-//       InferBoundsResult res = inferBound(tail.getNode(), param);
-//       if(res.foundBound()){
-//         DeltaRational newBound = res.getValue() + c.getValue();
-//         if(tail.isIntegral()){
-//           Integer asInt  = (param.findLowerBound()) ? newBound.ceiling() :
-//           newBound.floor(); newBound = DeltaRational(asInt);
-//         }
-//         res.setBound(newBound, res.getExplanation());
-//       }
-//       return res;
-//     }
-//   }else if(param.findLowerBound()){
-//     InferBoundsParameters find_ub = param;
-//     find_ub.setFindUpperBound();
-//     if(param.useThreshold()){
-//       find_ub.setThreshold(- param.getThreshold() );
-//     }
-//     Polynomial negP = -p;
-//     InferBoundsResult res = inferBound(negP.getNode(), find_ub);
-//     res.setFindLowerBound();
-//     if(res.foundBound()){
-//       res.setTerm(p.getNode());
-//       res.setBound(-res.getValue(), res.getExplanation());
-//     }
-//     return res;
-//   }else{
-//     Assert(param.findUpperBound());
-//     // does not contain a constant
-//     switch(param.getEffort()){
-//     case InferBoundsParameters::Lookup:
-//       return inferUpperBoundLookup(t, param);
-//     case InferBoundsParameters::Simplex:
-//       return inferUpperBoundSimplex(t, param);
-//     case InferBoundsParameters::LookupAndSimplexOnFailure:
-//     case InferBoundsParameters::TryBoth:
-//       {
-//         InferBoundsResult lookup = inferUpperBoundLookup(t, param);
-//         if(lookup.foundBound()){
-//           if(param.getEffort() ==
-//           InferBoundsParameters::LookupAndSimplexOnFailure ||
-//              lookup.boundIsOptimal()){
-//             return lookup;
-//           }
-//         }
-//         InferBoundsResult simplex = inferUpperBoundSimplex(t, param);
-//         if(lookup.foundBound() && simplex.foundBound()){
-//           return (lookup.getValue() <= simplex.getValue()) ? lookup :
-//           simplex;
-//         }else if(lookup.foundBound()){
-//           return lookup;
-//         }else{
-//           return simplex;
-//         }
-//       }
-//     default:
-//       Unreachable();
-//       return InferBoundsResult();
-//     }
-//   }
-// }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
   using namespace inferbounds;
