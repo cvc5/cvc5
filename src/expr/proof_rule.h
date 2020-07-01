@@ -824,6 +824,14 @@ enum class PfRule : uint32_t
   //                (not (= (str.code t) (str.code s)))
   //                (not (= t s)))
   STRING_CODE_INJ,
+  //======================== Sequence unit
+  // Children: (P:(= (seq.unit x) (seq.unit y)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(= x y)
+  // Also applies t to the case where (seq.unit y) is a constant sequence
+  // of length one.
+  STRING_SEQ_UNIT_INJ,
 
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

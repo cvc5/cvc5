@@ -138,6 +138,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::EXTF_D:
     case Inference::EXTF_D_N:
     case Inference::I_CONST_CONFLICT:
+    case Inference::UNIT_CONST_CONFLICT:
     {
       if (!ps.d_children.empty())
       {
@@ -682,6 +683,12 @@ Node InferProofCons::convert(Inference infer,
              && conc[2].getKind() == EQUAL);
       ps.d_args.push_back(conc[2][0]);
       ps.d_args.push_back(conc[2][1]);
+    }
+    break;
+    // ========================== unit injectivity
+    case Inference::UNIT_INJ:
+    {
+      ps.d_rule = PfRule::STRING_SEQ_UNIT_INJ;
     }
     break;
     // ========================== prefix conflict

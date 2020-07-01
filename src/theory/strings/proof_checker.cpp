@@ -50,6 +50,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::RE_UNFOLD_NEG_CONCAT_FIXED, this);
   pc->registerChecker(PfRule::RE_ELIM, this);
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
+  pc->registerChecker(PfRule::STRING_SEQ_UNIT_INJ, this);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,
@@ -449,6 +450,36 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node deq = c1.eqNode(c2).negate();
     Node eqn = args[0].eqNode(args[1]);
     return nm->mkNode(kind::OR, eqNegOne, deq, eqn);
+  }
+  else if (id == PfRule::STRING_SEQ_UNIT_INJ)
+  {
+    Assert (children.size()==1);
+    Assert (args.empty());
+    if (children[0].getKind()!=EQUAL)
+    {
+      return Node::null();
+    }
+    Node t[2];
+    for (unsigned i=0; i<2; i++)
+    {
+      if (children[0][i].getKind()==SEQ_UNIT)
+      {
+        t[i] = children[0][i][0];
+      }
+      else if (children[0][i].isConst())
+      {
+        std::vector<Node> chars = Word::getChars(children[0][i]);
+        if (chars.size()==1)
+        {
+          t[i] = chars[0];
+        }
+      }
+      if (t[i].isNull())
+      {
+        return Node::null();
+      }
+    }
+    return t[0].eqNode(t[1]);
   }
   return Node::null();
 }
