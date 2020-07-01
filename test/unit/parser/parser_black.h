@@ -209,9 +209,7 @@ class ParserBlack
     d_solver.reset(new api::Solver(&d_options));
   }
 
-  void tearDown() {
-    d_solver.reset(nullptr);
-  }
+  void tearDown() { d_solver.reset(nullptr); }
 
  private:
   InputLanguage d_lang;

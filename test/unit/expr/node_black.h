@@ -69,10 +69,7 @@ class NodeBlack : public CxxTest::TestSuite {
     d_nodeManager = d_slv->getExprManager()->getNodeManager();
   }
 
-  void tearDown() override
-  {
-    d_slv.reset(nullptr);
-  }
+  void tearDown() override { d_slv.reset(nullptr); }
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
   bool iff(bool a, bool b) const { return (a && b) || ((!a) && (!b)); }
