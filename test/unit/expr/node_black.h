@@ -51,8 +51,7 @@ std::vector<Node> makeNSkolemNodes(NodeManager* nodeManager, int N,
 
 class NodeBlack : public CxxTest::TestSuite {
  private:
-  std::unique_ptr<SmtEngine> d_smt;
-  std::unique_ptr<ExprManager> d_em;
+  std::unique_ptr<Solver> d_slv;
   NodeManager* d_nodeManager;
   TypeNode d_booleanType;
   TypeNode d_realType;
@@ -69,17 +68,15 @@ class NodeBlack : public CxxTest::TestSuite {
     free(argv[0]);
     free(argv[1]);
 
-    d_em.reset(new ExprManager);
-    d_nodeManager = d_em->getNodeManager();
-    d_smt.reset(new SmtEngine(d_em, &opts));
+    d_slv.reset(new Solver(&opts));
+    d_nodeManager = d_slv->getExprManager()->getNodeManager();
     d_booleanType = d_nodeManager->booleanType();
     d_realType = d_nodeManager->realType();
   }
 
   void tearDown() override
   {
-    d_smt.reset(nullptr);
-    d_em.reset(nullptr);
+    d_slv.reset(nullptr);
   }
 
   bool imp(bool a, bool b) const { return (!a) || (b); }
