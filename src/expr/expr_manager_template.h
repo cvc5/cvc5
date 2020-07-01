@@ -36,6 +36,10 @@ ${includes}
 
 namespace CVC4 {
 
+namespace api {
+class Solver;
+}
+
 class Expr;
 class SmtEngine;
 class NodeManager;
@@ -45,7 +49,8 @@ struct ExprManagerMapCollection;
 class ResourceManager;
 
 class CVC4_PUBLIC ExprManager {
-private:
+ private:
+  friend api::Solver;
   /** The internal node manager */
   NodeManager* d_nodeManager;
 
@@ -83,7 +88,6 @@ private:
   /** A list of datatypes owned by this expr manager. */
   std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
- public:
   /**
    * Creates an expression manager with default options.
    */
@@ -97,6 +101,7 @@ private:
    */
   explicit ExprManager(const Options& options);
 
+ public:
   /**
    * Destroys the expression manager. No will be deallocated at this point, so
    * any expression references that used to be managed by this expression

@@ -58,31 +58,34 @@ endmacro()
 
 cvc4_add_example(simple_vc_cxx "" "")
 cvc4_add_example(simple_vc_quant_cxx "" "")
-cvc4_add_example(translator "" ""
-    # argument to binary (for testing)
-    ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
+# TODO(project issue $206): Port example to new API
+# cvc4_add_example(translator "" ""
+#     # argument to binary (for testing)
+#     ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
 add_subdirectory(api)
-add_subdirectory(hashsmt)
-add_subdirectory(nra-translate)
-add_subdirectory(sets-translate)
+# TODO(project issue $206): Port example to new API
+# add_subdirectory(hashsmt)
+# add_subdirectory(nra-translate)
+# add_subdirectory(sets-translate)
 
 if(TARGET CVC4::cvc4jar)
   find_package(Java REQUIRED)
   include(UseJava)
 
-  get_target_property(CVC4_JAR CVC4::cvc4jar JAR_FILE)
-
-  add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
-
-  add_test(
-    NAME java/SimpleVC
-    COMMAND
-      ${Java_JAVA_EXECUTABLE}
-        -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
-        -Djava.library.path=${CVC4_JNI_PATH}
-        SimpleVC
-  )
+  ## disabled until bindings for the new API are in place (issue #2284)
+  # get_target_property(CVC4_JAR CVC4::cvc4jar JAR_FILE)
+  #
+  # add_jar(SimpleVC SimpleVC.java INCLUDE_JARS "${CVC4_JAR}")
+  #
+  # add_test(
+  #   NAME java/SimpleVC
+  #   COMMAND
+  #     ${Java_JAVA_EXECUTABLE}
+  #       -cp "${CVC4_JAR}:${CMAKE_BINARY_DIR}/SimpleVC.jar"
+  #       -Djava.library.path=${CVC4_JNI_PATH}
+  #       SimpleVC
+  # )
 
   add_subdirectory(api/java)
 endif()

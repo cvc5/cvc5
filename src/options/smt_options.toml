@@ -669,6 +669,34 @@ header = "options/smt_options.h"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
+  name       = "produceInterpols"
+  category   = "undocumented"
+  long       = "produce-interpols=MODE"
+  type       = "ProduceInterpols"
+  default    = "NONE"
+  read_only  = true
+  help       = "support the get-interpol command"
+  help_mode  = "Interpolants grammar mode"
+[[option.mode.NONE]]
+  name = "none"
+  help = "don't compute interpolants"
+[[option.mode.DEFAULT]]
+  name = "default"
+  help = "use the default grammar for the theory or the user-defined grammar if given"
+[[option.mode.ASSUMPTIONS]]
+  name = "assumptions"
+  help = "use only operators that occur in the assumptions"
+[[option.mode.CONJECTURE]]
+  name = "conjecture"
+  help = "use only operators that occur in the conjecture"
+[[option.mode.SHARED]]
+  name = "shared"
+  help = "use only operators that occur both in the assumptions and the conjecture"
+[[option.mode.ALL]]
+  name = "all"
+  help = "use only operators that occur either in the assumptions or the conjecture"
+
+[[option]]
   name       = "produceAbducts"
   category   = "undocumented"
   long       = "produce-abducts"
@@ -676,6 +704,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "support the get-abduct command"
+
+[[option]]
+  name       = "checkInterpols"
+  category   = "regular"
+  long       = "check-interpols"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to get-interpol are correct"
 
 [[option]]
   name       = "checkAbducts"
