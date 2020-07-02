@@ -173,7 +173,7 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * Construct an SmtEngine with the given expression manager.
-   * If provided, optr is a set of options that should initialize the values
+   * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
    */
   SmtEngine(ExprManager* em, Options* optr = nullptr);
