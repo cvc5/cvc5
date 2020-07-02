@@ -40,6 +40,7 @@ using namespace CVC4;
 #include "smt/command.h"
 #include "util/bitvector.h"
 #include "util/floatingpoint.h"
+#include "util/iand.h"
 #include "util/integer.h"
 #include "util/sexpr.h"
 #include "util/unsafe_interrupt_exception.h"
@@ -206,6 +207,7 @@ std::set<JavaInputStreamAdapter*> CVC4::JavaInputStreamAdapter::s_adapters;
 %include "util/integer.i"
 %include "util/rational.i"
 %include "util/bitvector.i"
+%include "util/iand.i"
 %include "util/floatingpoint.i"
 
 // Tim: The remainder of util/.

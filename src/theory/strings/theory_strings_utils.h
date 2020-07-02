@@ -148,6 +148,15 @@ Node mkSubstrChain(Node base,
 std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
 
 /**
+ * Return if a string-like term n is "constant-like", that is, either a
+ * constant string/sequence, or an application of seq.unit.
+ *
+ * @param n The string-like term
+ * @return true if n is constant-like.
+ */
+bool isConstantLike(Node n);
+
+/**
  * Given a vector of regular expression nodes and a start index that points to
  * a wildcard, returns true if the wildcard is unbounded (i.e. it is followed
  * by an arbitrary number of `re.allchar`s and then an `re.*(re.allchar)`. If

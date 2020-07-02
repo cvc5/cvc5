@@ -89,20 +89,31 @@ class Evaluator
    * for subterms that evaluate to constants supported in the EvalResult
    * class and substitution with rewriting for the others.
    *
-   * The nodes in the vals must be constant values, that is, they must return
-   * true for isConst().
+   * The nodes in vals are typically intended to be constant, although this
+   * is not required.
+   *
+   * If the parameter useRewriter is true, then we may invoke calls to the
+   * rewriter for computing the result of this method.
+   *
+   * The result of this call is either equivalent to:
+   * (1) Rewriter::rewrite(n.substitute(args,vars))
+   * (2) Node::null().
+   * If useRewriter is true, then we are always in the first case. If
+   * useRewriter is false, then we may be in case (2) if computing the
+   * rewritten, substituted form of n could not be determined by evaluation.
    */
   Node eval(TNode n,
             const std::vector<Node>& args,
-            const std::vector<Node>& vals) const;
+            const std::vector<Node>& vals,
+            bool useRewriter = true) const;
   /**
    * Same as above, but with a precomputed visited map.
    */
-  Node eval(
-      TNode n,
-      const std::vector<Node>& args,
-      const std::vector<Node>& vals,
-      const std::unordered_map<Node, Node, NodeHashFunction>& visited) const;
+  Node eval(TNode n,
+            const std::vector<Node>& args,
+            const std::vector<Node>& vals,
+            const std::unordered_map<Node, Node, NodeHashFunction>& visited,
+            bool useRewriter = true) const;
 
  private:
   /**
@@ -126,7 +137,8 @@ class Evaluator
       const std::vector<Node>& args,
       const std::vector<Node>& vals,
       std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const;
+      std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
+      bool useRewriter) const;
   /** reconstruct
    *
    * This function reconstructs the result of evaluating n using a combination
