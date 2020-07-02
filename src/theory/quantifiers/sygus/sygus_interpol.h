@@ -9,8 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus interpolation utility, which transforms an arbitrary input into
- ** an interpolation problem.
+ ** \brief Sygus interpolation utility, which transforms an input of axioms and conjecture into
+ ** an interpolation problem, and solve it.
  **/
 
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
@@ -29,14 +29,14 @@ namespace quantifiers {
 /**
  * A utility that turns a set of quantifier-free assertions into a sygus
  * conjecture that encodes an interpolation problem. In detail, if our input
- * formula is F( x ) for free symbols x, and is partitioned into axioms Fa and
+ * formula is F( x ) for free symbol x, and is partitioned into axioms Fa and
  * conjecture Fc then the sygus conjecture we construct is:
  *
  * exists A. forall x. ( (Fa( x ) => A( x )) ^ (A( x ) => Fc( x )) )
  *
  * where A( x ) is a predicate over the free symbols of our input that are
  * shared between Fa and Fc. In other words, A( x ) must be implied by our
- * axioms Fa and implies Fc( x ).
+ * axioms Fa( x ) and implies Fc( x ).
  */
 class SygusInterpol
 {
@@ -63,7 +63,7 @@ class SygusInterpol
    *
    * In particular, solutions to the synthesis conjecture will be in the form
    * of a closed term (lambda varlist. t). The intended solution, which is a
-   * term whose free variables are a subset of asserts, is the term
+   * term whose free variables correspond to a subset of the free symbols in asserts, is the term
    * t * { varlist -> SygusVarToTermAttribute(varlist) }.
    */
   bool SolveInterpolation(const std::string& name,
@@ -74,15 +74,15 @@ class SygusInterpol
 
  private:
   /**
-   * Collects symbols from axioms (axioms) and conjecture (conj), which stored
-   * in d_syms. And computes the shared symbols between axioms and conjecture,
+   * Collects symbols from axioms (axioms) and conjecture (conj), which are stored
+   * in d_syms, and computes the shared symbols between axioms and conjecture,
    * stored in d_symsShared.
    */
   void collectSymbols(const std::vector<Node>& axioms, const Node& conj);
 
   /**
    * Creates free variables and shared free variables from d_syms and
-   * d_symsShared, which stored in d_vars and d_varsShared. And also creates the
+   * d_symsShared, which are stored in d_vars and d_varsShared. And also creates the
    * same set of variables for formal argument list, which stored in d_vlvs and
    * d_vlvsShared. Extracts the types of shared variables, which stored in
    * d_varTypesShared. Creates the formal argument list of the
@@ -133,7 +133,7 @@ class SygusInterpol
    */
   bool findInterpol(Expr& interpol, Node itp);
 
-  /** The SMT engine subsolver
+  /** The SMT engine subSolver
    *
    * This is a fresh copy of the SMT engine which is used for making calls
    * especially for interpolation problem. In particular, consider the input:
@@ -143,12 +143,12 @@ class SygusInterpol
    * A in the assertion stack. To solve the interpolation problem, instead of
    * modifying the assertion stack to remove A and add the sygus conjecture
    * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
-   * assertion stack unchaged. This copy of the SMT engine can be further
+   * original assertion stack unchaged. This copy of the SMT engine can be further
    * queried for information regarding further solutions.
    */
-  std::unique_ptr<SmtEngine> d_subsolver;
+  std::unique_ptr<SmtEngine> d_subSolver;
 
-  // The logic for the local copy of SMT engine (d_subsolver).
+  // The logic for the local copy of SMT engine (d_subSolver).
   LogicInfo d_logic;
 
   // symbols from axioms and conjecture.
