@@ -53,6 +53,8 @@ libcvc4_add_sources(
   proof_node_to_sexpr.h
   proof_node_manager.cpp
   proof_node_manager.h
+  proof_node_updater.cpp
+  proof_node_updater.h
   proof_rule.cpp
   proof_rule.h
   proof_step_buffer.cpp
