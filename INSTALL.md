@@ -202,7 +202,7 @@ examples). It further provides Java (see `examples/SimpleVC.java` and
 `examples/api/java`) and Python (see `examples/api/python`) API bindings.
 
 Configure CVC4 with `configure.sh --<lang>-bindings` to build with language
-bindings bindings for `<lang>`.
+bindings for `<lang>`.
 
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.
@@ -317,6 +317,5 @@ are configured to **run** in parallel with the maximum number of threads
 available on the system. Override with `ARGS=-jN`.
 
 Use `-jN` for parallel **building** with `N` threads.
-
 
 
