@@ -3004,11 +3004,46 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
   /**
+   * When using separation logic, obtain the term for the heap.
+   * @return The term for the heap
+   */
+  Term getSeparationHeap() const;
+
+  /**
+   * When using separation logic, obtain the term for nil.
+   * @return The term for nil
+   */
+  Term getSeparationNilTerm() const;
+
+  /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB: ( pop <numeral> )
    * @param nscopes the number of levels to pop
    */
   void pop(uint32_t nscopes = 1) const;
+
+  /**
+   * Get an interpolant
+   * SMT-LIB: ( get-interpol <term> )
+   * Requires to enable option 'produce-interpols'.
+   * @param conj the conjecture term
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj.
+   * @return true if it gets I successfully, false otherwise.
+   */
+  bool getInterpolant(Term conj, Term& output) const;
+
+  /**
+   * Get an interpolant
+   * SMT-LIB: ( get-interpol <term> )
+   * Requires to enable option 'produce-interpols'.
+   * @param conj the conjecture term
+   * @param gtype the grammar for the interpolant I
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj.
+   * @return true if it gets I successfully, false otherwise.
+   */
+  bool getInterpolant(Term conj, const Type& gtype, Term& output) const;
 
   /**
    * Print the model of a satisfiable query to the given output stream.

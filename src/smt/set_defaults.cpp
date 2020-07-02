@@ -291,8 +291,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
-    if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput() || options::sygusInst())
+    if (options::produceAbducts()
+        || options::produceInterpols() != options::ProduceInterpols::NONE
+        || options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -316,6 +318,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
+       || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -1441,12 +1444,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     disableModels = true;
     sOptNoModel = "minisat-elimination";
-  }
-  else if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
-           && !options::nlExt())
-  {
-    disableModels = true;
-    sOptNoModel = "nonlinear arithmetic without nl-ext";
   }
   else if (options::globalNegate())
   {

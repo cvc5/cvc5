@@ -15,8 +15,10 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
 #include <sstream>
 
+#include "api/cvc4cpp.h"
 #include "expr/datatype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
@@ -27,14 +29,11 @@ using namespace CVC4;
 using namespace std;
 
 class DatatypeBlack : public CxxTest::TestSuite {
-
-  ExprManager* d_em;
-  ExprManagerScope* d_scope;
-
  public:
   void setUp() override
   {
-    d_em = new ExprManager();
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
     d_scope = new ExprManagerScope(*d_em);
     Debug.on("datatypes");
     Debug.on("groundterms");
@@ -43,7 +42,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   void tearDown() override
   {
     delete d_scope;
-    delete d_em;
+    delete d_slv;
   }
 
   void testEnumeration() {
@@ -436,4 +435,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(TypeNode::fromType(pairIntInt), TypeNode::fromType(pairIntInt)).toType(), pairIntInt);
   }
 
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_em;
+  ExprManagerScope* d_scope;
 };/* class DatatypeBlack */

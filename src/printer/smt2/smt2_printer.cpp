@@ -593,35 +593,10 @@ void Smt2Printer::toStream(std::ostream& out,
 
   // string theory
   case kind::STRING_CONCAT:
-    if(d_variant == z3str_variant) {
-      out << "Concat ";
-      for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-        toStream(out, n[i], -1, types, TypeNode::null());
-        if(i + 1 < n.getNumChildren()) {
-          out << ' ';
-        }
-        if(i + 2 < n.getNumChildren()) {
-          out << "(Concat ";
-        }
-      }
-      for(unsigned i = 0; i < n.getNumChildren() - 1; ++i) {
-        out << ")";
-      }
-      return;
-    }
     out << "str.++ ";
     break;
   case kind::STRING_IN_REGEXP: {
     stringstream ss;
-    if(d_variant == z3str_variant && stringifyRegexp(n[1], ss)) {
-      out << "= ";
-      toStream(out, n[0], -1, types, TypeNode::null());
-      out << " ";
-      Node str = NodeManager::currentNM()->mkConst(String(ss.str()));
-      toStream(out, str, -1, types, TypeNode::null());
-      out << ")";
-      return;
-    }
     out << smtKindString(k, d_variant) << " ";
     break;
   }
@@ -1188,7 +1163,7 @@ static string smtKindString(Kind k, Variant v)
 
   //string theory
   case kind::STRING_CONCAT: return "str.++";
-  case kind::STRING_LENGTH: return v == z3str_variant ? "Length" : "str.len";
+  case kind::STRING_LENGTH: return "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
@@ -1285,7 +1260,6 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<EmptyCommand>(out, c)
       || tryToStream<EchoCommand>(out, c, d_variant)
       || tryToStream<SynthFunCommand>(out, c)
-      || tryToStream<DeclareSygusPrimedVarCommand>(out, c)
       || tryToStream<DeclareSygusFunctionCommand>(out, c)
       || tryToStream<DeclareSygusVarCommand>(out, c)
       || tryToStream<SygusConstraintCommand>(out, c)
@@ -1852,12 +1826,7 @@ static void toStream(std::ostream& out,
                      const SetBenchmarkLogicCommand* c,
                      Variant v)
 {
-  // Z3-str doesn't have string-specific logic strings(?), so comment it
-  if(v == z3str_variant) {
-    out << "; (set-logic " << c->getLogic() << ")";
-  } else {
-    out << "(set-logic " << c->getLogic() << ")";
-  }
+  out << "(set-logic " << c->getLogic() << ")";
 }
 
 static void toStream(std::ostream& out, const SetInfoCommand* c, Variant v)
@@ -2021,7 +1990,7 @@ static void toStream(std::ostream& out, const CommentCommand* c, Variant v)
   string s = c->getComment();
   size_t pos = 0;
   while((pos = s.find_first_of('"', pos)) != string::npos) {
-    s.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    s.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(set-info :notes \"" << s << "\")";
@@ -2035,7 +2004,7 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
   // escape all double-quotes
   size_t pos = 0;
   while((pos = s.find('"', pos)) != string::npos) {
-    s.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    s.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(echo \"" << s << "\")";
@@ -2155,12 +2124,6 @@ static void toStream(std::ostream& out, const DeclareSygusFunctionCommand* c)
   out << " (" << argTypes << ") " << ft.getRangeType() << ')';
 }
 
-static void toStream(std::ostream& out, const DeclareSygusPrimedVarCommand* c)
-{
-  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
-      << ' ' << c->getType() << ')';
-}
-
 static void toStream(std::ostream& out, const DeclareSygusVarCommand* c)
 {
   out << '(' << c->getCommandName() << ' ' << c->getVar() << ' ' << c->getType()
@@ -2240,7 +2203,7 @@ static void errorToStream(std::ostream& out, std::string message, Variant v) {
   // escape all double-quotes
   size_t pos = 0;
   while((pos = message.find('"', pos)) != string::npos) {
-    message.replace(pos, 1, (v == z3str_variant || v == smt2_0_variant) ? "\\\"" : "\"\"");
+    message.replace(pos, 1, v == smt2_0_variant ? "\\\"" : "\"\"");
     pos += 2;
   }
   out << "(error \"" << message << "\")" << endl;
@@ -2270,9 +2233,6 @@ static OutputLanguage variantToLanguage(Variant variant)
   switch(variant) {
   case smt2_0_variant:
     return language::output::LANG_SMTLIB_V2_0;
-  case z3str_variant:
-    return language::output::LANG_Z3STR;
-  case sygus_variant: return language::output::LANG_SYGUS_V1;
   case no_variant:
   default: return language::output::LANG_SMTLIB_V2_6;
   }
