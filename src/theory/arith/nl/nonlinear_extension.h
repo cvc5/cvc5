@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
@@ -303,6 +304,12 @@ class NonlinearExtension
    * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+  /** The integer and solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving integer and.
+   */
+  IAndSolver d_iandSlv;
   /**
    * The lemmas we computed during collectModelInfo, to be sent out on the
    * output channel of TheoryArith.

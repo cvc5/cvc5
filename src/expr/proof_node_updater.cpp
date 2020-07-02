@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,6 @@
 #include "expr/proof_node_updater.h"
 
 #include "expr/lazy_proof.h"
-
-using namespace CVC4::kind;
 
 namespace CVC4 {
 
@@ -48,7 +46,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
       if (d_cb.shouldUpdate(cur))
       {
         PfRule id = cur->getRule();
-        LazyCDProof lcp(d_pnm);
+        // use CDProof to open a scope for which the callback updates
+        CDProof cpf(d_pnm);
         const std::vector<std::shared_ptr<ProofNode>>& cc = cur->getChildren();
         std::vector<Node> ccn;
         for (const std::shared_ptr<ProofNode>& cp : cc)
@@ -56,13 +55,13 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
           Node cpres = cp->getResult();
           ccn.push_back(cpres);
           // store in the proof
-          lcp.addProof(cp);
+          cpf.addProof(cp);
         }
         // only if the callback updated the node
-        if (d_cb.update(id, ccn, cur->getArguments(), &lcp))
+        if (d_cb.update(id, ccn, cur->getArguments(), &cpf))
         {
           // build the proof, which should be closed
-          std::shared_ptr<ProofNode> npn = lcp.getProofFor(cur->getResult());
+          std::shared_ptr<ProofNode> npn = cpf.getProofFor(cur->getResult());
           Assert(npn->isClosed());
           // then, update the original proof node based on this one
           d_pnm->updateNode(cur, npn.get());

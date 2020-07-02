@@ -651,6 +651,25 @@ header = "options/smt_options.h"
   help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
 
 [[option]]
+  name       = "iandMode"
+  category   = "undocumented"
+  long       = "iand-mode=mode"
+  type       = "IandMode"
+  default    = "VALUE"
+  read_only  = true
+  help       = "Set the refinement scheme for integer AND"
+  help_mode  = "Refinement modes for integer AND"
+  [[option.mode.VALUE]]
+  name = "value"
+  help = "value-based refinement"
+  [[option.mode.SUM]]
+  name = "sum"
+  help = "use sum to represent integer AND in refinement"
+  [[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "use bitwise comparisons on binary representation of integer for refinement (experimental)"
+  
+[[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"
   long       = "solve-int-as-bv=N"

@@ -105,7 +105,8 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * behavior of a SUBS step in a proof.
    *
    * @param n The node to substitute,
-   * @param exp The (set of) equalities corresponding to the substitution
+   * @param exp The (set of) equalities/literals/formulas that the substitution
+   * is derived from
    * @param ids The method identifier of the substitution, by default SB_DEFAULT
    * specifying that lhs/rhs of equalities are interpreted as a substitution.
    * @return The substituted form of n.
