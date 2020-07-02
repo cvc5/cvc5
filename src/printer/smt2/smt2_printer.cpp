@@ -238,7 +238,7 @@ void Smt2Printer::toStream(std::ostream& out,
 
     case kind::STORE_ALL: {
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
-      out << "((as const " << asa.getType() << ") " << asa.getExpr() << ")";
+      out << "((as const " << asa.getType() << ") " << asa.getValue() << ")";
       break;
     }
 

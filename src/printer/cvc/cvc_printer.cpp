@@ -247,8 +247,9 @@ void CvcPrinter::toStream(
 
     case kind::STORE_ALL: {
       const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
-      out << "ARRAY(" << asa.getType().getIndexType() << " OF "
-          << asa.getType().getConstituentType() << ") : " << asa.getExpr();
+      out << "ARRAY(" << asa.getType().getArrayIndexType() << " OF "
+          << asa.getType().getArrayConstituentType()
+          << ") : " << asa.getValue();
       break;
     }
 
