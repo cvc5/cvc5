@@ -2583,8 +2583,8 @@ void SmtEngine::checkUnsatCore() {
   SmtEngine coreChecker(d_exprManager, &d_options);
   coreChecker.setIsInternalSubsolver();
   coreChecker.setLogic(getLogicInfo());
-  coreChecker.setOption("check-unsat-cores", false);
-  coreChecker.setOption("check-proofs", false);
+  coreChecker.getOptions().set(options::checkUnsatCores, false);
+  coreChecker.getOptions().set(options::checkProofs, false);
 
   PROOF(
   std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
@@ -2879,8 +2879,8 @@ void SmtEngine::checkSynthSolution()
   SmtEngine solChecker(d_exprManager, &d_options);
   solChecker.setIsInternalSubsolver();
   solChecker.setLogic(getLogicInfo());
-  solChecker.setOption("check-synth-sol", SExpr("false"));
-  solChecker.setOption("sygus-rec-fun", SExpr("false"));
+  solChecker.getOptions().set(options::checkSynthSol, false);
+  solChecker.getOptions().set(options::sygusRecFun, false);
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions

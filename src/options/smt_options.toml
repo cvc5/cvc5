@@ -280,7 +280,6 @@ header = "options/smt_options.h"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to functions-to-synthesize satisfy the conjecture"
 
 [[option]]
