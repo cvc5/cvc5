@@ -1,4 +1,4 @@
-;depends on drat.plf
+; Deps: drat.plf
 (declare TestSuccess type)
 
 ; Test for clause_eq
