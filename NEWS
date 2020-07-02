@@ -1,5 +1,19 @@
 This file contains a summary of important user-visible changes.
 
+Changes since 1.8
+=================
+
+New Features:
+* Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
+  if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
+
+Improvements:
+* New API: Added functions to retrieve the heap/nil term when using separation
+  logic.
+
+Changes:
+* SyGuS: Removed support for SyGuS-IF 1.0.
+
 Changes since 1.7
 =================
 

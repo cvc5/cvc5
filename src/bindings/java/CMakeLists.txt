@@ -81,6 +81,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointType.java
   ${CMAKE_CURRENT_BINARY_DIR}/FunctionType.java
   ${CMAKE_CURRENT_BINARY_DIR}/InputLanguage.java
+  ${CMAKE_CURRENT_BINARY_DIR}/IntAnd.java
   ${CMAKE_CURRENT_BINARY_DIR}/IntToBitVector.java
   ${CMAKE_CURRENT_BINARY_DIR}/Integer.java
   ${CMAKE_CURRENT_BINARY_DIR}/IntegerHashFunction.java

@@ -16,43 +16,42 @@
  ** identical.
  **/
 
+#include <cvc4/api/cvc4cpp.h>
+
 #include <iostream>
 
-#include <cvc4/cvc4.h>
-
-using namespace std;
-using namespace CVC4;
+using namespace CVC4::api;
 
 int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
+  Solver slv;
 
   // Prove that for integers x and y:
   //   x > 0 AND y > 0  =>  2x + y >= 3
 
-  Type integer = em.integerType();
+  Sort integer = slv.getIntegerSort();
 
-  Expr x = em.mkVar("x", integer);
-  Expr y = em.mkVar("y", integer);
-  Expr zero = em.mkConst(Rational(0));
+  Term x = slv.mkConst(integer, "x");
+  Term y = slv.mkConst(integer, "y");
+  Term zero = slv.mkReal(0);
 
-  Expr x_positive = em.mkExpr(kind::GT, x, zero);
-  Expr y_positive = em.mkExpr(kind::GT, y, zero);
+  Term x_positive = slv.mkTerm(Kind::GT, x, zero);
+  Term y_positive = slv.mkTerm(Kind::GT, y, zero);
 
-  Expr two = em.mkConst(Rational(2));
-  Expr twox = em.mkExpr(kind::MULT, two, x);
-  Expr twox_plus_y = em.mkExpr(kind::PLUS, twox, y);
+  Term two = slv.mkReal(2);
+  Term twox = slv.mkTerm(Kind::MULT, two, x);
+  Term twox_plus_y = slv.mkTerm(Kind::PLUS, twox, y);
 
-  Expr three = em.mkConst(Rational(3));
-  Expr twox_plus_y_geq_3 = em.mkExpr(kind::GEQ, twox_plus_y, three);
+  Term three = slv.mkReal(3);
+  Term twox_plus_y_geq_3 = slv.mkTerm(Kind::GEQ, twox_plus_y, three);
 
-  Expr formula =
-    em.mkExpr(kind::AND, x_positive, y_positive).
-    impExpr(twox_plus_y_geq_3);
+  Term formula =
+      slv.mkTerm(Kind::AND, x_positive, y_positive).impTerm(twox_plus_y_geq_3);
 
-  cout << "Checking entailment of formula " << formula << " with CVC4." << endl;
-  cout << "CVC4 should report ENTAILED." << endl;
-  cout << "Result from CVC4 is: " << smt.checkEntailed(formula) << endl;
+  std::cout << "Checking entailment of formula " << formula << " with CVC4."
+            << std::endl;
+  std::cout << "CVC4 should report ENTAILED." << std::endl;
+  std::cout << "Result from CVC4 is: " << slv.checkEntailed(formula)
+            << std::endl;
 
   return 0;
 }

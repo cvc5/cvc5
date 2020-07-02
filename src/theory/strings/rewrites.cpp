@@ -202,6 +202,7 @@ const char* toString(Rewrite r)
     case Rewrite::LEN_CONCAT: return "LEN_CONCAT";
     case Rewrite::LEN_REPL_INV: return "LEN_REPL_INV";
     case Rewrite::LEN_CONV_INV: return "LEN_CONV_INV";
+    case Rewrite::LEN_SEQ_UNIT: return "LEN_SEQ_UNIT";
     case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     default: return "?";
