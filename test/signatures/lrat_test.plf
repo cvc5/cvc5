@@ -1,3 +1,4 @@
+; Deps: lrat.plf
 (declare test_clause_append
          (! c1 clause
             (! c2 clause

@@ -47,6 +47,7 @@ ArithCongruenceManager::ArithCongruenceManager(
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
+  d_ee.addFunctionKind(kind::IAND);
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}

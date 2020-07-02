@@ -1,4 +1,4 @@
-; Depends on er.plf
+; Deps: er.plf
 
 ; This is a circuitous proof that uses the definition introduction and
 ; unrolling rules

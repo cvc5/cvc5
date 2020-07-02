@@ -300,6 +300,8 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/iand_solver.cpp
+  theory/arith/nl/iand_solver.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -1001,6 +1003,7 @@ install(FILES
           util/divisible.h
           util/gmp_util.h
           util/hash.h
+          util/iand.h
           util/integer_cln_imp.h
           util/integer_gmp_imp.h
           util/maybe.h

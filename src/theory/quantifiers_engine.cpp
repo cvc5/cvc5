@@ -1091,13 +1091,6 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   {
     performCheck = true;
   }
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //with bounded integers, skip every other last call,
-    // since matching loops may occur with infinite quantification
-    if( d_ierCounter_lc%2==0 && options::fmfBound() ){
-      performCheck = false;
-    }
-  }
   return performCheck;
 }
 

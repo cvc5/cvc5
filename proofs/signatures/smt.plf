@@ -3,7 +3,7 @@
 ; SMT syntax and semantics (not theory-specific)
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-; depends on sat.plf
+; Deps: sat.plf
 
 (declare formula type)
 (declare th_holds (! f formula type))
