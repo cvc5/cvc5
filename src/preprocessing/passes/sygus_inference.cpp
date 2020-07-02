@@ -23,6 +23,7 @@
 
 using namespace std;
 using namespace CVC4::kind;
+using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace preprocessing {
@@ -134,7 +135,8 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     if (pas.getKind() == FORALL)
     {
       // preprocess the quantified formula
-      pas = theory::quantifiers::QuantifiersRewriter::preprocess(pas);
+      TrustNode trn = theory::quantifiers::QuantifiersRewriter::preprocess(pas);
+      pas = trn.getNode();
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
     }
     if (pas.getKind() == FORALL)

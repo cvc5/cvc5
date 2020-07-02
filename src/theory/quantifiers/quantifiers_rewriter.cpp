@@ -2053,7 +2053,7 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
 }
 
 
-Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
+TrustNode QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   Node prev = n;
 
   if( options::preSkolemQuant() ){
@@ -2078,8 +2078,9 @@ Node QuantifiersRewriter::preprocess( Node n, bool isInst ) {
   if( n!=prev ){       
     Trace("quantifiers-preprocess") << "Preprocess " << prev << std::endl;
     Trace("quantifiers-preprocess") << "..returned " << n << std::endl;
+    return TrustNode::mkTrustRewrite(prev, n, nullptr);
   }
-  return n;
+  return TrustNode::null();
 }
 
 }/* CVC4::theory::quantifiers namespace */

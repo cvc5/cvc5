@@ -193,8 +193,19 @@ private:
  void flushLemmas();
 
 public:
-  /** add lemma lem */
+  /** 
+   * Add lemma to the lemma buffer of this quantifiers engine.
+   * @param lem The lemma to send
+   * @param doCache Whether to cache the lemma (to check for duplicate lemmas)
+   * @param doRewrite Whether to rewrite the lemma
+   * @return true if the lemma was successfully added to the buffer
+   */
   bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
+  /** 
+   * Add trusted lemma lem, same as above, but where a proof generator may be
+   * provided along with the lemma.
+   */
+  bool addTrustedLemma(TrustNode tlem, bool doCache = true, bool doRewrite = true);
   /** remove pending lemma */
   bool removeLemma( Node lem );
   /** add require phase */
@@ -380,6 +391,8 @@ public:
   BoolMap d_lemmas_produced_c;
   /** lemmas waiting */
   std::vector<Node> d_lemmas_waiting;
+  /** map from waiting lemmas to their proof generators */
+  std::map<Node, ProofGenerator * > d_lemmasWaitingPg;
   /** phase requirements waiting */
   std::map<Node, bool> d_phase_req_waiting;
   /** inst round counters TODO: make context-dependent? */

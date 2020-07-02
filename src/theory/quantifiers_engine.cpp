@@ -1028,6 +1028,17 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }
 }
 
+bool QuantifiersEngine::addTrustedLemma(TrustNode tlem, bool doCache, bool doRewrite)
+{
+  Node lem = tlem.getProven();
+  if (!addLemma(lem, doCache, doRewrite))
+  {
+    return false;
+  }
+  d_lemmasWaitingPg[lem] = tlem.getGenerator();
+  return true;
+}
+
 bool QuantifiersEngine::removeLemma( Node lem ) {
   std::vector< Node >::iterator it = std::find( d_lemmas_waiting.begin(), d_lemmas_waiting.end(), lem );
   if( it!=d_lemmas_waiting.end() ){
@@ -1111,9 +1122,21 @@ void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
-    for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
-      Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
+    std::map<Node, ProofGenerator * >::iterator itp;
+    OutputChannel& out = getOutputChannel();
+    for (const Node& lemw : d_lemmas_waiting)
+    {
+      Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
+      itp = d_lemmasWaitingPg.find(lemw);
+      if (itp!=d_lemmasWaitingPg.end())
+      {
+        TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
+        out.trustedLemma(tlemw, false, true);
+      }
+      else
+      {
+        out.lemma(lemw, false, true);
+      }
     }
     d_lemmas_waiting.clear();
   }

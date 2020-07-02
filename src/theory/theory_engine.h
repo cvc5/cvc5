@@ -786,6 +786,13 @@ class TheoryEngine {
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
+  /**
+   * Add theory lemma step for lemma to proof pf, where tid is the identifier
+   * of the theory responsible for that lemma. The argument c is a tag for
+   * debugging.
+   */
+  void addTheoryLemmaToProof(CDProof * pf, Node lemma, theory::TheoryId tid, const char * c);
+
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
   void staticInitializeBVOptions(const std::vector<Node>& assertions);

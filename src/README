@@ -75,8 +75,10 @@ PR finished:
 (21) static strings preprocess reduce (req 7)
 (22) Strings base solver update (req 2)
 (23) Updates to proof node manager, including mkScope (req 19)
+(25) Arithmetic proof checker [Alex]
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
+(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
 (33) split operator elimination from arith (req 28)
 (34) theory proof step buffer
 (35) Strings term registry update (req 13)
@@ -85,31 +87,30 @@ PR finished:
 (48) remove snorm option
 (49) re elim static
 (51) TrustNode rewrite kind
+(60) proof node updater utility (req 23)
+(61) witness rewrite
+(62) update proof checker for Skolem forms
 
 PRs ready:
 
+(6) Equality engine updates [Haniel] (req 0)
 (17) rewriter new infrastructure "rewriteEqualityExt"
-(25) Arithmetic proof checker [Alex]
-(32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27) *
 (37) Rewriter proof producing + unit test [Andres] (req 36)
 (39) Theory interface update for TrustNode, ProofChecker (req 27, 51) *
 (40) theory engine proof generator (req 11, 13, 18, 23) *
 (45) regexp operation refactor (req 3, 7, 8) *
-(60) proof node updater utility (req 23)
-(61) witness rewrite *
-(62) update proof checker for Skolem forms *
+(65) updates to strings core solver *
 
 PRs future:
 
-(6) Equality engine updates [Haniel] (req 0)
 (20) Eq proof conversion [Haniel] (req 6)
 (24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
-(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35)
-(29) CongruenceManager uses pfee [Alex] (req 24, 25)
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
+(29) arithmetic proof producing [Alex] (req 24, 25)
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33, 64)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (41) SharedTermDatabase uses pfee (req 24)
-(42) String rules, string checker (req 5, 17, 22, 45)
+(42) String rules, string checker (req 5, 17, 22, 45, 65)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
 (46) strings term registry proof producing (req 32, 35)
