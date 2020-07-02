@@ -1611,7 +1611,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // call preprocessor
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
-  TrustNode tlemma = d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
+  TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
 
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;

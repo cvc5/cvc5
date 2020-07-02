@@ -183,7 +183,6 @@ Node RemoveTermFormulas::run(TNode node,
     //   http://planetmath.org/hilbertsvarepsilonoperator.
     if (!inQuant || !expr::hasFreeVar(node))
     {
-      // TODO: we can replace by t if body is of the form (and (= z t) ...)
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
