@@ -550,8 +550,10 @@ public:
     SKOLEM_DEFAULT = 0,    /**< default behavior */
     SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
     SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4   /**< global vars appear in models even after a pop */
-  };
+    SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
+    SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+  };                         /* enum SkolemFlags */
+
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
