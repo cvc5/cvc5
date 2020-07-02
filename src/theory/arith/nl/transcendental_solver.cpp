@@ -776,6 +776,12 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   bool is_tangent = false;
   bool is_secant = false;
   std::pair<Node, Node> mvb = getTfModelBounds(tf, d);
+  // this is the approximated value of tf(c), which is a value such that:
+  //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
+  //    M_A(tf(c)) <= poly_appox_c <= tf(c)
+  // In other words, it is a better approximation of the true value of tf(c)
+  // in the case that we add a refinement lemma. We use this value in the
+  // refinement schemas below.
   Node poly_approx_c;
   for (unsigned r = 0; r < 2; r++)
   {
