@@ -139,8 +139,7 @@ struct EmptySetTypeRule {
   {
     Assert(n.getKind() == kind::EMPTYSET);
     EmptySet emptySet = n.getConst<EmptySet>();
-    Type setType = emptySet.getType();
-    return TypeNode::fromType(setType);
+    return emptySet.getType();
   }
 };/* struct EmptySetTypeRule */
 
@@ -444,7 +443,7 @@ struct SetsProperties {
 
   inline static Node mkGroundTerm(TypeNode type) {
     Assert(type.isSet());
-    return NodeManager::currentNM()->mkConst(EmptySet(type.toType()));
+    return NodeManager::currentNM()->mkConst(EmptySet(type));
   }
 };/* struct SetsProperties */
 
