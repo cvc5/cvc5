@@ -102,7 +102,10 @@ class RemoveTermFormulas {
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
 
-  /** Set proof checker, also enabled proofs TODO: improve design */
+  /**
+   * Set proof checker, which signals this class to enable proofs using the
+   * given checker.
+   */
   void setProofChecker(ProofChecker* pc);
 
   /**
