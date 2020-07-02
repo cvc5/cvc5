@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus interpolation utility, which transforms an input of axioms and conjecture into
+ ** \brief Sygus interpolation utility, which transforms an input of axioms and
+ *conjecture into
  ** an interpolation problem, and solve it.
  **/
 
@@ -63,8 +64,8 @@ class SygusInterpol
    *
    * In particular, solutions to the synthesis conjecture will be in the form
    * of a closed term (lambda varlist. t). The intended solution, which is a
-   * term whose free variables correspond to a subset of the free symbols in asserts, is the term
-   * t * { varlist -> SygusVarToTermAttribute(varlist) }.
+   * term whose free variables correspond to a subset of the free symbols in
+   * asserts, is the term t * { varlist -> SygusVarToTermAttribute(varlist) }.
    */
   bool SolveInterpolation(const std::string& name,
                           const std::vector<Node>& axioms,
@@ -74,17 +75,17 @@ class SygusInterpol
 
  private:
   /**
-   * Collects symbols from axioms (axioms) and conjecture (conj), which are stored
-   * in d_syms, and computes the shared symbols between axioms and conjecture,
-   * stored in d_symsShared.
+   * Collects symbols from axioms (axioms) and conjecture (conj), which are
+   * stored in d_syms, and computes the shared symbols between axioms and
+   * conjecture, stored in d_symsShared.
    */
   void collectSymbols(const std::vector<Node>& axioms, const Node& conj);
 
   /**
    * Creates free variables and shared free variables from d_syms and
-   * d_symsShared, which are stored in d_vars and d_varsShared. And also creates the
-   * same set of variables for formal argument list, which stored in d_vlvs and
-   * d_vlvsShared. Extracts the types of shared variables, which stored in
+   * d_symsShared, which are stored in d_vars and d_varsShared. And also creates
+   * the same set of variables for formal argument list, which stored in d_vlvs
+   * and d_vlvsShared. Extracts the types of shared variables, which stored in
    * d_varTypesShared. Creates the formal argument list of the
    * interpol-to-synthesis, stored in d_abvlShared.
    *
@@ -143,8 +144,8 @@ class SygusInterpol
    * A in the assertion stack. To solve the interpolation problem, instead of
    * modifying the assertion stack to remove A and add the sygus conjecture
    * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
-   * original assertion stack unchaged. This copy of the SMT engine can be further
-   * queried for information regarding further solutions.
+   * original assertion stack unchaged. This copy of the SMT engine can be
+   * further queried for information regarding further solutions.
    */
   std::unique_ptr<SmtEngine> d_subSolver;
 

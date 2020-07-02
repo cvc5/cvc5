@@ -10,7 +10,8 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of sygus interpolation utility, which
- ** transforms an input of axioms and conjecture into an interpolation problem, and solve it.
+ ** transforms an input of axioms and conjecture into an interpolation problem,
+ *and solve it.
  **/
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
