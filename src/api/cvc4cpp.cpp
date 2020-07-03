@@ -1441,6 +1441,30 @@ uint64_t Term::getId() const
 Kind Term::getKind() const
 {
   CVC4_API_CHECK_NOT_NULL;
+  // Sequence kinds do not exist internally, so we must convert their internal
+  // (string) versions back to sequence. All operators where this is
+  // necessary are such that their first child is of sequence type, which
+  // we check here.
+  if (getNumChildren()>0 && (*this)[0].getSort().isSequence())
+  {
+    switch (d_expr->getKind())
+    {
+    case CVC4::Kind::STRING_CONCAT: return SEQ_CONCAT;
+    case CVC4::Kind::STRING_LENGTH: return SEQ_LENGTH;
+    case CVC4::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
+    case CVC4::Kind::STRING_STRCTN: return SEQ_CONTAINS;
+    case CVC4::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
+    case CVC4::Kind::STRING_STRREPL: return SEQ_REPLACE;
+    case CVC4::Kind::STRING_STRREPLALL: return SEQ_REPLACE_ALL;
+    case CVC4::Kind::STRING_REV: return SEQ_REV;
+    case CVC4::Kind::STRING_PREFIX: return SEQ_PREFIX;
+    case CVC4::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
+    default:
+      // fall through to conversion below
+      break;
+    }
+  }
+  
   return intToExtKind(d_expr->getKind());
 }
 
