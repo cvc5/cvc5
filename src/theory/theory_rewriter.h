@@ -63,7 +63,7 @@ struct TrustRewriteResponse
                        ProofGenerator* pg);
   /** The status of the rewrite */
   const RewriteStatus d_status;
-  /** 
+  /**
    * The trust node corresponding to the rewrite.
    */
   TrustNode d_node;
@@ -101,7 +101,7 @@ class TheoryRewriter
    * @param node The node to rewrite
    */
   virtual TrustRewriteResponse postRewriteWithProof(TNode node);
-  
+
   /**
    * Performs a post-rewrite step.
    *

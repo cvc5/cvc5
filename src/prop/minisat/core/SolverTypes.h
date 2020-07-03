@@ -132,7 +132,8 @@ public:
     {
       uint8_t sel = (this->value << 1) | (b.value << 3);
       uint8_t v = (0xF7F755F4 >> sel) & 3;
-      return lbool(v); }
+      return lbool(v);
+    }
 
     lbool operator || (lbool b) const {
         uint8_t sel = (this->value << 1) | (b.value << 3);
@@ -219,7 +220,8 @@ class Clause {
             if (header.removable)
               data[header.size].act = 0;
             else
-              calcAbstraction(); }
+              calcAbstraction();
+        }
     }
 
 public:

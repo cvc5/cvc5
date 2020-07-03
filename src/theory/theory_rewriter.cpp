@@ -26,7 +26,7 @@ TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
     : d_status(status)
 {
   // optimization: only construct if n changed, otherwise we leave it null
-  if (n!=nr)
+  if (n != nr)
   {
     d_node = TrustNode::mkTrustRewrite(n, nr, pg);
   }
@@ -48,15 +48,12 @@ TrustRewriteResponse TheoryRewriter::preRewriteWithProof(TNode node)
       response.d_status, node, response.d_node, nullptr);
 }
 
-Node TheoryRewriter::rewriteEqualityExt(Node node)
-{
-  return node;
-}
+Node TheoryRewriter::rewriteEqualityExt(Node node) { return node; }
 
 TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
 {
   Node nodeRew = rewriteEqualityExt(node);
-  if (nodeRew!=node)
+  if (nodeRew != node)
   {
     // by default, we return a trust rewrite response with no proof generator
     return TrustNode::mkTrustRewrite(node, nodeRew, nullptr);
