@@ -168,6 +168,10 @@ void TheoryEngine::finishInit()
   }
 }
 
+ProofChecker* TheoryEngine::getProofChecker() const { return d_pchecker; }
+
+ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
+
 void TheoryEngine::eqNotifyNewClass(TNode t){
   if (d_logicInfo.isQuantified()) {
     d_quantEngine->eqNotifyNewClass( t );
@@ -416,13 +420,10 @@ void TheoryEngine::dumpAssertions(const char* tag) {
 
 void TheoryEngine::addTheoryLemmaToProof(CDProof * pf, Node lemma, TheoryId tid, const char * c)
 {
-  // TODO: enable 
-  /*
   if (options::proofNewPedantic())
   {
     AlwaysAssert(false) << "THEORY_LEMMA : " << lemma << " from " << tid << " from " << c << std::endl;
   }
-  */
   Assert (pf!=nullptr);
   unsigned tidu = static_cast<unsigned>(tid);
   Node tidn = NodeManager::currentNM()->mkConst(Rational(tidu));

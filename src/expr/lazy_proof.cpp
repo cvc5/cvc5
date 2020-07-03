@@ -109,9 +109,22 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
-                              bool forceOverwrite)
+                              bool forceOverwrite,
+                              PfRule idNull)
 {
-  Assert(pg != nullptr);
+  if (pg==nullptr)
+  {
+    // null generator, should have given a proof rule 
+    if (idNull==PfRule::ASSUME)
+    {
+      Assert(false);
+      return;
+    }
+    Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
+                        << " set (trusted) step " << idNull << "\n";
+    addStep(expected, idNull, {}, {expected});
+    return;
+  }
   Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
                         << " set to generator " << pg->identify() << "\n";
   if (!forceOverwrite)

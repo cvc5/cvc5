@@ -35,6 +35,7 @@ namespace quantifiers {
 
 Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u, ProofNodeManager * pnm)
     : d_qe(qe),
+      d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
       d_total_inst_count_debug(0),
@@ -235,7 +236,7 @@ bool Instantiate::addInstantiation(
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(d_pfInst->getManager()));
+    pfTmp.reset(new LazyCDProof(d_pnm));
   }
 
   // construct the instan::tiation
@@ -253,7 +254,14 @@ bool Instantiate::addInstantiation(
     // do a tranformation step
     if (pfTmp!=nullptr)
     {
-      pfTmp->addStep(body, PfRule::MACRO_SR_PRED_TRANSFORM, {orig_body, tpBody.getProven()}, {body});
+      //              ----------------- from preprocess
+      // orig_body    orig_body = body
+      // ------------------------------ MACRO_SR_PRED_TRANSFORM
+      // body
+      Node proven = tpBody.getProven();
+      // add the transformation proof, or THEORY_PREPROCESS if none provided
+      pfTmp->addLazyStep(proven, tpBody.getGenerator(), false, PfRule::THEORY_PREPROCESS);
+      pfTmp->addStep(body, PfRule::MACRO_SR_PRED_TRANSFORM, {orig_body, proven}, {body});
     }
   }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
@@ -273,19 +281,27 @@ bool Instantiate::addInstantiation(
   }
 
   // construct the instantiation, and rewrite the lemma
-  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
+  Node lem;
+  if (options::proof())
+  {
+    // necessary for some strange dependency with dumping instantiations
+    lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
+  }
+  else
+  {
+    lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
+  }
   
   // If proofs are enabled, attempt to construct the proof
   bool hasProof = false;
   if (isProofEnabled())
   {
-    ProofNodeManager * pnm = d_pfInst->getManager();
     // make the proof of body
     std::shared_ptr<ProofNode> pfn = pfTmp->getProofFor(body);
     // make the scope proof to get (=> q body)
     std::vector<Node> assumps;
     assumps.push_back(q);
-    std::shared_ptr<ProofNode> pfns = pnm->mkScope({pfn}, assumps);
+    std::shared_ptr<ProofNode> pfns = d_pnm->mkScope({pfn}, assumps);
     Assert (assumps.size()==1 && assumps[0]==q);
     // store in the main proof
     d_pfInst->addProof(pfns);
@@ -454,7 +470,18 @@ Node Instantiate::getInstantiation(Node q,
   // run rewriters to rewrite the instantiation in sequence.
   for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    body = ir->rewriteInstantiation(q, terms, body, doVts);
+    TrustNode trn = ir->rewriteInstantiation(q, terms, body, doVts);
+    if (!trn.isNull())
+    {
+      Node newBody = trn.getNode();
+      if (pf!=nullptr)
+      {
+        Node proven = trn.getProven();
+        pf->addLazyStep(proven, trn.getGenerator(), false, PfRule::THEORY_PREPROCESS);
+        pf->addStep(newBody, PfRule::MACRO_SR_PRED_TRANSFORM, {body, proven}, {newBody});
+      }
+      body = newBody;
+    }
   }
   return body;
 }

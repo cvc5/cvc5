@@ -55,7 +55,7 @@ class InstantiationRewriter
    * The flag doVts is whether we must apply virtual term substitution to the
    * instantiation.
    */
-  virtual Node rewriteInstantiation(Node q,
+  virtual TrustNode rewriteInstantiation(Node q,
                                     std::vector<Node>& terms,
                                     Node inst,
                                     bool doVts) = 0;
@@ -330,7 +330,9 @@ class Instantiate : public QuantifiersUtil
   static Node ensureType(Node n, TypeNode tn);
 
   /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
+  QuantifiersEngine * d_qe;
+  /** pointer to the proof node manager */
+  ProofNodeManager * d_pnm;
   /** cache of term database for quantifiers engine */
   TermDb* d_term_db;
   /** cache of term util for quantifiers engine */

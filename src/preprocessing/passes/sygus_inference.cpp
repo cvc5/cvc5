@@ -136,7 +136,10 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     {
       // preprocess the quantified formula
       TrustNode trn = theory::quantifiers::QuantifiersRewriter::preprocess(pas);
-      pas = trn.getNode();
+      if (!trn.isNull())
+      {
+        pas = trn.getNode();
+      }
       Trace("sygus-infer-debug") << "  ...preprocessed to " << pas << std::endl;
     }
     if (pas.getKind() == FORALL)

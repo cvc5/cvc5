@@ -422,7 +422,11 @@ class TheoryEngine {
     return d_propEngine;
   }
 
-  inline ProofChecker* getProofChecker() const { return d_pchecker; }
+  /** Get the proof checker */
+  ProofChecker* getProofChecker() const;
+  
+  /** Get the proof node manager */
+  ProofNodeManager* getProofNodeManager() const;
 
   /**
    * Get a pointer to the underlying sat context.
