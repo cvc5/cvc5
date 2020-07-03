@@ -869,6 +869,7 @@ set(regress_0_tests
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
   regress0/seq/seq-nemp.smt2
+  regress0/seq/seq-rewrites.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2

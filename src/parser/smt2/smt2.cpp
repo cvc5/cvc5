@@ -168,17 +168,17 @@ void Smt2::addStringOperators() {
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
     // sequence versions
-    addOperator(api::STRING_CONCAT, "seq.++");
-    addOperator(api::STRING_LENGTH, "seq.len");
-    addOperator(api::STRING_SUBSTR, "seq.extract");
-    addOperator(api::STRING_CONTAINS, "seq.contains");
-    addOperator(api::STRING_CHARAT, "seq.at");
-    addOperator(api::STRING_INDEXOF, "seq.indexof");
-    addOperator(api::STRING_REPLACE, "seq.replace");
-    addOperator(api::STRING_PREFIX, "seq.prefixof");
-    addOperator(api::STRING_SUFFIX, "seq.suffixof");
-    addOperator(api::STRING_REV, "seq.rev");
-    addOperator(api::STRING_REPLACE_ALL, "seq.replace_all");
+    addOperator(api::SEQ_CONCAT, "seq.++");
+    addOperator(api::SEQ_LENGTH, "seq.len");
+    addOperator(api::SEQ_EXTRACT, "seq.extract");
+    addOperator(api::SEQ_AT, "seq.at");
+    addOperator(api::SEQ_CONTAINS, "seq.contains");
+    addOperator(api::SEQ_INDEXOF, "seq.indexof");
+    addOperator(api::SEQ_REPLACE, "seq.replace");
+    addOperator(api::SEQ_PREFIX, "seq.prefixof");
+    addOperator(api::SEQ_SUFFIX, "seq.suffixof");
+    addOperator(api::SEQ_REV, "seq.rev");
+    addOperator(api::SEQ_REPLACE_ALL, "seq.replace_all");
     addOperator(api::SEQ_UNIT, "seq.unit");
   }
   // at the moment, we only use this syntax for smt2.6

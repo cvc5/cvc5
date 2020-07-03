@@ -2349,6 +2349,19 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   SEQ_EXTRACT,
   /**
+   * Sequence element at.
+   * Returns the element at index i from a sequence s. If the index is negative
+   * or the index is greater than the length of the string, the result is the
+   * empty sequence. Otherwise the result is a sequence of length 1.
+   * Parameters: 2
+   *   -[1]: Term of sequence sort (string s)
+   *   -[2]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_AT,
+  /**
    * Sequence contains.
    * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
    * the result is always true. Parameters: 2
