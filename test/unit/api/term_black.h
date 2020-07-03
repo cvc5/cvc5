@@ -111,13 +111,13 @@ void TermBlack::testGetKind()
   TS_ASSERT_THROWS_NOTHING(p_0.getKind());
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   TS_ASSERT_THROWS_NOTHING(p_f_y.getKind());
-  
+
   // Sequence kinds do not exist internally, test that the API properly
   // converts them back.
   Sort seqSort = d_solver.mkSequenceSort(intSort);
   Term s = d_solver.mkConst(seqSort, "s");
   Term ss = d_solver.mkTerm(SEQ_CONCAT, s, s);
-  TS_ASSERT(ss.getKind()==SEQ_CONCAT);
+  TS_ASSERT(ss.getKind() == SEQ_CONCAT);
 }
 
 void TermBlack::testGetSort()
