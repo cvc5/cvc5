@@ -1087,7 +1087,7 @@ class CVC4_PUBLIC Term
    * CVC4_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
-  
+
   /**
    * Helper function for return the kind of the term, which takes into
    * account special cases of the conversion for internal to external kinds.
