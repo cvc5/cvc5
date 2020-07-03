@@ -241,6 +241,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/process_assertions.cpp
   smt/process_assertions.h
+  smt/proof_post_processor.cpp
+  smt/proof_post_processor.h
   smt/set_defaults.cpp
   smt/set_defaults.h
   smt/smt_engine.cpp

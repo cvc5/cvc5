@@ -18,9 +18,21 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
+std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
+{
+  switch (tcpol)
+  {
+    case TConvPolicy::FIXPOINT: out << "FIXPOINT"; break;
+    case TConvPolicy::ONCE: out << "ONCE"; break;
+    default: out << "TConvPolicy:unknown"; break;
+  }
+  return out;
+}
+
 TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c)
-    : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context)
+                                         context::Context* c,
+                                         TConvPolicy tpol)
+    : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context), d_policy(tpol)
 {
 }
 
@@ -28,8 +40,17 @@ TConvProofGenerator::~TConvProofGenerator() {}
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 {
-  // should not rewrite term more than once
-  Assert(!hasRewriteStep(t));
+  if (t == s)
+  {
+    // nothing to do
+    return;
+  }
+  // should not rewrite term to two different things
+  if (hasRewriteStep(t))
+  {
+    Assert(getRewriteStep(t) == s);
+    return;
+  }
   Node eq = t.eqNode(s);
   d_proof.addLazyStep(eq, pg);
   d_rewriteMap[t] = s;
@@ -37,8 +58,17 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
-  // should not rewrite term more than once
-  Assert(!hasRewriteStep(t));
+  if (t == s)
+  {
+    // nothing to do
+    return;
+  }
+  // should not rewrite term to two different things
+  if (hasRewriteStep(t))
+  {
+    Assert(getRewriteStep(t) == s);
+    return;
+  }
   Node eq = t.eqNode(s);
   d_proof.addStep(eq, ps);
   d_rewriteMap[t] = s;
@@ -50,8 +80,17 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
-  // should not rewrite term more than once
-  Assert(!hasRewriteStep(t));
+  if (t == s)
+  {
+    // nothing to do
+    return;
+  }
+  // should not rewrite term to two different things
+  if (hasRewriteStep(t))
+  {
+    Assert(getRewriteStep(t) == s);
+    return;
+  }
   Node eq = t.eqNode(s);
   d_proof.addStep(eq, id, children, args);
   d_rewriteMap[t] = s;
@@ -72,29 +111,23 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     Assert(false);
     return nullptr;
   }
-  std::shared_ptr<ProofNode> pf = getProofForRewriting(f[0]);
-  if (pf == nullptr)
-  {
-    // failed to generate proof
-    Trace("tconv-pf-gen") << "...failed to get proof" << std::endl;
-    Assert(false);
-    return pf;
-  }
-  if (pf->getResult() != f)
+  // we use the existing proofs
+  LazyCDProof lpf(d_proof.getManager(), &d_proof);
+  Node conc = getProofForRewriting(f[0], lpf);
+  if (conc != f)
   {
     Trace("tconv-pf-gen") << "...failed, mismatch: returned proof concludes "
-                          << pf->getResult() << std::endl;
+                          << conc << ", expected " << f << std::endl;
     Assert(false);
     return nullptr;
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
-  return pf;
+  return lpf.getProofFor(f);
+  ;
 }
 
-std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
+Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
 {
-  // we use the existing proofs
-  LazyCDProof pf(d_proof.getManager(), &d_proof);
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,
   // then pf is able to generate a proof of t=s.
@@ -121,13 +154,21 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
       if (!rcur.isNull())
       {
         // d_proof should have a proof of cur = rcur. Hence there is nothing
-        // to do here, as pf will reference prg to get the proof from d_proof.
-        // It may be the case that rcur also rewrites, thus we cannot assign
-        // the final rewritten form for cur yet. Instead we revisit cur after
-        // finishing visiting rcur.
-        rewritten[cur] = rcur;
-        visit.push_back(cur);
-        visit.push_back(rcur);
+        // to do here, as pf will reference d_proof to get its proof.
+        if (d_policy == TConvPolicy::FIXPOINT)
+        {
+          // It may be the case that rcur also rewrites, thus we cannot assign
+          // the final rewritten form for cur yet. Instead we revisit cur after
+          // finishing visiting rcur.
+          rewritten[cur] = rcur;
+          visit.push_back(cur);
+          visit.push_back(rcur);
+        }
+        else
+        {
+          // not rewriting again, rcur is final
+          visited[cur] = rcur;
+        }
       }
       else
       {
@@ -140,6 +181,9 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
       itr = rewritten.find(cur);
       if (itr != rewritten.end())
       {
+        // only can generate partially rewritten nodes when rewrite again is
+        // true.
+        Assert(d_policy != TConvPolicy::ONCE);
         // if it was rewritten, check the status of the rewritten node,
         // which should be finished now
         Node rcur = itr->second;
@@ -203,7 +247,12 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
           pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
         }
         // did we rewrite ret (at post-rewrite)?
-        Node rret = getRewriteStep(ret);
+        Node rret;
+        // only if not ONCE policy, which only does pre-rewrite
+        if (d_policy != TConvPolicy::ONCE)
+        {
+          rret = getRewriteStep(ret);
+        }
         if (!rret.isNull())
         {
           if (cur != ret)
@@ -227,9 +276,8 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofForRewriting(Node t)
   } while (!visit.empty());
   Assert(visited.find(t) != visited.end());
   Assert(!visited.find(t)->second.isNull());
-  // make the overall proof
-  Node teq = t.eqNode(visited[t]);
-  return pf.getProofFor(teq);
+  // return the conclusion of the overall proof
+  return t.eqNode(visited[t]);
 }
 
 Node TConvProofGenerator::getRewriteStep(Node t) const
