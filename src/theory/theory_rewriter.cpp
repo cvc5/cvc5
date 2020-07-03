@@ -25,13 +25,16 @@ TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
                                            ProofGenerator* pg)
     : d_status(status)
 {
-  d_node = TrustNode::mkTrustRewrite(n, nr, pg);
+  // optimization: only construct if n changed, otherwise we leave it null
+  if (n!=nr)
+  {
+    d_node = TrustNode::mkTrustRewrite(n, nr, pg);
+  }
 }
 
 TrustRewriteResponse TheoryRewriter::postRewriteWithProof(TNode node)
 {
   RewriteResponse response = postRewrite(node);
-  // TODO
   // by default, we return a trust rewrite response with no proof generator
   return TrustRewriteResponse(
       response.d_status, node, response.d_node, nullptr);
@@ -40,10 +43,26 @@ TrustRewriteResponse TheoryRewriter::postRewriteWithProof(TNode node)
 TrustRewriteResponse TheoryRewriter::preRewriteWithProof(TNode node)
 {
   RewriteResponse response = preRewrite(node);
-  // TODO
   // by default, we return a trust rewrite response with no proof generator
   return TrustRewriteResponse(
       response.d_status, node, response.d_node, nullptr);
+}
+
+Node TheoryRewriter::rewriteEqualityExt(Node node)
+{
+  return node;
+}
+
+TrustNode TheoryRewriter::rewriteEqualityExtWithProof(Node node)
+{
+  Node nodeRew = rewriteEqualityExt(node);
+  if (nodeRew!=node)
+  {
+    // by default, we return a trust rewrite response with no proof generator
+    return TrustNode::mkTrustRewrite(node, nodeRew, nullptr);
+  }
+  // no rewrite
+  return TrustNode::null();
 }
 
 }  // namespace theory

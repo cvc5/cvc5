@@ -63,7 +63,9 @@ struct TrustRewriteResponse
                        ProofGenerator* pg);
   /** The status of the rewrite */
   const RewriteStatus d_status;
-  /** The trust node corresponding to the rewrite */
+  /** 
+   * The trust node corresponding to the rewrite.
+   */
   TrustNode d_node;
 };
 
@@ -99,6 +101,7 @@ class TheoryRewriter
    * @param node The node to rewrite
    */
   virtual TrustRewriteResponse postRewriteWithProof(TNode node);
+  
   /**
    * Performs a post-rewrite step.
    *
@@ -125,7 +128,15 @@ class TheoryRewriter
    *
    * @param node The node to rewrite
    */
-  virtual Node rewriteEqualityExt(Node node) { return node; }
+  virtual Node rewriteEqualityExt(Node node);
+
+  /** rewrite equality extended, with proofs
+   *
+   * @param node The node to rewrite
+   * @return A trust node of kind TrustNodeKind::REWRITE, or the null trust
+   * node if no rewrites are applied.
+   */
+  virtual TrustNode rewriteEqualityExtWithProof(Node node);
 };
 
 }  // namespace theory

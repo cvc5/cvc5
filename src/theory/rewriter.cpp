@@ -109,10 +109,10 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   Assert(d_tpg != nullptr);
   if (isExtEq)
   {
-    // TODO
-    // return
-    // getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExtWithProof(
-    //  node);
+    // theory rewriter is responsible for rewriting the equality
+    TheoryRewriter * tr = getInstance()->d_theoryRewriters[theoryOf(node)];
+    Assert (tr!=nullptr);
+    return tr->rewriteEqualityExtWithProof(node);
   }
   Node ret = getInstance()->rewriteTo(theoryOf(node), node, d_tpg.get());
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
