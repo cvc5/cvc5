@@ -23,8 +23,8 @@
 #include <vector>
 
 #include "context/context.h"
-#include "prop/sat_solver.h"
 #include "prop/minisat/minisat.h"
+#include "prop/sat_solver.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

@@ -131,7 +131,6 @@ private:
   void raiseConflict(Node conflict, std::shared_ptr<ProofNode> pf = nullptr);
 
  public:
-
   bool inConflict() const;
 
   bool hasMorePropagations() const;

@@ -285,10 +285,10 @@ public:
    * registered quantified formula. If this flag is true, we do not apply
    * certain steps like pre-skolemization since we know they will have no
    * effect.
-   * 
+   *
    * The result is wrapped in a trust node of kind TrustNodeKind::REWRITE.
    */
-  static TrustNode preprocess( Node n, bool isInst = false );
+  static TrustNode preprocess(Node n, bool isInst = false);
   static Node mkForAll( std::vector< Node >& args, Node body, QAttributes& qa );
   static Node mkForall( std::vector< Node >& args, Node body, bool marked = false );
   static Node mkForall( std::vector< Node >& args, Node body, std::vector< Node >& iplc, bool marked = false );

@@ -31,7 +31,6 @@
 #include "proof/proof_manager.h"
 #include "prop/proof_cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/proof_cnf_stream.h"
 #include "prop/theory_proxy.h"
 
 namespace CVC4 {

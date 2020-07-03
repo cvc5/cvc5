@@ -1768,8 +1768,10 @@ std::shared_ptr<ProofNode> Constraint::externalExplain(
           }
 
           // Apply the scaled-sum rule.
-          std::shared_ptr<ProofNode> sumPf = d_database->d_pnm->mkNode(
-              PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS, farkasChildren, farkasCoeffs);
+          std::shared_ptr<ProofNode> sumPf =
+              d_database->d_pnm->mkNode(PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS,
+                                        farkasChildren,
+                                        farkasCoeffs);
 
           // Provable rewrite the result
           auto botPf = d_database->d_pnm->mkNode(

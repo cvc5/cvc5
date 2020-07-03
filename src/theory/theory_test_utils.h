@@ -74,10 +74,7 @@ public:
     push(CONFLICT, n);
   }
 
-  void trustedConflict(TrustNode n) override
-  {
-    push(CONFLICT, n.getNode());
-  }
+  void trustedConflict(TrustNode n) override { push(CONFLICT, n.getNode()); }
 
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
@@ -90,8 +87,11 @@ public:
     return LemmaStatus(Node::null(), 0);
   }
 
-  LemmaStatus trustedLemma(TrustNode n, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus trustedLemma(TrustNode n,
+                           bool removable = false,
+                           bool preprocess = false,
+                           bool sendAtoms = false) override
+  {
     push(LEMMA, n.getNode());
     return LemmaStatus(Node::null(), 0);
   }

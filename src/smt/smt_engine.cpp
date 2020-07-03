@@ -3072,8 +3072,10 @@ const Proof& SmtEngine::getProof()
 void SmtEngine::setFinalProof()
 {
   d_finalProof.reset(new CDProof(d_pnm.get()));
-  d_finalProof->addProof(d_propEngine->getProof()->getProofFor(
-      NodeManager::currentNM()->mkConst(false))->clone());
+  d_finalProof->addProof(
+      d_propEngine->getProof()
+          ->getProofFor(NodeManager::currentNM()->mkConst(false))
+          ->clone());
 }
 
 void SmtEngine::printProof()

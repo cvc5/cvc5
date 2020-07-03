@@ -568,7 +568,6 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                     ca[confl][0], LEARNT);
                 ProofManager::getSatProof()->finalizeProof(
                     CVC4::Minisat::CRef_Lazy);
-
               }
               else
               {
@@ -1512,7 +1511,6 @@ lbool Solver::search(int nof_conflicts)
                   pe->registerClause(learnt_clause[0]);
                   pe->endResChain(learnt_clause[0]);
                 }
-
             } else {
               CRef cr =
                   ca.alloc(assertionLevelOnly() ? assertionLevel : max_level,
@@ -1561,22 +1559,28 @@ lbool Solver::search(int nof_conflicts)
             }
 
         } else {
-
-      // If this was a final check, we are satisfiable
-            if (check_type == CHECK_FINAL) {
-              bool decisionEngineDone = d_proxy->isDecisionEngineDone();
-              // Unless a lemma has added more stuff to the queues
-              if (!decisionEngineDone  &&
-                  (!order_heap.empty() || qhead < trail.size()) ) {
-                check_type = CHECK_WITH_THEORY;
-                continue;
-              } else if (recheck) {
-                // There some additional stuff added, so we go for another full-check
-                continue;
-              } else {
-                // Yes, we're truly satisfiable
-                return l_True;
-              }
+          // If this was a final check, we are satisfiable
+          if (check_type == CHECK_FINAL)
+          {
+            bool decisionEngineDone = d_proxy->isDecisionEngineDone();
+            // Unless a lemma has added more stuff to the queues
+            if (!decisionEngineDone
+                && (!order_heap.empty() || qhead < trail.size()))
+            {
+              check_type = CHECK_WITH_THEORY;
+              continue;
+            }
+            else if (recheck)
+            {
+              // There some additional stuff added, so we go for another
+              // full-check
+              continue;
+            }
+            else
+            {
+              // Yes, we're truly satisfiable
+              return l_True;
+            }
             } else if (check_type == CHECK_FINAL_FAKE) {
               check_type = CHECK_WITH_THEORY;
             }
@@ -2044,7 +2048,7 @@ CRef Solver::updateLemmas() {
     // If the lemma is propagating enqueue its literal (or set the conflict)
     if (conflict == CRef_Undef && value(lemma[0]) != l_True) {
       if (lemma.size() == 1 || (value(lemma[1]) == l_False && trail_index(var(lemma[1])) < backtrack_index)) {
-        if (PROOF_ON()&& lemma.size() == 1)
+        if (PROOF_ON() && lemma.size() == 1)
         {
           Node cnf_assertion = lemmas_cnf_assertion[j].first;
           Node cnf_def = lemmas_cnf_assertion[j].second;

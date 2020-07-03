@@ -43,9 +43,9 @@ InstRewriterCegqi::InstRewriterCegqi(InstStrategyCegqi* p)
 }
 
 TrustNode InstRewriterCegqi::rewriteInstantiation(Node q,
-                                             std::vector<Node>& terms,
-                                             Node inst,
-                                             bool doVts)
+                                                  std::vector<Node>& terms,
+                                                  Node inst,
+                                                  bool doVts)
 {
   return d_parent->rewriteInstantiation(q, terms, inst, doVts);
 }
@@ -454,9 +454,9 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
   }
 }
 TrustNode InstStrategyCegqi::rewriteInstantiation(Node q,
-                                             std::vector<Node>& terms,
-                                             Node inst,
-                                             bool doVts)
+                                                  std::vector<Node>& terms,
+                                                  Node inst,
+                                                  bool doVts)
 {
   Node prevInst = inst;
   if (doVts)

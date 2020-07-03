@@ -112,16 +112,16 @@ void LazyCDProof::addLazyStep(Node expected,
                               bool forceOverwrite,
                               PfRule idNull)
 {
-  if (pg==nullptr)
+  if (pg == nullptr)
   {
-    // null generator, should have given a proof rule 
-    if (idNull==PfRule::ASSUME)
+    // null generator, should have given a proof rule
+    if (idNull == PfRule::ASSUME)
     {
       Assert(false);
       return;
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
-                        << " set (trusted) step " << idNull << "\n";
+                          << " set (trusted) step " << idNull << "\n";
     addStep(expected, idNull, {}, {expected});
     return;
   }

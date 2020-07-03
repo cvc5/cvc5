@@ -322,7 +322,6 @@ private:
   context::CDO<std::shared_ptr<ProofNode>> d_blackBoxConflictPf;
 
  public:
-
   /**
    * This adds the constraint a to the queue of conflicts in d_conflicts.
    * Both a and ~a must have a proof.
@@ -340,7 +339,6 @@ private:
   void raiseBlackBoxConflict(Node bb, std::shared_ptr<ProofNode> pf = nullptr);
 
  private:
-
   inline bool conflictQueueEmpty() const {
     return d_conflicts.empty();
   }

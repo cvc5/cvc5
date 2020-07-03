@@ -418,13 +418,17 @@ void TheoryEngine::dumpAssertions(const char* tag) {
   }
 }
 
-void TheoryEngine::addTheoryLemmaToProof(CDProof * pf, Node lemma, TheoryId tid, const char * c)
+void TheoryEngine::addTheoryLemmaToProof(CDProof* pf,
+                                         Node lemma,
+                                         TheoryId tid,
+                                         const char* c)
 {
   if (options::proofNewPedantic())
   {
-    AlwaysAssert(false) << "THEORY_LEMMA : " << lemma << " from " << tid << " from " << c << std::endl;
+    AlwaysAssert(false) << "THEORY_LEMMA : " << lemma << " from " << tid
+                        << " from " << c << std::endl;
   }
-  Assert (pf!=nullptr);
+  Assert(pf != nullptr);
   unsigned tidu = static_cast<unsigned>(tid);
   Node tidn = NodeManager::currentNM()->mkConst(Rational(tidu));
   pf->addStep(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
@@ -1452,11 +1456,15 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
     if (options::proofNew())
     {
       // check if no generator, if so, add THEORY_LEMMA
-      if (texplanation.getGenerator()==nullptr)
+      if (texplanation.getGenerator() == nullptr)
       {
         Node proven = texplanation.getProven();
-        addTheoryLemmaToProof(d_lazyProof.get(), proven, theoryOf(atom)->getId(), "TheoryEngine::getExplanation (no sharing)");
-        texplanation = TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
+        addTheoryLemmaToProof(d_lazyProof.get(),
+                              proven,
+                              theoryOf(atom)->getId(),
+                              "TheoryEngine::getExplanation (no sharing)");
+        texplanation =
+            TrustNode::mkTrustPropExp(node, explanation, d_lazyProof.get());
       }
     }
     return texplanation;
@@ -1624,7 +1632,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       // internal lemmas should have generators
       Assert(from != THEORY_LAST);
       // add theory lemma step to proof
-      addTheoryLemmaToProof(d_lazyProof.get(), lemma, from, "TheoryEngine::lemma");
+      addTheoryLemmaToProof(
+          d_lazyProof.get(), lemma, from, "TheoryEngine::lemma");
       // update the trust node
       tlemma = TrustNode::mkTrustLemma(lemma, d_lazyProof.get());
     }
@@ -1698,11 +1707,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   }
 
   // assert lemmas to prop engine
-  Assert (!options::proofNew() || tlemma.getGenerator()!=nullptr);
+  Assert(!options::proofNew() || tlemma.getGenerator() != nullptr);
   d_propEngine->assertLemma(tlemma, removable, rule, node);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    Assert (!options::proofNew() || newLemmas[i].getGenerator()!=nullptr);
+    Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
 
@@ -2262,7 +2271,8 @@ theory::TrustNode TheoryEngine::getExplanation(
       {
         Trace("te-proof-exp") << "...via trust THEORY_LEMMA" << std::endl;
         // otherwise, trusted theory lemma
-        addTheoryLemmaToProof(lcp.get(), proven, it->first, "TheoryEngine::getExplanation");
+        addTheoryLemmaToProof(
+            lcp.get(), proven, it->first, "TheoryEngine::getExplanation");
       }
       std::vector<Node> pfChildren;
       pfChildren.push_back(proven);

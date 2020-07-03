@@ -128,10 +128,7 @@ bool Options::getProof() const{
   return (*this)[options::proof];
 }
 
-bool Options::getProofNew() const{
-  return (*this)[options::proofNew];
-}
-
+bool Options::getProofNew() const { return (*this)[options::proofNew]; }
 
 bool Options::getSegvSpin() const{
   return (*this)[options::segvSpin];

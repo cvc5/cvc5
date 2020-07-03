@@ -20,10 +20,10 @@
 #include <map>
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
-#include "expr/proof.h"
 
 namespace CVC4 {
 namespace theory {
@@ -56,9 +56,9 @@ class InstantiationRewriter
    * instantiation.
    */
   virtual TrustNode rewriteInstantiation(Node q,
-                                    std::vector<Node>& terms,
-                                    Node inst,
-                                    bool doVts) = 0;
+                                         std::vector<Node>& terms,
+                                         Node inst,
+                                         bool doVts) = 0;
 };
 
 /** Instantiate
@@ -83,7 +83,9 @@ class InstantiationRewriter
 class Instantiate : public QuantifiersUtil
 {
  public:
-  Instantiate(QuantifiersEngine* qe, context::UserContext* u, ProofNodeManager * pnm = nullptr);
+  Instantiate(QuantifiersEngine* qe,
+              context::UserContext* u,
+              ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
   /** reset */
@@ -178,7 +180,7 @@ class Instantiate : public QuantifiersUtil
                         std::vector<Node>& vars,
                         std::vector<Node>& terms,
                         bool doVts = false,
-                        LazyCDProof * pf = nullptr);
+                        LazyCDProof* pf = nullptr);
   /** get instantiation
    *
    * Same as above, but with vars/terms specified by InstMatch m.
@@ -289,7 +291,7 @@ class Instantiate : public QuantifiersUtil
 
   /** Are proofs enabled for this object? */
   bool isProofEnabled() const;
-  
+
   /** statistics class
    *
    * This tracks statistics on the number of instantiations successfully
@@ -330,9 +332,9 @@ class Instantiate : public QuantifiersUtil
   static Node ensureType(Node n, TypeNode tn);
 
   /** pointer to the quantifiers engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** pointer to the proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */
   TermDb* d_term_db;
   /** cache of term util for quantifiers engine */
@@ -367,7 +369,7 @@ class Instantiate : public QuantifiersUtil
    * of these instantiations, for each quantified formula.
    */
   std::vector<std::pair<Node, std::vector<Node> > > d_recorded_inst;
-  /** 
+  /**
    * A CDProof storing instantiation steps.
    */
   std::unique_ptr<CDProof> d_pfInst;

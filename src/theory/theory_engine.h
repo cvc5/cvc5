@@ -424,7 +424,7 @@ class TheoryEngine {
 
   /** Get the proof checker */
   ProofChecker* getProofChecker() const;
-  
+
   /** Get the proof node manager */
   ProofNodeManager* getProofNodeManager() const;
 
@@ -757,7 +757,8 @@ class TheoryEngine {
    * Get instantiation methods
    *   first inputs forall x.q[x] and returns ( q[a], ..., q[z] )
    *   second inputs forall x.q[x] and returns ( a, ..., z )
-   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] ) , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
+   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
+   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
    */
   void getInstantiations( Node q, std::vector< Node >& insts );
   void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
@@ -795,7 +796,10 @@ class TheoryEngine {
    * of the theory responsible for that lemma. The argument c is a tag for
    * debugging.
    */
-  void addTheoryLemmaToProof(CDProof * pf, Node lemma, theory::TheoryId tid, const char * c);
+  void addTheoryLemmaToProof(CDProof* pf,
+                             Node lemma,
+                             theory::TheoryId tid,
+                             const char* c);
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:

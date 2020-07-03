@@ -177,7 +177,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       // literal to be removed from "second" clause. They will be negated
       if (i > 0)
       {
-        elim.insert(args[i-1].negate());
+        elim.insert(args[i - 1].negate());
       }
       Trace("bool-pfcheck") << i << ": elimination set: " << elim << "\n";
       // only add to conclusion nodes that are not in elimination set. First get
@@ -207,7 +207,7 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
       }
       Trace("bool-pfcheck") << i << ": added lits: " << added << "\n\n";
     }
-    Trace("bool-pfcheck") <<"clause: " << clauseNodes << "\n" << pop;
+    Trace("bool-pfcheck") << "clause: " << clauseNodes << "\n" << pop;
     NodeManager* nm = NodeManager::currentNM();
     return clauseNodes.empty()
                ? nm->mkConst<bool>(false)

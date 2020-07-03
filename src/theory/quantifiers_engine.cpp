@@ -185,7 +185,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, u, te->getProofNodeManager())),
+      d_instantiate(
+          new quantifiers::Instantiate(this, u, te->getProofNodeManager())),
       d_skolemize(new quantifiers::Skolemize(this, u)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
@@ -1028,7 +1029,9 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }
 }
 
-bool QuantifiersEngine::addTrustedLemma(TrustNode tlem, bool doCache, bool doRewrite)
+bool QuantifiersEngine::addTrustedLemma(TrustNode tlem,
+                                        bool doCache,
+                                        bool doRewrite)
 {
   Node lem = tlem.getProven();
   if (!addLemma(lem, doCache, doRewrite))
@@ -1122,13 +1125,13 @@ void QuantifiersEngine::flushLemmas(){
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
-    std::map<Node, ProofGenerator * >::iterator itp;
+    std::map<Node, ProofGenerator*>::iterator itp;
     OutputChannel& out = getOutputChannel();
     for (const Node& lemw : d_lemmas_waiting)
     {
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
       itp = d_lemmasWaitingPg.find(lemw);
-      if (itp!=d_lemmasWaitingPg.end())
+      if (itp != d_lemmasWaitingPg.end())
       {
         TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
         out.trustedLemma(tlemw, false, true);

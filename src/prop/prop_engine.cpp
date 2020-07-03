@@ -376,23 +376,23 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
   {
     Trace("properExplanation")
         << "properExplanation(): Failing because node "
-                               << "being explained doesn't have a SAT literal ?!" << std::endl
-                               << "properExplanation(): The node is: " << node << std::endl;
+        << "being explained doesn't have a SAT literal ?!" << std::endl
+        << "properExplanation(): The node is: " << node << std::endl;
     return false;
   }
 
   SatLiteral nodeLit = d_cnfStream->getLiteral(node);
 
-  for(TNode::kinded_iterator i = expl.begin(kind::AND),
-        i_end = expl.end(kind::AND);
-      i != i_end;
+  for (TNode::kinded_iterator i = expl.begin(kind::AND),
+                              i_end = expl.end(kind::AND);
+       i != i_end;
        ++i)
   {
     if (!d_cnfStream->hasLiteral(*i))
     {
       Trace("properExplanation")
           << "properExplanation(): Failing because one of explanation "
-                                 << "nodes doesn't have a SAT literal" << std::endl
+          << "nodes doesn't have a SAT literal" << std::endl
           << "properExplanation(): The explanation node is: " << *i
           << std::endl;
       return false;
@@ -404,7 +404,7 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
     {
       Trace("properExplanation")
           << "properExplanation(): Failing because the node" << std::endl
-                                 << "properExplanation(): " << node << std::endl
+          << "properExplanation(): " << node << std::endl
           << "properExplanation(): cannot be made to explain itself!"
           << std::endl;
       return false;
@@ -414,10 +414,10 @@ bool PropEngine::properExplanation(TNode node, TNode expl) const
     {
       Trace("properExplanation")
           << "properExplanation(): SAT solver told us that node" << std::endl
-                                 << "properExplanation(): " << *i << std::endl
+          << "properExplanation(): " << *i << std::endl
           << "properExplanation(): is not part of a proper explanation node for"
           << std::endl
-                                 << "properExplanation(): " << node << std::endl
+          << "properExplanation(): " << node << std::endl
           << "properExplanation(): Perhaps it one of the two isn't assigned or "
              "the explanation"
           << std::endl
@@ -862,7 +862,6 @@ void PropEngine::finalizeProof()
                      << d_conflictLit << "\n";
   finalizeProof(getClauseNode(d_conflictLit), {d_conflictLit});
 }
-
 
 void PropEngine::finalizeProof(Minisat::Solver::TLit inConflict)
 {

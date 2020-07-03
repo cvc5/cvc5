@@ -453,23 +453,23 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::STRING_SEQ_UNIT_INJ)
   {
-    Assert (children.size()==1);
-    Assert (args.empty());
-    if (children[0].getKind()!=EQUAL)
+    Assert(children.size() == 1);
+    Assert(args.empty());
+    if (children[0].getKind() != EQUAL)
     {
       return Node::null();
     }
     Node t[2];
-    for (unsigned i=0; i<2; i++)
+    for (unsigned i = 0; i < 2; i++)
     {
-      if (children[0][i].getKind()==SEQ_UNIT)
+      if (children[0][i].getKind() == SEQ_UNIT)
       {
         t[i] = children[0][i][0];
       }
       else if (children[0][i].isConst())
       {
         std::vector<Node> chars = Word::getChars(children[0][i]);
-        if (chars.size()==1)
+        if (chars.size() == 1)
         {
           t[i] = chars[0];
         }

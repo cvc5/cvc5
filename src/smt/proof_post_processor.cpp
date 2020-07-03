@@ -224,19 +224,21 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     std::vector<std::shared_ptr<CDProof>> pfs;
     std::vector<Node> vvec;
     std::vector<Node> svec;
-    std::vector<ProofGenerator *> pgs;
-    for (size_t i=0, nchild = children.size(); i<nchild; i++)
+    std::vector<ProofGenerator*> pgs;
+    for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
       // process in reverse order
-      size_t index = nchild-(i+1);
+      size_t index = nchild - (i + 1);
       // get the substitution
       TNode var, subs;
-      builtin::BuiltinProofRuleChecker::getSubstitution(children[index], var, subs, ids);
+      builtin::BuiltinProofRuleChecker::getSubstitution(
+          children[index], var, subs, ids);
       // apply the current substitution to the range
       if (!vvec.empty())
       {
-        Node ss = subs.substitute(vvec.begin(),vvec.end(),svec.begin(),svec.end());
-        if (ss!=subs)
+        Node ss =
+            subs.substitute(vvec.begin(), vvec.end(), svec.begin(), svec.end());
+        if (ss != subs)
         {
           // make the proof for the tranitivity step
           std::shared_ptr<CDProof> pf = std::make_shared<CDProof>(d_pnm);
@@ -244,14 +246,14 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
           // prove the updated substitution
           TConvProofGenerator tcg(d_pnm, nullptr, TConvPolicy::ONCE);
           // add previous rewrite steps
-          for (unsigned j=0, nvars=vvec.size(); j<nvars; j++)
+          for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
           {
             tcg.addRewriteStep(vvec[j], svec[j], pgs[j]);
           }
           // get the proof for the update to the current substitution
           Node seqss = subs.eqNode(ss);
           std::shared_ptr<ProofNode> pfn = tcg.getProofFor(seqss);
-          Assert (pfn!=nullptr);
+          Assert(pfn != nullptr);
           // add the proof
           pf->addProof(pfn);
           // get proof for children[i] from cdp
@@ -263,13 +265,13 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
           {
             // should be true intro or false intro
             Assert(subs.isConst());
-            pf->addStep(
-                veqs,
-                subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
-                {children[index]},
-                {});
+            pf->addStep(veqs,
+                        subs.getConst<bool>() ? PfRule::TRUE_INTRO
+                                              : PfRule::FALSE_INTRO,
+                        {children[index]},
+                        {});
           }
-          pf->addStep(var.eqNode(ss),PfRule::TRANS, {veqs,seqss}, {});
+          pf->addStep(var.eqNode(ss), PfRule::TRANS, {veqs, seqss}, {});
           // add to the substitution
           vvec.push_back(var);
           svec.push_back(ss);
@@ -282,13 +284,13 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
       svec.push_back(subs);
       pgs.push_back(cdp);
     }
-    Node ts = t.substitute(vvec.begin(),vvec.end(),svec.begin(),svec.end());
+    Node ts = t.substitute(vvec.begin(), vvec.end(), svec.begin(), svec.end());
     Node eq = t.eqNode(ts);
-    if (ts!=t)
+    if (ts != t)
     {
       // should be implied by the substitution now
       TConvProofGenerator tcpg(d_pnm, nullptr, TConvPolicy::ONCE);
-      for (unsigned j=0, nvars=vvec.size(); j<nvars; j++)
+      for (unsigned j = 0, nvars = vvec.size(); j < nvars; j++)
       {
         tcpg.addRewriteStep(vvec[j], svec[j], pgs[j]);
       }

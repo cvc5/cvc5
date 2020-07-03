@@ -46,9 +46,9 @@ class InstRewriterCegqi : public InstantiationRewriter
    * and nested quantifier elimination.
    */
   TrustNode rewriteInstantiation(Node q,
-                            std::vector<Node>& terms,
-                            Node inst,
-                            bool doVts) override;
+                                 std::vector<Node>& terms,
+                                 Node inst,
+                                 bool doVts) override;
 
  private:
   /** pointer to the parent of this class */
@@ -108,9 +108,9 @@ class InstStrategyCegqi : public QuantifiersModule
    * Counterexample-Guided Instantiation" FMSD 2017, Reynolds et al.
    */
   TrustNode rewriteInstantiation(Node q,
-                            std::vector<Node>& terms,
-                            Node inst,
-                            bool doVts);
+                                 std::vector<Node>& terms,
+                                 Node inst,
+                                 bool doVts);
   /** get the instantiation rewriter object */
   InstantiationRewriter* getInstRewriter() const;
 

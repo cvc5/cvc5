@@ -2052,8 +2052,8 @@ Node QuantifiersRewriter::preSkolemizeQuantifiers( Node n, bool polarity, std::v
   return n;
 }
 
-
-TrustNode QuantifiersRewriter::preprocess( Node n, bool isInst ) {
+TrustNode QuantifiersRewriter::preprocess(Node n, bool isInst)
+{
   Node prev = n;
 
   if( options::preSkolemQuant() ){
