@@ -90,6 +90,7 @@ PR finished:
 (60) proof node updater utility (req 23)
 (61) witness rewrite
 (62) update proof checker for Skolem forms
+(64) updates to SkolemManager
 
 PRs ready:
 
@@ -99,6 +100,8 @@ PRs ready:
 (39) Theory interface update for TrustNode, ProofChecker (req 27, 51) *
 (40) theory engine proof generator (req 11, 13, 18, 23) *
 (45) regexp operation refactor (req 3, 7, 8) *
+(50) term formula removal proof producing (req 36, 38, 51, 64) *
+(59) updates to TConvGenerator for ONCE policy
 (65) updates to strings core solver *
 
 PRs future:
@@ -110,21 +113,18 @@ PRs future:
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33, 64)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (41) SharedTermDatabase uses pfee (req 24)
-(42) String rules, string checker (req 5, 17, 22, 45, 65)
-(43) strings InferProofCons (req 13, 18, 26, 34, 42)
+(42) Strings proof checker (req 5, 17, 22, 45, 65)
+(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
-(46) strings term registry proof producing (req 32, 35)
+(46) strings term registry proof producing (req 32, 35, 65)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
-(50) term formula removal proof producing (req 36, 38, 51, 64)
 (52) theory preprocess proof producing (req 27, 48, 51, 50)
 (53) CNF proof producing [Haniel]
-(54) DSL rewrite rule
+(54) DSL rewrite rule TODO
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-(59) updates to TConvGenerator for ONCE policy
 (63) proof post-processor (req 59)
-(64) updates to SkolemManager TODO
 
 
 PRs wish list:

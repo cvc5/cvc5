@@ -3071,6 +3071,7 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::setFinalProof()
 {
+  // d_finalProof should just be a ProofNode
   d_finalProof.reset(new CDProof(d_pnm.get()));
   d_finalProof->addProof(
       d_propEngine->getProof()

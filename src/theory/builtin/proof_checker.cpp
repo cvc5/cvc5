@@ -97,15 +97,7 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   }
   else if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
-    Rewriter* rewriter = Rewriter::getInstance();
-    TheoryRewriter* tr = rewriter->d_theoryRewriters[theoryOf(n)];
-    if (tr != nullptr)
-    {
-      return tr->rewriteEqualityExt(n);
-    }
-    Assert(false)
-        << "BuiltinProofRuleChecker::applyRewrite: No theory rewriter for "
-        << theoryOf(n) << " in RW_REWRITE_EQ_EXT" << std::endl;
+    return Rewriter::rewriteEqualityExt(n);
   }
   else if (idr == MethodId::RW_EVALUATE)
   {
