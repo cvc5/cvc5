@@ -1089,7 +1089,7 @@ class CVC4_PUBLIC Term
   bool isNullHelper() const;
 
   /**
-   * Helper function for return the kind of the term, which takes into
+   * Helper function that returns the kind of the term, which takes into
    * account special cases of the conversion for internal to external kinds.
    * @return the kind of this term
    */

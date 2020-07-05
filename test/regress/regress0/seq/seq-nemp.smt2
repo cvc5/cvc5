@@ -2,5 +2,5 @@
 (set-info :status sat)
 (declare-fun x () (Seq Int))
 (assert (not (= x (as seq.empty (Seq Int)))))
-(assert (= (str.len x) 16))
+(assert (= (seq.len x) 16))
 (check-sat)

@@ -4,5 +4,5 @@
 (declare-fun i () Int)
 (declare-fun n () Int)
 (assert (> i 777))
-(assert (= (str.substr z n 1) (seq.unit i)))
+(assert (= (seq.substr z n 1) (seq.unit i)))
 (check-sat)

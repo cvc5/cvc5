@@ -4,6 +4,6 @@
 (declare-fun y () (Seq Int))
 (declare-fun z () Int)
 (assert (> z 10))
-(assert (= (str.len x) (str.len y)))
-(assert (= (str.++ x (seq.unit z)) (str.++ y (seq.unit 5))))
+(assert (= (seq.len x) (seq.len y)))
+(assert (= (seq.++ x (seq.unit z)) (seq.++ y (seq.unit 5))))
 (check-sat)

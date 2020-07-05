@@ -5,5 +5,5 @@
 (declare-fun w () (Seq Int))
 (declare-fun i () Int)
 (assert (> i 777))
-(assert (not (= (str.replace z (seq.unit i) w) z)))
+(assert (not (= (seq.replace z (seq.unit i) w) z)))
 (check-sat)

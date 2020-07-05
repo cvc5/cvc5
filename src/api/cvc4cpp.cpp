@@ -1566,17 +1566,12 @@ Term Term::getConstArrayBase() const
 std::vector<Term> Term::getConstSequenceElements() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  // CONST_ARRAY kind maps to STORE_ALL internal kind
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::CONST_SEQUENCE)
       << "Expecting a CONST_SEQUENCE Term when calling "
          "getConstSequenceElements()";
   const std::vector<Node>& elems =
       d_expr->getConst<ExprSequence>().getSequence().getVec();
-  std::vector<Term> terms;
-  for (const Node& t : elems)
-  {
-    terms.push_back(Term(d_solver, t.toExpr()));
-  }
+  std::vector<Term> terms = exprVectorToTerms(elems);
   return terms;
 }
 

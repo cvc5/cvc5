@@ -2388,7 +2388,7 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_INDEXOF,
   /**
    * Sequence replace.
-   * Replaces a sequence s2 in a sequence s1 with sequence s3. If s2 does not
+   * Replaces the first occurrence of a sequence s2 in a sequence s1 with sequence s3. If s2 does not
    * appear in s1, s1 is returned unmodified. Parameters: 3
    *   -[1]: Term of sort Sequence (sequence s1)
    *   -[2]: Term of sort Sequence (sequence s2)
@@ -2432,7 +2432,7 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_PREFIX,
   /**
    * Sequence suffix-of.
-   * Checks whether a sequence s1 is a suffix of sequence 2. If sequence s1 is
+   * Checks whether a sequence s1 is a suffix of sequence s2. If sequence s1 is
    * empty, this operator returns true. Parameters: 2
    *   -[1]: Term of sort Sequence (sequence s1)
    *   -[2]: Term of sort Sequence (sequence s2)
