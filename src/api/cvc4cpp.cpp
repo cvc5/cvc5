@@ -1571,7 +1571,11 @@ std::vector<Term> Term::getConstSequenceElements() const
          "getConstSequenceElements()";
   const std::vector<Node>& elems =
       d_expr->getConst<ExprSequence>().getSequence().getVec();
-  std::vector<Term> terms = exprVectorToTerms(elems);
+  std::vector<Term> terms;
+  for (const Node& t : elems)
+  {
+    terms.push_back(Term(d_solver, t.toExpr()));
+  }
   return terms;
 }
 
