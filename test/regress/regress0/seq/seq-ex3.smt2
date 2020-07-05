@@ -1,5 +1,5 @@
 (set-logic QF_SLIA)
-;(set-info :status unsat)
+(set-info :status unsat)
 (declare-fun x () (Seq (Seq Int)))
 (declare-fun xp () (Seq (Seq Int)))
 (declare-fun y () (Seq (Seq Int)))
