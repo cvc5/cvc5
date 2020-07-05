@@ -25,11 +25,8 @@ TrustRewriteResponse::TrustRewriteResponse(RewriteStatus status,
                                            ProofGenerator* pg)
     : d_status(status)
 {
-  // optimization: only construct if n changed, otherwise we leave it null
-  if (n != nr)
-  {
-    d_node = TrustNode::mkTrustRewrite(n, nr, pg);
-  }
+  // we always make non-null, regardless of whether n = nr
+  d_node = TrustNode::mkTrustRewrite(n, nr, pg);
 }
 
 TrustRewriteResponse TheoryRewriter::postRewriteWithProof(TNode node)
