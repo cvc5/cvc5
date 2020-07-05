@@ -571,7 +571,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
       ss << "Type ascription on empty sequence must be a sequence, got " << s;
       parseError(ss.str());
     }
-    if (t.getConstSequenceElements().empty())
+    if (!t.getConstSequenceElements().empty())
     {
       std::stringstream ss;
       ss << "Cannot apply a type ascription to a non-empty sequence";
