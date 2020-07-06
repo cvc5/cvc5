@@ -4,6 +4,8 @@ Changes since 1.8
 =================
 
 New Features:
+* A new parametric theory of sequences whose syntax is compatible with the
+  syntax for sequences used by Z3.
 * Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
 

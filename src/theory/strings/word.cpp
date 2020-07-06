@@ -452,6 +452,15 @@ Node Word::reverse(TNode x)
     std::reverse(nvec.begin(), nvec.end());
     return nm->mkConst(String(nvec));
   }
+  else if (k == CONST_SEQUENCE)
+  {
+    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
+    const std::vector<Node>& vecc = sx.getVec();
+    std::vector<Node> vecr(vecc.begin(), vecc.end());
+    std::reverse(vecr.begin(), vecr.end());
+    Sequence res(sx.getType(), vecr);
+    return nm->mkConst(res.toExprSequence());
+  }
   Unimplemented();
   return Node::null();
 }

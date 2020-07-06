@@ -130,7 +130,7 @@ class Sequence
    */
   size_t roverlap(const Sequence& y) const;
 
-  /** get type */
+  /** get the element type of the sequence */
   TypeNode getType() const { return d_type; }
   /** get the internal Node representation of this sequence */
   const std::vector<Node>& getVec() const { return d_seq; }

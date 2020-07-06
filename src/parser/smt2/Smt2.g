@@ -2122,7 +2122,13 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
-        } else if(name == "Tuple") {
+        } else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
+                  PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal sequence type.");
+          }
+          t = SOLVER->mkSequenceSort( args[0] );
+        } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
           t = SOLVER->mkTupleSort(args);
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
