@@ -31,5 +31,28 @@ if(GIT_FOUND)
   endif()
 endif()
 
+#
+# We only want to update 'git_versioninfo.cpp' if the git info has changed
+#
+
+# Temporary file name
+set(TEMP_GIT_INFO git_versioninfo.cpp.curr)
+
+# Target file name
+set(FINAL_GIT_INFO git_versioninfo.cpp)
+
+# Configure our tempory file
 configure_file(
-  @CMAKE_CURRENT_SOURCE_DIR@/git_versioninfo.cpp.in git_versioninfo.cpp)
+  @CMAKE_CURRENT_SOURCE_DIR@/git_versioninfo.cpp.in ${TEMP_GIT_INFO})
+
+# Compare the target file against the temporary file name
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E compare_files ${TEMP_GIT_INFO} ${FINAL_GIT_INFO}
+  RESULT_VARIABLE GIT_UNCHANGED)
+
+# If the files are not equal (or ${FINAL_GIT_INFO} does not exist!), then we
+# overwrite the target file
+if(NOT GIT_UNCHANGED EQUAL 0)
+  configure_file(${TEMP_GIT_INFO} ${FINAL_GIT_INFO} COPYONLY)
+endif()
+
