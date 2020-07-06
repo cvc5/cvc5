@@ -1171,7 +1171,7 @@ class CVC4_PUBLIC SmtEngine
   /** The final proof produced by this SMT engine
    *
    * Combines the proofs of preprocessing, prop engine and theory engine, to be
-   * connected by setFinalProof(). 
+   * connected by setFinalProof().
    */
   std::shared_ptr<ProofNode> d_finalProof;
   //--------------------------------- end new proofs

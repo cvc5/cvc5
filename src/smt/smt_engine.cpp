@@ -3072,13 +3072,13 @@ const Proof& SmtEngine::getProof()
 void SmtEngine::setFinalProof()
 {
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
-  
+
   // d_finalProof should just be a ProofNode
   std::shared_ptr<ProofNode> body =
       d_propEngine->getProof()
           ->getProofFor(NodeManager::currentNM()->mkConst(false))
           ->clone();
-  
+
   if (Trace.isOn("smt-proof"))
   {
     Trace("smt-proof") << "SmtEngine::setFinalProof(): Proof node for false:\n";
@@ -3087,19 +3087,21 @@ void SmtEngine::setFinalProof()
     Trace("smt-proof") << ss.str() << std::endl;
     Trace("smt-proof") << "=====" << std::endl;
   }
-  
+
   std::vector<Node> assertions;
   Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for(AssertionList::const_iterator i = d_assertionList->begin(); i != d_assertionList->end(); ++i) {
+  for (AssertionList::const_iterator i = d_assertionList->begin();
+       i != d_assertionList->end();
+       ++i)
+  {
     Node n = Node::fromExpr(*i);
     Trace("smt-proof") << "- " << n << std::endl;
     assertions.push_back(n);
   }
   Trace("smt-proof") << "=====" << std::endl;
-  
-  
+
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
-  
+
   // Now make the final scope, which ensures that the only open leaves
   // of the proof are the assertions.
   d_finalProof = d_pnm->mkScope(body, assertions);
@@ -3111,7 +3113,7 @@ void SmtEngine::printProof()
 {
   setFinalProof();
   Assert(d_finalProof);
-  
+
   *options::out() << "(proof\n";
   d_finalProof->printDebug(*options::out());
   *options::out() << "\n)\n";
