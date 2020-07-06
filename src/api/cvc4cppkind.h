@@ -2351,7 +2351,7 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Sequence element at.
    * Returns the element at index i from a sequence s. If the index is negative
-   * or the index is greater than the length of the string, the result is the
+   * or the index is greater or equal to the length of the sequence, the result is the
    * empty sequence. Otherwise the result is a sequence of length 1.
    * Parameters: 2
    *   -[1]: Term of sequence sort (string s)
