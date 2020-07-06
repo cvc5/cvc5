@@ -334,7 +334,8 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
        || options::produceAbducts()
        || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
-       || options::blockModelsMode() != options::BlockModelsMode::NONE)
+       || options::blockModelsMode() != options::BlockModelsMode::NONE
+       || options::proofNew())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "

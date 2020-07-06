@@ -57,6 +57,7 @@ class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
 
+class ProofNode;
 class ProofManager;
 class ProofChecker;
 class ProofNodeManager;
@@ -1170,8 +1171,9 @@ class CVC4_PUBLIC SmtEngine
   /** The final proof produced by this SMT engine
    *
    * Combines the proofs of preprocessing, prop engine and theory engine, to be
-   * connected by setFinalProof(). */
-  std::unique_ptr<CDProof> d_finalProof;
+   * connected by setFinalProof(). 
+   */
+  std::shared_ptr<ProofNode> d_finalProof;
   //--------------------------------- end new proofs
 
   /** An index of our defined functions */
