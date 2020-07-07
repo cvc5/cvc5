@@ -23,13 +23,13 @@
 namespace CVC4 {
 namespace preprocessing {
 
-AssertionPipeline::AssertionPipeline()
+AssertionPipeline::AssertionPipeline(ProofNodeManager* pnm)
     : d_realAssertionsEnd(0),
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
       d_assumptionsStart(0),
       d_numAssumptions(0),
-      d_pnm(nullptr)
+      d_pnm(pnm)
 {
 }
 
@@ -105,8 +105,18 @@ void AssertionPipeline::replace(size_t i,
   d_nodes[i] = n;
 }
 
+bool AssertionPipeline::isProofEnabled() const
+{
+  return d_pnm!=nullptr;
+}
+
 std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
 {
+  if (!isProofEnabled())
+  {
+    // proofs are not available
+    return nullptr;
+  }
   std::map<size_t, std::vector<std::pair<Node,ProofGenerator*> > >::iterator it = d_pfNodeStack.find(i);
   if (it==d_pfNodeStack.end())
   {
@@ -134,12 +144,20 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
     
     if (prev.isNull())
     {
-      if (!curr.isNull() && prevPg!=nullptr)
+      if (!curr.isNull())
       {
-        // a proof generator provided a proof for the original assertion
-        Assert (orig==curr);
-        std::shared_ptr<ProofNode> pfr = prevPg->getProofFor(orig);
-        cdp.addProof(pfr);
+        if (prevPg!=nullptr)
+        {
+          // a proof generator provided a proof for the original assertion
+          Assert (orig==curr);
+          std::shared_ptr<ProofNode> pfr = prevPg->getProofFor(orig);
+          cdp.addProof(pfr);
+        }
+        else
+        {
+          // add trusted step
+          cdp.addStep(orig, PfRule::PREPROCESS, {}, {});
+        }
       }
     }
     else
@@ -149,6 +167,11 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
       {
         std::shared_ptr<ProofNode> pfr = prevPg->getProofFor(rewrite);
         cdp.addProof(pfr);
+      }
+      else
+      {
+        // add trusted step
+        cdp.addStep(rewrite, PfRule::PREPROCESS, {}, {});
       }
       // possibly constructing a transitivity chain
       transChildren.push_back(rewrite);
@@ -169,6 +192,15 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
   
   // undo the change
   it->second.pop_back();
+  
+  // overall, proof is:
+  //        --------- from proof generator       ---------- from proof generator
+  //        F_1 = F_2          ...               F_{n-1} = F_n
+  // ---?   -------------------------------------------------- TRANS
+  // F_1    F_1 = F_n
+  // ---------------- EQ_RESOLVE
+  // F_n
+  // Note F_1 may have been given a proof if it was not an input assumption.
   
   return cdp.getProofFor(d_nodes[i]);
 }

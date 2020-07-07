@@ -37,7 +37,7 @@ namespace preprocessing {
 class AssertionPipeline
 {
  public:
-  AssertionPipeline();
+  AssertionPipeline(ProofNodeManager* pnm = nullptr);
 
   size_t size() const { return d_nodes.size(); }
 
@@ -140,6 +140,9 @@ class AssertionPipeline
     return d_storeSubstsInAsserts && i == d_substsIndex;
   }
   
+  
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
   /** 
    * Get proof for assumption at index i in d_nodes.
    */

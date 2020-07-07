@@ -43,12 +43,12 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
     TrustNode trn = d_preprocContext->getIteRemover()->run(
         (*assertions)[i], newAsserts, newSkolems, true);
     // process
-    assertions->replace(i, trn.getNode());
+    assertions->replaceTrusted(i, trn);
     Assert(newSkolems.size() == newAsserts.size());
     for (unsigned j = 0, nnasserts = newAsserts.size(); j < nnasserts; j++)
     {
       imap[newSkolems[j]] = assertions->size();
-      assertions->ref().push_back(newAsserts[j].getNode());
+      assertions->pushBackTrusted(newAsserts[j]);
     }
   }
   for (unsigned i = 0, size = assertions->size(); i < size; ++i)

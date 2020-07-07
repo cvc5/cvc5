@@ -3108,6 +3108,10 @@ void SmtEngine::setFinalProof()
   {
     d_finalProof = d_pnm->mkScope(body, assertions);
   }
+  else
+  {
+    d_finalProof = body;
+  }
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
