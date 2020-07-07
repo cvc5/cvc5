@@ -304,8 +304,10 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                                       -1,
                                       computeRemainder && remainderDir != -1))
             {
-              Trace("strings-entail-debug") << "Last remainder begin is " << n1rb_last << std::endl;
-              Trace("strings-entail-debug") << "Last remainder end is " << n1re_last << std::endl;
+              Trace("strings-entail-debug")
+                  << "Last remainder begin is " << n1rb_last << std::endl;
+              Trace("strings-entail-debug")
+                  << "Last remainder end is " << n1re_last << std::endl;
               Assert(n1rb_last.isNull());
               if (computeRemainder)
               {
