@@ -24,6 +24,7 @@
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
 #include "smt/term_formula_removal.h"
+#include "smt/preprocess_proof_generator.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -37,7 +38,7 @@ namespace preprocessing {
 class AssertionPipeline
 {
  public:
-  AssertionPipeline(ProofNodeManager* pnm = nullptr);
+  AssertionPipeline();
 
   size_t size() const { return d_nodes.size(); }
 
@@ -144,14 +145,12 @@ class AssertionPipeline
   {
     return d_storeSubstsInAsserts && i == d_substsIndex;
   }
-
+  //------------------------------------ for proofs
+  /** Set proof generator */
+  void setProofGenerator(smt::PreprocessProofGenerator * pppg);
   /** Is proof enabled? */
   bool isProofEnabled() const;
-  /**
-   * Get proof for assumption at index i in d_nodes.
-   */
-  std::shared_ptr<ProofNode> getProofFor(size_t i);
-
+  //------------------------------------ end for proofs
  private:
   /** The list of current assertions */
   std::vector<Node> d_nodes;
@@ -183,19 +182,8 @@ class AssertionPipeline
   size_t d_assumptionsStart;
   /** The number of assumptions */
   size_t d_numAssumptions;
-
-  //--------------------------------------- proofs
-  /**
-   * The list of nodes, storing the history of the assertion at each
-   * index, and the proof generator that proved each step.
-   */
-  std::map<size_t, std::vector<std::pair<Node, ProofGenerator*> > >
-      d_pfNodeStack;
-
-  /** The proof node manager (if proofs are enabled) */
-  ProofNodeManager* d_pnm;
-  //--------------------------------------- end proofs
-
+  /** The proof generator, if one is provided */
+  smt::PreprocessProofGenerator * d_pppg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

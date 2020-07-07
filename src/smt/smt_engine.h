@@ -107,7 +107,8 @@ namespace smt {
   class SmtEnginePrivate;
   class SmtScope;
   class ProcessAssertions;
-
+  class PreprocessProofGenerator;
+  
   ProofManager* currentProofManager();
 
   struct CommandCleanup;
@@ -704,6 +705,11 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Expr> getAssertions();
 
   /**
+   * Get the proof generator for proofs of preprocessing.
+   */
+  smt::PreprocessProofGenerator * getPreprocessProofGenerator() const;
+
+  /**
    * Push a user-level context.
    * throw@ ModalException, LogicException, UnsafeInterruptException
    */
@@ -1167,7 +1173,8 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<ProofNodeManager> d_pnm;
   /** The rewrite proof database. */
   std::unique_ptr<theory::RewriteDb> d_rewriteDb;
-
+  /** The preprocess proof manager. */
+  std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The final proof produced by this SMT engine
    *
    * Combines the proofs of preprocessing, prop engine and theory engine, to be

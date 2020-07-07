@@ -29,14 +29,19 @@ class SmtEngine;
 namespace smt {
 
 /**
- * A callback class used by SmtEngine for post-processing proof nodes using
- * expand methods.
+ * A callback class used by SmtEngine for post-processing proof nodes by
+ * connecting proofs of preprocessing, and expanding macro PfRule applications.
  */
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
   ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine* smte);
   ~ProofPostprocessCallback() {}
+  /** 
+   * Initialize, called once for each new ProofNode to process. This initializes
+   * static information to be used by successive calls to update.
+   */
+  void initializeUpdate();
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
@@ -58,14 +63,21 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofChecker* d_pchecker;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
-  /** update internal */
-  Node updateInternal(PfRule id,
+  /** 
+   * Expand macros in the given application, add the expanded proof to cdp.
+   */
+  Node expandMacros(PfRule id,
                       const std::vector<Node>& children,
                       const std::vector<Node>& args,
                       CDProof* cdp);
 };
 
-/** The proof postprocessor module */
+/** 
+ * The proof postprocessor module. This postprocesses the final proof
+ * produced by an SmtEngine. Its main two tasks are to:
+ * (1) Connect proofs of preprocessing,
+ * (2) Expand macro PfRule applications.
+ */
 class ProofPostproccess
 {
  public:
@@ -73,7 +85,8 @@ class ProofPostproccess
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);
-
+  /** set eliminate rule */
+  void setEliminateRule(PfRule rule);
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;

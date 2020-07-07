@@ -38,6 +38,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
   do
   {
     cur = visit.back();
+    visit.pop_back();
     it = visited.find(cur);
     if (it == visited.end())
     {
@@ -66,12 +67,12 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
           // then, update the original proof node based on this one
           d_pnm->updateNode(cur, npn.get());
         }
-        const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
-        // now, process children
-        for (const std::shared_ptr<ProofNode>& cp : ccp)
-        {
-          visit.push_back(cp.get());
-        }
+      }
+      const std::vector<std::shared_ptr<ProofNode>>& ccp = cur->getChildren();
+      // now, process children
+      for (const std::shared_ptr<ProofNode>& cp : ccp)
+      {
+        visit.push_back(cp.get());
       }
     }
   } while (!visit.empty());

@@ -17,6 +17,7 @@
 #include "smt/smt_engine.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "preprocessing/assertion_pipeline.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -29,6 +30,12 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
     : d_pnm(pnm), d_smte(smte), d_pchecker(pnm ? pnm->getChecker() : nullptr)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
+  // always check whether to update ASSUME
+  d_elimRules.insert(PfRule::ASSUME);
+}
+
+void ProofPostprocessCallback::initializeUpdate()
+{
 }
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
@@ -46,11 +53,38 @@ bool ProofPostprocessCallback::update(PfRule id,
                                       const std::vector<Node>& args,
                                       CDProof* cdp)
 {
-  Node ret = updateInternal(id, children, args, cdp);
+  Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children << " / " << args << std::endl;
+  
+  if (id==PfRule::ASSUME)
+  {
+    PreprocessProofGenerator * pppg = d_smte->getPreprocessProofGenerator();
+    Assert (pppg!=nullptr);
+    std::shared_ptr<ProofNode> pfn = pppg->getProofFor(args[0]);
+    if (pfn==nullptr)
+    {
+      // no update
+      Trace("smt-proof-pp-debug") << "...no proof, possibly an input assumption" << std::endl;
+      return false;
+    }
+    Assert (pfn->getResult()==args[0]);
+    if (Trace.isOn("smt-proof-pp"))
+    {
+      Trace("smt-proof-pp") << "=== Connect proof for preprocessing: " << args[0] << std::endl;
+      std::stringstream ss;
+      pfn->printDebug(ss);
+      Trace("smt-proof-pp") << ss.str();
+      Trace("smt-proof-pp") << std::endl;
+    }
+    // connect the proof
+    cdp->addProof(pfn);
+    return true;
+  }
+  Node ret = expandMacros(id, children, args, cdp);
+  Trace("smt-proof-pp-debug") << "...expanded = " << !ret.isNull() << std::endl;
   return !ret.isNull();
 }
 
-Node ProofPostprocessCallback::updateInternal(PfRule id,
+Node ProofPostprocessCallback::expandMacros(PfRule id,
                                               const std::vector<Node>& children,
                                               const std::vector<Node>& args,
                                               CDProof* cdp)
@@ -127,10 +161,10 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
   {
     // (TRUE_ELIM
     //   (MACRO_SR_EQ_INTRO <children> :args <args>))
-    // We call the updateInternal method on MACRO_SR_EQ_INTRO, where notice
+    // We call the expandMacros method on MACRO_SR_EQ_INTRO, where notice
     // that this rule application is immediately expanded in the recursive
     // call and not added to the proof.
-    Node conc = updateInternal(PfRule::MACRO_SR_EQ_INTRO, children, args, cdp);
+    Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, children, args, cdp);
     Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[1] == d_true);
     cdp->addStep(conc[0], PfRule::TRUE_ELIM, {conc}, {});
     return args[0];
@@ -146,7 +180,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     srargs.push_back(children[0]);
     srargs.insert(srargs.end(), args.begin(), args.end());
     Node conc =
-        updateInternal(PfRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
+        expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
     Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0] == children[0]);
 
     Node eq1 = children[0].eqNode(d_true);
@@ -167,13 +201,13 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     //       (SYMM (MACRO_SR_EQ_INTRO children[1:] :args children[0] args[1:]))
     //       (TRUE_INTRO children[0])))
     std::vector<Node> schildren(children.begin() + 1, children.end());
-    Node eq1 = updateInternal(PfRule::MACRO_SR_EQ_INTRO, schildren, args, cdp);
+    Node eq1 = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, args, cdp);
     Assert(!eq1.isNull() && eq1.getKind() == EQUAL && eq1[0] == args[0]);
 
     std::vector<Node> args2;
     args2.push_back(children[0]);
     args2.insert(args2.end(), args.begin(), args.end());
-    Node eq2 = updateInternal(PfRule::MACRO_SR_EQ_INTRO, schildren, args2, cdp);
+    Node eq2 = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, args2, cdp);
     Assert(!eq2.isNull() && eq2.getKind() == EQUAL && eq2[0] == children[0]);
 
     Node eq3 = children[0].eqNode(d_true);
@@ -354,7 +388,7 @@ Node ProofPostprocessCallback::updateInternal(PfRule id,
     return eq;
   }
 
-  // THEORY_LEMMA, THEORY_PREPROCESS?
+  // TRUST, PREPROCESS, THEORY_LEMMA, THEORY_PREPROCESS?
 
   return Node::null();
 }
@@ -368,7 +402,16 @@ ProofPostproccess::~ProofPostproccess() {}
 
 void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
 {
+  // Initialize the callback, which computes necessary static information about
+  // how to process, including how to process assumptions in pf.
+  d_cb.initializeUpdate();
+  // now, process
   d_updater.process(pf);
+}
+
+void ProofPostproccess::setEliminateRule(PfRule rule)
+{
+  d_cb.setEliminateRule(rule);
 }
 
 }  // namespace smt
