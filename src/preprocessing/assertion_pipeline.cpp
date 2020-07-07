@@ -42,12 +42,14 @@ void AssertionPipeline::clear()
   d_pfNodeStack.clear();
 }
 
-void AssertionPipeline::push_back(Node n, bool isAssumption, ProofGenerator* pgen)
+void AssertionPipeline::push_back(Node n,
+                                  bool isAssumption,
+                                  ProofGenerator* pgen)
 {
   d_nodes.push_back(n);
   if (isAssumption)
   {
-    Assert (pgen==nullptr);
+    Assert(pgen == nullptr);
     if (d_numAssumptions == 0)
     {
       d_assumptionsStart = d_nodes.size() - 1;
@@ -62,7 +64,8 @@ void AssertionPipeline::push_back(Node n, bool isAssumption, ProofGenerator* pge
   else if (options::proofNew())
   {
     size_t i = d_nodes.size() - 1;
-    d_pfNodeStack[i].push_back(std::pair<Node,ProofGenerator*>(Node::null(), pgen));
+    d_pfNodeStack[i].push_back(
+        std::pair<Node, ProofGenerator*>(Node::null(), pgen));
   }
 }
 
@@ -77,21 +80,23 @@ void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
   if (options::proofNew())
   {
-    d_pfNodeStack[i].push_back(std::pair<Node,ProofGenerator*>(d_nodes[i], pgen));
+    d_pfNodeStack[i].push_back(
+        std::pair<Node, ProofGenerator*>(d_nodes[i], pgen));
   }
   d_nodes[i] = n;
 }
 
 void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
 {
-  Assert (trn.getKind()==theory::TrustNodeKind::REWRITE);
+  Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
   Node n = trn.getNode();
-  replace( i, n, trn.getGenerator());
+  replace(i, n, trn.getGenerator());
 }
 
 void AssertionPipeline::replace(size_t i,
                                 Node n,
-                                const std::vector<Node>& addnDeps, ProofGenerator* pgen)
+                                const std::vector<Node>& addnDeps,
+                                ProofGenerator* pgen)
 {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
         for (const auto& addnDep
@@ -100,15 +105,13 @@ void AssertionPipeline::replace(size_t i,
         });
   if (options::proofNew())
   {
-    d_pfNodeStack[i].push_back(std::pair<Node,ProofGenerator*>(d_nodes[i],pgen));
+    d_pfNodeStack[i].push_back(
+        std::pair<Node, ProofGenerator*>(d_nodes[i], pgen));
   }
   d_nodes[i] = n;
 }
 
-bool AssertionPipeline::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool AssertionPipeline::isProofEnabled() const { return d_pnm != nullptr; }
 
 std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
 {
@@ -117,22 +120,23 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
     // proofs are not available
     return nullptr;
   }
-  std::map<size_t, std::vector<std::pair<Node,ProofGenerator*> > >::iterator it = d_pfNodeStack.find(i);
-  if (it==d_pfNodeStack.end())
+  std::map<size_t, std::vector<std::pair<Node, ProofGenerator*> > >::iterator
+      it = d_pfNodeStack.find(i);
+  if (it == d_pfNodeStack.end())
   {
     // could be an assumption, return nullptr
     return nullptr;
   }
-  
+
   // for producing the final step
-  it->second.push_back(std::pair<Node,ProofGenerator*>(d_nodes[i],nullptr));
-  
+  it->second.push_back(std::pair<Node, ProofGenerator*>(d_nodes[i], nullptr));
+
   CDProof cdp(d_pnm);
   Node orig;
   Node prev;
   ProofGenerator* prevPg = nullptr;
   std::vector<Node> transChildren;
-  for (const std::pair<Node,ProofGenerator*>& pr : it->second)
+  for (const std::pair<Node, ProofGenerator*>& pr : it->second)
   {
     // we need to provide a proof of why the previous formula rewrote to the
     // current one, which is provided by the previous proof generator. If the
@@ -141,15 +145,15 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
     // original formula.
     Node curr = pr.first;
     orig = orig.isNull() ? curr : orig;
-    
+
     if (prev.isNull())
     {
       if (!curr.isNull())
       {
-        if (prevPg!=nullptr)
+        if (prevPg != nullptr)
         {
           // a proof generator provided a proof for the original assertion
-          Assert (orig==curr);
+          Assert(orig == curr);
           std::shared_ptr<ProofNode> pfr = prevPg->getProofFor(orig);
           cdp.addProof(pfr);
         }
@@ -163,7 +167,7 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
     else
     {
       Node rewrite = prev.eqNode(curr);
-      if (prevPg!=nullptr)
+      if (prevPg != nullptr)
       {
         std::shared_ptr<ProofNode> pfr = prevPg->getProofFor(rewrite);
         cdp.addProof(pfr);
@@ -176,23 +180,23 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
       // possibly constructing a transitivity chain
       transChildren.push_back(rewrite);
     }
-    
+
     prev = curr;
     prevPg = pr.second;
   }
-  Assert (!orig.isNull());
+  Assert(!orig.isNull());
   // prove ( orig == d_nodes[i] )
   Node fullRewrite = orig.eqNode(d_nodes[i]);
-  if (transChildren.size()>=2)
+  if (transChildren.size() >= 2)
   {
     cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
   }
   // prove d_nodes[i]
   cdp.addStep(d_nodes[i], PfRule::EQ_RESOLVE, {orig, fullRewrite}, {});
-  
+
   // undo the change
   it->second.pop_back();
-  
+
   // overall, proof is:
   //        --------- from proof generator       ---------- from proof generator
   //        F_1 = F_2          ...               F_{n-1} = F_n
@@ -201,7 +205,7 @@ std::shared_ptr<ProofNode> AssertionPipeline::getProofFor(size_t i)
   // ---------------- EQ_RESOLVE
   // F_n
   // Note F_1 may have been given a proof if it was not an input assumption.
-  
+
   return cdp.getProofFor(d_nodes[i]);
 }
 
