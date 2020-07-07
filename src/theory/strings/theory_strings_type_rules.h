@@ -291,7 +291,8 @@ public:
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);
-        if (!t.isString()) {
+        if (!t.isString())  // string-only
+        {
           throw TypeCheckingExceptionPrivate(n, "expecting a string term in regexp range");
         }
         if (!(*it).isConst())
@@ -329,7 +330,8 @@ class ConstSequenceTypeRule
                                      bool check)
   {
     Assert(n.getKind() == kind::CONST_SEQUENCE);
-    return n.getConst<ExprSequence>().getSequence().getType();
+    return nodeManager->mkSequenceType(
+        n.getConst<ExprSequence>().getSequence().getType());
   }
 };
 
@@ -363,8 +365,8 @@ struct SequenceProperties
     Assert(type.isSequence());
     // empty sequence
     std::vector<Expr> seq;
-    return NodeManager::currentNM()->mkConst(
-        ExprSequence(SequenceType(type.toType()), seq));
+    return NodeManager::currentNM()->mkConst(ExprSequence(
+        SequenceType(type.getSequenceElementType().toType()), seq));
   }
 }; /* struct SequenceProperties */
 

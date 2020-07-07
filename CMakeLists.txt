@@ -165,12 +165,9 @@ set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supported SWIG language bindings
-option(BUILD_SWIG_BINDINGS_JAVA   "Build Java bindings with SWIG")
-option(BUILD_SWIG_BINDINGS_PYTHON "Build Python bindings with SWIG")
-
 # Supprted language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
+option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -542,12 +539,13 @@ add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(test)
 
-if(BUILD_SWIG_BINDINGS_JAVA OR BUILD_SWIG_BINDINGS_PYTHON)
-  add_subdirectory(src/bindings)
-endif()
-
 if(BUILD_BINDINGS_PYTHON)
   add_subdirectory(src/api/python)
+endif()
+
+if(BUILD_BINDINGS_JAVA)
+  message(FATAL_ERROR
+    "Java bindings for the new API are not implemented yet.")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -624,9 +622,8 @@ print_config("Valgrind                  :" ENABLE_VALGRIND)
 message("")
 print_config("Shared libs               :" ENABLE_SHARED)
 print_config("Static binary             :" ENABLE_STATIC_BINARY)
-print_config("Java SWIG bindings        :" BUILD_SWIG_BINDINGS_JAVA)
-print_config("Python SWIG bindings      :" BUILD_SWIG_BINDINGS_PYTHON)
 print_config("Python bindings           :" BUILD_BINDINGS_PYTHON)
+print_config("Java bindings             :" BUILD_BINDINGS_JAVA)
 print_config("Python2                   :" USE_PYTHON2)
 print_config("Python3                   :" USE_PYTHON3)
 message("")

@@ -380,6 +380,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Sequence sort?
+   * @return true if the sort is a Sequence sort
+   */
+  bool isSequence() const;
+
+  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
@@ -511,6 +517,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Sequence sort ------------------------------------------------------- */
+
+  /**
+   * @return the element sort of a sequence sort
+   */
+  Sort getSequenceElementSort() const;
 
   /* Uninterpreted sort -------------------------------------------------- */
 
@@ -907,6 +920,13 @@ class CVC4_PUBLIC Term
   Term getConstArrayBase() const;
 
   /**
+   *  Return the elements of a constant sequence
+   *  throws an exception if the kind is not CONST_SEQUENCE
+   *  @return the elements of the constant sequence.
+   */
+  std::vector<Term> getConstSequenceElements() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
@@ -1067,6 +1087,13 @@ class CVC4_PUBLIC Term
    * CVC4_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
+
+  /**
+   * Helper function that returns the kind of the term, which takes into
+   * account special cases of the conversion for internal to external kinds.
+   * @return the kind of this term
+   */
+  Kind getKindHelper() const;
 
   /**
    * The internal expression wrapped by this term.
@@ -2187,6 +2214,13 @@ class CVC4_PUBLIC Solver
   Sort mkSetSort(Sort elemSort) const;
 
   /**
+   * Create a sequence sort.
+   * @param elemSort the sort of the sequence elements
+   * @return the sequence sort
+   */
+  Sort mkSequenceSort(Sort elemSort) const;
+
+  /**
    * Create an uninterpreted sort.
    * @param symbol the name of the sort
    * @return the uninterpreted sort
@@ -2549,6 +2583,13 @@ class CVC4_PUBLIC Solver
    * @return the character constant
    */
   Term mkChar(const char* s) const;
+
+  /**
+   * Create an empty sequence of the given element sort.
+   * @param sort The element sort of the sequence.
+   * @return the empty sequence with given element sort.
+   */
+  Term mkEmptySequence(Sort sort) const;
 
   /**
    * Create a universe set of the given sort.
