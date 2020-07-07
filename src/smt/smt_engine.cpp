@@ -3111,7 +3111,14 @@ void SmtEngine::setFinalProof()
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   ProofPostproccess ppp(d_pnm.get(), this);
   // add rules to eliminate here
-  // ppp.setEliminateRule(PfRule::REWRITE);
+  ppp.setEliminateRule(PfRule::SUBS);
+  ppp.setEliminateRule(PfRule::REWRITE);
+  ppp.setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
+  ppp.setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
+  ppp.setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
+  ppp.setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+  // this eliminates theory rewriting steps into finer-grained DSL rules
+  ppp.setEliminateRule(PfRule::THEORY_REWRITE);
   ppp.process(body);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";

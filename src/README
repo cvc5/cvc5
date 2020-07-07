@@ -103,6 +103,7 @@ PRs ready:
 (50) term formula removal proof producing (req 36, 38, 51, 64) *
 (59) updates to TConvGenerator for ONCE policy
 (65) updates to strings core solver *
+(66) preprocess proof generator / AssertionsPipeline
 
 PRs future:
 
@@ -124,7 +125,7 @@ PRs future:
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-(63) proof post-processor (req 59)
+(63) proof post-processor (req 59, 66)
 
 
 PRs wish list:

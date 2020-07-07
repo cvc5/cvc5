@@ -26,6 +26,19 @@
 namespace CVC4 {
 namespace smt {
 
+/**
+ * A proof generator storing proofs of preprocessing. This has two main
+ * interfaces during solving:
+ * (1) notifyNewAssert, for assertions that not part of the input and are
+ * added by preprocessing passes,
+ * (2) notifyPreprocessed, which is called when a preprocessing pass rewrites
+ * an assertion into another.
+ * Notice that input assertions do not need to be provided to this class.
+ *
+ * Its getProofFor method produces a proof for a preprocessed assertion
+ * whose free assumptions are intended to be input assertions, which are
+ * implictly all assertions that are not notified to this class.
+ */
 class PreprocessProofGenerator : public ProofGenerator
 {
  public:
@@ -44,7 +57,6 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
-
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
