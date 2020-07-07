@@ -2315,10 +2315,153 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   REGEXP_COMPLEMENT,
-#if 0
-  /* regexp rv (internal use only) */
-  REGEXP_RV,
-#endif
+
+  /**
+   * Sequence concat.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONCAT,
+  /**
+   * Sequence length.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_LENGTH,
+  /**
+   * Sequence extract.
+   * Extracts a subsequence, starting at index i and of length l, from a
+   * sequence s.  If the start index is negative, the start index is greater
+   * than the length of the sequence, or the length is negative, the result is
+   * the empty sequence. Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Integer (length l)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_EXTRACT,
+  /**
+   * Sequence element at.
+   * Returns the element at index i from a sequence s. If the index is negative
+   * or the index is greater or equal to the length of the sequence, the result is the
+   * empty sequence. Otherwise the result is a sequence of length 1.
+   * Parameters: 2
+   *   -[1]: Term of sequence sort (string s)
+   *   -[2]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_AT,
+  /**
+   * Sequence contains.
+   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
+   * the result is always true. Parameters: 2
+   *   -[1]: Term of sort Sequence (the sequence s1)
+   *   -[2]: Term of sort Sequence (the sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONTAINS,
+  /**
+   * Sequence index-of.
+   * Returns the index of a subsequence s2 in a sequence s1 starting at index i.
+   * If the index is negative or greater than the length of sequence s1 or the
+   * subsequence s2 does not appear in sequence s1 after index i, the result is
+   * -1. Parameters: 3
+   *   -[1]: Term of sort Sequence (subsequence s1)
+   *   -[2]: Term of sort Sequence (subsequence s2)
+   *   -[3]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_INDEXOF,
+  /**
+   * Sequence replace.
+   * Replaces the first occurrence of a sequence s2 in a sequence s1 with sequence s3. If s2 does not
+   * appear in s1, s1 is returned unmodified. Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE,
+  /**
+   * Sequence replace all.
+   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence
+   * s3. If s2 does not appear in s1, s1 is returned unmodified. Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE_ALL,
+  /**
+   * Sequence reverse.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_REV,
+  /**
+   * Sequence prefix-of.
+   * Checks whether a sequence s1 is a prefix of sequence s2. If sequence s1 is
+   * empty, this operator returns true.
+   * Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_PREFIX,
+  /**
+   * Sequence suffix-of.
+   * Checks whether a sequence s1 is a suffix of sequence s2. If sequence s1 is
+   * empty, this operator returns true. Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_SUFFIX,
+  /**
+   * Constant sequence.
+   * Parameters:
+   *   See mkEmptySequence()
+   * Create with:
+   *   mkEmptySequence(Sort sort)
+   * Note that a constant sequence is a term that is equivalent to:
+   *   (seq.++ (seq.unit c1) ... (seq.unit cn))
+   * where n>=0 and c1, ..., cn are constants of some sort. The elements
+   * can be extracted by Term::getConstSequenceElements().
+   */
+  CONST_SEQUENCE,
+  /**
+   * Sequence unit, corresponding to a sequence of length one with the given
+   * term.
+   * Parameters: 1
+   *   -[1] Element term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  SEQ_UNIT,
 
   /* Quantifiers ----------------------------------------------------------- */
 

@@ -162,7 +162,7 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   ResourceManager* rm = NULL;
   bool hasSmtEngine = smt::smtEngineInScope();
   if (hasSmtEngine) {
-    rm = NodeManager::currentResourceManager();
+    rm = smt::currentResourceManager();
   }
   // Rewrite until the stack is empty
   for (;;){
