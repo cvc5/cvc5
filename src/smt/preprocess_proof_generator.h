@@ -29,34 +29,35 @@ namespace smt {
 class PreprocessProofGenerator : public ProofGenerator
 {
  public:
-  PreprocessProofGenerator(ProofNodeManager * pnm);
-  ~PreprocessProofGenerator(){}
-  /** 
+  PreprocessProofGenerator(ProofNodeManager* pnm);
+  ~PreprocessProofGenerator() {}
+  /**
    * Notify that n is a new assertion, where pg can provide a proof of n.
    */
-  void notifyNewAssert(Node n, ProofGenerator * pg);
-  /** 
+  void notifyNewAssert(Node n, ProofGenerator* pg);
+  /**
    * Notify that n was replaced by np due to preprocessing, where pg can
    * provide a proof of the equality n=np.
    */
-  void notifyPreprocessed(Node n, Node np, ProofGenerator * pg);
+  void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
   /** Get proof for */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  /** 
+  /**
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
    * can either be:
    * (1) A trust node REWRITE proving (n_src = n), or
    * (2) A trust node LEMMA proving n.
    */
-  std::map<Node, theory::TrustNode > d_src;
+  std::map<Node, theory::TrustNode> d_src;
 };
-  
+
 }  // namespace smt
 }  // namespace CVC4
 

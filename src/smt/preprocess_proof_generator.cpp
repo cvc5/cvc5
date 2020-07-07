@@ -17,24 +17,25 @@
 
 #include "expr/proof.h"
 
-
 namespace CVC4 {
 namespace smt {
 
-PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager * pnm) : d_pnm(pnm)
+PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm)
+    : d_pnm(pnm)
 {
-  
 }
 
-void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator * pg)
+void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
   d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
 }
 
-void PreprocessProofGenerator::notifyPreprocessed(Node n, Node np, ProofGenerator * pg)
+void PreprocessProofGenerator::notifyPreprocessed(Node n,
+                                                  Node np,
+                                                  ProofGenerator* pg)
 {
   // only keep if indeed it rewrote
-  if (n!=np)
+  if (n != np)
   {
     d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
   }
@@ -42,7 +43,7 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n, Node np, ProofGenerato
 
 std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
 {
-  std::map<Node, theory::TrustNode >::iterator it = d_src.find(f);
+  std::map<Node, theory::TrustNode>::iterator it = d_src.find(f);
   if (it == d_src.end())
   {
     // could be an assumption, return nullptr
@@ -50,7 +51,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   }
   // make CDProof to construct the proof below
   CDProof cdp(d_pnm);
-  
+
   Node curr = f;
   std::vector<Node> transChildren;
   bool success;
@@ -59,9 +60,9 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     success = false;
     if (it != d_src.end())
     {
-      Assert (it->second.getNode()==curr);
+      Assert(it->second.getNode() == curr);
       std::shared_ptr<ProofNode> pfr = it->second.toProofNode();
-      if (pfr!=nullptr)
+      if (pfr != nullptr)
       {
         cdp.addProof(pfr);
       }
@@ -71,11 +72,11 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         Node proven = it->second.getProven();
         cdp.addStep(proven, PfRule::PREPROCESS, {}, {proven});
       }
-      
-      if (it->second.getKind()==theory::TrustNodeKind::REWRITE)
+
+      if (it->second.getKind() == theory::TrustNodeKind::REWRITE)
       {
         Node eq = it->second.getProven();
-        Assert (eq.getKind()==kind::EQUAL);
+        Assert(eq.getKind() == kind::EQUAL);
         transChildren.push_back(eq);
         // continue with source
         curr = eq[0];
@@ -85,12 +86,12 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       }
       else
       {
-        Assert (it->second.getKind()==theory::TrustNodeKind::LEMMA);
+        Assert(it->second.getKind() == theory::TrustNodeKind::LEMMA);
       }
     }
   } while (success);
-  
-  Assert (curr!=f);
+
+  Assert(curr != f);
   // prove ( curr == f )
   Node fullRewrite = curr.eqNode(f);
   if (transChildren.size() >= 2)
@@ -116,6 +117,6 @@ std::string PreprocessProofGenerator::identify() const
 {
   return "PreprocessProofGenerator";
 }
-  
+
 }  // namespace smt
 }  // namespace CVC4

@@ -37,7 +37,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
  public:
   ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine* smte);
   ~ProofPostprocessCallback() {}
-  /** 
+  /**
    * Initialize, called once for each new ProofNode to process. This initializes
    * static information to be used by successive calls to update.
    */
@@ -63,16 +63,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofChecker* d_pchecker;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
-  /** 
+  /**
    * Expand macros in the given application, add the expanded proof to cdp.
    */
   Node expandMacros(PfRule id,
-                      const std::vector<Node>& children,
-                      const std::vector<Node>& args,
-                      CDProof* cdp);
+                    const std::vector<Node>& children,
+                    const std::vector<Node>& args,
+                    CDProof* cdp);
 };
 
-/** 
+/**
  * The proof postprocessor module. This postprocesses the final proof
  * produced by an SmtEngine. Its main two tasks are to:
  * (1) Connect proofs of preprocessing,
@@ -87,6 +87,7 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;

@@ -87,16 +87,16 @@
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
 #include "smt/logic_request.h"
-#include "smt/preprocess_proof_generator.h"
 #include "smt/managed_ostreams.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
+#include "smt/preprocess_proof_generator.h"
 #include "smt/process_assertions.h"
+#include "smt/proof_post_processor.h"
 #include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
-#include "smt/proof_post_processor.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
@@ -350,7 +350,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   //------------------------------- end expression names
  public:
   IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
-  
+
   /** get assertion pipeline */
   AssertionPipeline& getAssertionPipeline() { return d_assertions; }
 
@@ -3108,11 +3108,11 @@ void SmtEngine::setFinalProof()
     assertions.push_back(n);
   }
   Trace("smt-proof") << "=====" << std::endl;
-  
+
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
   ProofPostproccess ppp(d_pnm.get(), this);
   // add rules to eliminate here
-  //ppp.setEliminateRule(PfRule::REWRITE);
+  // ppp.setEliminateRule(PfRule::REWRITE);
   ppp.process(body);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
@@ -3454,7 +3454,7 @@ vector<Expr> SmtEngine::getAssertions() {
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
 }
 
-smt::PreprocessProofGenerator * SmtEngine::getPreprocessProofGenerator() const
+smt::PreprocessProofGenerator* SmtEngine::getPreprocessProofGenerator() const
 {
   return d_pppg.get();
 }

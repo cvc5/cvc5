@@ -14,10 +14,10 @@
 
 #include "smt/proof_post_processor.h"
 
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "preprocessing/assertion_pipeline.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -34,9 +34,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
   d_elimRules.insert(PfRule::ASSUME);
 }
 
-void ProofPostprocessCallback::initializeUpdate()
-{
-}
+void ProofPostprocessCallback::initializeUpdate() {}
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 {
@@ -53,23 +51,26 @@ bool ProofPostprocessCallback::update(PfRule id,
                                       const std::vector<Node>& args,
                                       CDProof* cdp)
 {
-  Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children << " / " << args << std::endl;
-  
-  if (id==PfRule::ASSUME)
+  Trace("smt-proof-pp-debug") << "- Post process " << id << " " << children
+                              << " / " << args << std::endl;
+
+  if (id == PfRule::ASSUME)
   {
-    PreprocessProofGenerator * pppg = d_smte->getPreprocessProofGenerator();
-    Assert (pppg!=nullptr);
+    PreprocessProofGenerator* pppg = d_smte->getPreprocessProofGenerator();
+    Assert(pppg != nullptr);
     std::shared_ptr<ProofNode> pfn = pppg->getProofFor(args[0]);
-    if (pfn==nullptr)
+    if (pfn == nullptr)
     {
       // no update
-      Trace("smt-proof-pp-debug") << "...no proof, possibly an input assumption" << std::endl;
+      Trace("smt-proof-pp-debug")
+          << "...no proof, possibly an input assumption" << std::endl;
       return false;
     }
-    Assert (pfn->getResult()==args[0]);
+    Assert(pfn->getResult() == args[0]);
     if (Trace.isOn("smt-proof-pp"))
     {
-      Trace("smt-proof-pp") << "=== Connect proof for preprocessing: " << args[0] << std::endl;
+      Trace("smt-proof-pp")
+          << "=== Connect proof for preprocessing: " << args[0] << std::endl;
       std::stringstream ss;
       pfn->printDebug(ss);
       Trace("smt-proof-pp") << ss.str();
@@ -85,9 +86,9 @@ bool ProofPostprocessCallback::update(PfRule id,
 }
 
 Node ProofPostprocessCallback::expandMacros(PfRule id,
-                                              const std::vector<Node>& children,
-                                              const std::vector<Node>& args,
-                                              CDProof* cdp)
+                                            const std::vector<Node>& children,
+                                            const std::vector<Node>& args,
+                                            CDProof* cdp)
 {
   if (d_elimRules.find(id) == d_elimRules.end())
   {
@@ -179,8 +180,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<Node> srargs;
     srargs.push_back(children[0]);
     srargs.insert(srargs.end(), args.begin(), args.end());
-    Node conc =
-        expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
+    Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, srargs, cdp);
     Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0] == children[0]);
 
     Node eq1 = children[0].eqNode(d_true);

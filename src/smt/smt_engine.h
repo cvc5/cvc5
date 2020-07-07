@@ -108,7 +108,7 @@ namespace smt {
   class SmtScope;
   class ProcessAssertions;
   class PreprocessProofGenerator;
-  
+
   ProofManager* currentProofManager();
 
   struct CommandCleanup;
@@ -707,7 +707,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get the proof generator for proofs of preprocessing.
    */
-  smt::PreprocessProofGenerator * getPreprocessProofGenerator() const;
+  smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
 
   /**
    * Push a user-level context.

@@ -69,7 +69,7 @@ void AssertionPipeline::push_back(Node n,
 
 void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
 {
-  Assert (trn.getKind()==theory::TrustNodeKind::LEMMA);
+  Assert(trn.getKind() == theory::TrustNodeKind::LEMMA);
   // push back what was proven
   push_back(trn.getProven(), false, trn.getGenerator());
 }
@@ -107,7 +107,7 @@ void AssertionPipeline::replace(size_t i,
   d_nodes[i] = n;
 }
 
-void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator * pppg)
+void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
 {
   d_pppg = pppg;
 }

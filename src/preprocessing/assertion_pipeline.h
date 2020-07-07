@@ -23,8 +23,8 @@
 #include "expr/node.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
-#include "smt/term_formula_removal.h"
 #include "smt/preprocess_proof_generator.h"
+#include "smt/term_formula_removal.h"
 #include "theory/trust_node.h"
 
 namespace CVC4 {
@@ -147,7 +147,7 @@ class AssertionPipeline
   }
   //------------------------------------ for proofs
   /** Set proof generator */
-  void setProofGenerator(smt::PreprocessProofGenerator * pppg);
+  void setProofGenerator(smt::PreprocessProofGenerator* pppg);
   /** Is proof enabled? */
   bool isProofEnabled() const;
   //------------------------------------ end for proofs
@@ -183,7 +183,7 @@ class AssertionPipeline
   /** The number of assumptions */
   size_t d_numAssumptions;
   /** The proof generator, if one is provided */
-  smt::PreprocessProofGenerator * d_pppg;
+  smt::PreprocessProofGenerator* d_pppg;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
