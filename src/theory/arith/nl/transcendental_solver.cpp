@@ -1449,7 +1449,7 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
     Node pab = pbounds[index];
     if (!pab.isNull())
     {
-      // { x -> M(tf[0]) }
+      // { x -> M_A(tf[0]) }
       // Notice that we compute the model value of tfs first, so that
       // the call to rewrite below does not modify the term, where notice that
       // rewrite( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
