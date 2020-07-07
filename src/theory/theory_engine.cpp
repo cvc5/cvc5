@@ -173,6 +173,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
+                           ResourceManager* rm,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
@@ -205,7 +206,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_true(),
       d_false(),
       d_interrupted(false),
-      d_resourceManager(NodeManager::currentResourceManager()),
+      d_resourceManager(rm),
       d_inPreregister(false),
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
