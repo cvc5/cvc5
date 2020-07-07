@@ -1452,14 +1452,15 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
       // { x -> M(tf[0]) }
       // Notice that we compute the model value of tfs first, so that
       // the call to rewrite below does not modify the term, where notice that
-      // M_A( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
+      // rewrite( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
       // is not equal to
       // M_A( x*x { x -> t } ) = M_A( t*t )
+      // where M_A denotes the abstract model.
       Node mtfs = d_model.computeAbstractModelValue(tfs);
       pab = pab.substitute(tfv, mtfs);
       pab = Rewriter::rewrite(pab);
-      Node v_pab = d_model.computeAbstractModelValue(pab);
-      bounds.push_back(v_pab);
+      Assert (pab.isConst());
+      bounds.push_back(pab);
     }
     else
     {
