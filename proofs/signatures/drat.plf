@@ -1,4 +1,4 @@
-; Depends on lrat.plf
+; Deps: lrat.plf
 ;
 ; Implementation of DRAT checking.
 ;

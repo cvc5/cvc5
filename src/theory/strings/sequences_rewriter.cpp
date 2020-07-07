@@ -576,6 +576,11 @@ Node SequencesRewriter::rewriteLength(Node node)
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
   }
+  else if (nk0 == SEQ_UNIT)
+  {
+    Node retNode = nm->mkConst(Rational(1));
+    return returnRewrite(node, retNode, Rewrite::LEN_SEQ_UNIT);
+  }
   return node;
 }
 
@@ -1836,6 +1841,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
+          Assert(c.getType() == t.getType());
           nb << c.eqNode(t);
         }
 
@@ -3171,7 +3177,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     Assert(ratLen.getDenominator() == 1);
     Integer intLen = ratLen.getNumerator();
     uint32_t u = intLen.getUnsignedInt();
-    if (stype.isString())
+    if (stype.isString())  // string-only
     {
       res = nm->mkConst(String(std::string(u, 'A')));
     }
@@ -3233,7 +3239,7 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   {
     std::vector<Expr> seq;
     seq.push_back(node[0].toExpr());
-    TypeNode stype = nm->mkSequenceType(node[0].getType());
+    TypeNode stype = node[0].getType();
     Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }

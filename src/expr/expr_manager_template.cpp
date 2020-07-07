@@ -640,6 +640,14 @@ SetType ExprManager::mkSetType(Type elementType) const {
   return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
 }
 
+SequenceType ExprManager::mkSequenceType(Type elementType) const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return SequenceType(Type(
+      d_nodeManager,
+      new TypeNode(d_nodeManager->mkSequenceType(*elementType.d_typeNode))));
+}
+
 DatatypeType ExprManager::mkDatatypeType(Datatype& datatype, uint32_t flags)
 {
   // Not worth a special implementation; this doesn't need to be fast
