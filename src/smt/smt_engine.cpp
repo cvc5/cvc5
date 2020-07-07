@@ -3104,8 +3104,10 @@ void SmtEngine::setFinalProof()
 
   // Now make the final scope, which ensures that the only open leaves
   // of the proof are the assertions.
-  d_finalProof = d_pnm->mkScope(body, assertions);
-
+  if (options::proofNewFinal())
+  {
+    d_finalProof = d_pnm->mkScope(body, assertions);
+  }
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 

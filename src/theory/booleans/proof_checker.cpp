@@ -27,6 +27,7 @@ void BoolProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::CHAIN_RESOLUTION, this);
   pc->registerChecker(PfRule::FACTORING, this);
   pc->registerChecker(PfRule::REORDERING, this);
+  pc->registerChecker(PfRule::EQ_RESOLVE, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::AND_INTRO, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
@@ -213,6 +214,16 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                ? nm->mkConst<bool>(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
+  }
+  if (id == PfRule::EQ_RESOLVE)
+  {
+    Assert(children.size() == 2);
+    Assert(args.empty());
+    if (children[1].getKind()!=kind::EQUAL || children[0]!=children[1][0])
+    {
+      return Node::null();
+    }
+    return children[1][1];
   }
   // natural deduction rules
   if (id == PfRule::AND_ELIM)

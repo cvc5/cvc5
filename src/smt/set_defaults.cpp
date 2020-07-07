@@ -340,7 +340,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
              << "option requiring assertions." << std::endl;
-    smte.setOption("produce-assertions", SExpr("true"));
+    options::produceAssertions.set(true);
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and

@@ -46,6 +46,7 @@ const char* toString(PfRule id)
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
+    case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";

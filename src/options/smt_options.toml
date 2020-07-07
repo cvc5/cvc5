@@ -182,6 +182,14 @@ header = "options/smt_options.h"
   help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
 
 [[option]]
+  name       = "proofNewFinal"
+  category   = "regular"
+  long       = "proof-new-final"
+  type       = "bool"
+  default    = "false"
+  help       = "(temporary) try to make the final closed proof with proof-new"
+
+[[option]]
   name       = "dumpInstantiations"
   category   = "regular"
   long       = "dump-instantiations"

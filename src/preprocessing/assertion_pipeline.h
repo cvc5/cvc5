@@ -22,6 +22,9 @@
 
 #include "expr/node.h"
 #include "smt/term_formula_removal.h"
+#include "expr/proof_generator.h"
+#include "theory/trust_node.h"
+#include "expr/proof_node_manager.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -54,8 +57,12 @@ class AssertionPipeline
    * @param n The assertion/assumption
    * @param isAssumption If true, records that \p n is an assumption. Note that
    * all assumptions have to be added contiguously.
+   * @param pg The proof generator who can provide a proof of n. The proof
+   * generator is not required and is ignored if isAssumption is true.
    */
-  void push_back(Node n, bool isAssumption = false);
+  void push_back(Node n, bool isAssumption = false, ProofGenerator* pg = nullptr);
+  /** Same as above, with TrustNode */
+  void pushBackTrusted(theory::TrustNode trn);
 
   std::vector<Node>& ref() { return d_nodes; }
   const std::vector<Node>& ref() const { return d_nodes; }
@@ -66,21 +73,28 @@ class AssertionPipeline
   /*
    * Replaces assertion i with node n and records the dependency between the
    * original assertion and its replacement.
+   * 
+   * @param i The position of the assertion to replace.
+   * @param n The replacement assertion.
+   * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
+   * where d_nodes[i] is the assertion at position i prior to this call.
    */
-  void replace(size_t i, Node n);
+  void replace(size_t i, Node n, ProofGenerator* pg = nullptr);
+  /** Same as above, with TrustNode */
+  void replaceTrusted(size_t i, theory::TrustNode trn);
 
   /*
    * Replaces assertion i with node n and records that this replacement depends
    * on assertion i and the nodes listed in addnDeps. The dependency
    * information is used for unsat cores and proofs.
+   * 
+   * @param i The position of the assertion to replace.
+   * @param n The replacement assertion.
+   * @param addnDeps The dependencies.
+   * @param pg The proof generator who can provide a proof of d_nodes[i] == n,
+   * where d_nodes[i] is the assertion at position i prior to this call.
    */
-  void replace(size_t i, Node n, const std::vector<Node>& addnDeps);
-
-  /*
-   * Replaces an assertion with a vector of assertions and records the
-   * dependencies.
-   */
-  void replace(size_t i, const std::vector<Node>& ns);
+  void replace(size_t i, Node n, const std::vector<Node>& addnDeps, ProofGenerator* pg = nullptr);
 
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
@@ -125,6 +139,11 @@ class AssertionPipeline
   {
     return d_storeSubstsInAsserts && i == d_substsIndex;
   }
+  
+  /** 
+   * Get proof for assumption at index i in d_nodes.
+   */
+  std::shared_ptr<ProofNode> getProofFor(size_t i);
 
  private:
   /** The list of current assertions */
@@ -157,6 +176,18 @@ class AssertionPipeline
   size_t d_assumptionsStart;
   /** The number of assumptions */
   size_t d_numAssumptions;
+  
+  //--------------------------------------- proofs
+  /** 
+   * The list of nodes, storing the history of the assertion at each
+   * index, and the proof generator that proved each step.
+   */
+  std::map<size_t, std::vector<std::pair<Node,ProofGenerator*> > > d_pfNodeStack;
+  
+  /** The proof node manager (if proofs are enabled) */
+  ProofNodeManager* d_pnm;
+  //--------------------------------------- end proofs
+  
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing
