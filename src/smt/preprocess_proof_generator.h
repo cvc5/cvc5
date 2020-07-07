@@ -57,6 +57,7 @@ class PreprocessProofGenerator : public ProofGenerator
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
+
  private:
   /** The proof node manager */
   ProofNodeManager* d_pnm;
