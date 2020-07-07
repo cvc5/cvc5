@@ -43,6 +43,7 @@ void AssertionPipeline::clear()
 
 void AssertionPipeline::push_back(Node n,
                                   bool isAssumption,
+                                  bool isInput,
                                   ProofGenerator* pgen)
 {
   d_nodes.push_back(n);
@@ -60,7 +61,7 @@ void AssertionPipeline::push_back(Node n,
     Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
-  else if (isProofEnabled())
+  if (!isInput && isProofEnabled())
   {
     // notice this is always called, regardless of whether pgen is nullptr
     d_pppg->notifyNewAssert(n, pgen);

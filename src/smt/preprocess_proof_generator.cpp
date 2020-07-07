@@ -16,6 +16,7 @@
 #include "smt/preprocess_proof_generator.h"
 
 #include "expr/proof.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace smt {
@@ -27,6 +28,7 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm)
 
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
+  Trace("smt-proof-pp-debug") << "- notifyNewAssert: " << n << std::endl;
   d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
 }
 
@@ -37,6 +39,7 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
   // only keep if indeed it rewrote
   if (n != np)
   {
+    Trace("smt-proof-pp-debug") << "- notifyPreprocessed: " << n << "..." << np << std::endl;
     d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
   }
 }
@@ -61,22 +64,28 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     if (it != d_src.end())
     {
       Assert(it->second.getNode() == curr);
+      bool proofStepProcessed = false;
       std::shared_ptr<ProofNode> pfr = it->second.toProofNode();
       if (pfr != nullptr)
       {
+        Assert(pfr->getResult() == it->second.getProven());
         cdp.addProof(pfr);
-      }
-      else
-      {
-        // add trusted step
-        Node proven = it->second.getProven();
-        cdp.addStep(proven, PfRule::PREPROCESS, {}, {proven});
+        proofStepProcessed = true;
       }
 
       if (it->second.getKind() == theory::TrustNodeKind::REWRITE)
       {
         Node eq = it->second.getProven();
         Assert(eq.getKind() == kind::EQUAL);
+        if (!proofStepProcessed)
+        {
+          // maybe its just a simple rewrite?
+          if (eq[1]==theory::Rewriter::rewrite(eq[0]))
+          {
+            cdp.addStep(eq, PfRule::REWRITE, {}, {eq[0]});
+            proofStepProcessed = true;
+          }
+        }
         transChildren.push_back(eq);
         // continue with source
         curr = eq[0];
@@ -87,6 +96,13 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       else
       {
         Assert(it->second.getKind() == theory::TrustNodeKind::LEMMA);
+      }
+      
+      if (!proofStepProcessed)
+      {
+        // add trusted step
+        Node proven = it->second.getProven();
+        cdp.addStep(proven, PfRule::PREPROCESS, {}, {proven});
       }
     }
   } while (success);

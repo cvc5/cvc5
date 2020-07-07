@@ -1592,8 +1592,7 @@ void SmtEnginePrivate::addFormula(
   );
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption);
-  //d_assertions.push_back(Rewriter::rewrite(n));
+  d_assertions.push_back(n, isAssumption, true);
 }
 
 void SmtEngine::ensureBoolean(const Expr& e)
