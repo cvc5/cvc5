@@ -39,7 +39,8 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
   // only keep if indeed it rewrote
   if (n != np)
   {
-    Trace("smt-proof-pp-debug") << "- notifyPreprocessed: " << n << "..." << np << std::endl;
+    Trace("smt-proof-pp-debug")
+        << "- notifyPreprocessed: " << n << "..." << np << std::endl;
     d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
   }
 }
@@ -80,7 +81,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         if (!proofStepProcessed)
         {
           // maybe its just a simple rewrite?
-          if (eq[1]==theory::Rewriter::rewrite(eq[0]))
+          if (eq[1] == theory::Rewriter::rewrite(eq[0]))
           {
             cdp.addStep(eq, PfRule::REWRITE, {}, {eq[0]});
             proofStepProcessed = true;
@@ -97,7 +98,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       {
         Assert(it->second.getKind() == theory::TrustNodeKind::LEMMA);
       }
-      
+
       if (!proofStepProcessed)
       {
         // add trusted step
