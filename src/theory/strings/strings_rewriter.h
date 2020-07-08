@@ -2,9 +2,9 @@
 /*! \file strings_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,13 +32,17 @@ namespace strings {
 class StringsRewriter : public SequencesRewriter
 {
  public:
+  StringsRewriter(HistogramStat<Rewrite>* statistics);
+
+  RewriteResponse postRewrite(TNode node) override;
+
   /** rewrite string to integer
    *
    * This is the entry point for post-rewriting terms n of the form
    *   str.to_int( s )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStrToInt(Node n);
+  Node rewriteStrToInt(Node n);
 
   /** rewrite integer to string
    *
@@ -46,7 +50,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.from_int( i )
    * Returns the rewritten form of n.
    */
-  static Node rewriteIntToStr(Node n);
+  Node rewriteIntToStr(Node n);
 
   /** rewrite string convert
    *
@@ -54,7 +58,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.tolower( s ) and str.toupper( s )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStrConvert(Node n);
+  Node rewriteStrConvert(Node n);
 
   /** rewrite string less than
    *
@@ -62,7 +66,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.<( t, s )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStringLt(Node n);
+  Node rewriteStringLt(Node n);
 
   /** rewrite string less than or equal
    *
@@ -70,7 +74,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.<=( t, s )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStringLeq(Node n);
+  Node rewriteStringLeq(Node n);
 
   /** rewrite str.from_code
    *
@@ -78,7 +82,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.from_code( t )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStringFromCode(Node n);
+  Node rewriteStringFromCode(Node n);
 
   /** rewrite str.to_code
    *
@@ -86,7 +90,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.to_code( t )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStringToCode(Node n);
+  Node rewriteStringToCode(Node n);
 
   /** rewrite is digit
    *
@@ -94,7 +98,7 @@ class StringsRewriter : public SequencesRewriter
    *   str.is_digit( t )
    * Returns the rewritten form of n.
    */
-  static Node rewriteStringIsDigit(Node n);
+  Node rewriteStringIsDigit(Node n);
 };
 
 }  // namespace strings

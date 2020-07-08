@@ -164,6 +164,7 @@ TPL_OPTION_STRUCT_RW = \
   type operator()() const;
   bool wasSetByUser() const;
   void set(const type& v);
+  const char* getName() const;
 }} {name} CVC4_PUBLIC;"""
 
 TPL_OPTION_STRUCT_RO = \
@@ -172,6 +173,7 @@ TPL_OPTION_STRUCT_RO = \
   typedef {type} type;
   type operator()() const;
   bool wasSetByUser() const;
+  const char* getName() const;
 }} {name} CVC4_PUBLIC;"""
 
 
@@ -207,7 +209,6 @@ TPL_IMPL_WAS_SET_BY_USER = TPL_DECL_WAS_SET_BY_USER[:-1] + \
   return d_holder->{name}__setByUser__;
 }}"""
 
-
 # Option specific methods
 
 TPL_IMPL_OPTION_SET = \
@@ -227,6 +228,14 @@ TPL_IMPL_OPTION_WAS_SET_BY_USER = \
 {{
   return Options::current()->wasSetByUser(*this);
 }}"""
+
+TPL_IMPL_GET_NAME = \
+"""inline const char* {name}__option_t::getName() const
+{{
+  return "{long_name}";
+}}"""
+
+
 
 # Mode templates
 TPL_DECL_MODE_ENUM = \
@@ -593,6 +602,12 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
         inls.append(TPL_IMPL_OPTION_WAS_SET_BY_USER.format(name=option.name))
         if not option.read_only:
             inls.append(TPL_IMPL_OPTION_SET.format(name=option.name))
+        if option.long:
+            long_name = option.long.split('=')[0]
+        else:
+            long_name = ""
+        inls.append(TPL_IMPL_GET_NAME.format(
+                        name=option.name, long_name=long_name))
 
 
         ### Generate code for {module.name}_options.cpp

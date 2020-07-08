@@ -2,9 +2,9 @@
 /*! \file decision_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Tim King
+ **   Kshitij Bansal, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,11 +60,16 @@ class DecisionEngine {
 
   // init/shutdown state
   unsigned d_engineState;    // 0=pre-init; 1=init,pre-shutdown; 2=shutdown
-public:
+  /** Pointer to resource manager for associated SmtEngine */
+  ResourceManager* d_resourceManager;
+
+ public:
   // Necessary functions
 
   /** Constructor */
-  DecisionEngine(context::Context *sc, context::UserContext *uc);
+  DecisionEngine(context::Context* sc,
+                 context::UserContext* uc,
+                 ResourceManager* rm);
 
   /** Destructor, currently does nothing */
   ~DecisionEngine() {

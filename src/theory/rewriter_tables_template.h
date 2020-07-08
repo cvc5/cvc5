@@ -2,9 +2,9 @@
 /*! \file rewriter_tables_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Tim King, Liana Hadarean
+ **   Dejan Jovanovic, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -63,8 +63,6 @@ ${post_rewrite_set_cache}
 
 Rewriter::Rewriter()
 {
-${rewrite_init}
-
 for (size_t i = 0; i < kind::LAST_KIND; ++i)
 {
   d_preRewriters[i] = nullptr;
@@ -75,7 +73,6 @@ for (size_t i = 0; i < theory::THEORY_LAST; ++i)
 {
   d_preRewritersEqual[i] = nullptr;
   d_postRewritersEqual[i] = nullptr;
-  d_theoryRewriters[i]->registerRewrites(this);
 }
 }
 

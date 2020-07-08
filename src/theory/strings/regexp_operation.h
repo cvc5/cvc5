@@ -2,9 +2,9 @@
 /*! \file regexp_operation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds
+ **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -121,8 +121,6 @@ class RegExpOpr {
   bool checkConstRegExp( Node r );
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
-  /** is k a native operator whose return type is a regular expression? */
-  static bool isRegExpKind(Kind k);
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
@@ -152,15 +150,9 @@ class RegExpOpr {
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
-   * that `r2` matches). This method only works on a fragment of regular
-   * expressions, specifically regular expressions that pass the
-   * `isSimpleRegExp` check.
-   *
-   * @param r1 The regular expression that may include `r2` (must be in
-   *           rewritten form)
-   * @param r2 The regular expression that may be included by `r1` (must be
-   *           in rewritten form)
-   * @return True if the inclusion can be shown, false otherwise
+   * that `r2` matches). See documentation in RegExpEntail::regExpIncludes for
+   * more details. This call caches the result (which is context-independent),
+   * for performance reasons.
    */
   bool regExpIncludes(Node r1, Node r2);
 };

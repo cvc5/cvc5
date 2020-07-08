@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
+ **   Morgan Deters, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -65,6 +65,12 @@ class StatisticsRegistry;
 
 /* -------------------------------------------------------------------------- */
 
+namespace api {
+class Solver;
+}  // namespace api
+
+/* -------------------------------------------------------------------------- */
+
 namespace context {
   class Context;
   class UserContext;
@@ -96,7 +102,7 @@ namespace smt {
   struct SmtEngineStatistics;
   class SmtEnginePrivate;
   class SmtScope;
-  class BooleanTermConverter;
+  class ProcessAssertions;
 
   ProofManager* currentProofManager();
 
@@ -108,6 +114,7 @@ namespace smt {
 
 namespace theory {
   class TheoryModel;
+  class Rewriter;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -125,22 +132,51 @@ namespace theory {
 
 class CVC4_PUBLIC SmtEngine
 {
+  friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
-  friend class ::CVC4::smt::BooleanTermConverter;
+  friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
+  friend class ::CVC4::theory::Rewriter;
 
   /* .......................................................................  */
  public:
   /* .......................................................................  */
 
-  /** Construct an SmtEngine with the given expression manager.  */
-  SmtEngine(ExprManager* em);
+  /**
+   * The current mode of the solver, which is an extension of Figure 4.1 on
+   * page 52 of the SMT-LIB version 2.6 standard
+   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+   */
+  enum SmtMode
+  {
+    // the initial state of the solver
+    SMT_MODE_START,
+    // normal state of the solver, after assert/push/pop/declare/define
+    SMT_MODE_ASSERT,
+    // immediately after a check-sat returning "sat"
+    SMT_MODE_SAT,
+    // immediately after a check-sat returning "unknown"
+    SMT_MODE_SAT_UNKNOWN,
+    // immediately after a check-sat returning "unsat"
+    SMT_MODE_UNSAT,
+    // immediately after a successful call to get-abduct
+    SMT_MODE_ABDUCT,
+    // immediately after a successful call to get-interpol
+    SMT_MODE_INTERPOL
+  };
+
+  /**
+   * Construct an SmtEngine with the given expression manager.
+   * If provided, optr is a pointer to a set of options that should initialize the values
+   * of the options object owned by this class.
+   */
+  SmtEngine(ExprManager* em, Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -159,6 +195,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Return the user context level.  */
   size_t getNumUserLevels() { return d_userLevels.size(); }
+
+  /** Return the current mode of the solver. */
+  SmtMode getSmtMode() { return d_smtMode; }
 
   /**
    * Set the logic of the script.
@@ -181,11 +220,17 @@ class CVC4_PUBLIC SmtEngine
   /** Get the logic information currently set. */
   LogicInfo getLogicInfo() const;
 
+  /** Get the logic information set by the user. */
+  LogicInfo getUserLogicInfo() const;
+
   /**
    * Set information about the script executing.
    * @throw OptionException, ModalException
    */
   void setInfo(const std::string& key, const CVC4::SExpr& value);
+
+  /** Return true if given keyword is a valid SMT-LIB v2 get-info flag. */
+  bool isValidGetInfoFlag(const std::string& key) const;
 
   /** Query information about the SMT environment.  */
   CVC4::SExpr getInfo(const std::string& key) const;
@@ -207,8 +252,15 @@ class CVC4_PUBLIC SmtEngine
   /** Is this an internal subsolver? */
   bool isInternalSubsolver() const;
 
-  /** set the input name */
-  void setFilename(std::string filename);
+  /**
+   * Notify that we are now parsing the input with the given filename.
+   * This call sets the filename maintained by this SmtEngine for bookkeeping
+   * and also makes a copy of the current options of this SmtEngine. This
+   * is required so that the SMT-LIB command (reset) returns the SmtEngine
+   * to a state where its options were prior to parsing but after e.g.
+   * reading command line options.
+   */
+  void notifyStartParsing(std::string filename);
   /** return the input name (if any) */
   std::string getFilename() const;
 
@@ -261,15 +313,18 @@ class CVC4_PUBLIC SmtEngine
    *   (lambda (formals) formula)
    * This adds func to the list of defined functions, which indicates that
    * all occurrences of func should be expanded during expandDefinitions.
-   * This method expects input such that:
-   * - func : a variable of function type that expects the arguments in
-   *          formals,
-   * - formals : a list of BOUND_VARIABLE expressions,
-   * - formula does not contain func.
+   *
+   * @param func a variable of function type that expects the arguments in
+   *             formal
+   * @param formals a list of BOUND_VARIABLE expressions
+   * @param formula The body of the function, must not contain func
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
    */
   void defineFunction(Expr func,
                       const std::vector<Expr>& formals,
-                      Expr formula);
+                      Expr formula,
+                      bool global = false);
 
   /** Return true if given expression is a defined function. */
   bool isDefinedFunction(Expr func);
@@ -288,17 +343,22 @@ class CVC4_PUBLIC SmtEngine
    * - func[i] : a variable of function type that expects the arguments in
    *             formals[i], and
    * - formals[i] : a list of BOUND_VARIABLE expressions.
+   *
+   * @param global True if this definition is global (i.e. should persist when
+   *               popping the user context)
    */
   void defineFunctionsRec(const std::vector<Expr>& funcs,
-                          const std::vector<std::vector<Expr> >& formals,
-                          const std::vector<Expr>& formulas);
+                          const std::vector<std::vector<Expr>>& formals,
+                          const std::vector<Expr>& formulas,
+                          bool global = false);
   /**
    * Define function recursive
    * Same as above, but for a single function.
    */
   void defineFunctionRec(Expr func,
                          const std::vector<Expr>& formals,
-                         Expr formula);
+                         Expr formula,
+                         bool global = false);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -355,16 +415,6 @@ class CVC4_PUBLIC SmtEngine
    * are assumed to be universally quantified.
    */
   void declareSygusVar(const std::string& id, Expr var, Type type);
-
-  /**
-   * Store information for debugging sygus invariants setup.
-   *
-   * Since in SyGuS the commands "declare-primed-var" are not necessary for
-   * building invariant constraints, we only use them to check that the number
-   * of variables declared corresponds to the number of arguments of the
-   * invariant-to-synthesize.
-   */
-  void declareSygusPrimedVar(const std::string& id, Type type);
 
   /**
    * Add a function variable declaration.
@@ -582,6 +632,23 @@ class CVC4_PUBLIC SmtEngine
   Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
 
   /**
+   * This method asks this SMT engine to find an interpolant with respect to
+   * the current assertion stack (call it A) and the conjecture (call it B). If
+   * this method returns true, then interpolant is set to a formula I such that
+   * A ^ ~I and I ^ ~B are both unsatisfiable.
+   *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shapes of possible solutions.
+   *
+   * This method invokes a separate copy of the SMT engine for solving the
+   * corresponding sygus problem for generating such a solution.
+   */
+  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+
+  /** Same as above, but without user-provided grammar restrictions */
+  bool getInterpol(const Expr& conj, Expr& interpol);
+
+  /**
    * This method asks this SMT engine to find an abduct with respect to the
    * current assertion stack (call it A) and the conjecture (call it B).
    * If this method returns true, then abd is set to a formula C such that
@@ -770,6 +837,9 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying ExprManager. */
   ExprManager* getExprManager() const { return d_exprManager; }
 
+  /** Permit access to the underlying NodeManager. */
+  NodeManager* getNodeManager() const;
+
   /** Export statistics from this SmtEngine. */
   Statistics getStatistics() const;
 
@@ -822,6 +892,12 @@ class CVC4_PUBLIC SmtEngine
    */
   void setExpressionName(Expr e, const std::string& name);
 
+  /** Get the options object (const and non-const versions) */
+  Options& getOptions();
+  const Options& getOptions() const;
+
+  /** Get the resource manager of this SMT engine */
+  ResourceManager* getResourceManager();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -833,33 +909,13 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDList<Expr> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
-  /** The types for the recursive function definitions */
-  typedef context::CDList<Node> NodeList;
-
-  /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT
-  };
 
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
@@ -875,6 +931,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };
+
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
@@ -915,6 +974,18 @@ class CVC4_PUBLIC SmtEngine
    * unsatisfiable. If not, then the found solutions are wrong.
    */
   void checkSynthSolution();
+
+  /**
+   * Check that a solution to an interpolation problem is indeed a solution.
+   *
+   * The check is made by determining that the assertions imply the solution of
+   * the interpolation problem (interpol), and the solution implies the goal
+   * (conj). If these criteria are not met, an internal error is thrown.
+   */
+  void checkInterpol(Expr interpol,
+                     const std::vector<Expr>& easserts,
+                     const Node& conj);
+
   /**
    * Check that a solution to an abduction conjecture is indeed a solution.
    *
@@ -1038,6 +1109,7 @@ class CVC4_PUBLIC SmtEngine
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+
   /**
    * Get abduct internal.
    *
@@ -1065,6 +1137,9 @@ class CVC4_PUBLIC SmtEngine
 
   /* Members -------------------------------------------------------------- */
 
+  /** Solver instance that owns this SmtEngine instance. */
+  api::Solver* d_solver = nullptr;
+
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;
   /** User level context */
@@ -1084,6 +1159,14 @@ class CVC4_PUBLIC SmtEngine
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;
+
+  /**
+   * The rewriter associated with this SmtEngine. We have a different instance
+   * of the rewriter for each SmtEngine instance. This is because rewriters may
+   * hold references to objects that belong to theory solvers, which are
+   * specific to an SmtEngine/TheoryEngine instance.
+   */
+  std::unique_ptr<theory::Rewriter> d_rewriter;
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
@@ -1118,16 +1201,17 @@ class CVC4_PUBLIC SmtEngine
    */
   Expr d_abdConj;
 
-  /** recursive function definition abstractions for --fmf-fun */
-  std::map<Node, TypeNode> d_fmfRecFunctionsAbs;
-  std::map<Node, std::vector<Node> > d_fmfRecFunctionsConcrete;
-  NodeList* d_fmfRecFunctionsDefined;
-
   /**
    * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in interactive mode.
+   * getAssertions().  Only maintained if in incremental mode.
    */
   AssertionList* d_assertionList;
+
+  /**
+   * List of lemmas generated for global recursive function definitions. We
+   * assert this list of definitions in each check-sat call.
+   */
+  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
 
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
@@ -1171,9 +1255,13 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Command*> d_defineCommands;
 
   /**
-   * The logic we're in.
+   * The logic we're in. This logic may be an extension of the logic set by the
+   * user.
    */
   LogicInfo d_logic;
+
+  /** The logic set by the user. */
+  LogicInfo d_userLogic;
 
   /**
    * Keep a copy of the original option settings (for reset()).
@@ -1253,6 +1341,18 @@ class CVC4_PUBLIC SmtEngine
 
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
+  /** The options object */
+  Options d_options;
+  /**
+   * Manager for limiting time and abstract resource usage.
+   */
+  std::unique_ptr<ResourceManager> d_resourceManager;
+  /**
+   * The global scope object. Upon creation of this SmtEngine, it becomes the
+   * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
+   * or another SmtEngine is created.
+   */
+  std::unique_ptr<smt::SmtScope> d_scope;
   /*---------------------------- sygus commands  ---------------------------*/
 
   /**

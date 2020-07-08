@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -318,6 +318,11 @@ class Instantiate : public QuantifiersUtil
                                    bool addedLem = true);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
+  /**
+   * Ensure that n has type tn, return a term equivalent to it for that type
+   * if possible.
+   */
+  static Node ensureType(Node n, TypeNode tn);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;

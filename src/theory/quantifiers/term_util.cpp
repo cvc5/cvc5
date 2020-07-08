@@ -2,9 +2,9 @@
 /*! \file term_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Andrew Reynolds, Morgan Deters, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -302,19 +302,6 @@ void TermUtil::computeInstConstContainsForQuant(Node q,
         vars.push_back(v);
       }
     }
-  }
-}
-
-Node TermUtil::ensureType( Node n, TypeNode tn ) {
-  TypeNode ntn = n.getType();
-  Assert(ntn.isComparableTo(tn));
-  if( ntn.isSubtypeOf( tn ) ){
-    return n;
-  }else{
-    if( tn.isInteger() ){
-      return NodeManager::currentNM()->mkNode( TO_INTEGER, n );
-    }
-    return Node::null();
   }
 }
 

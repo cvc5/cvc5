@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "expr/node_trie.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -271,6 +272,8 @@ private:
                   const LogicInfo& logicInfo);
   ~TheoryDatatypes();
 
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   /** propagate */
@@ -299,7 +302,7 @@ private:
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
   void finishInit() override;
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  Node expandDefinition(Node n) override;
   Node ppRewrite(TNode n) override;
   void presolve() override;
   void addSharedTerm(TNode t) override;
@@ -368,10 +371,13 @@ private:
   bool areDisequal( TNode a, TNode b );
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
-private:
- /** sygus symmetry breaking utility */
- std::unique_ptr<SygusExtension> d_sygusExtension;
 
+ private:
+  /** sygus symmetry breaking utility */
+  std::unique_ptr<SygusExtension> d_sygusExtension;
+
+  /** The theory rewriter for this theory. */
+  DatatypesRewriter d_rewriter;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

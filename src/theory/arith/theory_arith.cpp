@@ -2,9 +2,9 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/ext_theory.h"
@@ -39,12 +40,15 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     , d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  if (options::nlExt()) {
+  // if logic is non-linear
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
     setupExtTheory();
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
     getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
     getExtTheory()->addFunctionKind(kind::SINE);
     getExtTheory()->addFunctionKind(kind::PI);
+    getExtTheory()->addFunctionKind(kind::IAND);
   }
 }
 
@@ -53,12 +57,34 @@ TheoryArith::~TheoryArith(){
   delete d_internal;
 }
 
+TheoryRewriter* TheoryArith::getTheoryRewriter()
+{
+  return d_internal->getTheoryRewriter();
+}
+
 void TheoryArith::preRegisterTerm(TNode n){
   d_internal->preRegisterTerm(n);
 }
 
-Node TheoryArith::expandDefinition(LogicRequest &logicRequest, Node node) {
-  return d_internal->expandDefinition(logicRequest, node);
+void TheoryArith::finishInit()
+{
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
+      && getLogicInfo().areTranscendentalsUsed())
+  {
+    // witness is used to eliminate square root
+    tm->setUnevaluatedKind(kind::WITNESS);
+    // we only need to add the operators that are not syntax sugar
+    tm->setUnevaluatedKind(kind::EXPONENTIAL);
+    tm->setUnevaluatedKind(kind::SINE);
+    tm->setUnevaluatedKind(kind::PI);
+  }
+}
+
+Node TheoryArith::expandDefinition(Node node)
+{
+  return d_internal->expandDefinition(node);
 }
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {

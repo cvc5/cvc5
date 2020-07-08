@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -200,16 +200,6 @@ class SygusGrammarNorm
     void addConsInfo(SygusGrammarNorm* sygus_norm,
                      const DTypeConstructor& cons,
                      std::shared_ptr<SygusPrintCallback> spc);
-    /**
-     * Returns the total version of Kind k if it is a partial operator, or
-     * otherwise k itself.
-     */
-    static Kind getEliminateKind(Kind k);
-    /**
-     * Returns a version of n where all partial functions such as bvudiv
-     * have been replaced by their total versions like bvudiv_total.
-     */
-    static Node eliminatePartialOperators(Node n);
 
     /** initializes a datatype with the information in the type object
      *

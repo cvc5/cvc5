@@ -2,9 +2,9 @@
 /*! \file theory_strings_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -83,6 +83,16 @@ Node mkNConcat(const std::vector<Node>& c, TypeNode tn);
 Node mkNLength(Node t);
 
 /**
+ * Returns (pre t n), which is (str.substr t 0 n).
+ */
+Node mkPrefix(Node t, Node n);
+
+/**
+ * Returns (suf t n), which is (str.substr t n (- (str.len t) n)).
+ */
+Node mkSuffix(Node t, Node n);
+
+/**
  * Get constant component. Returns the string constant represented by the
  * string or regular expression t. For example:
  *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null
@@ -101,6 +111,50 @@ Node getConstantComponent(Node t);
  *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
  */
 Node getConstantEndpoint(Node e, bool isSuf);
+
+/** decompose substr chain
+ *
+ * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
+ * function returns base, adds { x1 ... xn } to ss, and { y1 ... yn } to ls.
+ */
+Node decomposeSubstrChain(Node s, std::vector<Node>& ss, std::vector<Node>& ls);
+/** make substr chain
+ *
+ * If ss is { x1 ... xn } and ls is { y1 ... yn }, this returns the term
+ * substr( ... substr( base, x1, y1 ) ..., xn, yn ).
+ */
+Node mkSubstrChain(Node base,
+                   const std::vector<Node>& ss,
+                   const std::vector<Node>& ls);
+
+/**
+ * Collects equal-to-empty nodes from a conjunction or a single
+ * node. Returns a list of nodes that are compared to empty nodes
+ * and a boolean that indicates whether all nodes in the
+ * conjunction were a comparison with the empty node. The nodes in
+ * the list are sorted and duplicates removed.
+ *
+ * Examples:
+ *
+ * collectEmptyEqs( (= "" x) ) = { true, [x] }
+ * collectEmptyEqs( (and (= "" x) (= "" y)) ) = { true, [x, y] }
+ * collectEmptyEqs( (and (= "A" x) (= "" y) (= "" y)) ) = { false, [y] }
+ *
+ * @param x The conjunction of equalities or a single equality
+ * @return A pair of a boolean that indicates whether the
+ * conjunction consists only of comparisons to the empty string
+ * and the list of nodes that are compared to the empty string
+ */
+std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
+
+/**
+ * Return if a string-like term n is "constant-like", that is, either a
+ * constant string/sequence, or an application of seq.unit.
+ *
+ * @param n The string-like term
+ * @return true if n is constant-like.
+ */
+bool isConstantLike(Node n);
 
 /**
  * Given a vector of regular expression nodes and a start index that points to
@@ -142,6 +196,8 @@ void printConcatTrace(std::vector<Node>& n, const char* c);
 
 /** Is k a string-specific kind? */
 bool isStringKind(Kind k);
+/** is k a native operator whose return type is a regular expression? */
+bool isRegExpKind(Kind k);
 
 /** Get owner string type
  *

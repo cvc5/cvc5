@@ -38,7 +38,7 @@ if [ -z "$HOST" ]; then
   echo "WARNING:"
 fi
 
-GMPVERSION=6.1.2
+GMPVERSION=6.2.0
 BOOSTVERSION=1.55.0
 BOOSTBASE=boost_1_55_0
 
@@ -84,7 +84,7 @@ MAKE_CFLAGS="$MAKE_CFLAGS" \
 MAKE_CXXFLAGS="$MAKE_CXXFLAGS" \
 MAKE_LDFLAGS="$MAKE_LDFLAGS" \
 GMPVERSION="$GMPVERSION" \
-  contrib/get-gmp || reporterror
+  contrib/get-gmp-dev || reporterror
 
 echo
 echo =============================================================================

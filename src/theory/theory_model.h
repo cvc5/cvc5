@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -266,6 +266,13 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x.
+   * In particular, this ensures that val does not have any subterms that
+   * are of unevaluated kinds.
+   */
+  bool isLegalElimination(TNode x, TNode val);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -356,8 +363,8 @@ public:
   std::map<Node, Node> d_approximations;
   /** list of all approximations */
   std::vector<std::pair<Node, Node> > d_approx_list;
-  /** a set of kinds that are not evaluated */
-  std::unordered_set<Kind, kind::KindHashFunction> d_not_evaluated_kinds;
+  /** a set of kinds that are unevaluated */
+  std::unordered_set<Kind, kind::KindHashFunction> d_unevaluated_kinds;
   /** a set of kinds that are semi-evaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
   /**

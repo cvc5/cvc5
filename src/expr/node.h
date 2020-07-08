@@ -2,9 +2,9 @@
 /*! \file node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -468,7 +468,7 @@ public:
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
-           || getKind() == kind::EXISTS || getKind() == kind::CHOICE
+           || getKind() == kind::EXISTS || getKind() == kind::WITNESS
            || getKind() == kind::COMPREHENSION
            || getKind() == kind::MATCH_BIND_CASE;
   }
@@ -1348,7 +1348,8 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
                                     std::unordered_map<TNode, TNode, TNodeHashFunction>& cache) const {
   Assert(node != *this);
 
-  if (getNumChildren() == 0) {
+  if (getNumChildren() == 0 || node == replacement)
+  {
     return *this;
   }
 
@@ -1382,7 +1383,6 @@ NodeTemplate<ref_count>::substitute(TNode node, TNode replacement,
 
   // put in cache
   Node n = nb;
-  Assert(node != n);
   cache[*this] = n;
   return n;
 }

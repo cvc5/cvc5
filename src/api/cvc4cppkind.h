@@ -2,9 +2,9 @@
 /*! \file cvc4cppkind.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -134,15 +134,42 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   LAMBDA,
   /**
-   * Hilbert choice (epsilon) expression.
+   * The syntax of a witness term is similar to a quantified formula except that
+   * only one bound variable is allowed.
+   * The term (witness ((x T)) F) returns an element x of type T
+   * and asserts F.
+   *
+   * The witness operator behaves like the description operator
+   * (see https://planetmath.org/hilbertsvarepsilonoperator) if there is no x
+   * that satisfies F. But if such x exists, the witness operator does not
+   * enforce the axiom that ensures uniqueness up to logical equivalence:
+   * forall x. F \equiv G => witness x. F =  witness x. G
+   *
+   * For example if there are 2 elements of type T that satisfy F, then the
+   * following formula is satisfiable:
+   * (distinct
+   *    (witness ((x Int)) F)
+   *    (witness ((x Int)) F))
+   *
+   * This kind is primarily used internally, but may be returned in models
+   * (e.g. for arithmetic terms in non-linear queries). However, it is not
+   * supported by the parser. Moreover, the user of the API should be cautious
+   * when using this operator. In general, all witness terms
+   * (witness ((x Int)) F) should be such that (exists ((x Int)) F) is a valid
+   * formula. If this is not the case, then the semantics in formulas that use
+   * witness terms may be unintuitive. For example, the following formula is
+   * unsatisfiable:
+   * (or (= (witness ((x Int)) false) 0) (not (= (witness ((x Int)) false) 0))
+   * whereas notice that (or (= z 0) (not (= z 0))) is true for any z.
+   *
    * Parameters: 2
    *   -[1]: BOUND_VAR_LIST
-   *   -[2]: Hilbert choice body
+   *   -[2]: Witness body
    * Create with:
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  CHOICE,
+  WITNESS,
 
   /* Boolean --------------------------------------------------------------- */
 
@@ -1477,7 +1504,24 @@ enum CVC4_PUBLIC Kind : int32_t
    * conditions when there is a chain of equalities connecting two constant
    * arrays, the solver doesn't know what to do and aborts (Issue #1667).
    */
-  STORE_ALL,
+  CONST_ARRAY,
+  /**
+   * Equality over arrays a and b over a given range [i,j], i.e.,
+   * \forall k . i <= k <= j --> a[k] = b[k]
+   *
+   * Parameters: 4
+   *   -[1]: First array
+   *   -[2]: Second array
+   *   -[3]: Lower bound of range (inclusive)
+   *   -[4]: Uppper bound of range (inclusive)
+   * Create with:
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   *
+   * Note: We currently support the creation of array equalities over index
+   * types bit-vector, floating-point, integer and real. Option --arrays-exp is
+   * required to support this operator.
+   */
+  EQ_RANGE,
 #if 0
   /* array table function (internal-only symbol) */
   ARR_TABLE_FUN,
@@ -1852,6 +1896,18 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   COMPREHENSION,
+  /**
+   * Returns an element from a given set.
+   * If a set A = {x}, then the term (choose A) is equivalent to the term x.
+   * If the set is empty, then (choose A) is an arbitrary value.
+   * If the set has cardinality > 1, then (choose A) will deterministically
+   * return an element in A.
+   * Parameters: 1
+   *   -[1]: Term of set sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  CHOOSE,
 
   /* Strings --------------------------------------------------------------- */
 
@@ -1922,7 +1978,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRCTN,
+  STRING_CONTAINS,
   /**
    * String index-of.
    * Returns the index of a substring s2 in a string s1 starting at index i. If
@@ -1936,7 +1992,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRIDOF,
+  STRING_INDEXOF,
   /**
    * String replace.
    * Replaces a string s2 in a string s1 with string s3. If s2 does not appear
@@ -1949,7 +2005,7 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPL,
+  STRING_REPLACE,
   /**
    * String replace all.
    * Replaces all occurrences of a string s2 in a string s1 with string s3.
@@ -1962,7 +2018,34 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
-  STRING_STRREPLALL,
+  STRING_REPLACE_ALL,
+  /**
+   * String replace regular expression match.
+   * Replaces the first match of a regular expression r in string s1 with
+   * string s2. If r does not match a substring of s1, s1 is returned
+   * unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE,
+  /**
+   * String replace all regular expression matches.
+   * Replaces all matches of a regular expression r in string s1 with string
+   * s2. If r does not match a substring of s1, s1 is returned unmodified.
+   * Parameters: 3
+   *   -[1]: Term of sort String (string s1)
+   *   -[2]: Term of sort Regexp (regexp r)
+   *   -[3]: Term of sort String (string s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_REPLACE_RE_ALL,
   /**
    * String to lower case.
    * Parameters: 1
@@ -2074,7 +2157,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_ITOS,
+  STRING_FROM_INT,
   /**
    * String to integer (total function).
    * If the string does not contain an integer or the integer is negative, the
@@ -2084,7 +2167,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * Create with:
    *   mkTerm(Kind kind, Term child)
    */
-  STRING_STOI,
+  STRING_TO_INT,
   /**
    * Constant string.
    * Parameters:
@@ -2232,10 +2315,153 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   REGEXP_COMPLEMENT,
-#if 0
-  /* regexp rv (internal use only) */
-  REGEXP_RV,
-#endif
+
+  /**
+   * Sequence concat.
+   * Parameters: n > 1
+   *   -[1]..[n]: Terms of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONCAT,
+  /**
+   * Sequence length.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_LENGTH,
+  /**
+   * Sequence extract.
+   * Extracts a subsequence, starting at index i and of length l, from a
+   * sequence s.  If the start index is negative, the start index is greater
+   * than the length of the sequence, or the length is negative, the result is
+   * the empty sequence. Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Integer (length l)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_EXTRACT,
+  /**
+   * Sequence element at.
+   * Returns the element at index i from a sequence s. If the index is negative
+   * or the index is greater or equal to the length of the sequence, the result is the
+   * empty sequence. Otherwise the result is a sequence of length 1.
+   * Parameters: 2
+   *   -[1]: Term of sequence sort (string s)
+   *   -[2]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_AT,
+  /**
+   * Sequence contains.
+   * Checks whether a sequence s1 contains another sequence s2. If s2 is empty,
+   * the result is always true. Parameters: 2
+   *   -[1]: Term of sort Sequence (the sequence s1)
+   *   -[2]: Term of sort Sequence (the sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_CONTAINS,
+  /**
+   * Sequence index-of.
+   * Returns the index of a subsequence s2 in a sequence s1 starting at index i.
+   * If the index is negative or greater than the length of sequence s1 or the
+   * subsequence s2 does not appear in sequence s1 after index i, the result is
+   * -1. Parameters: 3
+   *   -[1]: Term of sort Sequence (subsequence s1)
+   *   -[2]: Term of sort Sequence (subsequence s2)
+   *   -[3]: Term of sort Integer (index i)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_INDEXOF,
+  /**
+   * Sequence replace.
+   * Replaces the first occurrence of a sequence s2 in a sequence s1 with sequence s3. If s2 does not
+   * appear in s1, s1 is returned unmodified. Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE,
+  /**
+   * Sequence replace all.
+   * Replaces all occurrences of a sequence s2 in a sequence s1 with sequence
+   * s3. If s2 does not appear in s1, s1 is returned unmodified. Parameters: 3
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   *   -[3]: Term of sort Sequence (sequence s3)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_REPLACE_ALL,
+  /**
+   * Sequence reverse.
+   * Parameters: 1
+   *   -[1]: Term of Sequence sort
+   * Create with:
+   *   mkTerm(Kind kind, Term child)
+   */
+  SEQ_REV,
+  /**
+   * Sequence prefix-of.
+   * Checks whether a sequence s1 is a prefix of sequence s2. If sequence s1 is
+   * empty, this operator returns true.
+   * Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_PREFIX,
+  /**
+   * Sequence suffix-of.
+   * Checks whether a sequence s1 is a suffix of sequence s2. If sequence s1 is
+   * empty, this operator returns true. Parameters: 2
+   *   -[1]: Term of sort Sequence (sequence s1)
+   *   -[2]: Term of sort Sequence (sequence s2)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_SUFFIX,
+  /**
+   * Constant sequence.
+   * Parameters:
+   *   See mkEmptySequence()
+   * Create with:
+   *   mkEmptySequence(Sort sort)
+   * Note that a constant sequence is a term that is equivalent to:
+   *   (seq.++ (seq.unit c1) ... (seq.unit cn))
+   * where n>=0 and c1, ..., cn are constants of some sort. The elements
+   * can be extracted by Term::getConstSequenceElements().
+   */
+  CONST_SEQUENCE,
+  /**
+   * Sequence unit, corresponding to a sequence of length one with the given
+   * term.
+   * Parameters: 1
+   *   -[1] Element term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1)
+   */
+  SEQ_UNIT,
 
   /* Quantifiers ----------------------------------------------------------- */
 

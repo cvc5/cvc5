@@ -2,9 +2,9 @@
 /*! \file sygus_unif_io.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -83,7 +83,7 @@ class UnifContextIo : public UnifContext
   * role to nrole.
   */
   bool updateStringPosition(SygusUnifIo* sui,
-                            std::vector<unsigned>& pos,
+                            std::vector<size_t>& pos,
                             NodeRole nrole);
   /** get current strings
   *
@@ -94,7 +94,7 @@ class UnifContextIo : public UnifContext
   */
   void getCurrentStrings(SygusUnifIo* sui,
                          const std::vector<Node>& vals,
-                         std::vector<String>& ex_vals);
+                         std::vector<Node>& ex_vals);
   /** get string increment
   *
   * If this method returns true, then inc and tot are updated such that
@@ -107,13 +107,13 @@ class UnifContextIo : public UnifContext
   */
   bool getStringIncrement(SygusUnifIo* sui,
                           bool isPrefix,
-                          const std::vector<String>& ex_vals,
+                          const std::vector<Node>& ex_vals,
                           const std::vector<Node>& vals,
-                          std::vector<unsigned>& inc,
-                          unsigned& tot);
+                          std::vector<size_t>& inc,
+                          size_t& tot);
   /** returns true if ex_vals[i] = vals[i] for all active indices i. */
   bool isStringSolved(SygusUnifIo* sui,
-                      const std::vector<String>& ex_vals,
+                      const std::vector<Node>& ex_vals,
                       const std::vector<Node>& vals);
   //----------end for CONCAT strategies
 

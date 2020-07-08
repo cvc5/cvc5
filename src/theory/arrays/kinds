@@ -31,6 +31,9 @@ operator SELECT 2 "array select; first parameter is an array term, second is the
 # store a i e  is  a[i] <= e
 operator STORE 3 "array store; first parameter is an array term, second is the store index, third is the term to store at the index"
 
+# eqrange a b i j  \forall k. i <= k <= j -> a[k] = b[k]
+operator EQ_RANGE 4 "equality of two arrays over an index range lower/upper"
+
 # storeall t e  is  \all i in indexType(t) <= e
 constant STORE_ALL \
     ::CVC4::ArrayStoreAll \
@@ -53,6 +56,7 @@ typerule STORE ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule STORE_ALL ::CVC4::theory::arrays::ArrayStoreTypeRule
 typerule ARR_TABLE_FUN ::CVC4::theory::arrays::ArrayTableFunTypeRule
 typerule ARRAY_LAMBDA ::CVC4::theory::arrays::ArrayLambdaTypeRule
+typerule EQ_RANGE ::CVC4::theory::arrays::ArrayEqRangeTypeRule
 
 operator PARTIAL_SELECT_0 0:2 "partial array select, for internal use only"
 operator PARTIAL_SELECT_1 0:2 "partial array select, for internal use only"

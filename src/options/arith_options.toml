@@ -149,7 +149,6 @@ header = "options/arith_options.h"
   long       = "miplib-trick"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "turns on the preprocessing step of attempting to infer bounds on miplib problems"
 
 [[option]]
@@ -275,14 +274,6 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   help       = "use quick explain to minimize the sum of infeasibility conflicts"
-
-[[option]]
-  name       = "rewriteDivk"
-  category   = "regular"
-  long       = "rewrite-divk"
-  type       = "bool"
-  default    = "false"
-  help       = "rewrite division and mod when by a constant into linear terms"
 
 [[option]]
   name       = "trySolveIntStandardEffort"
@@ -438,22 +429,13 @@ header = "options/arith_options.h"
   help       = "apply pseudo boolean rewrites"
 
 [[option]]
-  name       = "sNormInferEq"
-  category   = "regular"
-  long       = "snorm-infer-eq"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "infer equalities based on Shostak normalization"
-
-[[option]]
   name       = "nlExt"
   category   = "regular"
   long       = "nl-ext"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "extended approach to non-linear"
+  help       = "incremental linearization approach to non-linear"
 
 [[option]]
   name       = "nlExtResBound"
@@ -462,7 +444,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use resolution-style inference for inferring new bounds"
+  help       = "use resolution-style inference for inferring new bounds in non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtFactor"
@@ -471,7 +453,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "use factoring inference in non-linear solver"
+  help       = "use factoring inference in non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTangentPlanes"
@@ -480,7 +462,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use non-terminating tangent plane strategy for non-linear"
+  help       = "use non-terminating tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTangentPlanesInterleave"
@@ -488,7 +470,7 @@ header = "options/arith_options.h"
   long       = "nl-ext-tplanes-interleave"
   type       = "bool"
   default    = "false"
-  help       = "interleave tangent plane strategy for non-linear"
+  help       = "interleave tangent plane strategy for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtTfTangentPlanes"
@@ -497,7 +479,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear"
+  help       = "use non-terminating tangent plane strategy for transcendental functions for non-linear incremental linearization solver"
 
 [[option]]
   name       = "nlExtEntailConflicts"
@@ -515,7 +497,7 @@ header = "options/arith_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "do rewrites in non-linear solver"
+  help       = "do context-dependent simplification based on rewrites in non-linear solver"
 
 [[option]]
   name       = "nlExtPurify"

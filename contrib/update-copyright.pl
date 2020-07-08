@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 #
 # update-copyright.pl
-# Copyright (c) 2009-2019  The CVC4 Project
+# Copyright (c) 2009-2020  The CVC4 Project
 #
 # usage: update-copyright [-m] [files/directories...]
 #        update-copyright [-h | --help]
@@ -47,7 +47,7 @@ $excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
-my $years = '2009-2019';
+my $years = '2009-2020';
 
 my $standard_template = <<EOF;
  ** This file is part of the CVC4 project.

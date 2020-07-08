@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,6 +42,7 @@ namespace CVC4 {
 
 class StatisticsRegistry;
 class ResourceManager;
+class SkolemManager;
 
 class DType;
 
@@ -108,10 +109,10 @@ class NodeManager {
 
   static thread_local NodeManager* s_current;
 
-  Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
 
-  ResourceManager* d_resourceManager;
+  /** The skolem manager */
+  std::shared_ptr<SkolemManager> d_skManager;
 
   NodeValuePool d_nodeValuePool;
 
@@ -379,26 +380,12 @@ class NodeManager {
 public:
 
   explicit NodeManager(ExprManager* exprManager);
-  explicit NodeManager(ExprManager* exprManager, const Options& options);
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */
   static NodeManager* currentNM() { return s_current; }
-  /** The resource manager associated with the current node manager */
-  static ResourceManager* currentResourceManager() { return s_current->d_resourceManager; }
-
-  /** Get this node manager's options (const version) */
-  const Options& getOptions() const {
-    return *d_options;
-  }
-
-  /** Get this node manager's options (non-const version) */
-  Options& getOptions() {
-    return *d_options;
-  }
-
-  /** Get this node manager's resource manager */
-  ResourceManager* getResourceManager() { return d_resourceManager; }
+  /** Get this node manager's skolem manager */
+  SkolemManager* getSkolemManager() { return d_skManager.get(); }
 
   /** Get this node manager's statistics registry */
   StatisticsRegistry* getStatisticsRegistry() const
@@ -437,6 +424,20 @@ public:
 
   /** Get a Kind from an operator expression */
   static inline Kind operatorToKind(TNode n);
+
+  /** Get corresponding application kind for function
+   *
+   * Different functional nodes are applied differently, according to their
+   * type. For example, uninterpreted functions (of FUNCTION_TYPE) are applied
+   * via APPLY_UF, while constructors (of CONSTRUCTOR_TYPE) via
+   * APPLY_CONSTRUCTOR. This method provides the correct application according
+   * to which functional type fun has.
+   *
+   * @param fun The functional node
+   * @return the correct application kind for fun. If fun's type is not function
+   * like (see TypeNode::isFunctionLike), then UNDEFINED_KIND is returned.
+   */
+  static Kind getKindForFunction(TNode fun);
 
   // general expression-builders
 
@@ -511,7 +512,7 @@ public:
   Node* mkBoundVarPtr(const TypeNode& type);
 
   /** get the canonical bound variable list for function type tn */
-  static Node getBoundVarListForFunctionType( TypeNode tn );
+  Node getBoundVarListForFunctionType( TypeNode tn );
 
   /**
    * Optional flags used to control behavior of NodeManager::mkSkolem().
@@ -519,12 +520,14 @@ public:
    * "SKOLEM_NO_NOTIFY | SKOLEM_EXACT_NAME").  Of course, SKOLEM_DEFAULT
    * cannot be composed in such a manner.
    */
-  enum SkolemFlags {
-    SKOLEM_DEFAULT = 0,   /**< default behavior */
-    SKOLEM_NO_NOTIFY = 1, /**< do not notify subscribers */
-    SKOLEM_EXACT_NAME = 2,/**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4  /**< global vars appear in models even after a pop */
-  };/* enum SkolemFlags */
+  enum SkolemFlags
+  {
+    SKOLEM_DEFAULT = 0,    /**< default behavior */
+    SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
+    SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
+    SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
+    SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+  };                         /* enum SkolemFlags */
 
   /**
    * Create a skolem constant with the given name, type, and comment.
@@ -869,8 +872,11 @@ public:
   /** Make the type of arrays with the given parameterization */
   inline TypeNode mkArrayType(TypeNode indexType, TypeNode constituentType);
 
-  /** Make the type of arrays with the given parameterization */
+  /** Make the type of set with the given parameterization */
   inline TypeNode mkSetType(TypeNode elementType);
+
+  /** Make the type of sequences with the given parameterization */
+  TypeNode mkSequenceType(TypeNode elementType);
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
@@ -1006,25 +1012,19 @@ public:
 class NodeManagerScope {
   /** The old NodeManager, to be restored on destruction. */
   NodeManager* d_oldNodeManager;
-  Options::OptionsScope d_optionsScope;
 public:
-
-  NodeManagerScope(NodeManager* nm)
-      : d_oldNodeManager(NodeManager::s_current)
-      , d_optionsScope(nm ? nm->d_options : NULL) {
-    // There are corner cases where nm can be NULL and it's ok.
-    // For example, if you write { Expr e; }, then when the null
-    // Expr is destructed, there's no active node manager.
-    //Assert(nm != NULL);
-    NodeManager::s_current = nm;
-    //Options::s_current = nm ? nm->d_options : NULL;
-    Debug("current") << "node manager scope: "
-                     << NodeManager::s_current << "\n";
+ NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current)
+ {
+   // There are corner cases where nm can be NULL and it's ok.
+   // For example, if you write { Expr e; }, then when the null
+   // Expr is destructed, there's no active node manager.
+   // Assert(nm != NULL);
+   NodeManager::s_current = nm;
+   Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
 
   ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
-    //Options::s_current = d_oldNodeManager ? d_oldNodeManager->d_options : NULL;
     Debug("current") << "node manager scope: "
                      << "returning to " << NodeManager::s_current << "\n";
   }

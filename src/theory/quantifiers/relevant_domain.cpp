@@ -2,9 +2,9 @@
 /*! \file relevant_domain.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -207,6 +207,7 @@ void RelevantDomain::computeRelevantDomainOpCh( RDomain * rf, Node n ) {
     Node q = d_qe->getTermUtil()->getInstConstAttr( n );
     //merge the RDomains
     unsigned id = n.getAttribute(InstVarNumAttribute());
+    Assert(q[0][id].getType() == n.getType());
     Trace("rel-dom-debug") << n << " is variable # " << id << " for " << q;
     Trace("rel-dom-debug") << " with body : " << d_qe->getTermUtil()->getInstConstantBody( q ) << std::endl;
     RDomain * rq = getRDomain( q, id );
@@ -225,9 +226,14 @@ void RelevantDomain::computeRelevantDomainLit( Node q, bool hasPol, bool pol, No
     d_rel_dom_lit[hasPol][pol][n].d_merge = false;
     int varCount = 0;
     int varCh = -1;
+    TermUtil* tu = d_qe->getTermUtil();
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( n[i].getKind()==INST_CONSTANT ){
-        d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain( q, n[i].getAttribute(InstVarNumAttribute()), false );
+        // must get the quantified formula this belongs to, which may be
+        // different from q
+        Node qi = tu->getInstConstAttr(n[i]);
+        unsigned id = n[i].getAttribute(InstVarNumAttribute());
+        d_rel_dom_lit[hasPol][pol][n].d_rd[i] = getRDomain(qi, id, false);
         varCount++;
         varCh = i;
       }else{

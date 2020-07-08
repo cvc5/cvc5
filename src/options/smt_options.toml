@@ -45,12 +45,6 @@ header = "options/smt_options.h"
   name = "batch"
   help = "Save up all ASSERTions; run nonclausal simplification and clausal (MiniSat) propagation for all of them only after reaching a querying command (CHECKSAT or QUERY or predicate SUBTYPE declaration)."
 
-[[alias]]
-  category   = "regular"
-  long       = "no-simplification"
-  links      = ["--simplification=none"]
-  help       = "turn off all simplification (same as --simplification=none)"
-
 [[option]]
   name       = "doStaticLearning"
   category   = "regular"
@@ -77,7 +71,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "support the get-value and get-model commands"
 
 [[option]]
@@ -86,9 +79,15 @@ header = "options/smt_options.h"
   long       = "check-models"
   type       = "bool"
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--produce-models", "--produce-assertions"]
-  read_only  = true
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
+
+[[option]]
+  name       = "debugCheckModels"
+  category   = "regular"
+  long       = "debug-check-models"
+  type       = "bool"
+  notifies   = ["notifyBeforeSearch"]
+  help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
   name       = "dumpModels"
@@ -96,7 +95,6 @@ header = "options/smt_options.h"
   long       = "dump-models"
   type       = "bool"
   default    = "false"
-  links      = ["--produce-models"]
   read_only  = true
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
@@ -145,7 +143,6 @@ header = "options/smt_options.h"
   default    = "false"
   predicates = ["proofEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "turn on proof generation"
 
 [[option]]
@@ -155,7 +152,6 @@ header = "options/smt_options.h"
   type       = "bool"
   predicates = ["LFSCEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--proof"]
   help       = "after UNSAT/VALID, machine-check the generated proof"
 
 [[option]]
@@ -164,9 +160,25 @@ header = "options/smt_options.h"
   long       = "dump-proofs"
   type       = "bool"
   default    = "false"
-  links      = ["--proof"]
   read_only  = true
   help       = "output proofs after every UNSAT/VALID response"
+
+[[option]]
+  name       = "proofNew"
+  category   = "regular"
+  long       = "proof-new"
+  type       = "bool"
+  default    = "false"
+  help       = "do proof production using the new infrastructure"
+
+[[option]]
+  name       = "proofNewPedantic"
+  category   = "regular"
+  long       = "proof-new-pedantic"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
 
 [[option]]
   name       = "dumpInstantiations"
@@ -229,7 +241,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-unsat-cores"
   type       = "bool"
-  links      = ["--produce-unsat-cores"]
   help       = "after UNSAT/VALID, produce and check an unsat core (expensive)"
 
 [[option]]
@@ -239,8 +250,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--produce-unsat-cores"]
-  read_only  = true
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
@@ -250,7 +259,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  links      = ["--dump-unsat-cores"]
   read_only  = true
   help       = "dump the full unsat core, including unlabeled assertions"
 
@@ -260,7 +268,6 @@ header = "options/smt_options.h"
   long       = "produce-unsat-assumptions"
   type       = "bool"
   default    = "false"
-  links      = ["--produce-unsat-cores"]
   predicates = ["proofEnabledBuild"]
   notifies   = ["notifyBeforeSearch"]
   read_only  = true
@@ -272,7 +279,6 @@ header = "options/smt_options.h"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to functions-to-synthesize satisfy the conjecture"
 
 [[option]]
@@ -282,7 +288,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   notifies   = ["notifyBeforeSearch"]
-  read_only  = true
   help       = "support the get-assignment command"
 
 [[option]]
@@ -356,7 +361,7 @@ header = "options/smt_options.h"
   long       = "unconstrained-simp"
   type       = "bool"
   default    = "false"
-  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis)"
+  help       = "turn on unconstrained simplification (see Bruttomesso/Brummayer PhD thesis). Fully supported only in (subsets of) the logic QF_ABV."
 
 [[option]]
   name       = "repeatSimp"
@@ -411,9 +416,9 @@ header = "options/smt_options.h"
   help       = "in models, output uninterpreted sorts as datatype enumerations"
 
 [[option]]
-  name       = "modelWitnessChoice"
+  name       = "modelWitnessValue"
   category   = "regular"
-  long       = "model-witness-choice"
+  long       = "model-witness-value"
   type       = "bool"
   default    = "false"
   read_only  = true
@@ -640,6 +645,25 @@ header = "options/smt_options.h"
   help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
 
 [[option]]
+  name       = "iandMode"
+  category   = "undocumented"
+  long       = "iand-mode=mode"
+  type       = "IandMode"
+  default    = "VALUE"
+  read_only  = true
+  help       = "Set the refinement scheme for integer AND"
+  help_mode  = "Refinement modes for integer AND"
+  [[option.mode.VALUE]]
+  name = "value"
+  help = "value-based refinement"
+  [[option.mode.SUM]]
+  name = "sum"
+  help = "use sum to represent integer AND in refinement"
+  [[option.mode.BITWISE]]
+  name = "bitwise"
+  help = "use bitwise comparisons on binary representation of integer for refinement (experimental)"
+  
+[[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"
   long       = "solve-int-as-bv=N"
@@ -658,6 +682,34 @@ header = "options/smt_options.h"
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
 
 [[option]]
+  name       = "produceInterpols"
+  category   = "undocumented"
+  long       = "produce-interpols=MODE"
+  type       = "ProduceInterpols"
+  default    = "NONE"
+  read_only  = true
+  help       = "support the get-interpol command"
+  help_mode  = "Interpolants grammar mode"
+[[option.mode.NONE]]
+  name = "none"
+  help = "don't compute interpolants"
+[[option.mode.DEFAULT]]
+  name = "default"
+  help = "use the default grammar for the theory or the user-defined grammar if given"
+[[option.mode.ASSUMPTIONS]]
+  name = "assumptions"
+  help = "use only operators that occur in the assumptions"
+[[option.mode.CONJECTURE]]
+  name = "conjecture"
+  help = "use only operators that occur in the conjecture"
+[[option.mode.SHARED]]
+  name = "shared"
+  help = "use only operators that occur both in the assumptions and the conjecture"
+[[option.mode.ALL]]
+  name = "all"
+  help = "use only operators that occur either in the assumptions or the conjecture"
+
+[[option]]
   name       = "produceAbducts"
   category   = "undocumented"
   long       = "produce-abducts"
@@ -665,6 +717,15 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "support the get-abduct command"
+
+[[option]]
+  name       = "checkInterpols"
+  category   = "regular"
+  long       = "check-interpols"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "checks whether produced solutions to get-interpol are correct"
 
 [[option]]
   name       = "checkAbducts"

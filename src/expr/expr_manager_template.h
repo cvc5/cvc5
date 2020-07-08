@@ -2,9 +2,9 @@
 /*! \file expr_manager_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,6 +36,10 @@ ${includes}
 
 namespace CVC4 {
 
+namespace api {
+class Solver;
+}
+
 class Expr;
 class SmtEngine;
 class NodeManager;
@@ -45,7 +49,8 @@ struct ExprManagerMapCollection;
 class ResourceManager;
 
 class CVC4_PUBLIC ExprManager {
-private:
+ private:
+  friend api::Solver;
   /** The internal node manager */
   NodeManager* d_nodeManager;
 
@@ -83,32 +88,15 @@ private:
   /** A list of datatypes owned by this expr manager. */
   std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
- public:
-  /**
-   * Creates an expression manager with default options.
-   */
+  /** Creates an expression manager. */
   ExprManager();
-
-  /**
-   * Creates an expression manager.
-   *
-   * @param options the earlyTypeChecking field is used to configure
-   * whether to do at Expr creation time.
-   */
-  explicit ExprManager(const Options& options);
-
+ public:
   /**
    * Destroys the expression manager. No will be deallocated at this point, so
    * any expression references that used to be managed by this expression
    * manager and are left-over are bad.
    */
   ~ExprManager();
-
-  /** Get this expr manager's options */
-  const Options& getOptions() const;
-
-  /** Get this expr manager's resource manager */
-  ResourceManager* getResourceManager();
 
   /** Get the type for booleans */
   BooleanType booleanType() const;
@@ -388,6 +376,9 @@ private:
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
 
+  /** Make the type of sequence with the given parameterization. */
+  SequenceType mkSequenceType(Type elementType) const;
+
   /** Bits for use in mkDatatypeType() flags.
    *
    * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
@@ -523,7 +514,7 @@ private:
 
   /**
    * Create a new, fresh variable for use in a binder expression
-   * (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or CHOICE).  It is
+   * (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or WITNESS).  It is
    * an error for this bound variable to exist outside of a binder,
    * and it should also only be used in a single binder expression.
    * That is, two distinct FORALL expressions should use entirely
@@ -542,7 +533,7 @@ private:
 
   /**
    * Create a (nameless) new, fresh variable for use in a binder
-   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or CHOICE).
+   * expression (the BOUND_VAR_LIST of a FORALL, EXISTS, LAMBDA, or WITNESS).
    * It is an error for this bound variable to exist outside of a
    * binder, and it should also only be used in a single binder
    * expression.  That is, two distinct FORALL expressions should use

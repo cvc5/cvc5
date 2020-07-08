@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,7 @@
  **/
 #include "theory/theory_model.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/uf_options.h"
@@ -34,6 +35,8 @@ TheoryModel::TheoryModel(context::Context* c,
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
+  // must use function models when ufHo is enabled
+  Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -54,7 +57,6 @@ TheoryModel::TheoryModel(context::Context* c,
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
-  setUnevaluatedKind(kind::BOUND_VARIABLE);
 }
 
 TheoryModel::~TheoryModel()
@@ -201,19 +203,20 @@ Node TheoryModel::getModelValue(TNode n) const
   }
   Debug("model-getvalue-debug") << "Get model value " << n << " ... ";
   Debug("model-getvalue-debug") << d_equalityEngine->hasTerm(n) << std::endl;
-  if (n.isConst())
+  Kind nk = n.getKind();
+  if (n.isConst() || nk == BOUND_VARIABLE)
   {
     d_modelCache[n] = n;
     return n;
   }
 
   Node ret = n;
-  Kind nk = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
 
   // if it is an evaluated kind, compute model values for children and evaluate
   if (n.getNumChildren() > 0
-      && d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end())
+      && d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end()
+      && d_semi_evaluated_kinds.find(nk) == d_semi_evaluated_kinds.end())
   {
     Debug("model-getvalue-debug")
         << "Get model value children " << n << std::endl;
@@ -264,10 +267,10 @@ Node TheoryModel::getModelValue(TNode n) const
   if (ita != d_approximations.end())
   {
     // If the value of n is approximate based on predicate P(n), we return
-    // choice z. P(z).
+    // witness z. P(z).
     Node v = nm->mkBoundVar(n.getType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, v);
-    Node answer = nm->mkNode(CHOICE, bvl, ita->second.substitute(n, v));
+    Node answer = nm->mkNode(WITNESS, bvl, ita->second.substitute(n, v));
     d_modelCache[n] = answer;
     return answer;
   }
@@ -306,10 +309,8 @@ Node TheoryModel::getModelValue(TNode n) const
   }
 
   // if we are a evaluated or semi-evaluated kind, return an arbitrary value
-  // if we are not in the d_not_evaluated_kinds map, we are evaluated
-  // if we are in the d_semi_evaluated_kinds, we are semi-evaluated
-  if (d_not_evaluated_kinds.find(nk) == d_not_evaluated_kinds.end()
-      || d_semi_evaluated_kinds.find(nk) != d_semi_evaluated_kinds.end())
+  // if we are not in the d_unevaluated_kinds map, we are evaluated
+  if (d_unevaluated_kinds.find(nk) == d_unevaluated_kinds.end())
   {
     if (t.isFunction() || t.isPredicate())
     {
@@ -483,8 +484,10 @@ bool TheoryModel::assertEqualityEngine(const eq::EqualityEngine* ee,
             first = false;
           }
           else {
-            Trace("model-builder-assertions") << "(assert (= " << *eqc_i << " " << rep << "));" << endl;
-            d_equalityEngine->mergePredicates(*eqc_i, rep, Node::null());
+            Node eq = (*eqc_i).eqNode(rep);
+            Trace("model-builder-assertions")
+                << "(assert " << eq << ");" << std::endl;
+            d_equalityEngine->assertEquality(eq, true, Node::null());
             if (!d_equalityEngine->consistent())
             {
               return false;
@@ -613,15 +616,16 @@ void TheoryModel::recordModelCoreSymbol(Expr sym)
   d_model_core.insert(Node::fromExpr(sym));
 }
 
-void TheoryModel::setUnevaluatedKind(Kind k)
-{
-  d_not_evaluated_kinds.insert(k);
-}
+void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
-  d_not_evaluated_kinds.insert(k);
   d_semi_evaluated_kinds.insert(k);
+}
+
+bool TheoryModel::isLegalElimination(TNode x, TNode val)
+{
+  return !expr::hasSubtermKinds(d_unevaluated_kinds, val);
 }
 
 bool TheoryModel::hasTerm(TNode a)
@@ -677,7 +681,7 @@ void TheoryModel::assignFunctionDefinition( Node f, Node f_def ) {
     f_def = Rewriter::rewrite( f_def );
     Trace("model-builder-debug")
         << "Model value (post-rewrite) : " << f_def << std::endl;
-    Assert(f_def.isConst());
+    Assert(f_def.isConst()) << "Non-constant f_def: " << f_def;
   }
  
   // d_uf_models only stores models for variables

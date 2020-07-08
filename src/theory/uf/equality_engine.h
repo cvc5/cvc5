@@ -2,9 +2,9 @@
 /*! \file equality_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Guy Katz
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -802,11 +802,6 @@ public:
    * @param reason the reason to keep for building explanations
    */
   void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
-
-  /**
-   * Adds predicate p and q and makes them equal.
-   */
-  void mergePredicates(TNode p, TNode q, TNode reason);
 
   /**
    * Adds an equality eq with the given polarity to the database.

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -134,7 +135,13 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
 /* class Command                                                              */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(NULL), d_muted(false) {}
+Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
+
+Command::Command(api::Solver* solver)
+    : d_solver(solver), d_commandStatus(nullptr), d_muted(false)
+{
+}
+
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
@@ -596,48 +603,6 @@ Command* DeclareSygusVarCommand::clone() const
 std::string DeclareSygusVarCommand::getCommandName() const
 {
   return "declare-var";
-}
-
-/* -------------------------------------------------------------------------- */
-/* class DeclareSygusPrimedVarCommand */
-/* -------------------------------------------------------------------------- */
-
-DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(
-    const std::string& id, Type t)
-    : DeclarationDefinitionCommand(id), d_type(t)
-{
-}
-
-Type DeclareSygusPrimedVarCommand::getType() const { return d_type; }
-
-void DeclareSygusPrimedVarCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    smtEngine->declareSygusPrimedVar(d_symbol, d_type);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* DeclareSygusPrimedVarCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new DeclareSygusPrimedVarCommand(
-      d_symbol, d_type.exportTo(exprManager, variableMap));
-}
-
-Command* DeclareSygusPrimedVarCommand::clone() const
-{
-  return new DeclareSygusPrimedVarCommand(d_symbol, d_type);
-}
-
-std::string DeclareSygusPrimedVarCommand::getCommandName() const
-{
-  return "declare-primed-var";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1266,22 +1231,27 @@ std::string DefineTypeCommand::getCommandName() const { return "define-sort"; }
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
-                                             Expr formula)
+                                             Expr formula,
+                                             bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(),
-      d_formula(formula)
+      d_formula(formula),
+      d_global(global)
 {
 }
 
 DefineFunctionCommand::DefineFunctionCommand(const std::string& id,
                                              Expr func,
                                              const std::vector<Expr>& formals,
-                                             Expr formula)
+                                             Expr formula,
+                                             bool global)
     : DeclarationDefinitionCommand(id),
       d_func(func),
       d_formals(formals),
-      d_formula(formula)
+      d_formula(formula),
+      d_global(global)
+
 {
 }
 
@@ -1298,7 +1268,7 @@ void DefineFunctionCommand::invoke(SmtEngine* smtEngine)
   {
     if (!d_func.isNull())
     {
-      smtEngine->defineFunction(d_func, d_formals, d_formula);
+      smtEngine->defineFunction(d_func, d_formals, d_formula, d_global);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -1319,12 +1289,13 @@ Command* DefineFunctionCommand::exportTo(ExprManager* exprManager,
             back_inserter(formals),
             ExportTransformer(exprManager, variableMap));
   Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineFunctionCommand(d_symbol, func, formals, formula);
+  return new DefineFunctionCommand(d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineFunctionCommand::clone() const
 {
-  return new DefineFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+  return new DefineFunctionCommand(
+      d_symbol, d_func, d_formals, d_formula, d_global);
 }
 
 std::string DefineFunctionCommand::getCommandName() const
@@ -1340,8 +1311,9 @@ DefineNamedFunctionCommand::DefineNamedFunctionCommand(
     const std::string& id,
     Expr func,
     const std::vector<Expr>& formals,
-    Expr formula)
-    : DefineFunctionCommand(id, func, formals, formula)
+    Expr formula,
+    bool global)
+    : DefineFunctionCommand(id, func, formals, formula, global)
 {
 }
 
@@ -1365,12 +1337,14 @@ Command* DefineNamedFunctionCommand::exportTo(
             back_inserter(formals),
             ExportTransformer(exprManager, variableMap));
   Expr formula = d_formula.exportTo(exprManager, variableMap);
-  return new DefineNamedFunctionCommand(d_symbol, func, formals, formula);
+  return new DefineNamedFunctionCommand(
+      d_symbol, func, formals, formula, d_global);
 }
 
 Command* DefineNamedFunctionCommand::clone() const
 {
-  return new DefineNamedFunctionCommand(d_symbol, d_func, d_formals, d_formula);
+  return new DefineNamedFunctionCommand(
+      d_symbol, d_func, d_formals, d_formula, d_global);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1378,7 +1352,12 @@ Command* DefineNamedFunctionCommand::clone() const
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    Expr func, const std::vector<Expr>& formals, Expr formula)
+    api::Solver* solver,
+    api::Term func,
+    const std::vector<api::Term>& formals,
+    api::Term formula,
+    bool global)
+    : Command(solver), d_global(global)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1386,27 +1365,31 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr>>& formals,
-    const std::vector<Expr>& formulas)
+    api::Solver* solver,
+    const std::vector<api::Term>& funcs,
+    const std::vector<std::vector<api::Term>>& formals,
+    const std::vector<api::Term>& formulas,
+    bool global)
+    : Command(solver),
+      d_funcs(funcs),
+      d_formals(formals),
+      d_formulas(formulas),
+      d_global(global)
 {
-  d_funcs.insert(d_funcs.end(), funcs.begin(), funcs.end());
-  d_formals.insert(d_formals.end(), formals.begin(), formals.end());
-  d_formulas.insert(d_formulas.end(), formulas.begin(), formulas.end());
 }
 
-const std::vector<Expr>& DefineFunctionRecCommand::getFunctions() const
+const std::vector<api::Term>& DefineFunctionRecCommand::getFunctions() const
 {
   return d_funcs;
 }
 
-const std::vector<std::vector<Expr>>& DefineFunctionRecCommand::getFormals()
-    const
+const std::vector<std::vector<api::Term>>&
+DefineFunctionRecCommand::getFormals() const
 {
   return d_formals;
 }
 
-const std::vector<Expr>& DefineFunctionRecCommand::getFormulas() const
+const std::vector<api::Term>& DefineFunctionRecCommand::getFormulas() const
 {
   return d_formulas;
 }
@@ -1415,7 +1398,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas);
+    d_solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1427,35 +1410,13 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 Command* DefineFunctionRecCommand::exportTo(
     ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
-  std::vector<Expr> funcs;
-  for (unsigned i = 0, size = d_funcs.size(); i < size; i++)
-  {
-    Expr func = d_funcs[i].exportTo(
-        exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
-    funcs.push_back(func);
-  }
-  std::vector<std::vector<Expr>> formals;
-  for (unsigned i = 0, size = d_formals.size(); i < size; i++)
-  {
-    std::vector<Expr> formals_c;
-    transform(d_formals[i].begin(),
-              d_formals[i].end(),
-              back_inserter(formals_c),
-              ExportTransformer(exprManager, variableMap));
-    formals.push_back(formals_c);
-  }
-  std::vector<Expr> formulas;
-  for (unsigned i = 0, size = d_formulas.size(); i < size; i++)
-  {
-    Expr formula = d_formulas[i].exportTo(exprManager, variableMap);
-    formulas.push_back(formula);
-  }
-  return new DefineFunctionRecCommand(funcs, formals, formulas);
+  Unimplemented();
 }
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas);
+  return new DefineFunctionRecCommand(
+      d_solver, d_funcs, d_formals, d_formulas, d_global);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -2128,6 +2089,90 @@ Command* GetSynthSolutionCommand::clone() const
 std::string GetSynthSolutionCommand::getCommandName() const
 {
   return "get-instantiations";
+}
+
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj)
+    : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj,
+                                       const Type& gtype)
+    : Command(solver),
+      d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
+
+api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
+Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
+api::Term GetInterpolCommand::getResult() const { return d_result; }
+
+void GetInterpolCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = d_solver->getInterpolant(d_conj, d_result);
+    }
+    else
+    {
+      d_resultStatus =
+          d_solver->getInterpolant(d_conj, d_sygus_grammar_type, d_result);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetInterpolCommand::printResult(std::ostream& out,
+                                     uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
+                                      ExprManagerMapCollection& variableMap)
+{
+  Unimplemented();
+}
+
+Command* GetInterpolCommand::clone() const
+{
+  GetInterpolCommand* c = new GetInterpolCommand(d_solver, d_name, d_conj);
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetInterpolCommand::getCommandName() const
+{
+  return "get-interpol";
 }
 
 GetAbductCommand::GetAbductCommand() {}

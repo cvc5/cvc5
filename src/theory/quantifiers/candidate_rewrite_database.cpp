@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
+#include "api/cvc4cpp.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -128,19 +129,14 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       // verify it if applicable
       if (options::sygusRewSynthCheck())
       {
-        NodeManager* nm = NodeManager::currentNM();
-
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
 
         // Notice we don't set produce-models. rrChecker takes the same
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
-        bool needExport = false;
-        ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
-        ExprManagerMapCollection varMap;
-        initializeChecker(rrChecker, em, varMap, crr, needExport);
+        initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -173,16 +169,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             if (val.isNull())
             {
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
-              if (needExport)
-              {
-                Expr erefv = refv.toExpr().exportTo(&em, varMap);
-                val = Node::fromExpr(rrChecker->getValue(erefv).exportTo(
-                    nm->toExprManager(), varMap));
-              }
-              else
-              {
-                val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
-              }
+              val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
@@ -291,39 +278,6 @@ void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
 {
   d_ext_rewrite = er;
-}
-
-CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
-    std::vector<Node>& vars, unsigned nsamples)
-    : d_qe(nullptr), d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
-{
-}
-
-bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
-{
-  ExtendedRewriter* er = &d_ext_rewrite;
-  Node nr;
-  if (er == nullptr)
-  {
-    nr = Rewriter::rewrite(n);
-  }
-  else
-  {
-    nr = er->extendedRewrite(n);
-  }
-  TypeNode tn = nr.getType();
-  std::map<TypeNode, CandidateRewriteDatabase>::iterator itc = d_cdbs.find(tn);
-  if (itc == d_cdbs.end())
-  {
-    Trace("synth-rr-dbg") << "Initialize database for " << tn << std::endl;
-    // initialize with the extended rewriter owned by this class
-    d_cdbs[tn].initialize(d_vars, &d_sampler[tn]);
-    d_cdbs[tn].setExtendedRewriter(er);
-    itc = d_cdbs.find(tn);
-    Trace("synth-rr-dbg") << "...finish." << std::endl;
-  }
-  Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
-  return itc->second.addTerm(nr, false, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */

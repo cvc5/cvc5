@@ -2,9 +2,9 @@
 /*! \file sort_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,6 +35,7 @@ class SortBlack : public CxxTest::TestSuite
   void testGetArrayIndexSort();
   void testGetArrayElementSort();
   void testGetSetElementSort();
+  void testGetSequenceElementSort();
   void testGetUninterpretedSortName();
   void testIsUninterpretedSortParameterized();
   void testGetUninterpretedSortParamSorts();
@@ -63,10 +64,10 @@ void SortBlack::testGetDatatype()
 {
   // create datatype sort, check should not fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS_NOTHING(dtypeSort.getDatatype());
@@ -80,11 +81,11 @@ void SortBlack::testDatatypeSorts()
   Sort intSort = d_solver.getIntegerSort();
   // create datatype sort to test
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", intSort);
   cons.addSelectorSelf("tail");
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   Datatype dt = dtypeSort.getDatatype();
@@ -121,8 +122,9 @@ void SortBlack::testInstantiate()
   // instantiate parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl paramCons("cons");
-  DatatypeConstructorDecl paramNil("nil");
+  DatatypeConstructorDecl paramCons =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
   paramDtypeSpec.addConstructor(paramCons);
   paramDtypeSpec.addConstructor(paramNil);
@@ -131,10 +133,10 @@ void SortBlack::testInstantiate()
       paramDtypeSort.instantiate(std::vector<Sort>{d_solver.getIntegerSort()}));
   // instantiate non-parametric datatype sort, check should fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS(
@@ -193,6 +195,16 @@ void SortBlack::testGetSetElementSort()
   TS_ASSERT_THROWS_NOTHING(setSort.getSetElementSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getSetElementSort(), CVC4ApiException&);
+}
+
+void SortBlack::testGetSequenceElementSort()
+{
+  Sort seqSort = d_solver.mkSequenceSort(d_solver.getIntegerSort());
+  TS_ASSERT(seqSort.isSequence());
+  TS_ASSERT_THROWS_NOTHING(seqSort.getSequenceElementSort());
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  TS_ASSERT(!bvSort.isSequence());
+  TS_ASSERT_THROWS(bvSort.getSequenceElementSort(), CVC4ApiException&);
 }
 
 void SortBlack::testGetUninterpretedSortName()
@@ -265,8 +277,9 @@ void SortBlack::testGetDatatypeParamSorts()
   // create parametric datatype, check should not fail
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl paramDtypeSpec = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl paramCons("cons");
-  DatatypeConstructorDecl paramNil("nil");
+  DatatypeConstructorDecl paramCons =
+      d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl paramNil = d_solver.mkDatatypeConstructorDecl("nil");
   paramCons.addSelector("head", sort);
   paramDtypeSpec.addConstructor(paramCons);
   paramDtypeSpec.addConstructor(paramNil);
@@ -274,10 +287,10 @@ void SortBlack::testGetDatatypeParamSorts()
   TS_ASSERT_THROWS_NOTHING(paramDtypeSort.getDatatypeParamSorts());
   // create non-parametric datatype sort, check should fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS(dtypeSort.getDatatypeParamSorts(), CVC4ApiException&);
@@ -287,10 +300,10 @@ void SortBlack::testGetDatatypeArity()
 {
   // create datatype sort, check should not fail
   DatatypeDecl dtypeSpec = d_solver.mkDatatypeDecl("list");
-  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
   cons.addSelector("head", d_solver.getIntegerSort());
   dtypeSpec.addConstructor(cons);
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   dtypeSpec.addConstructor(nil);
   Sort dtypeSort = d_solver.mkDatatypeSort(dtypeSpec);
   TS_ASSERT_THROWS_NOTHING(dtypeSort.getDatatypeArity());

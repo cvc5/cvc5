@@ -2,9 +2,9 @@
 /*! \file decision_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Andres Noetzli
+ **   Kshitij Bansal, Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,7 +25,9 @@ using namespace std;
 
 namespace CVC4 {
 
-DecisionEngine::DecisionEngine(context::Context* sc, context::UserContext* uc)
+DecisionEngine::DecisionEngine(context::Context* sc,
+                               context::UserContext* uc,
+                               ResourceManager* rm)
     : d_enabledITEStrategy(nullptr),
       d_needIteSkolemMap(),
       d_relevancyStrategy(nullptr),
@@ -35,7 +37,8 @@ DecisionEngine::DecisionEngine(context::Context* sc, context::UserContext* uc)
       d_satContext(sc),
       d_userContext(uc),
       d_result(sc, SAT_VALUE_UNKNOWN),
-      d_engineState(0)
+      d_engineState(0),
+      d_resourceManager(rm)
 {
   Trace("decision") << "Creating decision engine" << std::endl;
 }
@@ -71,8 +74,7 @@ void DecisionEngine::shutdown()
 
 SatLiteral DecisionEngine::getNext(bool& stopSearch)
 {
-  NodeManager::currentResourceManager()->spendResource(
-      ResourceManager::Resource::DecisionStep);
+  d_resourceManager->spendResource(ResourceManager::Resource::DecisionStep);
   Assert(d_cnfStream != nullptr)
       << "Forgot to set cnfStream for decision engine?";
   Assert(d_satSolver != nullptr)

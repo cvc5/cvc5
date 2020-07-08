@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -114,7 +114,6 @@ tokens {
 
   FORALL_TOK = 'FORALL';
   EXISTS_TOK = 'EXISTS';
-  CHOICE_TOK = 'CHOICE';
   PATTERN_TOK = 'PATTERN';
 
   LAMBDA_TOK = 'LAMBDA';
@@ -205,6 +204,9 @@ tokens {
   BVSLE_TOK = 'BVSLE';
   BVSGE_TOK = 'BVSGE';
 
+  // Sets
+  SETS_CHOOSE_TOK = 'CHOOSE';
+
   // Relations
   JOIN_TOK = 'JOIN';
   TRANSPOSE_TOK = 'TRANSPOSE';
@@ -242,6 +244,7 @@ tokens {
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
   REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
+  SEQ_UNIT_TOK = 'SEQ_UNIT';
 
   SETS_CARD_TOK = 'CARD';
 
@@ -327,7 +330,8 @@ int getOperatorPrecedence(int type) {
   case PRODUCT_TOK:
   case IDEN_TOK:
   case JOIN_IMAGE_TOK:
-  case TRANSCLOSURE_TOK: return 24;
+  case TRANSCLOSURE_TOK:
+  case SETS_CHOOSE_TOK: return 24;
   case LEQ_TOK:
   case LT_TOK:
   case GEQ_TOK:
@@ -344,8 +348,7 @@ int getOperatorPrecedence(int type) {
   case IMPLIES_TOK: return 30;// right-to-left
   case IFF_TOK: return 31;
   case FORALL_TOK:
-  case EXISTS_TOK:
-  case CHOICE_TOK: return 32;
+  case EXISTS_TOK:return 32;
   case ASSIGN_TOK:
   case IN_TOK: return 33;
 
@@ -367,9 +370,11 @@ api::Kind getOperatorKind(int type, bool& negate) {
   case XOR_TOK: return api::XOR;
   case AND_TOK: return api::AND;
 
+  case SETS_CHOOSE_TOK: return api::CHOOSE;
   case PRODUCT_TOK: return api::PRODUCT;
   case JOIN_TOK: return api::JOIN;
   case JOIN_IMAGE_TOK: return api::JOIN_IMAGE;
+
 
     // comparisonBinop
   case EQUAL_TOK: return api::EQUAL;
@@ -931,15 +936,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      std::vector<std::vector<Expr>> eformals;
-      for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
-      {
-        eformals.push_back(api::termVectorToExprs(formals[i]));
-      }
       cmd->reset(
-          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
-                                       eformals,
-                                       api::termVectorToExprs(formulas)));
+          new DefineFunctionRecCommand(SOLVER, funcs, formals, formulas, true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -1155,11 +1153,11 @@ declareVariables[std::unique_ptr<CVC4::Command>* cmd, CVC4::api::Sort& t,
           PARSER_STATE->checkDeclaration(*i, CHECK_UNDECLARED, SYM_VARIABLE);
           api::Term func = PARSER_STATE->mkVar(
               *i,
-              t.getType(),
+              api::Sort(SOLVER, t.getType()),
               ExprManager::VAR_FLAG_GLOBAL | ExprManager::VAR_FLAG_DEFINED);
           PARSER_STATE->defineVar(*i, f);
           Command* decl =
-              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr());
+              new DefineFunctionCommand(*i, func.getExpr(), f.getExpr(), true);
           seq->addCommand(decl);
         }
       }
@@ -1465,7 +1463,7 @@ prefixFormula[CVC4::api::Term& f]
   api::Term ipl;
 }
     /* quantifiers */
-  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } | CHOICE_TOK { k = api::CHOICE; } )
+  : ( FORALL_TOK { k = api::FORALL; } | EXISTS_TOK { k = api::EXISTS; } )
     { PARSER_STATE->pushScope(); } LPAREN
     boundVarDecl[ids,t]
     { for(std::vector<std::string>::const_iterator i = ids.begin(); i != ids.end(); ++i) {
@@ -1650,7 +1648,7 @@ tupleStore[CVC4::api::Term& f]
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
       f2 = SOLVER->mkTerm(
-          api::APPLY_SELECTOR, api::Term(dt[0][k].getSelector()), f);
+          api::APPLY_SELECTOR, api::Term(SOLVER, dt[0][k].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1683,7 +1681,7 @@ recordStore[CVC4::api::Term& f]
       }
       const Datatype & dt = ((DatatypeType)t.getType()).getDatatype();
       f2 = SOLVER->mkTerm(
-          api::APPLY_SELECTOR, api::Term(dt[0][id].getSelector()), f);
+          api::APPLY_SELECTOR, api::Term(SOLVER, dt[0][id].getSelector()), f);
     }
     ( ( arrayStore[f2]
       | DOT ( tupleStore[f2]
@@ -1827,7 +1825,9 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(std::string("no such field `") + id + "' in record");
           }
           const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
-          f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][id].getSelector()), f);
+          f = SOLVER->mkTerm(api::APPLY_SELECTOR,
+                             api::Term(SOLVER, dt[0][id].getSelector()),
+                             f);
         }
       | k=numeral
         {
@@ -1842,7 +1842,9 @@ postfixTerm[CVC4::api::Term& f]
             PARSER_STATE->parseError(ss.str());
           }
           const Datatype & dt = ((DatatypeType)type.getType()).getDatatype();
-          f = SOLVER->mkTerm(api::APPLY_SELECTOR,api::Term(dt[0][k].getSelector()), f);
+          f = SOLVER->mkTerm(api::APPLY_SELECTOR,
+                             api::Term(SOLVER, dt[0][k].getSelector()),
+                             f);
         }
       )
     )*
@@ -1853,7 +1855,7 @@ postfixTerm[CVC4::api::Term& f]
     | ABS_TOK LPAREN formula[f] RPAREN
       { f = MK_TERM(CVC4::api::ABS, f); }
     | DIVISIBLE_TOK LPAREN formula[f] COMMA n=numeral RPAREN
-      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE,n), f); }
+      { f = MK_TERM(SOLVER->mkOp(CVC4::api::DIVISIBLE, n), f); }
     | DISTINCT_TOK LPAREN
       formula[f] { args.push_back(f); }
       ( COMMA formula[f] { args.push_back(f); } )* RPAREN
@@ -1864,7 +1866,7 @@ postfixTerm[CVC4::api::Term& f]
     )
     ( typeAscription[f, t]
       {
-        f = PARSER_STATE->applyTypeAscription(f,t).getExpr();
+        f = PARSER_STATE->applyTypeAscription(f,t);
       }
     )?
   ;
@@ -1881,8 +1883,8 @@ relationTerm[CVC4::api::Term& f]
       args.push_back(f);
       types.push_back(f.getSort());
       api::Sort t = SOLVER->mkTupleSort(types);
-      const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-      args.insert( args.begin(), api::Term(dt[0].getConstructor()) );
+      const Datatype& dt = Datatype(((DatatypeType)t.getType()).getDatatype());
+      args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
   | IDEN_TOK LPAREN formula[f] RPAREN
@@ -2028,25 +2030,25 @@ stringTerm[CVC4::api::Term& f]
   | STRING_LENGTH_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_LENGTH, f); }
   | STRING_CONTAINS_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRCTN, f, f2); }
+    { f = MK_TERM(CVC4::api::STRING_CONTAINS, f, f2); }
   | STRING_SUBSTR_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_TERM(CVC4::api::STRING_SUBSTR, f, f2, f3); }
   | STRING_CHARAT_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_CHARAT, f, f2); }
   | STRING_INDEXOF_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRIDOF, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_INDEXOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRREPL, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_REPLACE, f, f2, f3); }
   | STRING_REPLACE_ALL_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STRREPLALL, f, f2, f3); }
+    { f = MK_TERM(CVC4::api::STRING_REPLACE_ALL, f, f2, f3); }
   | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_PREFIX, f, f2); }
   | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_TERM(CVC4::api::STRING_SUFFIX, f, f2); }
   | STRING_STOI_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_STOI, f); }
+    { f = MK_TERM(CVC4::api::STRING_TO_INT, f); }
   | STRING_ITOS_TOK LPAREN formula[f] RPAREN
-    { f = MK_TERM(CVC4::api::STRING_ITOS, f); }
+    { f = MK_TERM(CVC4::api::STRING_FROM_INT, f); }
   | STRING_TO_REGEXP_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::STRING_TO_REGEXP, f); }
   | STRING_TOLOWER_TOK LPAREN formula[f] RPAREN
@@ -2079,6 +2081,8 @@ stringTerm[CVC4::api::Term& f]
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
+  | SEQ_UNIT_TOK LPAREN formula[f] RPAREN
+    { f = MK_TERM(CVC4::api::SEQ_UNIT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_TERM(CVC4::api::REGEXP_EMPTY, std::vector<api::Term>()); }
   | REGEXP_SIGMA_TOK
@@ -2097,6 +2101,8 @@ setsTerm[CVC4::api::Term& f]
     /* Sets prefix operators */
   : SETS_CARD_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::CARD, f); }
+  | SETS_CHOOSE_TOK LPAREN formula[f] RPAREN
+        { f = MK_TERM(CVC4::api::CHOOSE, f); }
   | simpleTerm[f]
   ;
 
@@ -2130,7 +2136,7 @@ simpleTerm[CVC4::api::Term& f]
         }
         api::Sort dtype = SOLVER->mkTupleSort(types);
         const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-        args.insert( args.begin(), dt[0].getConstructor() );
+        args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
         f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
       }
     }
@@ -2140,7 +2146,9 @@ simpleTerm[CVC4::api::Term& f]
     { std::vector<api::Sort> types;
       api::Sort dtype = SOLVER->mkTupleSort(types);
       const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor())); }
+      f = MK_TERM(api::APPLY_CONSTRUCTOR,
+                  api::Term(SOLVER, dt[0].getConstructor()));
+    }
 
     /* empty record literal */
   | PARENHASH HASHPAREN
@@ -2148,7 +2156,8 @@ simpleTerm[CVC4::api::Term& f]
       api::Sort dtype = SOLVER->mkRecordSort(
           std::vector<std::pair<std::string, api::Sort>>());
       const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      f = MK_TERM(api::APPLY_CONSTRUCTOR, api::Term(dt[0].getConstructor()));
+      f = MK_TERM(api::APPLY_CONSTRUCTOR,
+                  api::Term(SOLVER, dt[0].getConstructor()));
     }
     /* empty set literal */
   | LBRACE RBRACE
@@ -2246,7 +2255,7 @@ simpleTerm[CVC4::api::Term& f]
       }
       api::Sort dtype = SOLVER->mkRecordSort(typeIds);
       const Datatype& dt = ((DatatypeType)dtype.getType()).getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
+      args.insert(args.begin(), api::Term(SOLVER, dt[0].getConstructor()));
       f = MK_TERM(api::APPLY_CONSTRUCTOR, args);
     }
 
@@ -2354,8 +2363,9 @@ constructorDef[CVC4::api::DatatypeDecl& type]
   std::unique_ptr<CVC4::api::DatatypeConstructorDecl> ctor;
 }
   : identifier[id,CHECK_UNDECLARED,SYM_SORT]
-    { 
-      ctor.reset(new CVC4::api::DatatypeConstructorDecl(id));
+    {
+      ctor.reset(new CVC4::api::DatatypeConstructorDecl(
+          SOLVER->mkDatatypeConstructorDecl(id)));
     }
     ( LPAREN
       selector[&ctor]

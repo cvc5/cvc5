@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -85,7 +85,7 @@ static set<string> s_declarations;
 #endif /* HAVE_LIBREADLINE */
 
 InteractiveShell::InteractiveShell(api::Solver* solver)
-    : d_options(solver->getExprManager()->getOptions()),
+    : d_options(solver->getOptions()),
       d_in(*d_options.getIn()),
       d_out(*d_options.getOutConst()),
       d_quit(false)

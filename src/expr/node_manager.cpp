@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/skolem_manager.h"
 #include "expr/type_checker.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -91,9 +92,8 @@ namespace attr {
 typedef expr::Attribute<attr::LambdaBoundVarListTag, Node> LambdaBoundVarListAttr;
 
 NodeManager::NodeManager(ExprManager* exprManager)
-    : d_options(new Options()),
-      d_statisticsRegistry(new StatisticsRegistry()),
-      d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
+    : d_statisticsRegistry(new StatisticsRegistry()),
+      d_skManager(new SkolemManager),
       next_id(0),
       d_attrManager(new expr::attr::AttributeManager()),
       d_exprManager(exprManager),
@@ -102,22 +102,6 @@ NodeManager::NodeManager(ExprManager* exprManager)
       d_abstractValueCount(0),
       d_skolemCounter(0)
 {
-  init();
-}
-
-NodeManager::NodeManager(ExprManager* exprManager, const Options& options)
-    : d_options(new Options()),
-      d_statisticsRegistry(new StatisticsRegistry()),
-      d_resourceManager(new ResourceManager(*d_statisticsRegistry, *d_options)),
-      next_id(0),
-      d_attrManager(new expr::attr::AttributeManager()),
-      d_exprManager(exprManager),
-      d_nodeUnderDeletion(NULL),
-      d_inReclaimZombies(false),
-      d_abstractValueCount(0),
-      d_skolemCounter(0)
-{
-  d_options->copyValues(options);
   init();
 }
 
@@ -131,22 +115,6 @@ void NodeManager::init() {
       d_operators[i] = mkConst(Kind(k));
     }
   }
-  d_resourceManager->setHardLimit((*d_options)[options::hardLimit]);
-  if((*d_options)[options::perCallResourceLimit] != 0) {
-    d_resourceManager->setResourceLimit((*d_options)[options::perCallResourceLimit], false);
-  }
-  if((*d_options)[options::cumulativeResourceLimit] != 0) {
-    d_resourceManager->setResourceLimit((*d_options)[options::cumulativeResourceLimit], true);
-  }
-  if((*d_options)[options::perCallMillisecondLimit] != 0) {
-    d_resourceManager->setTimeLimit((*d_options)[options::perCallMillisecondLimit], false);
-  }
-  if((*d_options)[options::cumulativeMillisecondLimit] != 0) {
-    d_resourceManager->setTimeLimit((*d_options)[options::cumulativeMillisecondLimit], true);
-  }
-  if((*d_options)[options::cpuTime]) {
-    d_resourceManager->useCPUTime(true);
-  }
 }
 
 NodeManager::~NodeManager() {
@@ -154,6 +122,9 @@ NodeManager::~NodeManager() {
   // destruction of operators, because they get GCed.
 
   NodeManagerScope nms(this);
+
+  // Destroy skolem manager before cleaning up attributes and zombies
+  d_skManager = nullptr;
 
   {
     ScopedBool dontGC(d_inReclaimZombies);
@@ -215,14 +186,10 @@ NodeManager::~NodeManager() {
   }
 
   // defensive coding, in case destruction-order issues pop up (they often do)
-  delete d_resourceManager;
-  d_resourceManager = NULL;
   delete d_statisticsRegistry;
   d_statisticsRegistry = NULL;
   delete d_attrManager;
   d_attrManager = NULL;
-  delete d_options;
-  d_options = NULL;
 }
 
 size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
@@ -405,8 +372,15 @@ TypeNode NodeManager::getType(TNode n, bool check)
 
 
   Debug("getType") << this << " getting type for " << &n << " " << n << ", check=" << check << ", needsCheck = " << needsCheck << ", hasType = " << hasType << endl;
-  
-  if(needsCheck && !(*d_options)[options::earlyTypeChecking]) {
+
+#ifdef CVC4_DEBUG
+  // already did type check eagerly upon creation in node builder
+  bool doTypeCheck = false;
+#else
+  bool doTypeCheck = true;
+#endif
+  if (needsCheck && doTypeCheck)
+  {
     /* Iterate and compute the children bottom up. This avoids stack
        overflows in computeType() when the Node graph is really deep,
        which should only affect us when we're type checking lazily. */
@@ -471,6 +445,17 @@ Node NodeManager::mkSkolem(const std::string& prefix, const TypeNode& type, cons
     }
   }
   return n;
+}
+
+TypeNode NodeManager::mkSequenceType(TypeNode elementType)
+{
+  CheckArgument(
+      !elementType.isNull(), elementType, "unexpected NULL element type");
+  CheckArgument(elementType.isFirstClass(),
+                elementType,
+                "cannot store types that are not first-class in sequences. Try "
+                "option --uf-ho.");
+  return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
 TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
@@ -739,9 +724,9 @@ Node NodeManager::getBoundVarListForFunctionType( TypeNode tn ) {
   if( bvl.isNull() ){
     std::vector< Node > vars;
     for( unsigned i=0; i<tn.getNumChildren()-1; i++ ){
-      vars.push_back( NodeManager::currentNM()->mkBoundVar( tn[i] ) );
+      vars.push_back(mkBoundVar(tn[i]));
     }
-    bvl = NodeManager::currentNM()->mkNode( kind::BOUND_VAR_LIST, vars );
+    bvl = mkNode(kind::BOUND_VAR_LIST, vars);
     Trace("functions") << "Make standard bound var list " << bvl << " for " << tn << std::endl;
     tn.setAttribute(LambdaBoundVarListAttr(),bvl);
   }
@@ -830,6 +815,28 @@ void NodeManager::deleteAttributes(const std::vector<const expr::attr::Attribute
 
 void NodeManager::debugHook(int debugFlag){
   // For debugging purposes only, DO NOT CHECK IN ANY CODE!
+}
+
+Kind NodeManager::getKindForFunction(TNode fun)
+{
+  TypeNode tn = fun.getType();
+  if (tn.isFunction())
+  {
+    return kind::APPLY_UF;
+  }
+  else if (tn.isConstructor())
+  {
+    return kind::APPLY_CONSTRUCTOR;
+  }
+  else if (tn.isSelector())
+  {
+    return kind::APPLY_SELECTOR;
+  }
+  else if (tn.isTester())
+  {
+    return kind::APPLY_TESTER;
+  }
+  return kind::UNDEFINED_KIND;
 }
 
 }/* CVC4 namespace */

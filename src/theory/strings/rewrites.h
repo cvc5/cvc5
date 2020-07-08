@@ -2,9 +2,9 @@
 /*! \file rewrites.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,6 +75,7 @@ enum class Rewrite : uint32_t
   ITOS_EVAL,
   RE_AND_EMPTY,
   RE_ANDOR_FLATTEN,
+  RE_ANDOR_INC_CONFLICT,
   RE_CHAR_IN_STR_STAR,
   RE_CONCAT,
   RE_CONCAT_FLATTEN,
@@ -115,6 +116,9 @@ enum class Rewrite : uint32_t
   RPL_RPL_EMPTY,
   RPL_RPL_LEN_ID,
   RPL_X_Y_X_SIMP,
+  REPLACE_RE_EVAL,
+  REPLACE_RE_ALL_EVAL,
+  REPLACE_RE_EMP_RE,
   SPLIT_EQ,
   SPLIT_EQ_STRIP_L,
   SPLIT_EQ_STRIP_R,
@@ -201,7 +205,9 @@ enum class Rewrite : uint32_t
   LEN_CONCAT,
   LEN_REPL_INV,
   LEN_CONV_INV,
-  CHARAT_ELIM
+  LEN_SEQ_UNIT,
+  CHARAT_ELIM,
+  SEQ_UNIT_EVAL
 };
 
 /**

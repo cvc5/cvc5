@@ -15,11 +15,14 @@ from cvc4 cimport DatatypeSelector as c_DatatypeSelector
 from cvc4 cimport Result as c_Result
 from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport Op as c_Op
+from cvc4 cimport OpHashFunction as c_OpHashFunction
 from cvc4 cimport Solver as c_Solver
 from cvc4 cimport Sort as c_Sort
+from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
 from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
+from cvc4 cimport TermHashFunction as c_TermHashFunction
 
 from cvc4kinds cimport Kind as c_Kind
 
@@ -49,7 +52,12 @@ def expand_list_arg(num_req_args=0):
 ### can omit spaces between unrelated oneliners
 ### always use c++ default arguments
 #### only use default args of None at python level
-#### Result class can have default because it's pure python
+
+
+## Objects for hashing
+cdef c_OpHashFunction cophash = c_OpHashFunction()
+cdef c_SortHashFunction csorthash = c_SortHashFunction()
+cdef c_TermHashFunction ctermhash = c_TermHashFunction()
 
 
 cdef class Datatype:
@@ -57,9 +65,14 @@ cdef class Datatype:
     def __cinit__(self):
         pass
 
-    def __getitem__(self, str name):
+    def __getitem__(self, index):
         cdef DatatypeConstructor dc = DatatypeConstructor()
-        dc.cdc = self.cd[name.encode()]
+        if isinstance(index, int) and index >= 0:
+            dc.cdc = self.cd[(<int?> index)]
+        elif isinstance(index, str):
+            dc.cdc = self.cd[(<const string &> name.encode())]
+        else:
+            raise ValueError("Expecting a non-negative integer or string")
         return dc
 
     def getConstructor(self, str name):
@@ -96,10 +109,31 @@ cdef class DatatypeConstructor:
     def __cinit__(self):
         self.cdc = c_DatatypeConstructor()
 
-    def __getitem__(self, str name):
+    def __getitem__(self, index):
         cdef DatatypeSelector ds = DatatypeSelector()
-        ds.cds = self.cdc[name.encode()]
+        if isinstance(index, int) and index >= 0:
+            ds.cds = self.cdc[(<int?> index)]
+        elif isinstance(index, str):
+            ds.cds = self.cdc[(<const string &> name.encode())]
+        else:
+            raise ValueError("Expecting a non-negative integer or string")
         return ds
+
+    def getName(self):
+        return self.cdc.getName().decode()
+
+    def getConstructorTerm(self):
+        cdef Term term = Term()
+        term.cterm = self.cdc.getConstructorTerm()
+        return term
+
+    def getTesterTerm(self):
+        cdef Term term = Term()
+        term.cterm = self.cdc.getTesterTerm()
+        return term
+
+    def getNumSelectors(self):
+        return self.cdc.getNumSelectors()
 
     def getSelector(self, str name):
         cdef DatatypeSelector ds = DatatypeSelector()
@@ -125,12 +159,14 @@ cdef class DatatypeConstructor:
 
 
 cdef class DatatypeConstructorDecl:
-    cdef c_DatatypeConstructorDecl* cddc
-    def __cinit__(self, str name):
-        self.cddc = new c_DatatypeConstructorDecl(name.encode())
+    cdef c_DatatypeConstructorDecl cddc
+
+    def __cinit__(self):
+      pass
 
     def addSelector(self, str name, Sort sort):
         self.cddc.addSelector(name.encode(), sort.csort)
+
     def addSelectorSelf(self, str name):
         self.cddc.addSelectorSelf(name.encode())
 
@@ -147,7 +183,10 @@ cdef class DatatypeDecl:
         pass
 
     def addConstructor(self, DatatypeConstructorDecl ctor):
-        self.cdd.addConstructor(ctor.cddc[0])
+        self.cdd.addConstructor(ctor.cddc)
+
+    def getNumConstructors(self):
+        return self.cdd.getNumConstructors()
 
     def isParametric(self):
         return self.cdd.isParametric()
@@ -163,6 +202,19 @@ cdef class DatatypeSelector:
     cdef c_DatatypeSelector cds
     def __cinit__(self):
         self.cds = c_DatatypeSelector()
+
+    def getName(self):
+        return self.cds.getName().decode()
+
+    def getSelectorTerm(self):
+        cdef Term term = Term()
+        term.cterm = self.cds.getSelectorTerm()
+        return term
+
+    def getRangeSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.cds.getRangeSort()
+        return sort
 
     def __str__(self):
         return self.cds.toString().decode()
@@ -188,13 +240,11 @@ cdef class Op:
     def __repr__(self):
         return self.cop.toString().decode()
 
+    def __hash__(self):
+        return cophash(self.cop)
+
     def getKind(self):
         return kind(<int> self.cop.getKind())
-
-    def getSort(self):
-        cdef Sort sort = Sort()
-        sort.csort = self.cop.getSort()
-        return sort
 
     def isNull(self):
         return self.cop.isNull()
@@ -222,54 +272,47 @@ cdef class Op:
         return indices
 
 
-class Result:
-    def __init__(self, name, explanation=""):
-        name = name.lower()
-        incomplete = False
-        if "(incomplete)" in name:
-            incomplete = True
-            name = name.replace("(incomplete)", "").strip()
-        assert name in {"sat", "unsat", "valid", "invalid", "unknown"}, \
-            "can't interpret result = {}".format(name)
+cdef class Result:
+    cdef c_Result cr
+    def __cinit__(self):
+        # gets populated by solver
+        self.cr = c_Result()
 
-        self._name = name
-        self._explanation = explanation
-        self._incomplete = incomplete
+    def isNull(self):
+        return self.cr.isNull()
 
-    def __bool__(self):
-        if self._name in {"sat", "valid"}:
-            return True
-        elif self._name in {"unsat", "invalid"}:
-            return False
-        elif self._name == "unknown":
-            raise RuntimeError("Cannot interpret 'unknown' result as a Boolean")
-        else:
-            assert False, "Unhandled result=%s"%self._name
+    def isSat(self):
+        return self.cr.isSat()
 
-    def __eq__(self, other):
-        if not isinstance(other, Result):
-            return False
+    def isUnsat(self):
+        return self.cr.isUnsat()
 
-        return self._name == other._name
+    def isSatUnknown(self):
+        return self.cr.isSatUnknown()
 
-    def __ne__(self, other):
-        return not self.__eq__(other)
+    def isEntailed(self):
+        return self.cr.isEntailed()
+
+    def isNotEntailed(self):
+        return self.cr.isNotEntailed()
+
+    def isEntailmentUnknown(self):
+        return self.cr.isEntailmentUnknown()
+
+    def __eq__(self, Result other):
+        return self.cr == other.cr
+
+    def __ne__(self, Result other):
+        return self.cr != other.cr
+
+    def getUnknownExplanation(self):
+        return self.cr.getUnknownExplanation().decode()
 
     def __str__(self):
-        return self._name
+        return self.cr.toString().decode()
 
     def __repr__(self):
-        return self._name
-
-    def isUnknown(self):
-        return self._name == "unknown"
-
-    def isIncomplete(self):
-        return self._incomplete
-
-    @property
-    def explanation(self):
-        return self._explanation
+        return self.cr.toString().decode()
 
 
 cdef class RoundingMode:
@@ -668,6 +711,11 @@ cdef class Solver:
                                             (<str?> symbol).encode())
         return term
 
+    def mkDatatypeConstructorDecl(self, str name):
+        cdef DatatypeConstructorDecl ddc = DatatypeConstructorDecl()
+        ddc.cddc = self.csolver.mkDatatypeConstructorDecl(name.encode())
+        return ddc
+
     def mkDatatypeDecl(self, str name, sorts_or_bool=None, isCoDatatype=None):
         cdef DatatypeDecl dd = DatatypeDecl()
         cdef vector[c_Sort] v
@@ -721,12 +769,9 @@ cdef class Solver:
         self.csolver.assertFormula(term.cterm)
 
     def checkSat(self):
-        cdef c_Result r = self.csolver.checkSat()
-        name = r.toString().decode()
-        explanation = ""
-        if r.isSatUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSat()
+        return r
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
@@ -737,17 +782,13 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
-        cdef c_Result r
+        cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
-        name = r.toString().decode()
-        explanation = ""
-        if r.isSatUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return  Result(name, explanation)
+        r.cr = self.csolver.checkSatAssuming(<const vector[c_Term]&> v)
+        return r
 
     @expand_list_arg(num_req_args=0)
     def checkEntailed(self, *assumptions):
@@ -758,17 +799,13 @@ cdef class Solver:
                  where assumptions can also be comma-separated arguments of
                  type (boolean) Term
         '''
-        cdef c_Result r
+        cdef Result r = Result()
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
         for a in assumptions:
             v.push_back((<Term?> a).cterm)
-        r = self.csolver.checkEntailed(<const vector[c_Term]&> v)
-        name = r.toString().decode()
-        explanation = ""
-        if r.isEntailmentUnknown():
-            explanation = r.getUnknownExplanation().decode()
-        return Result(name, explanation)
+        r.cr = self.csolver.checkEntailed(<const vector[c_Term]&> v)
+        return r
 
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
@@ -783,7 +820,7 @@ cdef class Solver:
         cdef vector[c_DatatypeConstructorDecl] v
 
         for c in ctors:
-            v.push_back((<DatatypeConstructorDecl?> c).cddc[0])
+            v.push_back((<DatatypeConstructorDecl?> c).cddc)
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
@@ -802,13 +839,13 @@ cdef class Solver:
         sort.csort = self.csolver.declareSort(symbol.encode(), arity)
         return sort
 
-    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None):
+    def defineFun(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         '''
         Supports two uses:
                 Term defineFun(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term)
+                               Sort sort, Term term, bool glbl)
                 Term defineFun(Term fun, List[Term] bound_vars,
-                               Term term)
+                               Term term, bool glbl)
         '''
         cdef Term term = Term()
         cdef vector[c_Term] v
@@ -819,21 +856,23 @@ cdef class Solver:
             term.cterm = self.csolver.defineFun((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm)
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
             term.cterm = self.csolver.defineFun((<Term?> sym_or_fun).cterm,
                                                 <const vector[c_Term]&> v,
-                                                (<Term?> sort_or_term).cterm)
+                                                (<Term?> sort_or_term).cterm,
+                                                <bint> glbl)
 
         return term
 
-    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None):
+    def defineFunRec(self, sym_or_fun, bound_vars, sort_or_term, t=None, glbl=False):
         '''
         Supports two uses:
                 Term defineFunRec(str symbol, List[Term] bound_vars,
-                               Sort sort, Term term)
+                               Sort sort, Term term, bool glbl)
                 Term defineFunRec(Term fun, List[Term] bound_vars,
-                               Term term)
+                               Term term, bool glbl)
         '''
         cdef Term term = Term()
         cdef vector[c_Term] v
@@ -844,11 +883,13 @@ cdef class Solver:
             term.cterm = self.csolver.defineFunRec((<str?> sym_or_fun).encode(),
                                                 <const vector[c_Term] &> v,
                                                 (<Sort?> sort_or_term).csort,
-                                                (<Term?> t).cterm)
+                                                (<Term?> t).cterm,
+                                                <bint> glbl)
         else:
             term.cterm = self.csolver.defineFunRec((<Term?> sym_or_fun).cterm,
                                                    <const vector[c_Term]&> v,
-                                                   (<Term?> sort_or_term).cterm)
+                                                   (<Term?> sort_or_term).cterm,
+                                                   <bint> glbl)
 
         return term
 
@@ -918,6 +959,16 @@ cdef class Solver:
         term.cterm = self.csolver.getValue(t.cterm)
         return term
 
+    def getSeparationHeap(self):
+        cdef Term term = Term()
+        term.cterm = self.csolver.getSeparationHeap()
+        return term
+
+    def getSeparationNilTerm(self):
+        cdef Term term = Term()
+        term.cterm = self.csolver.getSeparationNilTerm()
+        return term
+
     def pop(self, nscopes=1):
         self.csolver.pop(nscopes)
 
@@ -952,11 +1003,26 @@ cdef class Sort:
     def __ne__(self, Sort other):
         return self.csort != other.csort
 
+    def __lt__(self, Sort other):
+        return self.csort < other.csort
+
+    def __gt__(self, Sort other):
+        return self.csort > other.csort
+
+    def __le__(self, Sort other):
+        return self.csort <= other.csort
+
+    def __ge__(self, Sort other):
+        return self.csort >= other.csort
+
     def __str__(self):
         return self.csort.toString().decode()
 
     def __repr__(self):
         return self.csort.toString().decode()
+
+    def __hash__(self):
+        return csorthash(self.csort)
 
     def isBoolean(self):
         return self.csort.isBoolean()
@@ -988,6 +1054,15 @@ cdef class Sort:
     def isParametricDatatype(self):
         return self.csort.isParametricDatatype()
 
+    def isConstructor(self):
+        return self.csort.isConstructor()
+
+    def isSelector(self):
+        return self.csort.isSelector()
+
+    def isTester(self):
+        return self.csort.isTester()
+
     def isFunction(self):
         return self.csort.isFunction()
 
@@ -1018,6 +1093,12 @@ cdef class Sort:
     def isFunctionLike(self):
         return self.csort.isFunctionLike()
 
+    def isSubsortOf(self, Sort sort):
+        return self.csort.isSubsortOf(sort.csort)
+
+    def isComparableTo(self, Sort sort):
+        return self.csort.isComparableTo(sort.csort)
+
     def getDatatype(self):
         cdef Datatype d = Datatype()
         d.cd = self.csort.getDatatype()
@@ -1031,8 +1112,103 @@ cdef class Sort:
         sort.csort = self.csort.instantiate(v)
         return sort
 
+    def getConstructorArity(self):
+        return self.csort.getConstructorArity()
+
+    def getConstructorDomainSorts(self):
+        domain_sorts = []
+        for s in self.csort.getConstructorDomainSorts():
+            sort = Sort()
+            sort.csort = s
+            domain_sorts.append(sort)
+        return domain_sorts
+
+    def getConstructorCodomainSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.csort.getConstructorCodomainSort()
+        return sort
+
+    def getFunctionArity(self):
+        return self.csort.getFunctionArity()
+
+    def getFunctionDomainSorts(self):
+        domain_sorts = []
+        for s in self.csort.getFunctionDomainSorts():
+            sort = Sort()
+            sort.csort = s
+            domain_sorts.append(sort)
+        return domain_sorts
+
+    def getFunctionCodomainSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.csort.getFunctionCodomainSort()
+        return sort
+
+    def getArrayIndexSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.csort.getArrayIndexSort()
+        return sort
+
+    def getArrayElementSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.csort.getArrayElementSort()
+        return sort
+
+    def getSetElementSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.csort.getSetElementSort()
+        return sort
+
+    def getUninterpretedSortName(self):
+        return self.csort.getUninterpretedSortName().decode()
+
     def isUninterpretedSortParameterized(self):
         return self.csort.isUninterpretedSortParameterized()
+
+    def getUninterpretedSortParamSorts(self):
+        param_sorts = []
+        for s in self.csort.getUninterpretedSortParamSorts():
+            sort = Sort()
+            sort.csort = s
+            param_sorts.append(sort)
+        return param_sorts
+
+    def getSortConstructorName(self):
+        return self.csort.getSortConstructorName().decode()
+
+    def getSortConstructorArity(self):
+        return self.csort.getSortConstructorArity()
+
+    def getBVSize(self):
+        return self.csort.getBVSize()
+
+    def getFPExponentSize(self):
+        return self.csort.getFPExponentSize()
+
+    def getFPSignificandSize(self):
+        return self.csort.getFPSignificandSize()
+
+    def getDatatypeParamSorts(self):
+        param_sorts = []
+        for s in self.csort.getDatatypeParamSorts():
+            sort = Sort()
+            sort.csort = s
+            param_sorts.append(sort)
+        return param_sorts
+
+    def getDatatypeArity(self):
+        return self.csort.getDatatypeArity()
+
+    def getTupleLength(self):
+        return self.csort.getTupleLength()
+
+    def getTupleSorts(self):
+        tuple_sorts = []
+        for s in self.csort.getTupleSorts():
+            sort = Sort()
+            sort.csort = s
+            tuple_sorts.append(sort)
+        return tuple_sorts
 
 
 cdef class Term:
@@ -1059,6 +1235,9 @@ cdef class Term:
             term.cterm = ci
             yield term
 
+    def __hash__(self):
+        return ctermhash(self.cterm)
+
     def getKind(self):
         return kind(<int> self.cterm.getKind())
 
@@ -1066,6 +1245,23 @@ cdef class Term:
         cdef Sort sort = Sort()
         sort.csort = self.cterm.getSort()
         return sort
+
+    def substitute(self, list es, list replacements):
+        cdef vector[c_Term] ces
+        cdef vector[c_Term] creplacements
+        cdef Term term = Term()
+
+        if len(es) != len(replacements):
+            raise RuntimeError("Expecting list inputs to substitute to "
+                               "have the same length but got: "
+                               "{} and {}".format(len(es), len(replacements)))
+
+        for e, r in zip(es, replacements):
+            ces.push_back((<Term?> e).cterm)
+            creplacements.push_back((<Term?> r).cterm)
+
+        term.cterm = self.cterm.substitute(ces, creplacements)
+        return term
 
     def hasOp(self):
         return self.cterm.hasOp()
@@ -1077,6 +1273,14 @@ cdef class Term:
 
     def isNull(self):
         return self.cterm.isNull()
+
+    def isConst(self):
+        return self.cterm.isConst()
+
+    def getConstArrayBase(self):
+        cdef Term term = Term()
+        term.cterm = self.cterm.getConstArrayBase()
+        return term
 
     def notTerm(self):
         cdef Term term = Term()

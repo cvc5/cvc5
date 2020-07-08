@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,6 +29,7 @@
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -354,14 +355,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-          && (in[1].getType()).isSubtypeOf(in[0].getType()))
+      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-          && (in[0].getType()).isSubtypeOf(in[1].getType()))
+      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitution(in[1], in[0]);
         return PP_ASSERT_STATUS_SOLVED;
@@ -2311,6 +2310,61 @@ Node TheoryArrays::TheoryArraysDecisionStrategy::getNextDecisionRequest()
 std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
 {
   return std::string("th_arrays_dec");
+}
+
+Node TheoryArrays::expandDefinition(Node node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Kind kind = node.getKind();
+
+  /* Expand
+   *
+   *   (eqrange a b i j)
+   *
+   * to
+   *
+   *  forall k . i <= k <= j => a[k] = b[k]
+   *
+   */
+  if (kind == kind::EQ_RANGE)
+  {
+    TNode a = node[0];
+    TNode b = node[1];
+    TNode i = node[2];
+    TNode j = node[3];
+    Node k = nm->mkBoundVar(i.getType());
+    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, k);
+    TypeNode type = k.getType();
+
+    Kind kle;
+    Node range;
+    if (type.isBitVector())
+    {
+      kle = kind::BITVECTOR_ULE;
+    }
+    else if (type.isFloatingPoint())
+    {
+      kle = kind::FLOATINGPOINT_LEQ;
+    }
+    else if (type.isInteger() || type.isReal())
+    {
+      kle = kind::LEQ;
+    }
+    else
+    {
+      Unimplemented() << "Type " << type << " is not supported for predicate "
+                      << kind;
+    }
+
+    range = nm->mkNode(kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
+
+    Node eq = nm->mkNode(kind::EQUAL,
+                         nm->mkNode(kind::SELECT, a, k),
+                         nm->mkNode(kind::SELECT, b, k));
+    Node implies = nm->mkNode(kind::IMPLIES, range, eq);
+    return nm->mkNode(kind::FORALL, bvl, implies);
+  }
+  return node;
 }
 
 }/* CVC4::theory::arrays namespace */

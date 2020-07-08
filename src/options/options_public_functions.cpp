@@ -2,9 +2,9 @@
 /*! \file options_public_functions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,7 +75,9 @@ bool Options::getDumpSynth() const{
 }
 
 bool Options::getDumpUnsatCores() const{
-  return (*this)[options::dumpUnsatCores];
+  // dump unsat cores full enables dumpUnsatCores
+  return (*this)[options::dumpUnsatCores]
+         || (*this)[options::dumpUnsatCoresFull];
 }
 
 bool Options::getEarlyExit() const{
@@ -135,7 +137,8 @@ bool Options::getSemanticChecks() const{
 }
 
 bool Options::getStatistics() const{
-  return (*this)[options::statistics];
+  // statsEveryQuery enables stats
+  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{

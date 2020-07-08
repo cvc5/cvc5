@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,12 +79,13 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(c, smtStatisticsRegistry(), name));
 
-  d_cnfStream.reset(
-      new prop::TseitinCnfStream(d_satSolver.get(),
-                                 d_nullRegistrar.get(),
-                                 d_nullContext.get(),
-                                 options::proof(),
-                                 "LazyBitblaster"));
+  ResourceManager* rm = smt::currentResourceManager();
+  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
+                                               d_nullRegistrar.get(),
+                                               d_nullContext.get(),
+                                               rm,
+                                               options::proof(),
+                                               "LazyBitblaster"));
 
   d_satSolverNotify.reset(
       d_emptyNotify
@@ -439,11 +440,13 @@ void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
 {
   int numAssertions = d_bv->numAssertions();
+  bool has_full_model =
+      numAssertions != 0 && d_fullModelAssertionLevel.get() == numAssertions;
+
   Debug("bv-equality-status")
       << "TLazyBitblaster::getEqualityStatus " << a << " = " << b << "\n";
   Debug("bv-equality-status")
-      << "BVSatSolver has full model? "
-      << (d_fullModelAssertionLevel.get() == numAssertions) << "\n";
+      << "BVSatSolver has full model? " << has_full_model << "\n";
 
   // First check if it trivially rewrites to false/true
   Node a_eq_b =
@@ -452,7 +455,7 @@ EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
   if (a_eq_b == utils::mkFalse()) return theory::EQUALITY_FALSE;
   if (a_eq_b == utils::mkTrue()) return theory::EQUALITY_TRUE;
 
-  if (d_fullModelAssertionLevel.get() != numAssertions)
+  if (!has_full_model)
   {
     return theory::EQUALITY_UNKNOWN;
   }
@@ -578,8 +581,9 @@ void TLazyBitblaster::clearSolver() {
   // recreate sat solver
   d_satSolver.reset(
       prop::SatSolverFactory::createMinisat(d_ctx, smtStatisticsRegistry()));
+  ResourceManager* rm = smt::currentResourceManager();
   d_cnfStream.reset(new prop::TseitinCnfStream(
-      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get()));
+      d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get(), rm));
   d_satSolverNotify.reset(
       d_emptyNotify
           ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()

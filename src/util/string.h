@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -117,8 +117,6 @@ class CVC4_PUBLIC String {
   std::string toString(bool useEscSequences = false) const;
   /** is this the empty string? */
   bool empty() const { return d_str.empty(); }
-  /** is this the empty string? */
-  bool isEmptyString() const { return empty(); }
   /** is less than or equal to string y */
   bool isLeq(const String& y) const;
   /** Return the length of the string */

@@ -2,9 +2,9 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Andrew Reynolds
+ **   Liana Hadarean, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/hash.h"
@@ -72,11 +73,13 @@ public:
 
   ~TheoryBV();
 
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   void finishInit() override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  Node expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
@@ -256,6 +259,9 @@ public:
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node);
+
+  /** The theory rewriter for this theory. */
+  TheoryBVRewriter d_rewriter;
 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;

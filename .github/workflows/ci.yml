@@ -16,7 +16,7 @@ jobs:
 
         include:
           - name: production
-            config: production --language-bindings=java --lfsc --python-bindings
+            config: production --all-bindings --lfsc
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -82,6 +82,12 @@ jobs:
         python3 -m pip install \
           Cython==0.29 --install-option="--no-cython-compile"
 
+    - name: Install Pytest
+      if: matrix.python-bindings
+      run: |
+        python3 -m pip install pytest
+        python3 -m pytest --version
+
     - name: Restore Dependencies
       id: restore-deps
       uses: actions/cache@v1
@@ -97,6 +103,11 @@ jobs:
         ./contrib/get-cadical
         ./contrib/get-cryptominisat
         ./contrib/get-lfsc-checker
+
+    - name: List dependencies
+      run: |
+        find deps/install -type f
+        cat deps/install/bin/antlr3
 
     # GitHub actions currently does not support modifying an already existing
     # cache. Hence, we create a new cache for each commit with key
@@ -154,6 +165,12 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
+
+    - name: Run Pytest
+      if: matrix.python-bindings
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Clark Barrett, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,6 +27,7 @@
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
 #include "theory/arrays/array_proof_reconstruction.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
@@ -144,9 +145,13 @@ class TheoryArrays : public Theory {
                std::string name = "");
   ~TheoryArrays();
 
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryArrays"); }
+
+  Node expandDefinition(Node node) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
@@ -174,6 +179,9 @@ class TheoryArrays : public Theory {
   Node recursivePreprocessTerm(TNode term);
   bool ppDisequal(TNode a, TNode b);
   Node solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck);
+
+  /** The theory rewriter for this theory. */
+  TheoryArraysRewriter d_rewriter;
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;

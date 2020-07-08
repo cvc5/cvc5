@@ -2,9 +2,9 @@
 /*! \file bitvectors_and_arrays.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean
+ **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,17 +17,17 @@
 #include <iostream>
 #include <cmath>
 
-#include <cvc4/cvc4.h>
+#include <cvc4/api/cvc4cpp.h>
 
 using namespace std;
-using namespace CVC4;
+using namespace CVC4::api;
 
-int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
-  smt.setOption("produce-models", true);      // Produce Models
-  smt.setOption("output-language", "smtlib"); // output-language
-  smt.setLogic("QF_AUFBV");                   // Set the logic
+int main()
+{
+  Solver slv;
+  slv.setOption("produce-models", "true");      // Produce Models
+  slv.setOption("output-language", "smtlib"); // output-language
+  slv.setLogic("QF_AUFBV");                   // Set the logic
 
   // Consider the following code (where size is some previously defined constant):
   //
@@ -46,50 +46,51 @@ int main() {
   unsigned index_size = log2(k); // size of the index
 
 
-  // Types
-  Type elementType = em.mkBitVectorType(32);
-  Type indexType = em.mkBitVectorType(index_size);
-  Type arrayType = em.mkArrayType(indexType, elementType);
+  // Sorts
+  Sort elementSort = slv.mkBitVectorSort(32);
+  Sort indexSort = slv.mkBitVectorSort(index_size);
+  Sort arraySort = slv.mkArraySort(indexSort, elementSort);
 
   // Variables
-  Expr current_array = em.mkVar("current_array", arrayType);
+  Term current_array = slv.mkConst(arraySort, "current_array");
 
   // Making a bit-vector constant
-  Expr zero = em.mkConst(BitVector(index_size, 0u));
+  Term zero = slv.mkBitVector(index_size, 0u);
 
   // Asserting that current_array[0] > 0
-  Expr current_array0 = em.mkExpr(kind::SELECT, current_array, zero);
-  Expr current_array0_gt_0 = em.mkExpr(kind::BITVECTOR_SGT, current_array0, em.mkConst(BitVector(32, 0u)));
-  smt.assertFormula(current_array0_gt_0);
+  Term current_array0 = slv.mkTerm(SELECT, current_array, zero);
+  Term current_array0_gt_0 = slv.mkTerm(
+      BITVECTOR_SGT, current_array0, slv.mkBitVector(32, 0u));
+  slv.assertFormula(current_array0_gt_0);
 
   // Building the assertions in the loop unrolling
-  Expr index = em.mkConst(BitVector(index_size, 0u));
-  Expr old_current = em.mkExpr(kind::SELECT, current_array, index);
-  Expr two = em.mkConst(BitVector(32, 2u));
+  Term index = slv.mkBitVector(index_size, 0u);
+  Term old_current = slv.mkTerm(SELECT, current_array, index);
+  Term two = slv.mkBitVector(32, 2u);
 
-  std::vector<Expr> assertions;
+  std::vector<Term> assertions;
   for (unsigned i = 1; i < k; ++i) {
-    index = em.mkConst(BitVector(index_size, Integer(i)));
-    Expr new_current = em.mkExpr(kind::BITVECTOR_MULT, two, old_current);
+    index = slv.mkBitVector(index_size, i);
+    Term new_current = slv.mkTerm(BITVECTOR_MULT, two, old_current);
     // current[i] = 2 * current[i-1]
-    current_array = em.mkExpr(kind::STORE, current_array, index, new_current);
+    current_array = slv.mkTerm(STORE, current_array, index, new_current);
     // current[i-1] < current [i]
-    Expr current_slt_new_current = em.mkExpr(kind::BITVECTOR_SLT, old_current, new_current);
+    Term current_slt_new_current = slv.mkTerm(BITVECTOR_SLT, old_current, new_current);
     assertions.push_back(current_slt_new_current);
 
-    old_current = em.mkExpr(kind::SELECT, current_array, index);
+    old_current = slv.mkTerm(SELECT, current_array, index);
   }
 
-  Expr query = em.mkExpr(kind::NOT, em.mkExpr(kind::AND, assertions));
+  Term query = slv.mkTerm(NOT, slv.mkTerm(AND, assertions));
 
   cout << "Asserting " << query << " to CVC4 " << endl;
-  smt.assertFormula(query);
+  slv.assertFormula(query);
   cout << "Expect sat. " << endl;
-  cout << "CVC4: " << smt.checkSat(em.mkConst(true)) << endl;
+  cout << "CVC4: " << slv.checkSatAssuming(slv.mkTrue()) << endl;
 
   // Getting the model
   cout << "The satisfying model is: " << endl;
-  cout << "  current_array = " << smt.getValue(current_array) << endl;
-  cout << "  current_array[0] = " << smt.getValue(current_array0) << endl;
+  cout << "  current_array = " << slv.getValue(current_array) << endl;
+  cout << "  current_array[0] = " << slv.getValue(current_array0) << endl;
   return 0;
 }

@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -514,10 +514,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check downwards closure
     checkDownwardsClosure();
-    if (options::setsInferAsLemmas())
-    {
-      d_im.flushPendingLemmas();
-    }
+    d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
@@ -915,7 +912,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.assertInference(lem, d_true, "diseq", 1);
     d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
@@ -1485,50 +1482,58 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-Node TheorySetsPrivate::expandDefinition(LogicRequest& logicRequest, Node n)
+Node TheorySetsPrivate::expandDefinition(Node node)
 {
-  Debug("sets-proc") << "expandDefinition : " << n << std::endl;
-  return n;
+  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+
+  if (node.getKind() == kind::CHOOSE)
+  {
+    // (choose A) is expanded as
+    // (witness ((x elementType))
+    //    (ite
+    //      (= A (as emptyset setType))
+    //      (= x chooseUf(A))
+    //      (and (member x A) (= x chooseUf(A)))
+
+    NodeManager* nm = NodeManager::currentNM();
+    Node set = node[0];
+    TypeNode setType = set.getType();
+    Node chooseSkolem = getChooseFunction(setType);
+    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+    Node equal = witnessVariable.eqNode(apply);
+    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node isEmpty = set.eqNode(emptySet);
+    Node member = nm->mkNode(MEMBER, witnessVariable, set);
+    Node memberAndEqual = member.andNode(equal);
+    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
+    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
+    return witness;
+  }
+
+  return node;
 }
 
-Theory::PPAssertStatus TheorySetsPrivate::ppAssert(
-    TNode in, SubstitutionMap& outSubstitutions)
+Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 {
-  Debug("sets-proc") << "ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
-
-  // TODO: allow variable elimination for sets when setsExt = true
-
-  // this is based off of Theory::ppAssert
-  if (in.getKind() == kind::EQUAL)
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
+  if (it != d_chooseFunctions.end())
   {
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType()))
-    {
-      if (!in[0].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[0], in[1]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-             && (in[0].getType()).isSubtypeOf(in[1].getType()))
-    {
-      if (!in[1].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[1], in[0]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
+    return it->second;
   }
-  return status;
+
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
+  stringstream stream;
+  stream << "chooseUf" << setType.getId();
+  string name = stream.str();
+  Node chooseSkolem = nm->mkSkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[setType] = chooseSkolem;
+  return chooseSkolem;
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }

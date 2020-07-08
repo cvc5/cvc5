@@ -2,9 +2,9 @@
 /*! \file trigger.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -298,20 +298,37 @@ Node Trigger::getIsUsableEq( Node q, Node n ) {
 bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
   if( n1.getKind()==INST_CONSTANT ){
     if( options::relationalTriggers() ){
-      if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
-        return true;
-      }else if( n2.getKind()==INST_CONSTANT ){
+      Node q1 = quantifiers::TermUtil::getInstConstAttr(n1);
+      if (q1 != q)
+      {
+        // x is a variable from another quantified formula, fail
+        return false;
+      }
+      Node q2 = quantifiers::TermUtil::getInstConstAttr(n2);
+      if (q2.isNull())
+      {
+        // x = c
         return true;
       }
+      if (n2.getKind() == INST_CONSTANT && q2 == q)
+      {
+        // x = y
+        return true;
+      }
+      // we dont check x = f(y), which is handled symmetrically below
+      // when n1 and n2 are swapped
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
+        && quantifiers::TermUtil::getInstConstAttr(n2) == q
         && !expr::hasSubterm(n1, n2))
     {
+      // f(x) = y
       return true;
     }
     else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
     {
+      // f(x) = c
       return true;
     }
   }

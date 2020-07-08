@@ -2,7 +2,7 @@
 /*! \file node_traversal.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir
+ **   Alex Ozdemir, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -18,6 +18,7 @@
 #define CVC4__EXPR__NODE_TRAVERSAL_H
 
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <unordered_map>
 #include <vector>
@@ -26,7 +27,16 @@
 
 namespace CVC4 {
 
-// Iterator for traversing a node in post-order
+/**
+ * Enum that represents an order in which nodes are visited.
+ */
+enum class VisitOrder
+{
+  PREORDER,
+  POSTORDER
+};
+
+// Iterator for traversing a node in pre-/post-order
 // It does DAG-traversal, so indentical sub-nodes will be visited once only.
 class NodeDfsIterator
 {
@@ -39,9 +49,9 @@ class NodeDfsIterator
   using difference_type = std::ptrdiff_t;
 
   // Construct a traversal iterator beginning at `n`
-  NodeDfsIterator(TNode n, bool postorder);
+  NodeDfsIterator(TNode n, VisitOrder order, std::function<bool(TNode)> skipIf);
   // Construct an end-of-traversal iterator
-  NodeDfsIterator(bool postorder);
+  NodeDfsIterator(VisitOrder order);
 
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterator(NodeDfsIterator&&) = default;
@@ -57,9 +67,13 @@ class NodeDfsIterator
   // Dereference
   reference operator*();
   // Equals
-  bool operator==(const NodeDfsIterator&) const;
+  // It is not constant, because an unitilized node must be initialized before
+  // comparison
+  bool operator==(NodeDfsIterator&);
   // Not equals
-  bool operator!=(const NodeDfsIterator&) const;
+  // It is not constant, because an unitilized node must be initialized before
+  // comparison
+  bool operator!=(NodeDfsIterator&);
 
  private:
   // While we're not at an appropriate visit (see d_postorder), advance.
@@ -87,29 +101,34 @@ class NodeDfsIterator
   // Set to `true` if we've also already post-visited it.
   std::unordered_map<TNode, bool, TNodeHashFunction> d_visited;
 
-  // Whether this is a post-order iterator (the alternative is pre-order)
-  bool d_postorder;
-
-  // Whether this iterator has been initialized (advanced to its first
-  // visit)
-  bool d_initialized;
+  // The visit order that this iterator is using
+  VisitOrder d_order;
 
   // Current referent node. A valid node to visit if non-null.
   // Null after construction (but before first access) and at the end.
   TNode d_current;
+
+  // When to omit a node and its descendants from the traversal
+  std::function<bool(TNode)> d_skipIf;
 };
 
-// Node wrapper that is iterable in DAG post-order
+// Node wrapper that is iterable in DAG pre-/post-order
 class NodeDfsIterable
 {
  public:
-  NodeDfsIterable(TNode n);
-
-  // Modifying the traversal order
-  // Modify this iterable to be in post-order (default)
-  NodeDfsIterable& inPostorder();
-  // Modify this iterable to be in pre-order
-  NodeDfsIterable& inPreorder();
+  /**
+   * Creates a new node wrapper that can be used to iterate over the children
+   * of a node in pre-/post-order.
+   *
+   * @param n The node the iterate
+   * @param order The order in which the children are visited.
+   * @param skipIf Function that determines whether a given node and its
+   *               descendants should be skipped or not.
+   */
+  NodeDfsIterable(
+      TNode n,
+      VisitOrder order = VisitOrder::POSTORDER,
+      std::function<bool(TNode)> skipIf = [](TNode) { return false; });
 
   // Move/copy construction and assignment. Destructor.
   NodeDfsIterable(NodeDfsIterable&&) = default;
@@ -123,7 +142,8 @@ class NodeDfsIterable
 
  private:
   TNode d_node;
-  bool d_postorder;
+  VisitOrder d_order;
+  std::function<bool(TNode)> d_skipIf;
 };
 
 }  // namespace CVC4

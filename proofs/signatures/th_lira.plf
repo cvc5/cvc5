@@ -1,4 +1,4 @@
-; Depends on th_real.plf, th_int.plf, smt.plf, sat.plf
+; Deps: th_real.plf th_int.plf smt.plf sat.plf
 
 ; Some axiom arguments are marked "; Omit", because they can be deduced from
 ; other arguments and should be replaced with a "_" when invoking the axiom.

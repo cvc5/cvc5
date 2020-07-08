@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -404,6 +404,12 @@ bool Datatype::isWellFounded() const
 {
   ExprManagerScope ems(d_self);
   return d_internal->isWellFounded();
+}
+
+bool Datatype::hasNestedRecursion() const
+{
+  ExprManagerScope ems(d_self);
+  return d_internal->hasNestedRecursion();
 }
 
 Expr Datatype::mkGroundTerm(Type t) const

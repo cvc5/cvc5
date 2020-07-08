@@ -2,9 +2,9 @@
 /*! \file strings_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,67 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace strings {
+
+StringsRewriter::StringsRewriter(HistogramStat<Rewrite>* statistics)
+    : SequencesRewriter(statistics)
+{
+}
+
+RewriteResponse StringsRewriter::postRewrite(TNode node)
+{
+  Trace("strings-postrewrite")
+      << "Strings::StringsRewriter::postRewrite start " << node << std::endl;
+
+  Node retNode = node;
+  Kind nk = node.getKind();
+  if (nk == kind::STRING_LT)
+  {
+    retNode = rewriteStringLt(node);
+  }
+  else if (nk == kind::STRING_LEQ)
+  {
+    retNode = rewriteStringLeq(node);
+  }
+  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
+  {
+    retNode = rewriteStrConvert(node);
+  }
+  else if (nk == STRING_IS_DIGIT)
+  {
+    retNode = rewriteStringIsDigit(node);
+  }
+  else if (nk == kind::STRING_ITOS)
+  {
+    retNode = rewriteIntToStr(node);
+  }
+  else if (nk == kind::STRING_STOI)
+  {
+    retNode = rewriteStrToInt(node);
+  }
+  else if (nk == STRING_TO_CODE)
+  {
+    retNode = rewriteStringToCode(node);
+  }
+  else if (nk == STRING_FROM_CODE)
+  {
+    retNode = rewriteStringFromCode(node);
+  }
+  else
+  {
+    return SequencesRewriter::postRewrite(node);
+  }
+
+  Trace("strings-postrewrite")
+      << "Strings::StringsRewriter::postRewrite returning " << retNode
+      << std::endl;
+  if (node != retNode)
+  {
+    Trace("strings-rewrite-debug") << "Strings::StringsRewriter::postRewrite "
+                                   << node << " to " << retNode << std::endl;
+    return RewriteResponse(REWRITE_AGAIN_FULL, retNode);
+  }
+  return RewriteResponse(REWRITE_DONE, retNode);
+}
 
 Node StringsRewriter::rewriteStrToInt(Node node)
 {
@@ -172,7 +233,7 @@ Node StringsRewriter::rewriteStringLeq(Node n)
   // empty strings
   for (unsigned i = 0; i < 2; i++)
   {
-    if (n[i].isConst() && n[i].getConst<String>().isEmptyString())
+    if (n[i].isConst() && n[i].getConst<String>().empty())
     {
       Node ret = i == 0 ? nm->mkConst(true) : n[0].eqNode(n[1]);
       return returnRewrite(n, ret, Rewrite::STR_LEQ_EMPTY);

@@ -298,7 +298,7 @@ operator SEXPR 0: "a symbolic expression (any arity)"
 
 operator LAMBDA 2 "a lambda expression; first parameter is a BOUND_VAR_LIST, second is lambda body"
 
-operator CHOICE 2 "a Hilbert choice (epsilon) expression; first parameter is a BOUND_VAR_LIST, second is the Hilbert choice body"
+operator WITNESS 2 "a witness expression; first parameter is a BOUND_VAR_LIST, second is the witness body"
 
 constant TYPE_CONSTANT \
     ::CVC4::TypeConstant \
@@ -329,7 +329,7 @@ typerule EQUAL ::CVC4::theory::builtin::EqualityTypeRule
 typerule DISTINCT ::CVC4::theory::builtin::DistinctTypeRule
 typerule SEXPR ::CVC4::theory::builtin::SExprTypeRule
 typerule LAMBDA ::CVC4::theory::builtin::LambdaTypeRule
-typerule CHOICE ::CVC4::theory::builtin::ChoiceTypeRule
+typerule WITNESS ::CVC4::theory::builtin::WitnessTypeRule
 
 # lambda expressions that are isomorphic to array constants can be considered constants
 construle LAMBDA ::CVC4::theory::builtin::LambdaTypeRule

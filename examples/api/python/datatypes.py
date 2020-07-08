@@ -65,8 +65,8 @@ def test(slv, consListSort):
     # constructor "cons".
     sort = slv.mkParamSort("T")
     paramConsListSpec = slv.mkDatatypeDecl("paramlist", sort)
-    paramCons = pycvc4.DatatypeConstructorDecl("cons")
-    paramNil = pycvc4.DatatypeConstructorDecl("nil")
+    paramCons = slv.mkDatatypeConstructorDecl("cons")
+    paramNil = slv.mkDatatypeConstructorDecl("nil")
     paramCons.addSelector("head", sort)
     paramCons.addSelectorSelf("tail")
     paramConsListSpec.addConstructor(paramCons)
@@ -102,11 +102,11 @@ if __name__ == "__main__":
     # symbols are assigned to its constructors, selectors, and testers.
 
     consListSpec = slv.mkDatatypeDecl("list") # give the datatype a name
-    cons = pycvc4.DatatypeConstructorDecl("cons")
+    cons = slv.mkDatatypeConstructorDecl("cons")
     cons.addSelector("head", slv.getIntegerSort())
     cons.addSelectorSelf("tail")
     consListSpec.addConstructor(cons)
-    nil = pycvc4.DatatypeConstructorDecl("nil")
+    nil = slv.mkDatatypeConstructorDecl("nil")
     consListSpec.addConstructor(nil)
 
     print("spec is {}".format(consListSpec))
@@ -122,10 +122,10 @@ if __name__ == "__main__":
 
     print("### Alternatively, use declareDatatype")
 
-    cons2 = pycvc4.DatatypeConstructorDecl("cons")
+    cons2 = slv.mkDatatypeConstructorDecl("cons")
     cons2.addSelector("head", slv.getIntegerSort())
     cons2.addSelectorSelf("tail")
-    nil2 = pycvc4.DatatypeConstructorDecl("nil")
+    nil2 = slv.mkDatatypeConstructorDecl("nil")
     ctors = [cons2, nil2]
     consListSort2 = slv.declareDatatype("list2", ctors)
     test(slv, consListSort2)

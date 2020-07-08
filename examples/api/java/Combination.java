@@ -2,9 +2,9 @@
 /*! \file Combination.java
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,7 +42,7 @@ public class Combination {
     smt.setOption("tlimit", new SExpr(100));
     smt.setOption("produce-models", new SExpr(true)); // Produce Models
     smt.setOption("output-language", new SExpr("cvc4")); // output-language
-    smt.setOption("default-dag-thresh", new SExpr(0)); //Disable dagifying the output
+    smt.setOption("dag-thresh", new SExpr(0)); //Disable dagifying the output
     smt.setLogic("QF_UFLIRA");
 
     // Sorts
