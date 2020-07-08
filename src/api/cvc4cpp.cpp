@@ -2670,12 +2670,11 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  Options* o = opts == nullptr ? new Options() : opts;
-  d_exprMgr.reset(new ExprManager(*o));
-  d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
+  d_exprMgr.reset(new ExprManager);
+  d_smtEngine.reset(new SmtEngine(d_exprMgr.get(), opts));
   d_smtEngine->setSolver(this);
-  d_rng.reset(new Random((*o)[options::seed]));
-  if (opts == nullptr) delete o;
+  Options& o = d_smtEngine->getOptions();
+  d_rng.reset(new Random(o[options::seed]));
 }
 
 Solver::~Solver() {}
@@ -4148,7 +4147,7 @@ Result Solver::checkEntailed(Term term) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC4_API_ARG_CHECK_NOT_NULL(term);
@@ -4165,7 +4164,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   for (const Term& term : terms)
@@ -4204,7 +4203,7 @@ Result Solver::checkSat(void) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC4::Result r = d_smtEngine->checkSat();
@@ -4220,7 +4219,7 @@ Result Solver::checkSatAssuming(Term assumption) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC4_API_SOLVER_CHECK_TERM(assumption);
@@ -4237,7 +4236,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   for (const Term& term : assumptions)
@@ -4641,7 +4640,7 @@ std::vector<std::pair<Term, Term>> Solver::getAssignment(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceAssignments())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceAssignments])
       << "Cannot get assignment unless assignment generation is enabled "
          "(try --produce-assignments)";
   std::vector<std::pair<Expr, Expr>> assignment = d_smtEngine->getAssignment();
@@ -4685,10 +4684,10 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::incrementalSolving())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot get unsat assumptions unless incremental solving is enabled "
          "(try --incremental)";
-  CVC4_API_CHECK(CVC4::options::unsatAssumptions())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatAssumptions])
       << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --produce-unsat-assumptions)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4715,7 +4714,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::unsatCores())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4752,7 +4751,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4779,7 +4778,7 @@ Term Solver::getSeparationHeap() const
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4804,7 +4803,7 @@ Term Solver::getSeparationNilTerm() const
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4828,7 +4827,7 @@ void Solver::pop(uint32_t nscopes) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::incrementalSolving())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot pop when not solving incrementally (use --incremental)";
   CVC4_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
       << "Cannot pop beyond first pushed context";
@@ -4870,7 +4869,7 @@ void Solver::printModel(std::ostream& out) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4887,7 +4886,7 @@ void Solver::push(uint32_t nscopes) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::incrementalSolving())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot push when not solving incrementally (use --incremental)";
 
   for (uint32_t n = 0; n < nscopes; ++n)
@@ -5284,6 +5283,12 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
+
+/**
+ * !!! This is only temporarily available until the parser is fully migrated to
+ * the new API. !!!
+ */
+Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */

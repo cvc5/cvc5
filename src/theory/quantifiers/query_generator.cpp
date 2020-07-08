@@ -157,20 +157,9 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
   if (options::sygusQueryGenCheck())
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
     // make the satisfiability query
-    //
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // This is only temporarily until we have separate options for each
-    // SmtEngine instance. We should reuse the same ExprManager with
-    // a different SmtEngine (and different options) here, eventually.
-    // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    bool needExport = false;
-    api::Solver slv(&nm->getOptions());
-    ExprManager* em = slv.getExprManager();
-    SmtEngine* queryChecker = slv.getSmtEngine();
-    ExprManagerMapCollection varMap;
-    initializeChecker(queryChecker, em, varMap, qy, needExport);
+    std::unique_ptr<SmtEngine> queryChecker;
+    initializeChecker(queryChecker, qy);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)

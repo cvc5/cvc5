@@ -22,7 +22,7 @@ class ResultBlack : public CxxTest::TestSuite
 {
  public:
   void setUp() { d_solver.reset(new Solver()); }
-  void tearDown() override {}
+  void tearDown() override { d_solver.reset(nullptr); }
 
   void testIsNull();
   void testEq();

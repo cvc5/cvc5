@@ -85,7 +85,7 @@ static set<string> s_declarations;
 #endif /* HAVE_LIBREADLINE */
 
 InteractiveShell::InteractiveShell(api::Solver* solver)
-    : d_options(solver->getExprManager()->getOptions()),
+    : d_options(solver->getOptions()),
       d_in(*d_options.getIn()),
       d_out(*d_options.getOutConst()),
       d_quit(false)
