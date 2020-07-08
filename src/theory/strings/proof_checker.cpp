@@ -14,6 +14,7 @@
 
 #include "theory/strings/proof_checker.h"
 
+#include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/core_solver.h"
@@ -23,7 +24,6 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
-#include "expr/sequence.h"
 
 using namespace CVC4::kind;
 
@@ -472,7 +472,8 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         // notice that Word::getChars is not the right call here, since it
         // gets a vector of sequences of length one. We actually need to
         // extract the character, which is a sequence-specific operation.
-        const Sequence& sx = children[0][i].getConst<ExprSequence>().getSequence();
+        const Sequence& sx =
+            children[0][i].getConst<ExprSequence>().getSequence();
         const std::vector<Node>& vec = sx.getVec();
         if (vec.size() == 1)
         {
@@ -485,8 +486,10 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
     }
-    Trace("strings-pfcheck-debug") << "STRING_SEQ_UNIT_INJ: " << children[0] << " => " << t[0] << " == " << t[1] << std::endl;
-    AlwaysAssert(t[0].getType()==t[1].getType());
+    Trace("strings-pfcheck-debug")
+        << "STRING_SEQ_UNIT_INJ: " << children[0] << " => " << t[0]
+        << " == " << t[1] << std::endl;
+    AlwaysAssert(t[0].getType() == t[1].getType());
     return t[0].eqNode(t[1]);
   }
   return Node::null();

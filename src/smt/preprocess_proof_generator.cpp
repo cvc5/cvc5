@@ -28,7 +28,8 @@ PreprocessProofGenerator::PreprocessProofGenerator(ProofNodeManager* pnm)
 
 void PreprocessProofGenerator::notifyNewAssert(Node n, ProofGenerator* pg)
 {
-  Trace("smt-proof-pp-debug") << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
+  Trace("smt-proof-pp-debug")
+      << "PreprocessProofGenerator::notifyNewAssert: " << n << std::endl;
   d_src[n] = theory::TrustNode::mkTrustLemma(n, pg);
 }
 
@@ -40,7 +41,8 @@ void PreprocessProofGenerator::notifyPreprocessed(Node n,
   if (n != np)
   {
     Trace("smt-proof-pp-debug")
-        << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np << std::endl;
+        << "PreprocessProofGenerator::notifyPreprocessed: " << n << "..." << np
+        << std::endl;
     d_src[np] = theory::TrustNode::mkTrustRewrite(n, np, pg);
   }
 }
