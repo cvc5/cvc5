@@ -164,7 +164,7 @@ TPL_OPTION_STRUCT_RW = \
   type operator()() const;
   bool wasSetByUser() const;
   void set(const type& v);
-  const std::string getName() const;
+  const char* getName() const;
 }} {name} CVC4_PUBLIC;"""
 
 TPL_OPTION_STRUCT_RO = \
@@ -173,7 +173,7 @@ TPL_OPTION_STRUCT_RO = \
   typedef {type} type;
   type operator()() const;
   bool wasSetByUser() const;
-  const std::string getName() const;
+  const char* getName() const;
 }} {name} CVC4_PUBLIC;"""
 
 
@@ -230,7 +230,7 @@ TPL_IMPL_OPTION_WAS_SET_BY_USER = \
 }}"""
 
 TPL_IMPL_GET_NAME = \
-"""inline const std::string {name}__option_t::getName() const
+"""inline const char* {name}__option_t::getName() const
 {{
   return "{long_name}";
 }}"""
