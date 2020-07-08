@@ -56,7 +56,8 @@ class TheoryEngineProofGenerator : public ProofGenerator
                                    std::shared_ptr<LazyCDProof> lpf);
   /**
    * Get proof for, which expects implications corresponding to explained
-   * propagations (=> exp lit) registered by the above method.
+   * propagations (=> exp lit) registered by the above method. This currently
+   * involves calling the mkScope method of ProofNodeManager internally.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
