@@ -49,7 +49,7 @@ class SygusInterpol
   /**
    * Returns the sygus conjecture corresponding to the interpolation problem for
    * input problem (F above) given by axioms (Fa above), and conj (Fc above).
-   *  Note that axioms is expected to be a subset of asserts.
+   * Note that axioms is expected to be a subset of assertions in SMT-LIB.
    *
    * The argument name is the name for the interpol-to-synthesize.
    *
@@ -98,8 +98,8 @@ class SygusInterpol
   /**
    * Set up the grammar for the interpol-to-synthesis.
    *
-   * The user-defined grammar will be encoded by itpGType. In DEFAULT option, it
-   * will set up the grammar from itpGType. And if itpGType is null, it will set
+   * The user-defined grammar will be encoded by itpGType. The options for grammar is given by options::produceInterpols().
+	 * In DEFAULT option, it will set up the grammar from itpGType. And if itpGType is null, it will set
    * up the default grammar. In ASSUMPTIONS option, it will set up the grammar
    * by only using the operators from axioms. In CONCLUSION option, it will set
    * up the grammar by only using the operators from conj. In SHARED option, it
@@ -136,40 +136,63 @@ class SygusInterpol
 
   /** The SMT engine subSolver
    *
-   * This is a fresh copy of the SMT engine which is used for making calls
-   * especially for interpolation problem. In particular, consider the input:
+   * This is a fresh copy of the SMT engine which is used for solving the interpolation problem. In particular, consider the input:
    *   (assert A)
    *   (get-interpol s B)
    * In the copy of the SMT engine where these commands are issued, we maintain
-   * A in the assertion stack. To solve the interpolation problem, instead of
+   * A in the assertion stack. In solving the interpolation problem, we will need
+	 * to call a SMT engine solver with a different assertion stack, which is a sygus
+	 * conjecture build from A and B.
+	 * Then to solve the interpolation problem, instead of
    * modifying the assertion stack to remove A and add the sygus conjecture
    * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
-   * original assertion stack unchaged. This copy of the SMT engine can be
+   * original assertion stack unchanged. This copy of the SMT engine will have the
+	 * assertion stack with the sygus conjecture. This copy of the SMT engine can be
    * further queried for information regarding further solutions.
    */
   std::unique_ptr<SmtEngine> d_subSolver;
 
-  // The logic for the local copy of SMT engine (d_subSolver).
+  /** 
+	 * The logic for the local copy of SMT engine (d_subSolver).
+	 */
   LogicInfo d_logic;
 
-  // symbols from axioms and conjecture.
+  /** 
+	 * symbols from axioms and conjecture.
+	 */
   std::vector<Node> d_syms;
-  // shared symbols between axioms and conjecture.
+  /**
+	 * shared symbols between axioms and conjecture.
+	 */
   std::vector<Node> d_symsShared;
-  // free variables created from d_syms.
+  /**
+	 * free variables created from d_syms.
+	 */
   std::vector<Node> d_vars;
-  // variables created from d_syms for formal argument list.
+  /**
+	 * variables created from d_syms for formal argument list.
+	 */
   std::vector<Node> d_vlvs;
-  // free variables created from d_symsShared.
+  /**
+	 * free variables created from d_symsShared.
+	 */
   std::vector<Node> d_varsShared;
-  // variables created from d_symShared for formal argument list.
+  /**
+	 * variables created from d_symShared for formal argument list.
+	 */
   std::vector<Node> d_vlvsShared;
-  // types of shared variables between axioms and conjecture.
+  /**
+	 * types of shared variables between axioms and conjecture.
+	 */
   std::vector<TypeNode> d_varTypesShared;
-  // formal argument list of the interpol-to-synthesis.
+  /**
+	 * formal argument list of the interpol-to-synthesis.
+	 */
   Node d_abvlShared;
 
-  // the sygus conjecture to synthesis for interpolation problem
+  /**
+	 * the sygus conjecture to synthesis for interpolation problem
+	 */
   Node d_sygusConj;
 };
 

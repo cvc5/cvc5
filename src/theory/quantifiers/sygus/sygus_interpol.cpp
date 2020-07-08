@@ -29,9 +29,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4::kind;
-using namespace std;
-
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
