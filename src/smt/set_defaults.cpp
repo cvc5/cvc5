@@ -1390,24 +1390,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::bvLazyRewriteExtf.set(false);
   }
 
-  if (!options::sygusExprMinerCheckUseExport())
-  {
-    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
-    {
-      throw OptionException(
-          "--sygus-expr-miner-check-timeout=N requires "
-          "--sygus-expr-miner-check-use-export");
-    }
-    if (options::sygusRewSynthInput() || options::produceAbducts())
-    {
-      std::stringstream ss;
-      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : "--produce-abducts");
-      ss << "requires --sygus-expr-miner-check-use-export";
-      throw OptionException(ss.str());
-    }
-  }
-
   if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
   {
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "

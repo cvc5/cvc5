@@ -776,6 +776,13 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   bool is_tangent = false;
   bool is_secant = false;
   std::pair<Node, Node> mvb = getTfModelBounds(tf, d);
+  // this is the approximated value of tf(c), which is a value such that:
+  //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
+  //    M_A(tf(c)) <= poly_appox_c <= tf(c)
+  // In other words, it is a better approximation of the true value of tf(c)
+  // in the case that we add a refinement lemma. We use this value in the
+  // refinement schemas below.
+  Node poly_approx_c;
   for (unsigned r = 0; r < 2; r++)
   {
     Node pab = poly_approx_bounds[r][csign];
@@ -792,6 +799,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
       Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
       if (compr == d_true)
       {
+        poly_approx_c = v_pab;
         // beyond the bounds
         if (r == 0)
         {
@@ -830,17 +838,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   }
 
   // Figure 3: P( c )
-  Node poly_approx_c;
   if (is_tangent || is_secant)
   {
-    Assert(!poly_approx.isNull());
-    std::vector<Node> taylor_subs;
-    taylor_subs.push_back(c);
-    Assert(taylor_vars.size() == taylor_subs.size());
-    poly_approx_c = poly_approx.substitute(taylor_vars.begin(),
-                                           taylor_vars.end(),
-                                           taylor_subs.begin(),
-                                           taylor_subs.end());
     Trace("nl-ext-tftp-debug2")
         << "...poly approximation at c is " << poly_approx_c << std::endl;
   }
@@ -1450,11 +1449,18 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
     Node pab = pbounds[index];
     if (!pab.isNull())
     {
-      // { x -> tf[0] }
-      pab = pab.substitute(tfv, tfs);
+      // { x -> M_A(tf[0]) }
+      // Notice that we compute the model value of tfs first, so that
+      // the call to rewrite below does not modify the term, where notice that
+      // rewrite( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
+      // is not equal to
+      // M_A( x*x { x -> t } ) = M_A( t*t )
+      // where M_A denotes the abstract model.
+      Node mtfs = d_model.computeAbstractModelValue(tfs);
+      pab = pab.substitute(tfv, mtfs);
       pab = Rewriter::rewrite(pab);
-      Node v_pab = d_model.computeAbstractModelValue(pab);
-      bounds.push_back(v_pab);
+      Assert (pab.isConst());
+      bounds.push_back(pab);
     }
     else
     {

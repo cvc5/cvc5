@@ -37,7 +37,7 @@ class GrammarBlack : public CxxTest::TestSuite
 
 void GrammarBlack::setUp() { d_solver.reset(new Solver()); }
 
-void GrammarBlack::tearDown() {}
+void GrammarBlack::tearDown() { d_solver.reset(nullptr); }
 
 void GrammarBlack::testAddRule()
 {
