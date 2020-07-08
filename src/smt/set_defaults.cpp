@@ -291,8 +291,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
-    if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput() || options::sygusInst())
+    if (options::produceAbducts()
+        || options::produceInterpols() != options::ProduceInterpols::NONE
+        || options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -316,6 +318,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
+       || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -1398,24 +1401,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::bvLazyRewriteExtf.set(false);
   }
 
-  if (!options::sygusExprMinerCheckUseExport())
-  {
-    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
-    {
-      throw OptionException(
-          "--sygus-expr-miner-check-timeout=N requires "
-          "--sygus-expr-miner-check-use-export");
-    }
-    if (options::sygusRewSynthInput() || options::produceAbducts())
-    {
-      std::stringstream ss;
-      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : "--produce-abducts");
-      ss << "requires --sygus-expr-miner-check-use-export";
-      throw OptionException(ss.str());
-    }
-  }
-
   if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
   {
     Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
@@ -1441,12 +1426,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     disableModels = true;
     sOptNoModel = "minisat-elimination";
-  }
-  else if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
-           && !options::nlExt())
-  {
-    disableModels = true;
-    sOptNoModel = "nonlinear arithmetic without nl-ext";
   }
   else if (options::globalNegate())
   {

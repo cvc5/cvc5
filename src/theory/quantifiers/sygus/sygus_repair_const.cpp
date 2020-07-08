@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
+#include "api/cvc4cpp.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -100,36 +101,6 @@ bool SygusRepairConst::isActive() const
   return !d_base_inst.isNull() && d_allow_constant_grammar;
 }
 
-void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
-                                         ExprManager& em,
-                                         ExprManagerMapCollection& varMap,
-                                         Node query,
-                                         bool& needExport)
-{
-  if (options::sygusRepairConstTimeout.wasSetByUser())
-  {
-    // To support a separate timeout for the subsolver, we need to create
-    // a separate ExprManager with its own options. This requires that
-    // the expressions sent to the subsolver can be exported from on
-    // ExprManager to another.
-    initializeSubsolverWithExport(checker,
-                                  em,
-                                  varMap,
-                                  query.toExpr(),
-                                  true,
-                                  options::sygusRepairConstTimeout());
-    // renable options disabled by sygus
-    checker->setOption("miniscope-quant", true);
-    checker->setOption("miniscope-quant-fv", true);
-    checker->setOption("quant-split", true);
-  }
-  else
-  {
-    needExport = false;
-    initializeSubsolver(checker, query.toExpr());
-  }
-}
-
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
                                       std::vector<Node>& repair_cv,
@@ -206,7 +177,6 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     return false;
   }
 
-  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-repair-const") << "Get first-order query..." << std::endl;
   Node fo_body =
       getFoQuery(sygusBody, candidates, candidate_skeletons, sk_vars);
@@ -258,11 +228,17 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
 
   Trace("sygus-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
-  bool needExport = true;
-  ExprManagerMapCollection varMap;
-  ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> repcChecker;
-  initializeChecker(repcChecker, em, varMap, fo_body, needExport);
+  // initialize the subsolver using the standard method
+  initializeSubsolver(repcChecker,
+                      fo_body.toExpr(),
+                      options::sygusRepairConstTimeout.wasSetByUser(),
+                      options::sygusRepairConstTimeout());
+  // renable options disabled by sygus
+  repcChecker->setOption("miniscope-quant", true);
+  repcChecker->setOption("miniscope-quant-fv", true);
+  repcChecker->setOption("quant-split", true);
+  // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
@@ -276,17 +252,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
     Node fov = d_sk_to_fo[v];
-    Node fov_m;
-    if (needExport)
-    {
-      Expr e_fov = fov.toExpr().exportTo(&em, varMap);
-      fov_m = Node::fromExpr(
-          repcChecker->getValue(e_fov).exportTo(nm->toExprManager(), varMap));
-    }
-    else
-    {
-      fov_m = Node::fromExpr(repcChecker->getValue(fov.toExpr()));
-    }
+    Node fov_m = Node::fromExpr(repcChecker->getValue(fov.toExpr()));
     Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
     // convert to sygus
     Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);

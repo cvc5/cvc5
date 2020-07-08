@@ -67,6 +67,24 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void handleUserAttribute(const char* attr, theory::Theory* t) override;
 
+  /**
+   * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
+   * sends conf on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as calling OutputChannel::lemma on conf.
+   */
+  void trustedConflict(TrustNode pconf) override;
+  /**
+   * Let plem be the pair (Node lem, ProofGenerator * pfg).
+   * Send lem on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as calling OutputChannel::lemma on lem.
+   */
+  LemmaStatus trustedLemma(TrustNode plem,
+                           bool removable = false,
+                           bool preprocess = false,
+                           bool sendAtoms = false) override;
+
  protected:
   /**
    * Statistics for a particular theory.

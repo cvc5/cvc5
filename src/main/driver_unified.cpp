@@ -198,8 +198,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
-    // set filename in smt engine
-    pExecutor->getSmtEngine()->setFilename(filenameStr);
+    // notify SmtEngine that we are starting to parse
+    pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
     // Parse and execute commands until we are done
     Command* cmd;

@@ -672,6 +672,7 @@ Node RegExpSolver::getNormalSymRegExp(Node r, std::vector<Node>& nf_exp)
     case REGEXP_UNION:
     case REGEXP_INTER:
     case REGEXP_STAR:
+    case REGEXP_COMPLEMENT:
     {
       std::vector<Node> vec_nodes;
       for (const Node& cr : r)
