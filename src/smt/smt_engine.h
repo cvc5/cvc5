@@ -108,6 +108,7 @@ namespace smt {
   class SmtScope;
   class ProcessAssertions;
   class PreprocessProofGenerator;
+  class ProofPostproccess;
 
   ProofManager* currentProofManager();
 
@@ -1195,6 +1196,8 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<theory::RewriteDb> d_rewriteDb;
   /** The preprocess proof manager. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
+  /** The proof post-processor */
+  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
   /** The final proof produced by this SMT engine
    *
    * Combines the proofs of preprocessing, prop engine and theory engine, to be

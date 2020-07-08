@@ -768,6 +768,17 @@ void SmtEngine::finishInit()
     d_pppg.reset(new PreprocessProofGenerator(d_pnm.get()));
     // enable it in the assertions pipeline
     d_private->getAssertionPipeline().setProofGenerator(d_pppg.get());
+    // the proof post-processor
+    d_pfpp.reset(new ProofPostproccess(d_pnm.get(), this));
+    // add rules to eliminate here
+    d_pfpp->setEliminateRule(PfRule::SUBS);
+    d_pfpp->setEliminateRule(PfRule::REWRITE);
+    d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
+    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
+    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
+    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    // this eliminates theory rewriting steps into finer-grained DSL rules
+    d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
@@ -3156,17 +3167,8 @@ void SmtEngine::setFinalProof()
   Trace("smt-proof") << "=====" << std::endl;
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
-  ProofPostproccess ppp(d_pnm.get(), this);
-  // add rules to eliminate here
-  ppp.setEliminateRule(PfRule::SUBS);
-  ppp.setEliminateRule(PfRule::REWRITE);
-  ppp.setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
-  ppp.setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
-  ppp.setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
-  ppp.setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
-  // this eliminates theory rewriting steps into finer-grained DSL rules
-  ppp.setEliminateRule(PfRule::THEORY_REWRITE);
-  ppp.process(body);
+  Assert (d_pfpp!=nullptr);
+  d_pfpp->process(body);
 
   Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
 
