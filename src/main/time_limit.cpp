@@ -8,9 +8,10 @@
 namespace CVC4 {
 namespace main {
 
-void TimeLimitListener::notify()
+void install_time_limit(const Options& opts)
 {
-  unsigned long ms = options.getCumulativeTimeLimit();
+  unsigned long ms = opts.getCumulativeTimeLimit();
+  if (ms == 0) return;
 
   // Check https://linux.die.net/man/2/setitimer
   struct itimerval timerspec;
