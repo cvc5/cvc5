@@ -10,8 +10,7 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Sygus interpolation utility, which transforms an input of axioms and
- *conjecture into
- ** an interpolation problem, and solve it.
+ ** conjecture into an interpolation problem, and solve it.
  **/
 
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INTERPOL_H
@@ -28,16 +27,18 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 /**
- * A utility that turns a set of quantifier-free assertions into a sygus
- * conjecture that encodes an interpolation problem. In detail, if our input
- * formula is F( x ) for free symbol x, and is partitioned into axioms Fa and
+ * This is an utility for the SMT-LIB command (get-interpol <term>).
+ * The utility turns a set of quantifier-free assertions into a sygus
+ * conjecture that encodes an interpolation problem, and then solve the interpolation
+ * problem by synthesizing it. In detail, if our input formula is F( x ) for free symbol x, and is partitioned into axioms Fa and
  * conjecture Fc then the sygus conjecture we construct is:
  *
  * exists A. forall x. ( (Fa( x ) => A( x )) ^ (A( x ) => Fc( x )) )
  *
  * where A( x ) is a predicate over the free symbols of our input that are
  * shared between Fa and Fc. In other words, A( x ) must be implied by our
- * axioms Fa( x ) and implies Fc( x ).
+ * axioms Fa( x ) and implies Fc( x ). Then, to solve the interpolation problem,
+ * we just need to synthesis A( x ).
  */
 class SygusInterpol
 {
@@ -47,16 +48,9 @@ class SygusInterpol
   SygusInterpol(LogicInfo logic);
 
   /**
-   * Returns the sygus conjecture corresponding to the interpolation problem for
+   * Returns the sygus conjecture in interpol corresponding to the interpolation problem for
    * input problem (F above) given by axioms (Fa above), and conj (Fc above).
-   * Note that axioms is expected to be a subset of assertions in SMT-LIB.
-   *
-   * The argument name is the name for the interpol-to-synthesize.
-   *
-   * The type itpGType (if non-null) is a sygus datatype type that encodes the
-   * grammar that should be used for solutions of the interpolation conjecture.
-   *
-   * The output argument interpol is the solution to the synthesis conjector.
+	 * And solve the interpolation by sygus. Note that axioms is expected to be a subset of assertions in SMT-LIB.
    *
    * The relationship between the free variables of asserts and the formal
    * argument list of the interpol-to-synthesize are tracked by the attribute
@@ -66,6 +60,13 @@ class SygusInterpol
    * of a closed term (lambda varlist. t). The intended solution, which is a
    * term whose free variables correspond to a subset of the free symbols in
    * asserts, is the term t * { varlist -> SygusVarToTermAttribute(varlist) }.
+   *
+   * @param name the name for the interpol-to-synthesize.
+	 * @param axioms the assertions (Fa above)
+	 * @param conj the conjecture (Fc above)
+   * @param itpGType (if non-null) a sygus datatype type that encodes the
+   * grammar that should be used for solutions of the interpolation conjecture.
+   * @interpol the solution to the sygus conjecture.
    */
   bool SolveInterpolation(const std::string& name,
                           const std::vector<Node>& axioms,
@@ -78,6 +79,9 @@ class SygusInterpol
    * Collects symbols from axioms (axioms) and conjecture (conj), which are
    * stored in d_syms, and computes the shared symbols between axioms and
    * conjecture, stored in d_symsShared.
+	 *
+	 * @param axioms the assertions (Fa above)
+	 * @param conj the conjecture (Fc above)
    */
   void collectSymbols(const std::vector<Node>& axioms, const Node& conj);
 
@@ -89,9 +93,8 @@ class SygusInterpol
    * d_varTypesShared. Creates the formal argument list of the
    * interpol-to-synthesis, stored in d_abvlShared.
    *
-   * The argument needsShared denotes if we want to restrict the argument list
-   * of the interpol-to-synthesis to be over shared variables or all the
-   * variables.
+   * @param needsShared If it is true, the argument list of the interpol-to-synthesis will be restricted to be over shared variables.
+	 * If it is false, the argument list will be over all the variables. 
    */
   void createVariables(bool needsShared);
 
@@ -102,11 +105,16 @@ class SygusInterpol
    * grammar is given by options::produceInterpols(). In DEFAULT option, it will
    * set up the grammar from itpGType. And if itpGType is null, it will set up
    * the default grammar. In ASSUMPTIONS option, it will set up the grammar by
-   * only using the operators from axioms. In CONCLUSION option, it will set up
+   * only using the operators from axioms. In CONJECTURE option, it will set up
    * the grammar by only using the operators from conj. In SHARED option, it
    * will set up the grammar by only using the operators shared by axioms and
    * conj. In ALL option, it will set up the grammar by only using the operators
    * from either axioms or conj.
+	 *
+	 * @param itpGType (if non-null) a sygus datatype type that encodes the
+   * grammar that should be used for solutions of the interpolation conjecture.
+   * @param axioms the assertions (Fa above)
+	 * @param conj the conjecture (Fc above)
    */
   TypeNode setSynthGrammar(const TypeNode& itpGType,
                            const std::vector<Node>& axioms,
@@ -115,14 +123,16 @@ class SygusInterpol
   /**
    * Make the interpolation predicate.
    *
-   * The argument name is the name of the interpol-to-synthesis.
+   * @param name the name of the interpol-to-synthesis.
    */
   Node mkPredicate(const std::string& name);
 
   /**
    * Make the sygus conjecture to be synthesis.
    *
-   * The argument itp is the interpolation predicate.
+   * @param itp the interpolation predicate.
+	 * @param axioms the assertions (Fa above)
+	 * @param conj the conjecture (Fc above)
    */
   void mkSygusConjecture(Node itp,
                          const std::vector<Node>& axioms,
@@ -131,7 +141,8 @@ class SygusInterpol
   /**
    * Get the synthesis solution, stored in interpol.
    *
-   * The argument itp is the interpolation predicate.
+	 * @param interpol the solution to the sygus conjecture.
+   * @param itp the interpolation predicate.
    */
   bool findInterpol(Expr& interpol, Node itp);
 
