@@ -45,9 +45,11 @@ class TheoryEngineProofGenerator : public ProofGenerator
   TheoryEngineProofGenerator(ProofNodeManager* pnm, context::UserContext* u);
   ~TheoryEngineProofGenerator() {}
   /**
-   * Make trust explanation. Called when lpf has a proof of (=> exp lit). This
-   * stores lpf in the map d_proofs below and returns the trust node for this
-   * propagation, which has TrustNodeKind TrustNodeKind::PROP_EXP. If this
+   * Make trust explanation. Called when lpf has a proof of lit from free
+   * assumptions in exp.
+   *
+   * This stores lpf in the map d_proofs below and returns the trust node for
+   * this propagation, which has TrustNodeKind TrustNodeKind::PROP_EXP. If this
    * explanation already exists, then the previous explanation is taken, which
    * also suffices for proving the implication.
    */
@@ -57,7 +59,8 @@ class TheoryEngineProofGenerator : public ProofGenerator
   /**
    * Get proof for, which expects implications corresponding to explained
    * propagations (=> exp lit) registered by the above method. This currently
-   * involves calling the mkScope method of ProofNodeManager internally.
+   * involves calling the mkScope method of ProofNodeManager internally, which
+   * returns a closed proof.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify this generator (for debugging, etc..) */
