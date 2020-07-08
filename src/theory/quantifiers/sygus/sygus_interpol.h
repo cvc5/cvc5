@@ -90,13 +90,13 @@ class SygusInterpol
   /**
    * Creates free variables and shared free variables from d_syms and
    * d_symsShared, which are stored in d_vars and d_varsShared. And also creates
-   * the corresponding set of variables for the formal argument list, which is stored in d_vlvs
-   * and d_vlvsShared. Extracts the types of shared variables, which are stored in
-   * d_varTypesShared. Creates the formal argument list of the
-   * interpol-to-synthesis, stored in d_abvlShared.
-	 *
-	 * When using default grammar, the needsShared is true. When using user-defined gramar,
-	 * the needsShared is false.
+   * the corresponding set of variables for the formal argument list, which is
+   * stored in d_vlvs and d_vlvsShared. Extracts the types of shared variables,
+   * which are stored in d_varTypesShared. Creates the formal argument list of
+   * the interpol-to-synthesis, stored in d_abvlShared.
+   *
+   * When using default grammar, the needsShared is true. When using
+   * user-defined gramar, the needsShared is false.
    *
    * @param needsShared If it is true, the argument list of the
    * interpol-to-synthesis will be restricted to be over shared variables. If it
