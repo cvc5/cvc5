@@ -956,6 +956,7 @@ SmtEngine::~SmtEngine()
     d_pnm.reset(nullptr);
     d_rewriteDb.reset(nullptr);
     d_pppg.reset(nullptr);
+    d_pfpp.reset(nullptr);
     d_finalProof = nullptr;
 
     d_theoryEngine.reset(nullptr);
@@ -3174,14 +3175,7 @@ void SmtEngine::setFinalProof()
 
   // Now make the final scope, which ensures that the only open leaves
   // of the proof are the assertions.
-  if (options::proofNewFinal())
-  {
-    d_finalProof = d_pnm->mkScope(body, assertions);
-  }
-  else
-  {
-    d_finalProof = body;
-  }
+  d_finalProof = d_pnm->mkScope(body, assertions);
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 

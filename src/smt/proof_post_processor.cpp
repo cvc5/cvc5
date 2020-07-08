@@ -433,8 +433,13 @@ ProofPostprocessStatsCallback::~ProofPostprocessStatsCallback()
 
 bool ProofPostprocessStatsCallback::shouldUpdate(ProofNode* pn)
 {
+  PfRule r = pn->getRule();
+  if (r==PfRule::THEORY_REWRITE)
+  {
+    Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult() << std::endl;
+  }
   // record stats for the rule
-  d_ruleCount << pn->getRule();
+  d_ruleCount << r;
   ++d_totalRuleCount;
   return false;
 }
