@@ -16,7 +16,7 @@ namespace CVC4 {
 namespace poly_utils {
 
 /** Convert arbitrary data using a string as intermediary.
- * Assumes the existance of operator<<(std::ostream&, const From&) and To(const
+ * Assumes the existence of operator<<(std::ostream&, const From&) and To(const
  * std::string&); Should be the last resort for type conversions: it may not
  * only yield bad performance, but is also dependent on compatible string
  * representations. Use with care!
