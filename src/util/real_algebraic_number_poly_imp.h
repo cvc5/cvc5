@@ -57,7 +57,8 @@ class CVC4_PUBLIC RealAlgebraicNumber
   RealAlgebraicNumber(const Integer& i);
   /** Copy from an Integer. */
   RealAlgebraicNumber(const Rational& r);
-  /** Construct from a polynomial with the given coefficients and an open
+  /**
+     Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds.
    */
   RealAlgebraicNumber(const std::vector<long>& coefficients,
