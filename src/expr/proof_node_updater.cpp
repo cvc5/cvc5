@@ -69,9 +69,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
         // only if the callback updated the node
         if (d_cb.update(id, ccn, cur->getArguments(), &cpf))
         {
-          // build the proof, which should be closed
           std::shared_ptr<ProofNode> npn = cpf.getProofFor(cur->getResult());
-          Assert(npn->isClosed());
           // then, update the original proof node based on this one
           d_pnm->updateNode(cur, npn.get());
         }
