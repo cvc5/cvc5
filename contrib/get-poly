@@ -8,7 +8,7 @@ version="v0.1.8"
 check_dep_dir "$POLY_DIR"
 setup_dep \
   "https://github.com/SRI-CSL/libpoly/archive/master.tar.gz" "$POLY_DIR"
-# TODO(Gereon): Go back to fixed version with the next release
+# TODO(Gereon, #4706): Go back to fixed version with the next release
 
 pwd
 cd "$POLY_DIR/build/"
