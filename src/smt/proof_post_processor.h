@@ -27,7 +27,7 @@ namespace CVC4 {
 class SmtEngine;
 
 namespace smt {
-  
+
 /**
  * A callback class used by SmtEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
@@ -76,16 +76,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     CDProof* cdp);
 };
 
-
 /** Statistics callback class */
 class ProofPostprocessStatsCallback : public ProofNodeUpdaterCallback
 {
-public:
+ public:
   ProofPostprocessStatsCallback();
   ~ProofPostprocessStatsCallback();
   /** Should proof pn be updated? Returns false, adds to stats. */
   bool shouldUpdate(ProofNode* pn) override;
-private:
+
+ private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
@@ -107,13 +107,14 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
+
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
   /** The post process callback for statistics */
   ProofPostprocessStatsCallback d_statCb;
   /** The proof node manager */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
 };
 
 }  // namespace smt

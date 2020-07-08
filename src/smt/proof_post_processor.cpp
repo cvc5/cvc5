@@ -16,9 +16,9 @@
 
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -35,9 +35,7 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
   d_elimRules.insert(PfRule::ASSUME);
 }
 
-void ProofPostprocessCallback::initializeUpdate() {
-  d_assumpToProof.clear();  
-}
+void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); }
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 {
@@ -63,8 +61,9 @@ bool ProofPostprocessCallback::update(PfRule id,
     // may be multiple occurrences of the same node.
     Node f = args[0];
     std::shared_ptr<ProofNode> pfn;
-    std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_assumpToProof.find(f);
-    if (it!=d_assumpToProof.end())
+    std::map<Node, std::shared_ptr<ProofNode>>::iterator it =
+        d_assumpToProof.find(f);
+    if (it != d_assumpToProof.end())
     {
       Trace("smt-proof-pp-debug") << "...already computed" << std::endl;
       pfn = it->second;
@@ -76,7 +75,7 @@ bool ProofPostprocessCallback::update(PfRule id,
       // get proof from preprocess proof generator
       pfn = pppg->getProofFor(f);
       // print for debugging
-      if (pfn==nullptr)
+      if (pfn == nullptr)
       {
         Trace("smt-proof-pp-debug")
             << "...no proof, possibly an input assumption" << std::endl;
@@ -420,7 +419,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
 ProofPostprocessStatsCallback::ProofPostprocessStatsCallback()
     : d_ruleCount("finalProof::ruleCount"),
-    d_totalRuleCount("finalProof::totalRuleCount", 0)
+      d_totalRuleCount("finalProof::totalRuleCount", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleCount);
   smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
