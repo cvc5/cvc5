@@ -944,6 +944,7 @@ SmtEngine::~SmtEngine()
     d_pchecker.reset(nullptr);
     d_pnm.reset(nullptr);
     d_rewriteDb.reset(nullptr);
+    d_pppg.reset(nullptr);
     d_finalProof = nullptr;
 
     d_theoryEngine.reset(nullptr);

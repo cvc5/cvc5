@@ -18,6 +18,7 @@
 #include "smt/smt_engine.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -34,7 +35,9 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
   d_elimRules.insert(PfRule::ASSUME);
 }
 
-void ProofPostprocessCallback::initializeUpdate() {}
+void ProofPostprocessCallback::initializeUpdate() {
+  d_assumpToProof.clear();  
+}
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 {
@@ -56,25 +59,47 @@ bool ProofPostprocessCallback::update(PfRule id,
 
   if (id == PfRule::ASSUME)
   {
-    PreprocessProofGenerator* pppg = d_smte->getPreprocessProofGenerator();
-    Assert(pppg != nullptr);
-    std::shared_ptr<ProofNode> pfn = pppg->getProofFor(args[0]);
+    // we cache based on the assumption node, not the proof node, since there
+    // may be multiple occurrences of the same node.
+    Node f = args[0];
+    std::shared_ptr<ProofNode> pfn;
+    std::map<Node, std::shared_ptr<ProofNode> >::iterator it = d_assumpToProof.find(f);
+    if (it!=d_assumpToProof.end())
+    {
+      Trace("smt-proof-pp-debug") << "...already computed" << std::endl;
+      pfn = it->second;
+    }
+    else
+    {
+      PreprocessProofGenerator* pppg = d_smte->getPreprocessProofGenerator();
+      Assert(pppg != nullptr);
+      // get proof from preprocess proof generator
+      pfn = pppg->getProofFor(f);
+      // print for debugging
+      if (pfn==nullptr)
+      {
+        Trace("smt-proof-pp-debug")
+            << "...no proof, possibly an input assumption" << std::endl;
+      }
+      else
+      {
+        Assert(pfn->getResult() == f);
+        if (Trace.isOn("smt-proof-pp"))
+        {
+          Trace("smt-proof-pp")
+              << "=== Connect proof for preprocessing: " << f << std::endl;
+          std::stringstream ss;
+          pfn->printDebug(ss);
+          Trace("smt-proof-pp") << ss.str();
+          Trace("smt-proof-pp") << std::endl;
+        }
+      }
+      d_assumpToProof[f] = pfn;
+    }
     if (pfn == nullptr)
     {
       // no update
-      Trace("smt-proof-pp-debug")
-          << "...no proof, possibly an input assumption" << std::endl;
       return false;
-    }
-    Assert(pfn->getResult() == args[0]);
-    if (Trace.isOn("smt-proof-pp"))
-    {
-      Trace("smt-proof-pp")
-          << "=== Connect proof for preprocessing: " << args[0] << std::endl;
-      std::stringstream ss;
-      pfn->printDebug(ss);
-      Trace("smt-proof-pp") << ss.str();
-      Trace("smt-proof-pp") << std::endl;
     }
     // connect the proof
     cdp->addProof(pfn);
@@ -393,8 +418,30 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   return Node::null();
 }
 
+ProofPostprocessStatsCallback::ProofPostprocessStatsCallback()
+    : d_ruleCount("finalProof::ruleCount"),
+    d_totalRuleCount("finalProof::totalRuleCount", 0)
+{
+  smtStatisticsRegistry()->registerStat(&d_ruleCount);
+  smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
+}
+
+ProofPostprocessStatsCallback::~ProofPostprocessStatsCallback()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
+  smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
+}
+
+bool ProofPostprocessStatsCallback::shouldUpdate(ProofNode* pn)
+{
+  // record stats for the rule
+  d_ruleCount << pn->getRule();
+  ++d_totalRuleCount;
+  return false;
+}
+
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte)
-    : d_cb(pnm, smte), d_updater(pnm, d_cb)
+    : d_cb(pnm, smte), d_statCb(), d_pnm(pnm)
 {
 }
 
@@ -406,7 +453,11 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   // how to process, including how to process assumptions in pf.
   d_cb.initializeUpdate();
   // now, process
-  d_updater.process(pf);
+  ProofNodeUpdater updater(d_pnm, d_cb);
+  updater.process(pf);
+  // take stats
+  ProofNodeUpdater stats(d_pnm, d_statCb);
+  stats.process(pf);
 }
 
 void ProofPostproccess::setEliminateRule(PfRule rule)

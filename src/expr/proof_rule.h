@@ -237,12 +237,6 @@ enum class PfRule : uint32_t
   REMOVE_TERM_FORMULA_AXIOM,
 
   //================================================= Boolean rules
-  // ======== Split
-  // Children: none
-  // Arguments: (F)
-  // ---------------------
-  // Conclusion: (or F (not F))
-  SPLIT,
   // ======== Resolution
   // Children:
   //  (P1:(or F_1 ... F_i-1 F_i F_i+1 ... F_n),
@@ -282,6 +276,12 @@ enum class PfRule : uint32_t
   //  Set representations of C1 and C2 is the same but the number of literals in
   //  C2 is the same of that of C1
   REORDERING,
+  // ======== Split
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (or F (not F))
+  SPLIT,
   // ======== Equality resolution
   // Children: (P1:F1, P2:(= F1 F2))
   // Arguments: none
@@ -289,6 +289,12 @@ enum class PfRule : uint32_t
   // Conclusion: (F2)
   // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
   EQ_RESOLVE,
+  // ======== Contradiction
+  // Children: (P1:F P2:(not F))
+  // Arguments: ()
+  // ---------------------
+  // Conclusion: false
+  CONTRA,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)

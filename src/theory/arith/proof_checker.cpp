@@ -34,7 +34,6 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
   pc->registerChecker(PfRule::INT_TIGHT_LB, this);
   pc->registerChecker(PfRule::INT_TRUST, this);
-  pc->registerChecker(PfRule::ARITH_TRUST, this);
   pc->registerChecker(PfRule::ARITH_OP_ELIM_AXIOM, this);
 }
 
@@ -252,7 +251,6 @@ Node ArithProofRuleChecker::checkInternal(PfRule id,
       // Check that all have the same constant:
     }
     case PfRule::INT_TRUST:
-    case PfRule::ARITH_TRUST:
     {
       if (Debug.isOn("arith::pf::check::trust"))
       {

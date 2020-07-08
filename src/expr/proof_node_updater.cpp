@@ -21,6 +21,14 @@ namespace CVC4 {
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
+bool ProofNodeUpdaterCallback::update(PfRule id,
+                      const std::vector<Node>& children,
+                      const std::vector<Node>& args,
+                      CDProof* cdp)
+{
+  return false;
+}
+                      
 ProofNodeUpdater::ProofNodeUpdater(ProofNodeManager* pnm,
                                    ProofNodeUpdaterCallback& cb)
     : d_pnm(pnm), d_cb(cb)

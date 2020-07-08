@@ -27,7 +27,7 @@ namespace CVC4 {
 class SmtEngine;
 
 namespace smt {
-
+  
 /**
  * A callback class used by SmtEngine for post-processing proof nodes by
  * connecting proofs of preprocessing, and expanding macro PfRule applications.
@@ -63,6 +63,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofChecker* d_pchecker;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
+  //---------------------------------reset at the begining of each update
+  /** Mapping assumptions to their proof from preprocessing */
+  std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
+  //---------------------------------end reset at the begining of each update
   /**
    * Expand macros in the given application, add the expanded proof to cdp.
    */
@@ -70,6 +74,22 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp);
+};
+
+
+/** Statistics callback class */
+class ProofPostprocessStatsCallback : public ProofNodeUpdaterCallback
+{
+public:
+  ProofPostprocessStatsCallback();
+  ~ProofPostprocessStatsCallback();
+  /** Should proof pn be updated? Returns false, adds to stats. */
+  bool shouldUpdate(ProofNode* pn) override;
+private:
+  /** Counts number of postprocessed proof nodes for each kind of proof rule */
+  HistogramStat<PfRule> d_ruleCount;
+  /** Total number of postprocessed rule applications */
+  IntStat d_totalRuleCount;
 };
 
 /**
@@ -87,12 +107,13 @@ class ProofPostproccess
   void process(std::shared_ptr<ProofNode> pf);
   /** set eliminate rule */
   void setEliminateRule(PfRule rule);
-
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
-  /** The proof node updater */
-  ProofNodeUpdater d_updater;
+  /** The post process callback for statistics */
+  ProofPostprocessStatsCallback d_statCb;
+  /** The proof node manager */
+  ProofNodeManager * d_pnm;
 };
 
 }  // namespace smt

@@ -75,13 +75,6 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
-  if (id == PfRule::SPLIT)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    return NodeManager::currentNM()->mkNode(
-        kind::OR, args[0], args[0].notNode());
-  }
   if (id == PfRule::RESOLUTION)
   {
     Assert(children.size() == 2);
@@ -214,6 +207,25 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
                ? nm->mkConst<bool>(false)
                : clauseNodes.size() == 1 ? clauseNodes[0]
                                          : nm->mkNode(kind::OR, clauseNodes);
+  }
+  if (id == PfRule::SPLIT)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    return NodeManager::currentNM()->mkNode(
+        kind::OR, args[0], args[0].notNode());
+  }
+  if (id == PfRule::CONTRA)
+  {
+    Assert(children.size() == 2);
+    if (children[1].getKind() == Kind::NOT && children[0] == children[1][0])
+    {
+      return NodeManager::currentNM()->mkConst(false);
+    }
+    else
+    {
+      return Node::null();
+    }
   }
   if (id == PfRule::EQ_RESOLVE)
   {
@@ -410,18 +422,6 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     }
     return NodeManager::currentNM()->mkNode(
         kind::OR, children[0][0], children[0][2]);
-  }
-  if (id == PfRule::CONTRA)
-  {
-    Assert(children.size() == 2);
-    if (children[1].getKind() == Kind::NOT && children[0] == children[1][0])
-    {
-      return NodeManager::currentNM()->mkConst(false);
-    }
-    else
-    {
-      return Node::null();
-    }
   }
   if (id == PfRule::NOT_ITE_ELIM1)
   {

@@ -42,12 +42,13 @@ const char* toString(PfRule id)
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Boolean rules
-    case PfRule::SPLIT: return "SPLIT";
     case PfRule::RESOLUTION: return "RESOLUTION";
     case PfRule::CHAIN_RESOLUTION: return "CHAIN_RESOLUTION";
     case PfRule::FACTORING: return "FACTORING";
     case PfRule::REORDERING: return "REORDERING";
+    case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
+    case PfRule::CONTRA: return "CONTRA";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
@@ -131,7 +132,6 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::INT_TRUST: return "INT_TRUST";
-    case PfRule::ARITH_TRUST: return "ARITH_TRUST";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
 
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
