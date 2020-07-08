@@ -112,6 +112,7 @@ Maybe<poly::DyadicRational> to_dyadic_rational(const Rational& r)
   }
   return Maybe<poly::DyadicRational>();
 }
+
 Maybe<poly::DyadicRational> to_dyadic_rational(const poly::Rational& r)
 {
   poly::Integer den = denominator(r);
