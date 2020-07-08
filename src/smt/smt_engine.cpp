@@ -352,10 +352,10 @@ class SmtEnginePrivate : public NodeManagerListener {
 
     try
     {
-      Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+      Options& opts = d_smt.getOptions();
       
       // set the listener of the options
-      nodeManagerOptions.setListener(&d_smtOptListen);
+      opts.setListener(&d_smtOptListen);
 
       // Multiple options reuse BeforeSearchListener so registration requires an
       // extra bit of care.
@@ -367,17 +367,11 @@ class SmtEnginePrivate : public NodeManagerListener {
           opts.registerBeforeSearchListener(new BeforeSearchListener(d_smt)));
 
       // These do need registration calls.
-      d_listenerRegistrations->add(opts.registerSetDefaultExprDepthListener(
-          new SetDefaultExprDepthListener(), true));
-      d_listenerRegistrations->add(opts.registerSetDefaultExprDagListener(
-          new SetDefaultExprDagListener(), true));
-      d_listenerRegistrations->add(opts.registerSetPrintExprTypesListener(
-          new SetPrintExprTypesListener(), true));
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetRegularOutputChannelListener(
+          opts.registerSetRegularOutputChannelListener(
               new SetToDefaultSourceListener(&d_managedRegularChannel), true));
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+          opts.registerSetDiagnosticOutputChannelListener(
               new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
               true));
       d_listenerRegistrations->add(opts.registerDumpToFileNameListener(
