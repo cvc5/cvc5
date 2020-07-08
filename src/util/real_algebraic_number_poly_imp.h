@@ -64,7 +64,8 @@ class CVC4_PUBLIC RealAlgebraicNumber
   RealAlgebraicNumber(const std::vector<long>& coefficients,
                       long lower,
                       long upper);
-  /** Construct from a polynomial with the given coefficients and an open
+  /**
+     Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds. If the bounds are not dyadic, we need to
    * perform refinement to find a suitable dyadic interval.
    * See poly_utils::to_ran_with_refinement for more details.
