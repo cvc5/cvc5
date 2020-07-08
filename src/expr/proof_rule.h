@@ -212,7 +212,7 @@ enum class PfRule : uint32_t
   THEORY_LEMMA,
 
   //================================================= Processing rules
-  // ======== Theory preprocess
+  // ======== Preprocess
   // Children: none
   // Arguments: (F)
   // ---------------------------------------------------------------
@@ -397,12 +397,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or C (not F2))
   NOT_ITE_ELIM2,
-  // ======== Not ITE elimination version 1
-  // Children: (P1:P P2:(not P))
-  // Arguments: ()
-  // ---------------------
-  // Conclusion: (false)
-  CONTRA,
 
   //================================================= De Morgan rules
   // ======== Not And
@@ -914,13 +908,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
-
-  // ======== Int Generic Trust
-  // Children: (P1 ... Pn)
-  // Arguments: (Q)
-  // ---------------------
-  // Conclusion: (Q)
-  ARITH_TRUST,
 
   //================================================= Unknown rule
   UNKNOWN,

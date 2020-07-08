@@ -66,7 +66,6 @@ const char* toString(PfRule id)
     case PfRule::ITE_ELIM2: return "ITE_ELIM2";
     case PfRule::NOT_ITE_ELIM1: return "NOT_ITE_ELIM1";
     case PfRule::NOT_ITE_ELIM2: return "NOT_ITE_ELIM2";
-    case PfRule::CONTRA: return "CONTRA";
     //================================================= De Morgan rules
     case PfRule::NOT_AND: return "NOT_AND";
     //================================================= CNF rules
