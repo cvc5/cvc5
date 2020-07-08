@@ -376,6 +376,7 @@ class TheoryEngine {
   /** Constructs a theory engine */
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
+               ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
                const LogicInfo& logic,
                ProofNodeManager* pnm);

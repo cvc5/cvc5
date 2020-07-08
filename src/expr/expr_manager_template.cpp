@@ -92,18 +92,6 @@ ExprManager::ExprManager() :
 #endif
 }
 
-ExprManager::ExprManager(const Options& options) :
-  d_nodeManager(new NodeManager(this, options)) {
-#ifdef CVC4_STATISTICS_ON
-  for (unsigned i = 0; i <= LAST_TYPE; ++ i) {
-    d_exprStatisticsVars[i] = NULL;
-  }
-  for (unsigned i = 0; i < kind::LAST_KIND; ++ i) {
-    d_exprStatistics[i] = NULL;
-  }
-#endif
-}
-
 ExprManager::~ExprManager()
 {
   NodeManagerScope nms(d_nodeManager);
@@ -135,15 +123,6 @@ ExprManager::~ExprManager()
     Warning() << "CVC4 threw an exception during cleanup." << std::endl
               << e << std::endl;
   }
-}
-
-const Options& ExprManager::getOptions() const {
-  return d_nodeManager->getOptions();
-}
-
-ResourceManager* ExprManager::getResourceManager()
-{
-  return d_nodeManager->getResourceManager();
 }
 
 BooleanType ExprManager::booleanType() const {
@@ -915,9 +894,6 @@ Type ExprManager::getType(Expr expr, bool check)
 }
 
 Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
-  Assert(NodeManager::currentNM() == NULL)
-      << "ExprManager::mkVar() should only be called externally, not from "
-         "within CVC4 code.  Please use mkSkolem().";
   NodeManagerScope nms(d_nodeManager);
   Node* n = d_nodeManager->mkVarPtr(name, *type.d_typeNode, flags);
   Debug("nm") << "set " << name << " on " << *n << std::endl;
@@ -926,9 +902,6 @@ Expr ExprManager::mkVar(const std::string& name, Type type, uint32_t flags) {
 }
 
 Expr ExprManager::mkVar(Type type, uint32_t flags) {
-  Assert(NodeManager::currentNM() == NULL)
-      << "ExprManager::mkVar() should only be called externally, not from "
-         "within CVC4 code.  Please use mkSkolem().";
   NodeManagerScope nms(d_nodeManager);
   INC_STAT_VAR(type, false);
   return Expr(this, d_nodeManager->mkVarPtr(*type.d_typeNode, flags));

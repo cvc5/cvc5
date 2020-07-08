@@ -288,7 +288,6 @@ header = "options/smt_options.h"
   long       = "check-synth-sol"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "checks whether produced solutions to functions-to-synthesize satisfy the conjecture"
 
 [[option]]
@@ -459,7 +458,6 @@ header = "options/smt_options.h"
   long       = "tlimit=MS"
   type       = "unsigned long"
   handler    = "limitHandler"
-  notifies   = ["notifyTlimit"]
   read_only  = true
   help       = "enable time limiting (give milliseconds)"
 
@@ -470,7 +468,6 @@ header = "options/smt_options.h"
   long       = "tlimit-per=MS"
   type       = "unsigned long"
   handler    = "limitHandler"
-  notifies   = ["notifyTlimitPer"]
   read_only  = true
   help       = "enable time limiting per query (give milliseconds)"
 
@@ -481,7 +478,6 @@ header = "options/smt_options.h"
   long       = "rlimit=N"
   type       = "unsigned long"
   handler    = "limitHandler"
-  notifies   = ["notifyRlimit"]
   read_only  = true
   help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
 
@@ -492,7 +488,6 @@ header = "options/smt_options.h"
   long       = "rlimit-per=N"
   type       = "unsigned long"
   handler    = "limitHandler"
-  notifies   = ["notifyRlimitPer"]
   read_only  = true
   help       = "enable resource limiting per query"
 
