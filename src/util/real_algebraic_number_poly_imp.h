@@ -29,7 +29,7 @@
 namespace CVC4 {
 
 /**
-   Represents a real algebraic number based on poly::AlgebraicNumber.
+ * Represents a real algebraic number based on poly::AlgebraicNumber.
  * This real algebraic number is represented by a (univariate) polynomial and in
  * isolating interval. The interval contains exactly one real root of the
  * polynomial, which is the number the real algebraic number as a whole
@@ -58,14 +58,14 @@ class CVC4_PUBLIC RealAlgebraicNumber
   /** Copy from an Integer. */
   RealAlgebraicNumber(const Rational& r);
   /**
-     Construct from a polynomial with the given coefficients and an open
+   * Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds.
    */
   RealAlgebraicNumber(const std::vector<long>& coefficients,
                       long lower,
                       long upper);
   /**
-     Construct from a polynomial with the given coefficients and an open
+   * Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds. If the bounds are not dyadic, we need to
    * perform refinement to find a suitable dyadic interval.
    * See poly_utils::to_ran_with_refinement for more details.
@@ -73,7 +73,8 @@ class CVC4_PUBLIC RealAlgebraicNumber
   RealAlgebraicNumber(const std::vector<Integer>& coefficients,
                       const Rational& lower,
                       const Rational& upper);
-  /** Construct from a polynomial with the given coefficients and an open
+  /**
+   * Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds. If the bounds are not dyadic, we need to
    * perform refinement to find a suitable dyadic interval.
    * See poly_utils::to_ran_with_refinement for more details.
