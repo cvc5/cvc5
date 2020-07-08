@@ -15,6 +15,7 @@
 namespace CVC4 {
 namespace poly_utils {
 
+namespace {
 /**
  * Convert arbitrary data using a string as intermediary.
  * Assumes the existence of operator<<(std::ostream&, const From&) and To(const
@@ -28,6 +29,7 @@ To cast_by_string(const From& f)
   std::stringstream s;
   s << f;
   return To(s.str());
+}
 }
 
 Integer to_integer(const poly::Integer& i)
