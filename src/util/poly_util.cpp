@@ -152,7 +152,7 @@ void approximate_to_dyadic(poly::Rational& r, const poly::Rational& original)
 
 poly::AlgebraicNumber to_poly_ran_with_refinement(poly::UPolynomial&& p,
                                                   const Rational& lower,
-                                                  const Rational upper)
+                                                  const Rational& upper)
 {
   Maybe<poly::DyadicRational> ml = to_dyadic_rational(lower);
   Maybe<poly::DyadicRational> mu = to_dyadic_rational(upper);
@@ -183,7 +183,7 @@ poly::AlgebraicNumber to_poly_ran_with_refinement(poly::UPolynomial&& p,
 
 RealAlgebraicNumber to_ran_with_refinement(poly::UPolynomial&& p,
                                            const Rational& lower,
-                                           const Rational upper)
+                                           const Rational& upper)
 {
   return RealAlgebraicNumber(
       to_poly_ran_with_refinement(std::move(p), lower, upper));

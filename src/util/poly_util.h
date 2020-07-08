@@ -64,13 +64,13 @@ void approximate_to_dyadic(poly::Rational& r, const poly::Rational& original);
  */
 poly::AlgebraicNumber to_poly_ran_with_refinement(poly::UPolynomial&& p,
                                                   const Rational& lower,
-                                                  const Rational upper);
+                                                  const Rational& upper);
 
 /** Constructs a CVC4::RealAlgebraicNumber, simply wrapping
  * to_poly_ran_with_refinement. */
 RealAlgebraicNumber to_ran_with_refinement(poly::UPolynomial&& p,
                                            const Rational& lower,
-                                           const Rational upper);
+                                           const Rational& upper);
 
 std::size_t total_degree(const poly::Polynomial& p);
 
