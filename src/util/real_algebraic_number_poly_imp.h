@@ -28,7 +28,8 @@
 
 namespace CVC4 {
 
-/** Represents a real algebraic number based on poly::AlgebraicNumber.
+/**
+   Represents a real algebraic number based on poly::AlgebraicNumber.
  * This real algebraic number is represented by a (univariate) polynomial and in
  * isolating interval. The interval contains exactly one real root of the
  * polynomial, which is the number the real algebraic number as a whole
