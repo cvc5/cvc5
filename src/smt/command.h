@@ -1114,6 +1114,8 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   Expr getConjecture() const;
   /** Get the grammar type given for the abduction query */
   Type getGrammarType() const;
+  /** Get the name of the abduction predicate for the abduction query */
+  std::string getAbductName() const;
   /** Get the result of the query, which is the solution to the abduction query.
    */
   Expr getResult() const;
