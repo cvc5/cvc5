@@ -135,8 +135,6 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
- /** The resource manager associated with this expr manager */
- ResourceManager* d_resourceManager;
 
  /** The input that we're parsing. */
  Input* d_input;

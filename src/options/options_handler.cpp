@@ -80,23 +80,6 @@ void OptionsHandler::notifyBeforeSearch(const std::string& option)
   }
 }
 
-
-void OptionsHandler::notifyTlimit(const std::string& option) {
-  d_options->d_tlimitListeners.notify();
-}
-
-void OptionsHandler::notifyTlimitPer(const std::string& option) {
-  d_options->d_tlimitPerListeners.notify();
-}
-
-void OptionsHandler::notifyRlimit(const std::string& option) {
-  d_options->d_rlimitListeners.notify();
-}
-
-void OptionsHandler::notifyRlimitPer(const std::string& option) {
-  d_options->d_rlimitPerListeners.notify();
-}
-
 unsigned long OptionsHandler::limitHandler(std::string option,
                                            std::string optarg)
 {

@@ -15,6 +15,7 @@
 
 #include "theory/strings/base_solver.h"
 
+#include "expr/sequence.h"
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/word.h"
@@ -54,7 +55,7 @@ void BaseSolver::checkInit()
     if (!tn.isRegExp())
     {
       Node emps;
-      if (tn.isString())
+      if (tn.isStringLike())
       {
         d_stringsEqc.push_back(eqc);
         emps = Word::mkEmptyWord(tn);
@@ -64,19 +65,75 @@ void BaseSolver::checkInit()
       while (!eqc_i.isFinished())
       {
         Node n = *eqc_i;
-        if (n.isConst())
+        Kind k = n.getKind();
+        // process constant-like terms
+        if (utils::isConstantLike(n))
         {
-          d_eqcInfo[eqc].d_bestContent = n;
-          d_eqcInfo[eqc].d_base = n;
-          d_eqcInfo[eqc].d_exp = Node::null();
+          Node prev = d_eqcInfo[eqc].d_bestContent;
+          if (!prev.isNull())
+          {
+            // we have either (seq.unit x) = C, or (seq.unit x) = (seq.unit y)
+            // where C is a sequence constant.
+            Node cval =
+                prev.isConst() ? prev : (n.isConst() ? n : Node::null());
+            std::vector<Node> exp;
+            exp.push_back(prev.eqNode(n));
+            Node s, t;
+            if (cval.isNull())
+            {
+              // injectivity of seq.unit
+              s = prev[0];
+              t = n[0];
+            }
+            else
+            {
+              // should not have two constants in the same equivalence class
+              Assert(cval.getType().isSequence());
+              std::vector<Node> cchars = Word::getChars(cval);
+              if (cchars.size() == 1)
+              {
+                Node oval = prev.isConst() ? n : prev;
+                Assert(oval.getKind() == SEQ_UNIT);
+                s = oval[0];
+                t = cchars[0]
+                        .getConst<ExprSequence>()
+                        .getSequence()
+                        .getVec()[0];
+                // oval is congruent (ignored) in this context
+                d_congruent.insert(oval);
+              }
+              else
+              {
+                // (seq.unit x) = C => false if |C| != 1.
+                d_im.sendInference(
+                    exp, d_false, Inference::UNIT_CONST_CONFLICT);
+                return;
+              }
+            }
+            if (!d_state.areEqual(s, t))
+            {
+              // (seq.unit x) = (seq.unit y) => x=y, or
+              // (seq.unit x) = (seq.unit c) => x=c
+              Assert(s.getType() == t.getType());
+              d_im.sendInference(exp, s.eqNode(t), Inference::UNIT_INJ);
+            }
+          }
+          // update best content
+          if (prev.isNull() || n.isConst())
+          {
+            d_eqcInfo[eqc].d_bestContent = n;
+            d_eqcInfo[eqc].d_bestScore = 0;
+            d_eqcInfo[eqc].d_base = n;
+            d_eqcInfo[eqc].d_exp = Node::null();
+          }
         }
-        else if (tn.isInteger())
+        if (tn.isInteger())
         {
           // do nothing
         }
+        // process indexing
         else if (n.getNumChildren() > 0)
         {
-          Kind k = n.getKind();
           if (k != EQUAL)
           {
             if (d_congruent.find(n) == d_congruent.end())
@@ -87,7 +144,7 @@ void BaseSolver::checkInit()
               {
                 // check if we have inferred a new equality by removal of empty
                 // components
-                if (n.getKind() == STRING_CONCAT && !d_state.areEqual(nc, n))
+                if (k == STRING_CONCAT && !d_state.areEqual(nc, n))
                 {
                   std::vector<Node> exp;
                   size_t count[2] = {0, 0};
@@ -188,7 +245,7 @@ void BaseSolver::checkInit()
             }
           }
         }
-        else
+        else if (!n.isConst())
         {
           if (d_congruent.find(n) == d_congruent.end())
           {
@@ -351,6 +408,7 @@ void BaseSolver::checkConstantEquivalenceClasses(TermIndex* ti,
             Node nct = utils::mkNConcat(vecnc, n.getType());
             Assert(!nct.isConst());
             bei.d_bestContent = nct;
+            bei.d_bestScore = contentSize;
             bei.d_base = n;
             if (!exp.empty())
             {
@@ -449,8 +507,26 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
                                       std::vector<std::vector<Node> >& cols,
                                       std::vector<Node>& lts)
 {
+  Trace("strings-card") << "Check cardinality (type " << tn << ")..."
+                        << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  Trace("strings-card") << "Check cardinality...." << std::endl;
+  uint32_t typeCardSize;
+  if (tn.isString())  // string-only
+  {
+    typeCardSize = d_cardSize;
+  }
+  else
+  {
+    Assert(tn.isSequence());
+    TypeNode etn = tn.getSequenceElementType();
+    if (etn.isInterpretedFinite())
+    {
+      // infinite cardinality, we are fine
+      return;
+    }
+    // TODO (cvc4-projects #23): how to handle sequence for finite types?
+    return;
+  }
   // for each collection
   for (unsigned i = 0, csize = cols.size(); i < csize; ++i)
   {
@@ -462,23 +538,18 @@ void BaseSolver::checkCardinalityType(TypeNode tn,
       // no restriction on sets in the partition of size 1
       continue;
     }
-    if (!tn.isString())
-    {
-      // TODO (cvc4-projects #23): how to handle sequence for finite types?
-      continue;
-    }
     // size > c^k
     unsigned card_need = 1;
     double curr = static_cast<double>(cols[i].size());
-    while (curr > d_cardSize)
+    while (curr > typeCardSize)
     {
-      curr = curr / static_cast<double>(d_cardSize);
+      curr = curr / static_cast<double>(typeCardSize);
       card_need++;
     }
     Trace("strings-card")
         << "Need length " << card_need
-        << " for this number of strings (where alphabet size is " << d_cardSize
-        << ")." << std::endl;
+        << " for this number of strings (where alphabet size is "
+        << typeCardSize << ") given type " << tn << "." << std::endl;
     // check if we need to split
     bool needsSplit = true;
     if (lr.isConst())
