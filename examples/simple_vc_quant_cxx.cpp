@@ -14,64 +14,63 @@
  ** A simple demonstration of the C++ interface for quantifiers. 
  **/
 
+#include <cvc4/api/cvc4cpp.h>
+
 #include <iostream>
 
-#include <cvc4/cvc4.h>
-
-using namespace std;
-using namespace CVC4;
+using namespace CVC4::api;
 
 int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
+  Solver slv;
 
   // Prove that the following is unsatisfiable:
   //   forall x. P( x ) ^ ~P( 5 )
 
-  Type integer = em.integerType();
-  Type boolean = em.booleanType();
-  Type integerPredicate = em.mkFunctionType(integer, boolean);
-  
-  Expr p = em.mkVar("P", integerPredicate);
-  Expr x = em.mkBoundVar("x", integer);
-  
+  Sort integer = slv.getIntegerSort();
+  Sort boolean = slv.getBooleanSort();
+  Sort integerPredicate = slv.mkFunctionSort(integer, boolean);
+
+  Term p = slv.mkConst(integerPredicate, "P");
+  Term x = slv.mkVar(integer, "x");
+
   // make forall x. P( x )
-  Expr var_list = em.mkExpr(kind::BOUND_VAR_LIST, x);
-  Expr px = em.mkExpr(kind::APPLY_UF, p, x);
-  Expr quantpospx = em.mkExpr(kind::FORALL, var_list, px);
-  cout << "Made expression : " << quantpospx << endl;
-  
+  Term var_list = slv.mkTerm(Kind::BOUND_VAR_LIST, x);
+  Term px = slv.mkTerm(Kind::APPLY_UF, p, x);
+  Term quantpospx = slv.mkTerm(Kind::FORALL, var_list, px);
+  std::cout << "Made expression : " << quantpospx << std::endl;
+
   //make ~P( 5 )
-  Expr five = em.mkConst(Rational(5));
-  Expr pfive = em.mkExpr(kind::APPLY_UF, p, five);
-  Expr negpfive = em.mkExpr(kind::NOT, pfive);
-  cout << "Made expression : " << negpfive << endl;
-  
-  Expr formula = em.mkExpr(kind::AND, quantpospx, negpfive);
+  Term five = slv.mkReal(5);
+  Term pfive = slv.mkTerm(Kind::APPLY_UF, p, five);
+  Term negpfive = slv.mkTerm(Kind::NOT, pfive);
+  std::cout << "Made expression : " << negpfive << std::endl;
 
-  smt.assertFormula(formula);
+  Term formula = slv.mkTerm(Kind::AND, quantpospx, negpfive);
 
-  cout << "Checking SAT after asserting " << formula << " to CVC4." << endl;
-  cout << "CVC4 should report unsat." << endl;
-  cout << "Result from CVC4 is: " << smt.checkSat() << endl;
+  slv.assertFormula(formula);
 
+  std::cout << "Checking SAT after asserting " << formula << " to CVC4."
+            << std::endl;
+  std::cout << "CVC4 should report unsat." << std::endl;
+  std::cout << "Result from CVC4 is: " << slv.checkSat() << std::endl;
 
-  SmtEngine smtp(&em);
-  
+  slv.resetAssertions();
+
   // this version has a pattern e.g. in smt2 syntax (forall ((x Int)) (! (P x ) :pattern ((P x))))
-  Expr pattern = em.mkExpr(kind::INST_PATTERN, px);
-  Expr pattern_list = em.mkExpr(kind::INST_PATTERN_LIST, pattern);
-  Expr quantpospx_pattern = em.mkExpr(kind::FORALL, var_list, px, pattern_list);
-  cout << "Made expression : " << quantpospx_pattern << endl;
+  Term pattern = slv.mkTerm(Kind::INST_PATTERN, px);
+  Term pattern_list = slv.mkTerm(Kind::INST_PATTERN_LIST, pattern);
+  Term quantpospx_pattern =
+      slv.mkTerm(Kind::FORALL, var_list, px, pattern_list);
+  std::cout << "Made expression : " << quantpospx_pattern << std::endl;
 
-  Expr formula_pattern = em.mkExpr(kind::AND, quantpospx_pattern, negpfive);
+  Term formula_pattern = slv.mkTerm(Kind::AND, quantpospx_pattern, negpfive);
 
-  smtp.assertFormula(formula_pattern);
+  slv.assertFormula(formula_pattern);
 
-  cout << "Checking SAT after asserting " << formula_pattern << " to CVC4." << endl;
-  cout << "CVC4 should report unsat." << endl;
-  cout << "Result from CVC4 is: " << smtp.checkSat() << endl;
-
+  std::cout << "Checking SAT after asserting " << formula_pattern << " to CVC4."
+            << std::endl;
+  std::cout << "CVC4 should report unsat." << std::endl;
+  std::cout << "Result from CVC4 is: " << slv.checkSat() << std::endl;
 
   return 0;
 }

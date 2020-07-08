@@ -19,56 +19,28 @@
 #include <sstream>
 #include <string>
 
-#include "expr/expr_manager.h"
-#include "expr/expr.h"
+#include "api/cvc4cpp.h"
 #include "base/exception.h"
+#include "expr/expr.h"
+#include "expr/expr_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
 using namespace std;
 
 class ExprManagerPublic : public CxxTest::TestSuite {
-private:
-
-  ExprManager* d_exprManager;
-
-  void checkAssociative(Expr expr, Kind kind, unsigned int numChildren) {
-    std::vector<Expr> worklist;
-    worklist.push_back(expr);
-
-    unsigned int childrenFound = 0;
-
-    while( !worklist.empty() ) {
-      Expr current = worklist.back();
-      worklist.pop_back();
-      if( current.getKind() == kind ) {
-        for( unsigned int i = 0; i < current.getNumChildren(); ++i ) {
-          worklist.push_back( current[i] );
-        }
-      } else {
-        childrenFound++;
-      }
-    }
-
-    TS_ASSERT_EQUALS( childrenFound, numChildren );
-  }
-
-  std::vector<Expr> mkVars(Type type, unsigned int n) {
-    std::vector<Expr> vars;
-    for( unsigned int i = 0; i < n; ++i ) {
-      vars.push_back( d_exprManager->mkVar(type) );
-    }
-    return vars;
-  }
-
  public:
-  void setUp() override { d_exprManager = new ExprManager; }
+  void setUp() override
+  {
+    d_slv = new api::Solver();
+    d_exprManager = d_slv->getExprManager();
+  }
 
   void tearDown() override
   {
     try
     {
-      delete d_exprManager;
+      delete d_slv;
     }
     catch (Exception& e)
     {
@@ -128,4 +100,44 @@ private:
                      IllegalArgumentException&);
   }
 
+ private:
+  void checkAssociative(Expr expr, Kind kind, unsigned int numChildren)
+  {
+    std::vector<Expr> worklist;
+    worklist.push_back(expr);
+
+    unsigned int childrenFound = 0;
+
+    while (!worklist.empty())
+    {
+      Expr current = worklist.back();
+      worklist.pop_back();
+      if (current.getKind() == kind)
+      {
+        for (unsigned int i = 0; i < current.getNumChildren(); ++i)
+        {
+          worklist.push_back(current[i]);
+        }
+      }
+      else
+      {
+        childrenFound++;
+      }
+    }
+
+    TS_ASSERT_EQUALS(childrenFound, numChildren);
+  }
+
+  std::vector<Expr> mkVars(Type type, unsigned int n)
+  {
+    std::vector<Expr> vars;
+    for (unsigned int i = 0; i < n; ++i)
+    {
+      vars.push_back(d_exprManager->mkVar(type));
+    }
+    return vars;
+  }
+
+  api::Solver* d_slv;
+  ExprManager* d_exprManager;
 };

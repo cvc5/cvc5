@@ -31,3 +31,7 @@ if(ENABLE_UNIT_TESTING)
     add_subdirectory(java)
   endif()
 endif()
+
+if(LFSC_BINARY)
+  add_subdirectory(signatures)
+endif()

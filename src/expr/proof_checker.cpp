@@ -25,14 +25,8 @@ Node ProofRuleChecker::check(PfRule id,
                              const std::vector<Node>& children,
                              const std::vector<Node>& args)
 {
-  // convert to witness form
-  std::vector<Node> childrenw = children;
-  std::vector<Node> argsw = args;
-  SkolemManager::convertToWitnessFormVec(childrenw);
-  SkolemManager::convertToWitnessFormVec(argsw);
-  Node res = checkInternal(id, childrenw, argsw);
-  // res is in terms of witness form, convert back to Skolem form
-  return SkolemManager::getSkolemForm(res);
+  // call instance-specific checkInternal method
+  return checkInternal(id, children, args);
 }
 
 Node ProofRuleChecker::checkChildrenArg(PfRule id,
@@ -257,6 +251,16 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
     return;
   }
   d_checker[id] = psc;
+}
+
+ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
+{
+  std::map<PfRule, ProofRuleChecker*>::const_iterator it = d_checker.find(id);
+  if (it == d_checker.end())
+  {
+    return nullptr;
+  }
+  return it->second;
 }
 
 }  // namespace CVC4

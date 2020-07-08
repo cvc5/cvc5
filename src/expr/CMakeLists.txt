@@ -27,8 +27,6 @@ libcvc4_add_sources(
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h
-  node_manager_listeners.cpp
-  node_manager_listeners.h
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
@@ -53,6 +51,8 @@ libcvc4_add_sources(
   proof_node_to_sexpr.h
   proof_node_manager.cpp
   proof_node_manager.h
+  proof_node_updater.cpp
+  proof_node_updater.h
   proof_rule.cpp
   proof_rule.h
   proof_step_buffer.cpp

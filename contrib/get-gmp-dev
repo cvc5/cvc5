@@ -11,9 +11,9 @@
 
 source "$(dirname "$0")/get-script-header.sh"
 
-[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--disable-shared --enable-static"
+[ -z "${BUILD_TYPE}" ] && BUILD_TYPE="--enable-shared --enable-static"
 [ -n "$HOST" ] && HOST="--host=$HOST"
-[ -z "$GMPVERSION" ] && GMPVERSION=6.1.2
+[ -z "$GMPVERSION" ] && GMPVERSION=6.2.0
 
 GMP_DIR="$DEPS_DIR/gmp-$GMPVERSION"
 

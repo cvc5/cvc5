@@ -102,12 +102,8 @@ enum class PfRule : uint32_t
   // Conclusion: (= t t')
   // where
   //   t' is
-  //   toWitness(Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1)))
-  //   toSkolem(...) converts terms from witness form to Skolem form,
-  //   toWitness(...) converts terms from Skolem form to witness form.
+  //   Rewriter{idr}(t*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
-  // Notice that:
-  //   toSkolem(t')=Rewriter{idr}(toSkolem(t)*sigma{ids}(Fn)*...*sigma{ids}(F1))
   // In other words, from the point of view of Skolem forms, this rule
   // transforms t to t' by standard substitution + rewriting.
   //
@@ -125,7 +121,7 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: F
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
+  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) == true
   // where ids and idr are method identifiers.
   //
   // Notice that we apply rewriting on the witness form of F, meaning that this
@@ -145,7 +141,7 @@ enum class PfRule : uint32_t
   // Conclusion: F'
   // where
   //   F' is
-  //   toWitness(Rewriter{idr}(toSkolem(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)).
+  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)).
   // where ids and idr are method identifiers.
   //
   // We rewrite only on the Skolem form of F, similar to MACRO_SR_EQ_INTRO.
@@ -161,8 +157,8 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: G
   // where
-  //   Rewriter{idr}(F*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
-  //   Rewriter{idr}(G*sigma{ids}(Fn)*...*sigma{ids}(F1))
+  //   Rewriter{idr}(toWitness(F)*sigma{ids}(Fn)*...*sigma{ids}(F1)) ==
+  //   Rewriter{idr}(toWitness(G)*sigma{ids}(Fn)*...*sigma{ids}(F1))
   //
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
@@ -506,6 +502,70 @@ enum class PfRule : uint32_t
   // Conclusion: F*sigma
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
+
+  // ======== Adding Inequalities
+  // Note: an ArithLiteral is a term of the form (>< poly const)
+  // where
+  //   >< is >=, >, ==, <, <=, or not(== ...).
+  //   poly is a polynomial
+  //   const is a rational constant
+
+  // Children: (P1:l1, ..., Pn:ln)
+  //           where each li is an ArithLiteral
+  //           not(= ...) is dis-allowed!
+  //
+  // Arguments: (k1, ..., kn), non-zero reals
+  // ---------------------
+  // Conclusion: (>< (* k t1) (* k t2))
+  //    where >< is the fusion of the combination of the ><i, (flipping each it
+  //    its ki is negative). >< is always one of <, <=
+  //    NB: this implies that lower bounds must have negative ki,
+  //                      and upper bounds must have positive ki.
+  //    t1 is the sum of the polynomials.
+  //    t2 is the sum of the constants.
+  ARITH_SCALE_SUM_UPPER_BOUNDS,
+
+  // ======== Tightening Strict Integer Upper Bounds
+  // Children: (P:(< i c))
+  //         where i has integer type.
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (<= i greatestIntLessThan(c)})
+  INT_TIGHT_UB,
+
+  // ======== Tightening Strict Integer Lower Bounds
+  // Children: (P:(> i c))
+  //         where i has integer type.
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (>= i leastIntGreaterThan(c)})
+  INT_TIGHT_LB,
+
+  // ======== Trichotomy of the reals
+  // Children: (A B)
+  // Arguments: (C)
+  // ---------------------
+  // Conclusion: (C),
+  //                 where (not A) (not B) and C
+  //                   are (> x c) (< x c) and (= x c)
+  //                   in some order
+  //                 note that "not" here denotes arithmetic negation, flipping
+  //                 >= to <, etc.
+  ARITH_TRICHOTOMY,
+
+  // ======== Arithmetic operator elimination
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: arith::OperatorElim::getAxiomFor(t)
+  ARITH_OP_ELIM_AXIOM,
+
+  // ======== Int Trust
+  // Children: (P1 ... Pn)
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  INT_TRUST,
 
   //================================================= Unknown rule
   UNKNOWN,
