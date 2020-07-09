@@ -2045,7 +2045,7 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
    --------------------------------------------------------------------------
 */
 
-static void toStream(std::ostream& out, const Type& t)
+static void toStreamSygusGrammar(std::ostream& out, const Type& t)
 {
   if (!t.isNull() && t.isDatatype()
       && static_cast<DatatypeType>(t).getDatatype().isSygus())
@@ -2135,7 +2135,7 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
     out << ' ' << type;
   }
   // print grammar, if any
-  toStream(out, c->getSygusType());
+  toStreamSygusGrammar(out, c->getSygusType());
   out << ')';
 }
 
@@ -2190,7 +2190,7 @@ static void toStream(std::ostream& out, const GetAbductCommand* c)
   out << c->getConjecture();
 
   // print grammar, if any
-  toStream(out, c->getGrammarType());
+  toStreamSygusGrammar(out, c->getGrammarType());
   out << ')';
 }
 
