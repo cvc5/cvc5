@@ -585,26 +585,26 @@ if(NOT ENABLE_STATIC_BINARY)
   # Check if we actually use such "dangerous" libraries
   if(list_len GREATER 0)
     # Print a generic warning
-    install(CODE "message(WARNING \"You are installing a dynamically linked
-    binary of CVC4 which may be a problem if you are using any dynamically
-    linked third-party library that you obtained through one of the
-    contrib/get-xxx scripts. The binary uses the rpath mechanism to find these
-    locally, hence executing such a contrib script removing the
-    \\\"deps/install\\\" folder most probably breaks the installed binary!
-    Consider installing the dynamically linked dependencies on your system
+    install(CODE "message(WARNING \"You are installing a dynamically linked \
+    binary of CVC4 which may be a problem if you are using any dynamically \
+    linked third-party library that you obtained through one of the \
+    contrib/get-xxx scripts. The binary uses the rpath mechanism to find these \
+    locally, hence executing such a contrib script removing the \
+    \\\"deps/install\\\" folder most probably breaks the installed binary! \
+    Consider installing the dynamically linked dependencies on your system \
     manually or link cvc4 statically.\")")
     # Print the libraries in question
     foreach(lib ${LIBS_SHARED_FROM_DEPS})
       install(CODE "message(WARNING \"The following library is used by the cvc4 binary: ${lib}\")")
     endforeach()
     # Check if we use a custom installation prefix
-    if(CMAKE_INSTALL_PREFIX EQUAL "/usr/local")
-      install(CODE "message(FATAL_ERROR \"To avoid installing a
-      soon-to-be-broken binary, system-wide installation is disabled if the
+    if(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+      install(CODE "message(FATAL_ERROR \"To avoid installing a \
+      soon-to-be-broken binary, system-wide installation is disabled if the \
       binary depends on locally-built shared libraries.\")")
     else()
-      install(CODE "message(WARNING \"You have selected a custom install
-      directory ${CMAKE_INSTALL_PREFIX}, so we expect you understood the
+      install(CODE "message(WARNING \"You have selected a custom install \
+      directory ${CMAKE_INSTALL_PREFIX}, so we expect you understood the \
       previous warning and know what you are doing.\")")
     endif()
   endif()
