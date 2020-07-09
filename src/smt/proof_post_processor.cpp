@@ -230,7 +230,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
     std::vector<Node> args2;
     args2.push_back(children[0]);
-    args2.insert(args2.end(), args.begin(), args.end());
+    args2.insert(args2.end(), args.begin() + 1, args.end());
     Node eq2 = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, args2, cdp);
     Assert(!eq2.isNull() && eq2.getKind() == EQUAL && eq2[0] == children[0]);
 
