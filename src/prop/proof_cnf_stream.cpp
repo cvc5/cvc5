@@ -886,7 +886,7 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
                false,
                CDPOverwrite::NEVER);
   }
-  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: orderd node: "
+  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: ordered node: "
                           << ordered << "\n";
   return ordered;
 }
