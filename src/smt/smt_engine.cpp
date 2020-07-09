@@ -3593,11 +3593,6 @@ unsigned long SmtEngine::getResourceRemaining() const
   return d_resourceManager->getResourceRemaining();
 }
 
-unsigned long SmtEngine::getTimeRemaining() const
-{
-  return d_resourceManager->getTimeRemaining();
-}
-
 NodeManager* SmtEngine::getNodeManager() const
 {
   return d_exprManager->getNodeManager();

@@ -817,16 +817,6 @@ class CVC4_PUBLIC SmtEngine
    */
   unsigned long getResourceRemaining() const;
 
-  /**
-   * Get the remaining number of milliseconds that can be consumed by
-   * this SmtEngine according to the currently-set cumulative time limit.
-   * If there is not a cumulative resource limit set, this function
-   * throws a ModalException.
-   *
-   * @throw ModalException
-   */
-  unsigned long getTimeRemaining() const;
-
   /** Permit access to the underlying ExprManager. */
   ExprManager* getExprManager() const { return d_exprManager; }
 
