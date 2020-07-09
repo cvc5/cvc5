@@ -40,7 +40,10 @@ class NlModel;
  */
 struct NlLemma
 {
-  NlLemma(Node lem, Inference id = Inference::UNKNOWN) : d_id(id), d_lemma(lem), d_preprocess(false) {}
+  NlLemma(Node lem, Inference id = Inference::UNKNOWN)
+      : d_id(id), d_lemma(lem), d_preprocess(false)
+  {
+  }
   ~NlLemma() {}
   /** The inference id for the lemma */
   Inference d_id;

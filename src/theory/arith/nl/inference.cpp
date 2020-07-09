@@ -14,7 +14,6 @@
 
 #include "theory/arith/nl/inference.h"
 
-
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -38,7 +37,7 @@ const char* toString(Inference i)
     case Inference::T_PI_BOUND: return "T_PI_BOUND";
     case Inference::T_MONOTONICITY: return "T_MONOTONICITY";
     case Inference::T_SECANT: return "T_SECANT";
-    case Inference::T_TANGENT: return "T_TANGENT";    
+    case Inference::T_TANGENT: return "T_TANGENT";
     default: return "?";
   }
 }

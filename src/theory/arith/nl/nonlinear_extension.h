@@ -29,10 +29,10 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
+#include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/arith/nl/stats.h"
 
 namespace CVC4 {
 namespace theory {

@@ -27,7 +27,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-/** 
+/**
  * Types of inferences used in the procedure
  */
 enum class Inference : uint32_t
@@ -69,7 +69,6 @@ const char* toString(Inference i);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, Inference i);
-
 
 }  // namespace nl
 }  // namespace arith

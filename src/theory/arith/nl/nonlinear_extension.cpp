@@ -405,7 +405,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       std::vector<NlLemma>& wlems)
 {
   std::vector<NlLemma> lemmas;
-  
+
   ++(d_stats.d_checkRuns);
 
   if (options::nlExt())

@@ -177,7 +177,8 @@ std::vector<NlLemma> NlSolver::checkSplitZero()
       eq = Rewriter::rewrite(eq);
       Node literal = d_containing.getValuation().ensureLiteral(eq);
       d_containing.getOutputChannel().requirePhase(literal, true);
-      lemmas.push_back(NlLemma(literal.orNode(literal.negate()),Inference::SPLIT_ZERO));
+      lemmas.push_back(
+          NlLemma(literal.orNode(literal.negate()), Inference::SPLIT_ZERO));
     }
   }
   return lemmas;
@@ -1004,7 +1005,7 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
                 << "Tangent plane lemma (reverse) : " << lb_reverse2
                 << std::endl;
             tplaneConj.push_back(lb_reverse2);
-            
+
             Node tlem = nm->mkNode(AND, tplaneConj);
             lemmas.push_back(NlLemma(tlem, Inference::TANGENT_PLANE));
           }
