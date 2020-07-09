@@ -1266,7 +1266,8 @@ std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
             }
             else
             {
-              nt_lemmas.emplace_back(NlLemma(iblem, Inference::INFER_BOUNDS_NT));
+              nt_lemmas.emplace_back(
+                  NlLemma(iblem, Inference::INFER_BOUNDS_NT));
             }
           }
         }
@@ -1570,7 +1571,8 @@ std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
                   rblem = Rewriter::rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  lemmas.emplace_back(NlLemma(rblem, Inference::RES_INFER_BOUNDS));
+                  lemmas.emplace_back(
+                      NlLemma(rblem, Inference::RES_INFER_BOUNDS));
                 }
               }
               exp.pop_back();
