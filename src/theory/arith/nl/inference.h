@@ -32,12 +32,22 @@ namespace nl {
  */
 enum class Inference : uint32_t
 {
+  CONGRUENCE,
   SPLIT_ZERO,
+  SIGN,
   COMPARISON,
-  T_INIT,
+  INFER_BOUNDS,
+  INFER_BOUNDS_NT,
+  FACTOR,
+  RES_INFER_BOUNDS,
+  TANGENT_PLANE,
+  T_PURIFY_ARG,
+  T_INIT_REFINE,
+  T_PI_BOUND,
+  T_MONOTONICITY,
   T_SECANT,
   T_TANGENT,
-  NONE,
+  UNKNOWN,
 };
 
 /**

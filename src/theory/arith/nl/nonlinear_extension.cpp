@@ -165,6 +165,7 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
     {
       d_lemmas.insert(lem);
     }
+    d_stats.d_inferences << nlem.d_id;
     // also indicate this is a tautology
     d_model.addTautology(lem);
   }
@@ -404,6 +405,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       std::vector<NlLemma>& wlems)
 {
   std::vector<NlLemma> lemmas;
+  
+  ++(d_stats.d_checkRuns);
 
   if (options::nlExt())
   {

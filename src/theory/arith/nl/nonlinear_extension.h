@@ -32,6 +32,7 @@
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/arith/nl/stats.h"
 
 namespace CVC4 {
 namespace theory {
@@ -284,6 +285,8 @@ class NonlinearExtension
   TheoryArith& d_containing;
   // pointer to used equality engine
   eq::EqualityEngine* d_ee;
+  /** The statistics class */
+  NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
   /** The non-linear model object
