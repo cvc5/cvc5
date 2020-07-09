@@ -814,6 +814,7 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
   }
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> children{n.begin(), n.end()};
+  std::vector<Node> childrenEqs;
   // eliminate double neg for each lit. Do it first because it may expose
   // duplicates
   bool hasDoubleNeg = false;
@@ -823,7 +824,15 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
         && children[i][0].getKind() == kind::NOT)
     {
       hasDoubleNeg = true;
+      childrenEqs.push_back(children[i].eqNode(children[i][0][0]));
+      p->addStep(childrenEqs.back(), PfRule::MACRO_SR_PRED_INTRO, {}, {childrenEqs.back()});
+      // update child
       children[i] = children[i][0][0];
+    }
+    else
+    {
+      childrenEqs.push_back(children[i].eqNode(children[i]));
+      p->addStep(childrenEqs.back(), PfRule::REFL, {}, {children[i]});
     }
   }
   if (hasDoubleNeg)
@@ -832,11 +841,29 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     n = nm->mkNode(kind::OR, children);
     Trace("sat-proof-norm")
         << "PropEngine::factorReorderElimDoubleNeg: eliminate double negs: "
-        << oldn << ", " << n << "\n";
-    std::vector<Node> args{n};
-    theory::builtin::BuiltinProofRuleChecker::addMethodIds(
-        args, theory::MethodId::SB_DEFAULT, theory::MethodId::RW_EXT_REWRITE);
-    p->addStep(n, PfRule::MACRO_SR_PRED_TRANSFORM, {oldn}, args);
+        << oldn << " ==> " << n << "\n";
+    // Create a congruence step to justify replacement of each doubly negated
+    // literal. This is done to avoid having to use MACRO_SR_PRED_TRANSFORM from
+    // the old clause to the new one, which, under the standard rewriter, may
+    // not hold. An example is
+    //
+    //   -----------------------------------------------------------------------
+    //   (or (or (not x2) x1 x2) (not (not x2))) = (or (or (not x2) x1 x2) x2)
+    //
+    // which fails due to factoring not happening after flattening.
+    //
+    // Using congruence only the
+    //
+    //  ------------------ MACRO_SR_PRED_INTRO
+    //  (not (not t)) = t
+    //
+    // steps are added, which, since double negation is eliminated in a
+    // pre-rewrite in the Boolean rewriter, will always hold under the standard
+    // rewriter.
+    Node congEq = oldn.eqNode(n);
+    p->addStep(congEq, PfRule::CONG, childrenEqs, {nm->operatorOf(kind::OR)});
+    // add an equality resolution step to derive normalize clause
+    p->addStep(n, PfRule::EQ_RESOLVE, {oldn, congEq}, {});
   }
   children.clear();
   // remove duplicates while keeping the order of children
@@ -886,7 +913,7 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
                false,
                CDPOverwrite::NEVER);
   }
-  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: orderd node: "
+  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: ordered node: "
                           << ordered << "\n";
   return ordered;
 }
