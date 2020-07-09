@@ -952,6 +952,7 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
+    d_rewriter.reset(nullptr);
     d_pchecker.reset(nullptr);
     d_pnm.reset(nullptr);
     d_rewriteDb.reset(nullptr);
