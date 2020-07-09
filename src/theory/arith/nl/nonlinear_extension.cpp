@@ -152,7 +152,8 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
   {
     Node lem = nlem.d_lemma;
     bool preprocess = nlem.d_preprocess;
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << lem << std::endl;
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_id
+                          << " : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem, false, preprocess);
     // process the side effect
     processSideEffect(nlem);
@@ -165,6 +166,7 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
     {
       d_lemmas.insert(lem);
     }
+    d_stats.d_inferences << nlem.d_id;
     // also indicate this is a tautology
     d_model.addTautology(lem);
   }
@@ -188,7 +190,7 @@ unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
         << "NonlinearExtension::Lemma duplicate : " << lem.d_lemma << std::endl;
     return 0;
   }
-  out.push_back(lem);
+  out.emplace_back(lem);
   return 1;
 }
 
@@ -404,6 +406,8 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                                       std::vector<NlLemma>& wlems)
 {
   std::vector<NlLemma> lemmas;
+
+  ++(d_stats.d_checkRuns);
 
   if (options::nlExt())
   {
@@ -639,6 +643,8 @@ void NonlinearExtension::check(Theory::Effort e)
 
 bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
 {
+  ++(d_stats.d_mbrRuns);
+
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
@@ -647,6 +653,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       << "Getting model values... check for [model-false]" << std::endl;
   // get the assertions that are false in the model
   const std::vector<Node> false_asserts = checkModelEval(assertions);
+  Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
   std::vector<Node> xts;
@@ -786,7 +793,8 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            filterLemma(split, stvLemmas);
+            NlLemma nsplit(split, Inference::SHARED_TERM_VALUE_SPLIT);
+            filterLemma(nsplit, stvLemmas);
           }
           if (!stvLemmas.empty())
           {

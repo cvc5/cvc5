@@ -451,7 +451,7 @@ header = "options/smt_options.h"
   type       = "unsigned long"
   handler    = "limitHandler"
   read_only  = true
-  help       = "enable time limiting (give milliseconds)"
+  help       = "enable time limiting of wall clock time (give milliseconds)"
 
 [[option]]
   name       = "perCallMillisecondLimit"

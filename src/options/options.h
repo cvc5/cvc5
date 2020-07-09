@@ -204,6 +204,7 @@ public:
   bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
+  unsigned long getCumulativeTimeLimit() const;
   bool getVersion() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
