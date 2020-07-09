@@ -190,7 +190,7 @@ unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
         << "NonlinearExtension::Lemma duplicate : " << lem.d_lemma << std::endl;
     return 0;
   }
-  out.push_back(lem);
+  out.emplace_back(lem);
   return 1;
 }
 

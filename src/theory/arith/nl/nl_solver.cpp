@@ -274,7 +274,7 @@ int NlSolver::compareSign(Node oa,
     {
       Node lemma =
           safeConstructNary(AND, exp).impNode(mkLit(oa, d_zero, status * 2));
-      lem.push_back(NlLemma(lemma, Inference::SIGN));
+      lem.emplace_back(NlLemma(lemma, Inference::SIGN));
     }
     return status;
   }
@@ -291,7 +291,7 @@ int NlSolver::compareSign(Node oa,
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
       Node lemma = av.eqNode(d_zero).impNode(oa.eqNode(d_zero));
-      lem.push_back(NlLemma(lemma, Inference::SIGN));
+      lem.emplace_back(NlLemma(lemma, Inference::SIGN));
     }
     return 0;
   }
@@ -448,7 +448,7 @@ bool NlSolver::compareMonomial(
       Node clem = nm->mkNode(
           IMPLIES, safeConstructNary(AND, exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
-      lem.push_back(NlLemma(clem, Inference::COMPARISON));
+      lem.emplace_back(NlLemma(clem, Inference::COMPARISON));
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -1007,7 +1007,7 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
             tplaneConj.push_back(lb_reverse2);
 
             Node tlem = nm->mkNode(AND, tplaneConj);
-            lemmas.push_back(NlLemma(tlem, Inference::TANGENT_PLANE));
+            lemmas.emplace_back(NlLemma(tlem, Inference::TANGENT_PLANE));
           }
         }
       }
@@ -1262,11 +1262,11 @@ std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
             // monomials = " << introNewTerms << std::endl;
             if (!introNewTerms)
             {
-              lemmas.push_back(NlLemma(iblem, Inference::INFER_BOUNDS));
+              lemmas.emplace_back(NlLemma(iblem, Inference::INFER_BOUNDS));
             }
             else
             {
-              nt_lemmas.push_back(NlLemma(iblem, Inference::INFER_BOUNDS_NT));
+              nt_lemmas.emplace_back(NlLemma(iblem, Inference::INFER_BOUNDS_NT));
             }
           }
         }
@@ -1398,7 +1398,7 @@ std::vector<NlLemma> NlSolver::checkFactoring(
           lemma_disj.push_back(conc_lit);
           Node flem = nm->mkNode(OR, lemma_disj);
           Trace("nl-ext-factor") << "...lemma is " << flem << std::endl;
-          lemmas.push_back(NlLemma(flem, Inference::FACTOR));
+          lemmas.emplace_back(NlLemma(flem, Inference::FACTOR));
         }
       }
     }
@@ -1570,7 +1570,7 @@ std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
                   rblem = Rewriter::rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  lemmas.push_back(NlLemma(rblem, Inference::RES_INFER_BOUNDS));
+                  lemmas.emplace_back(NlLemma(rblem, Inference::RES_INFER_BOUNDS));
                 }
               }
               exp.pop_back();
