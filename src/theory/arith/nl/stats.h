@@ -34,16 +34,15 @@ class NlStats
  public:
   NlStats();
   ~NlStats();
-  /** Number of calls to run a check where strategy is present */
+  /**
+   * Number of calls to NonlinearExtension::modelBasedRefinement. Notice this
+   * may make multiple calls to NonlinearExtension::checkLastCall.
+   */
+  IntStat d_mbrRuns;
+  /** Number of calls to NonlinearExtension::checkLastCall */
   IntStat d_checkRuns;
   /** Counts the number of applications of each type of inference */
   HistogramStat<Inference> d_inferences;
-  /**
-   * Counts the number of applications of each type of context-dependent
-   * simplification. The sum of this map is equal to the number of EXTF or
-   * EXTF_N inferences.
-   */
-  HistogramStat<Kind> d_cdSimplifications;
 };
 
 }  // namespace nl

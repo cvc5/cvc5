@@ -24,6 +24,7 @@ const char* toString(Inference i)
   switch (i)
   {
     case Inference::CONGRUENCE: return "CONGRUENCE";
+    case Inference::SHARED_TERM_VALUE_SPLIT: return "SHARED_TERM_VALUE_SPLIT";
     case Inference::SPLIT_ZERO: return "SPLIT_ZERO";
     case Inference::SIGN: return "SIGN";
     case Inference::COMPARISON: return "COMPARISON";

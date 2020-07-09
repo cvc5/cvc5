@@ -22,20 +22,20 @@ namespace arith {
 namespace nl {
 
 NlStats::NlStats()
-    : d_checkRuns("nl::checkRuns", 0),
-      d_inferences("nl::inferences"),
-      d_cdSimplifications("nl::cdSimplifications")
+    : d_mbrRuns("nl::mbrRuns", 0),
+      d_checkRuns("nl::checkRuns", 0),
+      d_inferences("nl::inferences")
 {
+  smtStatisticsRegistry()->registerStat(&d_mbrRuns);
   smtStatisticsRegistry()->registerStat(&d_checkRuns);
   smtStatisticsRegistry()->registerStat(&d_inferences);
-  smtStatisticsRegistry()->registerStat(&d_cdSimplifications);
 }
 
 NlStats::~NlStats()
 {
+  smtStatisticsRegistry()->unregisterStat(&d_mbrRuns);
   smtStatisticsRegistry()->unregisterStat(&d_checkRuns);
   smtStatisticsRegistry()->unregisterStat(&d_inferences);
-  smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
 }
 
 }  // namespace nl

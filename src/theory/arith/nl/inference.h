@@ -32,9 +32,11 @@ namespace nl {
  */
 enum class Inference : uint32_t
 {
-  //-------------------- standard
+  //-------------------- core
   // simple congruence x=y => f(x)=f(y)
   CONGRUENCE,
+  // shared term value split (for naive theory combination)
+  SHARED_TERM_VALUE_SPLIT,
   //-------------------- incremental linearization solver
   // splitting on zero (NlSolver::checkSplitZero)
   SPLIT_ZERO,
