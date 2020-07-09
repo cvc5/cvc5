@@ -177,8 +177,7 @@ std::vector<NlLemma> NlSolver::checkSplitZero()
       eq = Rewriter::rewrite(eq);
       Node literal = d_containing.getValuation().ensureLiteral(eq);
       d_containing.getOutputChannel().requirePhase(literal, true);
-      lemmas.push_back(
-          NlLemma(literal.orNode(literal.negate()), Inference::SPLIT_ZERO));
+      lemmas.emplace_back(literal.orNode(literal.negate()), Inference::SPLIT_ZERO);
     }
   }
   return lemmas;
