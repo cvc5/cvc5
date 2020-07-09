@@ -1831,7 +1831,14 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       Trace("te-proof-debug") << "Explanation " << tncExp << " from "
                               << tncExp.identifyGenerator() << std::endl;
       Assert(d_lazyProof != nullptr);
-      d_lazyProof->addLazyStep(tconflict.getProven(), tconflict.getGenerator());
+      if (tconflict.getGenerator()!=nullptr)
+      {
+        d_lazyProof->addLazyStep(tconflict.getProven(), tconflict.getGenerator());
+      }
+      else
+      {
+        addTheoryLemmaToProof(d_lazyProof.get(), tconflict.getProven(), theoryId, "conflict_shared_theory");
+      }
       Node fullConflictNeg = fullConflict.notNode();
       Node proven = tncExp.getProven();
       std::vector<Node> children;
