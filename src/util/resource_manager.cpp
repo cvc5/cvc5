@@ -218,18 +218,11 @@ void ResourceManager::setResourceLimit(uint64_t units, bool cumulative) {
   }
 }
 
-void ResourceManager::setTimeLimit(uint64_t millis, bool cumulative) {
+void ResourceManager::setTimeLimit(uint64_t millis) {
   d_on = true;
-  if(cumulative) {
-    Trace("limit") << "ResourceManager: setting cumulative time limit to " << millis << " ms" << endl;
-    d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
-    d_cumulativeTimer.set(millis, !d_cpuTime);
-  } else {
-    Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
-    d_timeBudgetPerCall = millis;
-    // perCall timer will be set in beginCall
-  }
-
+  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
+  d_timeBudgetPerCall = millis;
+  // perCall timer will be set in beginCall
 }
 
 const uint64_t& ResourceManager::getResourceUsage() const {

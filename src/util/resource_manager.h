@@ -123,7 +123,7 @@ public:
 
  void setHardLimit(bool value);
  void setResourceLimit(uint64_t units, bool cumulative = false);
- void setTimeLimit(uint64_t millis, bool cumulative = false);
+ void setTimeLimit(uint64_t millis);
  void useCPUTime(bool cpu);
 
  void enable(bool on);
