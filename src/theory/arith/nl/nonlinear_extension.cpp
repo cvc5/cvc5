@@ -643,7 +643,7 @@ void NonlinearExtension::check(Theory::Effort e)
 bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
 {
   ++(d_stats.d_mbrRuns);
-  
+
   // get the assertions
   std::vector<Node> assertions;
   getAssertions(assertions);
