@@ -647,6 +647,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       << "Getting model values... check for [model-false]" << std::endl;
   // get the assertions that are false in the model
   const std::vector<Node> false_asserts = checkModelEval(assertions);
+  Trace("nl-ext") << "# false asserts = " << false_asserts.size() << std::endl;
 
   // get the extended terms belonging to this theory
   std::vector<Node> xts;
