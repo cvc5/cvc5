@@ -728,10 +728,6 @@ void SmtEngine::finishInit()
   {
     d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
   }
-  if (options::cpuTime())
-  {
-    d_resourceManager->useCPUTime(true);
-  }
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());

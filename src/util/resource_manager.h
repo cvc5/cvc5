@@ -124,7 +124,6 @@ public:
  void setHardLimit(bool value);
  void setResourceLimit(uint64_t units, bool cumulative = false);
  void setTimeLimit(uint64_t millis);
- void useCPUTime(bool cpu);
 
  void enable(bool on);
 
@@ -188,7 +187,6 @@ private:
 
  bool d_isHardLimit;
  bool d_on;
- bool d_cpuTime;
  uint64_t d_spendResourceCalls;
 
  /** Counter indicating how often to check resource manager in loops */
