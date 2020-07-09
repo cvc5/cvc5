@@ -144,6 +144,7 @@ class TrustNode
   static Node getRewriteProven(TNode n, Node nr);
   /** For debugging */
   std::string identifyGenerator() const;
+
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);
   /** The kind */

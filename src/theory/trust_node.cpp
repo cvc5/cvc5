@@ -123,7 +123,7 @@ Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
 std::string TrustNode::identifyGenerator() const
 {
-  if (d_gen==nullptr)
+  if (d_gen == nullptr)
   {
     return "null";
   }
