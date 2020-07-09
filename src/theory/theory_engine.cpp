@@ -1663,33 +1663,35 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
   Node lemmap = tplemma.getNode();
 
-  // process the preprocessing
-  if (options::proofNew())
-  {
-    Assert(d_lazyProof != nullptr);
-    // only need to do anything if lemmap changed in a non-trivial way
-    if (!CDProof::isSame(lemmap, lemma))
-    {
-      if (tplemma.getGenerator() != nullptr)
-      {
-        d_lazyProof->addLazyStep(tplemma.getProven(), tplemma.getGenerator());
-      }
-      // ---------- from d_lazyProof -------------- from theory preprocess
-      // lemma                       lemma = lemmap
-      // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
-      // lemmap
-      std::vector<Node> pfChildren;
-      pfChildren.push_back(lemma);
-      pfChildren.push_back(tplemma.getProven());
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(lemmap);
-      d_lazyProof->addStep(
-          lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
-    }
-  }
   // must update the trust lemma
   if (lemmap != lemma)
   {
+    // process the preprocessing
+    if (options::proofNew())
+    {
+      Assert(d_lazyProof != nullptr);   
+      // add the original proof to the lazy proof
+      d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
+      // only need to do anything if lemmap changed in a non-trivial way
+      if (!CDProof::isSame(lemmap, lemma))
+      {
+        if (tplemma.getGenerator() != nullptr)
+        {
+          d_lazyProof->addLazyStep(tplemma.getProven(), tplemma.getGenerator());
+        }
+        // ---------- from d_lazyProof -------------- from theory preprocess
+        // lemma                       lemma = lemmap
+        // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+        // lemmap
+        std::vector<Node> pfChildren;
+        pfChildren.push_back(lemma);
+        pfChildren.push_back(tplemma.getProven());
+        std::vector<Node> pfArgs;
+        pfArgs.push_back(lemmap);
+        d_lazyProof->addStep(
+            lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
+      }
+    }
     tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
   }
 
@@ -1709,6 +1711,20 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
 
   // assert lemmas to prop engine
   Assert(!options::proofNew() || tlemma.getGenerator() != nullptr);
+  if (options::proofNew())
+  {
+    // ensure closed, make the proof node eagerly here to debug
+    if (Trace.isOn("te-proof-debug"))
+    {
+      Trace("te-proof-debug") << "=== Proof of " << tlemma << " is from " << tlemma.getGenerator()->identify() << ":" << std::endl;
+      std::shared_ptr<ProofNode> pn = tlemma.toProofNode();
+      std::stringstream ss;
+      pn->printDebug(ss);
+      Trace("te-proof-debug") << ss.str();
+      Trace("te-proof-debug") << std::endl << "====" << std::endl;
+      Assert (pn->isClosed());
+    }
+  }
   d_propEngine->assertLemma(tlemma, removable, rule, node);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
@@ -1791,11 +1807,14 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
     Node fullConflict = tncExp.getNode();
 
-    if (d_lazyProof != nullptr)
+    if (options::proofNew())
     {
+      Assert (d_lazyProof != nullptr);
+      Node proven = tncExp.getProven();
+      d_lazyProof->addLazyStep(proven, tncExp.getGenerator());
       Node fullConflictNeg = fullConflict.notNode();
       std::vector<Node> children;
-      children.push_back(tncExp.getProven());
+      children.push_back(proven);
       std::vector<Node> args;
       args.push_back(fullConflictNeg);
       if (conflict == d_false)
@@ -1815,7 +1834,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
         // generator, e.g. d_tepg.
         Assert(tncExp.getGenerator() != nullptr);
         Assert(tncExp.getGenerator() != d_lazyProof.get());
-        d_lazyProof->addLazyStep(tncExp.getProven(), tncExp.getGenerator());
+        d_lazyProof->addLazyStep(proven, tncExp.getGenerator());
         // ------------------------- explained  ---------- from theory
         // fullConflict => conflict              ~conflict
         // -------------------------------------------- MACRO_SR_PRED_TRANSFORM
