@@ -30,6 +30,7 @@ const char* toString(MethodId id)
   switch (id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
+    case MethodId::RW_EXT_REWRITE: return "RW_EXT_REWRITE";
     case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
     case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
@@ -96,16 +97,20 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   {
     return Rewriter::rewrite(n);
   }
-  else if (idr == MethodId::RW_REWRITE_EQ_EXT)
+  if (idr == MethodId::RW_EXT_REWRITE)
+  {
+    return d_ext_rewriter.extendedRewrite(n);
+  }
+  if (idr == MethodId::RW_REWRITE_EQ_EXT)
   {
     return Rewriter::rewriteEqualityExt(n);
   }
-  else if (idr == MethodId::RW_EVALUATE)
+  if (idr == MethodId::RW_EVALUATE)
   {
     Evaluator eval;
     return eval.eval(n, {}, {}, false);
   }
-  else if (idr == MethodId::RW_IDENTITY)
+  if (idr == MethodId::RW_IDENTITY)
   {
     // does nothing
     return n;

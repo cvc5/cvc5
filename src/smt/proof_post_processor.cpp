@@ -162,7 +162,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         rargs.push_back(args[2]);
       }
     }
-    Node tr = builtin::BuiltinProofRuleChecker::applyRewrite(ts, rid);
+    builtin::BuiltinProofRuleChecker* builtinPfC =
+        static_cast<builtin::BuiltinProofRuleChecker*>(
+            d_pnm->getChecker()->getCheckerFor(PfRule::MACRO_SR_EQ_INTRO));
+    Node tr = builtinPfC->applyRewrite(ts, rid);
     if (ts != tr)
     {
       // apply REWRITE proof rule
@@ -377,7 +380,10 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     {
       builtin::BuiltinProofRuleChecker::getMethodId(args[1], idr);
     }
-    Node ret = builtin::BuiltinProofRuleChecker::applyRewrite(args[0], idr);
+    builtin::BuiltinProofRuleChecker* builtinPfC =
+        static_cast<builtin::BuiltinProofRuleChecker*>(
+            d_pnm->getChecker()->getCheckerFor(PfRule::REWRITE));
+    Node ret = builtinPfC->applyRewrite(args[0], idr);
     Node eq = args[0].eqNode(ret);
     if (idr == MethodId::RW_REWRITE || idr == MethodId::RW_REWRITE_EQ_EXT)
     {
