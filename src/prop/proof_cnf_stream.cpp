@@ -812,9 +812,34 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     return ProofCnfStream::elimDoubleNegLit(n, p);
   }
   NodeManager* nm = NodeManager::currentNM();
+  std::vector<Node> children{n.begin(), n.end()};
+  // eliminate double neg for each lit. Do it first because it may expose
+  // duplicates
+  bool hasDoubleNeg = false;
+  for (unsigned i = 0; i < children.size(); ++i)
+  {
+    if (children[i].getKind() == kind::NOT
+        && children[i][0].getKind() == kind::NOT)
+    {
+      hasDoubleNeg = true;
+      children[i] = children[i][0][0];
+    }
+  }
+  if (hasDoubleNeg)
+  {
+    Node oldn = n;
+    n = nm->mkNode(kind::OR, children);
+    Trace("sat-proof-norm")
+        << "PropEngine::factorReorderElimDoubleNeg: eliminate double negs: "
+        << oldn << ", " << n << "\n";
+    std::vector<Node> args{n};
+    theory::builtin::BuiltinProofRuleChecker::addMethodIds(
+        args, theory::MethodId::SB_DEFAULT, theory::MethodId::RW_EXT_REWRITE);
+    p->addStep(n, PfRule::MACRO_SR_PRED_TRANSFORM, {oldn}, args);
+  }
+  children.clear();
   // remove duplicates while keeping the order of children
   std::unordered_set<TNode, TNodeHashFunction> clauseSet;
-  std::vector<Node> children;
   unsigned size = n.getNumChildren();
   for (unsigned i = 0; i < size; ++i)
   {
@@ -842,30 +867,7 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
   // nothing to order
   if (children.size() < 2)
   {
-    return ProofCnfStream::elimDoubleNegLit(n, p);
-  }
-  // eliminate double neg for each lit
-  bool hasDoubleNeg = false;
-  for (unsigned i = 0; i < children.size(); ++i)
-  {
-    if (children[i].getKind() == kind::NOT
-        && children[i][0].getKind() == kind::NOT)
-    {
-      hasDoubleNeg = true;
-      children[i] = children[i][0][0];
-    }
-  }
-  if (hasDoubleNeg)
-  {
-    Node oldn = n;
-    n = nm->mkNode(kind::OR, children);
-    Trace("sat-proof-norm")
-        << "PropEngine::factorReorderElimDoubleNeg: eliminate double negs: "
-        << oldn << ", " << n << "\n";
-    std::vector<Node> args{n};
-    theory::builtin::BuiltinProofRuleChecker::addMethodIds(
-        args, theory::MethodId::SB_DEFAULT, theory::MethodId::RW_EXT_REWRITE);
-    p->addStep(n, PfRule::MACRO_SR_PRED_TRANSFORM, {oldn}, args);
+    return n;
   }
   // order
   std::sort(children.begin(), children.end());
