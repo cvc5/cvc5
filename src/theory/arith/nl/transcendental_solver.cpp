@@ -136,7 +136,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
             }
             Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
             Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
-            lems.emplace_back(NlLemma(cong_lemma, Inference::CONGRUENCE));
+            lems.emplace_back(cong_lemma, Inference::CONGRUENCE);
           }
         }
         else
@@ -369,7 +369,7 @@ void TranscendentalSolver::getCurrentPiBounds(std::vector<NlLemma>& lemmas)
   Node pi_lem = nm->mkNode(AND,
                            nm->mkNode(GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(LEQ, d_pi, d_pi_bound[1]));
-  lemmas.emplace_back(NlLemma(pi_lem, Inference::T_PI_BOUND));
+  lemmas.emplace_back(pi_lem, Inference::T_PI_BOUND);
 }
 
 std::vector<NlLemma> TranscendentalSolver::checkTranscendentalInitialRefine()
@@ -454,7 +454,7 @@ std::vector<NlLemma> TranscendentalSolver::checkTranscendentalInitialRefine()
         }
         if (!lem.isNull())
         {
-          lemmas.emplace_back(NlLemma(lem, Inference::T_INIT_REFINE));
+          lemmas.emplace_back(lem, Inference::T_INIT_REFINE);
         }
       }
     }
@@ -630,7 +630,7 @@ std::vector<NlLemma> TranscendentalSolver::checkTranscendentalMonotonic()
               }
               Trace("nl-ext-tf-mono")
                   << "Monotonicity lemma : " << mono_lem << std::endl;
-              lemmas.emplace_back(NlLemma(mono_lem, Inference::T_MONOTONICITY));
+              lemmas.emplace_back(mono_lem, Inference::T_MONOTONICITY);
             }
           }
           // store the previous values
@@ -883,7 +883,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
         << "*** Tangent plane lemma : " << lem << std::endl;
     Assert(d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
-    lemmas.emplace_back(NlLemma(lem, Inference::T_TANGENT));
+    lemmas.emplace_back(lem, Inference::T_TANGENT);
   }
   else if (is_secant)
   {
