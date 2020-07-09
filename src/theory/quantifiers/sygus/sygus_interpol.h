@@ -54,15 +54,6 @@ class SygusInterpol
    * (Fc above). And solve the interpolation by sygus. Note that axioms is
    * expected to be a subset of assertions in SMT-LIB.
    *
-   * The relationship between the free variables of asserts and the formal
-   * argument list of the interpol-to-synthesize are tracked by the attribute
-   * SygusVarToTermAttribute.
-   *
-   * In particular, solutions to the synthesis conjecture will be in the form
-   * of a closed term (lambda varlist. t). The intended solution, which is a
-   * term whose free variables correspond to a subset of the free symbols in
-   * asserts, is the term t * { varlist -> SygusVarToTermAttribute(varlist) }.
-   *
    * @param name the name for the interpol-to-synthesize.
    * @param axioms the assertions (Fa above)
    * @param conj the conjecture (Fc above)
