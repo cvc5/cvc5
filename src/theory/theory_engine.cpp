@@ -1654,6 +1654,20 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
   }
+  
+  if (options::proofNew())
+  {
+    if (Trace.isOn("te-proof-debug"))
+    {
+      std::shared_ptr<ProofNode> ppn = tlemma.toProofNode();
+      std::stringstream ss;
+      ppn->printDebug(ss);
+      Trace("te-proof-debug")
+          << "=== Initial proof from " << tlemma.getGenerator()->identify() << std::endl;
+      Trace("te-proof-debug") << ss.str();
+      Assert(ppn->isClosed());
+    }
+  }
 
   // call preprocessor
   std::vector<TrustNode> newLemmas;
@@ -1811,10 +1825,13 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 
     if (options::proofNew())
     {
+      Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
+      Trace("te-proof-debug") << "Conflict " << tconflict << " from " << tconflict.getGenerator()->identify() << std::endl;
+      Trace("te-proof-debug") << "Explanation " << tncExp << " from " << tncExp.getGenerator()->identify() << std::endl;
       Assert(d_lazyProof != nullptr);
-      Node proven = tncExp.getProven();
-      d_lazyProof->addLazyStep(proven, tncExp.getGenerator());
+      d_lazyProof->addLazyStep(tconflict.getProven(), tconflict.getGenerator());
       Node fullConflictNeg = fullConflict.notNode();
+      Node proven = tncExp.getProven();
       std::vector<Node> children;
       children.push_back(proven);
       std::vector<Node> args;
