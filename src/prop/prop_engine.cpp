@@ -557,7 +557,7 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
   }
   // Rewrite clauseNode before proceeding. This is so ordering/factoring
   // is consistent with the clause that is added to the SAT solver
-  clauseExp = ProofCnfStream::factorAndReorder(clauseExp, &d_proof);
+  clauseExp = ProofCnfStream::factorReorderElimDoubleNeg(clauseExp, &d_proof);
   Trace("sat-proof") << "PropEngine::explainPropagation: processed first "
                         "disjunct to conclude "
                      << clauseExp << "\n";
@@ -702,15 +702,15 @@ void PropEngine::endResChain(Node conclusion)
     // reordered, which in either case can be done only if it's not a unit
     // clause.
     CVC4_UNUSED Node reducedChainConclusion =
-        ProofCnfStream::factorAndReorder(chainConclusion, &d_proof);
+        ProofCnfStream::factorReorderElimDoubleNeg(chainConclusion, &d_proof);
     Assert(reducedChainConclusion == conclusion
            || reducedChainConclusion
-                  == ProofCnfStream::factorAndReorder(conclusion, &d_proof))
+                  == ProofCnfStream::factorReorderElimDoubleNeg(conclusion, &d_proof))
         << "given res chain conclusion " << conclusion
-        << "\nafter factorAndReorder "
-        << ProofCnfStream::factorAndReorder(conclusion, &d_proof)
+        << "\nafter factorReorderElimDoubleNeg "
+        << ProofCnfStream::factorReorderElimDoubleNeg(conclusion, &d_proof)
         << "\nis different from chain_res " << chainConclusion
-        << "\nafter factorAndReorder " << reducedChainConclusion;
+        << "\nafter factorReorderElimDoubleNeg " << reducedChainConclusion;
   }
 }
 
