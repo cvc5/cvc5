@@ -32,21 +32,40 @@ namespace nl {
  */
 enum class Inference : uint32_t
 {
+  //-------------------- standard
+  // simple congruence x=y => f(x)=f(y)
   CONGRUENCE,
+  //-------------------- incremental linearization solver
+  // splitting on zero (NlSolver::checkSplitZero)
   SPLIT_ZERO,
+  // based on sign (NlSolver::checkMonomialSign)
   SIGN,
+  // based on comparing (abs) model values (NlSolver::checkMonomialMagnitude)
   COMPARISON,
+  // based on inferring bounds (NlSolver::checkMonomialInferBounds)
   INFER_BOUNDS,
+  // same as above, for inferences that introduce new terms
   INFER_BOUNDS_NT,
+  // factoring (NlSolver::checkFactoring)
   FACTOR,
+  // resolution bound inferences (NlSolver::checkMonomialInferResBounds)
   RES_INFER_BOUNDS,
+  // tangent planes (NlSolver::checkTangentPlanes)
   TANGENT_PLANE,
+  //-------------------- transcendental solver
+  // purification of arguments to transcendental functions
   T_PURIFY_ARG,
+  // initial refinement (TranscendentalSolver::checkTranscendentalInitialRefine)
   T_INIT_REFINE,
+  // pi bounds
   T_PI_BOUND,
+  // monotonicity (TranscendentalSolver::checkTranscendentalMonotonic)
   T_MONOTONICITY,
-  T_SECANT,
+  // tangent refinement (TranscendentalSolver::checkTranscendentalTangentPlanes)
   T_TANGENT,
+  // secant refinement, the dual of the above inference
+  T_SECANT,
+  //-------------------- unknown
   UNKNOWN,
 };
 
