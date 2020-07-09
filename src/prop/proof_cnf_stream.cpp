@@ -506,7 +506,7 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
   {
     added = d_cnfStream.assertClause(node.negate(), ~lit, ~clause[i]);
     if (d_pfEnabled && added)
-   {
+    {
       Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[i]);
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
@@ -803,8 +803,9 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
 
 Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
 {
-  Trace("sat-proof-norm") << "PropEngine::factorReorderElimDoubleNeg: normalize node: "
-                          << n << "\n";
+  Trace("sat-proof-norm")
+      << "PropEngine::factorReorderElimDoubleNeg: normalize node: " << n
+      << "\n";
   if (n.getKind() != kind::OR)
   {
     return ProofCnfStream::elimDoubleNegLit(n, p);
@@ -864,8 +865,8 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
   }
   // order
   std::sort(children.begin(), children.end());
-  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: sorted children: " << children
-                          << "\n";
+  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: sorted children: "
+                          << children << "\n";
   Node ordered = nm->mkNode(kind::OR, children);
   // if ordering changed
   if (ordered != n)
@@ -878,8 +879,8 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
                false,
                CDPOverwrite::NEVER);
   }
-  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: orderd node: " << ordered
-                          << "\n";
+  Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: orderd node: "
+                          << ordered << "\n";
   return ordered;
 }
 

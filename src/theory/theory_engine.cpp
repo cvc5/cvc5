@@ -1669,7 +1669,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     // process the preprocessing
     if (options::proofNew())
     {
-      Assert(d_lazyProof != nullptr);   
+      Assert(d_lazyProof != nullptr);
       // add the original proof to the lazy proof
       d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
       // only need to do anything if lemmap changed in a non-trivial way
@@ -1716,13 +1716,15 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     // ensure closed, make the proof node eagerly here to debug
     if (Trace.isOn("te-proof-debug"))
     {
-      Trace("te-proof-debug") << "=== Proof of " << tlemma << " is from " << tlemma.getGenerator()->identify() << ":" << std::endl;
+      Trace("te-proof-debug")
+          << "=== Proof of " << tlemma << " is from "
+          << tlemma.getGenerator()->identify() << ":" << std::endl;
       std::shared_ptr<ProofNode> pn = tlemma.toProofNode();
       std::stringstream ss;
       pn->printDebug(ss);
       Trace("te-proof-debug") << ss.str();
       Trace("te-proof-debug") << std::endl << "====" << std::endl;
-      Assert (pn->isClosed());
+      Assert(pn->isClosed());
     }
   }
   d_propEngine->assertLemma(tlemma, removable, rule, node);
@@ -1809,7 +1811,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 
     if (options::proofNew())
     {
-      Assert (d_lazyProof != nullptr);
+      Assert(d_lazyProof != nullptr);
       Node proven = tncExp.getProven();
       d_lazyProof->addLazyStep(proven, tncExp.getGenerator());
       Node fullConflictNeg = fullConflict.notNode();

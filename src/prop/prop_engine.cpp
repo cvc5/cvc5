@@ -705,7 +705,8 @@ void PropEngine::endResChain(Node conclusion)
         ProofCnfStream::factorReorderElimDoubleNeg(chainConclusion, &d_proof);
     Assert(reducedChainConclusion == conclusion
            || reducedChainConclusion
-                  == ProofCnfStream::factorReorderElimDoubleNeg(conclusion, &d_proof))
+                  == ProofCnfStream::factorReorderElimDoubleNeg(conclusion,
+                                                                &d_proof))
         << "given res chain conclusion " << conclusion
         << "\nafter factorReorderElimDoubleNeg "
         << ProofCnfStream::factorReorderElimDoubleNeg(conclusion, &d_proof)
