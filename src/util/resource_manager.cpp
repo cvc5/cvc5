@@ -358,7 +358,7 @@ void ResourceManager::beginCall() {
       d_cumulativeTimeUsed = d_cumulativeTimer.elapsed();
       d_thisCallTimeBudget = d_timeBudgetCumulative <= d_cumulativeTimeUsed? 0 :
                              d_timeBudgetCumulative - d_cumulativeTimeUsed;
-      d_cumulativeTimer.set(d_thisCallTimeBudget, d_cpuTime);
+      d_cumulativeTimer.set(d_thisCallTimeBudget);
     }
     // we are out of resources so we shouldn't update the
     // budget for this call to the per call budget
