@@ -773,10 +773,10 @@ void SmtEngine::finishInit()
     // add rules to eliminate here
     d_pfpp->setEliminateRule(PfRule::SUBS);
     d_pfpp->setEliminateRule(PfRule::REWRITE);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
-    d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
+    // d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
+    // d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
+    // d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
+    // d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
     // this eliminates theory rewriting steps into finer-grained DSL rules
     d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
   }
