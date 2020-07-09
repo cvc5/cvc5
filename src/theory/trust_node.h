@@ -142,7 +142,8 @@ class TrustNode
   static Node getPropExpProven(TNode lit, Node exp);
   /** Get the proven formula corresponding to a rewrite */
   static Node getRewriteProven(TNode n, Node nr);
-
+  /** For debugging */
+  std::string identifyGenerator() const;
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);
   /** The kind */

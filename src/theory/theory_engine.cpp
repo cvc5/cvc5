@@ -1663,8 +1663,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       std::stringstream ss;
       ppn->printDebug(ss);
       Trace("te-proof-debug")
-          << "=== Initial proof from " << tlemma.getGenerator()->identify() << std::endl;
-      Trace("te-proof-debug") << ss.str();
+          << "=== Initial proof from " << tlemma.identifyGenerator();
+      Trace("te-proof-debug") << std::endl << ss.str();
       Assert(ppn->isClosed());
     }
   }
@@ -1731,8 +1731,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     if (Trace.isOn("te-proof-debug"))
     {
       Trace("te-proof-debug")
-          << "=== Proof of " << tlemma << " is from "
-          << tlemma.getGenerator()->identify() << ":" << std::endl;
+          << "=== Proof of " << tlemma;
+      Trace("te-proof-debug") << " from "
+        << tlemma.identifyGenerator();
+      Trace("te-proof-debug") << ":" << std::endl;
       std::shared_ptr<ProofNode> pn = tlemma.toProofNode();
       std::stringstream ss;
       pn->printDebug(ss);
@@ -1826,8 +1828,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
     if (options::proofNew())
     {
       Trace("te-proof-debug") << "Process conflict: " << conflict << std::endl;
-      Trace("te-proof-debug") << "Conflict " << tconflict << " from " << tconflict.getGenerator()->identify() << std::endl;
-      Trace("te-proof-debug") << "Explanation " << tncExp << " from " << tncExp.getGenerator()->identify() << std::endl;
+      Trace("te-proof-debug") << "Conflict " << tconflict << " from " << tconflict.identifyGenerator()<< std::endl;
+      Trace("te-proof-debug") << "Explanation " << tncExp << " from " << tncExp.identifyGenerator()<< std::endl;
       Assert(d_lazyProof != nullptr);
       d_lazyProof->addLazyStep(tconflict.getProven(), tconflict.getGenerator());
       Node fullConflictNeg = fullConflict.notNode();
