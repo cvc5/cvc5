@@ -42,10 +42,7 @@ class CVC4_PUBLIC Timer {
  public:
   /** Construct a Timer. */
   Timer()
-      : d_ms(0),
-        d_cpu_start_time(0),
-        d_cpu_limit(0),
-        d_wall_time(true)
+      : d_ms(0)
   {
     d_wall_limit.tv_sec = 0;
     d_wall_limit.tv_usec = 0;
@@ -57,23 +54,14 @@ class CVC4_PUBLIC Timer {
   }
 
   /** Set a millisecond timer (0==off). */
-  void set(uint64_t millis, bool wall_time = true);
-  /** Return the milliseconds elapsed since last set() wall/cpu time
-   depending on d_wall_time*/
+  void set(uint64_t millis);
+  /** Return the milliseconds elapsed since last set() wall time. */
   uint64_t elapsed() const;
   bool expired() const;
 
  private:
 
-  /** Return the milliseconds elapsed since last set() cpu time. */
-  uint64_t elapsedCPU() const;
-  /** Return the milliseconds elapsed since last set() wall time. */
-  uint64_t elapsedWall() const;
-
   uint64_t d_ms;
-  clock_t d_cpu_start_time;
-  clock_t d_cpu_limit;
-  bool d_wall_time;
   timeval d_wall_limit;
 };/* class Timer */
 

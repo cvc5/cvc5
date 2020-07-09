@@ -25,32 +25,24 @@ using namespace std;
 
 namespace CVC4 {
 
-void Timer::set(uint64_t millis, bool wallTime) {
+void Timer::set(uint64_t millis) {
   d_ms = millis;
   Trace("limit") << "Timer::set(" << d_ms << ")" << std::endl;
   // keep track of when it was set, even if it's disabled (i.e. == 0)
-  d_wall_time = wallTime;
-  if (d_wall_time) {
-    // Wall time
-    gettimeofday(&d_wall_limit, NULL);
-    Trace("limit") << "Timer::set(): it's " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-    d_wall_limit.tv_sec += millis / 1000;
-    d_wall_limit.tv_usec += (millis % 1000) * 1000;
-    if(d_wall_limit.tv_usec > 1000000) {
-      ++d_wall_limit.tv_sec;
-      d_wall_limit.tv_usec -= 1000000;
-    }
-    Trace("limit") << "Timer::set(): limit is at " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-  } else {
-    // CPU time
-    d_cpu_start_time = ((double)clock())/(CLOCKS_PER_SEC *0.001);
-    d_cpu_limit = d_cpu_start_time + d_ms;
+  // Wall time
+  gettimeofday(&d_wall_limit, NULL);
+  Trace("limit") << "Timer::set(): it's " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
+  d_wall_limit.tv_sec += millis / 1000;
+  d_wall_limit.tv_usec += (millis % 1000) * 1000;
+  if(d_wall_limit.tv_usec > 1000000) {
+    ++d_wall_limit.tv_sec;
+    d_wall_limit.tv_usec -= 1000000;
   }
+  Trace("limit") << "Timer::set(): limit is at " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
 }
 
 /** Return the milliseconds elapsed since last set(). */
-uint64_t Timer::elapsedWall() const {
-  Assert(d_wall_time);
+uint64_t Timer::elapsed() const {
   timeval tv;
   gettimeofday(&tv, NULL);
   Trace("limit") << "Timer::elapsedWallTime(): it's now " << tv.tv_sec << "," << tv.tv_usec << std::endl;
@@ -60,44 +52,19 @@ uint64_t Timer::elapsedWall() const {
   return tv.tv_sec * 1000 + tv.tv_usec / 1000;
 }
 
-uint64_t Timer::elapsedCPU() const {
-  Assert(!d_wall_time);
-  clock_t elapsed = ((double)clock())/(CLOCKS_PER_SEC *0.001)- d_cpu_start_time;
-  Trace("limit") << "Timer::elapsedCPUTime(): elapsed time is " << elapsed << " ms" <<std::endl;
-  return elapsed;
-}
-
-uint64_t Timer::elapsed() const {
-  if (d_wall_time)
-    return elapsedWall();
-  return elapsedCPU();
-}
-
 bool Timer::expired() const {
   if (!on()) return false;
 
-  if (d_wall_time) {
-    timeval tv;
-    gettimeofday(&tv, NULL);
-    Debug("limit") << "Timer::expired(): current wall time is " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-    Debug("limit") << "Timer::expired(): limit wall time is " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-    if(d_wall_limit.tv_sec < tv.tv_sec ||
-       (d_wall_limit.tv_sec == tv.tv_sec && d_wall_limit.tv_usec <= tv.tv_usec)) {
-      Debug("limit") << "Timer::expired(): OVER LIMIT!" << std::endl;
-      return true;
-    }
-    Debug("limit") << "Timer::expired(): within limit" << std::endl;
-    return false;
-  }
-
-  // cpu time
-  double current = ((double)clock())/(CLOCKS_PER_SEC*0.001);
-  Debug("limit") << "Timer::expired(): current cpu time is " << current <<  std::endl;
-  Debug("limit") << "Timer::expired(): limit cpu time is " << d_cpu_limit <<  std::endl;
-  if (current >= d_cpu_limit) {
-    Debug("limit") << "Timer::expired(): OVER LIMIT!" << current <<  std::endl;
+  timeval tv;
+  gettimeofday(&tv, NULL);
+  Debug("limit") << "Timer::expired(): current wall time is " << tv.tv_sec << "," << tv.tv_usec << std::endl;
+  Debug("limit") << "Timer::expired(): limit wall time is " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
+  if(d_wall_limit.tv_sec < tv.tv_sec ||
+      (d_wall_limit.tv_sec == tv.tv_sec && d_wall_limit.tv_usec <= tv.tv_usec)) {
+    Debug("limit") << "Timer::expired(): OVER LIMIT!" << std::endl;
     return true;
   }
+  Debug("limit") << "Timer::expired(): within limit" << std::endl;
   return false;
 }
 
