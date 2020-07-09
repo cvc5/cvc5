@@ -84,7 +84,7 @@ class SygusInterpol
    * the corresponding set of variables for the formal argument list, which is
    * stored in d_vlvs and d_vlvsShared. Extracts the types of shared variables,
    * which are stored in d_varTypesShared. Creates the formal argument list of
-   * the interpol-to-synthesis, stored in d_abvlShared.
+   * the interpol-to-synthesis, stored in d_ibvlShared.
    *
    * When using default grammar, the needsShared is true. When using
    * user-defined gramar, the needsShared is false.
@@ -197,7 +197,7 @@ class SygusInterpol
   /**
    * formal argument list of the interpol-to-synthesis.
    */
-  Node d_abvlShared;
+  Node d_ibvlShared;
 
   /**
    * the sygus conjecture to synthesis for interpolation problem
