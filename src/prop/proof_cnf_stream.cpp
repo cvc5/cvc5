@@ -13,6 +13,7 @@
  **/
 
 #include "prop/proof_cnf_stream.h"
+#include "theory/builtin/proof_checker.h"
 
 namespace CVC4 {
 namespace prop {
@@ -861,7 +862,10 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     Trace("sat-proof-norm")
         << "PropEngine::factorReorderElimDoubleNeg: eliminate double negs: "
         << oldn << ", " << n << "\n";
-    p->addStep(n, PfRule::MACRO_SR_PRED_TRANSFORM, {oldn}, {n});
+    std::vector<Node> args{n};
+    theory::builtin::BuiltinProofRuleChecker::addMethodIds(
+        args, theory::MethodId::SB_DEFAULT, theory::MethodId::RW_EXT_REWRITE);
+    p->addStep(n, PfRule::MACRO_SR_PRED_TRANSFORM, {oldn}, args);
   }
   // order
   std::sort(children.begin(), children.end());
