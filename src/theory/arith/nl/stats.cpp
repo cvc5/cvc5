@@ -12,7 +12,6 @@
  ** \brief Statistics for non-linear arithmetic
  **/
 
-
 #include "theory/arith/nl/stats.h"
 
 #include "smt/smt_statistics_registry.h"
@@ -39,7 +38,7 @@ NlStats::~NlStats()
   smtStatisticsRegistry()->unregisterStat(&d_cdSimplifications);
 }
 
-}
-}
-}
-}
+}  // namespace nl
+}  // namespace arith
+}  // namespace theory
+}  // namespace CVC4
