@@ -151,6 +151,7 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     {
       clause[i] = toCNF(node[i], false);
     }
+    ProofCnfStream::factorReorderElimDoubleNeg(node, &d_proof);
     d_cnfStream.assertClause(node, clause);
   }
   else
