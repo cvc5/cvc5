@@ -129,6 +129,8 @@ Node RemoveTermFormulas::run(TNode node,
           //      (= node node[2]))           node = skolem
           // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
           // (ite node[0] (= skolem node[1]) (= skolem node[2]))
+          // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
+          // of skolem into its witness form, which is node.
           Node axiom = getAxiomFor(node);
           d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
           Node eq = node.eqNode(skolem);
@@ -171,8 +173,14 @@ Node RemoveTermFormulas::run(TNode node,
         // axiom defining skolem
         newAssertion = nodeManager->mkNode(kind::FORALL, children);
 
-        // lambda lifting is trivial to justify, hence we don't set a proof
-        // generator here
+        // Lambda lifting is trivial to justify, hence we don't set a proof
+        // generator here. In particular, replacing the skolem introduced
+        // here with its original lambda ensures the new assertion rewrites
+        // to true.
+        // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
+        //   forall x. k(x)=t[x]
+        // whose witness form rewrites
+        //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
       }
     }
   }
@@ -251,7 +259,8 @@ Node RemoveTermFormulas::run(TNode node,
       newAssertion = skolem.eqNode(node);
 
       // Boolean term removal is trivial to justify, hence we don't set a proof
-      // generator here
+      // generator here. It is trivial to justify since it is an instance of
+      // purification, which is justified by conversion to witness forms.
     }
   }
 
