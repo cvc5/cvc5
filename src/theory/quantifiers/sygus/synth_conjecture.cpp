@@ -421,8 +421,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       return !activeIncomplete;
     }
     // debug print
-    if (Trace.isOn("sygus-engine"))
+    if (Trace.isOn("sygus-engine") || options::printSygusEnum())
     {
+      Options& sopts = smt::currentSmtEngine()->getOptions();
+      std::ostream& out = *sopts.getOut();
       Trace("sygus-engine") << "  * Value is : ";
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
@@ -431,6 +433,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         TypeNode tn = onv.getType();
         std::stringstream ss;
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
+        if (options::printSygusEnum())
+        {
+          out << "(sygus-candidate ((" << terms[i] << " " << ss.str() << ")))" << std::endl;
+        }
         Trace("sygus-engine") << terms[i] << " -> ";
         if (nv.isNull())
         {

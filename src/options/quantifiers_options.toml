@@ -1608,6 +1608,14 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
+[[option]]
+  name       = "printSygusEnum"
+  category   = "regular"
+  long       = "print-sygus-enum"
+  type       = "bool"
+  default    = "false"
+  help       = "print terms enumerated by the sygus solver (for debugging)"
+
 # CEGQI applied to general quantified formulas
 
 [[option]]
