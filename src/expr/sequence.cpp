@@ -259,8 +259,17 @@ Sequence Sequence::update(size_t i, const Sequence& t) const
   {
     std::vector<Node> vec;
     vec.insert(vec.begin(), d_seq.begin(), d_seq.begin() + i);
-    vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
-    vec.insert(vec.end(), d_seq.begin() + i + 1, d_seq.end());
+    size_t remNum = size()-i;
+    size_t tnum = t.d_seq.size();
+    if (tnum>=remNum)
+    {
+      vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.begin() + remNum);
+    }
+    else
+    {
+      vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
+      vec.insert(vec.end(), d_seq.begin() + i + tnum, d_seq.end());
+    }
     return Sequence(d_type, vec);
   }
   return *this;

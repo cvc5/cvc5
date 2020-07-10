@@ -407,8 +407,17 @@ String String::update(std::size_t i, const String& t) const
   {
     std::vector<unsigned> vec;
     vec.insert(vec.begin(), d_str.begin(), d_str.begin() + i);
-    vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
-    vec.insert(vec.end(), d_str.begin() + i + 1, d_str.end());
+    size_t remNum = size()-i;
+    size_t tnum = t.d_seq.size();
+    if (tnum>=remNum)
+    {
+      vec.insert(vec.end(), t.d_str.begin(), t.d_str.begin() + remNum);
+    }
+    else
+    {
+      vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
+      vec.insert(vec.end(), d_str.begin() + i + tnum, d_str.end());
+    }
     return String(vec);
   }
   return *this;
