@@ -42,12 +42,6 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC RealAlgebraicNumber
 {
- private:
-  /**
-   * Stores the actual real algebraic number.
-   */
-  poly::AlgebraicNumber d_value;
-
  public:
   /** Construct as zero. */
   RealAlgebraicNumber() = default;
@@ -101,6 +95,11 @@ class CVC4_PUBLIC RealAlgebraicNumber
   /** Get the internal value as a non-const reference. */
   poly::AlgebraicNumber& getValue() { return d_value; }
 
+ private:
+  /**
+   * Stores the actual real algebraic number.
+   */
+  poly::AlgebraicNumber d_value;
 }; /* class RealAlgebraicNumber */
 
 /** Stream a real algebraic number to an output stream. */
