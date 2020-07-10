@@ -36,7 +36,6 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 
 void TheoryPreprocessor::clearCache() { d_ppCache.clear(); }
 
-
 TrustNode TheoryPreprocessor::preprocess(TNode node,
                                          std::vector<TrustNode>& newLemmas,
                                          std::vector<Node>& newSkolems,

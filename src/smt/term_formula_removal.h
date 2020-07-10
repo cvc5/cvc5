@@ -78,7 +78,7 @@ class RemoveTermFormulas {
    *
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
-   * 
+   *
    * @param assertion The assertion to remove term formulas from
    * @param newAsserts The new assertions corresponding to axioms for newly
    * introduced skolems.
