@@ -14,7 +14,7 @@
  ** Algebraic number constants; wraps a libpoly algebraic number.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef CVC4__REAL_ALGEBRAIC_NUMBER_H
 #define CVC4__REAL_ALGEBRAIC_NUMBER_H
