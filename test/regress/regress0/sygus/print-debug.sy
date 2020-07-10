@@ -1,4 +1,4 @@
-; COMMAND-LINE: --print-debug-sygus
+; COMMAND-LINE: --debug-sygus
 ; EXPECT: (sygus-enum 0)
 ; EXPECT: (sygus-candidate (f 0))
 ; EXPECT: unsat
