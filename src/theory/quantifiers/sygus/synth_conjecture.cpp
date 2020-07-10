@@ -423,9 +423,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // debug print
     if (Trace.isOn("sygus-engine") || options::printSygusEnum())
     {
-      Options& sopts = smt::currentSmtEngine()->getOptions();
-      std::ostream& out = *sopts.getOut();
       Trace("sygus-engine") << "  * Value is : ";
+      std::stringstream sygusEnumOut;
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         Node nv = enum_values[i];
@@ -435,7 +434,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
         if (options::printSygusEnum())
         {
-          out << "(sygus-candidate ((" << terms[i] << " " << ss.str() << ")))" << std::endl;
+          sygusEnumOut << " " << ss.str();
         }
         Trace("sygus-engine") << terms[i] << " -> ";
         if (nv.isNull())
@@ -454,6 +453,12 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
       }
       Trace("sygus-engine") << std::endl;
+      if (options::printSygusEnum() && !sygusEnumOut.str().empty())
+      {
+        Options& sopts = smt::currentSmtEngine()->getOptions();
+        std::ostream& out = *sopts.getOut();
+        out << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+      }
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -541,6 +546,21 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> vars;
   if (constructed_cand)
   {
+    if (options::printSygusEnum())
+    {
+      Options& sopts = smt::currentSmtEngine()->getOptions();
+      std::ostream& out = *sopts.getOut();
+      out << "(sygus-candidate ";
+      Assert (d_quant[0].getNumChildren()==candidate_values.size());
+      for (unsigned i=0, ncands=candidate_values.size(); i<ncands; i++)
+      {
+        Node v = candidate_values[i];
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
+        out << "(" << d_quant[0][i] << " " << ss.str() << ")";
+      }
+      out << ")" << std::endl;
+    }
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
       for (const Node& v : inst[0][0])
