@@ -82,7 +82,7 @@ Maybe<poly::DyadicRational> to_dyadic_rational(const poly::Rational& r);
  * original.
  * Assumes one starts with lower(original) or ceil(original) for r.
  */
-void approximate_to_dyadic(poly::Rational& r, const poly::Rational& original);
+poly::Rational approximate_to_dyadic(const poly::Rational& r, const poly::Rational& original);
 
 /**
  * Constructs a poly::AlgebraicNumber, allowing for refinement of the

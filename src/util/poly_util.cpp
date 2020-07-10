@@ -155,7 +155,7 @@ Maybe<poly::DyadicRational> to_dyadic_rational(const poly::Rational& r)
   return Maybe<poly::DyadicRational>();
 }
 
-void approximate_to_dyadic(poly::Rational& r, const poly::Rational& original)
+poly::Rational approximate_to_dyadic(const poly::Rational& r, const poly::Rational& original)
 {
   // Multiply both numerator and denominator by two.
   // Increase or decrease the numerator, depending on whether r is too small or
@@ -169,7 +169,7 @@ void approximate_to_dyadic(poly::Rational& r, const poly::Rational& original)
   {
     --n;
   }
-  r = poly::Rational(n, mul_pow2(denominator(r), 1));
+  return poly::Rational(n, mul_pow2(denominator(r), 1));
 }
 
 poly::AlgebraicNumber to_poly_ran_with_refinement(poly::UPolynomial&& p,
@@ -191,8 +191,8 @@ poly::AlgebraicNumber to_poly_ran_with_refinement(poly::UPolynomial&& p,
   poly::RationalInterval ri(l, u);
   while (count_real_roots(p, ri) != 1)
   {
-    approximate_to_dyadic(l, origl);
-    approximate_to_dyadic(u, origu);
+    l = approximate_to_dyadic(l, origl);
+    u = approximate_to_dyadic(u, origu);
     ri = poly::RationalInterval(l, u);
   }
   Assert(count_real_roots(p, poly::RationalInterval(l, u)) == 1);
