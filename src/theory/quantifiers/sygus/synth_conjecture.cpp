@@ -421,7 +421,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       return !activeIncomplete;
     }
     // debug print
-    if (Trace.isOn("sygus-engine") || options::printSygusEnum())
+    if (Trace.isOn("sygus-engine") || options::printDebugSygus())
     {
       Trace("sygus-engine") << "  * Value is : ";
       std::stringstream sygusEnumOut;
@@ -432,7 +432,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         TypeNode tn = onv.getType();
         std::stringstream ss;
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
-        if (options::printSygusEnum())
+        if (options::printDebugSygus())
         {
           sygusEnumOut << " " << ss.str();
         }
@@ -453,7 +453,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
       }
       Trace("sygus-engine") << std::endl;
-      if (options::printSygusEnum() && !sygusEnumOut.str().empty())
+      if (options::printDebugSygus() && !sygusEnumOut.str().empty())
       {
         Options& sopts = smt::currentSmtEngine()->getOptions();
         std::ostream& out = *sopts.getOut();
@@ -546,7 +546,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> vars;
   if (constructed_cand)
   {
-    if (options::printSygusEnum())
+    if (options::printDebugSygus())
     {
       Options& sopts = smt::currentSmtEngine()->getOptions();
       std::ostream& out = *sopts.getOut();
