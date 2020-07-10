@@ -570,7 +570,7 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV)
+  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV || nk0==STRING_UPDATE)
   {
     // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
