@@ -409,7 +409,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   else if (type.isStringLike())
   {
     ops.push_back(strings::Word::mkEmptyWord(type));
-    if (type.isString())
+    if (type.isString())  // string-only
     {
       // Dummy character "A". This is not necessary for sequences which
       // have the generic constructor seq.unit.

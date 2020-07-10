@@ -23,8 +23,10 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
+#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
+#include "expr/sequence.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -209,6 +211,28 @@ void Smt2Printer::toStream(std::ostream& out,
         }
       }
       out << '"';
+      break;
+    }
+    case kind::CONST_SEQUENCE:
+    {
+      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.empty())
+      {
+        out << "(as seq.empty " << n.getType() << ")";
+      }
+      if (snvec.size() > 1)
+      {
+        out << "(seq.++ ";
+      }
+      for (const Node& snvc : snvec)
+      {
+        out << "(seq.unit " << snvc << ")";
+      }
+      if (snvec.size() > 1)
+      {
+        out << ")";
+      }
       break;
     }
 
@@ -577,6 +601,10 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
+  case kind::IAND:
+    out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
+    stillNeedToPrintParams = false;
+    break;
 
   case kind::DIVISIBLE:
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
@@ -631,7 +659,9 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_EMPTY:
-  case kind::REGEXP_SIGMA: out << smtKindString(k, d_variant) << " "; break;
+  case kind::REGEXP_SIGMA:
+  case kind::SEQ_UNIT:
+  case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
@@ -1005,6 +1035,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::PLUS: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
+  case kind::IAND: return "iand";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
@@ -1196,6 +1227,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
+  case kind::SEQUENCE_TYPE: return "Seq";
+  case kind::SEQ_UNIT: return "seq.unit";
 
   //sep theory
   case kind::SEP_STAR: return "sep";
