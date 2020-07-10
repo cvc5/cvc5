@@ -785,7 +785,7 @@ void SmtEngine::finishInit()
         if (options::proofGranularityMode()
             != options::ProofGranularityMode::THEORY_REWRITE)
         {
-          // this eliminates theory rewriting steps into finer-grained DSL rules
+          // this eliminates theory rewriting steps with finer-grained DSL rules
           d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
         }
       }

@@ -144,7 +144,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       if (ts != t)
       {
         // apply SUBS proof rule if necessary
-        update(PfRule::SUBS, children, sargs, cdp);
+        if (!update(PfRule::SUBS, children, sargs, cdp))
+        {
+          // if not elimianted, add as step
+          cdp->addStep(t.eqNode(ts), PfRule::SUBS, children, sargs);
+        }
       }
     }
     else
@@ -169,7 +173,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     if (ts != tr)
     {
       // apply REWRITE proof rule
-      update(PfRule::REWRITE, children, rargs, cdp);
+      if (!update(PfRule::REWRITE, children, rargs, cdp))
+      {
+          // if not elimianted, add as step
+        cdp->addStep(ts.eqNode(tr), PfRule::REWRITE, children, rargs);
+      }
       // did substitute and rewrite, must add TRANS
       if (ts != t)
       {
@@ -195,7 +203,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, children, args, cdp);
     Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[1] == d_true);
     cdp->addStep(conc[0], PfRule::TRUE_ELIM, {conc}, {});
-    return args[0];
+    Assert (conc[0]==args[0]);
+    return conc[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
   {

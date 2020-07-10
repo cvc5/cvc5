@@ -70,6 +70,19 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
         if (d_cb.update(id, ccn, cur->getArguments(), &cpf))
         {
           std::shared_ptr<ProofNode> npn = cpf.getProofFor(cur->getResult());
+          // this may not be a desired assertion in general, but typically
+          /*
+          if (cur->isClosed() && !npn->isClosed())
+          {
+            std::stringstream ss;
+            ss << "Updated to non-closed proof: " << std::endl;
+            cur->printDebug(ss);
+            ss << std::endl << " to " << std::endl;
+            npn->printDebug(ss);
+            ss << std::endl;
+            AlwaysAssert(false) << ss.str();
+          }
+          */
           // then, update the original proof node based on this one
           d_pnm->updateNode(cur, npn.get());
         }
