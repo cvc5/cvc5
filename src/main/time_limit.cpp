@@ -1,6 +1,12 @@
 #include "time_limit.h"
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+#include <windows.h>
+
+#include "signal_handlers.h"
+#else
 #include <sys/time.h>
+#endif
 
 #include <cerrno>
 #include <cstring>
@@ -8,14 +14,38 @@
 namespace CVC4 {
 namespace main {
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+void CALLBACK win_timeout_handler(LPVOID lpArg,
+                                  DWORD dwTimerLowValue,
+                                  DWORD dwTimerHighValue)
+
+{
+  signal_handlers::timeout_handler();
+}
+#endif
+
 void install_time_limit(const Options& opts)
 {
-#if defined(__MINGW32__) || defined(__MINGW64__)
-  throw Exception(std::string("Time limits are not yet supported for windows builds."));
-#else
   unsigned long ms = opts.getCumulativeTimeLimit();
   if (ms == 0) return;
 
+#if defined(__MINGW32__) || defined(__MINGW64__)
+  HANDLE hTimer = CreateWaitableTimer(nullptr, true, TEXT("CVC4::Timeout"));
+  if (hTimer == nullptr)
+  {
+    throw Exception(std::string("CreateWaitableTimer() failure: ")
+                    + std::to_string(GetLastError()));
+  }
+  LARGE_INTEGER liDueTime;
+  liDueTime.LowPart = (DWORD)(ms & 0xFFFFFFFF);
+  liDueTime.HighPart = 0;
+  if (!SetWaitableTimer(
+          hTimer, &liDueTime, 0, win_timeout_handler, nullptr, false))
+  {
+    throw Exception(std::string("SetWaitableTimer() failure: ")
+                    + std::to_string(GetLastError()));
+  }
+#else
   // Check https://linux.die.net/man/2/setitimer
   struct itimerval timerspec;
   timerspec.it_value.tv_sec = ms / 1000;
