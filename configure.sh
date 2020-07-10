@@ -77,7 +77,7 @@ Optional Path to Optional Packages:
   --gmp-dir=PATH           path to top level of GMP installation
   --kissat-dir=PATH        path to top level of Kissat source tree
   --lfsc-dir=PATH          path to top level of LFSC source tree
-  --poly-dir=PATH          path to top level of libpoly source tree
+  --poly-dir=PATH          path to top level of LibPoly source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
 EOF
