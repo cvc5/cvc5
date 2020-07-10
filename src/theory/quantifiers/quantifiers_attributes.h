@@ -198,11 +198,11 @@ public:
   bool isQuantElim( Node q );
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
-  /** get quant name */
+  /** get quant name, which is used for :qid */
   Node getQuantName( Node q ) const;
-  /** get quant id num */
+  /** get (internal) quant id num */
   int getQuantIdNum( Node q );
-  /** get quant id num */
+  /** get (internal)quant id num */
   Node getQuantIdNumNode( Node q );
 
   /** set instantiation level attr */

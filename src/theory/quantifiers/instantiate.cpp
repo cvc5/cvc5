@@ -526,7 +526,7 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
       out << "(" << ss.str() << " " << inst.second << ")" << std::endl;
     }
   }
-  out << ")";
+  out << ")" << std::endl;
   return true;
 }
 
@@ -538,12 +538,12 @@ bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
     return true;
   }
   quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
-  Node id = qa->getQuantIdNumNode(q);
-  if (id.isNull())
+  Node name = qa->getQuantName(q);
+  if (name.isNull())
   {
     return false;
   }
-  out << id;
+  out << name;
   return true;
 }
 

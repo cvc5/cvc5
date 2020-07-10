@@ -1905,6 +1905,8 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       attr = std::string(":qid");
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand("qid", avar.getExpr());
+      c->setMuted(true);
+      PARSER_STATE->preemptCommand(c);
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {

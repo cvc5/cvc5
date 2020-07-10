@@ -307,9 +307,7 @@ Node QuantAttributes::getQuantName( Node q ) const
 {
   std::map< Node, QAttributes >::const_iterator it = d_qattr.find( q );
   if( it!=d_qattr.end() ){
-    if( !it->second.d_name.isNull() ){
-      return it->second.d_name;
-    }
+    return it->second.d_name;
   }
   return Node::null();
 }
