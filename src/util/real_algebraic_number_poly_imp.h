@@ -62,7 +62,7 @@ class CVC4_PUBLIC RealAlgebraicNumber
    * Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds. If the bounds are not dyadic, we need to
    * perform refinement to find a suitable dyadic interval.
-   * See poly_utils::to_ran_with_refinement for more details.
+   * See poly_utils::toRanWithRefinement for more details.
    */
   RealAlgebraicNumber(const std::vector<Integer>& coefficients,
                       const Rational& lower,
@@ -71,7 +71,7 @@ class CVC4_PUBLIC RealAlgebraicNumber
    * Construct from a polynomial with the given coefficients and an open
    * interval with the given bounds. If the bounds are not dyadic, we need to
    * perform refinement to find a suitable dyadic interval.
-   * See poly_utils::to_ran_with_refinement for more details.
+   * See poly_utils::toRanWithRefinement for more details.
    */
   RealAlgebraicNumber(const std::vector<Rational>& coefficients,
                       const Rational& lower,

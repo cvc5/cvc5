@@ -51,30 +51,30 @@ namespace CVC4 {
 namespace poly_utils {
 
 /** Converts a poly::Integer to a CVC4::Integer. */
-Integer to_integer(const poly::Integer& i);
+Integer toInteger(const poly::Integer& i);
 /** Converts a poly::Integer to a CVC4::Rational. */
-Rational to_rational(const poly::Integer& r);
+Rational toRational(const poly::Integer& r);
 /** Converts a poly::Rational to a CVC4::Rational. */
-Rational to_rational(const poly::Rational& r);
+Rational toRational(const poly::Rational& r);
 /** Converts a poly::DyadicRational to a CVC4::Rational. */
-Rational to_rational(const poly::DyadicRational& dr);
+Rational toRational(const poly::DyadicRational& dr);
 
 /** Converts a CVC4::Integer to a poly::Integer. */
-poly::Integer to_integer(const Integer& i);
+poly::Integer toInteger(const Integer& i);
 /** Converts a vector of CVC4::Integers to a vector of poly::Integers. */
-std::vector<poly::Integer> to_integer(const std::vector<Integer>& vi);
+std::vector<poly::Integer> toInteger(const std::vector<Integer>& vi);
 /** Converts a CVC4::Rational to a poly::Rational. */
-poly::Rational to_rational(const Rational& r);
+poly::Rational toRational(const Rational& r);
 /**
  * Converts a CVC4::Rational to a poly::DyadicRational. If the input is not
  * dyadic, no result is produced.
  */
-Maybe<poly::DyadicRational> to_dyadic_rational(const Rational& r);
+Maybe<poly::DyadicRational> toDyadicRational(const Rational& r);
 /**
  * Converts a poly::Rational to a poly::DyadicRational. If the input is not
  * dyadic, no result is produced.
  */
-Maybe<poly::DyadicRational> to_dyadic_rational(const poly::Rational& r);
+Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r);
 
 /**
  * Iteratively approximates a poly::Rational by a dyadic poly::Rational.
@@ -82,28 +82,28 @@ Maybe<poly::DyadicRational> to_dyadic_rational(const poly::Rational& r);
  * original.
  * Assumes one starts with lower(original) or ceil(original) for r.
  */
-poly::Rational approximate_to_dyadic(const poly::Rational& r, const poly::Rational& original);
+poly::Rational approximateToDyadic(const poly::Rational& r, const poly::Rational& original);
 
 /**
  * Constructs a poly::AlgebraicNumber, allowing for refinement of the
  * CVC4::Rational bounds. As a poly::AlgebraicNumber works on
  * poly::DyadicRationals internally, the bounds are iteratively refined using
- * approximate_to_dyadic until the respective interval is isolating. If the
+ * approximateToDyadic until the respective interval is isolating. If the
  * provided rational bounds are already dyadic, the refinement is skipped.
  */
-poly::AlgebraicNumber to_poly_ran_with_refinement(poly::UPolynomial&& p,
+poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
                                                   const Rational& lower,
                                                   const Rational& upper);
 
 /**
  * Constructs a CVC4::RealAlgebraicNumber, simply wrapping
- * to_poly_ran_with_refinement.
+ * toPolyRanWithRefinement.
  */
-RealAlgebraicNumber to_ran_with_refinement(poly::UPolynomial&& p,
+RealAlgebraicNumber toRanWithRefinement(poly::UPolynomial&& p,
                                            const Rational& lower,
                                            const Rational& upper);
 
-std::size_t total_degree(const poly::Polynomial& p);
+std::size_t totalDegree(const poly::Polynomial& p);
 
 /**
  * Collects information about a single variable in a set of polynomials.
@@ -123,7 +123,7 @@ struct VariableInformation {
     std::size_t num_terms = 0;
 };
 
-void get_variable_information(VariableInformation& vi, const poly::Polynomial& poly);
+void getVariableInformation(VariableInformation& vi, const poly::Polynomial& poly);
 
 }  // namespace poly_utils
 }  // namespace CVC4

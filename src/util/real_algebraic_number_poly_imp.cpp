@@ -34,14 +34,14 @@ RealAlgebraicNumber::RealAlgebraicNumber(poly::AlgebraicNumber&& an)
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Integer& i)
-    : d_value(poly::DyadicRational(poly_utils::to_integer(i)))
+    : d_value(poly::DyadicRational(poly_utils::toInteger(i)))
 {
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
 {
-  poly::Rational pr = poly_utils::to_rational(r);
-  auto dr = poly_utils::to_dyadic_rational(r);
+  poly::Rational pr = poly_utils::toRational(r);
+  auto dr = poly_utils::toDyadicRational(r);
   if (dr)
   {
     d_value = poly::AlgebraicNumber(dr.value());
@@ -64,8 +64,8 @@ RealAlgebraicNumber::RealAlgebraicNumber(
     const Rational& lower,
     const Rational& upper)
 {
-  *this = poly_utils::to_ran_with_refinement(
-      poly::UPolynomial(poly_utils::to_integer(coefficients)), lower, upper);
+  *this = poly_utils::toRanWithRefinement(
+      poly::UPolynomial(poly_utils::toInteger(coefficients)), lower, upper);
 }
 RealAlgebraicNumber::RealAlgebraicNumber(
     const std::vector<Rational>& coefficients,
@@ -81,9 +81,9 @@ RealAlgebraicNumber::RealAlgebraicNumber(
   for (const auto& c : coefficients)
   {
     Assert((c * factor).getDenominator() == Integer(1));
-    coeffs.emplace_back(poly_utils::to_integer((c * factor).getNumerator()));
+    coeffs.emplace_back(poly_utils::toInteger((c * factor).getNumerator()));
   }
-  *this = poly_utils::to_ran_with_refinement(
+  *this = poly_utils::toRanWithRefinement(
       poly::UPolynomial(std::move(coeffs)), lower, upper);
 }
 
