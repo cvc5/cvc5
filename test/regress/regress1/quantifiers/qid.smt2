@@ -1,9 +1,7 @@
 ; COMMAND-LINE: --dump-instantiations --print-inst=num --no-print-inst-full
 ; EXPECT: unsat
-; EXPECT: (num-instantiations
-; EXPECT: (myQuantP 1)
-; EXPECT: (myQuantQ 7)
-; EXPECT: )
+; EXPECT: (num-instantiations myQuantP 1)
+; EXPECT: (num-instantiations myQuantQ 7)
 
 (set-logic UFLIA)
 (declare-fun P (Int) Bool)

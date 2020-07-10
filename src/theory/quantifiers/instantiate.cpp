@@ -482,32 +482,48 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
     useUnsatCore = true;
   }
   bool printed = false;
+  bool isFull = options::printInstFull();
   if (options::incrementalSolving())
   {
     for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second->print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiation " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   else
   {
     for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second.print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiation " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
+  out << std::endl;
   return printed;
 }
 
@@ -518,7 +534,6 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
     return false;
   }
   bool isFull = options::printInstFull();
-  out << "(num-instantiations" << std::endl;
   for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
        it != d_total_inst_debug.end();
        ++it)
@@ -526,10 +541,9 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
     std::stringstream ss;
     if (printQuant((*it).first, ss, isFull))
     {
-      out << "(" << ss.str() << " " << (*it).second << ")" << std::endl;
+      out << "(num-instantiation " << ss.str() << " " << (*it).second << ")" << std::endl;
     }
   }
-  out << ")" << std::endl;
   return true;
 }
 
