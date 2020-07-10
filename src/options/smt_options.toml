@@ -182,6 +182,27 @@ header = "options/smt_options.h"
   help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
 
 [[option]]
+  name       = "proofGranularityMode"
+  category   = "regular"
+  long       = "proof-granularity=MODE"
+  type       = "ProofGranularityMode"
+  default    = "THEORY_REWRITE"
+  help       = "modes for proof granularity"
+  help_mode  = "Modes for proof granularity."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not improve the granularity of proofs."
+[[option.mode.REWRITE]]
+  name = "rewrite"
+  help = "Expand macros, but do not expand rewrite or substitution steps."
+[[option.mode.THEORY_REWRITE]]
+  name = "theory-rewrite"
+  help = "Expand macros, rewrite and substitution steps, but do not expand theory rewrite steps."
+[[option.mode.DSL_REWRITE]]
+  name = "dsl-rewrite"
+  help = "Expand all steps to the level of DSL rewrites and evaluation steps."
+
+[[option]]
   name       = "dumpInstantiations"
   category   = "regular"
   long       = "dump-instantiations"
