@@ -41,15 +41,21 @@ TConvProofGenerator::~TConvProofGenerator() {}
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 {
   Node eq = registerRewriteStep(t, s);
-  d_proof.addLazyStep(eq, pg);
-  d_rewriteMap[t] = s;
+  if (!eq.isNull())
+  {
+    d_proof.addLazyStep(eq, pg);
+    d_rewriteMap[t] = s;
+  }
 }
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
   Node eq = registerRewriteStep(t, s);
-  d_proof.addStep(eq, ps);
-  d_rewriteMap[t] = s;
+  if (!eq.isNull())
+  {
+    d_proof.addStep(eq, ps);
+    d_rewriteMap[t] = s;
+  }
 }
 
 void TConvProofGenerator::addRewriteStep(Node t,
@@ -59,8 +65,11 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          const std::vector<Node>& args)
 {
   Node eq = registerRewriteStep(t, s);
-  d_proof.addStep(eq, id, children, args);
-  d_rewriteMap[t] = s;
+  if (!eq.isNull())
+  {
+    d_proof.addStep(eq, id, children, args);
+    d_rewriteMap[t] = s;
+  }
 }
 
 bool TConvProofGenerator::hasRewriteStep(Node t) const
