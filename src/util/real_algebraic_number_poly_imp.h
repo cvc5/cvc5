@@ -55,7 +55,7 @@ class CVC4_PUBLIC RealAlgebraicNumber
   RealAlgebraicNumber(poly::AlgebraicNumber&& an);
   /** Copy from an Integer. */
   RealAlgebraicNumber(const Integer& i);
-  /** Copy from an Integer. */
+  /** Copy from a Rational. */
   RealAlgebraicNumber(const Rational& r);
   /**
    * Construct from a polynomial with the given coefficients and an open
