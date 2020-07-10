@@ -30,7 +30,7 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef();
+  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull();
 }
 
 QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 
@@ -50,12 +50,11 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     SygusAttribute ca;
     n.setAttribute( ca, true );
   }
-  else if (attr=="qid")
+  else if (attr == "quant-name" || attr=="qid")
   {
-    Assert(node_values.size() == 1);
-    Trace("quant-attr-debug") << "Set qid " << n << " to " << node_values[0] << std::endl;
-    QuantIdNumAttribute qina;
-    n.setAttribute(qina, node_values[0]);
+    Trace("quant-attr-debug") << "Set quant-name " << n << std::endl;
+    QuantNameAttribute qna;
+    n.setAttribute(qna, true);
   } else if (attr == "sygus-synth-grammar") {
     Assert(node_values.size() == 1);
     Trace("quant-attr-debug") << "Set sygus synth grammar " << n << " to "
@@ -229,6 +228,12 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
               << "Attribute : sygus side condition : "
               << qa.d_sygusSideCondition << " : " << q << std::endl;
         }
+        if (avar.getAttribute(QuantNameAttribute()))
+        {
+          Trace("quant-attr") << "Attribute : quantifier name : " << avar
+                              << " for " << q << std::endl;
+          qa.d_name = avar;
+        }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
           Trace("quant-attr") << "Attribute : quant inst level " << qa.d_qinstLevel << " : " << q << std::endl;
@@ -296,6 +301,27 @@ bool QuantAttributes::isQuantElimPartial( Node q ) {
   }else{
     return it->second.d_quant_elim_partial;
   }
+}
+
+Node QuantAttributes::getQuantName( Node q ) const
+{
+  std::map< Node, QAttributes >::const_iterator it = d_qattr.find( q );
+  if( it!=d_qattr.end() ){
+    if( !it->second.d_name.isNull() ){
+      return it->second.d_name;
+    }
+  }
+  return -1;
+}
+
+int QuantAttributes::getQuantIdNum( Node q ) {
+  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
+  if( it!=d_qattr.end() ){
+    if( !it->second.d_qid_num.isNull() ){
+      return it->second.d_qid_num.getAttribute(QuantIdNumAttribute());
+    }
+  }
+  return -1;
 }
 
 Node QuantAttributes::getQuantIdNumNode( Node q ) {

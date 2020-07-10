@@ -324,9 +324,9 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
-  /** print instantiations list */
+  /** print instantiations in list format */
   bool printInstantiationsList(std::ostream& out);
-  /** print instantiations num */
+  /** print instantiations in num format */
   bool printInstantiationsNum(std::ostream& out);
   /** 
    * Print quantified formula q on output out. If isFull is false, then we print

@@ -43,9 +43,11 @@ typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAtt
 struct SygusAttributeId {};
 typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 
-/** Attribute for id number */
-struct QuantIdNumAttributeId {};
-typedef expr::Attribute< QuantIdNumAttributeId, Node > QuantIdNumAttribute;
+/**Attribute to give names to quantified formulas */
+struct QuantNameAttributeId
+{
+};
+typedef expr::Attribute<QuantNameAttributeId, bool> QuantNameAttribute;
 
 struct InstLevelAttributeId
 {
@@ -124,7 +126,9 @@ struct QAttributes
   /** the instantiation pattern list for this quantified formula (its 3rd child)
    */
   Node d_ipl;
-  /** the quantifier id associated with this formula */
+  /** The name of this quantified formula, used for :qid */
+  Node d_name;
+  /** The (internal) quantifier id associated with this formula */
   Node d_qid_num;
   /** is this quantified formula a function definition? */
   bool isFunDef() const { return !d_fundef_f.isNull(); }
@@ -194,6 +198,10 @@ public:
   bool isQuantElim( Node q );
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
+  /** get quant name */
+  Node getQuantName( Node q ) const;
+  /** get quant id num */
+  int getQuantIdNum( Node q );
   /** get quant id num */
   Node getQuantIdNumNode( Node q );
 

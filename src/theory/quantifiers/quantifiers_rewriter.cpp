@@ -1629,8 +1629,7 @@ Node QuantifiersRewriter::mkForall( std::vector< Node >& args, Node body, std::v
     if( marked ){
       Node avar = NodeManager::currentNM()->mkSkolem( "id", NodeManager::currentNM()->booleanType() );
       QuantIdNumAttribute ida;
-      // use itself as an identifier
-      avar.setAttribute(ida, avar);
+      avar.setAttribute(ida,0);
       iplc.push_back( NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, avar ) );
     }
     if( !iplc.empty() ){
