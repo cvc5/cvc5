@@ -45,9 +45,9 @@ public:
     RealAlgebraicNumber zero;
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
 
-    TS_ASSERT(sgn(msqrt2) == -1);
-    TS_ASSERT(sgn(zero) == 0);
-    TS_ASSERT(sgn(sqrt2) == 1);
+    TS_ASSERT_EQUALS(sgn(msqrt2), -1);
+    TS_ASSERT_EQUALS(sgn(zero), 0);
+    TS_ASSERT_EQUALS(sgn(sqrt2), 1);
   }
 
   void test_arithmetic() {
@@ -56,9 +56,8 @@ public:
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
 
     TS_ASSERT(msqrt2 + sqrt2 == zero);
-    TS_ASSERT(-msqrt2 == sqrt2);
-    TS_ASSERT(-msqrt2 + sqrt2 == sqrt2 + sqrt2);
-    //TS_ASSERT(-msqrt2 + sqrt2 == RealAlgebraicNumber(Integer(2)) * sqrt2);
-    TS_ASSERT(msqrt2 * sqrt2 == RealAlgebraicNumber(Integer(-2)));
+    TS_ASSERT_EQUALS(-msqrt2, sqrt2);
+    TS_ASSERT_EQUALS(-msqrt2 + sqrt2, sqrt2 + sqrt2);
+    TS_ASSERT_EQUALS(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
   }
 };
