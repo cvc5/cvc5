@@ -1832,11 +1832,15 @@ Node SequencesRewriter::rewriteUpdate(Node node)
         // start beyond the end of the string
         return returnRewrite(node, node[0], Rewrite::UPD_CONST_INDEX_OOB);
       }
-      // compute the update
-      Node pre = Word::substr(s, 0, start);
-      Node post = Word::substr(s, start + 1);
-      Node ret = nm->mkNode(STRING_CONCAT, pre, node[2], post);
-      return returnRewrite(node, ret, Rewrite::UPD_EVAL);
+      if (node[2].isConst())
+      {
+        size_t len = Word::getLength(node[2]);
+        // compute the update
+        Node pre = Word::substr(s, 0, start);
+        Node post = Word::substr(s, start + len);
+        Node ret = nm->mkNode(STRING_CONCAT, pre, node[2], post);
+        return returnRewrite(node, ret, Rewrite::UPD_EVAL);
+      }
     }
   }
 
