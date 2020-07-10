@@ -62,7 +62,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --drat2er                use drat2er (required for eager BV proofs)
   --kissat                 use the Kissat SAT solver
   --lfsc                   use the LFSC proof checker
-  --poly                   use the libpoly library
+  --poly                   use the LibPoly library
   --symfpu                 use SymFPU for floating point solver
   --readline               support the readline library
 
