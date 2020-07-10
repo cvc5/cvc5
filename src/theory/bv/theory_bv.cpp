@@ -49,7 +49,7 @@ TheoryBV::TheoryBV(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
-                   ProofNodeManager * pnm,
+                   ProofNodeManager* pnm,
                    std::string name)
     : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
       d_context(c),

@@ -40,7 +40,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      OutputChannel& out,
                                      Valuation valuation,
                                      const LogicInfo& logicInfo,
-                                     ProofNodeManager * pnm)
+                                     ProofNodeManager* pnm)
     : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm)
 {
   out.handleUserAttribute( "fun-def", this );
@@ -52,7 +52,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
 
-  ProofChecker * pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add the proof rules

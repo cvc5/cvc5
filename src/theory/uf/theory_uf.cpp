@@ -63,7 +63,7 @@ TheoryUF::TheoryUF(context::Context* c,
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
 
-  ProofChecker * pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     d_ufProofChecker.registerTo(pc);

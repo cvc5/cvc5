@@ -41,7 +41,7 @@ TheoryBool::TheoryBool(context::Context* c,
                        ProofNodeManager* pnm)
     : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pnm)
 {
-  ProofChecker * pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add checkers

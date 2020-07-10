@@ -144,7 +144,7 @@ class TheoryArrays : public Theory {
                OutputChannel& out,
                Valuation valuation,
                const LogicInfo& logicInfo,
-               ProofNodeManager * pnm = nullptr,
+               ProofNodeManager* pnm = nullptr,
                std::string name = "");
   ~TheoryArrays();
 

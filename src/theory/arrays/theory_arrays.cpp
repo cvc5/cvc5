@@ -62,7 +62,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            OutputChannel& out,
                            Valuation valuation,
                            const LogicInfo& logicInfo,
-                           ProofNodeManager * pnm,
+                           ProofNodeManager* pnm,
                            std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
       d_numRow(name + "theory::arrays::number of Row lemmas", 0),

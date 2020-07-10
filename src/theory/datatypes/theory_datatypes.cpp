@@ -46,7 +46,7 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
                                  OutputChannel& out,
                                  Valuation valuation,
                                  const LogicInfo& logicInfo,
-                                 ProofNodeManager * pnm)
+                                 ProofNodeManager* pnm)
     : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
       d_infer(c),
       d_infer_exp(c),

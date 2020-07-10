@@ -41,7 +41,7 @@ class TheoryFp : public Theory {
            OutputChannel& out,
            Valuation valuation,
            const LogicInfo& logicInfo,
-           ProofNodeManager * pnm = nullptr);
+           ProofNodeManager* pnm = nullptr);
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 

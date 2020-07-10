@@ -272,7 +272,7 @@ private:
                   OutputChannel& out,
                   Valuation valuation,
                   const LogicInfo& logicInfo,
-                  ProofNodeManager * pnm = nullptr);
+                  ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
