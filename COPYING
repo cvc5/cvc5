@@ -79,7 +79,7 @@ CVC4 optionally links against the following libraries:
   CaDiCaL            (https://github.com/arminbiere/cadical)
   CryptoMiniSat      (https://github.com/msoos/cryptominisat)
   LFSC checker       (https://github.com/CVC4/LFSC)
-  libpoly            (https://github.com/SRI-CSL/libpoly)
+  LibPoly            (https://github.com/SRI-CSL/libpoly)
 
 Linking CVC4 against these libraries does not affect the license terms of the
 CVC4 code.  See the respective projects for copyright and licensing
@@ -112,4 +112,3 @@ CVC4 can be optionally configured to link against GNU Readline for improved
 text-editing support in interactive mode.  GNU Readline is available here:
 
   http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
-
