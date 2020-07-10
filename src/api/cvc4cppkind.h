@@ -319,6 +319,23 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   MULT,
+  /**
+   * Operator for Integer AND
+   * Parameter: 1
+   *   -[1]: Size of the bit-vector that determines the semantics of the IAND
+   * Create with:
+   *   mkOp(Kind kind, uint32_t param).
+   *
+   * Apply integer conversion to bit-vector.
+   * Parameters: 2
+   *   -[1]: Op of kind IAND
+   *   -[2]: Integer term
+   *   -[3]: Integer term
+   * Create with:
+   *   mkTerm(Op op, Term child1, Term child2)
+   *   mkTerm(Op op, const std::vector<Term>& children)
+   */
+  IAND,
 #if 0
   /* Synonym for MULT.  */
   NONLINEAR_MULT,
