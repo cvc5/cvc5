@@ -64,5 +64,5 @@ if(CVC4_USE_GMP_IMP)
 endif()
 
 if(CVC4_USE_POLY_IMP)
-  libcvc4_add_sources(real_algebraic_number_poly_imp.cpp)
+  libcvc4_add_sources(real_algebraic_number_poly_imp.cpp real_algebraic_number_poly_imp.h)
 endif()

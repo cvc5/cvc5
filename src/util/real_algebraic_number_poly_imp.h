@@ -19,9 +19,9 @@
 #ifndef CVC4__REAL_ALGEBRAIC_NUMBER_H
 #define CVC4__REAL_ALGEBRAIC_NUMBER_H
 
-#include <poly/polyxx.h>
-
 #include <vector>
+
+#include <poly/polyxx.h>
 
 #include "util/integer.h"
 #include "util/rational.h"
