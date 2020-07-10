@@ -18,6 +18,7 @@
 #include <tuple>
 #include <vector>
 #include "expr/node.h"
+#include "theory/arith/nl/inference.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,8 +40,13 @@ class NlModel;
  */
 struct NlLemma
 {
-  NlLemma(Node lem) : d_lemma(lem), d_preprocess(false) {}
+  NlLemma(Node lem, Inference id = Inference::UNKNOWN)
+      : d_id(id), d_lemma(lem), d_preprocess(false)
+  {
+  }
   ~NlLemma() {}
+  /** The inference id for the lemma */
+  Inference d_id;
   /** The lemma */
   Node d_lemma;
   /** Whether to preprocess the lemma */

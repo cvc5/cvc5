@@ -852,17 +852,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     options::finiteModelFind.set(true);
   }
 
-  // if it contains a theory with non-termination, do not strictly enforce that
-  // quantifiers and theory combination must be interleaved
-  if (logic.isTheoryEnabled(THEORY_STRINGS)
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
-  {
-    if (!options::instWhenStrictInterleave.wasSetByUser())
-    {
-      options::instWhenStrictInterleave.set(false);
-    }
-  }
-
   if (options::instMaxLevel() != -1)
   {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel"
@@ -1399,24 +1388,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
         << "disabling bvLazyRewriteExtf since equality solver is disabled"
         << std::endl;
     options::bvLazyRewriteExtf.set(false);
-  }
-
-  if (!options::sygusExprMinerCheckUseExport())
-  {
-    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
-    {
-      throw OptionException(
-          "--sygus-expr-miner-check-timeout=N requires "
-          "--sygus-expr-miner-check-use-export");
-    }
-    if (options::sygusRewSynthInput() || options::produceAbducts())
-    {
-      std::stringstream ss;
-      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : "--produce-abducts");
-      ss << "requires --sygus-expr-miner-check-use-export";
-      throw OptionException(ss.str());
-    }
   }
 
   if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())

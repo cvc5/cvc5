@@ -22,6 +22,8 @@
 
 #include "expr/node_manager.h"
 
+#include "options/options.h"
+
 namespace CVC4 {
 
 class ProofManager;
@@ -36,20 +38,25 @@ bool smtEngineInScope();
 // FIXME: Maybe move into SmtScope?
 ProofManager* currentProofManager();
 
-class SmtScope : public NodeManagerScope {
-  /** The old NodeManager, to be restored on destruction. */
+/** get the current resource manager */
+ResourceManager* currentResourceManager();
+
+class SmtScope : public NodeManagerScope
+{
+ public:
+  SmtScope(const SmtEngine* smt);
+  ~SmtScope();
+  /**
+   * This returns the StatisticsRegistry attached to the currently in scope
+   * SmtEngine.
+   */
+  static StatisticsRegistry* currentStatisticsRegistry();
+
+ private:
+  /** The old SmtEngine, to be restored on destruction. */
   SmtEngine* d_oldSmtEngine;
-
-public:
- SmtScope(const SmtEngine* smt);
- ~SmtScope();
-
- /**
-  * This returns the StatisticsRegistry attached to the currently in scope
-  * SmtEngine.
-  */
- static StatisticsRegistry* currentStatisticsRegistry();
-
+  /** Options scope */
+  Options::OptionsScope d_optionsScope;
 };/* class SmtScope */
 
 

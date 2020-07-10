@@ -39,7 +39,6 @@ class PreprocessingPassContext
  public:
   PreprocessingPassContext(
       SmtEngine* smt,
-      ResourceManager* resourceManager,
       RemoveTermFormulas* iteRemover,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
