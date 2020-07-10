@@ -758,7 +758,7 @@ Node EqProof::addToProof(CDProof* p) const
     // cycle. In that case just return t or (not t), which will have already
     // been registered in the proof
     bool cyclic = false;
-    std::shared_ptr<ProofNode> pc = p->getProof(conclusion);
+    std::shared_ptr<ProofNode> pc = p->getProofFor(conclusion);
     if (assumptions.count(newConclusion))
     {
       cyclic = true;
@@ -789,7 +789,7 @@ Node EqProof::addToProof(CDProof* p) const
       Trace("eqproof-conv")
           << "EqProof::addToProof: conclude " << newConclusion << " via "
           << elimRule << " step for " << elimChild << ", introduced via "
-          << p->getProof(conclusion).get()->getRule() << "\n";
+          << p->getProofFor(conclusion).get()->getRule() << "\n";
       if (!p->addStep(newConclusion, elimRule, {elimChild}, {}))
       {
         Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
@@ -1414,7 +1414,7 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: proof node of " << conclusion
                           << " is:\n";
     std::stringstream out;
-    p->getProof(conclusion).get()->printDebug(out);
+    p->getProofFor(conclusion).get()->printDebug(out);
     Trace("eqproof-conv") << out.str() << "\n";
   }
   visited[d_node] = d_node;
