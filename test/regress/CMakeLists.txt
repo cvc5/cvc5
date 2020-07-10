@@ -1568,6 +1568,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
+  regress1/quantifiers/issue4685-wrewrite.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2

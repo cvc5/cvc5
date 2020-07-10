@@ -157,6 +157,10 @@ int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
 }
 
+unsigned long Options::getCumulativeTimeLimit() const {
+  return (*this)[options::cumulativeMillisecondLimit];
+}
+
 bool Options::getVersion() const{
   return (*this)[options::version];
 }
