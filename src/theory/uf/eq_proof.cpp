@@ -29,6 +29,7 @@ void EqProof::debug_print(const char* c,
   debug_print(ss, tb, prettyPrinter);
   Debug(c) << ss.str();
 }
+
 void EqProof::debug_print(std::ostream& os,
                           unsigned tb,
                           PrettyPrinter* prettyPrinter) const
@@ -725,9 +726,10 @@ Node EqProof::addToProof(CDProof* p) const
                         << "\n";
   Trace("eqproof-conv") << "EqProof::addToProof: tracked assumptions: "
                         << assumptions << "\n";
+  // If conclusion t1 = tn is, modulo symmetry, of the form (= t true/false), in
+  // which t is not true/false, it must be turned into t or (not t) with
+  // TRUE/FALSE_ELIM.
   Node newConclusion = conclusion;
-  // If t1 = tn is of the form (= t true/false), in which t is not true/false,
-  // it must be turned into t or (not t) with TRUE/FALSE_ELIM.
   Assert(conclusion.getKind() == kind::EQUAL);
   if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
        && conclusion[1].getKind() != kind::CONST_BOOLEAN)
@@ -736,10 +738,21 @@ Node EqProof::addToProof(CDProof* p) const
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: process root for TRUE/FALSE_ELIM\n";
+    // Index of constant in equality
     unsigned constIndex =
         conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-    Node elimChild =
+    // The premise for the elimination rule must have the constant as the second
+    // argument of the equality. If that's not the case, build it as such
+    Node elimPremise =
         constIndex == 1 ? conclusion : conclusion[1].eqNode(conclusion[0]);
+    // Determine whether TRUE_ELIM or FALSE_ELIM, depending on the constant
+    // value. The new conclusion, whether t or (not t), is also determined
+    // accordingly.
+    //
+    // We also track  which intro rule, TRUE_INTRO or FALSE_INTRO, could have
+    // been used to introduce the conclusion (= t true/false), modulo symmetry,
+    // in case t / (not t) is an assumption, so that we avoid creating a cyclic
+    // proof with t / (not t) being derived with t / (not t) as an assumption.
     PfRule elimRule, introRule;
     if (conclusion[constIndex].getConst<bool>())
     {
@@ -753,10 +766,15 @@ Node EqProof::addToProof(CDProof* p) const
       newConclusion = conclusion[1 - constIndex].notNode();
       introRule = PfRule::FALSE_INTRO;
     }
-    // guard for the case where the conclusion is an assumption or is, itself or
-    // its symmetric, the result of TRUE/FALSE_INTRO, which would lead to a
-    // cycle. In that case just return t or (not t), which will have already
-    // been registered in the proof
+    // The cycle is characterized, for example, by
+    //
+    //    t
+    //   ----- TRUE_INTRO
+    //   (= t true)
+    //   ----------
+    //     ....
+    //   ----------
+    //   ()
     bool cyclic = false;
     std::shared_ptr<ProofNode> pc = p->getProofFor(conclusion);
     if (assumptions.count(newConclusion))
@@ -788,9 +806,9 @@ Node EqProof::addToProof(CDProof* p) const
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: conclude " << newConclusion << " via "
-          << elimRule << " step for " << elimChild << ", introduced via "
+          << elimRule << " step for " << elimPremise << ", introduced via "
           << p->getProofFor(conclusion).get()->getRule() << "\n";
-      if (!p->addStep(newConclusion, elimRule, {elimChild}, {}))
+      if (!p->addStep(newConclusion, elimRule, {elimPremise}, {}))
       {
         Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
                       << " rule\n";
