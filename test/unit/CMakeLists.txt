@@ -65,6 +65,10 @@ macro(cvc4_add_unit_test is_white name output_dir)
     # We don't link against LFSC, because CVC4 is already linked against it.
     target_include_directories(${name} PRIVATE ${LFSC_INCLUDE_DIR})
   endif()
+  if(USE_POLY)
+    # We don't link against libpoly, because CVC4 is already linked against it.
+    target_include_directories(${name} PRIVATE ${POLY_INCLUDE_DIR})
+  endif()
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
   endif()
