@@ -32,8 +32,8 @@ TheorySets::TheorySets(context::Context* c,
                        OutputChannel& out,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
-                       ProofChecker* pc)
-    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pc),
+                       ProofNodeManager* pnm)
+    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_internal(new TheorySetsPrivate(*this, c, u))
 {
   // Do not move me to the header.
