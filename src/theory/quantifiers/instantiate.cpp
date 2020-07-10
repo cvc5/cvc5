@@ -37,7 +37,6 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
     : d_qe(qe),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_count_debug(0),
       d_c_inst_match_trie_dom(u)
 {
 }
@@ -266,7 +265,6 @@ bool Instantiate::addInstantiation(
 
   d_total_inst_debug[q]++;
   d_temp_inst_debug[q]++;
-  d_total_inst_count_debug++;
   if (Trace.isOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
@@ -466,6 +464,16 @@ Node Instantiate::getTermForType(TypeNode tn)
 
 bool Instantiate::printInstantiations(std::ostream& out)
 {
+  if (options::printInstMode()==options::PrintInstMode::NUM)
+  {
+    return printInstantiationsNum(out);
+  }
+  Assert (options::printInstMode()==options::PrintInstMode::LIST);
+  return printInstantiationsList(out);
+}
+
+bool Instantiate::printInstantiationsList(std::ostream& out)
+{
   bool useUnsatCore = false;
   std::vector<Node> active_lemmas;
   if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
@@ -500,6 +508,43 @@ bool Instantiate::printInstantiations(std::ostream& out)
     }
   }
   return printed;
+}
+
+bool Instantiate::printInstantiationsNum(std::ostream& out)
+{
+  if (d_total_inst_debug.empty())
+  {
+    return false;
+  }
+  bool isFull = options::printInstFull();
+  out << "(num-instantiations" << std::endl;
+  for (const std::pair<const Node, uint32_t>& inst : d_total_inst_debug)
+  {
+    std::stringstream ss;
+    if (printQuant(ss, isFull))
+    {
+      out << "(" << ss.str() << " " << inst->second << ")" << std::endl;
+    }
+  }
+  out << ")";
+  return true;
+}
+
+bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
+{
+  if (isFull)
+  {
+    out << q;
+    return true;
+  }
+  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
+  Node id = qa.getQuantIdNumNode(q);
+  if (id.isNull())
+  {
+    return false;
+  }
+  out << id;
+  return true;
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)

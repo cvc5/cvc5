@@ -1898,6 +1898,10 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
+  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
+    {
+      attr = std::string(":qid");
+    }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
@@ -2351,6 +2355,7 @@ ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
 ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
+ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';
