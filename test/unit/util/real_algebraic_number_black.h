@@ -71,7 +71,7 @@ public:
     RealAlgebraicNumber zero;
     RealAlgebraicNumber sqrt2({-2, 0, 1}, 1, 2);
 
-    TS_ASSERT(msqrt2 + sqrt2 == zero);
+    TS_ASSERT_EQUALS(msqrt2 + sqrt2, zero);
     TS_ASSERT_EQUALS(-msqrt2, sqrt2);
     TS_ASSERT_EQUALS(-msqrt2 + sqrt2, sqrt2 + sqrt2);
     TS_ASSERT_EQUALS(msqrt2 * sqrt2, RealAlgebraicNumber(Integer(-2)));
