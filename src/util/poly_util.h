@@ -26,7 +26,7 @@
 #define CVC4__POLY_UTIL_H
 
 
-#include <map>
+#include <vector>
 
 #include "maybe.h"
 #include "util/integer.h"
