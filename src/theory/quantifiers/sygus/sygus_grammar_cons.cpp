@@ -409,7 +409,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   else if (type.isStringLike())
   {
     ops.push_back(strings::Word::mkEmptyWord(type));
-    if (type.isString())
+    if (type.isString())  // string-only
     {
       // Dummy character "A". This is not necessary for sequences which
       // have the generic constructor seq.unit.
@@ -459,6 +459,10 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         // theory of strings shares the integer type
         TypeNode intType = NodeManager::currentNM()->integerType();
         collectSygusGrammarTypesFor(intType,types);
+        if (range.isSequence())
+        {
+          collectSygusGrammarTypesFor(range.getSequenceElementType(), types);
+        }
       }
       else if (range.isFunction())
       {
@@ -805,7 +809,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         sdts[i].addConstructor(kind, cargsBinary);
       }
     }
-    else if (types[i].isString())
+    else if (types[i].isStringLike())
     {
       // concatenation
       std::vector<TypeNode> cargsBinary;
@@ -823,6 +827,18 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       std::vector<TypeNode> cargsLen;
       cargsLen.push_back(unres_t);
       sdts[i_intType].addConstructor(STRING_LENGTH, cargsLen);
+      if (types[i].isSequence())
+      {
+        TypeNode etype = types[i].getSequenceElementType();
+        // retrieve element unresolved type
+        Assert(type_to_unres.find(etype) != type_to_unres.end());
+        TypeNode unresElemType = type_to_unres[etype];
+
+        Trace("sygus-grammar-def") << "...add for seq.unit" << std::endl;
+        std::vector<TypeNode> cargsSeqUnit;
+        cargsSeqUnit.push_back(unresElemType);
+        sdts[i].addConstructor(SEQ_UNIT, cargsSeqUnit);
+      }
     }
     else if (types[i].isArray())
     {

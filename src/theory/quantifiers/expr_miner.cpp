@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "api/cvc4cpp.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -69,31 +70,15 @@ Node ExprMiner::convertToSkolem(Node n)
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
-                                  ExprManager& em,
-                                  ExprManagerMapCollection& varMap,
-                                  Node query,
-                                  bool& needExport)
+                                  Node query)
 {
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
-  if (options::sygusExprMinerCheckUseExport())
-  {
-    initializeSubsolverWithExport(checker,
-                                  em,
-                                  varMap,
-                                  squery.toExpr(),
-                                  true,
-                                  options::sygusExprMinerCheckTimeout());
-    checker->setOption("sygus-rr-synth-input", false);
-    checker->setOption("input-language", "smt2");
-    needExport = true;
-  }
-  else
-  {
-    initializeSubsolver(checker, squery.toExpr());
-    needExport = false;
-  }
+  initializeSubsolver(checker, squery.toExpr());
+  // also set the options
+  checker->setOption("sygus-rr-synth-input", false);
+  checker->setOption("input-language", "smt2");
 }
 
 Result ExprMiner::doCheck(Node query)
@@ -110,12 +95,8 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
-  bool needExport = false;
-  ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> smte;
-  ExprManagerMapCollection varMap;
-  initializeChecker(smte, em, varMap, queryr, needExport);
+  initializeChecker(smte, query);
   return smte->checkSat();
 }
 

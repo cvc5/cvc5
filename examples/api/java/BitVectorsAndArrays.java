@@ -69,7 +69,7 @@ public class BitVectorsAndArrays {
     Expr old_current = em.mkExpr(Kind.SELECT, current_array, index);
     Expr two = em.mkConst(new BitVector(32, 2));
 
-    vectorExpr assertions = new vectorExpr();
+    vectorExpr assertions = new vectorExpr(em);
     for (int i = 1; i < k; ++i) {
       index = em.mkConst(new BitVector(index_size, new edu.stanford.CVC4.Integer(i)));
       Expr new_current = em.mkExpr(Kind.BITVECTOR_MULT, two, old_current);

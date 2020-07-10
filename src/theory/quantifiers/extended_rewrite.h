@@ -200,11 +200,17 @@ class ExtendedRewriter
   /** Partial substitute
    *
    * Applies the substitution specified by assign to n, recursing only beneath
-   * terms whose Kind appears in rec_kinds.
+   * terms whose Kind appears in rkinds (when rkinds is empty), and additionally
+   * never recursing beneath WITNESS.
    */
   Node partialSubstitute(Node n,
-                         std::map<Node, Node>& assign,
-                         std::map<Kind, bool>& rkinds);
+                         const std::map<Node, Node>& assign,
+                         const std::map<Kind, bool>& rkinds);
+  /** same as above, with vectors */
+  Node partialSubstitute(Node n,
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs,
+                         const std::map<Kind, bool>& rkinds);
   /** solve equality
    *
    * If this function returns a non-null node n', then n' is equivalent to n

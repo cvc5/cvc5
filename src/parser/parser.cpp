@@ -35,7 +35,6 @@
 #include "parser/input.h"
 #include "parser/parser_exception.h"
 #include "smt/command.h"
-#include "util/resource_manager.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -47,8 +46,7 @@ Parser::Parser(api::Solver* solver,
                Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_resourceManager(solver->getExprManager()->getResourceManager()),
-      d_input(input),
+    : d_input(input),
       d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
       d_assertionLevel(0),
@@ -563,6 +561,22 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   {
     t = d_solver->mkEmptySet(s);
   }
+  else if (k == api::CONST_SEQUENCE)
+  {
+    if (!s.isSequence())
+    {
+      std::stringstream ss;
+      ss << "Type ascription on empty sequence must be a sequence, got " << s;
+      parseError(ss.str());
+    }
+    if (!t.getConstSequenceElements().empty())
+    {
+      std::stringstream ss;
+      ss << "Cannot apply a type ascription to a non-empty sequence";
+      parseError(ss.str());
+    }
+    t = d_solver->mkEmptySequence(s.getSequenceElementSort());
+  }
   else if (k == api::UNIVERSE_SET)
   {
     t = d_solver->mkUniverseSet(s);
@@ -727,19 +741,12 @@ Command* Parser::nextCommand()
     }
   }
   Debug("parser") << "nextCommand() => " << cmd << std::endl;
-  if (cmd != NULL && dynamic_cast<SetOptionCommand*>(cmd) == NULL &&
-      dynamic_cast<QuitCommand*>(cmd) == NULL) {
-    // don't count set-option commands as to not get stuck in an infinite
-    // loop of resourcing out
-    d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
-  }
   return cmd;
 }
 
 api::Term Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
-  d_resourceManager->spendResource(ResourceManager::Resource::ParseStep);
   api::Term result;
   if (!done()) {
     try {
@@ -904,8 +911,7 @@ std::vector<unsigned> Parser::processAdHocStringEsc(const std::string& s)
 
 api::Term Parser::mkStringConstant(const std::string& s)
 {
-  ExprManager* em = d_solver->getExprManager();
-  if (language::isInputLang_smt2_6(em->getOptions().getInputLanguage()))
+  if (language::isInputLang_smt2_6(d_solver->getOptions().getInputLanguage()))
   {
     return api::Term(d_solver, d_solver->mkString(s, true).getExpr());
   }

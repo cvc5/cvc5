@@ -26,6 +26,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::kind;
 
@@ -374,10 +375,9 @@ bool CegSingleInv::solve()
     siq = nm->mkNode(FORALL, siq[0], siq[1], n_attr);
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
-  SmtEngine siSmt(nm->toExprManager());
-  siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  siSmt.assertFormula(siq.toExpr());
-  Result r = siSmt.checkSat();
+  std::unique_ptr<SmtEngine> siSmt;
+  initializeSubsolver(siSmt, siq);
+  Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
@@ -386,7 +386,7 @@ bool CegSingleInv::solve()
   }
   // now, get the instantiations
   std::vector<Expr> qs;
-  siSmt.getInstantiatedQuantifiedFormulas(qs);
+  siSmt->getInstantiatedQuantifiedFormulas(qs);
   Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
   Trace("sygus-si") << "#instantiated quantified formulas=" << qs.size()
@@ -398,7 +398,7 @@ bool CegSingleInv::solve()
     TNode qn = Node::fromExpr(q);
     Assert(qn.getKind() == FORALL);
     std::vector<std::vector<Expr> > tvecs;
-    siSmt.getInstantiationTermVectors(q, tvecs);
+    siSmt->getInstantiationTermVectors(q, tvecs);
     Trace("sygus-si") << "#instantiations of " << q << "=" << tvecs.size()
                       << std::endl;
     std::vector<Node> vars;

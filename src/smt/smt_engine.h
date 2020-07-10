@@ -65,6 +65,12 @@ class StatisticsRegistry;
 
 /* -------------------------------------------------------------------------- */
 
+namespace api {
+class Solver;
+}  // namespace api
+
+/* -------------------------------------------------------------------------- */
+
 namespace context {
   class Context;
   class UserContext;
@@ -126,6 +132,7 @@ namespace theory {
 
 class CVC4_PUBLIC SmtEngine
 {
+  friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
@@ -159,11 +166,17 @@ class CVC4_PUBLIC SmtEngine
     // immediately after a check-sat returning "unsat"
     SMT_MODE_UNSAT,
     // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT
+    SMT_MODE_ABDUCT,
+    // immediately after a successful call to get-interpol
+    SMT_MODE_INTERPOL
   };
 
-  /** Construct an SmtEngine with the given expression manager.  */
-  SmtEngine(ExprManager* em);
+  /**
+   * Construct an SmtEngine with the given expression manager.
+   * If provided, optr is a pointer to a set of options that should initialize the values
+   * of the options object owned by this class.
+   */
+  SmtEngine(ExprManager* em, Options* optr = nullptr);
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
@@ -207,6 +220,9 @@ class CVC4_PUBLIC SmtEngine
   /** Get the logic information currently set. */
   LogicInfo getLogicInfo() const;
 
+  /** Get the logic information set by the user. */
+  LogicInfo getUserLogicInfo() const;
+
   /**
    * Set information about the script executing.
    * @throw OptionException, ModalException
@@ -236,8 +252,15 @@ class CVC4_PUBLIC SmtEngine
   /** Is this an internal subsolver? */
   bool isInternalSubsolver() const;
 
-  /** set the input name */
-  void setFilename(std::string filename);
+  /**
+   * Notify that we are now parsing the input with the given filename.
+   * This call sets the filename maintained by this SmtEngine for bookkeeping
+   * and also makes a copy of the current options of this SmtEngine. This
+   * is required so that the SMT-LIB command (reset) returns the SmtEngine
+   * to a state where its options were prior to parsing but after e.g.
+   * reading command line options.
+   */
+  void notifyStartParsing(std::string filename);
   /** return the input name (if any) */
   std::string getFilename() const;
 
@@ -392,16 +415,6 @@ class CVC4_PUBLIC SmtEngine
    * are assumed to be universally quantified.
    */
   void declareSygusVar(const std::string& id, Expr var, Type type);
-
-  /**
-   * Store information for debugging sygus invariants setup.
-   *
-   * Since in SyGuS the commands "declare-primed-var" are not necessary for
-   * building invariant constraints, we only use them to check that the number
-   * of variables declared corresponds to the number of arguments of the
-   * invariant-to-synthesize.
-   */
-  void declareSygusPrimedVar(const std::string& id, Type type);
 
   /**
    * Add a function variable declaration.
@@ -619,6 +632,23 @@ class CVC4_PUBLIC SmtEngine
   Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
 
   /**
+   * This method asks this SMT engine to find an interpolant with respect to
+   * the current assertion stack (call it A) and the conjecture (call it B). If
+   * this method returns true, then interpolant is set to a formula I such that
+   * A ^ ~I and I ^ ~B are both unsatisfiable.
+   *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shapes of possible solutions.
+   *
+   * This method invokes a separate copy of the SMT engine for solving the
+   * corresponding sygus problem for generating such a solution.
+   */
+  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+
+  /** Same as above, but without user-provided grammar restrictions */
+  bool getInterpol(const Expr& conj, Expr& interpol);
+
+  /**
    * This method asks this SMT engine to find an abduct with respect to the
    * current assertion stack (call it A) and the conjecture (call it B).
    * If this method returns true, then abd is set to a formula C such that
@@ -807,6 +837,9 @@ class CVC4_PUBLIC SmtEngine
   /** Permit access to the underlying ExprManager. */
   ExprManager* getExprManager() const { return d_exprManager; }
 
+  /** Permit access to the underlying NodeManager. */
+  NodeManager* getNodeManager() const;
+
   /** Export statistics from this SmtEngine. */
   Statistics getStatistics() const;
 
@@ -859,6 +892,12 @@ class CVC4_PUBLIC SmtEngine
    */
   void setExpressionName(Expr e, const std::string& name);
 
+  /** Get the options object (const and non-const versions) */
+  Options& getOptions();
+  const Options& getOptions() const;
+
+  /** Get the resource manager of this SMT engine */
+  ResourceManager* getResourceManager();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -874,6 +913,9 @@ class CVC4_PUBLIC SmtEngine
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
+
+  /** Set solver instance that owns this SmtEngine. */
+  void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
@@ -932,6 +974,18 @@ class CVC4_PUBLIC SmtEngine
    * unsatisfiable. If not, then the found solutions are wrong.
    */
   void checkSynthSolution();
+
+  /**
+   * Check that a solution to an interpolation problem is indeed a solution.
+   *
+   * The check is made by determining that the assertions imply the solution of
+   * the interpolation problem (interpol), and the solution implies the goal
+   * (conj). If these criteria are not met, an internal error is thrown.
+   */
+  void checkInterpol(Expr interpol,
+                     const std::vector<Expr>& easserts,
+                     const Node& conj);
+
   /**
    * Check that a solution to an abduction conjecture is indeed a solution.
    *
@@ -1055,6 +1109,7 @@ class CVC4_PUBLIC SmtEngine
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+
   /**
    * Get abduct internal.
    *
@@ -1081,6 +1136,9 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Expr> getExpandedAssertions();
 
   /* Members -------------------------------------------------------------- */
+
+  /** Solver instance that owns this SmtEngine instance. */
+  api::Solver* d_solver = nullptr;
 
   /** Expr manager context */
   std::unique_ptr<context::Context> d_context;
@@ -1197,9 +1255,13 @@ class CVC4_PUBLIC SmtEngine
   std::vector<Command*> d_defineCommands;
 
   /**
-   * The logic we're in.
+   * The logic we're in. This logic may be an extension of the logic set by the
+   * user.
    */
   LogicInfo d_logic;
+
+  /** The logic set by the user. */
+  LogicInfo d_userLogic;
 
   /**
    * Keep a copy of the original option settings (for reset()).
@@ -1279,6 +1341,18 @@ class CVC4_PUBLIC SmtEngine
 
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
 
+  /** The options object */
+  Options d_options;
+  /**
+   * Manager for limiting time and abstract resource usage.
+   */
+  std::unique_ptr<ResourceManager> d_resourceManager;
+  /**
+   * The global scope object. Upon creation of this SmtEngine, it becomes the
+   * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
+   * or another SmtEngine is created.
+   */
+  std::unique_ptr<smt::SmtScope> d_scope;
   /*---------------------------- sygus commands  ---------------------------*/
 
   /**

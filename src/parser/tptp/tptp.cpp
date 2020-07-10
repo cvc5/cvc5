@@ -311,7 +311,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     isBuiltinKind = true;
   }
   assert(kind != api::NULL_EXPR);
-  const Options& opts = d_solver->getExprManager()->getOptions();
+  const Options& opts = d_solver->getOptions();
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {

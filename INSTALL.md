@@ -1,5 +1,5 @@
-CVC4 prerelease version 1.8.
-============================
+CVC4 prerelease version 1.9
+===========================
 
 ## Building CVC4
 
@@ -114,16 +114,20 @@ It can be installed using the `contrib/get-cryptominisat` script.
 Configure CVC4 with `configure.sh --cryptominisat` to build with this
 dependency.
 
+### Kissat (Optional SAT solver)
+
+[Kissat](https://github.com/arminbiere/kissat)
+is a SAT solver that can be used for solving bit-vector problems with eager
+bit-blasting. This dependency may improve performance.
+It can be installed using the `contrib/get-kissat` script.  
+Configure CVC4 with `configure.sh --kissat` to build with this
+dependency.
+
 ### LFSC (The LFSC Proof Checker)
 
 [LFSC](https://github.com/CVC4/LFSC) is required to check proofs internally
 with --check-proofs. It can be installed using the `contrib/get-lfsc` script.  
 Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
-
-### SWIG >= 3.0.x (Simplified Wrapper and Interface Generator)
-
-SWIG 3.0.x (and a JDK) is necessary to build the Java API.
-See [Language Bindings](#language-bindings) below for build instructions.
 
 ### CLN >= v1.3 (Class Library for Numbers)
 
@@ -179,13 +183,6 @@ If you choose to use CVC4 with GNU Readline support, you are licensing CVC4
 under that same license.
 (Usually CVC4's license is more permissive; see above discussion.)
 
-### libboost_thread: The Boost C++ threading library (Portfolio Builds)
-
-The [Boost](http://www.boost.org) C++ threading library (often packaged
-independently of the Boost base library) is needed to run CVC4 in "portfolio"
-(multithreaded) mode.
-Check your distribution for a package named "libboost-thread-dev" or similar.
-
 ### Boost C++ base libraries (Examples)
 
 The [Boost](http://www.boost.org) C++ base library is needed for some examples
@@ -200,17 +197,13 @@ See [Testing CVC4](#Testing-CVC4) below for more details.
 
 ## Language bindings
 
-CVC4 provides a complete and flexible C++ API (see `examples/api` for examples).
-It further provides Java (see `examples/SimpleVC.java` and `examples/api/java`)
-and Python (see `examples/SimpleVC.py`) API bindings.
+CVC4 provides a complete and flexible C++ API (see `examples/api` for
+examples). It further provides Java (see `examples/SimpleVC.java` and
+`examples/api/java`) and Python (see `examples/api/python`) API bindings.
 
-Configure CVC4 with `configure.sh --language-bindings=[java,python,all]`
-to build with language bindings.  
-Note that this requires SWIG >= 3.0.x.
+Configure CVC4 with `configure.sh --<lang>-bindings` to build with language
+bindings for `<lang>`.
 
-In principle, since we use SWIG to generate the native Java and PythonAPI,
-we could support other languages as well. However, using CVC4 from other
-languages is not supported, nor expected to work, at this time.
 If you're interested in helping to develop, maintain, and test a language
 binding, please contact one of the project leaders.
 
@@ -324,6 +317,5 @@ are configured to **run** in parallel with the maximum number of threads
 available on the system. Override with `ARGS=-jN`.
 
 Use `-jN` for parallel **building** with `N` threads.
-
 
 

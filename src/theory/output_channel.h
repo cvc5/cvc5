@@ -21,9 +21,11 @@
 
 #include <memory>
 
+#include "expr/proof_node.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
+#include "theory/trust_node.h"
 #include "util/proof.h"
 #include "util/resource_manager.h"
 
@@ -188,6 +190,33 @@ class OutputChannel {
    */
   virtual void demandRestart() {}
 
+  //---------------------------- new proof
+  /**
+   * Let pconf be the pair (Node conf, ProofGenerator * pfg). This method
+   * sends conf on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as OutputChannel.
+   */
+  virtual void trustedConflict(TrustNode pconf)
+  {
+    Unreachable() << "OutputChannel::trustedConflict: no implementation"
+                  << std::endl;
+  }
+  /**
+   * Let plem be the pair (Node lem, ProofGenerator * pfg).
+   * Send lem on the output channel of this class whose proof can be generated
+   * by the generator pfg. Apart from pfg, the interface for this method is
+   * the same as OutputChannel.
+   */
+  virtual LemmaStatus trustedLemma(TrustNode lem,
+                                   bool removable = false,
+                                   bool preprocess = false,
+                                   bool sendAtoms = false)
+  {
+    Unreachable() << "OutputChannel::trustedLemma: no implementation"
+                  << std::endl;
+  }
+  //---------------------------- end new proof
 }; /* class OutputChannel */
 
 }  // namespace theory

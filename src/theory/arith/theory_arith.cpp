@@ -40,12 +40,15 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     , d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  if (options::nlExt()) {
+  // if logic is non-linear
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
     setupExtTheory();
     getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
     getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
     getExtTheory()->addFunctionKind(kind::SINE);
     getExtTheory()->addFunctionKind(kind::PI);
+    getExtTheory()->addFunctionKind(kind::IAND);
   }
 }
 
@@ -72,6 +75,10 @@ void TheoryArith::finishInit()
   {
     // witness is used to eliminate square root
     tm->setUnevaluatedKind(kind::WITNESS);
+    // we only need to add the operators that are not syntax sugar
+    tm->setUnevaluatedKind(kind::EXPONENTIAL);
+    tm->setUnevaluatedKind(kind::SINE);
+    tm->setUnevaluatedKind(kind::PI);
   }
 }
 

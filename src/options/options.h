@@ -54,18 +54,6 @@ class CVC4_PUBLIC Options {
   /** Listeners for notifyBeforeSearch. */
   ListenerCollection d_beforeSearchListeners;
 
-  /** Listeners for options::tlimit. */
-  ListenerCollection d_tlimitListeners;
-
-  /** Listeners for options::tlimit-per. */
-  ListenerCollection d_tlimitPerListeners;
-
-  /** Listeners for options::rlimit. */
-  ListenerCollection d_rlimitListeners;
-
-  /** Listeners for options::tlimit-per. */
-  ListenerCollection d_rlimitPerListeners;
-
   /** Listeners for options::defaultExprDepth. */
   ListenerCollection d_setDefaultExprDepthListeners;
 
@@ -215,6 +203,7 @@ public:
   bool getStatsHideZeros() const;
   bool getStrictParsing() const;
   int getTearDownIncremental() const;
+  unsigned long getCumulativeTimeLimit() const;
   bool getVersion() const;
   const std::string& getForceLogicString() const;
   int getVerbosity() const;
@@ -322,55 +311,6 @@ public:
    */
   ListenerCollection::Registration* registerBeforeSearchListener(
       Listener* listener);
-
-  /**
-   * Registers a listener for options::tlimit being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerTlimitListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::tlimit-per being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerTlimitPerListener(
-      Listener* listener, bool notifyIfSet);
-
-
-  /**
-   * Registers a listener for options::rlimit being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerRlimitListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::rlimit-per being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerRlimitPerListener(
-      Listener* listener, bool notifyIfSet);
 
   /**
    * Registers a listener for options::defaultExprDepth being set.

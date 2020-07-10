@@ -380,6 +380,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Sequence sort?
+   * @return true if the sort is a Sequence sort
+   */
+  bool isSequence() const;
+
+  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
@@ -511,6 +517,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Sequence sort ------------------------------------------------------- */
+
+  /**
+   * @return the element sort of a sequence sort
+   */
+  Sort getSequenceElementSort() const;
 
   /* Uninterpreted sort -------------------------------------------------- */
 
@@ -907,6 +920,13 @@ class CVC4_PUBLIC Term
   Term getConstArrayBase() const;
 
   /**
+   *  Return the elements of a constant sequence
+   *  throws an exception if the kind is not CONST_SEQUENCE
+   *  @return the elements of the constant sequence.
+   */
+  std::vector<Term> getConstSequenceElements() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
@@ -1067,6 +1087,13 @@ class CVC4_PUBLIC Term
    * CVC4_API_CHECK_NOT_NULL
    */
   bool isNullHelper() const;
+
+  /**
+   * Helper function that returns the kind of the term, which takes into
+   * account special cases of the conversion for internal to external kinds.
+   * @return the kind of this term
+   */
+  Kind getKindHelper() const;
 
   /**
    * The internal expression wrapped by this term.
@@ -2026,7 +2053,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Constructor.
-   * @param opts a pointer to a solver options object (for parser only)
+   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
   Solver(Options* opts = nullptr);
@@ -2185,6 +2212,13 @@ class CVC4_PUBLIC Solver
    * @return the set sort
    */
   Sort mkSetSort(Sort elemSort) const;
+
+  /**
+   * Create a sequence sort.
+   * @param elemSort the sort of the sequence elements
+   * @return the sequence sort
+   */
+  Sort mkSequenceSort(Sort elemSort) const;
 
   /**
    * Create an uninterpreted sort.
@@ -2549,6 +2583,13 @@ class CVC4_PUBLIC Solver
    * @return the character constant
    */
   Term mkChar(const char* s) const;
+
+  /**
+   * Create an empty sequence of the given element sort.
+   * @param sort The element sort of the sequence.
+   * @return the empty sequence with given element sort.
+   */
+  Term mkEmptySequence(Sort sort) const;
 
   /**
    * Create a universe set of the given sort.
@@ -3004,11 +3045,46 @@ class CVC4_PUBLIC Solver
   std::vector<Term> getValue(const std::vector<Term>& terms) const;
 
   /**
+   * When using separation logic, obtain the term for the heap.
+   * @return The term for the heap
+   */
+  Term getSeparationHeap() const;
+
+  /**
+   * When using separation logic, obtain the term for nil.
+   * @return The term for nil
+   */
+  Term getSeparationNilTerm() const;
+
+  /**
    * Pop (a) level(s) from the assertion stack.
    * SMT-LIB: ( pop <numeral> )
    * @param nscopes the number of levels to pop
    */
   void pop(uint32_t nscopes = 1) const;
+
+  /**
+   * Get an interpolant
+   * SMT-LIB: ( get-interpol <term> )
+   * Requires to enable option 'produce-interpols'.
+   * @param conj the conjecture term
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj.
+   * @return true if it gets I successfully, false otherwise.
+   */
+  bool getInterpolant(Term conj, Term& output) const;
+
+  /**
+   * Get an interpolant
+   * SMT-LIB: ( get-interpol <term> )
+   * Requires to enable option 'produce-interpols'.
+   * @param conj the conjecture term
+   * @param gtype the grammar for the interpolant I
+   * @param output a Term I such that A->I and I->B are valid, where A is the
+   *        current set of assertions and B is given in the input by conj.
+   * @return true if it gets I successfully, false otherwise.
+   */
+  bool getInterpolant(Term conj, const Type& gtype, Term& output) const;
 
   /**
    * Print the model of a satisfiable query to the given output stream.
@@ -3186,6 +3262,10 @@ class CVC4_PUBLIC Solver
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
+
+  // !!! This is only temporarily available until options are refactored at
+  // the driver level. !!!
+  Options& getOptions(void);
 
  private:
   /* Helper to convert a vector of internal types to sorts. */

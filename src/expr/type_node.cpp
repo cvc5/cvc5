@@ -304,11 +304,7 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
-bool TypeNode::isStringLike() const
-{
-  // TODO (cvc4-projects #23): sequence here
-  return isString();
-}
+bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
@@ -579,7 +575,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::TESTER_TYPE:
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::PARAMETRIC_DATATYPE:
+    case kind::SEQUENCE_TYPE: return TypeNode();
     case kind::SET_TYPE:
     {
       // take the least common subtype of element types
