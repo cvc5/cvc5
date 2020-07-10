@@ -25,7 +25,7 @@ function trywith {
 }
 
 function finishwith {
-  $cvc4 --lang=sygus2 --no-checking --no-interactive --dag-thresh=0 "$@" $bench 2>/dev/null |
+  $cvc4 --lang=sygus2 --no-type-checking --no-interactive --dag-thresh=0 "$@" $bench 2>/dev/null |
   (read result w1;
   case "$result" in
   unsat) echo "$w1";cat;exit 0;;
