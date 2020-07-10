@@ -15,9 +15,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for working with libpoly.
+ ** \brief Utilities for working with LibPoly.
  **
- ** Utilities for working with libpoly.
+ ** Utilities for working with LibPoly.
  **/
 
 #include "cvc4_public.h"
@@ -41,7 +41,7 @@ namespace CVC4 {
 /**
  * Utilities for working with libpoly.
  * This namespace contains various basic conversion routines necessary for the
- * integration of libpoly. Firstly, libpoly is based on GMP and hence we need
+ * integration of LibPoly. Firstly, LibPoly is based on GMP and hence we need
  * conversion from and to CLN (in case CLN is enabled). Otherwise, conversion of
  * number types mostly reduces to simple type casts.
  * Furthermore, conversions between poly::Rational and poly::DyadicRational and
