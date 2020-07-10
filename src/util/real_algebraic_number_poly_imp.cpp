@@ -157,7 +157,7 @@ RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
 }
 
 int sgn(const RealAlgebraicNumber& ran) { return sgn(ran.getValue()); }
-bool is_zero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
-bool is_one(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
+bool isZero(const RealAlgebraicNumber& ran) { return is_zero(ran.getValue()); }
+bool isOne(const RealAlgebraicNumber& ran) { return is_one(ran.getValue()); }
 
 }  // namespace CVC4

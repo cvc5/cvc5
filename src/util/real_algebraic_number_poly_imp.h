@@ -151,9 +151,9 @@ CVC4_PUBLIC RealAlgebraicNumber& operator*=(RealAlgebraicNumber& lhs,
 CVC4_PUBLIC int sgn(const RealAlgebraicNumber& ran);
 
 /** Check whether a real algebraic number is zero. */
-CVC4_PUBLIC bool is_zero(const RealAlgebraicNumber& ran);
+CVC4_PUBLIC bool isZero(const RealAlgebraicNumber& ran);
 /** Check whether a real algebraic number is one. */
-CVC4_PUBLIC bool is_one(const RealAlgebraicNumber& ran);
+CVC4_PUBLIC bool isOne(const RealAlgebraicNumber& ran);
 
 }  // namespace CVC4
 
