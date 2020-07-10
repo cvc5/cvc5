@@ -37,6 +37,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
     : d_qe(qe),
       d_term_db(nullptr),
       d_term_util(nullptr),
+      d_total_inst_debug(u),
       d_c_inst_match_trie_dom(u)
 {
 }
@@ -263,7 +264,7 @@ bool Instantiate::addInstantiation(
     return false;
   }
 
-  d_total_inst_debug[q]++;
+  d_total_inst_debug[q] = d_total_inst_debug[q] + 1;
   d_temp_inst_debug[q]++;
   if (Trace.isOn("inst"))
   {
@@ -518,12 +519,12 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
   }
   bool isFull = options::printInstFull();
   out << "(num-instantiations" << std::endl;
-  for (const std::pair<const Node, uint32_t>& inst : d_total_inst_debug)
+  for (NodeUIntMap::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it)
   {
     std::stringstream ss;
-    if (printQuant(inst.first, ss, isFull))
+    if (printQuant((*it).first, ss, isFull))
     {
-      out << "(" << ss.str() << " " << inst.second << ")" << std::endl;
+      out << "(" << ss.str() << " " << (*it).second << ")" << std::endl;
     }
   }
   out << ")" << std::endl;
@@ -784,9 +785,9 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::pair<const Node, uint32_t>& i : d_total_inst_debug)
+    for (NodeUIntMap::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it)
     {
-      Trace("inst-per-quant") << " * " << i.second << " for " << i.first
+      Trace("inst-per-quant") << " * " << (*it).second << " for " << (*it).first
                               << std::endl;
     }
   }

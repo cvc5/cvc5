@@ -81,6 +81,7 @@ class InstantiationRewriter
  */
 class Instantiate : public QuantifiersUtil
 {
+  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
  public:
   Instantiate(QuantifiersEngine* qe, context::UserContext* u);
   ~Instantiate();
@@ -345,7 +346,7 @@ class Instantiate : public QuantifiersUtil
   std::vector<InstantiationRewriter*> d_instRewrite;
 
   /** statistics for debugging total instantiations per quantifier */
-  std::map<Node, uint32_t> d_total_inst_debug;
+  NodeUIntMap d_total_inst_debug;
   /** statistics for debugging total instantiations per quantifier per round */
   std::map<Node, uint32_t> d_temp_inst_debug;
 

@@ -50,8 +50,9 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     SygusAttribute ca;
     n.setAttribute( ca, true );
   }
-  else if (attr == "quant-name" || attr == "qid")
+  else if (attr == "qid")
   {
+    // using z3 syntax "qid"
     Trace("quant-attr-debug") << "Set quant-name " << n << std::endl;
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
