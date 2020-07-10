@@ -273,11 +273,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  ResourceManager* d_resourceManager;
-
   /** Manager for the memory of regular-output-channel. */
   ManagedRegularOutputChannel d_managedRegularChannel;
 
@@ -373,7 +368,6 @@ class SmtEnginePrivate : public NodeManagerListener {
  public:
   SmtEnginePrivate(SmtEngine& smt)
       : d_smt(smt),
-        d_resourceManager(NodeManager::currentResourceManager()),
         d_managedRegularChannel(),
         d_managedDiagnosticChannel(),
         d_managedDumpChannel(),
@@ -384,7 +378,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
-        d_processor(smt, *d_resourceManager),
+        d_processor(smt, *smt.getResourceManager()),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -392,17 +386,17 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
+    ResourceManager* rm = d_smt.getResourceManager();
 
-    d_listenerRegistrations->add(d_resourceManager->registerSoftListener(
-        new SoftResourceOutListener(d_smt)));
+    d_listenerRegistrations->add(
+        rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
 
-    d_listenerRegistrations->add(d_resourceManager->registerHardListener(
-        new HardResourceOutListener(d_smt)));
+    d_listenerRegistrations->add(
+        rm->registerHardListener(new HardResourceOutListener(d_smt)));
 
     try
     {
-      Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-
+      Options& opts = d_smt.getOptions();
       // Multiple options reuse BeforeSearchListener so registration requires an
       // extra bit of care.
       // We can safely not call notify on this before search listener at
@@ -410,35 +404,27 @@ class SmtEnginePrivate : public NodeManagerListener {
       // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
       // not have to be called.
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerBeforeSearchListener(
-              new BeforeSearchListener(d_smt)));
+          opts.registerBeforeSearchListener(new BeforeSearchListener(d_smt)));
 
       // These do need registration calls.
+      d_listenerRegistrations->add(opts.registerSetDefaultExprDepthListener(
+          new SetDefaultExprDepthListener(), true));
+      d_listenerRegistrations->add(opts.registerSetDefaultExprDagListener(
+          new SetDefaultExprDagListener(), true));
+      d_listenerRegistrations->add(opts.registerSetPrintExprTypesListener(
+          new SetPrintExprTypesListener(), true));
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDefaultExprDepthListener(
-              new SetDefaultExprDepthListener(), true));
+          opts.registerSetDumpModeListener(new DumpModeListener(), true));
+      d_listenerRegistrations->add(opts.registerSetPrintSuccessListener(
+          new PrintSuccessListener(), true));
+      d_listenerRegistrations->add(opts.registerSetRegularOutputChannelListener(
+          new SetToDefaultSourceListener(&d_managedRegularChannel), true));
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDefaultExprDagListener(
-              new SetDefaultExprDagListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetPrintExprTypesListener(
-              new SetPrintExprTypesListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDumpModeListener(new DumpModeListener(),
-                                                         true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetPrintSuccessListener(
-              new PrintSuccessListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetRegularOutputChannelListener(
-              new SetToDefaultSourceListener(&d_managedRegularChannel), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+          opts.registerSetDiagnosticOutputChannelListener(
               new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
               true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerDumpToFileNameListener(
-              new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+      d_listenerRegistrations->add(opts.registerDumpToFileNameListener(
+          new SetToDefaultSourceListener(&d_managedDumpChannel), true));
     }
     catch (OptionException& e)
     {
@@ -467,11 +453,9 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
-  ResourceManager* getResourceManager() { return d_resourceManager; }
-
   void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(r);
+    d_smt.getResourceManager()->spendResource(r);
   }
 
   ProcessAssertions* getProcessAssertions() { return &d_processor; }
@@ -647,7 +631,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
 }/* namespace CVC4::smt */
 
-SmtEngine::SmtEngine(ExprManager* em)
+SmtEngine::SmtEngine(ExprManager* em, Options* optr)
     : d_context(new Context()),
       d_userContext(new UserContext()),
       d_userLevels(),
@@ -677,15 +661,35 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_smtMode(SMT_MODE_START),
       d_private(nullptr),
       d_statisticsRegistry(nullptr),
-      d_stats(nullptr)
+      d_stats(nullptr),
+      d_resourceManager(nullptr),
+      d_scope(nullptr)
 {
-  SmtScope smts(this);
-  d_originalOptions.copyValues(em->getOptions());
-  d_private.reset(new smt::SmtEnginePrivate(*this));
+  // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SmtEngine
+  // we are constructing the current SmtEngine in scope for the lifetime of
+  // this SmtEngine, or until another SmtEngine is constructed (that SmtEngine
+  // is then in scope during its lifetime). This is mostly to ensure that
+  // options are always in scope, for e.g. printing expressions, which rely
+  // on knowing the output language.
+  // Notice that the SmtEngine may spawn new SmtEngine "subsolvers" internally.
+  // These are created, used, and deleted in a modular fashion while not
+  // interleaving calls to the master SmtEngine. Thus the hack here does not
+  // break this use case.
+  // On the other hand, this hack breaks use cases where multiple SmtEngine
+  // objects are created by the user.
+  d_scope.reset(new SmtScope(this));
+  if (optr != nullptr)
+  {
+    // if we provided a set of options, copy their values to the options
+    // owned by this SmtEngine.
+    d_options.copyValues(*optr);
+  }
   d_statisticsRegistry.reset(new StatisticsRegistry());
+  d_resourceManager.reset(
+      new ResourceManager(*d_statisticsRegistry.get(), d_options));
+  d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
-  d_stats->d_resourceUnitsUsed.setData(
-      d_private->getResourceManager()->getResourceUsage());
+  d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -705,6 +709,35 @@ SmtEngine::SmtEngine(ExprManager* em)
 
 void SmtEngine::finishInit()
 {
+  // Notice that finishInit is called when options are finalized. If we are
+  // parsing smt2, this occurs at the moment we enter "Assert mode", page 52
+  // of SMT-LIB 2.6 standard.
+
+  // Inialize the resource manager based on the options.
+  d_resourceManager->setHardLimit(options::hardLimit());
+  if (options::perCallResourceLimit() != 0)
+  {
+    d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
+  }
+  if (options::cumulativeResourceLimit() != 0)
+  {
+    d_resourceManager->setResourceLimit(options::cumulativeResourceLimit(),
+                                        true);
+  }
+  if (options::perCallMillisecondLimit() != 0)
+  {
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
+  }
+  if (options::cumulativeMillisecondLimit() != 0)
+  {
+    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
+                                    true);
+  }
+  if (options::cpuTime())
+  {
+    d_resourceManager->useCPUTime(true);
+  }
+
   // set the random seed
   Random::getRandom().setSeed(options::seed());
 
@@ -716,6 +749,7 @@ void SmtEngine::finishInit()
   // engine later (it is non-essential there)
   d_theoryEngine.reset(new TheoryEngine(getContext(),
                                         getUserContext(),
+                                        getResourceManager(),
                                         d_private->d_iteRemover,
                                         const_cast<const LogicInfo&>(d_logic)));
 
@@ -735,10 +769,8 @@ void SmtEngine::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    d_private->getResourceManager()));
+  d_propEngine.reset(new PropEngine(
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -887,9 +919,11 @@ SmtEngine::~SmtEngine()
     d_propEngine.reset(nullptr);
 
     d_stats.reset(nullptr);
+    d_private.reset(nullptr);
+    // d_resourceManager must be destroyed before d_statisticsRegistry
+    d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
 
-    d_private.reset(nullptr);
 
     d_userContext.reset(nullptr);
     d_context.reset(nullptr);
@@ -934,6 +968,7 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
   // Lock the logic to make sure that this logic can be queried. We create a
@@ -942,7 +977,17 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   res.lock();
   return res;
 }
-void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
+
+void SmtEngine::notifyStartParsing(std::string filename)
+{
+  d_filename = filename;
+
+  // Copy the original options. This is called prior to beginning parsing.
+  // Hence reset should revert to these options, which note is after reading
+  // the command line.
+  d_originalOptions.copyValues(d_options);
+}
+
 std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
 {
@@ -1367,8 +1412,8 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 
 void SmtEnginePrivate::finishInit()
 {
-  d_preprocessingPassContext.reset(new PreprocessingPassContext(
-      &d_smt, d_resourceManager, &d_iteRemover, &d_propagator));
+  d_preprocessingPassContext.reset(
+      new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_preprocessingPassContext.get());
@@ -1380,15 +1425,14 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  ResourceManager* resourceManager = d_private->getResourceManager();
-
-  resourceManager->beginCall();
+  d_resourceManager->beginCall();
 
   // Only way we can be out of resource is if cumulative budget is on
-  if (resourceManager->cumulativeLimitOn() &&
-      resourceManager->out()) {
-    Result::UnknownExplanation why = resourceManager->outOfResources() ?
-                             Result::RESOURCEOUT : Result::TIMEOUT;
+  if (d_resourceManager->cumulativeLimitOn() && d_resourceManager->out())
+  {
+    Result::UnknownExplanation why = d_resourceManager->outOfResources()
+                                         ? Result::RESOURCEOUT
+                                         : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
 
@@ -1403,10 +1447,10 @@ Result SmtEngine::check() {
   Trace("smt") << "SmtEngine::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
 
-  resourceManager->endCall();
-  Trace("limit") << "SmtEngine::check(): cumulative millis " << resourceManager->getTimeUsage()
-                 << ", resources " << resourceManager->getResourceUsage() << endl;
-
+  d_resourceManager->endCall();
+  Trace("limit") << "SmtEngine::check(): cumulative millis "
+                 << d_resourceManager->getTimeUsage() << ", resources "
+                 << d_resourceManager->getResourceUsage() << endl;
 
   return Result(result, d_filename);
 }
@@ -1795,9 +1839,10 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     return r;
   } catch (UnsafeInterruptException& e) {
-    AlwaysAssert(d_private->getResourceManager()->out());
-    Result::UnknownExplanation why = d_private->getResourceManager()->outOfResources() ?
-      Result::RESOURCEOUT : Result::TIMEOUT;
+    AlwaysAssert(d_resourceManager->out());
+    Result::UnknownExplanation why = d_resourceManager->outOfResources()
+                                         ? Result::RESOURCEOUT
+                                         : Result::TIMEOUT;
     return Result(Result::SAT_UNKNOWN, why, d_filename);
   }
 }
@@ -2535,8 +2580,11 @@ void SmtEngine::checkUnsatCore() {
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
 
-  SmtEngine coreChecker(d_exprManager);
+  SmtEngine coreChecker(d_exprManager, &d_options);
+  coreChecker.setIsInternalSubsolver();
   coreChecker.setLogic(getLogicInfo());
+  coreChecker.getOptions().set(options::checkUnsatCores, false);
+  coreChecker.getOptions().set(options::checkProofs, false);
 
   PROOF(
   std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
@@ -2550,14 +2598,10 @@ void SmtEngine::checkUnsatCore() {
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i << endl;
     coreChecker.assertFormula(*i);
   }
-  const bool checkUnsatCores = options::checkUnsatCores();
   Result r;
   try {
-    options::checkUnsatCores.set(false);
-    options::checkProofs.set(false);
     r = coreChecker.checkSat();
   } catch(...) {
-    options::checkUnsatCores.set(checkUnsatCores);
     throw;
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
@@ -2832,10 +2876,11 @@ void SmtEngine::checkSynthSolution()
   }
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
   /* Start new SMT engine to check solutions */
-  SmtEngine solChecker(d_exprManager);
+  SmtEngine solChecker(d_exprManager, &d_options);
+  solChecker.setIsInternalSubsolver();
   solChecker.setLogic(getLogicInfo());
-  setOption("check-synth-sol", SExpr("false"));
-  setOption("sygus-rec-fun", SExpr("false"));
+  solChecker.getOptions().set(options::checkSynthSol, false);
+  solChecker.getOptions().set(options::sygusRecFun, false);
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
@@ -2956,7 +3001,8 @@ void SmtEngine::checkAbduct(Expr a)
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
-    SmtEngine abdChecker(d_exprManager);
+    SmtEngine abdChecker(d_exprManager, &d_options);
+    abdChecker.setIsInternalSubsolver();
     abdChecker.setLogic(getLogicInfo());
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
@@ -3208,7 +3254,8 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
                         << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
-  d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
+  d_subsolver.reset(
+      new SmtEngine(NodeManager::currentNM()->toExprManager(), &d_options));
   d_subsolver->setIsInternalSubsolver();
   // get the logic
   LogicInfo l = d_logic.getUnlockedCopy();
@@ -3477,8 +3524,7 @@ void SmtEngine::reset()
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  NodeManager::fromExprManager(em)->getOptions().copyValues(opts);
-  new(this) SmtEngine(em);
+  new (this) SmtEngine(em, &opts);
 }
 
 void SmtEngine::resetAssertions()
@@ -3522,10 +3568,8 @@ void SmtEngine::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    d_private->getResourceManager()));
+  d_propEngine.reset(new PropEngine(
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
@@ -3539,28 +3583,33 @@ void SmtEngine::interrupt()
 }
 
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
-  d_private->getResourceManager()->setResourceLimit(units, cumulative);
+  d_resourceManager->setResourceLimit(units, cumulative);
 }
 void SmtEngine::setTimeLimit(unsigned long milis, bool cumulative) {
-  d_private->getResourceManager()->setTimeLimit(milis, cumulative);
+  d_resourceManager->setTimeLimit(milis, cumulative);
 }
 
 unsigned long SmtEngine::getResourceUsage() const {
-  return d_private->getResourceManager()->getResourceUsage();
+  return d_resourceManager->getResourceUsage();
 }
 
 unsigned long SmtEngine::getTimeUsage() const {
-  return d_private->getResourceManager()->getTimeUsage();
+  return d_resourceManager->getTimeUsage();
 }
 
 unsigned long SmtEngine::getResourceRemaining() const
 {
-  return d_private->getResourceManager()->getResourceRemaining();
+  return d_resourceManager->getResourceRemaining();
 }
 
 unsigned long SmtEngine::getTimeRemaining() const
 {
-  return d_private->getResourceManager()->getTimeRemaining();
+  return d_resourceManager->getTimeRemaining();
+}
+
+NodeManager* SmtEngine::getNodeManager() const
+{
+  return d_exprManager->getNodeManager();
 }
 
 Statistics SmtEngine::getStatistics() const
@@ -3654,8 +3703,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   }
 
   string optionarg = value.getValue();
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  nodeManagerOptions.setOption(key, optionarg);
+  d_options.setOption(key, optionarg);
 }
 
 void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
@@ -3714,8 +3762,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
     return SExpr(result);
   }
 
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  return SExpr::parseAtom(nodeManagerOptions.getOption(key));
+  return SExpr::parseAtom(d_options.getOption(key));
 }
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
@@ -3725,6 +3772,15 @@ bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
 void SmtEngine::setExpressionName(Expr e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
   d_private->setExpressionName(e,name);
+}
+
+Options& SmtEngine::getOptions() { return d_options; }
+
+const Options& SmtEngine::getOptions() const { return d_options; }
+
+ResourceManager* SmtEngine::getResourceManager()
+{
+  return d_resourceManager.get();
 }
 
 void SmtEngine::setSygusConjectureStale()

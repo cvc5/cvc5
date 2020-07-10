@@ -15,6 +15,7 @@
 #include "expr/skolem_manager.h"
 
 #include "expr/attribute.h"
+#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -42,7 +43,8 @@ Node SkolemManager::mkSkolem(Node v,
                              const std::string& prefix,
                              const std::string& comment,
                              int flags,
-                             ProofGenerator* pg)
+                             ProofGenerator* pg,
+                             bool retWitness)
 {
   Assert(v.getKind() == BOUND_VARIABLE);
   // make the witness term
@@ -55,12 +57,20 @@ Node SkolemManager::mkSkolem(Node v,
   // store the mapping to proof generator if it exists
   if (pg != nullptr)
   {
-    Node q = nm->mkNode(EXISTS, w[0], w[1]);
+    // We cache based on the original (Skolem) form, since the user of this
+    // method operates on Skolem forms.
+    Node q = nm->mkNode(EXISTS, bvl, pred);
     // Notice this may overwrite an existing proof generator. This does not
     // matter since either should be able to prove q.
     d_gens[q] = pg;
   }
-  return getOrMakeSkolem(w, prefix, comment, flags);
+  Node k = getOrMakeSkolem(w, prefix, comment, flags);
+  // if we want to return the witness term, make it
+  if (retWitness)
+  {
+    return nm->mkNode(WITNESS, bvl, pred);
+  }
+  return k;
 }
 
 Node SkolemManager::mkSkolemize(Node q,
@@ -159,12 +169,17 @@ Node SkolemManager::mkPurifySkolem(Node t,
   // directly.
   if (t.getKind() == WITNESS)
   {
-    return getOrMakeSkolem(t, prefix, comment, flags);
+    return getOrMakeSkolem(getWitnessForm(t), prefix, comment, flags);
   }
   Node v = NodeManager::currentNM()->mkBoundVar(t.getType());
   Node k = mkSkolem(v, v.eqNode(t), prefix, comment, flags);
   t.setAttribute(psa, k);
   return k;
+}
+
+Node SkolemManager::mkBooleanTermVariable(Node t)
+{
+  return mkPurifySkolem(t, "", "", NodeManager::SKOLEM_BOOL_TERM_VAR);
 }
 
 Node SkolemManager::mkExistential(Node t, Node p)
@@ -275,7 +290,9 @@ Node SkolemManager::convertInternal(Node n, bool toWitness)
         // called on them. Regardless, witness terms with free variables
         // should never be themselves assigned skolems (otherwise we would have
         // assertions with free variables), and thus they can be treated like
-        // ordinary terms here.
+        // ordinary terms here. We use an assertion to check that this is
+        // indeed the case.
+        Assert(cur.getKind() != WITNESS || expr::hasFreeVar(cur));
         cur.setAttribute(sfa, ret);
       }
       visited[cur] = ret;
@@ -316,7 +333,16 @@ Node SkolemManager::getOrMakeSkolem(Node w,
   }
   NodeManager* nm = NodeManager::currentNM();
   // make the new skolem
-  Node k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  Node k;
+  if (flags & NodeManager::SKOLEM_BOOL_TERM_VAR)
+  {
+    Assert (w.getType().isBoolean());
+    k = nm->mkBooleanTermVariable();
+  }
+  else
+  {
+    k = nm->mkSkolem(prefix, w.getType(), comment, flags);
+  }
   // set witness form attribute for k
   WitnessFormAttribute wfa;
   k.setAttribute(wfa, w);

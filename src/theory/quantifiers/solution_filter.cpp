@@ -88,10 +88,10 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       }
       else
       {
-        Options& nodeManagerOptions = nm->getOptions();
-        std::ostream* nodeManagerOut = nodeManagerOptions.getOut();
-        (*nodeManagerOut) << "; (filtered " << (d_isStrong ? s : s.negate())
-                          << ")" << std::endl;
+        Options& opts = smt::currentSmtEngine()->getOptions();
+        std::ostream* smtOut = opts.getOut();
+        (*smtOut) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
+                  << std::endl;
       }
     }
     d_curr_sols.clear();

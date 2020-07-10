@@ -177,7 +177,8 @@ std::vector<NlLemma> NlSolver::checkSplitZero()
       eq = Rewriter::rewrite(eq);
       Node literal = d_containing.getValuation().ensureLiteral(eq);
       d_containing.getOutputChannel().requirePhase(literal, true);
-      lemmas.push_back(literal.orNode(literal.negate()));
+      lemmas.emplace_back(literal.orNode(literal.negate()),
+                          Inference::SPLIT_ZERO);
     }
   }
   return lemmas;
@@ -273,7 +274,7 @@ int NlSolver::compareSign(Node oa,
     {
       Node lemma =
           safeConstructNary(AND, exp).impNode(mkLit(oa, d_zero, status * 2));
-      lem.push_back(lemma);
+      lem.emplace_back(lemma, Inference::SIGN);
     }
     return status;
   }
@@ -290,7 +291,7 @@ int NlSolver::compareSign(Node oa,
     if (mvaoa.getConst<Rational>().sgn() != 0)
     {
       Node lemma = av.eqNode(d_zero).impNode(oa.eqNode(d_zero));
-      lem.push_back(lemma);
+      lem.emplace_back(lemma, Inference::SIGN);
     }
     return 0;
   }
@@ -447,7 +448,7 @@ bool NlSolver::compareMonomial(
       Node clem = nm->mkNode(
           IMPLIES, safeConstructNary(AND, exp), mkLit(oa, ob, status, true));
       Trace("nl-ext-comp-lemma") << "comparison lemma : " << clem << std::endl;
-      lem.push_back(clem);
+      lem.emplace_back(clem, Inference::COMPARISON);
       cmp_infers[status][oa][ob] = clem;
     }
     return true;
@@ -943,6 +944,8 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
                 nm->mkNode(
                     PLUS, nm->mkNode(MULT, b_v, a), nm->mkNode(MULT, a_v, b)),
                 nm->mkNode(MULT, a_v, b_v));
+            // conjuncts of the tangent plane lemma
+            std::vector<Node> tplaneConj;
             for (unsigned d = 0; d < 4; d++)
             {
               Node aa = nm->mkNode(d == 0 || d == 3 ? GEQ : LEQ, a, a_v);
@@ -951,7 +954,7 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
               Node tlem = nm->mkNode(OR, aa.negate(), ab.negate(), conc);
               Trace("nl-ext-tplanes")
                   << "Tangent plane lemma : " << tlem << std::endl;
-              lemmas.push_back(tlem);
+              tplaneConj.push_back(tlem);
             }
 
             // tangent plane reverse implication
@@ -974,13 +977,13 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
             Trace("nl-ext-tplanes")
                 << "Tangent plane lemma (reverse) : " << ub_reverse1
                 << std::endl;
-            lemmas.push_back(ub_reverse1);
+            tplaneConj.push_back(ub_reverse1);
             Node ub_reverse2 =
                 nm->mkNode(OR, t_leq_tplane.negate(), b_geq_bv_or_a_geq_av);
             Trace("nl-ext-tplanes")
                 << "Tangent plane lemma (reverse) : " << ub_reverse2
                 << std::endl;
-            lemmas.push_back(ub_reverse2);
+            tplaneConj.push_back(ub_reverse2);
 
             // t >= tplane -> ( (a <= a_v ^ b <= b_v) v
             // (a >= a_v ^ b >= b_v) ).
@@ -995,13 +998,16 @@ std::vector<NlLemma> NlSolver::checkTangentPlanes()
             Trace("nl-ext-tplanes")
                 << "Tangent plane lemma (reverse) : " << lb_reverse1
                 << std::endl;
-            lemmas.push_back(lb_reverse1);
+            tplaneConj.push_back(lb_reverse1);
             Node lb_reverse2 =
                 nm->mkNode(OR, t_geq_tplane.negate(), a_geq_av_or_b_leq_bv);
             Trace("nl-ext-tplanes")
                 << "Tangent plane lemma (reverse) : " << lb_reverse2
                 << std::endl;
-            lemmas.push_back(lb_reverse2);
+            tplaneConj.push_back(lb_reverse2);
+
+            Node tlem = nm->mkNode(AND, tplaneConj);
+            lemmas.emplace_back(tlem, Inference::TANGENT_PLANE);
           }
         }
       }
@@ -1256,11 +1262,11 @@ std::vector<NlLemma> NlSolver::checkMonomialInferBounds(
             // monomials = " << introNewTerms << std::endl;
             if (!introNewTerms)
             {
-              lemmas.push_back(iblem);
+              lemmas.emplace_back(iblem, Inference::INFER_BOUNDS);
             }
             else
             {
-              nt_lemmas.push_back(iblem);
+              nt_lemmas.emplace_back(iblem, Inference::INFER_BOUNDS_NT);
             }
           }
         }
@@ -1392,7 +1398,7 @@ std::vector<NlLemma> NlSolver::checkFactoring(
           lemma_disj.push_back(conc_lit);
           Node flem = nm->mkNode(OR, lemma_disj);
           Trace("nl-ext-factor") << "...lemma is " << flem << std::endl;
-          lemmas.push_back(flem);
+          lemmas.emplace_back(flem, Inference::FACTOR);
         }
       }
     }
@@ -1564,7 +1570,7 @@ std::vector<NlLemma> NlSolver::checkMonomialInferResBounds()
                   rblem = Rewriter::rewrite(rblem);
                   Trace("nl-ext-rbound-lemma")
                       << "Resolution bound lemma : " << rblem << std::endl;
-                  lemmas.push_back(rblem);
+                  lemmas.emplace_back(rblem, Inference::RES_INFER_BOUNDS);
                 }
               }
               exp.pop_back();

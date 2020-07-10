@@ -145,7 +145,7 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_satSolver = new FakeSatSolver();
     d_cnfContext = new context::Context();
     d_cnfRegistrar = new theory::TheoryRegistrar(d_theoryEngine);
-    ResourceManager * rm = d_nodeManager->getResourceManager();
+    ResourceManager* rm = d_smt->getResourceManager();
     d_cnfStream = new CVC4::prop::TseitinCnfStream(
         d_satSolver, d_cnfRegistrar, d_cnfContext, rm);
   }

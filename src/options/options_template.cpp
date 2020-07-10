@@ -228,10 +228,6 @@ Options::Options()
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
     , d_beforeSearchListeners()
-    , d_tlimitListeners()
-    , d_tlimitPerListeners()
-    , d_rlimitListeners()
-    , d_rlimitPerListeners()
 {}
 
 Options::~Options() {
@@ -282,35 +278,6 @@ ListenerCollection::Registration* Options::registerBeforeSearchListener(
    Listener* listener)
 {
   return d_beforeSearchListeners.registerListener(listener);
-}
-
-ListenerCollection::Registration* Options::registerTlimitListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet &&
-      wasSetByUser(options::cumulativeMillisecondLimit);
-  return registerAndNotify(d_tlimitListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerTlimitPerListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::perCallMillisecondLimit);
-  return registerAndNotify(d_tlimitPerListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerRlimitListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::cumulativeResourceLimit);
-  return registerAndNotify(d_rlimitListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerRlimitPerListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::perCallResourceLimit);
-  return registerAndNotify(d_rlimitPerListeners, listener, notify);
 }
 
 ListenerCollection::Registration* Options::registerSetDefaultExprDepthListener(
@@ -372,13 +339,6 @@ Options::registerSetDiagnosticOutputChannelListener(
 }
 
 ${custom_handlers}$
-
-
-#ifdef CVC4_DEBUG
-#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
-#else /* CVC4_DEBUG */
-#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT false
-#endif /* CVC4_DEBUG */
 
 #if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
@@ -703,7 +663,7 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
   options::OptionsHandler* handler = d_handler;
-  Options *options = Options::current();
+  Options* options = this;
   Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
                    << std::endl;
 

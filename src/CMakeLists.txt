@@ -300,6 +300,10 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/iand_solver.cpp
+  theory/arith/nl/iand_solver.h
+  theory/arith/nl/inference.cpp
+  theory/arith/nl/inference.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -312,6 +316,8 @@ libcvc4_add_sources(
   theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/stats.cpp
+  theory/arith/nl/stats.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
@@ -365,13 +371,13 @@ libcvc4_add_sources(
   theory/booleans/theory_bool_rewriter.h
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
+  theory/builtin/proof_checker.cpp
+  theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp
   theory/builtin/theory_builtin.h
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
   theory/builtin/theory_builtin_type_rules.h
-  theory/builtin/proof_checker.cpp
-  theory/builtin/proof_checker.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
   theory/bv/abstraction.cpp
@@ -749,6 +755,8 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_proof_generator.cpp
+  theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
   theory/theory_model.cpp

@@ -44,6 +44,7 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_manager.h"
+#include "expr/sequence.h"
 #include "expr/type.h"
 #include "options/main_options.h"
 #include "options/options.h"
@@ -288,6 +289,20 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {REGEXP_EMPTY, CVC4::Kind::REGEXP_EMPTY},
     {REGEXP_SIGMA, CVC4::Kind::REGEXP_SIGMA},
     {REGEXP_COMPLEMENT, CVC4::Kind::REGEXP_COMPLEMENT},
+    // maps to the same kind as the string versions
+    {SEQ_CONCAT, CVC4::Kind::STRING_CONCAT},
+    {SEQ_LENGTH, CVC4::Kind::STRING_LENGTH},
+    {SEQ_EXTRACT, CVC4::Kind::STRING_SUBSTR},
+    {SEQ_AT, CVC4::Kind::STRING_CHARAT},
+    {SEQ_CONTAINS, CVC4::Kind::STRING_STRCTN},
+    {SEQ_INDEXOF, CVC4::Kind::STRING_STRIDOF},
+    {SEQ_REPLACE, CVC4::Kind::STRING_STRREPL},
+    {SEQ_REPLACE_ALL, CVC4::Kind::STRING_STRREPLALL},
+    {SEQ_REV, CVC4::Kind::STRING_REV},
+    {SEQ_PREFIX, CVC4::Kind::STRING_PREFIX},
+    {SEQ_SUFFIX, CVC4::Kind::STRING_SUFFIX},
+    {CONST_SEQUENCE, CVC4::Kind::CONST_SEQUENCE},
+    {SEQ_UNIT, CVC4::Kind::SEQ_UNIT},
     /* Quantifiers --------------------------------------------------------- */
     {FORALL, CVC4::Kind::FORALL},
     {EXISTS, CVC4::Kind::EXISTS},
@@ -559,6 +574,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
         {CVC4::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
+        {CVC4::Kind::CONST_SEQUENCE, CONST_SEQUENCE},
+        {CVC4::Kind::SEQ_UNIT, SEQ_UNIT},
         /* Quantifiers ----------------------------------------------------- */
         {CVC4::Kind::FORALL, FORALL},
         {CVC4::Kind::EXISTS, EXISTS},
@@ -913,6 +930,8 @@ bool Sort::isArray() const { return d_type->isArray(); }
 
 bool Sort::isSet() const { return d_type->isSet(); }
 
+bool Sort::isSequence() const { return d_type->isSequence(); }
+
 bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
 
 bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
@@ -1019,6 +1038,14 @@ Sort Sort::getSetElementSort() const
 {
   CVC4_API_CHECK(isSet()) << "Not a set sort.";
   return Sort(d_solver, SetType(*d_type).getElementType());
+}
+
+/* Set sort ------------------------------------------------------------ */
+
+Sort Sort::getSequenceElementSort() const
+{
+  CVC4_API_CHECK(isSequence()) << "Not a sequence sort.";
+  return Sort(d_solver, SequenceType(*d_type).getElementType());
 }
 
 /* Uninterpreted sort -------------------------------------------------- */
@@ -1364,6 +1391,36 @@ bool Term::isNullHelper() const
   return d_expr->isNull();
 }
 
+Kind Term::getKindHelper() const
+{
+  // Sequence kinds do not exist internally, so we must convert their internal
+  // (string) versions back to sequence. All operators where this is
+  // necessary are such that their first child is of sequence type, which
+  // we check here.
+  if (getNumChildren() > 0 && (*this)[0].getSort().isSequence())
+  {
+    switch (d_expr->getKind())
+    {
+      case CVC4::Kind::STRING_CONCAT: return SEQ_CONCAT;
+      case CVC4::Kind::STRING_LENGTH: return SEQ_LENGTH;
+      case CVC4::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
+      case CVC4::Kind::STRING_CHARAT: return SEQ_AT;
+      case CVC4::Kind::STRING_STRCTN: return SEQ_CONTAINS;
+      case CVC4::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
+      case CVC4::Kind::STRING_STRREPL: return SEQ_REPLACE;
+      case CVC4::Kind::STRING_STRREPLALL: return SEQ_REPLACE_ALL;
+      case CVC4::Kind::STRING_REV: return SEQ_REV;
+      case CVC4::Kind::STRING_PREFIX: return SEQ_PREFIX;
+      case CVC4::Kind::STRING_SUFFIX: return SEQ_SUFFIX;
+      default:
+        // fall through to conversion below
+        break;
+    }
+  }
+
+  return intToExtKind(d_expr->getKind());
+}
+
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
@@ -1415,7 +1472,7 @@ uint64_t Term::getId() const
 Kind Term::getKind() const
 {
   CVC4_API_CHECK_NOT_NULL;
-  return intToExtKind(d_expr->getKind());
+  return getKindHelper();
 }
 
 Sort Term::getSort() const
@@ -1484,10 +1541,9 @@ Op Term::getOp() const
     CVC4::Expr op = d_expr->getOperator();
     return Op(d_solver, intToExtKind(d_expr->getKind()), op);
   }
-  else
-  {
-    return Op(d_solver, intToExtKind(d_expr->getKind()));
-  }
+  // Notice this is the only case where getKindHelper is used, since the
+  // cases above do have special cases for intToExtKind.
+  return Op(d_solver, getKindHelper());
 }
 
 bool Term::isNull() const { return isNullHelper(); }
@@ -1505,6 +1561,22 @@ Term Term::getConstArrayBase() const
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::STORE_ALL)
       << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
   return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getExpr());
+}
+
+std::vector<Term> Term::getConstSequenceElements() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::CONST_SEQUENCE)
+      << "Expecting a CONST_SEQUENCE Term when calling "
+         "getConstSequenceElements()";
+  const std::vector<Node>& elems =
+      d_expr->getConst<ExprSequence>().getSequence().getVec();
+  std::vector<Term> terms;
+  for (const Node& t : elems)
+  {
+    terms.push_back(Term(d_solver, t.toExpr()));
+  }
+  return terms;
 }
 
 Term Term::notTerm() const
@@ -2598,12 +2670,11 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  Options* o = opts == nullptr ? new Options() : opts;
-  d_exprMgr.reset(new ExprManager(*o));
-  d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
+  d_exprMgr.reset(new ExprManager);
+  d_smtEngine.reset(new SmtEngine(d_exprMgr.get(), opts));
   d_smtEngine->setSolver(this);
-  d_rng.reset(new Random((*o)[options::seed]));
-  if (opts == nullptr) delete o;
+  Options& o = d_smtEngine->getOptions();
+  d_rng.reset(new Random(o[options::seed]));
 }
 
 Solver::~Solver() {}
@@ -3108,6 +3179,18 @@ Sort Solver::mkSetSort(Sort elemSort) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
+Sort Solver::mkSequenceSort(Sort elemSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+      << "non-null element sort";
+  CVC4_API_SOLVER_CHECK_SORT(elemSort);
+
+  return Sort(this, d_exprMgr->mkSequenceType(*elemSort.d_type));
+
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3347,6 +3430,19 @@ Term Solver::mkChar(const char* s) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
   return mkCharFromStrHelper(std::string(s));
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+Term Solver::mkEmptySequence(Sort sort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+  CVC4_API_SOLVER_CHECK_SORT(sort);
+
+  std::vector<Expr> seq;
+  Expr res = d_exprMgr->mkConst(ExprSequence(*sort.d_type, seq));
+  return Term(this, res);
+
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -4051,7 +4147,7 @@ Result Solver::checkEntailed(Term term) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC4_API_ARG_CHECK_NOT_NULL(term);
@@ -4068,7 +4164,7 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   for (const Term& term : terms)
@@ -4107,7 +4203,7 @@ Result Solver::checkSat(void) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC4::Result r = d_smtEngine->checkSat();
@@ -4123,7 +4219,7 @@ Result Solver::checkSatAssuming(Term assumption) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade()
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   CVC4_API_SOLVER_CHECK_TERM(assumption);
@@ -4140,7 +4236,7 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_CHECK(!d_smtEngine->isQueryMade() || assumptions.size() == 0
-                 || CVC4::options::incrementalSolving())
+                 || d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot make multiple queries unless incremental solving is enabled "
          "(try --incremental)";
   for (const Term& term : assumptions)
@@ -4544,7 +4640,7 @@ std::vector<std::pair<Term, Term>> Solver::getAssignment(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceAssignments())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceAssignments])
       << "Cannot get assignment unless assignment generation is enabled "
          "(try --produce-assignments)";
   std::vector<std::pair<Expr, Expr>> assignment = d_smtEngine->getAssignment();
@@ -4588,10 +4684,10 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::incrementalSolving())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot get unsat assumptions unless incremental solving is enabled "
          "(try --incremental)";
-  CVC4_API_CHECK(CVC4::options::unsatAssumptions())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatAssumptions])
       << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --produce-unsat-assumptions)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4618,7 +4714,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::unsatCores())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4655,7 +4751,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4682,7 +4778,7 @@ Term Solver::getSeparationHeap() const
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4707,7 +4803,7 @@ Term Solver::getSeparationNilTerm() const
       << "Cannot obtain separation logic expressions if not using the "
          "separation logic theory.";
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4731,7 +4827,7 @@ void Solver::pop(uint32_t nscopes) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::incrementalSolving())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot pop when not solving incrementally (use --incremental)";
   CVC4_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
       << "Cannot pop beyond first pushed context";
@@ -4773,7 +4869,7 @@ void Solver::printModel(std::ostream& out) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::produceModels())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
   CVC4_API_CHECK(d_smtEngine->getSmtMode()
@@ -4790,7 +4886,7 @@ void Solver::push(uint32_t nscopes) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  CVC4_API_CHECK(CVC4::options::incrementalSolving())
+  CVC4_API_CHECK(d_smtEngine->getOptions()[options::incrementalSolving])
       << "Cannot push when not solving incrementally (use --incremental)";
 
   for (uint32_t n = 0; n < nscopes; ++n)
@@ -5187,6 +5283,12 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
+
+/**
+ * !!! This is only temporarily available until the parser is fully migrated to
+ * the new API. !!!
+ */
+Options& Solver::getOptions(void) { return d_smtEngine->getOptions(); }
 
 /* -------------------------------------------------------------------------- */
 /* Conversions                                                                */
