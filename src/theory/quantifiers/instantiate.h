@@ -328,7 +328,7 @@ class Instantiate : public QuantifiersUtil
   bool printInstantiationsList(std::ostream& out);
   /** print instantiations in num format */
   bool printInstantiationsNum(std::ostream& out);
-  /** 
+  /**
    * Print quantified formula q on output out. If isFull is false, then we print
    * the identifier of the quantified formula if it has one, or print
    * nothing and return false otherwise.

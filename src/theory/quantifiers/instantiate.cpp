@@ -464,11 +464,11 @@ Node Instantiate::getTermForType(TypeNode tn)
 
 bool Instantiate::printInstantiations(std::ostream& out)
 {
-  if (options::printInstMode()==options::PrintInstMode::NUM)
+  if (options::printInstMode() == options::PrintInstMode::NUM)
   {
     return printInstantiationsNum(out);
   }
-  Assert (options::printInstMode()==options::PrintInstMode::LIST);
+  Assert(options::printInstMode() == options::PrintInstMode::LIST);
   return printInstantiationsList(out);
 }
 

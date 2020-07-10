@@ -199,7 +199,7 @@ public:
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
   /** get quant name, which is used for :qid */
-  Node getQuantName( Node q ) const;
+  Node getQuantName(Node q) const;
   /** get (internal) quant id num */
   int getQuantIdNum( Node q );
   /** get (internal)quant id num */
