@@ -647,7 +647,7 @@ print_config("drat2er                   :" USE_DRAT2ER)
 print_config("GLPK                      :" USE_GLPK)
 print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
-print_config("libpoly                   :" USE_POLY)
+print_config("LibPoly                   :" USE_POLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")
