@@ -521,9 +521,9 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
   for (const std::pair<const Node, uint32_t>& inst : d_total_inst_debug)
   {
     std::stringstream ss;
-    if (printQuant(ss, isFull))
+    if (printQuant(inst.first, ss, isFull))
     {
-      out << "(" << ss.str() << " " << inst->second << ")" << std::endl;
+      out << "(" << ss.str() << " " << inst.second << ")" << std::endl;
     }
   }
   out << ")";
@@ -538,7 +538,7 @@ bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
     return true;
   }
   quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
-  Node id = qa.getQuantIdNumNode(q);
+  Node id = qa->getQuantIdNumNode(q);
   if (id.isNull())
   {
     return false;
