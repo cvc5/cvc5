@@ -300,8 +300,9 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // make a separate smt call
-  SmtEngine rrSygus(nm->toExprManager());
-  rrSygus.setLogic(smt::currentSmtEngine()->getLogicInfo());
+  SmtEngine* currSmt = smt::currentSmtEngine();
+  SmtEngine rrSygus(nm->toExprManager(), &currSmt->getOptions());
+  rrSygus.setLogic(currSmt->getLogicInfo());
   rrSygus.assertFormula(body.toExpr());
   Trace("sygus-infer") << "*** Check sat..." << std::endl;
   Result r = rrSygus.checkSat();

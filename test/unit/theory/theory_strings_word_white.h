@@ -37,8 +37,8 @@ class TheoryStringsWordWhite : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager(opts);
-    d_smt = new SmtEngine(d_em);
+    d_em = new ExprManager;
+    d_smt = new SmtEngine(d_em, &opts);
     d_scope = new SmtScope(d_smt);
 
     d_nm = NodeManager::currentNM();

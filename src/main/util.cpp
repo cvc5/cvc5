@@ -70,7 +70,7 @@ size_t cvc4StackSize;
 void* cvc4StackBase;
 #endif /* HAVE_SIGALTSTACK */
 
-/** Handler for SIGXCPU, i.e., timeout. */
+/** Handler for SIGXCPU and SIGALRM, i.e., timeout. */
 void timeout_handler(int sig, siginfo_t* info, void*) {
   safe_print(STDERR_FILENO, "CVC4 interrupted by timeout.\n");
   print_statistics();
@@ -296,6 +296,14 @@ void cvc4_init()
   sigemptyset(&act2.sa_mask);
   if(sigaction(SIGXCPU, &act2, NULL)) {
     throw Exception(string("sigaction(SIGXCPU) failure: ") + strerror(errno));
+  }
+
+  struct sigaction act2b;
+  act2b.sa_sigaction = timeout_handler;
+  act2b.sa_flags = SA_SIGINFO;
+  sigemptyset(&act2b.sa_mask);
+  if(sigaction(SIGALRM, &act2b, NULL)) {
+    throw Exception(string("sigaction(SIGALRM) failure: ") + strerror(errno));
   }
 
   struct sigaction act3;
