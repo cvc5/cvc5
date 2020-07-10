@@ -47,6 +47,10 @@ typedef expr::Attribute<ContainsUConstAttributeId, uint64_t> ContainsUConstAttri
 struct QuantInstLevelAttributeId {};
 typedef expr::Attribute<QuantInstLevelAttributeId, uint64_t> QuantInstLevelAttribute;
 
+/** Attribute for id number */
+struct QuantIdNumAttributeId {};
+typedef expr::Attribute< QuantIdNumAttributeId, uint64_t > QuantIdNumAttribute;
+
 class QuantifiersEngine;
 
 namespace inst{
