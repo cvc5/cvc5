@@ -136,7 +136,6 @@ std::string Configuration::copyright() {
      << "\n\n";
 
   if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
-      || Configuration::isBuiltWithPoly()
       || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
       || Configuration::isBuiltWithKissat()
@@ -152,11 +151,6 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithLfsc()) {
       ss << "  LFSC Proof Checker\n"
          << "  See http://github.com/CVC4/LFSC for copyright and\n"
-         << "  licensing information.\n\n";
-    }
-    if (Configuration::isBuiltWithPoly()) {
-      ss << "  libpoly polynomial library\n"
-         << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
          << "  licensing information.\n\n";
     }
     if (Configuration::isBuiltWithCadical())
@@ -185,7 +179,7 @@ std::string Configuration::copyright() {
     }
   }
 
-  if (Configuration::isBuiltWithGmp())
+  if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
   {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
@@ -193,6 +187,11 @@ std::string Configuration::copyright() {
     if (Configuration::isBuiltWithGmp()) {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
+    }
+    if (Configuration::isBuiltWithPoly()) {
+      ss << "  libpoly polynomial library\n"
+         << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
+         << "  licensing information.\n\n";
     }
   }
 
