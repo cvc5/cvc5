@@ -127,11 +127,11 @@ PRs future:
 (58) DSL rewrite rule proof generator (req 57)
 (63) proof post-processor (req 59, 66)
 (67) AssertionsPipeline update (req 66)
-
+(68) SAT solver proof producing [Haniel]
+(69) Initial dumping infrastructure [Haniel]
 
 PRs wish list:
 
-- SAT solver proof producing
 - SEXPR simply typed
 (56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?
