@@ -35,6 +35,7 @@ class SortBlack : public CxxTest::TestSuite
   void testGetArrayIndexSort();
   void testGetArrayElementSort();
   void testGetSetElementSort();
+  void testGetSequenceElementSort();
   void testGetUninterpretedSortName();
   void testIsUninterpretedSortParameterized();
   void testGetUninterpretedSortParamSorts();
@@ -194,6 +195,16 @@ void SortBlack::testGetSetElementSort()
   TS_ASSERT_THROWS_NOTHING(setSort.getSetElementSort());
   Sort bvSort = d_solver.mkBitVectorSort(32);
   TS_ASSERT_THROWS(bvSort.getSetElementSort(), CVC4ApiException&);
+}
+
+void SortBlack::testGetSequenceElementSort()
+{
+  Sort seqSort = d_solver.mkSequenceSort(d_solver.getIntegerSort());
+  TS_ASSERT(seqSort.isSequence());
+  TS_ASSERT_THROWS_NOTHING(seqSort.getSequenceElementSort());
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  TS_ASSERT(!bvSort.isSequence());
+  TS_ASSERT_THROWS(bvSort.getSequenceElementSort(), CVC4ApiException&);
 }
 
 void SortBlack::testGetUninterpretedSortName()

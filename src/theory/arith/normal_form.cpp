@@ -71,6 +71,12 @@ bool Variable::isLeafMember(Node n){
 
 VarList::VarList(Node n) : NodeWrapper(n) { Assert(isSorted(begin(), end())); }
 
+bool Variable::isIAndMember(Node n)
+{
+  return n.getKind() == kind::IAND && Polynomial::isMember(n[0])
+         && Polynomial::isMember(n[1]);
+}
+
 bool Variable::isDivMember(Node n){
   switch(n.getKind()){
   case kind::DIVISION:

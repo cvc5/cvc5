@@ -2,7 +2,7 @@
 ; LRAT format detailed in "Efficient Certified RAT Verification"
 ; Link: https://www.cs.utexas.edu/~marijn/publications/lrat.pdf
 ; Author: aozdemir
-; Depends On: sat.plf, smt.plf
+; Deps: sat.plf smt.plf
 
 
 ; A general note about the design of the side conditions:
