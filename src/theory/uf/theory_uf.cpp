@@ -358,8 +358,6 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: begin presolve()" << endl;
   if(options::ufSymmetryBreaker()) {
     vector<Node> newClauses;
-    // would need to make this proof producing, which is not supposed to be
-    // something easy...
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();

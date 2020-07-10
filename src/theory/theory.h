@@ -599,11 +599,10 @@ class Theory {
    * Given an atom of the theory coming from the input formula, this
    * method can be overridden in a theory implementation to rewrite
    * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine. The result of the method is
-   * wrapped in a TrustNode of kind TrustNodeKind::REWRITE, which carries
-   * information about the proof generator for the rewrite. Similarly to
-   * expandDefinition, this method may return the null TrustNode if atom
-   * is unchanged.
+   * before an input atom to the engine. This method returns a TrustNode of
+   * kind TrustNodeKind::REWRITE, which carries information about the proof
+   * generator for the rewrite. Similarly to expandDefinition, this method may
+   * return the null TrustNode if atom is unchanged.
    */
   virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
