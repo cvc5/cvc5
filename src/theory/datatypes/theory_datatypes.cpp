@@ -584,7 +584,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
       }
     }
   }
-  Node n_ret;
+  Node ret;
   switch (n.getKind())
   {
     case kind::APPLY_SELECTOR:
@@ -610,7 +610,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
       Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
       if (options::dtRewriteErrorSel())
       {
-        n_ret = sel;
+        ret = sel;
       }
       else
       {
@@ -619,22 +619,21 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
         tst = Rewriter::rewrite(tst);
         if (tst == d_true)
         {
-          n_ret = sel;
+          ret = sel;
         }else{
           mkExpDefSkolem(selector, ndt, n.getType());
           Node sk =
               nm->mkNode(kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
           if (tst == nm->mkConst(false))
           {
-            n_ret = sk;
+            ret = sk;
           }
           else
           {
-            n_ret = nm->mkNode(kind::ITE, tst, sel, sk);
+            ret = nm->mkNode(kind::ITE, tst, sel, sk);
           }
         }
-        // n_ret = Rewriter::rewrite( n_ret );
-        Trace("dt-expand") << "Expand def : " << n << " to " << n_ret
+        Trace("dt-expand") << "Expand def : " << n << " to " << ret
                            << std::endl;
       }
     }
@@ -681,15 +680,15 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
                           << b[b.getNumChildren() - 1] << std::endl;
         }
       }
-      n_ret = b;
-      Debug("tuprec") << "return " << n_ret << std::endl;
+      ret = b;
+      Debug("tuprec") << "return " << ret << std::endl;
     }
     break;
     default: break;
   }
-  if (!n_ret.isNull())
+  if (!ret.isNull() && n!=ret)
   {
-    return TrustNode::mkTrustRewrite(n, n_ret, nullptr);
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }
   return TrustNode::null();
 }
