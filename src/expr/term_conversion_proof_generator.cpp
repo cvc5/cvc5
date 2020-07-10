@@ -44,7 +44,6 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
   if (!eq.isNull())
   {
     d_proof.addLazyStep(eq, pg);
-    d_rewriteMap[t] = s;
   }
 }
 
@@ -54,7 +53,6 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
   if (!eq.isNull())
   {
     d_proof.addStep(eq, ps);
-    d_rewriteMap[t] = s;
   }
 }
 
@@ -68,7 +66,6 @@ void TConvProofGenerator::addRewriteStep(Node t,
   if (!eq.isNull())
   {
     d_proof.addStep(eq, id, children, args);
-    d_rewriteMap[t] = s;
   }
 }
 
@@ -89,6 +86,7 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s)
     Assert(getRewriteStep(t) == s);
     return Node::null();
   }
+  d_rewriteMap[t] = s;
   return t.eqNode(s);
 }
 
