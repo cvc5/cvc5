@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/model_engine.h"
