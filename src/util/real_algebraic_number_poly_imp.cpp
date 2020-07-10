@@ -26,7 +26,7 @@
 #include <limits>
 
 #include "base/check.h"
-#include "poly_util.h"
+#include "util/poly_util.h"
 
 namespace CVC4 {
 
