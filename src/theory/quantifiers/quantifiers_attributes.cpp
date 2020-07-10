@@ -311,7 +311,7 @@ Node QuantAttributes::getQuantName( Node q ) const
       return it->second.d_name;
     }
   }
-  return -1;
+  return Node::null();
 }
 
 int QuantAttributes::getQuantIdNum( Node q ) {

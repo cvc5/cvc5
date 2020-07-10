@@ -1898,15 +1898,13 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
-  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) str[attr, false]
+  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
     {
-      api::Term avar = SOLVER->mkVar(attr, boolType);
+      api::Sort boolType = SOLVER->getBooleanSort();
+      api::Term avar = SOLVER->mkVar(boolType, sexpr.toString());
       attr = std::string(":qid");
-      std::vector<api::Term> values;
-      values.push_back(n);
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
-      Command* c = new SetUserAttributeCommand(
-          "qid", avar.getExpr(), api::termVectorToExprs(values));
+      Command* c = new SetUserAttributeCommand("qid", avar.getExpr());
     }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
