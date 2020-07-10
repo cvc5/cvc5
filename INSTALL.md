@@ -131,7 +131,7 @@ Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 
 ### LibPoly (Optional polynomial library)
 
-[libpoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based nonlinear reasoning.
+[LibPoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based nonlinear reasoning.
 It can be installed using the `contrib/get-poly` script.
 Configure CVC4 with `configure.sh --poly` to build with this dependency.
 
@@ -323,4 +323,3 @@ are configured to **run** in parallel with the maximum number of threads
 available on the system. Override with `ARGS=-jN`.
 
 Use `-jN` for parallel **building** with `N` threads.
-
