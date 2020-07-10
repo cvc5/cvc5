@@ -32,6 +32,7 @@
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
+#include "main/time_limit.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -97,6 +98,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
+
+  install_time_limit(opts);
 
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;
@@ -193,8 +196,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     ReferenceStat<std::string> s_statFilename("filename", filenameStr);
     RegisterStatistic statFilenameReg(&pExecutor->getStatisticsRegistry(),
                                       &s_statFilename);
-    // set filename in smt engine
-    pExecutor->getSmtEngine()->setFilename(filenameStr);
+    // notify SmtEngine that we are starting to parse
+    pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
     // Parse and execute commands until we are done
     Command* cmd;

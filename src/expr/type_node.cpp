@@ -575,7 +575,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::TESTER_TYPE:
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::PARAMETRIC_DATATYPE:
+    case kind::SEQUENCE_TYPE: return TypeNode();
     case kind::SET_TYPE:
     {
       // take the least common subtype of element types

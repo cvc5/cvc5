@@ -136,7 +136,7 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
             }
             Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
             Node cong_lemma = nm->mkNode(OR, expn.negate(), a.eqNode(aa));
-            lems.push_back(cong_lemma);
+            lems.emplace_back(cong_lemma, Inference::CONGRUENCE);
           }
         }
         else
@@ -212,9 +212,9 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     // note we must do preprocess on this lemma
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                           << std::endl;
-    NlLemma nlem(lem);
+    NlLemma nlem(lem, Inference::T_PURIFY_ARG);
     nlem.d_preprocess = true;
-    lems.push_back(nlem);
+    lems.emplace_back(nlem);
   }
 
   if (Trace.isOn("nl-ext-mv"))
@@ -369,7 +369,7 @@ void TranscendentalSolver::getCurrentPiBounds(std::vector<NlLemma>& lemmas)
   Node pi_lem = nm->mkNode(AND,
                            nm->mkNode(GEQ, d_pi, d_pi_bound[0]),
                            nm->mkNode(LEQ, d_pi, d_pi_bound[1]));
-  lemmas.push_back(pi_lem);
+  lemmas.emplace_back(pi_lem, Inference::T_PI_BOUND);
 }
 
 std::vector<NlLemma> TranscendentalSolver::checkTranscendentalInitialRefine()
@@ -454,7 +454,7 @@ std::vector<NlLemma> TranscendentalSolver::checkTranscendentalInitialRefine()
         }
         if (!lem.isNull())
         {
-          lemmas.push_back(lem);
+          lemmas.emplace_back(lem, Inference::T_INIT_REFINE);
         }
       }
     }
@@ -630,7 +630,7 @@ std::vector<NlLemma> TranscendentalSolver::checkTranscendentalMonotonic()
               }
               Trace("nl-ext-tf-mono")
                   << "Monotonicity lemma : " << mono_lem << std::endl;
-              lemmas.push_back(mono_lem);
+              lemmas.emplace_back(mono_lem, Inference::T_MONOTONICITY);
             }
           }
           // store the previous values
@@ -776,6 +776,13 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   bool is_tangent = false;
   bool is_secant = false;
   std::pair<Node, Node> mvb = getTfModelBounds(tf, d);
+  // this is the approximated value of tf(c), which is a value such that:
+  //    M_A(tf(c)) >= poly_appox_c >= tf(c) or
+  //    M_A(tf(c)) <= poly_appox_c <= tf(c)
+  // In other words, it is a better approximation of the true value of tf(c)
+  // in the case that we add a refinement lemma. We use this value in the
+  // refinement schemas below.
+  Node poly_approx_c;
   for (unsigned r = 0; r < 2; r++)
   {
     Node pab = poly_approx_bounds[r][csign];
@@ -792,6 +799,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
       Trace("nl-ext-tftp-debug2") << "...got : " << compr << std::endl;
       if (compr == d_true)
       {
+        poly_approx_c = v_pab;
         // beyond the bounds
         if (r == 0)
         {
@@ -830,17 +838,8 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
   }
 
   // Figure 3: P( c )
-  Node poly_approx_c;
   if (is_tangent || is_secant)
   {
-    Assert(!poly_approx.isNull());
-    std::vector<Node> taylor_subs;
-    taylor_subs.push_back(c);
-    Assert(taylor_vars.size() == taylor_subs.size());
-    poly_approx_c = poly_approx.substitute(taylor_vars.begin(),
-                                           taylor_vars.end(),
-                                           taylor_subs.begin(),
-                                           taylor_subs.end());
     Trace("nl-ext-tftp-debug2")
         << "...poly approximation at c is " << poly_approx_c << std::endl;
   }
@@ -884,7 +883,7 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
         << "*** Tangent plane lemma : " << lem << std::endl;
     Assert(d_model.computeAbstractModelValue(lem) == d_false);
     // Figure 3 : line 9
-    lemmas.push_back(lem);
+    lemmas.emplace_back(lem, Inference::T_TANGENT);
   }
   else if (is_secant)
   {
@@ -1018,11 +1017,11 @@ bool TranscendentalSolver::checkTfTangentPlanesFun(Node tf,
     Assert(!lemmaConj.empty());
     Node lem =
         lemmaConj.size() == 1 ? lemmaConj[0] : nm->mkNode(AND, lemmaConj);
-    NlLemma nlem(lem);
+    NlLemma nlem(lem, Inference::T_SECANT);
     // The side effect says that if lem is added, then we should add the
     // secant point c for (tf,d).
     nlem.d_secantPoint.push_back(std::make_tuple(tf, d, c));
-    lemmas.push_back(nlem);
+    lemmas.emplace_back(nlem);
   }
   return true;
 }
@@ -1450,11 +1449,18 @@ std::pair<Node, Node> TranscendentalSolver::getTfModelBounds(Node tf,
     Node pab = pbounds[index];
     if (!pab.isNull())
     {
-      // { x -> tf[0] }
-      pab = pab.substitute(tfv, tfs);
+      // { x -> M_A(tf[0]) }
+      // Notice that we compute the model value of tfs first, so that
+      // the call to rewrite below does not modify the term, where notice that
+      // rewrite( x*x { x -> M_A(t) } ) = M_A(t)*M_A(t)
+      // is not equal to
+      // M_A( x*x { x -> t } ) = M_A( t*t )
+      // where M_A denotes the abstract model.
+      Node mtfs = d_model.computeAbstractModelValue(tfs);
+      pab = pab.substitute(tfv, mtfs);
       pab = Rewriter::rewrite(pab);
-      Node v_pab = d_model.computeAbstractModelValue(pab);
-      bounds.push_back(v_pab);
+      Assert (pab.isConst());
+      bounds.push_back(pab);
     }
     else
     {

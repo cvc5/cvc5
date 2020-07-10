@@ -179,7 +179,7 @@ void TermRegistry::preRegisterTerm(TNode n)
     ss << "Regular expression variables are not supported.";
     throw LogicException(ss.str());
   }
-  if (tn.isString())
+  if (tn.isString())  // string-only
   {
     // all characters of constants should fall in the alphabet
     if (n.isConst())
