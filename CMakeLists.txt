@@ -164,7 +164,7 @@ set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
-set(POLY_DIR          "" CACHE STRING "Set libpoly install directory")
+set(POLY_DIR          "" CACHE STRING "Set LibPoly install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Prepend binaries with prefix on make install
