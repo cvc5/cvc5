@@ -20,7 +20,7 @@
  ** Utilities for working with LibPoly.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef CVC4__POLY_UTIL_H
 #define CVC4__POLY_UTIL_H
