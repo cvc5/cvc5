@@ -11,7 +11,7 @@
  **
  ** \brief A real algebraic number constant
  **
- ** A real real algebraic number constant.
+ ** A real algebraic number constant.
  **/
 
 // these gestures are used to avoid a public header dependence on cvc4autoconfig.h
