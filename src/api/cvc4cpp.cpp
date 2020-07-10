@@ -98,6 +98,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     /* Arithmetic ---------------------------------------------------------- */
     {PLUS, CVC4::Kind::PLUS},
     {MULT, CVC4::Kind::MULT},
+    {IAND, CVC4::Kind::IAND},
     {MINUS, CVC4::Kind::MINUS},
     {UMINUS, CVC4::Kind::UMINUS},
     {DIVISION, CVC4::Kind::DIVISION},
@@ -348,6 +349,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         /* Arithmetic ------------------------------------------------------ */
         {CVC4::Kind::PLUS, PLUS},
         {CVC4::Kind::MULT, MULT},
+        {CVC4::Kind::IAND, IAND},
         {CVC4::Kind::MINUS, MINUS},
         {CVC4::Kind::UMINUS, UMINUS},
         {CVC4::Kind::DIVISION, DIVISION},
@@ -593,6 +595,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
 const static std::unordered_set<Kind, KindHashFunction> s_indexed_kinds(
     {RECORD_UPDATE,
      DIVISIBLE,
+     IAND,
      BITVECTOR_REPEAT,
      BITVECTOR_ZERO_EXTEND,
      BITVECTOR_SIGN_EXTEND,
@@ -1262,6 +1265,7 @@ uint32_t Op::getIndices() const
       i = d_expr->getConst<BitVectorRotateRight>().d_rotateRightAmount;
       break;
     case INT_TO_BITVECTOR: i = d_expr->getConst<IntToBitVector>().d_size; break;
+    case IAND: i = d_expr->getConst<IntAnd>().d_size; break;
     case FLOATINGPOINT_TO_UBV:
       i = d_expr->getConst<FloatingPointToUBV>().bvs.d_size;
       break;
@@ -4018,6 +4022,11 @@ Op Solver::mkOp(Kind kind, uint32_t arg) const
                kind,
                *mkValHelper<CVC4::IntToBitVector>(CVC4::IntToBitVector(arg))
                     .d_expr.get());
+      break;
+    case IAND:
+      res = Op(this,
+               kind,
+               *mkValHelper<CVC4::IntAnd>(CVC4::IntAnd(arg)).d_expr.get());
       break;
     case FLOATINGPOINT_TO_UBV:
       res = Op(
