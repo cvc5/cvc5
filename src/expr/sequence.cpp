@@ -259,9 +259,9 @@ Sequence Sequence::update(size_t i, const Sequence& t) const
   {
     std::vector<Node> vec;
     vec.insert(vec.begin(), d_seq.begin(), d_seq.begin() + i);
-    size_t remNum = size()-i;
+    size_t remNum = size() - i;
     size_t tnum = t.d_seq.size();
-    if (tnum>=remNum)
+    if (tnum >= remNum)
     {
       vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.begin() + remNum);
     }

@@ -2382,8 +2382,8 @@ enum CVC4_PUBLIC Kind : int32_t
   /**
    * Sequence element at.
    * Returns the element at index i from a sequence s. If the index is negative
-   * or the index is greater or equal to the length of the sequence, the result is the
-   * empty sequence. Otherwise the result is a sequence of length 1.
+   * or the index is greater or equal to the length of the sequence, the result
+   * is the empty sequence. Otherwise the result is a sequence of length 1.
    * Parameters: 2
    *   -[1]: Term of sequence sort (string s)
    *   -[2]: Term of sort Integer (index i)
@@ -2419,8 +2419,9 @@ enum CVC4_PUBLIC Kind : int32_t
   SEQ_INDEXOF,
   /**
    * Sequence replace.
-   * Replaces the first occurrence of a sequence s2 in a sequence s1 with sequence s3. If s2 does not
-   * appear in s1, s1 is returned unmodified. Parameters: 3
+   * Replaces the first occurrence of a sequence s2 in a sequence s1 with
+   * sequence s3. If s2 does not appear in s1, s1 is returned unmodified.
+   * Parameters: 3
    *   -[1]: Term of sort Sequence (sequence s1)
    *   -[2]: Term of sort Sequence (sequence s2)
    *   -[3]: Term of sort Sequence (sequence s3)
