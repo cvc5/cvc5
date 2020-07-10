@@ -37,7 +37,7 @@ namespace CVC4 {
  * This representation can hold rationals (where the interval can be a point
  * interval and the polynomial is omitted), an irrational algebraic number (like
  * square roots), but no trancendentals (like pi).
- * Note that the interval representation used dyadic rationals (denominators are
+ * Note that the interval representation uses dyadic rationals (denominators are
  * only powers of two).
  */
 class CVC4_PUBLIC RealAlgebraicNumber
