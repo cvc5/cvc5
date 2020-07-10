@@ -541,7 +541,8 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
     std::stringstream ss;
     if (printQuant((*it).first, ss, isFull))
     {
-      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")" << std::endl;
+      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
+          << std::endl;
     }
   }
   return true;
