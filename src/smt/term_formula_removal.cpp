@@ -201,7 +201,7 @@ Node RemoveTermFormulas::run(TNode node,
         // of the witness operator holds for the Skolem
         newAssertion = node[1].substitute(node[0][0], skolem);
 
-        // Get the proof generator if one exists, which was responsible for
+        // Get the proof generator, if one exists, which was responsible for
         // constructing this witness term. This may not exist, in which case
         // the witness term was trivial to justify. This is the case e.g. for
         // purification witness terms.
