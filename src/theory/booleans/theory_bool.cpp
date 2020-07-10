@@ -26,6 +26,7 @@
 #include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
+#include "expr/proof_node_manager.h"
 
 using namespace std;
 

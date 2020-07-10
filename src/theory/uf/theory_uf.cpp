@@ -32,6 +32,7 @@
 #include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "expr/proof_node_manager.h"
 
 using namespace std;
 
