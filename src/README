@@ -128,6 +128,7 @@ PRs future:
 (63) SMT engine proof post-processor (req 59, 66)
 (67) AssertionsPipeline update (req 66)
 (68) SAT solver proof producing [Haniel]
+(69) Initial dumping infrastructure [Haniel]
 
 PRs wish list:
 
