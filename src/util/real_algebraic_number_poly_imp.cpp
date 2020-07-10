@@ -21,9 +21,9 @@
 #error "This source should only ever be built if CVC4_POLY_IMP is on!"
 #endif /* CVC4_POLY_IMP */
 
-#include <limits>
-
 #include <poly/polyxx.h>
+
+#include <limits>
 
 #include "base/check.h"
 #include "poly_util.h"
@@ -56,12 +56,19 @@ RealAlgebraicNumber::RealAlgebraicNumber(const Rational& r)
   }
 }
 
-RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients, long lower, long upper)
+RealAlgebraicNumber::RealAlgebraicNumber(const std::vector<long>& coefficients,
+                                         long lower,
+                                         long upper)
 {
-  for (long c: coefficients) {
-    Assert(std::numeric_limits<std::int32_t>::min() <= c && c <= std::numeric_limits<std::int32_t>::max()) << "Coefficients need to fit within 32 bit integers. Please use the constructor based on Integer instead.";
+  for (long c : coefficients)
+  {
+    Assert(std::numeric_limits<std::int32_t>::min() <= c
+           && c <= std::numeric_limits<std::int32_t>::max())
+        << "Coefficients need to fit within 32 bit integers. Please use the "
+           "constructor based on Integer instead.";
   }
-  d_value = poly::AlgebraicNumber(poly::UPolynomial(coefficients), poly::DyadicInterval(lower, upper));
+  d_value = poly::AlgebraicNumber(poly::UPolynomial(coefficients),
+                                  poly::DyadicInterval(lower, upper));
 }
 
 RealAlgebraicNumber::RealAlgebraicNumber(
