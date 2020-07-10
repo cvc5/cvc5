@@ -52,7 +52,7 @@ class TheoryArith : public Theory {
               OutputChannel& out,
               Valuation valuation,
               const LogicInfo& logicInfo,
-              ProofChecker* pc = nullptr);
+              ProofNodeManager* pnm = nullptr);
   virtual ~TheoryArith();
 
   TheoryRewriter* getTheoryRewriter() override;

@@ -119,8 +119,8 @@ class FakeTheory : public Theory
              OutputChannel& out,
              Valuation valuation,
              const LogicInfo& logicInfo,
-             ProofChecker* pc)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pc)
+             ProofNodeManager* pnm)
+      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {
   }
 

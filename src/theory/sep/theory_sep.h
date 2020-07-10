@@ -71,7 +71,7 @@ class TheorySep : public Theory {
             OutputChannel& out,
             Valuation valuation,
             const LogicInfo& logicInfo,
-            ProofChecker* pc = nullptr);
+            ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }

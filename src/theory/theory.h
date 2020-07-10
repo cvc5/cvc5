@@ -50,7 +50,7 @@
 namespace CVC4 {
 
 class TheoryEngine;
-class ProofChecker;
+class ProofNodeManager;
 
 namespace theory {
 
@@ -107,8 +107,8 @@ class Theory {
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
-  /** Pointer to proof checker */
-  ProofChecker* d_pchecker;
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
 
   /**
    * The assertFact() queue.
@@ -204,7 +204,7 @@ class Theory {
          OutputChannel& out,
          Valuation valuation,
          const LogicInfo& logicInfo,
-         ProofChecker* pc,
+         ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
 
   /**

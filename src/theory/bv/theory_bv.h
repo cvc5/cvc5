@@ -71,7 +71,7 @@ class TheoryBV : public Theory {
            OutputChannel& out,
            Valuation valuation,
            const LogicInfo& logicInfo,
-           ProofChecker* pc = nullptr,
+           ProofNodeManager * pnm = nullptr,
            std::string name = "");
 
   ~TheoryBV();

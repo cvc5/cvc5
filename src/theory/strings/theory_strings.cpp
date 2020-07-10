@@ -39,8 +39,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              OutputChannel& out,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
-                             ProofChecker* pc)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pc),
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pnm),
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),

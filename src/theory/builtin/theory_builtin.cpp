@@ -32,9 +32,10 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              OutputChannel& out,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
-                             ProofChecker* pc)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pc)
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
 {
+  ProofChecker * pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add checkers

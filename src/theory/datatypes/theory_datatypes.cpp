@@ -46,8 +46,8 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
                                  OutputChannel& out,
                                  Valuation valuation,
                                  const LogicInfo& logicInfo,
-                                 ProofChecker* pc)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pc),
+                                 ProofNodeManager * pnm)
+    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
       d_infer(c),
       d_infer_exp(c),
       d_term_sk(u),

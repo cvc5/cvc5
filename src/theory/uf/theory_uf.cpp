@@ -45,9 +45,9 @@ TheoryUF::TheoryUF(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
-                   ProofChecker* pc,
+                   ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pc, instanceName),
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
@@ -63,6 +63,7 @@ TheoryUF::TheoryUF(context::Context* c,
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
 
+  ProofChecker * pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     d_ufProofChecker.registerTo(pc);

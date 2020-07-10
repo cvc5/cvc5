@@ -189,7 +189,7 @@ private:
            OutputChannel& out,
            Valuation valuation,
            const LogicInfo& logicInfo,
-           ProofChecker* pc = nullptr,
+           ProofNodeManager* pnm = nullptr,
            std::string instanceName = "");
 
   ~TheoryUF();

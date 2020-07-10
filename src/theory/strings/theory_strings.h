@@ -66,7 +66,7 @@ class TheoryStrings : public Theory {
                 OutputChannel& out,
                 Valuation valuation,
                 const LogicInfo& logicInfo,
-                ProofChecker* pc);
+                ProofNodeManager* pnm);
   ~TheoryStrings();
   /** finish initialization */
   void finishInit() override;
