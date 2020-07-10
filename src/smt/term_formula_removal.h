@@ -191,7 +191,7 @@ class RemoveTermFormulas {
            bool inQuant,
            bool inTerm);
 
-  /** Proofs enabled */
+  /** Whether proofs are enabled */
   bool isProofEnabled() const;
 };/* class RemoveTTE */
 
