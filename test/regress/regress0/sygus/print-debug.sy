@@ -1,0 +1,12 @@
+; COMMAND-LINE: --print-debug-sygus
+; EXPECT: (sygus-enum 0)
+; EXPECT: (sygus-candidate (f 0))
+; EXPECT: unsat
+; EXPECT: (define-fun f () Int 0)
+(set-logic LIA)
+
+(synth-fun f () Int ((Start Int)) ((Start Int (0))))
+
+(constraint (= f 0)
+
+(check-synth)
