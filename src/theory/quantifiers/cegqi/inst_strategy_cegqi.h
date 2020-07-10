@@ -201,8 +201,6 @@ class InstStrategyCegqi : public QuantifiersModule
   /** map from universal quantifiers to their counterexample literals */
   std::map<Node, Node> d_ce_lit;
 
-  //for identification
-  uint64_t d_qid_count;
   //nested qe map
   std::map< Node, Node > d_nested_qe;
   //mark ids on quantifiers 

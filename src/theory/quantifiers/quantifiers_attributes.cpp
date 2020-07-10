@@ -30,7 +30,7 @@ namespace quantifiers {
 
 bool QAttributes::isStandard() const
 {
-  return !d_sygus && !d_quant_elim && !isFunDef() && d_name.isNull();
+  return !d_sygus && !d_quant_elim && !isFunDef();
 }
 
 QuantAttributes::QuantAttributes( QuantifiersEngine * qe ) : 

@@ -62,7 +62,6 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
 {
-  d_qid_count = 0;
   d_small_const =
       NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000));
   d_check_vts_lemma_lc = false;
@@ -367,8 +366,8 @@ Node InstStrategyCegqi::getIdMarkedQuantNode(Node n,
         rc.push_back( getIdMarkedQuantNode( n[1], visited ) );
         Node avar = NodeManager::currentNM()->mkSkolem( "id", NodeManager::currentNM()->booleanType() );
         QuantIdNumAttribute ida;
-        avar.setAttribute(ida,d_qid_count);
-        d_qid_count++;
+        // it is its own identifier
+        avar.setAttribute(ida,avar);
         std::vector< Node > iplc;
         iplc.push_back( NodeManager::currentNM()->mkNode( INST_ATTRIBUTE, avar ) );
         if( n.getNumChildren()==3 ){

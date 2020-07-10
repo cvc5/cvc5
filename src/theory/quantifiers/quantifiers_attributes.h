@@ -43,11 +43,9 @@ typedef expr::Attribute< QuantElimPartialAttributeId, bool > QuantElimPartialAtt
 struct SygusAttributeId {};
 typedef expr::Attribute< SygusAttributeId, bool > SygusAttribute;
 
-/**Attribute to give names to quantified formulas */
-struct QuantIdAttributeId
-{
-};
-typedef expr::Attribute<QuantIdAttributeId, Node> QuantIdAttribute;
+/** Attribute for id number */
+struct QuantIdNumAttributeId {};
+typedef expr::Attribute< QuantIdNumAttributeId, Node > QuantIdNumAttribute;
 
 struct InstLevelAttributeId
 {
