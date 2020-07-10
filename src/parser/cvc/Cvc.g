@@ -244,6 +244,7 @@ tokens {
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
   REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
+  SEQ_UNIT_TOK = 'SEQ_UNIT';
 
   SETS_CARD_TOK = 'CARD';
 
@@ -2080,6 +2081,8 @@ stringTerm[CVC4::api::Term& f]
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
+  | SEQ_UNIT_TOK LPAREN formula[f] RPAREN
+    { f = MK_TERM(CVC4::api::SEQ_UNIT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_TERM(CVC4::api::REGEXP_EMPTY, std::vector<api::Term>()); }
   | REGEXP_SIGMA_TOK

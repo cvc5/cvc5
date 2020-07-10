@@ -25,9 +25,11 @@
 #include <vector>
 
 #include "expr/dtype.h"
-#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/expr.h"  // for ExprSetDepth etc..
+#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "expr/sequence.h"
 #include "options/language.h"  // for LANG_AST
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
@@ -163,6 +165,30 @@ void CvcPrinter::toStream(
     case kind::CONST_STRING:
     {
       out << '"' << n.getConst<String>().toString() << '"';
+      break;
+    }
+    case kind::CONST_SEQUENCE:
+    {
+      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.size() > 1)
+      {
+        out << "CONCAT(";
+      }
+      bool first = true;
+      for (const Node& snvc : snvec)
+      {
+        if (!first)
+        {
+          out << ", ";
+        }
+        out << "SEQ_UNIT(" << snvc << ")";
+        first = false;
+      }
+      if (snvec.size() > 1)
+      {
+        out << ")";
+      }
       break;
     }
     case kind::TYPE_CONSTANT:

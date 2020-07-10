@@ -61,8 +61,7 @@ int main()
 
 void testGetInfo(api::Solver* solver, const char* s)
 {
-  ParserBuilder pb(
-      solver, "<internal>", solver->getExprManager()->getOptions());
+  ParserBuilder pb(solver, "<internal>", solver->getOptions());
   Parser* p = pb.withStringInput(string("(get-info ") + s + ")").build();
   assert(p != NULL);
   Command* c = p->nextCommand();
