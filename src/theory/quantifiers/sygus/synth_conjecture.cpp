@@ -551,8 +551,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       Options& sopts = smt::currentSmtEngine()->getOptions();
       std::ostream& out = *sopts.getOut();
       out << "(sygus-candidate ";
-      Assert (d_quant[0].getNumChildren()==candidate_values.size());
-      for (unsigned i=0, ncands=candidate_values.size(); i<ncands; i++)
+      Assert(d_quant[0].getNumChildren() == candidate_values.size());
+      for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
       {
         Node v = candidate_values[i];
         std::stringstream ss;
