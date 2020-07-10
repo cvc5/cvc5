@@ -33,9 +33,19 @@ class CDProof;
 namespace theory {
 namespace eq {
 
+/**
+ * An equality proof.
+ *
+ * This represents the reasoning performed by the Equality Engine to derive
+ * facts, represented in terms of the rules in MergeReasonType. Each proof step
+ * is annotated with the rule id, the conclusion node and a vector of proofs of
+ * the rule's premises.
+ **/
 class EqProof
 {
  public:
+  /** A custom pretty printer used for custom rules being those in
+   * MergeReasonType. */
   class PrettyPrinter
   {
    public:
@@ -44,8 +54,11 @@ class EqProof
   };
 
   EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY) {}
+  /** The proof rule for concluding d_node */
   unsigned d_id;
+  /** The conclusion of this EqProof */
   Node d_node;
+  /** The proofs of the premises for deriving d_node with d_id */
   std::vector<std::shared_ptr<EqProof>> d_children;
   /**
    * Debug print this proof on debug trace c with tabulation tb and pretty
@@ -64,25 +77,26 @@ class EqProof
 
   /** Add to proof
    *
-   * This method adds all of its steps to p via calls to CDProof::addStep.
+   * Converts EqProof into ProofNodes via a series of steps to be stored in p.
    *
-   * This method can be seen as a translation from EqProof to ProofNode. It is
-   * temporary until we update the EqualityEngine to the new proof
-   * infrastructure.
+   * This method can be seen as a temporary solution until the EqualityEngine is
+   * updated to produce ProofNodes directly, if ever.
    *
    * It returns the node that is the conclusion of the proof as added to p.
    */
   Node addToProof(CDProof* p) const;
 
  private:
-  /** as above, but with a cache of previously processed nodes and their results
+  /**
+   * As above, but with a cache of previously processed nodes and their results
    * (for DAG traversal). The caching is in terms of the original conclusions of
-   * EqProof
+   * EqProof.
    */
   Node addToProof(
       CDProof* p,
       std::unordered_map<Node, Node, NodeHashFunction>& visited,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
+
   /** Removes all reflexivity steps, i.e. premises (= t t), from premises
    *
    * Such premisis are spurious for a trastivity steps. The reordering of
