@@ -10,6 +10,9 @@ namespace main {
 
 void install_time_limit(const Options& opts)
 {
+#if defined(__MINGW32__) || defined(__MINGW64__)
+  throw Exception(std::string("Time limits are not yet supported for windows builds."));
+#else
   unsigned long ms = opts.getCumulativeTimeLimit();
   if (ms == 0) return;
 
@@ -26,6 +29,7 @@ void install_time_limit(const Options& opts)
   {
     throw Exception(std::string("timer_settime() failure: ") + strerror(errno));
   }
+#endif
 }
 
 }  // namespace main
