@@ -519,7 +519,9 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
   }
   bool isFull = options::printInstFull();
   out << "(num-instantiations" << std::endl;
-  for (NodeUIntMap::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it)
+  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+       it != d_total_inst_debug.end();
+       ++it)
   {
     std::stringstream ss;
     if (printQuant((*it).first, ss, isFull))
@@ -785,10 +787,12 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (NodeUIntMap::iterator it = d_total_inst_debug.begin(); it != d_total_inst_debug.end(); ++it)
+    for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+         it != d_total_inst_debug.end();
+         ++it)
     {
-      Trace("inst-per-quant") << " * " << (*it).second << " for " << (*it).first
-                              << std::endl;
+      Trace("inst-per-quant")
+          << " * " << (*it).second << " for " << (*it).first << std::endl;
     }
   }
 }

@@ -82,6 +82,7 @@ class InstantiationRewriter
 class Instantiate : public QuantifiersUtil
 {
   typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
+
  public:
   Instantiate(QuantifiersEngine* qe, context::UserContext* u);
   ~Instantiate();
