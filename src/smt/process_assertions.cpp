@@ -222,7 +222,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
   {
     d_passes["bv-to-bool"]->apply(&assertions);
   }
-  if (options::solveBVAsInt() > 0)
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
