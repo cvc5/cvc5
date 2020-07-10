@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "expr/node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -32,7 +33,6 @@
 #include "theory/uf/cardinality_extension.h"
 #include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
-#include "expr/proof_node_manager.h"
 
 using namespace std;
 

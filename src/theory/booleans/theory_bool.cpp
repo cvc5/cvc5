@@ -19,6 +19,7 @@
 #include <stack>
 #include <vector>
 
+#include "expr/proof_node_manager.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/booleans/theory_bool_rewriter.h"
@@ -26,7 +27,6 @@
 #include "theory/theory.h"
 #include "theory/valuation.h"
 #include "util/hash.h"
-#include "expr/proof_node_manager.h"
 
 using namespace std;
 

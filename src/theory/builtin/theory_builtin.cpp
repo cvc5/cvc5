@@ -17,10 +17,10 @@
 #include "theory/builtin/theory_builtin.h"
 
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "expr/proof_node_manager.h"
 
 using namespace std;
 
