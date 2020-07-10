@@ -496,7 +496,7 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
       t.second->print(sout, t.first, useUnsatCore, active_lemmas);
       if (!sout.str().empty())
       {
-        out << "(instantiation " << qout.str() << std::endl;
+        out << "(instantiations " << qout.str() << std::endl;
         out << sout.str();
         out << ")" << std::endl;
         printed = true;
@@ -516,7 +516,7 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
       t.second.print(sout, t.first, useUnsatCore, active_lemmas);
       if (!sout.str().empty())
       {
-        out << "(instantiation " << qout.str() << std::endl;
+        out << "(instantiations " << qout.str() << std::endl;
         out << sout.str();
         out << ")" << std::endl;
         printed = true;
@@ -541,7 +541,7 @@ bool Instantiate::printInstantiationsNum(std::ostream& out)
     std::stringstream ss;
     if (printQuant((*it).first, ss, isFull))
     {
-      out << "(num-instantiation " << ss.str() << " " << (*it).second << ")" << std::endl;
+      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")" << std::endl;
     }
   }
   return true;
