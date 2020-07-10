@@ -825,7 +825,10 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     {
       hasDoubleNeg = true;
       childrenEqs.push_back(children[i].eqNode(children[i][0][0]));
-      p->addStep(childrenEqs.back(), PfRule::MACRO_SR_PRED_INTRO, {}, {childrenEqs.back()});
+      p->addStep(childrenEqs.back(),
+                 PfRule::MACRO_SR_PRED_INTRO,
+                 {},
+                 {childrenEqs.back()});
       // update child
       children[i] = children[i][0][0];
     }

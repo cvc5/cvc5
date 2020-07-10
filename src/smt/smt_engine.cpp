@@ -771,17 +771,19 @@ void SmtEngine::finishInit()
     // the proof post-processor
     d_pfpp.reset(new ProofPostproccess(d_pnm.get(), this));
     // add rules to eliminate here
-    if (options::proofGranularityMode()!=options::ProofGranularityMode::OFF)
+    if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
     {
       d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
       d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
       d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
       d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
-      if (options::proofGranularityMode()!=options::ProofGranularityMode::REWRITE)
+      if (options::proofGranularityMode()
+          != options::ProofGranularityMode::REWRITE)
       {
         d_pfpp->setEliminateRule(PfRule::SUBS);
         d_pfpp->setEliminateRule(PfRule::REWRITE);
-        if (options::proofGranularityMode()!=options::ProofGranularityMode::THEORY_REWRITE)
+        if (options::proofGranularityMode()
+            != options::ProofGranularityMode::THEORY_REWRITE)
         {
           // this eliminates theory rewriting steps into finer-grained DSL rules
           d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);

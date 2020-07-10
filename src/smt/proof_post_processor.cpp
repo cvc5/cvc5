@@ -227,8 +227,9 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     //       (MACRO_SR_EQ_INTRO children[1:] :args <args>)
     //       (SYMM (MACRO_SR_EQ_INTRO children[1:] :args children[0] args[1:]))
     //       (TRUE_INTRO children[0])))
-    
-    // NOTE: currently doesnt work since we don't take into account witness forms
+
+    // NOTE: currently doesnt work since we don't take into account witness
+    // forms
     std::vector<Node> schildren(children.begin() + 1, children.end());
     Node eq1 = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, args, cdp);
     Assert(!eq1.isNull() && eq1.getKind() == EQUAL && eq1[0] == args[0]);
@@ -237,7 +238,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     args2.push_back(children[0]);
     args2.insert(args2.end(), args.begin() + 1, args.end());
     Node eq2 = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, args2, cdp);
-    Assert(!eq2.isNull() && eq2.getKind() == EQUAL && eq2[0] == children[0] && eq2[1]==eq1[1]);
+    Assert(!eq2.isNull() && eq2.getKind() == EQUAL && eq2[0] == children[0]
+           && eq2[1] == eq1[1]);
 
     Node eq3 = children[0].eqNode(d_true);
     cdp->addStep(eq3, PfRule::TRUE_INTRO, {children[0]}, {});
