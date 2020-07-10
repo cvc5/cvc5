@@ -1,3 +1,19 @@
+/*********************                                                        */
+/*! \file real_algebraic_number_black.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Gereon Kremer
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Black box testing of CVC4::RealAlgebraicNumber.
+ **
+ ** Black box testing of CVC4::RealAlgebraicNumber.
+ **/
+
 #include <cxxtest/TestSuite.h>
 
 #include "util/real_algebraic_number.h"
