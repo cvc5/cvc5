@@ -20,5 +20,5 @@ find_package_handle_standard_args(Poly
 
 mark_as_advanced(POLY_INCLUDE_DIR POLY_LIBRARIES)
 if(POLY_LIBRARIES)
-  message(STATUS "Found polylib: ${POLY_LIBRARIES}")
+  message(STATUS "Found LibPoly: ${POLY_LIBRARIES}")
 endif()
