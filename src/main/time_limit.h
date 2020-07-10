@@ -26,9 +26,10 @@ namespace main {
  * Installs an overall wall-clock time limit for the solver binary.
  * It retrieves the time limit and creates a POSIX timer (via setitimer()).
  * This timer signals its expiration with an SIGALRM that is handled by
- * timeout_handler() in util.cpp.
+ * timeout_handler() in signal_handler.cpp.
+ * For windows, we use a timer (via SetWaitableTimer()) that uses
+ * timeout_handler() as callback function.
  */
-
 void install_time_limit(const Options& opts);
 
 }  // namespace main

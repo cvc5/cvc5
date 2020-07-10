@@ -338,15 +338,6 @@ void install()
     throw Exception(string("sigaction(SIGXCPU) failure: ") + strerror(errno));
   }
 
-  struct sigaction act2b;
-  act2b.sa_sigaction = timeout_handler;
-  act2b.sa_flags = SA_SIGINFO;
-  sigemptyset(&act2b.sa_mask);
-  if (sigaction(SIGALRM, &act2b, NULL))
-  {
-    throw Exception(string("sigaction(SIGALRM) failure: ") + strerror(errno));
-  }
-
   struct sigaction act3;
   act3.sa_sigaction = ill_handler;
   act3.sa_flags = SA_SIGINFO;
