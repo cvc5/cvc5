@@ -7,6 +7,6 @@
 
 (synth-fun f () Int ((Start Int)) ((Start Int (0))))
 
-(constraint (= f 0)
+(constraint (= f 0))
 
 (check-synth)
