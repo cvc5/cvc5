@@ -18,7 +18,7 @@
 #include "util/real_algebraic_number.h"
 
 #ifndef CVC4_POLY_IMP  // Make sure this comes after cvc4autoconfig.h
-#error "This source should only ever be built if CVC4_POLY_IMP is on !"
+#error "This source should only ever be built if CVC4_POLY_IMP is on!"
 #endif /* CVC4_POLY_IMP */
 
 #include <poly/polyxx.h>
