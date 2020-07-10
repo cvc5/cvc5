@@ -189,7 +189,7 @@ std::string Configuration::copyright() {
          << "  See http://gmplib.org for copyright information.\n\n";
     }
     if (Configuration::isBuiltWithPoly()) {
-      ss << "  libpoly polynomial library\n"
+      ss << "  LibPoly polynomial library\n"
          << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
          << "  licensing information.\n\n";
     }

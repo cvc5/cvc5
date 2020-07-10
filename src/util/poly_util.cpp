@@ -15,9 +15,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utilities for working with libpoly.
+ ** \brief Utilities for working with LibPoly.
  **
- ** Utilities for working with libpoly.
+ ** Utilities for working with LibPoly.
  **/
 
 #include "poly_util.h"

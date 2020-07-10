@@ -1,4 +1,4 @@
-# Find libpoly
+# Find LibPoly
 # POLY_FOUND - system has LibPoly
 # POLY_INCLUDE_DIR - the LibPoly include directory
 # POLY_LIBRARIES - Libraries needed to use LibPoly
