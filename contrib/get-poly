@@ -15,7 +15,6 @@ cd "$POLY_DIR/build/"
 
 CMAKEFLAGS="\
   -DCMAKE_BUILD_TYPE=Release \
-  -DCMAKE_INSTALL_PREFIX=\"$INSTALL_DIR\" \
   -DLIBPOLY_BUILD_PYTHON_API=OFF \
   -DLIBPOLY_BUILD_STATIC=ON \
   -DLIBPOLY_BUILD_STATIC_PIC=ON \
@@ -23,7 +22,7 @@ CMAKEFLAGS="\
 
 echo "Installing to $INSTALL_DIR"
 
-cmake $CMAKEFLAGS  ../ && make -j${NPROC} install
+cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $CMAKEFLAGS  ../ && make -j${NPROC} install
 
 echo
 echo "Using poly version $version"
