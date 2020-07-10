@@ -771,7 +771,7 @@ void Instantiate::debugPrint()
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::pair<const Node, int>& i : d_temp_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
                                     << std::endl;
@@ -784,7 +784,7 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::pair<const Node, int>& i : d_total_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_total_inst_debug)
     {
       Trace("inst-per-quant") << " * " << i.second << " for " << i.first
                               << std::endl;
