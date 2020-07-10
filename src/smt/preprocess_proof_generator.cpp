@@ -115,6 +115,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   Node fullRewrite = curr.eqNode(f);
   if (transChildren.size() >= 2)
   {
+    std::reverse(transChildren.begin(),transChildren.end());
     cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
   }
   // prove f
