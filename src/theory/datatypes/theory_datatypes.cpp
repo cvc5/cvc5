@@ -686,7 +686,7 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
     break;
     default: break;
   }
-  if (!ret.isNull() && n!=ret)
+  if (!ret.isNull() && n != ret)
   {
     return TrustNode::mkTrustRewrite(n, ret, nullptr);
   }

@@ -231,7 +231,7 @@ TrustNode TheoryBV::expandDefinition(Node node)
   default:
     break;
   }
-  if (!ret.isNull() && node!=ret)
+  if (!ret.isNull() && node != ret)
   {
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
