@@ -8,6 +8,8 @@ New Features:
   syntax for sequences used by Z3.
 * Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
+* Support for an integer operator `(_ iand n)` that returns the bitwise `and`
+  of two integers, seen as integers modulo n.
 
 Improvements:
 * New API: Added functions to retrieve the heap/nil term when using separation

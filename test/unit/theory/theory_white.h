@@ -97,9 +97,14 @@ class DummyTheory : public Theory {
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo)
-      : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
+  DummyTheory(Context* ctxt,
+              UserContext* uctxt,
+              OutputChannel& out,
+              Valuation valuation,
+              const LogicInfo& logicInfo,
+              ProofNodeManager* pnm)
+      : Theory(
+            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {}
 
   TheoryRewriter* getTheoryRewriter() { return nullptr; }
@@ -136,7 +141,7 @@ class DummyTheory : public Theory {
   void presolve() override { Unimplemented(); }
   void preRegisterTerm(TNode n) override {}
   void propagate(Effort level) override {}
-  Node explain(TNode n) override { return Node::null(); }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */
@@ -180,8 +185,12 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(
-        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_dummy = new DummyTheory(d_ctxt,
+                              d_uctxt,
+                              d_outputChannel,
+                              Valuation(NULL),
+                              *d_logicInfo,
+                              nullptr);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);

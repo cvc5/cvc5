@@ -17,6 +17,7 @@
 #include "theory/builtin/theory_builtin.h"
 
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -31,9 +32,16 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo)
+                             const LogicInfo& logicInfo,
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
 {
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_bProofChecker.registerTo(pc);
+  }
 }
 
 std::string TheoryBuiltin::identify() const

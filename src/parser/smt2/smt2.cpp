@@ -639,6 +639,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       defineVar("real.pi", d_solver->mkTerm(api::PI));
       addTranscendentalOperators();
     }
+    if (!strictModeEnabled())
+    {
+      // integer version of AND
+      addIndexedOperator(api::IAND, api::IAND, "iand");
+    }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
