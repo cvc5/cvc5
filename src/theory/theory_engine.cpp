@@ -1818,12 +1818,6 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       explanationVector[j++] = explanationVector[i++];
       continue;
     }
-    if (cache.find(toExplain)!=cache.end())
-    {
-      ++ i;
-      continue;
-    }
-    cache.insert(toExplain);
 
     // If an and, expand it
     if (toExplain.d_node.getKind() == kind::AND)
@@ -1875,7 +1869,12 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         continue;
       }
     }
-
+    if (cache.find(toExplain)!=cache.end())
+    {
+      ++ i;
+      continue;
+    }
+    cache.insert(toExplain);
     // It was produced by the theory, so ask for an explanation
     Node explanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
