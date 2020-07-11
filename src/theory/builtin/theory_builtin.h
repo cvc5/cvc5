@@ -19,6 +19,7 @@
 #ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
 #define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_H
 
+#include "theory/builtin/proof_checker.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory.h"
 
@@ -33,7 +34,8 @@ class TheoryBuiltin : public Theory
                 context::UserContext* u,
                 OutputChannel& out,
                 Valuation valuation,
-                const LogicInfo& logicInfo);
+                const LogicInfo& logicInfo,
+                ProofNodeManager* pnm = nullptr);
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
@@ -45,6 +47,8 @@ class TheoryBuiltin : public Theory
  private:
   /** The theory rewriter for this theory. */
   TheoryBuiltinRewriter d_rewriter;
+  /** Proof rule checker */
+  BuiltinProofRuleChecker d_bProofChecker;
 }; /* class TheoryBuiltin */
 
 }  // namespace builtin

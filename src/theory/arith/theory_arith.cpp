@@ -31,13 +31,17 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
-                         OutputChannel& out, Valuation valuation,
-                         const LogicInfo& logicInfo)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
-    , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
-    , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
-    , d_proofRecorder(nullptr)
+TheoryArith::TheoryArith(context::Context* c,
+                         context::UserContext* u,
+                         OutputChannel& out,
+                         Valuation valuation,
+                         const LogicInfo& logicInfo,
+                         ProofNodeManager* pnm)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
+      d_internal(
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo)),
+      d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
   // if logic is non-linear
@@ -82,9 +86,10 @@ void TheoryArith::finishInit()
   }
 }
 
-Node TheoryArith::expandDefinition(Node node)
+TrustNode TheoryArith::expandDefinition(Node node)
 {
-  return d_internal->expandDefinition(node);
+  Node expNode = d_internal->expandDefinition(node);
+  return TrustNode::mkTrustRewrite(node, expNode, nullptr);
 }
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -95,9 +100,15 @@ void TheoryArith::addSharedTerm(TNode n){
   d_internal->addSharedTerm(n);
 }
 
-Node TheoryArith::ppRewrite(TNode atom) {
+TrustNode TheoryArith::ppRewrite(TNode atom)
+{
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  return d_internal->ppRewrite(atom);
+  Node ret = d_internal->ppRewrite(atom);
+  if (ret != atom)
+  {
+    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -117,8 +128,10 @@ bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-Node TheoryArith::explain(TNode n) {
-  return d_internal->explain(n);
+TrustNode TheoryArith::explain(TNode n)
+{
+  Node exp = d_internal->explain(n);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
