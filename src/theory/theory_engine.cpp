@@ -1786,6 +1786,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
           new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
     }
   });
+  std::unordered_set<NodeTheoryPair, NodeTheoryPairHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1816,6 +1817,12 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       explanationVector[j++] = explanationVector[i++];
       continue;
     }
+    if (cache.find(toExplain)!=cache.end())
+    {
+      ++ i;
+      continue;
+    }
+    cache.insert(toExplain);
 
     // If an and, expand it
     if (toExplain.d_node.getKind() == kind::AND)
