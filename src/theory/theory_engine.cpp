@@ -1869,6 +1869,9 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         continue;
       }
     }
+    // We must cache after checking the timestamp in the block of code above,
+    // because the cache does not take into account the timestamp due to
+    // how == is defined on NodeTheoryPair.
     if (cache.find(toExplain) != cache.end())
     {
       ++i;
