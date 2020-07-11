@@ -139,9 +139,12 @@ class TheoryArrays : public Theory {
   unsigned d_reasonExt;
 
  public:
-
-  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out,
-               Valuation valuation, const LogicInfo& logicInfo,
+  TheoryArrays(context::Context* c,
+               context::UserContext* u,
+               OutputChannel& out,
+               Valuation valuation,
+               const LogicInfo& logicInfo,
+               ProofNodeManager* pnm = nullptr,
                std::string name = "");
   ~TheoryArrays();
 
@@ -151,7 +154,7 @@ class TheoryArrays : public Theory {
 
   std::string identify() const override { return std::string("TheoryArrays"); }
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
@@ -185,7 +188,7 @@ class TheoryArrays : public Theory {
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
@@ -215,7 +218,7 @@ class TheoryArrays : public Theory {
   void preRegisterTerm(TNode n) override;
   void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // SHARING

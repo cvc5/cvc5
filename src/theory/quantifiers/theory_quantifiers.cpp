@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/model_engine.h"
@@ -35,8 +36,13 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo)
+TheoryQuantifiers::TheoryQuantifiers(Context* c,
+                                     context::UserContext* u,
+                                     OutputChannel& out,
+                                     Valuation valuation,
+                                     const LogicInfo& logicInfo,
+                                     ProofNodeManager* pnm)
+    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
@@ -46,6 +52,13 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, Output
   out.handleUserAttribute( "quant-inst-max-level", this );
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add the proof rules
+    d_qChecker.registerTo(pc);
+  }
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
