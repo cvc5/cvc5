@@ -49,8 +49,9 @@ TheoryBV::TheoryBV(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
+                   ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, name),
+    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
       d_context(c),
       d_alreadyPropagatedSet(c),
       d_sharedTermsSet(c),
@@ -194,15 +195,16 @@ void TheoryBV::finishInit()
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
-Node TheoryBV::expandDefinition(Node node)
+TrustNode TheoryBV::expandDefinition(Node node)
 {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
+  Node ret;
   switch (node.getKind()) {
   case kind::BITVECTOR_SDIV:
   case kind::BITVECTOR_SREM:
   case kind::BITVECTOR_SMOD:
-    return TheoryBVRewriter::eliminateBVSDiv(node);
+    ret = TheoryBVRewriter::eliminateBVSDiv(node);
     break;
 
   case kind::BITVECTOR_UDIV:
@@ -212,7 +214,8 @@ Node TheoryBV::expandDefinition(Node node)
 
     if (options::bitvectorDivByZeroConst()) {
       Kind kind = node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UREM_TOTAL;
-      return nm->mkNode(kind, node[0], node[1]);
+      ret = nm->mkNode(kind, node[0], node[1]);
+      break;
     }
 
     TNode num = node[0], den = node[1];
@@ -221,17 +224,18 @@ Node TheoryBV::expandDefinition(Node node)
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    return node;
+    ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
   }
     break;
 
   default:
-    return node;
     break;
   }
-
-  Unreachable();
+  if (!ret.isNull() && node != ret)
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::preRegisterTerm(TNode node) {
@@ -709,7 +713,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-Node TheoryBV::ppRewrite(TNode t)
+TrustNode TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
@@ -790,7 +794,11 @@ Node TheoryBV::ppRewrite(TNode t)
     d_abstractionModule->addInputAtom(res);
   }
   Debug("bv-pp-rewrite") << "to   " << res << "\n";
-  return res;
+  if (res != t)
+  {
+    return TrustNode::mkTrustRewrite(t, res, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::presolve() {
@@ -851,22 +859,26 @@ void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
 
-
-Node TheoryBV::explain(TNode node) {
+TrustNode TheoryBV::explain(TNode node)
+{
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation
   explain(node, assumptions);
   // this means that it is something true at level 0
+  Node explanation;
   if (assumptions.size() == 0) {
-    return utils::mkTrue();
+    explanation = utils::mkTrue();
   }
-  // return the explanation
-  Node explanation = utils::mkAnd(assumptions);
+  else
+  {
+    // return the explanation
+    explanation = utils::mkAnd(assumptions);
+  }
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
   Debug("bitvector::explain") << "TheoryBV::explain done. \n";
-  return explanation;
+  return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
 
