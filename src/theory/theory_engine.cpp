@@ -1869,9 +1869,9 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         continue;
       }
     }
-    if (cache.find(toExplain)!=cache.end())
+    if (cache.find(toExplain) != cache.end())
     {
-      ++ i;
+      ++i;
       continue;
     }
     cache.insert(toExplain);
