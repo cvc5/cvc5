@@ -40,14 +40,13 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              OutputChannel& out,
                              Valuation valuation,
                              const LogicInfo& logicInfo,
-                             ProofChecker* pc)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pc),
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pnm),
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
-      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_state(c, u, d_equalityEngine, d_valuation),
-      d_termReg(d_state, d_equalityEngine, out, d_statistics, d_pnm.get()),
+      d_termReg(d_state, d_equalityEngine, out, d_statistics, pnm),
       d_im(nullptr),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(nullptr),
@@ -60,7 +59,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   ExtTheory* extt = getExtTheory();
   // initialize the inference manager, which requires the extended theory
   d_im.reset(new InferenceManager(
-      d_state, d_termReg, *extt, out, d_statistics, d_pnm.get()));
+      d_state, d_termReg, *extt, out, d_statistics, pnm));
   // initialize the solvers
   d_bsolver.reset(new BaseSolver(d_state, *d_im));
   d_csolver.reset(new CoreSolver(d_state, *d_im, d_termReg, *d_bsolver));
@@ -106,6 +105,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
 
   d_cardSize = utils::getAlphabetCardinality();
 
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add checkers

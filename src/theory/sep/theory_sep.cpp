@@ -44,8 +44,8 @@ TheorySep::TheorySep(context::Context* c,
                      OutputChannel& out,
                      Valuation valuation,
                      const LogicInfo& logicInfo,
-                     ProofChecker* pc)
-    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pc),
+                     ProofNodeManager* pnm)
+    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
       d_lemmas_produced_c(u),
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sep::ee", true),

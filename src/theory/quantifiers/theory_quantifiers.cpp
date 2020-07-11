@@ -18,6 +18,7 @@
 
 #include "base/check.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/model_engine.h"
@@ -40,8 +41,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      OutputChannel& out,
                                      Valuation valuation,
                                      const LogicInfo& logicInfo,
-                                     ProofChecker* pc)
-    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pc)
+                                     ProofNodeManager* pnm)
+    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
@@ -52,6 +53,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
 
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add the proof rules

@@ -49,9 +49,9 @@ TheoryBV::TheoryBV(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
-                   ProofChecker* pc,
+                   ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pc, name),
+    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
       d_context(c),
       d_alreadyPropagatedSet(c),
       d_sharedTermsSet(c),
@@ -231,7 +231,7 @@ TrustNode TheoryBV::expandDefinition(Node node)
   default:
     break;
   }
-  if (!ret.isNull())
+  if (!ret.isNull() && node != ret)
   {
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }

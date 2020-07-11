@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "expr/node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -45,15 +46,14 @@ TheoryUF::TheoryUF(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
-                   ProofChecker* pc,
+                   ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pc, instanceName),
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_pfEqualityEngine(
           new eq::ProofEqEngine(c, u, d_equalityEngine, d_pnm.get())),
@@ -66,6 +66,7 @@ TheoryUF::TheoryUF(context::Context* c,
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
 
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     d_ufProofChecker.registerTo(pc);

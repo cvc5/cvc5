@@ -91,20 +91,20 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        OutputChannel& out,
                                        Valuation valuation,
                                        const LogicInfo& logicInfo,
-                                       ProofChecker* pc)
+                                       ProofNodeManager* pnm)
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
-      d_pnm(pc ? new ProofNodeManager(pc) : nullptr),
+      d_pnm(pnm),
       d_checker(),
-      d_pfGen(new EagerProofGenerator(d_pnm.get(), u)),
+      d_pfGen(new EagerProofGenerator(d_pnm, u)),
       d_constraintDatabase(c,
                            u,
                            d_partialModel,
                            d_congruenceManager,
                            RaiseConflict(*this),
                            d_pfGen.get(),
-                           d_pnm.get()),
+                           d_pnm),
       d_qflraStatus(Result::SAT_UNKNOWN),
       d_unknownsInARow(0),
       d_hasDoneWorkSinceCut(false),
@@ -137,7 +137,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                           SetupLiteralCallBack(*this),
                           d_partialModel,
                           RaiseEqualityEngineConflict(*this),
-                          d_pnm.get()),
+                          d_pnm),
       d_cmEnabled(c, true),
 
       d_dualSimplex(
@@ -171,7 +171,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_opElim(d_pnm.get(), logicInfo)
+      d_opElim(d_pnm, logicInfo)
 {
   // only need to create if non-linear logic
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
@@ -179,6 +179,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
     d_nonlinearExtension = new nl::NonlinearExtension(
         containing, d_congruenceManager.getEqualityEngine());
   }
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     d_checker.registerTo(pc);

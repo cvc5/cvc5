@@ -108,7 +108,7 @@ private:
 
   // For proofs
   /** Manages the proof nodes of this theory. */
-  std::unique_ptr<ProofNodeManager> d_pnm;
+  ProofNodeManager* d_pnm;
   /** Checks the proof rules of this theory. */
   ArithProofRuleChecker d_checker;
   /** Stores proposition(node)/proof pairs. */
@@ -437,7 +437,7 @@ private:
                      OutputChannel& out,
                      Valuation valuation,
                      const LogicInfo& logicInfo,
-                     ProofChecker* pc = nullptr);
+                     ProofNodeManager* pnm = nullptr);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }

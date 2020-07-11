@@ -19,6 +19,7 @@
 #include <stack>
 #include <vector>
 
+#include "expr/proof_node_manager.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/booleans/theory_bool_rewriter.h"
@@ -38,9 +39,10 @@ TheoryBool::TheoryBool(context::Context* c,
                        OutputChannel& out,
                        Valuation valuation,
                        const LogicInfo& logicInfo,
-                       ProofChecker* pc)
-    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pc)
+                       ProofNodeManager* pnm)
+    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pnm)
 {
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
     // add checkers

@@ -40,7 +40,7 @@ class TheorySets : public Theory
              OutputChannel& out,
              Valuation valuation,
              const LogicInfo& logicInfo,
-             ProofChecker* pc);
+             ProofNodeManager* pnm);
   ~TheorySets() override;
 
   TheoryRewriter* getTheoryRewriter() override;

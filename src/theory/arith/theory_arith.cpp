@@ -36,10 +36,10 @@ TheoryArith::TheoryArith(context::Context* c,
                          OutputChannel& out,
                          Valuation valuation,
                          const LogicInfo& logicInfo,
-                         ProofChecker* pc)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pc),
+                         ProofNodeManager* pnm)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
-          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pc)),
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_proofRecorder(nullptr)
 {

@@ -68,7 +68,7 @@ class TheoryStrings : public Theory {
                 OutputChannel& out,
                 Valuation valuation,
                 const LogicInfo& logicInfo,
-                ProofChecker* pc);
+                ProofNodeManager* pnm);
   ~TheoryStrings();
   /** finish initialization */
   void finishInit() override;
@@ -273,8 +273,6 @@ class TheoryStrings : public Theory {
   SequencesStatistics d_statistics;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
-  /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
   /** The solver state object */
   SolverState d_state;
   /** The term registry for this theory */

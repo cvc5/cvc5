@@ -102,9 +102,9 @@ class DummyTheory : public Theory {
               OutputChannel& out,
               Valuation valuation,
               const LogicInfo& logicInfo,
-              ProofChecker* pc)
+              ProofNodeManager* pnm)
       : Theory(
-            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pc)
+            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {}
 
   TheoryRewriter* getTheoryRewriter() { return nullptr; }
