@@ -23,7 +23,6 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
-#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -215,7 +214,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_SEQUENCE:
     {
-      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
       if (snvec.empty())
       {
