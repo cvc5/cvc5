@@ -1,3 +1,4 @@
+;COMMAND-LINE: --no-check-models
 ;EXPECT: sat
 (set-logic ALL)
 (declare-fun s () (Seq Int))
