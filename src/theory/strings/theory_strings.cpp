@@ -604,6 +604,28 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
 
+  if (node.getKind() == SEQ_NTH)
+  {
+    // str.nth(s,i) --->
+    //   witness k. ite(0 <= i < len(s), unit(k) = seq.at(s,i), true)
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = node[0];
+    Node i = node[1];
+    Node len = nm->mkNode(STRING_LENGTH, s);
+    Node cond =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
+    Node k = nm->mkBoundVar(s.getType().getSequenceElementType());
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    Node ttt = nm->mkConst<bool>(true);
+    Node ret = nm->mkNode(
+        WITNESS,
+        bvl,
+        nm->mkNode(
+		   ITE, cond, nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)), ttt));
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+
+  
   return TrustNode::null();
 }
 
