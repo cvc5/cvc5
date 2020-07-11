@@ -147,10 +147,16 @@ class TConvProofGenerator : public ProofGenerator
    */
   TConvPolicy d_policy;
   /**
-   * Get the proof for term t. Returns a proof of t = t' where t' is the
-   * result of rewriting t based on the rewrite steps registered to this class.
+   * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
+   * t based on the rewrite steps registered to this class. This method then
+   * returns the proved equality t = t'.
    */
   Node getProofForRewriting(Node t, LazyCDProof& pf);
+  /**
+   * Register rewrite step, returns the equality t=s if t is distinct from s
+   * and a rewrite step has not already been registered for t.
+   */
+  Node registerRewriteStep(Node t, Node s);
 };
 
 }  // namespace CVC4

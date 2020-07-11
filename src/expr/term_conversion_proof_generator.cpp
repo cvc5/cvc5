@@ -40,38 +40,20 @@ TConvProofGenerator::~TConvProofGenerator() {}
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
 {
-  if (t == s)
+  Node eq = registerRewriteStep(t, s);
+  if (!eq.isNull())
   {
-    // nothing to do
-    return;
+    d_proof.addLazyStep(eq, pg);
   }
-  // should not rewrite term to two different things
-  if (hasRewriteStep(t))
-  {
-    Assert(getRewriteStep(t) == s);
-    return;
-  }
-  Node eq = t.eqNode(s);
-  d_proof.addLazyStep(eq, pg);
-  d_rewriteMap[t] = s;
 }
 
 void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
 {
-  if (t == s)
+  Node eq = registerRewriteStep(t, s);
+  if (!eq.isNull())
   {
-    // nothing to do
-    return;
+    d_proof.addStep(eq, ps);
   }
-  // should not rewrite term to two different things
-  if (hasRewriteStep(t))
-  {
-    Assert(getRewriteStep(t) == s);
-    return;
-  }
-  Node eq = t.eqNode(s);
-  d_proof.addStep(eq, ps);
-  d_rewriteMap[t] = s;
 }
 
 void TConvProofGenerator::addRewriteStep(Node t,
@@ -80,25 +62,32 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          const std::vector<Node>& children,
                                          const std::vector<Node>& args)
 {
-  if (t == s)
+  Node eq = registerRewriteStep(t, s);
+  if (!eq.isNull())
   {
-    // nothing to do
-    return;
+    d_proof.addStep(eq, id, children, args);
   }
-  // should not rewrite term to two different things
-  if (hasRewriteStep(t))
-  {
-    Assert(getRewriteStep(t) == s);
-    return;
-  }
-  Node eq = t.eqNode(s);
-  d_proof.addStep(eq, id, children, args);
-  d_rewriteMap[t] = s;
 }
 
 bool TConvProofGenerator::hasRewriteStep(Node t) const
 {
   return !getRewriteStep(t).isNull();
+}
+
+Node TConvProofGenerator::registerRewriteStep(Node t, Node s)
+{
+  if (t == s)
+  {
+    return Node::null();
+  }
+  // should not rewrite term to two different things
+  if (!getRewriteStep(t).isNull())
+  {
+    Assert(getRewriteStep(t) == s);
+    return Node::null();
+  }
+  d_rewriteMap[t] = s;
+  return t.eqNode(s);
 }
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
@@ -123,7 +112,6 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
   return lpf.getProofFor(f);
-  ;
 }
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
@@ -180,7 +168,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
       Node rcur = getRewriteStep(cur);
       if (!rcur.isNull())
       {
-        // d_proof should have a proof of cur = rcur. Hence there is nothing
+        // d_proof has a proof of cur = rcur. Hence there is nothing
         // to do here, as pf will reference d_proof to get its proof.
         if (d_policy == TConvPolicy::FIXPOINT)
         {
@@ -193,6 +181,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
         }
         else
         {
+          Assert(d_policy == TConvPolicy::ONCE);
           // not rewriting again, rcur is final
           visited[cur] = rcur;
         }
