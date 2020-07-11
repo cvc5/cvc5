@@ -61,9 +61,12 @@ class TheoryStrings : public Theory {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
  public:
-  TheoryStrings(context::Context* c, context::UserContext* u,
-                OutputChannel& out, Valuation valuation,
-                const LogicInfo& logicInfo);
+  TheoryStrings(context::Context* c,
+                context::UserContext* u,
+                OutputChannel& out,
+                Valuation valuation,
+                const LogicInfo& logicInfo,
+                ProofNodeManager* pnm);
   ~TheoryStrings();
   /** finish initialization */
   void finishInit() override;
@@ -76,7 +79,7 @@ class TheoryStrings : public Theory {
   /** Propagate */
   void propagate(Effort e) override;
   /** Explain */
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
   /** Get the equality engine */
   eq::EqualityEngine* getEqualityEngine() override;
   /** Get current substitution */
@@ -95,7 +98,7 @@ class TheoryStrings : public Theory {
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
-  Node expandDefinition(Node n) override;
+  TrustNode expandDefinition(Node n) override;
   /** Check at effort e */
   void check(Effort e) override;
   /** needs check last effort */
@@ -105,7 +108,7 @@ class TheoryStrings : public Theory {
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** preprocess rewrite */
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
   /**
    * Get all relevant information in this theory regarding the current
    * model. Return false if a contradiction is discovered.

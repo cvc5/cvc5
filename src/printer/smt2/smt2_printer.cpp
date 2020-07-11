@@ -601,6 +601,10 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
+  case kind::IAND:
+    out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
+    stillNeedToPrintParams = false;
+    break;
 
   case kind::DIVISIBLE:
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
@@ -1031,6 +1035,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::PLUS: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
+  case kind::IAND: return "iand";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
