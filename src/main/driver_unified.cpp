@@ -32,6 +32,7 @@
 #include "main/command_executor.h"
 #include "main/interactive_shell.h"
 #include "main/main.h"
+#include "main/time_limit.h"
 #include "options/options.h"
 #include "options/set_language.h"
 #include "parser/parser.h"
@@ -102,6 +103,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
   // Parse the options
   vector<string> filenames = Options::parseOptions(&opts, argc, argv);
+
+  install_time_limit(opts);
 
   string progNameStr = opts.getBinaryName();
   progName = &progNameStr;

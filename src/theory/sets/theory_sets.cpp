@@ -31,8 +31,9 @@ TheorySets::TheorySets(context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
-                       const LogicInfo& logicInfo)
-    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo),
+                       const LogicInfo& logicInfo,
+                       ProofNodeManager* pnm)
+    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_internal(new TheorySetsPrivate(*this, c, u))
 {
   // Do not move me to the header.
@@ -81,8 +82,10 @@ void TheorySets::computeCareGraph() {
   d_internal->computeCareGraph();
 }
 
-Node TheorySets::explain(TNode node) {
-  return d_internal->explain(node);
+TrustNode TheorySets::explain(TNode node)
+{
+  Node exp = d_internal->explain(node);
+  return TrustNode::mkTrustPropExp(node, exp, nullptr);
 }
 
 EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {
@@ -97,7 +100,7 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
-Node TheorySets::expandDefinition(Node n)
+TrustNode TheorySets::expandDefinition(Node n)
 {
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE

@@ -34,7 +34,7 @@ namespace arith {
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-private:
+ private:
   friend class TheoryArithPrivate;
 
   TheoryArithPrivate* d_internal;
@@ -46,9 +46,13 @@ private:
    */
   proof::ArithProofRecorder * d_proofRecorder;
 
-public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo);
+ public:
+  TheoryArith(context::Context* c,
+              context::UserContext* u,
+              OutputChannel& out,
+              Valuation valuation,
+              const LogicInfo& logicInfo,
+              ProofNodeManager* pnm = nullptr);
   virtual ~TheoryArith();
 
   TheoryRewriter* getTheoryRewriter() override;
@@ -60,14 +64,14 @@ public:
 
   void finishInit() override;
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
@@ -84,7 +88,7 @@ public:
   void presolve() override;
   void notifyRestart() override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
@@ -100,7 +104,7 @@ public:
       const EntailmentCheckParameters* params,
       EntailmentCheckSideEffects* out) override;
 
-  void setProofRecorder(proof::ArithProofRecorder * proofRecorder)
+  void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
   {
     d_proofRecorder = proofRecorder;
   }

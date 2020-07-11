@@ -39,16 +39,21 @@ namespace CVC4 {
 namespace theory {
 namespace sep {
 
-TheorySep::TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-  Theory(THEORY_SEP, c, u, out, valuation, logicInfo),
-  d_lemmas_produced_c(u),
-  d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sep::ee", true),
-  d_conflict(c, false),
-  d_reduce(u),
-  d_infer(c),
-  d_infer_exp(c),
-  d_spatial_assertions(c)
+TheorySep::TheorySep(context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     Valuation valuation,
+                     const LogicInfo& logicInfo,
+                     ProofNodeManager* pnm)
+    : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
+      d_lemmas_produced_c(u),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::sep::ee", true),
+      d_conflict(c, false),
+      d_reduce(u),
+      d_infer(c),
+      d_infer_exp(c),
+      d_spatial_assertions(c)
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -83,12 +88,6 @@ Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
 // PREPROCESSING
 /////////////////////////////////////////////////////////////////////////////
 
-
-
-Node TheorySep::ppRewrite(TNode term) {
-  Trace("sep-pp") << "ppRewrite : " << term << std::endl;
-  return term;
-}
 
 Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
 
@@ -139,13 +138,13 @@ void TheorySep::propagate(Effort e){
 
 }
 
-
-Node TheorySep::explain(TNode literal)
+TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
   std::vector<TNode> assumptions;
   explain(literal, assumptions);
-  return mkAnd(assumptions);
+  Node exp = mkAnd(assumptions);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 
@@ -833,7 +832,10 @@ bool TheorySep::needsCheckLastEffort() {
 
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
-  Node conflictNode = explain(a.eqNode(b));
+  Node eq = a.eqNode(b);
+  std::vector<TNode> assumptions;
+  explain(eq, assumptions);
+  Node conflictNode = mkAnd(assumptions);
   d_conflict = true;
   d_out->conflict( conflictNode );
 }
