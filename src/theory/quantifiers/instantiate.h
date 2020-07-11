@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "expr/proof.h"
+#include "expr/lazy_proof.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
