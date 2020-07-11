@@ -861,6 +861,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
+  regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
