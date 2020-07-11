@@ -45,10 +45,10 @@ class InstRewriterCegqi : public InstantiationRewriter
    * Rewrite the instantiation via d_parent, based on virtual term substitution
    * and nested quantifier elimination.
    */
-  Node rewriteInstantiation(Node q,
-                            std::vector<Node>& terms,
-                            Node inst,
-                            bool doVts) override;
+  TrustNode rewriteInstantiation(Node q,
+                                 std::vector<Node>& terms,
+                                 Node inst,
+                                 bool doVts) override;
 
  private:
   /** pointer to the parent of this class */
@@ -107,10 +107,10 @@ class InstStrategyCegqi : public QuantifiersModule
    * elimination. For details, see "Solving Quantified Linear Arithmetic via
    * Counterexample-Guided Instantiation" FMSD 2017, Reynolds et al.
    */
-  Node rewriteInstantiation(Node q,
-                            std::vector<Node>& terms,
-                            Node inst,
-                            bool doVts);
+  TrustNode rewriteInstantiation(Node q,
+                                 std::vector<Node>& terms,
+                                 Node inst,
+                                 bool doVts);
   /** get the instantiation rewriter object */
   InstantiationRewriter* getInstRewriter() const;
 
