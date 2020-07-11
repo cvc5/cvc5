@@ -1297,7 +1297,8 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<DeclareSygusVarCommand>(out, c)
       || tryToStream<SygusConstraintCommand>(out, c)
       || tryToStream<SygusInvConstraintCommand>(out, c)
-      || tryToStream<CheckSynthCommand>(out, c))
+      || tryToStream<CheckSynthCommand>(out, c)
+      || tryToStream<GetAbductCommand>(out, c))
   {
     return;
   }
@@ -2049,45 +2050,16 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
    --------------------------------------------------------------------------
 */
 
-static void toStream(std::ostream& out, const SynthFunCommand* c)
+static void toStreamSygusGrammar(std::ostream& out, const Type& t)
 {
-  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
-      << ' ';
-  Type type = c->getFunction().getType();
-  const std::vector<Expr>& vars = c->getVars();
-  Assert(!type.isFunction() || !vars.empty());
-  out << '(';
-  if (type.isFunction())
-  {
-    // print variable list
-    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
-    Assert(i != i_end);
-    out << '(' << *i << ' ' << i->getType() << ')';
-    ++i;
-    while (i != i_end)
-    {
-      out << " (" << *i << ' ' << i->getType() << ')';
-      ++i;
-    }
-    FunctionType ft = type;
-    type = ft.getRangeType();
-  }
-  out << ')';
-  // if not invariant-to-synthesize, print return type
-  if (!c->isInv())
-  {
-    out << ' ' << type;
-  }
-  // print grammar, if any
-  Type sygusType = c->getSygusType();
-  if (sygusType.isDatatype()
-      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  if (!t.isNull() && t.isDatatype()
+      && static_cast<DatatypeType>(t).getDatatype().isSygus())
   {
     std::stringstream types_predecl, types_list;
     std::set<Type> grammarTypes;
     std::list<Type> typesToPrint;
-    grammarTypes.insert(sygusType);
-    typesToPrint.push_back(sygusType);
+    grammarTypes.insert(t);
+    typesToPrint.push_back(t);
     NodeManager* nm = NodeManager::currentNM();
     // for each datatype in grammar
     //   name
@@ -2136,6 +2108,39 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
 
     out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
+}
+
+static void toStream(std::ostream& out, const SynthFunCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
+      << ' ';
+  Type type = c->getFunction().getType();
+  const std::vector<Expr>& vars = c->getVars();
+  Assert(!type.isFunction() || !vars.empty());
+  out << '(';
+  if (type.isFunction())
+  {
+    // print variable list
+    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
+    Assert(i != i_end);
+    out << '(' << *i << ' ' << i->getType() << ')';
+    ++i;
+    while (i != i_end)
+    {
+      out << " (" << *i << ' ' << i->getType() << ')';
+      ++i;
+    }
+    FunctionType ft = type;
+    type = ft.getRangeType();
+  }
+  out << ')';
+  // if not invariant-to-synthesize, print return type
+  if (!c->isInv())
+  {
+    out << ' ' << type;
+  }
+  // print grammar, if any
+  toStreamSygusGrammar(out, c->getSygusType());
   out << ')';
 }
 
@@ -2180,6 +2185,18 @@ static void toStream(std::ostream& out, const SygusInvConstraintCommand* c)
 static void toStream(std::ostream& out, const CheckSynthCommand* c)
 {
   out << '(' << c->getCommandName() << ')';
+}
+
+static void toStream(std::ostream& out, const GetAbductCommand* c)
+{
+  out << '(';
+  out << c->getCommandName() << ' ';
+  out << c->getAbductName() << ' ';
+  out << c->getConjecture();
+
+  // print grammar, if any
+  toStreamSygusGrammar(out, c->getGrammarType());
+  out << ')';
 }
 
 /*
