@@ -328,7 +328,6 @@ typedef expr::Attribute<SygusToBuiltinTermAttributeId, Node>
 
 Node sygusToBuiltin(Node n, bool isExternal)
 {
-  Assert(n.isConst());
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -342,6 +341,9 @@ Node sygusToBuiltin(Node n, bool isExternal)
     it = visited.find(cur);
     if (it == visited.end())
     {
+      // notice this condition succeeds in roughly 99% of the executions of this
+      // method, hence the else if / else cases below do not significantly
+      // impact performance.
       if (cur.getKind() == APPLY_CONSTRUCTOR)
       {
         if (!isExternal && cur.hasAttribute(SygusToBuiltinTermAttribute()))
@@ -357,6 +359,16 @@ Node sygusToBuiltin(Node n, bool isExternal)
             visit.push_back(cn);
           }
         }
+      }
+      else if (cur.getType().isSygusDatatype())
+      {
+        Assert (cur.isVar());
+        std::stringstream ss;
+        ss << cur;
+        const DType& dt = cur.getType().getDType();
+        // make a fresh variable
+        NodeManager * nm = NodeManager::currentNM()
+        visited[cur] = nm->mkBoundVar(ss.str(), dt.getSygusType());
       }
       else
       {
