@@ -1871,6 +1871,8 @@ set(regress_1_tests
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
+  regress1/strings/update-ex1.smt2
+  regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-ex1-grammar.smt2
   regress1/sygus-abduct-test.smt2

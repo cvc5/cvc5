@@ -1,0 +1,15 @@
+(set-logic QF_SLIA)
+(set-option :strings-exp true)
+;(set-info :status sat)
+(declare-fun s () String)
+(declare-fun x () Int)
+(declare-fun y () Int)
+
+;(assert (= s "AZZZEFZ"))
+;(assert (= x 1))
+;(assert (= y 6))
+(assert (= s (str.update (str.update "ABCDEFG" x "ZZZ") y "Z")))
+(assert (not (str.contains s "C")))
+(assert (not (str.contains s "G")))
+
+(check-sat)
