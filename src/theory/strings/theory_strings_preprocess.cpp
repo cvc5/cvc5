@@ -127,11 +127,11 @@ Node StringsPreprocess::reduce(Node t,
     // start point is less than end of string
     Node c2 = nm->mkNode(GT, ls, n);
     Node cond = nm->mkNode(AND, c1, c2);
-    
+
     // substr(r,0,|s|-n)
-    Node lens = nm->mkNode(STRING_LENGTH,s);
+    Node lens = nm->mkNode(STRING_LENGTH, s);
     Node rs;
-    if (r.isConst() && Word::getLength(r)==1)
+    if (r.isConst() && Word::getLength(r) == 1)
     {
       // optimization: don't need to take substring for single characters, due
       // to guard on where it is used in the reduction below.
@@ -143,10 +143,12 @@ Node StringsPreprocess::reduce(Node t,
     }
     // substr(s, n, len(substr(r,0,|s|-n))), which is used for formalizing the
     // purification variable sk3 below.
-    Node ssubstr = nm->mkNode(STRING_SUBSTR,s,n, nm->mkNode(STRING_LENGTH, ts));
+    Node ssubstr =
+        nm->mkNode(STRING_SUBSTR, s, n, nm->mkNode(STRING_LENGTH, ts));
 
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = sc->mkSkolemCached(s, nsuf, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node sk2 =
+        sc->mkSkolemCached(s, nsuf, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node sk3 = sc->mkSkolemCached(ssubstr, SkolemCache::SK_PURIFY, "ssubstr");
     Node a1 = skt.eqNode(nm->mkNode(STRING_CONCAT, sk1, rs, sk2));
     Node a2 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk3, sk2));
