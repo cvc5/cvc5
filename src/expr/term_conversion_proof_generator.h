@@ -24,6 +24,17 @@
 
 namespace CVC4 {
 
+/** A policy for how rewrite steps are applied in TConvProofGenerator */
+enum class TConvPolicy : uint32_t
+{
+  // steps are applied to fix-point, common use case is PfRule::REWRITE
+  FIXPOINT,
+  // steps are applied once at pre-rewrite, common use case is PfRule::SUBS
+  ONCE,
+};
+/** Writes a term conversion policy name to a stream. */
+std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol);
+
 /**
  * The term conversion proof generator.
  *
@@ -69,8 +80,12 @@ class TConvProofGenerator : public ProofGenerator
    * @param pnm The proof node manager for constructing ProofNode objects.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
+   * @param tpol The policy for applying rewrite steps of this class. For
+   * details, see d_policy.
    */
-  TConvProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr);
+  TConvProofGenerator(ProofNodeManager* pnm,
+                      context::Context* c = nullptr,
+                      TConvPolicy pol = TConvPolicy::FIXPOINT);
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
@@ -96,7 +111,7 @@ class TConvProofGenerator : public ProofGenerator
    * t = t', where t' is the result of rewriting t based on the rewrite steps
    * registered to this class.
    *
-   * @param f The fact to get the proof for.
+   * @param f The equality fact to get the proof for.
    * @return The proof for f.
    */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -112,10 +127,26 @@ class TConvProofGenerator : public ProofGenerator
   /** map to rewritten forms */
   NodeNodeMap d_rewriteMap;
   /**
-   * Get the proof for term t. Returns a proof of t = t' where t' is the
-   * result of rewriting t based on the rewrite steps registered to this class.
+   * Policy for how rewrites are applied to terms. As a simple example, say we
+   * have registered the rewrite steps:
+   *   addRewriteStep( a, f(c), p1 )
+   *   addRewriteStep( c, d, p2 )
+   * Then getProofForRewriting(f(a,c),pf) returns a proof of:
+   *   f(a,c) = f(f(d),d) if d_policy is FIXPOINT,
+   *   f(a,c) = f(f(c),d) if d_policy is ONCE.
    */
-  std::shared_ptr<ProofNode> getProofForRewriting(Node t);
+  TConvPolicy d_policy;
+  /**
+   * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
+   * t based on the rewrite steps registered to this class. This method then
+   * returns the proved equality t = t'.
+   */
+  Node getProofForRewriting(Node t, LazyCDProof& pf);
+  /**
+   * Register rewrite step, returns the equality t=s if t is distinct from s
+   * and a rewrite step has not already been registered for t.
+   */
+  Node registerRewriteStep(Node t, Node s);
 };
 
 }  // namespace CVC4
