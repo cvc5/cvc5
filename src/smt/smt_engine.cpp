@@ -86,7 +86,6 @@
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
 #include "smt/logic_request.h"
-#include "smt/managed_ostreams.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/process_assertions.h"
@@ -216,15 +215,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   ResourceManager* d_resourceManager;
 
-  /** Manager for the memory of regular-output-channel. */
-  ManagedRegularOutputChannel d_managedRegularChannel;
-
-  /** Manager for the memory of diagnostic-output-channel. */
-  ManagedDiagnosticOutputChannel d_managedDiagnosticChannel;
-
-  /** Manager for the memory of --dump-to. */
-  ManagedDumpOStream d_managedDumpChannel;
-
   /** Soft resource out listener */
   std::unique_ptr<SoftResourceOutListener> d_softListener;
   /** Hard resource out listener */
@@ -309,9 +299,6 @@ class SmtEnginePrivate : public NodeManagerListener {
  public:
   SmtEnginePrivate(SmtEngine& smt)
       : d_smt(smt),
-        d_managedRegularChannel(),
-        d_managedDiagnosticChannel(),
-        d_managedDumpChannel(),
         d_softListener(new SoftResourceOutListener(d_smt)),
         d_hardListener(new HardResourceOutListener(d_smt)),
         d_propagator(true, true),

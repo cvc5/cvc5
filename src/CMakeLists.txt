@@ -239,6 +239,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/options_manager.cpp
+  smt/options_manager.h
   smt/process_assertions.cpp
   smt/process_assertions.h
   smt/set_defaults.cpp
