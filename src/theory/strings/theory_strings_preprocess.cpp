@@ -141,12 +141,12 @@ Node StringsPreprocess::reduce(Node t,
     {
       rs = nm->mkNode(STRING_SUBSTR, r, zero, nm->mkNode(MINUS, lens, n));
     }
-    Node tslen = nm->mkNode(STRING_LENGTH, ts);
-    Node nsuf = nm->mkNode(PLUS, n, tslen);
+    Node rslen = nm->mkNode(STRING_LENGTH, rs);
+    Node nsuf = nm->mkNode(PLUS, n, rslen);
     // substr(s, n, len(substr(r,0,|s|-n))), which is used for formalizing the
     // purification variable sk3 below.
     Node ssubstr =
-        nm->mkNode(STRING_SUBSTR, s, n, tslen);
+        nm->mkNode(STRING_SUBSTR, s, n, rslen);
 
     Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
     Node sk2 =
