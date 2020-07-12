@@ -453,7 +453,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         }
       }
       Trace("sygus-engine") << std::endl;
-      if (options::debugSygus() && !sygusEnumOut.str().empty())
+      if (options::debugSygus())
       {
         Options& sopts = smt::currentSmtEngine()->getOptions();
         std::ostream& out = *sopts.getOut();
