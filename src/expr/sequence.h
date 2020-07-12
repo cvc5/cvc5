@@ -161,7 +161,7 @@ class Sequence
   /** The element type of the sequence */
   std::unique_ptr<TypeNode> d_type;
   /** The data of the sequence */
-  std::unique_ptr<std::vector<Node>> d_seq;
+  std::vector<Node> d_seq;
 };
 
 struct SequenceHashFunction

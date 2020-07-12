@@ -24,13 +24,12 @@ using namespace std;
 namespace CVC4 {
 
 Sequence::Sequence(const TypeNode& t, const std::vector<Node>& s)
-    : d_type(new TypeNode(t)), d_seq(new std::vector<Node>(s))
+    : d_type(new TypeNode(t)), d_seq(s)
 {
 }
 
 Sequence::Sequence(const Sequence& seq)
-    : d_type(new TypeNode(seq.getType())),
-      d_seq(new std::vector<Node>(seq.getVec()))
+    : d_type(new TypeNode(seq.getType())), d_seq(seq.getVec())
 {
 }
 
@@ -41,7 +40,7 @@ Sequence& Sequence::operator=(const Sequence& y)
   if (this != &y)
   {
     d_type.reset(new TypeNode(y.getType()));
-    d_seq.reset(new std::vector<Node>(y.getVec()));
+    d_seq = y.getVec();
   }
   return *this;
 }
@@ -69,8 +68,8 @@ int Sequence::cmp(const Sequence& y) const
 Sequence Sequence::concat(const Sequence& other) const
 {
   Assert(getType() == other.getType());
-  std::vector<Node> ret_vec(*d_seq);
-  ret_vec.insert(ret_vec.end(), other.d_seq->begin(), other.d_seq->end());
+  std::vector<Node> ret_vec(d_seq);
+  ret_vec.insert(ret_vec.end(), other.d_seq.begin(), other.d_seq.end());
   return Sequence(getType(), ret_vec);
 }
 
@@ -120,26 +119,26 @@ bool Sequence::rstrncmp(const Sequence& y, size_t n) const
   return true;
 }
 
-bool Sequence::empty() const { return d_seq->empty(); }
+bool Sequence::empty() const { return d_seq.empty(); }
 
-size_t Sequence::size() const { return d_seq->size(); }
+size_t Sequence::size() const { return d_seq.size(); }
 
 const Node& Sequence::front() const
 {
-  Assert(!d_seq->empty());
-  return d_seq->front();
+  Assert(!d_seq.empty());
+  return d_seq.front();
 }
 
 const Node& Sequence::back() const
 {
-  Assert(!d_seq->empty());
-  return d_seq->back();
+  Assert(!d_seq.empty());
+  return d_seq.back();
 }
 
 const Node& Sequence::nth(size_t i) const
 {
   Assert(i < size());
-  return (*d_seq)[i];
+  return d_seq[i];
 }
 
 size_t Sequence::overlap(const Sequence& y) const
@@ -176,7 +175,7 @@ size_t Sequence::roverlap(const Sequence& y) const
 
 const TypeNode& Sequence::getType() const { return *d_type; }
 
-const std::vector<Node>& Sequence::getVec() const { return *d_seq; }
+const std::vector<Node>& Sequence::getVec() const { return d_seq; }
 
 bool Sequence::isRepeated() const
 {
@@ -210,10 +209,10 @@ size_t Sequence::find(const Sequence& y, size_t start) const
     return std::string::npos;
   }
   std::vector<Node>::const_iterator itr = std::search(
-      d_seq->begin() + start, d_seq->end(), y.d_seq->begin(), y.d_seq->end());
-  if (itr != d_seq->end())
+      d_seq.begin() + start, d_seq.end(), y.d_seq.begin(), y.d_seq.end());
+  if (itr != d_seq.end())
   {
-    return itr - d_seq->begin();
+    return itr - d_seq.begin();
   }
   return std::string::npos;
 }
@@ -233,14 +232,11 @@ size_t Sequence::rfind(const Sequence& y, size_t start) const
   {
     return std::string::npos;
   }
-  std::vector<Node>::const_reverse_iterator itr =
-      std::search(d_seq->rbegin() + start,
-                  d_seq->rend(),
-                  y.d_seq->rbegin(),
-                  y.d_seq->rend());
-  if (itr != d_seq->rend())
+  std::vector<Node>::const_reverse_iterator itr = std::search(
+      d_seq.rbegin() + start, d_seq.rend(), y.d_seq.rbegin(), y.d_seq.rend());
+  if (itr != d_seq.rend())
   {
-    return itr - d_seq->rbegin();
+    return itr - d_seq.rbegin();
   }
   return std::string::npos;
 }
@@ -292,9 +288,9 @@ Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
   if (ret != std::string::npos)
   {
     std::vector<Node> vec;
-    vec.insert(vec.begin(), d_seq->begin(), d_seq->begin() + ret);
-    vec.insert(vec.end(), t.d_seq->begin(), t.d_seq->end());
-    vec.insert(vec.end(), d_seq->begin() + ret + s.size(), d_seq->end());
+    vec.insert(vec.begin(), d_seq.begin(), d_seq.begin() + ret);
+    vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
+    vec.insert(vec.end(), d_seq.begin() + ret + s.size(), d_seq.end());
     return Sequence(getType(), vec);
   }
   return *this;
@@ -304,7 +300,7 @@ Sequence Sequence::substr(size_t i) const
 {
   Assert(i >= 0);
   Assert(i <= size());
-  std::vector<Node> retVec(d_seq->begin() + i, d_seq->end());
+  std::vector<Node> retVec(d_seq.begin() + i, d_seq.end());
   return Sequence(getType(), retVec);
 }
 
@@ -313,7 +309,7 @@ Sequence Sequence::substr(size_t i, size_t j) const
   Assert(i >= 0);
   Assert(j >= 0);
   Assert(i + j <= size());
-  std::vector<Node>::const_iterator itr = d_seq->begin() + i;
+  std::vector<Node>::const_iterator itr = d_seq.begin() + i;
   std::vector<Node> retVec(itr, itr + j);
   return Sequence(getType(), retVec);
 }
