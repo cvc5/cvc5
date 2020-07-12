@@ -222,7 +222,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
   {
     d_passes["bv-to-bool"]->apply(&assertions);
   }
-  if (options::solveBVAsInt() > 0)
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
@@ -738,7 +738,8 @@ Node ProcessAssertions::expandDefinitions(
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
-        node = t->expandDefinition(n);
+        TrustNode trn = t->expandDefinition(n);
+        node = trn.isNull() ? Node(n) : trn.getNode();
       }
 
       // the partial functions can fall through, in which case we still

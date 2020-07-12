@@ -639,11 +639,26 @@ header = "options/smt_options.h"
 [[option]]
   name       = "solveBVAsInt"
   category   = "undocumented"
-  long       = "solve-bv-as-int=N"
+  long       = "solve-bv-as-int=MODE"
+  type       = "SolveBVAsIntMode"
+  default    = "OFF"
+  help       = "mode for translating BVAnd to integer"
+  help_mode  = "solve-bv-as-int modes."
+[[option.mode.OFF]]
+  name = "off"
+  help = "Do not translate bit-vectors to integers"
+[[option.mode.SUM]]
+  name = "sum"
+  help = "Generate a sum expression for each bvand instance, based on the value in --solbv-bv-as-int-granularity"
+
+[[option]]
+  name       = "BVAndIntegerGranularity"
+  category   = "undocumented"
+  long       = "bvand-integer-granularity=N"
   type       = "uint32_t"
-  default    = "0"
+  default    = "1"
   read_only  = true
-  help       = "attempt to solve BV formulas by translation to integer arithmetic (experimental)"
+  help       = "granularity to use in --solve-bv-as-int mode and for iand operator (experimental)"
 
 [[option]]
   name       = "iandMode"
