@@ -326,8 +326,6 @@ libcvc4_add_sources(
   theory/arith/nl/stats.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
-  theory/arith/operator_elim.cpp
-  theory/arith/operator_elim.h
   theory/arith/proof_checker.cpp
   theory/arith/proof_checker.h
   theory/arith/proof_macros.h

@@ -84,9 +84,12 @@ PR finished:
 (35) Strings term registry update (req 13)
 (36) term conversion proof generator
 (38) quantifiers proof checker (req 8)
+(39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
+(40) theory engine proof generator (req 11, 13, 18, 23)
 (48) remove snorm option
 (49) re elim static
 (51) TrustNode rewrite kind
+(59) updates to TConvGenerator for ONCE policy
 (60) proof node updater utility (req 23)
 (61) witness rewrite
 (62) update proof checker for Skolem forms
@@ -96,14 +99,11 @@ PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
 (17) rewriter new infrastructure "rewriteEqualityExt"
-(37) Rewriter proof producing + unit test [Andres] (req 36)
-(39) Theory interface update for TrustNode, ProofChecker (req 27, 51) *
-(40) theory engine proof generator (req 11, 13, 18, 23) *
+(37) Rewriter proof producing
 (45) regexp operation refactor (req 3, 7, 8) *
 (50) term formula removal proof producing (req 36, 38, 51, 64) *
-(59) updates to TConvGenerator for ONCE policy
 (65) updates to strings core solver *
-(66) preprocess proof generator
+(66) preprocess proof generator *
 
 PRs future:
 
@@ -125,13 +125,16 @@ PRs future:
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-(63) SMT engine proof post-processor (req 59, 66)
+(63) SMT engine proof post-processor (req 37, 59, 66)
 (67) AssertionsPipeline update (req 66)
 (68) SAT solver proof producing [Haniel]
 (69) Initial dumping infrastructure [Haniel]
+(70) rewriter unit test [Andres] (req 36, 37)
+(71) quantifiers proof producing (req 38, 52)
 
 PRs wish list:
 
 - SEXPR simply typed
 (56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?
+- ProofNode printing
