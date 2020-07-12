@@ -53,9 +53,6 @@ class CVC4_PUBLIC Options {
   /** The current Options in effect */
   static thread_local Options* s_current;
 
-  static ListenerCollection::Registration* registerAndNotify(
-      ListenerCollection& collection, Listener* listener, bool notify);
-
   /** Low-level assignment function for options */
   template <class T>
   void assign(T, std::string option, std::string value);

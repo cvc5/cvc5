@@ -224,16 +224,10 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Manager for the memory of --dump-to. */
   ManagedDumpOStream d_managedDumpChannel;
 
-  /**
-   * This list contains:
-   *  softResourceOut
-   *  hardResourceOut
-   *  beforeSearchListener
-   *
-   * This needs to be deleted before both NodeManager's Options,
-   * SmtEngine, d_resourceManager, and TheoryEngine.
-   */
-  ListenerRegistrationList* d_listenerRegistrations;
+  /** Soft resource out listener */
+  std::unique_ptr<SoftResourceOutListener> d_softListener;
+  /** Hard resource out listener */
+  std::unique_ptr<HardResourceOutListener> d_hardListener;
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
@@ -317,7 +311,8 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedRegularChannel(),
         d_managedDiagnosticChannel(),
         d_managedDumpChannel(),
-        d_listenerRegistrations(new ListenerRegistrationList()),
+        d_softListener(new SoftResourceOutListener(d_smt)),
+        d_hardListener(new HardResourceOutListener(d_smt)),
         d_propagator(true, true),
         d_assertions(),
         d_assertionsProcessed(smt.getUserContext(), false),
@@ -335,11 +330,8 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_true = NodeManager::currentNM()->mkConst(true);
     ResourceManager* rm = d_smt.getResourceManager();
 
-    d_listenerRegistrations->add(
-        rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
-
-    d_listenerRegistrations->add(
-        rm->registerHardListener(new HardResourceOutListener(d_smt)));
+    rm->registerSoftListener(d_softListener.get());
+    rm->registerHardListener(d_hardListener.get());
 
     Options& opts = d_smt.getOptions();
     
@@ -370,8 +362,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   ~SmtEnginePrivate()
   {
-    delete d_listenerRegistrations;
-
     if(d_propagator.getNeedsFinish()) {
       d_propagator.finish();
       d_propagator.setNeedsFinish(false);

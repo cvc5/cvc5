@@ -252,30 +252,6 @@ std::string Options::formatThreadOptionException(const std::string& option) {
   return ss.str();
 }
 
-ListenerCollection::Registration* Options::registerAndNotify(
-    ListenerCollection& collection, Listener* listener, bool notify)
-{
-  ListenerCollection::Registration* registration =
-      collection.registerListener(listener);
-  if(notify) {
-    try
-    {
-      listener->notify();
-    }
-    catch (OptionException& e)
-    {
-      // It can happen that listener->notify() throws an OptionException. In
-      // that case, we have to make sure that we delete the registration of our
-      // listener before rethrowing the exception. Otherwise the
-      // ListenerCollection deconstructor will complain that not all
-      // registrations have been removed before invoking the deconstructor.
-      delete registration;
-      throw OptionException(e.getRawMessage());
-    }
-  }
-  return registration;
-}
-
 void Options::setListener(OptionsListener* ol)
 {
   d_olisten = ol;

@@ -197,8 +197,6 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_on(false),
       d_cpuTime(false),
       d_spendResourceCalls(0),
-      d_hardListeners(),
-      d_softListeners(),
       d_statistics(new ResourceManager::Statistics(stats)),
       d_options(options)
 
@@ -273,10 +271,16 @@ void ResourceManager::spendResource(unsigned amount)
     }
 
     if (d_isHardLimit) {
-      d_hardListeners.notify();
+      for (Listener * l : d_hardListeners)
+      {
+        l->notify();
+      }
       throw UnsafeInterruptException();
     } else {
-      d_softListeners.notify();
+      for (Listener * l : d_softListeners)
+      {
+        l->notify();
+      }
     }
 
   }
@@ -433,16 +437,16 @@ void ResourceManager::enable(bool on) {
   d_on = on;
 }
 
-ListenerCollection::Registration* ResourceManager::registerHardListener(
+void ResourceManager::registerHardListener(
     Listener* listener)
 {
-  return d_hardListeners.registerListener(listener);
+  return d_hardListeners.push_back(listener);
 }
 
-ListenerCollection::Registration* ResourceManager::registerSoftListener(
+void ResourceManager::registerSoftListener(
     Listener* listener)
 {
-  return d_softListeners.registerListener(listener);
+  return d_softListeners.push_back(listener);
 }
 
 } /* namespace CVC4 */

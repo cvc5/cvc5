@@ -144,19 +144,13 @@ public:
 
  /**
   * Registers a listener that is notified on a hard resource out.
-  *
-  * This Registration must be destroyed by the user before this
-  * ResourceManager.
   */
- ListenerCollection::Registration* registerHardListener(Listener* listener);
+ void registerHardListener(Listener* listener);
 
  /**
   * Registers a listener that is notified on a soft resource out.
-  *
-  * This Registration must be destroyed by the user before this
-  * ResourceManager.
   */
- ListenerCollection::Registration* registerSoftListener(Listener* listener);
+ void registerSoftListener(Listener* listener);
 
 private:
  Timer d_cumulativeTimer;
@@ -195,10 +189,10 @@ private:
  static const uint64_t s_resourceCount;
 
  /** Receives a notification on reaching a hard limit. */
- ListenerCollection d_hardListeners;
+ std::vector<Listener*> d_hardListeners;
 
  /** Receives a notification on reaching a hard limit. */
- ListenerCollection d_softListeners;
+ std::vector<Listener*> d_softListeners;
 
  /**
   * ResourceManagers cannot be copied as they are given an explicit
