@@ -62,8 +62,9 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            OutputChannel& out,
                            Valuation valuation,
                            const LogicInfo& logicInfo,
+                           ProofNodeManager* pnm,
                            std::string name)
-    : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, name),
+    : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
       d_numRow(name + "theory::arrays::number of Row lemmas", 0),
       d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
       d_numProp(name + "theory::arrays::number of propagations", 0),
@@ -315,16 +316,20 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
   return term;
 }
 
-
-Node TheoryArrays::ppRewrite(TNode term) {
-  if (!d_preprocess) return term;
+TrustNode TheoryArrays::ppRewrite(TNode term)
+{
+  if (!d_preprocess)
+  {
+    return TrustNode::null();
+  }
   d_ppEqualityEngine.addTerm(term);
+  Node ret;
   switch (term.getKind()) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
       if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
-        return NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
+        ret = NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
       }
       break;
     }
@@ -334,18 +339,22 @@ Node TheoryArrays::ppRewrite(TNode term) {
       if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
         Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
         Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
-        return outer;
+        ret = outer;
       }
       break;
     }
     case kind::EQUAL: {
-      return solveWrite(term, d_solveWrite, d_solveWrite2, true);
+      ret = solveWrite(term, d_solveWrite, d_solveWrite2, true);
       break;
     }
     default:
       break;
   }
-  return term;
+  if (!ret.isNull() && ret != term)
+  {
+    return TrustNode::mkTrustRewrite(term, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 
@@ -848,10 +857,10 @@ void TheoryArrays::propagate(Effort e)
   // direct propagation now
 }
 
-
-Node TheoryArrays::explain(TNode literal) {
+TrustNode TheoryArrays::explain(TNode literal)
+{
   Node explanation = explain(literal, NULL);
-  return explanation;
+  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
@@ -2312,7 +2321,7 @@ std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
   return std::string("th_arrays_dec");
 }
 
-Node TheoryArrays::expandDefinition(Node node)
+TrustNode TheoryArrays::expandDefinition(Node node)
 {
   NodeManager* nm = NodeManager::currentNM();
   Kind kind = node.getKind();
@@ -2362,9 +2371,10 @@ Node TheoryArrays::expandDefinition(Node node)
                          nm->mkNode(kind::SELECT, a, k),
                          nm->mkNode(kind::SELECT, b, k));
     Node implies = nm->mkNode(kind::IMPLIES, range, eq);
-    return nm->mkNode(kind::FORALL, bvl, implies);
+    Node ret = nm->mkNode(kind::FORALL, bvl, implies);
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
-  return node;
+  return TrustNode::null();
 }
 
 }/* CVC4::theory::arrays namespace */
