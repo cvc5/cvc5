@@ -337,26 +337,42 @@ class SmtEnginePrivate : public NodeManagerListener {
     
     // set the listener of the options
     opts.setListener(&d_smtOptListen);
-    // set options that must take effect immediately
-    if (opts.wasSetByUser(options::defaultExprDepth))
+    try
     {
-      notifySetOption(options::defaultExprDepth.getName(), "");
+      // set options that must take effect immediately
+      if (opts.wasSetByUser(options::defaultExprDepth))
+      {
+        notifySetOption(options::defaultExprDepth.getName(), "");
+      }
+      if (opts.wasSetByUser(options::defaultDagThresh))
+      {
+        notifySetOption(options::defaultDagThresh.getName(), "");
+      }
+      if (opts.wasSetByUser(options::printExprTypes))
+      {
+        notifySetOption(options::printExprTypes.getName(), "");
+      }
+      if (opts.wasSetByUser(options::dumpModeString))
+      {
+        notifySetOption(options::dumpModeString.getName(), "");
+      }
+      if (opts.wasSetByUser(options::printSuccess))
+      {
+        notifySetOption(options::printSuccess.getName(), "");
+      }
     }
-    if (opts.wasSetByUser(options::defaultDagThresh))
+    catch (OptionException& e)
     {
-      notifySetOption(options::defaultDagThresh.getName(), "");
-    }
-    if (opts.wasSetByUser(options::printExprTypes))
-    {
-      notifySetOption(options::printExprTypes.getName(), "");
-    }
-    if (opts.wasSetByUser(options::dumpModeString))
-    {
-      notifySetOption(options::dumpModeString.getName(), "");
-    }
-    if (opts.wasSetByUser(options::printSuccess))
-    {
-      notifySetOption(options::printSuccess.getName(), "");
+      // Registering the option listeners can lead to OptionExceptions, e.g.
+      // when the user chooses a dump tag that does not exist. In that case, we
+      // have to make sure that we delete existing listener registrations and
+      // that we unsubscribe from NodeManager events. Otherwise we will have
+      // errors in the deconstructors of the NodeManager (because the
+      // NodeManager tries to notify an SmtEnginePrivate that does not exist)
+      // and the ListenerCollection (because not all registrations have been
+      // removed before calling the deconstructor).
+      d_smt.d_nodeManager->unsubscribeEvents(this);
+      throw OptionException(e.getRawMessage());
     }
   }
 
