@@ -2116,6 +2116,7 @@ set(regress_2_tests
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
   regress2/strings/update-ex3.smt2
+  regress2/strings/update-ex4-seq.smt2
   regress2/sygus/DRAGON_1.lus.sy
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy

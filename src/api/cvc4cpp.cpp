@@ -295,6 +295,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {SEQ_CONCAT, CVC4::Kind::STRING_CONCAT},
     {SEQ_LENGTH, CVC4::Kind::STRING_LENGTH},
     {SEQ_EXTRACT, CVC4::Kind::STRING_SUBSTR},
+    {SEQ_UPDATE, CVC4::Kind::STRING_UPDATE},
     {SEQ_AT, CVC4::Kind::STRING_CHARAT},
     {SEQ_CONTAINS, CVC4::Kind::STRING_STRCTN},
     {SEQ_INDEXOF, CVC4::Kind::STRING_STRIDOF},
@@ -1410,6 +1411,7 @@ Kind Term::getKindHelper() const
       case CVC4::Kind::STRING_CONCAT: return SEQ_CONCAT;
       case CVC4::Kind::STRING_LENGTH: return SEQ_LENGTH;
       case CVC4::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
+      case CVC4::Kind::STRING_UPDATE: return SEQ_UPDATE;
       case CVC4::Kind::STRING_CHARAT: return SEQ_AT;
       case CVC4::Kind::STRING_STRCTN: return SEQ_CONTAINS;
       case CVC4::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
