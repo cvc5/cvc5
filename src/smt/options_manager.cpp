@@ -21,38 +21,46 @@
 #include "options/smt_options.h"
 #include "options/expr_options.h"
 #include "options/base_options.h"
+#include "smt/set_defaults.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace smt {
 
-OptionsManager::OptionsManager(Options& opts) : d_options(opts){}
+OptionsManager::OptionsManager(Options* opts, ResourceManager* rm) : d_options(opts), d_resourceManager(rm){
+  try
+  {
+    // set options that must take effect immediately
+    if (opts->wasSetByUser(options::defaultExprDepth))
+    {
+      setOption(options::defaultExprDepth.getName(), "");
+    }
+    if (opts->wasSetByUser(options::defaultDagThresh))
+    {
+      setOption(options::defaultDagThresh.getName(), "");
+    }
+    if (opts->wasSetByUser(options::printExprTypes))
+    {
+      setOption(options::printExprTypes.getName(), "");
+    }
+    if (opts->wasSetByUser(options::dumpModeString))
+    {
+      setOption(options::dumpModeString.getName(), "");
+    }
+    if (opts->wasSetByUser(options::printSuccess))
+    {
+      setOption(options::printSuccess.getName(), "");
+    }
+  }
+  catch (OptionException& e)
+  {
+    throw OptionException(e.getRawMessage());
+  }
+  // set this as a listener
+  opts->setListener(this);
+}
 
 OptionsManager::~OptionsManager(){}
-
-void OptionsManager::initialize()
-{
-  // set options that must take effect immediately
-  if (d_options.wasSetByUser(options::defaultExprDepth))
-  {
-    setOption(options::defaultExprDepth.getName(), "");
-  }
-  if (d_options.wasSetByUser(options::defaultDagThresh))
-  {
-    setOption(options::defaultDagThresh.getName(), "");
-  }
-  if (d_options.wasSetByUser(options::printExprTypes))
-  {
-    setOption(options::printExprTypes.getName(), "");
-  }
-  if (d_options.wasSetByUser(options::dumpModeString))
-  {
-    setOption(options::dumpModeString.getName(), "");
-  }
-  if (d_options.wasSetByUser(options::printSuccess))
-  {
-    setOption(options::printSuccess.getName(), "");
-  }
-}
 
 void OptionsManager::setOption(const std::string& key, const std::string& optarg)
 {
@@ -60,7 +68,7 @@ void OptionsManager::setOption(const std::string& key, const std::string& optarg
                 << ")" << std::endl;
   if (key == options::defaultExprDepth.getName())
   {
-    int depth = d_options[options::defaultExprDepth];
+    int depth = (*d_options)[options::defaultExprDepth];
     Debug.getStream() << expr::ExprSetDepth(depth);
     Trace.getStream() << expr::ExprSetDepth(depth);
     Notice.getStream() << expr::ExprSetDepth(depth);
@@ -71,7 +79,7 @@ void OptionsManager::setOption(const std::string& key, const std::string& optarg
   }
   else if (key == options::defaultDagThresh.getName())
   {
-    int dag = options::defaultDagThresh();
+    int dag = (*d_options)[options::defaultDagThresh];
     Debug.getStream() << expr::ExprDag(dag);
     Trace.getStream() << expr::ExprDag(dag);
     Notice.getStream() << expr::ExprDag(dag);
@@ -82,7 +90,7 @@ void OptionsManager::setOption(const std::string& key, const std::string& optarg
   }
   else if (key == options::printExprTypes.getName())
   {
-    bool value = d_options[options::printExprTypes];
+    bool value = (*d_options)[options::printExprTypes];
     Debug.getStream() << expr::ExprPrintTypes(value);
     Trace.getStream() << expr::ExprPrintTypes(value);
     Notice.getStream() << expr::ExprPrintTypes(value);
@@ -93,12 +101,12 @@ void OptionsManager::setOption(const std::string& key, const std::string& optarg
   }
   else if (key == options::dumpModeString.getName())
   {
-    const std::string& value = d_options[options::dumpModeString];
+    const std::string& value = (*d_options)[options::dumpModeString];
     Dump.setDumpFromString(value);
   }
   else if (key == options::printSuccess.getName())
   {
-    bool value = d_options[options::printSuccess];
+    bool value = (*d_options)[options::printSuccess];
     Debug.getStream() << Command::printsuccess(value);
     Trace.getStream() << Command::printsuccess(value);
     Notice.getStream() << Command::printsuccess(value);
@@ -108,6 +116,37 @@ void OptionsManager::setOption(const std::string& key, const std::string& optarg
     *options::out() << Command::printsuccess(value);
   }
   // otherwise, no action is necessary
+}
+
+void OptionsManager::finishInit(SmtEngine& smte, LogicInfo& logic)
+{
+  // set up the timeout
+  d_resourceManager->setHardLimit(options::hardLimit());
+  if ((*d_options)[options::perCallResourceLimit] != 0)
+  {
+    d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
+  }
+  if ((*d_options)[options::cumulativeResourceLimit] != 0)
+  {
+    d_resourceManager->setResourceLimit(options::cumulativeResourceLimit(),
+                                        true);
+  }
+  if ((*d_options)[options::perCallMillisecondLimit] != 0)
+  {
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
+  }
+  if ((*d_options)[options::cumulativeMillisecondLimit] != 0)
+  {
+    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
+                                    true);
+  }
+  if ((*d_options)[options::cpuTime])
+  {
+    d_resourceManager->useCPUTime(true);
+  }
+  
+  // ensure that our heuristics are properly set up
+  setDefaults(smte, logic);
 }
 
 }  // namespace smt

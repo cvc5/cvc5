@@ -88,8 +88,8 @@
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
+#include "smt/options_manager.h"
 #include "smt/process_assertions.h"
-#include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
@@ -193,23 +193,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
-  /** An options listener class */
-  class SmtEnginePrivateOptionsListener : public OptionsListener
-  {
-   public:
-    SmtEnginePrivateOptionsListener(SmtEnginePrivate& smtp) : d_smtp(smtp) {}
-    ~SmtEnginePrivateOptionsListener() {}
-    /** set option */
-    void setOption(const std::string& key, const std::string& optarg) override
-    {
-      d_smtp.notifySetOption(key, optarg);
-    }
-
-   private:
-    /** reference to the SMT engine */
-    SmtEnginePrivate& d_smtp;
-  };
-
   /**
    * Manager for limiting time and abstract resource usage.
    */
@@ -255,9 +238,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Number of calls of simplify assertions active.
    */
   unsigned d_simplifyAssertionsDepth;
-
-  /** The options listener */
-  SmtEnginePrivateOptionsListener d_smtOptListen;
 
   /** The preprocessing pass context */
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
@@ -308,7 +288,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
-        d_smtOptListen(*this),
         d_processor(smt, *smt.getResourceManager()),
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -320,48 +299,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
     rm->registerSoftListener(d_softListener.get());
     rm->registerHardListener(d_hardListener.get());
-
-    Options& opts = d_smt.getOptions();
-
-    // set the listener of the options
-    opts.setListener(&d_smtOptListen);
-    try
-    {
-      // set options that must take effect immediately
-      if (opts.wasSetByUser(options::defaultExprDepth))
-      {
-        notifySetOption(options::defaultExprDepth.getName(), "");
-      }
-      if (opts.wasSetByUser(options::defaultDagThresh))
-      {
-        notifySetOption(options::defaultDagThresh.getName(), "");
-      }
-      if (opts.wasSetByUser(options::printExprTypes))
-      {
-        notifySetOption(options::printExprTypes.getName(), "");
-      }
-      if (opts.wasSetByUser(options::dumpModeString))
-      {
-        notifySetOption(options::dumpModeString.getName(), "");
-      }
-      if (opts.wasSetByUser(options::printSuccess))
-      {
-        notifySetOption(options::printSuccess.getName(), "");
-      }
-    }
-    catch (OptionException& e)
-    {
-      // Registering the option listeners can lead to OptionExceptions, e.g.
-      // when the user chooses a dump tag that does not exist. In that case, we
-      // have to make sure that we delete existing listener registrations and
-      // that we unsubscribe from NodeManager events. Otherwise we will have
-      // errors in the deconstructors of the NodeManager (because the
-      // NodeManager tries to notify an SmtEnginePrivate that does not exist)
-      // and the ListenerCollection (because not all registrations have been
-      // removed before calling the deconstructor).
-      d_smt.d_nodeManager->unsubscribeEvents(this);
-      throw OptionException(e.getRawMessage());
-    }
   }
 
   ~SmtEnginePrivate()
@@ -437,71 +374,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   }
 
   void nmNotifyDeleteNode(TNode n) override {}
-
-  /**
-   * Called when a set option call is made on the options object associated
-   * with this class. This handles all options that should be taken into account
-   * immediately instead of e.g. at SmtEngine::finishInit time.
-   *
-   * This function call is made after the option has been updated. This means
-   * that the value of the option can be queried, instead of reparsing the
-   * option argument. Thus, optarg is only for debugging.
-   */
-  void notifySetOption(const std::string& key, const std::string& optarg)
-  {
-    Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg
-                 << ")" << std::endl;
-    if (key == options::defaultExprDepth.getName())
-    {
-      int depth = options::defaultExprDepth();
-      Debug.getStream() << expr::ExprSetDepth(depth);
-      Trace.getStream() << expr::ExprSetDepth(depth);
-      Notice.getStream() << expr::ExprSetDepth(depth);
-      Chat.getStream() << expr::ExprSetDepth(depth);
-      Message.getStream() << expr::ExprSetDepth(depth);
-      Warning.getStream() << expr::ExprSetDepth(depth);
-      // intentionally exclude Dump stream from this list
-    }
-    else if (key == options::defaultDagThresh.getName())
-    {
-      int dag = options::defaultDagThresh();
-      Debug.getStream() << expr::ExprDag(dag);
-      Trace.getStream() << expr::ExprDag(dag);
-      Notice.getStream() << expr::ExprDag(dag);
-      Chat.getStream() << expr::ExprDag(dag);
-      Message.getStream() << expr::ExprDag(dag);
-      Warning.getStream() << expr::ExprDag(dag);
-      Dump.getStream() << expr::ExprDag(dag);
-    }
-    else if (key == options::printExprTypes.getName())
-    {
-      bool value = options::printExprTypes();
-      Debug.getStream() << expr::ExprPrintTypes(value);
-      Trace.getStream() << expr::ExprPrintTypes(value);
-      Notice.getStream() << expr::ExprPrintTypes(value);
-      Chat.getStream() << expr::ExprPrintTypes(value);
-      Message.getStream() << expr::ExprPrintTypes(value);
-      Warning.getStream() << expr::ExprPrintTypes(value);
-      // intentionally exclude Dump stream from this list
-    }
-    else if (key == options::dumpModeString.getName())
-    {
-      const std::string& value = options::dumpModeString();
-      Dump.setDumpFromString(value);
-    }
-    else if (key == options::printSuccess.getName())
-    {
-      bool value = options::printSuccess();
-      Debug.getStream() << Command::printsuccess(value);
-      Trace.getStream() << Command::printsuccess(value);
-      Notice.getStream() << Command::printsuccess(value);
-      Chat.getStream() << Command::printsuccess(value);
-      Message.getStream() << Command::printsuccess(value);
-      Warning.getStream() << Command::printsuccess(value);
-      *options::out() << Command::printsuccess(value);
-    }
-    // otherwise, no action is necessary
-  }
 
   Node applySubstitutions(TNode node)
   {
@@ -672,6 +544,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_statisticsRegistry.reset(new StatisticsRegistry());
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
+  d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
   d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
@@ -698,37 +571,12 @@ void SmtEngine::finishInit()
   // parsing smt2, this occurs at the moment we enter "Assert mode", page 52
   // of SMT-LIB 2.6 standard.
 
-  // Inialize the resource manager based on the options.
-  d_resourceManager->setHardLimit(options::hardLimit());
-  if (options::perCallResourceLimit() != 0)
-  {
-    d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
-  }
-  if (options::cumulativeResourceLimit() != 0)
-  {
-    d_resourceManager->setResourceLimit(options::cumulativeResourceLimit(),
-                                        true);
-  }
-  if (options::perCallMillisecondLimit() != 0)
-  {
-    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
-  }
-  if (options::cumulativeMillisecondLimit() != 0)
-  {
-    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
-                                    true);
-  }
-  if (options::cpuTime())
-  {
-    d_resourceManager->useCPUTime(true);
-  }
-
   // set the random seed
   Random::getRandom().setSeed(options::seed());
-
-  // ensure that our heuristics are properly set up
-  setDefaults(*this, d_logic);
   
+  // Inialize the resource manager based on the options.
+  d_optm->finishInit(*this, d_logic);
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)

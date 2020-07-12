@@ -19,15 +19,23 @@
 #include "options/options.h"
 
 namespace CVC4 {
+  
+class SmtEngine;
+class LogicInfo;
+class ResourceManager;
+
 namespace smt {
 
+/** 
+ * This class is intended to be used by SmtEngine, and is responsible for:
+ * (1) Implementing core options including timeouts and output preferences,
+ * (2) Setting default values for options based on a logic.
+ */
 class OptionsManager : public OptionsListener
 {
 public:
-  OptionsManager(Options& opts);
+  OptionsManager(Options* opts, ResourceManager* rm = nullptr);
   ~OptionsManager();
-  /** initalize */
-  void initialize();
   /**
    * Called when a set option call is made on the options object associated
    * with this class. This handles all options that should be taken into account
@@ -38,9 +46,17 @@ public:
    * option argument. Thus, optarg is only for debugging.
    */
   void setOption(const std::string& key, const std::string& optarg) override;
+  /** 
+   * Finish init, which is called at the beginning of SmtEngine::finishInit,
+   * just before solving begins. This initializes the options pertaining to
+   * time limits, and sets the default options.
+   */
+  void finishInit(SmtEngine& smte, LogicInfo& logic);
 private:
   /** Reference to the options object */
-  Options& d_options;
+  Options* d_options;
+  /** Pointer to the resource manager */
+  ResourceManager* d_resourceManager;
 };
 
 }  // namespace smt
