@@ -260,7 +260,6 @@ Node Word::update(TNode x, std::size_t i, TNode t)
   Kind k = x.getKind();
   if (k == CONST_STRING)
   {
-    Assert(y.getKind() == CONST_STRING);
     Assert(t.getKind() == CONST_STRING);
     String sx = x.getConst<String>();
     String st = t.getConst<String>();
@@ -268,7 +267,6 @@ Node Word::update(TNode x, std::size_t i, TNode t)
   }
   else if (k == CONST_SEQUENCE)
   {
-    Assert(y.getKind() == CONST_SEQUENCE);
     Assert(t.getKind() == CONST_SEQUENCE);
     const Sequence& sx = x.getConst<ExprSequence>().getSequence();
     const Sequence& st = t.getConst<ExprSequence>().getSequence();
