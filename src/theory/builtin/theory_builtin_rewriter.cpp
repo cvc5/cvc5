@@ -103,11 +103,14 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         {
           Trace("builtin-rewrite") << "Witness rewrite: " << node << " --> "
                                    << node[1][1 - i] << std::endl;
-          // based on the witness terms we construct, this should be a legal
-          // elimination, since t should not contain x and be a subtype of x.
-          Assert(!expr::hasSubterm(node[1][1 - i], node[0][0]));
-          Assert(node[1][i].getType().isSubtypeOf(node[0][0].getType()));
-          return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
+          // also must be a legal elimination: the other side of the equality
+          // cannot contain the variable, and it must be a subtype of the
+          // variable
+          if (!expr::hasSubterm(node[1][1 - i], node[0][0]) &&
+              node[1][i].getType().isSubtypeOf(node[0][0].getType()))
+          {
+            return RewriteResponse(REWRITE_DONE, node[1][1 - i]);
+          }
         }
       }
     }

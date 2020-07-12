@@ -60,7 +60,7 @@ bool StringsEntail::canConstantContainConcat(Node c,
     }
     else if (n[i].getKind() == STRING_ITOS && ArithEntail::check(n[i][0]))
     {
-      Assert(c.getType().isString());
+      Assert(c.getType().isString());  // string-only
       const std::vector<unsigned>& tvec = c.getConst<String>().getVec();
       // find the first occurrence of a digit starting at pos
       while (pos < tvec.size() && !String::isDigit(tvec[pos]))
@@ -594,7 +594,7 @@ bool StringsEntail::stripConstantEndpoints(std::vector<Node>& n1,
       {
         if (n2[index1].isConst())
         {
-          Assert(n2[index1].getType().isString());
+          Assert(n2[index1].getType().isString());  // string-only
           CVC4::String t = n2[index1].getConst<String>();
           if (n1.size() == 1)
           {
