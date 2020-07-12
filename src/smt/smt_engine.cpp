@@ -62,7 +62,6 @@
 #include "options/main_options.h"
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
-#include "options/options_listener.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -235,10 +234,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   NodeToNodeHashMap d_abstractValues;
 
-  /** Number of calls of simplify assertions active.
-   */
-  unsigned d_simplifyAssertionsDepth;
-
   /** The preprocessing pass context */
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
 
@@ -287,7 +282,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
-        d_simplifyAssertionsDepth(0),
         d_processor(smt, *smt.getResourceManager()),
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
