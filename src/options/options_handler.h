@@ -84,14 +84,9 @@ public:
    * Throws a ModalException if this option is being set after final
    * initialization.
    */
-  void notifyBeforeSearch(const std::string& option);
-  void notifyDumpMode(std::string option);
   void setProduceAssertions(std::string option, bool value);
   void proofEnabledBuild(std::string option, bool value);
   void LFSCEnabledBuild(std::string option, bool value);
-  void notifyDumpToFile(std::string option);
-  void notifySetRegularOutputChannel(std::string option);
-  void notifySetDiagnosticOutputChannel(std::string option);
 
   void statsEnabledBuild(std::string option, bool value);
 

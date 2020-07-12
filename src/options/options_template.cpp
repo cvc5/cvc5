@@ -227,7 +227,6 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 Options::Options(OptionsListener * ol)
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
-    , d_beforeSearchListeners()
     , d_olisten(ol)
 {
   
@@ -276,36 +275,6 @@ ListenerCollection::Registration* Options::registerAndNotify(
   }
   return registration;
 }
-
-ListenerCollection::Registration* Options::registerBeforeSearchListener(
-   Listener* listener)
-{
-  return d_beforeSearchListeners.registerListener(listener);
-}
-
-ListenerCollection::Registration* Options::registerDumpToFileNameListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::dumpToFileName);
-  return registerAndNotify(d_dumpToFileListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetRegularOutputChannelListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::regularChannelName);
-  return registerAndNotify(d_setRegularChannelListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetDiagnosticOutputChannelListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::diagnosticChannelName);
-  return registerAndNotify(d_setDiagnosticChannelListeners, listener, notify);
-}
-
 
 void Options::setListener(OptionsListener* ol)
 {

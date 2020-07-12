@@ -174,15 +174,6 @@ class HardResourceOutListener : public Listener {
   SmtEngine* d_smt;
 }; /* class HardResourceOutListener */
 
-class BeforeSearchListener : public Listener {
- public:
-  BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override { d_smt->beforeSearch(); }
-
- private:
-  SmtEngine* d_smt;
-}; /* class BeforeSearchListener */
-
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -350,46 +341,30 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_listenerRegistrations->add(
         rm->registerHardListener(new HardResourceOutListener(d_smt)));
 
-    try
+    Options& opts = d_smt.getOptions();
+    
+    // set the listener of the options
+    opts.setListener(&d_smtOptListen);
+    // set options that must take effect immediately
+    if (opts.wasSetByUser(options::defaultExprDepth))
     {
-      Options& opts = d_smt.getOptions();
-      
-      // set the listener of the options
-      opts.setListener(&d_smtOptListen);
-
-      // Multiple options reuse BeforeSearchListener so registration requires an
-      // extra bit of care.
-      // We can safely not call notify on this before search listener at
-      // registration time. This d_smt cannot be beforeSearch at construction
-      // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
-      // not have to be called.
-      d_listenerRegistrations->add(
-          opts.registerBeforeSearchListener(new BeforeSearchListener(d_smt)));
-
-      // These do need registration calls.
-      d_listenerRegistrations->add(
-          opts.registerSetRegularOutputChannelListener(
-              new SetToDefaultSourceListener(&d_managedRegularChannel), true));
-      d_listenerRegistrations->add(
-          opts.registerSetDiagnosticOutputChannelListener(
-              new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
-              true));
-      d_listenerRegistrations->add(opts.registerDumpToFileNameListener(
-          new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+      notifySetOption(options::defaultExprDepth.getName(), "");
     }
-    catch (OptionException& e)
+    if (opts.wasSetByUser(options::defaultDagThresh))
     {
-      // Registering the option listeners can lead to OptionExceptions, e.g.
-      // when the user chooses a dump tag that does not exist. In that case, we
-      // have to make sure that we delete existing listener registrations and
-      // that we unsubscribe from NodeManager events. Otherwise we will have
-      // errors in the deconstructors of the NodeManager (because the
-      // NodeManager tries to notify an SmtEnginePrivate that does not exist)
-      // and the ListenerCollection (because not all registrations have been
-      // removed before calling the deconstructor).
-      delete d_listenerRegistrations;
-      d_smt.d_nodeManager->unsubscribeEvents(this);
-      throw OptionException(e.getRawMessage());
+      notifySetOption(options::defaultDagThresh.getName(), "");
+    }
+    if (opts.wasSetByUser(options::printExprTypes))
+    {
+      notifySetOption(options::printExprTypes.getName(), "");
+    }
+    if (opts.wasSetByUser(options::dumpModeString))
+    {
+      notifySetOption(options::dumpModeString.getName(), "");
+    }
+    if (opts.wasSetByUser(options::printSuccess))
+    {
+      notifySetOption(options::printSuccess.getName(), "");
     }
   }
 
@@ -487,23 +462,23 @@ class SmtEnginePrivate : public NodeManagerListener {
     // std::string option names in two places.  In other words, the below
     // condition should be:
     //     (key == options::cumulativeMillisecondLimit.getName())
-    if (key == "tlimit")
+    if (key == options::cumulativeMillisecondLimit.getName())
     {
       d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(), true);
     }
-    else if (key == "tlimit-per")
+    else if (key == options::perCallMillisecondLimit.getName())
     {
       d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
     }
-    else if (key == "rlimit")
+    else if (key == options::cumulativeResourceLimit.getName())
     {
       d_resourceManager->setTimeLimit(options::cumulativeResourceLimit(), true);
     }
-    else if (key == "reproducible-resource-limit" || key == "rlimit-per")
+    else if (key == options::perCallResourceLimit.getName())
     {
       d_resourceManager->setTimeLimit(options::perCallResourceLimit(), false);
     }
-    else if (key == "default-expr-depth")
+    else if (key == options::defaultExprDepth.getName())
     {
       int depth = options::defaultExprDepth();
       Debug.getStream() << expr::ExprSetDepth(depth);
@@ -514,7 +489,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       Warning.getStream() << expr::ExprSetDepth(depth);
       // intentionally exclude Dump stream from this list
     }
-    else if (key == "default-dag-thresh")
+    else if (key == options::defaultDagThresh.getName())
     {
       int dag = options::defaultDagThresh();
       Debug.getStream() << expr::ExprDag(dag);
@@ -525,7 +500,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       Warning.getStream() << expr::ExprDag(dag);
       Dump.getStream() << expr::ExprDag(dag);
     }
-    else if (key == "print-expr-types")
+    else if (key == options::printExprTypes.getName())
     {
       bool value = options::printExprTypes();
       Debug.getStream() << expr::ExprPrintTypes(value);
@@ -536,12 +511,12 @@ class SmtEnginePrivate : public NodeManagerListener {
       Warning.getStream() << expr::ExprPrintTypes(value);
       // intentionally exclude Dump stream from this list
     }
-    else if (key == "dump")
+    else if (key == options::dumpModeString.getName())
     {
       const std::string& value = options::dumpModeString();
       Dump.setDumpFromString(value);
     }
-    else if (key=="print-success")
+    else if (key==options::printSuccess.getName())
     {
       bool value = options::printSuccess();
       Debug.getStream() << Command::printsuccess(value);
@@ -3699,17 +3674,15 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
   }
 }
 
-void SmtEngine::beforeSearch()
+void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 {
+  /* FIXME
+   
   if(d_fullyInited) {
     throw ModalException(
         "SmtEngine::beforeSearch called after initialization.");
   }
-}
-
-
-void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
-{
+  */
   NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 

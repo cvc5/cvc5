@@ -69,17 +69,6 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::notifyBeforeSearch(const std::string& option)
-{
-  try{
-    d_options->d_beforeSearchListeners.notify();
-  } catch (ModalException&){
-    std::stringstream ss;
-    ss << "cannot change option `" << option << "' after final initialization";
-    throw ModalException(ss.str());
-  }
-}
-
 unsigned long OptionsHandler::limitHandler(std::string option,
                                            std::string optarg)
 {
@@ -302,19 +291,6 @@ void OptionsHandler::LFSCEnabledBuild(std::string option, bool value) {
     throw OptionException(ss.str());
   }
 #endif /* CVC4_USE_LFSC */
-}
-
-void OptionsHandler::notifyDumpToFile(std::string option) {
-  d_options->d_dumpToFileListeners.notify();
-}
-
-
-void OptionsHandler::notifySetRegularOutputChannel(std::string option) {
-  d_options->d_setRegularChannelListeners.notify();
-}
-
-void OptionsHandler::notifySetDiagnosticOutputChannel(std::string option) {
-  d_options->d_setDiagnosticChannelListeners.notify();
 }
 
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)

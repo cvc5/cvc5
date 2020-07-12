@@ -869,14 +869,6 @@ class CVC4_PUBLIC SmtEngine
   void setPrintFuncInModel(Expr f, bool p);
 
   /**
-   * Check and throw a ModalException if the SmtEngine has been fully
-   * initialized.
-   *
-   * throw@ ModalException
-   */
-  void beforeSearch();
-
-  /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.

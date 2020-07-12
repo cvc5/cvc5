@@ -53,18 +53,6 @@ class CVC4_PUBLIC Options {
   /** The current Options in effect */
   static thread_local Options* s_current;
 
-  /** Listeners for notifyBeforeSearch. */
-  ListenerCollection d_beforeSearchListeners;
-
-  /** Listeners for options::dumpToFileName. */
-  ListenerCollection d_dumpToFileListeners;
-
-  /** Listeners for options::regularChannelName. */
-  ListenerCollection d_setRegularChannelListeners;
-
-  /** Listeners for options::diagnosticChannelName. */
-  ListenerCollection d_setDiagnosticChannelListeners;
-
   static ListenerCollection::Registration* registerAndNotify(
       ListenerCollection& collection, Listener* listener, bool notify);
 
@@ -286,54 +274,6 @@ public:
    * Get the setting for all options.
    */
   std::vector<std::vector<std::string> > getOptions() const;
-
-  /**
-   * Registers a listener for the notification, notifyBeforeSearch.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   *
-   * This has multiple usages so having a notifyIfSet flag does not add
-   * clarity. Users should check the relevant flags before registering this.
-   */
-  ListenerCollection::Registration* registerBeforeSearchListener(
-      Listener* listener);
-
-  /**
-   * Registers a listener for options::dumpToFileName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerDumpToFileNameListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::regularChannelName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetRegularOutputChannelListener(
-      Listener* listener, bool notifyIfSet);
-
-  /**
-   * Registers a listener for options::diagnosticChannelName being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerSetDiagnosticOutputChannelListener(
-      Listener* listener, bool notifyIfSet);
   
   /** set listener */
   void setListener(OptionsListener* ol);
