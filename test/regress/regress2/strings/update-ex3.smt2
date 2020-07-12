@@ -5,11 +5,12 @@
 (declare-fun x () Int)
 (declare-fun y () Int)
 
-;(assert (= s "AZZZEFZ"))
+;(assert (= s "AZZZEFX"))
 ;(assert (= x 1))
 ;(assert (= y 6))
-(assert (= s (str.update (str.update "ABCDEFG" x "ZZZ") y "Z")))
-(assert (not (str.contains s "C")))
+(assert (= s (str.update (str.update "ABCDEFG" x "ZZZ") y "X")))
+(assert (not (str.contains s "B")))
+(assert (not (str.contains s "D")))
 (assert (not (str.contains s "G")))
 
 (check-sat)
