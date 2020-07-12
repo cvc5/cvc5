@@ -121,7 +121,7 @@ class StringUpdateTypeRule
       if (!t2.isStringLike())
       {
         throw TypeCheckingExceptionPrivate(
-            n, "expecting an string replace term in update");
+            n, "expecting an string-like replace term in update");
       }
     }
     return t;

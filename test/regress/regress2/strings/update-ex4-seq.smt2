@@ -6,6 +6,6 @@
 
 (assert (= s (seq.++ (seq.unit 0) (seq.unit 1) (seq.unit 7) (seq.unit 3) (seq.unit 4) (seq.unit 5))))
 
-(assert (not (= s (seq.update s x x))))
+(assert (not (= s (seq.update s x (seq.unit x)))))
 
 (check-sat)
