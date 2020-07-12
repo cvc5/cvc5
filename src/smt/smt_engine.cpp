@@ -447,28 +447,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
                     << std::endl;
-    // TODO: this could be improved so that we have a way of extracting the
-    // expected name of the option. This would ensure we don't maintain
-    // std::string option names in two places.  In other words, the below
-    // condition should be:
-    //     (key == options::cumulativeMillisecondLimit.getName())
-    if (key == options::cumulativeMillisecondLimit.getName())
-    {
-      d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(), true);
-    }
-    else if (key == options::perCallMillisecondLimit.getName())
-    {
-      d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
-    }
-    else if (key == options::cumulativeResourceLimit.getName())
-    {
-      d_resourceManager->setTimeLimit(options::cumulativeResourceLimit(), true);
-    }
-    else if (key == options::perCallResourceLimit.getName())
-    {
-      d_resourceManager->setTimeLimit(options::perCallResourceLimit(), false);
-    }
-    else if (key == options::defaultExprDepth.getName())
+    if (key == options::defaultExprDepth.getName())
     {
       int depth = options::defaultExprDepth();
       Debug.getStream() << expr::ExprSetDepth(depth);
