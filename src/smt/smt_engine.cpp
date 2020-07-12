@@ -573,7 +573,7 @@ void SmtEngine::finishInit()
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());
-  
+
   // Inialize the resource manager based on the options.
   d_optm->finishInit(*this, d_logic);
 

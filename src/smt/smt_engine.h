@@ -103,7 +103,7 @@ namespace smt {
   class SmtEnginePrivate;
   class SmtScope;
   class ProcessAssertions;
-  
+
   class OptionsManager;
 
   ProofManager* currentProofManager();
@@ -1341,7 +1341,7 @@ class CVC4_PUBLIC SmtEngine
    * Manager for limiting time and abstract resource usage.
    */
   std::unique_ptr<ResourceManager> d_resourceManager;
-  /** 
+  /**
    * The options manager, which is responsible for implementing core options
    * such as those related to time outs and printing. It is also responsible
    * for set default options based on the logic.

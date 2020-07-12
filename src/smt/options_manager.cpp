@@ -14,20 +14,22 @@
 
 #include "smt/options_manager.h"
 
-#include "smt/command.h"
-#include "expr/expr_iomanip.h"
 #include "base/output.h"
-#include "smt/dump.h"
-#include "options/smt_options.h"
-#include "options/expr_options.h"
+#include "expr/expr_iomanip.h"
 #include "options/base_options.h"
+#include "options/expr_options.h"
+#include "options/smt_options.h"
+#include "smt/command.h"
+#include "smt/dump.h"
 #include "smt/set_defaults.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace smt {
 
-OptionsManager::OptionsManager(Options* opts, ResourceManager* rm) : d_options(opts), d_resourceManager(rm){
+OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
+    : d_options(opts), d_resourceManager(rm)
+{
   try
   {
     // set options that must take effect immediately
@@ -60,12 +62,13 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm) : d_options(o
   opts->setListener(this);
 }
 
-OptionsManager::~OptionsManager(){}
+OptionsManager::~OptionsManager() {}
 
-void OptionsManager::setOption(const std::string& key, const std::string& optarg)
+void OptionsManager::setOption(const std::string& key,
+                               const std::string& optarg)
 {
-  Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg
-                << ")" << std::endl;
+  Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
+               << std::endl;
   if (key == options::defaultExprDepth.getName())
   {
     int depth = (*d_options)[options::defaultExprDepth];
@@ -144,11 +147,10 @@ void OptionsManager::finishInit(SmtEngine& smte, LogicInfo& logic)
   {
     d_resourceManager->useCPUTime(true);
   }
-  
+
   // ensure that our heuristics are properly set up
   setDefaults(smte, logic);
 }
 
 }  // namespace smt
 }  // namespace CVC4
-
