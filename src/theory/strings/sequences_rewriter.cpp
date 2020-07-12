@@ -574,6 +574,7 @@ Node SequencesRewriter::rewriteLength(Node node)
            || nk0 == STRING_UPDATE)
   {
     // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+    // len( update( x, n, y ) ) = len( x )
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
   }
@@ -1808,26 +1809,22 @@ Node SequencesRewriter::rewriteSubstr(Node node)
 Node SequencesRewriter::rewriteUpdate(Node node)
 {
   Assert(node.getKind() == kind::STRING_UPDATE);
-
-  NodeManager* nm = NodeManager::currentNM();
-
-  if (node[0].isConst())
+  Node s = node[0];
+  if (s.isConst())
   {
-    if (Word::isEmpty(node[0]))
+    if (Word::isEmpty(s))
     {
-      Node ret = node[0];
-      return returnRewrite(node, ret, Rewrite::UPD_EMPTYSTR);
+      return returnRewrite(node, s, Rewrite::UPD_EMPTYSTR);
     }
     // rewriting for constant arguments
     if (node[1].isConst())
     {
-      Node s = node[0];
       CVC4::Rational rMaxInt(String::maxSize());
       if (node[1].getConst<Rational>() > rMaxInt)
       {
         // start beyond the maximum size of strings
         // thus, it must be beyond the end point of this string
-        return returnRewrite(node, node[0], Rewrite::UPD_CONST_INDEX_MAX_OOB);
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_MAX_OOB);
       }
       else if (node[1].getConst<Rational>().sgn() < 0)
       {
@@ -1837,18 +1834,15 @@ Node SequencesRewriter::rewriteUpdate(Node node)
       }
       uint32_t start =
           node[1].getConst<Rational>().getNumerator().toUnsignedInt();
-      if (start >= Word::getLength(node[0]))
+      size_t len = Word::getLength(s);
+      if (start >= len)
       {
         // start beyond the end of the string
-        return returnRewrite(node, node[0], Rewrite::UPD_CONST_INDEX_OOB);
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_OOB);
       }
       if (node[2].isConst())
       {
-        size_t len = Word::getLength(node[2]);
-        // compute the update
-        Node pre = Word::substr(s, 0, start);
-        Node post = Word::substr(s, start + len);
-        Node ret = nm->mkNode(STRING_CONCAT, pre, node[2], post);
+        Node ret = Word::update(s, start, node[2]);
         return returnRewrite(node, ret, Rewrite::UPD_EVAL);
       }
     }

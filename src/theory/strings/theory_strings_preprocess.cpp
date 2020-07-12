@@ -120,7 +120,7 @@ Node StringsPreprocess::reduce(Node t,
     Node s = t[0];
     Node n = t[1];
     Node r = t[2];
-    Node skt = sc->mkSkolemCached(r, SkolemCache::SK_PURIFY, "sst");
+    Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
     Node ls = nm->mkNode(STRING_LENGTH, s);
     // start point is greater than or equal zero
     Node c1 = nm->mkNode(GEQ, n, zero);
