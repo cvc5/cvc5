@@ -104,7 +104,7 @@ public:
     return s_current;
   }
 
-  Options(OptionsListener * ol = nullptr);
+  Options(OptionsListener* ol = nullptr);
   ~Options();
 
   /**
@@ -271,7 +271,7 @@ public:
    * Get the setting for all options.
    */
   std::vector<std::vector<std::string> > getOptions() const;
-  
+
   /** set listener */
   void setListener(OptionsListener* ol);
 
@@ -284,7 +284,7 @@ public:
  private:
   /** Pointer to the options listener, if one exists */
   OptionsListener* d_olisten;
-  /** 
+  /**
    * Helper method for setOption, updates this object for setting the given
    * option.
    */

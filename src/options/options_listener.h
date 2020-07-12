@@ -23,7 +23,7 @@ namespace CVC4 {
 
 class OptionsListener
 {
-public:
+ public:
   OptionsListener() {}
   virtual ~OptionsListener() {}
   /**

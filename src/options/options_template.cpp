@@ -224,12 +224,11 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
   // that can throw exceptions.
 }
 
-Options::Options(OptionsListener * ol)
-    : d_holder(new options::OptionsHolder())
-    , d_handler(new options::OptionsHandler(this))
-    , d_olisten(ol)
+Options::Options(OptionsListener* ol)
+    : d_holder(new options::OptionsHolder()),
+      d_handler(new options::OptionsHandler(this)),
+      d_olisten(ol)
 {
-  
 }
 
 Options::~Options() {
@@ -252,10 +251,7 @@ std::string Options::formatThreadOptionException(const std::string& option) {
   return ss.str();
 }
 
-void Options::setListener(OptionsListener* ol)
-{
-  d_olisten = ol;
-}
+void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 ${custom_handlers}$
 
@@ -585,13 +581,14 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   // first update this object
   setOptionInternal(key, optionarg);
   // then, notify the provided listener
-  if (d_olisten!=nullptr)
+  if (d_olisten != nullptr)
   {
     d_olisten->setOption(key, optionarg);
   }
 }
-  
-void Options::setOptionInternal(const std::string& key, const std::string& optionarg)
+
+void Options::setOptionInternal(const std::string& key,
+                                const std::string& optionarg)
 {
   options::OptionsHandler* handler = d_handler;
   Options* options = this;

@@ -381,7 +381,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
-
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     /**

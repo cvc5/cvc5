@@ -62,6 +62,7 @@
 #include "options/main_options.h"
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
+#include "options/options_listener.h"
 #include "options/printer_options.h"
 #include "options/proof_options.h"
 #include "options/prop_options.h"
@@ -72,7 +73,6 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "options/options_listener.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -197,15 +197,16 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** An options listener class */
   class SmtEnginePrivateOptionsListener : public OptionsListener
   {
-  public:
-    SmtEnginePrivateOptionsListener(SmtEnginePrivate& smtp) : d_smtp(smtp){}
-    ~SmtEnginePrivateOptionsListener(){}
+   public:
+    SmtEnginePrivateOptionsListener(SmtEnginePrivate& smtp) : d_smtp(smtp) {}
+    ~SmtEnginePrivateOptionsListener() {}
     /** set option */
     void setOption(const std::string& key, const std::string& optarg) override
     {
       d_smtp.notifySetOption(key, optarg);
     }
-  private:
+
+   private:
     /** reference to the SMT engine */
     SmtEnginePrivate& d_smtp;
   };
@@ -334,7 +335,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     rm->registerHardListener(d_hardListener.get());
 
     Options& opts = d_smt.getOptions();
-    
+
     // set the listener of the options
     opts.setListener(&d_smtOptListen);
     try
@@ -449,20 +450,20 @@ class SmtEnginePrivate : public NodeManagerListener {
   }
 
   void nmNotifyDeleteNode(TNode n) override {}
-  
+
   /**
    * Called when a set option call is made on the options object associated
    * with this class. This handles all options that should be taken into account
    * immediately instead of e.g. at SmtEngine::finishInit time.
-   * 
+   *
    * This function call is made after the option has been updated. This means
    * that the value of the option can be queried, instead of reparsing the
    * option argument. Thus, optarg is only for debugging.
    */
   void notifySetOption(const std::string& key, const std::string& optarg)
   {
-    Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
-                    << std::endl;
+    Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg
+                 << ")" << std::endl;
     if (key == options::defaultExprDepth.getName())
     {
       int depth = options::defaultExprDepth();
@@ -501,7 +502,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       const std::string& value = options::dumpModeString();
       Dump.setDumpFromString(value);
     }
-    else if (key==options::printSuccess.getName())
+    else if (key == options::printSuccess.getName())
     {
       bool value = options::printSuccess();
       Debug.getStream() << Command::printsuccess(value);
@@ -511,7 +512,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       Message.getStream() << Command::printsuccess(value);
       Warning.getStream() << Command::printsuccess(value);
       *options::out() << Command::printsuccess(value);
-    }    
+    }
     // otherwise, no action is necessary
   }
 
@@ -3662,7 +3663,7 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 {
   /* FIXME
-   
+
   if(d_fullyInited) {
     throw ModalException(
         "SmtEngine::beforeSearch called after initialization.");

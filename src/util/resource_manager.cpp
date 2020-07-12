@@ -271,13 +271,13 @@ void ResourceManager::spendResource(unsigned amount)
     }
 
     if (d_isHardLimit) {
-      for (Listener * l : d_hardListeners)
+      for (Listener* l : d_hardListeners)
       {
         l->notify();
       }
       throw UnsafeInterruptException();
     } else {
-      for (Listener * l : d_softListeners)
+      for (Listener* l : d_softListeners)
       {
         l->notify();
       }
@@ -437,14 +437,12 @@ void ResourceManager::enable(bool on) {
   d_on = on;
 }
 
-void ResourceManager::registerHardListener(
-    Listener* listener)
+void ResourceManager::registerHardListener(Listener* listener)
 {
   return d_hardListeners.push_back(listener);
 }
 
-void ResourceManager::registerSoftListener(
-    Listener* listener)
+void ResourceManager::registerSoftListener(Listener* listener)
 {
   return d_softListeners.push_back(listener);
 }
