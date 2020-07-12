@@ -80,11 +80,11 @@ class SygusInterpol
 
   /**
    * Creates free variables and shared free variables from d_syms and
-   * d_symsetShared, which are stored in d_vars and d_varsShared. And also creates
-   * the corresponding set of variables for the formal argument list, which is
-   * stored in d_vlvs and d_vlvsShared. Extracts the types of shared variables,
-   * which are stored in d_varTypesShared. Creates the formal argument list of
-   * the interpol-to-synthesis, stored in d_ibvlShared.
+   * d_symsetShared, which are stored in d_vars and d_varsShared. And also
+   * creates the corresponding set of variables for the formal argument list,
+   * which is stored in d_vlvs and d_vlvsShared. Extracts the types of shared
+   * variables, which are stored in d_varTypesShared. Creates the formal
+   * argument list of the interpol-to-synthesis, stored in d_ibvlShared.
    *
    * When using default grammar, the needsShared is true. When using
    * user-defined gramar, the needsShared is false.
@@ -169,9 +169,9 @@ class SygusInterpol
    * symbols from axioms and conjecture.
    */
   std::vector<Node> d_syms;
-	/**
-	 * unordered set for shared symbols between axioms and conjecture.
-	 */
+  /**
+   * unordered set for shared symbols between axioms and conjecture.
+   */
   std::unordered_set<Node, NodeHashFunction> d_symsetShared;
   /**
    * free variables created from d_syms.

@@ -40,7 +40,7 @@ SygusInterpol::SygusInterpol(LogicInfo logic) : d_logic(logic) {}
 void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
                                    const Node& conj)
 {
-	Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
+  Trace("sygus-interpol-debug") << "Collect symbols..." << std::endl;
   std::unordered_set<Node, NodeHashFunction> symsetAxioms;
   std::unordered_set<Node, NodeHashFunction> symsetConj;
   for (size_t i = 0, size = axioms.size(); i < size; i++)
@@ -48,14 +48,14 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
     expr::getSymbols(axioms[i], symsetAxioms);
   }
   expr::getSymbols(conj, symsetConj);
-	for (const Node& s : symsetAxioms)
-	{
-		d_syms.push_back(s);
-	}
-	for (const Node& s : symsetConj)
-	{
-		d_syms.push_back(s);
-	}
+  for (const Node& s : symsetAxioms)
+  {
+    d_syms.push_back(s);
+  }
+  for (const Node& s : symsetConj)
+  {
+    d_syms.push_back(s);
+  }
   for (const auto& elem : symsetConj)
   {
     if (symsetAxioms.find(elem) != symsetAxioms.end())
@@ -70,7 +70,7 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
 
 void SygusInterpol::createVariables(bool needsShared)
 {
-	NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   for (const Node& s : d_syms)
   {
     TypeNode tn = s.getType();
@@ -104,11 +104,11 @@ void SygusInterpol::createVariables(bool needsShared)
 std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     const std::vector<Node>& assumptions, const Node& conclusion)
 {
-	NodeManager* nm = NodeManager::currentNM();
-	Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
-	std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
-		std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
-	// ASSUMPTIONS
+  NodeManager* nm = NodeManager::currentNM();
+  Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
+  // ASSUMPTIONS
   if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
     Node tmpAssumptions;
@@ -122,7 +122,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     }
     expr::getOperatorsMap(tmpAssumptions, result);
   }
-  // CONJECTURE 
+  // CONJECTURE
   else if (options::produceInterpols() == options::ProduceInterpols::CONJECTURE)
   {
     expr::getOperatorsMap(conclusion, result);
@@ -200,14 +200,14 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     Node tmpAll = nm->mkNode(kind::AND, tmpAssumptions, conclusion);
     expr::getOperatorsMap(tmpAll, result);
   }
-	return result;
+  return result;
 }
 
 TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
                                         const std::vector<Node>& axioms,
                                         const Node& conj)
 {
-	Trace("sygus-interpol-debug") << "Setup grammar..." << std::endl;
+  Trace("sygus-interpol-debug") << "Setup grammar..." << std::endl;
   TypeNode itpGTypeS;
   if (!itpGType.isNull())
   {
