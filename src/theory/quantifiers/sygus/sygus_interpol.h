@@ -71,7 +71,7 @@ class SygusInterpol
   /**
    * Collects symbols from axioms (axioms) and conjecture (conj), which are
    * stored in d_syms, and computes the shared symbols between axioms and
-   * conjecture, stored in d_symsShared.
+   * conjecture, stored in d_symsetShared.
    *
    * @param axioms the assertions (Fa above)
    * @param conj the conjecture (Fc above)
@@ -80,7 +80,7 @@ class SygusInterpol
 
   /**
    * Creates free variables and shared free variables from d_syms and
-   * d_symsShared, which are stored in d_vars and d_varsShared. And also creates
+   * d_symsetShared, which are stored in d_vars and d_varsShared. And also creates
    * the corresponding set of variables for the formal argument list, which is
    * stored in d_vlvs and d_vlvsShared. Extracts the types of shared variables,
    * which are stored in d_varTypesShared. Creates the formal argument list of
@@ -165,15 +165,14 @@ class SygusInterpol
    * The logic for the local copy of SMT engine (d_subSolver).
    */
   LogicInfo d_logic;
-
   /**
    * symbols from axioms and conjecture.
    */
   std::vector<Node> d_syms;
-  /**
-   * shared symbols between axioms and conjecture.
-   */
-  std::vector<Node> d_symsShared;
+	/**
+	 * unordered set for shared symbols between axioms and conjecture.
+	 */
+  std::unordered_set<Node, NodeHashFunction> d_symsetShared;
   /**
    * free variables created from d_syms.
    */
@@ -183,7 +182,7 @@ class SygusInterpol
    */
   std::vector<Node> d_vlvs;
   /**
-   * free variables created from d_symsShared.
+   * free variables created from d_symsetShared.
    */
   std::vector<Node> d_varsShared;
   /**
