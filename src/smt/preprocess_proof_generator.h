@@ -69,7 +69,7 @@ class PreprocessProofGenerator : public ProofGenerator
    * The trust node that was the source of each node constructed during
    * preprocessing. For each n, d_src[n] is a trust node whose node is n. This
    * can either be:
-   * (1) A trust node REWRITE proving (n_src = n), or
+   * (1) A trust node REWRITE proving (n_src = n) for some n_src, or
    * (2) A trust node LEMMA proving n.
    */
   std::map<Node, theory::TrustNode> d_src;
