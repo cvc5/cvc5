@@ -823,7 +823,7 @@ void SmtEngine::finishInit()
   // subsolvers
   if (options::produceAbducts())
   {
-    d_abductSolver.reset(new AbductSolver(this));
+    d_abductSolver.reset(new AbductionSolver(this));
   }
   
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
@@ -2174,7 +2174,6 @@ Node SmtEngine::expandDefinitions(const Node& ex)
 {
   d_private->spendResource(ResourceManager::Resource::PreprocessStep);
 
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -2189,7 +2188,7 @@ Node SmtEngine::expandDefinitions(const Node& ex)
 
   unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->getProcessAssertions()->expandDefinitions(
-      Node::fromExpr(e), cache, /* expandOnly = */ true);
+      e, cache, /* expandOnly = */ true);
   n = postprocess(n, e.getType());
 
   return n;

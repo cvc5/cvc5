@@ -18,6 +18,10 @@
 #include "options/smt_options.h"
 #include "theory/smt_engine_subsolver.h"
 #include "theory/quantifiers/sygus/sygus_abduct.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+
+using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace smt {
@@ -54,7 +58,7 @@ if (!options::produceAbducts())
   d_abdConj = conjn;
   asserts.push_back(conjn);
   std::string name("A");
-  Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
+  Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms,grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
@@ -63,9 +67,9 @@ if (!options::produceAbducts())
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
                         << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
-  theory::initializeSubsolver(d_subsolver);
+  initializeSubsolver(d_subsolver);
   // get the logic
-  LogicInfo l = d_subsolver->getLogic().getUnlockedCopy();
+  LogicInfo l = d_subsolver->getLogicInfo().getUnlockedCopy();
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
@@ -105,7 +109,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
         abd = abd[1];
       }
       // get the grammar type for the abduct
-      Node agdtbv = d_sssf.getAttribute(theory::SygusSynthFunVarListAttribute());
+      Node agdtbv = d_sssf.getAttribute(SygusSynthFunVarListAttribute());
       Assert(!agdtbv.isNull());
       Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
       // convert back to original
@@ -143,7 +147,7 @@ void AbductionSolver::checkAbduct(Node a)
                         << std::endl;
 
   std::vector<Expr> asserts = d_parent->getExpandedAssertions();
-  asserts.push_back(a);
+  asserts.push_back(a.toExpr());
 
   // two checks: first, consistent with assertions, second, implies negated goal
   // is unsatisfiable.
@@ -153,7 +157,7 @@ void AbductionSolver::checkAbduct(Node a)
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
     std::unique_ptr<SmtEngine> abdChecker;
-    theory::initializeSubsolver(abdChecker);
+    initializeSubsolver(abdChecker);
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Expr& e : asserts)

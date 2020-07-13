@@ -1555,7 +1555,8 @@ ExpandDefinitionsCommand::ExpandDefinitionsCommand(Expr term) : d_term(term) {}
 Expr ExpandDefinitionsCommand::getTerm() const { return d_term; }
 void ExpandDefinitionsCommand::invoke(SmtEngine* smtEngine)
 {
-  d_result = smtEngine->expandDefinitions(d_term);
+  Node t = Node::fromExpr(d_term);
+  d_result = smtEngine->expandDefinitions(t).toExpr();
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1623,9 +1624,10 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       Expr e = d_terms[i];
+      Node en = Node::fromExpr(e);
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      Node request = Node::fromExpr(
-          options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
+      Node request = 
+          options::expandDefinitions() ? smtEngine->expandDefinitions(en) : en;
       Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
