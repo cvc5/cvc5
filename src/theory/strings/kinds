@@ -76,9 +76,9 @@ enumerator SEQUENCE_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_SEQUENCE \
-    ::CVC4::ExprSequence \
-    ::CVC4::ExprSequenceHashFunction \
-    "expr/expr_sequence.h" \
+    ::CVC4::Sequence \
+    ::CVC4::SequenceHashFunction \
+    "expr/sequence.h" \
     "a sequence of characters"
 
 operator SEQ_UNIT 1 "a sequence of length one"
