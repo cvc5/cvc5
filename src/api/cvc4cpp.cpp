@@ -256,6 +256,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {STRING_IN_REGEXP, CVC4::Kind::STRING_IN_REGEXP},
     {STRING_LENGTH, CVC4::Kind::STRING_LENGTH},
     {STRING_SUBSTR, CVC4::Kind::STRING_SUBSTR},
+    {STRING_UPDATE, CVC4::Kind::STRING_UPDATE},
     {STRING_CHARAT, CVC4::Kind::STRING_CHARAT},
     {STRING_CONTAINS, CVC4::Kind::STRING_STRCTN},
     {STRING_INDEXOF, CVC4::Kind::STRING_STRIDOF},
@@ -294,6 +295,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {SEQ_CONCAT, CVC4::Kind::STRING_CONCAT},
     {SEQ_LENGTH, CVC4::Kind::STRING_LENGTH},
     {SEQ_EXTRACT, CVC4::Kind::STRING_SUBSTR},
+    {SEQ_UPDATE, CVC4::Kind::STRING_UPDATE},
     {SEQ_AT, CVC4::Kind::STRING_CHARAT},
     {SEQ_CONTAINS, CVC4::Kind::STRING_STRCTN},
     {SEQ_INDEXOF, CVC4::Kind::STRING_STRIDOF},
@@ -542,6 +544,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::STRING_IN_REGEXP, STRING_IN_REGEXP},
         {CVC4::Kind::STRING_LENGTH, STRING_LENGTH},
         {CVC4::Kind::STRING_SUBSTR, STRING_SUBSTR},
+        {CVC4::Kind::STRING_UPDATE, STRING_UPDATE},
         {CVC4::Kind::STRING_CHARAT, STRING_CHARAT},
         {CVC4::Kind::STRING_STRCTN, STRING_CONTAINS},
         {CVC4::Kind::STRING_STRIDOF, STRING_INDEXOF},
@@ -1408,6 +1411,7 @@ Kind Term::getKindHelper() const
       case CVC4::Kind::STRING_CONCAT: return SEQ_CONCAT;
       case CVC4::Kind::STRING_LENGTH: return SEQ_LENGTH;
       case CVC4::Kind::STRING_SUBSTR: return SEQ_EXTRACT;
+      case CVC4::Kind::STRING_UPDATE: return SEQ_UPDATE;
       case CVC4::Kind::STRING_CHARAT: return SEQ_AT;
       case CVC4::Kind::STRING_STRCTN: return SEQ_CONTAINS;
       case CVC4::Kind::STRING_STRIDOF: return SEQ_INDEXOF;
@@ -1574,8 +1578,7 @@ std::vector<Term> Term::getConstSequenceElements() const
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::CONST_SEQUENCE)
       << "Expecting a CONST_SEQUENCE Term when calling "
          "getConstSequenceElements()";
-  const std::vector<Node>& elems =
-      d_expr->getConst<ExprSequence>().getSequence().getVec();
+  const std::vector<Node>& elems = d_expr->getConst<Sequence>().getVec();
   std::vector<Term> terms;
   for (const Node& t : elems)
   {
@@ -3444,8 +3447,9 @@ Term Solver::mkEmptySequence(Sort sort) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  std::vector<Expr> seq;
-  Expr res = d_exprMgr->mkConst(ExprSequence(*sort.d_type, seq));
+  std::vector<Node> seq;
+  Expr res =
+      d_exprMgr->mkConst(Sequence(TypeNode::fromType(*sort.d_type), seq));
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;

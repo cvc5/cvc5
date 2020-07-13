@@ -12,8 +12,6 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
-  expr_sequence.cpp
-  expr_sequence.h
   kind_map.h
   lazy_proof.cpp
   lazy_proof.h
