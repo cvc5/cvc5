@@ -568,7 +568,9 @@ void SmtEngine::finishInit()
   // set the random seed
   Random::getRandom().setSeed(options::seed());
 
-  // Inialize the resource manager based on the options.
+  // Call finish init on the options manager. This inializes the resource
+  // manager based on the options, and sets up the best default options
+  // based on our heuristics.
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
