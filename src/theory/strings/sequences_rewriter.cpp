@@ -3288,10 +3288,10 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    std::vector<Expr> seq;
-    seq.push_back(node[0].toExpr());
+    std::vector<Node> seq;
+    seq.push_back(node[0]);
     TypeNode stype = node[0].getType();
-    Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
+    Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
   return node;

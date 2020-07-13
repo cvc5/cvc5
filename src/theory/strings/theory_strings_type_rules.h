@@ -20,7 +20,6 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
-#include "expr/expr_sequence.h"
 #include "expr/sequence.h"
 
 namespace CVC4 {
@@ -362,8 +361,7 @@ class ConstSequenceTypeRule
                                      bool check)
   {
     Assert(n.getKind() == kind::CONST_SEQUENCE);
-    return nodeManager->mkSequenceType(
-        n.getConst<ExprSequence>().getSequence().getType());
+    return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
   }
 };
 
@@ -396,9 +394,9 @@ struct SequenceProperties
   {
     Assert(type.isSequence());
     // empty sequence
-    std::vector<Expr> seq;
-    return NodeManager::currentNM()->mkConst(ExprSequence(
-        SequenceType(type.getSequenceElementType().toType()), seq));
+    std::vector<Node> seq;
+    return NodeManager::currentNM()->mkConst(
+        Sequence(type.getSequenceElementType(), seq));
   }
 }; /* struct SequenceProperties */
 

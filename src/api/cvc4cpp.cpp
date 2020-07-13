@@ -1577,8 +1577,7 @@ std::vector<Term> Term::getConstSequenceElements() const
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::CONST_SEQUENCE)
       << "Expecting a CONST_SEQUENCE Term when calling "
          "getConstSequenceElements()";
-  const std::vector<Node>& elems =
-      d_expr->getConst<ExprSequence>().getSequence().getVec();
+  const std::vector<Node>& elems = d_expr->getConst<Sequence>().getVec();
   std::vector<Term> terms;
   for (const Node& t : elems)
   {
@@ -3447,8 +3446,9 @@ Term Solver::mkEmptySequence(Sort sort) const
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
-  std::vector<Expr> seq;
-  Expr res = d_exprMgr->mkConst(ExprSequence(*sort.d_type, seq));
+  std::vector<Node> seq;
+  Expr res =
+      d_exprMgr->mkConst(Sequence(TypeNode::fromType(*sort.d_type), seq));
   return Term(this, res);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
