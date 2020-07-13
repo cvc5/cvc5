@@ -251,6 +251,28 @@ bool Word::hasSuffix(TNode x, TNode y)
   return false;
 }
 
+Node Word::update(TNode x, std::size_t i, TNode t)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = x.getKind();
+  if (k == CONST_STRING)
+  {
+    Assert(t.getKind() == CONST_STRING);
+    String sx = x.getConst<String>();
+    String st = t.getConst<String>();
+    return nm->mkConst(String(sx.update(i, st)));
+  }
+  else if (k == CONST_SEQUENCE)
+  {
+    Assert(t.getKind() == CONST_SEQUENCE);
+    const Sequence& sx = x.getConst<Sequence>();
+    const Sequence& st = t.getConst<Sequence>();
+    Sequence res = sx.update(i, st);
+    return nm->mkConst(res);
+  }
+  Unimplemented();
+  return Node::null();
+}
 Node Word::replace(TNode x, TNode y, TNode t)
 {
   NodeManager* nm = NodeManager::currentNM();
