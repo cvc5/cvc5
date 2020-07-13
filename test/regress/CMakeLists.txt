@@ -1872,6 +1872,8 @@ set(regress_1_tests
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
+  regress1/strings/update-ex1.smt2
+  regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-ex1-grammar.smt2
   regress1/sygus-abduct-test.smt2
@@ -2114,6 +2116,8 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/strings/update-ex3.smt2
+  regress2/strings/update-ex4-seq.smt2
   regress2/sygus/DRAGON_1.lus.sy
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
