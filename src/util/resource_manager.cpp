@@ -63,6 +63,7 @@ bool WallClockTimer::expired() const
 struct ResourceManager::Statistics
 {
   ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
+  IntStat d_spendResourceCalls;
   IntStat d_numBitblastStep;
   IntStat d_numBvEagerAssertStep;
   IntStat d_numBvPropagationStep;
@@ -86,6 +87,7 @@ struct ResourceManager::Statistics
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
+      d_spendResourceCalls("resource::spendResourceCalls", 0),
       d_numBitblastStep("resource::BitblastStep", 0),
       d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
       d_numBvPropagationStep("resource::BvPropagationStep", 0),
@@ -103,6 +105,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
       d_statisticsRegistry(stats)
 {
   d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
+  d_statisticsRegistry.registerStat(&d_spendResourceCalls);
   d_statisticsRegistry.registerStat(&d_numBitblastStep);
   d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
@@ -122,6 +125,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
 ResourceManager::Statistics::~Statistics()
 {
   d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
+  d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
   d_statisticsRegistry.unregisterStat(&d_numBitblastStep);
   d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
@@ -153,7 +157,6 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_thisCallTimeBudget(0),
       d_thisCallResourceBudget(0),
       d_on(false),
-      d_spendResourceCalls(0),
       d_listeners(),
       d_statistics(new ResourceManager::Statistics(stats)),
       d_options(options)
@@ -207,7 +210,7 @@ uint64_t ResourceManager::getResourceRemaining() const
 
 void ResourceManager::spendResource(unsigned amount)
 {
-  ++d_spendResourceCalls;
+  ++d_statistics->d_spendResourceCalls;
   d_cumulativeResourceUsed += amount;
   if (!d_on) return;
 
@@ -216,7 +219,7 @@ void ResourceManager::spendResource(unsigned amount)
   if (out())
   {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
-    Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;
+    Trace("limit") << "          on call " << d_statistics->d_spendResourceCalls << std::endl;
     if (outOfTime())
     {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"

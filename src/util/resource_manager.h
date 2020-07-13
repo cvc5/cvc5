@@ -198,7 +198,6 @@ class CVC4_PUBLIC ResourceManager
   uint64_t d_thisCallResourceBudget;
 
   bool d_on;
-  uint64_t d_spendResourceCalls;
 
   /** Counter indicating how often to check resource manager in loops */
   static const uint64_t s_resourceCount;
