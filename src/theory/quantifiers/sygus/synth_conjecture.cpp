@@ -421,8 +421,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       Trace("sygus-engine-debug") << "...empty model, fail." << std::endl;
       return !activeIncomplete;
     }
-    // debug print
-    if (printDebug || (Trace.isOn("sygus-engine")))
+    // Must separately compute whether trace is on due to compilation of
+    // Trace.isOn.
+    bool traceIsOn = Trace.isOn("sygus-engine");
+    if (printDebug || traceIsOn)
     {
       Trace("sygus-engine") << "  * Value is : ";
       std::stringstream sygusEnumOut;
