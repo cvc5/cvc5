@@ -343,6 +343,8 @@ class SygusEnumerator : public EnumValGenerator
     bool increment() override;
 
    private:
+    /** pointer to term database sygus */
+    TermDbSygus* d_tds;
     /** are we enumerating shapes? */
     bool d_enumShapes;
     /** are we currently inside a increment() call? */
@@ -351,9 +353,8 @@ class SygusEnumerator : public EnumValGenerator
     Node d_currTerm;
     /** is d_currTerm set */
     bool d_currTermSet;
-    //----------------------------- for shape enumeration
+    /** The list of free variables, for shape enumeration */
     std::vector<Node> d_shapeFvs;
-    //----------------------------- end for shape enumeration
     //----------------------------- current constructor class information
     /** the next constructor class we are using */
     unsigned d_consClassNum;
@@ -401,6 +402,15 @@ class SygusEnumerator : public EnumValGenerator
     bool initializeChild(unsigned i, unsigned sizeMin);
     /** increment internal, helper for increment() */
     bool incrementInternal();
+    /** get shape variable */
+    Node getShapeVariable(size_t i);
+    /** 
+     * Convert children so that all sygus free variables are unique. Note that
+     * the first child is a constructor operator and should be skipped.
+     */
+    void childrenToShape(std::vector<Node>& children);
+    /** Convert n into shape. */
+    Node convertShape(Node n, std::map<TypeNode, int>& vcounter);
   };
   /** an interpreted value enumerator
    *

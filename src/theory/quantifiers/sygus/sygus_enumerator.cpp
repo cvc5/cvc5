@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
+#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -616,6 +617,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
                                                  TypeNode tn)
 {
   Trace("sygus-enum-debug") << "master(" << tn << "): init...\n";
+  d_tds = se->d_tds;
   d_se = se;
   d_tn = tn;
 
@@ -658,6 +660,11 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
       return cc;
     }
     children.push_back(cc);
+  }
+  if (d_enumShapes)
+  {
+    // ensure all variables are unique
+    childrenToShape(children);
   }
   d_currTerm = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
   return d_currTerm;
@@ -1009,6 +1016,93 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   Trace("sygus-enum-debug2") << "master(" << d_tn
                              << "): success initializeChild " << i << "\n";
   return true;
+}
+
+Node SygusEnumerator::TermEnumMaster::getShapeVariable(size_t i)
+{
+  while (i>=d_shapeFvs.size())
+  {
+    Node fv = NodeManager::currentNM()->mkBoundVar(d_tn);
+    d_shapeFvs.push_back(fv);
+  }
+  return d_shapeFvs[i];
+}
+
+void SygusEnumerator::TermEnumMaster::childrenToShape( std::vector<Node>& children )
+{
+  if (children.size()<=2)
+  {
+    // don't need to convert constants and unary applications
+    return;
+  }
+  std::map<TypeNode, int> vcounter;
+  for (unsigned i=1, nchildren=children.size(); i<nchildren; i++)
+  {
+    if (!expr::hasBoundVar(children[i]))
+    {
+      // don't need to care about expressions with no bound variables
+      continue;
+    }
+    children[i] = convertShape(children[i], vcounter);
+  }
+}
+
+
+
+Node SygusEnumerator::TermEnumMaster::convertShape(Node n, std::map<TypeNode, int>& vcounter)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do 
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) 
+    {
+      if (cur.isVar())
+      {
+        // do the conversion
+        visited[cur] = d_tds->getFreeVarInc(cur.getType(), vcounter);
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(),cur.begin(),cur.end());
+      }
+    } 
+    else if (it->second.isNull()) 
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur )
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) 
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn)
