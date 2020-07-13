@@ -44,7 +44,10 @@ class SygusPbe;
 class SygusEnumerator : public EnumValGenerator
 {
  public:
-  SygusEnumerator(TermDbSygus* tds, SynthConjecture* p, SygusStatistics& s, bool enumShapes = false);
+  SygusEnumerator(TermDbSygus* tds,
+                  SynthConjecture* p,
+                  SygusStatistics& s,
+                  bool enumShapes = false);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -56,6 +59,7 @@ class SygusEnumerator : public EnumValGenerator
   Node getCurrent() override;
   /** Are we enumerating shapes? */
   bool isEnumShapes() const;
+
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
@@ -402,7 +406,7 @@ class SygusEnumerator : public EnumValGenerator
     bool initializeChild(unsigned i, unsigned sizeMin);
     /** increment internal, helper for increment() */
     bool incrementInternal();
-    /** 
+    /**
      * Convert children so that all sygus free variables are unique. Note that
      * the first child is a constructor operator and should be skipped.
      */

@@ -14,11 +14,11 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
-#include "expr/node_algorithm.h"
 
 using namespace CVC4::kind;
 
@@ -30,7 +30,12 @@ SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
                                  SynthConjecture* p,
                                  SygusStatistics& s,
                                  bool enumShapes)
-    : d_tds(tds), d_parent(p), d_stats(s), d_enumShapes(enumShapes), d_tlEnum(nullptr), d_abortSize(-1)
+    : d_tds(tds),
+      d_parent(p),
+      d_stats(s),
+      d_enumShapes(enumShapes),
+      d_tlEnum(nullptr),
+      d_abortSize(-1)
 {
 }
 
@@ -144,10 +149,7 @@ Node SygusEnumerator::getCurrent()
   return ret;
 }
 
-bool SygusEnumerator::isEnumShapes() const
-{
-  return d_enumShapes;
-}
+bool SygusEnumerator::isEnumShapes() const { return d_enumShapes; }
 
 SygusEnumerator::TermCache::TermCache()
     : d_tds(nullptr),
@@ -713,7 +715,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   if (d_enumShapes && !d_enumShapesInit)
   {
     // return the first free variable
-    Node fv = d_tds->getFreeVar(d_tn,0);
+    Node fv = d_tds->getFreeVar(d_tn, 0);
     d_enumShapesInit = true;
     d_currTermSet = true;
     d_currTerm = fv;
@@ -1021,15 +1023,16 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   return true;
 }
 
-void SygusEnumerator::TermEnumMaster::childrenToShape( std::vector<Node>& children )
+void SygusEnumerator::TermEnumMaster::childrenToShape(
+    std::vector<Node>& children)
 {
-  if (children.size()<=2)
+  if (children.size() <= 2)
   {
     // don't need to convert constants and unary applications
     return;
   }
   std::map<TypeNode, int> vcounter;
-  for (unsigned i=1, nchildren=children.size(); i<nchildren; i++)
+  for (unsigned i = 1, nchildren = children.size(); i < nchildren; i++)
   {
     if (!expr::hasBoundVar(children[i]))
     {
@@ -1040,23 +1043,22 @@ void SygusEnumerator::TermEnumMaster::childrenToShape( std::vector<Node>& childr
   }
 }
 
-
-
-Node SygusEnumerator::TermEnumMaster::convertShape(Node n, std::map<TypeNode, int>& vcounter)
+Node SygusEnumerator::TermEnumMaster::convertShape(
+    Node n, std::map<TypeNode, int>& vcounter)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
       if (cur.isVar())
       {
@@ -1067,18 +1069,19 @@ Node SygusEnumerator::TermEnumMaster::convertShape(Node n, std::map<TypeNode, in
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         it = visited.find(cn);
         Assert(it != visited.end());
@@ -1086,7 +1089,7 @@ Node SygusEnumerator::TermEnumMaster::convertShape(Node n, std::map<TypeNode, in
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) 
+      if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }

@@ -154,7 +154,7 @@ Node applySygusArgs(const DType& dt,
  * that was provided. This includes the use of defined functions. This argument
  * should typically be false, unless we are e.g. exporting the value of the
  * term as a final solution.
- * 
+ *
  * If n is not constant, then its non-constant subterms that have sygus
  * datatype types are replaced by fresh variables (of the same name, if that
  * subterm is a variable, and having arbitrary name otherwise).
