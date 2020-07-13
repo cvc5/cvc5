@@ -22,6 +22,7 @@
 
 #include <sys/time.h>
 
+#include <chrono>
 #include <cstddef>
 #include <memory>
 
@@ -35,48 +36,35 @@ namespace CVC4 {
 class StatisticsRegistry;
 
 /**
- * A helper class to keep track of a time budget and signal
- * the PropEngine when the budget expires.
+ * This class implements a easy to use wall clock timer based on std::chrono.
  */
-class CVC4_PUBLIC Timer {
+class CVC4_PUBLIC WallClockTimer
+{
+  /**
+   * The underlying clock that is used.
+   * std::chrono::system_clock represents wall clock time.
+   */
+  using clock = std::chrono::system_clock;
+  /** A time point of the clock we use. */
+  using time_point = std::chrono::time_point<clock>;
  public:
-  /** Construct a Timer. */
-  Timer()
-      : d_ms(0),
-        d_cpu_start_time(0),
-        d_cpu_limit(0),
-        d_wall_time(true)
-  {
-    d_wall_limit.tv_sec = 0;
-    d_wall_limit.tv_usec = 0;
-  }
-
-  /** Is the timer currently active? */
-  bool on() const {
-    return d_ms != 0;
-  }
-
-  /** Set a millisecond timer (0==off). */
-  void set(uint64_t millis, bool wall_time = true);
-  /** Return the milliseconds elapsed since last set() wall/cpu time
-   depending on d_wall_time*/
+  /** Checks whether this timer is active. */
+  bool on() const;
+  /**
+   * Activates this timer with a timeout in milliseconds. 
+   * If millis is zero, the timer is deactivated.
+   */
+  void set(uint64_t millis);
+  /** Returns the number of elapsed milliseconds since the last call to set(). */
   uint64_t elapsed() const;
+  /** Checks whether the current timeout has expired. */
   bool expired() const;
-
  private:
-
-  /** Return the milliseconds elapsed since last set() cpu time. */
-  uint64_t elapsedCPU() const;
-  /** Return the milliseconds elapsed since last set() wall time. */
-  uint64_t elapsedWall() const;
-
-  uint64_t d_ms;
-  clock_t d_cpu_start_time;
-  clock_t d_cpu_limit;
-  bool d_wall_time;
-  timeval d_wall_limit;
-};/* class Timer */
-
+  /** The start of this timer. */
+  time_point d_start;
+  /** The point in time when this timer expires. */
+  time_point d_limit;
+};
 
 class CVC4_PUBLIC ResourceManager {
 public:
@@ -149,8 +137,8 @@ public:
  ListenerCollection::Registration* registerSoftListener(Listener* listener);
 
 private:
- Timer d_cumulativeTimer;
- Timer d_perCallTimer;
+ WallClockTimer d_cumulativeTimer;
+ WallClockTimer d_perCallTimer;
 
  /** A user-imposed cumulative time budget, in milliseconds. 0 = no limit. */
  uint64_t d_timeBudgetCumulative;

@@ -25,80 +25,28 @@ using namespace std;
 
 namespace CVC4 {
 
-void Timer::set(uint64_t millis, bool wallTime) {
-  d_ms = millis;
-  Trace("limit") << "Timer::set(" << d_ms << ")" << std::endl;
-  // keep track of when it was set, even if it's disabled (i.e. == 0)
-  d_wall_time = wallTime;
-  if (d_wall_time) {
-    // Wall time
-    gettimeofday(&d_wall_limit, NULL);
-    Trace("limit") << "Timer::set(): it's " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-    d_wall_limit.tv_sec += millis / 1000;
-    d_wall_limit.tv_usec += (millis % 1000) * 1000;
-    if(d_wall_limit.tv_usec > 1000000) {
-      ++d_wall_limit.tv_sec;
-      d_wall_limit.tv_usec -= 1000000;
-    }
-    Trace("limit") << "Timer::set(): limit is at " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
+bool WallClockTimer::on() const {
+  // default-constructed time points are at the respective epoch
+  return d_limit.time_since_epoch().count() != 0;
+}
+void WallClockTimer::set(uint64_t millis) {
+  if (millis == 0) {
+    // reset / deactivate
+    d_start = time_point();
+    d_limit = time_point();
   } else {
-    // CPU time
-    d_cpu_start_time = ((double)clock())/(CLOCKS_PER_SEC *0.001);
-    d_cpu_limit = d_cpu_start_time + d_ms;
+    // set to now() + millis
+    d_start = clock::now();
+    d_limit = d_start + std::chrono::milliseconds(millis);
   }
 }
-
-/** Return the milliseconds elapsed since last set(). */
-uint64_t Timer::elapsedWall() const {
-  Assert(d_wall_time);
-  timeval tv;
-  gettimeofday(&tv, NULL);
-  Trace("limit") << "Timer::elapsedWallTime(): it's now " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-  tv.tv_sec -= d_wall_limit.tv_sec - d_ms / 1000;
-  tv.tv_usec -= d_wall_limit.tv_usec - (d_ms % 1000) * 1000;
-  Trace("limit") << "Timer::elapsedWallTime(): elapsed time is " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-  return tv.tv_sec * 1000 + tv.tv_usec / 1000;
+uint64_t WallClockTimer::elapsed() const {
+  // now() - d_start casted to milliseconds
+  return std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - d_start).count();
 }
-
-uint64_t Timer::elapsedCPU() const {
-  Assert(!d_wall_time);
-  clock_t elapsed = ((double)clock())/(CLOCKS_PER_SEC *0.001)- d_cpu_start_time;
-  Trace("limit") << "Timer::elapsedCPUTime(): elapsed time is " << elapsed << " ms" <<std::endl;
-  return elapsed;
-}
-
-uint64_t Timer::elapsed() const {
-  if (d_wall_time)
-    return elapsedWall();
-  return elapsedCPU();
-}
-
-bool Timer::expired() const {
-  if (!on()) return false;
-
-  if (d_wall_time) {
-    timeval tv;
-    gettimeofday(&tv, NULL);
-    Debug("limit") << "Timer::expired(): current wall time is " << tv.tv_sec << "," << tv.tv_usec << std::endl;
-    Debug("limit") << "Timer::expired(): limit wall time is " << d_wall_limit.tv_sec << "," << d_wall_limit.tv_usec << std::endl;
-    if(d_wall_limit.tv_sec < tv.tv_sec ||
-       (d_wall_limit.tv_sec == tv.tv_sec && d_wall_limit.tv_usec <= tv.tv_usec)) {
-      Debug("limit") << "Timer::expired(): OVER LIMIT!" << std::endl;
-      return true;
-    }
-    Debug("limit") << "Timer::expired(): within limit" << std::endl;
-    return false;
-  }
-
-  // cpu time
-  double current = ((double)clock())/(CLOCKS_PER_SEC*0.001);
-  Debug("limit") << "Timer::expired(): current cpu time is " << current <<  std::endl;
-  Debug("limit") << "Timer::expired(): limit cpu time is " << d_cpu_limit <<  std::endl;
-  if (current >= d_cpu_limit) {
-    Debug("limit") << "Timer::expired(): OVER LIMIT!" << current <<  std::endl;
-    return true;
-  }
-  return false;
+bool WallClockTimer::expired() const {
+  // whether d_limit is in the past
+  return d_limit <= clock::now();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -220,7 +168,7 @@ void ResourceManager::setTimeLimit(uint64_t millis, bool cumulative) {
   if(cumulative) {
     Trace("limit") << "ResourceManager: setting cumulative time limit to " << millis << " ms" << endl;
     d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
-    d_cumulativeTimer.set(millis, true);
+    d_cumulativeTimer.set(millis);
   } else {
     Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
     d_timeBudgetPerCall = millis;
@@ -341,7 +289,7 @@ void ResourceManager::spendResource(Resource r)
 
 void ResourceManager::beginCall() {
 
-  d_perCallTimer.set(d_timeBudgetPerCall, true);
+  d_perCallTimer.set(d_timeBudgetPerCall);
   d_thisCallResourceUsed = 0;
   if (!d_on) return;
 
@@ -357,7 +305,7 @@ void ResourceManager::beginCall() {
       d_cumulativeTimeUsed = d_cumulativeTimer.elapsed();
       d_thisCallTimeBudget = d_timeBudgetCumulative <= d_cumulativeTimeUsed? 0 :
                              d_timeBudgetCumulative - d_cumulativeTimeUsed;
-      d_cumulativeTimer.set(d_thisCallTimeBudget, false);
+      d_cumulativeTimer.set(d_thisCallTimeBudget);
     }
     // we are out of resources so we shouldn't update the
     // budget for this call to the per call budget
