@@ -977,6 +977,8 @@ set(regress_0_tests
   regress0/strings/issue4376.smt2
   regress0/strings/issue4662-consume-nterm.smt2
   regress0/strings/issue4674-recomp-nf.smt2
+  regress0/strings/issue4735.smt2
+  regress0/strings/issue4735_2.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
