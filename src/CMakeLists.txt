@@ -245,6 +245,8 @@ libcvc4_add_sources(
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
+  smt/proof_manager.cpp
+  smt/proof_manager.h
   smt/proof_post_processor.cpp
   smt/proof_post_processor.h
   smt/set_defaults.cpp
