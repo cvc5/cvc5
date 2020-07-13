@@ -114,6 +114,65 @@ Node StringsPreprocess::reduce(Node t,
     // Thus, substr( s, n, m ) = skt
     retNode = skt;
   }
+  else if (t.getKind() == kind::STRING_UPDATE)
+  {
+    // processing term:  update( s, n, r )
+    Node s = t[0];
+    Node n = t[1];
+    Node r = t[2];
+    Node skt = sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node ls = nm->mkNode(STRING_LENGTH, s);
+    // start point is greater than or equal zero
+    Node c1 = nm->mkNode(GEQ, n, zero);
+    // start point is less than end of string
+    Node c2 = nm->mkNode(GT, ls, n);
+    Node cond = nm->mkNode(AND, c1, c2);
+
+    // substr(r,0,|s|-n)
+    Node lens = nm->mkNode(STRING_LENGTH, s);
+    Node rs;
+    if (r.isConst() && Word::getLength(r) == 1)
+    {
+      // optimization: don't need to take substring for single characters, due
+      // to guard on where it is used in the reduction below.
+      rs = r;
+    }
+    else
+    {
+      rs = nm->mkNode(STRING_SUBSTR, r, zero, nm->mkNode(MINUS, lens, n));
+    }
+    Node rslen = nm->mkNode(STRING_LENGTH, rs);
+    Node nsuf = nm->mkNode(PLUS, n, rslen);
+    // substr(s, n, len(substr(r,0,|s|-n))), which is used for formalizing the
+    // purification variable sk3 below.
+    Node ssubstr = nm->mkNode(STRING_SUBSTR, s, n, rslen);
+
+    Node sk1 = sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 =
+        sc->mkSkolemCached(s, nsuf, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node sk3 = sc->mkSkolemCached(ssubstr, SkolemCache::SK_PURIFY, "ssubstr");
+    Node a1 = skt.eqNode(nm->mkNode(STRING_CONCAT, sk1, rs, sk2));
+    Node a2 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk3, sk2));
+    // length of first skolem is second argument
+    Node a3 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+
+    Node b1 = nm->mkNode(AND, a1, a2, a3);
+    Node b2 = skt.eqNode(s);
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+
+    // assert:
+    // IF    n >=0 AND n < len( s )
+    // THEN: skt = sk1 ++ substr(r,0,len(s)-n) ++ sk2 AND
+    //       s = sk1 ++ sk3 ++ sk2 AND
+    //       len( sk1 ) = n
+    // ELSE: skt = s
+    // We use an optimization where r is used instead of substr(r,0,len(s)-n)
+    // if r is a constant of length one.
+    asserts.push_back(lemma);
+
+    // Thus, str.update( s, n, r ) = skt
+    retNode = skt;
+  }
   else if (t.getKind() == kind::STRING_STRIDOF)
   {
     // processing term:  indexof( x, y, n )

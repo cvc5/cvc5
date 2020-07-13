@@ -1991,9 +1991,10 @@ theory::TrustNode TheoryEngine::getExplanation(
   });
   // the overall explanation
   std::set<TNode> exp;
-
   // vector of trust nodes to explain at the end
   std::vector<std::pair<TheoryId, TrustNode>> texplains;
+  // cache of nodes we have already explained by some theory
+  std::unordered_set<Node, NodeHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -2111,7 +2112,15 @@ theory::TrustNode TheoryEngine::getExplanation(
         continue;
       }
     }
-
+    // We must cache after checking the timestamp in the block of code above.
+    // Afterwards, we can ignore this timestamp, as well as caching the Node,
+    // since any theory's explanation will suffice.
+    if (cache.find(toExplain.d_node) != cache.end())
+    {
+      ++i;
+      continue;
+    }
+    cache.insert(toExplain.d_node);
     // It was produced by the theory, so ask for an explanation
     TrustNode texplanation;
     if (toExplain.d_theory == THEORY_BUILTIN)

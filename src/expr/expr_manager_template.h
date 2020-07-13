@@ -574,6 +574,9 @@ class CVC4_PUBLIC ExprManager {
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
 
+  /** Whether a kind is n-ary. The test is based on n-ary kinds having their
+   * maximal arity as the maximal possible number of children of a node.
+   **/
   static bool isNAryKind(Kind fun);
 
   /**
