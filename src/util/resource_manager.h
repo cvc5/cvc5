@@ -179,20 +179,21 @@ class CVC4_PUBLIC ResourceManager
   /** A user-imposed per-call resource budget. 0 = no limit. */
   uint64_t d_resourceBudgetPerCall;
 
-  /** The number of milliseconds used. */
+  /** The total number of milliseconds used. */
   uint64_t d_cumulativeTimeUsed;
-  /** The amount of resource used. */
+  /** The total amount of resources used. */
   uint64_t d_cumulativeResourceUsed;
 
-  /** The amount of resource used during this call. */
+  /** The amount of resources used during this call. */
   uint64_t d_thisCallResourceUsed;
 
   /**
-   * The amount of resource budget for this call (min between per call
-   * budget and left-over cumulative budget.
+   * The resource budget for this call (min between per call
+   * budget and left-over cumulative budget.)
    */
   uint64_t d_thisCallResourceBudget;
 
+  /** A flag indicating whether resource limitation is active. */
   bool d_on;
 
   /** Counter indicating how often to check resource manager in loops */
