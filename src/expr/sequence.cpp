@@ -297,7 +297,7 @@ Sequence Sequence::update(size_t i, const Sequence& t) const
       vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
       vec.insert(vec.end(), d_seq.begin() + i + tnum, d_seq.end());
     }
-    return Sequence(d_type, vec);
+    return Sequence(getType(), vec);
   }
   return *this;
 }
