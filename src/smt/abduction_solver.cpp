@@ -15,6 +15,8 @@
 #include "smt/abduction_solver.h"
 
 #include "smt/smt_engine.h"
+#include "options/smt_options.h"
+#include "theory/smt_engine_subsolver.h"
 
 namespace CVC4 {
 namespace smt {
@@ -37,7 +39,7 @@ if (!options::produceAbducts())
   }
   Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
                         << std::endl;
-  std::vector<Expr> easserts = getExpandedAssertions();
+  std::vector<Expr> easserts = d_parent->getExpandedAssertions();
   std::vector<Node> axioms;
   for (unsigned i = 0, size = easserts.size(); i < size; i++)
   {
@@ -45,8 +47,7 @@ if (!options::produceAbducts())
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  conj = d_private->getProcessAssertions()->expandDefinitions(conj, cache);
+  conj = d_parent->expandDefinitions(conj);
   // now negate
   conj = conj.negate();
   d_abdConj = conj;
@@ -61,25 +62,15 @@ if (!options::produceAbducts())
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
                         << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
-  d_subsolver.reset(
-      new SmtEngine(NodeManager::currentNM()->toExprManager(), &d_options));
-  d_subsolver->setIsInternalSubsolver();
+  theory::initializeSubsolver(d_subsolver);
   // get the logic
-  LogicInfo l = d_logic.getUnlockedCopy();
+  LogicInfo l = d_subsolver->getLogic().getUnlockedCopy();
   // enable everything needed for sygus
   l.enableSygus();
   d_subsolver->setLogic(l);
   // assert the abduction query
   d_subsolver->assertFormula(aconj.toExpr());
-  if (getAbductInternal(abd))
-  {
-    // successfully generated an abduct, update to abduct state
-    d_smtMode = SMT_MODE_ABDUCT;
-    return true;
-  }
-  // failed, we revert to the assert state
-  d_smtMode = SMT_MODE_ASSERT;
-  return false;
+  return getAbductInternal(abd);
 }
 
 bool AbductionSolver::getAbduct(const Node& conj, Node& abd)
@@ -162,7 +153,7 @@ void AbductionSolver::checkAbduct(Node a)
     // Start new SMT engine to check solution
     SmtEngine abdChecker(d_exprManager, &d_options);
     abdChecker.setIsInternalSubsolver();
-    abdChecker.setLogic(getLogicInfo());
+    abdChecker.setLogic(d_parent->getLogicInfo());
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Expr& e : asserts)

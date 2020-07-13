@@ -510,7 +510,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Expr expandDefinitions(const Expr& e);
+  Node expandDefinitions(const Node& e);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -900,6 +900,13 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
+
+  /**
+   * Get expanded assertions.
+   *
+   * Return the set of assertions, after expanding definitions.
+   */
+  std::vector<Expr> getExpandedAssertions();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -1118,13 +1125,6 @@ class CVC4_PUBLIC SmtEngine
    * element is the nil expression.
    */
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
-
-  /**
-   * Get expanded assertions.
-   *
-   * Return the set of assertions, after expanding definitions.
-   */
-  std::vector<Expr> getExpandedAssertions();
 
   /* Members -------------------------------------------------------------- */
 

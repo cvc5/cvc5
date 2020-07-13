@@ -33,11 +33,11 @@ namespace smt {
  * a subsolver SmtEngine for a sygus conjecture that captures the abduction
  * query, and implements supporting utility methods such as checkAbduct.
  */
-class AbductSolver
+class AbductionSolver
 {
  public:
-  AbductSolver(SmtEngine * parent);
-  ~AbductSolver();
+  AbductionSolver(SmtEngine * parent);
+  ~AbductionSolver();
   /**
    * This method asks this SMT engine to find an abduct with respect to the
    * current assertion stack (call it A) and the conjecture (call it B).

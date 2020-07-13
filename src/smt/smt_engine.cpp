@@ -86,6 +86,7 @@
 #include "smt/defined_function.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
+#include "smt/abduction_solver.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/process_assertions.h"
@@ -2169,7 +2170,7 @@ Expr SmtEngine::simplify(const Expr& ex)
   return n.toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& ex)
+Node SmtEngine::expandDefinitions(const Node& ex)
 {
   d_private->spendResource(ResourceManager::Resource::PreprocessStep);
 
@@ -2180,7 +2181,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex.
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Node e = d_private->substituteAbstractValues(ex);
   if(options::typeChecking()) {
     // Ensure expr is type-checked at this point.
     e.getType(true);
@@ -2189,9 +2190,9 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
   unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->getProcessAssertions()->expandDefinitions(
       Node::fromExpr(e), cache, /* expandOnly = */ true);
-  n = postprocess(n, TypeNode::fromType(e.getType()));
+  n = postprocess(n, e.getType());
 
-  return n.toExpr();
+  return n;
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -3169,12 +3170,21 @@ bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
 
 bool SmtEngine::getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd)
 {
-  return d_abductSolver->getAbduct(conj, grammarType, abd);
+  if (d_abductSolver->getAbduct(conj, grammarType, abd))
+  {
+    // successfully generated an abduct, update to abduct state
+    d_smtMode = SMT_MODE_ABDUCT;
+    return true;
+  }
+  // failed, we revert to the assert state
+  d_smtMode = SMT_MODE_ASSERT;
+  return false;
 }
 
 bool SmtEngine::getAbduct(const Node& conj, Node& abd)
 {
-  return d_abductSolver->getAbduct(conj, abd);
+  TypeNode grammarType;
+  return getAbduct(conj, grammarType, abd);
 }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
