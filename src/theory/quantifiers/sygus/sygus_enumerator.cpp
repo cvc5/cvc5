@@ -27,8 +27,9 @@ namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
                                  SynthConjecture* p,
-                                 SygusStatistics& s)
-    : d_tds(tds), d_parent(p), d_stats(s), d_tlEnum(nullptr), d_abortSize(-1)
+                                 SygusStatistics& s,
+                                 bool enumShapes)
+    : d_tds(tds), d_parent(p), d_stats(s), d_enumShapes(enumShapes), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
 
@@ -140,6 +141,11 @@ Node SygusEnumerator::getCurrent()
     Trace("sygus-enum") << std::endl;
   }
   return ret;
+}
+
+bool SygusEnumerator::isEnumShapes() const
+{
+  return d_enumShapes;
 }
 
 SygusEnumerator::TermCache::TermCache()
@@ -595,6 +601,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
+      d_enumShapes(false),
       d_isIncrementing(false),
       d_currTermSet(false),
       d_consClassNum(0),
@@ -617,6 +624,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_consClassNum = 0;
   d_currChildSize = 0;
   d_ccCons.clear();
+  d_enumShapes = se->isEnumShapes();
   d_isIncrementing = false;
   d_currTermSet = false;
   bool ret = increment();
@@ -693,6 +701,14 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   unsigned ncc = tc.getLastConstructorClassIndexForWeight(d_currSize);
   Trace("sygus-enum-debug2") << "Last constructor class " << d_currSize << ": "
                              << ncc << std::endl;
+  if (d_enumShapes && d_shapeFvs.empty())
+  {
+    Node fv = NodeManager::currentNM()->mkBoundVar(d_tn);
+    d_shapeFvs.push_back(fv);
+    d_currTermSet = true;
+    d_currTerm = fv;
+    return true;
+  }
 
   // have we initialized the current constructor class?
   while (d_ccCons.empty() && d_consClassNum < ncc)
