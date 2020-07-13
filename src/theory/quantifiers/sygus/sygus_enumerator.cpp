@@ -719,6 +719,8 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     d_enumShapesInit = true;
     d_currTermSet = true;
     d_currTerm = fv;
+    // must add to term cache
+    tc.addTerm(fv);
     return true;
   }
 
