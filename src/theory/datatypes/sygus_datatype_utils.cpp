@@ -373,7 +373,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
       else if (cur.getType().isSygusDatatype())
       {
         Assert (cur.isVar());
-        if (cur.hasAttribute(SygusToBuiltinVarAttribute())
+        if (cur.hasAttribute(SygusToBuiltinVarAttribute()))
         {
           // use the previously constructed variable for it
           visited[cur] = cur.getAttribute(SygusToBuiltinVarAttribute());
