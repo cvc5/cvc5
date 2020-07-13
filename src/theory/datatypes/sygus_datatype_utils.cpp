@@ -326,6 +326,16 @@ struct SygusToBuiltinTermAttributeId
 typedef expr::Attribute<SygusToBuiltinTermAttributeId, Node>
     SygusToBuiltinTermAttribute;
 
+// A variant of the above attribute for cases where we introduce a fresh
+// variable. This is to support sygusToBuiltin on non-constant sygus terms,
+// where sygus variables should be mapped to canonical builtin variables.
+// It is important to cache this so that sygusToBuiltin is deterministic.
+struct SygusToBuiltinVarAttributeId
+{
+};
+typedef expr::Attribute<SygusToBuiltinVarAttributeId, Node>
+    SygusToBuiltinVarAttribute;
+
 Node sygusToBuiltin(Node n, bool isExternal)
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -363,12 +373,23 @@ Node sygusToBuiltin(Node n, bool isExternal)
       else if (cur.getType().isSygusDatatype())
       {
         Assert (cur.isVar());
-        std::stringstream ss;
-        ss << cur;
-        const DType& dt = cur.getType().getDType();
-        // make a fresh variable
-        NodeManager * nm = NodeManager::currentNM();
-        visited[cur] = nm->mkBoundVar(ss.str(), dt.getSygusType());
+        if (cur.hasAttribute(SygusToBuiltinVarAttribute())
+        {
+          // use the previously constructed variable for it
+          visited[cur] = cur.getAttribute(SygusToBuiltinVarAttribute());
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << cur;
+          const DType& dt = cur.getType().getDType();
+          // make a fresh variable
+          NodeManager * nm = NodeManager::currentNM();
+          Node var = nm->mkBoundVar(ss.str(), dt.getSygusType());
+          SygusToBuiltinVarAttribute stbv;
+          cur.setAttribute(stbv, var);
+          visited[cur] = var;
+        }
       }
       else
       {
