@@ -39,7 +39,8 @@ class TheorySets : public Theory
              context::UserContext* u,
              OutputChannel& out,
              Valuation valuation,
-             const LogicInfo& logicInfo);
+             const LogicInfo& logicInfo,
+             ProofNodeManager* pnm);
   ~TheorySets() override;
 
   TheoryRewriter* getTheoryRewriter() override;
@@ -50,12 +51,12 @@ class TheorySets : public Theory
   void check(Effort) override;
   bool collectModelInfo(TheoryModel* m) override;
   void computeCareGraph() override;
-  Node explain(TNode) override;
+  TrustNode explain(TNode) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
-  Node expandDefinition(Node n) override;
+  TrustNode expandDefinition(Node n) override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
   void propagate(Effort) override;

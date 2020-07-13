@@ -304,6 +304,8 @@ libcvc4_add_sources(
   theory/arith/matrix.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/inference.cpp
+  theory/arith/nl/inference.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -316,6 +318,8 @@ libcvc4_add_sources(
   theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/stats.cpp
+  theory/arith/nl/stats.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
@@ -606,6 +610,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
   theory/quantifiers/sygus/sygus_grammar_red.h
+  theory/quantifiers/sygus/sygus_interpol.cpp
+  theory/quantifiers/sygus/sygus_interpol.h
   theory/quantifiers/sygus/sygus_invariance.cpp
   theory/quantifiers/sygus/sygus_invariance.h
   theory/quantifiers/sygus/sygus_module.cpp
@@ -753,6 +759,8 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_proof_generator.cpp
+  theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
   theory/theory_model.cpp
@@ -951,7 +959,6 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_sequence.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h

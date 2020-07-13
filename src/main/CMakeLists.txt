@@ -6,7 +6,10 @@ set(libmain_src_files
   interactive_shell.cpp
   interactive_shell.h
   main.h
-  util.cpp
+  signal_handlers.cpp
+  signal_handlers.h
+  time_limit.cpp
+  time_limit.h
 )
 
 #-----------------------------------------------------------------------------#

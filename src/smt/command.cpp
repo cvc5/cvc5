@@ -2192,6 +2192,7 @@ GetAbductCommand::GetAbductCommand(const std::string& name,
 
 Expr GetAbductCommand::getConjecture() const { return d_conj; }
 Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+std::string GetAbductCommand::getAbductName() const { return d_name; }
 Expr GetAbductCommand::getResult() const { return d_result; }
 
 void GetAbductCommand::invoke(SmtEngine* smtEngine)
