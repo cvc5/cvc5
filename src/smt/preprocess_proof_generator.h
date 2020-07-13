@@ -53,7 +53,11 @@ class PreprocessProofGenerator : public ProofGenerator
    * provide a proof of the equality n=np.
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
-  /** Get proof for */
+  /**
+   * Get proof for, which returns a proof based on a proving an equality based
+   * on transitivity of preprocessing steps, and then using the original
+   * assertion with EQ_RESOLVE to obtain the proof of the ending assertion f.
+   */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
   /** Identify */
   std::string identify() const override;
