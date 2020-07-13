@@ -507,6 +507,23 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
+        case kind::STRING_UPDATE:
+        {
+          const String& s = results[currNode[0]].d_str;
+          Integer s_len(s.size());
+          Integer i = results[currNode[1]].d_rat.getNumerator();
+          const String& t = results[currNode[2]].d_str;
+
+          if (i.strictlyNegative() || i >= s_len)
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            results[currNode] = EvalResult(s.update(i.toUnsignedInt(), t));
+          }
+          break;
+        }
         case kind::STRING_CHARAT:
         {
           const String& s = results[currNode[0]].d_str;
