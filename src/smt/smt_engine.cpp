@@ -90,9 +90,8 @@
 #include "smt/managed_ostreams.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
-#include "smt/preprocess_proof_generator.h"
 #include "smt/process_assertions.h"
-#include "smt/proof_post_processor.h"
+#include "smt/proof_manager.h"
 #include "smt/set_defaults.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
@@ -109,7 +108,6 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/rewrite_db.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -649,10 +647,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_propEngine(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_pchecker(nullptr),
-      d_pnm(nullptr),
-      d_rewriteDb(nullptr),
-      d_finalProof(nullptr),
+      d_pfManager(nullptr),
       d_definedFunctions(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),
@@ -756,40 +751,16 @@ void SmtEngine::finishInit()
   // ensure that our heuristics are properly set up
   setDefaults(*this, d_logic);
 
+  ProofNodeManager * pnm = nullptr;
   if (options::proofNew())
   {
-    d_pchecker.reset(new ProofChecker);
-    d_pnm.reset(new ProofNodeManager(d_pchecker.get()));
-    // make the rewrite database
-    d_rewriteDb.reset(new RewriteDb);
+    d_pfManager.reset(new PfManager(this));
     // enable proof support in the rewriter
-    d_rewriter->setProofChecker(d_pchecker.get());
-    // make the preprocess proof generator
-    d_pppg.reset(new PreprocessProofGenerator(d_pnm.get()));
+    d_rewriter->setProofChecker(d_pfManager->getProofChecker());
     // enable it in the assertions pipeline
-    d_private->getAssertionPipeline().setProofGenerator(d_pppg.get());
-    // the proof post-processor
-    d_pfpp.reset(new ProofPostproccess(d_pnm.get(), this));
-    // add rules to eliminate here
-    if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
-    {
-      d_pfpp->setEliminateRule(PfRule::MACRO_SR_EQ_INTRO);
-      d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_INTRO);
-      d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_ELIM);
-      d_pfpp->setEliminateRule(PfRule::MACRO_SR_PRED_TRANSFORM);
-      if (options::proofGranularityMode()
-          != options::ProofGranularityMode::REWRITE)
-      {
-        d_pfpp->setEliminateRule(PfRule::SUBS);
-        d_pfpp->setEliminateRule(PfRule::REWRITE);
-        if (options::proofGranularityMode()
-            != options::ProofGranularityMode::THEORY_REWRITE)
-        {
-          // this eliminates theory rewriting steps with finer-grained DSL rules
-          d_pfpp->setEliminateRule(PfRule::THEORY_REWRITE);
-        }
-      }
-    }
+    d_private->getAssertionPipeline().setProofGenerator(d_pfManager->getPreprocessProofGenerator());
+    // use this proof node manager 
+    pnm = d_pfManager->getProofNodeManager();
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
@@ -800,7 +771,7 @@ void SmtEngine::finishInit()
                                         getResourceManager(),
                                         d_private->d_iteRemover,
                                         const_cast<const LogicInfo&>(d_logic),
-                                        d_pnm.get()));
+                                        pnm));
 
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -964,12 +935,7 @@ SmtEngine::~SmtEngine()
     d_proofManager.reset(nullptr);
 #endif
     d_rewriter.reset(nullptr);
-    d_pchecker.reset(nullptr);
-    d_pnm.reset(nullptr);
-    d_rewriteDb.reset(nullptr);
-    d_pppg.reset(nullptr);
-    d_pfpp.reset(nullptr);
-    d_finalProof = nullptr;
+    d_pfManager.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -3148,57 +3114,22 @@ const Proof& SmtEngine::getProof()
 #endif /* IS_PROOFS_BUILD */
 }
 
-void SmtEngine::setFinalProof()
-{
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
-
-  // d_finalProof should just be a ProofNode
-  std::shared_ptr<ProofNode> body =
-      d_propEngine->getProof()
-          ->getProofFor(NodeManager::currentNM()->mkConst(false))
-          ->clone();
-
-  if (Trace.isOn("smt-proof"))
-  {
-    Trace("smt-proof") << "SmtEngine::setFinalProof(): Proof node for false:\n";
-    std::stringstream ss;
-    body->printDebug(ss);
-    Trace("smt-proof") << ss.str() << std::endl;
-    Trace("smt-proof") << "=====" << std::endl;
-  }
-
-  std::vector<Node> assertions;
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for (AssertionList::const_iterator i = d_assertionList->begin();
-       i != d_assertionList->end();
-       ++i)
-  {
-    Node n = Node::fromExpr(*i);
-    Trace("smt-proof") << "- " << n << std::endl;
-    assertions.push_back(n);
-  }
-  Trace("smt-proof") << "=====" << std::endl;
-
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): postprocess...\n";
-  Assert(d_pfpp != nullptr);
-  d_pfpp->process(body);
-
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): make scope...\n";
-
-  // Now make the final scope, which ensures that the only open leaves
-  // of the proof are the assertions.
-  d_finalProof = d_pnm->mkScope(body, assertions);
-  Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
-}
-
 void SmtEngine::printProof()
 {
-  setFinalProof();
-  Assert(d_finalProof);
-
-  *options::out() << "(proof\n";
-  d_finalProof->printDebug(*options::out());
-  *options::out() << "\n)\n";
+  if (d_pfManager==nullptr)
+  {
+    throw RecoverableModalException("Cannot print proof, no proof manager.");
+  }
+  if (d_smtMode != SMT_MODE_UNSAT)
+  {
+    throw RecoverableModalException(
+        "Cannot print proof unless immediately preceded by "
+        "UNSAT/ENTAILED.");
+  }
+  Assert (d_assertionList!=nullptr);
+  Assert (d_propEngine->getProof()!=nullptr);
+  // the prop engine has the proof of false
+  d_pfManager->printProof(d_propEngine->getProof(), d_assertionList);
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
@@ -3514,11 +3445,6 @@ vector<Expr> SmtEngine::getAssertions() {
   Assert(d_assertionList != NULL);
   // copy the result out
   return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
-}
-
-smt::PreprocessProofGenerator* SmtEngine::getPreprocessProofGenerator() const
-{
-  return d_pppg.get();
 }
 
 void SmtEngine::push()

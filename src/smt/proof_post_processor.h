@@ -35,7 +35,7 @@ namespace smt {
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine* smte);
+  ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine* smte, ProofGenerator * pppg);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -59,8 +59,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   ProofNodeManager* d_pnm;
   /** Pointer to the SmtEngine, which should have proofs enabled */
   SmtEngine* d_smte;
-  /** The proof checker of the manager */
-  ProofChecker* d_pchecker;
+  /** The preprocessing proof generator */
+  ProofGenerator * d_pppg;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
   //---------------------------------reset at the begining of each update
@@ -101,7 +101,7 @@ class ProofPostprocessStatsCallback : public ProofNodeUpdaterCallback
 class ProofPostproccess
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte);
+  ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte, ProofGenerator * pppg);
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

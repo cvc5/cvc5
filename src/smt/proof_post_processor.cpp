@@ -27,8 +27,8 @@ namespace CVC4 {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
-                                                   SmtEngine* smte)
-    : d_pnm(pnm), d_smte(smte), d_pchecker(pnm ? pnm->getChecker() : nullptr)
+                                                   SmtEngine* smte, ProofGenerator * pppg)
+    : d_pnm(pnm), d_smte(smte), d_pppg(pppg)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   // always check whether to update ASSUME
@@ -70,10 +70,9 @@ bool ProofPostprocessCallback::update(PfRule id,
     }
     else
     {
-      PreprocessProofGenerator* pppg = d_smte->getPreprocessProofGenerator();
-      Assert(pppg != nullptr);
+      Assert(d_pppg != nullptr);
       // get proof from preprocess proof generator
-      pfn = pppg->getProofFor(f);
+      pfn = d_pppg->getProofFor(f);
       // print for debugging
       if (pfn == nullptr)
       {
@@ -464,8 +463,8 @@ bool ProofPostprocessStatsCallback::shouldUpdate(ProofNode* pn)
   return false;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte)
-    : d_cb(pnm, smte), d_statCb(), d_pnm(pnm)
+ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte, ProofGenerator * pppg)
+    : d_cb(pnm, smte, pppg), d_statCb(), d_pnm(pnm)
 {
 }
 

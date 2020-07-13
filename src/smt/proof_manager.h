@@ -25,6 +25,7 @@
 #include "expr/proof_node.h"
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "expr/expr.h"
 
 namespace CVC4 {
   
@@ -39,7 +40,7 @@ namespace smt {
 class PfManager
 {
  public:
-  PfManager(SmtEngine * smte, context::CDList<Node>* al);
+  PfManager(SmtEngine * smte);
   ~PfManager();
   /** 
    * Print the proof on the output channel of the current options in scope.
@@ -47,14 +48,14 @@ class PfManager
    * The argument pg is the module that can provide a proof for false in the
    * current context.
    */
-  void printProof(ProofGenerator * pg);
+  void printProof(ProofGenerator * pg, context::CDList<Expr>* al);
   /** 
    * Get final proof.
    *
    * The argument pg is the module that can provide a proof for false in the
    * current context.
    */
-  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator * pg);
+  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator * pg, context::CDList<Expr>* al);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -70,9 +71,7 @@ class PfManager
    * Set final proof, which initializes d_finalProof to the proof of false
    * from pg, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(ProofGenerator * pg);
-  /** Pointer to the assertions list of the smt engine */
-  context::CDList<Node>* d_assertionList;
+  void setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al);
   /** The false node */
   Node d_false;
   /** For the new proofs module */

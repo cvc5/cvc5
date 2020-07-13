@@ -20,13 +20,12 @@
 namespace CVC4 {
 namespace smt {
 
-PfManager::PfManager(SmtEngine * smte, context::CDList<Node>* al) :
-    d_assertionList(al),
+PfManager::PfManager(SmtEngine * smte) :
     d_pchecker(new ProofChecker),
     d_pnm(new ProofNodeManager(d_pchecker.get())),
     d_rewriteDb(new theory::RewriteDb),
     d_pppg(new PreprocessProofGenerator(d_pnm.get())),
-    d_pfpp(new ProofPostproccess(d_pnm.get(), smte)),
+    d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
     d_finalProof(nullptr)
 {
   // add rules to eliminate here
@@ -57,8 +56,9 @@ PfManager::~PfManager()
   
 }
   
-void PfManager::setFinalProof(ProofGenerator * pg)
+void PfManager::setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al)
 {
+  // TODO: don't recompute if already done so?
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 
   // d_finalProof should just be a ProofNode
@@ -78,11 +78,11 @@ void PfManager::setFinalProof(ProofGenerator * pg)
 
   std::vector<Node> assertions;
   Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for (context::CDList<Node>::const_iterator i = d_assertionList->begin();
-       i != d_assertionList->end();
+  for (context::CDList<Expr>::const_iterator i = al->begin();
+       i != al->end();
        ++i)
   {
-    Node n = *i;
+    Node n = Node::fromExpr(*i);
     Trace("smt-proof") << "- " << n << std::endl;
     assertions.push_back(n);
   }
@@ -100,9 +100,9 @@ void PfManager::setFinalProof(ProofGenerator * pg)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(ProofGenerator * pg)
+void PfManager::printProof(ProofGenerator * pg, context::CDList<Expr>* al)
 {
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
   *options::out() << "(proof\n";
   fp->printDebug(*options::out());
   *options::out() << "\n)\n";
@@ -114,10 +114,11 @@ ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
 theory::RewriteDb * PfManager::getRewriteDatabase() const { return d_rewriteDb.get(); }
 
-std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator * pg) 
+smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const { return d_pppg.get(); }
+  
+std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator * pg, context::CDList<Expr>* al) 
 { 
-  // TODO: don't recompute if already done so?
-  setFinalProof(pg);
+  setFinalProof(pg, al);
   Assert(d_finalProof);
   return d_finalProof; 
 }

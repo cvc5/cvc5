@@ -107,8 +107,7 @@ namespace smt {
   class SmtEnginePrivate;
   class SmtScope;
   class ProcessAssertions;
-  class PreprocessProofGenerator;
-  class ProofPostproccess;
+  class PfManager;
 
   ProofManager* currentProofManager();
 
@@ -562,7 +561,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof.
+   */
   void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
@@ -715,11 +716,6 @@ class CVC4_PUBLIC SmtEngine
    * SmtEngine is set to operate interactively.
    */
   std::vector<Expr> getAssertions();
-
-  /**
-   * Get the proof generator for proofs of preprocessing.
-   */
-  smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
 
   /**
    * Push a user-level context.
@@ -907,9 +903,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get a pointer to the Rewriter owned by this SmtEngine. */
   theory::Rewriter* getRewriter() { return d_rewriter.get(); }
-
-  /** Get a pointer to the ProofChecker owned by this SmtEngine. */
-  ProofChecker* getProofChecker() { return d_pchecker.get(); }
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -1138,8 +1131,6 @@ class CVC4_PUBLIC SmtEngine
    */
   bool getAbductInternal(Expr& abd);
 
-  void setFinalProof();
-
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
@@ -1187,24 +1178,11 @@ class CVC4_PUBLIC SmtEngine
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
 
-  //--------------------------------- new proofs
-  /** For the new proofs module */
-  std::unique_ptr<ProofChecker> d_pchecker;
-  /** A proof node manager based on the above checker */
-  std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The rewrite proof database. */
-  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
-  /** The preprocess proof manager. */
-  std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
-  /** The proof post-processor */
-  std::unique_ptr<smt::ProofPostproccess> d_pfpp;
-  /** The final proof produced by this SMT engine
-   *
-   * Combines the proofs of preprocessing, prop engine and theory engine, to be
-   * connected by setFinalProof().
+  /** 
+   * The proof manager, which manages all things related to checking,
+   * processing, and printing proofs.
    */
-  std::shared_ptr<ProofNode> d_finalProof;
-  //--------------------------------- end new proofs
+  std::unique_ptr<smt::PfManager> d_pfManager;
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
