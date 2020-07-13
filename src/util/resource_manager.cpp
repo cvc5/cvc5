@@ -195,7 +195,6 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_thisCallResourceBudget(0),
       d_isHardLimit(),
       d_on(false),
-      d_cpuTime(false),
       d_spendResourceCalls(0),
       d_hardListeners(),
       d_softListeners(),
@@ -223,7 +222,7 @@ void ResourceManager::setTimeLimit(uint64_t millis, bool cumulative) {
   if(cumulative) {
     Trace("limit") << "ResourceManager: setting cumulative time limit to " << millis << " ms" << endl;
     d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
-    d_cumulativeTimer.set(millis, !d_cpuTime);
+    d_cumulativeTimer.set(millis, true);
   } else {
     Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
     d_timeBudgetPerCall = millis;
@@ -350,7 +349,7 @@ void ResourceManager::spendResource(Resource r)
 
 void ResourceManager::beginCall() {
 
-  d_perCallTimer.set(d_timeBudgetPerCall, !d_cpuTime);
+  d_perCallTimer.set(d_timeBudgetPerCall, true);
   d_thisCallResourceUsed = 0;
   if (!d_on) return;
 
@@ -366,7 +365,7 @@ void ResourceManager::beginCall() {
       d_cumulativeTimeUsed = d_cumulativeTimer.elapsed();
       d_thisCallTimeBudget = d_timeBudgetCumulative <= d_cumulativeTimeUsed? 0 :
                              d_timeBudgetCumulative - d_cumulativeTimeUsed;
-      d_cumulativeTimer.set(d_thisCallTimeBudget, d_cpuTime);
+      d_cumulativeTimer.set(d_thisCallTimeBudget, false);
     }
     // we are out of resources so we shouldn't update the
     // budget for this call to the per call budget
@@ -416,11 +415,6 @@ bool ResourceManager::outOfTime() const {
     return false;
 
   return d_cumulativeTimer.expired() || d_perCallTimer.expired();
-}
-
-void ResourceManager::useCPUTime(bool cpu) {
-  Trace("limit") << "ResourceManager::useCPUTime("<< cpu <<")\n";
-  d_cpuTime = cpu;
 }
 
 void ResourceManager::setHardLimit(bool value) {
