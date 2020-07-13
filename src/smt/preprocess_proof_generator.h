@@ -54,7 +54,7 @@ class PreprocessProofGenerator : public ProofGenerator
    */
   void notifyPreprocessed(Node n, Node np, ProofGenerator* pg);
   /**
-   * Get proof for, which returns a proof based on a proving an equality based
+   * Get proof for f, which returns a proof based on proving an equality based
    * on transitivity of preprocessing steps, and then using the original
    * assertion with EQ_RESOLVE to obtain the proof of the ending assertion f.
    */
