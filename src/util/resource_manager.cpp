@@ -25,26 +25,35 @@ using namespace std;
 
 namespace CVC4 {
 
-bool WallClockTimer::on() const {
+bool WallClockTimer::on() const
+{
   // default-constructed time points are at the respective epoch
   return d_limit.time_since_epoch().count() != 0;
 }
-void WallClockTimer::set(uint64_t millis) {
-  if (millis == 0) {
+void WallClockTimer::set(uint64_t millis)
+{
+  if (millis == 0)
+  {
     // reset / deactivate
     d_start = time_point();
     d_limit = time_point();
-  } else {
+  }
+  else
+  {
     // set to now() + millis
     d_start = clock::now();
     d_limit = d_start + std::chrono::milliseconds(millis);
   }
 }
-uint64_t WallClockTimer::elapsed() const {
+uint64_t WallClockTimer::elapsed() const
+{
   // now() - d_start casted to milliseconds
-  return std::chrono::duration_cast<std::chrono::milliseconds>(clock::now() - d_start).count();
+  return std::chrono::duration_cast<std::chrono::milliseconds>(clock::now()
+                                                               - d_start)
+      .count();
 }
-bool WallClockTimer::expired() const {
+bool WallClockTimer::expired() const
+{
   // whether d_limit is in the past
   return d_limit <= clock::now();
 }
@@ -155,36 +164,44 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
 
 ResourceManager::~ResourceManager() {}
 
-void ResourceManager::setResourceLimit(uint64_t units, bool cumulative) {
+void ResourceManager::setResourceLimit(uint64_t units, bool cumulative)
+{
   d_on = true;
-  if(cumulative) {
-    Trace("limit") << "ResourceManager: setting cumulative resource limit to " << units << endl;
-    d_resourceBudgetCumulative = (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
+  if (cumulative)
+  {
+    Trace("limit") << "ResourceManager: setting cumulative resource limit to "
+                   << units << endl;
+    d_resourceBudgetCumulative =
+        (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
     d_thisCallResourceBudget = d_resourceBudgetCumulative;
-  } else {
-    Trace("limit") << "ResourceManager: setting per-call resource limit to " << units << endl;
+  }
+  else
+  {
+    Trace("limit") << "ResourceManager: setting per-call resource limit to "
+                   << units << endl;
     d_resourceBudgetPerCall = units;
   }
 }
 
-void ResourceManager::setTimeLimit(uint64_t millis) {
+void ResourceManager::setTimeLimit(uint64_t millis)
+{
   d_on = true;
-  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
+  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis
+                 << " ms" << endl;
   d_timeBudgetPerCall = millis;
   // perCall timer will be set in beginCall
 }
 
-const uint64_t& ResourceManager::getResourceUsage() const {
+const uint64_t& ResourceManager::getResourceUsage() const
+{
   return d_cumulativeResourceUsed;
 }
 
-uint64_t ResourceManager::getTimeUsage() const {
-  return d_cumulativeTimeUsed;
-}
+uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
 
-uint64_t ResourceManager::getResourceRemaining() const {
-  if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed)
-    return 0;
+uint64_t ResourceManager::getResourceRemaining() const
+{
+  if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed) return 0;
   return d_resourceBudgetCumulative - d_cumulativeResourceUsed;
 }
 
@@ -196,10 +213,12 @@ void ResourceManager::spendResource(unsigned amount)
 
   Debug("limit") << "ResourceManager::spendResource()" << std::endl;
   d_thisCallResourceUsed += amount;
-  if(out()) {
+  if (out())
+  {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
     Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;
-    if (outOfTime()) {
+    if (outOfTime())
+    {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"
                      << d_perCallTimer.elapsed() << std::endl;
     }
@@ -274,66 +293,82 @@ void ResourceManager::spendResource(Resource r)
   spendResource(amount);
 }
 
-void ResourceManager::beginCall() {
-
+void ResourceManager::beginCall()
+{
   d_perCallTimer.set(d_timeBudgetPerCall);
   d_thisCallResourceUsed = 0;
   if (!d_on) return;
 
-  if (cumulativeLimitOn()) {
-    if (d_resourceBudgetCumulative) {
-      d_thisCallResourceBudget = d_resourceBudgetCumulative <= d_cumulativeResourceUsed ? 0 :
-                                 d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+  if (cumulativeLimitOn())
+  {
+    if (d_resourceBudgetCumulative)
+    {
+      d_thisCallResourceBudget =
+          d_resourceBudgetCumulative <= d_cumulativeResourceUsed
+              ? 0
+              : d_resourceBudgetCumulative - d_cumulativeResourceUsed;
     }
     // we are out of resources so we shouldn't update the
     // budget for this call to the per call budget
-    if (d_thisCallTimeBudget == 0 ||
-        d_thisCallResourceUsed == 0)
-      return;
+    if (d_thisCallTimeBudget == 0 || d_thisCallResourceUsed == 0) return;
   }
 
-  if (perCallLimitOn()) {
+  if (perCallLimitOn())
+  {
     // take min of what's left and per-call budget
-    if (d_resourceBudgetPerCall) {
-      d_thisCallResourceBudget = d_thisCallResourceBudget < d_resourceBudgetPerCall && d_thisCallResourceBudget != 0 ? d_thisCallResourceBudget : d_resourceBudgetPerCall;
+    if (d_resourceBudgetPerCall)
+    {
+      d_thisCallResourceBudget =
+          d_thisCallResourceBudget < d_resourceBudgetPerCall
+                  && d_thisCallResourceBudget != 0
+              ? d_thisCallResourceBudget
+              : d_resourceBudgetPerCall;
     }
 
-    if (d_timeBudgetPerCall) {
-      d_thisCallTimeBudget = d_thisCallTimeBudget < d_timeBudgetPerCall && d_thisCallTimeBudget != 0 ? d_thisCallTimeBudget : d_timeBudgetPerCall;
+    if (d_timeBudgetPerCall)
+    {
+      d_thisCallTimeBudget = d_thisCallTimeBudget < d_timeBudgetPerCall
+                                     && d_thisCallTimeBudget != 0
+                                 ? d_thisCallTimeBudget
+                                 : d_timeBudgetPerCall;
     }
   }
 }
 
-void ResourceManager::endCall() {
+void ResourceManager::endCall()
+{
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
 }
 
-bool ResourceManager::cumulativeLimitOn() const {
+bool ResourceManager::cumulativeLimitOn() const
+{
   return d_resourceBudgetCumulative;
 }
 
-bool ResourceManager::perCallLimitOn() const {
+bool ResourceManager::perCallLimitOn() const
+{
   return d_timeBudgetPerCall || d_resourceBudgetPerCall;
 }
 
-bool ResourceManager::outOfResources() const {
+bool ResourceManager::outOfResources() const
+{
   // resource limiting not enabled
-  if (d_resourceBudgetPerCall == 0 &&
-      d_resourceBudgetCumulative == 0)
+  if (d_resourceBudgetPerCall == 0 && d_resourceBudgetCumulative == 0)
     return false;
 
   return getResourceRemaining() == 0;
 }
 
-bool ResourceManager::outOfTime() const {
-  if (d_timeBudgetPerCall == 0)
-    return false;
+bool ResourceManager::outOfTime() const
+{
+  if (d_timeBudgetPerCall == 0) return false;
   return d_perCallTimer.expired();
 }
 
-void ResourceManager::enable(bool on) {
-  Trace("limit") << "ResourceManager::enable("<< on <<")\n";
+void ResourceManager::enable(bool on)
+{
+  Trace("limit") << "ResourceManager::enable(" << on << ")\n";
   d_on = on;
 }
 
