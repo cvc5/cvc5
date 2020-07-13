@@ -197,7 +197,7 @@ void ResourceManager::setTimeLimit(uint64_t millis)
   // perCall timer will be set in beginCall
 }
 
-const uint64_t& ResourceManager::getResourceUsage() const
+uint64_t ResourceManager::getResourceUsage() const
 {
   return d_cumulativeResourceUsed;
 }

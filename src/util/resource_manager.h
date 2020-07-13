@@ -123,11 +123,8 @@ class CVC4_PUBLIC ResourceManager
   /** Checks whether any limit has been exhausted. */
   bool out() const { return d_on && (outOfResources() || outOfTime()); }
 
-  /**
-   * This returns a const uint64_t& to support being used as a ReferenceStat.
-   * Retrieves amount of resources used overall.
-   */
-  const uint64_t& getResourceUsage() const;
+  /** Retrieves amount of resources used overall. */
+  uint64_t getResourceUsage() const;
   /** Retrieves time used over all calls. */
   uint64_t getTimeUsage() const;
   /** Retrieves the remaining number of cumulative resources. */
