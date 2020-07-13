@@ -39,7 +39,8 @@ void CALLBACK win_timeout_handler(LPVOID lpArg,
   signal_handlers::timeout_handler();
 }
 #else
-void posix_timeout_handler(int sig, siginfo_t* info, void*) {
+void posix_timeout_handler(int sig, siginfo_t* info, void*)
+{
   signal_handlers::timeout_handler();
 }
 #endif
@@ -73,7 +74,8 @@ void install_time_limit(const Options& opts)
   sigemptyset(&sact.sa_mask);
   if (sigaction(SIGALRM, &sact, NULL))
   {
-    throw Exception(std::string("sigaction(SIGALRM) failure: ") + strerror(errno));
+    throw Exception(std::string("sigaction(SIGALRM) failure: ")
+                    + strerror(errno));
   }
 
   // Check https://linux.die.net/man/2/setitimer
