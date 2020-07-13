@@ -1974,10 +1974,10 @@ header = "options/quantifiers_options.h"
   help_mode  = "Print format for printing instantiations."
 [[option.mode.LIST]]
   name = "list"
-  help = "Print the list of instantiations per quantified formula."
+  help = "Print the list of instantiations per quantified formula, when non-empty."
 [[option.mode.NUM]]
   name = "num"
-  help = "Print the total number of instantiations per quantified formula."
+  help = "Print the total number of instantiations per quantified formula, when non-zero."
 
 [[option]]
   name       = "printInstFull"
