@@ -266,7 +266,7 @@ Node Word::update(TNode x, std::size_t i, TNode t)
   {
     Assert(t.getKind() == CONST_SEQUENCE);
     const Sequence& sx = x.getConst<Sequence>();
-    const Sequence& st = y.getConst<Sequence>();
+    const Sequence& st = t.getConst<Sequence>();
     Sequence res = sx.update(i, st);
     return nm->mkConst(res);
   }
