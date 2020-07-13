@@ -472,8 +472,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         // notice that Word::getChars is not the right call here, since it
         // gets a vector of sequences of length one. We actually need to
         // extract the character, which is a sequence-specific operation.
-        const Sequence& sx =
-            children[0][i].getConst<ExprSequence>().getSequence();
+        const Sequence& sx = children[0][i].getConst<Sequence>();
         const std::vector<Node>& vec = sx.getVec();
         if (vec.size() == 1)
         {
