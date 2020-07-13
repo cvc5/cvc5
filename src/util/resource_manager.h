@@ -69,9 +69,15 @@ class CVC4_PUBLIC WallClockTimer
   time_point d_limit;
 };
 
+/**
+ * This class manages resource limits (cumulative or per call) and (per call)
+ * time limits. The available resources are listed in ResourceManager::Resource
+ * and their individual costs are configured via command line options.
+ */
 class CVC4_PUBLIC ResourceManager
 {
  public:
+  /** Types of resources. */
   enum class Resource
   {
     BitblastStep,
@@ -90,31 +96,57 @@ class CVC4_PUBLIC ResourceManager
     TheoryCheckStep,
   };
 
+  /** Construst a resource manager. */
   ResourceManager(StatisticsRegistry& statistics_registry, Options& options);
+  /** Default destructor. */
   ~ResourceManager();
+  /** Can not be copied. */
+  ResourceManager(const ResourceManager&) = delete;
+  /** Can not be moved. */
+  ResourceManager(ResourceManager&&) = delete;
+  /** Can not be copied. */
+  ResourceManager& operator=(const ResourceManager&) = delete;
+  /** Can not be moved. */
+  ResourceManager& operator=(ResourceManager&&) = delete;
 
+  /** Checks whether any limit is active. */
   bool limitOn() const { return cumulativeLimitOn() || perCallLimitOn(); }
+  /** Checks whether any cumulative limit is active. */
   bool cumulativeLimitOn() const;
+  /** Checks whether any per-call limit is active. */
   bool perCallLimitOn() const;
 
+  /** Checks whether resources have been exhausted. */
   bool outOfResources() const;
+  /** Checks whether time has been exhausted. */
   bool outOfTime() const;
+  /** Checks whether any limit has been exhausted. */
   bool out() const { return d_on && (outOfResources() || outOfTime()); }
 
   /**
    * This returns a const uint64_t& to support being used as a ReferenceStat.
+   * Retrieves amount of resources used overall.
    */
   const uint64_t& getResourceUsage() const;
+  /** Retrieves time used over all calls. */
   uint64_t getTimeUsage() const;
+  /** Retrieves the remaining number of cumulative resources. */
   uint64_t getResourceRemaining() const;
 
+  /** Retrieves resource budget for this call. */
   uint64_t getResourceBudgetForThisCall() { return d_thisCallResourceBudget; }
-  // Throws an UnsafeInterruptException if there are no remaining resources.
+
+  /**
+   * Spends a given resources. Throws an UnsafeInterruptException if there are
+   * no remaining resources.
+   */
   void spendResource(Resource r);
 
+  /** Sets the resource limit. */
   void setResourceLimit(uint64_t units, bool cumulative = false);
+  /** Sets the time limit. */
   void setTimeLimit(uint64_t millis);
-
+  /** Sets whether resource limitation is enabled. */
   void enable(bool on);
 
   /**
@@ -140,6 +172,7 @@ class CVC4_PUBLIC ResourceManager
   ListenerCollection::Registration* registerSoftListener(Listener* listener);
 
  private:
+  /** The per-call wall clock timer. */
   WallClockTimer d_perCallTimer;
 
   /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
@@ -172,18 +205,6 @@ class CVC4_PUBLIC ResourceManager
 
   /** Receives a notification on reaching a soft limit. */
   ListenerCollection d_softListeners;
-
-  /**
-   * ResourceManagers cannot be copied as they are given an explicit
-   * list of Listeners to respond to.
-   */
-  ResourceManager(const ResourceManager&) = delete;
-
-  /**
-   * ResourceManagers cannot be assigned as they are given an explicit
-   * list of Listeners to respond to.
-   */
-  ResourceManager& operator=(const ResourceManager&) = delete;
 
   void spendResource(unsigned amount);
 
