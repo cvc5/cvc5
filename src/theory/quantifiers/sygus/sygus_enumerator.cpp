@@ -603,6 +603,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
       d_enumShapes(false),
+      d_enumShapesInit(false),
       d_isIncrementing(false),
       d_currTermSet(false),
       d_consClassNum(0),
@@ -627,6 +628,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_currChildSize = 0;
   d_ccCons.clear();
   d_enumShapes = se->isEnumShapes();
+  d_enumShapesInit = false;
   d_isIncrementing = false;
   d_currTermSet = false;
   bool ret = increment();
@@ -708,10 +710,11 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   unsigned ncc = tc.getLastConstructorClassIndexForWeight(d_currSize);
   Trace("sygus-enum-debug2") << "Last constructor class " << d_currSize << ": "
                              << ncc << std::endl;
-  if (d_enumShapes && d_shapeFvs.empty())
+  if (d_enumShapes && !d_enumShapesInit)
   {
-    Node fv = NodeManager::currentNM()->mkBoundVar(d_tn);
-    d_shapeFvs.push_back(fv);
+    // return the first free variable
+    Node fv = d_tds->getFreeVar(d_tn,0);
+    d_enumShapesInit = true;
     d_currTermSet = true;
     d_currTerm = fv;
     return true;
@@ -1016,16 +1019,6 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   Trace("sygus-enum-debug2") << "master(" << d_tn
                              << "): success initializeChild " << i << "\n";
   return true;
-}
-
-Node SygusEnumerator::TermEnumMaster::getShapeVariable(size_t i)
-{
-  while (i>=d_shapeFvs.size())
-  {
-    Node fv = NodeManager::currentNM()->mkBoundVar(d_tn);
-    d_shapeFvs.push_back(fv);
-  }
-  return d_shapeFvs[i];
 }
 
 void SygusEnumerator::TermEnumMaster::childrenToShape( std::vector<Node>& children )
