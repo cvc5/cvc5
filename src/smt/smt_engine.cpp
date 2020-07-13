@@ -147,9 +147,9 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   commands.clear();
 }
 
-class SoftResourceOutListener : public Listener {
+class ResourceOutListener : public Listener {
  public:
-  SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  ResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
   void notify() override
   {
     SmtScope scope(d_smt);
@@ -158,7 +158,7 @@ class SoftResourceOutListener : public Listener {
   }
  private:
   SmtEngine* d_smt;
-}; /* class SoftResourceOutListener */
+}; /* class ResourceOutListener */
 
 class BeforeSearchListener : public Listener {
  public:
@@ -376,7 +376,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     ResourceManager* rm = d_smt.getResourceManager();
 
     d_listenerRegistrations->add(
-        rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
+        rm->registerListener(new ResourceOutListener(d_smt)));
 
     try
     {

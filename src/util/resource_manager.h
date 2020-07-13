@@ -164,12 +164,12 @@ class CVC4_PUBLIC ResourceManager
   static uint64_t getFrequencyCount() { return s_resourceCount; }
 
   /**
-   * Registers a listener that is notified on a soft resource out.
+   * Registers a listener that is notified on a resource out.
    *
    * This Registration must be destroyed by the user before this
    * ResourceManager.
    */
-  ListenerCollection::Registration* registerSoftListener(Listener* listener);
+  ListenerCollection::Registration* registerListener(Listener* listener);
 
  private:
   /** The per-call wall clock timer. */
@@ -203,8 +203,8 @@ class CVC4_PUBLIC ResourceManager
   /** Counter indicating how often to check resource manager in loops */
   static const uint64_t s_resourceCount;
 
-  /** Receives a notification on reaching a soft limit. */
-  ListenerCollection d_softListeners;
+  /** Receives a notification on reaching a limit. */
+  ListenerCollection d_listeners;
 
   void spendResource(unsigned amount);
 

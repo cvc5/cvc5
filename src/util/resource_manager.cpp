@@ -154,7 +154,7 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_thisCallResourceBudget(0),
       d_on(false),
       d_spendResourceCalls(0),
-      d_softListeners(),
+      d_listeners(),
       d_statistics(new ResourceManager::Statistics(stats)),
       d_options(options)
 
@@ -223,7 +223,7 @@ void ResourceManager::spendResource(unsigned amount)
                      << d_perCallTimer.elapsed() << std::endl;
     }
 
-    d_softListeners.notify();
+    d_listeners.notify();
   }
 }
 
@@ -372,10 +372,10 @@ void ResourceManager::enable(bool on)
   d_on = on;
 }
 
-ListenerCollection::Registration* ResourceManager::registerSoftListener(
+ListenerCollection::Registration* ResourceManager::registerListener(
     Listener* listener)
 {
-  return d_softListeners.registerListener(listener);
+  return d_listeners.registerListener(listener);
 }
 
 } /* namespace CVC4 */
