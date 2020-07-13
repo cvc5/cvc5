@@ -673,8 +673,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
-  d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
-
+  
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.

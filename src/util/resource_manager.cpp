@@ -53,6 +53,7 @@ bool WallClockTimer::expired() const {
 
 struct ResourceManager::Statistics
 {
+  ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
   IntStat d_numBitblastStep;
   IntStat d_numBvEagerAssertStep;
   IntStat d_numBvPropagationStep;
@@ -75,7 +76,8 @@ struct ResourceManager::Statistics
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
-    : d_numBitblastStep("resource::BitblastStep", 0),
+    : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
+      d_numBitblastStep("resource::BitblastStep", 0),
       d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
       d_numBvPropagationStep("resource::BvPropagationStep", 0),
       d_numBvSatConflictsStep("resource::BvSatConflictsStep", 0),
@@ -91,6 +93,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
       d_numTheoryCheckStep("resource::TheoryCheckStep", 0),
       d_statisticsRegistry(stats)
 {
+  d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
   d_statisticsRegistry.registerStat(&d_numBitblastStep);
   d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
@@ -109,6 +112,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
 
 ResourceManager::Statistics::~Statistics()
 {
+  d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
   d_statisticsRegistry.unregisterStat(&d_numBitblastStep);
   d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
@@ -145,7 +149,9 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_statistics(new ResourceManager::Statistics(stats)),
       d_options(options)
 
-{}
+{
+  d_statistics->d_resourceUnitsUsed.setData(d_cumulativeResourceUsed);
+}
 
 ResourceManager::~ResourceManager() {}
 
