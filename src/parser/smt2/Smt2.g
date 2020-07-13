@@ -1136,6 +1136,17 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     {
       cmd->reset(new GetAbductCommand(name,e.getExpr(), t.getType()));
     }
+  | GET_INTERPOL_TOK {
+      PARSER_STATE->checkThatLogicIsSet();
+    }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    term[e,e2]
+    (
+      sygusGrammar[t, terms, name]
+    )?
+    {
+      cmd->reset(new GetInterpolCommand(SOLVER, name, e, t.getType()));
+    }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]
     sortSymbol[t, CHECK_DECLARED]
@@ -2111,7 +2122,13 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
-        } else if(name == "Tuple") {
+        } else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
+                  PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal sequence type.");
+          }
+          t = SOLVER->mkSequenceSort( args[0] );
+        } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
           t = SOLVER->mkTupleSort(args);
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
@@ -2315,6 +2332,7 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 GET_ABDUCT_TOK : 'get-abduct';
+GET_INTERPOL_TOK : 'get-interpol';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands

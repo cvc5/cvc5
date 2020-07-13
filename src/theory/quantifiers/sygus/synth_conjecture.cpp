@@ -20,6 +20,7 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -1003,8 +1004,8 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   // we have generated a solution, print it
   // get the current output stream
   // this output stream should coincide with wherever --dump-synth is output on
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  printSynthSolution(*nodeManagerOptions.getOut());
+  Options& sopts = smt::currentSmtEngine()->getOptions();
+  printSynthSolution(*sopts.getOut());
   excludeCurrentSolution(enums, values);
 }
 

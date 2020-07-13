@@ -363,6 +363,7 @@ class TheoryEngine {
   /** Constructs a theory engine */
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
+               ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
                const LogicInfo& logic);
 
@@ -387,7 +388,8 @@ class TheoryEngine {
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
-                                              d_logicInfo);
+                                              d_logicInfo,
+                                              nullptr);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }

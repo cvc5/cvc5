@@ -16,6 +16,8 @@
 #include "theory/quantifiers/query_generator.h"
 
 #include <fstream>
+
+#include "api/cvc4cpp.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -155,13 +157,9 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
   if (options::sygusQueryGenCheck())
   {
     Trace("sygus-qgen-check") << "  query: check " << qy << "..." << std::endl;
-    NodeManager* nm = NodeManager::currentNM();
     // make the satisfiability query
-    bool needExport = false;
-    ExprManager em(nm->getOptions());
     std::unique_ptr<SmtEngine> queryChecker;
-    ExprManagerMapCollection varMap;
-    initializeChecker(queryChecker, em, varMap, qy, needExport);
+    initializeChecker(queryChecker, qy);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)

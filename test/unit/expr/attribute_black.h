@@ -17,15 +17,16 @@
 #include <cxxtest/TestSuite.h>
 
 //Used in some of the tests
-#include <vector>
 #include <sstream>
+#include <vector>
 
+#include "api/cvc4cpp.h"
+#include "expr/attribute.h"
 #include "expr/expr_manager.h"
-#include "expr/node_value.h"
+#include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
-#include "expr/node.h"
-#include "expr/attribute.h"
+#include "expr/node_value.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
@@ -35,27 +36,20 @@ using namespace CVC4::smt;
 using namespace std;
 
 class AttributeBlack : public CxxTest::TestSuite {
-private:
-
-  ExprManager* d_exprManager;
-  NodeManager* d_nodeManager;
-  SmtEngine* d_smtEngine;
-  SmtScope* d_scope;
-
  public:
   void setUp() override
   {
-    d_exprManager = new ExprManager();
+    d_slv = new api::Solver();
+    d_exprManager = d_slv->getExprManager();
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
-    d_smtEngine = new SmtEngine(d_exprManager);
+    d_smtEngine = d_slv->getSmtEngine();
     d_scope = new SmtScope(d_smtEngine);
   }
 
   void tearDown() override
   {
     delete d_scope;
-    delete d_smtEngine;
-    delete d_exprManager;
+    delete d_slv;
   }
 
   struct PrimitiveIntAttributeId {};
@@ -135,4 +129,10 @@ private:
     delete node;
   }
 
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_exprManager;
+  NodeManager* d_nodeManager;
+  SmtEngine* d_smtEngine;
+  SmtScope* d_scope;
 };

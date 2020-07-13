@@ -1608,15 +1608,6 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
-
-[[option]]
-  name       = "sygusExprMinerCheckUseExport"
-  category   = "expert"
-  long       = "sygus-expr-miner-check-use-export"
-  type       = "bool"
-  default    = "true"
-  help       = "export expressions to a different ExprManager with different options for satisfiability checks in expression miners"
-
 # CEGQI applied to general quantified formulas
 
 [[option]]

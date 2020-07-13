@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.4)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -165,12 +165,9 @@ set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supported SWIG language bindings
-option(BUILD_SWIG_BINDINGS_JAVA   "Build Java bindings with SWIG")
-option(BUILD_SWIG_BINDINGS_PYTHON "Build Python bindings with SWIG")
-
 # Supprted language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
+option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -301,9 +298,16 @@ if(ENABLE_SHARED)
   # we do not set this option, then the linker will not be able to find the
   # required libraries when trying to run CVC4.
   #
+  # Also embed the installation prefix of the installed contrib libraries as an
+  # RPATH. This allows to install a dynamically linked binary that depends on
+  # dynamically linked libraries. This is dangerous, as the installed binary
+  # breaks if the contrib library is removed or changes in other ways, we thus
+  # print a big warning and only allow if installing to a custom installation
+  # prefix.
+  #
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
@@ -542,12 +546,13 @@ add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(test)
 
-if(BUILD_SWIG_BINDINGS_JAVA OR BUILD_SWIG_BINDINGS_PYTHON)
-  add_subdirectory(src/bindings)
-endif()
-
 if(BUILD_BINDINGS_PYTHON)
   add_subdirectory(src/api/python)
+endif()
+
+if(BUILD_BINDINGS_JAVA)
+  message(FATAL_ERROR
+    "Java bindings for the new API are not implemented yet.")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -556,6 +561,52 @@ endif()
 # Export CVC4 targets to support find_package(CVC4) in other cmake projects.
 
 include(CMakePackageConfigHelpers)
+
+# If we install a dynamically linked binary that also uses dynamically used
+# libraries from deps/install/lib, we need to be cautious. Changing these
+# shared libraries from deps/install/lib most probably breaks the binary.
+# We only allow such an installation for custom installation prefixes
+# (in the assumption that only reasonably experienced users use this and 
+# also that custom installation prefixes are not used for longer periods of
+# time anyway). Also, we print a big warning with further instructions.
+if(NOT ENABLE_STATIC_BINARY)
+  # Get the libraries that cvc4 links against
+  get_target_property(libs cvc4 INTERFACE_LINK_LIBRARIES)
+  set(LIBS_SHARED_FROM_DEPS "")
+  foreach(lib ${libs})
+    # Filter out those that are linked dynamically and come from deps/install
+    if(lib MATCHES ".*/deps/install/lib/.*\.so")
+      list(APPEND LIBS_SHARED_FROM_DEPS ${lib})
+    endif()
+  endforeach()
+  list(LENGTH LIBS_SHARED_FROM_DEPS list_len)
+  # Check if we actually use such "dangerous" libraries
+  if(list_len GREATER 0)
+    # Print a generic warning
+    install(CODE "message(WARNING \"You are installing a dynamically linked \
+    binary of CVC4 which may be a problem if you are using any dynamically \
+    linked third-party library that you obtained through one of the \
+    contrib/get-xxx scripts. The binary uses the rpath mechanism to find these \
+    locally, hence executing such a contrib script removing the \
+    \\\"deps/install\\\" folder most probably breaks the installed binary! \
+    Consider installing the dynamically linked dependencies on your system \
+    manually or link cvc4 statically.\")")
+    # Print the libraries in question
+    foreach(lib ${LIBS_SHARED_FROM_DEPS})
+      install(CODE "message(WARNING \"The following library is used by the cvc4 binary: ${lib}\")")
+    endforeach()
+    # Check if we use a custom installation prefix
+    if(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+      install(CODE "message(FATAL_ERROR \"To avoid installing a \
+      soon-to-be-broken binary, system-wide installation is disabled if the \
+      binary depends on locally-built shared libraries.\")")
+    else()
+      install(CODE "message(WARNING \"You have selected a custom install \
+      directory ${CMAKE_INSTALL_PREFIX}, so we expect you understood the \
+      previous warning and know what you are doing.\")")
+    endif()
+  endif()
+endif()
 
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
@@ -624,9 +675,8 @@ print_config("Valgrind                  :" ENABLE_VALGRIND)
 message("")
 print_config("Shared libs               :" ENABLE_SHARED)
 print_config("Static binary             :" ENABLE_STATIC_BINARY)
-print_config("Java SWIG bindings        :" BUILD_SWIG_BINDINGS_JAVA)
-print_config("Python SWIG bindings      :" BUILD_SWIG_BINDINGS_PYTHON)
 print_config("Python bindings           :" BUILD_BINDINGS_PYTHON)
+print_config("Java bindings             :" BUILD_BINDINGS_JAVA)
 print_config("Python2                   :" USE_PYTHON2)
 print_config("Python3                   :" USE_PYTHON3)
 message("")

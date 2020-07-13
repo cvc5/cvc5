@@ -173,6 +173,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
+                           ResourceManager* rm,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
@@ -205,7 +206,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_true(),
       d_false(),
       d_interrupted(false),
-      d_resourceManager(NodeManager::currentResourceManager()),
+      d_resourceManager(rm),
       d_inPreregister(false),
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
@@ -1401,7 +1402,8 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
                              << " Responsible theory is: "
                              << theoryOf(atom)->getId() << std::endl;
 
-    Node explanation = theoryOf(atom)->explain(node);
+    TrustNode texplanation = theoryOf(atom)->explain(node);
+    Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     PROOF({
         if(proofRecipe) {
@@ -1785,6 +1787,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
           new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
     }
   });
+  // cache of nodes we have already explained by some theory
+  std::unordered_set<Node, NodeHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1866,7 +1870,15 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         continue;
       }
     }
-
+    // We must cache after checking the timestamp in the block of code above.
+    // Afterwards, we can ignore this timestamp, as well as caching the Node,
+    // since any theory's explanation will suffice.
+    if (cache.find(toExplain.d_node) != cache.end())
+    {
+      ++i;
+      continue;
+    }
+    cache.insert(toExplain.d_node);
     // It was produced by the theory, so ask for an explanation
     Node explanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
@@ -1876,7 +1888,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
     else
     {
-      explanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      TrustNode texp = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      explanation = texp.getNode();
       Debug("theory::explain") << "\tTerm was propagated by owner theory: "
                                << theoryOf(toExplain.d_theory)->getId()
                                << ". Explanation: " << explanation << std::endl;

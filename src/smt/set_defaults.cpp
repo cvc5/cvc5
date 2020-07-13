@@ -154,7 +154,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     logic.lock();
   }
 
-  if (options::solveBVAsInt() > 0)
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     // not compatible with incremental
     if (options::incrementalSolving())
@@ -168,7 +168,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       throw OptionException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
     }
-    if (options::solveBVAsInt() > 8)
+    if (options::BVAndIntegerGranularity() > 8)
     {
       /**
        * The granularity sets the size of the ITE in each element
@@ -291,8 +291,10 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   // sygus inference may require datatypes
   if (!smte.isInternalSubsolver())
   {
-    if (options::produceAbducts() || options::sygusInference()
-        || options::sygusRewSynthInput() || options::sygusInst())
+    if (options::produceAbducts()
+        || options::produceInterpols() != options::ProduceInterpols::NONE
+        || options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -316,6 +318,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
+       || options::produceInterpols() != options::ProduceInterpols::NONE
        || options::modelCoresMode() != options::ModelCoresMode::NONE
        || options::blockModelsMode() != options::BlockModelsMode::NONE)
       && !options::produceAssertions())
@@ -379,7 +382,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
 
-  if (options::solveBVAsInt() > 0)
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     /**
      * Operations on 1 bits are better handled as Boolean operations
@@ -847,17 +850,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     // must have finite model finding on
     options::finiteModelFind.set(true);
-  }
-
-  // if it contains a theory with non-termination, do not strictly enforce that
-  // quantifiers and theory combination must be interleaved
-  if (logic.isTheoryEnabled(THEORY_STRINGS)
-      || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
-  {
-    if (!options::instWhenStrictInterleave.wasSetByUser())
-    {
-      options::instWhenStrictInterleave.set(false);
-    }
   }
 
   if (options::instMaxLevel() != -1)
@@ -1396,24 +1388,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
         << "disabling bvLazyRewriteExtf since equality solver is disabled"
         << std::endl;
     options::bvLazyRewriteExtf.set(false);
-  }
-
-  if (!options::sygusExprMinerCheckUseExport())
-  {
-    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
-    {
-      throw OptionException(
-          "--sygus-expr-miner-check-timeout=N requires "
-          "--sygus-expr-miner-check-use-export");
-    }
-    if (options::sygusRewSynthInput() || options::produceAbducts())
-    {
-      std::stringstream ss;
-      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : "--produce-abducts");
-      ss << "requires --sygus-expr-miner-check-use-export";
-      throw OptionException(ss.str());
-    }
   }
 
   if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
