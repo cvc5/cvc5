@@ -367,7 +367,7 @@ Node sygusToBuiltin(Node n, bool isExternal)
         ss << cur;
         const DType& dt = cur.getType().getDType();
         // make a fresh variable
-        NodeManager * nm = NodeManager::currentNM()
+        NodeManager * nm = NodeManager::currentNM();
         visited[cur] = nm->mkBoundVar(ss.str(), dt.getSygusType());
       }
       else

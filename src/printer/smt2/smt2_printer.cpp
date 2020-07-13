@@ -34,6 +34,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
@@ -2047,9 +2048,8 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
           }
         }
         Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
-        // now, print it
-        // FIXME
-        //sygus_printer->toStreamSygus(types_list, consToPrint);
+        // now, print it using the conversion to builtin with external
+        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint, true);
         types_list << ' ';
       }
       types_list << "))\n";

@@ -732,8 +732,7 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 void TermDbSygus::toStreamSygus(std::ostream& out, Node n)
 {
   // use external conversion
-  Node bn = n.isConst() ? datatypes::utils::sygusToBuiltin(n, true) : n;
-  out << bn;
+  out << datatypes::utils::sygusToBuiltin(n, true);
 }
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
