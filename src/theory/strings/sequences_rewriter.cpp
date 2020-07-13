@@ -1829,8 +1829,7 @@ Node SequencesRewriter::rewriteUpdate(Node node)
       else if (node[1].getConst<Rational>().sgn() < 0)
       {
         // start before the beginning of the string
-        Node ret = Word::mkEmptyWord(node.getType());
-        return returnRewrite(node, ret, Rewrite::UPD_CONST_INDEX_NEG);
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_NEG);
       }
       uint32_t start =
           node[1].getConst<Rational>().getNumerator().toUnsignedInt();
