@@ -1166,12 +1166,6 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
 
   /**
-   * If applicable, the function-to-synthesize that the subsolver is solving
-   * for. This is used for the get-abduct command.
-   */
-  Expr d_sssf;
-
-  /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
    */

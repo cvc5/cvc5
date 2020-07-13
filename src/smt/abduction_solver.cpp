@@ -17,6 +17,7 @@
 #include "smt/smt_engine.h"
 #include "options/smt_options.h"
 #include "theory/smt_engine_subsolver.h"
+#include "theory/quantifiers/sygus/sygus_abduct.h"
 
 namespace CVC4 {
 namespace smt {
@@ -47,18 +48,18 @@ if (!options::produceAbducts())
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  conj = d_parent->expandDefinitions(conj);
+  Node conjn = d_parent->expandDefinitions(conj);
   // now negate
-  conj = conj.negate();
-  d_abdConj = conj;
-  asserts.push_back(conj);
+  conjn = conjn.negate();
+  d_abdConj = conjn;
+  asserts.push_back(conjn);
   std::string name("A");
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms,grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
-  d_sssf = aconj[0][0].toExpr();
+  d_sssf = aconj[0][0];
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
                         << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
@@ -92,7 +93,8 @@ bool AbductionSolver::getAbductInternal(Node& abd)
     std::map<Expr, Expr> sols;
     d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
-    std::map<Expr, Expr>::iterator its = sols.find(d_sssf);
+    Expr essf = d_sssf.toExpr();
+    std::map<Expr, Expr>::iterator its = sols.find(essf);
     if (its != sols.end())
     {
       Trace("sygus-abduct")
@@ -103,8 +105,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
         abd = abd[1];
       }
       // get the grammar type for the abduct
-      Node af = Node::fromExpr(d_sssf);
-      Node agdtbv = af.getAttribute(theory::SygusSynthFunVarListAttribute());
+      Node agdtbv = d_sssf.getAttribute(theory::SygusSynthFunVarListAttribute());
       Assert(!agdtbv.isNull());
       Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
       // convert back to original
@@ -151,20 +152,19 @@ void AbductionSolver::checkAbduct(Node a)
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": make new SMT engine" << std::endl;
     // Start new SMT engine to check solution
-    SmtEngine abdChecker(d_exprManager, &d_options);
-    abdChecker.setIsInternalSubsolver();
-    abdChecker.setLogic(d_parent->getLogicInfo());
+    std::unique_ptr<SmtEngine> abdChecker;
+    theory::initializeSubsolver(abdChecker);
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": asserting formulas" << std::endl;
     for (const Expr& e : asserts)
     {
-      abdChecker.assertFormula(e);
+      abdChecker->assertFormula(e);
     }
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
                           << ": check the assertions" << std::endl;
-    Result r = abdChecker.checkSat();
+    Result r = abdChecker->checkSat();
     Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
-                          << ": result is " << r << endl;
+                          << ": result is " << r << std::endl;
     std::stringstream serr;
     bool isError = false;
     if (j == 0)

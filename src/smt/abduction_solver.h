@@ -99,6 +99,11 @@ class AbductionSolver
    * valid while the parent SmtEngine is in mode SMT_MODE_ABDUCT.
    */
   Node d_abdConj;
+  /**
+   * If applicable, the function-to-synthesize that the subsolver is solving
+   * for. This is used for the get-abduct command.
+   */
+  Node d_sssf;
 };
 
 
