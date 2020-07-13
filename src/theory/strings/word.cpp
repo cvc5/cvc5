@@ -265,10 +265,10 @@ Node Word::update(TNode x, std::size_t i, TNode t)
   else if (k == CONST_SEQUENCE)
   {
     Assert(t.getKind() == CONST_SEQUENCE);
-    const Sequence& sx = x.getConst<ExprSequence>().getSequence();
-    const Sequence& st = t.getConst<ExprSequence>().getSequence();
+    const Sequence& sx = x.getConst<Sequence>();
+    const Sequence& st = y.getConst<Sequence>();
     Sequence res = sx.update(i, st);
-    return nm->mkConst(res.toExprSequence());
+    return nm->mkConst(res);
   }
   Unimplemented();
   return Node::null();
