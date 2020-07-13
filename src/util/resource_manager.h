@@ -191,7 +191,6 @@ class CVC4_PUBLIC ResourceManager
    * The amount of resource budget for this call (min between per call
    * budget and left-over cumulative budget.
    */
-  uint64_t d_thisCallTimeBudget;
   uint64_t d_thisCallResourceBudget;
 
   bool d_on;

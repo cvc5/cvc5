@@ -156,7 +156,6 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
-      d_thisCallTimeBudget(0),
       d_thisCallResourceBudget(0),
       d_on(false),
       d_listeners(),
@@ -304,38 +303,18 @@ void ResourceManager::beginCall()
   d_thisCallResourceUsed = 0;
   if (!d_on) return;
 
-  if (cumulativeLimitOn())
+  if (d_resourceBudgetCumulative > 0)
   {
-    if (d_resourceBudgetCumulative)
-    {
-      d_thisCallResourceBudget =
-          d_resourceBudgetCumulative <= d_cumulativeResourceUsed
-              ? 0
-              : d_resourceBudgetCumulative - d_cumulativeResourceUsed;
-    }
-    // we are out of resources so we shouldn't update the
-    // budget for this call to the per call budget
-    if (d_thisCallTimeBudget == 0 || d_thisCallResourceUsed == 0) return;
+    // Compute remaining cumulative resource budget
+    d_thisCallResourceBudget =
+        d_resourceBudgetCumulative - d_cumulativeResourceUsed;
   }
-
-  if (perCallLimitOn())
+  if (d_resourceBudgetPerCall > 0)
   {
-    // take min of what's left and per-call budget
-    if (d_resourceBudgetPerCall)
+    // Check if per-call resource budget is even smaller
+    if (d_resourceBudgetPerCall < d_thisCallResourceBudget)
     {
-      d_thisCallResourceBudget =
-          d_thisCallResourceBudget < d_resourceBudgetPerCall
-                  && d_thisCallResourceBudget != 0
-              ? d_thisCallResourceBudget
-              : d_resourceBudgetPerCall;
-    }
-
-    if (d_timeBudgetPerCall)
-    {
-      d_thisCallTimeBudget = d_thisCallTimeBudget < d_timeBudgetPerCall
-                                     && d_thisCallTimeBudget != 0
-                                 ? d_thisCallTimeBudget
-                                 : d_timeBudgetPerCall;
+      d_thisCallResourceBudget = d_resourceBudgetPerCall;
     }
   }
 }
@@ -344,25 +323,38 @@ void ResourceManager::endCall()
 {
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
+  d_thisCallResourceUsed = 0;
 }
 
 bool ResourceManager::cumulativeLimitOn() const
 {
-  return d_resourceBudgetCumulative;
+  return d_resourceBudgetCumulative > 0;
 }
 
 bool ResourceManager::perCallLimitOn() const
 {
-  return d_timeBudgetPerCall || d_resourceBudgetPerCall;
+  return (d_timeBudgetPerCall > 0) || (d_resourceBudgetPerCall > 0);
 }
 
 bool ResourceManager::outOfResources() const
 {
-  // resource limiting not enabled
-  if (d_resourceBudgetPerCall == 0 && d_resourceBudgetCumulative == 0)
-    return false;
-
-  return getResourceRemaining() == 0;
+  if (d_resourceBudgetPerCall > 0)
+  {
+    // Check if per-call resources are exhausted
+    if (d_thisCallResourceUsed >= d_resourceBudgetPerCall)
+    {
+      return true;
+    }
+  }
+  if (d_resourceBudgetCumulative > 0)
+  {
+    // Check if cumulative resources are exhausted
+    if (d_cumulativeResourceUsed >= d_resourceBudgetCumulative)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool ResourceManager::outOfTime() const
