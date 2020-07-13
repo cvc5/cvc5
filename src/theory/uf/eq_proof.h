@@ -80,7 +80,11 @@ class EqProof
    * Converts EqProof into ProofNodes via a series of steps to be stored in p.
    *
    * This method can be seen as a temporary solution until the EqualityEngine is
-   * updated to produce ProofNodes directly, if ever.
+   * updated to produce ProofNodes directly, if ever. Note that since the
+   * original EqProof steps can be coarse-grained (e.g. without proper order,
+   * implicit inferences related to disquelaties) and are phrased over curried
+   * terms, the transformation requires significant, although cheap,
+   * post-processing.
    *
    * It returns the node that is the conclusion of the proof as added to p.
    */
@@ -97,9 +101,9 @@ class EqProof
       std::unordered_map<Node, Node, NodeHashFunction>& visited,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
-  /** Removes all reflexivity steps, i.e. premises (= t t), from premises
+  /** Removes all reflexivity steps, i.e. premises (= t t), from premises.
    *
-   * Such premisis are spurious for a trastivity steps. The reordering of
+   * Such premisis are spurious for a trastivity step. The reordering of
    * premises in a transtivity step assumes no such steps are part of the
    * premises.
    */

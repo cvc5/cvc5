@@ -331,11 +331,11 @@ bool EqProof::foldTransitivityChildren(
           Node transConclusion2 = subs[1][0].eqNode(subs[1][1]);
           if (!buildTransitivityChain(transConclusion2, copy2foldPremises))
           {
-            AlwaysAssert(false)
-                << "Found sub " << transConclusion1 << " but not other sub "
-                << transConclusion2 << ".\nDisequality: " << premise
-                << "\nFold premises: " << foldPremises
-                << "\nConclusion: " << conclusion << "\n";
+            Unreachable() << "Found sub " << transConclusion1
+                          << " but not other sub " << transConclusion2
+                          << ".\nDisequality: " << premise
+                          << "\nFold premises: " << foldPremises
+                          << "\nConclusion: " << conclusion << "\n";
           }
           Trace("eqproof-conv")
               << "EqProof::foldTransitivityChildren: Built trans chains: "
@@ -420,12 +420,7 @@ bool EqProof::foldTransitivityChildren(
           << "EqProof::foldTransitivityChildren: add transitivity step for "
           << foldConclusion << " with premises " << foldPremises << "\n";
       // create folding step
-      if (!p->addStep(foldConclusion, PfRule::TRANS, foldPremises, {}, true))
-      {
-        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                         "folding trans step from "
-                      << foldPremises << " to " << foldConclusion << "\n";
-      }
+      p->addStep(foldConclusion, PfRule::TRANS, foldPremises, {}, true);
     }
   }
   // now build the proof step for the original conclusion
@@ -445,18 +440,11 @@ bool EqProof::foldTransitivityChildren(
         kind::EQUAL,
         nm->mkNode(kind::EQUAL, substPremises[0][0], substPremises[1][0]),
         premise[0]);
-    if (!p->addStep(congConclusion,
-                    PfRule::CONG,
-                    substPremises,
-                    {nm->operatorOf(kind::EQUAL)},
-                    true))
-    {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "congruence step for "
-                    << congConclusion << " equating conclusion "
-                    << conclusion[0] << " and premise " << premise[0]
-                    << " of substitution\n";
-    }
+    p->addStep(congConclusion,
+               PfRule::CONG,
+               substPremises,
+               {nm->operatorOf(kind::EQUAL)},
+               true);
     Trace("eqproof-conv")
         << "EqProof::foldTransitivityChildren: via congruence derived "
         << congConclusion << "\n";
@@ -468,12 +456,7 @@ bool EqProof::foldTransitivityChildren(
             : nm->mkNode(kind::EQUAL, congConclusion[0], conclusion[1]);
     if (!assumptions.count(transConclusion))
     {
-      if (!p->addStep(transConclusion, PfRule::TRANS, premises, {}, true))
-      {
-        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                         "transitivity step for deriving "
-                      << transConclusion << " from " << premises << "\n";
-      }
+      p->addStep(transConclusion, PfRule::TRANS, premises, {}, true);
       Trace("eqproof-conv")
           << "EqProof::foldTransitivityChildren: via transitivity derived "
           << transConclusion << "\n";
@@ -481,16 +464,11 @@ bool EqProof::foldTransitivityChildren(
     // if order is reversed, to a MACRO_SR_PRED_TRANSFORM step
     if (substConclusionInReverseOrder)
     {
-      if (!p->addStep(conclusion,
-                      PfRule::MACRO_SR_PRED_TRANSFORM,
-                      {transConclusion},
-                      {conclusion},
-                      true))
-      {
-        Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                         "final rewriting step from "
-                      << transConclusion << " into " << conclusion << "\n";
-      }
+      p->addStep(conclusion,
+                 PfRule::MACRO_SR_PRED_TRANSFORM,
+                 {transConclusion},
+                 {conclusion},
+                 true);
       Trace("eqproof-conv")
           << "EqProof::foldTransitivityChildren: via macro transform derived "
           << conclusion << "\n";
@@ -503,22 +481,13 @@ bool EqProof::foldTransitivityChildren(
         << " via transitivity.\nEqProof::foldTransitivityChildren: adding "
         << PfRule::TRUE_INTRO << " step for " << foldConclusion[0] << "\n";
     Node newFoldConclusion = foldConclusion.eqNode(nm->mkConst<bool>(true));
-    if (!p->addStep(
-            newFoldConclusion, PfRule::TRUE_INTRO, {foldConclusion}, {}))
-    {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                    << PfRule::TRUE_INTRO << " rule\n";
-    }
+    p->addStep(newFoldConclusion, PfRule::TRUE_INTRO, {foldConclusion}, {});
     premises.push_back(newFoldConclusion);
     Trace("eqproof-conv") << PfRule::MACRO_SR_PRED_TRANSFORM << " from "
                           << premises << "\n";
     buildTransitivityChain(conclusion, premises);
     // create final transitivity step
-    if (!p->addStep(conclusion, PfRule::TRANS, premises, {}, true))
-    {
-      Assert(false) << "EqProof::foldTransitivityChildren: couldn't add "
-                       "final trans step\n";
-    }
+    p->addStep(conclusion, PfRule::TRANS, premises, {}, true);
   }
   return true;
 }
@@ -748,71 +717,34 @@ Node EqProof::addToProof(CDProof* p) const
     // Determine whether TRUE_ELIM or FALSE_ELIM, depending on the constant
     // value. The new conclusion, whether t or (not t), is also determined
     // accordingly.
-    //
-    // We also track  which intro rule, TRUE_INTRO or FALSE_INTRO, could have
-    // been used to introduce the conclusion (= t true/false), modulo symmetry,
-    // in case t / (not t) is an assumption, so that we avoid creating a cyclic
-    // proof with t / (not t) being derived with t / (not t) as an assumption.
-    PfRule elimRule, introRule;
+    PfRule elimRule;
     if (conclusion[constIndex].getConst<bool>())
     {
       elimRule = PfRule::TRUE_ELIM;
       newConclusion = conclusion[1 - constIndex];
-      introRule = PfRule::TRUE_INTRO;
     }
     else
     {
       elimRule = PfRule::FALSE_ELIM;
       newConclusion = conclusion[1 - constIndex].notNode();
-      introRule = PfRule::FALSE_INTRO;
     }
-    // The cycle is characterized, for example, by
-    //
-    //    t
-    //   ----- TRUE_INTRO
+    // We also check if the final conclusion t / (not t) is an assumption, so
+    // that we avoid creating a cyclic proof. The cycle is characterized, for
+    // example, by
+    //        t
+    //   ----------- TRUE_INTRO
     //   (= t true)
-    //   ----------
-    //     ....
-    //   ----------
-    //   ()
-    bool cyclic = false;
-    std::shared_ptr<ProofNode> pc = p->getProofFor(conclusion);
-    if (assumptions.count(newConclusion))
-    {
-      cyclic = true;
-    }
-    else if (pc.get()->getRule() == introRule)
-    {
-      Trace("eqproof-conv") << "EqProof::addToProof: root came from "
-                            << introRule << ", avoid " << elimRule << " step\n";
-      cyclic = true;
-    }
-    else if (pc.get()->getRule() == PfRule::SYMM)
-    {
-      const std::vector<std::shared_ptr<ProofNode>>& pcc = pc->getChildren();
-      Trace("eqproof-conv")
-          << "EqProof::addToProof: root came from " << PfRule::SYMM
-          << ", check its child " << pcc[0].get()->getResult()
-          << " derived via " << pcc[0].get()->getRule() << "\n";
-      if (pcc[0].get()->getRule() == introRule)
-      {
-        Trace("eqproof-conv")
-            << "EqProof::addToProof: root child came from " << introRule
-            << ", avoid " << elimRule << " step\n";
-        cyclic = true;
-      }
-    }
-    if (!cyclic)
+    //  ----------- TRUE_ELIM
+    //       t
+    // where we avoid the last step by testing below if t / (not t) is an
+    // assumption in the original EqProof.
+    if (!assumptions.count(newConclusion))
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: conclude " << newConclusion << " via "
           << elimRule << " step for " << elimPremise << ", introduced via "
           << p->getProofFor(conclusion).get()->getRule() << "\n";
-      if (!p->addStep(newConclusion, elimRule, {elimPremise}, {}))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add " << elimRule
-                      << " rule\n";
-      }
+      p->addStep(newConclusion, elimRule, {elimPremise}, {});
     }
   }
   return newConclusion;
@@ -900,17 +832,9 @@ Node EqProof::addToProof(
       // used in the proof p
       Node introConclusion =
           constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
-      if (!p->addStep(introConclusion, introRule, introChildren, {}))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add " << introRule
-                      << " from " << d_node[1 - constIndex].notNode() << " to "
-                      << introConclusion << "\n";
-      }
+      p->addStep(introConclusion, introRule, introChildren, {});
     }
-    if (!p->addStep(d_node, PfRule::ASSUME, {}, {d_node}))
-    {
-      Assert(false) << "EqProof::addToProof: couldn't add assumption\n";
-    }
+    p->addStep(d_node, PfRule::ASSUME, {}, {d_node});
     // if non-equality predicate, turn into one via TRUE/FALSE intro
     Node conclusion = d_node;
     if (d_node.getKind() != kind::EQUAL)
@@ -934,11 +858,7 @@ Node EqProof::addToProof(
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
-      if (!p->addStep(conclusion, intro, {d_node}, {}))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add " << intro
-                      << " rule from " << d_node << "\n";
-      }
+      p->addStep(conclusion, intro, {d_node}, {});
     }
     // keep track of assumptions to avoid cyclic proofs. Both the assumption and
     // its symmetric are added
@@ -957,10 +877,7 @@ Node EqProof::addToProof(
     Trace("eqproof-conv-debug") << "Refl node: " << d_node << std::endl;
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
-    if (!p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]}))
-    {
-      Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
-    }
+    p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]});
     visited[d_node] = conclusion;
     return conclusion;
   }
@@ -1027,11 +944,7 @@ Node EqProof::addToProof(
     Trace("eqproof-conv") << "EqProof::addToProof: adding "
                           << PfRule::MACRO_SR_PRED_INTRO << " step from "
                           << children << "\n";
-    if (!p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, children, {d_node}))
-    {
-      Assert(false) << "EqProof::addToProof: couldn't add "
-                    << PfRule::MACRO_SR_PRED_INTRO << " rule\n";
-    }
+    p->addStep(d_node, PfRule::MACRO_SR_PRED_INTRO, children, {d_node});
     visited[d_node] = d_node;
     return d_node;
   }
@@ -1163,11 +1076,7 @@ Node EqProof::addToProof(
                      || children[0][1].eqNode(children[0][0]) == conclusion)));
       if (children.size() > 1)
       {
-        if (!p->addStep(conclusion, PfRule::TRANS, children, {}, true))
-        {
-          Assert(false) << "EqProof::addToProof: couldn't add TRANS "
-                        << conclusion << " " << children << "\n";
-        }
+        p->addStep(conclusion, PfRule::TRANS, children, {}, true);
       }
     }
     visited[d_node] = conclusion;
@@ -1352,10 +1261,7 @@ Node EqProof::addToProof(
     // reflexivity in the current equality engine), just add a reflexivity step
     if (transConclusion[0] == transConclusion[1])
     {
-      if (!p->addStep(transConclusion, PfRule::REFL, {}, {transConclusion[0]}))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add refl step\n";
-      }
+      p->addStep(transConclusion, PfRule::REFL, {}, {transConclusion[0]});
       continue;
     }
     // if the transitivity conclusion, or its symmetric, occurs in the
@@ -1379,14 +1285,8 @@ Node EqProof::addToProof(
           << "EqProof::addToProof: adding trans step for cong premise "
           << transConclusion << " with children " << transitivityChildren[i]
           << "\n";
-      if (!p->addStep(transConclusion,
-                      PfRule::TRANS,
-                      transitivityChildren[i],
-                      {},
-                      true))
-      {
-        Assert(false) << "EqProof::addToProof: couldn't add trans step\n";
-      }
+      p->addStep(
+          transConclusion, PfRule::TRANS, transitivityChildren[i], {}, true);
     }
   }
   Trace("eqproof-conv")
@@ -1406,10 +1306,7 @@ Node EqProof::addToProof(
   Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "
                         << conclusion << " with op " << args[0]
                         << " and children " << children << "\n";
-  if (!p->addStep(conclusion, PfRule::CONG, children, args, true))
-  {
-    Assert(false) << "EqProof::addToProof: couldn't add cong step\n";
-  }
+  p->addStep(conclusion, PfRule::CONG, children, args, true);
   // whether had to change cong conclusion because of n-ary handling
   if (conclusion != d_node)
   {
@@ -1417,15 +1314,8 @@ Node EqProof::addToProof(
                           << PfRule::MACRO_SR_PRED_TRANSFORM
                           << " step to flatten rebuilt conclusion "
                           << conclusion << "into " << d_node << "\n";
-    if (!p->addStep(d_node,
-                    PfRule::MACRO_SR_PRED_TRANSFORM,
-                    {conclusion},
-                    {d_node},
-                    true))
-    {
-      Assert(false) << "EqProof::addToProof: couldn't add "
-                    << PfRule::MACRO_SR_PRED_TRANSFORM << " step\n";
-    }
+    p->addStep(
+        d_node, PfRule::MACRO_SR_PRED_TRANSFORM, {conclusion}, {d_node}, true);
   }
   if (Trace.isOn("eqproof-conv"))
   {
