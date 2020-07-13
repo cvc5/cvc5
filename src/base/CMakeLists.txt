@@ -4,17 +4,9 @@
 
 find_package(Git)
 configure_file(GitInfo.cmake.in GitInfo.cmake @ONLY)
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-  COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake
-)
-set_source_files_properties(
-  ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-  PROPERTIES GENERATED TRUE
-)
 add_custom_target(gen-gitinfo
-  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
-)
+  BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp
+  COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake)
 
 #-----------------------------------------------------------------------------#
 

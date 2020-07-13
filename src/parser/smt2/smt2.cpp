@@ -164,6 +164,7 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
+    addOperator(api::STRING_UPDATE, "str.update");
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
@@ -171,6 +172,7 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_CONCAT, "seq.++");
     addOperator(api::SEQ_LENGTH, "seq.len");
     addOperator(api::SEQ_EXTRACT, "seq.extract");
+    addOperator(api::SEQ_UPDATE, "seq.update");
     addOperator(api::SEQ_AT, "seq.at");
     addOperator(api::SEQ_CONTAINS, "seq.contains");
     addOperator(api::SEQ_INDEXOF, "seq.indexof");
@@ -638,6 +640,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     {
       defineVar("real.pi", d_solver->mkTerm(api::PI));
       addTranscendentalOperators();
+    }
+    if (!strictModeEnabled())
+    {
+      // integer version of AND
+      addIndexedOperator(api::IAND, api::IAND, "iand");
     }
   }
 

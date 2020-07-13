@@ -36,17 +36,21 @@ namespace fp {
 class TheoryFp : public Theory {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo);
+  TheoryFp(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr);
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
-  Node ppRewrite(TNode node) override;
+  TrustNode ppRewrite(TNode node) override;
 
   void check(Effort) override;
 
@@ -58,7 +62,7 @@ class TheoryFp : public Theory {
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  protected:
   /** Equality engine */
