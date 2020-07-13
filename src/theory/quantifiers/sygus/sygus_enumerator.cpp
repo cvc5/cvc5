@@ -1032,12 +1032,29 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
     return;
   }
   std::map<TypeNode, int> vcounter;
-  for (unsigned i = 1, nchildren = children.size(); i < nchildren; i++)
+  // buffered child, so that we only compute vcounter if there are more than
+  // one children with free variables, since otherwise there is no change.
+  bool bufferChildSet = false;
+  bool bufferChildProcessed = false;
+  size_t bufferChild = 0;
+  for (size_t i = 1, nchildren = children.size(); i < nchildren; i++)
   {
     if (!expr::hasBoundVar(children[i]))
     {
       // don't need to care about expressions with no bound variables
       continue;
+    }
+    else if (!bufferChildSet)
+    {
+      bufferChild = i;
+      bufferChildSet = true;
+      continue;
+    }
+    else if (!bufferChildProcessed)
+    {
+      // process the buffer child
+      children[bufferChild] = convertShape(children[bufferChild], vcounter);
+      bufferChildProcessed = true;
     }
     children[i] = convertShape(children[i], vcounter);
   }
