@@ -21,9 +21,21 @@ namespace CVC4 {
 namespace main {
 namespace signal_handlers {
 
+/**
+ * Performs last steps before termination due to a timeout.
+ * Prints an appropriate message and solver statistics.
+ */
 void timeout_handler();
 
+/**
+ * Installs (almost) all signal handlers.
+ * A handler for SIGALRM is set in time_limit.cpp.
+ */
 void install();
+
+/**
+ * Performs cleanup related to the signal handlers.
+ */
 void cleanup();
 
 }  // namespace signal_handlers
