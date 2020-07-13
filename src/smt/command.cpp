@@ -2199,15 +2199,19 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
+    Node conjn = Node::fromExpr(d_conj);
+    Node resn;
     if (d_sygus_grammar_type.isNull())
     {
-      d_resultStatus = smtEngine->getAbduct(d_conj, d_result);
+      d_resultStatus = smtEngine->getAbduct(conjn, resn);
     }
     else
     {
+      TypeNode gtype = TypeNode::fromType(d_sygus_grammar_type);
       d_resultStatus =
-          smtEngine->getAbduct(d_conj, d_sygus_grammar_type, d_result);
+          smtEngine->getAbduct(conjn, gtype, resn);
     }
+    d_result = resn.toExpr();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

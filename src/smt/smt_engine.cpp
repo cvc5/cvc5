@@ -2996,6 +2996,7 @@ void SmtEngine::checkInterpol(Expr interpol,
 void SmtEngine::checkAbduct(Node a)
 {
   Assert(a.getType().isBoolean());
+  // check it with the abduction solver
   return d_abductSolver->checkAbduct(a);
 }
 
