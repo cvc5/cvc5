@@ -160,19 +160,6 @@ class SoftResourceOutListener : public Listener {
   SmtEngine* d_smt;
 }; /* class SoftResourceOutListener */
 
-
-class HardResourceOutListener : public Listener {
- public:
-  HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    SmtScope scope(d_smt);
-    theory::Rewriter::clearCaches();
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class HardResourceOutListener */
-
 class BeforeSearchListener : public Listener {
  public:
   BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
@@ -390,9 +377,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
     d_listenerRegistrations->add(
         rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
-
-    d_listenerRegistrations->add(
-        rm->registerHardListener(new HardResourceOutListener(d_smt)));
 
     try
     {
@@ -714,7 +698,6 @@ void SmtEngine::finishInit()
   // of SMT-LIB 2.6 standard.
 
   // Inialize the resource manager based on the options.
-  d_resourceManager->setHardLimit(options::hardLimit());
   if (options::perCallResourceLimit() != 0)
   {
     d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);

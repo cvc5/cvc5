@@ -193,10 +193,8 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_thisCallResourceUsed(0),
       d_thisCallTimeBudget(0),
       d_thisCallResourceBudget(0),
-      d_isHardLimit(),
       d_on(false),
       d_spendResourceCalls(0),
-      d_hardListeners(),
       d_softListeners(),
       d_statistics(new ResourceManager::Statistics(stats)),
       d_options(options)
@@ -271,13 +269,7 @@ void ResourceManager::spendResource(unsigned amount)
                      << d_cumulativeTimer.elapsed() << std::endl;
     }
 
-    if (d_isHardLimit) {
-      d_hardListeners.notify();
-      throw UnsafeInterruptException();
-    } else {
-      d_softListeners.notify();
-    }
-
+    d_softListeners.notify();
   }
 }
 
@@ -417,20 +409,9 @@ bool ResourceManager::outOfTime() const {
   return d_cumulativeTimer.expired() || d_perCallTimer.expired();
 }
 
-void ResourceManager::setHardLimit(bool value) {
-  Trace("limit") << "ResourceManager::setHardLimit("<< value <<")\n";
-  d_isHardLimit = value;
-}
-
 void ResourceManager::enable(bool on) {
   Trace("limit") << "ResourceManager::enable("<< on <<")\n";
   d_on = on;
-}
-
-ListenerCollection::Registration* ResourceManager::registerHardListener(
-    Listener* listener)
-{
-  return d_hardListeners.registerListener(listener);
 }
 
 ListenerCollection::Registration* ResourceManager::registerSoftListener(

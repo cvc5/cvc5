@@ -121,7 +121,6 @@ public:
  // Throws an UnsafeInterruptException if there are no remaining resources.
  void spendResource(Resource r);
 
- void setHardLimit(bool value);
  void setResourceLimit(uint64_t units, bool cumulative = false);
  void setTimeLimit(uint64_t millis, bool cumulative = false);
 
@@ -140,14 +139,6 @@ public:
  void endCall();
 
  static uint64_t getFrequencyCount() { return s_resourceCount; }
-
- /**
-  * Registers a listener that is notified on a hard resource out.
-  *
-  * This Registration must be destroyed by the user before this
-  * ResourceManager.
-  */
- ListenerCollection::Registration* registerHardListener(Listener* listener);
 
  /**
   * Registers a listener that is notified on a soft resource out.
@@ -185,17 +176,13 @@ private:
  uint64_t d_thisCallTimeBudget;
  uint64_t d_thisCallResourceBudget;
 
- bool d_isHardLimit;
  bool d_on;
  uint64_t d_spendResourceCalls;
 
  /** Counter indicating how often to check resource manager in loops */
  static const uint64_t s_resourceCount;
 
- /** Receives a notification on reaching a hard limit. */
- ListenerCollection d_hardListeners;
-
- /** Receives a notification on reaching a hard limit. */
+ /** Receives a notification on reaching a soft limit. */
  ListenerCollection d_softListeners;
 
  /**
