@@ -23,7 +23,6 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/dtype.h"
-#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -215,7 +214,7 @@ void Smt2Printer::toStream(std::ostream& out,
     }
     case kind::CONST_SEQUENCE:
     {
-      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
       if (snvec.empty())
       {
@@ -630,6 +629,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::STRING_LENGTH:
   case kind::STRING_SUBSTR:
+  case kind::STRING_UPDATE:
   case kind::STRING_CHARAT:
   case kind::STRING_STRCTN:
   case kind::STRING_STRIDOF:
@@ -1196,6 +1196,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CONCAT: return "str.++";
   case kind::STRING_LENGTH: return "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
+  case kind::STRING_UPDATE: return "str.update";
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;

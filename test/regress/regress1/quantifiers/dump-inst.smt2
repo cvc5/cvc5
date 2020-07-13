@@ -4,7 +4,7 @@
 ; EXPECT: (skolem (forall ((x Int)) (or (P x) (Q x)) )
 ; EXPECT:   ( skv_TERM )
 ; EXPECT: )
-; EXPECT: (instantiation (forall ((x Int)) (P x) )
+; EXPECT: (instantiations (forall ((x Int)) (P x) )
 ; EXPECT:   ( skv_TERM )
 ; EXPECT: )
 (set-logic UFLIA)
