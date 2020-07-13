@@ -70,7 +70,7 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
     return r;
   }
   initializeSubsolver(smte, needsTimeout, timeout);
-  smte->assertFormula(query);
+  smte->assertFormula(query.toExpr());
   return smte->checkSat();
 }
 
@@ -106,7 +106,7 @@ Result checkWithSubsolver(Node query,
   }
   std::unique_ptr<SmtEngine> smte;
   initializeSubsolver(smte, needsTimeout, timeout);
-  smte->assertFormula(query);
+  smte->assertFormula(query.toExpr());
   r = smte->checkSat();
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {
