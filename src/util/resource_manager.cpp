@@ -47,6 +47,7 @@ void WallClockTimer::set(uint64_t millis)
 }
 uint64_t WallClockTimer::elapsed() const
 {
+  if (!on()) return 0;
   // now() - d_start casted to milliseconds
   return std::chrono::duration_cast<std::chrono::milliseconds>(clock::now()
                                                                - d_start)
@@ -55,6 +56,7 @@ uint64_t WallClockTimer::elapsed() const
 bool WallClockTimer::expired() const
 {
   // whether d_limit is in the past
+  if (!on()) return false;
   return d_limit <= clock::now();
 }
 
