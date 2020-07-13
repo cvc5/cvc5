@@ -709,12 +709,7 @@ void SmtEngine::finishInit()
   }
   if (options::perCallMillisecondLimit() != 0)
   {
-    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
-  }
-  if (options::cumulativeMillisecondLimit() != 0)
-  {
-    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
-                                    true);
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
   }
 
   // set the random seed
@@ -3564,8 +3559,8 @@ void SmtEngine::interrupt()
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
   d_resourceManager->setResourceLimit(units, cumulative);
 }
-void SmtEngine::setTimeLimit(unsigned long milis, bool cumulative) {
-  d_resourceManager->setTimeLimit(milis, cumulative);
+void SmtEngine::setTimeLimit(unsigned long milis) {
+  d_resourceManager->setTimeLimit(milis);
 }
 
 unsigned long SmtEngine::getResourceUsage() const {
@@ -3579,11 +3574,6 @@ unsigned long SmtEngine::getTimeUsage() const {
 unsigned long SmtEngine::getResourceRemaining() const
 {
   return d_resourceManager->getResourceRemaining();
-}
-
-unsigned long SmtEngine::getTimeRemaining() const
-{
-  return d_resourceManager->getTimeRemaining();
 }
 
 NodeManager* SmtEngine::getNodeManager() const

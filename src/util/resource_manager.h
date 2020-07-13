@@ -103,14 +103,13 @@ public:
  const uint64_t& getResourceUsage() const;
  uint64_t getTimeUsage() const;
  uint64_t getResourceRemaining() const;
- uint64_t getTimeRemaining() const;
 
  uint64_t getResourceBudgetForThisCall() { return d_thisCallResourceBudget; }
  // Throws an UnsafeInterruptException if there are no remaining resources.
  void spendResource(Resource r);
 
  void setResourceLimit(uint64_t units, bool cumulative = false);
- void setTimeLimit(uint64_t millis, bool cumulative = false);
+ void setTimeLimit(uint64_t millis);
 
  void enable(bool on);
 
@@ -122,7 +121,7 @@ public:
 
  /**
   * Marks the end of a SmtEngine check call, stops the per
-  * call timer, updates cumulative time used.
+  * call timer.
   */
  void endCall();
 
@@ -137,11 +136,8 @@ public:
  ListenerCollection::Registration* registerSoftListener(Listener* listener);
 
 private:
- WallClockTimer d_cumulativeTimer;
  WallClockTimer d_perCallTimer;
 
- /** A user-imposed cumulative time budget, in milliseconds. 0 = no limit. */
- uint64_t d_timeBudgetCumulative;
  /** A user-imposed per-call time budget, in milliseconds. 0 = no limit. */
  uint64_t d_timeBudgetPerCall;
  /** A user-imposed cumulative resource budget. 0 = no limit. */

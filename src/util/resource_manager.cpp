@@ -130,9 +130,7 @@ ResourceManager::Statistics::~Statistics()
 const uint64_t ResourceManager::s_resourceCount = 1000;
 
 ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
-    : d_cumulativeTimer(),
-      d_perCallTimer(),
-      d_timeBudgetCumulative(0),
+    : d_perCallTimer(),
       d_timeBudgetPerCall(0),
       d_resourceBudgetCumulative(0),
       d_resourceBudgetPerCall(0),
@@ -163,18 +161,11 @@ void ResourceManager::setResourceLimit(uint64_t units, bool cumulative) {
   }
 }
 
-void ResourceManager::setTimeLimit(uint64_t millis, bool cumulative) {
+void ResourceManager::setTimeLimit(uint64_t millis) {
   d_on = true;
-  if(cumulative) {
-    Trace("limit") << "ResourceManager: setting cumulative time limit to " << millis << " ms" << endl;
-    d_timeBudgetCumulative = (millis == 0) ? 0 : (d_cumulativeTimeUsed + millis);
-    d_cumulativeTimer.set(millis);
-  } else {
-    Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
-    d_timeBudgetPerCall = millis;
-    // perCall timer will be set in beginCall
-  }
-
+  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
+  d_timeBudgetPerCall = millis;
+  // perCall timer will be set in beginCall
 }
 
 const uint64_t& ResourceManager::getResourceUsage() const {
@@ -182,23 +173,13 @@ const uint64_t& ResourceManager::getResourceUsage() const {
 }
 
 uint64_t ResourceManager::getTimeUsage() const {
-  if (d_timeBudgetCumulative) {
-    return d_cumulativeTimer.elapsed();
-  }
   return d_cumulativeTimeUsed;
 }
 
 uint64_t ResourceManager::getResourceRemaining() const {
-  if (d_thisCallResourceBudget <= d_thisCallResourceUsed)
+  if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed)
     return 0;
-  return d_thisCallResourceBudget - d_thisCallResourceUsed;
-}
-
-uint64_t ResourceManager::getTimeRemaining() const {
-  uint64_t time_passed = d_cumulativeTimer.elapsed();
-  if (time_passed >= d_thisCallTimeBudget)
-    return 0;
-  return d_thisCallTimeBudget - time_passed;
+  return d_resourceBudgetCumulative - d_cumulativeResourceUsed;
 }
 
 void ResourceManager::spendResource(unsigned amount)
@@ -214,7 +195,7 @@ void ResourceManager::spendResource(unsigned amount)
     Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;
     if (outOfTime()) {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"
-                     << d_cumulativeTimer.elapsed() << std::endl;
+                     << d_perCallTimer.elapsed() << std::endl;
     }
 
     d_softListeners.notify();
@@ -298,15 +279,6 @@ void ResourceManager::beginCall() {
       d_thisCallResourceBudget = d_resourceBudgetCumulative <= d_cumulativeResourceUsed ? 0 :
                                  d_resourceBudgetCumulative - d_cumulativeResourceUsed;
     }
-
-    if (d_timeBudgetCumulative) {
-      AlwaysAssert(d_cumulativeTimer.on());
-      // timer was on since the option was set
-      d_cumulativeTimeUsed = d_cumulativeTimer.elapsed();
-      d_thisCallTimeBudget = d_timeBudgetCumulative <= d_cumulativeTimeUsed? 0 :
-                             d_timeBudgetCumulative - d_cumulativeTimeUsed;
-      d_cumulativeTimer.set(d_thisCallTimeBudget);
-    }
     // we are out of resources so we shouldn't update the
     // budget for this call to the per call budget
     if (d_thisCallTimeBudget == 0 ||
@@ -327,13 +299,12 @@ void ResourceManager::beginCall() {
 }
 
 void ResourceManager::endCall() {
-  uint64_t usedInCall = d_perCallTimer.elapsed();
+  d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
-  d_cumulativeTimeUsed += usedInCall;
 }
 
 bool ResourceManager::cumulativeLimitOn() const {
-  return d_timeBudgetCumulative || d_resourceBudgetCumulative;
+  return d_resourceBudgetCumulative;
 }
 
 bool ResourceManager::perCallLimitOn() const {
@@ -350,11 +321,9 @@ bool ResourceManager::outOfResources() const {
 }
 
 bool ResourceManager::outOfTime() const {
-  if (d_timeBudgetPerCall == 0 &&
-      d_timeBudgetCumulative == 0)
+  if (d_timeBudgetPerCall == 0)
     return false;
-
-  return d_cumulativeTimer.expired() || d_perCallTimer.expired();
+  return d_perCallTimer.expired();
 }
 
 void ResourceManager::enable(bool on) {
