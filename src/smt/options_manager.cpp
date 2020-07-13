@@ -121,7 +121,7 @@ void OptionsManager::setOption(const std::string& key,
   // otherwise, no action is necessary
 }
 
-void OptionsManager::finishInit(SmtEngine& smte, LogicInfo& logic)
+void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
   // set up the timeout
   d_resourceManager->setHardLimit(options::hardLimit());
@@ -149,7 +149,7 @@ void OptionsManager::finishInit(SmtEngine& smte, LogicInfo& logic)
   }
 
   // ensure that our heuristics are properly set up
-  setDefaults(smte, logic);
+  setDefaults(logic, isInternalSubsolver);
 }
 
 }  // namespace smt

@@ -51,7 +51,7 @@ class OptionsManager : public OptionsListener
    * just before solving begins. This initializes the options pertaining to
    * time limits, and sets the default options.
    */
-  void finishInit(SmtEngine& smte, LogicInfo& logic);
+  void finishInit(LogicInfo& logic, bool isInternalSubsolver);
 
  private:
   /** Reference to the options object */

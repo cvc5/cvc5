@@ -569,7 +569,7 @@ void SmtEngine::finishInit()
   Random::getRandom().setSeed(options::seed());
 
   // Inialize the resource manager based on the options.
-  d_optm->finishInit(*this, d_logic);
+  d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
@@ -3491,11 +3491,11 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 {
-  /* FIXME
-
+  // FIXME 
+  /*
   if(d_fullyInited) {
     throw ModalException(
-        "SmtEngine::beforeSearch called after initialization.");
+        "SmtEngine::setOption called after initialization.");
   }
   */
   NodeManagerScope nms(d_nodeManager);
