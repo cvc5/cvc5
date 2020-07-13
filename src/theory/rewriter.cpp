@@ -54,7 +54,6 @@ struct RewriteStackElement {
    */
   RewriteStackElement(TNode node, TheoryId theoryId)
       : d_node(node),
-        d_unrewritten(node),
         d_original(node),
         d_theoryId(theoryId),
         d_originalTheoryId(theoryId),
@@ -71,8 +70,6 @@ struct RewriteStackElement {
 
   /** The node we're currently rewriting */
   Node d_node;
-  /** The unrewritten node */
-  Node d_unrewritten;
   /** Original node (either the unrewritten node or the node after prerewriting)
    */
   Node d_original;
@@ -131,7 +128,7 @@ void Rewriter::setProofChecker(ProofChecker* pc)
 Node Rewriter::rewriteEqualityExt(TNode node)
 {
   Assert(node.getKind() == kind::EQUAL);
-  // TODO cache
+  // note we don't force caching of this method currently
   return getInstance()->d_theoryRewriters[theoryOf(node)]->rewriteEqualityExt(
       node);
 }
