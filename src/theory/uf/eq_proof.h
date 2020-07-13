@@ -77,16 +77,24 @@ class EqProof
 
   /** Add to proof
    *
-   * Converts EqProof into ProofNodes via a series of steps to be stored in p.
+   * Converts EqProof into ProofNode via a series of steps to be stored in
+   * CDProof* p.
    *
-   * This method can be seen as a temporary solution until the EqualityEngine is
-   * updated to produce ProofNodes directly, if ever. Note that since the
+   * This method can be seen as a best-effort solution until the EqualityEngine
+   * is updated to produce ProofNodes directly, if ever. Note that since the
    * original EqProof steps can be coarse-grained (e.g. without proper order,
-   * implicit inferences related to disquelaties) and are phrased over curried
-   * terms, the transformation requires significant, although cheap,
-   * post-processing.
+   * implicit inferences related to disequelaties) and are phrased over curried
+   * terms, the transformation requires significant, although cheap (mostly
+   * linear on the DAG-size of EqProof), post-processing.
    *
-   * It returns the node that is the conclusion of the proof as added to p.
+   * An important invariant of the resulting ProofNode is that neither its
+   * assumptions nor its conclusion are predicate equalities, i.e. of the form
+   * (= t true/false), modulo symmetry. This is so that users of the converted
+   * ProofNode don't need to do case analysis on whether assumptions/conclusion
+   * are either t or (= t true/false).
+   *
+   * @param p a pointer to a CDProof to store the conversion of this EqProof
+   * @return the node that is the conclusion of the proof as added to p.
    */
   Node addToProof(CDProof* p) const;
 
@@ -101,20 +109,25 @@ class EqProof
       std::unordered_map<Node, Node, NodeHashFunction>& visited,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
-  /** Removes all reflexivity steps, i.e. premises (= t t), from premises.
-   *
-   * Such premisis are spurious for a trastivity step. The reordering of
-   * premises in a transtivity step assumes no such steps are part of the
-   * premises.
-   */
-  void cleanReflPremisesInTranstivity(std::vector<Node>& premises) const;
+  /** Removes all reflexivity steps, i.e. (= t t), from premises. */
+  void cleanReflPremises(std::vector<Node>& premises) const;
 
+  /**
+   *
+   */
   bool foldTransitivityChildren(
       Node conclusion,
       std::vector<Node>& premises,
       CDProof* p,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
+  /**
+   *
+   *
+   * This method assumes that premises does not contain reflexivity premises.
+   * This is without loss of generality since such premisis are spurious for a
+   * transitivity step.
+   */
   bool buildTransitivityChain(Node conclusion,
                               std::vector<Node>& premises) const;
 

@@ -86,7 +86,7 @@ void EqProof::debug_print(std::ostream& os,
   os << ")" << std::endl;
 }
 
-void EqProof::cleanReflPremisesInTranstivity(std::vector<Node>& premises) const
+void EqProof::cleanReflPremises(std::vector<Node>& premises) const
 {
   std::vector<Node> newPremises;
   unsigned size = premises.size();
@@ -100,16 +100,15 @@ void EqProof::cleanReflPremisesInTranstivity(std::vector<Node>& premises) const
   }
   if (newPremises.size() != size)
   {
-    Trace("eqproof-conv") << "EqProof::cleanReflPremisesInTranstivity: removed "
+    Trace("eqproof-conv") << "EqProof::cleanReflPremises: removed "
                           << (newPremises.size() >= size
                                   ? newPremises.size() - size
                                   : 0)
                           << " refl premises from " << premises << "\n";
     premises.clear();
-    premises.insert(premises.begin(), newPremises.begin(), newPremises.end());
-    Trace("eqproof-conv")
-        << "EqProof::cleanReflPremisesInTranstivity: new premises " << premises
-        << "\n";
+    premises.insert(premises.end(), newPremises.begin(), newPremises.end());
+    Trace("eqproof-conv") << "EqProof::cleanReflPremises: new premises "
+                          << premises << "\n";
   }
 }
 
@@ -163,7 +162,7 @@ bool EqProof::foldTransitivityChildren(
       foldPremises.push_back(premises[i]);
     }
   }
-  cleanReflPremisesInTranstivity(foldPremises);
+  cleanReflPremises(foldPremises);
   Assert(!foldPremises.empty());
   // an offending premise (= (= t1 t2) false) indicates we are concluding,
   // modulo symmetry, (= false true) or the disequality (= (t3 t4) false). The
@@ -711,7 +710,9 @@ Node EqProof::addToProof(CDProof* p) const
     unsigned constIndex =
         conclusion[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
     // The premise for the elimination rule must have the constant as the second
-    // argument of the equality. If that's not the case, build it as such
+    // argument of the equality. If that's not the case, build it as such,
+    // relying on an implicit SYMM step to be added to the proof when justifying
+    // t / (not t).
     Node elimPremise =
         constIndex == 1 ? conclusion : conclusion[1].eqNode(conclusion[0]);
     // Determine whether TRUE_ELIM or FALSE_ELIM, depending on the constant
@@ -728,22 +729,15 @@ Node EqProof::addToProof(CDProof* p) const
       elimRule = PfRule::FALSE_ELIM;
       newConclusion = conclusion[1 - constIndex].notNode();
     }
-    // We also check if the final conclusion t / (not t) is an assumption, so
-    // that we avoid creating a cyclic proof. The cycle is characterized, for
-    // example, by
-    //        t
-    //   ----------- TRUE_INTRO
-    //   (= t true)
-    //  ----------- TRUE_ELIM
-    //       t
-    // where we avoid the last step by testing below if t / (not t) is an
-    // assumption in the original EqProof.
-    if (!assumptions.count(newConclusion))
+    // We also check if the final conclusion t / (not t) has already been
+    // justified, so that we can avoid a cyclic proof, which can be due to
+    // either t / (not t) being assumption in the original EqProof or it having
+    // a non-assumption proof step in the proof of (= t true/false).
+    if (!assumptions.count(newConclusion) && !p->hasStep(newConclusion))
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: conclude " << newConclusion << " via "
-          << elimRule << " step for " << elimPremise << ", introduced via "
-          << p->getProofFor(conclusion).get()->getRule() << "\n";
+          << elimRule << " step for " << elimPremise << "\n";
       p->addStep(newConclusion, elimRule, {elimPremise}, {});
     }
   }
@@ -766,11 +760,11 @@ Node EqProof::addToProof(
   Trace("eqproof-conv") << "EqProof::addToProof: adding step for "
                         << static_cast<MergeReasonType>(d_id)
                         << " with conclusion " << d_node << "\n";
-  // assumption
+  // Assumption
   if (d_id == MERGED_THROUGH_EQUALITY)
   {
 #ifdef CVC4_ASSERTIONS
-    // make sure there are no (= true/false true/false) assumptions
+    // Make sure there are no (= true/false true/false) assumptions
     if (d_node.getKind() == kind::EQUAL)
     {
       for (unsigned i = 0; i < 2; ++i)
@@ -782,7 +776,11 @@ Node EqProof::addToProof(
       }
     }
 #endif
-    // (= t true/false) case, in which t is not a Boolean variable
+    // If conclusion is (= t true/false), we add a proof step
+    //          t
+    //  ---------------- TRUE/FALSE_INTRO
+    //  (= t true/false)
+    // according to the value of the Boolean constant
     if (d_node.getKind() == kind::EQUAL
         && ((d_node[0].getKind() == kind::CONST_BOOLEAN
              && d_node[1].getKind() != kind::CONST_BOOLEAN)
@@ -791,37 +789,37 @@ Node EqProof::addToProof(
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: add an intro step for " << d_node << "\n";
+      // Index of constant in equality
       unsigned constIndex = d_node[0].getKind() == kind::CONST_BOOLEAN ? 0 : 1;
-      std::vector<Node> introChildren;
+      // The premise for the intro rule is either t or (not t), according to the
+      // Boolean constant.
+      Node introPremise;
       PfRule introRule;
       if (d_node[constIndex].getConst<bool>())
       {
         introRule = PfRule::TRUE_INTRO;
-        Node introChild = d_node[1 - constIndex];
-        introChildren.push_back(introChild);
-        // track it and, if it's an equality, its symmetric
-        assumptions.insert(introChild);
-        if (introChild.getKind() == kind::EQUAL)
+        introPremise = d_node[1 - constIndex];
+        // Track the new assumption. If it's an equality, also its symmetric
+        assumptions.insert(introPremise);
+        if (introPremise.getKind() == kind::EQUAL)
         {
-          assumptions.insert(introChild[1].eqNode(introChild[0]));
+          assumptions.insert(introPremise[1].eqNode(introPremise[0]));
         }
       }
       else
       {
         introRule = PfRule::FALSE_INTRO;
-        Node introChild = d_node[1 - constIndex].notNode();
-        introChildren.push_back(introChild);
-        // track it and, if it's a negated equality, its symmetric
-        assumptions.insert(introChild);
-        if (introChild[0].getKind() == kind::EQUAL)
+        Node introPremise = d_node[1 - constIndex].notNode();
+        // Track the new assumption. If it's a disequality, also its symmetric
+        assumptions.insert(introPremise);
+        if (introPremise[0].getKind() == kind::EQUAL)
         {
           assumptions.insert(
-              introChild[0][1].eqNode(introChild[0][0]).notNode());
+              introPremise[0][1].eqNode(introPremise[0][0]).notNode());
         }
       }
-      // the assumption can be e.g. (= false (= t1 t2)) in which case the
+      // The original assumption can be e.g. (= false (= t1 t2)) in which case the
       // necessary proof to be built is
-      //     --------------- ASSUME
       //     (not (= t1 t2))
       //  -------------------- FALSE_INTRO
       //  (= (= t1 t2) false)
@@ -832,35 +830,36 @@ Node EqProof::addToProof(
       // used in the proof p
       Node introConclusion =
           constIndex == 1 ? d_node : d_node[1].eqNode(d_node[0]);
-      p->addStep(introConclusion, introRule, introChildren, {});
+      p->addStep(introConclusion, introRule, {introPremise}, {});
     }
-    p->addStep(d_node, PfRule::ASSUME, {}, {d_node});
-    // if non-equality predicate, turn into one via TRUE/FALSE intro
+    else
+    {
+      p->addStep(d_node, PfRule::ASSUME, {}, {d_node});
+    }
+    // If non-equality predicate, turn into one via TRUE/FALSE intro
     Node conclusion = d_node;
     if (d_node.getKind() != kind::EQUAL)
     {
+      // Track original assumption
+      assumptions.insert(d_node);
       PfRule intro;
       if (d_node.getKind() == kind::NOT)
       {
+        intro = PfRule::FALSE_INTRO;
         conclusion =
             d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
-        intro = PfRule::FALSE_INTRO;
-        // add (not lit)
-        assumptions.insert(d_node);
       }
       else
       {
         intro = PfRule::TRUE_INTRO;
         conclusion =
             d_node.eqNode(NodeManager::currentNM()->mkConst<bool>(true));
-        // add lit
-        assumptions.insert(d_node);
       }
       Trace("eqproof-conv") << "EqProof::addToProof: adding " << intro
                             << " step for " << d_node << "\n";
       p->addStep(conclusion, intro, {d_node}, {});
     }
-    // keep track of assumptions to avoid cyclic proofs. Both the assumption and
+    // Keep track of assumptions to avoid cyclic proofs. Both the assumption and
     // its symmetric are added
     assumptions.insert(conclusion);
     assumptions.insert(conclusion[1].eqNode(conclusion[0]));
@@ -870,21 +869,22 @@ Node EqProof::addToProof(
     visited[d_node] = conclusion;
     return conclusion;
   }
-  // refl and laborious congruence steps of (= (f t1 ... tn) (f t1 ... tn))
+  // Refl and laborious congruence steps for (= (f t1 ... tn) (f t1 ... tn)),
+  // which can be safely turned into reflexivity steps. These laborious
+  // congruence steps are currently generated in the equality engine because of
+  // the suboptimal handling of n-ary operators.
   if (d_id == MERGED_THROUGH_REFLEXIVITY
       || (d_node.getKind() == kind::EQUAL && d_node[0] == d_node[1]))
   {
-    Trace("eqproof-conv-debug") << "Refl node: " << d_node << std::endl;
     Node conclusion =
         d_node.getKind() == kind::EQUAL ? d_node : d_node.eqNode(d_node);
     p->addStep(conclusion, PfRule::REFL, {}, {conclusion[0]});
     visited[d_node] = conclusion;
     return conclusion;
   }
-  // can support case of negative merged throgh constants, but not positive one
-  // yet
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
+    // Currently only supports case of negative merged throgh constants
     Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
            && d_node[0].getKind() == kind::EQUAL
            && d_node[1].getKind() == kind::CONST_BOOLEAN
@@ -895,39 +895,44 @@ Node EqProof::addToProof(
     Assert(!assumptions.count(d_node))
         << "Conclusion " << d_node << " from "
         << static_cast<MergeReasonType>(d_id) << " is an assumption\n";
-    // Build
+    // The step has the form
+    //  [(= t1 c1)]  [(= t2 c2)]
+    //  ------------------------
+    //    (= (= t1 t2) false)
+    // where premises equating t1/t2 to constants are present when they are not
+    // already constants. Note that the premises may be in any order, e.g. with
+    // the equality for the second term being justified in the first premise.
+    // Moreover, they may be of the form (= c t).
     //
-    // (= t1 c1)  (= t2 c2)
-    // -------------------- MACRO_SR_PRED_INTRO
-    //  (= (= t1 t2) false)
-    //
-    // First process the children proofs
+    // First recursively process premises, if any
     std::vector<Node> premises;
     for (unsigned i = 0; i < d_children.size(); ++i)
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: recurse on child " << i << "\n"
           << push;
-      premises.push_back(
-          d_children[i].get()->addToProof(p, visited, assumptions));
+      premises.push_back(d_children[i]->addToProof(p, visited, assumptions));
       Trace("eqproof-conv") << pop;
     }
-    // build rule premises in right order
+    // A step
+    //  [(= t1 c1)]  [(= t2 c2)]
+    //  ------------------------ MACRO_SR_PRED_INTRO
+    //    (= (= t1 t2) false)
+    // is gonna be built, with the premises is the correct order.
     std::vector<Node> children;
-    // Now get the constants in the premises
     for (unsigned i = 0; i < 2; ++i)
     {
       Node term = d_node[0][i];
+      // term already is a constant, no need to add a premise to it
       if (term.isConst())
       {
         continue;
       }
+      // Build the equality (= t c) as a premise, finding the respective c is the original premises
       Node constant;
-      // look in children
       for (unsigned j = 0; j < premises.size(); ++j)
       {
-        Trace("eqproof-conv-debug") << "Premise : " << premises[j] << std::endl;
-        AlwaysAssert(premises[j].getKind() == kind::EQUAL);
+        Assert(premises[j].getKind() == kind::EQUAL);
         if (premises[j][0] == term)
         {
           Assert(premises[j][1].isConst());
@@ -1057,7 +1062,7 @@ Node EqProof::addToProof(
     Assert(!folded || p->hasStep(conclusion));
     if (!folded)
     {
-      cleanReflPremisesInTranstivity(children);
+      cleanReflPremises(children);
       Assert(!children.empty());
       Trace("eqproof-conv")
           << "EqProof::addToProof: build chain for transitivity premises"
@@ -1241,7 +1246,7 @@ Node EqProof::addToProof(
     Assert(!transitivityChildren[i].empty())
         << "EqProof::addToProof: did not add any justification for " << i
         << "-th arg of congruence " << conclusion << "\n";
-    cleanReflPremisesInTranstivity(transitivityChildren[i]);
+    cleanReflPremises(transitivityChildren[i]);
     // nothing to do
     Assert(transitivityChildren[i].size() > 1 || transitivityChildren[i].empty()
            || transitivityChildren[i][0] == transConclusion
