@@ -1398,16 +1398,15 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  d_resourceManager->beginCall();
 
-  // Only way we can be out of resource is if cumulative budget is on
-  if (d_resourceManager->cumulativeLimitOn() && d_resourceManager->out())
+  if (d_resourceManager->out())
   {
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
+  d_resourceManager->beginCall();
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
