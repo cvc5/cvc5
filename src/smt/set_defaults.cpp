@@ -292,9 +292,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (!isInternalSubsolver)
   {
     if (options::produceAbducts()
-      || options::produceInterpols() != options::ProduceInterpols::NONE
-|| options::sygusInference()
-        || options::sygusRewSynthInput() || options::sygusInst())
+        || options::produceInterpols() != options::ProduceInterpols::NONE
+        || options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusInst())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;

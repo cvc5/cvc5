@@ -3493,7 +3493,7 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 {
-  // FIXME 
+  // FIXME
   /*
   if(d_fullyInited) {
     throw ModalException(
