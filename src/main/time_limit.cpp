@@ -48,6 +48,7 @@ void posix_timeout_handler(int sig, siginfo_t* info, void*)
 void install_time_limit(const Options& opts)
 {
   unsigned long ms = opts.getCumulativeTimeLimit();
+  // Skip if no time limit shall be set.
   if (ms == 0) return;
 
 #if defined(__MINGW32__) || defined(__MINGW64__)
