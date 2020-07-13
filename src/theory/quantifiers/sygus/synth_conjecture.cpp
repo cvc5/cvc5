@@ -422,7 +422,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       return !activeIncomplete;
     }
     // debug print
-    if (printDebug || Trace.isOn("sygus-engine"))
+    if (printDebug || (Trace.isOn("sygus-engine")))
     {
       Trace("sygus-engine") << "  * Value is : ";
       std::stringstream sygusEnumOut;
