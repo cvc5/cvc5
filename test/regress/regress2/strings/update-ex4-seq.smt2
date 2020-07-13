@@ -1,6 +1,6 @@
 (set-logic QF_SLIA)
 (set-option :strings-exp true)
-;(set-info :status sat)
+(set-info :status sat)
 (declare-fun s () (Seq Int))
 (declare-fun x () Int)
 

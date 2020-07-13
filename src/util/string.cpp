@@ -405,8 +405,7 @@ String String::update(std::size_t i, const String& t) const
 {
   if (i < size())
   {
-    std::vector<unsigned> vec;
-    vec.insert(vec.begin(), d_str.begin(), d_str.begin() + i);
+    std::vector<unsigned> vec(d_str.begin(), d_str.begin() + i);
     size_t remNum = size() - i;
     size_t tnum = t.d_str.size();
     if (tnum >= remNum)

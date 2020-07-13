@@ -257,8 +257,7 @@ Sequence Sequence::update(size_t i, const Sequence& t) const
   Assert(d_type == t.d_type);
   if (i < size())
   {
-    std::vector<Node> vec;
-    vec.insert(vec.begin(), d_seq.begin(), d_seq.begin() + i);
+    std::vector<Node> vec(d_seq.begin(), d_seq.begin() + i);
     size_t remNum = size() - i;
     size_t tnum = t.d_seq.size();
     if (tnum >= remNum)
