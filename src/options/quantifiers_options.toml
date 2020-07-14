@@ -2000,7 +2000,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "debug-inst"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "print instantiations during solving (for debugging)"
 
 ### SyGuS instantiation options
