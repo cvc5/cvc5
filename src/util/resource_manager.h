@@ -127,8 +127,6 @@ public:
   */
  void endCall();
 
- static uint64_t getFrequencyCount() { return s_resourceCount; }
-
  /**
   * Registers a listener that is notified on a hard resource out.
   *
@@ -173,9 +171,6 @@ private:
  bool d_isHardLimit;
  bool d_on;
  uint64_t d_spendResourceCalls;
-
- /** Counter indicating how often to check resource manager in loops */
- static const uint64_t s_resourceCount;
 
  /** Receives a notification on reaching a hard limit. */
  ListenerCollection d_hardListeners;

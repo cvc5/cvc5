@@ -150,8 +150,6 @@ ResourceManager::Statistics::~Statistics()
 
 /*---------------------------------------------------------------------------*/
 
-const uint64_t ResourceManager::s_resourceCount = 1000;
-
 ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
     : d_perCallTimer(),
       d_timeBudgetPerCall(0),
