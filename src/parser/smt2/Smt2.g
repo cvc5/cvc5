@@ -1901,7 +1901,7 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
   | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
     {
       api::Sort boolType = SOLVER->getBooleanSort();
-      api::Term avar = SOLVER->mkVar(boolType, sexpr.toString());
+      api::Term avar = SOLVER->mkConst(boolType, sexpr.toString());
       attr = std::string(":qid");
       retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
       Command* c = new SetUserAttributeCommand("qid", avar.getExpr());
