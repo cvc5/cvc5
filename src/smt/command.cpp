@@ -1626,8 +1626,9 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
       Expr e = d_terms[i];
       Node eNode = Node::fromExpr(e);
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      Node request =
-          options::expandDefinitions() ? smtEngine->expandDefinitions(eNode) : eNode;
+      Node request = options::expandDefinitions()
+                         ? smtEngine->expandDefinitions(eNode)
+                         : eNode;
       Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
