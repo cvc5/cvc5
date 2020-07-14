@@ -151,6 +151,11 @@ void TheoryEngine::finishInit() {
         d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
+  // create the relevance filter
+  if (options::relevanceFilter())
+  {
+    d_relManager.reset(new RelevanceManager(d_userContext, theory::Valuation(this)));
+  }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
   if( d_curr_model_builder==NULL ){
     d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
@@ -187,6 +192,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
+      d_relManager(nullptr),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -924,6 +930,15 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   CVC4_FOR_EACH_THEORY;
 }
 
+bool TheoryEngine::isRelevant(Node lit) const
+{
+  if (d_relManager!=nullptr)
+  {
+    return d_relManager->isRelevant(lit);
+  }
+  return true;
+}
+
 void TheoryEngine::shutdown() {
   // Set this first; if a Theory shutdown() throws an exception,
   // at least the destruction of the TheoryEngine won't confound
@@ -977,6 +992,10 @@ void TheoryEngine::notifyPreprocessedAssertions(
     if (d_theoryTable[theoryId]) {
       theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
+  }
+  if (d_relManager!=nullptr)
+  {
+    d_relManager->notifyPreprocessedAssertions(assertions);
   }
 }
 

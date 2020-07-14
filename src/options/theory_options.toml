@@ -34,3 +34,11 @@ header = "options/theory_options.h"
   default    = "true"
   read_only  = true
   help       = "condense values for functions in models rather than explicitly representing them"
+
+[[option]]
+  name       = "relevanceFilter"
+  category   = "regular"
+  long       = "relevance-filter"
+  type       = "bool"
+  default    = "false"
+  help       = "enable analysis of relevance of asserted literals with respect to the input formula"

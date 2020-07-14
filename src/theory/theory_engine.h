@@ -535,6 +535,12 @@ public:
   inline bool needCheck() const {
     return d_outputChannelUsed || d_lemmasAdded;
   }
+  /** 
+   * Is the literal lit (possibly) critical for satisfying the input formula in
+   * the current context? This call is applicable only during collectModelInfo
+   * or during LAST_CALL effort.
+   */
+  bool isRelevant(Node lit) const;
 
   /**
    * This is called at shutdown time by the SmtEngine, just before

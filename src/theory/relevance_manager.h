@@ -19,6 +19,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
+#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,12 +34,16 @@ class RelevanceManager
 {
   typedef context::CDList<Node> NodeList;
  public:
-  RelevanceManager(context::UserContext* userContext);
+  RelevanceManager(context::UserContext* userContext, Valuation& val);
+  /** Notify (preprocessed) assertions. */
+  void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
   /** compute relevance */
   void computeRelevance();
   /** is relevant? */
   bool isRelevant(Node lit);
  private:
+  /** the valuation object */
+  Valuation& d_val;
   /** The input assertions */
   NodeList d_input;
 };
