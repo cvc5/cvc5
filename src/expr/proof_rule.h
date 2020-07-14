@@ -163,6 +163,15 @@ enum class PfRule : uint32_t
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Theory Rewrite
+  // Children: none
+  // Arguments: (t, preRewrite?)
+  // ----------------------------------------
+  // Conclusion: (= t t')
+  // where
+  //  t' is the result of applying either a pre-rewrite or a post-rewrite step
+  //  to t (depending on the second argument).
+  THEORY_REWRITE,
 
   //================================================= Processing rules
   // ======== Preprocess
