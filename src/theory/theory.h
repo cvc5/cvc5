@@ -60,9 +60,6 @@ class SubstitutionMap;
 class ExtTheory;
 class TheoryRewriter;
 
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
-
 namespace rrinst {
   class CandidateGenerator;
 }/* CVC4::theory::rrinst namespace */
@@ -917,26 +914,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   }
   return out;
 }
-
-class EntailmentCheckParameters {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckParameters(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckParameters();
-};/* class EntailmentCheckParameters */
-
-class EntailmentCheckSideEffects {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckSideEffects(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckSideEffects();
-};/* class EntailmentCheckSideEffects */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
