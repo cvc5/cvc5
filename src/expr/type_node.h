@@ -409,7 +409,7 @@ public:
    * Convert this TypeNode into a Type using the currently-in-scope
    * manager.
    */
-  inline Type toType();
+  inline Type toType() const;
 
   /**
    * Convert a Type into a TypeNode.
@@ -754,7 +754,8 @@ typedef TypeNode::HashFunction TypeNodeHashFunction;
 
 namespace CVC4 {
 
-inline Type TypeNode::toType() {
+inline Type TypeNode::toType() const
+{
   return NodeManager::currentNM()->toType(*this);
 }
 

@@ -231,13 +231,13 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::unique_ptr<SmtEngine> repcChecker;
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
-                      fo_body.toExpr(),
                       options::sygusRepairConstTimeout.wasSetByUser(),
                       options::sygusRepairConstTimeout());
   // renable options disabled by sygus
   repcChecker->setOption("miniscope-quant", true);
   repcChecker->setOption("miniscope-quant-fv", true);
   repcChecker->setOption("quant-split", true);
+  repcChecker->assertFormula(fo_body.toExpr());
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;

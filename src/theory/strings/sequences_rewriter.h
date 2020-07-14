@@ -170,6 +170,12 @@ class SequencesRewriter : public TheoryRewriter
    * Returns the rewritten form of node.
    */
   Node rewriteSubstr(Node node);
+  /** rewrite update
+   * This is the entry point for post-rewriting terms node of the form
+   *   str.update( s, i1, i2 )
+   * Returns the rewritten form of node.
+   */
+  Node rewriteUpdate(Node node);
   /** rewrite contains
    * This is the entry point for post-rewriting terms node of the form
    *   str.contains( t, s )

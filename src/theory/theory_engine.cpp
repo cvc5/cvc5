@@ -1402,7 +1402,8 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
                              << " Responsible theory is: "
                              << theoryOf(atom)->getId() << std::endl;
 
-    Node explanation = theoryOf(atom)->explain(node);
+    TrustNode texplanation = theoryOf(atom)->explain(node);
+    Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     PROOF({
         if(proofRecipe) {
@@ -1786,6 +1787,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
           new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
     }
   });
+  // cache of nodes we have already explained by some theory
+  std::unordered_map<Node, size_t, NodeHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1795,6 +1798,14 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         << "[i=" << i << "] TheoryEngine::explain(): processing ["
         << toExplain.d_timestamp << "] " << toExplain.d_node << " sent from "
         << toExplain.d_theory << endl;
+
+    if (cache.find(toExplain.d_node) != cache.end()
+        && cache[toExplain.d_node] < toExplain.d_timestamp)
+    {
+      ++i;
+      continue;
+    }
+    cache[toExplain.d_node] = toExplain.d_timestamp;
 
     // If a true constant or a negation of a false constant we can ignore it
     if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
@@ -1868,7 +1879,6 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       }
     }
 
-    // It was produced by the theory, so ask for an explanation
     Node explanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
     {
@@ -1877,7 +1887,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
     else
     {
-      explanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      TrustNode texp = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      explanation = texp.getNode();
       Debug("theory::explain") << "\tTerm was propagated by owner theory: "
                                << theoryOf(toExplain.d_theory)->getId()
                                << ". Explanation: " << explanation << std::endl;

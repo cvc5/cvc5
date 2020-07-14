@@ -140,7 +140,7 @@ void TermRegistry::preRegisterTerm(TNode n)
         || k == STRING_STRREPL || k == STRING_STRREPLALL
         || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
         || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
-        || k == STRING_TOUPPER || k == STRING_REV)
+        || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
     {
       std::stringstream ss;
       ss << "Term of kind " << k

@@ -25,6 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -183,8 +184,12 @@ private:
  public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
+  TheoryUF(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr,
            std::string instanceName = "");
 
   ~TheoryUF();
@@ -195,9 +200,9 @@ private:
   void finishInit() override;
 
   void check(Effort) override;
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -228,6 +233,8 @@ private:
                     unsigned depth);
 
   TheoryUfRewriter d_rewriter;
+  /** Proof rule checker */
+  UfProofRuleChecker d_ufProofChecker;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */
