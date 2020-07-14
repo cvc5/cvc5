@@ -40,21 +40,25 @@ class RelevanceManager
   RelevanceManager(context::UserContext* userContext, Valuation val);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+  /** reset round */
+  void resetRound();
+  /** is relevant? */
+  bool isRelevant(Node lit);
+ private:
   /** compute relevance */
   void computeRelevance();
-  /** is relevant? */
-  bool isRelevant(Node lit) const;
- private:
+  /** justify */
+  int justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** the valuation object */
   Valuation d_val;
   /** The input assertions */
   NodeList d_input;
   /** the set of lterails that are sufficient for justifying the input. */
   std::unordered_set<TNode, TNodeHashFunction> d_rset;
+  /*** have we computed relevance this round? */
+  bool d_computed;
   /** did we succeed? */
   bool d_success;
-  /** justify */
-  int justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
 };
 
 }  // namespace theory

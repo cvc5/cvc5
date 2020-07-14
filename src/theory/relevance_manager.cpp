@@ -19,7 +19,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::UserContext* userContext, Valuation val) : d_val(val), d_input(userContext), d_success(false){}
+RelevanceManager::RelevanceManager(context::UserContext* userContext, Valuation val) : d_val(val), d_input(userContext), d_computed(false), d_success(false){}
 
 void RelevanceManager::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
 {
@@ -29,10 +29,15 @@ void RelevanceManager::notifyPreprocessedAssertions(const std::vector<Node>& ass
     d_input.push_back(a);
   }
 }
+void RelevanceManager::resetRound()
+{
+  d_computed = false;
+  d_rset.clear();
+}
 
 void RelevanceManager::computeRelevance()
 {
-  d_rset.clear();
+  d_computed = true;
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int, TNodeHashFunction> cache;
   for (NodeList::const_iterator it = d_input.begin(); it != d_input.end(); ++it)
@@ -115,8 +120,12 @@ int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int, TNodeHashF
   return ret;
 }
 
-bool RelevanceManager::isRelevant(Node lit) const
+bool RelevanceManager::isRelevant(Node lit)
 {
+  if (!d_computed)
+  {
+    computeRelevance();
+  }
   if (!d_success)
   {
     return true;

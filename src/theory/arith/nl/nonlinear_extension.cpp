@@ -169,7 +169,7 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
     }
     d_stats.d_inferences << nlem.d_id;
     // also indicate this is a tautology
-    //d_model.addTautology(lem);
+    d_model.addTautology(lem);
   }
 }
 
