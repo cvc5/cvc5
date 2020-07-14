@@ -239,6 +239,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/preprocess_proof_generator.cpp
+  smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
   smt/set_defaults.cpp
@@ -608,6 +610,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
   theory/quantifiers/sygus/sygus_grammar_red.h
+  theory/quantifiers/sygus/sygus_interpol.cpp
+  theory/quantifiers/sygus/sygus_interpol.h
   theory/quantifiers/sygus/sygus_invariance.cpp
   theory/quantifiers/sygus/sygus_invariance.h
   theory/quantifiers/sygus/sygus_module.cpp
@@ -959,7 +963,6 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_sequence.h
           expr/record.h
           expr/symbol_table.h
           expr/type.h

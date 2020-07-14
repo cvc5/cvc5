@@ -211,7 +211,7 @@ bool SeqEnumLen::increment()
 
 void SeqEnumLen::mkCurr()
 {
-  std::vector<Expr> seq;
+  std::vector<Node> seq;
   const std::vector<unsigned>& data = d_witer->getData();
   for (unsigned i : data)
   {
@@ -220,7 +220,7 @@ void SeqEnumLen::mkCurr()
   }
   // make sequence from seq
   d_curr = NodeManager::currentNM()->mkConst(
-      ExprSequence(d_type.getSequenceElementType().toType(), seq));
+      Sequence(d_type.getSequenceElementType(), seq));
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)

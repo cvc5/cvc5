@@ -208,8 +208,8 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(Node n);
-  
+  TrustNode expandDefinition(Node n);
+
   void presolve();
 
   void propagate(Theory::Effort);

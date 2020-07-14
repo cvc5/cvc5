@@ -45,8 +45,9 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
                                  UserContext* u,
                                  OutputChannel& out,
                                  Valuation valuation,
-                                 const LogicInfo& logicInfo)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
+                                 const LogicInfo& logicInfo,
+                                 ProofNodeManager* pnm)
+    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
       d_infer(c),
       d_infer_exp(c),
       d_term_sk(u),
@@ -558,7 +559,7 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(Node n)
+TrustNode TheoryDatatypes::expandDefinition(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   // must ensure the type is well founded and has no nested recursion if
@@ -583,6 +584,7 @@ Node TheoryDatatypes::expandDefinition(Node n)
       }
     }
   }
+  Node ret;
   switch (n.getKind())
   {
     case kind::APPLY_SELECTOR:
@@ -608,34 +610,31 @@ Node TheoryDatatypes::expandDefinition(Node n)
       Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
       if (options::dtRewriteErrorSel())
       {
-        return sel;
+        ret = sel;
       }
       else
       {
         Node tester = c.getTester();
         Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
         tst = Rewriter::rewrite(tst);
-        Node n_ret;
         if (tst == d_true)
         {
-          n_ret = sel;
+          ret = sel;
         }else{
           mkExpDefSkolem(selector, ndt, n.getType());
           Node sk =
               nm->mkNode(kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
           if (tst == nm->mkConst(false))
           {
-            n_ret = sk;
+            ret = sk;
           }
           else
           {
-            n_ret = nm->mkNode(kind::ITE, tst, sel, sk);
+            ret = nm->mkNode(kind::ITE, tst, sel, sk);
           }
         }
-        // n_ret = Rewriter::rewrite( n_ret );
-        Trace("dt-expand") << "Expand def : " << n << " to " << n_ret
+        Trace("dt-expand") << "Expand def : " << n << " to " << ret
                            << std::endl;
-        return n_ret;
       }
     }
     break;
@@ -681,14 +680,17 @@ Node TheoryDatatypes::expandDefinition(Node n)
                           << b[b.getNumChildren() - 1] << std::endl;
         }
       }
-      Node n_ret = b;
-      Debug("tuprec") << "return " << n_ret << std::endl;
-      return n_ret;
+      ret = b;
+      Debug("tuprec") << "return " << ret << std::endl;
     }
     break;
-    default: return n; break;
+    default: break;
   }
-  Unreachable();
+  if (!ret.isNull() && n != ret)
+  {
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryDatatypes::presolve()
@@ -696,7 +698,7 @@ void TheoryDatatypes::presolve()
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in)
+TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 
@@ -712,12 +714,14 @@ Node TheoryDatatypes::ppRewrite(TNode in)
       nn = rew.size()==0 ? d_true :
                 ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
     }
-    return nn;
+    if (in != nn)
+    {
+      return TrustNode::mkTrustRewrite(in, nn, nullptr);
+    }
   }
 
   // nothing to do
-  return in;
-
+  return TrustNode::null();
 }
 
 void TheoryDatatypes::addSharedTerm(TNode t) {
@@ -800,7 +804,14 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
   }
 }
 
-Node TheoryDatatypes::explain( TNode literal ){
+TrustNode TheoryDatatypes::explain(TNode literal)
+{
+  Node exp = explainLit(literal);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+}
+
+Node TheoryDatatypes::explainLit(TNode literal)
+{
   std::vector< TNode > assumptions;
   explain( literal, assumptions );
   return mkAnd( assumptions );
@@ -816,7 +827,8 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
 
 /** Conflict when merging two constants */
 void TheoryDatatypes::conflict(TNode a, TNode b){
-  d_conflictNode = explain( a.eqNode(b) );
+  Node eq = a.eqNode(b);
+  d_conflictNode = explainLit(eq);
   Trace("dt-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
   d_out->conflict( d_conflictNode );
   d_conflict = true;
@@ -869,7 +881,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           std::vector< Node > rew;
           if (utils::checkClash(cons1, cons2, rew))
           {
-            d_conflictNode = explain( unifEq );
+            d_conflictNode = explainLit(unifEq);
             Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
             d_out->conflict( d_conflictNode );
             d_conflict = true;
