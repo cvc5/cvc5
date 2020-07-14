@@ -694,8 +694,9 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
     // for export so those don't matter.
     ExprManager* toEm = to->toExprManager();
     const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
-    return to->mkConst(ArrayStoreAll(asa.getType().exportTo(toEm, vmap),
-                                     asa.getExpr().exportTo(toEm, vmap)));
+    return to->mkConst(ArrayStoreAll(
+        TypeNode::fromType(asa.getType().toType().exportTo(toEm, vmap)),
+        Node::fromExpr(asa.getValue().toExpr().exportTo(toEm, vmap))));
   }
 
   switch(n.getKind()) {
