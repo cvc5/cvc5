@@ -247,14 +247,13 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
 
-  /** Is n entailed with polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol);
-
+  /** compute relevant assertions */
+  void computeRelevantAssertions(const std::vector<Node>& assertions, std::vector<Node>& keep);
+  
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already

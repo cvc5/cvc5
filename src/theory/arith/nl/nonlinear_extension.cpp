@@ -22,6 +22,7 @@
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
+#include "options/theory_options.h"
 
 using namespace CVC4::kind;
 
@@ -175,6 +176,18 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
 void NonlinearExtension::processSideEffect(const NlLemma& se)
 {
   d_trSlv.processSideEffect(se);
+}
+
+void NonlinearExtension::computeRelevantAssertions(const std::vector<Node>& assertions, std::vector<Node>& keep)
+{
+  Valuation v = d_containing.getValuation();
+  for (const Node& a : assertions)
+  {
+    if (v.isRelevant(a))
+    {
+      keep.push_back(a);
+    }
+  }
 }
 
 unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
@@ -375,7 +388,6 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 }
 
 bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    const std::vector<Node>& false_asserts,
                                     std::vector<NlLemma>& lemmas,
                                     std::vector<Node>& gs)
 {
@@ -383,7 +395,17 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
-  std::vector<Node> passertions = assertions;
+  std::vector<Node> passertions;
+  if (options::relevanceFilter())
+  {
+    // only keep the relevant assertions (those required for showing input
+    // is satisfied)
+    computeRelevantAssertions(assertions, passertions);
+  }
+  else
+  {
+    passertions = assertions;
+  }
   if (options::nlExt())
   {
     // preprocess the assertions with the trancendental solver
@@ -749,7 +771,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       // error bounds on the Taylor approximation of transcendental functions.
       std::vector<NlLemma> lemmas;
       std::vector<Node> gs;
-      if (checkModel(assertions, false_asserts, lemmas, gs))
+      if (checkModel(assertions, lemmas, gs))
       {
         complete_status = 1;
       }
