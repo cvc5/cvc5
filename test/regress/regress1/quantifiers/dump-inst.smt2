@@ -1,4 +1,4 @@
-; COMMAND-LINE: --dump-instantiations
+; COMMAND-LINE: --dump-instantiations --print-inst-full
 ; SCRUBBER: sed -e 's/skv_.* )$/skv_TERM )/'
 ; EXPECT: unsat
 ; EXPECT: (skolem (forall ((x Int)) (or (P x) (Q x)) )
