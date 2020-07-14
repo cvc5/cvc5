@@ -3576,7 +3576,8 @@ void SmtEngine::interrupt()
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
   d_resourceManager->setResourceLimit(units, cumulative);
 }
-void SmtEngine::setTimeLimit(unsigned long milis) {
+void SmtEngine::setTimeLimit(unsigned long milis)
+{
   d_resourceManager->setTimeLimit(milis);
 }
 
