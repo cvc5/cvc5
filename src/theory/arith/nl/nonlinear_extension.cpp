@@ -169,7 +169,7 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
     }
     d_stats.d_inferences << nlem.d_id;
     // also indicate this is a tautology
-    d_model.addTautology(lem);
+    //d_model.addTautology(lem);
   }
 }
 
@@ -180,6 +180,7 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
 
 void NonlinearExtension::computeRelevantAssertions(const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
+  Trace("nl-ext-rlv") << "Compute relevant assertions..." << std::endl;
   Valuation v = d_containing.getValuation();
   for (const Node& a : assertions)
   {
@@ -188,6 +189,7 @@ void NonlinearExtension::computeRelevantAssertions(const std::vector<Node>& asse
       keep.push_back(a);
     }
   }
+  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size() << " assertions" << std::endl;
 }
 
 unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)

@@ -503,6 +503,10 @@ void TheoryEngine::check(Theory::Effort effort) {
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
+      if (d_relManager!=nullptr)
+      {
+        d_relManager->computeRelevance();
+      }
       //checks for theories requiring the model go at last call
       d_curr_model->reset();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {

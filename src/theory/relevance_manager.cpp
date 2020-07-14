@@ -42,11 +42,12 @@ void RelevanceManager::computeRelevance()
     if (val!=1)
     {
       Trace("rel-manager") << "WARNING: failed to justify " << n << ", fail..." << std::endl;
+      AlwaysAssert(false);
       d_success = false;
       return;
     }
   }
-  Trace("rel-manager") << "...success" << std::endl;
+  Trace("rel-manager") << "...success, size = " << d_rset.size() << std::endl;
   d_success = true;
 }
 
