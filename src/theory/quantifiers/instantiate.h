@@ -202,8 +202,13 @@ class Instantiate : public QuantifiersUtil
   Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
-  /** debug print, called once per instantiation round. */
-  void debugPrint();
+  /** 
+   * Debug print, called once per instantiation round. This prints
+   * instantiations added this round to trace inst-per-quant-round, if
+   * applicable, and prints to out of options if the option debug-inst is
+   * enabled.
+   */
+  void debugPrint(std::ostream& out);
   /** debug print model, called once, before we terminate with sat/unknown. */
   void debugPrintModel();
 

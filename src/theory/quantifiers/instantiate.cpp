@@ -784,7 +784,7 @@ Node Instantiate::getInstantiatedConjunction(Node q)
   return ret;
 }
 
-void Instantiate::debugPrint()
+void Instantiate::debugPrint(std::ostream& out)
 {
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
