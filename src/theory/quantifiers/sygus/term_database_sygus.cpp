@@ -89,7 +89,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       ss << "fv_" << tn << "_" << i;
     }
     Assert(!vtn.isNull());
-    Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
+    Node v = nm->mkBoundVar(ss.str(), vtn);
     // store its id, which is unique per builtin type, regardless of how it is
     // otherwise cached.
     d_fvId[v] = d_fvTypeIdCounter[builtinType];
