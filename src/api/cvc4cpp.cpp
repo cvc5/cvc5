@@ -49,7 +49,6 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
@@ -2553,10 +2552,6 @@ void Grammar::addSygusConstructorTerm(
   Term op = purifySygusGTerm(term, args, cargs, ntsToUnres);
   std::stringstream ssCName;
   ssCName << op.getKind();
-  std::shared_ptr<SygusPrintCallback> spc;
-  // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(
-      *op.d_expr, termVectorToExprs(args));
   if (!args.empty())
   {
     Term lbvl = Term(d_solver,
@@ -2568,7 +2563,7 @@ void Grammar::addSygusConstructorTerm(
                                                  {*lbvl.d_expr, *op.d_expr}));
   }
   dt.d_dtype->addSygusConstructor(
-      *op.d_expr, ssCName.str(), sortVectorToTypes(cargs), spc);
+      *op.d_expr, ssCName.str(), sortVectorToTypes(cargs));
 }
 
 Term Grammar::purifySygusGTerm(
@@ -3380,7 +3375,8 @@ Term Solver::mkEmptySet(Sort s) const
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
       << "set sort associated to this solver object";
 
-  return mkValHelper<CVC4::EmptySet>(CVC4::EmptySet(*s.d_type));
+  return mkValHelper<CVC4::EmptySet>(
+      CVC4::EmptySet(TypeNode::fromType(*s.d_type)));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
