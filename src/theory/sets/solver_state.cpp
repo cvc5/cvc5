@@ -453,7 +453,7 @@ Node SolverState::getEmptySet(TypeNode tn)
   {
     return it->second;
   }
-  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
+  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn));
   d_emptyset[tn] = n;
   return n;
 }

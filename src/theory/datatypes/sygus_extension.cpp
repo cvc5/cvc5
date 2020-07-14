@@ -1566,8 +1566,7 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
       {
         Trace("dt-sygus") << "* DT model : " << prog << " -> ";
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, progv);
+        quantifiers::TermDbSygus::toStreamSygus(ss, progv);
         Trace("dt-sygus") << ss.str() << std::endl;
       }
       // first check that the value progv for prog is what we expected
