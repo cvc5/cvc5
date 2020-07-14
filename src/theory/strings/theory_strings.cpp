@@ -86,6 +86,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
   d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
   d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
+  d_equalityEngine.addFunctionKind(kind::STRING_UPDATE);
   d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
   d_equalityEngine.addFunctionKind(kind::STRING_STOI);
   d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);

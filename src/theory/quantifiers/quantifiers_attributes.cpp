@@ -50,8 +50,9 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     SygusAttribute ca;
     n.setAttribute( ca, true );
   }
-  else if (attr == "quant-name")
+  else if (attr == "qid")
   {
+    // using z3 syntax "qid"
     Trace("quant-attr-debug") << "Set quant-name " << n << std::endl;
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
@@ -301,6 +302,16 @@ bool QuantAttributes::isQuantElimPartial( Node q ) {
   }else{
     return it->second.d_quant_elim_partial;
   }
+}
+
+Node QuantAttributes::getQuantName(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
+  if (it != d_qattr.end())
+  {
+    return it->second.d_name;
+  }
+  return Node::null();
 }
 
 int QuantAttributes::getQuantIdNum( Node q ) {
