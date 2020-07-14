@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------#
 # Add unit tests
 
-cvc4_add_unit_test_black(array_store_all_black util)
+cvc4_add_unit_test_white(array_store_all_white util)
 cvc4_add_unit_test_white(assert_white util)
 cvc4_add_unit_test_black(binary_heap_black util)
 cvc4_add_unit_test_black(bitvector_black util)

@@ -29,9 +29,9 @@ namespace smt {
  * @param isInternalSubsolver Whether we are setting the options for an
  * internal subsolver (see SmtEngine::isInternalSubsolver).
  *
- * Notice that we currently modify the current options in scope. This method
+ * NOTE: we currently modify the current options in scope. This method
  * can be further refactored to modify an options object provided as an
- * explicit arguemnt.
+ * explicit argument.
  */
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver);
 

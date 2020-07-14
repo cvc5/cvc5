@@ -23,7 +23,6 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "printer/sygus_print_callback.h"
 #include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
@@ -164,6 +163,7 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
   if (!strictModeEnabled())
   {
+    addOperator(api::STRING_UPDATE, "str.update");
     addOperator(api::STRING_TOLOWER, "str.tolower");
     addOperator(api::STRING_TOUPPER, "str.toupper");
     addOperator(api::STRING_REV, "str.rev");
@@ -171,6 +171,7 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_CONCAT, "seq.++");
     addOperator(api::SEQ_LENGTH, "seq.len");
     addOperator(api::SEQ_EXTRACT, "seq.extract");
+    addOperator(api::SEQ_UPDATE, "seq.update");
     addOperator(api::SEQ_AT, "seq.at");
     addOperator(api::SEQ_CONTAINS, "seq.contains");
     addOperator(api::SEQ_INDEXOF, "seq.indexof");
@@ -927,10 +928,6 @@ void Smt2::addSygusConstructorTerm(
   Trace("parser-sygus2") << "Purified operator " << op
                          << ", #args/cargs=" << args.size() << "/"
                          << cargs.size() << std::endl;
-  std::shared_ptr<SygusPrintCallback> spc;
-  // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(
-      op.getExpr(), api::termVectorToExprs(args));
   if (!args.empty())
   {
     api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
@@ -940,7 +937,7 @@ void Smt2::addSygusConstructorTerm(
   Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
                          << std::endl;
   dt.getDatatype().addSygusConstructor(
-      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
+      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs));
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,

@@ -46,7 +46,7 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
-  out.handleUserAttribute("quant-name", this);
+  out.handleUserAttribute("qid", this);
   out.handleUserAttribute("sygus-synth-grammar", this);
   out.handleUserAttribute( "sygus-synth-fun-var-list", this );
   out.handleUserAttribute( "quant-inst-max-level", this );
