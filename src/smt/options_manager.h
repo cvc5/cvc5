@@ -30,6 +30,12 @@ namespace smt {
  * This class is intended to be used by SmtEngine, and is responsible for:
  * (1) Implementing core options including timeouts and output preferences,
  * (2) Setting default values for options based on a logic.
+ *
+ * Notice that the constructor of this class retroactively sets all
+ * necessary options that have already been set in the options object it is
+ * given. This is to ensure that the command line arguments, which modified
+ * on an options object in the driver, immediately take effect upon creation of
+ * this class.
  */
 class OptionsManager : public OptionsListener
 {
@@ -39,13 +45,14 @@ class OptionsManager : public OptionsListener
   /**
    * Called when a set option call is made on the options object associated
    * with this class. This handles all options that should be taken into account
-   * immediately instead of e.g. at SmtEngine::finishInit time.
+   * immediately instead of e.g. at SmtEngine::finishInit time. This primarily
+   * includes options related to parsing and output.
    *
    * This function call is made after the option has been updated. This means
-   * that the value of the option can be queried, instead of reparsing the
-   * option argument. Thus, optarg is only for debugging.
+   * that the value of the option can be queried in the options object that
+   * this class is listening to.
    */
-  void setOption(const std::string& key, const std::string& optarg) override;
+  void notifySetOption(const std::string& key) override;
   /**
    * Finish init, which is called at the beginning of SmtEngine::finishInit,
    * just before solving begins. This initializes the options pertaining to

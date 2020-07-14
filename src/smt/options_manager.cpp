@@ -30,44 +30,36 @@ namespace smt {
 OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
     : d_options(opts), d_resourceManager(rm)
 {
-  try
+  // set options that must take effect immediately
+  if (opts->wasSetByUser(options::defaultExprDepth))
   {
-    // set options that must take effect immediately
-    if (opts->wasSetByUser(options::defaultExprDepth))
-    {
-      setOption(options::defaultExprDepth.getName(), "");
-    }
-    if (opts->wasSetByUser(options::defaultDagThresh))
-    {
-      setOption(options::defaultDagThresh.getName(), "");
-    }
-    if (opts->wasSetByUser(options::printExprTypes))
-    {
-      setOption(options::printExprTypes.getName(), "");
-    }
-    if (opts->wasSetByUser(options::dumpModeString))
-    {
-      setOption(options::dumpModeString.getName(), "");
-    }
-    if (opts->wasSetByUser(options::printSuccess))
-    {
-      setOption(options::printSuccess.getName(), "");
-    }
+    notifySetOption(options::defaultExprDepth.getName());
   }
-  catch (OptionException& e)
+  if (opts->wasSetByUser(options::defaultDagThresh))
   {
-    throw OptionException(e.getRawMessage());
+    notifySetOption(options::defaultDagThresh.getName());
   }
-  // set this as a listener
+  if (opts->wasSetByUser(options::printExprTypes))
+  {
+    notifySetOption(options::printExprTypes.getName());
+  }
+  if (opts->wasSetByUser(options::dumpModeString))
+  {
+    notifySetOption(options::dumpModeString.getName());
+  }
+  if (opts->wasSetByUser(options::printSuccess))
+  {
+    notifySetOption(options::printSuccess.getName());
+  }
+  // set this as a listener to be notified of options changes from now on
   opts->setListener(this);
 }
 
 OptionsManager::~OptionsManager() {}
 
-void OptionsManager::setOption(const std::string& key,
-                               const std::string& optarg)
+void OptionsManager::notifySetOption(const std::string& key)
 {
-  Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
+  Trace("smt") << "SmtEnginePrivate::notifySetOption(" << key << ")"
                << std::endl;
   if (key == options::defaultExprDepth.getName())
   {
