@@ -32,6 +32,8 @@ void RelevanceManager::notifyPreprocessedAssertions(const std::vector<Node>& ass
 
 void RelevanceManager::computeRelevance()
 {
+  d_rset.clear();
+  Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int, TNodeHashFunction> cache;
   for (NodeList::const_iterator it = d_input.begin(); it != d_input.end(); ++it)
   {
@@ -39,10 +41,12 @@ void RelevanceManager::computeRelevance()
     int val = justify(n, cache);
     if (val!=1)
     {
+      Trace("rel-manager") << "WARNING: failed to justify " << n << ", fail..." << std::endl;
       d_success = false;
       return;
     }
   }
+  Trace("rel-manager") << "...success" << std::endl;
   d_success = true;
 }
 
@@ -115,6 +119,11 @@ bool RelevanceManager::isRelevant(Node lit) const
   if (!d_success)
   {
     return true;
+  }
+  // agnostic to negation
+  while (lit.getKind()==NOT)
+  {
+    lit = lit[0];
   }
   return d_rset.find(lit)!=d_rset.end();
 }
