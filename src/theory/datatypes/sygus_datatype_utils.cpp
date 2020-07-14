@@ -351,9 +351,9 @@ Node sygusToBuiltin(Node n, bool isExternal)
     it = visited.find(cur);
     if (it == visited.end())
     {
-      // notice this condition succeeds in roughly 99% of the executions of this
-      // method, hence the else if / else cases below do not significantly
-      // impact performance.
+      // Notice this condition succeeds in roughly 99% of the executions of this
+      // method (based on our coverage tests), hence the else if / else cases
+      // below do not significantly impact performance.
       if (cur.getKind() == APPLY_CONSTRUCTOR)
       {
         if (!isExternal && cur.hasAttribute(SygusToBuiltinTermAttribute()))
