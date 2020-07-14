@@ -796,6 +796,20 @@ void Instantiate::debugPrint()
       d_temp_inst_debug[i.first] = 0;
     }
   }
+  if (options::debugInst())
+  {
+    bool isFull = options::printInstFull();
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    {
+      std::stringstream ss;
+      if (!printQuant(i.first, ss, isFull))
+      {
+        continue;
+      }
+      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+          << std::endl;
+    }
+  }
 }
 
 void Instantiate::debugPrintModel()

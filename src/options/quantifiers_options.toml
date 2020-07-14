@@ -1992,8 +1992,16 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "print-inst-full"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "print instantiations for formulas that do not have given identifiers"
+
+[[option]]
+  name       = "debugInst"
+  category   = "regular"
+  long       = "debug-inst"
+  type       = "bool"
+  default    = "true"
+  help       = "print instantiations during solving (for debugging)"
 
 ### SyGuS instantiation options
 
