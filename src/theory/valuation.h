@@ -30,8 +30,6 @@ class TheoryEngine;
 
 namespace theory {
 
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 class TheoryModel;
 
 /**
@@ -143,9 +141,7 @@ public:
    */
   std::pair<bool, Node> entailmentCheck(
       options::TheoryOfMode mode,
-      TNode lit,
-      const theory::EntailmentCheckParameters* params = NULL,
-      theory::EntailmentCheckSideEffects* out = NULL);
+      TNode lit);
 
   /** need check ? */
   bool needCheck() const;

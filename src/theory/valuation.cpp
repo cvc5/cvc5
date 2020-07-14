@@ -127,11 +127,9 @@ unsigned Valuation::getAssertionLevel() const{
 
 std::pair<bool, Node> Valuation::entailmentCheck(
     options::TheoryOfMode mode,
-    TNode lit,
-    const theory::EntailmentCheckParameters* params,
-    theory::EntailmentCheckSideEffects* out)
+    TNode lit)
 {
-  return d_engine->entailmentCheck(mode, lit, params, out);
+  return d_engine->entailmentCheck(mode, lit);
 }
 
 bool Valuation::needCheck() const{
