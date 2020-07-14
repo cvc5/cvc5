@@ -1624,10 +1624,10 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       Expr e = d_terms[i];
-      Node en = Node::fromExpr(e);
+      Node eNode = Node::fromExpr(e);
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
       Node request =
-          options::expandDefinitions() ? smtEngine->expandDefinitions(en) : en;
+          options::expandDefinitions() ? smtEngine->expandDefinitions(eNode) : eNode;
       Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
@@ -2201,16 +2201,16 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    Node conjn = Node::fromExpr(d_conj);
+    Node conjNode = Node::fromExpr(d_conj);
     Node resn;
     if (d_sygus_grammar_type.isNull())
     {
-      d_resultStatus = smtEngine->getAbduct(conjn, resn);
+      d_resultStatus = smtEngine->getAbduct(conjNode, resn);
     }
     else
     {
       TypeNode gtype = TypeNode::fromType(d_sygus_grammar_type);
-      d_resultStatus = smtEngine->getAbduct(conjn, gtype, resn);
+      d_resultStatus = smtEngine->getAbduct(conjNode, gtype, resn);
     }
     d_result = resn.toExpr();
     d_commandStatus = CommandSuccess::instance();
