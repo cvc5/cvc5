@@ -45,7 +45,7 @@ class OptionsManager : public OptionsListener
    * that the value of the option can be queried, instead of reparsing the
    * option argument. Thus, optarg is only for debugging.
    */
-  void setOption(const std::string& key, const std::string& optarg) override;
+  void notifySetOption(const std::string& key, const std::string& optarg) override;
   /**
    * Finish init, which is called at the beginning of SmtEngine::finishInit,
    * just before solving begins. This initializes the options pertaining to

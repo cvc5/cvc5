@@ -29,7 +29,7 @@ class OptionsListener
   /**
    * Notify that option key has been set to optarg.
    */
-  virtual void setOption(const std::string& key, const std::string& optarg) = 0;
+  virtual void notifySetOption(const std::string& key, const std::string& optarg) = 0;
 };
 
 }  // namespace CVC4

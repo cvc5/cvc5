@@ -35,23 +35,23 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
     // set options that must take effect immediately
     if (opts->wasSetByUser(options::defaultExprDepth))
     {
-      setOption(options::defaultExprDepth.getName(), "");
+      notifySetOption(options::defaultExprDepth.getName(), "");
     }
     if (opts->wasSetByUser(options::defaultDagThresh))
     {
-      setOption(options::defaultDagThresh.getName(), "");
+      notifySetOption(options::defaultDagThresh.getName(), "");
     }
     if (opts->wasSetByUser(options::printExprTypes))
     {
-      setOption(options::printExprTypes.getName(), "");
+      notifySetOption(options::printExprTypes.getName(), "");
     }
     if (opts->wasSetByUser(options::dumpModeString))
     {
-      setOption(options::dumpModeString.getName(), "");
+      notifySetOption(options::dumpModeString.getName(), "");
     }
     if (opts->wasSetByUser(options::printSuccess))
     {
-      setOption(options::printSuccess.getName(), "");
+      notifySetOption(options::printSuccess.getName(), "");
     }
   }
   catch (OptionException& e)
@@ -64,10 +64,10 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
 
 OptionsManager::~OptionsManager() {}
 
-void OptionsManager::setOption(const std::string& key,
+void OptionsManager::notifySetOption(const std::string& key,
                                const std::string& optarg)
 {
-  Trace("smt") << "SmtEnginePrivate::setOption(" << key << ", " << optarg << ")"
+  Trace("smt") << "SmtEnginePrivate::notifySetOption(" << key << ", " << optarg << ")"
                << std::endl;
   if (key == options::defaultExprDepth.getName())
   {
