@@ -40,7 +40,7 @@ class SygusPbe;
  * builtin terms (TermDb::sygusToBuiltin) can be shown to be equivalent via
  * rewriting. It enumerates terms in order of sygus term size
  * (TermDb::getSygusTermSize).
- * 
+ *
  * It also can be configured to enumerates sygus terms with free variables,
  * where each free variable appears in exactly one subterm. For grammar:
  *   S -> 0 | 1 | x | S+S
@@ -48,7 +48,7 @@ class SygusPbe;
  *   z1, 0, 1, x, z1+z2, z1+1, 1+1, z1+x, x+x, ...
  * and so on, where z1 and z2 are variables of sygus datatype type S. We call
  * these "shapes". This feature can be enabled by setting enumShapes to true
- * in the constructor below. 
+ * in the constructor below.
  */
 class SygusEnumerator : public EnumValGenerator
 {
