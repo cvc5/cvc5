@@ -166,8 +166,7 @@ Node TheoryArith::getModelValue(TNode var) {
   return d_internal->getModelValue( var );
 }
 
-
-std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit)
+std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
   ArithEntailmentCheckParameters def;
   def.addLookupRowSumAlgorithms();

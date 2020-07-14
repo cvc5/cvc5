@@ -2295,7 +2295,8 @@ void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
                   << " relevant terms..." << std::endl;
 }
 
-std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit) {
+std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
+{
   Trace("dt-entail") << "Check entailed : " << lit << std::endl;
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;

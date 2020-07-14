@@ -390,7 +390,8 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(TNode lit) {
+std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
+{
   return make_pair(false, Node::null());
 }
 

@@ -61,7 +61,7 @@ InferBoundAlgorithm InferBoundAlgorithm::mkSimplex(const Maybe<int>& rounds){
 }
 
 ArithEntailmentCheckParameters::ArithEntailmentCheckParameters()
-  : d_algorithms()
+    : d_algorithms()
 {}
 
 ArithEntailmentCheckParameters::~ArithEntailmentCheckParameters()
@@ -227,9 +227,8 @@ std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr){
   return os;
 }
 
-
 ArithEntailmentCheckSideEffects::ArithEntailmentCheckSideEffects()
-  : d_simplexSideEffects (NULL)
+    : d_simplexSideEffects(NULL)
 {}
 
 ArithEntailmentCheckSideEffects::~ArithEntailmentCheckSideEffects(){
