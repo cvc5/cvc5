@@ -1504,7 +1504,7 @@ TrustNode TheorySetsPrivate::expandDefinition(Node node)
     Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
 
     Node equal = witnessVariable.eqNode(apply);
-    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node emptySet = nm->mkConst(EmptySet(setType));
     Node isEmpty = set.eqNode(emptySet);
     Node member = nm->mkNode(MEMBER, witnessVariable, set);
     Node memberAndEqual = member.andNode(equal);

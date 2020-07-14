@@ -20,6 +20,7 @@
 #define CVC4__THEORY__THEORY_REWRITER_H
 
 #include "expr/node.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -53,6 +54,21 @@ struct RewriteResponse
   RewriteResponse(RewriteStatus status, Node n) : d_status(status), d_node(n) {}
 }; /* struct RewriteResponse */
 
+/** Same as above, with trust node instead of node. */
+struct TrustRewriteResponse
+{
+  TrustRewriteResponse(RewriteStatus status,
+                       Node n,
+                       Node nr,
+                       ProofGenerator* pg);
+  /** The status of the rewrite */
+  const RewriteStatus d_status;
+  /**
+   * The trust node corresponding to the rewrite.
+   */
+  TrustNode d_node;
+};
+
 /**
  * The interface that a theory rewriter has to implement.
  *
@@ -80,11 +96,47 @@ class TheoryRewriter
   virtual RewriteResponse postRewrite(TNode node) = 0;
 
   /**
+   * Performs a pre-rewrite step, with proofs.
+   *
+   * @param node The node to rewrite
+   */
+  virtual TrustRewriteResponse postRewriteWithProof(TNode node);
+
+  /**
    * Performs a post-rewrite step.
    *
    * @param node The node to rewrite
    */
   virtual RewriteResponse preRewrite(TNode node) = 0;
+
+  /**
+   * Performs a pre-rewrite step, with proofs.
+   *
+   * @param node The node to rewrite
+   */
+  virtual TrustRewriteResponse preRewriteWithProof(TNode node);
+
+  /** rewrite equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two terms s = t, given by node.
+   *
+   * Specifically, this method performs rewrites whose conclusion is not
+   * necessarily one of { s = t, t = s, true, false }. This is in constrast
+   * to postRewrite and preRewrite above, where the rewritten form of an
+   * equality must be one of these.
+   *
+   * @param node The node to rewrite
+   */
+  virtual Node rewriteEqualityExt(Node node);
+
+  /** rewrite equality extended, with proofs
+   *
+   * @param node The node to rewrite
+   * @return A trust node of kind TrustNodeKind::REWRITE, or the null trust
+   * node if no rewrites are applied.
+   */
+  virtual TrustNode rewriteEqualityExtWithProof(Node node);
 };
 
 }  // namespace theory

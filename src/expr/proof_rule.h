@@ -163,7 +163,26 @@ enum class PfRule : uint32_t
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Theory Rewrite
+  // Children: none
+  // Arguments: (t, preRewrite?)
+  // ----------------------------------------
+  // Conclusion: (= t t')
+  // where
+  //  t' is the result of applying either a pre-rewrite or a post-rewrite step
+  //  to t (depending on the second argument).
+  THEORY_REWRITE,
 
+  //================================================= Processing rules
+  // ======== Preprocess
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on some preprocessing pass, or otherwise F was added as a new
+  // assertion by some preprocessing pass.
+  PREPROCESS,
   //================================================= Boolean rules
   // ======== Split
   // Children: none
@@ -171,6 +190,13 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
+  // ======== Equality resolution
+  // Children: (P1:F1, P2:(= F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
+  EQ_RESOLVE,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)

@@ -129,11 +129,10 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   if (Trace.isOn("sygus-repair-const"))
   {
     Trace("sygus-repair-const") << "Repair candidate solutions..." << std::endl;
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
     {
       std::stringstream ss;
-      p->toStreamSygus(ss, candidate_values[i]);
+      TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-repair-const")
           << "  " << candidates[i] << " -> " << ss.str() << std::endl;
     }
@@ -151,9 +150,8 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
         cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
     if (Trace.isOn("sygus-repair-const"))
     {
-      Printer* p = Printer::getPrinter(options::outputLanguage());
       std::stringstream ss;
-      p->toStreamSygus(ss, cv);
+      TermDbSygus::toStreamSygus(ss, cv);
       Trace("sygus-repair-const")
           << "Solution #" << i << " : " << ss.str() << std::endl;
       if (skeleton == cv)
@@ -163,7 +161,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
       else
       {
         std::stringstream sss;
-        p->toStreamSygus(sss, skeleton);
+        TermDbSygus::toStreamSygus(sss, skeleton);
         Trace("sygus-repair-const")
             << "...inferred skeleton : " << sss.str() << std::endl;
       }
@@ -231,13 +229,13 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   std::unique_ptr<SmtEngine> repcChecker;
   // initialize the subsolver using the standard method
   initializeSubsolver(repcChecker,
-                      fo_body.toExpr(),
                       options::sygusRepairConstTimeout.wasSetByUser(),
                       options::sygusRepairConstTimeout());
   // renable options disabled by sygus
   repcChecker->setOption("miniscope-quant", true);
   repcChecker->setOption("miniscope-quant-fv", true);
   repcChecker->setOption("quant-split", true);
+  repcChecker->assertFormula(fo_body.toExpr());
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
@@ -269,8 +267,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
     if (Trace.isOn("sygus-repair-const") || Trace.isOn("sygus-engine"))
     {
       std::stringstream sss;
-      Printer::getPrinter(options::outputLanguage())
-          ->toStreamSygus(sss, repair_cv[i]);
+      TermDbSygus::toStreamSygus(sss, repair_cv[i]);
       ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
     }
   }

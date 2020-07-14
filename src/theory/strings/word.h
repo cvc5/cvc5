@@ -80,6 +80,9 @@ class Word
   /** Returns true if y is a suffix of x */
   static bool hasSuffix(TNode x, TNode y);
 
+  /** Replace the character at index n in x with t */
+  static Node update(TNode x, std::size_t n, TNode t);
+
   /** Replace the first occurrence of y in x with t */
   static Node replace(TNode x, TNode y, TNode t);
 

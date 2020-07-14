@@ -409,7 +409,7 @@ public:
    * Convert this TypeNode into a Type using the currently-in-scope
    * manager.
    */
-  inline Type toType();
+  inline Type toType() const;
 
   /**
    * Convert a Type into a TypeNode.
@@ -639,6 +639,9 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /** Is this a sygus datatype type */
+  bool isSygusDatatype() const;
+
   /**
    * Get instantiated datatype type. The type on which this method is called
    * should be a parametric datatype whose parameter list is the same size as
@@ -754,7 +757,8 @@ typedef TypeNode::HashFunction TypeNodeHashFunction;
 
 namespace CVC4 {
 
-inline Type TypeNode::toType() {
+inline Type TypeNode::toType() const
+{
   return NodeManager::currentNM()->toType(*this);
 }
 

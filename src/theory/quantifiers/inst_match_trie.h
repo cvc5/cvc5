@@ -164,12 +164,11 @@ class InstMatchTrie
   /** print this class */
   void print(std::ostream& out,
              Node q,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const
   {
     std::vector<TNode> terms;
-    print(out, q, terms, firstTime, useActive, active);
+    print(out, q, terms, useActive, active);
   }
   /** the data */
   std::map<Node, InstMatchTrie> d_data;
@@ -181,7 +180,6 @@ class InstMatchTrie
   void print(std::ostream& out,
              Node q,
              std::vector<TNode>& terms,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const;
   /** helper for get instantiations
@@ -332,12 +330,11 @@ class CDInstMatchTrie
   /** print this class */
   void print(std::ostream& out,
              Node q,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const
   {
     std::vector<TNode> terms;
-    print(out, q, terms, firstTime, useActive, active);
+    print(out, q, terms, useActive, active);
   }
 
  private:
@@ -351,7 +348,6 @@ class CDInstMatchTrie
   void print(std::ostream& out,
              Node q,
              std::vector<TNode>& terms,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const;
   /** helper for get instantiations
