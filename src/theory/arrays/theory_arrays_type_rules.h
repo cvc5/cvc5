@@ -69,8 +69,7 @@ struct ArrayStoreTypeRule {
     else {
       Assert(n.getKind() == kind::STORE_ALL);
       ArrayStoreAll storeAll = n.getConst<ArrayStoreAll>();
-      ArrayType arrayType = storeAll.getType();
-      return TypeNode::fromType(arrayType);
+      return storeAll.getType();
     }
   }
 
@@ -106,7 +105,7 @@ struct ArrayStoreTypeRule {
     }
     Assert(store.getKind() == kind::STORE_ALL);
     ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    Node defaultValue = storeAll.getValue();
     if (value == defaultValue) {
       return false;
     }

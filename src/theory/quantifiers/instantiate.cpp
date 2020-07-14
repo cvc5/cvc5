@@ -523,7 +523,6 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
       }
     }
   }
-  out << std::endl;
   return printed;
 }
 
