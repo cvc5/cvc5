@@ -205,8 +205,7 @@ class Instantiate : public QuantifiersUtil
   /**
    * Debug print, called once per instantiation round. This prints
    * instantiations added this round to trace inst-per-quant-round, if
-   * applicable, and prints to out of options if the option debug-inst is
-   * enabled.
+   * applicable, and prints to out if the option debug-inst is enabled.
    */
   void debugPrint(std::ostream& out);
   /** debug print model, called once, before we terminate with sat/unknown. */
