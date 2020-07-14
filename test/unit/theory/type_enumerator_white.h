@@ -234,13 +234,20 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
 
     // ensure that certain items were found
-    ArrayType arrayType(d_em->mkArrayType(d_em->integerType(), d_em->integerType()));
-    Node zeroes = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(0))));
-    Node ones = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(1))));
-    Node twos = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(2))));
-    Node threes = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(3))));
-    Node fours = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(4))));
-    Node tens = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(10))));
+    TypeNode arrayType =
+        d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
+    Node zeroes =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(0))));
+    Node ones =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(1))));
+    Node twos =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(2))));
+    Node threes =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(3))));
+    Node fours =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(4))));
+    Node tens =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(10))));
 
     Node zero = d_nm->mkConst(Rational(0));
     Node one = d_nm->mkConst(Rational(1));

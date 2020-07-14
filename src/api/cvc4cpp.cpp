@@ -1564,11 +1564,12 @@ bool Term::isConst() const
 
 Term Term::getConstArrayBase() const
 {
+  CVC4::ExprManagerScope exmgrs(*(d_solver->getExprManager()));
   CVC4_API_CHECK_NOT_NULL;
   // CONST_ARRAY kind maps to STORE_ALL internal kind
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::STORE_ALL)
       << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
-  return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getExpr());
+  return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getValue().toExpr());
 }
 
 std::vector<Term> Term::getConstSequenceElements() const
@@ -3379,7 +3380,8 @@ Term Solver::mkEmptySet(Sort s) const
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
       << "set sort associated to this solver object";
 
-  return mkValHelper<CVC4::EmptySet>(CVC4::EmptySet(*s.d_type));
+  return mkValHelper<CVC4::EmptySet>(
+      CVC4::EmptySet(TypeNode::fromType(*s.d_type)));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3511,6 +3513,7 @@ Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
 Term Solver::mkConstArray(Sort sort, Term val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
   CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_SOLVER_CHECK_SORT(sort);
@@ -3518,8 +3521,8 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
   CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
-  Term res = mkValHelper<CVC4::ArrayStoreAll>(
-      CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));
+  Term res = mkValHelper<CVC4::ArrayStoreAll>(CVC4::ArrayStoreAll(
+      TypeNode::fromType(*sort.d_type), Node::fromExpr(*val.d_expr)));
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

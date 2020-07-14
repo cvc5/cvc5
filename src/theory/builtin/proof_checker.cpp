@@ -82,6 +82,7 @@ Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
   return nkr;
 }
 
+
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {

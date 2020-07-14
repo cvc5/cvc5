@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models --no-proof-new
+; COMMAND-LINE: --no-check-models --no-proof-new --nl-ext-tplanes
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic QF_NRA)

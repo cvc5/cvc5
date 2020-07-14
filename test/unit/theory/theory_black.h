@@ -62,7 +62,7 @@ class TheoryBlack : public CxxTest::TestSuite {
     TypeNode arrType = d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
     Node zero = d_nm->mkConst(Rational(0));
     Node one = d_nm->mkConst(Rational(1));
-    Node storeAll = d_nm->mkConst(ArrayStoreAll(arrType.toType(), zero.toExpr()));
+    Node storeAll = d_nm->mkConst(ArrayStoreAll(arrType, zero));
     TS_ASSERT(storeAll.isConst());
 
     Node arr = d_nm->mkNode(STORE, storeAll, zero, zero);
@@ -85,7 +85,7 @@ class TheoryBlack : public CxxTest::TestSuite {
     arrType = d_nm->mkArrayType(d_nm->mkBitVectorType(1), d_nm->mkBitVectorType(1));
     zero = d_nm->mkConst(BitVector(1,unsigned(0)));
     one = d_nm->mkConst(BitVector(1,unsigned(1)));
-    storeAll = d_nm->mkConst(ArrayStoreAll(arrType.toType(), zero.toExpr()));
+    storeAll = d_nm->mkConst(ArrayStoreAll(arrType, zero));
     TS_ASSERT(storeAll.isConst());
 
     arr = d_nm->mkNode(STORE, storeAll, zero, zero);
@@ -113,7 +113,7 @@ class TheoryBlack : public CxxTest::TestSuite {
     one = d_nm->mkConst(BitVector(2,unsigned(1)));
     Node two = d_nm->mkConst(BitVector(2,unsigned(2)));
     Node three = d_nm->mkConst(BitVector(2,unsigned(3)));
-    storeAll = d_nm->mkConst(ArrayStoreAll(arrType.toType(), one.toExpr()));
+    storeAll = d_nm->mkConst(ArrayStoreAll(arrType, one));
     TS_ASSERT(storeAll.isConst());
 
     arr = d_nm->mkNode(STORE, storeAll, zero, zero);

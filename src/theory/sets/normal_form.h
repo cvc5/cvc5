@@ -34,7 +34,7 @@ class NormalForm {
     NodeManager* nm = NodeManager::currentNM();
     if (elements.size() == 0)
     {
-      return nm->mkConst(EmptySet(nm->toType(setType)));
+      return nm->mkConst(EmptySet(setType));
     }
     else
     {
@@ -128,7 +128,7 @@ class NormalForm {
   }
   static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
     if( index>=els.size() ){
-      return NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
+      return NodeManager::currentNM()->mkConst(EmptySet(tn));
     }else if( index==els.size()-1 ){
       return els[index];
     }else{
