@@ -21,15 +21,16 @@
 #include <iostream>
 
 #include "base/check.h"
-#include "expr/expr.h"
-#include "expr/type.h"
+#include "expr/node.h"
+#include "expr/type_node.h"
 
 using namespace std;
 
 namespace CVC4 {
 
-ArrayStoreAll::ArrayStoreAll(const ArrayType& type, const Expr& expr)
-    : d_type(), d_expr() {
+ArrayStoreAll::ArrayStoreAll(const TypeNode& type, const Node& value)
+    : d_type(), d_value()
+{
   // this check is stronger than the assertion check in the expr manager that
   // ArrayTypes are actually array types
   // because this check is done in production builds too
@@ -39,38 +40,41 @@ ArrayStoreAll::ArrayStoreAll(const ArrayType& type, const Expr& expr)
       type.toString().c_str());
 
   PrettyCheckArgument(
-      expr.getType().isComparableTo(type.getConstituentType()), expr,
+      value.getType().isComparableTo(type.getArrayConstituentType()),
+      value,
       "expr type `%s' does not match constituent type of array type `%s'",
-      expr.getType().toString().c_str(), type.toString().c_str());
+      value.getType().toString().c_str(),
+      type.toString().c_str());
 
-  PrettyCheckArgument(expr.isConst(), expr,
-                      "ArrayStoreAll requires a constant expression");
+  PrettyCheckArgument(
+      value.isConst(), value, "ArrayStoreAll requires a constant expression");
 
-  // Delay allocation until the checks above have been performed. If these fail,
-  // the memory for d_type and d_expr should not leak. The alternative is catch,
-  // delete and re-throw.
-  d_type.reset(new ArrayType(type));
-  d_expr.reset(new Expr(expr));
+  // Delay allocation until the checks above have been performed. If these
+  // fail, the memory for d_type and d_value should not leak. The alternative
+  // is catch, delete and re-throw.
+  d_type.reset(new TypeNode(type));
+  d_value.reset(new Node(value));
 }
 
 ArrayStoreAll::ArrayStoreAll(const ArrayStoreAll& other)
-    : d_type(new ArrayType(other.getType())),
-      d_expr(new Expr(other.getExpr())) {}
+    : d_type(new TypeNode(other.getType())), d_value(new Node(other.getValue()))
+{
+}
 
 ArrayStoreAll::~ArrayStoreAll() {}
 ArrayStoreAll& ArrayStoreAll::operator=(const ArrayStoreAll& other) {
   (*d_type) = other.getType();
-  (*d_expr) = other.getExpr();
+  (*d_value) = other.getValue();
   return *this;
 }
 
-const ArrayType& ArrayStoreAll::getType() const { return *d_type; }
+const TypeNode& ArrayStoreAll::getType() const { return *d_type; }
 
-const Expr& ArrayStoreAll::getExpr() const { return *d_expr; }
+const Node& ArrayStoreAll::getValue() const { return *d_value; }
 
 bool ArrayStoreAll::operator==(const ArrayStoreAll& asa) const
 {
-  return getType() == asa.getType() && getExpr() == asa.getExpr();
+  return getType() == asa.getType() && getValue() == asa.getValue();
 }
 
 bool ArrayStoreAll::operator!=(const ArrayStoreAll& asa) const
@@ -80,14 +84,14 @@ bool ArrayStoreAll::operator!=(const ArrayStoreAll& asa) const
 
 bool ArrayStoreAll::operator<(const ArrayStoreAll& asa) const
 {
-  return (getType() < asa.getType()) ||
-         (getType() == asa.getType() && getExpr() < asa.getExpr());
+  return (getType() < asa.getType())
+         || (getType() == asa.getType() && getValue() < asa.getValue());
 }
 
 bool ArrayStoreAll::operator<=(const ArrayStoreAll& asa) const
 {
-  return (getType() < asa.getType()) ||
-         (getType() == asa.getType() && getExpr() <= asa.getExpr());
+  return (getType() < asa.getType())
+         || (getType() == asa.getType() && getValue() <= asa.getValue());
 }
 
 bool ArrayStoreAll::operator>(const ArrayStoreAll& asa) const
@@ -101,12 +105,13 @@ bool ArrayStoreAll::operator>=(const ArrayStoreAll& asa) const
 }
 
 std::ostream& operator<<(std::ostream& out, const ArrayStoreAll& asa) {
-  return out << "__array_store_all__(" << asa.getType() << ", " << asa.getExpr()
-             << ')';
+  return out << "__array_store_all__(" << asa.getType() << ", "
+             << asa.getValue() << ')';
 }
 
 size_t ArrayStoreAllHashFunction::operator()(const ArrayStoreAll& asa) const {
-  return TypeHashFunction()(asa.getType()) * ExprHashFunction()(asa.getExpr());
+  return TypeNodeHashFunction()(asa.getType())
+         * NodeHashFunction()(asa.getValue());
 }
 
 }  // namespace CVC4
