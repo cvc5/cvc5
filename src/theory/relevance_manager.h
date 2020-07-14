@@ -17,6 +17,9 @@
 #ifndef CVC4__THEORY__RELEVANCE_MANAGER__H
 #define CVC4__THEORY__RELEVANCE_MANAGER__H
 
+#include <unordered_set>
+#include <unordered_map>
+
 #include "context/cdlist.h"
 #include "expr/node.h"
 #include "theory/valuation.h"
@@ -34,18 +37,24 @@ class RelevanceManager
 {
   typedef context::CDList<Node> NodeList;
  public:
-  RelevanceManager(context::UserContext* userContext, Valuation& val);
+  RelevanceManager(context::UserContext* userContext, Valuation val);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
   /** compute relevance */
   void computeRelevance();
   /** is relevant? */
-  bool isRelevant(Node lit);
+  bool isRelevant(Node lit) const;
  private:
   /** the valuation object */
-  Valuation& d_val;
+  Valuation d_val;
   /** The input assertions */
   NodeList d_input;
+  /** the set of lterails that are sufficient for justifying the input. */
+  std::unordered_set<TNode, TNodeHashFunction> d_rset;
+  /** did we succeed? */
+  bool d_success;
+  /** justify */
+  bool justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
 };
 
 }  // namespace theory
