@@ -713,8 +713,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       if (Trace.isOn("sygus-unif-sol"))
       {
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, hd_mv[e]);
+        TermDbSygus::toStreamSygus(ss, hd_mv[e]);
         Trace("sygus-unif-sol")
             << "  add evaluation head (" << hd_counter << "/" << d_hds.size()
             << "): " << e << " -> " << ss.str() << std::endl;
@@ -766,7 +765,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     if (Trace.isOn("sygus-unif-sol"))
     {
       std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, cv);
+      TermDbSygus::toStreamSygus(ss, cv);
       Trace("sygus-unif-sol")
           << "  add condition (" << c_counter << "/" << d_conds.size()
           << "): " << ce << " -> " << ss.str() << std::endl;

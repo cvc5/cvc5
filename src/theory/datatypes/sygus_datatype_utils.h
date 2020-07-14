@@ -160,6 +160,7 @@ Node applySygusArgs(const DType& dt,
  * subterm is a variable, and having arbitrary name otherwise).
  */
 Node sygusToBuiltin(Node n, bool isExternal = false);
+
 /**
  * Builtin variable to sygus. Converts from builtin variables introduced by
  * the method above to their source, which is a sygus variable. It should
@@ -167,6 +168,7 @@ Node sygusToBuiltin(Node n, bool isExternal = false);
  * null is returned.
  */
 Node builtinVarToSygus(Node v);
+
 /** Sygus to builtin eval
  *
  * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that

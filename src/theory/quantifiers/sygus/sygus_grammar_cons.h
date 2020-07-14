@@ -200,7 +200,6 @@ public:
     void addConstructor(Node op,
                         const std::string& name,
                         const std::vector<TypeNode>& consTypes,
-                        std::shared_ptr<SygusPrintCallback> spc = nullptr,
                         int weight = -1);
     /**
      * Possibly add a constructor to d_sdt, based on the criteria mentioned
@@ -208,7 +207,6 @@ public:
      */
     void addConstructor(Kind k,
                         const std::vector<TypeNode>& consTypes,
-                        std::shared_ptr<SygusPrintCallback> spc = nullptr,
                         int weight = -1);
     /** Should we include constructor with operator op? */
     bool shouldInclude(Node op) const;
@@ -260,13 +258,9 @@ public:
    * and an extra zero argument of that same type.  For example, for k = LEQ and
    * bArgType = Int, the operator will be lambda x : Int. x + 0.  Currently the
    * supported input types are Real (thus also Int) and BitVector.
-   *
-   * This method also creates a print callback for the operator, saved via the
-   * argument spc, if the caller wishes to not print the lambda.
    */
   static Node createLambdaWithZeroArg(Kind k,
-                                      TypeNode bArgType,
-                                      std::shared_ptr<SygusPrintCallback> spc);
+                                      TypeNode bArgType);
   //---------------- end grammar construction
 };
 

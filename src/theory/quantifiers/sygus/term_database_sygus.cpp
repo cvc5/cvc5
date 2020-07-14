@@ -723,17 +723,16 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    if (n.isNull())
-    {
-      Trace(c) << n;
-    }
-    else
-    {
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-      Trace(c) << ss.str();
-    }
+    std::stringstream ss;
+    toStreamSygus(ss, n);
+    Trace(c) << ss.str();
   }
+}
+
+void TermDbSygus::toStreamSygus(std::ostream& out, Node n)
+{
+  // use external conversion
+  out << datatypes::utils::sygusToBuiltin(n, true);
 }
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)

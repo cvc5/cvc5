@@ -1605,6 +1605,7 @@ set(regress_1_tests
   regress1/quantifiers/qe-partial.smt2
   regress1/quantifiers/qe.smt2
   regress1/quantifiers/qid.smt2
+  regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/recfact.cvc
@@ -1801,6 +1802,8 @@ set(regress_1_tests
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
   regress1/strings/issue4608-re-derive.smt2
+  regress1/strings/issue4735.smt2
+  regress1/strings/issue4735_2.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2

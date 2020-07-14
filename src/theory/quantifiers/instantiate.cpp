@@ -523,7 +523,6 @@ bool Instantiate::printInstantiationsList(std::ostream& out)
       }
     }
   }
-  out << std::endl;
   return printed;
 }
 
@@ -784,7 +783,7 @@ Node Instantiate::getInstantiatedConjunction(Node q)
   return ret;
 }
 
-void Instantiate::debugPrint()
+void Instantiate::debugPrint(std::ostream& out)
 {
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
@@ -794,6 +793,20 @@ void Instantiate::debugPrint()
       Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
                                     << std::endl;
       d_temp_inst_debug[i.first] = 0;
+    }
+  }
+  if (options::debugInst())
+  {
+    bool isFull = options::printInstFull();
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    {
+      std::stringstream ss;
+      if (!printQuant(i.first, ss, isFull))
+      {
+        continue;
+      }
+      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+          << std::endl;
     }
   }
 }
