@@ -14,17 +14,19 @@
 
 #include "theory/relevance_manager.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::UserContext* userContext, Valuation val) : d_input(userContext), d_val(val), d_success(false){}
+RelevanceManager::RelevanceManager(context::UserContext* userContext, Valuation val) : d_val(val), d_input(userContext), d_success(false){}
 
 void RelevanceManager::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
 {
   // add to input list, which is user-context dependent
   for (const Node& a : assertions)
   {
-    d_input.insert(a);
+    d_input.push_back(a);
   }
 }
 
@@ -34,7 +36,8 @@ void RelevanceManager::computeRelevance()
   for (NodeList::const_iterator it = d_input.begin(); it != d_input.end(); ++it)
   {
     TNode n = *it;
-    if (!justify(n, cache))
+    int val = justify(n, cache);
+    if (val!=1)
     {
       d_success = false;
       return;
@@ -43,30 +46,68 @@ void RelevanceManager::computeRelevance()
   d_success = true;
 }
 
-bool RelevanceManager::justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
 {
-  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    if (it == visited.end()) {
-      visited[cur] = false;
-      /** TODO pre-visit */
-      
-      visit.push_back(cur);
-      for (unsigned i = 0; i < cur.getNumChildren(); i++) {
-        visit.push_back(cur[i]);
+  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it = cache.find(n);
+  if (it!=cache.end())
+  {
+    return it->second;
+  }
+  Kind k = n.getKind();
+  int ret;
+  if (k==NOT)
+  {
+    ret = -justify(n[0], cache);
+  }
+  else if (k==IMPLIES)
+  {
+    int cret = justify(n[0], cache);
+    ret = cret==1 ? justify(n[1],cache) : -cret;
+  }
+  else if( k==AND || k==OR){
+    //Boolean connective, recurse
+    ret = k==AND ? 1 : -1;
+    for (const Node& nc : n){
+      int cret = justify(nc, cache);
+      if (cret==0)
+      {
+        ret = 0;
       }
-    }else if( !it->second ){
-      /** TODO post-visit */      
-      visited[cur] = true;
+      else if (ret!=cret)
+      {
+        ret = cret;
+        break;
+      }
     }
-  } while (!visit.empty());
-  return false;
+  }
+  else if (k==ITE)
+  {
+    int cret = justify(n[0], cache);
+    ret = cret==1 ? justify(n[1], cache) : (cret==-1 ? justify(n[2], cache) : 0);
+  }
+  else if (k==XOR)
+  {
+    int cret = justify(n[0], cache);
+    ret = cret==0 ? 0 : -cret*justify(n[1],cache);
+  }
+  else if (k==EQUAL && n[0].getType().isBoolean())
+  {
+    int cret = justify(n[0], cache);
+    ret = cret==0 ? 0 : cret*justify(n[1],cache);
+  }
+  else
+  {
+    ret = 0;
+    // otherwise we look up the value
+    bool value;
+    if (d_val.hasSatValue(n, value))
+    {
+      ret = value ? 1 : -1;
+      d_rset.insert(n);
+    }
+  }
+  cache[n] = ret;
+  return ret;
 }
 
 bool RelevanceManager::isRelevant(Node lit) const

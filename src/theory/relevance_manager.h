@@ -54,7 +54,7 @@ class RelevanceManager
   /** did we succeed? */
   bool d_success;
   /** justify */
-  bool justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
+  int justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
 };
 
 }  // namespace theory
