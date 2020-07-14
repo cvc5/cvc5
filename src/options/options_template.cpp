@@ -583,7 +583,7 @@ void Options::setOption(const std::string& key, const std::string& optionarg)
   // then, notify the provided listener
   if (d_olisten != nullptr)
   {
-    d_olisten->notifySetOption(key, optionarg);
+    d_olisten->notifySetOption(key);
   }
 }
 
