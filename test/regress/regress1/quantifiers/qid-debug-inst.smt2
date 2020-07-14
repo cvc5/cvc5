@@ -5,9 +5,10 @@
 
 (set-logic UFLIA)
 (declare-fun P (Int) Bool)
+(declare-fun R (Int) Bool)
 (declare-fun Q (Int) Bool)
-(assert (forall ((x Int)) (! (P x) :qid |myQuant1|)))
+(assert (forall ((x Int)) (! (=> (R x) (P x)) :qid |myQuant1|)))
 (assert (forall ((x Int)) (! (=> (P x) (Q x)) :qid |myQuant2|)))
-(assert (P 5))
+(assert (R 5))
 (assert (not (Q 5)))
 (check-sat)
