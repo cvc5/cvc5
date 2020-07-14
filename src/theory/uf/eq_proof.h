@@ -103,6 +103,14 @@ class EqProof
    * As above, but with a cache of previously processed nodes and their results
    * (for DAG traversal). The caching is in terms of the original conclusions of
    * EqProof.
+   *
+   * @param p a pointer to a CDProof to store the conversion of this EqProof
+   * @param visited a cache of the original EqProof conclusions and the
+   * resulting conclusion after conversion.
+   * @param assumptions the assumptions of the original EqProof (and their
+   * variations in terms of symmetry and conversion to/from predicate
+   * equalities)
+   * @return the node that is the conclusion of the proof as added to p.
    */
   Node addToProof(
       CDProof* p,
@@ -155,8 +163,11 @@ class EqProof
    * If in either of the above cases then the conclusion is directly derived
    * in the call, so only in the other cases we try to build a transitivity
    * step below
+   *
+   * @param visited a cache from original EqProof conclusions to converted ones
+   * @param assumptions the assumptions (and variants) of the original EqProof
    */
-  bool foldTransitivityChildren(
+  bool expandTransitivityChildren(
       Node conclusion,
       std::vector<Node>& premises,
       CDProof* p,
@@ -204,10 +215,90 @@ class EqProof
   bool buildTransitivityChain(Node conclusion,
                               std::vector<Node>& premises) const;
 
+  /** Reduce the a congruence EqProof into a transitivity matrix
+   *
+   * Given a congruence EqProof of (= (f a0 ... an-1) (f b0 ... bn-1)), reduce
+   * its justification into a matrix
+   *
+   *   [0]   -> p_{0,0} ... p_{m_0,0}
+   *   ...
+   *   [n-1] -> p_{0,n} ... p_{m_n-1,n-1}
+   *
+   * where f has arity n and each p_{0,i} ... p_{m_i, i} contains a transitivity
+   * chain justifying (= ai bi).
+   *
+   * Congruence steps in EqProof are binary, representing reasoning over curried
+   * applications. In the simplest case the general shape of a congruenc e
+   * EqProof is:
+   *                     P0
+   *  ------- REFL  ----------
+   *     []         (= a0 b0)            P1
+   *  ----------------------- CONG   ---------
+   *            []                   (= a1 b1)             P2
+   *         --------------------------------- CONG   -----------
+   *                        []                         (= a2 b2)
+   *                     --------------------------------------- CONG
+   *                          (= (f a0 a1 a2) (f b0 b1 b2))
+   *
+   * where [] stands for the null node, symbolizing "equality between partial
+   * applications".
+   *
+   * The reduction of such a proof is done by
+   * - converting the proof of the second CONG premise (via addToProof) and
+   *   adding the resulting node to row i of the matrix
+   * - recursively reducing the first proof with i-1
+   *
+   * In the above case the transitivity matrix would thus be
+   *   [0]   -> (= a0 b0)
+   *   [1]   -> (= a1 b1)
+   *   [2]   -> (= a2 b2)
+   *
+   * The more complex case of congruence proofs has transitivity steps as the
+   * first child of CONG steps. For example
+   *                    P0
+   *  ------- REFL  ----------
+   *  (= f f)       (= a0 c)            P'
+   *  ----------------------- CONG   ---------
+   *           []                    (= b0 c)             P1
+   *        ---------------------------------- TRANS  -----------
+   *                     []                            (= a1 b1)
+   *               -------------------------------------------- CONG
+   *                          (= (f a0 a1) (f b0 b1))
+   *
+   * where when the first child of CONG is a transitivity step
+   * - the premises that are CONG steps are recursively reduced with *the same* argument i
+   * - the other premises are processed with addToProof and added to the i row
+   *   in the matrix
+   *
+   * In the above example the to which the transitivity matrix is
+   *   [0]   -> (= a0 c), (= b0 c)
+   *   [1]   -> (= a1 b1)
+   *
+   * The remaining complication is that when conclusion is an equality of n-ary
+   * applications of *different* arities, there is, necessarily, a transitivity
+   * step as a first child a CONG step whose conclusion is an equality of n-ary
+   * applications of different arities. For example
+   *             P0                        P1
+   * -------------------------- TRANS  -----------
+   *     (= f a0 a1) (= f b0)           (= a2 b1)
+   * --------------------------------------------- CONG
+   *              (= (f a0 a1 a2) (f b0 b1))
+   *
+   * will be first reduced with i = 2 (maiximal arity the original conclusion's applications), adding (= a2 b1) to row 2 after processing P1. Since
+   *
+   * @param i the i-th argument of the congruent applications, initially being
+   * the maximal arity among conclusion's applications.
+   * @param conclusion the original congruence conclusion
+   * @param transitivityMatrix a matrix of equalities with each row justifying
+   * an equality between the congruent applications
+   * @param p a pointer to a CDProof to store the conversion of this EqProof
+   * @param visited
+   * @param assumptions
+   */
   void reduceNestedCongruence(
       unsigned i,
       Node conclusion,
-      std::vector<std::vector<Node>>& children,
+      std::vector<std::vector<Node>>& transitivityMatrix,
       CDProof* p,
       std::unordered_map<Node, Node, NodeHashFunction>& visited,
       std::unordered_set<Node, NodeHashFunction>& assumptions,
