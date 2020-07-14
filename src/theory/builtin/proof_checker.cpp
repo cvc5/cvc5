@@ -59,6 +59,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
+  pc->registerChecker(PfRule::PREPROCESS, this);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
@@ -307,6 +308,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
         return Node::null();
       }
     }
+    return args[0];
+  }
+  else if (id == PfRule::PREPROCESS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
     return args[0];
   }
   // no rule
