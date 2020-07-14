@@ -808,7 +808,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if (d_hasAddedLemma)
     {
       bool debugInstTrace = Trace.isOn("inst-per-quant-round");
-      if (options::debugInst() || debugInstTrace){
+      if (options::debugInst() || debugInstTrace)
+      {
         Options& sopts = smt::currentSmtEngine()->getOptions();
         std::ostream& out = *sopts.getOut();
         d_instantiate->debugPrint(out);

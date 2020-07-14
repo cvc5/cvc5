@@ -202,7 +202,7 @@ class Instantiate : public QuantifiersUtil
   Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
-  /** 
+  /**
    * Debug print, called once per instantiation round. This prints
    * instantiations added this round to trace inst-per-quant-round, if
    * applicable, and prints to out of options if the option debug-inst is
