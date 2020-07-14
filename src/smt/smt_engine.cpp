@@ -81,12 +81,12 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
+#include "smt/abduction_solver.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
-#include "smt/abduction_solver.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/process_assertions.h"
@@ -95,7 +95,6 @@
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
-#include "smt/abduction_solver.h"
 #include "smt_util/boolean_simplification.h"
 #include "smt_util/nary_builder.h"
 #include "theory/booleans/circuit_propagator.h"
@@ -819,13 +818,13 @@ void SmtEngine::finishInit()
     delete d_dumpCommands[i];
   }
   d_dumpCommands.clear();
-  
+
   // subsolvers
   if (options::produceAbducts())
   {
     d_abductSolver.reset(new AbductionSolver(this));
   }
-  
+
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
   PROOF({
       for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
@@ -3167,7 +3166,9 @@ bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
   return getInterpol(conj, grammarType, interpol);
 }
 
-bool SmtEngine::getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd)
+bool SmtEngine::getAbduct(const Node& conj,
+                          const TypeNode& grammarType,
+                          Node& abd)
 {
   if (d_abductSolver->getAbduct(conj, grammarType, abd))
   {

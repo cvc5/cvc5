@@ -91,25 +91,25 @@ namespace prop {
 /* -------------------------------------------------------------------------- */
 
 namespace smt {
-  /** Subsolvers */
-  class AbductionSolver;
-  /**
-   * Representation of a defined function.  We keep these around in
-   * SmtEngine to permit expanding definitions late (and lazily), to
-   * support getValue() over defined functions, to support user output
-   * in terms of defined functions, etc.
-   */
-  class DefinedFunction;
+/** Subsolvers */
+class AbductionSolver;
+/**
+ * Representation of a defined function.  We keep these around in
+ * SmtEngine to permit expanding definitions late (and lazily), to
+ * support getValue() over defined functions, to support user output
+ * in terms of defined functions, etc.
+ */
+class DefinedFunction;
 
-  struct SmtEngineStatistics;
-  class SmtEnginePrivate;
-  class SmtScope;
-  class ProcessAssertions;
+struct SmtEngineStatistics;
+class SmtEnginePrivate;
+class SmtScope;
+class ProcessAssertions;
 
-  ProofManager* currentProofManager();
+ProofManager* currentProofManager();
 
-  struct CommandCleanup;
-  typedef context::CDList<Command*, CommandCleanup> CommandList;
+struct CommandCleanup;
+typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 
 /* -------------------------------------------------------------------------- */

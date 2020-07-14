@@ -23,12 +23,12 @@
 namespace CVC4 {
 
 class SmtEngine;
-  
+
 namespace smt {
 
 /**
  * A solver for abduction queries.
- * 
+ *
  * This class is responsible for responding to get-abduct commands. It spawns
  * a subsolver SmtEngine for a sygus conjecture that captures the abduction
  * query, and implements supporting utility methods such as checkAbduct.
@@ -36,7 +36,7 @@ namespace smt {
 class AbductionSolver
 {
  public:
-  AbductionSolver(SmtEngine * parent);
+  AbductionSolver(SmtEngine* parent);
   ~AbductionSolver();
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -64,6 +64,7 @@ class AbductionSolver
    * internal error is thrown.
    */
   void checkAbduct(Node a);
+
  private:
   /**
    * Get abduct internal.
@@ -76,7 +77,7 @@ class AbductionSolver
    */
   bool getAbductInternal(Node& abd);
   /** The parent SMT engine */
-  SmtEngine * d_parent;
+  SmtEngine* d_parent;
   /** The SMT engine subsolver
    *
    * This is a separate copy of the SMT engine which is used for making
@@ -106,8 +107,7 @@ class AbductionSolver
   Node d_sssf;
 };
 
-
-}/* smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace CVC4
 
 #endif /* CVC4__SMT__ABDUCTION_SOLVER_H */

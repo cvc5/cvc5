@@ -14,30 +14,26 @@
 
 #include "smt/abduction_solver.h"
 
-#include "smt/smt_engine.h"
 #include "options/smt_options.h"
-#include "theory/smt_engine_subsolver.h"
-#include "theory/quantifiers/sygus/sygus_abduct.h"
+#include "smt/smt_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace smt {
-  
-AbductionSolver::AbductionSolver(SmtEngine * parent) : d_parent(parent)
-{
-  
-}
 
-AbductionSolver::~AbductionSolver()
+AbductionSolver::AbductionSolver(SmtEngine* parent) : d_parent(parent) {}
+
+AbductionSolver::~AbductionSolver() {}
+bool AbductionSolver::getAbduct(const Node& conj,
+                                const TypeNode& grammarType,
+                                Node& abd)
 {
-  
-}
-bool AbductionSolver::getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd)
-{
-if (!options::produceAbducts())
+  if (!options::produceAbducts())
   {
     const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
@@ -59,7 +55,7 @@ if (!options::produceAbducts())
   asserts.push_back(conjn);
   std::string name("A");
   Node aconj = quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axioms,grammarType);
+      name, asserts, axioms, grammarType);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -123,8 +119,7 @@ bool AbductionSolver::getAbductInternal(Node& abd)
         vars.push_back(bv);
         syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
       }
-      abd =
-          abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
+      abd = abd.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
 
       // if check abducts option is set, we check the correctness
       if (options::checkAbducts())
@@ -204,6 +199,5 @@ void AbductionSolver::checkAbduct(Node a)
   }
 }
 
-
-}/* smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace CVC4
