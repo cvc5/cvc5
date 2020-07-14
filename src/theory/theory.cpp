@@ -433,27 +433,5 @@ void Theory::setupExtTheory() {
   d_extTheory = new ExtTheory(this);
 }
 
-
-EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
-  : d_tid(tid) {
-}
-
-EntailmentCheckParameters::~EntailmentCheckParameters(){}
-
-TheoryId EntailmentCheckParameters::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::EntailmentCheckSideEffects(TheoryId tid)
-  : d_tid(tid)
-{}
-
-TheoryId EntailmentCheckSideEffects::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
-}
-
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

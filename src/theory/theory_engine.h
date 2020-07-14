@@ -755,9 +755,7 @@ public:
    */
   std::pair<bool, Node> entailmentCheck(
       options::TheoryOfMode mode,
-      TNode lit,
-      const theory::EntailmentCheckParameters* params = NULL,
-      theory::EntailmentCheckSideEffects* out = NULL);
+      TNode lit);
 
  private:
   /** Default visitor for pre-registration */
