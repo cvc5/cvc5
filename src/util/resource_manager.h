@@ -77,6 +77,7 @@ public:
    CnfStep,
    DecisionStep,
    LemmaStep,
+   NewSkolemStep,
    ParseStep,
    PreprocessStep,
    QuantifierStep,

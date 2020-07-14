@@ -79,6 +79,7 @@ struct ResourceManager::Statistics
   IntStat d_numCnfStep;
   IntStat d_numDecisionStep;
   IntStat d_numLemmaStep;
+  IntStat d_numNewSkolemStep;
   IntStat d_numParseStep;
   IntStat d_numPreprocessStep;
   IntStat d_numQuantifierStep;
@@ -101,6 +102,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
       d_numCnfStep("resource::CnfStep", 0),
       d_numDecisionStep("resource::DecisionStep", 0),
       d_numLemmaStep("resource::LemmaStep", 0),
+      d_numNewSkolemStep("resource::NewSkolemStep", 0),
       d_numParseStep("resource::ParseStep", 0),
       d_numPreprocessStep("resource::PreprocessStep", 0),
       d_numQuantifierStep("resource::QuantifierStep", 0),
@@ -117,6 +119,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
   d_statisticsRegistry.registerStat(&d_numCnfStep);
   d_statisticsRegistry.registerStat(&d_numDecisionStep);
   d_statisticsRegistry.registerStat(&d_numLemmaStep);
+  d_statisticsRegistry.registerStat(&d_numNewSkolemStep);
   d_statisticsRegistry.registerStat(&d_numParseStep);
   d_statisticsRegistry.registerStat(&d_numPreprocessStep);
   d_statisticsRegistry.registerStat(&d_numQuantifierStep);
@@ -135,6 +138,7 @@ ResourceManager::Statistics::~Statistics()
   d_statisticsRegistry.unregisterStat(&d_numCnfStep);
   d_statisticsRegistry.unregisterStat(&d_numDecisionStep);
   d_statisticsRegistry.unregisterStat(&d_numLemmaStep);
+  d_statisticsRegistry.unregisterStat(&d_numNewSkolemStep);
   d_statisticsRegistry.unregisterStat(&d_numParseStep);
   d_statisticsRegistry.unregisterStat(&d_numPreprocessStep);
   d_statisticsRegistry.unregisterStat(&d_numQuantifierStep);
@@ -261,6 +265,10 @@ void ResourceManager::spendResource(Resource r)
     case Resource::LemmaStep:
       amount = d_options[options::lemmaStep];
       ++d_statistics->d_numLemmaStep;
+      break;
+    case Resource::NewSkolemStep:
+      amount = 1;
+      ++d_statistics->d_numNewSkolemStep;
       break;
     case Resource::ParseStep:
       amount = d_options[options::parseStep];

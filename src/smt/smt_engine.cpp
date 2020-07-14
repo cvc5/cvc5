@@ -512,6 +512,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       Dump("skolems") << CommentCommand(id + " is " + comment);
     }
     if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
+      d_smt.getResourceManager()->spendResource(ResourceManager::Resource::NewSkolemStep);
       d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
     }
   }
