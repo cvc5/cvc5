@@ -808,7 +808,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       break;
     }
     ArrayStoreAll storeAll = node.getConst<ArrayStoreAll>();
-    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    Node defaultValue = storeAll.getValue();
     if (!defaultValue.isConst()) {
       throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
     }
@@ -1230,7 +1230,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
       }
 
       // Build the STORE_ALL term with the default value
-      rep = nm->mkConst(ArrayStoreAll(nrep.getType().toType(), rep.toExpr()));
+      rep = nm->mkConst(ArrayStoreAll(nrep.getType(), rep));
       /*
     }
     else {
@@ -1904,7 +1904,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   TNode constArr = d_infoMap.getConstArr(a);
   if (!constArr.isNull()) {
     ArrayStoreAll storeAll = constArr.getConst<ArrayStoreAll>();
-    Node defValue = Node::fromExpr(storeAll.getExpr());
+    Node defValue = storeAll.getValue();
     Node selConst = NodeManager::currentNM()->mkNode(kind::SELECT, constArr, i);
     if (!d_equalityEngine.hasTerm(selConst)) {
       preRegisterTermInternal(selConst);

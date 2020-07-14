@@ -53,7 +53,8 @@ class ArrayEnumerator : public TypeEnumeratorBase<ArrayEnumerator> {
   {
     d_indexVec.push_back(*d_index);
     d_constituentVec.push_back(new TypeEnumerator(d_constituentType, d_tep));
-    d_arrayConst = d_nm->mkConst(ArrayStoreAll(type.toType(), (*(*d_constituentVec.back())).toExpr()));
+    d_arrayConst =
+        d_nm->mkConst(ArrayStoreAll(type, (*(*d_constituentVec.back()))));
     Trace("array-type-enum") << "Array const : " << d_arrayConst << std::endl;
   }
 
