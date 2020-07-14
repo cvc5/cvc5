@@ -977,8 +977,6 @@ set(regress_0_tests
   regress0/strings/issue4376.smt2
   regress0/strings/issue4662-consume-nterm.smt2
   regress0/strings/issue4674-recomp-nf.smt2
-  regress0/strings/issue4735.smt2
-  regress0/strings/issue4735_2.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1802,6 +1800,8 @@ set(regress_1_tests
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
   regress1/strings/issue4608-re-derive.smt2
+  regress1/strings/issue4735.smt2
+  regress1/strings/issue4735_2.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
