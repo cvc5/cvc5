@@ -114,6 +114,47 @@ class EqProof
 
   /**
    *
+   * if premises contain one equality between false and an equality then maybe
+   * it'll be necessary to fix the transitivity premises before reaching the
+   * original conclusion. For example
+   *
+   *  (= t1 t2) (= t3 t2) (= (t1 t3) false)
+   *  ------------------------------------- TRANS
+   *             false = true
+   *
+   * must, before the processing below, become
+   *
+   *            (= t3 t2)
+   *            --------- SYMM
+   *  (= t1 t2) (= t2 t3)
+   *  ------------------- TRANS
+   *       (= t1 t3)             (= (t1 t3) false)
+   *  --------------------------------------------- TRANS
+   *             false = true
+   *
+   * If the conclusion is, modulo symmetry, (= (= t1 t2) false), then the
+   * above construction may fail. Consider
+   *
+   *  (= t3 t4) (= t3 t2) (= (t1 t2) false)
+   *  ------------------------------------- TRANS
+   *             (= (= t4 t1) false)
+   *
+   *  whose premises other than (= (t1 t2) false) do not allow the derivation
+   *  of (= (= t1 t2) (= t4 t1)). The original conclusion however can be
+   *  derived with
+   *                          (= t2 t3) (= t3 t4)
+   *                          ------------------- TRANS
+   *  (= (t1 t2) false)           (= t2 t4)
+   *  ------------------------------------------- MACRO_SR_PRED_TRANSFORM
+   *             (= (= t4 t1) false)
+   *
+   * where note that the conclusion is equal to the left premise with the
+   * right premise as a substitution applied to it, modulo rewriting (which
+   * accounts for the different order of the equality with false).
+   *
+   * If in either of the above cases then the conclusion is directly derived
+   * in the call, so only in the other cases we try to build a transitivity
+   * step below
    */
   bool foldTransitivityChildren(
       Node conclusion,
@@ -121,12 +162,44 @@ class EqProof
       CDProof* p,
       std::unordered_set<Node, NodeHashFunction>& assumptions) const;
 
-  /**
+  /** Builds a transitivity chain from equalities to derive a conclusion
    *
+   * Given an equality (= t1 tn), and a list of equalities premises, attempts to
+   * build a chain (= t1 t2) ... (= tn-1 tn) from premises. This is done in a
+   * greedy manner by finding one "link" in the chain at a time, updating the
+   * conclusion to be the next link and the premises by removing the used
+   * premise, and searching recursively.
+   *
+   * Consider for example
+   * - conclusion: (= t1 t4)
+   * - premises:   (= t4 t2), (= t2 t3), (= t2 t1), (= t3 t4)
+   *
+   * It proceeds by searching for t1 in an equality in the premises, in order,
+   * which is found in the equality (= t2 t1). Since t2 != t4, it attempts to
+   * build a chain with
+   * - conclusion (= t2 t4)
+   * - premises (= t4 t2), (= t2 t3), (= t3 t4)
+   *
+   * In the first equality it finds t2 and also t4, which closes the chain, so
+   * that premises is updated to (= t2 t4) and the method returns true. Since
+   * the recursive call was successful, the original conclusion (= t1 t4) is
+   * justified with (= t1 t2) plus the chain built in the recursive call,
+   * i.e. (= t1 t2), (= t2 t4).
+   *
+   * Note that not all the premises were necessary to build a successful
+   * chain. Moreover, note that building a successful chain can depend on the
+   * order in which the equalities are chosen. When a recursive call fails to
+   * close a chain, the chosen equality is dismissed and another is searched for
+   * among the remaining ones.
    *
    * This method assumes that premises does not contain reflexivity premises.
-   * This is without loss of generality since such premisis are spurious for a
+   * This is without loss of generality since such premises are spurious for a
    * transitivity step.
+   *
+   * @param conclusion the conclusion of the transitivity chain of equalities
+   * @param premises the list of equalities to build a chain with
+   * @return whether premises successfully build a transitivity chain for the
+   * conclusion
    */
   bool buildTransitivityChain(Node conclusion,
                               std::vector<Node>& premises) const;

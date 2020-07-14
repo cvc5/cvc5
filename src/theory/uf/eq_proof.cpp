@@ -126,7 +126,7 @@ bool EqProof::foldTransitivityChildren(
   unsigned termPos = 2, offending = size;
   for (unsigned i = 0; i < size; ++i)
   {
-    AlwaysAssert(premises[i].getKind() == kind::EQUAL);
+    Assert(premises[i].getKind() == kind::EQUAL);
     for (unsigned j = 0; j < 2; ++j)
     {
       if (premises[i][j].getKind() == kind::CONST_BOOLEAN
@@ -514,7 +514,7 @@ bool EqProof::buildTransitivityChain(Node conclusion,
           << "EqProof::buildTransitivityChain: found " << conclusion[0] << " in"
           << (correctlyOrdered ? "" : " non-") << " ordered premise "
           << premises[i] << "\n";
-      if (conclusion[1] == (correctlyOrdered ? premises[i][1] : premises[i][0]))
+      if (conclusion[1] == premises[i][correctlyOrdered ? 1 : 0])
       {
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: found " << conclusion[1]
@@ -524,7 +524,7 @@ bool EqProof::buildTransitivityChain(Node conclusion,
         premises.push_back(conclusion);
         return true;
       }
-      // build chain with remaining equalities
+      // Build chain with remaining equalities
       std::vector<Node> recursivePremises;
       for (unsigned j = 0; j < size; ++j)
       {
@@ -533,13 +533,12 @@ bool EqProof::buildTransitivityChain(Node conclusion,
           recursivePremises.push_back(premises[j]);
         }
       }
-      Node newTarget = correctlyOrdered ? premises[i][1].eqNode(conclusion[1])
-                                        : premises[i][0].eqNode(conclusion[1]);
+      Node newTarget =
+          premises[i][correctlyOrdered ? 1 : 0].eqNode(conclusion[1]);
       Trace("eqproof-conv")
           << "EqProof::buildTransitivityChain: search recursively for "
           << newTarget << "\n";
-      bool success = buildTransitivityChain(newTarget, recursivePremises);
-      if (success)
+      if (buildTransitivityChain(newTarget, recursivePremises))
       {
         Trace("eqproof-conv")
             << "EqProof::buildTransitivityChain: closed chain with "
@@ -882,6 +881,7 @@ Node EqProof::addToProof(
     visited[d_node] = conclusion;
     return conclusion;
   }
+  // Equalities due to theory reasoning
   if (d_id == MERGED_THROUGH_CONSTANTS)
   {
     // Currently only supports case of negative merged throgh constants
@@ -953,34 +953,37 @@ Node EqProof::addToProof(
     visited[d_node] = d_node;
     return d_node;
   }
+  // Transtivity and disequality reasoning steps
   if (d_id == MERGED_THROUGH_TRANS)
   {
-    AlwaysAssert(d_node.getKind() == kind::EQUAL
-                 || (d_node.getKind() == kind::NOT
-                     && d_node[0].getKind() == kind::EQUAL))
+    Assert(d_node.getKind() == kind::EQUAL
+           || (d_node.getKind() == kind::NOT
+               && d_node[0].getKind() == kind::EQUAL))
         << "EqProof::addToProof: transitivity step conclusion " << d_node
         << " is not equality or negated equality\n";
-    // if conclusion is (not (= t1 t2)) change it to (= (= t1 t2) false) so that
-    // the reasoning below is uniform. A FALSE_ELIM to revert this is only
-    // necessary when this is the root. That step is done in the non-recursive
-    // caller of this function
+    // If conclusion is (not (= t1 t2)) change it to (= (= t1 t2) false), which
+    // is the correct conclusion of the equality reasoning step. A FALSE_ELIM
+    // step to revert this is only necessary when this is the root. That step is
+    // done in the non-recursive caller of this function.
     Node conclusion =
         d_node.getKind() != kind::NOT
             ? d_node
             : d_node[0].eqNode(NodeManager::currentNM()->mkConst<bool>(false));
-    // if the conclusion is an assumption, the proof processing below may
-    // potentially be generate cyclic proofs, which will be useless anyway since
-    // this is an assumption
+    // If the conclusion is an assumption, its derivation was spurious, so it
+    // can be discarded. Moreover, reconstructing the step may lead to cyclic
+    // proofs, so we *must* cut here.
     if (assumptions.count(conclusion))
     {
       visited[d_node] = conclusion;
       return conclusion;
     }
+    // Process premises recursively
     std::vector<Node> children;
     for (unsigned i = 0, size = d_children.size(); i < size; ++i)
     {
-      // if one of the steps is a fake congruence one, it must deleted. Its
-      // premises are moved down to premises of the transitivity step
+      // If one of the steps is a "fake congruence" one, marked by a null
+      // conclusion, it must deleted. Its premises are moved down to premises of
+      // the transitivity step.
       EqProof* childProof = d_children[i].get();
       if (childProof->d_id == MERGED_THROUGH_CONGRUENCE
           && childProof->d_node.isNull())
@@ -996,14 +999,8 @@ Node EqProof::addToProof(
           Trace("eqproof-conv")
               << "EqProof::addToProof: recurse on child " << j << "\n"
               << push;
-          Node child = childProof->d_children[j].get()->addToProof(
-              p, visited, assumptions);
-          // ignore reflexivity
-          if (child[0] != child[1])
-          {
-            children.push_back(child);
-            addedChild = true;
-          }
+          Node child =
+              childProof->d_children[j]->addToProof(p, visited, assumptions);
           Trace("eqproof-conv") << pop;
         }
         Trace("eqproof-conv") << pop;
@@ -1016,74 +1013,33 @@ Node EqProof::addToProof(
       children.push_back(childProof->addToProof(p, visited, assumptions));
       Trace("eqproof-conv") << pop;
     }
-    // if premises contain one equality between false and an equality then maybe
-    // it'll be necessary to fix the transitivity premises before reaching the
-    // original conclusion. For example
-    //
-    //  (= t1 t2) (= t3 t2) (= (t1 t3) false)
-    //  ------------------------------------- TRANS
-    //             false = true
-    //
-    // must, before the processing below, become
-    //
-    //            (= t3 t2)
-    //            --------- SYMM
-    //  (= t1 t2) (= t2 t3)
-    //  ------------------- TRANS
-    //       (= t1 t3)             (= (t1 t3) false)
-    //  --------------------------------------------- TRANS
-    //             false = true
-    //
-    // If the conclusion is, modulo symmetry, (= (= t1 t2) false), then the
-    // above construction may fail. Consider
-    //
-    //  (= t3 t4) (= t3 t2) (= (t1 t2) false)
-    //  ------------------------------------- TRANS
-    //             (= (= t4 t1) false)
-    //
-    //  whose premises other than (= (t1 t2) false) do not allow the derivation
-    //  of (= (= t1 t2) (= t4 t1)). The original conclusion however can be
-    //  derived with
-    //                          (= t2 t3) (= t3 t4)
-    //                          ------------------- TRANS
-    //  (= (t1 t2) false)           (= t2 t4)
-    //  ------------------------------------------- MACRO_SR_PRED_TRANSFORM
-    //             (= (= t4 t1) false)
-    //
-    // where note that the conclusion is equal to the left premise with the
-    // right premise as a substitution applied to it, modulo rewriting (which
-    // accounts for the different order of the equality with false).
-    //
-    // If in either of the above cases then the conclusion is directly derived
-    // in the call, so only in the other cases we try to build a transitivity
-    // step below
-    bool folded =
-        foldTransitivityChildren(conclusion, children, p, assumptions);
-    Assert(!folded || p->hasStep(conclusion));
-    if (!folded)
+    // Eliminate spurious premises. Reasoning below assumes no refl steps.
+    cleanReflPremises(children);
+    // If any premise is of the form (= (t1 t2) false), then the transitivity
+    // step may be coarse-grained and needs to be expanded. If the expansion
+    // happens it finalizes the proof of conclusion.
+    if (!foldTransitivityChildren(conclusion, children, p, assumptions))
     {
-      cleanReflPremises(children);
       Assert(!children.empty());
       Trace("eqproof-conv")
           << "EqProof::addToProof: build chain for transitivity premises"
           << children << " to conclude " << conclusion << "\n";
-      // conclusion is t1 = tn. Children MUST BE (= t1 t2), ..., (= t{n-1} tn).
-      // If t1 or tn are true or false, then premises may have to be amended
-      // with TRUE/FALSE intro rules. Process children to ensure this
+      // Build ordered transitivity chain from children to derive the conclusion
       buildTransitivityChain(conclusion, children);
-      // add step while making sure that all children have been added to the
-      // proof, as well as that the proof should be rewritten in case it exists.
-      // Overwritting is necessary because of a literal potentially having
-      // different explanations at different points of the solving.
       Assert(children.size() > 1
              || (!children.empty()
                  && (children[0] == conclusion
                      || children[0][1].eqNode(children[0][0]) == conclusion)));
+      // Only add transitivity step if there is more than one premise in the
+      // chain. Otherwise the premise will be the conclusion itself and it'll
+      // already have had a step added to it when the premises were recursively
+      // processed.
       if (children.size() > 1)
       {
         p->addStep(conclusion, PfRule::TRANS, children, {}, true);
       }
     }
+    Assert(p->hasStep(conclusion));
     visited[d_node] = conclusion;
     return conclusion;
   }
