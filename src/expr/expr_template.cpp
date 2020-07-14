@@ -181,8 +181,8 @@ private:
     if(n.getMetaKind() == metakind::CONSTANT) {
       if(n.getKind() == kind::EMPTYSET) {
         Type type = d_from->exportType(
-            n.getConst< ::CVC4::EmptySet>().getType(), d_to, d_vmap);
-        return d_to->mkConst(::CVC4::EmptySet(type));
+            n.getConst< ::CVC4::EmptySet>().getType().toType(), d_to, d_vmap);
+        return d_to->mkConst(::CVC4::EmptySet(TypeNode::fromType(type)));
       }
       return exportConstant(n, NodeManager::fromExprManager(d_to), d_vmap);
     } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
