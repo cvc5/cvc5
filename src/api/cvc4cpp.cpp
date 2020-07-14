@@ -49,7 +49,6 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
@@ -2553,10 +2552,6 @@ void Grammar::addSygusConstructorTerm(
   Term op = purifySygusGTerm(term, args, cargs, ntsToUnres);
   std::stringstream ssCName;
   ssCName << op.getKind();
-  std::shared_ptr<SygusPrintCallback> spc;
-  // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(
-      *op.d_expr, termVectorToExprs(args));
   if (!args.empty())
   {
     Term lbvl = Term(d_solver,
@@ -2568,7 +2563,7 @@ void Grammar::addSygusConstructorTerm(
                                                  {*lbvl.d_expr, *op.d_expr}));
   }
   dt.d_dtype->addSygusConstructor(
-      *op.d_expr, ssCName.str(), sortVectorToTypes(cargs), spc);
+      *op.d_expr, ssCName.str(), sortVectorToTypes(cargs));
 }
 
 Term Grammar::purifySygusGTerm(

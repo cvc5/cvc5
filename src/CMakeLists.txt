@@ -116,8 +116,6 @@ libcvc4_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  printer/sygus_print_callback.cpp
-  printer/sygus_print_callback.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
   proof/arith_proof.cpp
@@ -987,7 +985,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
-          printer/sygus_print_callback.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/printer)
 install(FILES
