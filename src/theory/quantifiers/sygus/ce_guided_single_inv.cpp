@@ -376,7 +376,8 @@ bool CegSingleInv::solve()
   }
   // solve the single invocation conjecture using a fresh copy of SMT engine
   std::unique_ptr<SmtEngine> siSmt;
-  initializeSubsolver(siSmt, siq);
+  initializeSubsolver(siSmt);
+  siSmt->assertFormula(siq.toExpr());
   Result r = siSmt->checkSat();
   Trace("sygus-si") << "Result: " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
