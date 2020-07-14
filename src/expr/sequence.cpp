@@ -98,7 +98,7 @@ bool Sequence::strncmp(const Sequence& y, size_t n) const
 
 bool Sequence::rstrncmp(const Sequence& y, size_t n) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t b = (size() >= y.size()) ? size() : y.size();
   size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s)
@@ -282,7 +282,7 @@ bool Sequence::hasSuffix(const Sequence& y) const
 
 Sequence Sequence::update(size_t i, const Sequence& t) const
 {
-  Assert(d_type == t.d_type);
+  Assert(getType() == t.getType());
   if (i < size())
   {
     std::vector<Node> vec(d_seq.begin(), d_seq.begin() + i);

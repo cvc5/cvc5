@@ -42,7 +42,6 @@ Result quickCheck(Node& query)
 }
 
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Node query,
                          bool needsTimeout,
                          unsigned long timeout)
 {
@@ -57,10 +56,6 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
     smte->setTimeLimit(timeout, true);
   }
   smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
-  if (!query.isNull())
-  {
-    smte->assertFormula(query.toExpr());
-  }
 }
 
 Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
@@ -74,7 +69,8 @@ Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
   {
     return r;
   }
-  initializeSubsolver(smte, query, needsTimeout, timeout);
+  initializeSubsolver(smte, needsTimeout, timeout);
+  smte->assertFormula(query.toExpr());
   return smte->checkSat();
 }
 
@@ -109,7 +105,8 @@ Result checkWithSubsolver(Node query,
     return r;
   }
   std::unique_ptr<SmtEngine> smte;
-  initializeSubsolver(smte, query, needsTimeout, timeout);
+  initializeSubsolver(smte, needsTimeout, timeout);
+  smte->assertFormula(query.toExpr());
   r = smte->checkSat();
   if (r.asSatisfiabilityResult().isSat() == Result::SAT)
   {

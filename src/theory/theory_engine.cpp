@@ -1788,7 +1788,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
   });
   // cache of nodes we have already explained by some theory
-  std::unordered_set<Node, NodeHashFunction> cache;
+  std::unordered_map<Node, size_t, NodeHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1798,6 +1798,14 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         << "[i=" << i << "] TheoryEngine::explain(): processing ["
         << toExplain.d_timestamp << "] " << toExplain.d_node << " sent from "
         << toExplain.d_theory << endl;
+
+    if (cache.find(toExplain.d_node) != cache.end()
+        && cache[toExplain.d_node] < toExplain.d_timestamp)
+    {
+      ++i;
+      continue;
+    }
+    cache[toExplain.d_node] = toExplain.d_timestamp;
 
     // If a true constant or a negation of a false constant we can ignore it
     if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
@@ -1870,16 +1878,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         continue;
       }
     }
-    // We must cache after checking the timestamp in the block of code above.
-    // Afterwards, we can ignore this timestamp, as well as caching the Node,
-    // since any theory's explanation will suffice.
-    if (cache.find(toExplain.d_node) != cache.end())
-    {
-      ++i;
-      continue;
-    }
-    cache.insert(toExplain.d_node);
-    // It was produced by the theory, so ask for an explanation
+
     Node explanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
     {

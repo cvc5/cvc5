@@ -24,14 +24,13 @@
 #include <iosfwd>
 #include <memory>
 
-namespace CVC4 {
-// messy; Expr needs ArrayStoreAll (because it's the payload of a
-// CONSTANT-kinded expression), and ArrayStoreAll needs Expr.
-class Expr;
-class ArrayType;
-}  // namespace CVC4
 
 namespace CVC4 {
+
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
+class TypeNode;
 
 class CVC4_PUBLIC ArrayStoreAll {
  public:
@@ -39,14 +38,14 @@ class CVC4_PUBLIC ArrayStoreAll {
    * @throws IllegalArgumentException if `type` is not an array or if `expr` is
    * not a constant of type `type`.
    */
-  ArrayStoreAll(const ArrayType& type, const Expr& expr);
+  ArrayStoreAll(const TypeNode& type, const Node& value);
   ~ArrayStoreAll();
 
   ArrayStoreAll(const ArrayStoreAll& other);
   ArrayStoreAll& operator=(const ArrayStoreAll& other);
 
-  const ArrayType& getType() const;
-  const Expr& getExpr() const;
+  const TypeNode& getType() const;
+  const Node& getValue() const;
 
   bool operator==(const ArrayStoreAll& asa) const;
   bool operator!=(const ArrayStoreAll& asa) const;
@@ -56,8 +55,8 @@ class CVC4_PUBLIC ArrayStoreAll {
   bool operator>=(const ArrayStoreAll& asa) const;
 
  private:
-  std::unique_ptr<ArrayType> d_type;
-  std::unique_ptr<Expr> d_expr;
+  std::unique_ptr<TypeNode> d_type;
+  std::unique_ptr<Node> d_value;
 }; /* class ArrayStoreAll */
 
 std::ostream& operator<<(std::ostream& out,
