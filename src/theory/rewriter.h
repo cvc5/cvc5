@@ -152,8 +152,6 @@ class Rewriter {
   /** Theory rewriters used by this rewriter instance */
   TheoryRewriter* d_theoryRewriters[theory::THEORY_LAST];
 
-  unsigned long d_iterationCount = 0;
-
   /** Rewriter table for prewrites. Maps kinds to rewriter function. */
   std::function<RewriteResponse(RewriteEnvironment*, TNode)>
       d_preRewriters[kind::LAST_KIND];

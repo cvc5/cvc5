@@ -50,7 +50,6 @@ CnfStream::CnfStream(SatSolver* satSolver, Registrar* registrar,
       d_nodeToLiteralMap(context),
       d_literalToNodeMap(context),
       d_fullLitToNodeMap(fullLitToNodeMap),
-      d_convertAndAssertCounter(0),
       d_registrar(registrar),
       d_name(name),
       d_cnfProof(NULL),
@@ -725,11 +724,7 @@ void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
   Debug("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
-  if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
-    d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
-    d_convertAndAssertCounter = 0;
-  }
-  ++d_convertAndAssertCounter;
+  d_resourceManager->spendResource(ResourceManager::Resource::CnfStep);
 
   switch(node.getKind()) {
   case AND:

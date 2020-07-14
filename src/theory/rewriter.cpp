@@ -167,10 +167,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId, Node node) {
   // Rewrite until the stack is empty
   for (;;){
 
-    if (hasSmtEngine &&
-		d_iterationCount % ResourceManager::getFrequencyCount() == 0) {
+    if (hasSmtEngine) {
       rm->spendResource(ResourceManager::Resource::RewriteStep);
-      d_iterationCount = 0;
     }
 
     // Get the top of the recursion stack
