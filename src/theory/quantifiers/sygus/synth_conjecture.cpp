@@ -559,7 +559,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       {
         Node v = candidate_values[i];
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
+        TermDbSygus::toStreamSygus(ss, v);
         out << "(" << d_quant[0][i] << " " << ss.str() << ")";
       }
       out << ")" << std::endl;
