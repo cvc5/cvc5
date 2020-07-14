@@ -169,24 +169,10 @@ Node TheoryArith::getModelValue(TNode var) {
 
 std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit)
 {
-  const ArithEntailmentCheckParameters* aparams = NULL;
-  ArithEntailmentCheckParameters* def = new ArithEntailmentCheckParameters();
-  def->addLookupRowSumAlgorithms();
-  aparams = def;
-  Assert(aparams != NULL);
-
-  ArithEntailmentCheckSideEffects* ase = new ArithEntailmentCheckSideEffects();
-  Assert(ase != NULL);
-
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, *aparams, *ase);
-
-  if(params == NULL){
-    delete aparams;
-  }
-  if(out == NULL){
-    delete ase;
-  }
-
+  ArithEntailmentCheckParameters def;
+  def.addLookupRowSumAlgorithms();
+  ArithEntailmentCheckSideEffects ase;
+  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
 }
 
