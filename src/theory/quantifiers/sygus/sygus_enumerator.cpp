@@ -1084,6 +1084,11 @@ Node SygusEnumerator::TermEnumMaster::convertShape(
         // do the conversion
         visited[cur] = d_tds->getFreeVarInc(cur.getType(), vcounter);
       }
+      else if (!expr::hasBoundVar(cur))
+      {
+        // no bound variables, no change
+        visited[cur] = cur;
+      }
       else
       {
         visited[cur] = Node::null();

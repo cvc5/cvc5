@@ -40,6 +40,15 @@ class SygusPbe;
  * builtin terms (TermDb::sygusToBuiltin) can be shown to be equivalent via
  * rewriting. It enumerates terms in order of sygus term size
  * (TermDb::getSygusTermSize).
+ * 
+ * It also can be configured to enumerates sygus terms with free variables,
+ * where each free variable appears in exactly one subterm. For grammar:
+ *   S -> 0 | 1 | x | S+S
+ * this enumerator will generate the stream:
+ *   z1, 0, 1, x, z1+z2, z1+1, 1+1, z1+x, x+x, ...
+ * and so on, where z1 and z2 are variables of sygus datatype type S. We call
+ * these "shapes". This feature can be enabled by setting enumShapes to true
+ * in the constructor below. 
  */
 class SygusEnumerator : public EnumValGenerator
 {
@@ -351,7 +360,7 @@ class SygusEnumerator : public EnumValGenerator
     TermDbSygus* d_tds;
     /** are we enumerating shapes? */
     bool d_enumShapes;
-    /** have we initialized the enumeration? */
+    /** have we initialized the shape enumeration? */
     bool d_enumShapesInit;
     /** are we currently inside a increment() call? */
     bool d_isIncrementing;
@@ -411,7 +420,7 @@ class SygusEnumerator : public EnumValGenerator
      * the first child is a constructor operator and should be skipped.
      */
     void childrenToShape(std::vector<Node>& children);
-    /** Convert n into shape. */
+    /** Convert n into shape based on the variable counters. */
     Node convertShape(Node n, std::map<TypeNode, int>& vcounter);
   };
   /** an interpreted value enumerator
