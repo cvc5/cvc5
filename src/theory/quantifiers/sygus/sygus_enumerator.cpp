@@ -1058,7 +1058,6 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
       children[bufferChild] = convertShape(children[bufferChild], vcounter);
       bufferChildProcessed = true;
     }
-    Node prev = children[i];
     children[i] = convertShape(children[i], vcounter);
   }
 }
