@@ -21,6 +21,7 @@ namespace booleans {
 void BoolProofRuleChecker::registerTo(ProofChecker* pc)
 {
   pc->registerChecker(PfRule::SPLIT, this);
+  pc->registerChecker(PfRule::EQ_RESOLVE, this);
   pc->registerChecker(PfRule::AND_ELIM, this);
   pc->registerChecker(PfRule::AND_INTRO, this);
   pc->registerChecker(PfRule::NOT_OR_ELIM, this);
@@ -73,6 +74,16 @@ Node BoolProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     return NodeManager::currentNM()->mkNode(
         kind::OR, args[0], args[0].notNode());
+  }
+  if (id == PfRule::EQ_RESOLVE)
+  {
+    Assert(children.size() == 2);
+    Assert(args.empty());
+    if (children[1].getKind() != kind::EQUAL || children[0] != children[1][0])
+    {
+      return Node::null();
+    }
+    return children[1][1];
   }
   // natural deduction rules
   if (id == PfRule::AND_ELIM)
