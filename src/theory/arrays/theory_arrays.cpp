@@ -432,16 +432,19 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, proof);
   }
-  if(proof){
-    Debug("pf::array") << " Proof is : " << std::endl;
-    proof->debug_print("pf::array");
-  }
+  if (Debug.isOn("pf::array"))
+  {
+    if(proof){
+      Debug("pf::array") << " Proof is : " << std::endl;
+      proof->debug_print("pf::array");
+    }
 
-  Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::array") << assumptions[i] << " ";
+    Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl << "\t";
+    for (unsigned i = 0; i < assumptions.size(); ++i) {
+      Debug("pf::array") << assumptions[i] << " ";
+    }
+    Debug("pf::array") << std::endl;
   }
-  Debug("pf::array") << std::endl;
 }
 
 TNode TheoryArrays::weakEquivGetRep(TNode node) {
@@ -2034,8 +2037,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
     if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
-      Node i_eq_j = i.eqNode(j);
-      Node reason = i_eq_j;
+      Node reason = i.eqNode(j);
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTermInternal(aj);
@@ -2049,9 +2051,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj,true)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node aj_eq_bj = aj.eqNode(bj);
+      Node reason = aj.eqNode(bj);
       Node i_eq_j = i.eqNode(j);
-      Node reason = aj_eq_bj;
       d_permRef.push_back(reason);
       d_equalityEngine.assertEquality(i_eq_j, true, reason, d_reasonRow);
       ++d_numProp;
