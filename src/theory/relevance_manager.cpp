@@ -37,7 +37,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
 
 void RelevanceManager::notifyPreprocessedAssertion(Node n)
 {
-  d_input.push_back(a);
+  d_input.push_back(n);
 }
 
 void RelevanceManager::resetRound()
