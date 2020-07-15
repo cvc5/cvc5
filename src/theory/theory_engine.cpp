@@ -2020,11 +2020,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
 }
 
-std::pair<bool, Node> TheoryEngine::entailmentCheck(
-    options::TheoryOfMode mode,
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* seffects)
+std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
+                                                    TNode lit)
 {
   TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
   if( atom.getKind()==kind::AND || atom.getKind()==kind::OR || atom.getKind()==kind::IMPLIES ){
@@ -2037,7 +2034,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
       if( pol==( lit.getKind()==kind::IMPLIES && i==0 ) ){
         ch = atom[i].negate();
       }
-      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      std::pair<bool, Node> chres = entailmentCheck(mode, ch);
       if( chres.first ){
         if( !is_conjunction ){
           return chres;
@@ -2060,13 +2057,13 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
       if( r==1 ){
         ch = ch.negate();
       }
-      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      std::pair<bool, Node> chres = entailmentCheck(mode, ch);
       if( chres.first ){
         Node ch2 = atom[ atom.getKind()==kind::ITE ? r+1 : 1 ];
         if( pol==( atom.getKind()==kind::ITE ? true : r==1 ) ){
           ch2 = ch2.negate();
         }
-        std::pair<bool, Node> chres2 = entailmentCheck( mode, ch2, params, seffects );
+        std::pair<bool, Node> chres2 = entailmentCheck(mode, ch2);
         if( chres2.first ){
           return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, chres.second, chres2.second));
         }else{
@@ -2081,11 +2078,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
     theory::Theory* th = theoryOf(tid);
 
     Assert(th != NULL);
-    Assert(params == NULL || tid == params->getTheoryId());
-    Assert(seffects == NULL || tid == seffects->getTheoryId());
     Trace("theory-engine-entc") << "Entailment check : " << lit << std::endl;
 
-    std::pair<bool, Node> chres = th->entailmentCheck(lit, params, seffects);
+    std::pair<bool, Node> chres = th->entailmentCheck(lit);
     return chres;
   }
 }

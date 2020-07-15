@@ -16,62 +16,50 @@
 
 #include "cvc4_public.h"
 
-#pragma once
+#ifndef CVC4__UNINTERPRETED_CONSTANT_H
+#define CVC4__UNINTERPRETED_CONSTANT_H
 
 #include <iosfwd>
+#include <memory>
 
-#include "expr/type.h"
+#include "util/integer.h"
 
 namespace CVC4 {
 
-class CVC4_PUBLIC UninterpretedConstant {
+class TypeNode;
+
+class UninterpretedConstant
+{
  public:
-  UninterpretedConstant(Type type, Integer index);
+  UninterpretedConstant(const TypeNode& type, Integer index);
+  ~UninterpretedConstant();
 
-  Type getType() const { return d_type; }
-  const Integer& getIndex() const { return d_index; }
-  bool operator==(const UninterpretedConstant& uc) const
-  {
-    return d_type == uc.d_type && d_index == uc.d_index;
-  }
-  bool operator!=(const UninterpretedConstant& uc) const
-  {
-    return !(*this == uc);
-  }
+  UninterpretedConstant(const UninterpretedConstant& other);
 
-  bool operator<(const UninterpretedConstant& uc) const
-  {
-    return d_type < uc.d_type ||
-           (d_type == uc.d_type && d_index < uc.d_index);
-  }
-  bool operator<=(const UninterpretedConstant& uc) const
-  {
-    return d_type < uc.d_type ||
-           (d_type == uc.d_type && d_index <= uc.d_index);
-  }
-  bool operator>(const UninterpretedConstant& uc) const
-  {
-    return !(*this <= uc);
-  }
-  bool operator>=(const UninterpretedConstant& uc) const
-  {
-    return !(*this < uc);
-  }
+  const TypeNode& getType() const;
+  const Integer& getIndex() const;
+  bool operator==(const UninterpretedConstant& uc) const;
+  bool operator!=(const UninterpretedConstant& uc) const;
+  bool operator<(const UninterpretedConstant& uc) const;
+  bool operator<=(const UninterpretedConstant& uc) const;
+  bool operator>(const UninterpretedConstant& uc) const;
+  bool operator>=(const UninterpretedConstant& uc) const;
 
  private:
-  const Type d_type;
+  std::unique_ptr<TypeNode> d_type;
   const Integer d_index;
-};/* class UninterpretedConstant */
+}; /* class UninterpretedConstant */
 
-std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc);
 
 /**
  * Hash function for the BitVector constants.
  */
-struct CVC4_PUBLIC UninterpretedConstantHashFunction {
-  inline size_t operator()(const UninterpretedConstant& uc) const {
-    return TypeHashFunction()(uc.getType()) * IntegerHashFunction()(uc.getIndex());
-  }
-};/* struct UninterpretedConstantHashFunction */
+struct CVC4_PUBLIC UninterpretedConstantHashFunction
+{
+  size_t operator()(const UninterpretedConstant& uc) const;
+}; /* struct UninterpretedConstantHashFunction */
 
-}/* CVC4 namespace */
+}  // namespace CVC4
+
+#endif /* CVC4__UNINTERPRETED_CONSTANT_H */
