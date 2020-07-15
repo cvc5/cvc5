@@ -1641,6 +1641,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   AssertionPipeline lemmas;
   // call preprocessor
   d_tpp.preprocess(node, lemmas, p & LemmaProperty::PREPROCESS);
+  
+  if (d_relManager != nullptr && (p & LemmaProperty::NEEDS_JUSTIFY))
+  {
+    d_relManager->notifyPreprocessedAssertions(lemmas.ref());
+  }
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {

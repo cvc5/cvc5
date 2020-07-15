@@ -41,6 +41,8 @@ class RelevanceManager
   RelevanceManager(context::UserContext* userContext, Valuation val);
   /** Notify (preprocessed) assertions. */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
+  /** Singleton version of above */
+  void notifyPreprocessedAssertion(Node n);
   /** reset round */
   void resetRound();
   /** is relevant? */

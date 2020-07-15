@@ -34,6 +34,12 @@ void RelevanceManager::notifyPreprocessedAssertions(
     d_input.push_back(a);
   }
 }
+
+void RelevanceManager::notifyPreprocessedAssertion(Node n)
+{
+  d_input.push_back(a);
+}
+
 void RelevanceManager::resetRound()
 {
   d_computed = false;
