@@ -60,7 +60,10 @@ class FakeOutputChannel : public OutputChannel {
     Unimplemented();
   }
   bool propagate(TNode n) override { Unimplemented(); }
-  LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p = LemmaProperty::NONE) override {
+  LemmaStatus lemma(TNode n,
+                    ProofRule rule,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     Unimplemented();
   }
   void requirePhase(TNode, bool) override { Unimplemented(); }

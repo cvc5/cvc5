@@ -58,7 +58,10 @@ class TestOutputChannel : public OutputChannel {
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p = LemmaProperty::NONE) override {
+  LemmaStatus lemma(TNode n,
+                    ProofRule rule,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
