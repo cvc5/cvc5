@@ -70,6 +70,7 @@ class CVC4_PUBLIC ResourceManager {
 public:
  enum class Resource
  {
+   ArithPivotStep,
    BitblastStep,
    BvEagerAssertStep,
    BvPropagationStep,

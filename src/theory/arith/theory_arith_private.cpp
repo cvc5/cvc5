@@ -3494,6 +3494,16 @@ void TheoryArithPrivate::check(Theory::Effort effortLevel){
   }
   d_statistics.d_avgUnknownsInARow.addEntry(d_unknownsInARow);
 
+  if(options::useFC()){
+    for (std::size_t i = 0; i < d_fcSimplex.getPivots(); ++i) {
+      d_containing.d_out->spendResource(ResourceManager::Resource::ArithPivotStep);
+    }
+  }else{
+    for (std::size_t i = 0; i < d_dualSimplex.getPivots(); ++i) {
+      d_containing.d_out->spendResource(ResourceManager::Resource::ArithPivotStep);
+    }
+  }
+
   Debug("arith::ems") << "ems: " << emmittedConflictOrSplit
                       << "pre approx cuts" << endl;
   if(!d_approxCuts.empty()){
