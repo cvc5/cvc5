@@ -3596,7 +3596,7 @@ Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   return mkValHelper<CVC4::UninterpretedConstant>(
-      CVC4::UninterpretedConstant(*sort.d_type, index));
+      CVC4::UninterpretedConstant(TypeNode::fromType(*sort.d_type), index));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

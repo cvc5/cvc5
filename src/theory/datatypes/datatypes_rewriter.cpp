@@ -720,7 +720,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          UninterpretedConstant(n.getType().toType(), debruijn));
+          UninterpretedConstant(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;

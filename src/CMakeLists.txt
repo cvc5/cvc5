@@ -962,6 +962,7 @@ install(FILES
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
+          expr/sequence.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h

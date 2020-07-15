@@ -1642,7 +1642,8 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
   std::map< Node, int >::iterator itv = vmap.find( n );
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
-    return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
+    return NodeManager::currentNM()->mkConst(
+        UninterpretedConstant(n.getType(), debruijn));
   }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){
@@ -2295,7 +2296,8 @@ void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
                   << " relevant terms..." << std::endl;
 }
 
-std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
+{
   Trace("dt-entail") << "Check entailed : " << lit << std::endl;
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
@@ -2323,8 +2325,6 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
         return make_pair(true, exp);
       }
     }
-  }else{
-
   }
   return make_pair(false, Node::null());
 }

@@ -60,7 +60,8 @@ class UninterpretedSortEnumerator : public TypeEnumeratorBase<UninterpretedSortE
     if(isFinished()) {
       throw NoMoreValuesException(getType());
     }
-    return NodeManager::currentNM()->mkConst(UninterpretedConstant(getType().toType(), d_count));
+    return NodeManager::currentNM()->mkConst(
+        UninterpretedConstant(getType(), d_count));
   }
 
   UninterpretedSortEnumerator& operator++() override
