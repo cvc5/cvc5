@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__PROCESS_ASSERTIONS_H
-#define CVC4__SMT__PROCESS_ASSERTIONS_H
+#ifndef CVC4__SMT__ABSTRACT_VALUES_H
+#define CVC4__SMT__ABSTRACT_VALUES_H
 
 #include <unordered_map>
 

@@ -14,6 +14,8 @@
 
 #include "smt/abstract_values.h"
 
+#include "options/smt_options.h"
+
 namespace CVC4 {
 namespace smt {
 

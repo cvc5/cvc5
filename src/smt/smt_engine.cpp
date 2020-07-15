@@ -81,6 +81,7 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
+#include "smt/abstract_values.h"
 #include "smt/abduction_solver.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
