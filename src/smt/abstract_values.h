@@ -2,7 +2,7 @@
 /*! \file abstract_values.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -27,6 +27,11 @@
 namespace CVC4 {
 namespace smt {
 
+/**
+ * This utility is responsible for constructing and maintaining abstract
+ * values, which are used in some responses to e.g. get-value / get-model
+ * commands.
+ */
 class AbstractValues
 {
  public:
