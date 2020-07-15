@@ -60,10 +60,10 @@ namespace CVC4 {
     const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = NULL;
+    CVC4::main::CommandExecutor* pExecutor = nullptr;
 
     /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = NULL;
+    CVC4::TimerStat* pTotalTime = nullptr;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -234,7 +234,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           (*opts.getOut()) << CommandInterrupted();
           break;
         }
-        if (cmd == NULL)
+        if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
         if (cmd->interrupted()) {
@@ -289,7 +289,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           continue;
         }
 
-        if(dynamic_cast<PushCommand*>(cmd) != NULL) {
+        if(dynamic_cast<PushCommand*>(cmd) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -316,7 +316,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<PopCommand*>(cmd) != nullptr) {
           allCommands.pop_back(); // fixme leaks cmds here
           if (needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
@@ -342,8 +342,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               continue;
             }
           }
-        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<CheckSatCommand*>(cmd) != nullptr ||
+                  dynamic_cast<QueryCommand*>(cmd) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -372,7 +372,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<ResetCommand*>(cmd) != nullptr) {
           pExecutor->doCommand(cmd);
           allCommands.clear();
           allCommands.push_back(vector<Command*>());
@@ -380,16 +380,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           // We shouldn't copy certain commands, because they can cause
           // an error on replay since there's no associated sat/unsat check
           // preceding them.
-          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == NULL &&
-             dynamic_cast<GetProofCommand*>(cmd) == NULL &&
-             dynamic_cast<GetValueCommand*>(cmd) == NULL &&
-             dynamic_cast<GetModelCommand*>(cmd) == NULL &&
-             dynamic_cast<GetAssignmentCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL &&
-             dynamic_cast<GetAssertionsCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInfoCommand*>(cmd) == NULL &&
-             dynamic_cast<GetOptionCommand*>(cmd) == NULL &&
-             dynamic_cast<EchoCommand*>(cmd) == NULL) {
+          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetProofCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetValueCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetModelCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetAssignmentCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetInstantiationsCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetAssertionsCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetInfoCommand*>(cmd) == nullptr &&
+             dynamic_cast<GetOptionCommand*>(cmd) == nullptr &&
+             dynamic_cast<EchoCommand*>(cmd) == nullptr) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }
@@ -474,7 +474,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     pTotalTime->stop();
 
     // Tim: I think that following comment is out of date?
-    // Set the global executor pointer to NULL first.  If we get a
+    // Set the global executor pointer to nullptr first.  If we get a
     // signal while dumping statistics, we don't want to try again.
     pExecutor->flushOutputStreams();
 
@@ -494,8 +494,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   delete pTotalTime;
   delete pExecutor;
 
-  pTotalTime = NULL;
-  pExecutor = NULL;
+  pTotalTime = nullptr;
+  pExecutor = nullptr;
 
   signal_handlers::cleanup();
 
