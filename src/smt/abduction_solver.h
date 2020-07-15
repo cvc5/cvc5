@@ -47,7 +47,7 @@ class AbductionSolver
    * @param goal The goal of the abduction problem.
    * @param grammarType A sygus datatype type that encodes the syntax
    * restrictions on the shape of possible solutions.
-   * @param abd This argument is update to contain the solution to the
+   * @param abd This argument is updated to contain the solution to the
    * abduction problem. Notice that this is a formula whose free symbols
    * are contained in goal + the parent's current assertion stack.
    *
