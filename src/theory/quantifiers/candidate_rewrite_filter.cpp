@@ -163,12 +163,11 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   }
   if (Trace.isOn("sygus-rr-filter"))
   {
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     std::stringstream ss;
     ss << "(redundant-rewrite ";
-    p->toStreamSygus(ss, n);
+    TermDbSygus::toStreamSygus(ss, n);
     ss << " ";
-    p->toStreamSygus(ss, eq_n);
+    TermDbSygus::toStreamSygus(ss, eq_n);
     ss << ")";
     Trace("sygus-rr-filter") << ss.str() << std::endl;
   }

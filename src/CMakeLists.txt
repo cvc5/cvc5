@@ -116,8 +116,6 @@ libcvc4_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  printer/sygus_print_callback.cpp
-  printer/sygus_print_callback.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
   proof/arith_proof.cpp
@@ -239,6 +237,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/preprocess_proof_generator.cpp
+  smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
   smt/set_defaults.cpp
@@ -302,6 +302,8 @@ libcvc4_add_sources(
   theory/arith/matrix.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
+  theory/arith/nl/inference.cpp
+  theory/arith/nl/inference.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -314,6 +316,8 @@ libcvc4_add_sources(
   theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/stats.cpp
+  theory/arith/nl/stats.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
@@ -604,6 +608,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
   theory/quantifiers/sygus/sygus_grammar_red.h
+  theory/quantifiers/sygus/sygus_interpol.cpp
+  theory/quantifiers/sygus/sygus_interpol.h
   theory/quantifiers/sygus/sygus_invariance.cpp
   theory/quantifiers/sygus/sygus_invariance.h
   theory/quantifiers/sygus/sygus_module.cpp
@@ -763,6 +769,7 @@ libcvc4_add_sources(
   theory/theory_preprocessor.h
   theory/theory_proof_step_buffer.cpp
   theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.cpp
   theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
@@ -951,8 +958,8 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_sequence.h
           expr/record.h
+          expr/sequence.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -979,7 +986,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
-          printer/sygus_print_callback.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/printer)
 install(FILES

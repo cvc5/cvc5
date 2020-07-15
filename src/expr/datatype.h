@@ -171,32 +171,6 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   DatatypeConstructorArg(std::string name, Expr selector);
 };/* class DatatypeConstructorArg */
 
-class Printer;
-
-/** sygus datatype constructor printer
- *
- * This is a virtual class that is used to specify
- * a custom printing callback for sygus terms. This is
- * useful for sygus grammars that include defined
- * functions or let expressions.
- */
-class CVC4_PUBLIC SygusPrintCallback
-{
- public:
-  SygusPrintCallback() {}
-  virtual ~SygusPrintCallback() {}
-  /**
-   * Writes the term that sygus datatype expression e
-   * encodes to stream out. p is the printer that
-   * requested that expression e be written on output
-   * stream out. Calls may be made to p to print
-   * subterms of e.
-   */
-  virtual void toStreamSygus(const Printer* p,
-                             std::ostream& out,
-                             Expr e) const = 0;
-};
-
 class DTypeConstructor;
 
 /**
@@ -284,14 +258,6 @@ class CVC4_PUBLIC DatatypeConstructor {
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
-  /** get sygus print callback
-   *
-   * This class stores custom ways of printing
-   * sygus datatype constructors, for instance,
-   * to handle defined or let expressions that
-   * appear in user-provided grammars.
-   */
-  std::shared_ptr<SygusPrintCallback> getSygusPrintCallback() const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the
@@ -428,7 +394,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * operator op. spc is the sygus callback of this datatype constructor,
    * which is stored in a shared pointer.
    */
-  void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
+  void setSygus(Expr op);
 
   /**
    * Get the list of arguments to this constructor.
@@ -445,8 +411,6 @@ class CVC4_PUBLIC DatatypeConstructor {
   Expr d_constructor;
   /** the arguments of this constructor */
   std::vector<DatatypeConstructorArg> d_args;
-  /** sygus print callback */
-  std::shared_ptr<SygusPrintCallback> d_sygus_pc;
 };/* class DatatypeConstructor */
 
 class DType;
@@ -595,8 +559,6 @@ class CVC4_PUBLIC Datatype {
    *      this constructor encodes
    * cname : the name of the constructor (for printing only)
    * cargs : the arguments of the constructor
-   * spc : an (optional) callback that is used for custom printing. This is
-   *       to accomodate user-provided grammars in the sygus format.
    *
    * It should be the case that cargs are sygus datatypes that
    * encode the arguments of op. For example, a sygus constructor
@@ -611,7 +573,6 @@ class CVC4_PUBLIC Datatype {
   void addSygusConstructor(Expr op,
                            const std::string& cname,
                            const std::vector<Type>& cargs,
-                           std::shared_ptr<SygusPrintCallback> spc = nullptr,
                            int weight = -1);
   /**
    * Same as above, with builtin kind k.
@@ -619,7 +580,6 @@ class CVC4_PUBLIC Datatype {
   void addSygusConstructor(Kind k,
                            const std::string& cname,
                            const std::vector<Type>& cargs,
-                           std::shared_ptr<SygusPrintCallback> spc = nullptr,
                            int weight = -1);
 
   /** set that this datatype is a tuple */

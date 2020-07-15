@@ -1482,7 +1482,7 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
   }
 }
 
-Node TheorySetsPrivate::expandDefinition(Node node)
+TrustNode TheorySetsPrivate::expandDefinition(Node node)
 {
   Debug("sets-proc") << "expandDefinition : " << node << std::endl;
 
@@ -1504,17 +1504,17 @@ Node TheorySetsPrivate::expandDefinition(Node node)
     Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
 
     Node equal = witnessVariable.eqNode(apply);
-    Node emptySet = nm->mkConst(EmptySet(setType.toType()));
+    Node emptySet = nm->mkConst(EmptySet(setType));
     Node isEmpty = set.eqNode(emptySet);
     Node member = nm->mkNode(MEMBER, witnessVariable, set);
     Node memberAndEqual = member.andNode(equal);
     Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
     Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
     Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
-    return witness;
+    return TrustNode::mkTrustRewrite(node, witness, nullptr);
   }
 
-  return node;
+  return TrustNode::null();
 }
 
 Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)

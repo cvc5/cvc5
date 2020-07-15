@@ -401,10 +401,31 @@ bool String::hasSuffix(const String& y) const
   return true;
 }
 
+String String::update(std::size_t i, const String& t) const
+{
+  if (i < size())
+  {
+    std::vector<unsigned> vec(d_str.begin(), d_str.begin() + i);
+    size_t remNum = size() - i;
+    size_t tnum = t.d_str.size();
+    if (tnum >= remNum)
+    {
+      vec.insert(vec.end(), t.d_str.begin(), t.d_str.begin() + remNum);
+    }
+    else
+    {
+      vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
+      vec.insert(vec.end(), d_str.begin() + i + tnum, d_str.end());
+    }
+    return String(vec);
+  }
+  return *this;
+}
+
 String String::replace(const String &s, const String &t) const {
   std::size_t ret = find(s);
   if (ret != std::string::npos) {
-    std::vector<unsigned int> vec;
+    std::vector<unsigned> vec;
     vec.insert(vec.begin(), d_str.begin(), d_str.begin() + ret);
     vec.insert(vec.end(), t.d_str.begin(), t.d_str.end());
     vec.insert(vec.end(), d_str.begin() + ret + s.size(), d_str.end());
@@ -416,16 +437,16 @@ String String::replace(const String &s, const String &t) const {
 
 String String::substr(std::size_t i) const {
   Assert(i <= size());
-  std::vector<unsigned int> ret_vec;
-  std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
+  std::vector<unsigned> ret_vec;
+  std::vector<unsigned>::const_iterator itr = d_str.begin() + i;
   ret_vec.insert(ret_vec.end(), itr, d_str.end());
   return String(ret_vec);
 }
 
 String String::substr(std::size_t i, std::size_t j) const {
   Assert(i + j <= size());
-  std::vector<unsigned int> ret_vec;
-  std::vector<unsigned int>::const_iterator itr = d_str.begin() + i;
+  std::vector<unsigned> ret_vec;
+  std::vector<unsigned>::const_iterator itr = d_str.begin() + i;
   ret_vec.insert(ret_vec.end(), itr, itr + j);
   return String(ret_vec);
 }

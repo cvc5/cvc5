@@ -20,6 +20,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -300,12 +301,11 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // make a separate smt call
-  SmtEngine* currSmt = smt::currentSmtEngine();
-  SmtEngine rrSygus(nm->toExprManager(), &currSmt->getOptions());
-  rrSygus.setLogic(currSmt->getLogicInfo());
-  rrSygus.assertFormula(body.toExpr());
+  std::unique_ptr<SmtEngine> rrSygus;
+  theory::initializeSubsolver(rrSygus);
+  rrSygus->assertFormula(body.toExpr());
   Trace("sygus-infer") << "*** Check sat..." << std::endl;
-  Result r = rrSygus.checkSat();
+  Result r = rrSygus->checkSat();
   Trace("sygus-infer") << "...result : " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
@@ -314,7 +314,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   }
   // get the synthesis solutions
   std::map<Expr, Expr> synth_sols;
-  rrSygus.getSynthSolutions(synth_sols);
+  rrSygus->getSynthSolutions(synth_sols);
 
   std::vector<Node> final_ff;
   std::vector<Node> final_ff_sol;

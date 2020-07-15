@@ -118,8 +118,9 @@ class FakeTheory : public Theory
              context::UserContext* uctxt,
              OutputChannel& out,
              Valuation valuation,
-             const LogicInfo& logicInfo)
-      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo)
+             const LogicInfo& logicInfo,
+             ProofNodeManager* pnm)
+      : Theory(theoryId, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {
   }
 
@@ -155,10 +156,10 @@ class FakeTheory : public Theory
   void registerTerm(TNode) { Unimplemented(); }
   void check(Theory::Effort) override { Unimplemented(); }
   void propagate(Theory::Effort) override { Unimplemented(); }
-  Node explain(TNode) override
+  TrustNode explain(TNode) override
   {
     Unimplemented();
-    return Node::null();
+    return TrustNode::null();
   }
   Node getValue(TNode n) { return Node::null(); }
 
