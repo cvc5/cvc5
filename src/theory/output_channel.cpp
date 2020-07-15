@@ -2,7 +2,7 @@
 /*! \file output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Liana Hadarean
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -10,8 +10,6 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief The theory output channel interface
- **
- ** The theory output channel interface.
  **/
 
 #include "theory/output_channel.h"
