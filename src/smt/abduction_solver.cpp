@@ -29,7 +29,7 @@ namespace smt {
 AbductionSolver::AbductionSolver(SmtEngine* parent) : d_parent(parent) {}
 
 AbductionSolver::~AbductionSolver() {}
-bool AbductionSolver::getAbduct(const Node& conj,
+bool AbductionSolver::getAbduct(const Node& goal,
                                 const TypeNode& grammarType,
                                 Node& abd)
 {
@@ -38,7 +38,7 @@ bool AbductionSolver::getAbduct(const Node& conj,
     const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
   }
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: goal " << goal
                         << std::endl;
   std::vector<Expr> easserts = d_parent->getExpandedAssertions();
   std::vector<Node> axioms;
@@ -48,7 +48,7 @@ bool AbductionSolver::getAbduct(const Node& conj,
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   // must expand definitions
-  Node conjn = d_parent->expandDefinitions(conj);
+  Node conjn = d_parent->expandDefinitions(goal);
   // now negate
   conjn = conjn.negate();
   d_abdConj = conjn;
@@ -74,10 +74,10 @@ bool AbductionSolver::getAbduct(const Node& conj,
   return getAbductInternal(abd);
 }
 
-bool AbductionSolver::getAbduct(const Node& conj, Node& abd)
+bool AbductionSolver::getAbduct(const Node& goal, Node& abd)
 {
   TypeNode grammarType;
-  return getAbduct(conj, grammarType, abd);
+  return getAbduct(goal, grammarType, abd);
 }
 
 bool AbductionSolver::getAbductInternal(Node& abd)

@@ -40,20 +40,27 @@ class AbductionSolver
   ~AbductionSolver();
   /**
    * This method asks this SMT engine to find an abduct with respect to the
-   * current assertion stack (call it A) and the conjecture (call it B).
+   * current assertion stack (call it A) and the goal (call it B).
    * If this method returns true, then abd is set to a formula C such that
    * A ^ C is satisfiable, and A ^ ~B ^ C is unsatisfiable.
    *
-   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * @param goal The goal of the abduction problem.
+   * @param grammarType A sygus datatype type that encodes the syntax
    * restrictions on the shape of possible solutions.
+   * @param abd This argument is update to contain the solution to the
+   * abduction problem. Notice that this is a formula whose free symbols
+   * are contained in goal + the parent's current assertion stack.
    *
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
+  bool getAbduct(const Node& goal, const TypeNode& grammarType, Node& abd);
 
-  /** Same as above, but without user-provided grammar restrictions */
-  bool getAbduct(const Node& conj, Node& abd);
+  /** 
+   * Same as above, but without user-provided grammar restrictions. A default
+   * grammar is chosen internally using the sygus grammar constructor utility.
+   */
+  bool getAbduct(const Node& goal, Node& abd);
 
   /**
    * Check that a solution to an abduction conjecture is indeed a solution.
