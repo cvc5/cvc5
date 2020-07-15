@@ -120,54 +120,76 @@ class EqProof
   /** Removes all reflexivity steps, i.e. (= t t), from premises. */
   void cleanReflPremises(std::vector<Node>& premises) const;
 
-  /**
+  /** Expand coarse-grained transitivity steps for disequalities
    *
-   * if premises contain one equality between false and an equality then maybe
-   * it'll be necessary to fix the transitivity premises before reaching the
-   * original conclusion. For example
+   * Currently the equality engine can represent disequality reasoning in a
+   * rather coarse-grained manner with EqProof. This is always the case when the
+   * transitivity step contains a disequality, (= (= t t') false) or its
+   * symmetric.
    *
+   * There are two cases. In the simplest one the general shape of the EqProof
+   * is
    *  (= t1 t2) (= t3 t2) (= (t1 t3) false)
    *  ------------------------------------- TRANS
    *             false = true
    *
-   * must, before the processing below, become
-   *
-   *            (= t3 t2)
-   *            --------- SYMM
-   *  (= t1 t2) (= t2 t3)
-   *  ------------------- TRANS
-   *       (= t1 t3)             (= (t1 t3) false)
-   *  --------------------------------------------- TRANS
+   * which is expanded into
+   *                                          (= t3 t2)
+   *                                          --------- SYMM
+   *                                (= t1 t2) (= t2 t3)
+   *                                ------------------- TRANS
+   *   (= (= t1 t3) false)                (= t1 t3)
+   *  --------------------- SYMM    ------------------ TRUE_INTRO
+   *   (= false (= t1 t3))         (= (= t1 t3) true)
+   *  ----------------------------------------------- TRANS
    *             false = true
    *
-   * If the conclusion is, modulo symmetry, (= (= t1 t2) false), then the
-   * above construction may fail. Consider
+   * by explicitly adding the transitivity step for inferring (= t1 t3) and its
+   * predicate equality.
    *
-   *  (= t3 t4) (= t3 t2) (= (t1 t2) false)
-   *  ------------------------------------- TRANS
-   *             (= (= t4 t1) false)
+   * In the other case, the general shape of the EqProof is
    *
-   *  whose premises other than (= (t1 t2) false) do not allow the derivation
-   *  of (= (= t1 t2) (= t4 t1)). The original conclusion however can be
-   *  derived with
-   *                          (= t2 t3) (= t3 t4)
-   *                          ------------------- TRANS
-   *  (= (t1 t2) false)           (= t2 t4)
-   *  ------------------------------------------- MACRO_SR_PRED_TRANSFORM
-   *             (= (= t4 t1) false)
+   *  (= (= t1 t2) false) (= t1 x1) ... (= xn t3) (= t2 y1) ... (= ym t4)
+   * -------------------------------------------------------------------- TRANS
+   *         (= (= t4 t3) false)
    *
-   * where note that the conclusion is equal to the left premise with the
-   * right premise as a substitution applied to it, modulo rewriting (which
-   * accounts for the different order of the equality with false).
+   * which is converted into
+   *
+   *   (= t1 x1) ... (= xn t3)      (= t2 y1) ... (= ym t4)
+   *  ------------------------ TR  ------------------------ TR
+   *   (= t1 t3)                    (= t2 t4)
+   *  ----------- SYMM             ----------- SYMM
+   *   (= t3 t1)                    (= t4 t2)
+   *  ---------------------------------------- CONG
+   *   (= (= t3 t4) (= t1 t2))                         (= (= t1 t2) false)
+   *  --------------------------------------------------------------------- TR
+   *           (= (= t3 t4) false)
+   *          --------------------- MACRO_SR_PRED_TRANSFORM
+   *           (= (= t4 t3) false)
+   *
+   * whereas the last step is only necessary if the conclusion has the arguments
+   * in reverse order than expected. Note that the original step represents two
+   * substitutions happening on the disequality, from t1->t3 and t2->t4, which
+   * are implicitly justified by transitivity steps that need to be made
+   * explicity. Since there is no sense of ordering among which premisis (other
+   * than (= (= t1 t2) false)) are used for which substitution, the transitivity
+   * proofs are built greedly by searching the sets of premises.
    *
    * If in either of the above cases then the conclusion is directly derived
    * in the call, so only in the other cases we try to build a transitivity
    * step below
    *
-   * @param visited a cache from original EqProof conclusions to converted ones
-   * @param assumptions the assumptions (and variants) of the original EqProof
+   * @param conclusion the conclusion of the (possibly) coarse-grained
+   * transitivity step
+   * @param premises the premises of the (possibly) coarse-grained
+   * transitivity step
+   * @param p a pointer to a CDProof to store the conversion of this EqProof
+   * @param assumptions the assumptions (and variants) of the original
+   * EqProof. These are necessary to avoid cyclic proofs, which could be
+   * generated by creating transitivity steps for assumptions (which depend on
+   * themselves).
    */
-  bool expandTransitivityChildren(
+  bool expandTransitivityForDisequalities(
       Node conclusion,
       std::vector<Node>& premises,
       CDProof* p,
@@ -228,7 +250,7 @@ class EqProof
    * chain justifying (= ai bi).
    *
    * Congruence steps in EqProof are binary, representing reasoning over curried
-   * applications. In the simplest case the general shape of a congruenc e
+   * applications. In the simplest case the general shape of a congruence
    * EqProof is:
    *                     P0
    *  ------- REFL  ----------

@@ -112,15 +112,16 @@ void EqProof::cleanReflPremises(std::vector<Node>& premises) const
   }
 }
 
-bool EqProof::expandTransitivityChildren(
+bool EqProof::expandTransitivityForDisequalities(
     Node conclusion,
     std::vector<Node>& premises,
     CDProof* p,
     std::unordered_set<Node, NodeHashFunction>& assumptions) const
 {
-  Trace("eqproof-conv") << "EqProof::expandTransitivityChildren: check if need "
-                           "to expand transitivity children to conclude "
-                        << conclusion << " from premises " << premises << "\n";
+  Trace("eqproof-conv")
+      << "EqProof::expandTransitivityForDisequalities: check if need "
+         "to expand transitivity children to conclude "
+      << conclusion << " from premises " << premises << "\n";
   // Check premises to see if any of the form (= (= t1 t2) false), modulo
   // symmetry
   unsigned size = premises.size();
@@ -151,13 +152,12 @@ bool EqProof::expandTransitivityChildren(
   }
   NodeManager* nm = NodeManager::currentNM();
   Assert(termPos == 0 || termPos == 1);
-  Trace("eqproof-conv") << "EqProof::expandTransitivityChildren: found "
+  Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: found "
                            "offending equality at index "
                         << offending << " : " << premises[offending] << "\n";
   // We name the premise to be added later for the original conclusion. It might
   // be reordered below if we are in the subst case below
   Node premise = premises[offending];
-
   std::vector<Node> foldPremises;
   for (unsigned i = 0; i < size; ++i)
   {
@@ -219,7 +219,7 @@ bool EqProof::expandTransitivityChildren(
     Node premiseTermEq = premise[0];
     Node conclusionTermEq = conclusion[0];
     Trace("eqproof-conv")
-        << "EqProof::expandTransitivityChildren: Substitition "
+        << "EqProof::expandTransitivityForDisequalities: Substitition "
            "case. Need to build subst from "
         << premiseTermEq << " to " << conclusionTermEq << "\n";
     // If only one argument in the premise is substituted, premiseTermEq and
@@ -247,9 +247,9 @@ bool EqProof::expandTransitivityChildren(
     if (equalArg >= 0)
     {
       foldConclusion = subs[1 - equalArg][0].eqNode(subs[1 - equalArg][1]);
-      Trace("eqproof-conv")
-          << "EqProof::expandTransitivityChildren: Need to fold premises into "
-          << foldConclusion << "\n";
+      Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: "
+                               "Need to fold premises into "
+                            << foldConclusion << "\n";
       // add refl step for other substitution, just in case
       p->addStep(subs[equalArg][0].eqNode(subs[equalArg][1]),
                  PfRule::REFL,
@@ -258,14 +258,16 @@ bool EqProof::expandTransitivityChildren(
     }
     else
     {
-      Trace("eqproof-conv") << "EqProof::expandTransitivityChildren: Need two "
-                               "substitutions, so no fold can happen\n";
+      Trace("eqproof-conv")
+          << "EqProof::expandTransitivityForDisequalities: Need two "
+             "substitutions, so no fold can happen\n";
       // The substitutions t1 -> t3/t4 and t2 -> t3/t4 are built based on the
       // available premises. We must guarantee that the subsitution equality is
       // a premise or its symmetric
-      Trace("eqproof-conv") << "EqProof::expandTransitivityChildren: Look for "
-                            << premiseTermEq[0] << " and " << premiseTermEq[1]
-                            << " in premises " << foldPremises << "\n";
+      Trace("eqproof-conv")
+          << "EqProof::expandTransitivityForDisequalities: Look for "
+          << premiseTermEq[0] << " and " << premiseTermEq[1] << " in premises "
+          << foldPremises << "\n";
       Assert(foldPremises.size() >= 2)
           << "Less than 2 fold premises for substituting BOTH terms in "
              "disequality.\nDisequality: "
@@ -301,10 +303,10 @@ bool EqProof::expandTransitivityChildren(
       }
       else
       {
-        Trace("eqproof-conv")
-            << "EqProof::expandTransitivityChildren: Build transitivity chains "
-               "for two subs among more than 2 premises: "
-            << foldPremises << "\n";
+        Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: "
+                                 "Build transitivity chains "
+                                 "for two subs among more than 2 premises: "
+                              << foldPremises << "\n";
         // hard case. Try first with t1 = t3 and see if can build it. If it can,
         // go on and build t2 = t4. Otherwise go on and build t1 = t4, t2 = t3.
         subs[0].push_back(conclusionTermEq[0]);
@@ -341,14 +343,15 @@ bool EqProof::expandTransitivityChildren(
                           << "\nConclusion: " << conclusion << "\n";
           }
           Trace("eqproof-conv")
-              << "EqProof::expandTransitivityChildren: Built trans chains: "
+              << "EqProof::expandTransitivityForDisequalities: Built trans "
+                 "chains: "
                  "for two subs among more than 2 premises:\n";
           Trace("eqproof-conv")
-              << "EqProof::expandTransitivityChildren: " << transConclusion1
-              << " <- " << copy1foldPremises << "\n";
+              << "EqProof::expandTransitivityForDisequalities: "
+              << transConclusion1 << " <- " << copy1foldPremises << "\n";
           Trace("eqproof-conv")
-              << "EqProof::expandTransitivityChildren: " << transConclusion2
-              << " <- " << copy2foldPremises << "\n";
+              << "EqProof::expandTransitivityForDisequalities: "
+              << transConclusion2 << " <- " << copy2foldPremises << "\n";
           // do transitivity steps if need be
           if (copy1foldPremises.size() > 1
               && !assumptions.count(transConclusion1))
@@ -366,14 +369,14 @@ bool EqProof::expandTransitivityChildren(
       }
     }
     Trace("eqproof-conv")
-        << "EqProof::expandTransitivityChildren: Built substutitions "
+        << "EqProof::expandTransitivityForDisequalities: Built substutitions "
         << subs[0] << " and " << subs[1] << " to map " << premiseTermEq
         << " -> " << conclusionTermEq << "\n";
     Assert(subs[0][1] == conclusion[0][0] || subs[0][1] == conclusion[0][1])
-        << "EqProof::expandTransitivityChildren: First substitution " << subs[0]
-        << " doest not map to conclusion " << conclusion << "\n";
+        << "EqProof::expandTransitivityForDisequalities: First substitution "
+        << subs[0] << " doest not map to conclusion " << conclusion << "\n";
     Assert(subs[1][1] == conclusion[0][0] || subs[1][1] == conclusion[0][1])
-        << "EqProof::expandTransitivityChildren: Second substitution "
+        << "EqProof::expandTransitivityForDisequalities: Second substitution "
         << subs[1] << " doest not map to conclusion " << conclusion << "\n";
     // in the premises the substitution is stored reversed due to the
     // substitution proof being built via transitivity between the new
@@ -393,12 +396,12 @@ bool EqProof::expandTransitivityChildren(
   if (!foldConclusion.isNull())
   {
     Trace("eqproof-conv")
-        << "EqProof::expandTransitivityChildren: need to derive "
+        << "EqProof::expandTransitivityForDisequalities: need to derive "
         << foldConclusion << " with premises " << foldPremises << "\n";
     Assert(foldPremises.size() > 1 || foldConclusion == foldPremises.back()
            || (foldConclusion[0] == foldPremises.back()[1]
                && foldConclusion[1] == foldPremises.back()[0]))
-        << "EqProof::expandTransitivityChildren: single fold premise "
+        << "EqProof::expandTransitivityForDisequalities: single fold premise "
         << foldPremises.back() << " is not the same as foldConclusion "
         << foldConclusion << " and not its symmetric\n";
     // if the fold conclusion is an assumption, we'd be generating a cyclic
@@ -420,7 +423,8 @@ bool EqProof::expandTransitivityChildren(
       // create transitivity step to derive expected premise
       buildTransitivityChain(foldConclusion, foldPremises);
       Trace("eqproof-conv")
-          << "EqProof::expandTransitivityChildren: add transitivity step for "
+          << "EqProof::expandTransitivityForDisequalities: add transitivity "
+             "step for "
           << foldConclusion << " with premises " << foldPremises << "\n";
       // create folding step
       p->addStep(foldConclusion, PfRule::TRANS, foldPremises, {}, true);
@@ -430,7 +434,7 @@ bool EqProof::expandTransitivityChildren(
   premises.clear();
   premises.push_back(premise);
   Trace("eqproof-conv")
-      << "EqProof::expandTransitivityChildren: now derive conclusion "
+      << "EqProof::expandTransitivityForDisequalities: now derive conclusion "
       << conclusion;
   if (inSubstCase)
   {
@@ -448,9 +452,9 @@ bool EqProof::expandTransitivityChildren(
                substPremises,
                {nm->operatorOf(kind::EQUAL)},
                true);
-    Trace("eqproof-conv")
-        << "EqProof::expandTransitivityChildren: via congruence derived "
-        << congConclusion << "\n";
+    Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
+                             "congruence derived "
+                          << congConclusion << "\n";
     // transitivity step between that and the original premise
     premises.insert(premises.begin(), congConclusion);
     Node transConclusion =
@@ -460,9 +464,9 @@ bool EqProof::expandTransitivityChildren(
     if (!assumptions.count(transConclusion))
     {
       p->addStep(transConclusion, PfRule::TRANS, premises, {}, true);
-      Trace("eqproof-conv")
-          << "EqProof::expandTransitivityChildren: via transitivity derived "
-          << transConclusion << "\n";
+      Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: "
+                               "via transitivity derived "
+                            << transConclusion << "\n";
     }
     // if order is reversed, to a MACRO_SR_PRED_TRANSFORM step
     if (substConclusionInReverseOrder)
@@ -472,16 +476,17 @@ bool EqProof::expandTransitivityChildren(
                  {transConclusion},
                  {conclusion},
                  true);
-      Trace("eqproof-conv")
-          << "EqProof::expandTransitivityChildren: via macro transform derived "
-          << conclusion << "\n";
+      Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: "
+                               "via macro transform derived "
+                            << conclusion << "\n";
     }
   }
   else
   {
     // create TRUE_INTRO step for foldConclusion
     Trace("eqproof-conv")
-        << " via transitivity.\nEqProof::expandTransitivityChildren: adding "
+        << " via transitivity.\nEqProof::expandTransitivityForDisequalities: "
+           "adding "
         << PfRule::TRUE_INTRO << " step for " << foldConclusion[0] << "\n";
     Node newFoldConclusion = foldConclusion.eqNode(nm->mkConst<bool>(true));
     p->addStep(newFoldConclusion, PfRule::TRUE_INTRO, {foldConclusion}, {});
@@ -989,9 +994,11 @@ Node EqProof::addToProof(
     // Eliminate spurious premises. Reasoning below assumes no refl steps.
     cleanReflPremises(children);
     // If any premise is of the form (= (t1 t2) false), then the transitivity
-    // step may be coarse-grained and needs to be expanded. If the expansion
-    // happens it also finalizes the proof of conclusion.
-    if (!expandTransitivityChildren(conclusion, children, p, assumptions))
+    // step is coarse-grained and needs to be expanded to properly phrase its
+    // disequality reasoning properly in terms of the congruence rules. If the
+    // expansion happens it also finalizes the proof of conclusion.
+    if (!expandTransitivityForDisequalities(
+            conclusion, children, p, assumptions))
     {
       Assert(!children.empty());
       Trace("eqproof-conv")
