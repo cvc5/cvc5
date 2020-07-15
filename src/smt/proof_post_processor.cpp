@@ -435,6 +435,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   return Node::null();
 }
 
+Node ProofPostprocessCallback::equateToWitnessForm(Node k, CDProof* cdp)
+{
+  
+}
+
 ProofPostprocessStatsCallback::ProofPostprocessStatsCallback()
     : d_ruleCount("finalProof::ruleCount"),
       d_totalRuleCount("finalProof::totalRuleCount", 0)

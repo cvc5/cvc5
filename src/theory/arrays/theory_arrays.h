@@ -28,8 +28,10 @@
 #include "theory/arrays/array_info.h"
 #include "theory/arrays/array_proof_reconstruction.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/arrays/proof_checker.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -356,6 +358,12 @@ class TheoryArrays : public Theory {
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  
+  /** The proof checker */
+  ArraysProofRuleChecker d_pchecker;
+  
+  /** Proof-producing equaltity engine */
+  std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
 
   /** Are we in conflict? */
   context::CDO<bool> d_conflict;
@@ -494,7 +502,11 @@ class TheoryArrays : public Theory {
    * for the comparison between the indexes that appears in the lemma.
    */
   Node getNextDecisionRequest();
-
+  /** Assert inference internal */
+  bool assertInference(TNode eq,
+                      bool polarity,
+                      TNode reason,
+                      PfRule r);
  public:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 

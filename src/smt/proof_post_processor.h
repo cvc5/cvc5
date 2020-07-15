@@ -74,6 +74,11 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp);
+  /** 
+   * Equate to witness form, add proof of k = toWitness(k) to cdp, return
+   * k = toWitness(k).
+   */
+  Node equateToWitnessForm(Node k, CDProof* cdp);
 };
 
 /** Statistics callback class */

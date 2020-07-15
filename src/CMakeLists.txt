@@ -356,6 +356,8 @@ libcvc4_add_sources(
   theory/arrays/array_info.h
   theory/arrays/array_proof_reconstruction.cpp
   theory/arrays/array_proof_reconstruction.h
+  theory/arrays/proof_checker.cpp
+  theory/arrays/proof_checker.h
   theory/arrays/static_fact_manager.cpp
   theory/arrays/static_fact_manager.h
   theory/arrays/theory_arrays.cpp

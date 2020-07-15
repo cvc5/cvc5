@@ -29,11 +29,7 @@ namespace smt {
 /**
  * A proof generator storing proofs of preprocessing. This has two main
  * interfaces during solving:
-<<<<<<< HEAD
- * (1) notifyNewAssert, for assertions that not part of the input and are
-=======
  * (1) notifyNewAssert, for assertions that are not part of the input and are
->>>>>>> c6e3264f83df54a886b28c14e2a911c176d89551
  * added by preprocessing passes,
  * (2) notifyPreprocessed, which is called when a preprocessing pass rewrites
  * an assertion into another.

@@ -33,6 +33,7 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "expr/proof_checker.h"
 
 using namespace std;
 
@@ -90,6 +91,8 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
       d_notify(*this),
       d_equalityEngine(d_notify, c, name + "theory::arrays", true),
+      d_pfEqualityEngine(
+          new eq::ProofEqEngine(c, u, d_equalityEngine, pnm)),
       d_conflict(c, false),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -155,6 +158,12 @@ TheoryArrays::TheoryArrays(context::Context* c,
   d_equalityEngine.addPathReconstructionTrigger(d_reasonRow, &d_proofReconstruction);
   d_equalityEngine.addPathReconstructionTrigger(d_reasonRow1, &d_proofReconstruction);
   d_equalityEngine.addPathReconstructionTrigger(d_reasonExt, &d_proofReconstruction);
+  
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_pchecker.registerTo(pc);
+  }
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -711,7 +720,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
-          d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
+          assertInference(ni.eqNode(s[2]), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
           Assert(++it == stores->end());
         }
       }
@@ -782,7 +791,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       }
 
       // Apply RIntro1 Rule
-      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, d_reasonRow1);
+      assertInference(ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);   
     }
 
     d_infoMap.addStore(node, node);
@@ -1291,6 +1300,7 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
   Node skolem;
   std::unordered_map<Node, Node, NodeHashFunction>::iterator it = d_skolemCache.find(ref);
   if (it == d_skolemCache.end()) {
+    // TODO: use ref
     NodeManager* nm = NodeManager::currentNM();
     skolem = nm->mkSkolem(name, type, comment);
     d_skolemCache[ref] = skolem;
@@ -1311,7 +1321,7 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
   if (makeEqual) {
     Node d = skolem.eqNode(ref);
     Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
-    d_equalityEngine.assertEquality(d, true, d_true);
+    assertInference(d, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     Assert(!d_conflict);
     d_skolemAssertions.push_back(d);
     d_skolemIndex = d_skolemIndex + 1;
@@ -1367,7 +1377,7 @@ void TheoryArrays::check(Effort e) {
       case kind::NOT:
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
-        } else if (!d_equalityEngine.areDisequal(fact[0][0], fact[0][1], false)) {
+        } else {
           // Assert the dis-equality
           d_equalityEngine.assertEquality(fact[0], false, fact);
 
@@ -1423,8 +1433,7 @@ void TheoryArrays::check(Effort e) {
               Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                                  << "\teq = " << eq << std::endl
                                  << "\treason = " << fact << std::endl;
-
-              d_equalityEngine.assertEquality(eq, false, fact, d_reasonExt);
+              assertInference(eq, false, fact, PfRule::ARRAYS_EXT);
               ++d_numProp;
             }
 
@@ -1731,7 +1740,7 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
     preRegisterTermInternal(ni);
-    d_equalityEngine.assertEquality(ni.eqNode(s[2]), true, d_true, d_reasonRow1);
+    assertInference(ni.eqNode(s[2]), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
   }
 }
 
@@ -1909,7 +1918,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     if (!d_equalityEngine.hasTerm(selConst)) {
       preRegisterTermInternal(selConst);
     }
-    d_equalityEngine.assertEquality(selConst.eqNode(defValue), true, d_true);
+    assertInference(selConst.eqNode(defValue), true, d_true, PfRule::TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
@@ -2043,7 +2052,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_equalityEngine.assertEquality(aj_eq_bj, true, reason, d_reasonRow);
+      assertInference(aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -2053,7 +2062,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       Node i_eq_j = i.eqNode(j);
       Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
-      d_equalityEngine.assertEquality(i_eq_j, true, reason, d_reasonRow);
+      assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -2375,6 +2384,28 @@ TrustNode TheoryArrays::expandDefinition(Node node)
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
   return TrustNode::null();
+}
+
+bool TheoryArrays::assertInference(TNode eq,
+                    bool polarity,
+                    TNode reason,
+                      PfRule r)
+{
+  Trace("arrays-infer") << "TheoryArrays::assertInference: " << (polarity ? Node(eq) : eq.notNode()) << " by " << reason << "; " << r << std::endl;
+  if (options::proofNew())
+  {
+    // TODO
+    return d_equalityEngine.assertEquality(eq, polarity, reason);
+  }
+  unsigned pid = eq::MERGED_THROUGH_EQUALITY;
+  switch(r)
+  {
+    case PfRule::ARRAYS_READ_OVER_WRITE: pid = d_reasonRow;break;
+    case PfRule::ARRAYS_READ_OVER_WRITE_1: pid = d_reasonRow1;break;
+    case PfRule::ARRAYS_EXT: pid = d_reasonExt;break;
+    default:break;
+  }
+  return d_equalityEngine.assertEquality(eq, polarity, reason, pid);
 }
 
 }/* CVC4::theory::arrays namespace */

@@ -588,6 +588,10 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: (not F)
   FALSE_ELIM,
+  //================================================= Array rules
+  ARRAYS_READ_OVER_WRITE,
+  ARRAYS_READ_OVER_WRITE_1,
+  ARRAYS_EXT,
 
   //================================================= Quantifiers rules
   // ======== Witness intro
