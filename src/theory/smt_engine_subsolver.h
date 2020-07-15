@@ -35,12 +35,10 @@ namespace theory {
  * of the argument "query".
  *
  * @param smte The smt engine pointer to initialize
- * @param query The query to check (if provided)
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
 void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
-                         Node query = Node::null(),
                          bool needsTimeout = false,
                          unsigned long timeout = 0);
 

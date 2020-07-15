@@ -425,7 +425,6 @@ header = "options/arith_options.h"
   long       = "pb-rewrites"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "apply pseudo boolean rewrites"
 
 [[option]]
