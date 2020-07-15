@@ -2025,6 +2025,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
+        if (!isRelevant(assertion))
+        {
+          // not relevant, skip
+          continue;
+        }
         Node val = getModel()->getValue(assertion);
         if (val != d_true)
         {
