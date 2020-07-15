@@ -15,11 +15,13 @@
  ** minimally functional.
  **/
 
+
 #include "util/statistics.h"
 
 #include <iostream>
 #include <sstream>
 
+#include "expr/node.h"
 #include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "smt/smt_engine.h"
