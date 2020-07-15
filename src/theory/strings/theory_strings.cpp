@@ -50,7 +50,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_im(c, u, d_state, d_termReg, d_extTheory, out, d_statistics),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
-      d_csolver(c, u, d_state, *d_im, d_termReg, *d_bsolver)),
+      d_csolver(c, u, d_state, d_im, d_termReg, d_bsolver)),
       d_esolver(c,
                                  u,
                                  d_state,
@@ -142,7 +142,7 @@ void TheoryStrings::addSharedTerm(TNode t) {
   d_equalityEngine.addTriggerTerm(t, THEORY_STRINGS);
   if (options::stringExp())
   {
-    getExtTheory()->registerTermRec(t);
+    d_esolver.addSharedTerm(t);
   }
   Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
 }
