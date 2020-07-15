@@ -1006,13 +1006,6 @@ class CVC4_PUBLIC SmtEngine
   void checkAbduct(Node a);
 
   /**
-   * Postprocess a value for output to the user.  Involves doing things
-   * like turning datatypes back into tuples, length-1-bitvectors back
-   * into booleans, etc.
-   */
-  Node postprocess(TNode n, TypeNode expectedType) const;
-
-  /**
    * This is something of an "init" procedure, but is idempotent; call
    * as often as you like.  Should be called whenever the final options
    * and logic for the problem are set (at least, those options that are
@@ -1142,7 +1135,10 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
-
+  
+  /** The assertions manager */
+  std::unique_ptr<AssertionsManager> d_assertm;
+  
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
@@ -1164,26 +1160,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
-
-  /**
-   * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in incremental mode.
-   */
-  AssertionList* d_assertionList;
-
-  /**
-   * List of lemmas generated for global recursive function definitions. We
-   * assert this list of definitions in each check-sat call.
-   */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
-
-  /**
-   * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
-   */
-  std::vector<Expr> d_assumptions;
 
   /**
    * List of items for which to retrieve values using getAssignment().
@@ -1267,11 +1243,6 @@ class CVC4_PUBLIC SmtEngine
    * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-
-  /*
-   * Whether we did a global negation of the formula.
-   */
-  bool d_globalNegation;
 
   /**
    * Most recent result of last checkSatisfiability/checkEntailed or
