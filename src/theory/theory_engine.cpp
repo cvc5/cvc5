@@ -1641,7 +1641,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   AssertionPipeline lemmas;
   // call preprocessor
   d_tpp.preprocess(node, lemmas, p & LemmaProperty::PREPROCESS);
-  
+
   if (d_relManager != nullptr && (p & LemmaProperty::NEEDS_JUSTIFY))
   {
     d_relManager->notifyPreprocessedAssertions(lemmas.ref());

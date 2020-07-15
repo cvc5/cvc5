@@ -373,7 +373,7 @@ void InferenceManager::doPendingLemmas()
       }
     }
     LemmaProperty p = LemmaProperty::NONE;
-    if (ii.d_id==Inference::REDUCTION)
+    if (ii.d_id == Inference::REDUCTION)
     {
       p |= LemmaProperty::NEEDS_JUSTIFY;
     }
