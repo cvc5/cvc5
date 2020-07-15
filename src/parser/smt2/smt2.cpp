@@ -1362,7 +1362,7 @@ api::Term Smt2::setNamedAttribute(api::Term& expr, const SExpr& sexpr)
   // check that sexpr is a fresh function symbol, and reserve it
   reserveSymbolAtAssertionLevel(name);
   // define it
-  api::Term func = bindVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED || ExprManager::VAR_FLAG_GLOBAL);
+  api::Term func = bindVar(name, expr.getSort(), ExprManager::VAR_FLAG_DEFINED | ExprManager::VAR_FLAG_GLOBAL);
   // remember the last term to have been given a :named attribute
   setLastNamedTerm(expr, name);
   return func;
