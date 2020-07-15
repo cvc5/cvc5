@@ -17,10 +17,9 @@
 #ifndef CVC4__SMT__PROCESS_ASSERTIONS_H
 #define CVC4__SMT__PROCESS_ASSERTIONS_H
 
-#include <map>
+#include <unordered_map>
 
-#include "context/cdhashmap.h"
-#include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "theory/substitutions.h"
 
@@ -34,6 +33,7 @@ namespace smt {
  */
 class AbstractValues
 {
+  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
  public:
   AbstractValues(NodeManager* nm);
   ~AbstractValues();
@@ -61,7 +61,7 @@ class AbstractValues
    * A map of AbsractValues to their actual constants.  Only used if
    * options::abstractValues() is on.
    */
-  SubstitutionMap d_abstractValueMap;
+  theory::SubstitutionMap d_abstractValueMap;
 
   /**
    * A mapping of all abstract values (actual value |-> abstract) that
