@@ -373,7 +373,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         for (const Node& fc : fail_cvs)
         {
           std::stringstream ss;
-          Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, fc);
+          TermDbSygus::toStreamSygus(ss, fc);
           Trace("sygus-engine") << ss.str() << " ";
         }
         Trace("sygus-engine") << std::endl;
@@ -434,7 +434,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
+        TermDbSygus::toStreamSygus(ss, onv);
         if (printDebug)
         {
           sygusEnumOut << " " << ss.str();
@@ -559,7 +559,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       {
         Node v = candidate_values[i];
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
+        TermDbSygus::toStreamSygus(ss, v);
         out << "(" << d_quant[0][i] << " " << ss.str() << ")";
       }
       out << ")" << std::endl;
@@ -1193,8 +1193,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         else
         {
-          Printer::getPrinter(options::outputLanguage())
-              ->toStreamSygus(out, sol);
+          Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
+          out << bsol;
         }
         out << ")" << std::endl;
       }

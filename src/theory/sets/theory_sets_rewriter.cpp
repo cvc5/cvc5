@@ -120,7 +120,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
   case kind::SETMINUS: {
     if(node[0] == node[1]) {
-      Node newNode = nm->mkConst(EmptySet(nm->toType(node[0].getType())));
+      Node newNode = nm->mkConst(EmptySet(node[0].getType()));
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     } else if(node[0].getKind() == kind::EMPTYSET ||
@@ -128,7 +128,9 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << node[0] << std::endl;
       return RewriteResponse(REWRITE_AGAIN, node[0]);
     }else if( node[1].getKind() == kind::UNIVERSE_SET ){
-      return RewriteResponse(REWRITE_AGAIN, NodeManager::currentNM()->mkConst(EmptySet(node[1].getType().toType())));
+      return RewriteResponse(
+          REWRITE_AGAIN,
+          NodeManager::currentNM()->mkConst(EmptySet(node[1].getType())));
     } else if(node[0].isConst() && node[1].isConst()) {
       std::set<Node> left = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> right = NormalForm::getElementsFromNormalConstant(node[1]);
@@ -244,7 +246,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     }
 
     if(node[0].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(EmptySet(node.getType())));
     } else if(node[0].isConst()) {
       std::set<Node> new_tuple_set;
       std::set<Node> tuple_set = NormalForm::getElementsFromNormalConstant(node[0]);
@@ -271,7 +274,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     Trace("sets-rels-postrewrite") << "Sets::postRewrite processing " <<  node << std::endl;
     if( node[0].getKind() == kind::EMPTYSET ||
         node[1].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(EmptySet(node.getType())));
     } else if( node[0].isConst() && node[1].isConst() ) {
       Trace("sets-rels-postrewrite") << "Sets::postRewrite processing **** " <<  node << std::endl;
       std::set<Node> new_tuple_set;
@@ -315,7 +319,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   case kind::JOIN: {
     if( node[0].getKind() == kind::EMPTYSET ||
         node[1].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(EmptySet(node.getType())));
     } else if( node[0].isConst() && node[1].isConst() ) {
       Trace("sets-rels-postrewrite") << "Sets::postRewrite processing " <<  node << std::endl;
       std::set<Node> new_tuple_set;
@@ -359,7 +364,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 
   case kind::TCLOSURE: {
     if(node[0].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(EmptySet(node.getType())));
     } else if (node[0].isConst()) {
       std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
       std::set<Node> tc_rel_mems = RelsUtils::computeTC(rel_mems, node);
@@ -379,7 +385,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   
   case kind::IDEN: {
     if(node[0].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(EmptySet(node.getType())));
     } else if (node[0].isConst()) {
       std::set<Node> iden_rel_mems;
       std::set<Node> rel_mems = NormalForm::getElementsFromNormalConstant(node[0]);
@@ -409,7 +416,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
     if( min_card == 0) {
       return RewriteResponse(REWRITE_DONE, nm->mkNullaryOperator( node.getType(), kind::UNIVERSE_SET ));
     } else if(node[0].getKind() == kind::EMPTYSET) {
-      return RewriteResponse(REWRITE_DONE, nm->mkConst(EmptySet(nm->toType(node.getType()))));
+      return RewriteResponse(REWRITE_DONE,
+                             nm->mkConst(EmptySet(node.getType())));
     } else if (node[0].isConst()) {
       std::set<Node> has_checked;
       std::set<Node> join_img_mems;

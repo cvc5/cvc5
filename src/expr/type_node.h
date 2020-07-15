@@ -639,6 +639,9 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /** Is this a sygus datatype type */
+  bool isSygusDatatype() const;
+
   /**
    * Get instantiated datatype type. The type on which this method is called
    * should be a parametric datatype whose parameter list is the same size as
