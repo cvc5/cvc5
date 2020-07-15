@@ -64,7 +64,7 @@ class RewriterWhite : public CxxTest::TestSuite
     d_smt->finalOptionsAreSet();
     // make a rewriter with proof generation
     d_rewriter = new Rewriter;
-    d_rewriter->setProofChecker(d_smt->getProofChecker());
+    d_rewriter->setProofChecker(d_smt->getProofManager()->getChecker());
   }
 
   void tearDown() override

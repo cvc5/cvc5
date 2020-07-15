@@ -36,6 +36,15 @@ Node ArraysProofRuleChecker::checkInternal(PfRule id,
   }
   if (id == PfRule::ARRAYS_READ_OVER_WRITE_1)
   {
+    Assert (children.empty());
+    Assert (args.size()==1);
+    Node lhs = args[0];
+    if (lhs.getKind()!=kind::SELECT || lhs[0].getKind()!=kind::STORE || lhs[0][1]!=lhs[1])
+    {
+      return Node::null();
+    }
+    Node rhs = lhs[0][2];
+    return lhs.eqNode(rhs);
   }
   if (id == PfRule::ARRAYS_EXT)
   {

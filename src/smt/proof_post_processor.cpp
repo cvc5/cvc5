@@ -19,6 +19,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
+#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -112,7 +113,8 @@ bool ProofPostprocessCallback::update(PfRule id,
 Node ProofPostprocessCallback::expandMacros(PfRule id,
                                             const std::vector<Node>& children,
                                             const std::vector<Node>& args,
-                                            CDProof* cdp)
+                                            CDProof* cdp,
+                                            bool useWitness)
 {
   if (d_elimRules.find(id) == d_elimRules.end())
   {
@@ -123,9 +125,21 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
     // (TRANS
-    //   (SUBS <children> :args args[0:1])
-    //   (REWRITE :args <t.substitute(x1,t1). ... .substitute(xn,tn)> args[2]))
+    //   ... proof of t=tw
+    //   (SUBS <children> :args (tw args[1]))
+    //   (REWRITE :args <tw.substitute(x1,t1). ... .substitute(xn,tn)> args[2]))
+    // where tw = SkolemManager::getWitnessForm(t).
+    std::vector<Node> transChildren;
     Node t = args[0];
+    Node tw = t;
+    if (useWitness)
+    {
+      tw = SkolemManager::getWitnessForm(t);
+      if (t!=tw)
+      {
+        
+      }
+    }
     Node ts;
     if (!children.empty())
     {
@@ -140,21 +154,22 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         }
       }
       ts =
-          builtin::BuiltinProofRuleChecker::applySubstitution(t, children, sid);
-      if (ts != t)
+          builtin::BuiltinProofRuleChecker::applySubstitution(tw, children, sid);
+      if (ts != tw)
       {
         // apply SUBS proof rule if necessary
         if (!update(PfRule::SUBS, children, sargs, cdp))
         {
           // if not elimianted, add as step
-          cdp->addStep(t.eqNode(ts), PfRule::SUBS, children, sargs);
+          cdp->addStep(tw.eqNode(ts), PfRule::SUBS, children, sargs);
         }
+        transChildren.push_back(tw.eqNode(ts));
       }
     }
     else
     {
       // no substitute
-      ts = t;
+      ts = tw;
     }
     std::vector<Node> rargs;
     rargs.push_back(ts);
@@ -178,15 +193,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
         // if not elimianted, add as step
         cdp->addStep(ts.eqNode(tr), PfRule::REWRITE, children, rargs);
       }
-      // did substitute and rewrite, must add TRANS
-      if (ts != t)
-      {
-        Node eq1 = t.eqNode(ts);
-        Node eq2 = ts.eqNode(tr);
-        cdp->addStep(t.eqNode(tr), PfRule::TRANS, {eq1, eq2}, {});
-      }
+      transChildren.push_back(ts.eqNode(tr));
     }
-    if (t == tr)
+    // must add TRANS
+    if (transChildren.size()>1)
+    {
+      cdp->addStep(t.eqNode(tr), PfRule::TRANS, transChildren, {});
+    }
+    else if (t == tr)
     {
       // typically not necessary, but done to be robust
       cdp->addStep(t.eqNode(tr), PfRule::REFL, {}, {t});
@@ -435,8 +449,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
 
   return Node::null();
 }
-
-Node ProofPostprocessCallback::equateToWitnessForm(Node k, CDProof* cdp) {}
 
 ProofPostprocessStatsCallback::ProofPostprocessStatsCallback()
     : d_ruleCount("finalProof::ruleCount"),

@@ -315,7 +315,7 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
 
 TrustNode TheoryUF::explain(TNode literal)
 {
-  return d_pfEqualityEngine.get()->explain(literal);
+  return d_pfEqualityEngine->explain(literal);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {

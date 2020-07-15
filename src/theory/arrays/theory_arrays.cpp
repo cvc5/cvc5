@@ -871,6 +871,7 @@ TrustNode TheoryArrays::explain(TNode literal)
 {
   Node explanation = explain(literal, NULL);
   return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
+  //return d_pfEqualityEngine->explain(literal);
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
@@ -2163,14 +2164,14 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!d_equalityEngine.hasTerm(bj2)) {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine.assertEquality(eq1, true, d_true);
+      assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_equalityEngine.assertEquality(eq2, true, d_true);
+      assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -2297,23 +2298,41 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  std::shared_ptr<eq::EqProof> proof = d_proofsEnabled ?
-      std::make_shared<eq::EqProof>() : nullptr;
-
-  d_conflictNode = explain(a.eqNode(b), proof.get());
-
-  if (!d_inCheckModel) {
-    std::unique_ptr<ProofArray> proof_array;
-
-    if (d_proofsEnabled) {
-      proof->debug_print("pf::array");
-      proof_array.reset(new ProofArray(proof,
-                                       /*row=*/d_reasonRow,
-                                       /*row1=*/d_reasonRow1,
-                                       /*ext=*/d_reasonExt));
+  TrustNode tconf;
+  std::shared_ptr<eq::EqProof> proof = nullptr;
+  if (options::proofNew() && false)
+  {
+    tconf = d_pfEqualityEngine->assertConflict(a.eqNode(b));
+    d_conflictNode = tconf.getNode();
+  }
+  else
+  {
+    if (d_proofsEnabled)
+    {
+      proof = std::make_shared<eq::EqProof>();
     }
 
-    d_out->conflict(d_conflictNode, std::move(proof_array));
+    d_conflictNode = explain(a.eqNode(b), proof.get());
+    tconf = TrustNode::mkTrustConflict(d_conflictNode, nullptr);
+  }
+
+  if (!d_inCheckModel) {
+    if (options::proofNew() && false)
+    {
+      d_out->trustedConflict(tconf);
+    }
+    else
+    {
+      std::unique_ptr<ProofArray> proof_array;
+      if (d_proofsEnabled) {
+        proof->debug_print("pf::array");
+        proof_array.reset(new ProofArray(proof,
+                                        /*row=*/d_reasonRow,
+                                        /*row1=*/d_reasonRow1,
+                                        /*ext=*/d_reasonExt));
+      }
+      d_out->conflict(tconf.getNode(), std::move(proof_array));
+    }
   }
 
   d_conflict = true;
@@ -2398,10 +2417,30 @@ bool TheoryArrays::assertInference(TNode eq,
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(eq) : eq.notNode()) << " by "
                         << reason << "; " << r << std::endl;
+  Assert (eq.getKind()==kind::EQUAL);
   if (options::proofNew())
   {
+    Node fact = polarity ? Node(eq) : eq.notNode();
+    std::vector<Node> args;
+    switch (r)
+    {
+      case PfRule::MACRO_SR_PRED_INTRO:
+        args.push_back(fact);
+        break;
+      case PfRule::ARRAYS_READ_OVER_WRITE_1: 
+        Assert (polarity);
+        args.push_back(eq[0]);
+        break;
+      case PfRule::ARRAYS_READ_OVER_WRITE: 
+      case PfRule::ARRAYS_EXT:
+      default: 
+        args.push_back(fact);
+        r = PfRule::TRUST;
+        break;
+    }
     // TODO
     return d_equalityEngine.assertEquality(eq, polarity, reason);
+    //return d_pfEqualityEngine->assertFact(fact, r, reason, args);
   }
   unsigned pid = eq::MERGED_THROUGH_EQUALITY;
   switch (r)
