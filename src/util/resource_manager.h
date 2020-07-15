@@ -9,11 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** [[ Add lengthier description here ]]
-
- ** \todo document this file
-
-**/
+ ** \brief Provides mechanisms to limit resources.
+  **
+ ** This file provides the ResourceManager class. It can be used to impose
+ ** (cumulative and per-call) resource limits on the solver, as well as per-call
+ ** time limits.
+ **/
 
 #include "cvc4_public.h"
 
