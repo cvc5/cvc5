@@ -121,7 +121,7 @@ class EqProof
    * There are two cases. In the simplest one the general shape of the EqProof
    * is
    *  (= t1 t2) (= t3 t2) (= (t1 t3) false)
-   *  ------------------------------------- TRANS
+   *  ------------------------------------- EQP::TR
    *             false = true
    *
    * which is expanded into
@@ -136,12 +136,13 @@ class EqProof
    *             false = true
    *
    * by explicitly adding the transitivity step for inferring (= t1 t3) and its
-   * predicate equality.
+   * predicate equality. Note that we differentiate (from now on) the EqProof
+   * rules ids from those of ProofRule by adding the prefix EQP:: to the former.
    *
    * In the other case, the general shape of the EqProof is
    *
    *  (= (= t1 t2) false) (= t1 x1) ... (= xn t3) (= t2 y1) ... (= ym t4)
-   * -------------------------------------------------------------------- TRANS
+   * ------------------------------------------------------------------- EQP::TR
    *         (= (= t4 t3) false)
    *
    * which is converted into
@@ -237,21 +238,21 @@ class EqProof
    *   ...
    *   [n-1] -> p_{0,n} ... p_{m_n-1,n-1}
    *
-   * where f has arity n and each p_{0,i} ... p_{m_i, i} contains a transitivity
-   * chain justifying (= ai bi).
+   * where f has arity n and each p_{0,i} ... p_{m_i, i} is a transitivity chain
+   * (modulo ordering) justifying (= ai bi).
    *
    * Congruence steps in EqProof are binary, representing reasoning over curried
    * applications. In the simplest case the general shape of a congruence
    * EqProof is:
-   *                     P0
-   *  ------- REFL  ----------
-   *     []         (= a0 b0)            P1
-   *  ----------------------- CONG   ---------
-   *            []                   (= a1 b1)             P2
-   *         --------------------------------- CONG   -----------
-   *                        []                         (= a2 b2)
-   *                     --------------------------------------- CONG
-   *                          (= (f a0 a1 a2) (f b0 b1 b2))
+   *                                     P0
+   *              ------- EQP::REFL  ----------
+   *       P1        []               (= a0 b0)
+   *  ---------   ----------------------- EQP::CONG
+   *  (= a1 b1)             []                        P2
+   *  ------------------------- EQP::CONG        -----------
+   *             []                               (= a2 b2)
+   *          ------------------------------------------------ EQP::CONG
+   *                  (= (f a0 a1 a2) (f b0 b1 b2))
    *
    * where [] stands for the null node, symbolizing "equality between partial
    * applications".
@@ -268,14 +269,14 @@ class EqProof
    *
    * The more complex case of congruence proofs has transitivity steps as the
    * first child of CONG steps. For example
-   *                    P0
-   *  ------- REFL  ----------
-   *  (= f f)       (= a0 c)            P'
-   *  ----------------------- CONG   ---------
-   *           []                    (= b0 c)             P1
-   *        ---------------------------------- TRANS  -----------
-   *                     []                            (= a1 b1)
-   *               -------------------------------------------- CONG
+   *                                     P0
+   *              ------- EQP::REFL  ----------
+   *     P'          []            (= a0 c)
+   *  ---------   ----------------------------- EQP::CONG
+   *  (= b0 c)             []                               P1
+   * ------------------------- EQP::TRANS             -----------
+   *            []                                     (= a1 b1)
+   *         ----------------------------------------------------- EQP::CONG
    *                          (= (f a0 a1) (f b0 b1))
    *
    * where when the first child of CONG is a transitivity step
@@ -292,10 +293,10 @@ class EqProof
    * applications of *different* arities, there is, necessarily, a transitivity
    * step as a first child a CONG step whose conclusion is an equality of n-ary
    * applications of different arities. For example
-   *             P0                        P1
-   * -------------------------- TRANS  -----------
-   *     (= (f a0 a1) (f b0))           (= a2 b1)
-   * --------------------------------------------- CONG
+   *             P0                              P1
+   * -------------------------- EQP::TRANS  -----------
+   *     (= (f a0 a1) (f b0))                (= a2 b1)
+   * -------------------------------------------------- EQP::CONG
    *              (= (f a0 a1 a2) (f b0 b1))
    *
    * will be first reduced with i = 2 (maximal arity amorg the original
@@ -321,6 +322,7 @@ class EqProof
    * @param visited a cache of the original EqProof conclusions and the
    * resulting conclusion after conversion.
    * @param assumptions the assumptions (and variants) of the original EqProof
+   * @param isNary whether conclusion is an equality of n-ary applications
    */
   void reduceNestedCongruence(
       unsigned i,
