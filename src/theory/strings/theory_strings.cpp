@@ -50,7 +50,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_im(c, u, d_state, d_termReg, d_extTheory, out, d_statistics),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
-      d_csolver(c, u, d_state, d_im, d_termReg, d_bsolver)),
+      d_csolver(c, u, d_state, d_im, d_termReg, d_bsolver),
       d_esolver(c,
                                  u,
                                  d_state,
@@ -61,8 +61,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                                  d_csolver,
                                  d_extTheory,
                                  d_statistics),
-      d_rsolver(
-      d_state, d_im, d_csolver, d_esolver, d_statistics, c, u),
+      d_rsolver(d_state, d_im, d_csolver, d_esolver, d_statistics, c, u),
       d_stringsFmf(c, u, valuation, d_termReg)
 {
   // The kinds we are treating as function application in congruence
