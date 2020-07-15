@@ -15,7 +15,6 @@
 #ifndef CVC4__SMT__SET_DEFAULTS_H
 #define CVC4__SMT__SET_DEFAULTS_H
 
-#include "smt/smt_engine.h"
 #include "theory/logic_info.h"
 
 namespace CVC4 {
@@ -23,18 +22,18 @@ namespace smt {
 
 /**
  * The purpose of this method is to set the default options and update the logic
- * info for SMT engine smte.
+ * info for an SMT engine.
  *
- * The argument logic is a reference to the logic of SmtEngine, which can be
+ * @param logic A reference to the logic of SmtEngine, which can be
  * updated by this method based on the current options and the logic itself.
- *
- * Note that currently, options are associated with the ExprManager. Thus, this
- * call updates the options associated with the current ExprManager.
- * If this designed is updated in the future so that SmtEngine has its own
- * copy of options, this method should be updated accordingly so that it
- * is responsible for updating this copy.
+ * @param isInternalSubsolver Whether we are setting the options for an
+ * internal subsolver (see SmtEngine::isInternalSubsolver).
+ * 
+ * NOTE: we currently modify the current options in scope. This method
+ * can be further refactored to modify an options object provided as an
+ * explicit argument.
  */
-void setDefaults(SmtEngine& smte, LogicInfo& logic);
+void setDefaults(LogicInfo& logic, bool isInternalSubsolver);
 
 }  // namespace smt
 }  // namespace CVC4

@@ -416,7 +416,6 @@ header = "options/smt_options.h"
   long       = "incremental"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "enable incremental solving"
 
 [[option]]

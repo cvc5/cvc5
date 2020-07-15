@@ -202,10 +202,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           out << "(" << (verified ? "" : "candidate-") << "rewrite ";
           if (d_using_sygus)
           {
-            Printer* p = Printer::getPrinter(options::outputLanguage());
-            p->toStreamSygus(out, sol);
+            TermDbSygus::toStreamSygus(out, sol);
             out << " ";
-            p->toStreamSygus(out, eq_sol);
+            TermDbSygus::toStreamSygus(out, eq_sol);
           }
           else
           {
