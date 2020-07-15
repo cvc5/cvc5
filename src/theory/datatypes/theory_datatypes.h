@@ -267,9 +267,12 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c, context::UserContext* u,
-                  OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo);
+  TheoryDatatypes(context::Context* c,
+                  context::UserContext* u,
+                  OutputChannel& out,
+                  Valuation valuation,
+                  const LogicInfo& logicInfo,
+                  ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
@@ -285,7 +288,8 @@ private:
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
   void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
+  Node explainLit(TNode literal);
   Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
@@ -302,8 +306,8 @@ private:
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
   void finishInit() override;
-  Node expandDefinition(Node n) override;
-  Node ppRewrite(TNode n) override;
+  TrustNode expandDefinition(Node n) override;
+  TrustNode ppRewrite(TNode n) override;
   void presolve() override;
   void addSharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
@@ -322,10 +326,7 @@ private:
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
-  std::pair<bool, Node> entailmentCheck(
-      TNode lit,
-      const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL) override;
+  std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
  private:
   /** add tester to equivalence class info */

@@ -96,7 +96,7 @@ class SExprTypeRule {
 class UninterpretedConstantTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check) {
-    return TypeNode::fromType(n.getConst<UninterpretedConstant>().getType());
+    return n.getConst<UninterpretedConstant>().getType();
   }
 };/* class UninterpretedConstantTypeRule */
 

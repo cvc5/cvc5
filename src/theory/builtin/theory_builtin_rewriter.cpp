@@ -185,7 +185,7 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentationRec( TNode a, TNode b
         }
       }else if( a.getKind()==kind::STORE_ALL ){
         ArrayStoreAll storeAll = a.getConst<ArrayStoreAll>();
-        Node sa = Node::fromExpr(storeAll.getExpr());
+        Node sa = storeAll.getValue();
         // convert the default value recursively (bounded by the number of arguments in bvl)
         ret = getLambdaForArrayRepresentationRec( sa, bvl, bvlIndex+1, visited );
       }
@@ -448,8 +448,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     }
     Trace("builtin-rewrite-debug2") << "  make array store all " << curr.getType() << " annotated : " << array_type << std::endl;
     Assert(curr.getType().isSubtypeOf(array_type.getArrayConstituentType()));
-    curr = nm->mkConst(
-        ArrayStoreAll((ArrayType(array_type.toType())), curr.toExpr()));
+    curr = nm->mkConst(ArrayStoreAll(array_type, curr));
     Trace("builtin-rewrite-debug2") << "  build array..." << std::endl;
     // can only build if default value is constant (since array store all must be constant)
     Trace("builtin-rewrite-debug2") << "  got constant base " << curr << std::endl;
