@@ -318,8 +318,9 @@ class EqProof
    * @param transitivityMatrix a matrix of equalities with each row justifying
    * an equality between the congruent applications
    * @param p a pointer to a CDProof to store the conversion of this EqProof
-   * @param visited
-   * @param assumptions
+   * @param visited a cache of the original EqProof conclusions and the
+   * resulting conclusion after conversion.
+   * @param assumptions the assumptions (and variants) of the original EqProof
    */
   void reduceNestedCongruence(
       unsigned i,
