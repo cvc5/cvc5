@@ -37,7 +37,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_containing(containing),
       d_ee(ee),
       d_needsLastCall(false),
-      d_extTheory(containing),
+      d_extTheory(&containing),
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
@@ -56,6 +56,13 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
 }
 
 NonlinearExtension::~NonlinearExtension() {}
+
+void NonlinearExtension::preRegisterTerm(TNode n)
+{
+  // register terms with extended theory, to find extended terms that can be
+  // eliminated by context-depedendent simplification.
+  d_extTheory.registerTermRec( n );
+}
 
 bool NonlinearExtension::getCurrentSubstitution(
     int effort,

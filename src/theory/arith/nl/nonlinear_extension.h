@@ -71,6 +71,10 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
+  /**
+   * Does non-context dependent setup for a node connected to a theory.
+   */
+  void preRegisterTerm(TNode n);
   /** Get current substitution
    *
    * This function and the one below are

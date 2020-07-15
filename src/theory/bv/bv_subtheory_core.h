@@ -24,6 +24,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/ext_theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -90,6 +91,9 @@ class CoreSolver : public SubtheorySolver {
   bool d_useSlicer;
   bool d_preregisterCalled;
   bool d_checkCalled;
+  
+  /** Extended theory module. */
+  ExtTheory d_extTheory;
   
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;

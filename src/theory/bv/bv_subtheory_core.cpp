@@ -412,8 +412,7 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 void CoreSolver::eqNotifyNewClass(TNode t) {
-  Assert(d_bv->getExtTheory() != NULL);
-  d_bv->getExtTheory()->registerTerm( t );
+  d_extTheory.registerTerm( t );
 }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
