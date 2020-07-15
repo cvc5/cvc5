@@ -27,8 +27,8 @@
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
 #include "theory/arrays/array_proof_reconstruction.h"
-#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/arrays/proof_checker.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -358,10 +358,10 @@ class TheoryArrays : public Theory {
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
-  
+
   /** The proof checker */
   ArraysProofRuleChecker d_pchecker;
-  
+
   /** Proof-producing equaltity engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
 
@@ -503,10 +503,8 @@ class TheoryArrays : public Theory {
    */
   Node getNextDecisionRequest();
   /** Assert inference internal */
-  bool assertInference(TNode eq,
-                      bool polarity,
-                      TNode reason,
-                      PfRule r);
+  bool assertInference(TNode eq, bool polarity, TNode reason, PfRule r);
+
  public:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 

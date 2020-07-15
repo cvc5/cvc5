@@ -35,7 +35,9 @@ namespace smt {
 class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessCallback(ProofNodeManager* pnm, SmtEngine* smte, ProofGenerator * pppg);
+  ProofPostprocessCallback(ProofNodeManager* pnm,
+                           SmtEngine* smte,
+                           ProofGenerator* pppg);
   ~ProofPostprocessCallback() {}
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -60,7 +62,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Pointer to the SmtEngine, which should have proofs enabled */
   SmtEngine* d_smte;
   /** The preprocessing proof generator */
-  ProofGenerator * d_pppg;
+  ProofGenerator* d_pppg;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
   //---------------------------------reset at the begining of each update
@@ -74,7 +76,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp);
-  /** 
+  /**
    * Equate to witness form, add proof of k = toWitness(k) to cdp, return
    * k = toWitness(k).
    */
@@ -106,7 +108,9 @@ class ProofPostprocessStatsCallback : public ProofNodeUpdaterCallback
 class ProofPostproccess
 {
  public:
-  ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte, ProofGenerator * pppg);
+  ProofPostproccess(ProofNodeManager* pnm,
+                    SmtEngine* smte,
+                    ProofGenerator* pppg);
   ~ProofPostproccess();
   /** post-process */
   void process(std::shared_ptr<ProofNode> pf);

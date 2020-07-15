@@ -55,8 +55,7 @@ TheoryUF::TheoryUF(context::Context* c,
       d_thss(nullptr),
       d_ho(nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
-      d_pfEqualityEngine(
-          new eq::ProofEqEngine(c, u, d_equalityEngine, pnm)),
+      d_pfEqualityEngine(new eq::ProofEqEngine(c, u, d_equalityEngine, pnm)),
       d_conflict(c, false),
       d_functionsTerms(c),
       d_symb(u, instanceName)

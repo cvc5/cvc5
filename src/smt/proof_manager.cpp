@@ -14,19 +14,19 @@
 
 #include "smt/proof_manager.h"
 
-#include "options/smt_options.h"
 #include "options/base_options.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace smt {
 
-PfManager::PfManager(SmtEngine * smte) :
-    d_pchecker(new ProofChecker),
-    d_pnm(new ProofNodeManager(d_pchecker.get())),
-    d_rewriteDb(new theory::RewriteDb),
-    d_pppg(new PreprocessProofGenerator(d_pnm.get())),
-    d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
-    d_finalProof(nullptr)
+PfManager::PfManager(SmtEngine* smte)
+    : d_pchecker(new ProofChecker),
+      d_pnm(new ProofNodeManager(d_pchecker.get())),
+      d_rewriteDb(new theory::RewriteDb),
+      d_pppg(new PreprocessProofGenerator(d_pnm.get())),
+      d_pfpp(new ProofPostproccess(d_pnm.get(), smte, d_pppg.get())),
+      d_finalProof(nullptr)
 {
   // add rules to eliminate here
   if (options::proofGranularityMode() != options::ProofGranularityMode::OFF)
@@ -51,21 +51,15 @@ PfManager::PfManager(SmtEngine * smte) :
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-PfManager::~PfManager()
-{
-  
-}
-  
-void PfManager::setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al)
+PfManager::~PfManager() {}
+
+void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Expr>* al)
 {
   // TODO: don't recompute if already done so?
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 
   // d_finalProof should just be a ProofNode
-  std::shared_ptr<ProofNode> body =
-      pg
-          ->getProofFor(d_false)
-          ->clone();
+  std::shared_ptr<ProofNode> body = pg->getProofFor(d_false)->clone();
 
   if (Trace.isOn("smt-proof"))
   {
@@ -78,8 +72,7 @@ void PfManager::setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al)
 
   std::vector<Node> assertions;
   Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for (context::CDList<Expr>::const_iterator i = al->begin();
-       i != al->end();
+  for (context::CDList<Expr>::const_iterator i = al->begin(); i != al->end();
        ++i)
   {
     Node n = Node::fromExpr(*i);
@@ -100,7 +93,7 @@ void PfManager::setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(ProofGenerator * pg, context::CDList<Expr>* al)
+void PfManager::printProof(ProofGenerator* pg, context::CDList<Expr>* al)
 {
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
   std::ostream& out = *options::out();
@@ -113,16 +106,23 @@ ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
 
 ProofNodeManager* PfManager::getProofNodeManager() const { return d_pnm.get(); }
 
-theory::RewriteDb * PfManager::getRewriteDatabase() const { return d_rewriteDb.get(); }
+theory::RewriteDb* PfManager::getRewriteDatabase() const
+{
+  return d_rewriteDb.get();
+}
 
-smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const { return d_pppg.get(); }
-  
-std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator * pg, context::CDList<Expr>* al) 
-{ 
+smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
+{
+  return d_pppg.get();
+}
+
+std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator* pg,
+                                                    context::CDList<Expr>* al)
+{
   setFinalProof(pg, al);
   Assert(d_finalProof);
-  return d_finalProof; 
+  return d_finalProof;
 }
- 
-}/* smt namespace */
-}/* CVC4 namespace */
+
+}  // namespace smt
+}  // namespace CVC4

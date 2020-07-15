@@ -21,6 +21,7 @@
 
 #include "expr/kind.h"
 #include "expr/node_algorithm.h"
+#include "expr/proof_checker.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "proof/array_proof.h"
@@ -33,7 +34,6 @@
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "expr/proof_checker.h"
 
 using namespace std;
 
@@ -91,8 +91,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
       d_notify(*this),
       d_equalityEngine(d_notify, c, name + "theory::arrays", true),
-      d_pfEqualityEngine(
-          new eq::ProofEqEngine(c, u, d_equalityEngine, pnm)),
+      d_pfEqualityEngine(new eq::ProofEqEngine(c, u, d_equalityEngine, pnm)),
       d_conflict(c, false),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
@@ -158,7 +157,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
   d_equalityEngine.addPathReconstructionTrigger(d_reasonRow, &d_proofReconstruction);
   d_equalityEngine.addPathReconstructionTrigger(d_reasonRow1, &d_proofReconstruction);
   d_equalityEngine.addPathReconstructionTrigger(d_reasonExt, &d_proofReconstruction);
-  
+
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {
@@ -720,7 +719,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           if (ni != node) {
             preRegisterTermInternal(ni);
           }
-          assertInference(ni.eqNode(s[2]), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
+          assertInference(
+              ni.eqNode(s[2]), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
           Assert(++it == stores->end());
         }
       }
@@ -791,7 +791,8 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       }
 
       // Apply RIntro1 Rule
-      assertInference(ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);   
+      assertInference(
+          ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
     }
 
     d_infoMap.addStore(node, node);
@@ -1377,7 +1378,9 @@ void TheoryArrays::check(Effort e) {
       case kind::NOT:
         if (fact[0].getKind() == kind::SELECT) {
           d_equalityEngine.assertPredicate(fact[0], false, fact);
-        } else {
+        }
+        else
+        {
           // Assert the dis-equality
           d_equalityEngine.assertEquality(fact[0], false, fact);
 
@@ -1740,7 +1743,8 @@ void TheoryArrays::checkRIntro1(TNode a, TNode b)
     d_infoMap.setRIntro1Applied(s);
     Node ni = nm->mkNode(kind::SELECT, s, s[1]);
     preRegisterTermInternal(ni);
-    assertInference(ni.eqNode(s[2]), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
+    assertInference(
+        ni.eqNode(s[2]), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
   }
 }
 
@@ -2387,23 +2391,25 @@ TrustNode TheoryArrays::expandDefinition(Node node)
 }
 
 bool TheoryArrays::assertInference(TNode eq,
-                    bool polarity,
-                    TNode reason,
-                      PfRule r)
+                                   bool polarity,
+                                   TNode reason,
+                                   PfRule r)
 {
-  Trace("arrays-infer") << "TheoryArrays::assertInference: " << (polarity ? Node(eq) : eq.notNode()) << " by " << reason << "; " << r << std::endl;
+  Trace("arrays-infer") << "TheoryArrays::assertInference: "
+                        << (polarity ? Node(eq) : eq.notNode()) << " by "
+                        << reason << "; " << r << std::endl;
   if (options::proofNew())
   {
     // TODO
     return d_equalityEngine.assertEquality(eq, polarity, reason);
   }
   unsigned pid = eq::MERGED_THROUGH_EQUALITY;
-  switch(r)
+  switch (r)
   {
-    case PfRule::ARRAYS_READ_OVER_WRITE: pid = d_reasonRow;break;
-    case PfRule::ARRAYS_READ_OVER_WRITE_1: pid = d_reasonRow1;break;
-    case PfRule::ARRAYS_EXT: pid = d_reasonExt;break;
-    default:break;
+    case PfRule::ARRAYS_READ_OVER_WRITE: pid = d_reasonRow; break;
+    case PfRule::ARRAYS_READ_OVER_WRITE_1: pid = d_reasonRow1; break;
+    case PfRule::ARRAYS_EXT: pid = d_reasonExt; break;
+    default: break;
   }
   return d_equalityEngine.assertEquality(eq, polarity, reason, pid);
 }

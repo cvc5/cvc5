@@ -17,61 +17,62 @@
 #ifndef CVC4__SMT__PROOF_MANAGER_H
 #define CVC4__SMT__PROOF_MANAGER_H
 
-#include "theory/rewrite_db.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node_manager.h"
-#include "smt/proof_post_processor.h"
-#include "smt/preprocess_proof_generator.h"
-#include "expr/proof_node.h"
 #include "context/cdlist.h"
-#include "expr/node.h"
 #include "expr/expr.h"
+#include "expr/node.h"
+#include "expr/proof_checker.h"
+#include "expr/proof_node.h"
+#include "expr/proof_node_manager.h"
+#include "smt/preprocess_proof_generator.h"
+#include "smt/proof_post_processor.h"
+#include "theory/rewrite_db.h"
 
 namespace CVC4 {
-  
+
 class SmtEngine;
 
 namespace smt {
 
-/** 
+/**
  * This class is responsible for managing the proof output of SmtEngine, as
  * well as setting up the global proof checker and proof node manager.
  */
 class PfManager
 {
  public:
-  PfManager(SmtEngine * smte);
+  PfManager(SmtEngine* smte);
   ~PfManager();
-  /** 
+  /**
    * Print the proof on the output channel of the current options in scope.
    *
    * The argument pg is the module that can provide a proof for false in the
    * current context.
    */
-  void printProof(ProofGenerator * pg, context::CDList<Expr>* al);
-  /** 
+  void printProof(ProofGenerator* pg, context::CDList<Expr>* al);
+  /**
    * Get final proof.
    *
    * The argument pg is the module that can provide a proof for false in the
    * current context.
    */
-  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator * pg, context::CDList<Expr>* al);
+  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg,
+                                           context::CDList<Expr>* al);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
   /** Get the rewrite database, containing definitions of rewrites from DSL. */
-  theory::RewriteDb * getRewriteDatabase() const;
+  theory::RewriteDb* getRewriteDatabase() const;
   /** Get the proof generator for proofs of preprocessing. */
   smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
  private:
-  /** 
+  /**
    * Set final proof, which initializes d_finalProof to the proof of false
    * from pg, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al);
+  void setFinalProof(ProofGenerator* pg, context::CDList<Expr>* al);
   /** The false node */
   Node d_false;
   /** For the new proofs module */
@@ -92,7 +93,7 @@ class PfManager
   std::shared_ptr<ProofNode> d_finalProof;
 }; /* class SmtEngine */
 
-}/* smt namespace */
-}/* CVC4 namespace */
+}  // namespace smt
+}  // namespace CVC4
 
 #endif /* CVC4__SMT__PROOF_MANAGER_H */

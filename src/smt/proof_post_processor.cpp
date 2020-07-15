@@ -27,7 +27,8 @@ namespace CVC4 {
 namespace smt {
 
 ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
-                                                   SmtEngine* smte, ProofGenerator * pppg)
+                                                   SmtEngine* smte,
+                                                   ProofGenerator* pppg)
     : d_pnm(pnm), d_smte(smte), d_pppg(pppg)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -174,7 +175,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       // apply REWRITE proof rule
       if (!update(PfRule::REWRITE, children, rargs, cdp))
       {
-          // if not elimianted, add as step
+        // if not elimianted, add as step
         cdp->addStep(ts.eqNode(tr), PfRule::REWRITE, children, rargs);
       }
       // did substitute and rewrite, must add TRANS
@@ -202,7 +203,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, children, args, cdp);
     Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[1] == d_true);
     cdp->addStep(conc[0], PfRule::TRUE_ELIM, {conc}, {});
-    Assert (conc[0]==args[0]);
+    Assert(conc[0] == args[0]);
     return conc[0];
   }
   else if (id == PfRule::MACRO_SR_PRED_ELIM)
@@ -435,10 +436,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   return Node::null();
 }
 
-Node ProofPostprocessCallback::equateToWitnessForm(Node k, CDProof* cdp)
-{
-  
-}
+Node ProofPostprocessCallback::equateToWitnessForm(Node k, CDProof* cdp) {}
 
 ProofPostprocessStatsCallback::ProofPostprocessStatsCallback()
     : d_ruleCount("finalProof::ruleCount"),
@@ -468,7 +466,9 @@ bool ProofPostprocessStatsCallback::shouldUpdate(ProofNode* pn)
   return false;
 }
 
-ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm, SmtEngine* smte, ProofGenerator * pppg)
+ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
+                                     SmtEngine* smte,
+                                     ProofGenerator* pppg)
     : d_cb(pnm, smte, pppg), d_statCb(), d_pnm(pnm)
 {
 }

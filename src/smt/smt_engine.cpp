@@ -751,18 +751,19 @@ void SmtEngine::finishInit()
   // ensure that our heuristics are properly set up
   setDefaults(d_logic, d_isInternalSubsolver);
 
-  ProofNodeManager * pnm = nullptr;
+  ProofNodeManager* pnm = nullptr;
   if (options::proofNew())
   {
     d_pfManager.reset(new PfManager(this));
     // enable proof support in the rewriter
     d_rewriter->setProofChecker(d_pfManager->getProofChecker());
     // enable it in the assertions pipeline
-    d_private->getAssertionPipeline().setProofGenerator(d_pfManager->getPreprocessProofGenerator());
-    // use this proof node manager 
+    d_private->getAssertionPipeline().setProofGenerator(
+        d_pfManager->getPreprocessProofGenerator());
+    // use this proof node manager
     pnm = d_pfManager->getProofNodeManager();
   }
-  
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -3116,7 +3117,7 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printProof()
 {
-  if (d_pfManager==nullptr)
+  if (d_pfManager == nullptr)
   {
     throw RecoverableModalException("Cannot print proof, no proof manager.");
   }
@@ -3126,8 +3127,8 @@ void SmtEngine::printProof()
         "Cannot print proof unless immediately preceded by "
         "UNSAT/ENTAILED.");
   }
-  Assert (d_assertionList!=nullptr);
-  Assert (d_propEngine->getProof()!=nullptr);
+  Assert(d_assertionList != nullptr);
+  Assert(d_propEngine->getProof() != nullptr);
   // the prop engine has the proof of false
   d_pfManager->printProof(d_propEngine->getProof(), d_assertionList);
 }

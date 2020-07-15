@@ -28,18 +28,17 @@ void ArraysProofRuleChecker::registerTo(ProofChecker* pc)
 }
 
 Node ArraysProofRuleChecker::checkInternal(PfRule id,
-                                         const std::vector<Node>& children,
-                                         const std::vector<Node>& args)
+                                           const std::vector<Node>& children,
+                                           const std::vector<Node>& args)
 {
-  if (id==PfRule::ARRAYS_READ_OVER_WRITE)
+  if (id == PfRule::ARRAYS_READ_OVER_WRITE)
   {
   }
-  if (id==PfRule::ARRAYS_READ_OVER_WRITE_1)
+  if (id == PfRule::ARRAYS_READ_OVER_WRITE_1)
   {
   }
-  if (id==PfRule::ARRAYS_EXT)
+  if (id == PfRule::ARRAYS_EXT)
   {
-    
   }
   // no rule
   return Node::null();
