@@ -56,7 +56,7 @@ class AbductionSolver
    */
   bool getAbduct(const Node& goal, const TypeNode& grammarType, Node& abd);
 
-  /** 
+  /**
    * Same as above, but without user-provided grammar restrictions. A default
    * grammar is chosen internally using the sygus grammar constructor utility.
    */
