@@ -1142,6 +1142,8 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
+  /** Abstract values */
+  AbstractValues d_absValues;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
