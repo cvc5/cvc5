@@ -42,6 +42,7 @@
 #include "theory/strings/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/ext_theory.h"
 
 namespace CVC4 {
 namespace theory {

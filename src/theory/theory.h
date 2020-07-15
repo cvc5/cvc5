@@ -57,7 +57,6 @@ namespace theory {
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
-class ExtTheory;
 class TheoryRewriter;
 
 namespace rrinst {
