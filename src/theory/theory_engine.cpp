@@ -46,7 +46,6 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
-#include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_model.h"
@@ -151,12 +150,6 @@ void TheoryEngine::finishInit() {
         d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
-  // create the relevance filter
-  if (options::relevanceFilter())
-  {
-    d_relManager.reset(
-        new RelevanceManager(d_userContext, theory::Valuation(this)));
-  }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
   if( d_curr_model_builder==NULL ){
     d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
@@ -193,7 +186,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
-      d_relManager(nullptr),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -503,11 +495,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       Trace("theory::assertions-model") << endl;
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
-      }
-      // reset round for the relevance manager
-      if (d_relManager != nullptr)
-      {
-        d_relManager->resetRound();
       }
       //checks for theories requiring the model go at last call
       d_curr_model->reset();
@@ -933,15 +920,6 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
 
   // static learning for each theory using the statement above
   CVC4_FOR_EACH_THEORY;
-}
-
-bool TheoryEngine::isRelevant(Node lit) const
-{
-  if (d_relManager != nullptr)
-  {
-    return d_relManager->isRelevant(lit);
-  }
-  return true;
 }
 
 void TheoryEngine::shutdown() {
