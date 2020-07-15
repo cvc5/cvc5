@@ -390,10 +390,8 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
+{
   return make_pair(false, Node::null());
 }
 
@@ -434,28 +432,6 @@ void Theory::setDecisionManager(DecisionManager* dm)
 void Theory::setupExtTheory() {
   Assert(d_extTheory == NULL);
   d_extTheory = new ExtTheory(this);
-}
-
-
-EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
-  : d_tid(tid) {
-}
-
-EntailmentCheckParameters::~EntailmentCheckParameters(){}
-
-TheoryId EntailmentCheckParameters::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::EntailmentCheckSideEffects(TheoryId tid)
-  : d_tid(tid)
-{}
-
-TheoryId EntailmentCheckSideEffects::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
 }
 
 }/* CVC4::theory namespace */
