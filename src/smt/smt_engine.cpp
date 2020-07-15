@@ -583,7 +583,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
-      d_absValues(d_nodeManager),
+      d_absValues(new AbstractValues(d_nodeManager)),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -869,6 +869,8 @@ SmtEngine::~SmtEngine()
     d_proofManager.reset(nullptr);
 #endif
 
+    d_absValues.reset(nullptr);
+    
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
 
