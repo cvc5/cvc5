@@ -17,25 +17,29 @@
 namespace CVC4 {
 namespace smt {
 
-AbstractValues::AbstractValues(NodeManager * nm) : d_nm(nm),
+AbstractValues::AbstractValues(NodeManager* nm)
+    : d_nm(nm),
       d_fakeContext(),
       d_abstractValueMap(&d_fakeContext),
-      d_abstractValues() {
-      }
-AbstractValues::~AbstractValues() {
+      d_abstractValues()
+{
 }
+AbstractValues::~AbstractValues() {}
 
-Node AbstractValues::substituteAbstractValues(TNode n) {
+Node AbstractValues::substituteAbstractValues(TNode n)
+{
   // We need to do this even if options::abstractValues() is off,
   // since the setting might have changed after we already gave out
   // some abstract values.
   return d_abstractValueMap.apply(n);
 }
 
-Node AbstractValues::mkAbstractValue(TNode n) {
+Node AbstractValues::mkAbstractValue(TNode n)
+{
   Assert(options::abstractValues());
   Node& val = d_abstractValues[n];
-  if(val.isNull()) {
+  if (val.isNull())
+  {
     val = d_nm->mkAbstractValue(n.getType());
     d_abstractValueMap.addSubstitution(val, n);
   }

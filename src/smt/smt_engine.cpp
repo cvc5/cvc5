@@ -870,7 +870,7 @@ SmtEngine::~SmtEngine()
 #endif
 
     d_absValues.reset(nullptr);
-    
+
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
 
@@ -1327,7 +1327,8 @@ void SmtEngine::defineFunctionsRec(
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
+    Expr e =
+        d_absValues->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
     if (d_assertionList != nullptr)
     {
       d_assertionList->push_back(e);

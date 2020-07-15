@@ -26,11 +26,11 @@
 
 namespace CVC4 {
 namespace smt {
-  
+
 class AbstractValues
 {
-public:
-  AbstractValues(NodeManager * nm);
+ public:
+  AbstractValues(NodeManager* nm);
   ~AbstractValues();
   /**
    * Substitute away all AbstractValues in a node.
@@ -42,9 +42,10 @@ public:
    * Can only use this if options::abstractValues() is on.
    */
   Node mkAbstractValue(TNode n);
-private:
+
+ private:
   /** Pointer to the used node manager */
-  NodeManager * d_nm;
+  NodeManager* d_nm;
   /**
    * A context that never pushes/pops, for use by CD structures (like
    * SubstitutionMaps) that should be "global".
