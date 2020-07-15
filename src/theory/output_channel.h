@@ -42,9 +42,7 @@ enum class LemmaProperty : uint32_t
   // whether the lemma needs preprocessing
   PREPROCESS = 2,
   // whether the processing of the lemma should send atoms to the caller
-  SEND_ATOMS = 4,
-  // whether the lemma is part of the justification for answering "sat"
-  NEEDS_JUSTIFY = 8
+  SEND_ATOMS = 4
 };
 /** Define operator lhs | rhs */
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);

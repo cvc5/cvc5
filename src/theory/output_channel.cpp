@@ -47,10 +47,6 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     {
       out << " SEND_ATOMS";
     }
-    if (p & LemmaProperty::NEEDS_JUSTIFY)
-    {
-      out << " NEEDS_JUSTIFY";
-    }
     out << " }";
   }
   return out;
