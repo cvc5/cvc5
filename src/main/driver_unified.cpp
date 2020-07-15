@@ -201,7 +201,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
     // Parse and execute commands until we are done
-    Command* cmd;
+    std::unique_ptr<Command> cmd;
     bool status = true;
     if(opts.getInteractive() && inputFromStdin) {
       if(opts.getTearDownIncremental() > 0) {
@@ -209,10 +209,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             "--tear-down-incremental doesn't work in interactive mode");
       }
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd = new SetOptionCommand("incremental", SExpr(true));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
       }
       InteractiveShell shell(pExecutor->getSolver());
       if(opts.getInteractivePrompt()) {
@@ -230,7 +229,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
       while(true) {
         try {
-          cmd = shell.readCommand();
+          cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
           (*opts.getOut()) << CommandInterrupted();
           break;
@@ -239,28 +238,24 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         status = pExecutor->doCommand(cmd) && status;
         if (cmd->interrupted()) {
-          delete cmd;
           break;
         }
-        delete cmd;
       }
     } else if( opts.getTearDownIncremental() > 0) {
       if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
-        cmd = new SetOptionCommand("incremental", SExpr(true));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
         // if(opts.wasSetByUserIncrementalSolving()) {
         //   throw OptionException(
         //     "--tear-down-incremental incompatible with --incremental");
         // }
 
-        // cmd = new SetOptionCommand("incremental", SExpr(false));
+        // cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
         // cmd->setMuted(true);
         // pExecutor->doCommand(cmd);
-        // delete cmd;
       }
 
       ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
@@ -287,8 +282,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
 
         try {
-          cmd = parser->nextCommand();
-          if (cmd == NULL) break;
+          cmd.reset(parser->nextCommand());
+          if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
           continue;
@@ -328,14 +323,13 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* ccmd = allCommands[i][j]->clone();
+                std::unique_ptr<Command> ccmd(allCommands[i][j]->clone());
                 ccmd->setMuted(true);
                 pExecutor->doCommand(ccmd);
                 if (ccmd->interrupted())
                 {
                   interrupted = true;
                 }
-                delete ccmd;
               }
             }
             if (interrupted) continue;
@@ -405,19 +399,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             continue;
           }
 
-          if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-            delete cmd;
+          if(dynamic_cast<QuitCommand*>(cmd) != nullptr) {
             break;
           }
         }
-        delete cmd;
       }
     } else {
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd = new SetOptionCommand("incremental", SExpr(false));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
       }
 
       ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
@@ -440,33 +431,22 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         }
         try {
-          cmd = parser->nextCommand();
-          if (cmd == NULL) break;
+          cmd.reset(parser->nextCommand());
+          if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
           continue;
         }
 
-        try
-        {
-          status = pExecutor->doCommand(cmd);
-        }
-        catch (CVC4::Exception& exc)
-        {
-          // Make sure that no memory is leaked an reraise the exception.
-          delete cmd;
-          throw;
-        }
+        status = pExecutor->doCommand(cmd);
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;
         }
 
-        if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-          delete cmd;
+        if(dynamic_cast<QuitCommand*>(cmd) != nullptr) {
           break;
         }
-        delete cmd;
       }
     }
 
