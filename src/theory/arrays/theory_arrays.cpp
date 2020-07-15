@@ -1552,7 +1552,10 @@ void TheoryArrays::check(Effort e) {
 
 Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned startIndex)
 {
-  Assert(conjunctions.size() > 0);
+  if (conjunctions.empty())
+  {
+    return d_false;
+  }
 
   std::set<TNode> all;
   std::set<TNode> explained;
