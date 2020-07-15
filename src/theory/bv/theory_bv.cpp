@@ -66,6 +66,7 @@ TheoryBV::TheoryBV(context::Context* c,
       d_invalidateModelCache(c, true),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
+      d_extTheory(new ExtTheory(this)),
       d_propagatedBy(c),
       d_eagerSolver(),
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
@@ -75,9 +76,8 @@ TheoryBV::TheoryBV(context::Context* c,
       d_extf_range_infer(u),
       d_extf_collapse_infer(u)
 {
-  setupExtTheory();
-  getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
-  getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
+  d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
+  d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     d_eagerSolver.reset(new EagerBitblastSolver(c, this));
@@ -264,7 +264,7 @@ void TheoryBV::preRegisterTerm(TNode node) {
   }
   
   // AJR : equality solver currently registers all terms to ExtTheory, if we want a lazy reduction without the bv equality solver, need to call this
-  //getExtTheory()->registerTermRec( node );
+  //d_extTheory->registerTermRec( node );
 }
 
 void TheoryBV::sendConflict() {
@@ -319,7 +319,7 @@ void TheoryBV::check(Effort e)
   
   //last call : do reductions on extended bitvector functions
   if (e == Theory::EFFORT_LAST_CALL) {
-    std::vector<Node> nred = getExtTheory()->getActive();
+    std::vector<Node> nred = d_extTheory->getActive();
     doExtfReductions(nred);
     return;
   }
@@ -404,7 +404,7 @@ void TheoryBV::check(Effort e)
   if (Theory::fullEffort(e)) {
     //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
     std::vector< Node > nred;
-    if( getExtTheory()->doInferences( 0, nred ) ){
+    if( d_extTheory->doInferences( 0, nred ) ){
       return;
     }
     d_needsLastCallCheck = false;
@@ -513,7 +513,7 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
 
 bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
   std::vector< Node > nredr;
-  if( getExtTheory()->doReductions( 0, terms, nredr ) ){
+  if( d_extTheory->doReductions( 0, terms, nredr ) ){
     return true;
   }
   Assert(nredr.empty());

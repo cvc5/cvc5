@@ -180,6 +180,9 @@ class TheoryBV : public Theory {
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
+  /** Extended theory module or nullptr. Owned by this theory. */
+  std::unique_ptr<ExtTheory> d_extTheory;
+
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
    * properly.

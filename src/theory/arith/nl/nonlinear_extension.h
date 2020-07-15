@@ -289,6 +289,8 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
