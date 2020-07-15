@@ -119,10 +119,13 @@ bool EqProof::expandTransitivityChildren(
     std::unordered_set<Node, NodeHashFunction>& assumptions) const
 {
   Trace("eqproof-conv") << "EqProof::expandTransitivityChildren: check if need "
-                           "to fold transitivity to conclude "
+                           "to expand transitivity children to conclude "
                         << conclusion << " from premises " << premises << "\n";
-  // traverse premises to see if any of the form (= (= t1 t2) false)
+  // Check premises to see if any of the form (= (= t1 t2) false), modulo
+  // symmetry
   unsigned size = premises.size();
+  // termPos is, in (= (= t1 t2) false) or (= false (= t1 t2)), the position of
+  // the equality. When the i-th premise has that form, offending = i
   unsigned termPos = 2, offending = size;
   for (unsigned i = 0; i < size; ++i)
   {
@@ -151,9 +154,10 @@ bool EqProof::expandTransitivityChildren(
   Trace("eqproof-conv") << "EqProof::expandTransitivityChildren: found "
                            "offending equality at index "
                         << offending << " : " << premises[offending] << "\n";
-  // we name the premise to be added later for the original conclusion. It might
+  // We name the premise to be added later for the original conclusion. It might
   // be reordered below if we are in the subst case below
   Node premise = premises[offending];
+
   std::vector<Node> foldPremises;
   for (unsigned i = 0; i < size; ++i)
   {
@@ -167,7 +171,7 @@ bool EqProof::expandTransitivityChildren(
   // an offending premise (= (= t1 t2) false) indicates we are concluding,
   // modulo symmetry, (= false true) or the disequality (= (t3 t4) false). The
   // former can be fixed by having the remaining premises derive, with
-  // TRANSITIVITY, (= t1 t2), but the latter requires building a subistuttion so
+  // TRANSITIVITY, (= t1 t2), but the latter requires building a substitution so
   // that (= (= t1 t2) false) becomes (= (= t3 t4) false). The premises will
   // constitute two independent transitivity proofs of (= t1 t3) and (= t2 t4).
   Node foldConclusion;
@@ -1060,7 +1064,10 @@ Node EqProof::addToProof(
   }
   reduceNestedCongruence(
       arity - 1, d_node, transitivityChildren, p, visited, assumptions, isNary);
-  // Congruences over may change conclusion if in n-ary case, so use alias
+  // Congruences over n-ary operators may require changing the conclusion (as in
+  // the above example). This is handled in a general manner below according to
+  // whether the transitivity matrix computed by reduceNestedCongruence contains
+  // empty rows
   Node conclusion = d_node;
   NodeManager* nm = NodeManager::currentNM();
   if (isNary)
@@ -1073,18 +1080,34 @@ Node EqProof::addToProof(
         emptyRows++;
       }
     }
+    // Given two n-ary applications f1:(f a0 ... an-1), f2:(f b0 ... bm-1), of
+    // arities n and m, arity = max(n,m), the number emptyRows establishes the
+    // sizes of the prefixes of f1 of f2 that have been equated via a
+    // transitivity step. The prefixes necessarily have different sizes. The
+    // suffixes have the same sizes. The new conclusion will be of the form
+    //     (= (f (f a0 ... ak1) ... an-1) (f (f b0 ... bk2) ... bm-1))
+    // where
+    //  k1 = emptyRows + 1 - (arity - n)
+    //  k2 = emptyRows + 1 - (arity - m)
+    //  k1 != k2
+    //  n - k1 == m - k2
+    // Note that by construction the equality between the first emptyRows + 1
+    // arguments of each application is justified by the transitivity step in
+    // the row emptyRows +1 in the matrix.
     if (emptyRows > 0)
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: Found " << emptyRows
           << " empty rows. Rebuild conclusion " << d_node << "\n";
+      // New transitivity matrix is as before except that the empty rows in the
+      // beginning are eliminated, as the new arity is the maximal arity among
+      // the applications minus the number of empty rows.
       std::vector<std::vector<Node>> newTransitivityChildren{
           transitivityChildren.begin() + emptyRows, transitivityChildren.end()};
       transitivityChildren.clear();
       transitivityChildren.insert(transitivityChildren.begin(),
                                   newTransitivityChildren.begin(),
                                   newTransitivityChildren.end());
-      // build new conclusion
       unsigned arityPrefix1 =
           emptyRows + 1 - (arity - d_node[0].getNumChildren());
       Assert(arityPrefix1 < d_node[0].getNumChildren())

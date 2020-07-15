@@ -249,9 +249,9 @@ class EqProof
    * - recursively reducing the first proof with i-1
    *
    * In the above case the transitivity matrix would thus be
-   *   [0]   -> (= a0 b0)
-   *   [1]   -> (= a1 b1)
-   *   [2]   -> (= a2 b2)
+   *   [0] -> (= a0 b0)
+   *   [1] -> (= a1 b1)
+   *   [2] -> (= a2 b2)
    *
    * The more complex case of congruence proofs has transitivity steps as the
    * first child of CONG steps. For example
@@ -266,13 +266,14 @@ class EqProof
    *                          (= (f a0 a1) (f b0 b1))
    *
    * where when the first child of CONG is a transitivity step
-   * - the premises that are CONG steps are recursively reduced with *the same* argument i
+   * - the premises that are CONG steps are recursively reduced with *the same*
+       argument i
    * - the other premises are processed with addToProof and added to the i row
    *   in the matrix
    *
    * In the above example the to which the transitivity matrix is
-   *   [0]   -> (= a0 c), (= b0 c)
-   *   [1]   -> (= a1 b1)
+   *   [0] -> (= a0 c), (= b0 c)
+   *   [1] -> (= a1 b1)
    *
    * The remaining complication is that when conclusion is an equality of n-ary
    * applications of *different* arities, there is, necessarily, a transitivity
@@ -280,11 +281,23 @@ class EqProof
    * applications of different arities. For example
    *             P0                        P1
    * -------------------------- TRANS  -----------
-   *     (= f a0 a1) (= f b0)           (= a2 b1)
+   *     (= (f a0 a1) (f b0))           (= a2 b1)
    * --------------------------------------------- CONG
    *              (= (f a0 a1 a2) (f b0 b1))
    *
-   * will be first reduced with i = 2 (maiximal arity the original conclusion's applications), adding (= a2 b1) to row 2 after processing P1. Since
+   * will be first reduced with i = 2 (maximal arity amorg the original
+   * conclusion's applications), adding (= a2 b1) to row 2 after processing
+   * P1. The first child is reduced with i = 1. Since it is a TRANS step whose
+   * conclusion is an equality of n-ary applications with mismatching arity, P0
+   * is processed with addToProof and the result is added to row 1. Thus the
+   * transitivity matrix is
+   *   [0] ->
+   *   [1] -> (= (f a0 a1) (f b0))
+   *   [2] -> (= a2 b1)
+   *
+   * The empty row 0 is used by the original caller of reduceNestedCongruence to
+   * compute that the above congruence proof's conclusion is
+   *   (= (f (f a0 a1) a2) (f (f b0) b1))
    *
    * @param i the i-th argument of the congruent applications, initially being
    * the maximal arity among conclusion's applications.
