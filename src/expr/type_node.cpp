@@ -661,6 +661,15 @@ bool TypeNode::isCodatatype() const
   return false;
 }
 
+bool TypeNode::isSygusDatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isSygus();
+  }
+  return false;
+}
+
 std::string TypeNode::toString() const {
   std::stringstream ss;
   OutputLanguage outlang = (this == &s_null) ? language::output::LANG_AUTO : options::outputLanguage();

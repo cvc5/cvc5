@@ -198,8 +198,7 @@ class SygusGrammarNorm
      * The types of the arguments of "cons" are recursively normalized
      */
     void addConsInfo(SygusGrammarNorm* sygus_norm,
-                     const DTypeConstructor& cons,
-                     std::shared_ptr<SygusPrintCallback> spc);
+                     const DTypeConstructor& cons);
 
     /** initializes a datatype with the information in the type object
      *
