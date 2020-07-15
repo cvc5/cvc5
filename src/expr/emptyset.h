@@ -17,33 +17,29 @@
 
 #include "cvc4_public.h"
 
-#pragma once
+#ifndef CVC4__EMPTY_SET_H
+#define CVC4__EMPTY_SET_H
 
 #include <iosfwd>
+#include <memory>
 
 namespace CVC4 {
-  // messy; Expr needs EmptySet (because it's the payload of a
-  // CONSTANT-kinded expression), EmptySet needs SetType, and
-  // SetType needs Expr. Using a forward declaration here in
-  // order to break the build cycle.
-  // Uses of SetType need to be as an incomplete type throughout
-  // this header.
-  class SetType;
-}/* CVC4 namespace */
 
-namespace CVC4 {
-class CVC4_PUBLIC EmptySet {
+class TypeNode;
+
+class CVC4_PUBLIC EmptySet
+{
  public:
   /**
    * Constructs an emptyset of the specified type. Note that the argument
    * is the type of the set itself, NOT the type of the elements.
    */
-  EmptySet(const SetType& setType);
+  EmptySet(const TypeNode& setType);
   ~EmptySet();
   EmptySet(const EmptySet& other);
   EmptySet& operator=(const EmptySet& other);
 
-  const SetType& getType() const;
+  const TypeNode& getType() const;
   bool operator==(const EmptySet& es) const;
   bool operator!=(const EmptySet& es) const;
   bool operator<(const EmptySet& es) const;
@@ -52,17 +48,18 @@ class CVC4_PUBLIC EmptySet {
   bool operator>=(const EmptySet& es) const;
 
  private:
-  /** Pointer to the SetType node. This is never NULL. */
-  SetType* d_type;
-
   EmptySet();
 
-};/* class EmptySet */
+  std::unique_ptr<TypeNode> d_type;
+}; /* class EmptySet */
 
 std::ostream& operator<<(std::ostream& out, const EmptySet& es) CVC4_PUBLIC;
 
-struct CVC4_PUBLIC EmptySetHashFunction {
+struct CVC4_PUBLIC EmptySetHashFunction
+{
   size_t operator()(const EmptySet& es) const;
-};/* struct EmptySetHashFunction */
+}; /* struct EmptySetHashFunction */
 
-}/* CVC4 namespace */
+}  // namespace CVC4
+
+#endif /* CVC4__EMPTY_SET_H */

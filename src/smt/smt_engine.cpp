@@ -715,7 +715,7 @@ void SmtEngine::finishInit()
   Random::getRandom().setSeed(options::seed());
 
   // ensure that our heuristics are properly set up
-  setDefaults(*this, d_logic);
+  setDefaults(d_logic, d_isInternalSubsolver);
   
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory

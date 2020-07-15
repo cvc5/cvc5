@@ -31,6 +31,7 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::PREPROCESS: return "PREPROCESS";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
