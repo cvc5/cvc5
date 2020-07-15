@@ -32,6 +32,7 @@
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -247,13 +248,9 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
-
-  /** Is n entailed with polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol);
 
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns

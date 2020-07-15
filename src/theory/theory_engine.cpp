@@ -41,10 +41,12 @@
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_model.h"
@@ -149,6 +151,12 @@ void TheoryEngine::finishInit() {
         d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
+  // create the relevance filter
+  if (options::relevanceFilter())
+  {
+    d_relManager.reset(
+        new RelevanceManager(d_userContext, theory::Valuation(this)));
+  }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
   if( d_curr_model_builder==NULL ){
     d_curr_model_builder = new theory::TheoryEngineModelBuilder(this);
@@ -185,6 +193,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_masterEENotify(*this),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
+      d_relManager(nullptr),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -495,6 +504,11 @@ void TheoryEngine::check(Theory::Effort effort) {
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
       }
+      // reset round for the relevance manager
+      if (d_relManager != nullptr)
+      {
+        d_relManager->resetRound();
+      }
       //checks for theories requiring the model go at last call
       d_curr_model->reset();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
@@ -621,8 +635,7 @@ void TheoryEngine::combineTheories() {
     lemma(equality.orNode(equality.notNode()),
           RULE_INVALID,
           false,
-          false,
-          false,
+          LemmaProperty::NONE,
           carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
@@ -922,6 +935,15 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   CVC4_FOR_EACH_THEORY;
 }
 
+bool TheoryEngine::isRelevant(Node lit) const
+{
+  if (d_relManager != nullptr)
+  {
+    return d_relManager->isRelevant(lit);
+  }
+  return true;
+}
+
 void TheoryEngine::shutdown() {
   // Set this first; if a Theory shutdown() throws an exception,
   // at least the destruction of the TheoryEngine won't confound
@@ -975,6 +997,10 @@ void TheoryEngine::notifyPreprocessedAssertions(
     if (d_theoryTable[theoryId]) {
       theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
+  }
+  if (d_relManager != nullptr)
+  {
+    d_relManager->notifyPreprocessedAssertions(assertions);
   }
 }
 
@@ -1587,9 +1613,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         ProofRule rule,
                                         bool negated,
-                                        bool removable,
-                                        bool preprocess,
-                                        theory::TheoryId atomsTo) {
+                                        theory::LemmaProperty p,
+                                        theory::TheoryId atomsTo)
+{
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1609,11 +1635,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
   }
+  bool removable = p & LemmaProperty::REMOVABLE;
 
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess);
+  d_tpp.preprocess(node, lemmas, p & LemmaProperty::PREPROCESS);
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
@@ -1690,8 +1717,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
-
+    lemma(fullConflict,
+          RULE_CONFLICT,
+          true,
+          LemmaProperty::REMOVABLE,
+          THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
@@ -1720,7 +1750,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
       });
 
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, LemmaProperty::REMOVABLE, THEORY_LAST);
   }
 
   PROOF({

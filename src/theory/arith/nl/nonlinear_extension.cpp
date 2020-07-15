@@ -18,6 +18,7 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/theory_options.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -151,14 +152,14 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
   for (const NlLemma& nlem : out)
   {
     Node lem = nlem.d_lemma;
-    bool preprocess = nlem.d_preprocess;
+    LemmaProperty p = nlem.getLemmaProperty();
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_id
                           << " : " << lem << std::endl;
-    d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    d_containing.getOutputChannel().lemma(lem, p);
     // process the side effect
     processSideEffect(nlem);
-    // add to cache if not preprocess
-    if (preprocess)
+    // add to cache based on preprocess
+    if (p & LemmaProperty::PREPROCESS)
     {
       d_lemmasPp.insert(lem);
     }
@@ -375,7 +376,6 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 }
 
 bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
-                                    const std::vector<Node>& false_asserts,
                                     std::vector<NlLemma>& lemmas,
                                     std::vector<Node>& gs)
 {
@@ -749,7 +749,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       // error bounds on the Taylor approximation of transcendental functions.
       std::vector<NlLemma> lemmas;
       std::vector<Node> gs;
-      if (checkModel(assertions, false_asserts, lemmas, gs))
+      if (checkModel(assertions, lemmas, gs))
       {
         complete_status = 1;
       }
