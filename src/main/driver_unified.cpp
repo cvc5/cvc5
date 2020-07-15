@@ -289,7 +289,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           continue;
         }
 
-        if(dynamic_cast<PushCommand*>(cmd) != nullptr) {
+        if(dynamic_cast<PushCommand*>(cmd.get()) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -316,7 +316,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<PopCommand*>(cmd) != nullptr) {
+        } else if(dynamic_cast<PopCommand*>(cmd.get()) != nullptr) {
           allCommands.pop_back(); // fixme leaks cmds here
           if (needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
@@ -342,8 +342,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               continue;
             }
           }
-        } else if(dynamic_cast<CheckSatCommand*>(cmd) != nullptr ||
-                  dynamic_cast<QueryCommand*>(cmd) != nullptr) {
+        } else if(dynamic_cast<CheckSatCommand*>(cmd.get()) != nullptr ||
+                  dynamic_cast<QueryCommand*>(cmd.get()) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -372,7 +372,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<ResetCommand*>(cmd) != nullptr) {
+        } else if(dynamic_cast<ResetCommand*>(cmd.get()) != nullptr) {
           pExecutor->doCommand(cmd);
           allCommands.clear();
           allCommands.push_back(vector<Command*>());
@@ -380,16 +380,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           // We shouldn't copy certain commands, because they can cause
           // an error on replay since there's no associated sat/unsat check
           // preceding them.
-          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetProofCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetValueCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetModelCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetAssignmentCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetAssertionsCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetInfoCommand*>(cmd) == nullptr &&
-             dynamic_cast<GetOptionCommand*>(cmd) == nullptr &&
-             dynamic_cast<EchoCommand*>(cmd) == nullptr) {
+          if(dynamic_cast<GetUnsatCoreCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetProofCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetValueCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetModelCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetAssignmentCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetInstantiationsCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetAssertionsCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetInfoCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetOptionCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<EchoCommand*>(cmd.get()) == nullptr) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }
@@ -399,7 +399,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             continue;
           }
 
-          if(dynamic_cast<QuitCommand*>(cmd) != nullptr) {
+          if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
             break;
           }
         }
@@ -444,7 +444,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         }
 
-        if(dynamic_cast<QuitCommand*>(cmd) != nullptr) {
+        if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
           break;
         }
       }
