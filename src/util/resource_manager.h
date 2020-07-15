@@ -71,6 +71,7 @@ public:
  enum class Resource
  {
    ArithPivotStep,
+   ArithNlLemmaStep,
    BitblastStep,
    BvEagerAssertStep,
    BvPropagationStep,

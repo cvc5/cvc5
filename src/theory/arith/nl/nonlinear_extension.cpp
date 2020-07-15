@@ -226,6 +226,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
   for (const NlLemma& lem : lemmas)
   {
     sum += filterLemma(lem, out);
+    d_containing.getOutputChannel().spendResource(ResourceManager::Resource::ArithNlLemmaStep);
   }
   lemmas.clear();
   return sum;

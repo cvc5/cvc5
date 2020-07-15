@@ -73,6 +73,7 @@ bool Timer::expired() const {
 struct ResourceManager::Statistics
 {
   IntStat d_numArithPivotStep;
+  IntStat d_numArithNlLemmaStep;
   IntStat d_numBitblastStep;
   IntStat d_numBvEagerAssertStep;
   IntStat d_numBvPropagationStep;
@@ -97,6 +98,7 @@ struct ResourceManager::Statistics
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
     : d_numArithPivotStep("resource::ArithPivotStep", 0),
+      d_numArithNlLemmaStep("resource::ArithNlLemmaStep", 0),
       d_numBitblastStep("resource::BitblastStep", 0),
       d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
       d_numBvPropagationStep("resource::BvPropagationStep", 0),
@@ -115,6 +117,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
       d_statisticsRegistry(stats)
 {
   d_statisticsRegistry.registerStat(&d_numArithPivotStep);
+  d_statisticsRegistry.registerStat(&d_numArithNlLemmaStep);
   d_statisticsRegistry.registerStat(&d_numBitblastStep);
   d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
@@ -135,6 +138,7 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
 ResourceManager::Statistics::~Statistics()
 {
   d_statisticsRegistry.unregisterStat(&d_numArithPivotStep);
+  d_statisticsRegistry.unregisterStat(&d_numArithNlLemmaStep);
   d_statisticsRegistry.unregisterStat(&d_numBitblastStep);
   d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
@@ -243,6 +247,10 @@ void ResourceManager::spendResource(Resource r)
     case Resource::ArithPivotStep:
       amount = 1;
       ++d_statistics->d_numArithPivotStep;
+      break;
+    case Resource::ArithNlLemmaStep:
+      amount = 1;
+      ++d_statistics->d_numArithNlLemmaStep;
       break;
     case Resource::BitblastStep:
       amount = d_options[options::bitblastStep];
