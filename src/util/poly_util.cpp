@@ -52,7 +52,7 @@ To cast_by_string(const From& f)
   s << f;
   return To(s.str());
 }
-}
+}  // namespace
 
 Integer toInteger(const poly::Integer& i)
 {
@@ -132,8 +132,7 @@ Maybe<poly::DyadicRational> toDyadicRational(const Rational& r)
   if (exp > 0)
   {
     // It's a dyadic rational.
-    return div_2exp(poly::DyadicRational(toInteger(r.getNumerator())),
-                    exp - 1);
+    return div_2exp(poly::DyadicRational(toInteger(r.getNumerator())), exp - 1);
   }
   return Maybe<poly::DyadicRational>();
 }
@@ -155,7 +154,8 @@ Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r)
   return Maybe<poly::DyadicRational>();
 }
 
-poly::Rational approximateToDyadic(const poly::Rational& r, const poly::Rational& original)
+poly::Rational approximateToDyadic(const poly::Rational& r,
+                                   const poly::Rational& original)
 {
   // Multiply both numerator and denominator by two.
   // Increase or decrease the numerator, depending on whether r is too small or
@@ -173,8 +173,8 @@ poly::Rational approximateToDyadic(const poly::Rational& r, const poly::Rational
 }
 
 poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
-                                                  const Rational& lower,
-                                                  const Rational& upper)
+                                              const Rational& lower,
+                                              const Rational& upper)
 {
   Maybe<poly::DyadicRational> ml = toDyadicRational(lower);
   Maybe<poly::DyadicRational> mu = toDyadicRational(upper);
@@ -204,8 +204,8 @@ poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
 }
 
 RealAlgebraicNumber toRanWithRefinement(poly::UPolynomial&& p,
-                                           const Rational& lower,
-                                           const Rational& upper)
+                                        const Rational& lower,
+                                        const Rational& upper)
 {
   return RealAlgebraicNumber(
       toPolyRanWithRefinement(std::move(p), lower, upper));
@@ -232,12 +232,15 @@ std::size_t totalDegree(const poly::Polynomial& p)
   return tdeg;
 }
 
-struct GetVarInfo {
+struct GetVarInfo
+{
   VariableInformation* info;
   std::size_t cur_var_degree = 0;
   std::size_t cur_lc_degree = 0;
 };
-void getVariableInformation(VariableInformation& vi, const poly::Polynomial& poly) {
+void getVariableInformation(VariableInformation& vi,
+                            const poly::Polynomial& poly)
+{
   GetVarInfo varinfo;
   varinfo.info = &vi;
   lp_polynomial_traverse_f f =
@@ -251,15 +254,18 @@ void getVariableInformation(VariableInformation& vi, const poly::Polynomial& pol
         for (std::size_t i = 0; i < m->n; ++i)
         {
           tdeg += m->p[i].d;
-          if (m->p[i].x == info->var) {
+          if (m->p[i].x == info->var)
+          {
             info->max_degree = std::max(info->max_degree, m->p[i].d);
             info->sum_degree += m->p[i].d;
             ++info->num_terms;
             vardeg = m->p[i].d;
           }
         }
-        if (vardeg > 0) {
-          if (gvi->cur_var_degree < vardeg) {
+        if (vardeg > 0)
+        {
+          if (gvi->cur_var_degree < vardeg)
+          {
             gvi->cur_lc_degree = tdeg - vardeg;
           }
           info->max_terms_tdegree = std::max(info->max_terms_tdegree, tdeg);
