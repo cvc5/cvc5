@@ -116,8 +116,6 @@ libcvc4_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  printer/sygus_print_callback.cpp
-  printer/sygus_print_callback.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
   proof/arith_proof.cpp
@@ -773,6 +771,7 @@ libcvc4_add_sources(
   theory/theory_preprocessor.h
   theory/theory_proof_step_buffer.cpp
   theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.cpp
   theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
@@ -962,6 +961,7 @@ install(FILES
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
+          expr/sequence.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -988,7 +988,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
-          printer/sygus_print_callback.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/printer)
 install(FILES

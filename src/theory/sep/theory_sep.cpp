@@ -378,7 +378,8 @@ void TheorySep::check(Effort e) {
               }
               std::vector< Node > labels;
               getLabelChildren( s_atom, s_lbl, children, labels );
-              Node empSet = NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType().toType()));
+              Node empSet =
+                  NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType()));
               Assert(children.size() > 1);
               if( s_atom.getKind()==kind::SEP_STAR ){
                 //reduction for heap : union, pairwise disjoint
@@ -429,9 +430,11 @@ void TheorySep::check(Effort e) {
               //conc = conc.isNull() ? ssn : NodeManager::currentNM()->mkNode( kind::AND, conc, ssn );
               
             }else if( s_atom.getKind()==kind::SEP_EMP ){
-              //conc = s_lbl.eqNode( NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType().toType())) );
+              // conc = s_lbl.eqNode(
+              // NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType())) );
               Node lem;
-              Node emp_s = NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType().toType()));
+              Node emp_s =
+                  NodeManager::currentNM()->mkConst(EmptySet(s_lbl.getType()));
               if( polarity ){
                 lem = NodeManager::currentNM()->mkNode( kind::OR, fact.negate(), s_lbl.eqNode( emp_s ) );
               }else{
@@ -1235,7 +1238,7 @@ Node TheorySep::mkUnion( TypeNode tn, std::vector< Node >& locs ) {
   Node u;
   if( locs.empty() ){
     TypeNode ltn = NodeManager::currentNM()->mkSetType(tn);
-    return NodeManager::currentNM()->mkConst(EmptySet(ltn.toType()));
+    return NodeManager::currentNM()->mkConst(EmptySet(ltn));
   }else{
     for( unsigned i=0; i<locs.size(); i++ ){
       Node s = locs[i];
@@ -1343,7 +1346,7 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
             return Node::null();
           }
         }
-        Node empSet = NodeManager::currentNM()->mkConst(EmptySet(rtn.toType()));
+        Node empSet = NodeManager::currentNM()->mkConst(EmptySet(rtn));
         if( n.getKind()==kind::SEP_STAR ){
 
           //disjoint contraints
@@ -1435,7 +1438,8 @@ Node TheorySep::instantiateLabel( Node n, Node o_lbl, Node lbl, Node lbl_v, std:
       return ret;
     }else if( n.getKind()==kind::SEP_EMP ){
       //return NodeManager::currentNM()->mkConst( lbl_v.getKind()==kind::EMPTYSET );
-      return lbl_v.eqNode( NodeManager::currentNM()->mkConst(EmptySet(lbl_v.getType().toType())) );
+      return lbl_v.eqNode(
+          NodeManager::currentNM()->mkConst(EmptySet(lbl_v.getType())));
     }else{
       std::map< Node, Node >::iterator it = visited.find( n );
       if( it==visited.end() ){
@@ -1780,7 +1784,7 @@ void TheorySep::debugPrintHeap( HeapInfo& heap, const char * c ) {
 Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   Assert(d_heap_locs.size() == d_heap_locs_model.size());
   if( d_heap_locs.empty() ){
-    return NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
+    return NodeManager::currentNM()->mkConst(EmptySet(tn));
   }else if( d_heap_locs.size()==1 ){
     return d_heap_locs[0];
   }else{
