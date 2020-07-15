@@ -149,8 +149,8 @@ public:
 
   /** need check ? */
   bool needCheck() const;
-  
-  /** 
+
+  /**
    * Is the literal lit (possibly) critical for satisfying the input formula in
    * the current context? This call is applicable only during collectModelInfo
    * or during LAST_CALL effort.

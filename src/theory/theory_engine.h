@@ -89,7 +89,7 @@ struct NodeTheoryPairHashFunction {
 namespace theory {
   class TheoryModel;
   class TheoryEngineModelBuilder;
-  
+
   class DecisionManager;
   class RelevanceManager;
 
@@ -535,7 +535,7 @@ public:
   inline bool needCheck() const {
     return d_outputChannelUsed || d_lemmasAdded;
   }
-  /** 
+  /**
    * Is the literal lit (possibly) critical for satisfying the input formula in
    * the current context? This call is applicable only during collectModelInfo
    * or during LAST_CALL effort.

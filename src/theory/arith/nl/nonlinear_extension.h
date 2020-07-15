@@ -252,8 +252,9 @@ class NonlinearExtension
   //---------------------------end check model
 
   /** compute relevant assertions */
-  void computeRelevantAssertions(const std::vector<Node>& assertions, std::vector<Node>& keep);
-  
+  void computeRelevantAssertions(const std::vector<Node>& assertions,
+                                 std::vector<Node>& keep);
+
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already

@@ -18,11 +18,11 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/theory_options.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
-#include "options/theory_options.h"
 
 using namespace CVC4::kind;
 
@@ -176,7 +176,8 @@ void NonlinearExtension::processSideEffect(const NlLemma& se)
   d_trSlv.processSideEffect(se);
 }
 
-void NonlinearExtension::computeRelevantAssertions(const std::vector<Node>& assertions, std::vector<Node>& keep)
+void NonlinearExtension::computeRelevantAssertions(
+    const std::vector<Node>& assertions, std::vector<Node>& keep)
 {
   Trace("nl-ext-rlv") << "Compute relevant assertions..." << std::endl;
   Valuation v = d_containing.getValuation();
@@ -187,7 +188,8 @@ void NonlinearExtension::computeRelevantAssertions(const std::vector<Node>& asse
       keep.push_back(a);
     }
   }
-  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size() << " assertions" << std::endl;
+  Trace("nl-ext-rlv") << "...keep " << keep.size() << "/" << assertions.size()
+                      << " assertions" << std::endl;
 }
 
 unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)

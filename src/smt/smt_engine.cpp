@@ -1548,7 +1548,8 @@ void SmtEnginePrivate::processAssertions() {
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
-    for (const Node& a : d_assertions){
+    for (const Node& a : d_assertions)
+    {
       Chat() << "+ " << a << std::endl;
       d_smt.d_propEngine->assertFormula(a);
     }

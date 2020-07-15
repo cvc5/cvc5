@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__RELEVANCE_MANAGER__H
 #define CVC4__THEORY__RELEVANCE_MANAGER__H
 
-#include <unordered_set>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -29,13 +29,14 @@ namespace theory {
 
 /**
  * This class manages queries related to relevance of asserted literals.
- * 
+ *
  * It stores the input assertions and can be asked if an asserted literal is
  * critical to satisfying the input assertions.
  */
 class RelevanceManager
 {
   typedef context::CDList<Node> NodeList;
+
  public:
   RelevanceManager(context::UserContext* userContext, Valuation val);
   /** Notify (preprocessed) assertions. */
@@ -44,11 +45,13 @@ class RelevanceManager
   void resetRound();
   /** is relevant? */
   bool isRelevant(Node lit);
+
  private:
   /** compute relevance */
   void computeRelevance();
   /** justify */
-  int justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
+  int justify(TNode n,
+              std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** the valuation object */
   Valuation d_val;
   /** The input assertions */

@@ -1312,7 +1312,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       options::minisatUseElim.set(false);
     }
   }
-  
+
   // FIXME: model unsound for logics that have "reduction lemmas", e.g.
   // quantifiers and strings
   if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())

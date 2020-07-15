@@ -41,18 +41,18 @@
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
-#include "theory/decision_manager.h"
-#include "theory/relevance_manager.h"
 
 using namespace std;
 
@@ -154,7 +154,8 @@ void TheoryEngine::finishInit() {
   // create the relevance filter
   if (options::relevanceFilter())
   {
-    d_relManager.reset(new RelevanceManager(d_userContext, theory::Valuation(this)));
+    d_relManager.reset(
+        new RelevanceManager(d_userContext, theory::Valuation(this)));
   }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
   if( d_curr_model_builder==NULL ){
@@ -504,7 +505,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         printAssertions("theory::assertions-model");
       }
       // reset round for the relevance manager
-      if (d_relManager!=nullptr)
+      if (d_relManager != nullptr)
       {
         d_relManager->resetRound();
       }
@@ -937,7 +938,7 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
 
 bool TheoryEngine::isRelevant(Node lit) const
 {
-  if (d_relManager!=nullptr)
+  if (d_relManager != nullptr)
   {
     return d_relManager->isRelevant(lit);
   }
@@ -998,7 +999,7 @@ void TheoryEngine::notifyPreprocessedAssertions(
       theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
   }
-  if (d_relManager!=nullptr)
+  if (d_relManager != nullptr)
   {
     d_relManager->notifyPreprocessedAssertions(assertions);
   }

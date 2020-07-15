@@ -19,9 +19,14 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-RelevanceManager::RelevanceManager(context::UserContext* userContext, Valuation val) : d_val(val), d_input(userContext), d_computed(false), d_success(false){}
+RelevanceManager::RelevanceManager(context::UserContext* userContext,
+                                   Valuation val)
+    : d_val(val), d_input(userContext), d_computed(false), d_success(false)
+{
+}
 
-void RelevanceManager::notifyPreprocessedAssertions(const std::vector<Node>& assertions)
+void RelevanceManager::notifyPreprocessedAssertions(
+    const std::vector<Node>& assertions)
 {
   // add to input list, which is user-context dependent
   for (const Node& a : assertions)
@@ -44,9 +49,10 @@ void RelevanceManager::computeRelevance()
   {
     TNode n = *it;
     int val = justify(n, cache);
-    if (val!=1)
+    if (val != 1)
     {
-      Trace("rel-manager") << "WARNING: failed to justify " << n << ", fail..." << std::endl;
+      Trace("rel-manager") << "WARNING: failed to justify " << n << ", fail..."
+                           << std::endl;
       AlwaysAssert(false);
       d_success = false;
       return;
@@ -56,54 +62,59 @@ void RelevanceManager::computeRelevance()
   d_success = true;
 }
 
-int RelevanceManager::justify(TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+int RelevanceManager::justify(
+    TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
 {
-  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it = cache.find(n);
-  if (it!=cache.end())
+  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it =
+      cache.find(n);
+  if (it != cache.end())
   {
     return it->second;
   }
   Kind k = n.getKind();
   int ret;
-  if (k==NOT)
+  if (k == NOT)
   {
     ret = -justify(n[0], cache);
   }
-  else if (k==IMPLIES)
+  else if (k == IMPLIES)
   {
     int cret = justify(n[0], cache);
-    ret = cret==1 ? justify(n[1],cache) : -cret;
+    ret = cret == 1 ? justify(n[1], cache) : -cret;
   }
-  else if( k==AND || k==OR){
-    //Boolean connective, recurse
-    ret = k==AND ? 1 : -1;
-    for (const Node& nc : n){
+  else if (k == AND || k == OR)
+  {
+    // Boolean connective, recurse
+    ret = k == AND ? 1 : -1;
+    for (const Node& nc : n)
+    {
       int cret = justify(nc, cache);
-      if (cret==0)
+      if (cret == 0)
       {
         ret = 0;
       }
-      else if (ret!=cret)
+      else if (ret != cret)
       {
         ret = cret;
         break;
       }
     }
   }
-  else if (k==ITE)
+  else if (k == ITE)
   {
     int cret = justify(n[0], cache);
-    ret = cret==1 ? justify(n[1], cache) : (cret==-1 ? justify(n[2], cache) : 0);
+    ret = cret == 1 ? justify(n[1], cache)
+                    : (cret == -1 ? justify(n[2], cache) : 0);
   }
-  else if (k==XOR)
+  else if (k == XOR)
   {
     int cret = justify(n[0], cache);
-    ret = cret==0 ? 0 : -cret*justify(n[1],cache);
+    ret = cret == 0 ? 0 : -cret * justify(n[1], cache);
   }
-  else if (k==EQUAL && n[0].getType().isBoolean())
+  else if (k == EQUAL && n[0].getType().isBoolean())
   {
     int cret = justify(n[0], cache);
-    ret = cret==0 ? 0 : cret*justify(n[1],cache);
+    ret = cret == 0 ? 0 : cret * justify(n[1], cache);
   }
   else
   {
@@ -131,13 +142,12 @@ bool RelevanceManager::isRelevant(Node lit)
     return true;
   }
   // agnostic to negation
-  while (lit.getKind()==NOT)
+  while (lit.getKind() == NOT)
   {
     lit = lit[0];
   }
-  return d_rset.find(lit)!=d_rset.end();
+  return d_rset.find(lit) != d_rset.end();
 }
 
 }  // namespace theory
 }  // namespace CVC4
-
