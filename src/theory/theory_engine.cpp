@@ -635,8 +635,7 @@ void TheoryEngine::combineTheories() {
     lemma(equality.orNode(equality.notNode()),
           RULE_INVALID,
           false,
-          false,
-          false,
+          LemmaProperty::NONE,
           carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
@@ -1614,8 +1613,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         ProofRule rule,
                                         bool negated,
-                                        bool removable,
-                                        bool preprocess,
+                                        theory::LemmaProperty p,
                                         theory::TheoryId atomsTo) {
   // For resource-limiting (also does a time check).
   // spendResource();
@@ -1636,11 +1634,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
   }
+  bool removable = p& LemmaProperty::REMOVABLE;
 
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess);
+  d_tpp.preprocess(node, lemmas, p & LemmaProperty::PREPROCESS);
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
@@ -1717,7 +1716,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(fullConflict, RULE_CONFLICT, true, LemmaProperty::REMOVABLE, THEORY_LAST);
 
   } else {
     // When only one theory, the conflict should need no processing
@@ -1747,7 +1746,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
       });
 
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, LemmaProperty::REMOVABLE, THEORY_LAST);
   }
 
   PROOF({

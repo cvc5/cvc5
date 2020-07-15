@@ -1315,7 +1315,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
 
   // FIXME: model unsound for logics that have "reduction lemmas", e.g.
   // quantifiers and strings
-  if (logic.isTheoryEnabled(THEORY_ARITH) && logic.isLinear())
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
   {
     // use relevance filtering techniques for non-linear arithmetic
     if (!options::relevanceFilter.wasSetByUser())

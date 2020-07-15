@@ -340,8 +340,7 @@ class TheoryEngine {
   theory::LemmaStatus lemma(TNode node,
                             ProofRule rule,
                             bool negated,
-                            bool removable,
-                            bool preprocess,
+                            theory::LemmaProperty p,
                             theory::TheoryId atomsTo);
 
   /** Enusre that the given atoms are send to the given theory */

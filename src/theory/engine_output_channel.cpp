@@ -73,26 +73,23 @@ void EngineOutputChannel::safePoint(ResourceManager::Resource r)
 
 theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
                                                ProofRule rule,
-                                               bool removable,
-                                               bool preprocess,
-                                               bool sendAtoms)
+                                               LemmaProperty p)
 {
   Debug("theory::lemma") << "EngineOutputChannel<" << d_theory << ">::lemma("
                          << lemma << ")"
-                         << ", preprocess = " << preprocess << std::endl;
+                         << ", properties = " << p << std::endl;
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  PROOF({ registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
+  PROOF({ bool preprocess = p & LemmaProperty::PREPROCESS; registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
 
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   theory::LemmaStatus result =
       d_engine->lemma(tlem.getNode(),
                       rule,
                       false,
-                      removable,
-                      preprocess,
-                      sendAtoms ? d_theory : theory::THEORY_LAST);
+                      p,
+                      (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
   return result;
 }
 
@@ -236,8 +233,9 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
   Debug("pf::explain") << "EngineOutputChannel::splitLemma( " << lemma << " )"
                        << std::endl;
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
+  LemmaProperty p = removable ? LemmaProperty::REMOVABLE : LemmaProperty::NONE;
   theory::LemmaStatus result = d_engine->lemma(
-      tlem.getNode(), RULE_SPLIT, false, removable, false, d_theory);
+      tlem.getNode(), RULE_SPLIT, false, p, d_theory);
   return result;
 }
 
@@ -273,7 +271,7 @@ void EngineOutputChannel::demandRestart()
   Trace("theory::restart") << "EngineOutputChannel<" << d_theory
                            << ">::restart(" << restartVar << ")" << std::endl;
   ++d_statistics.restartDemands;
-  lemma(restartVar, RULE_INVALID, true);
+  lemma(restartVar, RULE_INVALID, LemmaProperty::REMOVABLE);
 }
 
 void EngineOutputChannel::requirePhase(TNode n, bool phase)
@@ -317,9 +315,7 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
 }
 
 LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
-                                              bool removable,
-                                              bool preprocess,
-                                              bool sendAtoms)
+                                              LemmaProperty p)
 {
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
@@ -332,9 +328,8 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
   return d_engine->lemma(plem.getNode(),
                          RULE_INVALID,
                          false,
-                         removable,
-                         preprocess,
-                         sendAtoms ? d_theory : theory::THEORY_LAST);
+                         p,
+                         (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
 }
 
 }  // namespace theory

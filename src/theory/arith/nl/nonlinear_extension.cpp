@@ -152,14 +152,14 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
   for (const NlLemma& nlem : out)
   {
     Node lem = nlem.d_lemma;
-    bool preprocess = nlem.d_preprocess;
+    LemmaProperty p = nlem.getLemmaProperty();
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_id
                           << " : " << lem << std::endl;
-    d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    d_containing.getOutputChannel().lemma(lem, p);
     // process the side effect
     processSideEffect(nlem);
-    // add to cache if not preprocess
-    if (preprocess)
+    // add to cache based on preprocess
+    if (p & LemmaProperty::PREPROCESS)
     {
       d_lemmasPp.insert(lem);
     }
