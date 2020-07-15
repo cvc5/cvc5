@@ -32,7 +32,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
+CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory * extt)
   : SubtheorySolver(c, bv),
     d_notify(*this),
     d_equalityEngine(d_notify, c, "theory::bv::ee", true),
@@ -42,6 +42,7 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     d_useSlicer(false),
     d_preregisterCalled(false),
     d_checkCalled(false),
+    d_extTheory(extt),
     d_reasons(c)
 {
   // The kinds we are treating as function application in congruence
@@ -412,7 +413,7 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 void CoreSolver::eqNotifyNewClass(TNode t) {
-  d_extTheory.registerTerm( t );
+  d_extTheory->registerTerm( t );
 }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {

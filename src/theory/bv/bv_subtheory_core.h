@@ -92,8 +92,8 @@ class CoreSolver : public SubtheorySolver {
   bool d_preregisterCalled;
   bool d_checkCalled;
   
-  /** Extended theory module. */
-  ExtTheory d_extTheory;
+  /** Pointer to the extended theory module. */
+  ExtTheory * d_extTheory;
   
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
@@ -105,7 +105,7 @@ class CoreSolver : public SubtheorySolver {
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 public:
-  CoreSolver(context::Context* c, TheoryBV* bv);
+  CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory * extt);
   ~CoreSolver();
   bool isComplete() override { return d_isComplete; }
   void  setMasterEqualityEngine(eq::EqualityEngine* eq);

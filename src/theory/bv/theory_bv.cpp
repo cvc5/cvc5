@@ -87,7 +87,7 @@ TheoryBV::TheoryBV(context::Context* c,
 
   if (options::bitvectorEqualitySolver() && !options::proof())
   {
-    d_subtheories.emplace_back(new CoreSolver(c, this));
+    d_subtheories.emplace_back(new CoreSolver(c, this, d_extTheory.get()));
     d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
