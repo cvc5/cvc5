@@ -103,9 +103,10 @@ void PfManager::setFinalProof(ProofGenerator * pg, context::CDList<Expr>* al)
 void PfManager::printProof(ProofGenerator * pg, context::CDList<Expr>* al)
 {
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
-  *options::out() << "(proof\n";
-  fp->printDebug(*options::out());
-  *options::out() << "\n)\n";
+  std::ostream& out = *options::out();
+  out << "(proof\n";
+  out << *fp;
+  out << "\n)\n";
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
