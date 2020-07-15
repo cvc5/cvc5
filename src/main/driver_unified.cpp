@@ -447,7 +447,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           continue;
         }
 
-        status = pExecutor->doCommand(cmd);
+        try
+        {
+          status = pExecutor->doCommand(cmd);
+        }
+        catch (CVC4::Exception& exc)
+        {
+          // Make sure that no memory is leaked an reraise the exception.
+          delete cmd;
+          throw;
+        }
         if (cmd->interrupted() && status == 0) {
           interrupted = true;
           break;
