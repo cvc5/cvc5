@@ -18,7 +18,7 @@
 
 namespace CVC4 {
 namespace theory {
-  
+
 /**
  * Writes an lemma property name to a stream.
  *
@@ -28,26 +28,26 @@ namespace theory {
  */
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
 {
-  if (p==LemmaProperty::NONE)
+  if (p == LemmaProperty::NONE)
   {
     out << "NONE";
   }
   else
   {
     out << "{";
-    if (p&LemmaProperty::REMOVABLE)
+    if (p & LemmaProperty::REMOVABLE)
     {
       out << " REMOVABLE";
     }
-    if (p&LemmaProperty::PREPROCESS)
+    if (p & LemmaProperty::PREPROCESS)
     {
       out << " PREPROCESS";
     }
-    if (p&LemmaProperty::SEND_ATOMS)
+    if (p & LemmaProperty::SEND_ATOMS)
     {
       out << " SEND_ATOMS";
     }
-    if (p&LemmaProperty::NEEDS_JUSTIFY)
+    if (p & LemmaProperty::NEEDS_JUSTIFY)
     {
       out << " NEEDS_JUSTIFY";
     }
@@ -56,38 +56,47 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
   return out;
 }
 
-LemmaProperty operator | (LemmaProperty lhs, LemmaProperty rhs)
+LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
 {
-  return static_cast<LemmaProperty>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+  return static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
+                                    | static_cast<uint32_t>(rhs));
 }
-LemmaProperty& operator |= (LemmaProperty& lhs, LemmaProperty rhs)
+LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs)
 {
   lhs = lhs | rhs;
   return lhs;
 }
-LemmaProperty& operator &= (LemmaProperty& lhs, LemmaProperty rhs)
+LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs)
 {
-  lhs = static_cast<LemmaProperty>(static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs));
+  lhs = static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
+                                   & static_cast<uint32_t>(rhs));
   return lhs;
 }
 bool operator&(LemmaProperty lhs, LemmaProperty rhs)
 {
-  LemmaProperty p = static_cast<LemmaProperty>(static_cast<uint32_t>(lhs) & static_cast<uint32_t>(rhs));
+  LemmaProperty p = static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
+                                               & static_cast<uint32_t>(rhs));
   return p != LemmaProperty::NONE;
 }
 
 LemmaStatus::LemmaStatus(TNode rewrittenLemma, unsigned level)
-    : d_rewrittenLemma(rewrittenLemma), d_level(level) {}
+    : d_rewrittenLemma(rewrittenLemma), d_level(level)
+{
+}
 
 TNode LemmaStatus::getRewrittenLemma() const { return d_rewrittenLemma; }
 
 unsigned LemmaStatus::getLevel() const { return d_level; }
 
-LemmaStatus OutputChannel::lemma(TNode n, LemmaProperty p) {
+LemmaStatus OutputChannel::lemma(TNode n, LemmaProperty p)
+{
   return lemma(n, RULE_INVALID, p);
 }
 
-LemmaStatus OutputChannel::split(TNode n) { return splitLemma(n.orNode(n.notNode())); }
+LemmaStatus OutputChannel::split(TNode n)
+{
+  return splitLemma(n.orNode(n.notNode()));
+}
 
 void OutputChannel::trustedConflict(TrustNode pconf)
 {

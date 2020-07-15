@@ -47,11 +47,11 @@ enum class LemmaProperty : uint32_t
   NEEDS_JUSTIFY = 8
 };
 /** Define operator lhs | rhs */
-LemmaProperty operator | (LemmaProperty lhs, LemmaProperty rhs);
+LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
 /** Define operator lhs |= rhs */
-LemmaProperty& operator |= (LemmaProperty& lhs, LemmaProperty rhs);
+LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs);
 /** Define operator lhs &= rhs */
-LemmaProperty& operator &= (LemmaProperty& lhs, LemmaProperty rhs);
+LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs);
 /** check set lhs & rhs */
 bool operator&(LemmaProperty lhs, LemmaProperty rhs);
 
@@ -83,6 +83,7 @@ class LemmaStatus {
    * will be 0 if the lemma didn't reach the SAT layer at all.
    */
   unsigned getLevel() const;
+
  private:
   Node d_rewrittenLemma;
   unsigned d_level;
@@ -149,12 +150,14 @@ class OutputChannel {
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p=LemmaProperty::NONE) = 0;
+  virtual LemmaStatus lemma(TNode n,
+                            ProofRule rule,
+                            LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
    * Variant of the lemma function that does not require providing a proof rule.
    */
-  virtual LemmaStatus lemma(TNode n, LemmaProperty p=LemmaProperty::NONE);
+  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE);
 
   /**
    * Request a split on a new theory atom.  This is equivalent to
@@ -228,7 +231,8 @@ class OutputChannel {
    * by the generator pfg. Apart from pfg, the interface for this method is
    * the same as OutputChannel.
    */
-  virtual LemmaStatus trustedLemma(TrustNode lem, LemmaProperty p=LemmaProperty::NONE);
+  virtual LemmaStatus trustedLemma(TrustNode lem,
+                                   LemmaProperty p = LemmaProperty::NONE);
   //---------------------------- end new proof
 }; /* class OutputChannel */
 

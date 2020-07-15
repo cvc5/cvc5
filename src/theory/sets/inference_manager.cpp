@@ -212,7 +212,8 @@ void InferenceManager::flushLemma(Node lem, bool preprocess)
   }
   Trace("sets-lemma-debug") << "Send lemma : " << lem << std::endl;
   d_lemmas_produced.insert(lem);
-  LemmaProperty p = preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
+  LemmaProperty p =
+      preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
   d_parent.getOutputChannel()->lemma(lem, p);
   d_sentLemma = true;
 }

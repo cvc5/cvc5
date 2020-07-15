@@ -48,7 +48,10 @@ bool ProofOutputChannel::propagate(TNode x) {
   return true;
 }
 
-theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, theory::LemmaProperty p) {
+theory::LemmaStatus ProofOutputChannel::lemma(TNode n,
+                                              ProofRule rule,
+                                              theory::LemmaProperty p)
+{
   Trace("pf::tp") << "ProofOutputChannel: new lemma: " << n << std::endl;
   // TODO(#1231): We should transition to supporting multiple lemmas. The
   // following assertion cannot be enabled due to

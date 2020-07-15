@@ -1121,7 +1121,7 @@ void QuantifiersEngine::flushLemmas(){
     d_hasAddedLemma = true;
     for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
       Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma( d_lemmas_waiting[i], LemmaProperty::PREPROCESS );
+      getOutputChannel().lemma(d_lemmas_waiting[i], LemmaProperty::PREPROCESS);
     }
     d_lemmas_waiting.clear();
   }

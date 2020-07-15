@@ -81,15 +81,18 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
 
-  PROOF({ bool preprocess = p & LemmaProperty::PREPROCESS; registerLemmaRecipe(lemma, lemma, preprocess, d_theory); });
+  PROOF({
+    bool preprocess = p & LemmaProperty::PREPROCESS;
+    registerLemmaRecipe(lemma, lemma, preprocess, d_theory);
+  });
 
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
-  theory::LemmaStatus result =
-      d_engine->lemma(tlem.getNode(),
-                      rule,
-                      false,
-                      p,
-                      (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
+  theory::LemmaStatus result = d_engine->lemma(
+      tlem.getNode(),
+      rule,
+      false,
+      p,
+      (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
   return result;
 }
 
@@ -234,8 +237,8 @@ theory::LemmaStatus EngineOutputChannel::splitLemma(TNode lemma, bool removable)
                        << std::endl;
   TrustNode tlem = TrustNode::mkTrustLemma(lemma);
   LemmaProperty p = removable ? LemmaProperty::REMOVABLE : LemmaProperty::NONE;
-  theory::LemmaStatus result = d_engine->lemma(
-      tlem.getNode(), RULE_SPLIT, false, p, d_theory);
+  theory::LemmaStatus result =
+      d_engine->lemma(tlem.getNode(), RULE_SPLIT, false, p, d_theory);
   return result;
 }
 
@@ -314,8 +317,7 @@ void EngineOutputChannel::trustedConflict(TrustNode pconf)
   d_engine->conflict(pconf.getNode(), d_theory);
 }
 
-LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
-                                              LemmaProperty p)
+LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
 {
   Assert(plem.getKind() == TrustNodeKind::LEMMA);
   if (plem.getGenerator() != nullptr)
@@ -325,11 +327,12 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem,
   ++d_statistics.lemmas;
   d_engine->d_outputChannelUsed = true;
   // now, call the normal interface for lemma
-  return d_engine->lemma(plem.getNode(),
-                         RULE_INVALID,
-                         false,
-                         p,
-                         (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
+  return d_engine->lemma(
+      plem.getNode(),
+      RULE_INVALID,
+      false,
+      p,
+      (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
 }
 
 }  // namespace theory
