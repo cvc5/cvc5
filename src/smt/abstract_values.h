@@ -29,7 +29,7 @@ namespace smt {
 /**
  * This utility is responsible for constructing and maintaining abstract
  * values, which are used in some responses to e.g. get-value / get-model
- * commands.
+ * commands. See SMT-LIB standard 2.6 page 65 for details.
  */
 class AbstractValues
 {
@@ -38,7 +38,9 @@ class AbstractValues
   AbstractValues(NodeManager* nm);
   ~AbstractValues();
   /**
-   * Substitute away all AbstractValues in a node.
+   * Substitute away all AbstractValues in a node, which replaces all
+   * abstract values with their original definition. For example, if `@a` was
+   * introduced for term t, then applying this method on f(`@a`) returns f(t).
    */
   Node substituteAbstractValues(TNode n);
 
