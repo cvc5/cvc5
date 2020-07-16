@@ -1609,12 +1609,13 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
   }
-  bool removable = p & LemmaProperty::REMOVABLE;
+  bool removable = isLemmaPropertyRemovable(p);
+  bool preprocess = isLemmaPropertyPreprocess(p);
 
   // the assertion pipeline storing the lemmas
   AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, p & LemmaProperty::PREPROCESS);
+  d_tpp.preprocess(node, lemmas, preprocess);
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {

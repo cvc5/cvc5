@@ -248,6 +248,7 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
+                  const std::vector<Node>& false_asserts,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model

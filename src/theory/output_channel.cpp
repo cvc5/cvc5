@@ -17,39 +17,6 @@
 namespace CVC4 {
 namespace theory {
 
-/**
- * Writes an lemma property name to a stream.
- *
- * @param out The stream to write to
- * @param p The lemma property to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, LemmaProperty p)
-{
-  if (p == LemmaProperty::NONE)
-  {
-    out << "NONE";
-  }
-  else
-  {
-    out << "{";
-    if (p & LemmaProperty::REMOVABLE)
-    {
-      out << " REMOVABLE";
-    }
-    if (p & LemmaProperty::PREPROCESS)
-    {
-      out << " PREPROCESS";
-    }
-    if (p & LemmaProperty::SEND_ATOMS)
-    {
-      out << " SEND_ATOMS";
-    }
-    out << " }";
-  }
-  return out;
-}
-
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
 {
   return static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
@@ -60,17 +27,53 @@ LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs)
   lhs = lhs | rhs;
   return lhs;
 }
-LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs)
+LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
 {
-  lhs = static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
-                                   & static_cast<uint32_t>(rhs));
+  return static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
+                                    & static_cast<uint32_t>(rhs));
+}
+LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs)
+{
+  lhs = lhs & rhs;
   return lhs;
 }
-bool operator&(LemmaProperty lhs, LemmaProperty rhs)
+bool isLemmaPropertyRemovable(LemmaProperty p)
 {
-  LemmaProperty p = static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
-                                               & static_cast<uint32_t>(rhs));
-  return p != LemmaProperty::NONE;
+  return (p & LemmaProperty::REMOVABLE) != LemmaProperty::NONE;
+}
+bool isLemmaPropertyPreprocess(LemmaProperty p)
+{
+  return (p & LemmaProperty::PREPROCESS) != LemmaProperty::NONE;
+}
+bool isLemmaPropertySendAtoms(LemmaProperty p)
+{
+  return (p & LemmaProperty::SEND_ATOMS) != LemmaProperty::NONE;
+}
+
+std::ostream& operator<<(std::ostream& out, LemmaProperty p)
+{
+  if (p == LemmaProperty::NONE)
+  {
+    out << "NONE";
+  }
+  else
+  {
+    out << "{";
+    if (isLemmaPropertyRemovable(p))
+    {
+      out << " REMOVABLE";
+    }
+    if (isLemmaPropertyPreprocess(p))
+    {
+      out << " PREPROCESS";
+    }
+    if (isLemmaPropertySendAtoms(p))
+    {
+      out << " SEND_ATOMS";
+    }
+    out << " }";
+  }
+  return out;
 }
 
 LemmaStatus::LemmaStatus(TNode rewrittenLemma, unsigned level)

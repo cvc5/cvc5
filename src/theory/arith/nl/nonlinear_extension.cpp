@@ -159,7 +159,7 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
     // process the side effect
     processSideEffect(nlem);
     // add to cache based on preprocess
-    if (p & LemmaProperty::PREPROCESS)
+    if (isLemmaPropertyPreprocess(p))
     {
       d_lemmasPp.insert(lem);
     }
@@ -376,6 +376,7 @@ std::vector<Node> NonlinearExtension::checkModelEval(
 }
 
 bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
+                                    const std::vector<Node>& false_asserts,
                                     std::vector<NlLemma>& lemmas,
                                     std::vector<Node>& gs)
 {
@@ -395,7 +396,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
-  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret = d_model.checkModel(passertions, false_asserts, tdegree, lemmas, gs);
   return ret;
 }
 
