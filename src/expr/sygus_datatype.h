@@ -45,8 +45,6 @@ class SygusDatatypeConstructor
   std::string d_name;
   /** List of argument types. */
   std::vector<TypeNode> d_argTypes;
-  /** Print callback of the constructor. */
-  std::shared_ptr<SygusPrintCallback> d_pc;
   /** Weight of the constructor. */
   int d_weight;
 };
@@ -89,7 +87,6 @@ class SygusDatatype
   void addConstructor(Node op,
                       const std::string& name,
                       const std::vector<TypeNode>& argTypes,
-                      std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
   /**
    * Add constructor that encodes an application of builtin kind k. Like above,
@@ -98,7 +95,6 @@ class SygusDatatype
    */
   void addConstructor(Kind k,
                       const std::vector<TypeNode>& argTypes,
-                      std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
   /**
    * This adds a constructor that corresponds to the any constant constructor

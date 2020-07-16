@@ -49,7 +49,6 @@
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
 #include "theory/logic_info.h"
@@ -1564,11 +1563,12 @@ bool Term::isConst() const
 
 Term Term::getConstArrayBase() const
 {
+  CVC4::ExprManagerScope exmgrs(*(d_solver->getExprManager()));
   CVC4_API_CHECK_NOT_NULL;
   // CONST_ARRAY kind maps to STORE_ALL internal kind
   CVC4_API_CHECK(d_expr->getKind() == CVC4::Kind::STORE_ALL)
       << "Expecting a CONST_ARRAY Term when calling getConstArrayBase()";
-  return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getExpr());
+  return Term(d_solver, d_expr->getConst<ArrayStoreAll>().getValue().toExpr());
 }
 
 std::vector<Term> Term::getConstSequenceElements() const
@@ -2552,10 +2552,6 @@ void Grammar::addSygusConstructorTerm(
   Term op = purifySygusGTerm(term, args, cargs, ntsToUnres);
   std::stringstream ssCName;
   ssCName << op.getKind();
-  std::shared_ptr<SygusPrintCallback> spc;
-  // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(
-      *op.d_expr, termVectorToExprs(args));
   if (!args.empty())
   {
     Term lbvl = Term(d_solver,
@@ -2567,7 +2563,7 @@ void Grammar::addSygusConstructorTerm(
                                                  {*lbvl.d_expr, *op.d_expr}));
   }
   dt.d_dtype->addSygusConstructor(
-      *op.d_expr, ssCName.str(), sortVectorToTypes(cargs), spc);
+      *op.d_expr, ssCName.str(), sortVectorToTypes(cargs));
 }
 
 Term Grammar::purifySygusGTerm(
@@ -3379,7 +3375,8 @@ Term Solver::mkEmptySet(Sort s) const
   CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || this == s.d_solver, s)
       << "set sort associated to this solver object";
 
-  return mkValHelper<CVC4::EmptySet>(CVC4::EmptySet(*s.d_type));
+  return mkValHelper<CVC4::EmptySet>(
+      CVC4::EmptySet(TypeNode::fromType(*s.d_type)));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3511,6 +3508,7 @@ Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
 Term Solver::mkConstArray(Sort sort, Term val) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
   CVC4_API_ARG_CHECK_NOT_NULL(val);
   CVC4_API_SOLVER_CHECK_SORT(sort);
@@ -3518,8 +3516,8 @@ Term Solver::mkConstArray(Sort sort, Term val) const
   CVC4_API_CHECK(sort.isArray()) << "Not an array sort.";
   CVC4_API_CHECK(sort.getArrayElementSort().isComparableTo(val.getSort()))
       << "Value does not match element sort.";
-  Term res = mkValHelper<CVC4::ArrayStoreAll>(
-      CVC4::ArrayStoreAll(*sort.d_type, *val.d_expr));
+  Term res = mkValHelper<CVC4::ArrayStoreAll>(CVC4::ArrayStoreAll(
+      TypeNode::fromType(*sort.d_type), Node::fromExpr(*val.d_expr)));
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3598,7 +3596,7 @@ Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   return mkValHelper<CVC4::UninterpretedConstant>(
-      CVC4::UninterpretedConstant(*sort.d_type, index));
+      CVC4::UninterpretedConstant(TypeNode::fromType(*sort.d_type), index));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4204,7 +4202,7 @@ void Solver::assertFormula(Term term) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_NOT_NULL(term);
-  d_smtEngine->assertFormula(*term.d_expr);
+  d_smtEngine->assertFormula(Node::fromExpr(*term.d_expr));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

@@ -43,7 +43,7 @@ using namespace CVC4::theory;
 namespace CVC4 {
 namespace smt {
 
-void setDefaults(SmtEngine& smte, LogicInfo& logic)
+void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
   // implied options
   if (options::debugCheckModels())
@@ -121,7 +121,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       }
       Notice() << "SmtEngine: setting bit-blast mode to lazy to support model"
                << "generation" << std::endl;
-      smte.setOption("bitblastMode", SExpr("lazy"));
+      options::bitblastMode.set(options::BitblastMode::LAZY);
     }
     else if (!options::incrementalSolving())
     {
@@ -289,7 +289,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   }
 
   // sygus inference may require datatypes
-  if (!smte.isInternalSubsolver())
+  if (!isInternalSubsolver)
   {
     if (options::produceAbducts()
         || options::produceInterpols() != options::ProduceInterpols::NONE
@@ -325,7 +325,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
              << "option requiring assertions." << std::endl;
-    smte.setOption("produce-assertions", SExpr("true"));
+    options::produceAssertions.set(true);
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
@@ -381,7 +381,6 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
   }
 
-
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     /**
@@ -420,7 +419,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       Notice() << "SmtEngine: turning off pseudoboolean rewrites to support "
                   "unsat cores/proofs"
                << std::endl;
-      smte.setOption("pb-rewrites", false);
+      options::pbRewrites.set(false);
     }
 
     if (options::sortInference())
@@ -473,7 +472,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
                   "cores/proofs"
                << std::endl;
-      smte.setOption("boolToBitvector", SExpr("off"));
+      options::boolToBitvector.set(options::BoolToBVMode::OFF);
     }
 
     if (options::bvIntroducePow2())
@@ -486,7 +485,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       Notice() << "SmtEngine: turning off bv-intro-pow2 to support "
                   "unsat-cores/proofs"
                << std::endl;
-      smte.setOption("bv-intro-pow2", false);
+      options::bvIntroducePow2.set(false);
     }
 
     if (options::repeatSimp())
@@ -499,7 +498,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       Notice() << "SmtEngine: turning off repeat-simp to support unsat "
                   "cores/proofs"
                << std::endl;
-      smte.setOption("repeat-simp", false);
+      options::repeatSimp.set(false);
     }
 
     if (options::globalNegate())
@@ -512,7 +511,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       Notice() << "SmtEngine: turning off global-negate to support unsat "
                   "cores/proofs"
                << std::endl;
-      smte.setOption("global-negate", false);
+      options::globalNegate.set(false);
     }
 
     if (options::bitvectorAig())
@@ -551,7 +550,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       }
       Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
                << std::endl;
-      smte.setOption("boolToBitvector", SExpr("off"));
+      options::boolToBitvector.set(options::BoolToBVMode::OFF);
     }
   }
 
@@ -561,7 +560,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
           || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << std::endl;
-    smte.setOption("produce-models", SExpr("true"));
+    options::produceModels.set(true);
   }
 
   /////////////////////////////////////////////////////////////////////////////
@@ -704,7 +703,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
     }
     Notice() << "SmtEngine: turning off bool-to-bv for non-bv logic: "
              << logic.getLogicString() << std::endl;
-    smte.setOption("boolToBitvector", SExpr("off"));
+    options::boolToBitvector.set(options::BoolToBVMode::OFF);
   }
 
   if (!options::bvEagerExplanations.wasSetByUser()
@@ -1333,7 +1332,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
           << "SmtEngine: turning off incremental solving mode (not yet "
              "supported with --proof, try --tear-down-incremental instead)"
           << std::endl;
-      smte.setOption("incremental", SExpr("false"));
+      options::incrementalSolving.set(false);
     }
     if (logic > LogicInfo("QF_AUFBVLRA"))
     {
@@ -1433,7 +1432,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       }
       Notice() << "SmtEngine: turning off produce-models to support "
                << sOptNoModel << std::endl;
-      smte.setOption("produce-models", SExpr("false"));
+      options::produceModels.set(false);
     }
     if (options::produceAssignments())
     {
@@ -1446,7 +1445,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       }
       Notice() << "SmtEngine: turning off produce-assignments to support "
                << sOptNoModel << std::endl;
-      smte.setOption("produce-assignments", SExpr("false"));
+      options::produceAssignments.set(false);
     }
     if (options::checkModels())
     {
@@ -1459,7 +1458,7 @@ void setDefaults(SmtEngine& smte, LogicInfo& logic)
       }
       Notice() << "SmtEngine: turning off check-models to support "
                << sOptNoModel << std::endl;
-      smte.setOption("check-models", SExpr("false"));
+      options::checkModels.set(false);
     }
   }
 

@@ -31,6 +31,7 @@ cvc4_add_system_test(ouroborous)
 cvc4_add_system_test(reset_assertions)
 cvc4_add_system_test(sep_log_api)
 cvc4_add_system_test(smt2_compliance)
-cvc4_add_system_test(statistics)
+# TODO(cvc4-projects#209): Add methods for retrieving statistics to new API
+# cvc4_add_system_test(statistics)
 cvc4_add_system_test(two_solvers)
 # TODO: Move CVC4JavaTest.java to test/java and delete run_java_test (after full cmake migration)

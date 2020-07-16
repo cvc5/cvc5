@@ -326,10 +326,7 @@ private:
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
-  std::pair<bool, Node> entailmentCheck(
-      TNode lit,
-      const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL) override;
+  std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
  private:
   /** add tester to equivalence class info */

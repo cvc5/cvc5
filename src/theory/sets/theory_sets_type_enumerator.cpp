@@ -28,7 +28,7 @@ SetEnumerator::SetEnumerator(TypeNode type, TypeEnumeratorProperties* tep)
       d_currentSetIndex(0),
       d_currentSet()
 {
-  d_currentSet = d_nodeManager->mkConst(EmptySet(type.toType()));
+  d_currentSet = d_nodeManager->mkConst(EmptySet(type));
 }
 
 SetEnumerator::SetEnumerator(const SetEnumerator& enumerator)

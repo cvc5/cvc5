@@ -20,7 +20,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -344,7 +343,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           sdts[i].addConstructor(lambdaOp,
                                  sscs.str(),
                                  argListc,
-                                 printer::SygusEmptyPrintCallback::getEmptyPC(),
                                  0);
         }
         // recursive apply
@@ -413,7 +411,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       sdttl.addConstructor(lambdaOp,
                            ssc.str(),
                            argList,
-                           printer::SygusEmptyPrintCallback::getEmptyPC(),
                            0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
