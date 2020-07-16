@@ -82,7 +82,8 @@ Maybe<poly::DyadicRational> toDyadicRational(const poly::Rational& r);
  * original.
  * Assumes one starts with lower(original) or ceil(original) for r.
  */
-poly::Rational approximateToDyadic(const poly::Rational& r, const poly::Rational& original);
+poly::Rational approximateToDyadic(const poly::Rational& r,
+                                   const poly::Rational& original);
 
 /**
  * Constructs a poly::AlgebraicNumber, allowing for refinement of the
@@ -92,16 +93,16 @@ poly::Rational approximateToDyadic(const poly::Rational& r, const poly::Rational
  * provided rational bounds are already dyadic, the refinement is skipped.
  */
 poly::AlgebraicNumber toPolyRanWithRefinement(poly::UPolynomial&& p,
-                                                  const Rational& lower,
-                                                  const Rational& upper);
+                                              const Rational& lower,
+                                              const Rational& upper);
 
 /**
  * Constructs a CVC4::RealAlgebraicNumber, simply wrapping
  * toPolyRanWithRefinement.
  */
 RealAlgebraicNumber toRanWithRefinement(poly::UPolynomial&& p,
-                                           const Rational& lower,
-                                           const Rational& upper);
+                                        const Rational& lower,
+                                        const Rational& upper);
 
 std::size_t totalDegree(const poly::Polynomial& p);
 
@@ -109,21 +110,23 @@ std::size_t totalDegree(const poly::Polynomial& p);
  * Collects information about a single variable in a set of polynomials.
  * Used for determining a variable ordering.
  */
-struct VariableInformation {
-    poly::Variable var;
-    /** Maximum degree of this variable. */
-    std::size_t max_degree = 0;
-    /** Maximum degree of the leading coefficient of this variable. */
-    std::size_t max_lc_degree = 0;
-    /** Maximum of total degrees of terms that contain this variable. */
-    std::size_t max_terms_tdegree = 0;
-    /** Sum of degrees of this variable. */
-    std::size_t sum_degree = 0;
-    /** Number of terms that contain this variable. */
-    std::size_t num_terms = 0;
+struct VariableInformation
+{
+  poly::Variable var;
+  /** Maximum degree of this variable. */
+  std::size_t max_degree = 0;
+  /** Maximum degree of the leading coefficient of this variable. */
+  std::size_t max_lc_degree = 0;
+  /** Maximum of total degrees of terms that contain this variable. */
+  std::size_t max_terms_tdegree = 0;
+  /** Sum of degrees of this variable. */
+  std::size_t sum_degree = 0;
+  /** Number of terms that contain this variable. */
+  std::size_t num_terms = 0;
 };
 
-void getVariableInformation(VariableInformation& vi, const poly::Polynomial& poly);
+void getVariableInformation(VariableInformation& vi,
+                            const poly::Polynomial& poly);
 
 }  // namespace poly_utils
 }  // namespace CVC4
