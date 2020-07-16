@@ -76,6 +76,8 @@ public:
    BvEagerAssertStep,
    BvPropagationStep,
    BvSatConflictsStep,
+   BvSatPropagateStep,
+   BvSatSimplifyStep,
    CnfStep,
    DecisionStep,
    LemmaStep,

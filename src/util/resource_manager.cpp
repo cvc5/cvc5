@@ -78,6 +78,8 @@ struct ResourceManager::Statistics
   IntStat d_numBvEagerAssertStep;
   IntStat d_numBvPropagationStep;
   IntStat d_numBvSatConflictsStep;
+  IntStat d_numBvSatPropagateStep;
+  IntStat d_numBvSatSimplifyStep;
   IntStat d_numCnfStep;
   IntStat d_numDecisionStep;
   IntStat d_numLemmaStep;
@@ -103,6 +105,8 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
       d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
       d_numBvPropagationStep("resource::BvPropagationStep", 0),
       d_numBvSatConflictsStep("resource::BvSatConflictsStep", 0),
+      d_numBvSatPropagateStep("resource::BvSatPropagateStep", 0),
+      d_numBvSatSimplifyStep("resource::BvSatSimplifyStep", 0),
       d_numCnfStep("resource::CnfStep", 0),
       d_numDecisionStep("resource::DecisionStep", 0),
       d_numLemmaStep("resource::LemmaStep", 0),
@@ -122,6 +126,8 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
   d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
   d_statisticsRegistry.registerStat(&d_numBvSatConflictsStep);
+  d_statisticsRegistry.registerStat(&d_numBvSatPropagateStep);
+  d_statisticsRegistry.registerStat(&d_numBvSatSimplifyStep);
   d_statisticsRegistry.registerStat(&d_numCnfStep);
   d_statisticsRegistry.registerStat(&d_numDecisionStep);
   d_statisticsRegistry.registerStat(&d_numLemmaStep);
@@ -143,6 +149,8 @@ ResourceManager::Statistics::~Statistics()
   d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
   d_statisticsRegistry.unregisterStat(&d_numBvSatConflictsStep);
+  d_statisticsRegistry.unregisterStat(&d_numBvSatPropagateStep);
+  d_statisticsRegistry.unregisterStat(&d_numBvSatSimplifyStep);
   d_statisticsRegistry.unregisterStat(&d_numCnfStep);
   d_statisticsRegistry.unregisterStat(&d_numDecisionStep);
   d_statisticsRegistry.unregisterStat(&d_numLemmaStep);
@@ -267,6 +275,14 @@ void ResourceManager::spendResource(Resource r)
     case Resource::BvSatConflictsStep:
       amount = d_options[options::bvSatConflictStep];
       ++d_statistics->d_numBvSatConflictsStep;
+      break;
+    case Resource::BvSatPropagateStep:
+      amount = 1;
+      ++d_statistics->d_numBvSatPropagateStep;
+      break;
+    case Resource::BvSatSimplifyStep:
+      amount = 1;
+      ++d_statistics->d_numBvSatSimplifyStep;
       break;
     case Resource::CnfStep:
       amount = d_options[options::cnfStep];
