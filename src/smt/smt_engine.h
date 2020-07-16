@@ -95,24 +95,26 @@ namespace prop {
 /* -------------------------------------------------------------------------- */
 
 namespace smt {
-  /**
-   * Representation of a defined function.  We keep these around in
-   * SmtEngine to permit expanding definitions late (and lazily), to
-   * support getValue() over defined functions, to support user output
-   * in terms of defined functions, etc.
-   */
-  class DefinedFunction;
+/** Subsolvers */
+class AbductionSolver;
+/**
+ * Representation of a defined function.  We keep these around in
+ * SmtEngine to permit expanding definitions late (and lazily), to
+ * support getValue() over defined functions, to support user output
+ * in terms of defined functions, etc.
+ */
+class DefinedFunction;
 
-  struct SmtEngineStatistics;
-  class SmtEnginePrivate;
-  class SmtScope;
-  class ProcessAssertions;
-  class PfManager;
+struct SmtEngineStatistics;
+class SmtEnginePrivate;
+class SmtScope;
+class ProcessAssertions;
+class PfManager;
 
-  ProofManager* currentProofManager();
+ProofManager* currentProofManager();
 
-  struct CommandCleanup;
-  typedef context::CDList<Command*, CommandCleanup> CommandList;
+struct CommandCleanup;
+typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 
 /* -------------------------------------------------------------------------- */
@@ -375,7 +377,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Result assertFormula(const Expr& e, bool inUnsatCore = true);
+  Result assertFormula(const Node& formula, bool inUnsatCore = true);
 
   /**
    * Check if a given (set of) expression(s) is entailed with respect to the
@@ -514,7 +516,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Expr expandDefinitions(const Expr& e);
+  Node expandDefinitions(const Node& e);
 
   /**
    * Get the assigned value of an expr (only if immediately preceded by a SAT
@@ -669,10 +671,10 @@ class CVC4_PUBLIC SmtEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getAbduct(const Expr& conj, const Type& grammarType, Expr& abd);
+  bool getAbduct(const Node& conj, const TypeNode& grammarType, Node& abd);
 
   /** Same as above, but without user-provided grammar restrictions */
-  bool getAbduct(const Expr& conj, Expr& abd);
+  bool getAbduct(const Node& conj, Node& abd);
 
   /**
    * Get list of quantified formulas that were instantiated on the last call
@@ -910,6 +912,13 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
+
+  /**
+   * Get expanded assertions.
+   *
+   * Return the set of assertions, after expanding definitions.
+   */
+  std::vector<Expr> getExpandedAssertions();
   /* .......................................................................  */
  private:
   /* .......................................................................  */
@@ -918,7 +927,7 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
       DefinedFunctionMap;
   /** The type of our internal assertion list */
-  typedef context::CDList<Expr> AssertionList;
+  typedef context::CDList<Node> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
 
@@ -941,7 +950,9 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the Context owned by this SmtEngine. */
   context::Context* getContext() { return d_context.get(); };
 
-  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  /** Get a pointer to the PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
 
@@ -1004,7 +1015,7 @@ class CVC4_PUBLIC SmtEngine
    * with the abduct and the goal is UNSAT. If these criteria are not met, an
    * internal error is thrown.
    */
-  void checkAbduct(Expr a);
+  void checkAbduct(Node a);
 
   /**
    * Postprocess a value for output to the user.  Involves doing things
@@ -1073,7 +1084,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * throw@ TypeCheckingException
    */
-  void ensureBoolean(const Expr& e);
+  void ensureBoolean(const Node& n);
 
   void internalPush();
 
@@ -1121,29 +1132,11 @@ class CVC4_PUBLIC SmtEngine
                               Expr func);
 
   /**
-   * Get abduct internal.
-   *
-   * Get the next abduct from the internal subsolver d_subsolver. If
-   * successful, this method returns true and sets abd to that abduct.
-   *
-   * This method assumes d_subsolver has been initialized to do abduction
-   * problems.
-   */
-  bool getAbductInternal(Expr& abd);
-
-  /**
    * Helper method to obtain both the heap and nil from the solver. Returns a
    * std::pair where the first element is the heap expression and the second
    * element is the nil expression.
    */
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
-
-  /**
-   * Get expanded assertions.
-   *
-   * Return the set of assertions, after expanding definitions.
-   */
-  std::vector<Expr> getExpandedAssertions();
 
   /* Members -------------------------------------------------------------- */
 
@@ -1187,35 +1180,8 @@ class CVC4_PUBLIC SmtEngine
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 
-  /** The SMT engine subsolver
-   *
-   * This is a separate copy of the SMT engine which is used for making
-   * calls that cannot be answered by this copy of the SMT engine. An example
-   * of invoking this subsolver is the get-abduct command, where we wish to
-   * solve a sygus conjecture based on the current assertions. In particular,
-   * consider the input:
-   *   (assert A)
-   *   (get-abduct B)
-   * In the copy of the SMT engine where these commands are issued, we maintain
-   * A in the assertion stack. To solve the abduction problem, instead of
-   * modifying the assertion stack to remove A and add the sygus conjecture
-   * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
-   * assertion stack unchaged. This copy of the SMT engine can be further
-   * queried for information regarding further solutions.
-   */
-  std::unique_ptr<SmtEngine> d_subsolver;
-
-  /**
-   * If applicable, the function-to-synthesize that the subsolver is solving
-   * for. This is used for the get-abduct command.
-   */
-  Expr d_sssf;
-
-  /**
-   * The conjecture of the current abduction problem. This expression is only
-   * valid while we are in mode SMT_MODE_ABDUCT.
-   */
-  Expr d_abdConj;
+  /** The solver for abduction queries */
+  std::unique_ptr<smt::AbductionSolver> d_abductSolver;
 
   /**
    * The assertion list (before any conversion) for supporting

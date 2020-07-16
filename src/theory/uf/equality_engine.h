@@ -758,9 +758,9 @@ public:
   }
 
   /**
-   * Add a kind to treat as function applications. 
-   * When extOperator is true, this equality engine will treat the operators of this kind 
-   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will 
+   * Add a kind to treat as function applications.
+   * When extOperator is true, this equality engine will treat the operators of this kind
+   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will
    * consider equivalence classes containing the operators of such terms, and "hasTerm" will
    * return true.
    */
