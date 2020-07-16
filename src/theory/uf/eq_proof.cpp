@@ -427,11 +427,11 @@ bool EqProof::expandTransitivityForDisequalities(
     //
     // which would lead to the cyclic expansion proof:
     //
-    //        l1 = ""                l1 = ""     "" = t
+    //       (= l1 "")             (= l1 "")   (= "" t)
     //       --------- SYMM      ----------------------- TRANS
-    //       (= "" l1)                        l1 = t
+    //       (= "" l1)                     (= l1 t)
     //      ------------------------------------------ TRANS
-    //                   "" = t
+    //                       (= "" t)
     if (expansionPremises.size() > 1 && !assumptions.count(expansionConclusion))
     {
       // create transitivity step to derive expected premise
@@ -441,7 +441,7 @@ bool EqProof::expandTransitivityForDisequalities(
              "step for "
           << expansionConclusion << " with premises " << expansionPremises
           << "\n";
-      // create folding step
+      // create expansion step
       p->addStep(
           expansionConclusion, PfRule::TRANS, expansionPremises, {}, true);
     }
