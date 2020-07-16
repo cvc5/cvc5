@@ -173,7 +173,7 @@ bool EqProof::expandTransitivityForDisequalities(
   std::vector<Node> substPremises;
   bool inSubstCase = false, substConclusionInReverseOrder = false;
   if ((conclusion[0].getKind() == kind::CONST_BOOLEAN)
-       != (conclusion[1].getKind() == kind::CONST_BOOLEAN))
+      != (conclusion[1].getKind() == kind::CONST_BOOLEAN))
   {
     inSubstCase = true;
     // reorder offending premise if constant is the first argument
