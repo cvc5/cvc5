@@ -1481,6 +1481,9 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == SEQ_UNIT)
   {
     retNode = rewriteSeqUnit(node);
+  } else if (nk == SEQ_NTH)
+  {
+    retNode = rewriteSeqNth(node);
   }
 
   Trace("sequences-postrewrite")
@@ -1499,6 +1502,28 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
 RewriteResponse SequencesRewriter::preRewrite(TNode node)
 {
   return RewriteResponse(REWRITE_DONE, node);
+}
+
+Node SequencesRewriter::rewriteSeqNth(Node node)
+{
+  Assert(node.getKind() == SEQ_NTH);
+  NodeManager* nm = NodeManager::currentNM();
+  Node ret;
+  Node s = node[0];
+  Node i = node[1];
+  if (s.isConst()) {
+    size_t len = s.getConst<Rational>().getNumerator().toUnsignedInt();
+    size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
+    if (pos < len) {
+      std::vector<Node> elements = Word::getChars(s);
+      ret = elements[pos];
+    } else {
+      ret = node;
+    }
+  } else {
+    ret = node;
+  }
+  return ret;
 }
 
 Node SequencesRewriter::rewriteCharAt(Node node)
