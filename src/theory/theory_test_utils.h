@@ -79,7 +79,8 @@ public:
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p) override {
+  LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
