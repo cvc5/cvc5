@@ -148,9 +148,9 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   commands.clear();
 }
 
-class SoftResourceOutListener : public Listener {
+class ResourceOutListener : public Listener {
  public:
-  SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  ResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
   void notify() override
   {
     SmtScope scope(d_smt);
@@ -159,20 +159,7 @@ class SoftResourceOutListener : public Listener {
   }
  private:
   SmtEngine* d_smt;
-}; /* class SoftResourceOutListener */
-
-
-class HardResourceOutListener : public Listener {
- public:
-  HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    SmtScope scope(d_smt);
-    theory::Rewriter::clearCaches();
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class HardResourceOutListener */
+}; /* class ResourceOutListener */
 
 class BeforeSearchListener : public Listener {
  public:
@@ -364,10 +351,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     ResourceManager* rm = d_smt.getResourceManager();
 
     d_listenerRegistrations->add(
-        rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
-
-    d_listenerRegistrations->add(
-        rm->registerHardListener(new HardResourceOutListener(d_smt)));
+        rm->registerListener(new ResourceOutListener(d_smt)));
 
     try
     {
@@ -638,8 +622,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
-  d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
-
+  
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.
@@ -663,7 +646,6 @@ void SmtEngine::finishInit()
   // of SMT-LIB 2.6 standard.
 
   // Inialize the resource manager based on the options.
-  d_resourceManager->setHardLimit(options::hardLimit());
   if (options::perCallResourceLimit() != 0)
   {
     d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
@@ -1371,16 +1353,15 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  d_resourceManager->beginCall();
 
-  // Only way we can be out of resource is if cumulative budget is on
-  if (d_resourceManager->cumulativeLimitOn() && d_resourceManager->out())
+  if (d_resourceManager->out())
   {
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
+  d_resourceManager->beginCall();
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
