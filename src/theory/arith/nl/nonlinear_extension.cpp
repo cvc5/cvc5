@@ -38,6 +38,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_containing(containing),
       d_ee(ee),
       d_needsLastCall(false),
+      d_checkCounter(0),
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
@@ -251,6 +252,20 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
 void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
+  bool useRelevance = false;
+  if (options::relevanceFilter())
+  {
+    if (options::nlRlvMode()==options::NlRlvMode::INTERLEAVE)
+    {
+      d_checkCounter++;
+      useRelevance = (d_checkCounter%2);
+    }
+    else if (options::nlRlvMode()==options::NlRlvMode::ALWAYS)
+    {
+      useRelevance = true;
+    }
+  }
+  Valuation v = d_containing.getValuation();
   NodeManager* nm = NodeManager::currentNM();
   // get the assertions
   std::map<Node, Rational> init_bounds[2];
@@ -264,6 +279,11 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     nassertions++;
     const Assertion& assertion = *it;
     Node lit = assertion.d_assertion;
+    if (useRelevance && !v.isRelevant(lit))
+    {
+      // not relevant, skip
+      continue;
+    }
     init_assertions.insert(lit);
     // check for concrete bounds
     bool pol = lit.getKind() != NOT;

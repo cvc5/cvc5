@@ -290,6 +290,8 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /** check counter */
+  unsigned d_checkCounter;
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
