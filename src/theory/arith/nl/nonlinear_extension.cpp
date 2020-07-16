@@ -255,12 +255,12 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   bool useRelevance = false;
   if (options::relevanceFilter())
   {
-    if (options::nlRlvMode()==options::NlRlvMode::INTERLEAVE)
+    if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
     {
       d_checkCounter++;
-      useRelevance = (d_checkCounter%2);
+      useRelevance = (d_checkCounter % 2);
     }
-    else if (options::nlRlvMode()==options::NlRlvMode::ALWAYS)
+    else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
     {
       useRelevance = true;
     }
