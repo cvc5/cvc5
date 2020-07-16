@@ -619,22 +619,22 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     std::vector<TypeNode> argTypes;
     argTypes.push_back(s.getType());
-    argTypes.push_back(nm->integerType());    
+    argTypes.push_back(nm->integerType());
     TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
     SkolemCache* sc = d_termReg.getSkolemCache();
-    Node uf = sc->mkTypedSkolemCached(
-        ufType, s, i, SkolemCache::SK_NTH, "Uf");
-    
+    Node uf = sc->mkTypedSkolemCached(ufType, s, i, SkolemCache::SK_NTH, "Uf");
+
     Node ret = nm->mkNode(
         WITNESS,
         bvl,
         nm->mkNode(
-		   ITE, cond, nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)),
-		   k.eqNode(nm->mkNode(APPLY_UF, uf, s, i))));
+            ITE,
+            cond,
+            nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)),
+            k.eqNode(nm->mkNode(APPLY_UF, uf, s, i))));
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
 
-  
   return TrustNode::null();
 }
 

@@ -1481,7 +1481,8 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == SEQ_UNIT)
   {
     retNode = rewriteSeqUnit(node);
-  } else if (nk == SEQ_NTH)
+  }
+  else if (nk == SEQ_NTH)
   {
     retNode = rewriteSeqNth(node);
   }
@@ -1511,16 +1512,22 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   Node ret;
   Node s = node[0];
   Node i = node[1];
-  if (s.isConst()) {
+  if (s.isConst())
+  {
     size_t len = s.getConst<Rational>().getNumerator().toUnsignedInt();
     size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
-    if (pos < len) {
+    if (pos < len)
+    {
       std::vector<Node> elements = Word::getChars(s);
       ret = elements[pos];
-    } else {
+    }
+    else
+    {
       ret = node;
     }
-  } else {
+  }
+  else
+  {
     ret = node;
   }
   return ret;

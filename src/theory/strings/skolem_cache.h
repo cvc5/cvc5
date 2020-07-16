@@ -138,7 +138,7 @@ class SkolemCache
     //   where b is a regular expression, n is the number of occurrences of b
     //   in a, and k(0)=0.
     SK_OCCUR_LEN,
-    // exists a. 0 <= i < len(s) -> unit(a) = seq.at(s,i) 
+    // exists a. 0 <= i < len(s) -> unit(a) = seq.at(s,i)
     SK_NTH,
   };
   /**

@@ -265,7 +265,6 @@ class SequencesRewriter : public TheoryRewriter
    */
   Node rewriteSeqNth(Node node);
 
-  
   /** length preserving rewrite
    *
    * Given input n, this returns a string n' whose length is equivalent to n.

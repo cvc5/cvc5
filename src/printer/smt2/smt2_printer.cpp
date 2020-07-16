@@ -1230,7 +1230,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_COMPLEMENT: return "re.comp";
   case kind::SEQUENCE_TYPE: return "Seq";
   case kind::SEQ_UNIT: return "seq.unit";
-  case kind::SEQ_NTH: return "seq.nth";    
+  case kind::SEQ_NTH: return "seq.nth";
 
   //sep theory
   case kind::SEP_STAR: return "sep";
