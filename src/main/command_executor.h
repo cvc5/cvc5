@@ -59,6 +59,10 @@ class CommandExecutor
    */
   bool doCommand(CVC4::Command* cmd);
 
+  bool doCommand(std::unique_ptr<CVC4::Command>& cmd) {
+    return doCommand(cmd.get());
+  }
+
   /** Get a pointer to the solver object owned by this CommandExecutor. */
   api::Solver* getSolver() { return d_solver.get(); }
 

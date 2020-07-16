@@ -787,6 +787,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/eq_proof.cpp
+  theory/uf/eq_proof.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/ho_extension.cpp
