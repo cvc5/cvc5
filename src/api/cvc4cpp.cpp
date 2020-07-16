@@ -4202,7 +4202,7 @@ void Solver::assertFormula(Term term) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_NOT_NULL(term);
-  d_smtEngine->assertFormula(*term.d_expr);
+  d_smtEngine->assertFormula(Node::fromExpr(*term.d_expr));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

@@ -14,7 +14,6 @@
  **/
 
 #include "cvc4_private.h"
-
 #include "expr/node.h"
 #include "theory/uf/equality_engine_types.h"
 
@@ -164,9 +163,13 @@ class EqProof
    * in reverse order than expected. Note that the original step represents two
    * substitutions happening on the disequality, from t1->t3 and t2->t4, which
    * are implicitly justified by transitivity steps that need to be made
-   * explicit. Since there is no sense of ordering among which premises (other
+   * explicity. Since there is no sense of ordering among which premisis (other
    * than (= (= t1 t2) false)) are used for which substitution, the transitivity
    * proofs are built greedly by searching the sets of premises.
+   *
+   * If in either of the above cases then the conclusion is directly derived
+   * in the call, so only in the other cases we try to build a transitivity
+   * step below
    *
    * @param conclusion the conclusion of the (possibly) coarse-grained
    * transitivity step
