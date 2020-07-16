@@ -1261,8 +1261,7 @@ void SmtEngine::defineFunction(Expr func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Expr form =
-      d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
+  Node formNode = d_private->substituteAbstractValues(Node::fromExpr(formula));
 
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -1272,7 +1271,6 @@ void SmtEngine::defineFunction(Expr func,
       ++i) {
     formalsNodes.push_back((*i).getNode());
   }
-  TNode formNode = form.getTNode();
   DefinedFunction def(funcNode, formalsNodes, formNode);
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
@@ -1369,21 +1367,21 @@ void SmtEngine::defineFunctionsRec(
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
+    Node n = d_private->substituteAbstractValues(Node::fromExpr(lem));
     if (d_assertionList != nullptr)
     {
-      d_assertionList->push_back(e);
+      d_assertionList->push_back(n);
     }
     if (global && d_globalDefineFunRecLemmas != nullptr)
     {
       // Global definitions are asserted at check-sat-time because we have to
       // make sure that they are always present
       Assert(!language::isInputLangSygus(options::inputLanguage()));
-      d_globalDefineFunRecLemmas->emplace_back(Node::fromExpr(e));
+      d_globalDefineFunRecLemmas->emplace_back(n);
     }
     else
     {
-      d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
+      d_private->addFormula(n, false, true, false, maybeHasFv);
     }
   }
 }
@@ -1607,16 +1605,16 @@ void SmtEnginePrivate::addFormula(
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
-void SmtEngine::ensureBoolean(const Expr& e)
+void SmtEngine::ensureBoolean(const Node& n)
 {
-  Type type = e.getType(options::typeChecking());
-  Type boolType = d_exprManager->booleanType();
+  TypeNode type = n.getType(options::typeChecking());
+  TypeNode boolType = NodeManager::currentNM()->booleanType();
   if(type != boolType) {
     stringstream ss;
     ss << "Expected " << boolType << "\n"
-       << "The assertion : " << e << "\n"
+       << "The assertion : " << n << "\n"
        << "Its type      : " << type;
-    throw TypeCheckingException(e, ss.str());
+    throw TypeCheckingException(n.toExpr(), ss.str());
   }
 }
 
@@ -1725,17 +1723,16 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     for (Expr e : d_assumptions)
     {
       // Substitute out any abstract values in ex.
-      e = d_private->substituteAbstractValues(Node::fromExpr(e)).toExpr();
-      Assert(e.getExprManager() == d_exprManager);
+      Node n = d_private->substituteAbstractValues(Node::fromExpr(e));
       // Ensure expr is type-checked at this point.
-      ensureBoolean(e);
+      ensureBoolean(n);
 
       /* Add assumption  */
       if (d_assertionList != NULL)
       {
-        d_assertionList->push_back(e);
+        d_assertionList->push_back(n);
       }
-      d_private->addFormula(e.getNode(), inUnsatCore, true, true);
+      d_private->addFormula(n, inUnsatCore, true, true);
     }
 
     if (d_globalDefineFunRecLemmas != nullptr)
@@ -1875,28 +1872,27 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
+Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 {
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
 
-  Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
+  Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
   if (Dump.isOn("raw-benchmark")) {
-    Dump("raw-benchmark") << AssertCommand(ex);
+    Dump("raw-benchmark") << AssertCommand(formula.toExpr());
   }
 
   // Substitute out any abstract values in ex
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Node n = d_private->substituteAbstractValues(formula);
 
-  ensureBoolean(e);
+  ensureBoolean(n);
   if(d_assertionList != NULL) {
-    d_assertionList->push_back(e);
+    d_assertionList->push_back(n);
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
+  d_private->addFormula(n, inUnsatCore, true, false, maybeHasFv);
   return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 
@@ -2106,7 +2102,7 @@ Result SmtEngine::checkSynth()
       // we push a context so that this conjecture is removed if we modify it
       // later
       internalPush();
-      assertFormula(body.toExpr(), true);
+      assertFormula(body, true);
     }
     else
     {
@@ -2268,23 +2264,22 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   finalOptionsAreSet();
   doPendingPops();
   // Substitute out any abstract values in ex
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-  Type type = e.getType(options::typeChecking());
+  Node n = d_private->substituteAbstractValues(Node::fromExpr(ex));
+  TypeNode type = n.getType(options::typeChecking());
   // must be Boolean
-  PrettyCheckArgument(
-      type.isBoolean(), e,
-      "expected Boolean-typed variable or function application "
-      "in addToAssignment()" );
-  Node n = e.getNode();
+  PrettyCheckArgument(type.isBoolean(),
+                      n,
+                      "expected Boolean-typed variable or function application "
+                      "in addToAssignment()");
   // must be a defined constant, or a variable
   PrettyCheckArgument(
       (((d_definedFunctions->find(n) != d_definedFunctions->end())
         && n.getNumChildren() == 0)
        || n.isVar()),
-      e,
+      n,
       "expected variable or defined-function application "
       "in addToAssignment(),\ngot %s",
-      e.toString().c_str());
+      n.toString().c_str());
   if(!options::produceAssignments()) {
     return false;
   }
@@ -2440,7 +2435,7 @@ Result SmtEngine::blockModel()
   std::vector<Expr> eassertsProc = getExpandedAssertions();
   Expr eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::blockModelsMode());
-  return assertFormula(eblocker);
+  return assertFormula(Node::fromExpr(eblocker));
 }
 
 Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
@@ -2465,7 +2460,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   // we always do block model values mode here
   Expr eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
-  return assertFormula(eblocker);
+  return assertFormula(Node::fromExpr(eblocker));
 }
 
 std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
@@ -2593,7 +2588,7 @@ void SmtEngine::checkUnsatCore() {
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i << endl;
-    coreChecker.assertFormula(*i);
+    coreChecker.assertFormula(Node::fromExpr(*i));
   }
   Result r;
   try {
@@ -2736,9 +2731,11 @@ void SmtEngine::checkModel(bool hardFailure) {
   }
 
   // Now go through all our user assertions checking if they're satisfied.
-  for(AssertionList::const_iterator i = d_assertionList->begin(); i != d_assertionList->end(); ++i) {
-    Notice() << "SmtEngine::checkModel(): checking assertion " << *i << endl;
-    Node n = Node::fromExpr(*i);
+  for (const Node& assertion : *d_assertionList)
+  {
+    Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
+             << endl;
+    Node n = assertion;
 
     // Apply any define-funs from the problem.
     {
@@ -2817,7 +2814,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     stringstream ss;
     ss << "SmtEngine::checkModel(): "
        << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-       << "assertion:     " << *i << endl
+       << "assertion:     " << assertion << endl
        << "simplifies to: " << n << endl
        << "expected `true'." << endl
        << "Run with `--check-models -v' for additional diagnostics.";
@@ -2890,23 +2887,20 @@ void SmtEngine::checkSynthSolution()
   std::vector<Node> auxAssertions;
   // expand definitions cache
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (AssertionList::const_iterator i = d_assertionList->begin();
-       i != d_assertionList->end();
-       ++i)
+  for (const Node& assertion : *d_assertionList)
   {
-    Notice() << "SmtEngine::checkSynthSolution(): checking assertion " << *i << endl;
-    Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
-    Node assertion = Node::fromExpr(*i);
+    Notice() << "SmtEngine::checkSynthSolution(): checking assertion "
+             << assertion << endl;
+    Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    assertion =
+    Node n =
         d_private->getProcessAssertions()->expandDefinitions(assertion, cache);
-    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << assertion
-             << endl;
-    Trace("check-synth-sol") << "Expanded assertion " << assertion << "\n";
-    if (conjs.find(assertion) == conjs.end())
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << endl;
+    Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
+    if (conjs.find(n) == conjs.end())
     {
       Trace("check-synth-sol") << "It is an auxiliary assertion\n";
-      auxAssertions.push_back(assertion);
+      auxAssertions.push_back(n);
     }
     else
     {
@@ -2950,12 +2944,12 @@ void SmtEngine::checkSynthSolution()
              << conjBody << endl;
     Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
                              << "\n";
-    solChecker.assertFormula(conjBody.toExpr());
+    solChecker.assertFormula(conjBody);
     // Assert all auxiliary assertions. This may include recursive function
     // definitions that were added as assertions to the sygus problem.
     for (const Node& a : auxAssertions)
     {
-      solChecker.assertFormula(a.toExpr());
+      solChecker.assertFormula(a);
     }
     Result r = solChecker.checkSat();
     Notice() << "SmtEngine::checkSynthSolution(): result is " << r << endl;
@@ -3235,8 +3229,13 @@ vector<Expr> SmtEngine::getAssertions() {
     throw ModalException(msg);
   }
   Assert(d_assertionList != NULL);
+  std::vector<Expr> res;
+  for (const Node& n : *d_assertionList)
+  {
+    res.emplace_back(n.toExpr());
+  }
   // copy the result out
-  return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
+  return res;
 }
 
 void SmtEngine::push()

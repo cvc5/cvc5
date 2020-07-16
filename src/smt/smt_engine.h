@@ -371,7 +371,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
-  Result assertFormula(const Expr& e, bool inUnsatCore = true);
+  Result assertFormula(const Node& formula, bool inUnsatCore = true);
 
   /**
    * Check if a given (set of) expression(s) is entailed with respect to the
@@ -898,7 +898,7 @@ class CVC4_PUBLIC SmtEngine
   typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
       DefinedFunctionMap;
   /** The type of our internal assertion list */
-  typedef context::CDList<Expr> AssertionList;
+  typedef context::CDList<Node> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
 
@@ -1055,7 +1055,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * throw@ TypeCheckingException
    */
-  void ensureBoolean(const Expr& e);
+  void ensureBoolean(const Node& n);
 
   void internalPush();
 
