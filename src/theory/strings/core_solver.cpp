@@ -1308,7 +1308,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       if (x.isConst() && y.isConst())
       {
-        // if both are constant, its just a constant conflict
+        // if both are constant, it's just a constant conflict
         d_im.sendInference(ant, d_false, Inference::N_CONST, true);
         return;
       }
@@ -1635,7 +1635,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             Trace("strings-entail")
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
-            lenConstraint = entLit;  // et.second;
+            lenConstraint = entLit;
             // its not explained by the equality engine of this class
             iinfo.d_antn.push_back(lenConstraint);
             break;
