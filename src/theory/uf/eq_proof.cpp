@@ -172,10 +172,8 @@ bool EqProof::expandTransitivityForDisequalities(
   Node expansionConclusion;
   std::vector<Node> substPremises;
   bool inSubstCase = false, substConclusionInReverseOrder = false;
-  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
-       && conclusion[1].getKind() != kind::CONST_BOOLEAN)
-      || (conclusion[1].getKind() == kind::CONST_BOOLEAN
-          && conclusion[0].getKind() != kind::CONST_BOOLEAN))
+  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN)
+       != (conclusion[1].getKind() == kind::CONST_BOOLEAN))
   {
     inSubstCase = true;
     // reorder offending premise if constant is the first argument
@@ -714,10 +712,8 @@ Node EqProof::addToProof(CDProof* p) const
   // TRUE/FALSE_ELIM.
   Node newConclusion = conclusion;
   Assert(conclusion.getKind() == kind::EQUAL);
-  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN
-       && conclusion[1].getKind() != kind::CONST_BOOLEAN)
-      || (conclusion[1].getKind() == kind::CONST_BOOLEAN
-          && conclusion[0].getKind() != kind::CONST_BOOLEAN))
+  if ((conclusion[0].getKind() == kind::CONST_BOOLEAN)
+      != (conclusion[1].getKind() == kind::CONST_BOOLEAN))
   {
     Trace("eqproof-conv")
         << "EqProof::addToProof: process root for TRUE/FALSE_ELIM\n";
@@ -795,10 +791,8 @@ Node EqProof::addToProof(
     //  (= t true/false)
     // according to the value of the Boolean constant
     if (d_node.getKind() == kind::EQUAL
-        && ((d_node[0].getKind() == kind::CONST_BOOLEAN
-             && d_node[1].getKind() != kind::CONST_BOOLEAN)
-            || (d_node[1].getKind() == kind::CONST_BOOLEAN
-                && d_node[0].getKind() != kind::CONST_BOOLEAN)))
+        && ((d_node[0].getKind() == kind::CONST_BOOLEAN)
+            != (d_node[1].getKind() == kind::CONST_BOOLEAN)))
     {
       Trace("eqproof-conv")
           << "EqProof::addToProof: add an intro step for " << d_node << "\n";
@@ -945,18 +939,18 @@ Node EqProof::addToProof(
       // Build the equality (= t c) as a premise, finding the respective c is
       // the original premises
       Node constant;
-      for (unsigned j = 0; j < premises.size(); ++j)
+      for (const Node& premise : premises)
       {
-        Assert(premises[j].getKind() == kind::EQUAL);
-        if (premises[j][0] == term)
+        Assert(premise.getKind() == kind::EQUAL);
+        if (premise[0] == term)
         {
-          Assert(premises[j][1].isConst());
-          constant = premises[j][1];
+          Assert(premise[1].isConst());
+          constant = premise[1];
         }
-        else if (premises[j][1] == term)
+        else if (premise[1] == term)
         {
-          Assert(premises[j][0].isConst());
-          constant = premises[j][0];
+          Assert(premise[0].isConst());
+          constant = premise[0];
         }
       }
       children.push_back(term.eqNode(constant));
@@ -1226,9 +1220,7 @@ Node EqProof::addToProof(
     // Remove spurious refl steps from the premises for (= ai bi)
     cleanReflPremises(transitivityChildren[i]);
     Assert(transitivityChildren[i].size() > 1 || transitivityChildren[i].empty()
-           || transitivityChildren[i][0] == transConclusion
-           || (transitivityChildren[i][0][0] == transConclusion[1]
-               && transitivityChildren[i][0][1] == transConclusion[0]))
+           || CDProof::isSame(transitivityChildren[i][j], transConclusion))
         << "EqProof::addToProof: premises " << transitivityChildren[i] << "for "
         << i << "-th cong premise " << transConclusion << " don't justify it\n";
     unsigned sizeTrans = transitivityChildren[i].size();
@@ -1244,9 +1236,7 @@ Node EqProof::addToProof(
     bool occurs = false;
     for (unsigned j = 0; j < sizeTrans && !occurs; ++j)
     {
-      if (transitivityChildren[i][j] == transConclusion
-          || (transitivityChildren[i][j][0] == transConclusion[1]
-              && transitivityChildren[i][j][1] == transConclusion[0]))
+      if (CDProof::isSame(transitivityChildren[i][j], transConclusion))
       {
         occurs = true;
       }
