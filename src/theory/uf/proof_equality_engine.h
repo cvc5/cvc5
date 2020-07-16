@@ -38,9 +38,21 @@ namespace eq {
  * use of an EqualityEngine object in such a way that the proper proofs are
  * internally constructed, and can be retrieved from this class when
  * necessary.
+ * 
+ * Notice that this class is intended to be a *partial layer* on top of
+ * equality engine. A user of this class should still issue low-level calls
+ * (getRepresentative, areEqual, areDisequal, etc.) on the underlying equality
+ * engine directly. The methods that should *not* be called directly on the
+ * underlying equality engine include:
+ *   assertEquality/assertPredicate [*]
+ *   explain
+ * [*] the exception is that pure assumptions (those who are their own
+ * explanation) should be sent directly to the underlying equality engine.
+ * Instead, the user should use variants of the above methods provided by
+ * the public interface of this class.
  *
- * It tracks the reason for why all facts are added to an EqualityEngine in a
- * SAT-context dependent manner in a context-dependent (CDProof) object.
+ * This class tracks the reason for why all facts are added to an EqualityEngine
+ * in a SAT-context dependent manner in a context-dependent (CDProof) object.
  *
  * It is an eager proof generator (see theory/proof_generator.h), in that
  * it stores (copies) of proofs for lemmas at the moment they are sent out.
@@ -153,7 +165,6 @@ class ProofEqEngine : public EagerProofGenerator
                            const std::vector<Node>& args);
   /** Multi-step version */
   TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
-  // TrustNode assertConflict(ProofNode* p);
   //-------------------------- assert lemma
   /**
    * Called when we have concluded conc, which is either false or a
@@ -200,7 +211,7 @@ class ProofEqEngine : public EagerProofGenerator
                         const std::vector<Node>& exp,
                         const std::vector<Node>& noExplain,
                         ProofStepBuffer& psb);
-  /** Generator version */
+  /** Generator version, where pg has a proof of conc */
   TrustNode assertLemma(Node conc,
                         const std::vector<Node>& exp,
                         const std::vector<Node>& noExplain,
@@ -223,7 +234,6 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode explain(Node conc);
   /** identify */
   std::string identify() const override;
-
  protected:
   /** Add proof step */
   bool addProofStep(Node lit,
