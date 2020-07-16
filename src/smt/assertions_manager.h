@@ -20,6 +20,7 @@
 #include <map>
 
 #include "smt/process_assertions.h"
+#include "smt/abstract_values.h"
 
 namespace CVC4 {
 
@@ -38,21 +39,13 @@ class AssertionsManager
   /** finish init */
   void finishInit();
  private:
-  /**
-   * Substitute away all AbstractValues in a node.
-   */
-  Node substituteAbstractValues(TNode n);
-  /**
-   * Make a new (or return an existing) abstract value for a node.
-   * Can only use this if options::abstractValues() is on.
-   */
-  Node mkAbstractValue(TNode n);
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
   /** Reference to resource manager */
   ResourceManager& d_resourceManager;
   /** The assertions processor */
   ProcessAssertions d_proc;
+  /** The abstract values utility */
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
@@ -75,24 +68,7 @@ class AssertionsManager
   /*
    * Whether we did a global negation of the formula.
    */
-  bool d_globalNegation;  
-  /**
-   * A context that never pushes/pops, for use by CD structures (like
-   * SubstitutionMaps) that should be "global".
-   */
-  context::Context d_fakeContext;
-  /**
-   * A map of AbsractValues to their actual constants.  Only used if
-   * options::abstractValues() is on.
-   */
-  SubstitutionMap d_abstractValueMap;
-  /**
-   * A mapping of all abstract values (actual value |-> abstract) that
-   * we've handed out.  This is necessary to ensure that we give the
-   * same AbstractValues for the same real constants.  Only used if
-   * options::abstractValues() is on.
-   */
-  NodeToNodeHashMap d_abstractValues;
+  bool d_globalNegation;
 };
 
 }  // namespace smt

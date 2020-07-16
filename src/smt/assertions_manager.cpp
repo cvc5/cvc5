@@ -27,10 +27,7 @@ AssertionsManager::AssertionsManager(SmtEngine& smt, ResourceManager& rm)
       d_assertionList(nullptr),
       d_globalNegation(false),
         d_assertions(),
-        d_assertionsProcessed(smt.getUserContext(), false),
-      d_fakeContext(),
-      d_abstractValueMap(&d_fakeContext),
-      d_abstractValues()
+        d_assertionsProcessed(smt.getUserContext(), false)
 {
 }
 
@@ -91,7 +88,6 @@ void AssertionsManager::addFormula(
     if( inInput ){
       // n is an input assertion
       if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
-
         ProofManager::currentPM()->addCoreAssertion(n.toExpr());
       }
     }else{
@@ -102,27 +98,6 @@ void AssertionsManager::addFormula(
 
   // Add the normalized formula to the queue
   d_assertions.push_back(n, isAssumption);
-}
-
-Node AssertionsManager::substituteAbstractValues(TNode n) {
-  // We need to do this even if options::abstractValues() is off,
-  // since the setting might have changed after we already gave out
-  // some abstract values.
-  return d_abstractValueMap.apply(n);
-}
-
-Node AssertionsManager::mkAbstractValue(TNode n) {
-  Assert(options::abstractValues());
-  Node& val = d_abstractValues[n];
-  if(val.isNull()) {
-    val = d_smt.d_nodeManager->mkAbstractValue(n.getType());
-    d_abstractValueMap.addSubstitution(val, n);
-  }
-  // We are supposed to ascribe types to all abstract values that go out.
-  NodeManager* current = d_smt.d_nodeManager;
-  Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
-  Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
-  return retval;
 }
 
 }  // namespace smt
