@@ -115,8 +115,7 @@ void OptionsManager::notifySetOption(const std::string& key)
 
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
-  // set up the timeout
-  d_resourceManager->setHardLimit(options::hardLimit());
+  // set up the timeouts and resource limits
   if ((*d_options)[options::perCallResourceLimit] != 0)
   {
     d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
@@ -130,16 +129,6 @@ void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
   {
     d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
   }
-  if ((*d_options)[options::cumulativeMillisecondLimit] != 0)
-  {
-    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
-                                    true);
-  }
-  if ((*d_options)[options::cpuTime])
-  {
-    d_resourceManager->useCPUTime(true);
-  }
-
   // ensure that our heuristics are properly set up
   setDefaults(logic, isInternalSubsolver);
 }
