@@ -112,7 +112,7 @@ void EqProof::cleanReflPremises(std::vector<Node>& premises) const
   }
 }
 
-bool EqProof::foldTransitivityChildren(
+bool EqProof::expandTransitivityForDisequalities(
     Node conclusion,
     std::vector<Node>& premises,
     CDProof* p,
@@ -610,7 +610,7 @@ bool EqProof::buildTransitivityChain(Node conclusion,
 void EqProof::reduceNestedCongruence(
     unsigned i,
     Node conclusion,
-    std::vector<std::vector<Node>>& children,
+    std::vector<std::vector<Node>>& transitivityMatrix,
     CDProof* p,
     std::unordered_map<Node, Node, NodeHashFunction>& visited,
     std::unordered_set<Node, NodeHashFunction>& assumptions,

@@ -70,8 +70,10 @@ PR finished:
 (14) Builtin rules, builtin checker (req 5)
 (15) Boolean rules, boolean checker [Haniel] (req 5)
 (16) UF rules, UF checker [Haniel] (req 5)
+(17) rewriter new infrastructure "rewriteEqualityExt"
 (18) Add LazyCDProof (req 11)
 (19) ProofNode update, refactor free assumptions via proof_node_algorithm
+(20) Eq proof conversion [Haniel]
 (21) static strings preprocess reduce (req 7)
 (22) Strings base solver update (req 2)
 (23) Updates to proof node manager, including mkScope (req 19)
@@ -83,6 +85,7 @@ PR finished:
 (34) theory proof step buffer
 (35) Strings term registry update (req 13)
 (36) term conversion proof generator
+(37) Rewriter proof producing
 (38) quantifiers proof checker (req 8)
 (39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
@@ -94,21 +97,19 @@ PR finished:
 (61) witness rewrite
 (62) update proof checker for Skolem forms
 (64) updates to SkolemManager
+(66) preprocess proof generator
 
 PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
-(17) rewriter new infrastructure "rewriteEqualityExt"
-(37) Rewriter proof producing
+(24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (45) regexp operation refactor (req 3, 7, 8) *
 (50) term formula removal proof producing (req 36, 38, 51, 64) *
 (65) updates to strings core solver *
-(66) preprocess proof generator *
+(70) rewriter unit test [Andres] (req 36, 37)
 
 PRs future:
 
-(20) Eq proof conversion [Haniel] (req 6)
-(24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33, 64)
@@ -125,12 +126,12 @@ PRs future:
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-(63) SMT engine proof post-processor (req 37, 59, 66)
+(63) SMT engine proof post-processor (req 37, 59, 66, 72)
 (67) AssertionsPipeline update (req 66)
 (68) SAT solver proof producing [Haniel]
 (69) Initial dumping infrastructure [Haniel]
-(70) rewriter unit test [Andres] (req 36, 37)
 (71) quantifiers proof producing (req 38, 52)
+(72) witness form proof generator TODO
 
 PRs wish list:
 
