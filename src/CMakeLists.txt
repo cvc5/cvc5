@@ -221,6 +221,8 @@ libcvc4_add_sources(
   prop/theory_proxy.h
   smt/abduction_solver.cpp
   smt/abduction_solver.h
+  smt/abstract_values.cpp
+  smt/abstract_values.h
   smt/command.cpp
   smt/command.h
   smt/command_list.cpp
@@ -785,6 +787,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/eq_proof.cpp
+  theory/uf/eq_proof.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/ho_extension.cpp

@@ -60,10 +60,10 @@ namespace CVC4 {
     const std::string *progName;
 
     /** A pointer to the CommandExecutor (the signal handlers need it) */
-    CVC4::main::CommandExecutor* pExecutor = NULL;
+    CVC4::main::CommandExecutor* pExecutor = nullptr;
 
     /** A pointer to the totalTime driver stat (the signal handlers need it) */
-    CVC4::TimerStat* pTotalTime = NULL;
+    CVC4::TimerStat* pTotalTime = nullptr;
 
   }/* CVC4::main namespace */
 }/* CVC4 namespace */
@@ -201,7 +201,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     pExecutor->getSmtEngine()->notifyStartParsing(filenameStr);
 
     // Parse and execute commands until we are done
-    Command* cmd;
+    std::unique_ptr<Command> cmd;
     bool status = true;
     if(opts.getInteractive() && inputFromStdin) {
       if(opts.getTearDownIncremental() > 0) {
@@ -209,10 +209,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             "--tear-down-incremental doesn't work in interactive mode");
       }
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd = new SetOptionCommand("incremental", SExpr(true));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
       }
       InteractiveShell shell(pExecutor->getSolver());
       if(opts.getInteractivePrompt()) {
@@ -230,37 +229,33 @@ int runCvc4(int argc, char* argv[], Options& opts) {
 
       while(true) {
         try {
-          cmd = shell.readCommand();
+          cmd.reset(shell.readCommand());
         } catch(UnsafeInterruptException& e) {
           (*opts.getOut()) << CommandInterrupted();
           break;
         }
-        if (cmd == NULL)
+        if (cmd == nullptr)
           break;
         status = pExecutor->doCommand(cmd) && status;
         if (cmd->interrupted()) {
-          delete cmd;
           break;
         }
-        delete cmd;
       }
     } else if( opts.getTearDownIncremental() > 0) {
       if(!opts.getIncrementalSolving() && opts.getTearDownIncremental() > 1) {
         // For tear-down-incremental values greater than 1, need incremental
         // on too.
-        cmd = new SetOptionCommand("incremental", SExpr(true));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(true)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
         // if(opts.wasSetByUserIncrementalSolving()) {
         //   throw OptionException(
         //     "--tear-down-incremental incompatible with --incremental");
         // }
 
-        // cmd = new SetOptionCommand("incremental", SExpr(false));
+        // cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
         // cmd->setMuted(true);
         // pExecutor->doCommand(cmd);
-        // delete cmd;
       }
 
       ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
@@ -287,14 +282,14 @@ int runCvc4(int argc, char* argv[], Options& opts) {
         }
 
         try {
-          cmd = parser->nextCommand();
-          if (cmd == NULL) break;
+          cmd.reset(parser->nextCommand());
+          if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
           continue;
         }
 
-        if(dynamic_cast<PushCommand*>(cmd) != NULL) {
+        if(dynamic_cast<PushCommand*>(cmd.get()) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -321,21 +316,20 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<PopCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<PopCommand*>(cmd.get()) != nullptr) {
           allCommands.pop_back(); // fixme leaks cmds here
           if (needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
               for(size_t j = 0; j < allCommands[i].size() && !interrupted; ++j)
               {
-                Command* ccmd = allCommands[i][j]->clone();
+                std::unique_ptr<Command> ccmd(allCommands[i][j]->clone());
                 ccmd->setMuted(true);
                 pExecutor->doCommand(ccmd);
                 if (ccmd->interrupted())
                 {
                   interrupted = true;
                 }
-                delete ccmd;
               }
             }
             if (interrupted) continue;
@@ -348,8 +342,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
               continue;
             }
           }
-        } else if(dynamic_cast<CheckSatCommand*>(cmd) != NULL ||
-                  dynamic_cast<QueryCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<CheckSatCommand*>(cmd.get()) != nullptr ||
+                  dynamic_cast<QueryCommand*>(cmd.get()) != nullptr) {
           if(needReset >= opts.getTearDownIncremental()) {
             pExecutor->reset();
             for(size_t i = 0; i < allCommands.size() && !interrupted; ++i) {
@@ -378,7 +372,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             interrupted = true;
             continue;
           }
-        } else if(dynamic_cast<ResetCommand*>(cmd) != NULL) {
+        } else if(dynamic_cast<ResetCommand*>(cmd.get()) != nullptr) {
           pExecutor->doCommand(cmd);
           allCommands.clear();
           allCommands.push_back(vector<Command*>());
@@ -386,16 +380,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           // We shouldn't copy certain commands, because they can cause
           // an error on replay since there's no associated sat/unsat check
           // preceding them.
-          if(dynamic_cast<GetUnsatCoreCommand*>(cmd) == NULL &&
-             dynamic_cast<GetProofCommand*>(cmd) == NULL &&
-             dynamic_cast<GetValueCommand*>(cmd) == NULL &&
-             dynamic_cast<GetModelCommand*>(cmd) == NULL &&
-             dynamic_cast<GetAssignmentCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInstantiationsCommand*>(cmd) == NULL &&
-             dynamic_cast<GetAssertionsCommand*>(cmd) == NULL &&
-             dynamic_cast<GetInfoCommand*>(cmd) == NULL &&
-             dynamic_cast<GetOptionCommand*>(cmd) == NULL &&
-             dynamic_cast<EchoCommand*>(cmd) == NULL) {
+          if(dynamic_cast<GetUnsatCoreCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetProofCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetValueCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetModelCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetAssignmentCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetInstantiationsCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetAssertionsCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetInfoCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<GetOptionCommand*>(cmd.get()) == nullptr &&
+             dynamic_cast<EchoCommand*>(cmd.get()) == nullptr) {
             Command* copy = cmd->clone();
             allCommands.back().push_back(copy);
           }
@@ -405,19 +399,16 @@ int runCvc4(int argc, char* argv[], Options& opts) {
             continue;
           }
 
-          if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-            delete cmd;
+          if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
             break;
           }
         }
-        delete cmd;
       }
     } else {
       if(!opts.wasSetByUserIncrementalSolving()) {
-        cmd = new SetOptionCommand("incremental", SExpr(false));
+        cmd.reset(new SetOptionCommand("incremental", SExpr(false)));
         cmd->setMuted(true);
         pExecutor->doCommand(cmd);
-        delete cmd;
       }
 
       ParserBuilder parserBuilder(pExecutor->getSolver(), filename, opts);
@@ -440,8 +431,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         }
         try {
-          cmd = parser->nextCommand();
-          if (cmd == NULL) break;
+          cmd.reset(parser->nextCommand());
+          if (cmd == nullptr) break;
         } catch (UnsafeInterruptException& e) {
           interrupted = true;
           continue;
@@ -453,11 +444,9 @@ int runCvc4(int argc, char* argv[], Options& opts) {
           break;
         }
 
-        if(dynamic_cast<QuitCommand*>(cmd) != NULL) {
-          delete cmd;
+        if(dynamic_cast<QuitCommand*>(cmd.get()) != nullptr) {
           break;
         }
-        delete cmd;
       }
     }
 
@@ -485,7 +474,7 @@ int runCvc4(int argc, char* argv[], Options& opts) {
     pTotalTime->stop();
 
     // Tim: I think that following comment is out of date?
-    // Set the global executor pointer to NULL first.  If we get a
+    // Set the global executor pointer to nullptr first.  If we get a
     // signal while dumping statistics, we don't want to try again.
     pExecutor->flushOutputStreams();
 
@@ -505,8 +494,8 @@ int runCvc4(int argc, char* argv[], Options& opts) {
   delete pTotalTime;
   delete pExecutor;
 
-  pTotalTime = NULL;
-  pExecutor = NULL;
+  pTotalTime = nullptr;
+  pExecutor = nullptr;
 
   signal_handlers::cleanup();
 

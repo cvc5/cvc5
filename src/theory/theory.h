@@ -57,7 +57,6 @@ namespace theory {
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
-class ExtTheory;
 class TheoryRewriter;
 
 namespace rrinst {
@@ -135,9 +134,6 @@ class Theory {
 
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
-
-  /** Extended theory module or NULL. Owned by the theory. */
-  ExtTheory* d_extTheory;
 
  protected:
 
@@ -844,9 +840,6 @@ class Theory {
 
   /* equality engine TODO: use? */
   virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-
-  /* Get extended theory if one has been installed. */
-  ExtTheory* getExtTheory();
 
   /* get current substitution at an effort
    *   input : vars
