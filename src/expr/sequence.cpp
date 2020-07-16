@@ -14,38 +14,52 @@
 
 #include "expr/sequence.h"
 
-#include "expr/expr_sequence.h"
+#include <vector>
+
+#include "expr/node.h"
+#include "expr/type_node.h"
 
 using namespace std;
 
 namespace CVC4 {
 
-Sequence::Sequence(TypeNode t, const std::vector<Node>& s) : d_type(t), d_seq(s)
+Sequence::Sequence(const TypeNode& t, const std::vector<Node>& s)
+    : d_type(new TypeNode(t)), d_seq(s)
 {
 }
+
+Sequence::Sequence(const Sequence& seq)
+    : d_type(new TypeNode(seq.getType())), d_seq(seq.getVec())
+{
+}
+
+Sequence::~Sequence() {}
 
 Sequence& Sequence::operator=(const Sequence& y)
 {
   if (this != &y)
   {
-    d_type = y.d_type;
-    d_seq = y.d_seq;
+    d_type.reset(new TypeNode(y.getType()));
+    d_seq = y.getVec();
   }
   return *this;
 }
 
 int Sequence::cmp(const Sequence& y) const
 {
-  Assert(d_type == y.d_type);
+  if (getType() != y.getType())
+  {
+    return getType() < y.getType() ? -1 : 1;
+  }
   if (size() != y.size())
   {
     return size() < y.size() ? -1 : 1;
   }
   for (size_t i = 0, sz = size(); i < sz; ++i)
   {
-    if (d_seq[i] != y.d_seq[i])
+    if (nth(i) != y.nth(i))
     {
-      return d_seq[i] < y.d_seq[i] ? -1 : 1;
+      return nth(i) < y.nth(i) ? -1 : 1;
     }
   }
   return 0;
@@ -53,15 +67,15 @@ int Sequence::cmp(const Sequence& y) const
 
 Sequence Sequence::concat(const Sequence& other) const
 {
-  Assert(d_type == other.d_type);
+  Assert(getType() == other.getType());
   std::vector<Node> ret_vec(d_seq);
   ret_vec.insert(ret_vec.end(), other.d_seq.begin(), other.d_seq.end());
-  return Sequence(d_type, ret_vec);
+  return Sequence(getType(), ret_vec);
 }
 
 bool Sequence::strncmp(const Sequence& y, size_t n) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t b = (size() >= y.size()) ? size() : y.size();
   size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s)
@@ -74,7 +88,7 @@ bool Sequence::strncmp(const Sequence& y, size_t n) const
   }
   for (size_t i = 0; i < n; ++i)
   {
-    if (d_seq[i] != y.d_seq[i])
+    if (nth(i) != y.nth(i))
     {
       return false;
     }
@@ -84,7 +98,7 @@ bool Sequence::strncmp(const Sequence& y, size_t n) const
 
 bool Sequence::rstrncmp(const Sequence& y, size_t n) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t b = (size() >= y.size()) ? size() : y.size();
   size_t s = (size() <= y.size()) ? size() : y.size();
   if (n > s)
@@ -97,7 +111,7 @@ bool Sequence::rstrncmp(const Sequence& y, size_t n) const
   }
   for (size_t i = 0; i < n; ++i)
   {
-    if (d_seq[size() - i - 1] != y.d_seq[y.size() - i - 1])
+    if (nth(size() - i - 1) != y.nth(y.size() - i - 1))
     {
       return false;
     }
@@ -105,21 +119,31 @@ bool Sequence::rstrncmp(const Sequence& y, size_t n) const
   return true;
 }
 
-Node Sequence::front() const
+bool Sequence::empty() const { return d_seq.empty(); }
+
+size_t Sequence::size() const { return d_seq.size(); }
+
+const Node& Sequence::front() const
 {
   Assert(!d_seq.empty());
   return d_seq.front();
 }
 
-Node Sequence::back() const
+const Node& Sequence::back() const
 {
   Assert(!d_seq.empty());
   return d_seq.back();
 }
 
+const Node& Sequence::nth(size_t i) const
+{
+  Assert(i < size());
+  return d_seq[i];
+}
+
 size_t Sequence::overlap(const Sequence& y) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t i = size() < y.size() ? size() : y.size();
   for (; i > 0; i--)
   {
@@ -135,7 +159,7 @@ size_t Sequence::overlap(const Sequence& y) const
 
 size_t Sequence::roverlap(const Sequence& y) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t i = size() < y.size() ? size() : y.size();
   for (; i > 0; i--)
   {
@@ -149,14 +173,18 @@ size_t Sequence::roverlap(const Sequence& y) const
   return i;
 }
 
+const TypeNode& Sequence::getType() const { return *d_type; }
+
+const std::vector<Node>& Sequence::getVec() const { return d_seq; }
+
 bool Sequence::isRepeated() const
 {
   if (size() > 1)
   {
-    Node f = d_seq[0];
+    Node f = nth(0);
     for (unsigned i = 1, sz = size(); i < sz; ++i)
     {
-      if (f != d_seq[i])
+      if (f != nth(i))
       {
         return false;
       }
@@ -167,7 +195,7 @@ bool Sequence::isRepeated() const
 
 size_t Sequence::find(const Sequence& y, size_t start) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   if (size() < y.size() + start)
   {
     return std::string::npos;
@@ -191,7 +219,7 @@ size_t Sequence::find(const Sequence& y, size_t start) const
 
 size_t Sequence::rfind(const Sequence& y, size_t start) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   if (size() < y.size() + start)
   {
     return std::string::npos;
@@ -215,7 +243,7 @@ size_t Sequence::rfind(const Sequence& y, size_t start) const
 
 bool Sequence::hasPrefix(const Sequence& y) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t s = size();
   size_t ys = y.size();
   if (ys > s)
@@ -224,7 +252,7 @@ bool Sequence::hasPrefix(const Sequence& y) const
   }
   for (size_t i = 0; i < ys; i++)
   {
-    if (d_seq[i] != y.d_seq[i])
+    if (nth(i) != y.nth(i))
     {
       return false;
     }
@@ -234,7 +262,7 @@ bool Sequence::hasPrefix(const Sequence& y) const
 
 bool Sequence::hasSuffix(const Sequence& y) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   size_t s = size();
   size_t ys = y.size();
   if (ys > s)
@@ -244,7 +272,7 @@ bool Sequence::hasSuffix(const Sequence& y) const
   size_t idiff = s - ys;
   for (size_t i = 0; i < ys; i++)
   {
-    if (d_seq[i + idiff] != y.d_seq[i])
+    if (nth(i + idiff) != y.nth(i))
     {
       return false;
     }
@@ -252,10 +280,32 @@ bool Sequence::hasSuffix(const Sequence& y) const
   return true;
 }
 
+Sequence Sequence::update(size_t i, const Sequence& t) const
+{
+  Assert(getType() == t.getType());
+  if (i < size())
+  {
+    std::vector<Node> vec(d_seq.begin(), d_seq.begin() + i);
+    size_t remNum = size() - i;
+    size_t tnum = t.d_seq.size();
+    if (tnum >= remNum)
+    {
+      vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.begin() + remNum);
+    }
+    else
+    {
+      vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
+      vec.insert(vec.end(), d_seq.begin() + i + tnum, d_seq.end());
+    }
+    return Sequence(getType(), vec);
+  }
+  return *this;
+}
+
 Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
 {
-  Assert(d_type == s.d_type);
-  Assert(d_type == t.d_type);
+  Assert(getType() == s.getType());
+  Assert(getType() == t.getType());
   size_t ret = find(s);
   if (ret != std::string::npos)
   {
@@ -263,7 +313,7 @@ Sequence Sequence::replace(const Sequence& s, const Sequence& t) const
     vec.insert(vec.begin(), d_seq.begin(), d_seq.begin() + ret);
     vec.insert(vec.end(), t.d_seq.begin(), t.d_seq.end());
     vec.insert(vec.end(), d_seq.begin() + ret + s.size(), d_seq.end());
-    return Sequence(d_type, vec);
+    return Sequence(getType(), vec);
   }
   return *this;
 }
@@ -272,10 +322,8 @@ Sequence Sequence::substr(size_t i) const
 {
   Assert(i >= 0);
   Assert(i <= size());
-  std::vector<Node> ret_vec;
-  std::vector<Node>::const_iterator itr = d_seq.begin() + i;
-  ret_vec.insert(ret_vec.end(), itr, d_seq.end());
-  return Sequence(d_type, ret_vec);
+  std::vector<Node> retVec(d_seq.begin() + i, d_seq.end());
+  return Sequence(getType(), retVec);
 }
 
 Sequence Sequence::substr(size_t i, size_t j) const
@@ -283,31 +331,20 @@ Sequence Sequence::substr(size_t i, size_t j) const
   Assert(i >= 0);
   Assert(j >= 0);
   Assert(i + j <= size());
-  std::vector<Node> ret_vec;
   std::vector<Node>::const_iterator itr = d_seq.begin() + i;
-  ret_vec.insert(ret_vec.end(), itr, itr + j);
-  return Sequence(d_type, ret_vec);
+  std::vector<Node> retVec(itr, itr + j);
+  return Sequence(getType(), retVec);
 }
 
 bool Sequence::noOverlapWith(const Sequence& y) const
 {
-  Assert(d_type == y.d_type);
+  Assert(getType() == y.getType());
   return y.find(*this) == std::string::npos
          && this->find(y) == std::string::npos && this->overlap(y) == 0
          && y.overlap(*this) == 0;
 }
 
 size_t Sequence::maxSize() { return std::numeric_limits<uint32_t>::max(); }
-
-ExprSequence Sequence::toExprSequence()
-{
-  std::vector<Expr> seq;
-  for (const Node& n : d_seq)
-  {
-    seq.push_back(n.toExpr());
-  }
-  return ExprSequence(d_type.toType(), seq);
-}
 
 std::ostream& operator<<(std::ostream& os, const Sequence& s)
 {

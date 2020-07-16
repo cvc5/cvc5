@@ -58,8 +58,9 @@ public:
 std::ostream& operator<<(std::ostream& os, const Algorithms a);
 } /* namespace inferbounds */
 
-class ArithEntailmentCheckParameters : public EntailmentCheckParameters {
-private:
+class ArithEntailmentCheckParameters
+{
+ private:
   typedef std::vector<inferbounds::InferBoundAlgorithm> VecInferBoundAlg;
   VecInferBoundAlg d_algorithms;
 
@@ -146,8 +147,9 @@ private:
 
 std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr);
 
-class ArithEntailmentCheckSideEffects : public EntailmentCheckSideEffects{
-public:
+class ArithEntailmentCheckSideEffects
+{
+ public:
   ArithEntailmentCheckSideEffects();
   ~ArithEntailmentCheckSideEffects();
 

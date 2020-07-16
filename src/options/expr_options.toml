@@ -42,4 +42,4 @@ header = "options/expr_options.h"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   read_only  = true
-  help       = "never type check expressions"
+  help       = "type check expressions"

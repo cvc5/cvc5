@@ -19,7 +19,6 @@
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/evaluator.h"
@@ -233,8 +232,7 @@ Node mkSygusTerm(const DType& dt,
         // ensures we don't try to expand e.g. bitvector extract operators,
         // whose type is undefined, and thus should not be passed to
         // expandDefinitions.
-        opn = Node::fromExpr(
-            smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
+        opn = smt::currentSmtEngine()->expandDefinitions(op);
         opn = Rewriter::rewrite(opn);
         opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;
@@ -327,9 +325,18 @@ struct SygusToBuiltinTermAttributeId
 typedef expr::Attribute<SygusToBuiltinTermAttributeId, Node>
     SygusToBuiltinTermAttribute;
 
+// A variant of the above attribute for cases where we introduce a fresh
+// variable. This is to support sygusToBuiltin on non-constant sygus terms,
+// where sygus variables should be mapped to canonical builtin variables.
+// It is important to cache this so that sygusToBuiltin is deterministic.
+struct SygusToBuiltinVarAttributeId
+{
+};
+typedef expr::Attribute<SygusToBuiltinVarAttributeId, Node>
+    SygusToBuiltinVarAttribute;
+
 Node sygusToBuiltin(Node n, bool isExternal)
 {
-  Assert(n.isConst());
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
@@ -343,6 +350,9 @@ Node sygusToBuiltin(Node n, bool isExternal)
     it = visited.find(cur);
     if (it == visited.end())
     {
+      // Notice this condition succeeds in roughly 99% of the executions of this
+      // method (based on our coverage tests), hence the else if / else cases
+      // below do not significantly impact performance.
       if (cur.getKind() == APPLY_CONSTRUCTOR)
       {
         if (!isExternal && cur.hasAttribute(SygusToBuiltinTermAttribute()))
@@ -357,6 +367,27 @@ Node sygusToBuiltin(Node n, bool isExternal)
           {
             visit.push_back(cn);
           }
+        }
+      }
+      else if (cur.getType().isSygusDatatype())
+      {
+        Assert (cur.isVar());
+        if (cur.hasAttribute(SygusToBuiltinVarAttribute()))
+        {
+          // use the previously constructed variable for it
+          visited[cur] = cur.getAttribute(SygusToBuiltinVarAttribute());
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << cur;
+          const DType& dt = cur.getType().getDType();
+          // make a fresh variable
+          NodeManager * nm = NodeManager::currentNM();
+          Node var = nm->mkBoundVar(ss.str(), dt.getSygusType());
+          SygusToBuiltinVarAttribute stbv;
+          cur.setAttribute(stbv, var);
+          visited[cur] = var;
         }
       }
       else
@@ -664,28 +695,10 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
               << "    Arg #" << k << ": " << argtNew << std::endl;
           cargs.push_back(argtNew);
         }
-        // callback prints as the expression
-        std::shared_ptr<SygusPrintCallback> spc;
-        std::vector<Expr> args;
-        if (op.getKind() == LAMBDA)
-        {
-          Node opBody = op[1];
-          for (const Node& v : op[0])
-          {
-            args.push_back(v.toExpr());
-          }
-          spc = std::make_shared<printer::SygusExprPrintCallback>(
-              opBody.toExpr(), args);
-        }
-        else if (cargs.empty())
-        {
-          spc = std::make_shared<printer::SygusExprPrintCallback>(op.toExpr(),
-                                                                  args);
-        }
         std::stringstream ss;
         ss << ops.getKind();
         Trace("dtsygus-gen-debug") << "Add constructor : " << ops << std::endl;
-        sdts.back().addConstructor(ops, ss.str(), cargs, spc);
+        sdts.back().addConstructor(ops, ss.str(), cargs);
       }
       Trace("dtsygus-gen-debug")
           << "Set sygus : " << dtc.getSygusType() << " " << abvl << std::endl;

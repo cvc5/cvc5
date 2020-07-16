@@ -570,9 +570,11 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV)
+  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV
+           || nk0 == STRING_UPDATE)
   {
     // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+    // len( update( x, n, y ) ) = len( x )
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
   }
@@ -1406,6 +1408,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   {
     retNode = rewriteSubstr(node);
   }
+  else if (nk == kind::STRING_UPDATE)
+  {
+    retNode = rewriteUpdate(node);
+  }
   else if (nk == kind::STRING_STRCTN)
   {
     retNode = rewriteContains(node);
@@ -1797,6 +1803,50 @@ Node SequencesRewriter::rewriteSubstr(Node node)
       }
     }
   }
+  return node;
+}
+
+Node SequencesRewriter::rewriteUpdate(Node node)
+{
+  Assert(node.getKind() == kind::STRING_UPDATE);
+  Node s = node[0];
+  if (s.isConst())
+  {
+    if (Word::isEmpty(s))
+    {
+      return returnRewrite(node, s, Rewrite::UPD_EMPTYSTR);
+    }
+    // rewriting for constant arguments
+    if (node[1].isConst())
+    {
+      CVC4::Rational rMaxInt(String::maxSize());
+      if (node[1].getConst<Rational>() > rMaxInt)
+      {
+        // start beyond the maximum size of strings
+        // thus, it must be beyond the end point of this string
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_MAX_OOB);
+      }
+      else if (node[1].getConst<Rational>().sgn() < 0)
+      {
+        // start before the beginning of the string
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_NEG);
+      }
+      uint32_t start =
+          node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      size_t len = Word::getLength(s);
+      if (start >= len)
+      {
+        // start beyond the end of the string
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_OOB);
+      }
+      if (node[2].isConst())
+      {
+        Node ret = Word::update(s, start, node[2]);
+        return returnRewrite(node, ret, Rewrite::UPD_EVAL);
+      }
+    }
+  }
+
   return node;
 }
 
@@ -3237,10 +3287,10 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    std::vector<Expr> seq;
-    seq.push_back(node[0].toExpr());
+    std::vector<Node> seq;
+    seq.push_back(node[0]);
     TypeNode stype = node[0].getType();
-    Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
+    Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
   return node;

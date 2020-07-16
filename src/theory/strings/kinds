@@ -16,6 +16,7 @@ operator STRING_CONCAT 2: "string concat (N-ary)"
 operator STRING_IN_REGEXP 2 "membership"
 operator STRING_LENGTH 1 "string length"
 operator STRING_SUBSTR 3 "string substr"
+operator STRING_UPDATE 3 "string update"
 operator STRING_CHARAT 2 "string charat"
 operator STRING_STRCTN 2 "string contains"
 operator STRING_LT 2 "string less than"
@@ -76,9 +77,9 @@ enumerator SEQUENCE_TYPE \
     "theory/strings/type_enumerator.h"
 
 constant CONST_SEQUENCE \
-    ::CVC4::ExprSequence \
-    ::CVC4::ExprSequenceHashFunction \
-    "expr/expr_sequence.h" \
+    ::CVC4::Sequence \
+    ::CVC4::SequenceHashFunction \
+    "expr/sequence.h" \
     "a sequence of characters"
 
 operator SEQ_UNIT 1 "a sequence of length one"
@@ -141,6 +142,7 @@ typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
 typerule STRING_LENGTH ::CVC4::theory::strings::StringStrToIntTypeRule
 typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
+typerule STRING_UPDATE ::CVC4::theory::strings::StringUpdateTypeRule
 typerule STRING_CHARAT ::CVC4::theory::strings::StringAtTypeRule
 typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
 typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
