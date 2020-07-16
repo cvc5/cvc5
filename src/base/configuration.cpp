@@ -188,7 +188,8 @@ std::string Configuration::copyright() {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
     }
-    if (Configuration::isBuiltWithPoly()) {
+    if (Configuration::isBuiltWithPoly())
+    {
       ss << "  LibPoly polynomial library\n"
          << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
          << "  licensing information.\n\n";
@@ -274,7 +275,8 @@ bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
 }
 
-bool Configuration::isBuiltWithPoly() {
+bool Configuration::isBuiltWithPoly()
+{
   return IS_POLY_BUILD;
 }
 
