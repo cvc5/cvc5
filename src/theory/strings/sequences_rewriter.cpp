@@ -1512,7 +1512,7 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   Node ret;
   Node s = node[0];
   Node i = node[1];
-  if (s.isConst())
+  if (s.isConst() && i.isConst())
   {
     size_t len = s.getConst<Rational>().getNumerator().toUnsignedInt();
     size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
