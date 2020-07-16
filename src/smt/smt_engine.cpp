@@ -81,6 +81,7 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
+#include "smt/abstract_values.h"
 #include "smt/abduction_solver.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
@@ -292,29 +293,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   // Cached true value
   Node d_true;
 
-  /**
-   * A context that never pushes/pops, for use by CD structures (like
-   * SubstitutionMaps) that should be "global".
-   */
-  context::Context d_fakeContext;
-
-  /**
-   * A map of AbsractValues to their actual constants.  Only used if
-   * options::abstractValues() is on.
-   */
-  SubstitutionMap d_abstractValueMap;
-
-  /**
-   * A mapping of all abstract values (actual value |-> abstract) that
-   * we've handed out.  This is necessary to ensure that we give the
-   * same AbstractValues for the same real constants.  Only used if
-   * options::abstractValues() is on.
-   */
-  NodeToNodeHashMap d_abstractValues;
-
-  /** TODO: whether certain preprocess steps are necessary */
-  //bool d_needsExpandDefs;
-
   /** The preprocessing pass context */
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
 
@@ -362,9 +340,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_propagator(true, true),
         d_assertions(),
         d_assertionsProcessed(smt.getUserContext(), false),
-        d_fakeContext(),
-        d_abstractValueMap(&d_fakeContext),
-        d_abstractValues(),
         d_processor(smt, *smt.getResourceManager()),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
@@ -566,34 +541,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     return applySubstitutions(n).toExpr();
   }
 
-  /**
-   * Substitute away all AbstractValues in a node.
-   */
-  Node substituteAbstractValues(TNode n) {
-    // We need to do this even if options::abstractValues() is off,
-    // since the setting might have changed after we already gave out
-    // some abstract values.
-    return d_abstractValueMap.apply(n);
-  }
-
-  /**
-   * Make a new (or return an existing) abstract value for a node.
-   * Can only use this if options::abstractValues() is on.
-   */
-  Node mkAbstractValue(TNode n) {
-    Assert(options::abstractValues());
-    Node& val = d_abstractValues[n];
-    if(val.isNull()) {
-      val = d_smt.d_nodeManager->mkAbstractValue(n.getType());
-      d_abstractValueMap.addSubstitution(val, n);
-    }
-    // We are supposed to ascribe types to all abstract values that go out.
-    NodeManager* current = d_smt.d_nodeManager;
-    Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
-    Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
-    return retval;
-  }
-
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
@@ -621,6 +568,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
+      d_absValues(new AbstractValues(d_nodeManager)),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -894,6 +842,8 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
+
+    d_absValues.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -1243,7 +1193,7 @@ void SmtEngine::defineFunction(Expr func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Node formNode = d_private->substituteAbstractValues(Node::fromExpr(formula));
+  Node formNode = d_absValues->substituteAbstractValues(Node::fromExpr(formula));
 
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -1349,7 +1299,7 @@ void SmtEngine::defineFunctionsRec(
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Node n = d_private->substituteAbstractValues(Node::fromExpr(lem));
+    Node n = d_absValues->substituteAbstractValues(Node::fromExpr(lem));
     if (d_assertionList != nullptr)
     {
       d_assertionList->push_back(n);
@@ -1704,7 +1654,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     for (Expr e : d_assumptions)
     {
       // Substitute out any abstract values in ex.
-      Node n = d_private->substituteAbstractValues(Node::fromExpr(e));
+      Node n = d_absValues->substituteAbstractValues(Node::fromExpr(e));
       // Ensure expr is type-checked at this point.
       ensureBoolean(n);
 
@@ -1866,7 +1816,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   }
 
   // Substitute out any abstract values in ex
-  Node n = d_private->substituteAbstractValues(formula);
+  Node n = d_absValues->substituteAbstractValues(formula);
 
   ensureBoolean(n);
   if(d_assertionList != NULL) {
@@ -2124,7 +2074,7 @@ Expr SmtEngine::simplify(const Expr& ex)
     Dump("benchmark") << SimplifyCommand(ex);
   }
 
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   if( options::typeChecking() ) {
     e.getType(true); // ensure expr is type-checked at this point
   }
@@ -2146,7 +2096,7 @@ Node SmtEngine::expandDefinitions(const Node& ex)
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex.
-  Node e = d_private->substituteAbstractValues(ex);
+  Node e = d_absValues->substituteAbstractValues(ex);
   if(options::typeChecking()) {
     // Ensure expr is type-checked at this point.
     e.getType(true);
@@ -2172,7 +2122,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   // Substitute out any abstract values in ex.
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
   // Ensure expr is type-checked at this point.
   e.getType(options::typeChecking());
@@ -2223,7 +2173,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
          || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
-    resultNode = d_private->mkAbstractValue(resultNode);
+    resultNode = d_absValues->mkAbstractValue(resultNode);
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 
@@ -2245,7 +2195,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   finalOptionsAreSet();
   doPendingPops();
   // Substitute out any abstract values in ex
-  Node n = d_private->substituteAbstractValues(Node::fromExpr(ex));
+  Node n = d_absValues->substituteAbstractValues(Node::fromExpr(ex));
   TypeNode type = n.getType(options::typeChecking());
   // must be Boolean
   PrettyCheckArgument(type.isBoolean(),
