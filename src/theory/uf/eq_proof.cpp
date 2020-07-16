@@ -1220,7 +1220,7 @@ Node EqProof::addToProof(
     // Remove spurious refl steps from the premises for (= ai bi)
     cleanReflPremises(transitivityChildren[i]);
     Assert(transitivityChildren[i].size() > 1 || transitivityChildren[i].empty()
-           || CDProof::isSame(transitivityChildren[i][j], transConclusion))
+           || CDProof::isSame(transitivityChildren[i][0], transConclusion))
         << "EqProof::addToProof: premises " << transitivityChildren[i] << "for "
         << i << "-th cong premise " << transConclusion << " don't justify it\n";
     unsigned sizeTrans = transitivityChildren[i].size();
