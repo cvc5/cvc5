@@ -2048,8 +2048,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
     if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
-      Node i_eq_j = i.eqNode(j);
-      Node reason = nm->mkNode(kind::OR, aj_eq_bj, i_eq_j);
+      Node reason = i.eqNode(j).notNode();
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTermInternal(aj);
@@ -2063,9 +2062,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj,true)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node aj_eq_bj = aj.eqNode(bj);
+      Node reason = aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
-      Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
       assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
@@ -2439,8 +2437,8 @@ bool TheoryArrays::assertInference(TNode eq,
         break;
     }
     // TODO
-    return d_equalityEngine.assertEquality(eq, polarity, reason);
-    //return d_pfEqualityEngine->assertFact(fact, r, reason, args);
+    //return d_equalityEngine.assertEquality(eq, polarity, reason);
+    return d_pfEqualityEngine->assertFact(fact, r, reason, args);
   }
   unsigned pid = eq::MERGED_THROUGH_EQUALITY;
   switch (r)
