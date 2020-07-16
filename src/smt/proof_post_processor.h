@@ -21,6 +21,7 @@
 #include <unordered_set>
 
 #include "expr/proof_node_updater.h"
+#include "smt/witness_form.h"
 
 namespace CVC4 {
 
@@ -63,6 +64,10 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   SmtEngine* d_smte;
   /** The preprocessing proof generator */
   ProofGenerator* d_pppg;
+  /** The witness form proof generator */
+  WitnessFormGenerator d_wfpm;
+  /** The witness form assumptions used in the proof */
+  std::vector<Node> d_wfAssumptions;
   /** Kinds of proof rules we are eliminating */
   std::unordered_set<PfRule, PfRuleHashFunction> d_elimRules;
   //---------------------------------reset at the begining of each update
@@ -75,8 +80,21 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   Node expandMacros(PfRule id,
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
-                    CDProof* cdp,
-                    bool useWitness=false);
+                    CDProof* cdp);
+  /** 
+   * Add proof for witness form. This returns the equality t = toWitness(t)
+   * and ensures that the proof of this equality has been added to cdp.
+   * Notice the proof of this fact may have open assumptions of the form:
+   *   k = toWitness(k)
+   * where k is a skolem. Furthermore, note that all open assumptions of this
+   * form are available via d_wfpm.getWitnessFormEqs() in the remainder of
+   * the lifetime of this class.
+   */
+  Node addProofForWitnessForm(Node t,  CDProof* cdp);
+  /** Apply transivity if necessary for the arguments */
+  Node addProofForTrans(const std::vector<Node>& tchildren, CDProof* cdp);
+  /** Add eq (or its symmetry) to transivity children, if not reflexive */
+  bool addToTransChildren(Node eq, std::vector<Node>& tchildren, bool isSymm=false);
 };
 
 /** Statistics callback class */
