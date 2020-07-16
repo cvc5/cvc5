@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "theory/ext_theory.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
@@ -42,7 +43,6 @@
 #include "theory/strings/term_registry.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/ext_theory.h"
 
 namespace CVC4 {
 namespace theory {

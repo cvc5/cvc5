@@ -42,7 +42,7 @@ class BitVectorProof;
 namespace theory {
 
 class ExtTheory;
-  
+
 namespace bv {
 
 class CoreSolver;

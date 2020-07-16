@@ -35,7 +35,6 @@
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
-#include "theory/ext_theory.h"
 
 using namespace CVC4::context;
 using namespace CVC4::theory::bv::utils;
@@ -263,9 +262,10 @@ void TheoryBV::preRegisterTerm(TNode node) {
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     d_subtheories[i]->preRegister(node);
   }
-  
-  // AJR : equality solver currently registers all terms to ExtTheory, if we want a lazy reduction without the bv equality solver, need to call this
-  //d_extTheory->registerTermRec( node );
+
+  // AJR : equality solver currently registers all terms to ExtTheory, if we
+  // want a lazy reduction without the bv equality solver, need to call this
+  // d_extTheory->registerTermRec( node );
 }
 
 void TheoryBV::sendConflict() {
@@ -405,7 +405,8 @@ void TheoryBV::check(Effort e)
   if (Theory::fullEffort(e)) {
     //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
     std::vector< Node > nred;
-    if( d_extTheory->doInferences( 0, nred ) ){
+    if (d_extTheory->doInferences(0, nred))
+    {
       return;
     }
     d_needsLastCallCheck = false;
@@ -514,7 +515,8 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
 
 bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
   std::vector< Node > nredr;
-  if( d_extTheory->doReductions( 0, terms, nredr ) ){
+  if (d_extTheory->doReductions(0, terms, nredr))
+  {
     return true;
   }
   Assert(nredr.empty());

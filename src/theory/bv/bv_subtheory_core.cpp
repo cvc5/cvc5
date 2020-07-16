@@ -32,18 +32,18 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory * extt)
-  : SubtheorySolver(c, bv),
-    d_notify(*this),
-    d_equalityEngine(d_notify, c, "theory::bv::ee", true),
-    d_slicer(new Slicer()),
-    d_isComplete(c, true),
-    d_lemmaThreshold(16),
-    d_useSlicer(false),
-    d_preregisterCalled(false),
-    d_checkCalled(false),
-    d_extTheory(extt),
-    d_reasons(c)
+CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
+    : SubtheorySolver(c, bv),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::bv::ee", true),
+      d_slicer(new Slicer()),
+      d_isComplete(c, true),
+      d_lemmaThreshold(16),
+      d_useSlicer(false),
+      d_preregisterCalled(false),
+      d_checkCalled(false),
+      d_extTheory(extt),
+      d_reasons(c)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
@@ -412,9 +412,7 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(conflict);
 }
 
-void CoreSolver::eqNotifyNewClass(TNode t) {
-  d_extTheory->registerTerm( t );
-}
+void CoreSolver::eqNotifyNewClass(TNode t) { d_extTheory->registerTerm(t); }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   if (d_useSlicer)
