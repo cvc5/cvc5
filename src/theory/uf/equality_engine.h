@@ -32,6 +32,7 @@
 #include "expr/node.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
 
@@ -757,9 +758,9 @@ public:
   }
 
   /**
-   * Add a kind to treat as function applications. 
-   * When extOperator is true, this equality engine will treat the operators of this kind 
-   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will 
+   * Add a kind to treat as function applications.
+   * When extOperator is true, this equality engine will treat the operators of this kind
+   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will
    * consider equivalence classes containing the operators of such terms, and "hasTerm" will
    * return true.
    */
@@ -950,34 +951,6 @@ public:
   EqClassIterator operator++(int);
   bool isFinished() const;
 };/* class EqClassIterator */
-
-class EqProof
-{
-public:
-  class PrettyPrinter {
-  public:
-    virtual ~PrettyPrinter() {}
-    virtual std::string printTag(unsigned tag) = 0;
-  };
-
-  EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
-  unsigned d_id;
-  Node d_node;
-  std::vector<std::shared_ptr<EqProof>> d_children;
-  /**
-   * Debug print this proof on debug trace c with tabulation tb and pretty
-   * printer prettyPrinter.
-   */
-  void debug_print(const char* c, unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
-  /**
-   * Debug print this proof on output stream os with tabulation tb and pretty
-   * printer prettyPrinter.
-   */
-  void debug_print(std::ostream& os,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
-};/* class EqProof */
 
 } // Namespace eq
 } // Namespace theory
