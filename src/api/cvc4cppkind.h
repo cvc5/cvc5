@@ -2480,7 +2480,7 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   SEQ_UNIT,
   /**
-   * Sequence nth, corresponding to a nth element of a sequence. 
+   * Sequence nth, corresponding to the nth element of a sequence. 
    * Parameters: 2
    *   -[1] Sequence term.
    *   -[2] Integer term.
