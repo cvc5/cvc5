@@ -614,21 +614,23 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     Node len = nm->mkNode(STRING_LENGTH, s);
     Node cond =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
-    Node k = nm->mkBoundVar(s.getType().getSequenceElementType());
+    TypeNode elemType = s.getType().getSequenceElementType();
+    Node k = nm->mkBoundVar(elemType);
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     std::vector<TypeNode> argTypes;
     argTypes.push_back(s.getType());
     argTypes.push_back(nm->integerType());    
-    TypeNode ufType = nm->mkFunctionType(argTypes, s.getType().getSequenceElementType());
+    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
+    SkolemCache* sc = d_termReg.getSkolemCache();
     Node uf = sc->mkTypedSkolemCached(
-        ufType, x, y, SkolemCache::SK_NTH, "Uf");
+        ufType, s, i, SkolemCache::SK_NTH, "Uf");
     
     Node ret = nm->mkNode(
         WITNESS,
         bvl,
         nm->mkNode(
 		   ITE, cond, nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)),
-		   nm->mkNode(APPLY_UF, uf, s, i)));
+		   k.eqNode(nm->mkNode(APPLY_UF, uf, s, i))));
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
 
