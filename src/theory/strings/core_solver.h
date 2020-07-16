@@ -240,7 +240,7 @@ class CoreSolver
                             SkolemCache* skc,
                             std::vector<Node>& newSkolems);
   /**
-   * Get sufficent non-empty overlap of string constants c and d.
+   * Get sufficient non-empty overlap of string constants c and d.
    *
    * This is called when handling equations of the form:
    *   x ++ d ++ ... = c ++ ...
