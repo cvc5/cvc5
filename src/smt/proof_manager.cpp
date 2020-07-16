@@ -53,7 +53,7 @@ PfManager::PfManager(SmtEngine* smte)
 
 PfManager::~PfManager() {}
 
-void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Expr>* al)
+void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
   // TODO: don't recompute if already done so?
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
@@ -72,10 +72,10 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Expr>* al)
 
   std::vector<Node> assertions;
   Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
-  for (context::CDList<Expr>::const_iterator i = al->begin(); i != al->end();
+  for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();
        ++i)
   {
-    Node n = Node::fromExpr(*i);
+    Node n = *i;
     Trace("smt-proof") << "- " << n << std::endl;
     assertions.push_back(n);
   }
@@ -93,7 +93,7 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Expr>* al)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(ProofGenerator* pg, context::CDList<Expr>* al)
+void PfManager::printProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
   std::ostream& out = *options::out();
@@ -117,7 +117,7 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 }
 
 std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator* pg,
-                                                    context::CDList<Expr>* al)
+                                                    context::CDList<Node>* al)
 {
   setFinalProof(pg, al);
   Assert(d_finalProof);

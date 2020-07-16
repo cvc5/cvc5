@@ -48,7 +48,7 @@ class PfManager
    * The argument pg is the module that can provide a proof for false in the
    * current context.
    */
-  void printProof(ProofGenerator* pg, context::CDList<Expr>* al);
+  void printProof(ProofGenerator* pg, context::CDList<Node>* al);
   /**
    * Get final proof.
    *
@@ -56,7 +56,7 @@ class PfManager
    * current context.
    */
   std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg,
-                                           context::CDList<Expr>* al);
+                                           context::CDList<Node>* al);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;
@@ -72,7 +72,7 @@ class PfManager
    * Set final proof, which initializes d_finalProof to the proof of false
    * from pg, postprocesses it, and stores it in d_finalProof.
    */
-  void setFinalProof(ProofGenerator* pg, context::CDList<Expr>* al);
+  void setFinalProof(ProofGenerator* pg, context::CDList<Node>* al);
   /** The false node */
   Node d_false;
   /** For the new proofs module */
