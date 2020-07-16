@@ -305,6 +305,26 @@ class SmtEnginePrivate : public NodeManagerListener {
   // Cached true value
   Node d_true;
 
+  /**
+   * A context that never pushes/pops, for use by CD structures (like
+   * SubstitutionMaps) that should be "global".
+   */
+  context::Context d_fakeContext;
+
+  /**
+   * A map of AbsractValues to their actual constants.  Only used if
+   * options::abstractValues() is on.
+   */
+  SubstitutionMap d_abstractValueMap;
+
+  /**
+   * A mapping of all abstract values (actual value |-> abstract) that
+   * we've handed out.  This is necessary to ensure that we give the
+   * same AbstractValues for the same real constants.  Only used if
+   * options::abstractValues() is on.
+   */
+  NodeToNodeHashMap d_abstractValues;
+
   /** TODO: whether certain preprocess steps are necessary */
   //bool d_needsExpandDefs;
 
@@ -353,6 +373,12 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedDumpChannel(),
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_propagator(true, true),
+        d_assertions(),
+        d_assertionsProcessed(smt.getUserContext(), false),
+        d_fakeContext(),
+        d_abstractValueMap(&d_fakeContext),
+        d_abstractValues(),
+        d_processor(smt, *smt.getResourceManager()),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -556,6 +582,34 @@ class SmtEnginePrivate : public NodeManagerListener {
     return applySubstitutions(n).toExpr();
   }
 
+  /**
+   * Substitute away all AbstractValues in a node.
+   */
+  Node substituteAbstractValues(TNode n) {
+    // We need to do this even if options::abstractValues() is off,
+    // since the setting might have changed after we already gave out
+    // some abstract values.
+    return d_abstractValueMap.apply(n);
+  }
+
+  /**
+   * Make a new (or return an existing) abstract value for a node.
+   * Can only use this if options::abstractValues() is on.
+   */
+  Node mkAbstractValue(TNode n) {
+    Assert(options::abstractValues());
+    Node& val = d_abstractValues[n];
+    if(val.isNull()) {
+      val = d_smt.d_nodeManager->mkAbstractValue(n.getType());
+      d_abstractValueMap.addSubstitution(val, n);
+    }
+    // We are supposed to ascribe types to all abstract values that go out.
+    NodeManager* current = d_smt.d_nodeManager;
+    Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
+    Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
+    return retval;
+  }
+
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
@@ -583,13 +637,13 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
-      d_assertm(nullptr),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_abductSolver(nullptr),
+      d_assertionList(nullptr),
       d_assignments(nullptr),
       d_modelGlobalCommands(),
       d_modelCommands(nullptr),
@@ -634,7 +688,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_statisticsRegistry.reset(new StatisticsRegistry());
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
-  d_assertm.reset(new AssertionsManager(*this, *d_resourceManager.get());
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
   d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
@@ -731,7 +784,17 @@ void SmtEngine::finishInit()
   d_context->push();
 
   Trace("smt-debug") << "Set up assertion list..." << std::endl;
-  d_assertm->finishInit();
+  // [MGD 10/20/2011] keep around in incremental mode, due to a
+  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
+  // first, some user-context-dependent TNodes might still exist
+  // with rc == 0.
+  if(options::produceAssertions() ||
+     options::incrementalSolving()) {
+    // In the case of incremental solving, we appear to need these to
+    // ensure the relevant Nodes remain live.
+    d_assertionList = new (true) AssertionList(getUserContext());
+    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
+  }
 
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
   // dumping the command twice.
@@ -826,6 +889,10 @@ SmtEngine::~SmtEngine()
     }
 
     d_globalDefineFunRecLemmas.reset();
+
+    if(d_assertionList != NULL) {
+      d_assertionList->deleteSelf();
+    }
 
     for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
       delete d_dumpCommands[i];
@@ -1325,7 +1392,7 @@ void SmtEngine::defineFunctionsRec(
     }
     else
     {
-      d_assertm->addFormula(e.getNode(), false, true, false, maybeHasFv);
+      d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
     }
   }
 }
@@ -1500,6 +1567,55 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
+void SmtEnginePrivate::addFormula(
+    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
+{
+  if (n == d_true) {
+    // nothing to do
+    return;
+  }
+
+  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+               << "), inUnsatCore = " << inUnsatCore
+               << ", inInput = " << inInput
+               << ", isAssumption = " << isAssumption << endl;
+
+  // Ensure that it does not contain free variables
+  if (maybeHasFv)
+  {
+    if (expr::hasFreeVar(n))
+    {
+      std::stringstream se;
+      se << "Cannot process assertion with free variable.";
+      if (language::isInputLangSygus(options::inputLanguage()))
+      {
+        // Common misuse of SyGuS is to use top-level assert instead of
+        // constraint when defining the synthesis conjecture.
+        se << " Perhaps you meant `constraint` instead of `assert`?";
+      }
+      throw ModalException(se.str().c_str());
+    }
+  }
+
+  // Give it to proof manager
+  PROOF(
+    if( inInput ){
+      // n is an input assertion
+      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
+
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
+    }else{
+      // n is the result of an unknown preprocessing step, add it to dependency map to null
+      ProofManager::currentPM()->addDependence(n, Node::null());
+    }
+  );
+
+  // Add the normalized formula to the queue
+  d_assertions.push_back(n, isAssumption);
+  //d_assertions.push_back(Rewriter::rewrite(n));
+}
+
 void SmtEngine::ensureBoolean(const Expr& e)
 {
   Type type = e.getType(options::typeChecking());
@@ -1628,7 +1744,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       {
         d_assertionList->push_back(e);
       }
-      d_assertm->addFormula(e.getNode(), inUnsatCore, true, true);
+      d_private->addFormula(e.getNode(), inUnsatCore, true, true);
     }
 
     if (d_globalDefineFunRecLemmas != nullptr)
@@ -1638,7 +1754,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       // zero assertions)
       for (const Node& lemma : *d_globalDefineFunRecLemmas)
       {
-        d_assertm->addFormula(lemma, false, true, false, false);
+        d_private->addFormula(lemma, false, true, false, false);
       }
     }
 
@@ -1785,8 +1901,11 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
   ensureBoolean(e);
+  if(d_assertionList != NULL) {
+    d_assertionList->push_back(e);
+  }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  d_assertm->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
+  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
   return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 
@@ -2020,6 +2139,10 @@ Result SmtEngine::checkSynth()
     End of Handling SyGuS commands
    --------------------------------------------------------------------------
 */
+
+Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
+  return node;
+}
 
 Expr SmtEngine::simplify(const Expr& ex)
 {
