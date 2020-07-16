@@ -82,7 +82,7 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
   d_engine->d_outputChannelUsed = true;
 
   PROOF({
-    bool preprocess = isPreprocess(p);
+    bool preprocess = isLemmaPropertyPreprocess(p);
     registerLemmaRecipe(lemma, lemma, preprocess, d_theory);
   });
 

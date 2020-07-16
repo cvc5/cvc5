@@ -27,12 +27,12 @@ LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs)
   lhs = lhs | rhs;
   return lhs;
 }
-LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
+LemmaProperty operator&(LemmaProperty lhs, LemmaProperty rhs)
 {
   return static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
                                     & static_cast<uint32_t>(rhs));
 }
-LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs)
+LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs)
 {
   lhs = lhs & rhs;
   return lhs;
