@@ -559,8 +559,7 @@ void CoreSolver::checkNormalFormsEq()
     {
       NormalForm& nfe_eq = getNormalForm(itn->second);
       // two equivalence classes have same normal form, merge
-      std::vector<Node> nf_exp;
-      nf_exp.insert(nf_exp.end(), nfe.d_exp.begin(), nfe.d_exp.end());
+      std::vector<Node> nf_exp(nfe.d_exp.begin(), nfe.d_exp.end());
       Node eexp = eqc_to_exp[itn->second];
       if (eexp != d_true)
       {
@@ -813,21 +812,6 @@ Node CoreSolver::getConclusion(Node x,
     conc = z.eqNode(isRev ? nm->mkNode(STRING_CONCAT, sk, preC)
                           : nm->mkNode(STRING_CONCAT, preC, sk));
   }
-  else if (rule == PfRule::STRING_DECOMPOSE)
-  {
-    Assert(y.getType().isInteger());
-    Node n = isRev ? nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), y) : y;
-    Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
-    newSkolems.push_back(sk1);
-    Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
-    newSkolems.push_back(sk2);
-    conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
-    if (options::stringLenConc())
-    {
-      Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(y);
-      conc = nm->mkNode(AND, conc, lc);
-    }
-  }
 
   return conc;
 }
@@ -853,6 +837,29 @@ size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
     p2 = Word::find(c1, d);
   }
   return p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
+}
+
+
+Node CoreSolver::getDecomposeConclusion(Node x,
+                            Node l,
+                               bool isRev,
+                            SkolemCache* skc,
+                            std::vector<Node>& newSkolems)
+{
+  Assert(l.getType().isInteger());
+  NodeManager* nm = NodeManager::currentNM();
+  Node n = isRev ? nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), l) : l;
+  Node sk1 = skc->mkSkolemCached(x, n, SkolemCache::SK_PREFIX, "dc_spt1");
+  newSkolems.push_back(sk1);
+  Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
+  newSkolems.push_back(sk2);
+  Node conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
+  if (options::stringLenConc())
+  {
+    Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
+    conc = nm->mkNode(AND, conc, lc);
+  }
+  return conc;
 }
 
 void CoreSolver::getNormalForms(Node eqc,
@@ -1079,14 +1086,13 @@ void CoreSolver::processNEqc(Node eqc,
         if (!StringsEntail::canConstantContainList(c, nfi.d_nf, firstc, lastc))
         {
           Node n = nfi.d_base;
-          std::vector<Node> exp;
+          std::vector<Node> exp(nfi.d_exp.begin(), nfi.d_exp.end());
           //conflict
           Trace("strings-solve") << "Normal form for " << n << " cannot be contained in constant " << c << std::endl;
           // conflict, explanation is:
           //  n = base ^ base = c ^ relevant porition of ( n = N[n] )
           // Notice although not implemented, this can be minimized based on
           // firstc/lastc, normal_forms_exp_depend.
-          exp.insert(exp.end(), nfi.d_exp.begin(), nfi.d_exp.end());
           d_bsolver.explainConstantEqc(n, eqc, exp);
           d_im.sendInference(exp, d_false, Inference::N_NCTN);
           // conflict, finished
@@ -2079,8 +2085,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
           // len(x)>=1 => x = k1 ++ k2 ^ len(k1) = 1
           SkolemCache* skc = d_termReg.getSkolemCache();
           std::vector<Node> newSkolems;
-          Node conc = getConclusion(
-              nck, d_one, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
+          Node conc = getDecomposeConclusion(
+              nck, d_one, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
@@ -2115,11 +2121,12 @@ void CoreSolver::processDeq(Node ni, Node nj)
         for (unsigned r = 0; r < 2; r++)
         {
           Node ux = r == 0 ? x : y;
-          Node uxLen = nm->mkNode(STRING_LENGTH, x);
-          Node uyLen = nm->mkNode(STRING_LENGTH, y);
+          Node uy = r == 0 ? y : x;
+          Node uxLen = nm->mkNode(STRING_LENGTH, ux);
+          Node uyLen = nm->mkNode(STRING_LENGTH, uy);
           std::vector<Node> newSkolems;
-          Node conc = getConclusion(
-              ux, uyLen, PfRule::STRING_DECOMPOSE, false, skc, newSkolems);
+          Node conc = getDecomposeConclusion(
+              ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
