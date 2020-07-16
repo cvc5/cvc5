@@ -25,9 +25,10 @@
 #include <vector>
 
 #include "expr/dtype.h"
-#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/expr.h"  // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
+#include "expr/sequence.h"
 #include "options/language.h"  // for LANG_AST
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
@@ -165,6 +166,30 @@ void CvcPrinter::toStream(
       out << '"' << n.getConst<String>().toString() << '"';
       break;
     }
+    case kind::CONST_SEQUENCE:
+    {
+      const Sequence& sn = n.getConst<Sequence>();
+      const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.size() > 1)
+      {
+        out << "CONCAT(";
+      }
+      bool first = true;
+      for (const Node& snvc : snvec)
+      {
+        if (!first)
+        {
+          out << ", ";
+        }
+        out << "SEQ_UNIT(" << snvc << ")";
+        first = false;
+      }
+      if (snvec.size() > 1)
+      {
+        out << ")";
+      }
+      break;
+    }
     case kind::TYPE_CONSTANT:
       switch(TypeConstant tc = n.getConst<TypeConstant>()) {
       case REAL_TYPE:
@@ -221,8 +246,9 @@ void CvcPrinter::toStream(
 
     case kind::STORE_ALL: {
       const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
-      out << "ARRAY(" << asa.getType().getIndexType() << " OF "
-          << asa.getType().getConstituentType() << ") : " << asa.getExpr();
+      out << "ARRAY(" << asa.getType().getArrayIndexType() << " OF "
+          << asa.getType().getArrayConstituentType()
+          << ") : " << asa.getValue();
       break;
     }
 

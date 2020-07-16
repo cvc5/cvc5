@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-inference --sygus-qe-preproc
+; COMMAND-LINE: --sygus-inference --sygus-qe-preproc --no-check-unsat-cores
 (set-logic ALL)
 (declare-fun a () Real)
 (declare-fun b () Real)

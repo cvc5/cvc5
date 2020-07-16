@@ -20,7 +20,6 @@
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
-#include "expr/expr_sequence.h"
 #include "expr/sequence.h"
 
 namespace CVC4 {
@@ -90,6 +89,38 @@ class StringSubstrTypeRule
       {
         throw TypeCheckingExceptionPrivate(
             n, "expecting an integer length term in substr");
+      }
+    }
+    return t;
+  }
+};
+
+class StringUpdateTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in update");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in update");
+      }
+      t2 = n[2].getType(check);
+      if (!t2.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an string-like replace term in update");
       }
     }
     return t;
@@ -291,7 +322,8 @@ public:
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);
-        if (!t.isString()) {
+        if (!t.isString())  // string-only
+        {
           throw TypeCheckingExceptionPrivate(n, "expecting a string term in regexp range");
         }
         if (!(*it).isConst())
@@ -329,7 +361,7 @@ class ConstSequenceTypeRule
                                      bool check)
   {
     Assert(n.getKind() == kind::CONST_SEQUENCE);
-    return n.getConst<ExprSequence>().getSequence().getType();
+    return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
   }
 };
 
@@ -362,9 +394,9 @@ struct SequenceProperties
   {
     Assert(type.isSequence());
     // empty sequence
-    std::vector<Expr> seq;
+    std::vector<Node> seq;
     return NodeManager::currentNM()->mkConst(
-        ExprSequence(SequenceType(type.toType()), seq));
+        Sequence(type.getSequenceElementType(), seq));
   }
 }; /* struct SequenceProperties */
 

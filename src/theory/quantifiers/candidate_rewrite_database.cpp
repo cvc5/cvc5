@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
+#include "api/cvc4cpp.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -128,19 +129,14 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       // verify it if applicable
       if (options::sygusRewSynthCheck())
       {
-        NodeManager* nm = NodeManager::currentNM();
-
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
 
         // Notice we don't set produce-models. rrChecker takes the same
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
-        bool needExport = false;
-        ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
-        ExprManagerMapCollection varMap;
-        initializeChecker(rrChecker, em, varMap, crr, needExport);
+        initializeChecker(rrChecker, crr);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
         if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -173,16 +169,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
             if (val.isNull())
             {
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
-              if (needExport)
-              {
-                Expr erefv = refv.toExpr().exportTo(&em, varMap);
-                val = Node::fromExpr(rrChecker->getValue(erefv).exportTo(
-                    nm->toExprManager(), varMap));
-              }
-              else
-              {
-                val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
-              }
+              val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
@@ -215,10 +202,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           out << "(" << (verified ? "" : "candidate-") << "rewrite ";
           if (d_using_sygus)
           {
-            Printer* p = Printer::getPrinter(options::outputLanguage());
-            p->toStreamSygus(out, sol);
+            TermDbSygus::toStreamSygus(out, sol);
             out << " ";
-            p->toStreamSygus(out, eq_sol);
+            TermDbSygus::toStreamSygus(out, eq_sol);
           }
           else
           {

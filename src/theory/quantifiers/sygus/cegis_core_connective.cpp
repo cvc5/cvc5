@@ -297,11 +297,10 @@ bool CegisCoreConnective::constructSolution(
   {
     Trace("sygus-ccore")
         << "CegisCoreConnective: Construct candidate solutions..." << std::endl;
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
     {
       std::stringstream ss;
-      p->toStreamSygus(ss, candidate_values[i]);
+      TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-ccore") << "  " << candidates[i] << " -> " << ss.str()
                            << std::endl;
     }
@@ -745,7 +744,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     Node query = rasserts.size() == 1 ? rasserts[0] : nm->mkNode(AND, rasserts);
     for (const Node& a : rasserts)
     {
-      checkSol->assertFormula(a.toExpr());
+      checkSol->assertFormula(a);
     }
     Result r = checkSol->checkSat();
     Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
@@ -783,7 +782,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
           for (const Node& sca : scasserts)
           {
-            checkSc->assertFormula(sca.toExpr());
+            checkSc->assertFormula(sca);
           }
           Result rsc = checkSc->checkSat();
           Trace("sygus-ccore")

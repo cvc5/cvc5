@@ -109,19 +109,10 @@ class NodeManager {
 
   static thread_local NodeManager* s_current;
 
-  Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
-
-  ResourceManager* d_resourceManager;
 
   /** The skolem manager */
   std::shared_ptr<SkolemManager> d_skManager;
-
-  /**
-   * A list of registrations on d_options to that call into d_resourceManager.
-   * These must be garbage collected before d_options and d_resourceManager.
-   */
-  ListenerRegistrationList* d_registrations;
 
   NodeValuePool d_nodeValuePool;
 
@@ -389,26 +380,10 @@ class NodeManager {
 public:
 
   explicit NodeManager(ExprManager* exprManager);
-  explicit NodeManager(ExprManager* exprManager, const Options& options);
   ~NodeManager();
 
   /** The node manager in the current public-facing CVC4 library context */
   static NodeManager* currentNM() { return s_current; }
-  /** The resource manager associated with the current node manager */
-  static ResourceManager* currentResourceManager() { return s_current->d_resourceManager; }
-
-  /** Get this node manager's options (const version) */
-  const Options& getOptions() const {
-    return *d_options;
-  }
-
-  /** Get this node manager's options (non-const version) */
-  Options& getOptions() {
-    return *d_options;
-  }
-
-  /** Get this node manager's resource manager */
-  ResourceManager* getResourceManager() { return d_resourceManager; }
   /** Get this node manager's skolem manager */
   SkolemManager* getSkolemManager() { return d_skManager.get(); }
 
@@ -550,8 +525,10 @@ public:
     SKOLEM_DEFAULT = 0,    /**< default behavior */
     SKOLEM_NO_NOTIFY = 1,  /**< do not notify subscribers */
     SKOLEM_EXACT_NAME = 2, /**< do not make the name unique by adding the id */
-    SKOLEM_IS_GLOBAL = 4   /**< global vars appear in models even after a pop */
-  };
+    SKOLEM_IS_GLOBAL = 4,  /**< global vars appear in models even after a pop */
+    SKOLEM_BOOL_TERM_VAR = 8 /**< vars requiring kind BOOLEAN_TERM_VARIABLE */
+  };                         /* enum SkolemFlags */
+
   /**
    * Create a skolem constant with the given name, type, and comment.
    *
@@ -982,7 +959,7 @@ public:
   /**
    * Convert a type node to a type.
    */
-  inline Type toType(TypeNode tn);
+  inline Type toType(const TypeNode& tn);
 
   /**
    * Convert a type to a type node.
@@ -1035,25 +1012,19 @@ public:
 class NodeManagerScope {
   /** The old NodeManager, to be restored on destruction. */
   NodeManager* d_oldNodeManager;
-  Options::OptionsScope d_optionsScope;
 public:
-
-  NodeManagerScope(NodeManager* nm)
-      : d_oldNodeManager(NodeManager::s_current)
-      , d_optionsScope(nm ? nm->d_options : NULL) {
-    // There are corner cases where nm can be NULL and it's ok.
-    // For example, if you write { Expr e; }, then when the null
-    // Expr is destructed, there's no active node manager.
-    //Assert(nm != NULL);
-    NodeManager::s_current = nm;
-    //Options::s_current = nm ? nm->d_options : NULL;
-    Debug("current") << "node manager scope: "
-                     << NodeManager::s_current << "\n";
+ NodeManagerScope(NodeManager* nm) : d_oldNodeManager(NodeManager::s_current)
+ {
+   // There are corner cases where nm can be NULL and it's ok.
+   // For example, if you write { Expr e; }, then when the null
+   // Expr is destructed, there's no active node manager.
+   // Assert(nm != NULL);
+   NodeManager::s_current = nm;
+   Debug("current") << "node manager scope: " << NodeManager::s_current << "\n";
   }
 
   ~NodeManagerScope() {
     NodeManager::s_current = d_oldNodeManager;
-    //Options::s_current = d_oldNodeManager ? d_oldNodeManager->d_options : NULL;
     Debug("current") << "node manager scope: "
                      << "returning to " << NodeManager::s_current << "\n";
   }
@@ -1213,7 +1184,8 @@ inline NodeManager* NodeManager::fromExprManager(ExprManager* exprManager) {
   return exprManager->getNodeManager();
 }
 
-inline Type NodeManager::toType(TypeNode tn) {
+inline Type NodeManager::toType(const TypeNode& tn)
+{
   return Type(this, new TypeNode(tn));
 }
 

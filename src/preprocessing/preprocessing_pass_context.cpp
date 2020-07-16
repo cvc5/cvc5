@@ -23,11 +23,10 @@ namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
-    ResourceManager* resourceManager,
     RemoveTermFormulas* iteRemover,
     theory::booleans::CircuitPropagator* circuitPropagator)
     : d_smt(smt),
-      d_resourceManager(resourceManager),
+      d_resourceManager(smt->getResourceManager()),
       d_iteRemover(iteRemover),
       d_topLevelSubstitutions(smt->getUserContext()),
       d_circuitPropagator(circuitPropagator),

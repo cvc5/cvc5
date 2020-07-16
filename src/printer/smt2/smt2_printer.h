@@ -33,7 +33,6 @@ enum Variant
   smt2_0_variant,  // old-style 2.0 syntax, when it makes a difference
   smt2_6_variant,  // new-style 2.6 syntax, when it makes a difference, with
                    // support for the string standard
-  z3str_variant,   // old-style 2.0 and also z3str syntax
   sygus_variant    // variant for sygus
 };                 /* enum Variant */
 class Smt2Printer : public CVC4::Printer {
@@ -58,11 +57,6 @@ class Smt2Printer : public CVC4::Printer {
    * with the core (UnsatCore::getSmtEngine) for printing named assertions.
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
-  /**
-   * Write the term that sygus datatype term node n
-   * encodes to a stream with this Printer.
-   */
-  void toStreamSygus(std::ostream& out, TNode n) const override;
 
  private:
   void toStream(

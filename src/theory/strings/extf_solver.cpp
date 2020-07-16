@@ -51,6 +51,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
       d_reduced(u)
 {
   d_extt.addFunctionKind(kind::STRING_SUBSTR);
+  d_extt.addFunctionKind(kind::STRING_UPDATE);
   d_extt.addFunctionKind(kind::STRING_STRIDOF);
   d_extt.addFunctionKind(kind::STRING_ITOS);
   d_extt.addFunctionKind(kind::STRING_STOI);
@@ -65,6 +66,7 @@ ExtfSolver::ExtfSolver(context::Context* c,
   d_extt.addFunctionKind(kind::STRING_TOLOWER);
   d_extt.addFunctionKind(kind::STRING_TOUPPER);
   d_extt.addFunctionKind(kind::STRING_REV);
+  d_extt.addFunctionKind(kind::SEQ_UNIT);
 
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -138,16 +140,18 @@ bool ExtfSolver::doReduction(int effort, Node n)
       }
     }
   }
-  else
+  else if (k == STRING_SUBSTR)
   {
-    if (k == STRING_SUBSTR)
-    {
-      r_effort = 1;
-    }
-    else if (k != STRING_IN_REGEXP)
-    {
-      r_effort = 2;
-    }
+    r_effort = 1;
+  }
+  else if (k == SEQ_UNIT)
+  {
+    // never necessary to reduce seq.unit
+    return false;
+  }
+  else if (k != STRING_IN_REGEXP)
+  {
+    r_effort = 2;
   }
   if (effort != r_effort)
   {
@@ -180,11 +184,12 @@ bool ExtfSolver::doReduction(int effort, Node n)
   else if (k != kind::STRING_TO_CODE)
   {
     NodeManager* nm = NodeManager::currentNM();
-    Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
-           || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
-           || k == STRING_STRREPLALL || k == STRING_REPLACE_RE
-           || k == STRING_REPLACE_RE_ALL || k == STRING_LEQ
-           || k == STRING_TOLOWER || k == STRING_TOUPPER || k == STRING_REV);
+    Assert(k == STRING_SUBSTR || k == STRING_UPDATE || k == STRING_STRCTN
+           || k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
+           || k == STRING_STRREPL || k == STRING_STRREPLALL
+           || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
+           || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER
+           || k == STRING_REV);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);

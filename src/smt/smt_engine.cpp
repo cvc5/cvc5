@@ -81,6 +81,7 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
+#include "smt/abduction_solver.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
@@ -101,7 +102,6 @@
 #include "theory/logic_info.h"
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -273,11 +273,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
 
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  ResourceManager* d_resourceManager;
-
   /** Manager for the memory of regular-output-channel. */
   ManagedRegularOutputChannel d_managedRegularChannel;
 
@@ -373,7 +368,6 @@ class SmtEnginePrivate : public NodeManagerListener {
  public:
   SmtEnginePrivate(SmtEngine& smt)
       : d_smt(smt),
-        d_resourceManager(NodeManager::currentResourceManager()),
         d_managedRegularChannel(),
         d_managedDiagnosticChannel(),
         d_managedDumpChannel(),
@@ -384,7 +378,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
         d_abstractValues(),
-        d_processor(smt, *d_resourceManager),
+        d_processor(smt, *smt.getResourceManager()),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -392,17 +386,17 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
+    ResourceManager* rm = d_smt.getResourceManager();
 
-    d_listenerRegistrations->add(d_resourceManager->registerSoftListener(
-        new SoftResourceOutListener(d_smt)));
+    d_listenerRegistrations->add(
+        rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
 
-    d_listenerRegistrations->add(d_resourceManager->registerHardListener(
-        new HardResourceOutListener(d_smt)));
+    d_listenerRegistrations->add(
+        rm->registerHardListener(new HardResourceOutListener(d_smt)));
 
     try
     {
-      Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-
+      Options& opts = d_smt.getOptions();
       // Multiple options reuse BeforeSearchListener so registration requires an
       // extra bit of care.
       // We can safely not call notify on this before search listener at
@@ -410,35 +404,27 @@ class SmtEnginePrivate : public NodeManagerListener {
       // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
       // not have to be called.
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerBeforeSearchListener(
-              new BeforeSearchListener(d_smt)));
+          opts.registerBeforeSearchListener(new BeforeSearchListener(d_smt)));
 
       // These do need registration calls.
+      d_listenerRegistrations->add(opts.registerSetDefaultExprDepthListener(
+          new SetDefaultExprDepthListener(), true));
+      d_listenerRegistrations->add(opts.registerSetDefaultExprDagListener(
+          new SetDefaultExprDagListener(), true));
+      d_listenerRegistrations->add(opts.registerSetPrintExprTypesListener(
+          new SetPrintExprTypesListener(), true));
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDefaultExprDepthListener(
-              new SetDefaultExprDepthListener(), true));
+          opts.registerSetDumpModeListener(new DumpModeListener(), true));
+      d_listenerRegistrations->add(opts.registerSetPrintSuccessListener(
+          new PrintSuccessListener(), true));
+      d_listenerRegistrations->add(opts.registerSetRegularOutputChannelListener(
+          new SetToDefaultSourceListener(&d_managedRegularChannel), true));
       d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDefaultExprDagListener(
-              new SetDefaultExprDagListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetPrintExprTypesListener(
-              new SetPrintExprTypesListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDumpModeListener(new DumpModeListener(),
-                                                         true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetPrintSuccessListener(
-              new PrintSuccessListener(), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetRegularOutputChannelListener(
-              new SetToDefaultSourceListener(&d_managedRegularChannel), true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+          opts.registerSetDiagnosticOutputChannelListener(
               new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
               true));
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerDumpToFileNameListener(
-              new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+      d_listenerRegistrations->add(opts.registerDumpToFileNameListener(
+          new SetToDefaultSourceListener(&d_managedDumpChannel), true));
     }
     catch (OptionException& e)
     {
@@ -467,11 +453,9 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
-  ResourceManager* getResourceManager() { return d_resourceManager; }
-
   void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(r);
+    d_smt.getResourceManager()->spendResource(r);
   }
 
   ProcessAssertions* getProcessAssertions() { return &d_processor; }
@@ -647,7 +631,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
 }/* namespace CVC4::smt */
 
-SmtEngine::SmtEngine(ExprManager* em)
+SmtEngine::SmtEngine(ExprManager* em, Options* optr)
     : d_context(new Context()),
       d_userContext(new UserContext()),
       d_userLevels(),
@@ -658,6 +642,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
+      d_abductSolver(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),
       d_modelGlobalCommands(),
@@ -677,15 +662,35 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_smtMode(SMT_MODE_START),
       d_private(nullptr),
       d_statisticsRegistry(nullptr),
-      d_stats(nullptr)
+      d_stats(nullptr),
+      d_resourceManager(nullptr),
+      d_scope(nullptr)
 {
-  SmtScope smts(this);
-  d_originalOptions.copyValues(em->getOptions());
-  d_private.reset(new smt::SmtEnginePrivate(*this));
+  // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SmtEngine
+  // we are constructing the current SmtEngine in scope for the lifetime of
+  // this SmtEngine, or until another SmtEngine is constructed (that SmtEngine
+  // is then in scope during its lifetime). This is mostly to ensure that
+  // options are always in scope, for e.g. printing expressions, which rely
+  // on knowing the output language.
+  // Notice that the SmtEngine may spawn new SmtEngine "subsolvers" internally.
+  // These are created, used, and deleted in a modular fashion while not
+  // interleaving calls to the master SmtEngine. Thus the hack here does not
+  // break this use case.
+  // On the other hand, this hack breaks use cases where multiple SmtEngine
+  // objects are created by the user.
+  d_scope.reset(new SmtScope(this));
+  if (optr != nullptr)
+  {
+    // if we provided a set of options, copy their values to the options
+    // owned by this SmtEngine.
+    d_options.copyValues(*optr);
+  }
   d_statisticsRegistry.reset(new StatisticsRegistry());
+  d_resourceManager.reset(
+      new ResourceManager(*d_statisticsRegistry.get(), d_options));
+  d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
-  d_stats->d_resourceUnitsUsed.setData(
-      d_private->getResourceManager()->getResourceUsage());
+  d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -705,17 +710,38 @@ SmtEngine::SmtEngine(ExprManager* em)
 
 void SmtEngine::finishInit()
 {
+  // Notice that finishInit is called when options are finalized. If we are
+  // parsing smt2, this occurs at the moment we enter "Assert mode", page 52
+  // of SMT-LIB 2.6 standard.
+
+  // Inialize the resource manager based on the options.
+  d_resourceManager->setHardLimit(options::hardLimit());
+  if (options::perCallResourceLimit() != 0)
+  {
+    d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
+  }
+  if (options::cumulativeResourceLimit() != 0)
+  {
+    d_resourceManager->setResourceLimit(options::cumulativeResourceLimit(),
+                                        true);
+  }
+  if (options::perCallMillisecondLimit() != 0)
+  {
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
+  }
+
   // set the random seed
   Random::getRandom().setSeed(options::seed());
 
   // ensure that our heuristics are properly set up
-  setDefaults(*this, d_logic);
+  setDefaults(d_logic, d_isInternalSubsolver);
   
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine.reset(new TheoryEngine(getContext(),
                                         getUserContext(),
+                                        getResourceManager(),
                                         d_private->d_iteRemover,
                                         const_cast<const LogicInfo&>(d_logic)));
 
@@ -735,10 +761,8 @@ void SmtEngine::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    d_private->getResourceManager()));
+  d_propEngine.reset(new PropEngine(
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -784,6 +808,12 @@ void SmtEngine::finishInit()
     delete d_dumpCommands[i];
   }
   d_dumpCommands.clear();
+
+  // subsolvers
+  if (options::produceAbducts())
+  {
+    d_abductSolver.reset(new AbductionSolver(this));
+  }
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
   PROOF({
@@ -887,9 +917,11 @@ SmtEngine::~SmtEngine()
     d_propEngine.reset(nullptr);
 
     d_stats.reset(nullptr);
+    d_private.reset(nullptr);
+    // d_resourceManager must be destroyed before d_statisticsRegistry
+    d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
 
-    d_private.reset(nullptr);
 
     d_userContext.reset(nullptr);
     d_context.reset(nullptr);
@@ -934,6 +966,7 @@ void SmtEngine::setLogic(const char* logic) { setLogic(string(logic)); }
 LogicInfo SmtEngine::getLogicInfo() const {
   return d_logic;
 }
+
 LogicInfo SmtEngine::getUserLogicInfo() const
 {
   // Lock the logic to make sure that this logic can be queried. We create a
@@ -942,7 +975,17 @@ LogicInfo SmtEngine::getUserLogicInfo() const
   res.lock();
   return res;
 }
-void SmtEngine::setFilename(std::string filename) { d_filename = filename; }
+
+void SmtEngine::notifyStartParsing(std::string filename)
+{
+  d_filename = filename;
+
+  // Copy the original options. This is called prior to beginning parsing.
+  // Hence reset should revert to these options, which note is after reading
+  // the command line.
+  d_originalOptions.copyValues(d_options);
+}
+
 std::string SmtEngine::getFilename() const { return d_filename; }
 void SmtEngine::setLogicInternal()
 {
@@ -1218,8 +1261,7 @@ void SmtEngine::defineFunction(Expr func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Expr form =
-      d_private->substituteAbstractValues(Node::fromExpr(formula)).toExpr();
+  Node formNode = d_private->substituteAbstractValues(Node::fromExpr(formula));
 
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -1229,7 +1271,6 @@ void SmtEngine::defineFunction(Expr func,
       ++i) {
     formalsNodes.push_back((*i).getNode());
   }
-  TNode formNode = form.getTNode();
   DefinedFunction def(funcNode, formalsNodes, formNode);
   // Permit (check-sat) (define-fun ...) (get-value ...) sequences.
   // Otherwise, (check-sat) (get-value ((! foo :named bar))) breaks
@@ -1326,21 +1367,21 @@ void SmtEngine::defineFunctionsRec(
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Expr e = d_private->substituteAbstractValues(Node::fromExpr(lem)).toExpr();
+    Node n = d_private->substituteAbstractValues(Node::fromExpr(lem));
     if (d_assertionList != nullptr)
     {
-      d_assertionList->push_back(e);
+      d_assertionList->push_back(n);
     }
     if (global && d_globalDefineFunRecLemmas != nullptr)
     {
       // Global definitions are asserted at check-sat-time because we have to
       // make sure that they are always present
       Assert(!language::isInputLangSygus(options::inputLanguage()));
-      d_globalDefineFunRecLemmas->emplace_back(Node::fromExpr(e));
+      d_globalDefineFunRecLemmas->emplace_back(n);
     }
     else
     {
-      d_private->addFormula(e.getNode(), false, true, false, maybeHasFv);
+      d_private->addFormula(n, false, true, false, maybeHasFv);
     }
   }
 }
@@ -1367,8 +1408,8 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 
 void SmtEnginePrivate::finishInit()
 {
-  d_preprocessingPassContext.reset(new PreprocessingPassContext(
-      &d_smt, d_resourceManager, &d_iteRemover, &d_propagator));
+  d_preprocessingPassContext.reset(
+      new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_preprocessingPassContext.get());
@@ -1380,15 +1421,14 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  ResourceManager* resourceManager = d_private->getResourceManager();
-
-  resourceManager->beginCall();
+  d_resourceManager->beginCall();
 
   // Only way we can be out of resource is if cumulative budget is on
-  if (resourceManager->cumulativeLimitOn() &&
-      resourceManager->out()) {
-    Result::UnknownExplanation why = resourceManager->outOfResources() ?
-                             Result::RESOURCEOUT : Result::TIMEOUT;
+  if (d_resourceManager->cumulativeLimitOn() && d_resourceManager->out())
+  {
+    Result::UnknownExplanation why = d_resourceManager->outOfResources()
+                                         ? Result::RESOURCEOUT
+                                         : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
 
@@ -1403,10 +1443,10 @@ Result SmtEngine::check() {
   Trace("smt") << "SmtEngine::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
 
-  resourceManager->endCall();
-  Trace("limit") << "SmtEngine::check(): cumulative millis " << resourceManager->getTimeUsage()
-                 << ", resources " << resourceManager->getResourceUsage() << endl;
-
+  d_resourceManager->endCall();
+  Trace("limit") << "SmtEngine::check(): cumulative millis "
+                 << d_resourceManager->getTimeUsage() << ", resources "
+                 << d_resourceManager->getResourceUsage() << endl;
 
   return Result(result, d_filename);
 }
@@ -1565,16 +1605,16 @@ void SmtEnginePrivate::addFormula(
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
-void SmtEngine::ensureBoolean(const Expr& e)
+void SmtEngine::ensureBoolean(const Node& n)
 {
-  Type type = e.getType(options::typeChecking());
-  Type boolType = d_exprManager->booleanType();
+  TypeNode type = n.getType(options::typeChecking());
+  TypeNode boolType = NodeManager::currentNM()->booleanType();
   if(type != boolType) {
     stringstream ss;
     ss << "Expected " << boolType << "\n"
-       << "The assertion : " << e << "\n"
+       << "The assertion : " << n << "\n"
        << "Its type      : " << type;
-    throw TypeCheckingException(e, ss.str());
+    throw TypeCheckingException(n.toExpr(), ss.str());
   }
 }
 
@@ -1683,17 +1723,16 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     for (Expr e : d_assumptions)
     {
       // Substitute out any abstract values in ex.
-      e = d_private->substituteAbstractValues(Node::fromExpr(e)).toExpr();
-      Assert(e.getExprManager() == d_exprManager);
+      Node n = d_private->substituteAbstractValues(Node::fromExpr(e));
       // Ensure expr is type-checked at this point.
-      ensureBoolean(e);
+      ensureBoolean(n);
 
       /* Add assumption  */
       if (d_assertionList != NULL)
       {
-        d_assertionList->push_back(e);
+        d_assertionList->push_back(n);
       }
-      d_private->addFormula(e.getNode(), inUnsatCore, true, true);
+      d_private->addFormula(n, inUnsatCore, true, true);
     }
 
     if (d_globalDefineFunRecLemmas != nullptr)
@@ -1795,9 +1834,10 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     return r;
   } catch (UnsafeInterruptException& e) {
-    AlwaysAssert(d_private->getResourceManager()->out());
-    Result::UnknownExplanation why = d_private->getResourceManager()->outOfResources() ?
-      Result::RESOURCEOUT : Result::TIMEOUT;
+    AlwaysAssert(d_resourceManager->out());
+    Result::UnknownExplanation why = d_resourceManager->outOfResources()
+                                         ? Result::RESOURCEOUT
+                                         : Result::TIMEOUT;
     return Result(Result::SAT_UNKNOWN, why, d_filename);
   }
 }
@@ -1832,28 +1872,27 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
+Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 {
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
 
-  Trace("smt") << "SmtEngine::assertFormula(" << ex << ")" << endl;
+  Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
   if (Dump.isOn("raw-benchmark")) {
-    Dump("raw-benchmark") << AssertCommand(ex);
+    Dump("raw-benchmark") << AssertCommand(formula.toExpr());
   }
 
   // Substitute out any abstract values in ex
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Node n = d_private->substituteAbstractValues(formula);
 
-  ensureBoolean(e);
+  ensureBoolean(n);
   if(d_assertionList != NULL) {
-    d_assertionList->push_back(e);
+    d_assertionList->push_back(n);
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  d_private->addFormula(e.getNode(), inUnsatCore, true, false, maybeHasFv);
+  d_private->addFormula(n, inUnsatCore, true, false, maybeHasFv);
   return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 
@@ -1870,15 +1909,6 @@ void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
-  // don't need to set that the conjecture is stale
-}
-
-void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
-{
-  SmtScope smts(this);
-  finalOptionsAreSet();
-  // do nothing (the command is spurious)
-  Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
   // don't need to set that the conjecture is stale
 }
 
@@ -2072,7 +2102,7 @@ Result SmtEngine::checkSynth()
       // we push a context so that this conjecture is removed if we modify it
       // later
       internalPush();
-      assertFormula(body.toExpr(), true);
+      assertFormula(body, true);
     }
     else
     {
@@ -2125,18 +2155,17 @@ Expr SmtEngine::simplify(const Expr& ex)
   return n.toExpr();
 }
 
-Expr SmtEngine::expandDefinitions(const Expr& ex)
+Node SmtEngine::expandDefinitions(const Node& ex)
 {
   d_private->spendResource(ResourceManager::Resource::PreprocessStep);
 
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex.
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Node e = d_private->substituteAbstractValues(ex);
   if(options::typeChecking()) {
     // Ensure expr is type-checked at this point.
     e.getType(true);
@@ -2144,10 +2173,10 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
 
   unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_private->getProcessAssertions()->expandDefinitions(
-      Node::fromExpr(e), cache, /* expandOnly = */ true);
-  n = postprocess(n, TypeNode::fromType(e.getType()));
+      e, cache, /* expandOnly = */ true);
+  n = postprocess(n, e.getType());
 
-  return n.toExpr();
+  return n;
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -2235,23 +2264,22 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   finalOptionsAreSet();
   doPendingPops();
   // Substitute out any abstract values in ex
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-  Type type = e.getType(options::typeChecking());
+  Node n = d_private->substituteAbstractValues(Node::fromExpr(ex));
+  TypeNode type = n.getType(options::typeChecking());
   // must be Boolean
-  PrettyCheckArgument(
-      type.isBoolean(), e,
-      "expected Boolean-typed variable or function application "
-      "in addToAssignment()" );
-  Node n = e.getNode();
+  PrettyCheckArgument(type.isBoolean(),
+                      n,
+                      "expected Boolean-typed variable or function application "
+                      "in addToAssignment()");
   // must be a defined constant, or a variable
   PrettyCheckArgument(
       (((d_definedFunctions->find(n) != d_definedFunctions->end())
         && n.getNumChildren() == 0)
        || n.isVar()),
-      e,
+      n,
       "expected variable or defined-function application "
       "in addToAssignment(),\ngot %s",
-      e.toString().c_str());
+      n.toString().c_str());
   if(!options::produceAssignments()) {
     return false;
   }
@@ -2407,7 +2435,7 @@ Result SmtEngine::blockModel()
   std::vector<Expr> eassertsProc = getExpandedAssertions();
   Expr eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::blockModelsMode());
-  return assertFormula(eblocker);
+  return assertFormula(Node::fromExpr(eblocker));
 }
 
 Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
@@ -2432,7 +2460,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   // we always do block model values mode here
   Expr eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::BlockModelsMode::VALUES, exprs);
-  return assertFormula(eblocker);
+  return assertFormula(Node::fromExpr(eblocker));
 }
 
 std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
@@ -2544,8 +2572,11 @@ void SmtEngine::checkUnsatCore() {
   Notice() << "SmtEngine::checkUnsatCore(): generating unsat core" << endl;
   UnsatCore core = getUnsatCore();
 
-  SmtEngine coreChecker(d_exprManager);
+  SmtEngine coreChecker(d_exprManager, &d_options);
+  coreChecker.setIsInternalSubsolver();
   coreChecker.setLogic(getLogicInfo());
+  coreChecker.getOptions().set(options::checkUnsatCores, false);
+  coreChecker.getOptions().set(options::checkProofs, false);
 
   PROOF(
   std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
@@ -2557,16 +2588,12 @@ void SmtEngine::checkUnsatCore() {
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
     Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i << endl;
-    coreChecker.assertFormula(*i);
+    coreChecker.assertFormula(Node::fromExpr(*i));
   }
-  const bool checkUnsatCores = options::checkUnsatCores();
   Result r;
   try {
-    options::checkUnsatCores.set(false);
-    options::checkProofs.set(false);
     r = coreChecker.checkSat();
   } catch(...) {
-    options::checkUnsatCores.set(checkUnsatCores);
     throw;
   }
   Notice() << "SmtEngine::checkUnsatCore(): result is " << r << endl;
@@ -2704,9 +2731,11 @@ void SmtEngine::checkModel(bool hardFailure) {
   }
 
   // Now go through all our user assertions checking if they're satisfied.
-  for(AssertionList::const_iterator i = d_assertionList->begin(); i != d_assertionList->end(); ++i) {
-    Notice() << "SmtEngine::checkModel(): checking assertion " << *i << endl;
-    Node n = Node::fromExpr(*i);
+  for (const Node& assertion : *d_assertionList)
+  {
+    Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
+             << endl;
+    Node n = assertion;
 
     // Apply any define-funs from the problem.
     {
@@ -2785,7 +2814,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     stringstream ss;
     ss << "SmtEngine::checkModel(): "
        << "ERRORS SATISFYING ASSERTIONS WITH MODEL:" << endl
-       << "assertion:     " << *i << endl
+       << "assertion:     " << assertion << endl
        << "simplifies to: " << n << endl
        << "expected `true'." << endl
        << "Run with `--check-models -v' for additional diagnostics.";
@@ -2841,10 +2870,11 @@ void SmtEngine::checkSynthSolution()
   }
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
   /* Start new SMT engine to check solutions */
-  SmtEngine solChecker(d_exprManager);
+  SmtEngine solChecker(d_exprManager, &d_options);
+  solChecker.setIsInternalSubsolver();
   solChecker.setLogic(getLogicInfo());
-  setOption("check-synth-sol", SExpr("false"));
-  setOption("sygus-rec-fun", SExpr("false"));
+  solChecker.getOptions().set(options::checkSynthSol, false);
+  solChecker.getOptions().set(options::sygusRecFun, false);
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
@@ -2857,23 +2887,20 @@ void SmtEngine::checkSynthSolution()
   std::vector<Node> auxAssertions;
   // expand definitions cache
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (AssertionList::const_iterator i = d_assertionList->begin();
-       i != d_assertionList->end();
-       ++i)
+  for (const Node& assertion : *d_assertionList)
   {
-    Notice() << "SmtEngine::checkSynthSolution(): checking assertion " << *i << endl;
-    Trace("check-synth-sol") << "Retrieving assertion " << *i << "\n";
-    Node assertion = Node::fromExpr(*i);
+    Notice() << "SmtEngine::checkSynthSolution(): checking assertion "
+             << assertion << endl;
+    Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    assertion =
+    Node n =
         d_private->getProcessAssertions()->expandDefinitions(assertion, cache);
-    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << assertion
-             << endl;
-    Trace("check-synth-sol") << "Expanded assertion " << assertion << "\n";
-    if (conjs.find(assertion) == conjs.end())
+    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << endl;
+    Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
+    if (conjs.find(n) == conjs.end())
     {
       Trace("check-synth-sol") << "It is an auxiliary assertion\n";
-      auxAssertions.push_back(assertion);
+      auxAssertions.push_back(n);
     }
     else
     {
@@ -2917,12 +2944,12 @@ void SmtEngine::checkSynthSolution()
              << conjBody << endl;
     Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
                              << "\n";
-    solChecker.assertFormula(conjBody.toExpr());
+    solChecker.assertFormula(conjBody);
     // Assert all auxiliary assertions. This may include recursive function
     // definitions that were added as assertions to the sygus problem.
     for (const Node& a : auxAssertions)
     {
-      solChecker.assertFormula(a.toExpr());
+      solChecker.assertFormula(a);
     }
     Result r = solChecker.checkSat();
     Notice() << "SmtEngine::checkSynthSolution(): result is " << r << endl;
@@ -2943,68 +2970,17 @@ void SmtEngine::checkSynthSolution()
   }
 }
 
-void SmtEngine::checkAbduct(Expr a)
+void SmtEngine::checkInterpol(Expr interpol,
+                              const std::vector<Expr>& easserts,
+                              const Node& conj)
+{
+}
+
+void SmtEngine::checkAbduct(Node a)
 {
   Assert(a.getType().isBoolean());
-  Trace("check-abduct") << "SmtEngine::checkAbduct: get expanded assertions"
-                        << std::endl;
-
-  std::vector<Expr> asserts = getExpandedAssertions();
-  asserts.push_back(a);
-
-  // two checks: first, consistent with assertions, second, implies negated goal
-  // is unsatisfiable.
-  for (unsigned j = 0; j < 2; j++)
-  {
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
-                          << ": make new SMT engine" << std::endl;
-    // Start new SMT engine to check solution
-    SmtEngine abdChecker(d_exprManager);
-    abdChecker.setLogic(getLogicInfo());
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
-                          << ": asserting formulas" << std::endl;
-    for (const Expr& e : asserts)
-    {
-      abdChecker.assertFormula(e);
-    }
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
-                          << ": check the assertions" << std::endl;
-    Result r = abdChecker.checkSat();
-    Trace("check-abduct") << "SmtEngine::checkAbduct: phase " << j
-                          << ": result is " << r << endl;
-    std::stringstream serr;
-    bool isError = false;
-    if (j == 0)
-    {
-      if (r.asSatisfiabilityResult().isSat() != Result::SAT)
-      {
-        isError = true;
-        serr << "SmtEngine::checkAbduct(): produced solution cannot be shown "
-                "to be consisconsistenttent with assertions, result was "
-             << r;
-      }
-      Trace("check-abduct")
-          << "SmtEngine::checkAbduct: goal is " << d_abdConj << std::endl;
-      // add the goal to the set of assertions
-      Assert(!d_abdConj.isNull());
-      asserts.push_back(d_abdConj);
-    }
-    else
-    {
-      if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-      {
-        isError = true;
-        serr << "SmtEngine::checkAbduct(): negated goal cannot be shown "
-                "unsatisfiable with produced solution, result was "
-             << r;
-      }
-    }
-    // did we get an unexpected result?
-    if (isError)
-    {
-      InternalError() << serr.str();
-    }
-  }
+  // check it with the abduction solver
+  return d_abductSolver->checkAbduct(a);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -3161,53 +3137,24 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
+bool SmtEngine::getInterpol(const Expr& conj,
+                            const Type& grammarType,
+                            Expr& interpol)
 {
-  SmtScope smts(this);
+  return false;
+}
 
-  if (!options::produceAbducts())
-  {
-    const char* msg = "Cannot get abduct when produce-abducts options is off.";
-    throw ModalException(msg);
-  }
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
-                        << std::endl;
-  std::vector<Expr> easserts = getExpandedAssertions();
-  std::vector<Node> axioms;
-  for (unsigned i = 0, size = easserts.size(); i < size; i++)
-  {
-    axioms.push_back(Node::fromExpr(easserts[i]));
-  }
-  std::vector<Node> asserts(axioms.begin(), axioms.end());
-  // negate the conjecture
-  Node conjn = Node::fromExpr(conj);
-  // must expand definitions
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  conjn = d_private->getProcessAssertions()->expandDefinitions(conjn, cache);
-  // now negate
-  conjn = conjn.negate();
-  d_abdConj = conjn.toExpr();
-  asserts.push_back(conjn);
-  std::string name("A");
-  Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axioms, TypeNode::fromType(grammarType));
-  // should be a quantified conjecture with one function-to-synthesize
-  Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
-  // remember the abduct-to-synthesize
-  d_sssf = aconj[0][0].toExpr();
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
-                        << ", solving for " << d_sssf << std::endl;
-  // we generate a new smt engine to do the abduction query
-  d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
-  d_subsolver->setIsInternalSubsolver();
-  // get the logic
-  LogicInfo l = d_logic.getUnlockedCopy();
-  // enable everything needed for sygus
-  l.enableSygus();
-  d_subsolver->setLogic(l);
-  // assert the abduction query
-  d_subsolver->assertFormula(aconj.toExpr());
-  if (getAbductInternal(abd))
+bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+{
+  Type grammarType;
+  return getInterpol(conj, grammarType, interpol);
+}
+
+bool SmtEngine::getAbduct(const Node& conj,
+                          const TypeNode& grammarType,
+                          Node& abd)
+{
+  if (d_abductSolver->getAbduct(conj, grammarType, abd))
   {
     // successfully generated an abduct, update to abduct state
     d_smtMode = SMT_MODE_ABDUCT;
@@ -3218,68 +3165,9 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   return false;
 }
 
-bool SmtEngine::getAbductInternal(Expr& abd)
+bool SmtEngine::getAbduct(const Node& conj, Node& abd)
 {
-  // should have initialized the subsolver by now
-  Assert(d_subsolver != nullptr);
-  Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
-  Result r = d_subsolver->checkSat();
-  Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-  {
-    // get the synthesis solution
-    std::map<Expr, Expr> sols;
-    d_subsolver->getSynthSolutions(sols);
-    Assert(sols.size() == 1);
-    std::map<Expr, Expr>::iterator its = sols.find(d_sssf);
-    if (its != sols.end())
-    {
-      Trace("sygus-abduct")
-          << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
-      Node abdn = Node::fromExpr(its->second);
-      if (abdn.getKind() == kind::LAMBDA)
-      {
-        abdn = abdn[1];
-      }
-      // get the grammar type for the abduct
-      Node af = Node::fromExpr(d_sssf);
-      Node agdtbv = af.getAttribute(theory::SygusSynthFunVarListAttribute());
-      Assert(!agdtbv.isNull());
-      Assert(agdtbv.getKind() == kind::BOUND_VAR_LIST);
-      // convert back to original
-      // must replace formal arguments of abd with the free variables in the
-      // input problem that they correspond to.
-      std::vector<Node> vars;
-      std::vector<Node> syms;
-      SygusVarToTermAttribute sta;
-      for (const Node& bv : agdtbv)
-      {
-        vars.push_back(bv);
-        syms.push_back(bv.hasAttribute(sta) ? bv.getAttribute(sta) : bv);
-      }
-      abdn =
-          abdn.substitute(vars.begin(), vars.end(), syms.begin(), syms.end());
-
-      // convert to expression
-      abd = abdn.toExpr();
-
-      // if check abducts option is set, we check the correctness
-      if (options::checkAbducts())
-      {
-        checkAbduct(abd);
-      }
-      return true;
-    }
-    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
-                          << std::endl;
-    throw RecoverableModalException("Could not find solution for get-abduct.");
-  }
-  return false;
-}
-
-bool SmtEngine::getAbduct(const Expr& conj, Expr& abd)
-{
-  Type grammarType;
+  TypeNode grammarType;
   return getAbduct(conj, grammarType, abd);
 }
 
@@ -3341,8 +3229,13 @@ vector<Expr> SmtEngine::getAssertions() {
     throw ModalException(msg);
   }
   Assert(d_assertionList != NULL);
+  std::vector<Expr> res;
+  for (const Node& n : *d_assertionList)
+  {
+    res.emplace_back(n.toExpr());
+  }
   // copy the result out
-  return vector<Expr>(d_assertionList->begin(), d_assertionList->end());
+  return res;
 }
 
 void SmtEngine::push()
@@ -3467,8 +3360,7 @@ void SmtEngine::reset()
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
-  NodeManager::fromExprManager(em)->getOptions().copyValues(opts);
-  new(this) SmtEngine(em);
+  new (this) SmtEngine(em, &opts);
 }
 
 void SmtEngine::resetAssertions()
@@ -3512,10 +3404,8 @@ void SmtEngine::resetAssertions()
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    d_private->getResourceManager()));
+  d_propEngine.reset(new PropEngine(
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
@@ -3529,28 +3419,29 @@ void SmtEngine::interrupt()
 }
 
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
-  d_private->getResourceManager()->setResourceLimit(units, cumulative);
+  d_resourceManager->setResourceLimit(units, cumulative);
 }
-void SmtEngine::setTimeLimit(unsigned long milis, bool cumulative) {
-  d_private->getResourceManager()->setTimeLimit(milis, cumulative);
+void SmtEngine::setTimeLimit(unsigned long milis)
+{
+  d_resourceManager->setTimeLimit(milis);
 }
 
 unsigned long SmtEngine::getResourceUsage() const {
-  return d_private->getResourceManager()->getResourceUsage();
+  return d_resourceManager->getResourceUsage();
 }
 
 unsigned long SmtEngine::getTimeUsage() const {
-  return d_private->getResourceManager()->getTimeUsage();
+  return d_resourceManager->getTimeUsage();
 }
 
 unsigned long SmtEngine::getResourceRemaining() const
 {
-  return d_private->getResourceManager()->getResourceRemaining();
+  return d_resourceManager->getResourceRemaining();
 }
 
-unsigned long SmtEngine::getTimeRemaining() const
+NodeManager* SmtEngine::getNodeManager() const
 {
-  return d_private->getResourceManager()->getTimeRemaining();
+  return d_exprManager->getNodeManager();
 }
 
 Statistics SmtEngine::getStatistics() const
@@ -3644,8 +3535,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   }
 
   string optionarg = value.getValue();
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  nodeManagerOptions.setOption(key, optionarg);
+  d_options.setOption(key, optionarg);
 }
 
 void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
@@ -3704,8 +3594,7 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
     return SExpr(result);
   }
 
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  return SExpr::parseAtom(nodeManagerOptions.getOption(key));
+  return SExpr::parseAtom(d_options.getOption(key));
 }
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
@@ -3715,6 +3604,15 @@ bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
 void SmtEngine::setExpressionName(Expr e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
   d_private->setExpressionName(e,name);
+}
+
+Options& SmtEngine::getOptions() { return d_options; }
+
+const Options& SmtEngine::getOptions() const { return d_options; }
+
+ResourceManager* SmtEngine::getResourceManager()
+{
+  return d_resourceManager.get();
 }
 
 void SmtEngine::setSygusConjectureStale()

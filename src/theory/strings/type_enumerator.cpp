@@ -176,6 +176,9 @@ SeqEnumLen::SeqEnumLen(TypeNode tn,
 {
   d_elementEnumerator.reset(
       new TypeEnumerator(d_type.getSequenceElementType(), tep));
+  // ensure non-empty element domain
+  d_elementDomain.push_back((**d_elementEnumerator).toExpr());
+  ++(*d_elementEnumerator);
   mkCurr();
 }
 
@@ -208,15 +211,16 @@ bool SeqEnumLen::increment()
 
 void SeqEnumLen::mkCurr()
 {
-  std::vector<Expr> seq;
+  std::vector<Node> seq;
   const std::vector<unsigned>& data = d_witer->getData();
   for (unsigned i : data)
   {
+    Assert(i < d_elementDomain.size());
     seq.push_back(d_elementDomain[i]);
   }
   // make sequence from seq
-  d_curr =
-      NodeManager::currentNM()->mkConst(ExprSequence(d_type.toType(), seq));
+  d_curr = NodeManager::currentNM()->mkConst(
+      Sequence(d_type.getSequenceElementType(), seq));
 }
 
 StringEnumerator::StringEnumerator(TypeNode type, TypeEnumeratorProperties* tep)

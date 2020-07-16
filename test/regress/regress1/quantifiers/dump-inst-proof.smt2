@@ -1,10 +1,10 @@
 ; REQUIRES: proof
-; COMMAND-LINE: --dump-instantiations --proof
+; COMMAND-LINE: --dump-instantiations --proof --print-inst-full
 ; EXPECT: unsat
-; EXPECT: (instantiation (forall ((x Int)) (or (P x) (Q x)) )
+; EXPECT: (instantiations (forall ((x Int)) (or (P x) (Q x)) )
 ; EXPECT:   ( 2 )
 ; EXPECT: )
-; EXPECT: (instantiation (forall ((x Int)) (or (not (S x)) (not (Q x))) )
+; EXPECT: (instantiations (forall ((x Int)) (or (not (S x)) (not (Q x))) )
 ; EXPECT:   ( 2 )
 ; EXPECT: )
 (set-logic UFLIA)

@@ -38,8 +38,9 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
+                             const LogicInfo& logicInfo,
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo, pnm),
       d_notify(*this),
       d_statistics(),
       d_equalityEngine(d_notify, c, "theory::strings::ee", true),
@@ -85,6 +86,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
   d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
   d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
+  d_equalityEngine.addFunctionKind(kind::STRING_UPDATE);
   d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
   d_equalityEngine.addFunctionKind(kind::STRING_STOI);
   d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
@@ -189,18 +191,20 @@ bool TheoryStrings::propagate(TNode literal) {
   return ok;
 }
 
-
-Node TheoryStrings::explain( TNode literal ){
+TrustNode TheoryStrings::explain(TNode literal)
+{
   Debug("strings-explain") << "explain called on " << literal << std::endl;
   std::vector< TNode > assumptions;
   d_im->explain(literal, assumptions);
+  Node ret;
   if( assumptions.empty() ){
-    return d_true;
+    ret = d_true;
   }else if( assumptions.size()==1 ){
-    return assumptions[0];
+    ret = assumptions[0];
   }else{
-    return NodeManager::currentNM()->mkNode( kind::AND, assumptions );
+    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
   }
+  return TrustNode::mkTrustPropExp(literal, ret, nullptr);
 }
 
 bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
@@ -363,9 +367,15 @@ bool TheoryStrings::collectModelInfoType(
         NormalForm& nfe = d_csolver->getNormalForm(eqc);
         if (nfe.d_nf.size() == 1)
         {
+          // is it an equivalence class with a seq.unit term?
+          if (nfe.d_nf[0].getKind() == SEQ_UNIT)
+          {
+            pure_eq_assign[eqc] = nfe.d_nf[0];
+            Trace("strings-model") << "(unit: " << nfe.d_nf[0] << ") ";
+          }
           // does it have a code and the length of these equivalence classes are
           // one?
-          if (d_termReg.hasStringCode() && lts_values[i] == d_one)
+          else if (d_termReg.hasStringCode() && lts_values[i] == d_one)
           {
             EqcInfo* eip = d_state.getOrMakeEqcInfo(eqc, false);
             if (eip && !eip->d_codeTerm.get().isNull())
@@ -419,7 +429,7 @@ bool TheoryStrings::collectModelInfoType(
       std::unique_ptr<SEnumLen> sel;
       Trace("strings-model") << "Cardinality of alphabet is "
                              << utils::getAlphabetCardinality() << std::endl;
-      if (tn.isString())
+      if (tn.isString())  // string-only
       {
         sel.reset(new StringEnumLen(
             currLen, currLen, utils::getAlphabetCardinality()));
@@ -535,7 +545,6 @@ bool TheoryStrings::collectModelInfoType(
         nc.push_back(r.isConst() ? r : processed[r]);
       }
       Node cc = utils::mkNConcat(nc, tn);
-      Assert(cc.isConst());
       Trace("strings-model")
           << "*** Determined constant " << cc << " for " << rn << std::endl;
       processed[rn] = cc;
@@ -543,11 +552,16 @@ bool TheoryStrings::collectModelInfoType(
       {
         // this should never happen due to the model soundness argument
         // for strings
-
         Unreachable() << "TheoryStrings::collectModelInfoType: "
                          "Inconsistent equality (unprocessed eqc)"
                       << std::endl;
         return false;
+      }
+      else if (!cc.isConst())
+      {
+        // the value may be specified by seq.unit components, ensure this
+        // is marked as the skeleton for constructing values in this class.
+        m->assertSkeleton(cc);
       }
     }
   }
@@ -567,7 +581,7 @@ void TheoryStrings::preRegisterTerm(TNode n)
   d_termReg.preRegisterTerm(n);
 }
 
-Node TheoryStrings::expandDefinition(Node node)
+TrustNode TheoryStrings::expandDefinition(Node node)
 {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
 
@@ -583,14 +597,15 @@ Node TheoryStrings::expandDefinition(Node node)
     Node k = nm->mkBoundVar(nm->stringType());
     Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
     Node emp = Word::mkEmptyWord(node.getType());
-    node = nm->mkNode(
+    Node ret = nm->mkNode(
         WITNESS,
         bvl,
         nm->mkNode(
             ITE, cond, t.eqNode(nm->mkNode(STRING_TO_CODE, k)), k.eqNode(emp)));
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
 
-  return node;
+  return TrustNode::null();
 }
 
 void TheoryStrings::check(Effort e) {
@@ -702,11 +717,12 @@ void TheoryStrings::conflict(TNode a, TNode b){
   {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
     d_state.setConflict();
-    Node conflictNode;
-    conflictNode = explain( a.eqNode(b) );
-    Trace("strings-conflict") << "CONFLICT: Eq engine conflict : " << conflictNode << std::endl;
+    TrustNode conflictNode = explain(a.eqNode(b));
+    Trace("strings-conflict")
+        << "CONFLICT: Eq engine conflict : " << conflictNode.getNode()
+        << std::endl;
     ++(d_statistics.d_conflictsEqEngine);
-    d_out->conflict( conflictNode );
+    d_out->conflict(conflictNode.getNode());
   }
 }
 
@@ -947,39 +963,48 @@ void TheoryStrings::checkRegisterTermsNormalForms()
   }
 }
 
-Node TheoryStrings::ppRewrite(TNode atom) {
+TrustNode TheoryStrings::ppRewrite(TNode atom)
+{
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
-  Node atomElim;
+  Node atomRet = atom;
   if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
   {
     // aggressive elimination of regular expression membership
-    atomElim = d_regexp_elim.eliminate(atom);
+    Node atomElim = d_regexp_elim.eliminate(atomRet);
     if (!atomElim.isNull())
     {
       Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
                            << " via regular expression elimination."
                            << std::endl;
-      atom = atomElim;
+      atomRet = atomElim;
     }
   }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
     StringsPreprocess* p = d_esolver->getPreprocess();
-    Node ret = p->processAssertion(atom, new_nodes);
-    if( ret!=atom ){
-      Trace("strings-ppr") << "  rewrote " << atom << " -> " << ret << ", with " << new_nodes.size() << " lemmas." << std::endl; 
-      for( unsigned i=0; i<new_nodes.size(); i++ ){
-        Trace("strings-ppr") << "    lemma : " << new_nodes[i] << std::endl;
+    Node ret = p->processAssertion(atomRet, new_nodes);
+    if (ret != atomRet)
+    {
+      Trace("strings-ppr") << "  rewrote " << atomRet << " -> " << ret
+                           << ", with " << new_nodes.size() << " lemmas."
+                           << std::endl;
+      for (const Node& lem : new_nodes)
+      {
+        Trace("strings-ppr") << "    lemma : " << lem << std::endl;
         ++(d_statistics.d_lemmasEagerPreproc);
-        d_out->lemma( new_nodes[i] );
+        d_out->lemma(lem);
       }
-      return ret;
+      atomRet = ret;
     }else{
       Assert(new_nodes.empty());
     }
   }
-  return atom;
+  if (atomRet != atom)
+  {
+    return TrustNode::mkTrustRewrite(atom, atomRet, nullptr);
+  }
+  return TrustNode::null();
 }
 
 /** run the given inference step */

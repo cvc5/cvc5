@@ -31,8 +31,11 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
+    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
+    case PfRule::PREPROCESS: return "PREPROCESS";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
+    case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
     case PfRule::AND_ELIM: return "AND_ELIM";
     case PfRule::AND_INTRO: return "AND_INTRO";
     case PfRule::NOT_OR_ELIM: return "NOT_OR_ELIM";
@@ -110,6 +113,13 @@ const char* toString(PfRule id)
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
+    //================================================= Arith rules
+    case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
+    case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
+    case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
+    case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
+    case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
     //================================================= Unknown rule
     case PfRule::UNKNOWN: return "UNKNOWN";
     default: return "?";
