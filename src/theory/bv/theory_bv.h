@@ -38,10 +38,11 @@ namespace CVC4 {
 namespace proof {
 class BitVectorProof;
 }
-}  // namespace CVC4
 
-namespace CVC4 {
 namespace theory {
+
+class ExtTheory;
+
 namespace bv {
 
 class CoreSolver;
@@ -179,6 +180,9 @@ class TheoryBV : public Theory {
 
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
+
+  /** Extended theory module, for context-dependent simplification. */
+  std::unique_ptr<ExtTheory> d_extTheory;
 
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it

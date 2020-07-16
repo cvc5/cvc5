@@ -81,6 +81,7 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
+#include "smt/abstract_values.h"
 #include "smt/abduction_solver.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
@@ -147,9 +148,9 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   commands.clear();
 }
 
-class SoftResourceOutListener : public Listener {
+class ResourceOutListener : public Listener {
  public:
-  SoftResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
+  ResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
   void notify() override
   {
     SmtScope scope(d_smt);
@@ -158,20 +159,7 @@ class SoftResourceOutListener : public Listener {
   }
  private:
   SmtEngine* d_smt;
-}; /* class SoftResourceOutListener */
-
-
-class HardResourceOutListener : public Listener {
- public:
-  HardResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    SmtScope scope(d_smt);
-    theory::Rewriter::clearCaches();
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class HardResourceOutListener */
+}; /* class ResourceOutListener */
 
 class BeforeSearchListener : public Listener {
  public:
@@ -305,29 +293,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   // Cached true value
   Node d_true;
 
-  /**
-   * A context that never pushes/pops, for use by CD structures (like
-   * SubstitutionMaps) that should be "global".
-   */
-  context::Context d_fakeContext;
-
-  /**
-   * A map of AbsractValues to their actual constants.  Only used if
-   * options::abstractValues() is on.
-   */
-  SubstitutionMap d_abstractValueMap;
-
-  /**
-   * A mapping of all abstract values (actual value |-> abstract) that
-   * we've handed out.  This is necessary to ensure that we give the
-   * same AbstractValues for the same real constants.  Only used if
-   * options::abstractValues() is on.
-   */
-  NodeToNodeHashMap d_abstractValues;
-
-  /** TODO: whether certain preprocess steps are necessary */
-  //bool d_needsExpandDefs;
-
   /** The preprocessing pass context */
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
 
@@ -375,9 +340,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_propagator(true, true),
         d_assertions(),
         d_assertionsProcessed(smt.getUserContext(), false),
-        d_fakeContext(),
-        d_abstractValueMap(&d_fakeContext),
-        d_abstractValues(),
         d_processor(smt, *smt.getResourceManager()),
         // d_needsExpandDefs(true),  //TODO?
         d_exprNames(smt.getUserContext()),
@@ -389,10 +351,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     ResourceManager* rm = d_smt.getResourceManager();
 
     d_listenerRegistrations->add(
-        rm->registerSoftListener(new SoftResourceOutListener(d_smt)));
-
-    d_listenerRegistrations->add(
-        rm->registerHardListener(new HardResourceOutListener(d_smt)));
+        rm->registerListener(new ResourceOutListener(d_smt)));
 
     try
     {
@@ -582,34 +541,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     return applySubstitutions(n).toExpr();
   }
 
-  /**
-   * Substitute away all AbstractValues in a node.
-   */
-  Node substituteAbstractValues(TNode n) {
-    // We need to do this even if options::abstractValues() is off,
-    // since the setting might have changed after we already gave out
-    // some abstract values.
-    return d_abstractValueMap.apply(n);
-  }
-
-  /**
-   * Make a new (or return an existing) abstract value for a node.
-   * Can only use this if options::abstractValues() is on.
-   */
-  Node mkAbstractValue(TNode n) {
-    Assert(options::abstractValues());
-    Node& val = d_abstractValues[n];
-    if(val.isNull()) {
-      val = d_smt.d_nodeManager->mkAbstractValue(n.getType());
-      d_abstractValueMap.addSubstitution(val, n);
-    }
-    // We are supposed to ascribe types to all abstract values that go out.
-    NodeManager* current = d_smt.d_nodeManager;
-    Node ascription = current->mkConst(AscriptionType(n.getType().toType()));
-    Node retval = current->mkNode(kind::APPLY_TYPE_ASCRIPTION, ascription, val);
-    return retval;
-  }
-
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
@@ -637,6 +568,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
+      d_absValues(new AbstractValues(d_nodeManager)),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -690,8 +622,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
-  d_stats->d_resourceUnitsUsed.setData(d_resourceManager->getResourceUsage());
-
+  
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.
@@ -715,7 +646,6 @@ void SmtEngine::finishInit()
   // of SMT-LIB 2.6 standard.
 
   // Inialize the resource manager based on the options.
-  d_resourceManager->setHardLimit(options::hardLimit());
   if (options::perCallResourceLimit() != 0)
   {
     d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
@@ -727,16 +657,7 @@ void SmtEngine::finishInit()
   }
   if (options::perCallMillisecondLimit() != 0)
   {
-    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
-  }
-  if (options::cumulativeMillisecondLimit() != 0)
-  {
-    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
-                                    true);
-  }
-  if (options::cpuTime())
-  {
-    d_resourceManager->useCPUTime(true);
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
   }
 
   // set the random seed
@@ -921,6 +842,8 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
+
+    d_absValues.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -1270,7 +1193,7 @@ void SmtEngine::defineFunction(Expr func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Node formNode = d_private->substituteAbstractValues(Node::fromExpr(formula));
+  Node formNode = d_absValues->substituteAbstractValues(Node::fromExpr(formula));
 
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -1376,7 +1299,7 @@ void SmtEngine::defineFunctionsRec(
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Node n = d_private->substituteAbstractValues(Node::fromExpr(lem));
+    Node n = d_absValues->substituteAbstractValues(Node::fromExpr(lem));
     if (d_assertionList != nullptr)
     {
       d_assertionList->push_back(n);
@@ -1430,16 +1353,15 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  d_resourceManager->beginCall();
 
-  // Only way we can be out of resource is if cumulative budget is on
-  if (d_resourceManager->cumulativeLimitOn() && d_resourceManager->out())
+  if (d_resourceManager->out())
   {
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
   }
+  d_resourceManager->beginCall();
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
@@ -1732,7 +1654,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     for (Expr e : d_assumptions)
     {
       // Substitute out any abstract values in ex.
-      Node n = d_private->substituteAbstractValues(Node::fromExpr(e));
+      Node n = d_absValues->substituteAbstractValues(Node::fromExpr(e));
       // Ensure expr is type-checked at this point.
       ensureBoolean(n);
 
@@ -1894,7 +1816,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   }
 
   // Substitute out any abstract values in ex
-  Node n = d_private->substituteAbstractValues(formula);
+  Node n = d_absValues->substituteAbstractValues(formula);
 
   ensureBoolean(n);
   if(d_assertionList != NULL) {
@@ -2152,7 +2074,7 @@ Expr SmtEngine::simplify(const Expr& ex)
     Dump("benchmark") << SimplifyCommand(ex);
   }
 
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
   if( options::typeChecking() ) {
     e.getType(true); // ensure expr is type-checked at this point
   }
@@ -2174,7 +2096,7 @@ Node SmtEngine::expandDefinitions(const Node& ex)
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
 
   // Substitute out any abstract values in ex.
-  Node e = d_private->substituteAbstractValues(ex);
+  Node e = d_absValues->substituteAbstractValues(ex);
   if(options::typeChecking()) {
     // Ensure expr is type-checked at this point.
     e.getType(true);
@@ -2200,7 +2122,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   // Substitute out any abstract values in ex.
-  Expr e = d_private->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
 
   // Ensure expr is type-checked at this point.
   e.getType(options::typeChecking());
@@ -2251,7 +2173,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
          || resultNode.isConst());
 
   if(options::abstractValues() && resultNode.getType().isArray()) {
-    resultNode = d_private->mkAbstractValue(resultNode);
+    resultNode = d_absValues->mkAbstractValue(resultNode);
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 
@@ -2273,7 +2195,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   finalOptionsAreSet();
   doPendingPops();
   // Substitute out any abstract values in ex
-  Node n = d_private->substituteAbstractValues(Node::fromExpr(ex));
+  Node n = d_absValues->substituteAbstractValues(Node::fromExpr(ex));
   TypeNode type = n.getType(options::typeChecking());
   // must be Boolean
   PrettyCheckArgument(type.isBoolean(),
@@ -3430,8 +3352,9 @@ void SmtEngine::interrupt()
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
   d_resourceManager->setResourceLimit(units, cumulative);
 }
-void SmtEngine::setTimeLimit(unsigned long milis, bool cumulative) {
-  d_resourceManager->setTimeLimit(milis, cumulative);
+void SmtEngine::setTimeLimit(unsigned long milis)
+{
+  d_resourceManager->setTimeLimit(milis);
 }
 
 unsigned long SmtEngine::getResourceUsage() const {
@@ -3445,11 +3368,6 @@ unsigned long SmtEngine::getTimeUsage() const {
 unsigned long SmtEngine::getResourceRemaining() const
 {
   return d_resourceManager->getResourceRemaining();
-}
-
-unsigned long SmtEngine::getTimeRemaining() const
-{
-  return d_resourceManager->getTimeRemaining();
 }
 
 NodeManager* SmtEngine::getNodeManager() const
