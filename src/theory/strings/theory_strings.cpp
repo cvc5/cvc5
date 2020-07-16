@@ -622,7 +622,7 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     argTypes.push_back(nm->integerType());
     TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
     SkolemCache* sc = d_termReg.getSkolemCache();
-    Node uf = sc->mkTypedSkolemCached(ufType, s, i, SkolemCache::SK_NTH, "Uf");
+    Node uf = sc->mkTypedSkolemCached(ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
 
     Node ret = nm->mkNode(
         WITNESS,

@@ -1,4 +1,5 @@
-;EXPECT: sat
+;EXPECT: unsat
+(set-logic ALL)
 (declare-fun a () (Seq Int))
 (declare-fun b () (Seq Int))
 (declare-fun x () Int)

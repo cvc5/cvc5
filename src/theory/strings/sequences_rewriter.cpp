@@ -1508,7 +1508,6 @@ RewriteResponse SequencesRewriter::preRewrite(TNode node)
 Node SequencesRewriter::rewriteSeqNth(Node node)
 {
   Assert(node.getKind() == SEQ_NTH);
-  NodeManager* nm = NodeManager::currentNM();
   Node ret;
   Node s = node[0];
   Node i = node[1];
@@ -1519,18 +1518,18 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
     if (pos < len)
     {
       std::vector<Node> elements = Word::getChars(s);
-      ret = elements[pos];
+       ret = elements[pos];
+       return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
     }
     else
     {
-      ret = node;
+      return node;
     }
   }
   else
   {
-    ret = node;
+    return node;
   }
-  return ret;
 }
 
 Node SequencesRewriter::rewriteCharAt(Node node)
