@@ -24,6 +24,7 @@
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
 #include "expr/term_conversion_proof_generator.h"
+#include "smt/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
