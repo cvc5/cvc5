@@ -127,7 +127,7 @@ void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
   }
   if ((*d_options)[options::perCallMillisecondLimit] != 0)
   {
-    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
   }
   // ensure that our heuristics are properly set up
   setDefaults(logic, isInternalSubsolver);
