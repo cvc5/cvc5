@@ -1484,7 +1484,7 @@ void TheoryArithPrivate::preRegisterTerm(TNode n) {
 
   if (d_nonlinearExtension != nullptr)
   {
-    d_containing.getExtTheory()->registerTermRec( n );
+    d_nonlinearExtension->preRegisterTerm(n);
   }
 
   try {

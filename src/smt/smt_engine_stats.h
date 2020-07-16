@@ -53,8 +53,6 @@ struct SmtEngineStatistics
 
   /** Has something simplified to false? */
   IntStat d_simplifiedToFalse;
-  /** Number of resource units spent. */
-  ReferenceStat<uint64_t> d_resourceUnitsUsed;
 }; /* struct SmtEngineStatistics */
 
 }  // namespace smt

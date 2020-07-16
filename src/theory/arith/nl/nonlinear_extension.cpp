@@ -37,12 +37,18 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_containing(containing),
       d_ee(ee),
       d_needsLastCall(false),
+      d_extTheory(&containing),
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
       d_iandSlv(containing, d_model),
       d_builtModel(containing.getSatContext(), false)
 {
+  d_extTheory.addFunctionKind(kind::NONLINEAR_MULT);
+  d_extTheory.addFunctionKind(kind::EXPONENTIAL);
+  d_extTheory.addFunctionKind(kind::SINE);
+  d_extTheory.addFunctionKind(kind::PI);
+  d_extTheory.addFunctionKind(kind::IAND);
   d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -50,6 +56,13 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
 }
 
 NonlinearExtension::~NonlinearExtension() {}
+
+void NonlinearExtension::preRegisterTerm(TNode n)
+{
+  // register terms with extended theory, to find extended terms that can be
+  // eliminated by context-depedendent simplification.
+  d_extTheory.registerTermRec(n);
+}
 
 bool NonlinearExtension::getCurrentSubstitution(
     int effort,
@@ -596,12 +609,12 @@ void NonlinearExtension::check(Theory::Effort e)
                   << ", built model = " << d_builtModel.get() << std::endl;
   if (e == Theory::EFFORT_FULL)
   {
-    d_containing.getExtTheory()->clearCache();
+    d_extTheory.clearCache();
     d_needsLastCall = true;
     if (options::nlExtRewrites())
     {
       std::vector<Node> nred;
-      if (!d_containing.getExtTheory()->doInferences(0, nred))
+      if (!d_extTheory.doInferences(0, nred))
       {
         Trace("nl-ext") << "...sent no lemmas, # extf to reduce = "
                         << nred.size() << std::endl;
@@ -657,7 +670,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
 
   // get the extended terms belonging to this theory
   std::vector<Node> xts;
-  d_containing.getExtTheory()->getTerms(xts);
+  d_extTheory.getTerms(xts);
 
   if (Trace.isOn("nl-ext-debug"))
   {

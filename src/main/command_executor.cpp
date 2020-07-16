@@ -78,7 +78,7 @@ bool CommandExecutor::doCommand(Command* cmd)
   }
 
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
-  if(seq != NULL) {
+  if(seq != nullptr) {
     // assume no error
     bool status = true;
 
@@ -120,24 +120,24 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(d_options.getVerbosity() >= -1) {
     status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
   } else {
-    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
+    status = smtEngineInvoke(d_smtEngine, cmd, nullptr);
   }
 
   Result res;
-  CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
-  if(cs != NULL) {
+  const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
+  if(cs != nullptr) {
     d_result = res = cs->getResult();
   }
-  QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
-  if(q != NULL) {
+  const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
+  if(q != nullptr) {
     d_result = res = q->getResult();
   }
-  CheckSynthCommand* csy = dynamic_cast<CheckSynthCommand*>(cmd);
-  if(csy != NULL) {
+ const  CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
+  if(csy != nullptr) {
     d_result = res = csy->getResult();
   }
 
-  if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {
+  if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
     std::ostringstream ossCurStats;
     flushStatistics(ossCurStats);
     std::ostream& err = *d_options.getErr();

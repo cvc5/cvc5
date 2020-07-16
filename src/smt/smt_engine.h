@@ -95,6 +95,8 @@ namespace prop {
 /* -------------------------------------------------------------------------- */
 
 namespace smt {
+/** Utilities */
+class AbstractValues;
 /** Subsolvers */
 class AbductionSolver;
 /**
@@ -784,18 +786,14 @@ class CVC4_PUBLIC SmtEngine
   void setResourceLimit(unsigned long units, bool cumulative = false);
 
   /**
-   * Set a time limit for SmtEngine operations.
+   * Set a per-call time limit for SmtEngine operations.
    *
-   * A cumulative and non-cumulative (per-call) time limit can be
-   * set at the same time.  A call to setTimeLimit() with
-   * cumulative==true replaces any cumulative time limit currently
-   * in effect; a call with cumulative==false replaces any per-call
-   * time limit currently in effect.  Resource limits can be set in
-   * addition to time limits; the SmtEngine obeys both.  That means
-   * that up to four independent limits can control the SmtEngine
-   * at the same time.
+   * A per-call time limit can be set at the same time and replaces
+   * any per-call time limit currently in effect.
+   * Resource limits (either per-call or cumulative) can be set in
+   * addition to a time limit; the SmtEngine obeys all three of them.
    *
-   * Note that the cumulative timer only ticks away when one of the
+   * Note that the per-call timer only ticks away when one of the
    * SmtEngine's workhorse functions (things like assertFormula(),
    * checkEntailed(), checkSat(), and simplify()) are running.
    * Between calls, the timer is still.
@@ -809,11 +807,8 @@ class CVC4_PUBLIC SmtEngine
    * We reserve the right to change this in the future.
    *
    * @param millis the time limit in milliseconds, or 0 for no limit
-   * @param cumulative whether this time limit is to be a cumulative
-   * time limit for all remaining calls into the SmtEngine (true), or
-   * whether it's a per-call time limit (false); the default is false
    */
-  void setTimeLimit(unsigned long millis, bool cumulative = false);
+  void setTimeLimit(unsigned long millis);
 
   /**
    * Get the current resource usage count for this SmtEngine.  This
@@ -834,16 +829,6 @@ class CVC4_PUBLIC SmtEngine
    * @throw ModalException
    */
   unsigned long getResourceRemaining() const;
-
-  /**
-   * Get the remaining number of milliseconds that can be consumed by
-   * this SmtEngine according to the currently-set cumulative time limit.
-   * If there is not a cumulative resource limit set, this function
-   * throws a ModalException.
-   *
-   * @throw ModalException
-   */
-  unsigned long getTimeRemaining() const;
 
   /** Permit access to the underlying ExprManager. */
   ExprManager* getExprManager() const { return d_exprManager; }
@@ -1154,6 +1139,8 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
+  /** Abstract values */
+  std::unique_ptr<smt::AbstractValues> d_absValues;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
