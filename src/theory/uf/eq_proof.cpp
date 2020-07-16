@@ -258,7 +258,8 @@ bool EqProof::expandTransitivityForDisequalities(
       Assert(expansionPremises.size() >= 2)
           << "Less than 2 expansion premises for substituting BOTH terms in "
              "disequality.\nDisequality: "
-          << premise << "\nExpansion premises: " << expansionPremises
+          << premises[offending]
+          << "\nExpansion premises: " << expansionPremises
           << "\nConclusion: " << conclusion << "\n";
       // Easier case where we can determine the substitutions by directly
       // looking at the premises, i.e. the two expansion premises are for
@@ -312,7 +313,8 @@ bool EqProof::expandTransitivityForDisequalities(
             AlwaysAssert(i == 0)
                 << "Couldn't find sub at all for substituting BOTH terms in "
                    "disequality.\nDisequality: "
-                << premise << "\nExpansion premises: " << expansionPremises
+                << premises[offending]
+                << "\nExpansion premises: " << expansionPremises
                 << "\nConclusion: " << conclusion << "\n";
             // Failed. So flip sub and try again
             subs[0][1] = conclusionTermEq[1];
@@ -328,7 +330,7 @@ bool EqProof::expandTransitivityForDisequalities(
           {
             Unreachable() << "Found sub " << transConclusion1
                           << " but not other sub " << transConclusion2
-                          << ".\nDisequality: " << premise
+                          << ".\nDisequality: " << premises[offending]
                           << "\nExpansion premises: " << expansionPremises
                           << "\nConclusion: " << conclusion << "\n";
           }
@@ -386,7 +388,7 @@ bool EqProof::expandTransitivityForDisequalities(
     // The expansion conclusion is the same as the equality term in the
     // disequality, which is going to be justified by a transitivity step from
     // the expansion premises
-    expansionConclusion = premise[termPos];
+    expansionConclusion = premises[offending][termPos];
   }
   // Unless we are in the double-substitution case, the proof has the shape
   //
@@ -453,7 +455,7 @@ bool EqProof::expandTransitivityForDisequalities(
   {
     Trace("eqproof-conv") << (substConclusionInReverseOrder ? " [inverted]"
                                                             : "")
-                          << " via subsitution from " << premise
+                          << " via subsitution from " << premises[offending]
                           << " and (inverted subst) " << substPremises << "\n";
     //  By this point, for premise disequality (= (= t1 t2) false), we have
     //  potentially already built
@@ -476,7 +478,7 @@ bool EqProof::expandTransitivityForDisequalities(
     Node congConclusion = nm->mkNode(
         kind::EQUAL,
         nm->mkNode(kind::EQUAL, substPremises[0][0], substPremises[1][0]),
-        premise[0]);
+        premises[offending][0]);
     p->addStep(congConclusion,
                PfRule::CONG,
                substPremises,
@@ -1031,7 +1033,8 @@ Node EqProof::addToProof(
     // If any premise is of the form (= (t1 t2) false), then the transitivity
     // step may be coarse-grained and needs to be expanded. If the expansion
     // happens it also finalizes the proof of conclusion.
-    if (!expandTransitivityChildren(conclusion, children, p, assumptions))
+    if (!expandTransitivityForDisequalities(
+            conclusion, children, p, assumptions))
     {
       Assert(!children.empty());
       Trace("eqproof-conv")
