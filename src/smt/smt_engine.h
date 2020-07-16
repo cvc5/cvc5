@@ -91,6 +91,8 @@ namespace prop {
 /* -------------------------------------------------------------------------- */
 
 namespace smt {
+/** Utilities */
+class AbstractValues;
 /** Subsolvers */
 class AbductionSolver;
 /**
@@ -1125,6 +1127,8 @@ class CVC4_PUBLIC SmtEngine
   ExprManager* d_exprManager;
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
+  /** Abstract values */
+  std::unique_ptr<smt::AbstractValues> d_absValues;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
