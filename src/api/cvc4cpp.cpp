@@ -3596,7 +3596,7 @@ Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const
   CVC4_API_SOLVER_CHECK_SORT(sort);
 
   return mkValHelper<CVC4::UninterpretedConstant>(
-      CVC4::UninterpretedConstant(*sort.d_type, index));
+      CVC4::UninterpretedConstant(TypeNode::fromType(*sort.d_type), index));
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4202,7 +4202,7 @@ void Solver::assertFormula(Term term) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
   CVC4_API_ARG_CHECK_NOT_NULL(term);
-  d_smtEngine->assertFormula(*term.d_expr);
+  d_smtEngine->assertFormula(Node::fromExpr(*term.d_expr));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
