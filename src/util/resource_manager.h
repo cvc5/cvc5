@@ -81,13 +81,18 @@ class CVC4_PUBLIC ResourceManager
   /** Types of resources. */
   enum class Resource
   {
+    ArithPivotStep,
+    ArithNlLemmaStep,
     BitblastStep,
     BvEagerAssertStep,
     BvPropagationStep,
     BvSatConflictsStep,
+    BvSatPropagateStep,
+    BvSatSimplifyStep,
     CnfStep,
     DecisionStep,
     LemmaStep,
+    NewSkolemStep,
     ParseStep,
     PreprocessStep,
     QuantifierStep,
