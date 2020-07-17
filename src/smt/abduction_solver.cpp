@@ -69,7 +69,7 @@ bool AbductionSolver::getAbduct(const Node& goal,
   l.enableSygus();
   d_subsolver->setLogic(l);
   // assert the abduction query
-  d_subsolver->assertFormula(aconj.toExpr());
+  d_subsolver->assertFormula(aconj);
   return getAbductInternal(abd);
 }
 

@@ -235,7 +235,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   repcChecker->setOption("miniscope-quant", true);
   repcChecker->setOption("miniscope-quant-fv", true);
   repcChecker->setOption("quant-split", true);
-  repcChecker->assertFormula(fo_body.toExpr());
+  repcChecker->assertFormula(fo_body);
   // check satisfiability
   Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
