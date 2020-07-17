@@ -308,6 +308,8 @@ libcvc4_add_sources(
   theory/arith/nl/cad/constraints.h
   theory/arith/nl/cad/projections.cpp
   theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/variable_ordering.cpp
+  theory/arith/nl/cad/variable_ordering.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
   theory/arith/nl/inference.cpp
