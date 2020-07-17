@@ -304,6 +304,8 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad/projections.cpp
+  theory/arith/nl/cad/projections.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
   theory/arith/nl/inference.cpp
