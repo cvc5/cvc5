@@ -997,7 +997,6 @@ Node EqProof::addToProof(
       if (childProof->d_id == MERGED_THROUGH_CONGRUENCE
           && childProof->d_node.isNull())
       {
-        CVC4_UNUSED bool addedChild = false;
         Trace("eqproof-conv") << "EqProof::addToProof: child proof " << i
                               << " is fake cong step. Fold it.\n";
         Assert(childProof->d_children.size() == 2);
@@ -1008,12 +1007,11 @@ Node EqProof::addToProof(
           Trace("eqproof-conv")
               << "EqProof::addToProof: recurse on child " << j << "\n"
               << push;
-          Node child =
-              childProof->d_children[j]->addToProof(p, visited, assumptions);
+          children.push_back(
+              childProof->d_children[j]->addToProof(p, visited, assumptions));
           Trace("eqproof-conv") << pop;
         }
         Trace("eqproof-conv") << pop;
-        Assert(addedChild);
         continue;
       }
       Trace("eqproof-conv")
