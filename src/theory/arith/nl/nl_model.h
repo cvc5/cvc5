@@ -128,6 +128,14 @@ class NlModel
    * bounds.
    */
   bool addCheckModelBound(TNode v, TNode l, TNode u);
+  /** add check model witness
+   *
+   * Adds a model witness v -> w to the underlying theory model.
+   * The witness should only contain a single variable v and evaluate to true
+   * for exactly one value of v. The variable v is then (implicitly,
+   * declaratively) assigned to this single value that satisfies the witness w.
+   */
+  bool addCheckModelWitness(TNode v, TNode w);
   /** has check model assignment
    *
    * Have we assigned v in the current checkModel(...) call?
@@ -203,7 +211,8 @@ class NlModel
    */
   void getModelValueRepair(
       std::map<Node, Node>& arithModel,
-      std::map<Node, std::pair<Node, Node>>& approximations);
+      std::map<Node, std::pair<Node, Node>>& approximations,
+      std::map<Node, Node>& witnesses);
 
  private:
   /** The current model */
@@ -309,6 +318,13 @@ class NlModel
    * involves approximations of square roots.
    */
   std::map<Node, std::pair<Node, Node>> d_check_model_bounds;
+  /** witnesses for check model
+   *
+   * Stores witnesses for vatiables that define implicit variable assignments.
+   * For some variable v, we map to a formulas that is true for exactly one
+   * value of v.
+   */
+  std::map<Node, Node> d_check_model_witnesses;
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:
