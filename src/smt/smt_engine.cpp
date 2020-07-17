@@ -690,6 +690,7 @@ SmtEngine::~SmtEngine()
 
     d_stats.reset(nullptr);
     d_private.reset(nullptr);
+    d_optm.reset(nullptr);
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
