@@ -615,14 +615,13 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     Node uf = sc->mkTypedSkolemCached(ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
 
     Node ret = nm->mkNode(
-        WITNESS,
-        bvl,
-        nm->mkNode(
-            ITE,
-            cond,
-            nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)),
-            k.eqNode(nm->mkNode(APPLY_UF, uf, s, i))));
+	ITE,
+	cond,
+        nm->mkNode(WITNESS, bvl, nm->mkNode(IMPLIES, cond, nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)))),
+	nm->mkNode(APPLY_UF, uf, s, i));
+
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
+    
   }
 
   return TrustNode::null();
