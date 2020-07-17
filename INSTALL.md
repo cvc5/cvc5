@@ -176,18 +176,12 @@ and-inverter-graphs (AIG) and ABC is used to simplify these AIGs.
 ABC can be installed using the `contrib/get-abc` script.  
 Configure CVC4 with `configure.sh --abc` to build with this dependency.
 
-### GNU Readline library (Improved Interactive Experience)
+### Editline library (Improved Interactive Experience)
 
-The [GNU Readline](http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html)
-library is optionally used to provide command editing, tab completion, and
-history functionality at the CVC4 prompt (when running in interactive mode).
-Check your distribution for a package named "libreadline-dev" or
-"readline-devel" or similar.
-
-Note that GNU Readline is covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-If you choose to use CVC4 with GNU Readline support, you are licensing CVC4
-under that same license.
-(Usually CVC4's license is more permissive; see above discussion.)
+The [Editline Library](https://thrysoee.dk/editline/) library is optionally
+used to provide command editing, tab completion, and history functionality at
+the CVC4 prompt (when running in interactive mode).  Check your distribution
+for a package named "libedit-dev" or "libedit-devel" or similar.
 
 ### Boost C++ base libraries (Examples)
 

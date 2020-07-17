@@ -64,7 +64,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --lfsc                   use the LFSC proof checker
   --poly                   use the LibPoly library
   --symfpu                 use SymFPU for floating point solver
-  --readline               support the readline library
+  --editline               support the editline library
 
 Optional Path to Optional Packages:
   --abc-dir=PATH           path to top level of ABC source tree
@@ -136,7 +136,7 @@ python2=default
 python3=default
 python_bindings=default
 java_bindings=default
-readline=default
+editline=default
 shared=default
 static_binary=default
 statistics=default
@@ -295,8 +295,8 @@ do
     --profiling) profiling=ON;;
     --no-profiling) profiling=OFF;;
 
-    --readline) readline=ON;;
-    --no-readline) readline=OFF;;
+    --editline) editline=ON;;
+    --no-editline) editline=OFF;;
 
     --abc-dir) die "missing argument to $1 (try -h)" ;;
     --abc-dir=*) abc_dir=${1##*=} ;;
@@ -409,8 +409,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling"
-[ $readline != default ] \
-  && cmake_opts="$cmake_opts -DUSE_READLINE=$readline"
+[ $editline != default ] \
+  && cmake_opts="$cmake_opts -DUSE_EDITLINE=$editline"
 [ $abc != default ] \
   && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
 [ $cadical != default ] \

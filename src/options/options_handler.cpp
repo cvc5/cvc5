@@ -443,7 +443,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
-  print_config_cond("readline", Configuration::isBuiltWithReadline());
+  print_config_cond("editline", Configuration::isBuiltWithEditline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
   
   exit(0);
