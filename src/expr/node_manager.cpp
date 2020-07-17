@@ -106,6 +106,10 @@ NodeManager::NodeManager(ExprManager* exprManager)
 }
 
 void NodeManager::init() {
+  // `mkConst()` indirectly needs the correct NodeManager in scope because we
+  // call `NodeValue::inc()` which uses `NodeManager::curentNM()`
+  NodeManagerScope nms(this);
+
   poolInsert( &expr::NodeValue::null() );
 
   for(unsigned i = 0; i < unsigned(kind::LAST_KIND); ++i) {
