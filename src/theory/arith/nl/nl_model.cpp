@@ -363,11 +363,9 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
       return false;
     }
   }
-  auto itw = d_check_model_witnesses.find(v);
-  if (itw != d_check_model_witnesses.end())
-  {
-    // TODO(Gereon): Check whether s satisfies itw->second.
-  }
+  Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
+      << "We tried to add a substitution where we already had a witness term."
+      << std::endl;
   std::vector<Node> varsTmp;
   varsTmp.push_back(v);
   std::vector<Node> subsTmp;
@@ -1115,23 +1113,18 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         else
         {
-          auto wit = d_check_model_witnesses.find(vc);
-          if (wit != d_check_model_witnesses.end())
-          {
-            // TODO(Gereon): Should do something here.
-            std::cout << "Do something with " << vc << " = " << wit->second
-                      << std::endl;
-          }
-          else
-          {
-            Trace("nl-ext-cms-debug") << std::endl;
-            Trace("nl-ext-cms")
-                << "  failed due to unknown bound for " << vc << std::endl;
-            // should either assign a model bound or eliminate the variable
-            // via substitution
-            Assert(false);
-            return false;
-          }
+          Assert(d_check_model_witnesses.find(vc)
+                 == d_check_model_witnesses.end())
+              << "No variable should be assigned a witness term if we get "
+                 "here. "
+              << vc << " is, though." << std::endl;
+          Trace("nl-ext-cms-debug") << std::endl;
+          Trace("nl-ext-cms")
+              << "  failed due to unknown bound for " << vc << std::endl;
+          // should either assign a model bound or eliminate the variable
+          // via substitution
+          Assert(false);
+          return false;
         }
       }
       // whether we will try to minimize/maximize (-1/1) the absolute value
