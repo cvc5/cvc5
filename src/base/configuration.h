@@ -107,6 +107,8 @@ public:
 
   static bool isBuiltWithLfsc();
 
+  static bool isBuiltWithPoly();
+
   static bool isBuiltWithSymFPU();
 
   /* Return the number of debug tags */
