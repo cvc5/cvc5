@@ -1519,7 +1519,7 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   Node i = node[1];
   if (s.isConst() && i.isConst())
   {
-    size_t len = s.getConst<Rational>().getNumerator().toUnsignedInt();
+    size_t len = Word::getLength(s);    
     size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
     if (pos < len)
     {
