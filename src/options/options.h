@@ -40,6 +40,8 @@ namespace options {
   class OptionsHandler;
 }/* CVC4::options namespace */
 
+class OptionsListener;
+
 class CVC4_PUBLIC Options {
   friend api::Solver;
   /** The struct that holds all option values. */
@@ -132,7 +134,7 @@ public:
     return s_current;
   }
 
-  Options();
+  Options(OptionsListener* ol = nullptr);
   ~Options();
 
   /**
@@ -300,6 +302,8 @@ public:
    */
   std::vector<std::vector<std::string> > getOptions() const;
 
+  /** Set the generic listener associated with this class to ol */
+  void setListener(OptionsListener* ol);
   /**
    * Registers a listener for the notification, notifyBeforeSearch.
    *
@@ -415,6 +419,13 @@ public:
   void flushOut();
 
  private:
+  /** Pointer to the options listener, if one exists */
+  OptionsListener* d_olisten;
+  /**
+   * Helper method for setOption, updates this object for setting the given
+   * option.
+   */
+  void setOptionInternal(const std::string& key, const std::string& optionarg);
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line

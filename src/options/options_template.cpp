@@ -54,6 +54,7 @@ extern int optreset;
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/options_handler.h"
+#include "options/options_listener.h"
 
 ${headers_module}$
 
@@ -224,10 +225,11 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 }
 
 
-Options::Options()
+Options::Options(OptionsListener* ol)
     : d_holder(new options::OptionsHolder())
     , d_handler(new options::OptionsHandler(this))
-    , d_beforeSearchListeners()
+    , d_beforeSearchListeners(),
+    d_olisten(ol)
 {}
 
 Options::~Options() {
@@ -249,6 +251,8 @@ std::string Options::formatThreadOptionException(const std::string& option) {
      << " where N is a nonnegative integer";
   return ss.str();
 }
+
+void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 ListenerCollection::Registration* Options::registerAndNotify(
     ListenerCollection& collection, Listener* listener, bool notify)
@@ -662,14 +666,23 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
+  Trace("options") << "setOption(" << key << ", " << optionarg << ")"
+                   << std::endl;
+  // first update this object
+  setOptionInternal(key, optionarg);
+  // then, notify the provided listener
+  if (d_olisten != nullptr)
+  {
+    d_olisten->notifySetOption(key);
+  }
+}
+
+void Options::setOptionInternal(const std::string& key,
+                                const std::string& optionarg)
+{
   options::OptionsHandler* handler = d_handler;
   Options* options = this;
-  Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
-                   << std::endl;
-
   ${setoption_handlers}$
-
-
   throw UnrecognizedOptionException(key);
 }
 

@@ -74,6 +74,8 @@ ExtfSolver::ExtfSolver(context::Context* c,
 
 ExtfSolver::~ExtfSolver() {}
 
+void ExtfSolver::addSharedTerm(TNode n) { d_extt.registerTermRec(n); }
+
 bool ExtfSolver::doReduction(int effort, Node n)
 {
   Assert(d_extfInfoTmp.find(n) != d_extfInfoTmp.end());
