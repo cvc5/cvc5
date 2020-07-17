@@ -162,7 +162,8 @@ class CVC4_PUBLIC ResourceManager
   static uint64_t getFrequencyCount() { return s_resourceCount; }
 
   /**
-   * Registers a listener that is notified on a resource out or (per-call) timeout.
+   * Registers a listener that is notified on a resource out or (per-call)
+   * timeout.
    */
   void registerListener(Listener* listener);
 
