@@ -2667,7 +2667,12 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
              << endl;
     Node n = assertion;
-
+    Node nr = Rewriter::rewrite(substitutions.apply(n));
+    Trace("boolean-terms") << "n: " << n << endl;
+    Trace("boolean-terms") << "nr: " << nr << endl;    
+    if (nr.isConst() && nr.getConst<bool>()) {
+      continue;
+    }
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
