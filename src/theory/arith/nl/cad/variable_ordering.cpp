@@ -98,7 +98,7 @@ std::vector<poly::Variable> sort_triangular(
   return get_variables(vi);
 };
 
-VariableOrdering::VariableOrdering() : state_ml(nullptr) {}
+VariableOrdering::VariableOrdering() {}
 VariableOrdering::~VariableOrdering() {}
 
 std::vector<poly::Variable> VariableOrdering::operator()(
