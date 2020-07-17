@@ -83,8 +83,8 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
-#include "smt/abstract_values.h"
 #include "smt/abduction_solver.h"
+#include "smt/abstract_values.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
@@ -712,8 +712,11 @@ void SmtEngine::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      getTheoryEngine(), getContext(), getUserContext(), getResourceManager(), pnm));
+  d_propEngine.reset(new PropEngine(getTheoryEngine(),
+                                    getContext(),
+                                    getUserContext(),
+                                    getResourceManager(),
+                                    pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -3386,8 +3389,11 @@ void SmtEngine::resetAssertions()
     pnm = d_pfManager->getProofNodeManager();
   }
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      getTheoryEngine(), getContext(), getUserContext(), getResourceManager(), pnm));
+  d_propEngine.reset(new PropEngine(getTheoryEngine(),
+                                    getContext(),
+                                    getUserContext(),
+                                    getResourceManager(),
+                                    pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 

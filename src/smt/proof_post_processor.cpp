@@ -14,12 +14,12 @@
 
 #include "smt/proof_post_processor.h"
 
+#include "expr/skolem_manager.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "expr/skolem_manager.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -37,7 +37,11 @@ ProofPostprocessCallback::ProofPostprocessCallback(ProofNodeManager* pnm,
   d_elimRules.insert(PfRule::ASSUME);
 }
 
-void ProofPostprocessCallback::initializeUpdate() { d_assumpToProof.clear(); d_wfAssumptions.clear(); }
+void ProofPostprocessCallback::initializeUpdate()
+{
+  d_assumpToProof.clear();
+  d_wfAssumptions.clear();
+}
 
 void ProofPostprocessCallback::setEliminateRule(PfRule rule)
 {
@@ -208,7 +212,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       sargs[0] = weq[1];
     }
     // (TRUE_ELIM
-    // (TRANS 
+    // (TRANS
     //    ... proof of t = toWitness(t) ...
     //    (MACRO_SR_EQ_INTRO <children> :args (toWitness(t) args[1:]))))
     // We call the expandMacros method on MACRO_SR_EQ_INTRO, where notice
@@ -216,10 +220,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // call and not added to the proof.
     Node conc = expandMacros(PfRule::MACRO_SR_EQ_INTRO, children, sargs, cdp);
     tchildren.push_back(conc);
-    Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0]==sargs[0] && conc[1] == d_true);
+    Assert(!conc.isNull() && conc.getKind() == EQUAL && conc[0] == sargs[0]
+           && conc[1] == d_true);
     // transitivity if necessary
     Node eq = addProofForTrans(tchildren, cdp);
-    
+
     cdp->addStep(eq[0], PfRule::TRUE_ELIM, {eq}, {});
     Assert(eq[0] == args[0]);
     return eq[0];
@@ -249,20 +254,21 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   }
   else if (id == PfRule::MACRO_SR_PRED_TRANSFORM)
   {
-    // (TRUE_ELIM 
+    // (TRUE_ELIM
     // (TRANS
     //    (MACRO_SR_EQ_INTRO children[1:] :args <args>)
     //    ... proof of a = wa
     //    (MACRO_SR_EQ_INTRO {} wa)
-    //    (SYMM 
+    //    (SYMM
     //      (MACRO_SR_EQ_INTRO children[1:] :args (children[0] args[1:]))
     //      ... proof of c = wc
     //      (MACRO_SR_EQ_INTRO {} wc))
     //    (TRUE_INTRO children[0])))
-    // where 
-    // wa = toWitness(apply_SR(args[0])) and 
+    // where
+    // wa = toWitness(apply_SR(args[0])) and
     // wc = toWitness(apply_SR(children[0])).
-    Trace("smt-proof-pp-debug") << "Tranform " << children[0] << " == " << args[0] << std::endl;
+    Trace("smt-proof-pp-debug")
+        << "Tranform " << children[0] << " == " << args[0] << std::endl;
     if (CDProof::isSame(children[0], args[0]))
     {
       // nothing to do
@@ -271,40 +277,44 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     std::vector<Node> tchildren;
     std::vector<Node> schildren(children.begin() + 1, children.end());
     std::vector<Node> sargs = args;
-    // first, compute if we need 
+    // first, compute if we need
     bool reqWitness = d_wfpm.requiresWitnessFormTransform(children[0], args[0]);
     // convert both sides, in three steps, take symmetry of second chain
-    for (unsigned r=0; r<2; r++)
+    for (unsigned r = 0; r < 2; r++)
     {
       std::vector<Node> tchildrenr;
       // first rewrite args[0], then children[0]
-      sargs[0] = r==0 ? args[0] : children[0];
+      sargs[0] = r == 0 ? args[0] : children[0];
       // t = apply_SR(t)
       Node eq = expandMacros(PfRule::MACRO_SR_EQ_INTRO, schildren, sargs, cdp);
-      Trace("smt-proof-pp-debug") << "transform subs_rewrite (" << r << "): " << eq << std::endl;
+      Trace("smt-proof-pp-debug")
+          << "transform subs_rewrite (" << r << "): " << eq << std::endl;
       Assert(!eq.isNull() && eq.getKind() == EQUAL && eq[0] == sargs[0]);
       addToTransChildren(eq, tchildrenr);
       // apply_SR(t) = toWitness(apply_SR(t))
       if (reqWitness)
       {
         Node weq = addProofForWitnessForm(eq[1], cdp);
-        Trace("smt-proof-pp-debug") << "transform toWitness (" << r << "): " << weq << std::endl;
+        Trace("smt-proof-pp-debug")
+            << "transform toWitness (" << r << "): " << weq << std::endl;
         if (addToTransChildren(weq, tchildrenr))
         {
           sargs[0] = weq[1];
           // toWitness(apply_SR(t)) = apply_SR(toWitness(apply_SR(t)))
           // rewrite again, don't need substitution
           Node weqr = expandMacros(PfRule::MACRO_SR_EQ_INTRO, {}, sargs, cdp);
-          Trace("smt-proof-pp-debug") << "transform rewrite_witness (" << r << "): " << weqr << std::endl;
+          Trace("smt-proof-pp-debug") << "transform rewrite_witness (" << r
+                                      << "): " << weqr << std::endl;
           addToTransChildren(weqr, tchildrenr);
         }
       }
-      Trace("smt-proof-pp-debug") << "transform connect (" << r << ")" << std::endl;
+      Trace("smt-proof-pp-debug")
+          << "transform connect (" << r << ")" << std::endl;
       // add to overall chain
-      if (r==0)
+      if (r == 0)
       {
         // add the current chain to the overall chain
-        tchildren.insert(tchildren.end(),tchildrenr.begin(), tchildrenr.end());
+        tchildren.insert(tchildren.end(), tchildrenr.begin(), tchildrenr.end());
       }
       else
       {
@@ -316,7 +326,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           addToTransChildren(eqr, tchildren, true);
         }
       }
-      Trace("smt-proof-pp-debug") << "transform finish (" << r << ")" << std::endl;
+      Trace("smt-proof-pp-debug")
+          << "transform finish (" << r << ")" << std::endl;
     }
 
     // children[0] = true
@@ -497,57 +508,64 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
   return Node::null();
 }
 
-Node ProofPostprocessCallback::addProofForWitnessForm(Node t,  CDProof* cdp)
+Node ProofPostprocessCallback::addProofForWitnessForm(Node t, CDProof* cdp)
 {
   Node tw = SkolemManager::getWitnessForm(t);
   Node eq = t.eqNode(tw);
-  if (t==tw)
+  if (t == tw)
   {
     // not necessary, add REFL step
     cdp->addStep(eq, PfRule::REFL, {}, {t});
     return eq;
   }
   std::shared_ptr<ProofNode> pn = d_wfpm.getProofFor(eq);
-  if (pn!=nullptr)
+  if (pn != nullptr)
   {
     // add the proof
     cdp->addProof(pn);
   }
   else
   {
-    Assert(false) << "ProofPostprocessCallback::addProofForWitnessForm: failed to add proof for witness form of " << t;
+    Assert(false) << "ProofPostprocessCallback::addProofForWitnessForm: failed "
+                     "to add proof for witness form of "
+                  << t;
   }
   return eq;
 }
 
-Node ProofPostprocessCallback::addProofForTrans(const std::vector<Node>& tchildren, CDProof* cdp)
+Node ProofPostprocessCallback::addProofForTrans(
+    const std::vector<Node>& tchildren, CDProof* cdp)
 {
   size_t tsize = tchildren.size();
-  if (tsize>1)
+  if (tsize > 1)
   {
     Node lhs = tchildren[0][0];
-    Node rhs = tchildren[tsize-1][1];
+    Node rhs = tchildren[tsize - 1][1];
     Node eq = lhs.eqNode(rhs);
     cdp->addStep(eq, PfRule::TRANS, tchildren, {});
     return eq;
   }
-  else if (tchildren.size()==1)
+  else if (tchildren.size() == 1)
   {
     return tchildren[0];
   }
   return Node::null();
 }
 
-bool ProofPostprocessCallback::addToTransChildren(Node eq, std::vector<Node>& tchildren, bool isSymm)
+bool ProofPostprocessCallback::addToTransChildren(Node eq,
+                                                  std::vector<Node>& tchildren,
+                                                  bool isSymm)
 {
-  Assert (!eq.isNull());
-  Assert (eq.getKind()==kind::EQUAL);
-  if (eq[0]==eq[1])
+  Assert(!eq.isNull());
+  Assert(eq.getKind() == kind::EQUAL);
+  if (eq[0] == eq[1])
   {
     return false;
   }
   Node equ = isSymm ? eq[1].eqNode(eq[0]) : eq;
-  Assert (tchildren.empty() || (tchildren[tchildren.size()-1].getKind()==kind::EQUAL && tchildren[tchildren.size()-1][1]==equ[0]));
+  Assert(tchildren.empty()
+         || (tchildren[tchildren.size() - 1].getKind() == kind::EQUAL
+             && tchildren[tchildren.size() - 1][1] == equ[0]));
   tchildren.push_back(equ);
   return true;
 }

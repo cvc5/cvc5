@@ -82,7 +82,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                     const std::vector<Node>& children,
                     const std::vector<Node>& args,
                     CDProof* cdp);
-  /** 
+  /**
    * Add proof for witness form. This returns the equality t = toWitness(t)
    * and ensures that the proof of this equality has been added to cdp.
    * Notice the proof of this fact may have open assumptions of the form:
@@ -91,11 +91,13 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * form are available via d_wfpm.getWitnessFormEqs() in the remainder of
    * the lifetime of this class.
    */
-  Node addProofForWitnessForm(Node t,  CDProof* cdp);
+  Node addProofForWitnessForm(Node t, CDProof* cdp);
   /** Apply transivity if necessary for the arguments */
   Node addProofForTrans(const std::vector<Node>& tchildren, CDProof* cdp);
   /** Add eq (or its symmetry) to transivity children, if not reflexive */
-  bool addToTransChildren(Node eq, std::vector<Node>& tchildren, bool isSymm=false);
+  bool addToTransChildren(Node eq,
+                          std::vector<Node>& tchildren,
+                          bool isSymm = false);
 };
 
 /** Statistics callback class */

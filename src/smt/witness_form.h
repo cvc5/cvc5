@@ -29,10 +29,10 @@ namespace smt {
 
 class WitnessFormGenerator : public ProofGenerator
 {
-public:
-  WitnessFormGenerator(ProofNodeManager * pnm);
-  ~WitnessFormGenerator(){}
-  /** 
+ public:
+  WitnessFormGenerator(ProofNodeManager* pnm);
+  ~WitnessFormGenerator() {}
+  /**
    * Get proof for, which expects an equality of the form t = toWitness(t).
    * This returns a proof based on the term conversion proof generator utility.
    * This proof may contain open assumptions of the form:
@@ -42,8 +42,8 @@ public:
    */
   std::shared_ptr<ProofNode> getProofFor(Node eq) override;
   /** Identify */
-   std::string identify() const override;
-  /** 
+  std::string identify() const override;
+  /**
    * Does the rewrite require witness form conversion?
    * When calling this method, it should be the case that:
    *   Rewriter::rewrite(toWitness(t)) == Rewriter::rewrite(toWitness(s))
@@ -53,20 +53,21 @@ public:
    * witness form conversion to prove conclusions of MACRO_SR_PRED_TRANSFORM.
    */
   bool requiresWitnessFormTransform(Node t, Node s) const;
-  /** 
+  /**
    * Same as above, with s = true. This is intended for use with
    * MACRO_SR_PRED_INTRO.
    */
   bool requiresWitnessFormIntro(Node t) const;
-  /** 
+  /**
    * Get witness form equalities. This returns a set of equalities of the form:
    *   k = toWitness(k)
    * where k is a skolem, containing all rewrite steps used in calls to
    * getProofFor during the entire lifetime of this generator.
    */
   std::unordered_set<Node, NodeHashFunction>& getWitnessFormEqs();
-private:
-  /** 
+
+ private:
+  /**
    * Convert to witness form.
    */
   Node convertToWitnessForm(Node t);

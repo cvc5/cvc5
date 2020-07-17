@@ -14,30 +14,32 @@
 
 #include "smt/witness_form.h"
 
-#include "theory/rewriter.h"
 #include "expr/skolem_manager.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace smt {
 
-WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager * pnm) : d_tcpg(pnm){}
+WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm) : d_tcpg(pnm)
+{
+}
 
 std::shared_ptr<ProofNode> WitnessFormGenerator::getProofFor(Node eq)
 {
-  if (eq.getKind()!=kind::EQUAL)
+  if (eq.getKind() != kind::EQUAL)
   {
     // expecting an equality
     return nullptr;
   }
   Node lhs = eq[0];
   Node rhs = convertToWitnessForm(eq[0]);
-  if (rhs!=eq[1])
+  if (rhs != eq[1])
   {
     // expecting witness form
     return nullptr;
   }
   std::shared_ptr<ProofNode> pn = d_tcpg.getProofFor(eq);
-  Assert (pn!=nullptr);
+  Assert(pn != nullptr);
   return pn;
 }
 
@@ -49,7 +51,7 @@ std::string WitnessFormGenerator::identify() const
 Node WitnessFormGenerator::convertToWitnessForm(Node t)
 {
   Node tw = SkolemManager::getWitnessForm(t);
-  if (t==tw)
+  if (t == tw)
   {
     // trivial case
     return tw;
@@ -59,15 +61,17 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
   TNode cur;
   TNode curw;
   visit.push_back(t);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = d_visited.find(cur);
-    if (it == d_visited.end()) {
+    if (it == d_visited.end())
+    {
       d_visited.insert(cur);
       curw = SkolemManager::getWitnessForm(cur);
       // if its witness form is different
-      if (cur!=curw)
+      if (cur != curw)
       {
         if (cur.isVar())
         {
@@ -82,8 +86,8 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           // A term whose witness form is different from itself, recurse.
           // It should be the case that cur has children, since the witness
           // form of constants are themselves.
-          Assert (cur.getNumChildren()>0);
-          visit.insert(visit.end(),cur.begin(),cur.end());
+          Assert(cur.getNumChildren() > 0);
+          visit.insert(visit.end(), cur.begin(), cur.end());
         }
       }
     }
@@ -93,7 +97,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
 
 bool WitnessFormGenerator::requiresWitnessFormTransform(Node t, Node s) const
 {
-  return theory::Rewriter::rewrite(t)!=theory::Rewriter::rewrite(s);
+  return theory::Rewriter::rewrite(t) != theory::Rewriter::rewrite(s);
 }
 
 bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
@@ -102,7 +106,8 @@ bool WitnessFormGenerator::requiresWitnessFormIntro(Node t) const
   return !tr.isConst() || !tr.getConst<bool>();
 }
 
-std::unordered_set<Node, NodeHashFunction>& WitnessFormGenerator::getWitnessFormEqs()
+std::unordered_set<Node, NodeHashFunction>&
+WitnessFormGenerator::getWitnessFormEqs()
 {
   return d_eqs;
 }

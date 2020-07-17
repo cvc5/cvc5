@@ -192,8 +192,12 @@ TrustNode TheoryStrings::explain(TNode literal)
   return d_im.explain(literal);
 }
 
-bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& vars,
-                                            std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
+bool TheoryStrings::getCurrentSubstitution(
+    int effort,
+    std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node> >& exp)
+{
   Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort << std::endl;
   for( unsigned i=0; i<vars.size(); i++ ){
     Node n = vars[i];

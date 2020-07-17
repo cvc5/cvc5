@@ -38,7 +38,7 @@ namespace eq {
  * use of an EqualityEngine object in such a way that the proper proofs are
  * internally constructed, and can be retrieved from this class when
  * necessary.
- * 
+ *
  * Notice that this class is intended to be a *partial layer* on top of
  * equality engine. A user of this class should still issue low-level calls
  * (getRepresentative, areEqual, areDisequal, etc.) on the underlying equality
@@ -234,6 +234,7 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode explain(Node conc);
   /** identify */
   std::string identify() const override;
+
  protected:
   /** Add proof step */
   bool addProofStep(Node lit,
