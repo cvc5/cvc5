@@ -27,8 +27,6 @@ enum class VariableOrderingStrategy
   Brown
 };
 
-class VOMLState;
-
 class VariableOrdering
 {
  public:
