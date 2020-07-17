@@ -65,7 +65,7 @@ class OptionsManager : public OptionsListener
   /** Reference to the options object */
   Options* d_options;
   /** Pointer to the resource manager */
-  ResourceManager* d_resourceManager;  
+  ResourceManager* d_resourceManager;
   /** Manager for the memory of regular-output-channel. */
   ManagedRegularOutputChannel d_managedRegularChannel;
   /** Manager for the memory of diagnostic-output-channel. */

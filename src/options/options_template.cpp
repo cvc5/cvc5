@@ -226,8 +226,8 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 
 Options::Options(OptionsListener* ol)
     : d_holder(new options::OptionsHolder()),
-    d_handler(new options::OptionsHandler(this)),
-    d_olisten(ol)
+      d_handler(new options::OptionsHandler(this)),
+      d_olisten(ol)
 {}
 
 Options::~Options() {

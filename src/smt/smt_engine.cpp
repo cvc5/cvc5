@@ -81,8 +81,8 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
-#include "smt/abstract_values.h"
 #include "smt/abduction_solver.h"
+#include "smt/abstract_values.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
@@ -3271,8 +3271,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   // upon entering Assert mode the first time). No option can  be set after
   // initialized.
   if(d_fullyInited) {
-    throw ModalException(
-        "SmtEngine::setOption called after initialization.");
+    throw ModalException("SmtEngine::setOption called after initialization.");
   }
   NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
