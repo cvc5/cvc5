@@ -764,7 +764,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
       // error bounds on the Taylor approximation of transcendental functions.
       std::vector<NlLemma> lemmas;
       std::vector<Node> gs;
-      if (checkModel(assertions, lemmas, gs))
+      if (checkModel(assertions, false_asserts, lemmas, gs))
       {
         complete_status = 1;
       }
