@@ -24,10 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-ExampleInfer::ExampleInfer(TermDbSygus* tds) : d_tds(tds)
-{
-  d_isExamples = false;
-}
+ExampleInfer::ExampleInfer() { d_isExamples = false; }
 
 ExampleInfer::~ExampleInfer() {}
 

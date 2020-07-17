@@ -88,7 +88,7 @@ void EnumStreamPermutation::reset(Node value)
       d_var_classes[ti.getSubclassForVar(var)].push_back(var);
     }
   }
-  for (const std::pair<unsigned, std::vector<Node>>& p : d_var_classes)
+  for (const std::pair<const unsigned, std::vector<Node>>& p : d_var_classes)
   {
     d_perm_state_class.push_back(PermutationState(p.second));
     if (Trace.isOn("synth-stream-concrete"))
@@ -383,7 +383,7 @@ void EnumStreamSubstitution::resetValue(Node value)
   d_curr_ind = 0;
   d_comb_state_class.clear();
   Trace("synth-stream-concrete") << " ..combining vars  :";
-  for (const std::pair<unsigned, std::vector<Node>>& p : d_var_classes)
+  for (const std::pair<const unsigned, std::vector<Node>>& p : d_var_classes)
   {
     // ignore classes without variables being permuted
     unsigned perm_var_class_sz = d_stream_permutations.getVarClassSize(p.first);

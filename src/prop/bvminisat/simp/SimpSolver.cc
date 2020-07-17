@@ -217,7 +217,7 @@ void SimpSolver::removeClause(CRef cr)
       occurs.smudge(var(clause[i]));
     }
 
-    Solver::removeClause(cr);
+  Solver::removeClause(cr);
 }
 
 

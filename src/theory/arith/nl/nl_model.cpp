@@ -320,7 +320,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
     Node mg = nm->mkSkolem("model", nm->booleanType());
     gs.push_back(mg);
     // assert the constructed model as assertions
-    for (const std::pair<const Node, std::pair<Node, Node>> cb :
+    for (const std::pair<const Node, std::pair<Node, Node>>& cb :
          d_check_model_bounds)
     {
       Node l = cb.second.first;

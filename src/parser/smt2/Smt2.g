@@ -101,7 +101,7 @@ namespace CVC4 {
       struct myExpr : public CVC4::api::Term {
         myExpr() : CVC4::api::Term() {}
         myExpr(void*) : CVC4::api::Term() {}
-        myExpr(const Expr& e) : CVC4::api::Term(d_solver, e) {}
+        myExpr(const Expr& e) : CVC4::api::Term(nullptr, e) {}
         myExpr(const myExpr& e) : CVC4::api::Term(e) {}
       };/* struct myExpr */
     }/* CVC4::parser::smt2 namespace */

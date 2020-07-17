@@ -693,7 +693,7 @@ void TheorySep::check(Effort e) {
 
               //get model values
               std::map< int, Node > mvals;
-              for (const std::pair<int, Node>& sub_element :
+              for (const std::pair<const int, Node>& sub_element :
                    d_label_map[s_atom][s_lbl])
               {
                 int sub_index = sub_element.first;

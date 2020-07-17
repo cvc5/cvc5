@@ -27,7 +27,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   if (Trace.isOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;
-    for (const Node& a : assertions)
+    for (const Expr& a : assertions)
     {
       Trace("model-core") << "  " << a << std::endl;
     }

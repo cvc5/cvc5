@@ -319,7 +319,7 @@ PreprocessingPassResult HoElim::applyInternal(
   {
     std::map<Node, Node> lproc = newLambda;
     newLambda.clear();
-    for (const std::pair<Node, Node>& l : lproc)
+    for (const std::pair<const Node, Node>& l : lproc)
     {
       Node lambda = l.second;
       std::vector<Node> vars;

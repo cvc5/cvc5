@@ -142,7 +142,10 @@ Node mkAnd(const std::vector<NodeTemplate<ref_count>>& conjunctions)
   if (all.size() == 1) { return conjunctions[0]; }
 
   NodeBuilder<> conjunction(kind::AND);
-  for (const Node& n : all) { conjunction << n; }
+  for (const TNode& n : all)
+  {
+    conjunction << n;
+  }
   return conjunction;
 }
 
@@ -161,7 +164,10 @@ Node mkOr(const std::vector<NodeTemplate<ref_count>>& nodes)
   if (all.size() == 1) { return nodes[0]; }
 
   NodeBuilder<> disjunction(kind::OR);
-  for (const Node& n : all) { disjunction << n; }
+  for (const TNode& n : all)
+  {
+    disjunction << n;
+  }
   return disjunction;
 }
 /* Create node of kind XOR. */

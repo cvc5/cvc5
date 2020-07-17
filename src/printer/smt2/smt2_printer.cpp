@@ -91,21 +91,6 @@ void Smt2Printer::toStream(
   }
 }
 
-static bool stringifyRegexp(Node n, stringstream& ss) {
-  if(n.getKind() == kind::STRING_TO_REGEXP) {
-    ss << n[0].getConst<String>().toString(true);
-  } else if(n.getKind() == kind::REGEXP_CONCAT) {
-    for(unsigned i = 0; i < n.getNumChildren(); ++i) {
-      if(!stringifyRegexp(n[i], ss)) {
-        return false;
-      }
-    }
-  } else {
-    return false;
-  }
-  return true;
-}
-
 // force_nt is the type that n must have
 void Smt2Printer::toStream(std::ostream& out,
                            TNode n,

@@ -152,7 +152,7 @@ void SygusInst::registerQuantifier(Node q)
   /* Collect extra symbols in 'q' to be used in the grammar. */
   std::unordered_set<Node, NodeHashFunction> syms;
   expr::getSymbols(q, syms);
-  for (const TNode& var : syms)
+  for (const Node& var : syms)
   {
     TypeNode tn = var.getType();
     extra_cons[tn].insert(var);

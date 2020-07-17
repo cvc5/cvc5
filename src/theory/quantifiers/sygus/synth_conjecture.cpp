@@ -43,11 +43,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
-                                 SynthEngine* p,
-                                 SygusStatistics& s)
+SynthConjecture::SynthConjecture(QuantifiersEngine* qe, SygusStatistics& s)
     : d_qe(qe),
-      d_parent(p),
       d_stats(s),
       d_tds(qe->getTermDatabaseSygus()),
       d_hasSolution(false),
@@ -55,7 +52,7 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe,
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
       d_sygus_rconst(new SygusRepairConst(qe)),
-      d_exampleInfer(new ExampleInfer(d_tds)),
+      d_exampleInfer(new ExampleInfer()),
       d_ceg_pbe(new SygusPbe(qe, this)),
       d_ceg_cegis(new Cegis(qe, this)),
       d_ceg_cegisUnif(new CegisUnif(qe, this)),

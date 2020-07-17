@@ -46,7 +46,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_state(*this, d_equalityEngine, c, u),
-      d_im(*this, d_state, d_equalityEngine, c, u),
+      d_im(*this, d_state, c, u),
       d_rels(new TheorySetsRels(d_state, d_im, d_equalityEngine, u)),
       d_cardSolver(
           new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
@@ -1341,7 +1341,8 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
   {
     const std::map<TypeNode, std::vector<TNode> >& slackElements =
         d_cardSolver->getFiniteTypeSlackElements();
-    for (const std::pair<TypeNode, std::vector<TNode> >& pair : slackElements)
+    for (const std::pair<const TypeNode, std::vector<TNode> >& pair :
+         slackElements)
     {
       const std::vector<Node>& members =
           d_cardSolver->getFiniteTypeMembers(pair.first);

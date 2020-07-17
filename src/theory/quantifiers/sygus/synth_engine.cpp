@@ -35,7 +35,7 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe), d_tds(qe->getTermDatabaseSygus())
 {
   d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-      new SynthConjecture(d_quantEngine, this, d_statistics)));
+      new SynthConjecture(d_quantEngine, d_statistics)));
   d_conj = d_conjs.back().get();
 }
 
@@ -268,7 +268,7 @@ void SynthEngine::assignConjecture(Node q)
   if (d_conjs.back()->isAssigned())
   {
     d_conjs.push_back(std::unique_ptr<SynthConjecture>(
-        new SynthConjecture(d_quantEngine, this, d_statistics)));
+        new SynthConjecture(d_quantEngine, d_statistics)));
   }
   d_conjs.back()->assign(q);
 }

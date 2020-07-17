@@ -41,7 +41,7 @@ namespace quantifiers {
 class ExampleInfer
 {
  public:
-  ExampleInfer(TermDbSygus* tds);
+  ExampleInfer();
   ~ExampleInfer();
   /** initialize
    *
@@ -112,8 +112,6 @@ class ExampleInfer
                std::unordered_set<Node, NodeHashFunction>>& visited,
       bool hasPol,
       bool pol);
-  /** Pointer to the sygus term database */
-  TermDbSygus* d_tds;
   /** is this an examples conjecture for all functions-to-synthesize? */
   bool d_isExamples;
   /**

@@ -532,7 +532,7 @@ void InferenceManager::explain(TNode literal,
   {
     ee->explainPredicate(atom, polarity, tassumptions);
   }
-  for (const TNode a : tassumptions)
+  for (const TNode& a : tassumptions)
   {
     if (std::find(assumptions.begin(), assumptions.end(), a)
         == assumptions.end())
@@ -544,7 +544,7 @@ void InferenceManager::explain(TNode literal,
   {
     Debug("strings-explain-debug")
         << "Explanation for " << literal << " was " << std::endl;
-    for (const TNode a : tassumptions)
+    for (const TNode& a : tassumptions)
     {
       Debug("strings-explain-debug") << "   " << a << std::endl;
     }

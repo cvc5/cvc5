@@ -209,8 +209,6 @@ class TermRegistry
   Node d_negOne;
   /** the cardinality of the alphabet */
   uint32_t d_cardSize;
-  /** Reference to the solver state of the theory of strings. */
-  SolverState& d_state;
   /** Reference to equality engine of the theory of strings. */
   eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */

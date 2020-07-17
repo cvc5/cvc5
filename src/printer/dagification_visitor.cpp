@@ -59,7 +59,7 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
     // search for variables that start with the let prefix
     std::unordered_set<TNode, TNodeHashFunction> vs;
     expr::getVariables(current, vs);
-    for (const TNode v : vs)
+    for (const TNode& v : vs)
     {
       const std::string name = v.getAttribute(expr::VarNameAttr());
       if (name.compare(0, d_letVarPrefix.size(), d_letVarPrefix) == 0)

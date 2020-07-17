@@ -1196,7 +1196,7 @@ void SygusExtension::registerSymBreakLemma( TypeNode tn, Node lem, unsigned sz, 
         sca.d_search_terms[tn].find(d);
     if (itt != sca.d_search_terms[tn].end())
     {
-      for (const TNode& t : itt->second)
+      for (const Node& t : itt->second)
       {
         if (!options::sygusSymBreakLazy()
             || d_active_terms.find(t) != d_active_terms.end())
@@ -1469,7 +1469,7 @@ void SygusExtension::incrementCurrentSearchSize( Node m, std::vector< Node >& le
           int new_depth = ((int)itsz->second->d_curr_search_size) - ((int)sz);
           std::map< unsigned, std::vector< Node > >::iterator itt = itc->second.d_search_terms[tn].find( new_depth );
           if( itt!=itc->second.d_search_terms[tn].end() ){
-            for (const TNode& t : itt->second)
+            for (const Node& t : itt->second)
             {
               if (!options::sygusSymBreakLazy()
                   || (d_active_terms.find(t) != d_active_terms.end()

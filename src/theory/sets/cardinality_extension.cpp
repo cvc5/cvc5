@@ -168,7 +168,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
       const std::map<Node, Node>& negativeMembers =
           d_state.getNegativeMembers(representative);
 
-      for (const std::pair<Node, Node>& negativeMember : negativeMembers)
+      for (const std::pair<const Node, Node>& negativeMember : negativeMembers)
       {
         Node member = nm->mkNode(MEMBER, negativeMember.first, univ);
         // negativeMember.second is the reason for the negative membership and

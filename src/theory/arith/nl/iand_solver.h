@@ -76,8 +76,6 @@ class IAndSolver
 
   //-------------------------------------------- end lemma schemas
  private:
-  // The theory of arithmetic containing this extension.
-  TheoryArith& d_containing;
   /** Reference to the non-linear model object */
   NlModel& d_model;
   /** commonly used terms */

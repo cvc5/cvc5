@@ -29,9 +29,7 @@ namespace arith {
 namespace nl {
 
 IAndSolver::IAndSolver(TheoryArith& containing, NlModel& model)
-    : d_containing(containing),
-      d_model(model),
-      d_initRefine(containing.getUserContext())
+    : d_model(model), d_initRefine(containing.getUserContext())
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
