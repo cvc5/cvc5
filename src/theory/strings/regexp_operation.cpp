@@ -117,7 +117,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::delta( Node r, Node &exp ) {
-  Trace("regexp-delta") << "RegExp-Delta starts with /" << mkString( r ) << "/" << std::endl;
+  Trace("regexp-delta") << "RegExpOpr::delta: " << r << std::endl;
   int ret = 0;
   NodeManager* nm = NodeManager::currentNM();
   if( d_delta_cache.find( r ) != d_delta_cache.end() ) {
@@ -175,10 +175,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
           }
           else if (tmp == 0)
           {
-            if (!exp2.isNull())
-            {
-              vec.push_back(exp2);
-            }
+            Assert (!exp2.isNull());
+            vec.push_back(exp2);
             flag = true;
           }
         }
@@ -217,7 +215,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       {
         int tmp = delta(r[0], exp);
         // flip the result if known
-        tmp = tmp == 0 ? 0 : (3 - tmp);
+        ret = tmp == 0 ? 0 : (3 - tmp);
         exp = exp.isNull() ? exp : exp.negate();
         break;
       }
@@ -232,7 +230,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
     std::pair< int, Node > p(ret, exp);
     d_delta_cache[r] = p;
   }
-  Trace("regexp-delta") << "RegExp-Delta returns : " << ret << std::endl;
+  Trace("regexp-delta") << "RegExpOpr::delta returns " << ret << " for " << r << ", expr = " << exp << std::endl;
   return ret;
 }
 
