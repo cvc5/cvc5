@@ -677,13 +677,13 @@ void SmtEngine::finishInit()
   if (options::proofNew())
   {
     d_pfManager.reset(new PfManager(this));
+    // use this proof node manager
+    pnm = d_pfManager->getProofNodeManager();
     // enable proof support in the rewriter
-    d_rewriter->setProofChecker(d_pfManager->getProofChecker());
+    d_rewriter->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
     d_private->getAssertionPipeline().setProofGenerator(
         d_pfManager->getPreprocessProofGenerator());
-    // use this proof node manager
-    pnm = d_pfManager->getProofNodeManager();
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
@@ -713,7 +713,7 @@ void SmtEngine::finishInit()
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
   d_propEngine.reset(new PropEngine(
-      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager(), pnm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -3380,9 +3380,14 @@ void SmtEngine::resetAssertions()
    * First force destruction of referenced PropEngine to enforce that
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
+  ProofNodeManager* pnm = nullptr;
+  if (options::proofNew())
+  {
+    pnm = d_pfManager->getProofNodeManager();
+  }
   d_propEngine.reset(nullptr);
   d_propEngine.reset(new PropEngine(
-      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager(), pnm));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 

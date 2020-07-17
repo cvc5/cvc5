@@ -49,7 +49,8 @@ bool ProofPostprocessCallback::shouldUpdate(ProofNode* pn)
   return d_elimRules.find(pn->getRule()) != d_elimRules.end();
 }
 
-bool ProofPostprocessCallback::update(PfRule id,
+bool ProofPostprocessCallback::update(Node res,
+                                      PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp)
@@ -145,13 +146,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           builtin::BuiltinProofRuleChecker::applySubstitution(t, children, sid);
       if (ts != t)
       {
+        Node eq = t.eqNode(ts);
         // apply SUBS proof rule if necessary
-        if (!update(PfRule::SUBS, children, sargs, cdp))
+        if (!update(eq, PfRule::SUBS, children, sargs, cdp))
         {
           // if not elimianted, add as step
-          cdp->addStep(t.eqNode(ts), PfRule::SUBS, children, sargs);
+          cdp->addStep(eq, PfRule::SUBS, children, sargs);
         }
-        tchildren.push_back(t.eqNode(ts));
+        tchildren.push_back(eq);
       }
     }
     else
@@ -175,13 +177,14 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     Node tr = builtinPfC->applyRewrite(ts, rid);
     if (ts != tr)
     {
+      Node eq = ts.eqNode(tr);
       // apply REWRITE proof rule
-      if (!update(PfRule::REWRITE, children, rargs, cdp))
+      if (!update(eq, PfRule::REWRITE, {}, rargs, cdp))
       {
         // if not elimianted, add as step
-        cdp->addStep(ts.eqNode(tr), PfRule::REWRITE, children, rargs);
+        cdp->addStep(eq, PfRule::REWRITE, {}, rargs);
       }
-      tchildren.push_back(ts.eqNode(tr));
+      tchildren.push_back(eq);
     }
     if (t == tr)
     {
@@ -260,7 +263,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // wa = toWitness(apply_SR(args[0])) and 
     // wc = toWitness(apply_SR(children[0])).
     Trace("smt-proof-pp-debug") << "Tranform " << children[0] << " == " << args[0] << std::endl;
-    if (children[0]==args[0])
+    if (CDProof::isSame(children[0], args[0]))
     {
       // nothing to do
       return children[0];

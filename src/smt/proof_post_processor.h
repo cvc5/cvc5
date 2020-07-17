@@ -50,7 +50,8 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   /** Should proof pn be updated? */
   bool shouldUpdate(ProofNode* pn) override;
   /** Update the proof rule application. */
-  bool update(PfRule id,
+  bool update(Node res,
+              PfRule id,
               const std::vector<Node>& children,
               const std::vector<Node>& args,
               CDProof* cdp) override;

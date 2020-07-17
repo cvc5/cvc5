@@ -75,7 +75,7 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           // equality between a variable and its witness form
           d_eqs.insert(eq);
           // store the rewrite step
-          d_tcpg.addRewriteStep(cur, curw, PfRule::ASSUME, {}, {eq});
+          d_tcpg.addRewriteStep(cur, curw, PfRule::TRUST, {}, {eq});
         }
         else
         {

@@ -249,7 +249,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       exp.push_back(children[i]);
     }
-    Node res = applySubstitution(args[0], exp);
+    Node res = applySubstitution(args[0], exp, ids);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::REWRITE)

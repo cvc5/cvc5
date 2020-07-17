@@ -41,7 +41,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
     // enable proofs in the term formula remover
     if (pnm != nullptr)
     {
-      d_tfr.setProofChecker(pnm->getChecker());
+      d_tfr.setProofNodeManager(pnm);
     }
     // push the proof context, since proof steps may be cleared on calls to
     // clearCache() below.

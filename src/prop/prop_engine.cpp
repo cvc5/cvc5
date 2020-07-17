@@ -71,7 +71,8 @@ public:
 PropEngine::PropEngine(TheoryEngine* te,
                        Context* satContext,
                        UserContext* userContext,
-                       ResourceManager* rm)
+                       ResourceManager* rm,
+                       ProofNodeManager* pnm)
     : d_inCheckSat(false),
       d_theoryEngine(te),
       d_context(satContext),
@@ -79,10 +80,8 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_satSolver(NULL),
       d_registrar(NULL),
       d_cnfStream(NULL),
-      d_pNodeManager(options::proofNew()
-                         ? new ProofNodeManager(te->getProofChecker())
-                         : nullptr),
-      d_proof(d_pNodeManager.get(), nullptr, userContext),
+      d_pNodeManager(pnm),
+      d_proof(pnm, nullptr, userContext),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)
@@ -102,7 +101,7 @@ PropEngine::PropEngine(TheoryEngine* te,
   {
     d_conflictLit = undefSatVariable;
     d_pfCnfStream.reset(new ProofCnfStream(
-        userContext, *d_cnfStream, d_pNodeManager.get(), options::proofNew()));
+        userContext, *d_cnfStream, pnm, options::proofNew()));
   }
 
   d_theoryProxy = new TheoryProxy(

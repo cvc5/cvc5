@@ -115,13 +115,12 @@ TrustNode Rewriter::rewriteWithProof(TNode node,
   return TrustNode::mkTrustRewrite(node, ret, d_tpg.get());
 }
 
-void Rewriter::setProofChecker(ProofChecker* pc)
+void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
 {
   // if not already initialized with proof support
   if (d_tpg == nullptr)
   {
-    d_pnm.reset(new ProofNodeManager(pc));
-    d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
+    d_tpg.reset(new TConvProofGenerator(pnm));
   }
 }
 

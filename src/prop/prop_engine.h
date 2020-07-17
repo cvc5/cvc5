@@ -67,7 +67,8 @@ class PropEngine
   PropEngine(TheoryEngine*,
              context::Context* satContext,
              context::UserContext* userContext,
-             ResourceManager* rm);
+             ResourceManager* rm,
+             ProofNodeManager* pnm);
 
   /**
    * Destructor.
@@ -280,7 +281,7 @@ class PropEngine
   CnfStream* d_cnfStream;
 
   /** A proof node manager based on the above checker */
-  std::unique_ptr<ProofNodeManager> d_pNodeManager;
+  ProofNodeManager * d_pNodeManager;
   /** The User-context-dependent proof object */
   LazyCDProof d_proof;
   /** Proof-producing CNF converter */

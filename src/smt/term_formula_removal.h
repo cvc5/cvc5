@@ -102,8 +102,8 @@ class RemoveTermFormulas {
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
 
-  /** Set proof checker, also enabled proofs TODO: improve design */
-  void setProofChecker(ProofChecker* pc);
+  /** Set proof node manager, also enabled proofs TODO: improve design */
+  void setProofNodeManager(ProofNodeManager* pnm);
 
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
@@ -160,7 +160,7 @@ class RemoveTermFormulas {
   static bool hasNestedTermChildren( TNode node );
 
   /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
+  ProofNodeManager* d_pnm;
   /**
    * A proof generator for the term conversion.
    */

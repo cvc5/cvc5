@@ -21,7 +21,8 @@ namespace CVC4 {
 ProofNodeUpdaterCallback::ProofNodeUpdaterCallback() {}
 ProofNodeUpdaterCallback::~ProofNodeUpdaterCallback() {}
 
-bool ProofNodeUpdaterCallback::update(PfRule id,
+bool ProofNodeUpdaterCallback::update(Node res,
+                                      PfRule id,
                                       const std::vector<Node>& children,
                                       const std::vector<Node>& args,
                                       CDProof* cdp)
@@ -43,6 +44,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
   std::vector<ProofNode*> visit;
   ProofNode* cur;
   visit.push_back(pf.get());
+  TNode res;
   do
   {
     cur = visit.back();
@@ -50,6 +52,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
     it = visited.find(cur);
     if (it == visited.end())
     {
+      res = cur->getResult();
       visited.insert(cur);
       // should it be updated?
       if (d_cb.shouldUpdate(cur))
@@ -67,9 +70,9 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
           cpf.addProof(cp);
         }
         // only if the callback updated the node
-        if (d_cb.update(id, ccn, cur->getArguments(), &cpf))
+        if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf))
         {
-          std::shared_ptr<ProofNode> npn = cpf.getProofFor(cur->getResult());
+          std::shared_ptr<ProofNode> npn = cpf.getProofFor(res);
           // this may not be a desired assertion in general, but typically
           /*
           if (cur->isClosed() && !npn->isClosed())
