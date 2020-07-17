@@ -205,8 +205,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
   }
   // Rewrite until the stack is empty
   for (;;){
-
-    if (hasSmtEngine) {
+    if (hasSmtEngine)
+    {
       rm->spendResource(ResourceManager::Resource::RewriteStep);
     }
 

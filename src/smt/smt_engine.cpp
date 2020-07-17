@@ -81,8 +81,8 @@
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "prop/prop_engine.h"
-#include "smt/abstract_values.h"
 #include "smt/abduction_solver.h"
+#include "smt/abstract_values.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
@@ -148,7 +148,8 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   commands.clear();
 }
 
-class ResourceOutListener : public Listener {
+class ResourceOutListener : public Listener
+{
  public:
   ResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
   void notify() override
@@ -471,7 +472,8 @@ class SmtEnginePrivate : public NodeManagerListener {
       Dump("skolems") << CommentCommand(id + " is " + comment);
     }
     if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-      d_smt.getResourceManager()->spendResource(ResourceManager::Resource::NewSkolemStep);
+      d_smt.getResourceManager()->spendResource(
+          ResourceManager::Resource::NewSkolemStep);
       d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
     }
   }
@@ -623,7 +625,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
-  
+
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.
@@ -666,7 +668,7 @@ void SmtEngine::finishInit()
 
   // ensure that our heuristics are properly set up
   setDefaults(d_logic, d_isInternalSubsolver);
-  
+
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -1194,7 +1196,8 @@ void SmtEngine::defineFunction(Expr func,
   debugCheckFunctionBody(formula, formals, func);
 
   // Substitute out any abstract values in formula
-  Node formNode = d_absValues->substituteAbstractValues(Node::fromExpr(formula));
+  Node formNode =
+      d_absValues->substituteAbstractValues(Node::fromExpr(formula));
 
   TNode funcNode = func.getTNode();
   vector<Node> formalsNodes;
@@ -1353,7 +1356,6 @@ Result SmtEngine::check() {
   Assert(d_pendingPops == 0);
 
   Trace("smt") << "SmtEngine::check()" << endl;
-
 
   if (d_resourceManager->out())
   {

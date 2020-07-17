@@ -238,7 +238,8 @@ void ResourceManager::spendResource(unsigned amount)
   if (out())
   {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
-    Trace("limit") << "          on call " << d_statistics->d_spendResourceCalls.getData() << std::endl;
+    Trace("limit") << "          on call "
+                   << d_statistics->d_spendResourceCalls.getData() << std::endl;
     if (outOfTime())
     {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"

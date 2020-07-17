@@ -10,7 +10,7 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Provides mechanisms to limit resources.
-  **
+ **
  ** This file provides the ResourceManager class. It can be used to impose
  ** (cumulative and per-call) resource limits on the solver, as well as per-call
  ** time limits.
