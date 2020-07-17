@@ -20,8 +20,8 @@
  ** Implements a container for CAD constraints.
  **/
 
-#ifndef CVC4__THEORY__NLARITH__CAD__CONSTRAINTS_H
-#define CVC4__THEORY__NLARITH__CAD__CONSTRAINTS_H
+#ifndef CVC4__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
+#define CVC4__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
 
 #include "util/real_algebraic_number.h"
 

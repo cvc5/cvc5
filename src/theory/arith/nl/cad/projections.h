@@ -20,8 +20,8 @@
  ** Implements utilities for CAD projection operators.
  **/
 
-#ifndef CVC4__THEORY__NLARITH__CAD_PROJECTIONS_H
-#define CVC4__THEORY__NLARITH__CAD_PROJECTIONS_H
+#ifndef CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
+#define CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
 
 #include "util/real_algebraic_number.h"
 
