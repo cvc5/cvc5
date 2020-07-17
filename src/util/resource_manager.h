@@ -163,11 +163,8 @@ class CVC4_PUBLIC ResourceManager
 
   /**
    * Registers a listener that is notified on a resource out.
-   *
-   * This Registration must be destroyed by the user before this
-   * ResourceManager.
    */
-  ListenerCollection::Registration* registerListener(Listener* listener);
+  void registerResourceOutListener(Listener* listener);
 
  private:
   /** The per-call wall clock timer. */

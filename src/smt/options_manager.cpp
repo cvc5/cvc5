@@ -30,37 +30,6 @@ namespace smt {
 OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
     : d_options(opts), d_resourceManager(rm)
 {
-<<<<<<< HEAD
-  try
-  {
-    // set options that must take effect immediately
-    if (opts->wasSetByUser(options::defaultExprDepth))
-    {
-      notifySetOption(options::defaultExprDepth.getName());
-    }
-    if (opts->wasSetByUser(options::defaultDagThresh))
-    {
-      notifySetOption(options::defaultDagThresh.getName());
-    }
-    if (opts->wasSetByUser(options::printExprTypes))
-    {
-      notifySetOption(options::printExprTypes.getName());
-    }
-    if (opts->wasSetByUser(options::dumpModeString))
-    {
-      notifySetOption(options::dumpModeString.getName());
-    }
-    if (opts->wasSetByUser(options::printSuccess))
-    {
-      notifySetOption(options::printSuccess.getName());
-    }
-  }
-  catch (OptionException& e)
-  {
-    throw OptionException(e.getRawMessage());
-  }
-  // set this as a listener
-=======
   // set options that must take effect immediately
   if (opts->wasSetByUser(options::defaultExprDepth))
   {
@@ -83,7 +52,6 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
     notifySetOption(options::printSuccess.getName());
   }
   // set this as a listener to be notified of options changes from now on
->>>>>>> cb8d041d3820a46721f689f188839184003e0e7c
   opts->setListener(this);
 }
 
