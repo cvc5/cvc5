@@ -17,6 +17,7 @@
 
 #include "options/options.h"
 #include "options/options_listener.h"
+#include "smt/managed_ostreams.h"
 
 namespace CVC4 {
 
