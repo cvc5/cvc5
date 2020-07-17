@@ -233,6 +233,8 @@ libcvc4_add_sources(
   smt/logic_exception.h
   smt/logic_request.cpp
   smt/logic_request.h
+  smt/managed_ostreams.cpp
+  smt/managed_ostreams.h
   smt/model.cpp
   smt/model.h
   smt/model_core_builder.cpp

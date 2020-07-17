@@ -51,6 +51,14 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
   {
     notifySetOption(options::printSuccess.getName());
   }
+  if (opts->wasSetByUser(options::diagnosticChannelName))
+  {
+    notifySetOption(options::diagnosticChannelName);
+  }
+  if (opts->wasSetByUser(options::regularChannelName))
+  {
+    notifySetOption(options::regularChannelName);
+  }
   // set this as a listener to be notified of options changes from now on
   opts->setListener(this);
 }
@@ -109,6 +117,14 @@ void OptionsManager::notifySetOption(const std::string& key)
     Message.getStream() << Command::printsuccess(value);
     Warning.getStream() << Command::printsuccess(value);
     *options::out() << Command::printsuccess(value);
+  }
+  else if (key == options::diagnosticChannelName.getName())
+  {
+    
+  }
+  else if (key == options::regularChannelName.getName())
+  {
+    
   }
   // otherwise, no action is necessary
 }

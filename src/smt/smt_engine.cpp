@@ -3267,13 +3267,13 @@ void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
 {
-  // FIXME
-  /*
+  // Always check whether the SmtEngine has been initialized (which is done
+  // upon entering Assert mode the first time). No option can  be set after
+  // initialized.
   if(d_fullyInited) {
     throw ModalException(
         "SmtEngine::setOption called after initialization.");
   }
-  */
   NodeManagerScope nms(d_nodeManager);
   Trace("smt") << "SMT setOption(" << key << ", " << value << ")" << endl;
 
