@@ -119,7 +119,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 int RegExpOpr::delta( Node r, Node &exp ) {
   Trace("regexp-delta") << "RegExp-Delta starts with /" << mkString( r ) << "/" << std::endl;
   int ret = 0;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if( d_delta_cache.find( r ) != d_delta_cache.end() ) {
     ret = d_delta_cache[r].first;
     exp = d_delta_cache[r].second;
@@ -127,8 +127,9 @@ int RegExpOpr::delta( Node r, Node &exp ) {
     Kind k = r.getKind();
     switch( k ) {
       case REGEXP_EMPTY:
-      case REGEXP_SIGMA: 
-      case REGEXP_RANGE:{
+      case REGEXP_SIGMA:
+      case REGEXP_RANGE:
+      {
         ret = 2;
         break;
       }
@@ -156,42 +157,45 @@ int RegExpOpr::delta( Node r, Node &exp ) {
         }
         break;
       }
-      case REGEXP_CONCAT: 
-      case REGEXP_UNION: 
-      case REGEXP_INTER: {
+      case REGEXP_CONCAT:
+      case REGEXP_UNION:
+      case REGEXP_INTER:
+      {
         bool flag = false;
-        std::vector< Node > vec;
-        int checkTmp = k==REGEXP_UNION ? 1 : 2;
-        int retTmp = k==REGEXP_UNION ? 2 : 1;
+        std::vector<Node> vec;
+        int checkTmp = k == REGEXP_UNION ? 1 : 2;
+        int retTmp = k == REGEXP_UNION ? 2 : 1;
         for(unsigned i=0; i<r.getNumChildren(); ++i) {
           Node exp2;
           int tmp = delta( r[i], exp2 );
-          if (tmp == checkTmp) 
+          if (tmp == checkTmp)
           {
             ret = checkTmp;
             break;
-          } 
-          else if (tmp == 0) 
+          }
+          else if (tmp == 0)
           {
             if (!exp2.isNull())
             {
-              vec.push_back( exp2 );
+              vec.push_back(exp2);
             }
             flag = true;
           }
         }
-        if(ret != checkTmp) {
+        if (ret != checkTmp)
+        {
           if(!flag) {
             ret = retTmp;
           } else {
-            Kind kr = k==REGEXP_UNION ? OR : AND;
-            exp = vec.size()==1 ? vec[0] : nm->mkNode(kr, vec);
+            Kind kr = k == REGEXP_UNION ? OR : AND;
+            exp = vec.size() == 1 ? vec[0] : nm->mkNode(kr, vec);
           }
         }
         break;
       }
       case REGEXP_STAR:
-      case REGEXP_OPT: {
+      case REGEXP_OPT:
+      {
         ret = 1;
         break;
       }
