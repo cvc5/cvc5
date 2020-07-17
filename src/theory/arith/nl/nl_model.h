@@ -207,7 +207,9 @@ class NlModel
    * to their (exact) value that was computed during checkModel; the mapping
    * approximations is updated to store approximate values in the form of a
    * pair (P, w), where P is a predicate that describes the possible values of
-   * v and w is a witness point that satisfies this predicate.
+   * v and w is a witness point that satisfies this predicate; the mapping
+   * witnesses is filled with witness terms that are satisfied by a single
+   * value.
    */
   void getModelValueRepair(
       std::map<Node, Node>& arithModel,
