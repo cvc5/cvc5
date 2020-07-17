@@ -8,7 +8,6 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "dump=MODE"
   type       = "std::string"
-  notifies   = ["notifyDumpMode"]
   read_only  = true
   help       = "dump preprocessed assertions, etc., see --dump=help"
 
@@ -18,7 +17,6 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "dump-to=FILE"
   type       = "std::string"
-  notifies   = ["notifyDumpToFile"]
   read_only  = true
   help       = "all dumping goes to FILE (instead of stdout)"
 
@@ -71,7 +69,6 @@ header = "options/smt_options.h"
   long       = "produce-models"
   type       = "bool"
   default    = "false"
-  notifies   = ["notifyBeforeSearch"]
   help       = "support the get-value and get-model commands"
 
 [[option]]
@@ -79,7 +76,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-models"
   type       = "bool"
-  notifies   = ["notifyBeforeSearch"]
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user assertions"
 
 [[option]]
@@ -87,7 +83,6 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "debug-check-models"
   type       = "bool"
-  notifies   = ["notifyBeforeSearch"]
   help       = "after SAT/INVALID/UNKNOWN, check that the generated model satisfies user and internal assertions"
 
 [[option]]
@@ -143,7 +138,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   predicates = ["proofEnabledBuild"]
-  notifies   = ["notifyBeforeSearch"]
   help       = "turn on proof generation"
 
 [[option]]
@@ -152,7 +146,6 @@ header = "options/smt_options.h"
   long       = "check-proofs"
   type       = "bool"
   predicates = ["LFSCEnabledBuild"]
-  notifies   = ["notifyBeforeSearch"]
   help       = "after UNSAT/VALID, machine-check the generated proof"
 
 [[option]]
@@ -234,7 +227,6 @@ header = "options/smt_options.h"
   long       = "produce-unsat-cores"
   type       = "bool"
   predicates = ["proofEnabledBuild"]
-  notifies   = ["notifyBeforeSearch"]
   help       = "turn on unsat core generation"
 
 [[option]]
@@ -250,7 +242,6 @@ header = "options/smt_options.h"
   long       = "dump-unsat-cores"
   type       = "bool"
   default    = "false"
-  notifies   = ["notifyBeforeSearch"]
   help       = "output unsat cores after every UNSAT/VALID response"
 
 [[option]]
@@ -259,7 +250,6 @@ header = "options/smt_options.h"
   long       = "dump-unsat-cores-full"
   type       = "bool"
   default    = "false"
-  notifies   = ["notifyBeforeSearch"]
   read_only  = true
   help       = "dump the full unsat core, including unlabeled assertions"
 
@@ -270,7 +260,6 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   predicates = ["proofEnabledBuild"]
-  notifies   = ["notifyBeforeSearch"]
   read_only  = true
   help       = "turn on unsat assumptions generation"
 
@@ -288,7 +277,6 @@ header = "options/smt_options.h"
   long       = "produce-assignments"
   type       = "bool"
   default    = "false"
-  notifies   = ["notifyBeforeSearch"]
   help       = "support the get-assignment command"
 
 [[option]]
@@ -297,7 +285,6 @@ header = "options/smt_options.h"
   category   = "undocumented"
   type       = "bool"
   predicates = ["setProduceAssertions"]
-  notifies   = ["notifyBeforeSearch"]
   help       = "deprecated name for produce-assertions"
 
 [[option]]
@@ -306,7 +293,6 @@ header = "options/smt_options.h"
   long       = "produce-assertions"
   type       = "bool"
   predicates = ["setProduceAssertions"]
-  notifies   = ["notifyBeforeSearch"]
   help       = "keep an assertions list (enables get-assertions command)"
 
 [[option]]
@@ -429,7 +415,6 @@ header = "options/smt_options.h"
   smt_name   = "regular-output-channel"
   category   = "regular"
   type       = "std::string"
-  notifies   = ["notifySetRegularOutputChannel"]
   read_only  = true
   help       = "set the regular output channel of the solver"
 
@@ -438,7 +423,6 @@ header = "options/smt_options.h"
   smt_name   = "diagnostic-output-channel"
   category   = "regular"
   type       = "std::string"
-  notifies   = ["notifySetDiagnosticOutputChannel"]
   read_only  = true
   help       = "set the diagnostic output channel of the solver"
 
