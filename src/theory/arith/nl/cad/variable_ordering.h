@@ -1,3 +1,25 @@
+/*********************                                                        */
+/*! \file variable_ordering.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Gereon Kremer
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Implements variable orderings tailored to CAD.
+ **
+ ** Implements variable orderings tailored to CAD.
+ **/
+
 #ifndef CVC4__THEORY__NLARITH__CAD__VARIABLE_ORDERING_H
 #define CVC4__THEORY__NLARITH__CAD__VARIABLE_ORDERING_H
 
@@ -37,7 +59,8 @@ class VariableOrdering
       VariableOrderingStrategy vos) const;
 };
 
-/** Retrieves variable information for all variables with the given polynomials.
+/**
+ * Retrieves variable information for all variables with the given polynomials.
  * If with_totals is set, the last element of the vector contains totals as
  * computed by get_variable_information if no variable is specified.
  */
