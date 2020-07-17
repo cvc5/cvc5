@@ -416,11 +416,17 @@ class SygusEnumerator : public EnumValGenerator
     /** increment internal, helper for increment() */
     bool incrementInternal();
     /**
-     * Convert children so that all sygus free variables are unique. Note that
-     * the first child is a constructor operator and should be skipped.
+     * The vector children is a set of terms given to
+     *    NodeManager::mkNode(APPLY_CONSTRUCTOR, children)
+     * This converts children so that all sygus free variables are unique. Note
+     * that the first child is a constructor operator and should be skipped.
      */
     void childrenToShape(std::vector<Node>& children);
-    /** Convert n into shape based on the variable counters. */
+    /**
+     * Convert n into shape based on the variable counters. For example if
+     * vcounter is { Int -> 7 }, then (+ x1 x2) is converted to (+ x7 x8) and
+     * vouncter is updated to { Int -> 9 }.
+     */
     Node convertShape(Node n, std::map<TypeNode, int>& vcounter);
   };
   /** an interpreted value enumerator

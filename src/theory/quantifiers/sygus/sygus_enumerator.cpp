@@ -712,9 +712,9 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   unsigned ncc = tc.getLastConstructorClassIndexForWeight(d_currSize);
   Trace("sygus-enum-debug2") << "Last constructor class " << d_currSize << ": "
                              << ncc << std::endl;
+  // If we are enumerating shapes, the first enumerated term is a free variable.
   if (d_enumShapes && !d_enumShapesInit)
   {
-    // return the first free variable
     Node fv = d_tds->getFreeVar(d_tn, 0);
     d_enumShapesInit = true;
     d_currTermSet = true;
@@ -1034,10 +1034,21 @@ void SygusEnumerator::TermEnumMaster::childrenToShape(
     return;
   }
   std::map<TypeNode, int> vcounter;
-  // buffered child, so that we only compute vcounter if there are more than
+  // Buffered child, so that we only compute vcounter if there are more than
   // one children with free variables, since otherwise there is no change.
+  // For example, if we are given { C, (+ x1 x2), 1 }, we buffer child (+ x1 x2)
+  // noting that it has free variables. We proceed with processing the remaining
+  // children, and note that no other child contains free variables, and hence
+  // no change is necessary (since by construction, all children have the
+  // property of having unique variable subterms). On the other hand if the
+  // last child above was x1, then this would trigger us to convert (+ x1 x2)
+  // while computing vcounter, and subsequently update x1 to x3 to obtain
+  // { C, (+ x1 x2), x3 }.
+  // Have we set the buffer child index
   bool bufferChildSet = false;
+  // Have we processed the buffer child index
   bool bufferChildProcessed = false;
+  // The buffer child index
   size_t bufferChild = 0;
   for (size_t i = 1, nchildren = children.size(); i < nchildren; i++)
   {
