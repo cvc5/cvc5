@@ -365,15 +365,15 @@ bool ResourceManager::outOfTime() const
   return d_perCallTimer.expired();
 }
 
-void ResourceManager::registerResourceOutListener(Listener* listener)
-{
-  return d_listeners.push_back(listener);
-}
-
 void ResourceManager::enable(bool on)
 {
   Trace("limit") << "ResourceManager::enable(" << on << ")\n";
   d_on = on;
+}
+
+void ResourceManager::registerResourceOutListener(Listener* listener)
+{
+  return d_listeners.push_back(listener);
 }
 
 } /* namespace CVC4 */
