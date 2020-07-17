@@ -25,6 +25,7 @@ using namespace std;
 
 namespace CVC4 {
 
+<<<<<<< HEAD
 void Timer::set(uint64_t millis) {
   d_ms = millis;
   Trace("limit") << "Timer::set(" << d_ms << ")" << std::endl;
@@ -66,14 +67,54 @@ bool Timer::expired() const {
   }
   Debug("limit") << "Timer::expired(): within limit" << std::endl;
   return false;
+=======
+bool WallClockTimer::on() const
+{
+  // default-constructed time points are at the respective epoch
+  return d_limit.time_since_epoch().count() != 0;
+}
+void WallClockTimer::set(uint64_t millis)
+{
+  if (millis == 0)
+  {
+    // reset / deactivate
+    d_start = time_point();
+    d_limit = time_point();
+  }
+  else
+  {
+    // set to now() + millis
+    d_start = clock::now();
+    d_limit = d_start + std::chrono::milliseconds(millis);
+  }
+}
+uint64_t WallClockTimer::elapsed() const
+{
+  if (!on()) return 0;
+  // now() - d_start casted to milliseconds
+  return std::chrono::duration_cast<std::chrono::milliseconds>(clock::now()
+                                                               - d_start)
+      .count();
+}
+bool WallClockTimer::expired() const
+{
+  // whether d_limit is in the past
+  if (!on()) return false;
+  return d_limit <= clock::now();
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
 }
 
 /*---------------------------------------------------------------------------*/
 
 struct ResourceManager::Statistics
 {
+<<<<<<< HEAD
   IntStat d_numArithPivotStep;
   IntStat d_numArithNlLemmaStep;
+=======
+  ReferenceStat<std::uint64_t> d_resourceUnitsUsed;
+  IntStat d_spendResourceCalls;
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   IntStat d_numBitblastStep;
   IntStat d_numBvEagerAssertStep;
   IntStat d_numBvPropagationStep;
@@ -99,8 +140,13 @@ struct ResourceManager::Statistics
 };
 
 ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
+<<<<<<< HEAD
     : d_numArithPivotStep("resource::ArithPivotStep", 0),
       d_numArithNlLemmaStep("resource::ArithNlLemmaStep", 0),
+=======
+    : d_resourceUnitsUsed("resource::resourceUnitsUsed"),
+      d_spendResourceCalls("resource::spendResourceCalls", 0),
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
       d_numBitblastStep("resource::BitblastStep", 0),
       d_numBvEagerAssertStep("resource::BvEagerAssertStep", 0),
       d_numBvPropagationStep("resource::BvPropagationStep", 0),
@@ -120,8 +166,13 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
       d_numTheoryCheckStep("resource::TheoryCheckStep", 0),
       d_statisticsRegistry(stats)
 {
+<<<<<<< HEAD
   d_statisticsRegistry.registerStat(&d_numArithPivotStep);
   d_statisticsRegistry.registerStat(&d_numArithNlLemmaStep);
+=======
+  d_statisticsRegistry.registerStat(&d_resourceUnitsUsed);
+  d_statisticsRegistry.registerStat(&d_spendResourceCalls);
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   d_statisticsRegistry.registerStat(&d_numBitblastStep);
   d_statisticsRegistry.registerStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.registerStat(&d_numBvPropagationStep);
@@ -143,8 +194,13 @@ ResourceManager::Statistics::Statistics(StatisticsRegistry& stats)
 
 ResourceManager::Statistics::~Statistics()
 {
+<<<<<<< HEAD
   d_statisticsRegistry.unregisterStat(&d_numArithPivotStep);
   d_statisticsRegistry.unregisterStat(&d_numArithNlLemmaStep);
+=======
+  d_statisticsRegistry.unregisterStat(&d_resourceUnitsUsed);
+  d_statisticsRegistry.unregisterStat(&d_spendResourceCalls);
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   d_statisticsRegistry.unregisterStat(&d_numBitblastStep);
   d_statisticsRegistry.unregisterStat(&d_numBvEagerAssertStep);
   d_statisticsRegistry.unregisterStat(&d_numBvPropagationStep);
@@ -174,43 +230,64 @@ ResourceManager::ResourceManager(StatisticsRegistry& stats, Options& options)
       d_cumulativeTimeUsed(0),
       d_cumulativeResourceUsed(0),
       d_thisCallResourceUsed(0),
-      d_thisCallTimeBudget(0),
       d_thisCallResourceBudget(0),
-      d_isHardLimit(),
       d_on(false),
+<<<<<<< HEAD
       d_spendResourceCalls(0),
       d_hardListeners(),
       d_softListeners(),
+=======
+      d_listeners(),
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
       d_statistics(new ResourceManager::Statistics(stats)),
       d_options(options)
 
-{}
+{
+  d_statistics->d_resourceUnitsUsed.setData(d_cumulativeResourceUsed);
+}
 
 ResourceManager::~ResourceManager() {}
 
-void ResourceManager::setResourceLimit(uint64_t units, bool cumulative) {
+void ResourceManager::setResourceLimit(uint64_t units, bool cumulative)
+{
   d_on = true;
-  if(cumulative) {
-    Trace("limit") << "ResourceManager: setting cumulative resource limit to " << units << endl;
-    d_resourceBudgetCumulative = (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
+  if (cumulative)
+  {
+    Trace("limit") << "ResourceManager: setting cumulative resource limit to "
+                   << units << endl;
+    d_resourceBudgetCumulative =
+        (units == 0) ? 0 : (d_cumulativeResourceUsed + units);
     d_thisCallResourceBudget = d_resourceBudgetCumulative;
-  } else {
-    Trace("limit") << "ResourceManager: setting per-call resource limit to " << units << endl;
+  }
+  else
+  {
+    Trace("limit") << "ResourceManager: setting per-call resource limit to "
+                   << units << endl;
     d_resourceBudgetPerCall = units;
   }
 }
 
+<<<<<<< HEAD
 void ResourceManager::setTimeLimit(uint64_t millis) {
   d_on = true;
   Trace("limit") << "ResourceManager: setting per-call time limit to " << millis << " ms" << endl;
+=======
+void ResourceManager::setTimeLimit(uint64_t millis)
+{
+  d_on = true;
+  Trace("limit") << "ResourceManager: setting per-call time limit to " << millis
+                 << " ms" << endl;
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   d_timeBudgetPerCall = millis;
   // perCall timer will be set in beginCall
 }
 
-const uint64_t& ResourceManager::getResourceUsage() const {
+uint64_t ResourceManager::getResourceUsage() const
+{
   return d_cumulativeResourceUsed;
 }
 
+<<<<<<< HEAD
 uint64_t ResourceManager::getTimeUsage() const {
   return d_cumulativeTimeUsed;
 }
@@ -218,23 +295,33 @@ uint64_t ResourceManager::getTimeUsage() const {
 uint64_t ResourceManager::getResourceRemaining() const {
   if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed)
     return 0;
+=======
+uint64_t ResourceManager::getTimeUsage() const { return d_cumulativeTimeUsed; }
+
+uint64_t ResourceManager::getResourceRemaining() const
+{
+  if (d_resourceBudgetCumulative <= d_cumulativeResourceUsed) return 0;
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   return d_resourceBudgetCumulative - d_cumulativeResourceUsed;
 }
 
 void ResourceManager::spendResource(unsigned amount)
 {
-  ++d_spendResourceCalls;
+  ++d_statistics->d_spendResourceCalls;
   d_cumulativeResourceUsed += amount;
   if (!d_on) return;
 
   Debug("limit") << "ResourceManager::spendResource()" << std::endl;
   d_thisCallResourceUsed += amount;
-  if(out()) {
+  if (out())
+  {
     Trace("limit") << "ResourceManager::spendResource: interrupt!" << std::endl;
-    Trace("limit") << "          on call " << d_spendResourceCalls << std::endl;
-    if (outOfTime()) {
+    Trace("limit") << "          on call " << d_statistics->d_spendResourceCalls.getData() << std::endl;
+    if (outOfTime())
+    {
       Trace("limit") << "ResourceManager::spendResource: elapsed time"
                      << d_perCallTimer.elapsed() << std::endl;
+<<<<<<< HEAD
     }
 
     if (d_isHardLimit) {
@@ -242,8 +329,11 @@ void ResourceManager::spendResource(unsigned amount)
       throw UnsafeInterruptException();
     } else {
       d_softListeners.notify();
+=======
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
     }
 
+    d_listeners.notify();
   }
 }
 
@@ -333,12 +423,18 @@ void ResourceManager::spendResource(Resource r)
   spendResource(amount);
 }
 
+<<<<<<< HEAD
 void ResourceManager::beginCall() {
 
+=======
+void ResourceManager::beginCall()
+{
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   d_perCallTimer.set(d_timeBudgetPerCall);
   d_thisCallResourceUsed = 0;
   if (!d_on) return;
 
+<<<<<<< HEAD
   if (cumulativeLimitOn()) {
     if (d_resourceBudgetCumulative) {
       d_thisCallResourceBudget = d_resourceBudgetCumulative <= d_cumulativeResourceUsed ? 0 :
@@ -349,20 +445,25 @@ void ResourceManager::beginCall() {
     if (d_thisCallTimeBudget == 0 ||
         d_thisCallResourceUsed == 0)
       return;
+=======
+  if (d_resourceBudgetCumulative > 0)
+  {
+    // Compute remaining cumulative resource budget
+    d_thisCallResourceBudget =
+        d_resourceBudgetCumulative - d_cumulativeResourceUsed;
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
   }
-
-  if (perCallLimitOn()) {
-    // take min of what's left and per-call budget
-    if (d_resourceBudgetPerCall) {
-      d_thisCallResourceBudget = d_thisCallResourceBudget < d_resourceBudgetPerCall && d_thisCallResourceBudget != 0 ? d_thisCallResourceBudget : d_resourceBudgetPerCall;
-    }
-
-    if (d_timeBudgetPerCall) {
-      d_thisCallTimeBudget = d_thisCallTimeBudget < d_timeBudgetPerCall && d_thisCallTimeBudget != 0 ? d_thisCallTimeBudget : d_timeBudgetPerCall;
+  if (d_resourceBudgetPerCall > 0)
+  {
+    // Check if per-call resource budget is even smaller
+    if (d_resourceBudgetPerCall < d_thisCallResourceBudget)
+    {
+      d_thisCallResourceBudget = d_resourceBudgetPerCall;
     }
   }
 }
 
+<<<<<<< HEAD
 void ResourceManager::endCall() {
   d_cumulativeTimeUsed += d_perCallTimer.elapsed();
   d_perCallTimer.set(0);
@@ -390,28 +491,62 @@ bool ResourceManager::outOfTime() const {
     return false;
 
   return d_perCallTimer.expired();
+=======
+void ResourceManager::endCall()
+{
+  d_cumulativeTimeUsed += d_perCallTimer.elapsed();
+  d_perCallTimer.set(0);
+  d_thisCallResourceUsed = 0;
 }
 
-void ResourceManager::setHardLimit(bool value) {
-  Trace("limit") << "ResourceManager::setHardLimit("<< value <<")\n";
-  d_isHardLimit = value;
+bool ResourceManager::cumulativeLimitOn() const
+{
+  return d_resourceBudgetCumulative > 0;
 }
 
-void ResourceManager::enable(bool on) {
-  Trace("limit") << "ResourceManager::enable("<< on <<")\n";
+bool ResourceManager::perCallLimitOn() const
+{
+  return (d_timeBudgetPerCall > 0) || (d_resourceBudgetPerCall > 0);
+>>>>>>> 2ee5a2bcf5fd7aaf72d44553ebb85edd76fd06c8
+}
+
+bool ResourceManager::outOfResources() const
+{
+  if (d_resourceBudgetPerCall > 0)
+  {
+    // Check if per-call resources are exhausted
+    if (d_thisCallResourceUsed >= d_resourceBudgetPerCall)
+    {
+      return true;
+    }
+  }
+  if (d_resourceBudgetCumulative > 0)
+  {
+    // Check if cumulative resources are exhausted
+    if (d_cumulativeResourceUsed >= d_resourceBudgetCumulative)
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool ResourceManager::outOfTime() const
+{
+  if (d_timeBudgetPerCall == 0) return false;
+  return d_perCallTimer.expired();
+}
+
+void ResourceManager::enable(bool on)
+{
+  Trace("limit") << "ResourceManager::enable(" << on << ")\n";
   d_on = on;
 }
 
-ListenerCollection::Registration* ResourceManager::registerHardListener(
+ListenerCollection::Registration* ResourceManager::registerListener(
     Listener* listener)
 {
-  return d_hardListeners.registerListener(listener);
-}
-
-ListenerCollection::Registration* ResourceManager::registerSoftListener(
-    Listener* listener)
-{
-  return d_softListeners.registerListener(listener);
+  return d_listeners.registerListener(listener);
 }
 
 } /* namespace CVC4 */

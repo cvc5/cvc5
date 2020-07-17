@@ -50,7 +50,7 @@ class ArrayStoreAllWhite : public CxxTest::TestSuite
     ArrayStoreAll(d_nm->mkArrayType(d_nm->integerType(), d_nm->realType()),
                   d_nm->mkConst(Rational(9, 2)));
     ArrayStoreAll(d_nm->mkArrayType(d_nm->mkSort("U"), usort),
-                  d_nm->mkConst(UninterpretedConstant(usort.toType(), 0)));
+                  d_nm->mkConst(UninterpretedConstant(usort, 0)));
     ArrayStoreAll(d_nm->mkArrayType(d_nm->mkBitVectorType(8), d_nm->realType()),
                   d_nm->mkConst(Rational(0)));
     ArrayStoreAll(
@@ -62,7 +62,7 @@ class ArrayStoreAllWhite : public CxxTest::TestSuite
   {
     TS_ASSERT_THROWS(ArrayStoreAll(d_nm->integerType(),
                                    d_nm->mkConst(UninterpretedConstant(
-                                       d_nm->mkSort("U").toType(), 0))),
+                                       d_nm->mkSort("U"), 0))),
                      IllegalArgumentException&);
     TS_ASSERT_THROWS(
         ArrayStoreAll(d_nm->integerType(), d_nm->mkConst(Rational(9, 2))),

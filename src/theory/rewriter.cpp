@@ -331,7 +331,8 @@ Node Rewriter::rewriteTo(theory::TheoryId theoryId,
 #ifdef CVC4_ASSERTIONS
           RewriteResponse r2 =
               d_theoryRewriters[newTheoryId]->postRewrite(response.d_node);
-          Assert(r2.d_node == response.d_node);
+          Assert(r2.d_node == response.d_node)
+              << r2.d_node << " != " << response.d_node;
 #endif
           rewriteStackTop.d_node = response.d_node;
           break;
