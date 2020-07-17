@@ -748,7 +748,6 @@ enum class PfRule : uint32_t
   //                (not (= (str.code t) (str.code s)))
   //                (not (= t s)))
   STRING_CODE_INJ,
-=======
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
