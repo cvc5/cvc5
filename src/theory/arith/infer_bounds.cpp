@@ -61,8 +61,7 @@ InferBoundAlgorithm InferBoundAlgorithm::mkSimplex(const Maybe<int>& rounds){
 }
 
 ArithEntailmentCheckParameters::ArithEntailmentCheckParameters()
-  : EntailmentCheckParameters(theory::THEORY_ARITH)
-  , d_algorithms()
+    : d_algorithms()
 {}
 
 ArithEntailmentCheckParameters::~ArithEntailmentCheckParameters()
@@ -85,50 +84,6 @@ ArithEntailmentCheckParameters::const_iterator ArithEntailmentCheckParameters::b
 ArithEntailmentCheckParameters::const_iterator ArithEntailmentCheckParameters::end() const{
   return d_algorithms.end();
 }
-
-
-// SimplexInferBoundsParameters::SimplexInferBoundsParameters()
-//   : d_parameter(1)
-//   , d_upperBound(true)
-//   , d_threshold()
-// {}
-
-// SimplexInferBoundsParameters::~SimplexInferBoundsParameters(){}
-
-
-
-// int SimplexInferBoundsParameters::getSimplexRoundParameter() const {
-//   return d_parameter;
-// }
-
-// bool SimplexInferBoundsParameters::findLowerBound() const {
-//   return ! findUpperBound();
-// }
-
-// bool SimplexInferBoundsParameters::findUpperBound() const {
-//   return d_upperBound;
-// }
-
-// void SimplexInferBoundsParameters::setThreshold(const DeltaRational& th){
-//   d_threshold = th;
-//   d_useThreshold = true;
-// }
-
-// bool SimplexInferBoundsParameters::useThreshold() const{
-//   return d_useThreshold;
-// }
-
-// const DeltaRational& SimplexInferBoundsParameters::getThreshold() const{
-//   return d_threshold;
-// }
-
-// SimplexInferBoundsParameters::SimplexInferBoundsParameters(int p, bool ub)
-//   : d_parameter(p)
-//   , d_upperBound(ub)
-//   , d_useThreshold(false)
-//   , d_threshold()
-// {}
-
 
 InferBoundsResult::InferBoundsResult()
   : d_foundBound(false)
@@ -219,11 +174,6 @@ void InferBoundsResult::setBound(const DeltaRational& dr, Node exp){
   d_explanation = exp;
 }
 
-//bool InferBoundsResult::foundBound() const { return d_foundBound; }
-//bool InferBoundsResult::boundIsOptimal() const { return d_boundIsProvenOpt; }
-//bool InferBoundsResult::inconsistentState() const { return d_inconsistentState; }
-
-
 void InferBoundsResult::setBudgetExhausted() { d_budgetExhausted = true; }
 void InferBoundsResult::setReachedThreshold() { d_reachedThreshold = true; }
 void InferBoundsResult::setIsOptimal() { d_boundIsProvenOpt = true; }
@@ -277,10 +227,8 @@ std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr){
   return os;
 }
 
-
 ArithEntailmentCheckSideEffects::ArithEntailmentCheckSideEffects()
-  : EntailmentCheckSideEffects(theory::THEORY_ARITH)
-  , d_simplexSideEffects (NULL)
+    : d_simplexSideEffects(NULL)
 {}
 
 ArithEntailmentCheckSideEffects::~ArithEntailmentCheckSideEffects(){
