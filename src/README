@@ -102,7 +102,6 @@ PR finished:
 PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
-(24) ProofEqEngine (req 10, 11, 12, 18, 20, 23)
 (45) regexp operation refactor (req 3, 7, 8) *
 (50) term formula removal proof producing (req 36, 38, 51, 64) *
 (65) updates to strings core solver *
@@ -110,6 +109,7 @@ PRs ready:
 
 PRs future:
 
+(24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33, 64)
