@@ -42,11 +42,12 @@ class SygusPbe;
  * (TermDb::getSygusTermSize).
  *
  * It also can be configured to enumerates sygus terms with free variables,
-   (as opposed to variables bound in the formal arguments list of the function-to-synthesize)
- * where each free variable appears in exactly one subterm. For grammar:
+ * (as opposed to variables bound in the formal arguments list of the
+ * function-to-synthesize), where each free variable appears in exactly one
+ * subterm. For grammar:
  *   S -> 0 | 1 | x | S+S
  * this enumerator will generate the stream:
- *   z1, 0, 1, x, z1+z2, z1+1, 1+1, z1+x, x+x, ...
+ *   z1, C_0, C_1, C_x, C_+(z1, z2), C_+(z1, C_1), C_+(C_1, C_1) ...
  * and so on, where z1 and z2 are variables of sygus datatype type S. We call
  * these "shapes". This feature can be enabled by setting enumShapes to true
  * in the constructor below.
