@@ -853,8 +853,6 @@ enum class PfRule : uint32_t
   // of length one.
   STRING_SEQ_UNIT_INJ,
 
-  //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
-
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
@@ -918,6 +916,8 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   INT_TRUST,
+  
+  //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
   //================================================= Unknown rule
   UNKNOWN,
