@@ -59,6 +59,10 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
   {
     notifySetOption(options::regularChannelName.getName());
   }
+  if (opts->wasSetByUser(options::dumpToFileName))
+  {
+    notifySetOption(options::dumpToFileName.getName());
+  }
   // set this as a listener to be notified of options changes from now on
   opts->setListener(this);
 }
@@ -125,6 +129,10 @@ void OptionsManager::notifySetOption(const std::string& key)
   else if (key == options::diagnosticChannelName.getName())
   {
     d_managedDiagnosticChannel.set(options::diagnosticChannelName()); 
+  }
+  else if (key == options::dumpToFileName.getName())
+  {
+    d_managedDumpChannel.set(options::dumpToFileName()); 
   }
   // otherwise, no action is necessary
 }
