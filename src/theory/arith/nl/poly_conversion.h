@@ -96,8 +96,8 @@ Node ran_to_node(const poly::AlgebraicNumber& an, const Node& ran_variable);
 Node value_to_node(const poly::Value& v, const Node& ran_variable);
 
 /**
- * Constructs a lemma that excludes a given interval from the feasible values of a variable.
- * The resulting lemma has the form
+ * Constructs a lemma that excludes a given interval from the feasible values of
+ * a variable. The resulting lemma has the form
  * (OR
  *    (<= var interval.lower)
  *    (<= interval.upper var)

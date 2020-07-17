@@ -651,7 +651,8 @@ void NonlinearExtension::check(Theory::Effort e)
         tm->recordApproximation(a.first, a.second.first, a.second.second);
       }
     }
-    for (const auto& vw: d_witnesses) {
+    for (const auto& vw : d_witnesses)
+    {
       tm->recordApproximation(vw.first, vw.second);
     }
   }
