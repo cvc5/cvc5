@@ -959,7 +959,7 @@ public:
   /**
    * Convert a type node to a type.
    */
-  inline Type toType(TypeNode tn);
+  inline Type toType(const TypeNode& tn);
 
   /**
    * Convert a type to a type node.
@@ -1184,7 +1184,8 @@ inline NodeManager* NodeManager::fromExprManager(ExprManager* exprManager) {
   return exprManager->getNodeManager();
 }
 
-inline Type NodeManager::toType(TypeNode tn) {
+inline Type NodeManager::toType(const TypeNode& tn)
+{
   return Type(this, new TypeNode(tn));
 }
 

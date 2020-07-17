@@ -18,6 +18,7 @@
 #define CVC4__THEORY__TRUST_NODE_H
 
 #include "expr/node.h"
+#include "expr/proof_node.h"
 
 namespace CVC4 {
 
@@ -127,6 +128,11 @@ class TrustNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
+  /**
+   * Gets the proof node for this trust node, which is obtained by
+   * calling the generator's getProofFor method on the proven node.
+   */
+  std::shared_ptr<ProofNode> toProofNode();
 
   /** Get the proven formula corresponding to a conflict call */
   static Node getConflictProven(Node conf);

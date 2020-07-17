@@ -69,14 +69,6 @@ unique_ptr<Printer> Printer::makePrinter(OutputLanguage lang)
   }
 }
 
-void Printer::toStreamSygus(std::ostream& out, TNode n) const
-{
-  // no sygus-specific printing associated with this printer,
-  // just print the original term, without letification (the fifth argument is
-  // set to 0).
-  toStream(out, n, -1, false, 0);
-}
-
 void Printer::toStream(std::ostream& out, const Model& m) const
 {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {

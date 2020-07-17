@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------#
 # Add unit tests
 
-cvc4_add_unit_test_black(array_store_all_black util)
+cvc4_add_unit_test_white(array_store_all_white util)
 cvc4_add_unit_test_white(assert_white util)
 cvc4_add_unit_test_black(binary_heap_black util)
 cvc4_add_unit_test_black(bitvector_black util)
@@ -17,4 +17,7 @@ cvc4_add_unit_test_black(listener_black util)
 cvc4_add_unit_test_black(output_black util)
 cvc4_add_unit_test_black(rational_black util)
 cvc4_add_unit_test_white(rational_white util)
+if(CVC4_USE_POLY_IMP)
+cvc4_add_unit_test_black(real_algebraic_number_black util)
+endif()
 cvc4_add_unit_test_black(stats_black util)

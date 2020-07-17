@@ -44,16 +44,6 @@ TheoryArith::TheoryArith(context::Context* c,
       d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  // if logic is non-linear
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    setupExtTheory();
-    getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
-    getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
-    getExtTheory()->addFunctionKind(kind::SINE);
-    getExtTheory()->addFunctionKind(kind::PI);
-    getExtTheory()->addFunctionKind(kind::IAND);
-  }
 }
 
 TheoryArith::~TheoryArith(){
@@ -166,40 +156,12 @@ Node TheoryArith::getModelValue(TNode var) {
   return d_internal->getModelValue( var );
 }
 
-
-std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit,
-                                                    const EntailmentCheckParameters* params,
-                                                    EntailmentCheckSideEffects* out)
+std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
-  const ArithEntailmentCheckParameters* aparams = NULL;
-  if(params == NULL){
-    ArithEntailmentCheckParameters* def = new ArithEntailmentCheckParameters();
-    def->addLookupRowSumAlgorithms();
-    aparams = def;
-  }else{
-    AlwaysAssert(params->getTheoryId() == getId());
-    aparams = dynamic_cast<const ArithEntailmentCheckParameters*>(params);
-  }
-  Assert(aparams != NULL);
-
-  ArithEntailmentCheckSideEffects* ase = NULL;
-  if(out == NULL){
-    ase = new ArithEntailmentCheckSideEffects();
-  }else{
-    AlwaysAssert(out->getTheoryId() == getId());
-    ase = dynamic_cast<ArithEntailmentCheckSideEffects*>(out);
-  }
-  Assert(ase != NULL);
-
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, *aparams, *ase);
-
-  if(params == NULL){
-    delete aparams;
-  }
-  if(out == NULL){
-    delete ase;
-  }
-
+  ArithEntailmentCheckParameters def;
+  def.addLookupRowSumAlgorithms();
+  ArithEntailmentCheckSideEffects ase;
+  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
 }
 

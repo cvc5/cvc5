@@ -139,6 +139,11 @@ const char* toString(Rewrite r)
     case Rewrite::SS_START_NEG: return "SS_START_NEG";
     case Rewrite::SS_STRIP_END_PT: return "SS_STRIP_END_PT";
     case Rewrite::SS_STRIP_START_PT: return "SS_STRIP_START_PT";
+    case Rewrite::UPD_EVAL: return "UPD_EVAL";
+    case Rewrite::UPD_EMPTYSTR: return "UPD_EMPTYSTR";
+    case Rewrite::UPD_CONST_INDEX_MAX_OOB: return "UPD_CONST_INDEX_MAX_OOB";
+    case Rewrite::UPD_CONST_INDEX_NEG: return "UPD_CONST_INDEX_NEG";
+    case Rewrite::UPD_CONST_INDEX_OOB: return "UPD_CONST_INDEX_OOB";
     case Rewrite::STOI_CONCAT_NONNUM: return "STOI_CONCAT_NONNUM";
     case Rewrite::STOI_EVAL: return "STOI_EVAL";
     case Rewrite::STR_CONV_CONST: return "STR_CONV_CONST";

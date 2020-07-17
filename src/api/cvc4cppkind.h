@@ -1972,6 +1972,21 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   STRING_SUBSTR,
   /**
+   * String update.
+   * Updates a string s by replacing its context starting at an index with t.
+   * If the start index is negative, the start index is greater than the
+   * length of the string, the result is s. Otherwise, the length of the
+   * original string is preserved.
+   * Parameters: 3
+   *   -[1]: Term of sort String
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort String (replacement string t)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  STRING_UPDATE,
+  /**
    * String character at.
    * Returns the character at index i from a string s. If the index is negative
    * or the index is greater than the length of the string, the result is the
@@ -2365,6 +2380,21 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, const std::vector<Term>& children)
    */
   SEQ_EXTRACT,
+  /**
+   * Sequence update.
+   * Updates a sequence s by replacing its context starting at an index with t.
+   * If the start index is negative, the start index is greater than the
+   * length of the sequence, the result is s. Otherwise, the length of the
+   * original sequence is preserved.
+   * Parameters: 3
+   *   -[1]: Term of sort Sequence
+   *   -[2]: Term of sort Integer (index i)
+   *   -[3]: Term of sort Sequence (replacement sequence t)
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, const std::vector<Term>& children)
+   */
+  SEQ_UPDATE,
   /**
    * Sequence element at.
    * Returns the element at index i from a sequence s. If the index is negative
