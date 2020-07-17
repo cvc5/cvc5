@@ -1385,7 +1385,7 @@ void EqualityEngine::getExplanation(
                   // cases we also build congruence steps.
                   Kind k = d_nodes[currentNode].getKind();
                   if (!d_isInternal[currentNode]
-                      || (isNAryKind(k) && k != kind::APPLY_UF))
+                      || (ExprManager::isNAryKind(k) && k != kind::APPLY_UF))
                   {
                     if (d_congruenceKinds[k])
                     {
@@ -1650,7 +1650,8 @@ void EqualityEngine::getExplanation(
                 Kind k1 = d_nodes[t1Id].getKind();
                 Kind k2 = d_nodes[t2Id].getKind();
                 if ((!d_isInternal[t1Id] && !d_isInternal[t2Id])
-                    || (k1 == k2 && isNAryKind(k1) && k1 != kind::APPLY_UF))
+                    || (k1 == k2 && ExprManager::isNAryKind(k1)
+                        && k1 != kind::APPLY_UF))
                 {
                   Node eq[2];
                   for (unsigned i = 0; i < 2; ++i)

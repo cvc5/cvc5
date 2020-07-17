@@ -788,14 +788,6 @@ public:
   }
 
   /**
-   * Returns true if this kind is n-ary.
-   */
-  bool isNAryKind(Kind fun) const
-  {
-    return ExprManager::maxArity(fun) == expr::NodeValue::MAX_CHILDREN;
-  }
-
-  /**
    * Check whether the node is already in the database.
    */
   bool hasTerm(TNode t) const;
