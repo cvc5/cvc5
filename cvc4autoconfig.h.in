@@ -43,8 +43,11 @@
 /* Define if `ffs' is supported by the platform. */
 #cmakedefine HAVE_FFS
 
-/* Define to 1 to use libreadline. */
-#cmakedefine01 HAVE_LIBREADLINE
+/* Define to 1 to use libedit. */
+#cmakedefine01 HAVE_LIBEDITLINE
+
+/* Define to 1 if `rl_completion_entry_function' returns (char *). */
+#cmakedefine01 EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
 
 /* Define if `sigaltstack' is supported by the platform. */
 #cmakedefine HAVE_SIGALTSTACK
@@ -57,9 +60,6 @@
 
 /* Define to 1 if the <unistd.h> header file is available. */
 #cmakedefine01 HAVE_UNISTD_H
-
-/* Define to 1 if `rl_completion_entry_function' returns (char *). */
-#cmakedefine01 READLINE_COMPENTRY_FUNC_RETURNS_CHARP
 
 /* Define to 1 if `strerror_r' returns (char *). */
 #cmakedefine01 STRERROR_R_CHAR_P

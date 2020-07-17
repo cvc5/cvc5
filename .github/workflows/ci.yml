@@ -16,7 +16,7 @@ jobs:
 
         include:
           - name: production
-            config: production --all-bindings --lfsc
+            config: production --all-bindings --lfsc --editline
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -28,7 +28,7 @@ jobs:
             env: CC=clang CXX=clang++
 
           - name: debug
-            config: debug --symfpu --lfsc --no-debug-symbols
+            config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
 
           - name: debug-cln
@@ -51,11 +51,14 @@ jobs:
           cxxtest \
           libcln-dev \
           libgmp-dev \
+          libedit-dev \
           swig3.0
         python3 -m pip install toml
         python3 -m pip install setuptools
+        python3 -m pip install pexpect
         echo "::add-path::/usr/lib/ccache"
 
+    # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
@@ -67,6 +70,7 @@ jobs:
           swig
         python3 -m pip install toml
         python3 -m pip install setuptools
+        python3 -m pip install pexpect
         echo "::add-path::/usr/local/opt/ccache/libexec"
 
     # Note: We install Cython with sudo since cmake can't find Cython otherwise.
