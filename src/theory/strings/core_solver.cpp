@@ -1642,7 +1642,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
             lentTestSuccess = e;
             lenConstraint = entLit;
             // its not explained by the equality engine of this class
-            iinfo.d_antn.push_back(lenConstraint);
+            iinfo.d_noExplain.push_back(lenConstraint);
             break;
           }
         }
