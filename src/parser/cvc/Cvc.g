@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -244,6 +244,7 @@ tokens {
   REGEXP_EMPTY_TOK = 'RE_EMPTY';
   REGEXP_SIGMA_TOK = 'RE_SIGMA';
   REGEXP_COMPLEMENT_TOK = 'RE_COMPLEMENT';
+  SEQ_UNIT_TOK = 'SEQ_UNIT';
 
   SETS_CARD_TOK = 'CARD';
 
@@ -935,15 +936,8 @@ mainCommand[std::unique_ptr<CVC4::Command>* cmd]
           PARSER_STATE->parseError("Type mismatch in definition");
         }
       }
-      std::vector<std::vector<Expr>> eformals;
-      for (unsigned i=0, fsize = formals.size(); i<fsize; i++)
-      {
-        eformals.push_back(api::termVectorToExprs(formals[i]));
-      }
       cmd->reset(
-          new DefineFunctionRecCommand(api::termVectorToExprs(funcs),
-                                       eformals,
-                                       api::termVectorToExprs(formulas), true));
+          new DefineFunctionRecCommand(SOLVER, funcs, formals, formulas, true));
     }
   | toplevelDeclaration[cmd]
   ;
@@ -2087,6 +2081,8 @@ stringTerm[CVC4::api::Term& f]
     }
   | REGEXP_COMPLEMENT_TOK LPAREN formula[f] RPAREN
     { f = MK_TERM(CVC4::api::REGEXP_COMPLEMENT, f); }
+  | SEQ_UNIT_TOK LPAREN formula[f] RPAREN
+    { f = MK_TERM(CVC4::api::SEQ_UNIT, f); }
   | REGEXP_EMPTY_TOK
     { f = MK_TERM(CVC4::api::REGEXP_EMPTY, std::vector<api::Term>()); }
   | REGEXP_SIGMA_TOK

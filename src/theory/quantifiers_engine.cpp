@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
@@ -803,8 +804,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
-    if( d_hasAddedLemma ){
-      d_instantiate->debugPrint();
+    // debug print
+    if (d_hasAddedLemma)
+    {
+      bool debugInstTrace = Trace.isOn("inst-per-quant-round");
+      if (options::debugInst() || debugInstTrace)
+      {
+        Options& sopts = smt::currentSmtEngine()->getOptions();
+        std::ostream& out = *sopts.getOut();
+        d_instantiate->debugPrint(out);
+      }
     }
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -1091,13 +1100,6 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   {
     performCheck = true;
   }
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //with bounded integers, skip every other last call,
-    // since matching loops may occur with infinite quantification
-    if( d_ierCounter_lc%2==0 && options::fmfBound() ){
-      performCheck = false;
-    }
-  }
   return performCheck;
 }
 
@@ -1160,9 +1162,12 @@ void QuantifiersEngine::getExplanationForInstLemmas(
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   bool printed = false;
   // print the skolemizations
-  if (d_skolemize->printSkolemization(out))
+  if (options::printInstMode() == options::PrintInstMode::LIST)
   {
-    printed = true;
+    if (d_skolemize->printSkolemization(out))
+    {
+      printed = true;
+    }
   }
   // print the instantiations
   if (d_instantiate->printInstantiations(out))

@@ -2,9 +2,9 @@
 /*! \file nonlinear_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,11 +25,14 @@
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
 #include "theory/arith/nl/nl_solver.h"
+#include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -68,6 +71,10 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
+  /**
+   * Does non-context dependent setup for a node connected to a theory.
+   */
+  void preRegisterTerm(TNode n);
   /** Get current substitution
    *
    * This function and the one below are
@@ -283,8 +290,12 @@ class NonlinearExtension
   TheoryArith& d_containing;
   // pointer to used equality engine
   eq::EqualityEngine* d_ee;
+  /** The statistics class */
+  NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
@@ -300,9 +311,15 @@ class NonlinearExtension
   /** The nonlinear extension object
    *
    * This is the subsolver responsible for running the procedure for
-   * constraints involving nonlinear mulitplication.
+   * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+  /** The integer and solver
+   *
+   * This is the subsolver responsible for running the procedure for
+   * constraints involving integer and.
+   */
+  IAndSolver d_iandSlv;
   /**
    * The lemmas we computed during collectModelInfo, to be sent out on the
    * output channel of TheoryArith.

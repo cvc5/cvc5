@@ -2,9 +2,9 @@
 /*! \file rewrites.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -139,6 +139,11 @@ const char* toString(Rewrite r)
     case Rewrite::SS_START_NEG: return "SS_START_NEG";
     case Rewrite::SS_STRIP_END_PT: return "SS_STRIP_END_PT";
     case Rewrite::SS_STRIP_START_PT: return "SS_STRIP_START_PT";
+    case Rewrite::UPD_EVAL: return "UPD_EVAL";
+    case Rewrite::UPD_EMPTYSTR: return "UPD_EMPTYSTR";
+    case Rewrite::UPD_CONST_INDEX_MAX_OOB: return "UPD_CONST_INDEX_MAX_OOB";
+    case Rewrite::UPD_CONST_INDEX_NEG: return "UPD_CONST_INDEX_NEG";
+    case Rewrite::UPD_CONST_INDEX_OOB: return "UPD_CONST_INDEX_OOB";
     case Rewrite::STOI_CONCAT_NONNUM: return "STOI_CONCAT_NONNUM";
     case Rewrite::STOI_EVAL: return "STOI_EVAL";
     case Rewrite::STR_CONV_CONST: return "STR_CONV_CONST";
@@ -202,6 +207,7 @@ const char* toString(Rewrite r)
     case Rewrite::LEN_CONCAT: return "LEN_CONCAT";
     case Rewrite::LEN_REPL_INV: return "LEN_REPL_INV";
     case Rewrite::LEN_CONV_INV: return "LEN_CONV_INV";
+    case Rewrite::LEN_SEQ_UNIT: return "LEN_SEQ_UNIT";
     case Rewrite::CHARAT_ELIM: return "CHARAT_ELIM";
     case Rewrite::SEQ_UNIT_EVAL: return "SEQ_UNIT_EVAL";
     default: return "?";

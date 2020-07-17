@@ -2,9 +2,9 @@
 /*! \file theory_preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -201,7 +201,8 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
   unsigned nc = term.getNumChildren();
   if (nc == 0)
   {
-    return d_engine.theoryOf(term)->ppRewrite(term);
+    TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
+    return trn.isNull() ? Node(term) : trn.getNode();
   }
   Trace("theory-pp") << "ppTheoryRewrite { " << term << endl;
 
@@ -225,7 +226,8 @@ Node TheoryPreprocessor::ppTheoryRewrite(TNode term)
     }
     newTerm = Rewriter::rewrite(Node(newNode));
   }
-  Node newTerm2 = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
+  TrustNode trn = d_engine.theoryOf(newTerm)->ppRewrite(newTerm);
+  Node newTerm2 = trn.isNull() ? newTerm : trn.getNode();
   if (newTerm != newTerm2)
   {
     newTerm = ppTheoryRewrite(Rewriter::rewrite(newTerm2));

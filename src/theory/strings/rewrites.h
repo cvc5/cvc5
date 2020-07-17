@@ -2,9 +2,9 @@
 /*! \file rewrites.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -142,6 +142,11 @@ enum class Rewrite : uint32_t
   SS_START_NEG,
   SS_STRIP_END_PT,
   SS_STRIP_START_PT,
+  UPD_EVAL,
+  UPD_EMPTYSTR,
+  UPD_CONST_INDEX_MAX_OOB,
+  UPD_CONST_INDEX_NEG,
+  UPD_CONST_INDEX_OOB,
   STOI_CONCAT_NONNUM,
   STOI_EVAL,
   STR_CONV_CONST,
@@ -205,6 +210,7 @@ enum class Rewrite : uint32_t
   LEN_CONCAT,
   LEN_REPL_INV,
   LEN_CONV_INV,
+  LEN_SEQ_UNIT,
   CHARAT_ELIM,
   SEQ_UNIT_EVAL
 };

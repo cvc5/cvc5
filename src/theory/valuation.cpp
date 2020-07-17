@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -125,13 +125,10 @@ unsigned Valuation::getAssertionLevel() const{
   return d_engine->getPropEngine()->getAssertionLevel();
 }
 
-std::pair<bool, Node> Valuation::entailmentCheck(
-    options::TheoryOfMode mode,
-    TNode lit,
-    const theory::EntailmentCheckParameters* params,
-    theory::EntailmentCheckSideEffects* out)
+std::pair<bool, Node> Valuation::entailmentCheck(options::TheoryOfMode mode,
+                                                 TNode lit)
 {
-  return d_engine->entailmentCheck(mode, lit, params, out);
+  return d_engine->entailmentCheck(mode, lit);
 }
 
 bool Valuation::needCheck() const{

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -304,11 +304,7 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
-bool TypeNode::isStringLike() const
-{
-  // TODO (cvc4-projects #23): sequence here
-  return isString();
-}
+bool TypeNode::isStringLike() const { return isString() || isSequence(); }
 
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
@@ -579,7 +575,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::TESTER_TYPE:
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::PARAMETRIC_DATATYPE:
+    case kind::SEQUENCE_TYPE: return TypeNode();
     case kind::SET_TYPE:
     {
       // take the least common subtype of element types
@@ -660,6 +657,15 @@ bool TypeNode::isCodatatype() const
   if (isDatatype())
   {
     return getDType().isCodatatype();
+  }
+  return false;
+}
+
+bool TypeNode::isSygusDatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isSygus();
   }
   return false;
 }

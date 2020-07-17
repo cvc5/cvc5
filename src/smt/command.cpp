@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/check.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -134,7 +135,13 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
 /* class Command                                                              */
 /* -------------------------------------------------------------------------- */
 
-Command::Command() : d_commandStatus(NULL), d_muted(false) {}
+Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
+
+Command::Command(api::Solver* solver)
+    : d_solver(solver), d_commandStatus(nullptr), d_muted(false)
+{
+}
+
 Command::Command(const Command& cmd)
 {
   d_commandStatus =
@@ -596,48 +603,6 @@ Command* DeclareSygusVarCommand::clone() const
 std::string DeclareSygusVarCommand::getCommandName() const
 {
   return "declare-var";
-}
-
-/* -------------------------------------------------------------------------- */
-/* class DeclareSygusPrimedVarCommand */
-/* -------------------------------------------------------------------------- */
-
-DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(
-    const std::string& id, Type t)
-    : DeclarationDefinitionCommand(id), d_type(t)
-{
-}
-
-Type DeclareSygusPrimedVarCommand::getType() const { return d_type; }
-
-void DeclareSygusPrimedVarCommand::invoke(SmtEngine* smtEngine)
-{
-  try
-  {
-    smtEngine->declareSygusPrimedVar(d_symbol, d_type);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-Command* DeclareSygusPrimedVarCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
-{
-  return new DeclareSygusPrimedVarCommand(
-      d_symbol, d_type.exportTo(exprManager, variableMap));
-}
-
-Command* DeclareSygusPrimedVarCommand::clone() const
-{
-  return new DeclareSygusPrimedVarCommand(d_symbol, d_type);
-}
-
-std::string DeclareSygusPrimedVarCommand::getCommandName() const
-{
-  return "declare-primed-var";
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1387,8 +1352,12 @@ Command* DefineNamedFunctionCommand::clone() const
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    Expr func, const std::vector<Expr>& formals, Expr formula, bool global)
-    : d_global(global)
+    api::Solver* solver,
+    api::Term func,
+    const std::vector<api::Term>& formals,
+    api::Term formula,
+    bool global)
+    : Command(solver), d_global(global)
 {
   d_funcs.push_back(func);
   d_formals.push_back(formals);
@@ -1396,26 +1365,31 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    const std::vector<Expr>& funcs,
-    const std::vector<std::vector<Expr>>& formals,
-    const std::vector<Expr>& formulas,
+    api::Solver* solver,
+    const std::vector<api::Term>& funcs,
+    const std::vector<std::vector<api::Term>>& formals,
+    const std::vector<api::Term>& formulas,
     bool global)
-    : d_funcs(funcs), d_formals(formals), d_formulas(formulas), d_global(global)
+    : Command(solver),
+      d_funcs(funcs),
+      d_formals(formals),
+      d_formulas(formulas),
+      d_global(global)
 {
 }
 
-const std::vector<Expr>& DefineFunctionRecCommand::getFunctions() const
+const std::vector<api::Term>& DefineFunctionRecCommand::getFunctions() const
 {
   return d_funcs;
 }
 
-const std::vector<std::vector<Expr>>& DefineFunctionRecCommand::getFormals()
-    const
+const std::vector<std::vector<api::Term>>&
+DefineFunctionRecCommand::getFormals() const
 {
   return d_formals;
 }
 
-const std::vector<Expr>& DefineFunctionRecCommand::getFormulas() const
+const std::vector<api::Term>& DefineFunctionRecCommand::getFormulas() const
 {
   return d_formulas;
 }
@@ -1424,7 +1398,7 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->defineFunctionsRec(d_funcs, d_formals, d_formulas, d_global);
+    d_solver->defineFunsRec(d_funcs, d_formals, d_formulas, d_global);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -1436,35 +1410,13 @@ void DefineFunctionRecCommand::invoke(SmtEngine* smtEngine)
 Command* DefineFunctionRecCommand::exportTo(
     ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
-  std::vector<Expr> funcs;
-  for (unsigned i = 0, size = d_funcs.size(); i < size; i++)
-  {
-    Expr func = d_funcs[i].exportTo(
-        exprManager, variableMap, /* flags = */ ExprManager::VAR_FLAG_DEFINED);
-    funcs.push_back(func);
-  }
-  std::vector<std::vector<Expr>> formals;
-  for (unsigned i = 0, size = d_formals.size(); i < size; i++)
-  {
-    std::vector<Expr> formals_c;
-    transform(d_formals[i].begin(),
-              d_formals[i].end(),
-              back_inserter(formals_c),
-              ExportTransformer(exprManager, variableMap));
-    formals.push_back(formals_c);
-  }
-  std::vector<Expr> formulas;
-  for (unsigned i = 0, size = d_formulas.size(); i < size; i++)
-  {
-    Expr formula = d_formulas[i].exportTo(exprManager, variableMap);
-    formulas.push_back(formula);
-  }
-  return new DefineFunctionRecCommand(funcs, formals, formulas, d_global);
+  Unimplemented();
 }
 
 Command* DefineFunctionRecCommand::clone() const
 {
-  return new DefineFunctionRecCommand(d_funcs, d_formals, d_formulas, d_global);
+  return new DefineFunctionRecCommand(
+      d_solver, d_funcs, d_formals, d_formulas, d_global);
 }
 
 std::string DefineFunctionRecCommand::getCommandName() const
@@ -1603,7 +1555,8 @@ ExpandDefinitionsCommand::ExpandDefinitionsCommand(Expr term) : d_term(term) {}
 Expr ExpandDefinitionsCommand::getTerm() const { return d_term; }
 void ExpandDefinitionsCommand::invoke(SmtEngine* smtEngine)
 {
-  d_result = smtEngine->expandDefinitions(d_term);
+  Node t = Node::fromExpr(d_term);
+  d_result = smtEngine->expandDefinitions(t).toExpr();
   d_commandStatus = CommandSuccess::instance();
 }
 
@@ -1671,9 +1624,11 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       Expr e = d_terms[i];
+      Node eNode = Node::fromExpr(e);
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      Node request = Node::fromExpr(
-          options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
+      Node request = options::expandDefinitions()
+                         ? smtEngine->expandDefinitions(eNode)
+                         : eNode;
       Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
@@ -2139,6 +2094,90 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj)
+    : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+                                       const std::string& name,
+                                       api::Term conj,
+                                       const Type& gtype)
+    : Command(solver),
+      d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
+
+api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
+Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
+api::Term GetInterpolCommand::getResult() const { return d_result; }
+
+void GetInterpolCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = d_solver->getInterpolant(d_conj, d_result);
+    }
+    else
+    {
+      d_resultStatus =
+          d_solver->getInterpolant(d_conj, d_sygus_grammar_type, d_result);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetInterpolCommand::printResult(std::ostream& out,
+                                     uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
+                                      ExprManagerMapCollection& variableMap)
+{
+  Unimplemented();
+}
+
+Command* GetInterpolCommand::clone() const
+{
+  GetInterpolCommand* c = new GetInterpolCommand(d_solver, d_name, d_conj);
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetInterpolCommand::getCommandName() const
+{
+  return "get-interpol";
+}
+
 GetAbductCommand::GetAbductCommand() {}
 GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
     : d_name(name), d_conj(conj), d_resultStatus(false)
@@ -2156,21 +2195,25 @@ GetAbductCommand::GetAbductCommand(const std::string& name,
 
 Expr GetAbductCommand::getConjecture() const { return d_conj; }
 Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+std::string GetAbductCommand::getAbductName() const { return d_name; }
 Expr GetAbductCommand::getResult() const { return d_result; }
 
 void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
+    Node conjNode = Node::fromExpr(d_conj);
+    Node resn;
     if (d_sygus_grammar_type.isNull())
     {
-      d_resultStatus = smtEngine->getAbduct(d_conj, d_result);
+      d_resultStatus = smtEngine->getAbduct(conjNode, resn);
     }
     else
     {
-      d_resultStatus =
-          smtEngine->getAbduct(d_conj, d_sygus_grammar_type, d_result);
+      TypeNode gtype = TypeNode::fromType(d_sygus_grammar_type);
+      d_resultStatus = smtEngine->getAbduct(conjNode, gtype, resn);
     }
+    d_result = resn.toExpr();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,11 +27,11 @@
 #include "proof/bitvector_proof.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "prop/sat_solver_types.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
-
 
 namespace CVC4 {
 namespace theory {
@@ -111,7 +111,7 @@ class MinisatEmptyNotify : public prop::BVSatSolverNotify
   void notify(prop::SatClause& clause) override {}
   void spendResource(ResourceManager::Resource r) override
   {
-    NodeManager::currentResourceManager()->spendResource(r);
+    smt::currentResourceManager()->spendResource(r);
   }
 
   void safePoint(ResourceManager::Resource r) override {}

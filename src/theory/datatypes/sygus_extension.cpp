@@ -2,9 +2,9 @@
 /*! \file sygus_extension.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1566,8 +1566,7 @@ void SygusExtension::check( std::vector< Node >& lemmas ) {
       {
         Trace("dt-sygus") << "* DT model : " << prog << " -> ";
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, progv);
+        quantifiers::TermDbSygus::toStreamSygus(ss, progv);
         Trace("dt-sygus") << ss.str() << std::endl;
       }
       // first check that the value progv for prog is what we expected
@@ -1673,7 +1672,6 @@ bool SygusExtension::checkValue(Node n,
   }
   TypeNode tn = n.getType();
   const DType& dt = tn.getDType();
-  Assert(dt.isSygus());
 
   // ensure that the expected size bound is met
   int cindex = utils::indexOf(vn.getOperator());

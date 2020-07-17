@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -310,7 +310,9 @@ class TermDbSygus {
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
-
+  /** print to sygus stream n on output out */
+  static void toStreamSygus(std::ostream& out, Node n);
+  
  private:
   /** reference to the quantifiers engine */
   QuantifiersEngine* d_quantEngine;

@@ -2,9 +2,9 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Tim King, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -78,23 +78,6 @@ void OptionsHandler::notifyBeforeSearch(const std::string& option)
     ss << "cannot change option `" << option << "' after final initialization";
     throw ModalException(ss.str());
   }
-}
-
-
-void OptionsHandler::notifyTlimit(const std::string& option) {
-  d_options->d_tlimitListeners.notify();
-}
-
-void OptionsHandler::notifyTlimitPer(const std::string& option) {
-  d_options->d_tlimitPerListeners.notify();
-}
-
-void OptionsHandler::notifyRlimit(const std::string& option) {
-  d_options->d_rlimitListeners.notify();
-}
-
-void OptionsHandler::notifyRlimitPer(const std::string& option) {
-  d_options->d_rlimitPerListeners.notify();
 }
 
 unsigned long OptionsHandler::limitHandler(std::string option,

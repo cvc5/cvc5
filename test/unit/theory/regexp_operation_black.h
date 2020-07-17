@@ -2,9 +2,9 @@
 /*! \file regexp_operation_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,16 +14,18 @@
  ** Unit tests for symbolic regular expression operations.
  **/
 
+#include <cxxtest/TestSuite.h>
+
+#include <iostream>
+#include <memory>
+#include <vector>
+
+#include "api/cvc4cpp.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/strings/regexp_operation.h"
-
-#include <cxxtest/TestSuite.h>
-#include <iostream>
-#include <memory>
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -40,8 +42,9 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager(opts);
-    d_smt = new SmtEngine(d_em);
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
+    d_smt = d_slv->getSmtEngine();
     d_scope = new SmtScope(d_smt);
     d_regExpOpr = new RegExpOpr();
 
@@ -56,8 +59,7 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   {
     delete d_regExpOpr;
     delete d_scope;
-    delete d_smt;
-    delete d_em;
+    delete d_slv;
   }
 
   void includes(Node r1, Node r2)
@@ -147,6 +149,7 @@ class RegexpOperationBlack : public CxxTest::TestSuite
   }
 
  private:
+  api::Solver* d_slv;
   ExprManager* d_em;
   SmtEngine* d_smt;
   SmtScope* d_scope;

@@ -2,9 +2,9 @@
 /*! \file extended_rewrite.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli
+ **   Andrew Reynolds, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -488,6 +488,9 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     {
       // reverse substitution to opposite child
       // r{ x -> t } = s  implies  ite( x=t ^ C, s, r ) ---> r
+      // We can use ordinary substitute since the result of the substitution
+      // is not being returned. In other words, nn is only being used to query
+      // whether the second branch is a generalization of the first.
       Node nn =
           t2.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
       if (nn != t2)
@@ -501,7 +504,9 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
       }
 
       // ite( x=t ^ C, s, r ) ---> ite( x=t ^ C, s{ x -> t }, r )
-      nn = t1.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      // must use partial substitute here, to avoid substitution into witness
+      std::map<Kind, bool> rkinds;
+      nn = partialSubstitute(t1, vars, subs, rkinds);
       if (nn != t1)
       {
         // If full=false, then we've duplicated a term u in the children of n.
@@ -524,9 +529,11 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
     if (new_ret.isNull())
     {
       // ite( C, t, s ) ----> ite( C, t, s { C -> false } )
-      TNode tv = n[0];
-      TNode ts = d_false;
-      Node nn = t2.substitute(tv, ts);
+      // use partial substitute to avoid substitution into witness
+      std::map<Node, Node> assign;
+      assign[n[0]] = d_false;
+      std::map<Kind, bool> rkinds;
+      Node nn = partialSubstitute(t2, assign, rkinds);
       if (nn != t2)
       {
         nn = Rewriter::rewrite(nn);
@@ -561,7 +568,8 @@ Node ExtendedRewriter::extendedRewriteAndOr(Node n)
     return Node::null();
   }
   Node new_ret;
-  // all kinds are legal to substitute over : hence we give the empty map
+  // we allow substitutions to recurse over any kind, except WITNESS which is
+  // managed by partialSubstitute.
   std::map<Kind, bool> bcp_kinds;
   new_ret = extendedRewriteBcp(AND, OR, NOT, bcp_kinds, n);
   if (!new_ret.isNull())
@@ -858,20 +866,10 @@ Node ExtendedRewriter::extendedRewriteBcp(
       std::vector<Node> ccs_children;
       for (const Node& cc : ca)
       {
-        Node ccs = cc;
-        if (bcp_kinds.empty())
-        {
-          Trace("ext-rew-bcp-debug") << "...do ordinary substitute"
-                                     << std::endl;
-          ccs = cc.substitute(
-              avars.begin(), avars.end(), asubs.begin(), asubs.end());
-        }
-        else
-        {
-          Trace("ext-rew-bcp-debug") << "...do partial substitute" << std::endl;
-          // substitution is only applicable to compatible kinds
-          ccs = partialSubstitute(ccs, assign, bcp_kinds);
-        }
+        // always use partial substitute, to avoid substitution in witness
+        Trace("ext-rew-bcp-debug") << "...do partial substitute" << std::endl;
+        // substitution is only applicable to compatible kinds in bcp_kinds
+        Node ccs = partialSubstitute(cc, assign, bcp_kinds);
         childChanged = childChanged || ccs != cc;
         ccs_children.push_back(ccs);
       }
@@ -1071,19 +1069,10 @@ Node ExtendedRewriter::extendedRewriteEqRes(Kind andk,
             Node ccs = n[j];
             if (i != j)
             {
-              if (bcp_kinds.empty())
-              {
-                ccs = ccs.substitute(
-                    vars.begin(), vars.end(), subs.begin(), subs.end());
-              }
-              else
-              {
-                std::map<Node, Node> assign;
-                // vars.size()==subs.size()==1
-                assign[vars[0]] = subs[0];
-                // substitution is only applicable to compatible kinds
-                ccs = partialSubstitute(ccs, assign, bcp_kinds);
-              }
+              // Substitution is only applicable to compatible kinds. We always
+              // use the partialSubstitute method to avoid substitution into
+              // witness terms.
+              ccs = partialSubstitute(ccs, vars, subs, bcp_kinds);
               childrenChanged = childrenChanged || n[j] != ccs;
             }
             children.push_back(ccs);
@@ -1538,11 +1527,12 @@ Node ExtendedRewriter::extendedRewriteEqChain(
 }
 
 Node ExtendedRewriter::partialSubstitute(Node n,
-                                         std::map<Node, Node>& assign,
-                                         std::map<Kind, bool>& rkinds)
+                                         const std::map<Node, Node>& assign,
+                                         const std::map<Kind, bool>& rkinds)
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::map<Node, Node>::const_iterator ita;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -1554,16 +1544,19 @@ Node ExtendedRewriter::partialSubstitute(Node n,
 
     if (it == visited.end())
     {
-      std::map<Node, Node>::iterator ita = assign.find(cur);
+      ita = assign.find(cur);
       if (ita != assign.end())
       {
         visited[cur] = ita->second;
       }
       else
       {
-        // can only recurse on these kinds
+        // If rkinds is non-empty, then can only recurse on its kinds.
+        // We also always disallow substitution into witness. Notice that
+        // we disallow witness here, due to unsoundness when applying contextual
+        // substitutions over witness terms (see #4620).
         Kind k = cur.getKind();
-        if (rkinds.find(k) != rkinds.end())
+        if (k != WITNESS && (rkinds.empty() || rkinds.find(k) != rkinds.end()))
         {
           visited[cur] = Node::null();
           visit.push_back(cur);
@@ -1605,6 +1598,20 @@ Node ExtendedRewriter::partialSubstitute(Node n,
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+Node ExtendedRewriter::partialSubstitute(Node n,
+                                         const std::vector<Node>& vars,
+                                         const std::vector<Node>& subs,
+                                         const std::map<Kind, bool>& rkinds)
+{
+  Assert(vars.size() == subs.size());
+  std::map<Node, Node> assign;
+  for (size_t i = 0, nvars = vars.size(); i < nvars; i++)
+  {
+    assign[vars[i]] = subs[i];
+  }
+  return partialSubstitute(n, assign, rkinds);
 }
 
 Node ExtendedRewriter::solveEquality(Node n)

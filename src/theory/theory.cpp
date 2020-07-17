@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,19 +60,20 @@ Theory::Theory(TheoryId id,
                OutputChannel& out,
                Valuation valuation,
                const LogicInfo& logicInfo,
+               ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
       d_instanceName(name),
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
+      d_pnm(pnm),
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(NULL),
       d_quantEngine(NULL),
       d_decManager(nullptr),
-      d_extTheory(NULL),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
                              + "::computeCareGraphTime"),
@@ -88,8 +89,6 @@ Theory::Theory(TheoryId id,
 Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_checkTime);
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
-
-  delete d_extTheory;
 }
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
@@ -388,16 +387,9 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
+{
   return make_pair(false, Node::null());
-}
-
-ExtTheory* Theory::getExtTheory() {
-  Assert(d_extTheory != NULL);
-  return d_extTheory;
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
@@ -427,33 +419,6 @@ void Theory::setDecisionManager(DecisionManager* dm)
   Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
   d_decManager = dm;
-}
-
-void Theory::setupExtTheory() {
-  Assert(d_extTheory == NULL);
-  d_extTheory = new ExtTheory(this);
-}
-
-
-EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
-  : d_tid(tid) {
-}
-
-EntailmentCheckParameters::~EntailmentCheckParameters(){}
-
-TheoryId EntailmentCheckParameters::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::EntailmentCheckSideEffects(TheoryId tid)
-  : d_tid(tid)
-{}
-
-TheoryId EntailmentCheckSideEffects::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
 }
 
 }/* CVC4::theory namespace */

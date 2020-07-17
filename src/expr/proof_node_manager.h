@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -74,6 +74,52 @@ class ProofNodeManager
       const std::vector<Node>& args,
       Node expected = Node::null());
   /**
+   * Make the proof node corresponding to the assumption of fact.
+   *
+   * @param fact The fact to assume.
+   * @return The ASSUME proof of fact.
+   */
+  std::shared_ptr<ProofNode> mkAssume(Node fact);
+  /**
+   * Make scope having body pf and arguments (assumptions-to-close) assumps.
+   * If ensureClosed is true, then this method throws an assertion failure if
+   * the returned proof is not closed. This is the case if a free assumption
+   * of pf is missing from the vector assumps.
+   *
+   * For conveinence, the proof pf may be modified to ensure that the overall
+   * result is closed. For instance, given input:
+   *   pf = TRANS( ASSUME( x=y ), ASSUME( y=z ) )
+   *   assumps = { y=x, y=z }
+   * This method will modify pf to be:
+   *   pf = TRANS( SYMM( ASSUME( y=x ) ), ASSUME( y=z ) )
+   * so that y=x matches the free assumption. The returned proof is:
+   *   SCOPE(TRANS( SYMM( ASSUME( y=x ) ), ASSUME( y=z ) ) :args { y=x, y=z })
+   *
+   * When ensureClosed is true, duplicates are eliminated from assumps. The
+   * reason for this is due to performance, since in this method, assumps is
+   * converted to an unordered_set to do the above check and hence it is a
+   * convienient time to eliminate duplicate literals.
+   *
+   * Additionally, if both ensureClosed and doMinimize are true, assumps is
+   * updated to contain exactly the free asumptions of pf. This also includes
+   * having no duplicates.
+   *
+   * In each case, the update vector assumps is passed as arguments to SCOPE.
+   *
+   * @param pf The body of the proof,
+   * @param assumps The assumptions-to-close of the scope,
+   * @param ensureClosed Whether to ensure that the proof is closed,
+   * @param doMinimize Whether to minimize assumptions.
+   * @param expected the node that the scope should prove.
+   * @return The scoped proof.
+   */
+  std::shared_ptr<ProofNode> mkScope(std::shared_ptr<ProofNode> pf,
+                                     std::vector<Node>& assumps,
+                                     bool ensureClosed = true,
+                                     bool doMinimize = false,
+                                     Node expected = Node::null());
+
+  /**
    * This method updates pn to be a proof of the form <id>( children, args ),
    * while maintaining its d_proven field. This method returns false if this
    * proof manager is using a checker, and we compute that the above proof
@@ -92,6 +138,12 @@ class ProofNodeManager
                   PfRule id,
                   const std::vector<std::shared_ptr<ProofNode>>& children,
                   const std::vector<Node>& args);
+  /**
+   * Update node pn to have the contents of pnr. It should be the case that
+   * pn and pnr prove the same fact, otherwise false is returned and pn is
+   * unchanged.
+   */
+  bool updateNode(ProofNode* pn, ProofNode* pnr);
   /** Get the underlying proof checker */
   ProofChecker* getChecker() const;
 
@@ -112,6 +164,18 @@ class ProofNodeManager
                      const std::vector<std::shared_ptr<ProofNode>>& children,
                      const std::vector<Node>& args,
                      Node expected);
+  /**
+   * Update node internal, return true if successful. This is called by
+   * the update node methods above. The argument needsCheck is whether we
+   * need to check the correctness of the rule application. This is false
+   * for the updateNode routine where pnr is an (already checked) proof node.
+   */
+  bool updateNodeInternal(
+      ProofNode* pn,
+      PfRule id,
+      const std::vector<std::shared_ptr<ProofNode>>& children,
+      const std::vector<Node>& args,
+      bool needsCheck);
 };
 
 }  // namespace CVC4

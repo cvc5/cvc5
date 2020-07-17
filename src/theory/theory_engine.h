@@ -2,9 +2,9 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -363,6 +363,7 @@ class TheoryEngine {
   /** Constructs a theory engine */
   TheoryEngine(context::Context* context,
                context::UserContext* userContext,
+               ResourceManager* rm,
                RemoveTermFormulas& iteRemover,
                const LogicInfo& logic);
 
@@ -387,7 +388,8 @@ class TheoryEngine {
                                               d_userContext,
                                               *d_theoryOut[theoryId],
                                               theory::Valuation(this),
-                                              d_logicInfo);
+                                              d_logicInfo,
+                                              nullptr);
     theory::Rewriter::registerTheoryRewriter(
         theoryId, d_theoryTable[theoryId]->getTheoryRewriter());
   }
@@ -751,11 +753,7 @@ public:
    * Forwards an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(
-      options::TheoryOfMode mode,
-      TNode lit,
-      const theory::EntailmentCheckParameters* params = NULL,
-      theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
  private:
   /** Default visitor for pre-registration */

@@ -2,9 +2,9 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -720,7 +720,7 @@ Node DatatypesRewriter::normalizeCodatatypeConstantEqc(
     {
       int debruijn = depth - it->second - 1;
       return NodeManager::currentNM()->mkConst(
-          UninterpretedConstant(n.getType().toType(), debruijn));
+          UninterpretedConstant(n.getType(), debruijn));
     }
     std::vector<Node> children;
     bool childChanged = false;

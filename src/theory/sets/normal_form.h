@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,7 @@ class NormalForm {
     NodeManager* nm = NodeManager::currentNM();
     if (elements.size() == 0)
     {
-      return nm->mkConst(EmptySet(nm->toType(setType)));
+      return nm->mkConst(EmptySet(setType));
     }
     else
     {
@@ -128,7 +128,7 @@ class NormalForm {
   }
   static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
     if( index>=els.size() ){
-      return NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
+      return NodeManager::currentNM()->mkConst(EmptySet(tn));
     }else if( index==els.size()-1 ){
       return els[index];
     }else{

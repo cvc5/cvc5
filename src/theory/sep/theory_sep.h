@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -66,7 +66,12 @@ class TheorySep : public Theory {
                         bool pol, bool hasPol, bool underSpatial );
 
  public:
-  TheorySep(context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+  TheorySep(context::Context* c,
+            context::UserContext* u,
+            OutputChannel& out,
+            Valuation valuation,
+            const LogicInfo& logicInfo,
+            ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
   TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
@@ -81,7 +86,6 @@ class TheorySep : public Theory {
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom) override;
 
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   /////////////////////////////////////////////////////////////////////////////
@@ -97,7 +101,7 @@ class TheorySep : public Theory {
 
  public:
   void propagate(Effort e) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  public:
   void addSharedTerm(TNode t) override;

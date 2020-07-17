@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,11 +23,10 @@ namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
-    ResourceManager* resourceManager,
     RemoveTermFormulas* iteRemover,
     theory::booleans::CircuitPropagator* circuitPropagator)
     : d_smt(smt),
-      d_resourceManager(resourceManager),
+      d_resourceManager(smt->getResourceManager()),
       d_iteRemover(iteRemover),
       d_topLevelSubstitutions(smt->getUserContext()),
       d_circuitPropagator(circuitPropagator),

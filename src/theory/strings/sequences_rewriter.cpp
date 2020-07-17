@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -570,11 +570,18 @@ Node SequencesRewriter::rewriteLength(Node node)
       return returnRewrite(node, retNode, Rewrite::LEN_REPL_INV);
     }
   }
-  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV)
+  else if (nk0 == STRING_TOLOWER || nk0 == STRING_TOUPPER || nk0 == STRING_REV
+           || nk0 == STRING_UPDATE)
   {
     // len( f( x ) ) == len( x ) where f is tolower, toupper, or rev.
+    // len( update( x, n, y ) ) = len( x )
     Node retNode = nm->mkNode(STRING_LENGTH, node[0][0]);
     return returnRewrite(node, retNode, Rewrite::LEN_CONV_INV);
+  }
+  else if (nk0 == SEQ_UNIT)
+  {
+    Node retNode = nm->mkConst(Rational(1));
+    return returnRewrite(node, retNode, Rewrite::LEN_SEQ_UNIT);
   }
   return node;
 }
@@ -1315,9 +1322,13 @@ Node SequencesRewriter::rewriteMembership(TNode node)
           }
           else
           {
+            Node prev = retNode;
             retNode = nm->mkNode(
                 STRING_IN_REGEXP, utils::mkConcat(mchildren, stype), r);
-            success = true;
+            // Iterate again if the node changed. It may not have changed if
+            // nothing was consumed from mchildren (e.g. if the body of the
+            // re.* accepts the empty string.
+            success = (retNode != prev);
           }
         }
       }
@@ -1396,6 +1407,10 @@ RewriteResponse SequencesRewriter::postRewrite(TNode node)
   else if (nk == kind::STRING_SUBSTR)
   {
     retNode = rewriteSubstr(node);
+  }
+  else if (nk == kind::STRING_UPDATE)
+  {
+    retNode = rewriteUpdate(node);
   }
   else if (nk == kind::STRING_STRCTN)
   {
@@ -1791,6 +1806,50 @@ Node SequencesRewriter::rewriteSubstr(Node node)
   return node;
 }
 
+Node SequencesRewriter::rewriteUpdate(Node node)
+{
+  Assert(node.getKind() == kind::STRING_UPDATE);
+  Node s = node[0];
+  if (s.isConst())
+  {
+    if (Word::isEmpty(s))
+    {
+      return returnRewrite(node, s, Rewrite::UPD_EMPTYSTR);
+    }
+    // rewriting for constant arguments
+    if (node[1].isConst())
+    {
+      CVC4::Rational rMaxInt(String::maxSize());
+      if (node[1].getConst<Rational>() > rMaxInt)
+      {
+        // start beyond the maximum size of strings
+        // thus, it must be beyond the end point of this string
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_MAX_OOB);
+      }
+      else if (node[1].getConst<Rational>().sgn() < 0)
+      {
+        // start before the beginning of the string
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_NEG);
+      }
+      uint32_t start =
+          node[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      size_t len = Word::getLength(s);
+      if (start >= len)
+      {
+        // start beyond the end of the string
+        return returnRewrite(node, s, Rewrite::UPD_CONST_INDEX_OOB);
+      }
+      if (node[2].isConst())
+      {
+        Node ret = Word::update(s, start, node[2]);
+        return returnRewrite(node, ret, Rewrite::UPD_EVAL);
+      }
+    }
+  }
+
+  return node;
+}
+
 Node SequencesRewriter::rewriteContains(Node node)
 {
   Assert(node.getKind() == kind::STRING_STRCTN);
@@ -1832,6 +1891,7 @@ Node SequencesRewriter::rewriteContains(Node node)
         nb << emp.eqNode(t);
         for (const Node& c : vec)
         {
+          Assert(c.getType() == t.getType());
           nb << c.eqNode(t);
         }
 
@@ -3167,7 +3227,7 @@ Node SequencesRewriter::canonicalStrForSymbolicLength(Node len, TypeNode stype)
     Assert(ratLen.getDenominator() == 1);
     Integer intLen = ratLen.getNumerator();
     uint32_t u = intLen.getUnsignedInt();
-    if (stype.isString())
+    if (stype.isString())  // string-only
     {
       res = nm->mkConst(String(std::string(u, 'A')));
     }
@@ -3227,10 +3287,10 @@ Node SequencesRewriter::rewriteSeqUnit(Node node)
   NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
-    std::vector<Expr> seq;
-    seq.push_back(node[0].toExpr());
-    TypeNode stype = nm->mkSequenceType(node[0].getType());
-    Node ret = nm->mkConst(ExprSequence(stype.toType(), seq));
+    std::vector<Node> seq;
+    seq.push_back(node[0]);
+    TypeNode stype = node[0].getType();
+    Node ret = nm->mkConst(Sequence(stype, seq));
     return returnRewrite(node, ret, Rewrite::SEQ_UNIT_EVAL);
   }
   return node;

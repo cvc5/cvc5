@@ -2,9 +2,9 @@
 /*! \file grammar_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Abdalrhman Mohamed, Andrew Reynolds
+ **   Abdalrhman Mohamed, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@ class GrammarBlack : public CxxTest::TestSuite
 
 void GrammarBlack::setUp() { d_solver.reset(new Solver()); }
 
-void GrammarBlack::tearDown() {}
+void GrammarBlack::tearDown() { d_solver.reset(nullptr); }
 
 void GrammarBlack::testAddRule()
 {

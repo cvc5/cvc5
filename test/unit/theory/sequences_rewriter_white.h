@@ -2,9 +2,9 @@
 /*! \file sequences_rewriter_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,8 +46,8 @@ class SequencesRewriterWhite : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager(opts);
-    d_smt = new SmtEngine(d_em);
+    d_em = new ExprManager;
+    d_smt = new SmtEngine(d_em, &opts);
     d_scope = new SmtScope(d_smt);
     d_smt->finalOptionsAreSet();
     d_rewriter = new ExtendedRewriter(true);

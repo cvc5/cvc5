@@ -2,9 +2,9 @@
 /*! \file printer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Tim King, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,21 +64,6 @@ class Printer
 
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
-
-  /**
-   * Write the term that sygus datatype term n
-   * encodes to a stream with this Printer.
-   * For example, consider the datatype term
-   *   (C_plus (C_minus C_x C_0) C_y)
-   * where C_plus, C_minus, C_x, C_0, C_y are constructors
-   * whose sygus operators are PLUS, MINUS, x, 0, y.
-   * In this case, this method is equivalent to printing
-   * the integer term:
-   *   (PLUS (MINUS x 0) y)
-   * This method may make calls to sygus printing callback
-   * methods stored in sygus datatype constructors.
-   */
-  virtual void toStreamSygus(std::ostream& out, TNode n) const;
 
  protected:
   /** Derived classes can construct, but no one else. */

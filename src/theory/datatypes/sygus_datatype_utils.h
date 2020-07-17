@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -145,7 +145,7 @@ Node applySygusArgs(const DType& dt,
                     const std::vector<Node>& args);
 /** Sygus to builtin
  *
- * This method converts a constant term of SyGuS datatype type to its builtin
+ * This method converts a term n of SyGuS datatype type to its builtin
  * equivalent. For example, given input C_*( C_x(), C_y() ), this method returns
  * x*y, assuming C_+, C_x, and C_y have sygus operators *, x, and y
  * respectively.
@@ -154,8 +154,12 @@ Node applySygusArgs(const DType& dt,
  * that was provided. This includes the use of defined functions. This argument
  * should typically be false, unless we are e.g. exporting the value of the
  * term as a final solution.
+ * 
+ * If n is not constant, then its non-constant subterms that have sygus
+ * datatype types are replaced by fresh variables (of the same name, if that
+ * subterm is a variable, and having arbitrary name otherwise).
  */
-Node sygusToBuiltin(Node c, bool isExternal = false);
+Node sygusToBuiltin(Node n, bool isExternal = false);
 /** Sygus to builtin eval
  *
  * This method returns the rewritten form of (DT_SYGUS_EVAL n args). Notice that

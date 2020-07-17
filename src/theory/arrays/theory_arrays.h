@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Clark Barrett, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -139,9 +139,12 @@ class TheoryArrays : public Theory {
   unsigned d_reasonExt;
 
  public:
-
-  TheoryArrays(context::Context* c, context::UserContext* u, OutputChannel& out,
-               Valuation valuation, const LogicInfo& logicInfo,
+  TheoryArrays(context::Context* c,
+               context::UserContext* u,
+               OutputChannel& out,
+               Valuation valuation,
+               const LogicInfo& logicInfo,
+               ProofNodeManager* pnm = nullptr,
                std::string name = "");
   ~TheoryArrays();
 
@@ -150,6 +153,8 @@ class TheoryArrays : public Theory {
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   std::string identify() const override { return std::string("TheoryArrays"); }
+
+  TrustNode expandDefinition(Node node) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // PREPROCESSING
@@ -183,7 +188,7 @@ class TheoryArrays : public Theory {
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // T-PROPAGATION / REGISTRATION
@@ -213,7 +218,7 @@ class TheoryArrays : public Theory {
   void preRegisterTerm(TNode n) override;
   void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // SHARING

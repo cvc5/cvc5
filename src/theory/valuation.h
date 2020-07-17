@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,8 +30,6 @@ class TheoryEngine;
 
 namespace theory {
 
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 class TheoryModel;
 
 /**
@@ -141,11 +139,7 @@ public:
    * Request an entailment check according to the given theoryOfMode.
    * See theory.h for documentation on entailmentCheck().
    */
-  std::pair<bool, Node> entailmentCheck(
-      options::TheoryOfMode mode,
-      TNode lit,
-      const theory::EntailmentCheckParameters* params = NULL,
-      theory::EntailmentCheckSideEffects* out = NULL);
+  std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
   /** need check ? */
   bool needCheck() const;
