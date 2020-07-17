@@ -261,7 +261,7 @@ class CoreSolver
    *   x = k_1 ++ k_2
    * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
    * length l if isRev is false (resp. true).
-   * 
+   *
    * @param x The string term
    * @param l The length term
    * @param isRev Whether the equation is in a reverse direction
@@ -270,10 +270,10 @@ class CoreSolver
    * @return The conclusion of the inference.
    */
   static Node getDecomposeConclusion(Node x,
-                            Node l,
-                            bool isRev,
-                            SkolemCache* skc,
-                            std::vector<Node>& newSkolems);
+                                     Node l,
+                                     bool isRev,
+                                     SkolemCache* skc,
+                                     std::vector<Node>& newSkolems);
 
  private:
   /**

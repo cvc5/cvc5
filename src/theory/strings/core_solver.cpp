@@ -839,12 +839,8 @@ size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
   return p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
 }
 
-
-Node CoreSolver::getDecomposeConclusion(Node x,
-                            Node l,
-                               bool isRev,
-                            SkolemCache* skc,
-                            std::vector<Node>& newSkolems)
+Node CoreSolver::getDecomposeConclusion(
+    Node x, Node l, bool isRev, SkolemCache* skc, std::vector<Node>& newSkolems)
 {
   Assert(l.getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
@@ -1363,10 +1359,8 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       {
         std::vector<Node> antec;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, antec);
-        d_im.sendInference(antec,
-                           eqn[0].eqNode(eqn[1]),
-                           Inference::N_ENDPOINT_EQ,
-                           true);
+        d_im.sendInference(
+            antec, eqn[0].eqNode(eqn[1]), Inference::N_ENDPOINT_EQ, true);
       }
       else
       {
@@ -1667,7 +1661,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       else
       {
         tnz = x.eqNode(emp).negate();
-        //lcVec.push_back(tnz);
+        // lcVec.push_back(tnz);
         iinfo.d_antn.push_back(tnz);
       }
     }
@@ -1806,8 +1800,7 @@ CoreSolver::ProcessLoopResult CoreSolver::processLoop(NormalForm& nfi,
     {
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
-      d_im.sendInference(
-          iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, true);
+      d_im.sendInference(iinfo.d_ant, conc, Inference::FLOOP_CONFLICT, true);
       return ProcessLoopResult::CONFLICT;
     }
   }
@@ -2088,8 +2081,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
           // len(x)>=1 => x = k1 ++ k2 ^ len(k1) = 1
           SkolemCache* skc = d_termReg.getSkolemCache();
           std::vector<Node> newSkolems;
-          Node conc = getDecomposeConclusion(
-              nck, d_one, false, skc, newSkolems);
+          Node conc =
+              getDecomposeConclusion(nck, d_one, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
@@ -2128,8 +2121,7 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node uxLen = nm->mkNode(STRING_LENGTH, ux);
           Node uyLen = nm->mkNode(STRING_LENGTH, uy);
           std::vector<Node> newSkolems;
-          Node conc = getDecomposeConclusion(
-              ux, uyLen, false, skc, newSkolems);
+          Node conc = getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
@@ -2141,11 +2133,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
           }
           std::vector<Node> antecLen;
           antecLen.push_back(nm->mkNode(GEQ, uxLen, uyLen));
-          d_im.sendInference({},
-                             antecLen,
-                             conc,
-                             Inference::DEQ_DISL_STRINGS_SPLIT,
-                             true);
+          d_im.sendInference(
+              {}, antecLen, conc, Inference::DEQ_DISL_STRINGS_SPLIT, true);
         }
 
         return;
