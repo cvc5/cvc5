@@ -620,7 +620,7 @@ TrustNode TheoryStrings::expandDefinition(Node node)
         nm->mkNode(
             ITE,
             cond,
-	    nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)),            
+            nm->mkNode(SEQ_UNIT, k).eqNode(nm->mkNode(STRING_CHARAT, s, i)),
             k.eqNode(nm->mkNode(APPLY_UF, uf, s, i))));
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
