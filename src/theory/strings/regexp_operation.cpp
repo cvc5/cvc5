@@ -175,7 +175,7 @@ int RegExpOpr::delta( Node r, Node &exp ) {
           }
           else if (tmp == 0)
           {
-            Assert (!exp2.isNull());
+            Assert(!exp2.isNull());
             vec.push_back(exp2);
             flag = true;
           }
@@ -230,7 +230,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
     std::pair< int, Node > p(ret, exp);
     d_delta_cache[r] = p;
   }
-  Trace("regexp-delta") << "RegExpOpr::delta returns " << ret << " for " << r << ", expr = " << exp << std::endl;
+  Trace("regexp-delta") << "RegExpOpr::delta returns " << ret << " for " << r
+                        << ", expr = " << exp << std::endl;
   return ret;
 }
 
