@@ -31,9 +31,6 @@ class VOMLState;
 
 class VariableOrdering
 {
- private:
-  mutable std::unique_ptr<VOMLState> state_ml;
-
  public:
   VariableOrdering();
   ~VariableOrdering();
