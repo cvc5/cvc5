@@ -219,6 +219,10 @@ libcvc4_add_sources(
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
+  smt/abduction_solver.cpp
+  smt/abduction_solver.h
+  smt/abstract_values.cpp
+  smt/abstract_values.h
   smt/command.cpp
   smt/command.h
   smt/command_list.cpp
@@ -237,6 +241,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/options_manager.cpp
+  smt/options_manager.h
   smt/preprocess_proof_generator.cpp
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
@@ -783,6 +789,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/eq_proof.cpp
+  theory/uf/eq_proof.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/ho_extension.cpp
@@ -894,6 +902,10 @@ if(USE_LFSC)
   target_link_libraries(cvc4 ${LFSC_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
+if(USE_POLY)
+  target_link_libraries(cvc4 ${POLY_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
+endif()
 if(USE_SYMFPU)
   target_include_directories(cvc4
     PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
@@ -959,6 +971,7 @@ install(FILES
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
+          expr/sequence.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -1014,9 +1027,11 @@ install(FILES
           util/integer_cln_imp.h
           util/integer_gmp_imp.h
           util/maybe.h
+          util/poly_util.h
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
+          util/real_algebraic_number_poly_imp.h
           util/regexp.h
           util/resource_manager.h
           util/result.h
@@ -1028,6 +1043,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/util)
 

@@ -138,11 +138,17 @@ namespace CVC4 {
 #define IS_LFSC_BUILD false
 #endif /* CVC4_USE_LFSC */
 
-#if HAVE_LIBREADLINE
-#  define IS_READLINE_BUILD true
-#else /* HAVE_LIBREADLINE */
-#  define IS_READLINE_BUILD false
-#endif /* HAVE_LIBREADLINE */
+#if CVC4_USE_POLY
+#define IS_POLY_BUILD true
+#else /* CVC4_USE_POLY */
+#define IS_POLY_BUILD false
+#endif /* CVC4_USE_POLY */
+
+#if HAVE_LIBEDITLINE
+#define IS_EDITLINE_BUILD true
+#else /* HAVE_LIBEDITLINE */
+#define IS_EDITLINE_BUILD false
+#endif /* HAVE_LIBEDITLINE */
 
 #ifdef CVC4_USE_SYMFPU
 #define IS_SYMFPU_BUILD true

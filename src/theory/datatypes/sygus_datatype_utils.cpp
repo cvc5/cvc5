@@ -232,8 +232,7 @@ Node mkSygusTerm(const DType& dt,
         // ensures we don't try to expand e.g. bitvector extract operators,
         // whose type is undefined, and thus should not be passed to
         // expandDefinitions.
-        opn = Node::fromExpr(
-            smt::currentSmtEngine()->expandDefinitions(op.toExpr()));
+        opn = smt::currentSmtEngine()->expandDefinitions(op);
         opn = Rewriter::rewrite(opn);
         opn = eliminatePartialOperators(opn);
         SygusOpRewrittenAttribute sora;

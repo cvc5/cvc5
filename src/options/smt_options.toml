@@ -395,7 +395,6 @@ header = "options/smt_options.h"
   long       = "incremental"
   type       = "bool"
   default    = "true"
-  read_only  = true
   help       = "enable incremental solving"
 
 [[option]]
@@ -482,24 +481,6 @@ header = "options/smt_options.h"
   handler    = "limitHandler"
   read_only  = true
   help       = "enable resource limiting per query"
-
-[[option]]
-  name       = "hardLimit"
-  category   = "common"
-  long       = "hard-limit"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "the resource limit is hard potentially leaving the smtEngine in an unsafe state (should be destroyed and rebuild after resourcing out)"
-
-[[option]]
-  name       = "cpuTime"
-  category   = "common"
-  long       = "cpu-time"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "measures CPU time if set to true and wall time if false (default false)"
 
 [[option]]
   name       = "rewriteStep"
