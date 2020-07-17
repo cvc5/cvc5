@@ -162,9 +162,9 @@ class CVC4_PUBLIC ResourceManager
   static uint64_t getFrequencyCount() { return s_resourceCount; }
 
   /**
-   * Registers a listener that is notified on a resource out.
+   * Registers a listener that is notified on a resource out or (per-call) timeout.
    */
-  void registerResourceOutListener(Listener* listener);
+  void registerListener(Listener* listener);
 
  private:
   /** The per-call wall clock timer. */
@@ -197,7 +197,7 @@ class CVC4_PUBLIC ResourceManager
   /** Counter indicating how often to check resource manager in loops */
   static const uint64_t s_resourceCount;
 
-  /** Receives a notification on reaching a resource out. */
+  /** Receives a notification on reaching a limit. */
   std::vector<Listener*> d_listeners;
 
   void spendResource(unsigned amount);

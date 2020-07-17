@@ -371,7 +371,7 @@ void ResourceManager::enable(bool on)
   d_on = on;
 }
 
-void ResourceManager::registerResourceOutListener(Listener* listener)
+void ResourceManager::registerListener(Listener* listener)
 {
   return d_listeners.push_back(listener);
 }

@@ -252,7 +252,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
     ResourceManager* rm = d_smt.getResourceManager();
-    rm->registerResourceOutListener(d_routListener.get());
+    rm->registerListener(d_routListener.get());
   }
 
   ~SmtEnginePrivate()
