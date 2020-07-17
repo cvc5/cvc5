@@ -30,6 +30,12 @@ namespace smt {
  * This class is intended to be used by SmtEngine, and is responsible for:
  * (1) Implementing core options including timeouts and output preferences,
  * (2) Setting default values for options based on a logic.
+ *
+ * Notice that the constructor of this class retroactively sets all
+ * necessary options that have already been set in the options object it is
+ * given. This is to ensure that the command line arguments, which modified
+ * on an options object in the driver, immediately take effect upon creation of
+ * this class.
  */
 class OptionsManager : public OptionsListener
 {

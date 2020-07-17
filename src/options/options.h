@@ -272,7 +272,7 @@ public:
    */
   std::vector<std::vector<std::string> > getOptions() const;
 
-  /** set listener */
+  /** Set the generic listener associated with this class to ol */
   void setListener(OptionsListener* ol);
 
   /** Sends a std::flush to getErr(). */
@@ -289,7 +289,6 @@ public:
    * option.
    */
   void setOptionInternal(const std::string& key, const std::string& optionarg);
-
   /**
    * Internal procedure for implementing the parseOptions function.
    * Initializes the options object based on the given command-line

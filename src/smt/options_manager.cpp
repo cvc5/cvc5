@@ -30,6 +30,7 @@ namespace smt {
 OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
     : d_options(opts), d_resourceManager(rm)
 {
+<<<<<<< HEAD
   try
   {
     // set options that must take effect immediately
@@ -59,6 +60,30 @@ OptionsManager::OptionsManager(Options* opts, ResourceManager* rm)
     throw OptionException(e.getRawMessage());
   }
   // set this as a listener
+=======
+  // set options that must take effect immediately
+  if (opts->wasSetByUser(options::defaultExprDepth))
+  {
+    notifySetOption(options::defaultExprDepth.getName());
+  }
+  if (opts->wasSetByUser(options::defaultDagThresh))
+  {
+    notifySetOption(options::defaultDagThresh.getName());
+  }
+  if (opts->wasSetByUser(options::printExprTypes))
+  {
+    notifySetOption(options::printExprTypes.getName());
+  }
+  if (opts->wasSetByUser(options::dumpModeString))
+  {
+    notifySetOption(options::dumpModeString.getName());
+  }
+  if (opts->wasSetByUser(options::printSuccess))
+  {
+    notifySetOption(options::printSuccess.getName());
+  }
+  // set this as a listener to be notified of options changes from now on
+>>>>>>> cb8d041d3820a46721f689f188839184003e0e7c
   opts->setListener(this);
 }
 
@@ -122,8 +147,7 @@ void OptionsManager::notifySetOption(const std::string& key)
 
 void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
 {
-  // set up the timeout
-  d_resourceManager->setHardLimit(options::hardLimit());
+  // set up the timeouts and resource limits
   if ((*d_options)[options::perCallResourceLimit] != 0)
   {
     d_resourceManager->setResourceLimit(options::perCallResourceLimit(), false);
@@ -135,18 +159,8 @@ void OptionsManager::finishInit(LogicInfo& logic, bool isInternalSubsolver)
   }
   if ((*d_options)[options::perCallMillisecondLimit] != 0)
   {
-    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit(), false);
+    d_resourceManager->setTimeLimit(options::perCallMillisecondLimit());
   }
-  if ((*d_options)[options::cumulativeMillisecondLimit] != 0)
-  {
-    d_resourceManager->setTimeLimit(options::cumulativeMillisecondLimit(),
-                                    true);
-  }
-  if ((*d_options)[options::cpuTime])
-  {
-    d_resourceManager->useCPUTime(true);
-  }
-
   // ensure that our heuristics are properly set up
   setDefaults(logic, isInternalSubsolver);
 }

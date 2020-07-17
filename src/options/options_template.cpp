@@ -225,11 +225,11 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
 }
 
 Options::Options(OptionsListener* ol)
-    : d_holder(new options::OptionsHolder()),
-      d_handler(new options::OptionsHandler(this)),
-      d_olisten(ol)
-{
-}
+    : d_holder(new options::OptionsHolder())
+    , d_handler(new options::OptionsHandler(this))
+    , d_beforeSearchListeners(),
+    d_olisten(ol)
+{}
 
 Options::~Options() {
   delete d_handler;
@@ -592,8 +592,6 @@ void Options::setOptionInternal(const std::string& key,
 {
   options::OptionsHandler* handler = d_handler;
   Options* options = this;
-  Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
-                   << std::endl;
   ${setoption_handlers}$
   throw UnrecognizedOptionException(key);
 }
