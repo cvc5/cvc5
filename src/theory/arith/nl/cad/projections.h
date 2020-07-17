@@ -2,6 +2,10 @@
 #ifndef CVC4__THEORY__NLARITH__CAD_PROJECTIONS_H
 #define CVC4__THEORY__NLARITH__CAD_PROJECTIONS_H
 
+#include "util/real_algebraic_number.h"
+
+#ifdef CVC4_USE_POLY
+
 #include <poly/polyxx.h>
 
 #include <algorithm>
@@ -47,5 +51,7 @@ std::vector<poly::Polynomial> projection_mccallum(
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif
 
 #endif

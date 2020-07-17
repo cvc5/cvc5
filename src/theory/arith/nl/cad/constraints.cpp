@@ -1,5 +1,7 @@
 #include "constraints.h"
 
+#ifdef CVC4_POLY_IMP
+
 #include <algorithm>
 
 #include "../poly_conversion.h"
@@ -64,3 +66,5 @@ void Constraints::reset() { mConstraints.clear(); }
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif

@@ -2,6 +2,8 @@
 #ifndef CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
 #define CVC4__THEORY__ARITH__NL__POLY_CONVERSION_H
 
+#ifdef CVC4_POLY_IMP
+
 #include <poly/polyxx.h>
 
 #include <iostream>
@@ -91,5 +93,7 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable);
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif
 
 #endif

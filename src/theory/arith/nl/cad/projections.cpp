@@ -1,5 +1,7 @@
 #include "projections.h"
 
+#ifdef CVC4_POLY_IMP
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -104,3 +106,5 @@ std::vector<Polynomial> projection_mccallum(
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif

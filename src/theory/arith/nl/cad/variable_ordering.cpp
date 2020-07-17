@@ -1,5 +1,7 @@
 #include "variable_ordering.h"
 
+#ifdef CVC4_POLY_IMP
+
 #include "util/poly_util.h"
 
 namespace CVC4 {
@@ -118,3 +120,5 @@ std::vector<poly::Variable> VariableOrdering::operator()(
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif

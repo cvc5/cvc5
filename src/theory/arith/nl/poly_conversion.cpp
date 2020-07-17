@@ -1,5 +1,7 @@
 #include "poly_conversion.h"
 
+#ifdef CVC4_POLY_IMP
+
 #include "expr/node.h"
 #include "expr/node_manager_attributes.h"
 #include "util/integer.h"
@@ -488,3 +490,5 @@ poly::Value node_to_value(const Node& n, const Node& ran_variable)
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif
