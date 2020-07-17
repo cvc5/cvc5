@@ -9,7 +9,6 @@ header = "options/expr_options.h"
   type       = "int"
   default    = "0"
   predicates = ["setDefaultExprDepthPredicate"]
-  notifies   = ["notifySetDefaultExprDepth"]
   read_only  = true
   help       = "print exprs to depth N (0 == default, -1 == no limit)"
 
@@ -21,7 +20,6 @@ header = "options/expr_options.h"
   type       = "int"
   default    = "1"
   predicates = ["setDefaultDagThreshPredicate"]
-  notifies   = ["notifySetDefaultDagThresh"]
   read_only  = true
   help       = "dagify common subexprs appearing > N times (1 == default, 0 == don't dagify)"
 
@@ -31,7 +29,6 @@ header = "options/expr_options.h"
   long       = "print-expr-types"
   type       = "bool"
   default    = "false"
-  notifies   = ["notifySetPrintExprTypes"]
   read_only  = true
   help       = "print types with variables when printing exprs"
 

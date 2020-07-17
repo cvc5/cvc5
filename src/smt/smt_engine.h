@@ -93,6 +93,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
 /**
@@ -856,14 +857,6 @@ class CVC4_PUBLIC SmtEngine
   void setPrintFuncInModel(Expr f, bool p);
 
   /**
-   * Check and throw a ModalException if the SmtEngine has been fully
-   * initialized.
-   *
-   * throw@ ModalException
-   */
-  void beforeSearch();
-
-  /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.
@@ -1298,6 +1291,12 @@ class CVC4_PUBLIC SmtEngine
    * Manager for limiting time and abstract resource usage.
    */
   std::unique_ptr<ResourceManager> d_resourceManager;
+  /**
+   * The options manager, which is responsible for implementing core options
+   * such as those related to time outs and printing. It is also responsible
+   * for set default options based on the logic.
+   */
+  std::unique_ptr<smt::OptionsManager> d_optm;
   /**
    * The global scope object. Upon creation of this SmtEngine, it becomes the
    * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
