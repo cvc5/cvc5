@@ -62,6 +62,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --drat2er                use drat2er (required for eager BV proofs)
   --kissat                 use the Kissat SAT solver
   --lfsc                   use the LFSC proof checker
+  --poly                   use the LibPoly library
   --symfpu                 use SymFPU for floating point solver
   --readline               support the readline library
 
@@ -76,6 +77,7 @@ Optional Path to Optional Packages:
   --gmp-dir=PATH           path to top level of GMP installation
   --kissat-dir=PATH        path to top level of Kissat source tree
   --lfsc-dir=PATH          path to top level of LFSC source tree
+  --poly-dir=PATH          path to top level of LibPoly source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
 EOF
@@ -124,6 +126,7 @@ glpk=default
 gpl=default
 kissat=default
 lfsc=default
+poly=default
 muzzle=default
 ninja=default
 optimized=default
@@ -155,6 +158,7 @@ glpk_dir=default
 gmp_dir=default
 kissat_dir=default
 lfsc_dir=default
+poly_dir=default
 symfpu_dir=default
 
 #--------------------------------------------------------------------------#
@@ -241,6 +245,9 @@ do
     --lfsc) lfsc=ON;;
     --no-lfsc) lfsc=OFF;;
 
+    --poly) poly=ON;;
+    --no-poly) poly=OFF;;
+
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
@@ -320,6 +327,9 @@ do
 
     --lfsc-dir) die "missing argument to $1 (try -h)" ;;
     --lfsc-dir=*) lfsc_dir=${1##*=} ;;
+
+    --poly-dir) die "missing argument to $1 (try -h)" ;;
+    --poly-dir=*) poly_dir=${1##*=} ;;
 
     --symfpu-dir) die "missing argument to $1 (try -h)" ;;
     --symfpu-dir=*) symfpu_dir=${1##*=} ;;
@@ -417,6 +427,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
 [ $lfsc != default ] \
   && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc"
+[ $poly != default ] \
+  && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $symfpu != default ] \
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
 [ "$abc_dir" != default ] \
@@ -439,6 +451,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DKISSAT=$kissat_dir"
 [ "$lfsc_dir" != default ] \
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
+[ "$poly_dir" != default ] \
+  && cmake_opts="$cmake_opts -DPOLY_DIR=$poly_dir"
 [ "$symfpu_dir" != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
 [ "$install_prefix" != default ] \

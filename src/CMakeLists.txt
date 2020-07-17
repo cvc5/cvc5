@@ -900,6 +900,10 @@ if(USE_LFSC)
   target_link_libraries(cvc4 ${LFSC_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
+if(USE_POLY)
+  target_link_libraries(cvc4 ${POLY_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
+endif()
 if(USE_SYMFPU)
   target_include_directories(cvc4
     PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
@@ -1021,9 +1025,11 @@ install(FILES
           util/integer_cln_imp.h
           util/integer_gmp_imp.h
           util/maybe.h
+          util/poly_util.h
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
+          util/real_algebraic_number_poly_imp.h
           util/regexp.h
           util/resource_manager.h
           util/result.h
@@ -1035,6 +1041,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/util)
 
