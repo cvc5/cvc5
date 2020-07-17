@@ -99,6 +99,7 @@ jobs:
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
         ./contrib/get-antlr-3.4
+        ./contrib/get-poly
         ./contrib/get-symfpu
         ./contrib/get-cadical
         ./contrib/get-cryptominisat
@@ -136,6 +137,7 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --python3 \
+          --poly \
           --prefix=$(pwd)/build/install \
           --unit-testing
 

@@ -1007,7 +1007,8 @@ Node EqProof::addToProof(
           Trace("eqproof-conv")
               << "EqProof::addToProof: recurse on child " << j << "\n"
               << push;
-          children.push_back(childProof->d_children[j]->addToProof(p, visited, assumptions));
+          children.push_back(
+              childProof->d_children[j]->addToProof(p, visited, assumptions));
           Trace("eqproof-conv") << pop;
         }
         Trace("eqproof-conv") << pop;
