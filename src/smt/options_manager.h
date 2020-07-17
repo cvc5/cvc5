@@ -17,6 +17,7 @@
 
 #include "options/options.h"
 #include "options/options_listener.h"
+#include "smt/managed_ostreams.h"
 
 namespace CVC4 {
 
@@ -65,6 +66,12 @@ class OptionsManager : public OptionsListener
   Options* d_options;
   /** Pointer to the resource manager */
   ResourceManager* d_resourceManager;
+  /** Manager for the memory of regular-output-channel. */
+  ManagedRegularOutputChannel d_managedRegularChannel;
+  /** Manager for the memory of diagnostic-output-channel. */
+  ManagedDiagnosticOutputChannel d_managedDiagnosticChannel;
+  /** Manager for the memory of --dump-to. */
+  ManagedDumpOStream d_managedDumpChannel;
 };
 
 }  // namespace smt
