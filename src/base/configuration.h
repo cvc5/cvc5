@@ -103,7 +103,7 @@ public:
 
   static bool isBuiltWithDrat2Er();
 
-  static bool isBuiltWithReadline();
+  static bool isBuiltWithEditline();
 
   static bool isBuiltWithLfsc();
 
