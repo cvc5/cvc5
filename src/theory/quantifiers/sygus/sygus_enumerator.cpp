@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
@@ -27,8 +28,14 @@ namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds,
                                  SynthConjecture* p,
-                                 SygusStatistics& s)
-    : d_tds(tds), d_parent(p), d_stats(s), d_tlEnum(nullptr), d_abortSize(-1)
+                                 SygusStatistics& s,
+                                 bool enumShapes)
+    : d_tds(tds),
+      d_parent(p),
+      d_stats(s),
+      d_enumShapes(enumShapes),
+      d_tlEnum(nullptr),
+      d_abortSize(-1)
 {
 }
 
@@ -141,6 +148,8 @@ Node SygusEnumerator::getCurrent()
   }
   return ret;
 }
+
+bool SygusEnumerator::isEnumShapes() const { return d_enumShapes; }
 
 SygusEnumerator::TermCache::TermCache()
     : d_tds(nullptr),
@@ -595,6 +604,8 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
+      d_enumShapes(false),
+      d_enumShapesInit(false),
       d_isIncrementing(false),
       d_currTermSet(false),
       d_consClassNum(0),
@@ -609,6 +620,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
                                                  TypeNode tn)
 {
   Trace("sygus-enum-debug") << "master(" << tn << "): init...\n";
+  d_tds = se->d_tds;
   d_se = se;
   d_tn = tn;
 
@@ -617,6 +629,8 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_consClassNum = 0;
   d_currChildSize = 0;
   d_ccCons.clear();
+  d_enumShapes = se->isEnumShapes();
+  d_enumShapesInit = false;
   d_isIncrementing = false;
   d_currTermSet = false;
   bool ret = increment();
@@ -650,6 +664,11 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
       return cc;
     }
     children.push_back(cc);
+  }
+  if (d_enumShapes)
+  {
+    // ensure all variables are unique
+    childrenToShape(children);
   }
   d_currTerm = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
   return d_currTerm;
@@ -693,6 +712,17 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   unsigned ncc = tc.getLastConstructorClassIndexForWeight(d_currSize);
   Trace("sygus-enum-debug2") << "Last constructor class " << d_currSize << ": "
                              << ncc << std::endl;
+  // If we are enumerating shapes, the first enumerated term is a free variable.
+  if (d_enumShapes && !d_enumShapesInit)
+  {
+    Node fv = d_tds->getFreeVar(d_tn, 0);
+    d_enumShapesInit = true;
+    d_currTermSet = true;
+    d_currTerm = fv;
+    // must add to term cache
+    tc.addTerm(fv);
+    return true;
+  }
 
   // have we initialized the current constructor class?
   while (d_ccCons.empty() && d_consClassNum < ncc)
@@ -993,6 +1023,117 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   Trace("sygus-enum-debug2") << "master(" << d_tn
                              << "): success initializeChild " << i << "\n";
   return true;
+}
+
+void SygusEnumerator::TermEnumMaster::childrenToShape(
+    std::vector<Node>& children)
+{
+  if (children.size() <= 2)
+  {
+    // don't need to convert constants and unary applications
+    return;
+  }
+  std::map<TypeNode, int> vcounter;
+  // Buffered child, so that we only compute vcounter if there are more than
+  // one children with free variables, since otherwise there is no change.
+  // For example, if we are given { C, (+ x1 x2), 1 }, we buffer child (+ x1 x2)
+  // noting that it has free variables. We proceed with processing the remaining
+  // children, and note that no other child contains free variables, and hence
+  // no change is necessary (since by construction, all children have the
+  // property of having unique variable subterms). On the other hand if the
+  // last child above was x1, then this would trigger us to convert (+ x1 x2)
+  // while computing vcounter, and subsequently update x1 to x3 to obtain
+  // { C, (+ x1 x2), x3 }.
+  // Have we set the buffer child index
+  bool bufferChildSet = false;
+  // Have we processed the buffer child index
+  bool bufferChildProcessed = false;
+  // The buffer child index
+  size_t bufferChild = 0;
+  for (size_t i = 1, nchildren = children.size(); i < nchildren; i++)
+  {
+    if (!expr::hasBoundVar(children[i]))
+    {
+      // don't need to care about expressions with no bound variables
+      continue;
+    }
+    else if (!bufferChildSet)
+    {
+      bufferChild = i;
+      bufferChildSet = true;
+      continue;
+    }
+    else if (!bufferChildProcessed)
+    {
+      // process the buffer child
+      children[bufferChild] = convertShape(children[bufferChild], vcounter);
+      bufferChildProcessed = true;
+    }
+    children[i] = convertShape(children[i], vcounter);
+  }
+}
+
+Node SygusEnumerator::TermEnumMaster::convertShape(
+    Node n, std::map<TypeNode, int>& vcounter)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      if (cur.isVar())
+      {
+        // do the conversion
+        visited[cur] = d_tds->getFreeVarInc(cur.getType(), vcounter);
+      }
+      else if (!expr::hasBoundVar(cur))
+      {
+        // no bound variables, no change
+        visited[cur] = cur;
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push_back(cur);
+        visit.insert(visit.end(), cur.begin(), cur.end());
+      }
+    }
+    else if (it->second.isNull())
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur)
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged)
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn)
