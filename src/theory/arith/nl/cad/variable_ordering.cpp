@@ -129,9 +129,9 @@ std::vector<poly::Variable> VariableOrdering::operator()(
 {
   switch (vos)
   {
-    case VariableOrderingStrategy::ByID: return sort_byid(polys);
-    case VariableOrderingStrategy::Brown: return sort_brown(polys);
-    case VariableOrderingStrategy::Triangular: return sort_triangular(polys);
+    case VariableOrderingStrategy::BYID: return sort_byid(polys);
+    case VariableOrderingStrategy::BROWN: return sort_brown(polys);
+    case VariableOrderingStrategy::TRIANGULAR: return sort_triangular(polys);
     default: Assert(false) << "Unsupported variable ordering.";
   }
   return {};

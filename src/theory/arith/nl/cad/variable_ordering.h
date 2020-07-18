@@ -42,11 +42,11 @@ namespace cad {
 enum class VariableOrderingStrategy
 {
   /** Dummy ordering by variable ID. */
-  ByID,
+  BYID,
   /** Triangular as of DOI:10.1145/2755996.2756678 */
-  Triangular,
+  TRIANGULAR,
   /** Brown as of DOI:10.1145/2755996.2756678 */
-  Brown
+  BROWN
 };
 
 class VariableOrdering
