@@ -80,7 +80,7 @@ CVC4::Node as_cvc_upolynomial(const poly::UPolynomial& p, const CVC4::Node& var)
 
   Node res = nm->mkConst(Rational(0));
   Node monomial = nm->mkConst(Rational(1));
-  for (std::size_t i = 0; i < coeffs.size(); ++i)
+  for (std::size_t i = 0, n = coeffs.size(); i < n; ++i)
   {
     if (!is_zero(coeffs[i]))
     {
