@@ -25,6 +25,7 @@
 
 #include "base/output.h"
 #include "expr/node.h"
+#include "expr/uninterpreted_constant.h"
 #include "util/bitvector.h"
 #include "util/rational.h"
 #include "util/string.h"

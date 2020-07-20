@@ -43,6 +43,9 @@ EvalResult::EvalResult(const EvalResult& other)
       new (&d_str) String;
       d_str = other.d_str;
       break;
+    case UCONST:
+      new (&d_uc) UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
+      break;
     case INVALID: break;
   }
 }
@@ -66,6 +69,9 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
       case STRING:
         new (&d_str) String;
         d_str = other.d_str;
+        break;
+      case UCONST:
+        new (&d_uc) UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
         break;
       case INVALID: break;
     }
@@ -91,9 +97,13 @@ EvalResult::~EvalResult()
     {
       d_str.~String();
       break;
-
-      default: break;
     }
+    case UCONST:
+    {
+      d_uc.~UninterpretedConstant();
+      break;
+    }
+    default: break;
   }
 }
 
@@ -106,6 +116,7 @@ Node EvalResult::toNode() const
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
     case EvalResult::RATIONAL: return nm->mkConst(d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
+    case EvalResult::UCONST: return nm->mkConst(d_uc);
     default:
     {
       Trace("evaluator") << "Missing conversion from " << d_tag << " to node"
