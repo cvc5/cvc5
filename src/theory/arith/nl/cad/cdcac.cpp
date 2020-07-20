@@ -142,13 +142,6 @@ std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
   return res;
 }
 
-void add_polynomial(
-    std::vector<std::pair<Polynomial, std::vector<Node>>>& polys,
-    const Polynomial& poly,
-    const std::vector<Node>& origin)
-{
-}
-
 std::vector<Polynomial> CDCAC::construct_characterization(
     std::vector<CACInterval>& intervals)
 {
