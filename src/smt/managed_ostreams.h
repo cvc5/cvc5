@@ -74,20 +74,6 @@ class ManagedOstream {
   std::ostream* d_managed;
 }; /* class ManagedOstream */
 
-class SetToDefaultSourceListener : public Listener {
- public:
-  SetToDefaultSourceListener(ManagedOstream* managedOstream)
-      : d_managedOstream(managedOstream){}
-
-  void notify() override
-  {
-    d_managedOstream->set(d_managedOstream->defaultSource());
-  }
-
- private:
-  ManagedOstream* d_managedOstream;
-};
-
 /**
  * This controls the memory associated with --dump-to.
  * This is is assumed to recieve a set whenever diagnosticChannelName

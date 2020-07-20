@@ -8,9 +8,9 @@ original or modified versions; distribution is under the terms of the modified
 BSD license (reproduced below).  Please note that CVC4 can be configured
 (however, by default it is not) to link against some GPLed libraries, and
 therefore the use of these builds may be restricted in non-GPL-compatible
-projects.  See below for a discussion of CLN, GLPK, and Readline (the three
-GPLed optional library dependences for CVC4), and how to ensure you have a
-build that doesn't link against GPLed libraries.
+projects.  See below for a discussion of CLN and GLPK (the two GPLed optional
+library dependences for CVC4), and how to ensure you have a build that doesn't
+link against GPLed libraries.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -80,6 +80,7 @@ CVC4 optionally links against the following libraries:
   CryptoMiniSat      (https://github.com/msoos/cryptominisat)
   LFSC checker       (https://github.com/CVC4/LFSC)
   LibPoly            (https://github.com/SRI-CSL/libpoly)
+  libedit            (https://thrysoee.dk/editline)
 
 Linking CVC4 against these libraries does not affect the license terms of the
 CVC4 code.  See the respective projects for copyright and licensing
@@ -108,7 +109,3 @@ version of GLPK, the GNU Linear Programming Kit, available here:
 
   https://github.com/timothy-king/glpk-cut-log
 
-CVC4 can be optionally configured to link against GNU Readline for improved
-text-editing support in interactive mode.  GNU Readline is available here:
-
-  http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
