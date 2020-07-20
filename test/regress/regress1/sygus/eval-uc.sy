@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --lang=sygus2 --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status --uf-ho
 (set-logic ALL)
 (declare-sort S 0)
 (declare-var f Bool)
