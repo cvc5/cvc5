@@ -68,13 +68,6 @@ std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
   return {};
 }
 
-void add_polynomial(
-    std::vector<std::pair<Polynomial, std::vector<Node>>>& polys,
-    const Polynomial& poly,
-    const std::vector<Node>& origin)
-{
-}
-
 std::vector<Polynomial> CDCAC::construct_characterization(
     std::vector<CACInterval>& intervals)
 {
@@ -89,8 +82,7 @@ CACInterval CDCAC::interval_from_characterization(
   return {};
 }
 
-std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable,
-                                                bool return_first_interval)
+std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable)
 {
   return {};
 }
