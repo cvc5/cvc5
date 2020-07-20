@@ -309,10 +309,63 @@ CACInterval CDCAC::interval_from_characterization(
   }
 }
 
-std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable,
-                                                bool return_first_interval)
+std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable)
 {
-  return {};
+  Trace("cdcac") << "Looking for unsat cover for "
+                 << mVariableOrdering[cur_variable] << std::endl;
+  std::vector<CACInterval> intervals = get_unsat_intervals(cur_variable);
+  Trace("cdcac") << "Unsat intervals for " << mVariableOrdering[cur_variable]
+                 << ":" << std::endl;
+  for (const auto& i : intervals)
+    Trace("cdcac") << "-> " << i.mInterval << " from " << i.mOrigins
+                   << std::endl;
+  Value sample;
+
+  while (sample_outside(intervals, sample))
+  {
+    mAssignment.set(mVariableOrdering[cur_variable], sample);
+    Trace("cdcac") << "Sample: " << mAssignment << std::endl;
+    if (cur_variable == mVariableOrdering.size() - 1)
+    {
+      // We have a full assignment. SAT!
+      Trace("cdcac") << "Found full assignment: " << mAssignment << std::endl;
+      return {};
+    }
+    // Recurse to next variable
+    auto cov = get_unsat_cover(cur_variable + 1);
+    if (cov.empty())
+    {
+      // Found SAT!
+      Trace("cdcac") << "SAT!" << std::endl;
+      return {};
+    }
+    Trace("cdcac") << "Refuting Sample: " << mAssignment << std::endl;
+    auto characterization = construct_characterization(cov);
+    Trace("cdcac") << "Characterization: " << characterization << std::endl;
+
+    mAssignment.unset(mVariableOrdering[cur_variable]);
+
+    auto new_interval =
+        interval_from_characterization(characterization, cur_variable, sample);
+    new_interval.mOrigins = collect_constraints(cov);
+    intervals.emplace_back(new_interval);
+    
+    Trace("cdcac") << "Added " << intervals.back().mInterval << std::endl;
+    Trace("cdcac") << "\tlower:   " << intervals.back().mLowerPolys << std::endl;
+    Trace("cdcac") << "\tupper:   " << intervals.back().mUpperPolys << std::endl;
+    Trace("cdcac") << "\tmain:    " << intervals.back().mMainPolys << std::endl;
+    Trace("cdcac") << "\tdown:    " << intervals.back().mDownPolys << std::endl;
+    Trace("cdcac") << "\torigins: " << intervals.back().mOrigins << std::endl;
+    
+    // Remove redundant intervals
+    clean_intervals(intervals);
+  }
+
+  Trace("cdcac") << "Returning intervals for "
+                 << mVariableOrdering[cur_variable] << ":" << std::endl;
+  for (const auto& i : intervals)
+    Trace("cdcac") << "-> " << i.mInterval << std::endl;
+  return intervals;
 }
 
 }  // namespace cad

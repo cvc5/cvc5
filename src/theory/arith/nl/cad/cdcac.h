@@ -130,8 +130,7 @@ class CDCAC
    * UNSAT and an infeasible subset can be extracted from the returned covering.
    * Implements Algorithm 2.
    */
-  std::vector<CACInterval> get_unsat_cover(std::size_t cur_variable = 0,
-                                           bool return_first_interval = false);
+  std::vector<CACInterval> get_unsat_cover(std::size_t cur_variable = 0);
 };
 
 }  // namespace cad
