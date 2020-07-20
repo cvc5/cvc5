@@ -17,7 +17,7 @@ def parse_commandline():
                         help='path of benchmark results')
     parser.add_argument('-v', '--verbose',
                         action='store_true', help='be more verbose')
-    parser.add_argument('--json', default='data.json',
+    parser.add_argument('--json', default='data.json.gz',
                         help='path of json file')
     parser.add_argument('--threshold', metavar='SEC', type=int, default=1,
                         help='ignore benchmarks with a runtime below this threshold')
@@ -91,8 +91,7 @@ if args.command == 'parse':
 
 elif args.command == 'analyze':
     logging.info('Loading data from {}'.format(args.json))
-    #data = load_zipped_json(args.json)
-    data = json.load(open(args.json, 'r'))
+    data = load_zipped_json(args.json)
 
     logging.info('Extracting resources')
     resources = set()
