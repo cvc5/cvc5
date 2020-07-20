@@ -26,6 +26,16 @@
 #include "projections.h"
 #include "variable_ordering.h"
 
+namespace std {
+/** Generic streaming operator for std::vector. */
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+{
+  CVC4::container_to_stream(os, v);
+  return os;
+}
+}  // namespace std
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
