@@ -158,16 +158,19 @@ std::vector<Polynomial> CDCAC::construct_characterization(
     Trace("cdcac") << "-> " << i.mOrigins << std::endl;
     for (const auto& p : i.mDownPolys)
     {
+      // Add all polynomial from lower levels.
       add_polynomial(res, p);
     }
     for (const auto& p : i.mMainPolys)
     {
       Trace("cdcac") << "Discriminant of " << p << " -> " << discriminant(p)
                      << std::endl;
+      // Add all discriminants
       add_polynomial(res, discriminant(p));
 
       for (const auto& q : required_coefficients(p))
       {
+        // Add all required coefficients
         Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
         add_polynomial(res, q);
       }
@@ -192,6 +195,7 @@ std::vector<Polynomial> CDCAC::construct_characterization(
 
   for (std::size_t i = 0; i < intervals.size() - 1; ++i)
   {
+    // Add resultants of consecutive intervals.
     cad::make_finest_square_free_basis(intervals[i].mUpperPolys,
                                        intervals[i + 1].mLowerPolys);
     for (const auto& p : intervals[i].mUpperPolys)
