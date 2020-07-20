@@ -389,7 +389,12 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(r);
           break;
         }
-
+        case kind::UNINTERPRETED_CONSTANT:
+        {
+          const UninterpretedConstant& uc = currNodeVal.getConst<UninterpretedConstant>();
+          results[currNode] = EvalResult(uc);
+          break;
+        }
         case kind::PLUS:
         {
           Rational res = results[currNode[0]].d_rat;
@@ -822,6 +827,11 @@ EvalResult Evaluator::evalInternal(
             case EvalResult::STRING:
             {
               results[currNode] = EvalResult(lhs.d_str == rhs.d_str);
+              break;
+            }
+            case EvalResult::UCONST:
+            {
+              results[currNode] = EvalResult(lhs.d_uc == rhs.d_uc);
               break;
             }
 
