@@ -7,8 +7,8 @@
 (declare-var new_f Bool)
 (declare-var new_u (-> S Bool))
 (define-fun init ((f Bool) (u (-> S Bool))) Bool (and f (forall ((x S)) (not (u x)))))
-;(define-fun trans ((f Bool) (u (-> S Bool)) (new_f Bool) (new_u (-> S Bool))) Bool (and (not new_f) (exists ((x S)) (forall ((y S)) (= (new_u y) (or (u y) (= y x)))))))
-(define-fun trans ((f Bool) (u (-> S Bool)) (new_f Bool) (new_u (-> S Bool))) Bool (and new_f (exists ((x S)) (forall ((y S)) (= (new_u y) (or (u y) (= y x)))))))
+(define-fun trans ((f Bool) (u (-> S Bool)) (new_f Bool) (new_u (-> S Bool))) Bool (and (not new_f) (exists ((x S)) (forall ((y S)) (= (new_u y) (or (u y) (= y x)))))))
+;(define-fun trans ((f Bool) (u (-> S Bool)) (new_f Bool) (new_u (-> S Bool))) Bool (and new_f (exists ((x S)) (forall ((y S)) (= (new_u y) (or (u y) (= y x)))))))
 (synth-fun inv_matrix ((f Bool) (u (-> S Bool)) (x S)) Bool ((Start Bool)) ((Start Bool ( (or (not 
 (u x)) (not f))))))
 (define-fun inv ((f Bool) (u (-> S Bool))) Bool (forall ((x S)) (inv_matrix f u x)))
