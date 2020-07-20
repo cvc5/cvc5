@@ -506,18 +506,8 @@ bool Constraint::hasSimpleFarkasProof() const
   for (ConstraintCP a = d_database->getAntecedent(i); a != NullConstraint;
        a = d_database->getAntecedent(--i))
   {
-    // ... that antecdent must be an assumption ...
-    if (a->isAssumption())
-    {
-      continue;
-    }
-
-    // ... OR a tightened assumption ...
-    if (a->hasIntTightenProof()
-        && a->getConstraintRule().d_antecedentEnd != AntecedentIdSentinel
-        && d_database->getAntecedent(a->getConstraintRule().d_antecedentEnd)
-               ->isAssumption())
-
+    // ... that antecdent must be an assumption OR a tightened assumption ...
+    if (a->isPossiblyTightenedAssumption())
     {
       continue;
     }
@@ -534,6 +524,16 @@ bool Constraint::hasSimpleFarkasProof() const
     return false;
   }
   return true;
+}
+
+bool Constraint::isPossiblyTightenedAssumption() const
+{
+  // ... that antecdent must be an assumption ...
+  return (isAssumption()
+          || (hasIntTightenProof()
+              && getConstraintRule().d_antecedentEnd != AntecedentIdSentinel
+              && d_database->getAntecedent(getConstraintRule().d_antecedentEnd)
+                     ->isAssumption()));
 }
 
 bool Constraint::hasIntTightenProof() const {
