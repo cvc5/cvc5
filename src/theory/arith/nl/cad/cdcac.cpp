@@ -45,7 +45,20 @@ void CDCAC::reset()
   mAssignment.clear();
 }
 
-void CDCAC::compute_variable_ordering() {}
+void CDCAC::compute_variable_ordering()
+{
+  // Actually compute the variable ordering
+  mVariableOrdering = mVarOrder(mConstraints.get_constraints(),
+                                VariableOrderingStrategy::BROWN);
+
+  // Write variable ordering back to libpoly.
+  lp_variable_order_t* vo = poly::Context::get_context().get_variable_order();
+  lp_variable_order_clear(vo);
+  for (const auto& v : mVariableOrdering)
+  {
+    lp_variable_order_push(vo, v.get_internal());
+  }
+}
 
 Constraints& CDCAC::get_constraints() { return mConstraints; }
 const Constraints& CDCAC::get_constraints() const { return mConstraints; }
