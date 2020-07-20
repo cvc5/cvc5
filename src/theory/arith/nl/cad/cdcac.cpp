@@ -42,6 +42,16 @@ namespace arith {
 namespace nl {
 namespace cad {
 
+namespace {
+/** Removed duplicates from a vector. */
+template <typename T>
+void remove_duplicates(std::vector<T>& v)
+{
+  std::sort(v.begin(), v.end());
+  v.erase(std::unique(v.begin(), v.end()), v.end());
+}
+}  // namespace
+
 CDCAC::CDCAC() {}
 
 CDCAC::CDCAC(const std::vector<Variable>& ordering)
