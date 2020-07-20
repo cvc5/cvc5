@@ -44,7 +44,8 @@ EvalResult::EvalResult(const EvalResult& other)
       d_str = other.d_str;
       break;
     case UCONST:
-      new (&d_uc) UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
+      new (&d_uc)
+          UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
       break;
     case INVALID: break;
   }
@@ -71,7 +72,8 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
         d_str = other.d_str;
         break;
       case UCONST:
-        new (&d_uc) UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
+        new (&d_uc)
+            UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
         break;
       case INVALID: break;
     }
@@ -402,7 +404,8 @@ EvalResult Evaluator::evalInternal(
         }
         case kind::UNINTERPRETED_CONSTANT:
         {
-          const UninterpretedConstant& uc = currNodeVal.getConst<UninterpretedConstant>();
+          const UninterpretedConstant& uc =
+              currNodeVal.getConst<UninterpretedConstant>();
           results[currNode] = EvalResult(uc);
           break;
         }
