@@ -220,7 +220,93 @@ CACInterval CDCAC::interval_from_characterization(
     std::size_t cur_variable,
     const Value& sample)
 {
-  return {};
+  std::vector<Polynomial> l;
+  std::vector<Polynomial> u;
+  std::vector<Polynomial> m;
+  std::vector<Polynomial> d;
+
+  for (const auto& p : characterization)
+  {
+    // Add polynomials to either main or down
+    if (main_variable(p) == mVariableOrdering[cur_variable])
+    {
+      m.emplace_back(p);
+    }
+    else
+    {
+      d.emplace_back(p);
+    }
+  }
+
+  // Collect -oo, all roots, oo
+  std::vector<Value> roots;
+  roots.emplace_back(Value::minus_infty());
+  for (const auto& p : m)
+  {
+    auto tmp = isolate_real_roots(p, mAssignment);
+    roots.insert(roots.end(), tmp.begin(), tmp.end());
+  }
+  roots.emplace_back(Value::plus_infty());
+  std::sort(roots.begin(), roots.end());
+
+  // Now find the interval bounds
+  Value lower;
+  Value upper;
+  for (std::size_t i = 0; i < roots.size(); ++i)
+  {
+    if (sample < roots[i])
+    {
+      lower = roots[i - 1];
+      upper = roots[i];
+      break;
+    }
+    if (roots[i] == sample)
+    {
+      lower = sample;
+      upper = sample;
+      break;
+    }
+  }
+  Assert(!is_none(lower) && !is_none(upper));
+
+  if (lower != Value::minus_infty())
+  {
+    // Identify polynomials that have a root at the lower bound
+    mAssignment.set(mVariableOrdering[cur_variable], lower);
+    for (const auto& p : m)
+    {
+      if (evaluate_constraint(p, mAssignment, SignCondition::EQ))
+      {
+        l.emplace_back(p);
+      }
+    }
+    mAssignment.unset(mVariableOrdering[cur_variable]);
+  }
+  if (upper != Value::plus_infty())
+  {
+    // Identify polynomials that have a root at the upper bound
+    mAssignment.set(mVariableOrdering[cur_variable], upper);
+    for (const auto& p : m)
+    {
+      if (evaluate_constraint(p, mAssignment, SignCondition::EQ))
+      {
+        u.emplace_back(p);
+      }
+    }
+    mAssignment.unset(mVariableOrdering[cur_variable]);
+  }
+
+  if (lower == upper)
+  {
+    // construct a point interval
+    return CACInterval{Interval(lower, false, upper, false), l, u, m, d, {}};
+  }
+  else
+  {
+    // construct an open interval
+    Assert(lower < upper);
+    return CACInterval{Interval(lower, true, upper, true), l, u, m, d, {}};
+  }
 }
 
 std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable,
