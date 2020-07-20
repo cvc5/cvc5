@@ -73,7 +73,34 @@ const std::vector<Variable>& CDCAC::get_variable_ordering() const
 std::vector<CACInterval> CDCAC::get_unsat_intervals(
     std::size_t cur_variable) const
 {
-  return {};
+  std::vector<CACInterval> res;
+  for (const auto& c : mConstraints.get_constraints())
+  {
+    const Polynomial& p = std::get<0>(c);
+    SignCondition sc = std::get<1>(c);
+    const Node& n = std::get<2>(c);
+
+    if (main_variable(p) != mVariableOrdering[cur_variable])
+    {
+      continue;
+    }
+
+    Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
+                   << " 0 over " << mAssignment << std::endl;
+    auto intervals = infeasible_regions(p, mAssignment, sc);
+    for (const auto& i : intervals)
+    {
+      Trace("cdcac") << "-> " << i << std::endl;
+      std::vector<Polynomial> l, u, m, d;
+      // TODO(Gereon): Factorize polynomials here.
+      if (!is_minus_infinity(get_lower(i))) l.emplace_back(p);
+      if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
+      m.emplace_back(p);
+      res.emplace_back(CACInterval{i, l, u, m, d, {n}});
+    }
+  }
+  clean_intervals(res);
+  return res;
 }
 
 std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
