@@ -1519,13 +1519,13 @@ Node SequencesRewriter::rewriteSeqNth(Node node)
   Node i = node[1];
   if (s.isConst() && i.isConst())
   {
-    size_t len = Word::getLength(s);    
+    size_t len = Word::getLength(s);
     size_t pos = i.getConst<Rational>().getNumerator().toUnsignedInt();
     if (pos < len)
     {
       std::vector<Node> elements = Word::getChars(s);
-       ret = elements[pos];
-       return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
+      ret = elements[pos];
+      return returnRewrite(node, ret, Rewrite::SEQ_NTH_EVAL);
     }
     else
     {
