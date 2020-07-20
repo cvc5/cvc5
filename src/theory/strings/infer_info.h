@@ -347,6 +347,8 @@ class InferInfo
   ~InferInfo() {}
   /** The inference identifier */
   Inference d_id;
+  /** Whether it is the reverse form of the above id */
+  bool d_idRev;
   /** The conclusion */
   Node d_conc;
   /**
