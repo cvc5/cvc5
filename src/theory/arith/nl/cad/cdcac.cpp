@@ -78,7 +78,18 @@ std::vector<CACInterval> CDCAC::get_unsat_intervals(
 
 std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
 {
-  return {};
+  std::vector<Polynomial> res;
+  for (long deg = degree(p); deg >= 0; --deg)
+  {
+    auto coeff = coefficient(p, deg);
+    if (lp_polynomial_is_constant(coeff.get_internal())) break;
+    res.emplace_back(coeff);
+    if (evaluate_constraint(coeff, mAssignment, SignCondition::NE))
+    {
+      break;
+    }
+  }
+  return res;
 }
 
 void add_polynomial(
