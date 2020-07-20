@@ -70,6 +70,8 @@ void CDCAC::compute_variable_ordering()
   // Actually compute the variable ordering
   mVariableOrdering = mVarOrder(mConstraints.get_constraints(),
                                 VariableOrderingStrategy::BROWN);
+  Trace("cdcac") << "Variable ordering is now " << mVariableOrdering
+                 << std::endl;
 
   // Write variable ordering back to libpoly.
   lp_variable_order_t* vo = poly::Context::get_context().get_variable_order();
@@ -102,6 +104,7 @@ std::vector<CACInterval> CDCAC::get_unsat_intervals(
 
     if (main_variable(p) != mVariableOrdering[cur_variable])
     {
+      // Constraint is in another variable, ignore it.
       continue;
     }
 
