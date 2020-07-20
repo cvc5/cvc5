@@ -145,7 +145,70 @@ std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
 std::vector<Polynomial> CDCAC::construct_characterization(
     std::vector<CACInterval>& intervals)
 {
-  return {};
+  Assert(!intervals.empty()) << "A covering can not be empty";
+  Trace("cdcac") << "Constructing characterization now" << std::endl;
+  std::vector<Polynomial> res;
+
+  for (const auto& i : intervals)
+  {
+    Trace("cdcac") << "Considering " << i.mInterval << std::endl;
+    Trace("cdcac") << "-> " << i.mLowerPolys << " / " << i.mUpperPolys
+                   << " and " << i.mMainPolys << " / " << i.mDownPolys
+                   << std::endl;
+    Trace("cdcac") << "-> " << i.mOrigins << std::endl;
+    for (const auto& p : i.mDownPolys)
+    {
+      add_polynomial(res, p);
+    }
+    for (const auto& p : i.mMainPolys)
+    {
+      Trace("cdcac") << "Discriminant of " << p << " -> " << discriminant(p)
+                     << std::endl;
+      add_polynomial(res, discriminant(p));
+
+      for (const auto& q : required_coefficients(p))
+      {
+        Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
+        add_polynomial(res, q);
+      }
+      // TODO(Gereon): Only add if p(s \times a) = a for some a <= l
+      for (const auto& q : i.mLowerPolys)
+      {
+        if (p == q) continue;
+        Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
+                       << resultant(p, q) << std::endl;
+        add_polynomial(res, resultant(p, q));
+      }
+      // TODO(Gereon): Only add if p(s \times a) = a for some a >= u
+      for (const auto& q : i.mUpperPolys)
+      {
+        if (p == q) continue;
+        Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
+                       << resultant(p, q) << std::endl;
+        add_polynomial(res, resultant(p, q));
+      }
+    }
+  }
+
+  for (std::size_t i = 0; i < intervals.size() - 1; ++i)
+  {
+    cad::make_finest_square_free_basis(intervals[i].mUpperPolys,
+                                       intervals[i + 1].mLowerPolys);
+    for (const auto& p : intervals[i].mUpperPolys)
+    {
+      for (const auto& q : intervals[i + 1].mLowerPolys)
+      {
+        Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
+                       << resultant(p, q) << std::endl;
+        add_polynomial(res, resultant(p, q));
+      }
+    }
+  }
+
+  remove_duplicates(res);
+  make_finest_square_free_basis(res);
+
+  return res;
 }
 
 CACInterval CDCAC::interval_from_characterization(
