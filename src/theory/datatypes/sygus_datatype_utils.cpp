@@ -335,6 +335,16 @@ struct SygusToBuiltinVarAttributeId
 typedef expr::Attribute<SygusToBuiltinVarAttributeId, Node>
     SygusToBuiltinVarAttribute;
 
+// A variant of the above attribute for cases where we introduce a fresh
+// variable. This is to support sygusToBuiltin on non-constant sygus terms,
+// where sygus variables should be mapped to canonical builtin variables.
+// It is important to cache this so that sygusToBuiltin is deterministic.
+struct BuiltinVarToSygusAttributeId
+{
+};
+typedef expr::Attribute<BuiltinVarToSygusAttributeId, Node>
+    BuiltinVarToSygusAttribute;
+
 Node sygusToBuiltin(Node n, bool isExternal)
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
@@ -388,6 +398,9 @@ Node sygusToBuiltin(Node n, bool isExternal)
           SygusToBuiltinVarAttribute stbv;
           cur.setAttribute(stbv, var);
           visited[cur] = var;
+          // create backwards mapping
+          BuiltinVarToSygusAttribute bvtsa;
+          var.setAttribute(bvtsa, cur);
         }
       }
       else
@@ -547,6 +560,16 @@ Node sygusToBuiltinEval(Node n, const std::vector<Node>& args)
   Assert(visited.find(n) != visited.end());
   Assert(!visited.find(n)->second.isNull());
   return visited[n];
+}
+
+Node builtinVarToSygus(Node v)
+{
+  BuiltinVarToSygusAttribute bvtsa;
+  if (v.hasAttribute(bvtsa))
+  {
+    return v.getAttribute(bvtsa);
+  }
+  return Node::null();
 }
 
 void getFreeSymbolsSygusType(TypeNode sdt,
