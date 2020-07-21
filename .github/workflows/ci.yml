@@ -2,8 +2,15 @@ on: [push, pull_request]
 name: CI
 
 jobs:
-  build:
+  cancel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: cancel-previous-runs
+        uses: styfle/cancel-workflow-action@0.4.1
+        with:
+          access_token: ${{ github.token }}
 
+  build:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -13,6 +20,14 @@ jobs:
           debug,
           debug-cln
         ]
+
+        exclude:
+          - name: production-clang
+            os: macos-latest
+          - name: debug
+            os: macos-latest
+          - name: debug-cln
+            os: macos-latest
 
         include:
           - name: production
@@ -26,14 +41,17 @@ jobs:
             cache-key: production-clang
             check-examples: true
             env: CC=clang CXX=clang++
+            os: ubuntu-latest
 
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
+            os: ubuntu-latest
 
           - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug-cln
+            os: ubuntu-latest
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
