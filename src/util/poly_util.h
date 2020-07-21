@@ -25,7 +25,6 @@
 #ifndef CVC4__POLY_UTIL_H
 #define CVC4__POLY_UTIL_H
 
-
 #include <vector>
 
 #include "maybe.h"
@@ -58,6 +57,11 @@ Rational toRational(const poly::Integer& r);
 Rational toRational(const poly::Rational& r);
 /** Converts a poly::DyadicRational to a CVC4::Rational. */
 Rational toRational(const poly::DyadicRational& dr);
+
+/** Converts a poly::Value to a CVC4::Rational (that may be a bit above). */
+Rational toRationalAbove(const poly::Value& v);
+/** Converts a poly::Value to a CVC4::Rational (that may be a bit below). */
+Rational toRationalBelow(const poly::Value& v);
 
 /** Converts a CVC4::Integer to a poly::Integer. */
 poly::Integer toInteger(const Integer& i);
@@ -119,11 +123,16 @@ struct VariableInformation
   std::size_t max_lc_degree = 0;
   /** Maximum of total degrees of terms that contain this variable. */
   std::size_t max_terms_tdegree = 0;
-  /** Sum of degrees of this variable. */
-  std::size_t sum_degree = 0;
+  /** Sum of degrees of this variable within all terms. */
+  std::size_t sum_term_degree = 0;
+  /** Sum of degrees of this variable within all polynomials. */
+  std::size_t sum_poly_degree = 0;
+  /** Number of polynomials that contain this variable. */
+  std::size_t num_polynomials = 0;
   /** Number of terms that contain this variable. */
   std::size_t num_terms = 0;
 };
+std::ostream& operator<<(std::ostream& os, const VariableInformation& vi);
 
 void getVariableInformation(VariableInformation& vi,
                             const poly::Polynomial& poly);
