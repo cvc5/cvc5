@@ -34,4 +34,26 @@ cvc4_add_system_test(smt2_compliance)
 # TODO(cvc4-projects#209): Add methods for retrieving statistics to new API
 # cvc4_add_system_test(statistics)
 cvc4_add_system_test(two_solvers)
+
+# if we've built using libedit, then we want the interactive shell tests
+if (USE_EDITLINE)
+
+  # Check for pexpect -- zero return code is success
+  execute_process(
+    COMMAND ${PYTHON_EXECUTABLE} -c "import pexpect"
+    RESULT_VARIABLE PEXPECT_RC
+    ERROR_QUIET
+  )
+
+  # Add the test if we have pexpect
+  if(PEXPECT_RC EQUAL 0)
+    add_test(
+      NAME interactive_shell
+      COMMAND
+      "${PYTHON_EXECUTABLE}" "${CMAKE_SOURCE_DIR}/test/system/interactive_shell.py"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    )
+  endif()
+endif()
+
 # TODO: Move CVC4JavaTest.java to test/java and delete run_java_test (after full cmake migration)

@@ -69,17 +69,6 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::notifyBeforeSearch(const std::string& option)
-{
-  try{
-    d_options->d_beforeSearchListeners.notify();
-  } catch (ModalException&){
-    std::stringstream ss;
-    ss << "cannot change option `" << option << "' after final initialization";
-    throw ModalException(ss.str());
-  }
-}
-
 unsigned long OptionsHandler::limitHandler(std::string option,
                                            std::string optarg)
 {
@@ -92,12 +81,6 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
-
-/* options/base_options_handlers.h */
-void OptionsHandler::notifyPrintSuccess(std::string option) {
-  d_options->d_setPrintSuccessListeners.notify();
-}
-
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
@@ -310,19 +293,6 @@ void OptionsHandler::LFSCEnabledBuild(std::string option, bool value) {
 #endif /* CVC4_USE_LFSC */
 }
 
-void OptionsHandler::notifyDumpToFile(std::string option) {
-  d_options->d_dumpToFileListeners.notify();
-}
-
-
-void OptionsHandler::notifySetRegularOutputChannel(std::string option) {
-  d_options->d_setRegularChannelListeners.notify();
-}
-
-void OptionsHandler::notifySetDiagnosticOutputChannel(std::string option) {
-  d_options->d_setDiagnosticChannelListeners.notify();
-}
-
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
 {
 #ifndef CVC4_STATISTICS_ON
@@ -338,12 +308,6 @@ void OptionsHandler::threadN(std::string option) {
   throw OptionException(option + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
 }
 
-void OptionsHandler::notifyDumpMode(std::string option)
-{
-  d_options->d_setDumpModeListeners.notify();
-}
-
-
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepthPredicate(std::string option, int depth) {
   if(depth < -1) {
@@ -356,19 +320,6 @@ void OptionsHandler::setDefaultDagThreshPredicate(std::string option, int dag) {
     throw OptionException("--dag-thresh requires a nonnegative argument.");
   }
 }
-
-void OptionsHandler::notifySetDefaultExprDepth(std::string option) {
-  d_options->d_setDefaultExprDepthListeners.notify();
-}
-
-void OptionsHandler::notifySetDefaultDagThresh(std::string option) {
-  d_options->d_setDefaultDagThreshListeners.notify();
-}
-
-void OptionsHandler::notifySetPrintExprTypes(std::string option) {
-  d_options->d_setPrintExprTypesListeners.notify();
-}
-
 
 // main/options_handlers.h
 
@@ -443,7 +394,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("poly", Configuration::isBuiltWithPoly());
-  print_config_cond("readline", Configuration::isBuiltWithReadline());
+  print_config_cond("editline", Configuration::isBuiltWithEditline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
   
   exit(0);
