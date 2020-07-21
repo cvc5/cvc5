@@ -68,7 +68,7 @@ class Constraints
   VariableMapper& var_mapper() { return mVarMapper; }
 
   /**
-   * Add a constraing (represented by a polynomial and a sign condition) to the
+   * Add a constraint (represented by a polynomial and a sign condition) to the
    * list of constraints.
    */
   void add_constraint(const poly::Polynomial& lhs,
