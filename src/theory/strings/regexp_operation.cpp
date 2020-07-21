@@ -117,7 +117,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::delta( Node r, Node &exp ) {
-  if ( d_delta_cache.find( r ) != d_delta_cache.end() ) 
+  if (d_delta_cache.find(r) != d_delta_cache.end())
   {
     // already computed
     ret = d_delta_cache[r].first;
@@ -128,7 +128,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
   int ret = 0;
   NodeManager* nm = NodeManager::currentNM();
   Kind k = r.getKind();
-  switch( k ) {
+  switch (k)
+  {
     case REGEXP_EMPTY:
     case REGEXP_SIGMA:
     case REGEXP_RANGE:
@@ -137,25 +138,34 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       ret = 2;
       break;
     }
-    case STRING_TO_REGEXP: {
+    case STRING_TO_REGEXP:
+    {
       Node tmp = Rewriter::rewrite(r[0]);
-      if(tmp.isConst()) {
-        if(tmp == d_emptyString) {
+      if (tmp.isConst())
+      {
+        if (tmp == d_emptyString)
+        {
           ret = 1;
         } else {
           ret = 2;
         }
-      } else {
+      }
+      else
+      {
         ret = 0;
-        if(tmp.getKind() == STRING_CONCAT) {
-          for (const Node& tmpc : tmp){
-            if(tmpc.isConst()) {
-              ret = 2; break;
+        if (tmp.getKind() == STRING_CONCAT)
+        {
+          for (const Node& tmpc : tmp)
+          {
+            if (tmpc.isConst())
+            {
+              ret = 2;
+              break;
             }
           }
-
         }
-        if(ret == 0) {
+        if (ret == 0)
+        {
           exp = r[0].eqNode(d_emptyString);
         }
       }
@@ -170,9 +180,10 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       std::vector<Node> vec;
       int checkTmp = k == REGEXP_UNION ? 1 : 2;
       int retTmp = k == REGEXP_UNION ? 2 : 1;
-      for (const Node& rc : r){
+      for (const Node& rc : r)
+      {
         Node exp2;
-        int tmp = delta( rc, exp2 );
+        int tmp = delta(rc, exp2);
         if (tmp == checkTmp)
         {
           // return is implied by the child's return value
@@ -189,7 +200,8 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       }
       if (ret != checkTmp)
       {
-        if(!hasUnknownChild) {
+        if (!hasUnknownChild)
+        {
           ret = retTmp;
         } else {
           Kind kr = k == REGEXP_UNION ? OR : AND;
@@ -205,16 +217,20 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       ret = 1;
       break;
     }
-    case REGEXP_PLUS: {
-      ret = delta( r[0], exp );
+    case REGEXP_PLUS:
+    {
+      ret = delta(r[0], exp);
       break;
     }
-    case REGEXP_LOOP: {
+    case REGEXP_LOOP:
+    {
       uint32_t lo = utils::getLoopMinOccurrences(r);
       if (lo == 0)
       {
         ret = 1;
-      } else {
+      }
+      else
+      {
         ret = delta(r[0], exp);
       }
       break;
@@ -227,15 +243,17 @@ int RegExpOpr::delta( Node r, Node &exp ) {
       exp = exp.isNull() ? exp : exp.negate();
       break;
     }
-    default: {
+    default:
+    {
       Assert(!utils::isRegExpKind(k));
       break;
     }
   }
-  if(!exp.isNull()) {
+  if (!exp.isNull())
+  {
     exp = Rewriter::rewrite(exp);
   }
-  std::pair< int, Node > p(ret, exp);
+  std::pair<int, Node> p(ret, exp);
   d_delta_cache[r] = p;
   Trace("regexp-delta") << "RegExpOpr::delta returns " << ret << " for " << r
                         << ", expr = " << exp << std::endl;
