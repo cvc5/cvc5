@@ -1933,7 +1933,8 @@ void TheoryArithPrivate::outputConflicts(){
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof() && confConstraint->getNegation()->isPossiblyTightenedAssumption())
+        if (confConstraint->hasSimpleFarkasProof()
+            && confConstraint->getNegation()->isPossiblyTightenedAssumption())
         {
           d_containing.d_proofRecorder->saveFarkasCoefficients(
               conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
