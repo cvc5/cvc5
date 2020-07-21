@@ -597,7 +597,8 @@ TrustNode TheoryStrings::expandDefinition(Node node)
   if (node.getKind() == SEQ_NTH)
   {
     // str.nth(s,i) --->
-    //   witness k. ite(0 <= i < len(s), unit(k) = seq.at(s,i), k = uf(s,i))
+    //   ite(0<=i<=len(s), witness k. 0<=i<=len(s)->unit(k) = seq.at(s,i),
+    //   uf(s,i))
     NodeManager* nm = NodeManager::currentNM();
     Node s = node[0];
     Node i = node[1];
