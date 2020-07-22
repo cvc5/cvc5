@@ -138,8 +138,10 @@ class SkolemCache
     //   where b is a regular expression, n is the number of occurrences of b
     //   in a, and k(0)=0.
     SK_OCCUR_LEN,
-    // exists a. ite(0 <= i < len(s), unit(a) = seq.at(s,i), a = uf(s,i))
-    // That is, a is always a function of s and i, even if i is out of bounds.
+    // For function k: ((Seq U) x Int) -> U
+    // exists k.
+    // forall s, n.
+    //  k(s, n) is some undefined value of sort U
     SK_NTH,
   };
   /**
