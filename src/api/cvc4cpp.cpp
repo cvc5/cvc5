@@ -1529,7 +1529,6 @@ Sort Term::getSort() const
 {
   CVC4_API_CHECK_NOT_NULL;
   NodeManagerScope scope(d_solver->getNodeManager());
-
   return Sort(d_solver, d_node->getType().toType());
 }
 
