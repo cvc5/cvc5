@@ -39,7 +39,7 @@ TheoryArith::TheoryArith(context::Context* c,
                          ProofNodeManager* pnm)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
-          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo)),
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_proofRecorder(nullptr)
 {
