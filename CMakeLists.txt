@@ -324,6 +324,12 @@ else()
     message(WARNING "Disabling unit tests since static build is enabled.")
     set(ENABLE_UNIT_TESTING OFF)
   endif()
+
+  if (NOT ENABLE_GPL)
+    message(FATAL_ERROR "Building statically creates a GPL-licensed binary. "
+                        "You must configure CVC4 with `--gpl` to build with "
+                        "`--static`.")
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
