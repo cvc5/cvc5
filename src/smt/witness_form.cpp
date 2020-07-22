@@ -20,7 +20,7 @@
 namespace CVC4 {
 namespace smt {
 
-WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm) : d_tcpg(pnm)
+WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm) : d_tcpg(pnm), d_wintroPf(pnm)
 {
 }
 
@@ -50,6 +50,8 @@ std::string WitnessFormGenerator::identify() const
 
 Node WitnessFormGenerator::convertToWitnessForm(Node t)
 {
+  NodeManager * nm = NodeManager::currentNM();
+  SkolemManager * skm = nm->getSkolemManager();
   Node tw = SkolemManager::getWitnessForm(t);
   if (t == tw)
   {
@@ -78,8 +80,25 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           Node eq = cur.eqNode(curw);
           // equality between a variable and its witness form
           d_eqs.insert(eq);
-          // store the rewrite step
-          d_tcpg.addRewriteStep(cur, curw, PfRule::TRUST, {}, {eq});
+          Assert (curw.getKind()==kind::WITNESS);
+          Node skBody = SkolemManager::getSkolemForm(curw[1]);
+          Node exists = nm->mkNode(kind::EXISTS, curw[0], skBody);
+          ProofGenerator * pg = skm->getProofGenerator(exists);
+          if (pg!=nullptr)
+          {
+            // --------------------------- from pg
+            // (exists ((x T)) (P x))
+            // --------------------------- WITNESS_INTRO
+            // k = (witness ((x T)) (P x))
+            d_wintroPf.addLazyStep(exists, pg);
+            d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
+            d_tcpg.addRewriteStep(cur, curw, &d_wintroPf);
+          }
+          else
+          {
+            // store the rewrite step
+            d_tcpg.addRewriteStep(cur, curw, PfRule::TRUST, {}, {eq});
+          }
         }
         else
         {

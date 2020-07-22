@@ -27,6 +27,13 @@
 namespace CVC4 {
 namespace smt {
 
+/**
+  * The witness form proof generator, which acts as a wrapper around a
+  * TConvProofGenerator for adding rewrite steps for witness introduction.
+  * 
+  * The proof steps managed by this class are stored in a context-independent
+  * manager, which matches how witness forms are managed in SkolemManager.
+  */
 class WitnessFormGenerator : public ProofGenerator
 {
  public:
@@ -77,6 +84,8 @@ class WitnessFormGenerator : public ProofGenerator
   std::unordered_set<TNode, TNodeHashFunction> d_visited;
   /** The set of equalities added as proof steps */
   std::unordered_set<Node, NodeHashFunction> d_eqs;
+  /** Lazy proof storing witness intro steps */
+  LazyCDProof d_wintroPf;
 };
 
 }  // namespace smt

@@ -97,22 +97,25 @@ PR finished:
 (61) witness rewrite
 (62) update proof checker for Skolem forms
 (64) updates to SkolemManager
+(65) updates to strings core solver *
 (66) preprocess proof generator
+(67) AssertionsPipeline update (req 66)
 
 PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
+(30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64)
 (45) regexp operation refactor (req 3, 7, 8) *
 (50) term formula removal proof producing (req 36, 38, 51, 64) *
-(65) updates to strings core solver *
 (70) rewriter unit test [Andres] (req 36, 37)
+(72) witness form proof generator 
+(73) ProofNode print ast
 
 PRs future:
 
 (24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23)
-(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
 (29) arithmetic proof producing [Alex] (req 24, 25)
-(30) Arithmetic operator elimination proof producing TODO (req 25, 28, 33, 64)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (41) SharedTermDatabase uses pfee (req 24)
 (42) Strings proof checker (req 5, 17, 22, 45, 65)
@@ -127,15 +130,12 @@ PRs future:
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
 (63) SMT engine proof post-processor (req 37, 59, 66, 72)
-(67) AssertionsPipeline update (req 66)
 (68) SAT solver proof producing [Haniel]
 (69) Initial dumping infrastructure [Haniel]
 (71) quantifiers proof producing (req 38, 52)
-(72) witness form proof generator TODO
 
 PRs wish list:
 
 - SEXPR simply typed
 (56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?
-- ProofNode printing

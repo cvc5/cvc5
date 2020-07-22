@@ -507,6 +507,11 @@ void SmtEngine::finishInit()
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());
+  
+  // Call finish init on the options manager. This inializes the resource
+  // manager based on the options, and sets up the best default options
+  // based on our heuristics.
+  d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   ProofNodeManager* pnm = nullptr;
   if (options::proofNew())
@@ -520,10 +525,6 @@ void SmtEngine::finishInit()
     d_private->getAssertionPipeline().setProofGenerator(
         d_pfManager->getPreprocessProofGenerator());
   }
-  // Call finish init on the options manager. This inializes the resource
-  // manager based on the options, and sets up the best default options
-  // based on our heuristics.
-  d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
