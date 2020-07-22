@@ -40,6 +40,7 @@ const char* toString(PfRule id)
     case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
     case PfRule::PREPROCESS: return "PREPROCESS";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
+    case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Boolean rules
     case PfRule::RESOLUTION: return "RESOLUTION";

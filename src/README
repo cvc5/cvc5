@@ -105,11 +105,11 @@ PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
-(30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64)
+(30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64) *
 (45) regexp operation refactor (req 3, 7, 8) *
 (50) term formula removal proof producing (req 36, 38, 51, 64) *
 (70) rewriter unit test [Andres] (req 36, 37)
-(72) witness form proof generator 
+(72) witness form proof generator *
 (73) ProofNode print ast
 
 PRs future:
@@ -139,3 +139,4 @@ PRs wish list:
 - SEXPR simply typed
 (56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?
+- arith op eliminate proof producing
