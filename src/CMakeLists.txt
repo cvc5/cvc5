@@ -260,6 +260,8 @@ libcvc4_add_sources(
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
   smt/update_ostream.h
+  smt/witness_form.cpp
+  smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
   smt_util/nary_builder.cpp
