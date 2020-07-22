@@ -117,12 +117,12 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::delta( Node r, Node &exp ) {
-  if (d_delta_cache.find(r) != d_delta_cache.end())
+  std::map<Node, std::pair<int, Node> >::iterator itd = d_delta_cache.find(r);
+  if (itd != d_delta_cache.end())
   {
     // already computed
-    ret = d_delta_cache[r].first;
-    exp = d_delta_cache[r].second;
-    return ret;
+    exp = itd->second.second;
+    return itd->second.first;
   }
   Trace("regexp-delta") << "RegExpOpr::delta: " << r << std::endl;
   int ret = 0;
