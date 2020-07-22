@@ -174,7 +174,7 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
 
   //================================================= Processing rules
-  // ======== Preprocess
+  // ======== Preprocess (trusted)
   // Children: none
   // Arguments: (F)
   // ---------------------------------------------------------------
@@ -183,6 +183,15 @@ enum class PfRule : uint32_t
   // based on some preprocessing pass, or otherwise F was added as a new
   // assertion by some preprocessing pass.
   PREPROCESS,
+  // ======== Witness axiom (trusted)
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an existential (exists ((x T)) (P x)) used for introducing
+  // a witness term (witness ((x T)) (P x)).
+  WITNESS_AXIOM,
+  
   //================================================= Boolean rules
   // ======== Split
   // Children: none

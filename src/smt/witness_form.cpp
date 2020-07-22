@@ -85,21 +85,13 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           Node skBody = SkolemManager::getSkolemForm(curw[1]);
           Node exists = nm->mkNode(kind::EXISTS, curw[0], skBody);
           ProofGenerator* pg = skm->getProofGenerator(exists);
-          if (pg != nullptr)
-          {
-            // --------------------------- from pg
-            // (exists ((x T)) (P x))
-            // --------------------------- WITNESS_INTRO
-            // k = (witness ((x T)) (P x))
-            d_wintroPf.addLazyStep(exists, pg);
-            d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
-            d_tcpg.addRewriteStep(cur, curw, &d_wintroPf);
-          }
-          else
-          {
-            // store the rewrite step
-            d_tcpg.addRewriteStep(cur, curw, PfRule::TRUST, {}, {eq});
-          }
+          // --------------------------- from pg
+          // (exists ((x T)) (P x))
+          // --------------------------- WITNESS_INTRO
+          // k = (witness ((x T)) (P x))
+          d_wintroPf.addLazyStep(exists, pg, false, PfRule::WITNESS_AXIOM);
+          d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
+          d_tcpg.addRewriteStep(cur, curw, &d_wintroPf);
         }
         else
         {
