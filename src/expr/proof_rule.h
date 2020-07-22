@@ -191,7 +191,7 @@ enum class PfRule : uint32_t
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
-  
+
   //================================================= Boolean rules
   // ======== Split
   // Children: none
