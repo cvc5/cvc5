@@ -87,7 +87,8 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        context::UserContext* u,
                                        OutputChannel& out,
                                        Valuation valuation,
-                                       const LogicInfo& logicInfo)
+                                       const LogicInfo& logicInfo,
+                                       ProofNodeManager* pnm)
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
@@ -156,7 +157,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_opElim(logicInfo)
+      d_opElim(pnm, logicInfo)
 {
   // only need to create if non-linear logic
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())

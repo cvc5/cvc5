@@ -423,7 +423,8 @@ private:
                      context::UserContext* u,
                      OutputChannel& out,
                      Valuation valuation,
-                     const LogicInfo& logicInfo);
+                     const LogicInfo& logicInfo,
+                     ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
