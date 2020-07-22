@@ -507,7 +507,7 @@ void SmtEngine::finishInit()
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());
-  
+
   // Call finish init on the options manager. This inializes the resource
   // manager based on the options, and sets up the best default options
   // based on our heuristics.

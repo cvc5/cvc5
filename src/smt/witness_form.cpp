@@ -20,7 +20,8 @@
 namespace CVC4 {
 namespace smt {
 
-WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm) : d_tcpg(pnm), d_wintroPf(pnm)
+WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
+    : d_tcpg(pnm), d_wintroPf(pnm)
 {
 }
 
@@ -50,8 +51,8 @@ std::string WitnessFormGenerator::identify() const
 
 Node WitnessFormGenerator::convertToWitnessForm(Node t)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  SkolemManager * skm = nm->getSkolemManager();
+  NodeManager* nm = NodeManager::currentNM();
+  SkolemManager* skm = nm->getSkolemManager();
   Node tw = SkolemManager::getWitnessForm(t);
   if (t == tw)
   {
@@ -80,11 +81,11 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           Node eq = cur.eqNode(curw);
           // equality between a variable and its witness form
           d_eqs.insert(eq);
-          Assert (curw.getKind()==kind::WITNESS);
+          Assert(curw.getKind() == kind::WITNESS);
           Node skBody = SkolemManager::getSkolemForm(curw[1]);
           Node exists = nm->mkNode(kind::EXISTS, curw[0], skBody);
-          ProofGenerator * pg = skm->getProofGenerator(exists);
-          if (pg!=nullptr)
+          ProofGenerator* pg = skm->getProofGenerator(exists);
+          if (pg != nullptr)
           {
             // --------------------------- from pg
             // (exists ((x T)) (P x))

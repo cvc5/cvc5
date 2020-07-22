@@ -28,12 +28,12 @@ namespace CVC4 {
 namespace smt {
 
 /**
-  * The witness form proof generator, which acts as a wrapper around a
-  * TConvProofGenerator for adding rewrite steps for witness introduction.
-  * 
-  * The proof steps managed by this class are stored in a context-independent
-  * manager, which matches how witness forms are managed in SkolemManager.
-  */
+ * The witness form proof generator, which acts as a wrapper around a
+ * TConvProofGenerator for adding rewrite steps for witness introduction.
+ *
+ * The proof steps managed by this class are stored in a context-independent
+ * manager, which matches how witness forms are managed in SkolemManager.
+ */
 class WitnessFormGenerator : public ProofGenerator
 {
  public:
