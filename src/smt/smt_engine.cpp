@@ -463,7 +463,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   // On the other hand, this hack breaks use cases where multiple SmtEngine
   // objects are created by the user.
   d_scope.reset(new SmtScope(this));
-  NodeManagerScope nms(em->getNodeManager());
   if (optr != nullptr)
   {
     // if we provided a set of options, copy their values to the options

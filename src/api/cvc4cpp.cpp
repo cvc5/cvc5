@@ -1527,8 +1527,8 @@ Kind Term::getKind() const
 
 Sort Term::getSort() const
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK_NOT_NULL;
+  NodeManagerScope scope(d_solver->getNodeManager());
   return Sort(d_solver, d_node->getType().toType());
 }
 
