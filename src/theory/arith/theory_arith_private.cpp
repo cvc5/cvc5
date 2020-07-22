@@ -1078,26 +1078,21 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
+TrustNode TheoryArithPrivate::ppRewriteTerms(TNode n)
+{
   if(Theory::theoryOf(n) != THEORY_ARITH) {
-    return n;
+    return TrustNode::null();
   }
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(n);
-  if (nn != n)
-  {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
-  }
-  return n;
+  return d_opElim.eliminate(n);
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom) {
+TrustNode TheoryArithPrivate::ppRewrite(TNode atom)
+{
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (options::arithRewriteEq())
@@ -1106,13 +1101,21 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
     {
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      leq = ppRewriteTerms(leq);
-      geq = ppRewriteTerms(geq);
+      TrustNode tleq = ppRewriteTerms(leq);
+      TrustNode tgeq = ppRewriteTerms(geq);
+      if (!tleq.isNull())
+      {
+        leq = tleq.getNode();
+      }
+      if (!tgeq.isNull())
+      {
+        geq = tgeq.getNode();
+      }
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
       // don't need to rewrite terms since rewritten is not a non-standard op
-      return rewritten;
+      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
     }
   }
   return ppRewriteTerms(atom);
@@ -4811,17 +4814,10 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-Node TheoryArithPrivate::expandDefinition(Node node)
+TrustNode TheoryArithPrivate::expandDefinition(Node node)
 {
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(node);
-  if (nn != node)
-  {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
-  }
-  return node;
+  return d_opElim.eliminate(node);
 }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){
