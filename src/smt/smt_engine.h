@@ -384,9 +384,9 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Expr& assumption = Expr(),
+  Result checkEntailed(const Node& assumption = Node(),
                        bool inUnsatCore = true);
-  Result checkEntailed(const std::vector<Expr>& assumptions,
+  Result checkEntailed(const std::vector<Node>& assumptions,
                        bool inUnsatCore = true);
 
   /**
@@ -395,8 +395,8 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkSat(const Expr& assumption = Expr(), bool inUnsatCore = true);
-  Result checkSat(const std::vector<Expr>& assumptions,
+  Result checkSat(const Node& assumption = Node(), bool inUnsatCore = true);
+  Result checkSat(const std::vector<Node>& assumptions,
                   bool inUnsatCore = true);
 
   /**
@@ -1122,6 +1122,8 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** Assertions manager */
+  std::unique_ptr<smt::AssertionsManager> d_asserts;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
@@ -1146,24 +1148,10 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
 
   /**
-   * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in incremental mode.
-   */
-  AssertionList* d_assertionList;
-
-  /**
    * List of lemmas generated for global recursive function definitions. We
    * assert this list of definitions in each check-sat call.
    */
   std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
-
-  /**
-   * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
-   */
-  std::vector<Expr> d_assumptions;
 
   /**
    * List of items for which to retrieve values using getAssignment().

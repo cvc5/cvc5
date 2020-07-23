@@ -421,13 +421,13 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
+      d_asserts(new AssertionsManager(*this)),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_abductSolver(nullptr),
-      d_assertionList(nullptr),
       d_assignments(nullptr),
       d_modelGlobalCommands(),
       d_modelCommands(nullptr),
@@ -440,7 +440,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_fullyInited(false),
       d_queryMade(false),
       d_needPostsolve(false),
-      d_globalNegation(false),
       d_status(),
       d_expectedStatus(),
       d_smtMode(SMT_MODE_START),
@@ -1328,55 +1327,6 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
-void SmtEnginePrivate::addFormula(
-    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
-{
-  if (n == d_true) {
-    // nothing to do
-    return;
-  }
-
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
-               << "), inUnsatCore = " << inUnsatCore
-               << ", inInput = " << inInput
-               << ", isAssumption = " << isAssumption << endl;
-
-  // Ensure that it does not contain free variables
-  if (maybeHasFv)
-  {
-    if (expr::hasFreeVar(n))
-    {
-      std::stringstream se;
-      se << "Cannot process assertion with free variable.";
-      if (language::isInputLangSygus(options::inputLanguage()))
-      {
-        // Common misuse of SyGuS is to use top-level assert instead of
-        // constraint when defining the synthesis conjecture.
-        se << " Perhaps you meant `constraint` instead of `assert`?";
-      }
-      throw ModalException(se.str().c_str());
-    }
-  }
-
-  // Give it to proof manager
-  PROOF(
-    if( inInput ){
-      // n is an input assertion
-      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
-
-        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
-      }
-    }else{
-      // n is the result of an unknown preprocessing step, add it to dependency map to null
-      ProofManager::currentPM()->addDependence(n, Node::null());
-    }
-  );
-
-  // Add the normalized formula to the queue
-  d_assertions.push_back(n, isAssumption);
-  //d_assertions.push_back(Rewriter::rewrite(n));
-}
-
 void SmtEngine::ensureBoolean(const Node& n)
 {
   TypeNode type = n.getType(options::typeChecking());
@@ -1410,32 +1360,32 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
   return checkSatisfiability(assumptions, inUnsatCore, false);
 }
 
-Result SmtEngine::checkEntailed(const Expr& expr, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
 {
-  Dump("benchmark") << QueryCommand(expr, inUnsatCore);
+  Dump("benchmark") << QueryCommand(node.toExpr(), inUnsatCore);
   return checkSatisfiability(
-             expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
+             node.isNull() ? std::vector<Node>() : std::vector<Expr>{node},
              inUnsatCore,
              true)
       .asEntailmentResult();
 }
 
-Result SmtEngine::checkEntailed(const vector<Expr>& exprs, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const vector<Node>& nodes, bool inUnsatCore)
 {
-  return checkSatisfiability(exprs, inUnsatCore, true).asEntailmentResult();
+  return checkSatisfiability(nodes, inUnsatCore, true).asEntailmentResult();
 }
 
-Result SmtEngine::checkSatisfiability(const Expr& expr,
+Result SmtEngine::checkSatisfiability(const Node& node,
                                       bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
   return checkSatisfiability(
-      expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
+      node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
       inUnsatCore,
       isEntailmentCheck);
 }
 
-Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
+Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
                                       bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
@@ -1463,49 +1413,9 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     bool didInternalPush = false;
 
     setProblemExtended();
-
-    if (isEntailmentCheck)
-    {
-      size_t size = assumptions.size();
-      if (size > 1)
-      {
-        /* Assume: not (BIGAND assumptions)  */
-        d_assumptions.push_back(
-            d_exprManager->mkExpr(kind::AND, assumptions).notExpr());
-      }
-      else if (size == 1)
-      {
-        /* Assume: not expr  */
-        d_assumptions.push_back(assumptions[0].notExpr());
-      }
-    }
-    else
-    {
-      /* Assume: BIGAND assumptions  */
-      d_assumptions = assumptions;
-    }
-
-    if (!d_assumptions.empty())
-    {
-      internalPush();
-      didInternalPush = true;
-    }
-
-    Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-    for (Expr e : d_assumptions)
-    {
-      // Substitute out any abstract values in ex.
-      Node n = d_absValues->substituteAbstractValues(Node::fromExpr(e));
-      // Ensure expr is type-checked at this point.
-      ensureBoolean(n);
-
-      /* Add assumption  */
-      if (d_assertionList != NULL)
-      {
-        d_assertionList->push_back(n);
-      }
-      d_private->addFormula(n, inUnsatCore, true, true);
-    }
+    
+    // initialize the assumptions
+    d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
 
     if (d_globalDefineFunRecLemmas != nullptr)
     {
@@ -1514,10 +1424,10 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       // zero assertions)
       for (const Node& lemma : *d_globalDefineFunRecLemmas)
       {
-        d_private->addFormula(lemma, false, true, false, false);
+        d_asserts->addFormula(lemma, false, true, false, false);
       }
     }
-
+    
     r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)

@@ -51,6 +51,12 @@ class AssertionsManager
     * last map of expression names from notifyPush.
     */
   void notifyPop();
+  /* 
+   * Initialize a call to check satisfiability. 
+   */
+  void initializeCheckSat(const std::vector<Node>& assumptions,
+                             bool inUnsatCore,
+                             bool isEntailmentCheck);
   /**
    * Adds a formula to the current context.  Action here depends on
    * the SimplificationMode (in the current Options scope); the

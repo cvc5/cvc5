@@ -53,14 +53,54 @@ void AssertionsManager::notifyPop() {
   d_assertions.clear();
 }
 
-Node AssertionsManager::simplify(TNode in) {
-  // Substitute out any abstract values in ex.
-  // Expand definitions.
-  NodeToNodeHashMap cache;
-  Node n = d_processor.expandDefinitions(in, cache).toExpr();
-  // Make sure we've done all preprocessing, etc.
-  Assert(d_assertions.size() == 0);
-  return applySubstitutions(n);
+
+void AssertionsManager::initializeCheckSat(const std::vector<Node>& assumptions,
+                            bool inUnsatCore,
+                            bool isEntailmentCheck)
+{
+  d_assumptions.clear();
+  if (isEntailmentCheck)
+  {
+    size_t size = assumptions.size();
+    if (size > 1)
+    {
+      /* Assume: not (BIGAND assumptions)  */
+      d_assumptions.push_back(
+          d_exprManager->mkExpr(kind::AND, assumptions).notExpr());
+    }
+    else if (size == 1)
+    {
+      /* Assume: not expr  */
+      d_assumptions.push_back(assumptions[0].notExpr());
+    }
+  }
+  else
+  {
+    /* Assume: BIGAND assumptions  */
+    d_assumptions = assumptions;
+  }
+
+  if (!d_assumptions.empty())
+  {
+    internalPush();
+    didInternalPush = true;
+  }
+
+  Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+  for (Expr e : d_assumptions)
+  {
+    // Substitute out any abstract values in ex.
+    Node n = d_absValues->substituteAbstractValues(Node::fromExpr(e));
+    // Ensure expr is type-checked at this point.
+    ensureBoolean(n);
+
+    /* Add assumption  */
+    if (d_assertionList != NULL)
+    {
+      d_assertionList->push_back(n);
+    }
+    addFormula(n, inUnsatCore, true, true);
+  }
 }
 
 void AssertionsManager::addFormula(
