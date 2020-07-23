@@ -390,7 +390,7 @@ void CheckSatCommand::invoke(SmtEngine* smtEngine)
                            << std::endl;
   try
   {
-    d_result = smtEngine->checkSat(d_expr);
+    d_result = smtEngine->checkSat(Node::fromExpr(d_expr));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -453,7 +453,12 @@ void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
                            << " )~" << std::endl;
   try
   {
-    d_result = smtEngine->checkSat(d_terms);
+    std::vector<Node> nodes;
+    for (const Expr& e : d_terms)
+    {
+      nodes.push_back(Node::fromExpr(e));
+    }
+    d_result = smtEngine->checkSat(nodes);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

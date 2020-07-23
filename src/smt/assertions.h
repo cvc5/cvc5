@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "context/cdlist.h"
-#include "exp/node.h"
-#include "preprocessing/assertions_pipeline.h"
+#include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "smt/abstract_values.h"
 
 namespace CVC4 {
@@ -38,7 +38,7 @@ class Assertions
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
  public:
-   Assertions(SmtEngine& smt, AbstractValues * absv);
+   Assertions(SmtEngine& smt, UserContext * u, AbstractValues * absv);
   ~Assertions();
   /** finish init */
   void finishInit();
@@ -91,7 +91,7 @@ class Assertions
   /** Is the set of asseritons globally negated? */
   bool isGlobalNegated() const;
   /** Get the assertions pipeline */
-  AssertionPipeline& getAssertionPipeline();
+  preprocessing::AssertionPipeline& getAssertionPipeline();
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -119,7 +119,7 @@ class Assertions
   /** Whether we did a global negation of the formula. */
   bool d_globalNegation;
   /** Assertions in the preprocessing pipeline */
-  AssertionPipeline d_assertions;
+  preprocessing::AssertionPipeline d_assertions;
   /** Whether any assertions have been processed */
   context::CDO<bool> d_assertionsProcessed;
 };

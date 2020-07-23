@@ -27,6 +27,7 @@
 #include "context/cdhashset_forward.h"
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
+#include "expr/node.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"

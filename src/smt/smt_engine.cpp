@@ -394,7 +394,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
-      d_asserts(new Assertions(*this, d_absValues.get())),
+      d_asserts(new Assertions(*this, d_userContext.get(), d_absValues.get())),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -1299,7 +1299,7 @@ void SmtEnginePrivate::processAssertions() {
   d_assertionsProcessed = true;
 
   ap.clear();
-  getIteSkolemMap().clear();
+  ap.getIteSkolemMap().clear();
 }
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
@@ -1388,6 +1388,12 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       }
     }
     
+    if (!d_asserts->getAssumptions().empty())
+    {
+      internalPush();
+      didInternalPush = true;
+    }
+  
     r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
