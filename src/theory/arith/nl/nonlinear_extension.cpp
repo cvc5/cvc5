@@ -653,6 +653,10 @@ void NonlinearExtension::check(Theory::Effort e)
         tm->recordApproximation(a.first, a.second.first, a.second.second);
       }
     }
+    for (const auto& vw : d_witnesses)
+    {
+      tm->recordApproximation(vw.first, vw.second);
+    }
   }
 }
 
@@ -872,8 +876,9 @@ void NonlinearExtension::interceptModel(std::map<Node, Node>& arithModel)
   {
     Trace("nl-ext") << "interceptModel: do model repair" << std::endl;
     d_approximations.clear();
+    d_witnesses.clear();
     // modify the model values
-    d_model.getModelValueRepair(arithModel, d_approximations);
+    d_model.getModelValueRepair(arithModel, d_approximations, d_witnesses);
   }
 }
 

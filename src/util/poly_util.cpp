@@ -86,6 +86,48 @@ Rational toRational(const poly::DyadicRational& dr)
 {
   return Rational(toInteger(numerator(dr)), toInteger(denominator(dr)));
 }
+Rational toRationalAbove(const poly::Value& v)
+{
+  if (is_algebraic_number(v))
+  {
+    return toRational(get_upper_bound(as_algebraic_number(v)));
+  }
+  else if (is_dyadic_rational(v))
+  {
+    return toRational(as_dyadic_rational(v));
+  }
+  else if (is_integer(v))
+  {
+    return toRational(as_integer(v));
+  }
+  else if (is_rational(v))
+  {
+    return toRational(as_rational(v));
+  }
+  Assert(false) << "Can not convert " << v << " to rational.";
+  return Rational();
+}
+Rational toRationalBelow(const poly::Value& v)
+{
+  if (is_algebraic_number(v))
+  {
+    return toRational(get_lower_bound(as_algebraic_number(v)));
+  }
+  else if (is_dyadic_rational(v))
+  {
+    return toRational(as_dyadic_rational(v));
+  }
+  else if (is_integer(v))
+  {
+    return toRational(as_integer(v));
+  }
+  else if (is_rational(v))
+  {
+    return toRational(as_rational(v));
+  }
+  Assert(false) << "Can not convert " << v << " to rational.";
+  return Rational();
+}
 
 poly::Integer toInteger(const Integer& i)
 {
@@ -232,6 +274,31 @@ std::size_t totalDegree(const poly::Polynomial& p)
   return tdeg;
 }
 
+std::ostream& operator<<(std::ostream& os, const VariableInformation& vi)
+{
+  if (vi.var == poly::Variable())
+  {
+    os << "Totals: ";
+    os << "max deg " << vi.max_degree;
+    os << ", sum term deg " << vi.sum_term_degree;
+    os << ", sum poly deg " << vi.sum_poly_degree;
+    os << ", num polys " << vi.num_polynomials;
+    os << ", num terms " << vi.num_terms;
+  }
+  else
+  {
+    os << "Info for " << vi.var << ": ";
+    os << "max deg " << vi.max_degree;
+    os << ", max lc deg: " << vi.max_lc_degree;
+    os << ", max term tdeg: " << vi.max_terms_tdegree;
+    os << ", sum term deg " << vi.sum_term_degree;
+    os << ", sum poly deg " << vi.sum_poly_degree;
+    os << ", num polys " << vi.num_polynomials;
+    os << ", num terms " << vi.num_terms;
+  }
+  return os;
+}
+
 struct GetVarInfo
 {
   VariableInformation* info;
@@ -257,13 +324,19 @@ void getVariableInformation(VariableInformation& vi,
           if (m->p[i].x == info->var)
           {
             info->max_degree = std::max(info->max_degree, m->p[i].d);
-            info->sum_degree += m->p[i].d;
-            ++info->num_terms;
+            info->sum_term_degree += m->p[i].d;
             vardeg = m->p[i].d;
           }
         }
-        if (vardeg > 0)
+        if (info->var == poly::Variable())
         {
+          ++info->num_terms;
+          info->max_degree = std::max(info->max_degree, tdeg);
+          info->sum_term_degree += tdeg;
+        }
+        else if (vardeg > 0)
+        {
+          ++info->num_terms;
           if (gvi->cur_var_degree < vardeg)
           {
             gvi->cur_lc_degree = tdeg - vardeg;
@@ -271,9 +344,19 @@ void getVariableInformation(VariableInformation& vi,
           info->max_terms_tdegree = std::max(info->max_terms_tdegree, tdeg);
         }
       };
-
+  std::size_t tmp_max_degree = vi.max_degree;
+  std::size_t tmp_num_terms = vi.num_terms;
+  vi.max_degree = 0;
+  vi.num_terms = 0;
   lp_polynomial_traverse(poly.get_internal(), f, &varinfo);
   vi.max_lc_degree = std::max(vi.max_lc_degree, varinfo.cur_lc_degree);
+  if (vi.num_terms > 0)
+  {
+    ++vi.num_polynomials;
+  }
+  vi.sum_poly_degree += vi.max_degree;
+  vi.max_degree = std::max(vi.max_degree, tmp_max_degree);
+  vi.num_terms += tmp_num_terms;
 }
 
 }  // namespace poly_utils
