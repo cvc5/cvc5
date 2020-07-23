@@ -33,18 +33,17 @@ namespace smt {
  */
 class AssertionsManager
 {
-  /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
   /** The type of our internal assignment set */
   typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
  public:
-   AssertionsManager(SmtEngine& smt, ResourceManager& rm);
+   AssertionsManager(SmtEngine& smt);
   ~AssertionsManager();
+  /** finish init */
+  void finishInit();
   /** Process a user push.*/
-  void notifyPush() ;
+  void notifyPush();
   /**
     * Process a user pop.  Clears out the non-context-dependent stuff in this
     * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
@@ -52,16 +51,6 @@ class AssertionsManager
     * last map of expression names from notifyPush.
     */
   void notifyPop();
-  Node applySubstitutions(TNode node);
-  /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Node func);
-
-  /**
-   * Simplify node "in" by expanding definitions and applying any
-   * substitutions learned from preprocessing.
-   */
-  Node simplify(TNode in);
-
   /**
    * Adds a formula to the current context.  Action here depends on
    * the SimplificationMode (in the current Options scope); the
@@ -80,33 +69,16 @@ class AssertionsManager
    */
   void addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv);
-  /** finish init */
-  void finishInit();
-  /** get ite skolem map */
-  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
-  ProcessAssertions* getProcessAssertions() { return &d_processor; }
+  /** Get assumptions */
+  std::vector<Node>& getAssumptions();
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
-  /** Reference to resource manager */
-  ResourceManager& d_resourceManager;
-  /** The assertions processor */
-  ProcessAssertions d_proc;
-  /** The abstract values utility */
-  std::unique_ptr<smt::AbstractValues> d_absValues;
-  /** An index of our defined functions */
-  DefinedFunctionMap* d_definedFunctions;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
    */
   AssertionList* d_assertionList;
-
-  /**
-   * List of lemmas generated for global recursive function definitions. We
-   * assert this list of definitions in each check-sat call.
-   */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
 
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
@@ -127,11 +99,6 @@ class AssertionsManager
   AssertionPipeline d_assertions;
   /** Whether any assertions have been processed */
   CDO<bool> d_assertionsProcessed;
-  /** Instance of the ITE remover */
-  RemoveTermFormulas d_iteRemover;
-
-  /** The preprocessing pass context */
-  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
 };
 
 }  // namespace smt

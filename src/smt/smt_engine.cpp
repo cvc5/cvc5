@@ -191,14 +191,33 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
 
+  /** Assertions in the preprocessing pipeline */
+  AssertionPipeline d_assertions;
+
+  /** Whether any assertions have been processed */
+  CDO<bool> d_assertionsProcessed;
+
   // Cached true value
   Node d_true;
+
+  /** The preprocessing pass context */
+  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
+
+  /** Process assertions module */
+  ProcessAssertions d_processor;
 
   //------------------------------- expression names
   /** mapping from expressions to name */
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
  public:
+  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
+
+  /** Instance of the ITE remover */
+  RemoveTermFormulas d_iteRemover;
+
+  /* Finishes the initialization of the private portion of SMTEngine. */
+  void finishInit();
 
   /*------------------- sygus utils ------------------*/
   /**
@@ -223,8 +242,11 @@ class SmtEnginePrivate : public NodeManagerListener {
       : d_smt(smt),
         d_routListener(new ResourceOutListener(d_smt)),
         d_propagator(true, true),
+        d_assertions(),
+        d_assertionsProcessed(smt.getUserContext(), false),
         d_processor(smt, *smt.getResourceManager()),
         d_exprNames(smt.getUserContext()),
+        d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
   {
     d_smt.d_nodeManager->subscribeEvents(this);
@@ -246,6 +268,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     d_smt.getResourceManager()->spendResource(r);
   }
+
+  ProcessAssertions* getProcessAssertions() { return &d_processor; }
 
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
   {
@@ -304,6 +328,71 @@ class SmtEnginePrivate : public NodeManagerListener {
   }
 
   void nmNotifyDeleteNode(TNode n) override {}
+
+  Node applySubstitutions(TNode node)
+  {
+    return Rewriter::rewrite(
+        d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
+  }
+
+  /**
+   * Process the assertions that have been asserted.
+   */
+  void processAssertions();
+
+  /** Process a user push.
+  */
+  void notifyPush() {
+
+  }
+
+  /**
+   * Process a user pop.  Clears out the non-context-dependent stuff in this
+   * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
+   * someone does a push-assert-pop without a check-sat. It also pops the
+   * last map of expression names from notifyPush.
+   */
+  void notifyPop() {
+    d_assertions.clear();
+    d_propagator.getLearnedLiterals().clear();
+    getIteSkolemMap().clear();
+  }
+
+  /**
+   * Adds a formula to the current context.  Action here depends on
+   * the SimplificationMode (in the current Options scope); the
+   * formula might be pushed out to the propositional layer
+   * immediately, or it might be simplified and kept, or it might not
+   * even be simplified.
+   * The arguments isInput and isAssumption are used for bookkeeping for proofs.
+   * The argument maybeHasFv should be set to true if the assertion may have
+   * free variables. By construction, assertions from the smt2 parser are
+   * guaranteed not to have free variables. However, other cases such as
+   * assertions from the SyGuS parser may have free variables (say if the
+   * input contains an assert or define-fun-rec command).
+   *
+   * @param isAssumption If true, the formula is considered to be an assumption
+   * (this is used to distinguish assertions and assumptions)
+   */
+  void addFormula(TNode n,
+                  bool inUnsatCore,
+                  bool inInput = true,
+                  bool isAssumption = false,
+                  bool maybeHasFv = false);
+  /**
+   * Simplify node "in" by expanding definitions and applying any
+   * substitutions learned from preprocessing.
+   */
+  Node simplify(TNode in) {
+    // Substitute out any abstract values in ex.
+    // Expand definitions.
+    NodeToNodeHashMap cache;
+    Node n = d_processor.expandDefinitions(in, cache).toExpr();
+    // Make sure we've done all preprocessing, etc.
+    Assert(d_assertions.size() == 0);
+    return applySubstitutions(n).toExpr();
+  }
+
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
@@ -331,7 +420,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_userLevels(),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
-      d_assertm(nullptr),
+      d_absValues(new AbstractValues(d_nodeManager)),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -383,7 +472,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_statisticsRegistry.reset(new StatisticsRegistry());
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
-  d_assertm.reset(new smt::AssertionsManager(*this, d_resourceManager.get()));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   d_stats.reset(new SmtEngineStatistics());
@@ -400,6 +488,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_proofManager.reset(new ProofManager(getUserContext()));
 #endif
 
+  d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
   d_modelCommands = new (true) smt::CommandList(getUserContext());
 }
 
@@ -455,6 +544,19 @@ void SmtEngine::finishInit()
   d_userContext->push();
   d_context->push();
 
+  Trace("smt-debug") << "Set up assertion list..." << std::endl;
+  // [MGD 10/20/2011] keep around in incremental mode, due to a
+  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
+  // first, some user-context-dependent TNodes might still exist
+  // with rc == 0.
+  if(options::produceAssertions() ||
+     options::incrementalSolving()) {
+    // In the case of incremental solving, we appear to need these to
+    // ensure the relevant Nodes remain live.
+    d_assertionList = new (true) AssertionList(getUserContext());
+    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
+  }
+
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
   // dumping the command twice.
   if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
@@ -490,8 +592,7 @@ void SmtEngine::finishInit()
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-  // initialize the assertions manager
-  d_assertm->finishInit();
+  d_private->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -544,7 +645,15 @@ SmtEngine::~SmtEngine()
     d_context->popto(0);
     d_userContext->popto(0);
 
+    if(d_assignments != NULL) {
+      d_assignments->deleteSelf();
+    }
+
     d_globalDefineFunRecLemmas.reset();
+
+    if(d_assertionList != NULL) {
+      d_assertionList->deleteSelf();
+    }
 
     for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
       delete d_dumpCommands[i];
@@ -557,6 +666,8 @@ SmtEngine::~SmtEngine()
     if(d_modelCommands != NULL) {
       d_modelCommands->deleteSelf();
     }
+
+    d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
     d_private->getProcessAssertions()->cleanup();
@@ -572,7 +683,7 @@ SmtEngine::~SmtEngine()
     d_proofManager.reset(nullptr);
 #endif
 
-    d_assertm.reset(nullptr);
+    d_absValues.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -1062,6 +1173,21 @@ void SmtEngine::defineFunctionRec(Expr func,
   defineFunctionsRec(funcs, formals_multi, formulas, global);
 }
 
+bool SmtEngine::isDefinedFunction( Expr func ){
+  Node nf = Node::fromExpr( func );
+  Debug("smt") << "isDefined function " << nf << "?" << std::endl;
+  return d_definedFunctions->find(nf) != d_definedFunctions->end();
+}
+
+void SmtEnginePrivate::finishInit()
+{
+  d_preprocessingPassContext.reset(
+      new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
+
+  // initialize the preprocessing passes
+  d_processor.finishInit(d_preprocessingPassContext.get());
+}
+
 Result SmtEngine::check() {
   Assert(d_fullyInited);
   Assert(d_pendingPops == 0);
@@ -1202,6 +1328,54 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
+void SmtEnginePrivate::addFormula(
+    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
+{
+  if (n == d_true) {
+    // nothing to do
+    return;
+  }
+
+  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+               << "), inUnsatCore = " << inUnsatCore
+               << ", inInput = " << inInput
+               << ", isAssumption = " << isAssumption << endl;
+
+  // Ensure that it does not contain free variables
+  if (maybeHasFv)
+  {
+    if (expr::hasFreeVar(n))
+    {
+      std::stringstream se;
+      se << "Cannot process assertion with free variable.";
+      if (language::isInputLangSygus(options::inputLanguage()))
+      {
+        // Common misuse of SyGuS is to use top-level assert instead of
+        // constraint when defining the synthesis conjecture.
+        se << " Perhaps you meant `constraint` instead of `assert`?";
+      }
+      throw ModalException(se.str().c_str());
+    }
+  }
+
+  // Give it to proof manager
+  PROOF(
+    if( inInput ){
+      // n is an input assertion
+      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
+
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
+    }else{
+      // n is the result of an unknown preprocessing step, add it to dependency map to null
+      ProofManager::currentPM()->addDependence(n, Node::null());
+    }
+  );
+
+  // Add the normalized formula to the queue
+  d_assertions.push_back(n, isAssumption);
+  //d_assertions.push_back(Rewriter::rewrite(n));
+}
 
 void SmtEngine::ensureBoolean(const Node& n)
 {

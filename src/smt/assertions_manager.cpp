@@ -26,20 +26,13 @@ namespace smt {
 
 AssertionsManager::AssertionsManager(SmtEngine& smt, ResourceManager& rm)
     : d_smt(smt),
-      d_resourceManager(rm),
       d_proc(smt, rm),
-      d_absValues(smt.getNodeManager()),
-      d_definedFunctions(nullptr),
       d_assertionList(nullptr),
-      d_globalDefineFunRecLemmas(nullptr),
       d_assignments(nullptr),
       d_globalNegation(false),
       d_assertions(),
-      d_assertionsProcessed(smt.getUserContext(), false),
-      d_iteRemover(smt.getUserContext()),
-      d_preprocessingPassContext(nullptr)
+      d_assertionsProcessed(smt.getUserContext(), false)
 {
-  d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
 }
 
 AssertionsManager::~AssertionsManager()
@@ -50,30 +43,14 @@ AssertionsManager::~AssertionsManager()
   if(d_assertionList != NULL) {
     d_assertionList->deleteSelf();
   }
-  d_definedFunctions->deleteSelf();
-  d_absValues.reset(nullptr);
 }
 
-void notifyPush() {
+void AssertionsManager::notifyPush() {
 
 }
 
-void notifyPop() {
+void AssertionsManager::notifyPop() {
   d_assertions.clear();
-  d_propagator.getLearnedLiterals().clear();
-  getIteSkolemMap().clear();
-}
-
-
-Node AssertionsManager::applySubstitutions(TNode node)
-{
-  return Rewriter::rewrite(
-      d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
-}
-
-bool AssertionsManager::isDefinedFunction( Node func ){
-  Debug("smt") << "isDefined function " << nf << "?" << std::endl;
-  return d_definedFunctions->find(func) != d_definedFunctions->end();
 }
 
 Node AssertionsManager::simplify(TNode in) {
@@ -132,7 +109,6 @@ void AssertionsManager::addFormula(
 
   // Add the normalized formula to the queue
   d_assertions.push_back(n, isAssumption);
-  //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
 void AssertionsManager::finishInit()
@@ -147,20 +123,18 @@ void AssertionsManager::finishInit()
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
     d_assertionList = new (true) AssertionList(getUserContext());
-    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
   }
-  
-  d_preprocessingPassContext.reset(
-      new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
+}
 
-  // initialize the preprocessing passes
-  d_processor.finishInit(d_preprocessingPassContext.get());
+std::vector<Node>& AssertionsManager::getAssumptions()
+{
+  return d_assumptions;
 }
 
 void AssertionsManager::addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
-  if (n == d_true) {
+  if (n.isConst() && n.getConst<bool>()) {
     // nothing to do
     return;
   }
