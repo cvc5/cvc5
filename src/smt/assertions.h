@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file assertions_manager.h
+/*! \file assertions.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The module for managing assertions for an SMT engine.
+ ** \brief The module for storing assertions for an SMT engine.
  **/
 
 #include "cvc4_private.h"
@@ -31,15 +31,15 @@ class SmtEngine;
 namespace smt {
 
 /**
- * Module in charge of assertions for an SMT engine.
+ * Contains all information pertaining to the assertions of an SMT engine.
  */
-class AssertionsManager
+class Assertions
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
  public:
-   AssertionsManager(SmtEngine& smt, AbstractValues * absv);
-  ~AssertionsManager();
+   Assertions(SmtEngine& smt, AbstractValues * absv);
+  ~Assertions();
   /** finish init */
   void finishInit();
   /** Process a user push.*/

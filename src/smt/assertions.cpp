@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The module for managing assertions for an SMT engine.
+ ** \brief The module for storing assertions for an SMT engine.
  **/
 
 #include "smt/assertions_manager.h"
@@ -24,7 +24,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-AssertionsManager::AssertionsManager(SmtEngine& smt, AbstractValues * absv)
+Assertions::Assertions(SmtEngine& smt, AbstractValues * absv)
     : d_smt(smt),
       d_absValues(absv),
       d_assertionList(nullptr),
@@ -34,7 +34,7 @@ AssertionsManager::AssertionsManager(SmtEngine& smt, AbstractValues * absv)
 {
 }
 
-AssertionsManager::~AssertionsManager()
+Assertions::~Assertions()
 {
   if(d_assignments != NULL) {
     d_assignments->deleteSelf();
@@ -44,16 +44,16 @@ AssertionsManager::~AssertionsManager()
   }
 }
 
-void AssertionsManager::notifyPush() {
+void Assertions::notifyPush() {
 
 }
 
-void AssertionsManager::notifyPop() {
+void Assertions::notifyPop() {
   d_assertions.clear();
   d_assertions.getIteSkolemMap().clear();
 }
 
-void AssertionsManager::initializeCheckSat(const std::vector<Node>& assumptions,
+void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
                             bool inUnsatCore,
                             bool isEntailmentCheck)
 {
@@ -105,7 +105,7 @@ void AssertionsManager::initializeCheckSat(const std::vector<Node>& assumptions,
   }
 }
 
-void AssertionsManager::assertFormula(const Node& n, bool inUnsatCore)
+void Assertions::assertFormula(const Node& n, bool inUnsatCore)
 {
   ensureBoolean(n);
   if(d_assertionList != NULL) {
@@ -115,7 +115,7 @@ void AssertionsManager::assertFormula(const Node& n, bool inUnsatCore)
   addFormula(n, inUnsatCore, true, false, maybeHasFv);
 }
 
-void AssertionsManager::addFormula(
+void Assertions::addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
   if (n.isConst() && n.getConst<bool>()) {
@@ -163,7 +163,7 @@ void AssertionsManager::addFormula(
   d_assertions.push_back(n, isAssumption);
 }
 
-void AssertionsManager::finishInit()
+void Assertions::finishInit()
 {
   Trace("smt-debug") << "Set up assertion list..." << std::endl;
   // [MGD 10/20/2011] keep around in incremental mode, due to a
@@ -178,21 +178,21 @@ void AssertionsManager::finishInit()
   }
 }
 
-std::vector<Node>& AssertionsManager::getAssumptions()
+std::vector<Node>& Assertions::getAssumptions()
 {
   return d_assumptions;
 }
-bool AssertionsManager::isGlobalNegated() const
+bool Assertions::isGlobalNegated() const
 {
   return d_globalNegation;
 }
 
-AssertionPipeline& AssertionsManager::getAssertionPipeline()
+AssertionPipeline& Assertions::getAssertionPipeline()
 {
   return d_assertions;
 }
 
-void AssertionsManager::addFormula(
+void Assertions::addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
   if (n.isConst() && n.getConst<bool>()) {
@@ -240,7 +240,7 @@ void AssertionsManager::addFormula(
 }
 
 
-void AssertionsManager::ensureBoolean(const Node& n)
+void Assertions::ensureBoolean(const Node& n)
 {
   TypeNode type = n.getType(options::typeChecking());
   TypeNode boolType = NodeManager::currentNM()->booleanType();

@@ -93,7 +93,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
-class AssertionsManager;
+class Assertions;
 class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
@@ -1116,7 +1116,7 @@ class CVC4_PUBLIC SmtEngine
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
-  std::unique_ptr<smt::AssertionsManager> d_asserts;
+  std::unique_ptr<smt::Assertions> d_asserts;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;

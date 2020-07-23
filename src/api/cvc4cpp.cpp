@@ -4164,7 +4164,7 @@ Result Solver::checkEntailed(Term term) const
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
 
-  CVC4::Result r = d_smtEngine->checkEntailed(*term.d_expr);
+  CVC4::Result r = d_smtEngine->checkEntailed(Node::fromExpr(*term.d_expr));
   return Result(r);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4185,7 +4185,12 @@ Result Solver::checkEntailed(const std::vector<Term>& terms) const
   }
 
   std::vector<Expr> exprs = termVectorToExprs(terms);
-  CVC4::Result r = d_smtEngine->checkEntailed(exprs);
+  std::vector<Node> nodes;
+  for (const Expr& e : exprs)
+  {
+    nodes.push_back(Node::fromExpr(e));
+  }
+  CVC4::Result r = d_smtEngine->checkEntailed(nodes);
   return Result(r);
 
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4256,7 +4261,12 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
     CVC4_API_ARG_CHECK_NOT_NULL(term);
   }
   std::vector<Expr> eassumptions = termVectorToExprs(assumptions);
-  CVC4::Result r = d_smtEngine->checkSat(eassumptions);
+  std::vector<Node> enodes;
+  for (const Expr& e : eassumptions)
+  {
+    enodes.push_back(Node::fromExpr(e));
+  }
+  CVC4::Result r = d_smtEngine->checkSat(enodes);
   return Result(r);
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
