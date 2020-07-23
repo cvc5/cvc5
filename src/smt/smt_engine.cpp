@@ -83,6 +83,7 @@
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
+#include "smt/assertions.h"
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
@@ -1264,16 +1265,16 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // process the assertions
-  bool noConflict = d_processor.apply(d_assertions);
+  bool noConflict = d_processor.apply(ap);
 
   //notify theory engine new preprocessed assertions
-  d_smt.d_theoryEngine->notifyPreprocessedAssertions( d_assertions.ref() );
+  d_smt.d_theoryEngine->notifyPreprocessedAssertions( ap.ref() );
 
   // Push the formula to decision engine
   if (noConflict)
   {
     Chat() << "pushing to decision engine..." << endl;
-    d_smt.d_propEngine->addAssertionsToDecisionEngine(d_assertions);
+    d_smt.d_propEngine->addAssertionsToDecisionEngine(ap);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -1282,22 +1283,22 @@ void SmtEnginePrivate::processAssertions() {
   // if incremental, compute which variables are assigned
   if (options::incrementalSolving())
   {
-    d_preprocessingPassContext->recordSymbolsInAssertions(d_assertions.ref());
+    d_preprocessingPassContext->recordSymbolsInAssertions(ap.ref());
   }
 
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Chat() << "+ " << d_assertions[i] << std::endl;
-      d_smt.d_propEngine->assertFormula(d_assertions[i]);
+    for (unsigned i = 0; i < ap.size(); ++ i) {
+      Chat() << "+ " << ap[i] << std::endl;
+      d_smt.d_propEngine->assertFormula(ap[i]);
     }
   }
 
   d_assertionsProcessed = true;
 
-  d_assertions.clear();
+  ap.clear();
   getIteSkolemMap().clear();
 }
 

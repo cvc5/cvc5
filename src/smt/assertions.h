@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__ASSERTIONS_MANAGER_H
-#define CVC4__SMT__ASSERTIONS_MANAGER_H
+#ifndef CVC4__SMT__ASSERTIONS_H
+#define CVC4__SMT__ASSERTIONS_H
 
 #include <vector>
 

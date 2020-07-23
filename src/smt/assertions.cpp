@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file assertions_manager.h
+/*! \file assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief The module for storing assertions for an SMT engine.
  **/
 
-#include "smt/assertions_manager.h"
+#include "smt/assertions.h"
 
 #include "expr/node_algorithm.h"
 #include "options/language.h"
@@ -29,8 +29,7 @@ Assertions::Assertions(SmtEngine& smt, AbstractValues * absv)
       d_absValues(absv),
       d_assertionList(nullptr),
       d_globalNegation(false),
-      d_assertions(),
-      d_assertionsProcessed(smt.getUserContext(), false)
+      d_assertions()
 {
 }
 
