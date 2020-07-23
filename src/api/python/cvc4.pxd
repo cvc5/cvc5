@@ -183,7 +183,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkVar(Sort sort) except +
         Term simplify(const Term& t) except +
         void assertFormula(Term term) except +
+        void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +	
         Result checkSat() except +
+        Result checkSynth() except +
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +	
         Result checkSatAssuming(const vector[Term]& assumptions) except +
         Result checkEntailed(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
@@ -211,6 +214,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term getSeparationNilTerm() except +
         void pop(uint32_t nscopes) except +
         void printModel(ostream& out)
+        void printSynthSolution(ostream& out)	
         void push(uint32_t nscopes) except +
         void reset() except +
         void resetAssertions() except +
