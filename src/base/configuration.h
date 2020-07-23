@@ -103,9 +103,11 @@ public:
 
   static bool isBuiltWithDrat2Er();
 
-  static bool isBuiltWithReadline();
+  static bool isBuiltWithEditline();
 
   static bool isBuiltWithLfsc();
+
+  static bool isBuiltWithPoly();
 
   static bool isBuiltWithSymFPU();
 

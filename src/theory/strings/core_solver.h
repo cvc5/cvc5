@@ -81,9 +81,7 @@ class CoreSolver
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
 
  public:
-  CoreSolver(context::Context* c,
-             context::UserContext* u,
-             SolverState& s,
+  CoreSolver(SolverState& s,
              InferenceManager& im,
              TermRegistry& tr,
              BaseSolver& bs);
@@ -219,6 +217,64 @@ class CoreSolver
    */
   Node getNormalString(Node x, std::vector<Node>& nf_exp);
   //-------------------------- end query functions
+
+  /**
+   * This returns the conclusion of the proof rule corresponding to splitting
+   * on the arrangement of terms x and y appearing in an equation of the form
+   *   x ++ x' = y ++ y' or x' ++ x = y' ++ y
+   * where we are in the second case if isRev is true. This method is called
+   * both by the core solver and by the strings proof checker.
+   *
+   * @param x The first term
+   * @param y The second term
+   * @param rule The proof rule whose conclusion we are asking for
+   * @param isRev Whether the equation is in a reverse direction
+   * @param skc The skolem cache (to allocate fresh variables if necessary)
+   * @param newSkolems The vector to add new variables to
+   * @return The conclusion of the inference.
+   */
+  static Node getConclusion(Node x,
+                            Node y,
+                            PfRule rule,
+                            bool isRev,
+                            SkolemCache* skc,
+                            std::vector<Node>& newSkolems);
+  /**
+   * Get sufficient non-empty overlap of string constants c and d.
+   *
+   * This is called when handling equations of the form:
+   *   x ++ d ++ ... = c ++ ...
+   * when x is non-empty and non-constant.
+   *
+   * This returns the maximal index in c which x must have as a prefix, which
+   * notice is an integer >= 1 since x is non-empty.
+   *
+   * @param c The first constant
+   * @param d The second constant
+   * @param isRev Whether the equation is in the reverse direction
+   * @return The position in c.
+   */
+  static size_t getSufficientNonEmptyOverlap(Node c, Node d, bool isRev);
+  /**
+   * This returns the conclusion of the decompose proof rule. This returns
+   * a conjunction of splitting string x into pieces based on length l, e.g.:
+   *   x = k_1 ++ k_2
+   * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
+   * length l if isRev is false (resp. true).
+   *
+   * @param x The string term
+   * @param l The length term
+   * @param isRev Whether the equation is in a reverse direction
+   * @param skc The skolem cache (to allocate fresh variables if necessary)
+   * @param newSkolems The vector to add new variables to
+   * @return The conclusion of the inference.
+   */
+  static Node getDecomposeConclusion(Node x,
+                                     Node l,
+                                     bool isRev,
+                                     SkolemCache* skc,
+                                     std::vector<Node>& newSkolems);
+
  private:
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
