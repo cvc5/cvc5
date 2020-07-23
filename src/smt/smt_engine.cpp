@@ -337,6 +337,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Process a user push.
   */
   void notifyPush() {
+    d_asserts->notifyPush();
 
   }
 
@@ -347,32 +348,9 @@ class SmtEnginePrivate : public NodeManagerListener {
    * last map of expression names from notifyPush.
    */
   void notifyPop() {
-    d_assertions.clear();
+    d_asserts->notifyPop();
     d_propagator.getLearnedLiterals().clear();
-    getIteSkolemMap().clear();
   }
-
-  /**
-   * Adds a formula to the current context.  Action here depends on
-   * the SimplificationMode (in the current Options scope); the
-   * formula might be pushed out to the propositional layer
-   * immediately, or it might be simplified and kept, or it might not
-   * even be simplified.
-   * The arguments isInput and isAssumption are used for bookkeeping for proofs.
-   * The argument maybeHasFv should be set to true if the assertion may have
-   * free variables. By construction, assertions from the smt2 parser are
-   * guaranteed not to have free variables. However, other cases such as
-   * assertions from the SyGuS parser may have free variables (say if the
-   * input contains an assert or define-fun-rec command).
-   *
-   * @param isAssumption If true, the formula is considered to be an assumption
-   * (this is used to distinguish assertions and assumptions)
-   */
-  void addFormula(TNode n,
-                  bool inUnsatCore,
-                  bool inInput = true,
-                  bool isAssumption = false,
-                  bool maybeHasFv = false);
   /**
    * Simplify node "in" by expanding definitions and applying any
    * substitutions learned from preprocessing.
@@ -1268,7 +1246,9 @@ void SmtEnginePrivate::processAssertions() {
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
 
-  if (d_assertions.size() == 0) {
+  AssertionPipeline& ap = d_asserts->getAssertionPipeline();
+  
+  if (ap.size() == 0) {
     // nothing to do
     return;
   }
@@ -1319,19 +1299,6 @@ void SmtEnginePrivate::processAssertions() {
 
   d_assertions.clear();
   getIteSkolemMap().clear();
-}
-
-void SmtEngine::ensureBoolean(const Node& n)
-{
-  TypeNode type = n.getType(options::typeChecking());
-  TypeNode boolType = NodeManager::currentNM()->booleanType();
-  if(type != boolType) {
-    stringstream ss;
-    ss << "Expected " << boolType << "\n"
-       << "The assertion : " << n << "\n"
-       << "Its type      : " << type;
-    throw TypeCheckingException(n.toExpr(), ss.str());
-  }
 }
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
@@ -1561,12 +1528,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(formula);
 
-  ensureBoolean(n);
-  if(d_assertionList != NULL) {
-    d_assertionList->push_back(n);
-  }
-  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
-  d_private->addFormula(n, inUnsatCore, true, false, maybeHasFv);
+  d_asserts->assertFormula(n, inUnsatCore);
   return quickCheck().asEntailmentResult();
 }/* SmtEngine::assertFormula() */
 

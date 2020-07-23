@@ -1045,14 +1045,6 @@ class CVC4_PUBLIC SmtEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
-  /**
-   * Fully type-check the argument, and also type-check that it's
-   * actually Boolean.
-   *
-   * throw@ TypeCheckingException
-   */
-  void ensureBoolean(const Node& n);
-
   void internalPush();
 
   void internalPop(bool immediate = false);

@@ -24,8 +24,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-AssertionsManager::AssertionsManager(SmtEngine& smt)
+AssertionsManager::AssertionsManager(SmtEngine& smt, AbstractValues * absv)
     : d_smt(smt),
+      d_absValues(absv),
       d_assertionList(nullptr),
       d_globalNegation(false),
       d_assertions(),
@@ -88,7 +89,7 @@ void AssertionsManager::initializeCheckSat(const std::vector<Node>& assumptions,
   }
 
   Result r(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-  for (Expr e : d_assumptions)
+  for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
     Node n = d_absValues->substituteAbstractValues(Node::fromExpr(e));
@@ -102,6 +103,16 @@ void AssertionsManager::initializeCheckSat(const std::vector<Node>& assumptions,
     }
     addFormula(n, inUnsatCore, true, true);
   }
+}
+
+void AssertionsManager::assertFormula(const Node& n, bool inUnsatCore)
+{
+  ensureBoolean(n);
+  if(d_assertionList != NULL) {
+    d_assertionList->push_back(n);
+  }
+  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+  addFormula(n, inUnsatCore, true, false, maybeHasFv);
 }
 
 void AssertionsManager::addFormula(
@@ -176,7 +187,7 @@ bool AssertionsManager::isGlobalNegated() const
   return d_globalNegation;
 }
 
-AssertionPipeline& AssertionsManager::getAssertionsPipeline()
+AssertionPipeline& AssertionsManager::getAssertionPipeline()
 {
   return d_assertions;
 }
@@ -226,6 +237,20 @@ void AssertionsManager::addFormula(
 
   // Add the normalized formula to the queue
   d_assertions.push_back(n, isAssumption);
+}
+
+
+void AssertionsManager::ensureBoolean(const Node& n)
+{
+  TypeNode type = n.getType(options::typeChecking());
+  TypeNode boolType = NodeManager::currentNM()->booleanType();
+  if(type != boolType) {
+    stringstream ss;
+    ss << "Expected " << boolType << "\n"
+       << "The assertion : " << n << "\n"
+       << "Its type      : " << type;
+    throw TypeCheckingException(n.toExpr(), ss.str());
+  }
 }
 
 }  // namespace smt

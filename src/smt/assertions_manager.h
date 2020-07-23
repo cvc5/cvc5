@@ -17,9 +17,11 @@
 #ifndef CVC4__SMT__ASSERTIONS_MANAGER_H
 #define CVC4__SMT__ASSERTIONS_MANAGER_H
 
-#include <map>
+#include <vector>
 
-#include "smt/process_assertions.h"
+#include "context/cdlist.h"
+#include "exp/node.h"
+#include "preprocessing/assertions_pipeline.h"
 #include "smt/abstract_values.h"
 
 namespace CVC4 {
@@ -36,7 +38,7 @@ class AssertionsManager
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
  public:
-   AssertionsManager(SmtEngine& smt);
+   AssertionsManager(SmtEngine& smt, AbstractValues * absv);
   ~AssertionsManager();
   /** finish init */
   void finishInit();
@@ -55,6 +57,17 @@ class AssertionsManager
   void initializeCheckSat(const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
+  /**
+   * Add a formula to the current context: preprocess, do per-theory
+   * setup, use processAssertionList(), asserting to T-solver for
+   * literals and conjunction of literals.  Returns false if
+   * immediately determined to be inconsistent.  This version
+   * takes a Boolean flag to determine whether to include this asserted
+   * formula in an unsat core (if one is later requested).
+   *
+   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   */
+  void assertFormula(const Node& n, bool inUnsatCore = true);
   /**
    * Adds a formula to the current context.  Action here depends on
    * the SimplificationMode (in the current Options scope); the
@@ -78,16 +91,24 @@ class AssertionsManager
   /** Is the set of asseritons globally negated? */
   bool isGlobalNegated() const;
   /** Get the assertions pipeline */
-  AssertionPipeline& getAssertionsPipeline();
+  AssertionPipeline& getAssertionPipeline();
  private:
+  /**
+   * Fully type-check the argument, and also type-check that it's
+   * actually Boolean.
+   *
+   * throw@ TypeCheckingException
+   */
+  void ensureBoolean(const Node& n);
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
+  /** Pointer to the abstract values utility */
+  AbstractValues * d_absValues;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
    */
   AssertionList* d_assertionList;
-
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
    * Note that if the last call to checkSatisfiability was an entailment check,
@@ -95,14 +116,12 @@ class AssertionsManager
    * one single assumption ~(a1 AND ... AND an).
    */
   std::vector<Node> d_assumptions;
-  /*
-   * Whether we did a global negation of the formula.
-   */
+  /** Whether we did a global negation of the formula. */
   bool d_globalNegation;
   /** Assertions in the preprocessing pipeline */
   AssertionPipeline d_assertions;
   /** Whether any assertions have been processed */
-  CDO<bool> d_assertionsProcessed;
+  context::CDO<bool> d_assertionsProcessed;
 };
 
 }  // namespace smt
