@@ -24,11 +24,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-AssertionsManager::AssertionsManager(SmtEngine& smt, ResourceManager& rm)
+AssertionsManager::AssertionsManager(SmtEngine& smt)
     : d_smt(smt),
-      d_proc(smt, rm),
       d_assertionList(nullptr),
-      d_assignments(nullptr),
       d_globalNegation(false),
       d_assertions(),
       d_assertionsProcessed(smt.getUserContext(), false)
@@ -51,13 +49,16 @@ void AssertionsManager::notifyPush() {
 
 void AssertionsManager::notifyPop() {
   d_assertions.clear();
+  d_assertions.getIteSkolemMap().clear();
 }
-
 
 void AssertionsManager::initializeCheckSat(const std::vector<Node>& assumptions,
                             bool inUnsatCore,
                             bool isEntailmentCheck)
 {
+  // reset global negation
+  d_globalNegation = false;
+  // clear the assumptions
   d_assumptions.clear();
   if (isEntailmentCheck)
   {
@@ -169,6 +170,15 @@ void AssertionsManager::finishInit()
 std::vector<Node>& AssertionsManager::getAssumptions()
 {
   return d_assumptions;
+}
+bool AssertionsManager::isGlobalNegated() const
+{
+  return d_globalNegation;
+}
+
+AssertionPipeline& AssertionsManager::getAssertionsPipeline()
+{
+  return d_assertions;
 }
 
 void AssertionsManager::addFormula(

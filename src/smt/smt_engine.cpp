@@ -185,17 +185,14 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   ResourceManager* d_resourceManager;
 
+  /** Pointer to the assertions manager */
+  AssertionsManager* d_asserts;
+  
   /** Resource out listener */
   std::unique_ptr<ResourceOutListener> d_routListener;
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
-
-  /** Assertions in the preprocessing pipeline */
-  AssertionPipeline d_assertions;
-
-  /** Whether any assertions have been processed */
-  CDO<bool> d_assertionsProcessed;
 
   // Cached true value
   Node d_true;
@@ -211,7 +208,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
   //------------------------------- end expression names
  public:
-  IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
 
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
@@ -242,8 +238,6 @@ class SmtEnginePrivate : public NodeManagerListener {
       : d_smt(smt),
         d_routListener(new ResourceOutListener(d_smt)),
         d_propagator(true, true),
-        d_assertions(),
-        d_assertionsProcessed(smt.getUserContext(), false),
         d_processor(smt, *smt.getResourceManager()),
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -1407,8 +1401,6 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
 
     // Note that a query has been made
     d_queryMade = true;
-    // reset global negation
-    d_globalNegation = false;
 
     bool didInternalPush = false;
 
@@ -1436,7 +1428,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
     }
     // flipped if we did a global negation
-    if (d_globalNegation)
+    if (d_asserts->isGlobalNegated())
     {
       Trace("smt") << "SmtEngine::process global negate " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)

@@ -93,6 +93,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class AssertionsManager;
 class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
@@ -1235,11 +1236,6 @@ class CVC4_PUBLIC SmtEngine
    * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-
-  /*
-   * Whether we did a global negation of the formula.
-   */
-  bool d_globalNegation;
 
   /**
    * Most recent result of last checkSatisfiability/checkEntailed or

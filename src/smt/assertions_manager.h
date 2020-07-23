@@ -35,8 +35,6 @@ class AssertionsManager
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
-  /** The type of our internal assignment set */
-  typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
  public:
    AssertionsManager(SmtEngine& smt);
   ~AssertionsManager();
@@ -77,6 +75,10 @@ class AssertionsManager
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv);
   /** Get assumptions */
   std::vector<Node>& getAssumptions();
+  /** Is the set of asseritons globally negated? */
+  bool isGlobalNegated() const;
+  /** Get the assertions pipeline */
+  AssertionPipeline& getAssertionsPipeline();
  private:
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
@@ -93,10 +95,6 @@ class AssertionsManager
    * one single assumption ~(a1 AND ... AND an).
    */
   std::vector<Node> d_assumptions;
-  /**
-   * List of items for which to retrieve values using getAssignment().
-   */
-  AssignmentSet* d_assignments;
   /*
    * Whether we did a global negation of the formula.
    */
