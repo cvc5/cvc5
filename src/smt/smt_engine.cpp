@@ -185,9 +185,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Manager for limiting time and abstract resource usage.
    */
   ResourceManager* d_resourceManager;
-
-  /** Pointer to the assertions manager */
-  AssertionsManager* d_asserts;
   
   /** Resource out listener */
   std::unique_ptr<ResourceOutListener> d_routListener;
@@ -338,8 +335,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Process a user push.
   */
   void notifyPush() {
-    d_asserts->notifyPush();
-
   }
 
   /**
@@ -349,7 +344,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * last map of expression names from notifyPush.
    */
   void notifyPop() {
-    d_asserts->notifyPop();
     d_propagator.getLearnedLiterals().clear();
   }
   /**
@@ -521,11 +515,8 @@ void SmtEngine::finishInit()
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
   // with rc == 0.
-  if(options::produceAssertions() ||
-     options::incrementalSolving()) {
-    // In the case of incremental solving, we appear to need these to
-    // ensure the relevant Nodes remain live.
-    d_assertionList = new (true) AssertionList(getUserContext());
+  d_asserts->finishInit();
+  if(options::produceAssertions() || options::incrementalSolving()) {
     d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
   }
 
@@ -623,10 +614,6 @@ SmtEngine::~SmtEngine()
 
     d_globalDefineFunRecLemmas.reset();
 
-    if(d_assertionList != NULL) {
-      d_assertionList->deleteSelf();
-    }
-
     for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
       delete d_dumpCommands[i];
       d_dumpCommands[i] = NULL;
@@ -656,6 +643,7 @@ SmtEngine::~SmtEngine()
 #endif
 
     d_absValues.reset(nullptr);
+    d_asserts.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -1265,7 +1253,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // process the assertions
-  bool noConflict = d_processor.apply(ap);
+  bool noConflict = d_processor.apply(d_asserts);
 
   //notify theory engine new preprocessed assertions
   d_smt.d_theoryEngine->notifyPreprocessedAssertions( ap.ref() );
@@ -1302,13 +1290,13 @@ void SmtEnginePrivate::processAssertions() {
   ap.getIteSkolemMap().clear();
 }
 
-Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
+Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
 {
   Dump("benchmark") << CheckSatCommand(assumption);
   return checkSatisfiability(assumption, inUnsatCore, false);
 }
 
-Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
+Result SmtEngine::checkSat(const vector<Node>& assumptions, bool inUnsatCore)
 {
   if (assumptions.empty())
   {
@@ -1326,7 +1314,7 @@ Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
 {
   Dump("benchmark") << QueryCommand(node.toExpr(), inUnsatCore);
   return checkSatisfiability(
-             node.isNull() ? std::vector<Node>() : std::vector<Expr>{node},
+             node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
              inUnsatCore,
              true)
       .asEntailmentResult();
@@ -2521,7 +2509,8 @@ void SmtEngine::checkSynthSolution()
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
-  if (d_assertionList == NULL)
+  context::CDList<Node>* al = d_asserts->getAssertionList();
+  if (al == NULL)
   {
     Trace("check-synth-sol") << "No assertions to check\n";
     return;
@@ -2530,7 +2519,7 @@ void SmtEngine::checkSynthSolution()
   std::vector<Node> auxAssertions;
   // expand definitions cache
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (const Node& assertion : *d_assertionList)
+  for (const Node& assertion : *al)
   {
     Notice() << "SmtEngine::checkSynthSolution(): checking assertion "
              << assertion << endl;
@@ -2871,9 +2860,10 @@ vector<Expr> SmtEngine::getAssertions() {
       "Cannot query the current assertion list when not in produce-assertions mode.";
     throw ModalException(msg);
   }
-  Assert(d_assertionList != NULL);
+  context::CDList<Node>* al = d_asserts->getAssertionList();
+  Assert(al != NULL);
   std::vector<Expr> res;
-  for (const Node& n : *d_assertionList)
+  for (const Node& n : *al)
   {
     res.emplace_back(n.toExpr());
   }
@@ -2888,6 +2878,7 @@ void SmtEngine::push()
   doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   d_private->notifyPush();
+  d_asserts->notifyPush();
   d_private->processAssertions();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
@@ -2938,6 +2929,7 @@ void SmtEngine::pop() {
   d_userLevels.pop_back();
 
   // Clear out assertion queues etc., in case anything is still in there
+  d_asserts->notifyPop();
   d_private->notifyPop();
 
   Trace("userpushpop") << "SmtEngine: popped to level "

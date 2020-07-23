@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "context/cdlist.h"
+#include "context/context.h"
 #include "expr/node.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/abstract_values.h"
@@ -38,7 +39,7 @@ class Assertions
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
  public:
-   Assertions(SmtEngine& smt, UserContext * u, AbstractValues * absv);
+   Assertions(SmtEngine& smt, context::UserContext * u, AbstractValues * absv);
   ~Assertions();
   /** finish init */
   void finishInit();
@@ -90,8 +91,12 @@ class Assertions
   std::vector<Node>& getAssumptions();
   /** Is the set of asseritons globally negated? */
   bool isGlobalNegated() const;
+  /** Flip the global negation flag */
+  void flipGlobalNegated();
   /** Get the assertions pipeline */
   preprocessing::AssertionPipeline& getAssertionPipeline();
+  /** Get assertions list */
+  context::CDList<Node>* getAssertionList();
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -102,6 +107,8 @@ class Assertions
   void ensureBoolean(const Node& n);
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
+  /** pointer to the user context */
+  context::UserContext * d_userContext;
   /** Pointer to the abstract values utility */
   AbstractValues * d_absValues;
   /**

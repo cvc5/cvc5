@@ -28,8 +28,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-Assertions::Assertions(SmtEngine& smt, UserContext * u, AbstractValues * absv)
+Assertions::Assertions(SmtEngine& smt, context::UserContext * u, AbstractValues * absv)
     : d_smt(smt),
+      d_userContext(u),
       d_absValues(absv),
       d_assertionList(nullptr),
       d_globalNegation(false),
@@ -88,7 +89,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
-    Node n = d_absValues->substituteAbstractValues(Node::fromExpr(e));
+    Node n = d_absValues->substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
 
@@ -97,7 +98,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     {
       d_assertionList->push_back(n);
     }
-    addFormula(n, inUnsatCore, true, true);
+    addFormula(n, inUnsatCore, true, true, false);
   }
 }
 
@@ -123,7 +124,7 @@ void Assertions::finishInit()
      options::incrementalSolving()) {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
-    d_assertionList = new (true) AssertionList(d_smt.getUserContext());
+    d_assertionList = new (true) AssertionList(d_userContext);
   }
 }
 
@@ -135,10 +136,19 @@ bool Assertions::isGlobalNegated() const
 {
   return d_globalNegation;
 }
+void Assertions::flipGlobalNegated()
+{
+  d_globalNegation = !d_globalNegation;
+}
 
 preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
 {
   return d_assertions;
+}
+
+context::CDList<Node>* Assertions::getAssertionList()
+{
+  return d_assertionList;
 }
 
 void Assertions::addFormula(

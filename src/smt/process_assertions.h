@@ -26,6 +26,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine_stats.h"
+#include "smt/assertions.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -69,10 +70,10 @@ class ProcessAssertions
    */
   void cleanup();
   /**
-   * Process the formulas in assertions. Returns true if there
-   * was no conflict when processing the assertions.
+   * Process the formulas in as Returns true if there was no conflict when
+   * processing the assertions.
    */
-  bool apply(preprocessing::AssertionPipeline& assertions);
+  bool apply(Assertions& as);
   /**
    * Expand definitions in term n. Return the expanded form of n.
    *

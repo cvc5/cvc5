@@ -1068,10 +1068,10 @@ class CVC4_PUBLIC SmtEngine
                                 const char* dumpTag = "declarations");
 
   /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Expr& assumption,
+  Result checkSatisfiability(const Node& assumption,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Expr>& assumptions,
+  Result checkSatisfiability(const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
 
