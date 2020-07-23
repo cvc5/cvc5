@@ -92,7 +92,7 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
-class AbstractValues;
+class AssertionsManager;
 class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
@@ -330,9 +330,6 @@ class CVC4_PUBLIC SmtEngine
                       const std::vector<Expr>& formals,
                       Expr formula,
                       bool global = false);
-
-  /** Return true if given expression is a defined function. */
-  bool isDefinedFunction(Expr func);
 
   /**
    * Define functions recursive
@@ -889,14 +886,6 @@ class CVC4_PUBLIC SmtEngine
  private:
   /* .......................................................................  */
 
-  /** The type of our internal map of defined functions */
-  typedef context::CDHashMap<Node, smt::DefinedFunction, NodeHashFunction>
-      DefinedFunctionMap;
-  /** The type of our internal assertion list */
-  typedef context::CDList<Node> AssertionList;
-  /** The type of our internal assignment set */
-  typedef context::CDHashSet<Node, NodeHashFunction> AssignmentSet;
-
   // disallow copy/assignment
   SmtEngine(const SmtEngine&) = delete;
   SmtEngine& operator=(const SmtEngine&) = delete;
@@ -1121,7 +1110,7 @@ class CVC4_PUBLIC SmtEngine
   /** Our internal expression/node manager */
   NodeManager* d_nodeManager;
   /** Abstract values */
-  std::unique_ptr<smt::AbstractValues> d_absValues;
+  std::unique_ptr<smt::AssertionsManager> d_assertm;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
@@ -1139,36 +1128,8 @@ class CVC4_PUBLIC SmtEngine
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
 
-  /** An index of our defined functions */
-  DefinedFunctionMap* d_definedFunctions;
-
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
-
-  /**
-   * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in incremental mode.
-   */
-  AssertionList* d_assertionList;
-
-  /**
-   * List of lemmas generated for global recursive function definitions. We
-   * assert this list of definitions in each check-sat call.
-   */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
-
-  /**
-   * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
-   */
-  std::vector<Expr> d_assumptions;
-
-  /**
-   * List of items for which to retrieve values using getAssignment().
-   */
-  AssignmentSet* d_assignments;
 
   /**
    * A list of commands that should be in the Model globally (i.e.,
@@ -1247,11 +1208,6 @@ class CVC4_PUBLIC SmtEngine
    * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-
-  /*
-   * Whether we did a global negation of the formula.
-   */
-  bool d_globalNegation;
 
   /**
    * Most recent result of last checkSatisfiability/checkEntailed or
