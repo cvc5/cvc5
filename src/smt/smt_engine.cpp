@@ -1245,11 +1245,11 @@ void SmtEnginePrivate::processAssertions() {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
 
-    d_assertions.enableStoreSubstsInAsserts();
+    ap.enableStoreSubstsInAsserts();
   }
   else
   {
-    d_assertions.disableStoreSubstsInAsserts();
+    ap.disableStoreSubstsInAsserts();
   }
 
   // process the assertions
@@ -1478,7 +1478,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
   }
 }
 
-vector<Expr> SmtEngine::getUnsatAssumptions(void)
+std::vector<Node> SmtEngine::getUnsatAssumptions(void)
 {
   Trace("smt") << "SMT getUnsatAssumptions()" << endl;
   SmtScope smts(this);
@@ -1500,10 +1500,13 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
     Dump("benchmark") << GetUnsatAssumptionsCommand();
   }
   UnsatCore core = getUnsatCoreInternal();
-  vector<Expr> res;
-  for (const Expr& e : d_assumptions)
+  std::vector<Node> res;
+  std::vector<Node>& assumps = d_asserts->getAssumptions();
+  for (const Node& e : assumps)
   {
-    if (find(core.begin(), core.end(), e) != core.end()) { res.push_back(e); }
+    if (std::find(core.begin(), core.end(), e.toExpr()) != core.end()) { 
+      res.push_back(e); 
+    }
   }
   return res;
 }

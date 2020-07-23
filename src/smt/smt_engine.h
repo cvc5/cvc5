@@ -411,7 +411,7 @@ class CVC4_PUBLIC SmtEngine
    * Note that the returned set of failed assumptions is not necessarily
    * minimal.
    */
-  std::vector<Expr> getUnsatAssumptions(void);
+  std::vector<Node> getUnsatAssumptions(void);
 
   /*---------------------------- sygus commands  ---------------------------*/
 
