@@ -142,6 +142,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
+#        Grammar mkSygusGrammar(const vector[Term]& boundVard, const vector[Term]& ntSymbols) except +
         Term mkTrue() except +
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
@@ -221,6 +222,13 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         void setInfo(string& keyword, const string& value) except +
         void setLogic(const string& logic) except +
         void setOption(const string& option, const string& value) except +
+
+    cdef cppclass Grammar:
+        Grammar(Solver solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
+        void addRule(Term ntSymbol, Term rule) except +
+        void addAnyConstant(Term ntSymbol) except +
+        void addAnyVariable(Term ntSymbol) except +
+        void addRules(Term ntSymbol, vector[Term] rules) except +
 
 
     cdef cppclass Sort:
