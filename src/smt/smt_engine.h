@@ -1000,13 +1000,6 @@ class CVC4_PUBLIC SmtEngine
   void finalOptionsAreSet();
 
   /**
-   * Sets that the problem has been extended. This sets the smt mode of the
-   * solver to SMT_MODE_ASSERT, and clears the list of assumptions from the
-   * previous call to checkSatisfiability.
-   */
-  void setProblemExtended();
-
-  /**
    * Create theory engine, prop engine, decision engine. Called by
    * finalOptionsAreSet()
    */

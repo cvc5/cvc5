@@ -722,11 +722,6 @@ void SmtEngine::setLogicInternal()
   d_userLogic.lock();
 }
 
-void SmtEngine::setProblemExtended()
-{
-  d_smtMode = SMT_MODE_ASSERT;
-}
-
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
 {
   SmtScope smts(this);
@@ -1350,7 +1345,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
 
     bool didInternalPush = false;
 
-    setProblemExtended();
+    d_smtMode = SMT_MODE_ASSERT;
 
     // initialize the assumptions
     d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
@@ -2874,7 +2869,7 @@ void SmtEngine::push()
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmetric with pop.
-  setProblemExtended();
+  d_smtMode = SMT_MODE_ASSERT;
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -2902,7 +2897,7 @@ void SmtEngine::pop() {
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  setProblemExtended();
+  d_smtMode = SMT_MODE_ASSERT;
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
