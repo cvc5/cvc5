@@ -51,7 +51,6 @@ Assertions::~Assertions()
 
 void Assertions::finishInit()
 {
-  Trace("smt-debug") << "Set up assertion list..." << std::endl;
   // [MGD 10/20/2011] keep around in incremental mode, due to a
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
@@ -157,7 +156,7 @@ void Assertions::addFormula(
 {
   if (n.isConst() && n.getConst<bool>())
   {
-    // nothing to do
+    // true, nothing to do
     return;
   }
 
@@ -225,11 +224,10 @@ void Assertions::addDefineFunRecDefinition(Node n, bool global)
 void Assertions::ensureBoolean(const Node& n)
 {
   TypeNode type = n.getType(options::typeChecking());
-  TypeNode boolType = NodeManager::currentNM()->booleanType();
-  if (type != boolType)
+  if (!type.isBoolean())
   {
     std::stringstream ss;
-    ss << "Expected " << boolType << "\n"
+    ss << "Expected Boolean type\n"
        << "The assertion : " << n << "\n"
        << "Its type      : " << type;
     throw TypeCheckingException(n.toExpr(), ss.str());

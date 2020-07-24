@@ -1058,7 +1058,6 @@ void SmtEngine::defineFunctionsRec(
   }
 
   ExprManager* em = getExprManager();
-  bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   for (unsigned i = 0, size = funcs.size(); i < size; i++)
   {
     // we assert a quantified formula
@@ -1094,7 +1093,7 @@ void SmtEngine::defineFunctionsRec(
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
     Node lemn = Node::fromExpr(lem);
-    // add define recursive definition
+    // add define recursive definition to the assertions
     d_asserts->addDefineFunRecDefinition(lemn, global);
   }
 }
@@ -1317,12 +1316,12 @@ Result SmtEngine::checkEntailed(const vector<Expr>& nodes, bool inUnsatCore)
   return checkSatisfiability(ns, inUnsatCore, true).asEntailmentResult();
 }
 
-Result SmtEngine::checkSatisfiability(const Expr& node,
+Result SmtEngine::checkSatisfiability(const Node& node,
                                       bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
   return checkSatisfiability(
-      node.isNull() ? std::vector<Node>() : std::vector<Node>{Node::fromExpr(node)},
+      node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
       inUnsatCore,
       isEntailmentCheck);
 }
