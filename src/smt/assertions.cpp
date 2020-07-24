@@ -96,6 +96,16 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     }
     addFormula(n, inUnsatCore, true, true, false);
   }
+  if (d_globalDefineFunRecLemmas != nullptr)
+  {
+    // Global definitions are asserted at check-sat-time because we have to
+    // make sure that they are always present (they are essentially level
+    // zero assertions)
+    for (const Node& lemma : *d_globalDefineFunRecLemmas)
+    {
+      addFormula(lemma, false, true, false, false);
+    }
+  }
 }
 
 void Assertions::assertFormula(const Node& n, bool inUnsatCore)
@@ -121,6 +131,7 @@ void Assertions::finishInit()
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
     d_assertionList = new (true) AssertionList(d_userContext);
+    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
   }
 }
 

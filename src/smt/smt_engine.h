@@ -1140,13 +1140,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
-
-  /**
-   * List of lemmas generated for global recursive function definitions. We
-   * assert this list of definitions in each check-sat call.
-   */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
-
   /**
    * List of items for which to retrieve values using getAssignment().
    */

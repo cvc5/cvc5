@@ -512,16 +512,9 @@ void SmtEngine::finishInit()
   d_userContext->push();
   d_context->push();
 
-  Trace("smt-debug") << "Set up assertion list..." << std::endl;
-  // [MGD 10/20/2011] keep around in incremental mode, due to a
-  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
-  // first, some user-context-dependent TNodes might still exist
-  // with rc == 0.
+  Trace("smt-debug") << "Set up assertions..." << std::endl;
   d_asserts->finishInit();
-  if(options::produceAssertions() || options::incrementalSolving()) {
-    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
-  }
-
+  
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
   // dumping the command twice.
   if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
@@ -613,8 +606,6 @@ SmtEngine::~SmtEngine()
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
     }
-
-    d_globalDefineFunRecLemmas.reset();
 
     for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
       delete d_dumpCommands[i];
@@ -1358,17 +1349,6 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     
     // initialize the assumptions
     d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
-
-    if (d_globalDefineFunRecLemmas != nullptr)
-    {
-      // Global definitions are asserted at check-sat-time because we have to
-      // make sure that they are always present (they are essentially level
-      // zero assertions)
-      for (const Node& lemma : *d_globalDefineFunRecLemmas)
-      {
-        d_asserts->addFormula(lemma, false, true, false, false);
-      }
-    }
     
     if (!d_asserts->getAssumptions().empty())
     {
