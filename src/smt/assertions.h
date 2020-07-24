@@ -42,17 +42,26 @@ class Assertions
  public:
   Assertions(SmtEngine& smt, context::UserContext* u, AbstractValues* absv);
   ~Assertions();
-  /** finish init */
+  /** 
+   * Finish initialization, called once after options are finalized. Sets up
+   * the required bookkeeping based on the options.
+   */
   void finishInit();
   /**
-   * Process a user pop.  Clears out the non-context-dependent stuff in this
-   * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
-   * someone does a push-assert-pop without a check-sat. It also pops the
-   * last map of expression names from notifyPush.
+   * Clears out the non-context-dependent stuff in this class.  Necessary to
+   * clear out our assertion vectors in case someone does a push-assert-pop
+   * without a check-sat.
    */
   void clearCurrent();
   /*
-   * Initialize a call to check satisfiability.
+   * Initialize a call to check satisfiability. This adds assumptions to
+   * the list of assumptions maintained by this class, and finalizes the
+   * set of formulas that will be used for the upcoming check-sat call.
+   * 
+   * @param assumptions The assumptions of the upcoming check-sat call.
+   * @param inUnsatCore Whether assumptions are in the unsat core.
+   * @param isEntailmentCheck Whether we are checking entailment of assumptions
+   * in the upcoming check-sat call.
    */
   void initializeCheckSat(const std::vector<Node>& assumptions,
                           bool inUnsatCore,
@@ -68,6 +77,43 @@ class Assertions
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
   void assertFormula(const Node& n, bool inUnsatCore = true);
+  /**
+   * Assert that n corresponds to an assertion from a define-fun-rec command.
+   * This assertion is added to the set of assertions maintained by this class.
+   * If this has a global definition, this assertion is persistent for any
+   * subsequent check-sat calls.
+   */
+  void addDefineFunRecDefinition(Node n, bool global);
+  /** 
+   * Get the list of assumptions, which are those registered to this class
+   * on initializeCheckSat.
+   */
+  std::vector<Node>& getAssumptions();
+  /** 
+   * Is the set of assertions globally negated? When this flag is true, the
+   * overall result of check-sat should be inverted.
+   */
+  bool isGlobalNegated() const;
+  /** Flip the global negation flag. */
+  void flipGlobalNegated();
+  /** 
+   * Get the assertions pipeline, which contains the set of assertions we are
+   * currently preprocessing.
+   */
+  preprocessing::AssertionPipeline& getAssertionPipeline();
+  /** 
+   * Get assertions list corresponding to the original list of assertions,
+   * before preprocessing.
+   */
+  context::CDList<Node>* getAssertionList();
+ private:
+  /**
+   * Fully type-check the argument, and also type-check that it's
+   * actually Boolean.
+   *
+   * throw@ TypeCheckingException
+   */
+  void ensureBoolean(const Node& n);
   /**
    * Adds a formula to the current context.  Action here depends on
    * the SimplificationMode (in the current Options scope); the
@@ -89,29 +135,6 @@ class Assertions
                   bool inInput,
                   bool isAssumption,
                   bool maybeHasFv);
-  /**
-   *
-   */
-  void addDefineFunRecDefinition(Node n, bool global);
-  /** Get assumptions */
-  std::vector<Node>& getAssumptions();
-  /** Is the set of asseritons globally negated? */
-  bool isGlobalNegated() const;
-  /** Flip the global negation flag */
-  void flipGlobalNegated();
-  /** Get the assertions pipeline */
-  preprocessing::AssertionPipeline& getAssertionPipeline();
-  /** Get assertions list */
-  context::CDList<Node>* getAssertionList();
-
- private:
-  /**
-   * Fully type-check the argument, and also type-check that it's
-   * actually Boolean.
-   *
-   * throw@ TypeCheckingException
-   */
-  void ensureBoolean(const Node& n);
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
   /** pointer to the user context */

@@ -22,11 +22,10 @@
 #include "expr/expr_manager.h"
 #include "options/options.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-  
-class SmtEngine;
 
 namespace api {
 class Solver;

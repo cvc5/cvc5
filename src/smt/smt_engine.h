@@ -14,7 +14,7 @@
  ** SmtEngine: the main public entry point of libcvc4.
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
 #ifndef CVC4__SMT_ENGINE_H
 #define CVC4__SMT_ENGINE_H
@@ -28,7 +28,6 @@
 #include "context/cdlist_forward.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
-#include "expr/node.h"
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
@@ -386,9 +385,9 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkEntailed(const Node& assumption = Node(),
+  Result checkEntailed(const Expr& assumption = Expr(),
                        bool inUnsatCore = true);
-  Result checkEntailed(const std::vector<Node>& assumptions,
+  Result checkEntailed(const std::vector<Expr>& assumptions,
                        bool inUnsatCore = true);
 
   /**
@@ -397,8 +396,8 @@ class CVC4_PUBLIC SmtEngine
    *
    * @throw Exception
    */
-  Result checkSat(const Node& assumption = Node(), bool inUnsatCore = true);
-  Result checkSat(const std::vector<Node>& assumptions,
+  Result checkSat(const Expr& assumption = Expr(), bool inUnsatCore = true);
+  Result checkSat(const std::vector<Expr>& assumptions,
                   bool inUnsatCore = true);
 
   /**

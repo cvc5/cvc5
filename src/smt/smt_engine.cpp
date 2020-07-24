@@ -1273,13 +1273,13 @@ void SmtEnginePrivate::processAssertions(Assertions& as)
   ap.getIteSkolemMap().clear();
 }
 
-Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
+Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
-  Dump("benchmark") << CheckSatCommand(assumption.toExpr());
-  return checkSatisfiability(assumption, inUnsatCore, false);
+  Dump("benchmark") << CheckSatCommand(assumption);
+  return checkSatisfiability(Node::fromExpr(assumption), inUnsatCore, false);
 }
 
-Result SmtEngine::checkSat(const vector<Node>& assumptions, bool inUnsatCore)
+Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 {
   if (assumptions.empty())
   {
@@ -1287,38 +1287,42 @@ Result SmtEngine::checkSat(const vector<Node>& assumptions, bool inUnsatCore)
   }
   else
   {
-    std::vector<Expr> assumptionse;
-    for (const Node& a : assumptions)
-    {
-      assumptionse.push_back(a.toExpr());
-    }
-    Dump("benchmark") << CheckSatAssumingCommand(assumptionse);
+    Dump("benchmark") << CheckSatAssumingCommand(assumptions);
   }
-
-  return checkSatisfiability(assumptions, inUnsatCore, false);
+  std::vector<Node> assumps;
+  for (const Expr& e : assumptions)
+  {
+    assumps.push_back(Node::fromExpr(e));
+  }
+  return checkSatisfiability(assumps, inUnsatCore, false);
 }
 
-Result SmtEngine::checkEntailed(const Node& node, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
 {
-  Dump("benchmark") << QueryCommand(node.toExpr(), inUnsatCore);
+  Dump("benchmark") << QueryCommand(node, inUnsatCore);
   return checkSatisfiability(
-             node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
+             node.isNull() ? std::vector<Node>() : std::vector<Node>{Node::fromExpr(node)},
              inUnsatCore,
              true)
       .asEntailmentResult();
 }
 
-Result SmtEngine::checkEntailed(const vector<Node>& nodes, bool inUnsatCore)
+Result SmtEngine::checkEntailed(const vector<Expr>& nodes, bool inUnsatCore)
 {
-  return checkSatisfiability(nodes, inUnsatCore, true).asEntailmentResult();
+  std::vector<Node> ns;
+  for (const Expr& e : nodes)
+  {
+    ns.push_back(Node::fromExpr(e));
+  }
+  return checkSatisfiability(ns, inUnsatCore, true).asEntailmentResult();
 }
 
-Result SmtEngine::checkSatisfiability(const Node& node,
+Result SmtEngine::checkSatisfiability(const Expr& node,
                                       bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
   return checkSatisfiability(
-      node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
+      node.isNull() ? std::vector<Node>() : std::vector<Node>{Node::fromExpr(node)},
       inUnsatCore,
       isEntailmentCheck);
 }

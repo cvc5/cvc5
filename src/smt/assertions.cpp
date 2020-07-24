@@ -49,6 +49,22 @@ Assertions::~Assertions()
   }
 }
 
+void Assertions::finishInit()
+{
+  Trace("smt-debug") << "Set up assertion list..." << std::endl;
+  // [MGD 10/20/2011] keep around in incremental mode, due to a
+  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
+  // first, some user-context-dependent TNodes might still exist
+  // with rc == 0.
+  if (options::produceAssertions() || options::incrementalSolving())
+  {
+    // In the case of incremental solving, we appear to need these to
+    // ensure the relevant Nodes remain live.
+    d_assertionList = new (true) AssertionList(d_userContext);
+    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
+  }
+}
+
 void Assertions::clearCurrent()
 {
   d_assertions.clear();
@@ -120,22 +136,6 @@ void Assertions::assertFormula(const Node& n, bool inUnsatCore)
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   addFormula(n, inUnsatCore, true, false, maybeHasFv);
-}
-
-void Assertions::finishInit()
-{
-  Trace("smt-debug") << "Set up assertion list..." << std::endl;
-  // [MGD 10/20/2011] keep around in incremental mode, due to a
-  // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
-  // first, some user-context-dependent TNodes might still exist
-  // with rc == 0.
-  if (options::produceAssertions() || options::incrementalSolving())
-  {
-    // In the case of incremental solving, we appear to need these to
-    // ensure the relevant Nodes remain live.
-    d_assertionList = new (true) AssertionList(d_userContext);
-    d_globalDefineFunRecLemmas.reset(new std::vector<Node>());
-  }
 }
 
 std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }

@@ -26,7 +26,6 @@
 
 #include "main/main.h"
 #include "smt/command.h"
-#include "smt/smt_engine.h"
 
 namespace CVC4 {
 namespace main {
