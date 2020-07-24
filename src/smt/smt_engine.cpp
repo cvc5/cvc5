@@ -192,6 +192,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
 
+  /** Whether any assertions have been processed */
+  CDO<bool> d_assertionsProcessed;
+  
   // Cached true value
   Node d_true;
 
@@ -200,9 +203,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** Process assertions module */
   ProcessAssertions d_processor;
-
-  /** Whether any assertions have been processed */
-  CDO<bool> d_assertionsProcessed;
 
   //------------------------------- expression names
   /** mapping from expressions to name */
