@@ -48,8 +48,8 @@ void SygusInterpol::collectSymbols(const std::vector<Node>& axioms,
     expr::getSymbols(axioms[i], symSetAxioms);
   }
   expr::getSymbols(conj, symSetConj);
-	d_syms.insert(d_syms.end(), symSetAxioms.begin(), symSetAxioms.end());
-	d_syms.insert(d_syms.end(), symSetConj.begin(), symSetConj.end());
+  d_syms.insert(d_syms.end(), symSetAxioms.begin(), symSetAxioms.end());
+  d_syms.insert(d_syms.end(), symSetConj.begin(), symSetConj.end());
   for (const Node& elem : symSetConj)
   {
     if (symSetAxioms.find(elem) != symSetAxioms.end())
@@ -102,7 +102,9 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   // ASSUMPTIONS
   if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
-		Node tmpAssumptions = (assumptions.size() == 1 ? assumptions[0] : nm->mkNode(kind::AND, assumptions));
+    Node tmpAssumptions =
+        (assumptions.size() == 1 ? assumptions[0]
+                                 : nm->mkNode(kind::AND, assumptions));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
@@ -114,9 +116,12 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   else if (options::produceInterpols() == options::ProduceInterpols::SHARED)
   {
     // Get operators from assumptions
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > include_cons_assumptions;
-		Node tmpAssumptions = (assumptions.size() == 1 ? assumptions[0] : nm->mkNode(kind::AND, assumptions));
-		expr::getOperatorsMap(tmpAssumptions, include_cons_assumptions);
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
+        include_cons_assumptions;
+    Node tmpAssumptions =
+        (assumptions.size() == 1 ? assumptions[0]
+                                 : nm->mkNode(kind::AND, assumptions));
+    expr::getOperatorsMap(tmpAssumptions, include_cons_assumptions);
 
     // Get operators from conclusion
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
@@ -124,7 +129,7 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
     expr::getOperatorsMap(conclusion, include_cons_conclusion);
 
     // Compute intersection
-		for (auto& [tn, assumptionsOps] : include_cons_assumptions)
+    for (auto& [tn, assumptionsOps] : include_cons_assumptions)
     {
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >::iterator
           concIter = include_cons_conclusion.find(tn);
@@ -149,7 +154,9 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   // ALL
   else if (options::produceInterpols() == options::ProduceInterpols::ALL)
   {
-		Node tmpAssumptions = (assumptions.size() == 1 ? assumptions[0] : nm->mkNode(kind::AND, assumptions));
+    Node tmpAssumptions =
+        (assumptions.size() == 1 ? assumptions[0]
+                                 : nm->mkNode(kind::AND, assumptions));
     Node tmpAll = nm->mkNode(kind::AND, tmpAssumptions, conclusion);
     expr::getOperatorsMap(tmpAll, result);
   }
@@ -169,14 +176,15 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     itpGTypeS = datatypes::utils::substituteAndGeneralizeSygusType(
         itpGType, d_syms, d_vlvs);
     Assert(itpGTypeS.isDatatype() && itpGTypeS.getDType().isSygus());
-    // TODO(Ying Sheng) check if the vars in user-defined grammar, are consistent with the
-    // shared vars
+    // TODO(Ying Sheng) check if the vars in user-defined grammar, are
+    // consistent with the shared vars
   }
   else
   {
     // set default grammar
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > extra_cons;
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > exclude_cons;
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
+        exclude_cons;
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
         include_cons = getIncludeCons(axioms, conj);
     std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
