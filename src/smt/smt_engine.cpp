@@ -185,7 +185,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Manager for limiting time and abstract resource usage.
    */
   ResourceManager* d_resourceManager;
-  
+
   /** Resource out listener */
   std::unique_ptr<ResourceOutListener> d_routListener;
 
@@ -194,7 +194,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** Whether any assertions have been processed */
   CDO<bool> d_assertionsProcessed;
-  
+
   // Cached true value
   Node d_true;
 
@@ -514,7 +514,7 @@ void SmtEngine::finishInit()
 
   Trace("smt-debug") << "Set up assertions..." << std::endl;
   d_asserts->finishInit();
-  
+
   // dump out a set-logic command only when raw-benchmark is disabled to avoid
   // dumping the command twice.
   if (Dump.isOn("benchmark") && !Dump.isOn("raw-benchmark"))
@@ -1209,15 +1209,17 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-void SmtEnginePrivate::processAssertions(Assertions& as) {
+void SmtEnginePrivate::processAssertions(Assertions& as)
+{
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
   spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
 
   AssertionPipeline& ap = as.getAssertionPipeline();
-  
-  if (ap.size() == 0) {
+
+  if (ap.size() == 0)
+  {
     // nothing to do
     return;
   }
@@ -1236,7 +1238,7 @@ void SmtEnginePrivate::processAssertions(Assertions& as) {
   bool noConflict = d_processor.apply(as);
 
   //notify theory engine new preprocessed assertions
-  d_smt.d_theoryEngine->notifyPreprocessedAssertions( ap.ref() );
+  d_smt.d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
 
   // Push the formula to decision engine
   if (noConflict)
@@ -1258,7 +1260,8 @@ void SmtEnginePrivate::processAssertions(Assertions& as) {
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
-    for (unsigned i = 0; i < ap.size(); ++ i) {
+    for (unsigned i = 0; i < ap.size(); ++i)
+    {
       Chat() << "+ " << ap[i] << std::endl;
       d_smt.d_propEngine->assertFormula(ap[i]);
     }
@@ -1346,16 +1349,16 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     bool didInternalPush = false;
 
     setProblemExtended();
-    
+
     // initialize the assumptions
     d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
-    
+
     if (!d_asserts->getAssumptions().empty())
     {
       internalPush();
       didInternalPush = true;
     }
-  
+
     Result r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
@@ -1478,8 +1481,9 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
   std::vector<Node>& assumps = d_asserts->getAssumptions();
   for (const Node& e : assumps)
   {
-    if (std::find(core.begin(), core.end(), e.toExpr()) != core.end()) { 
-      res.push_back(e); 
+    if (std::find(core.begin(), core.end(), e.toExpr()) != core.end())
+    {
+      res.push_back(e);
     }
   }
   return res;
@@ -2218,7 +2222,6 @@ void SmtEngine::checkUnsatCore() {
 }
 
 void SmtEngine::checkModel(bool hardFailure) {
-  
   context::CDList<Node>* al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.

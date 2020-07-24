@@ -25,8 +25,8 @@
 #include "expr/type_node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "smt/smt_engine_stats.h"
 #include "smt/assertions.h"
+#include "smt/smt_engine_stats.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {

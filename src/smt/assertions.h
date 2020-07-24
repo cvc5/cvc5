@@ -38,24 +38,25 @@ class Assertions
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
+
  public:
-   Assertions(SmtEngine& smt, context::UserContext * u, AbstractValues * absv);
+  Assertions(SmtEngine& smt, context::UserContext* u, AbstractValues* absv);
   ~Assertions();
   /** finish init */
   void finishInit();
   /**
-    * Process a user pop.  Clears out the non-context-dependent stuff in this
-    * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
-    * someone does a push-assert-pop without a check-sat. It also pops the
-    * last map of expression names from notifyPush.
-    */
+   * Process a user pop.  Clears out the non-context-dependent stuff in this
+   * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
+   * someone does a push-assert-pop without a check-sat. It also pops the
+   * last map of expression names from notifyPush.
+   */
   void clearCurrent();
-  /* 
-   * Initialize a call to check satisfiability. 
+  /*
+   * Initialize a call to check satisfiability.
    */
   void initializeCheckSat(const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
+                          bool inUnsatCore,
+                          bool isEntailmentCheck);
   /**
    * Add a formula to the current context: preprocess, do per-theory
    * setup, use processAssertionList(), asserting to T-solver for
@@ -83,8 +84,11 @@ class Assertions
    * @param isAssumption If true, the formula is considered to be an assumption
    * (this is used to distinguish assertions and assumptions)
    */
-  void addFormula(
-    TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv);
+  void addFormula(TNode n,
+                  bool inUnsatCore,
+                  bool inInput,
+                  bool isAssumption,
+                  bool maybeHasFv);
   /**
    *
    */
@@ -99,6 +103,7 @@ class Assertions
   preprocessing::AssertionPipeline& getAssertionPipeline();
   /** Get assertions list */
   context::CDList<Node>* getAssertionList();
+
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -110,9 +115,9 @@ class Assertions
   /** Reference to the SMT engine */
   SmtEngine& d_smt;
   /** pointer to the user context */
-  context::UserContext * d_userContext;
+  context::UserContext* d_userContext;
   /** Pointer to the abstract values utility */
-  AbstractValues * d_absValues;
+  AbstractValues* d_absValues;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.

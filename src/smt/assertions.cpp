@@ -15,10 +15,10 @@
 #include "smt/assertions.h"
 
 #include "expr/node_algorithm.h"
-#include "options/language.h"
-#include "options/smt_options.h"
 #include "options/base_options.h"
+#include "options/language.h"
 #include "options/proof_options.h"
+#include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 
@@ -28,7 +28,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-Assertions::Assertions(SmtEngine& smt, context::UserContext * u, AbstractValues * absv)
+Assertions::Assertions(SmtEngine& smt,
+                       context::UserContext* u,
+                       AbstractValues* absv)
     : d_smt(smt),
       d_userContext(u),
       d_absValues(absv),
@@ -41,21 +43,23 @@ Assertions::Assertions(SmtEngine& smt, context::UserContext * u, AbstractValues 
 
 Assertions::~Assertions()
 {
-  if(d_assertionList != NULL) {
+  if (d_assertionList != NULL)
+  {
     d_assertionList->deleteSelf();
   }
 }
 
-void Assertions::clearCurrent() {
+void Assertions::clearCurrent()
+{
   d_assertions.clear();
   d_assertions.getIteSkolemMap().clear();
 }
 
 void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
-                            bool inUnsatCore,
-                            bool isEntailmentCheck)
+                                    bool inUnsatCore,
+                                    bool isEntailmentCheck)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // reset global negation
   d_globalNegation = false;
   // clear the assumptions
@@ -66,8 +70,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
     if (size > 1)
     {
       /* Assume: not (BIGAND assumptions)  */
-      d_assumptions.push_back(
-          nm->mkNode(AND, assumptions).notNode());
+      d_assumptions.push_back(nm->mkNode(AND, assumptions).notNode());
     }
     else if (size == 1)
     {
@@ -111,13 +114,13 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n, bool inUnsatCore)
 {
   ensureBoolean(n);
-  if(d_assertionList != NULL) {
+  if (d_assertionList != NULL)
+  {
     d_assertionList->push_back(n);
   }
   bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
   addFormula(n, inUnsatCore, true, false, maybeHasFv);
 }
-
 
 void Assertions::finishInit()
 {
@@ -126,8 +129,8 @@ void Assertions::finishInit()
   // cleanup ordering issue and Nodes/TNodes.  If SAT is popped
   // first, some user-context-dependent TNodes might still exist
   // with rc == 0.
-  if(options::produceAssertions() ||
-     options::incrementalSolving()) {
+  if (options::produceAssertions() || options::incrementalSolving())
+  {
     // In the case of incremental solving, we appear to need these to
     // ensure the relevant Nodes remain live.
     d_assertionList = new (true) AssertionList(d_userContext);
@@ -135,18 +138,9 @@ void Assertions::finishInit()
   }
 }
 
-std::vector<Node>& Assertions::getAssumptions()
-{
-  return d_assumptions;
-}
-bool Assertions::isGlobalNegated() const
-{
-  return d_globalNegation;
-}
-void Assertions::flipGlobalNegated()
-{
-  d_globalNegation = !d_globalNegation;
-}
+std::vector<Node>& Assertions::getAssumptions() { return d_assumptions; }
+bool Assertions::isGlobalNegated() const { return d_globalNegation; }
+void Assertions::flipGlobalNegated() { d_globalNegation = !d_globalNegation; }
 
 preprocessing::AssertionPipeline& Assertions::getAssertionPipeline()
 {
@@ -161,7 +155,8 @@ context::CDList<Node>* Assertions::getAssertionList()
 void Assertions::addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv)
 {
-  if (n.isConst() && n.getConst<bool>()) {
+  if (n.isConst() && n.getConst<bool>())
+  {
     // nothing to do
     return;
   }
@@ -189,17 +184,18 @@ void Assertions::addFormula(
   }
 
   // Give it to proof manager
-  PROOF(
-    if( inInput ){
-      // n is an input assertion
-      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores() || options::checkUnsatCores() || options::fewerPreprocessingHoles()) {
-        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
-      }
-    }else{
-      // n is the result of an unknown preprocessing step, add it to dependency map to null
-      ProofManager::currentPM()->addDependence(n, Node::null());
+  PROOF(if (inInput) {
+    // n is an input assertion
+    if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
+        || options::checkUnsatCores() || options::fewerPreprocessingHoles())
+    {
+      ProofManager::currentPM()->addCoreAssertion(n.toExpr());
     }
-  );
+  } else {
+    // n is the result of an unknown preprocessing step, add it to dependency
+    // map to null
+    ProofManager::currentPM()->addDependence(n, Node::null());
+  });
 
   // Add the normalized formula to the queue
   d_assertions.push_back(n, isAssumption);
@@ -223,14 +219,15 @@ void Assertions::addDefineFunRecDefinition(Node n, bool global)
   {
     bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
     addFormula(n, false, true, false, maybeHasFv);
-  }  
+  }
 }
 
 void Assertions::ensureBoolean(const Node& n)
 {
   TypeNode type = n.getType(options::typeChecking());
   TypeNode boolType = NodeManager::currentNM()->booleanType();
-  if(type != boolType) {
+  if (type != boolType)
+  {
     std::stringstream ss;
     ss << "Expected " << boolType << "\n"
        << "The assertion : " << n << "\n"
