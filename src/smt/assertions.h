@@ -43,15 +43,13 @@ class Assertions
   ~Assertions();
   /** finish init */
   void finishInit();
-  /** Process a user push.*/
-  void notifyPush();
   /**
     * Process a user pop.  Clears out the non-context-dependent stuff in this
     * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
     * someone does a push-assert-pop without a check-sat. It also pops the
     * last map of expression names from notifyPush.
     */
-  void notifyPop();
+  void clearCurrent();
   /* 
    * Initialize a call to check satisfiability. 
    */
@@ -87,6 +85,10 @@ class Assertions
    */
   void addFormula(
     TNode n, bool inUnsatCore, bool inInput, bool isAssumption, bool maybeHasFv);
+  /**
+   *
+   */
+  void addDefineFunRecDefinition(Node n, bool global);
   /** Get assumptions */
   std::vector<Node>& getAssumptions();
   /** Is the set of asseritons globally negated? */
@@ -116,6 +118,11 @@ class Assertions
    * getAssertions().  Only maintained if in incremental mode.
    */
   AssertionList* d_assertionList;
+  /**
+   * List of lemmas generated for global recursive function definitions. We
+   * assert this list of definitions in each check-sat call.
+   */
+  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
   /**
    * The list of assumptions from the previous call to checkSatisfiability.
    * Note that if the last call to checkSatisfiability was an entailment check,

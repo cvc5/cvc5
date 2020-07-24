@@ -201,6 +201,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Process assertions module */
   ProcessAssertions d_processor;
 
+  /** Whether any assertions have been processed */
+  CDO<bool> d_assertionsProcessed;
+
   //------------------------------- expression names
   /** mapping from expressions to name */
   context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
@@ -236,6 +239,7 @@ class SmtEnginePrivate : public NodeManagerListener {
       : d_smt(smt),
         d_routListener(new ResourceOutListener(d_smt)),
         d_propagator(true, true),
+        d_assertionsProcessed(smt.getUserContext(), false),
         d_processor(smt, *smt.getResourceManager()),
         d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
@@ -330,7 +334,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   /**
    * Process the assertions that have been asserted.
    */
-  void processAssertions();
+  void processAssertions(Assertions& as);
 
   /** Process a user push.
   */
@@ -355,8 +359,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     // Expand definitions.
     NodeToNodeHashMap cache;
     Node n = d_processor.expandDefinitions(in, cache).toExpr();
-    // Make sure we've done all preprocessing, etc.
-    Assert(d_assertions.size() == 0);
     return applySubstitutions(n).toExpr();
   }
 
@@ -732,7 +734,7 @@ void SmtEngine::setLogicInternal()
 void SmtEngine::setProblemExtended()
 {
   d_smtMode = SMT_MODE_ASSERT;
-  d_assumptions.clear();
+  d_asserts->clearCurrent();
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -1100,22 +1102,9 @@ void SmtEngine::defineFunctionsRec(
     // assert the quantified formula
     //   notice we don't call assertFormula directly, since this would
     //   duplicate the output on raw-benchmark.
-    Node n = d_absValues->substituteAbstractValues(Node::fromExpr(lem));
-    if (d_assertionList != nullptr)
-    {
-      d_assertionList->push_back(n);
-    }
-    if (global && d_globalDefineFunRecLemmas != nullptr)
-    {
-      // Global definitions are asserted at check-sat-time because we have to
-      // make sure that they are always present
-      Assert(!language::isInputLangSygus(options::inputLanguage()));
-      d_globalDefineFunRecLemmas->emplace_back(n);
-    }
-    else
-    {
-      d_private->addFormula(n, false, true, false, maybeHasFv);
-    }
+    Node lemn = Node::fromExpr(lem);
+    // add define recursive definition
+    d_asserts->addDefineFunRecDefinition(lemn, global);
   }
 }
 
@@ -1166,7 +1155,7 @@ Result SmtEngine::check() {
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
-  d_private->processAssertions();
+  d_private->processAssertions(*d_asserts);
   Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
 
   TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
@@ -1229,13 +1218,13 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-void SmtEnginePrivate::processAssertions() {
+void SmtEnginePrivate::processAssertions(Assertions& as) {
   TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
   spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
 
-  AssertionPipeline& ap = d_asserts->getAssertionPipeline();
+  AssertionPipeline& ap = as.getAssertionPipeline();
   
   if (ap.size() == 0) {
     // nothing to do
@@ -1253,7 +1242,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // process the assertions
-  bool noConflict = d_processor.apply(d_asserts);
+  bool noConflict = d_processor.apply(as);
 
   //notify theory engine new preprocessed assertions
   d_smt.d_theoryEngine->notifyPreprocessedAssertions( ap.ref() );
@@ -1292,7 +1281,7 @@ void SmtEnginePrivate::processAssertions() {
 
 Result SmtEngine::checkSat(const Node& assumption, bool inUnsatCore)
 {
-  Dump("benchmark") << CheckSatCommand(assumption);
+  Dump("benchmark") << CheckSatCommand(assumption.toExpr());
   return checkSatisfiability(assumption, inUnsatCore, false);
 }
 
@@ -1304,7 +1293,12 @@ Result SmtEngine::checkSat(const vector<Node>& assumptions, bool inUnsatCore)
   }
   else
   {
-    Dump("benchmark") << CheckSatAssumingCommand(assumptions);
+    std::vector<Expr> assumptionse;
+    for (const Node& a : assumptions)
+    {
+      assumptionse.push_back(a.toExpr());
+    }
+    Dump("benchmark") << CheckSatAssumingCommand(assumptionse);
   }
 
   return checkSatisfiability(assumptions, inUnsatCore, false);
@@ -1382,7 +1376,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       didInternalPush = true;
     }
   
-    r = check();
+    Result r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
         && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
@@ -1783,7 +1777,7 @@ Expr SmtEngine::simplify(const Expr& ex)
   }
 
   // Make sure all preprocessing is done
-  d_private->processAssertions();
+  d_private->processAssertions(*d_asserts);
   Node n = d_private->simplify(Node::fromExpr(e));
   n = postprocess(n, TypeNode::fromType(e.getType()));
   return n.toExpr();
@@ -2244,9 +2238,11 @@ void SmtEngine::checkUnsatCore() {
 }
 
 void SmtEngine::checkModel(bool hardFailure) {
+  
+  context::CDList<Node>* al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(d_assertionList != NULL)
+  Assert(al != NULL)
       << "don't have an assertion list to check in SmtEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
@@ -2365,7 +2361,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   }
 
   // Now go through all our user assertions checking if they're satisfied.
-  for (const Node& assertion : *d_assertionList)
+  for (const Node& assertion : *al)
   {
     Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
              << endl;
@@ -2881,8 +2877,7 @@ void SmtEngine::push()
   doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   d_private->notifyPush();
-  d_asserts->notifyPush();
-  d_private->processAssertions();
+  d_private->processAssertions(*d_asserts);
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
   }
@@ -2932,7 +2927,7 @@ void SmtEngine::pop() {
   d_userLevels.pop_back();
 
   // Clear out assertion queues etc., in case anything is still in there
-  d_asserts->notifyPop();
+  d_asserts->clearCurrent();
   d_private->notifyPop();
 
   Trace("userpushpop") << "SmtEngine: popped to level "
@@ -2946,7 +2941,7 @@ void SmtEngine::internalPush() {
   Trace("smt") << "SmtEngine::internalPush()" << endl;
   doPendingPops();
   if(options::incrementalSolving()) {
-    d_private->processAssertions();
+    d_private->processAssertions(*d_asserts);
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_userContext->push();
     // the d_context push is done inside of the SAT solver

@@ -46,11 +46,7 @@ Assertions::~Assertions()
   }
 }
 
-void Assertions::notifyPush() {
-
-}
-
-void Assertions::notifyPop() {
+void Assertions::clearCurrent() {
   d_assertions.clear();
   d_assertions.getIteSkolemMap().clear();
 }
@@ -198,6 +194,26 @@ void Assertions::addFormula(
   d_assertions.push_back(n, isAssumption);
 }
 
+void Assertions::addDefineFunRecDefinition(Node n, bool global)
+{
+  n = d_absValues->substituteAbstractValues(n);
+  if (d_assertionList != nullptr)
+  {
+    d_assertionList->push_back(n);
+  }
+  if (global && d_globalDefineFunRecLemmas != nullptr)
+  {
+    // Global definitions are asserted at check-sat-time because we have to
+    // make sure that they are always present
+    Assert(!language::isInputLangSygus(options::inputLanguage()));
+    d_globalDefineFunRecLemmas->emplace_back(n);
+  }
+  else
+  {
+    bool maybeHasFv = language::isInputLangSygus(options::inputLanguage());
+    addFormula(n, false, true, false, maybeHasFv);
+  }  
+}
 
 void Assertions::ensureBoolean(const Node& n)
 {
