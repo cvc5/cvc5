@@ -33,12 +33,15 @@ namespace smt {
 
 /**
  * Contains all information pertaining to the assertions of an SMT engine.
+ *
+ * This class is responsible for setting up the assertions pipeline for
+ * check-sat calls. It is *not* responsible for the preprocessing itself, and
+ * instead is intended to be the input to a preprocessor utility.
  */
 class Assertions
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
-
  public:
   Assertions(SmtEngine& smt, context::UserContext* u, AbstractValues* absv);
   ~Assertions();
@@ -48,7 +51,7 @@ class Assertions
    */
   void finishInit();
   /**
-   * Clears out the non-context-dependent stuff in this class.  Necessary to
+   * Clears out the non-context-dependent data in this class.  Necessary to
    * clear out our assertion vectors in case someone does a push-assert-pop
    * without a check-sat.
    */
@@ -56,7 +59,8 @@ class Assertions
   /*
    * Initialize a call to check satisfiability. This adds assumptions to
    * the list of assumptions maintained by this class, and finalizes the
-   * set of formulas that will be used for the upcoming check-sat call.
+   * set of formulas (in the assertions pipeline) that will be used for the
+   * upcoming check-sat call.
    *
    * @param assumptions The assumptions of the upcoming check-sat call.
    * @param inUnsatCore Whether assumptions are in the unsat core.
@@ -98,7 +102,7 @@ class Assertions
   void flipGlobalNegated();
   /**
    * Get the assertions pipeline, which contains the set of assertions we are
-   * currently preprocessing.
+   * currently processing.
    */
   preprocessing::AssertionPipeline& getAssertionPipeline();
   /**
@@ -106,7 +110,6 @@ class Assertions
    * before preprocessing.
    */
   context::CDList<Node>* getAssertionList();
-
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
