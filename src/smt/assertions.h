@@ -42,6 +42,7 @@ class Assertions
 {
   /** The type of our internal assertion list */
   typedef context::CDList<Node> AssertionList;
+
  public:
   Assertions(SmtEngine& smt, context::UserContext* u, AbstractValues* absv);
   ~Assertions();
@@ -110,6 +111,7 @@ class Assertions
    * before preprocessing.
    */
   context::CDList<Node>* getAssertionList();
+
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
