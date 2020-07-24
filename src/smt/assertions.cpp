@@ -36,8 +36,7 @@ Assertions::Assertions(SmtEngine& smt,
       d_absValues(absv),
       d_assertionList(nullptr),
       d_globalNegation(false),
-      d_assertions(),
-      d_assertionsProcessed(u, false)
+      d_assertions()
 {
 }
 

@@ -725,7 +725,6 @@ void SmtEngine::setLogicInternal()
 void SmtEngine::setProblemExtended()
 {
   d_smtMode = SMT_MODE_ASSERT;
-  d_asserts->clearCurrent();
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -1268,8 +1267,8 @@ void SmtEnginePrivate::processAssertions(Assertions& as)
 
   d_assertionsProcessed = true;
 
-  ap.clear();
-  ap.getIteSkolemMap().clear();
+  // clear the current assertions
+  as.clearCurrent();
 }
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)

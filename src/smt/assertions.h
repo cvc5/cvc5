@@ -110,7 +110,6 @@ class Assertions
   /**
    * Fully type-check the argument, and also type-check that it's
    * actually Boolean.
-   *
    * throw@ TypeCheckingException
    */
   void ensureBoolean(const Node& n);
@@ -162,8 +161,6 @@ class Assertions
   bool d_globalNegation;
   /** Assertions in the preprocessing pipeline */
   preprocessing::AssertionPipeline d_assertions;
-  /** Whether any assertions have been processed */
-  context::CDO<bool> d_assertionsProcessed;
 };
 
 }  // namespace smt
