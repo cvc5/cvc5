@@ -306,6 +306,12 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad/constraints.cpp
+  theory/arith/nl/cad/constraints.h
+  theory/arith/nl/cad/projections.cpp
+  theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/variable_ordering.cpp
+  theory/arith/nl/cad/variable_ordering.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
   theory/arith/nl/inference.cpp
@@ -322,6 +328,8 @@ libcvc4_add_sources(
   theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/poly_conversion.cpp
+  theory/arith/nl/poly_conversion.h
   theory/arith/nl/stats.cpp
   theory/arith/nl/stats.h
   theory/arith/nl/transcendental_solver.cpp
