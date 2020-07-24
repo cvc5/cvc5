@@ -1293,10 +1293,11 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
 {
   Dump("benchmark") << QueryCommand(node, inUnsatCore);
-  return checkSatisfiability(
-             node.isNull() ? std::vector<Node>() : std::vector<Node>{Node::fromExpr(node)},
-             inUnsatCore,
-             true)
+  return checkSatisfiability(node.isNull()
+                                 ? std::vector<Node>()
+                                 : std::vector<Node>{Node::fromExpr(node)},
+                             inUnsatCore,
+                             true)
       .asEntailmentResult();
 }
 
