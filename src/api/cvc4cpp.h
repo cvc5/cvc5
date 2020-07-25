@@ -1898,6 +1898,7 @@ class CVC4_PUBLIC Grammar
   friend class Solver;
 
  public:
+  
   /**
    * Add <rule> to the set of rules corresponding to <ntSymbol>.
    * @param ntSymbol the non-terminal to which the rule is added
@@ -1925,7 +1926,7 @@ class CVC4_PUBLIC Grammar
    */
   void addRules(Term ntSymbol, std::vector<Term> rules);
 
- private:
+
   /**
    * Constructor.
    * @param slv the solver that created this grammar
@@ -1936,6 +1937,10 @@ class CVC4_PUBLIC Grammar
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
 
+
+  
+private:
+  
   /**
    * Returns the resolved datatype of the Start symbol of the grammar.
    * @return the resolved datatype of the Start symbol of the grammar

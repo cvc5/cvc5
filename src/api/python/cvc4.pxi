@@ -273,49 +273,15 @@ cdef class Op:
         return indices
 
 cdef class Grammar:
-#    cdef c_Grammar cgrammar
-    def __cinit__(self, solver, boundVars, ntSymbols):
+    cdef c_Grammar * cgrammar
+    def __cinit__(self, Solver solver, boundVars, ntSymbols):
         cdef vector[c_Term] bvc
         cdef vector[c_Term] ntc	
         for bv in boundVars:
             bvc.push_back((<Term?> bv).cterm)
         for nt in ntSymbols:
             ntc.push_back((<Term?> nt).cterm)	    
-        self.cgrammar = c_Grammar(solver.csolver, <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
-
-
-#cdef class Grammar:
-#    cdef c_Grammar cgrammar
-#    def __cinit__(self):
-#        self.cgrammar = c_Grammar()
-
-##    def __eq__(self, Grammar other):
-##        return self.cgrammar == other.cgrammar
-#
-##    def __ne__(self, Grammar other):
-##        return self.cgrammar != other.cgrammar
-#
-##    def __str__(self):
-##        return self.cgrammar.toString().decode()
-#
-##    def __repr__(self):
-##        return self.cgrammar.toString().decode()
-#
-#    def addRule(self, Term ntSymbol, Term rule):
-#        self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
-#
-#    def addAnyConstant(self, Term ntSymbol):
-#        self.cgrammar.addAnyConstant(ntSymbol.cterm)
-#
-#    def addAnyVariable(self, Term ntSymbol):
-#        self.cgrammar.addAnyVariable(ntSymbol.cterm)
-#
-##    def addRules(self, ntSymbol, rules):
-##        cdef Grammar grammar = Grammar()
-##        cdef vector[c_Term] rulesc
-##        for r in rules:
-##            rulesc.push_back((<Term?> r).cterm)
-###        self.cgrammar.addRules(ntSymbol.cterm, <const vector[c_Term]&> rulesc)
+        self.cgrammar = new c_Grammar(solver.csolver, <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
 
 
 cdef class Result:
@@ -835,16 +801,15 @@ cdef class Solver:
         term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v)
         return term
 
-#    def mkSygusGrammar(self, boundVars, ntSymbols):
-#        cdef Grammar grammar = Grammar()
-#        cdef vector[c_Term] bvc
-#        cdef vector[c_Term] ntc	
-#        for bv in boundVars:
-#            bvc.push_back((<Term?> bv).cterm)
-#        for nt in ntSymbols:
-#            ntc.push_back((<Term?> nt).cterm)	    
-#        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
-#        return grammar
+    def mkSygusGrammar(self, boundVars, ntSymbols):
+        cdef Grammar grammar = Grammar()
+        cdef vector[c_Term] bvc
+        cdef vector[c_Term] ntc	
+        for bv in boundVars:
+            bvc.push_back((<Term?> bv).cterm)
+        for nt in ntSymbols:
+            ntc.push_back((<Term?> nt).cterm)
+        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
 
 
     @expand_list_arg(num_req_args=0)
