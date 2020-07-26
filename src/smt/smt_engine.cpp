@@ -1253,10 +1253,10 @@ void SmtEnginePrivate::processAssertions(Assertions& as)
   {
     Chat() << "converting to CNF..." << endl;
     TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
-    for (unsigned i = 0; i < ap.size(); ++i)
+    for (const Node& assertion : ap.ref())
     {
-      Chat() << "+ " << ap[i] << std::endl;
-      d_smt.d_propEngine->assertFormula(ap[i]);
+      Chat() << "+ " << assertion << std::endl;
+      d_smt.d_propEngine->assertFormula(assertion);
     }
   }
 
@@ -1341,22 +1341,22 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
                            "(try --incremental)");
     }
 
-    // Note that a query has been made
+    // Note that a query has been made and we are in assert mode
     d_queryMade = true;
-
-    bool didInternalPush = false;
-
     d_smtMode = SMT_MODE_ASSERT;
 
-    // initialize the assumptions
-    d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
-
-    if (!d_asserts->getAssumptions().empty())
+    // push if there are assumptions
+    bool didInternalPush = false;
+    if (!assumptions.empty())
     {
       internalPush();
       didInternalPush = true;
     }
 
+    // then, initialize the assertions
+    d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
+
+    // make the check
     Result r = check();
 
     if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
