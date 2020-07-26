@@ -28,8 +28,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-Assertions::Assertions(context::UserContext* u,
-                       AbstractValues& absv)
+Assertions::Assertions(context::UserContext* u, AbstractValues& absv)
     : d_userContext(u),
       d_absValues(absv),
       d_assertionList(nullptr),
@@ -40,7 +39,7 @@ Assertions::Assertions(context::UserContext* u,
 
 Assertions::~Assertions()
 {
-  if(d_assertionList != nullptr) 
+  if (d_assertionList != nullptr)
   {
     d_assertionList->deleteSelf();
   }

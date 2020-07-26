@@ -108,6 +108,7 @@ class Assertions
   bool isGlobalNegated() const;
   /** Flip the global negation flag. */
   void flipGlobalNegated();
+
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
