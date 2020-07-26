@@ -70,7 +70,7 @@ class ProcessAssertions
    */
   void cleanup();
   /**
-   * Process the formulas in as Returns true if there was no conflict when
+   * Process the formulas in as. Returns true if there was no conflict when
    * processing the assertions.
    */
   bool apply(Assertions& as);
