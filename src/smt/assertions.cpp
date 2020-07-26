@@ -28,11 +28,9 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-Assertions::Assertions(SmtEngine& smt,
-                       context::UserContext* u,
-                       AbstractValues* absv)
-    : d_smt(smt),
-      d_userContext(u),
+Assertions::Assertions(context::UserContext* u,
+                       AbstractValues& absv)
+    : d_userContext(u),
       d_absValues(absv),
       d_assertionList(nullptr),
       d_globalNegation(false),
@@ -42,7 +40,7 @@ Assertions::Assertions(SmtEngine& smt,
 
 Assertions::~Assertions()
 {
-  if (d_assertionList != NULL)
+  if(d_assertionList != nullptr) 
   {
     d_assertionList->deleteSelf();
   }
@@ -102,12 +100,12 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
   for (const Node& e : d_assumptions)
   {
     // Substitute out any abstract values in ex.
-    Node n = d_absValues->substituteAbstractValues(e);
+    Node n = d_absValues.substituteAbstractValues(e);
     // Ensure expr is type-checked at this point.
     ensureBoolean(n);
 
     /* Add assumption  */
-    if (d_assertionList != NULL)
+    if (d_assertionList != nullptr)
     {
       d_assertionList->push_back(n);
     }
@@ -128,7 +126,7 @@ void Assertions::initializeCheckSat(const std::vector<Node>& assumptions,
 void Assertions::assertFormula(const Node& n, bool inUnsatCore)
 {
   ensureBoolean(n);
-  if (d_assertionList != NULL)
+  if (d_assertionList != nullptr)
   {
     d_assertionList->push_back(n);
   }
@@ -201,7 +199,7 @@ void Assertions::addFormula(
 
 void Assertions::addDefineFunRecDefinition(Node n, bool global)
 {
-  n = d_absValues->substituteAbstractValues(n);
+  n = d_absValues.substituteAbstractValues(n);
   if (d_assertionList != nullptr)
   {
     d_assertionList->push_back(n);

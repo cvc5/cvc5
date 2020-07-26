@@ -26,9 +26,6 @@
 #include "smt/abstract_values.h"
 
 namespace CVC4 {
-
-class SmtEngine;
-
 namespace smt {
 
 /**
@@ -44,7 +41,7 @@ class Assertions
   typedef context::CDList<Node> AssertionList;
 
  public:
-  Assertions(SmtEngine& smt, context::UserContext* u, AbstractValues* absv);
+  Assertions(context::UserContext* u, AbstractValues& absv);
   ~Assertions();
   /**
    * Finish initialization, called once after options are finalized. Sets up
@@ -90,6 +87,16 @@ class Assertions
    */
   void addDefineFunRecDefinition(Node n, bool global);
   /**
+   * Get the assertions pipeline, which contains the set of assertions we are
+   * currently processing.
+   */
+  preprocessing::AssertionPipeline& getAssertionPipeline();
+  /**
+   * Get assertions list corresponding to the original list of assertions,
+   * before preprocessing.
+   */
+  context::CDList<Node>* getAssertionList();
+  /**
    * Get the list of assumptions, which are those registered to this class
    * on initializeCheckSat.
    */
@@ -101,17 +108,6 @@ class Assertions
   bool isGlobalNegated() const;
   /** Flip the global negation flag. */
   void flipGlobalNegated();
-  /**
-   * Get the assertions pipeline, which contains the set of assertions we are
-   * currently processing.
-   */
-  preprocessing::AssertionPipeline& getAssertionPipeline();
-  /**
-   * Get assertions list corresponding to the original list of assertions,
-   * before preprocessing.
-   */
-  context::CDList<Node>* getAssertionList();
-
  private:
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -140,12 +136,10 @@ class Assertions
                   bool inInput,
                   bool isAssumption,
                   bool maybeHasFv);
-  /** Reference to the SMT engine */
-  SmtEngine& d_smt;
   /** pointer to the user context */
   context::UserContext* d_userContext;
-  /** Pointer to the abstract values utility */
-  AbstractValues* d_absValues;
+  /** Reference to the abstract values utility */
+  AbstractValues& d_absValues;
   /**
    * The assertion list (before any conversion) for supporting
    * getAssertions().  Only maintained if in incremental mode.
