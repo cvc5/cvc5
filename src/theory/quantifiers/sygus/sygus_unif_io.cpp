@@ -1377,17 +1377,9 @@ Node SygusUnifIo::constructSol(
           Assert(set_split_cond_res_index);
           Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
           prev = x.d_vals;
-          Trace("ajr-temp") << "Update context ";
-          print_val("ajr-temp", x.d_vals);
-          Trace("ajr-temp")
-              << " sc=" << sc << ", with "
-              << ecache_cond.d_enum_vals_res[split_cond_res_index] << std::endl;
           x.updateContext(this,
                           ecache_cond.d_enum_vals_res[split_cond_res_index],
                           sc == 1);
-          Trace("ajr-temp") << "Got: ";
-          print_val("ajr-temp", x.d_vals);
-          Trace("ajr-temp") << std::endl;
           // return value of above call may be false in corner cases where we
           // must choose a non-separating condition to traverse to another
           // strategy node

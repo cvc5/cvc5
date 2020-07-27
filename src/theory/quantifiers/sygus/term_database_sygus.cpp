@@ -731,11 +731,6 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 
 void TermDbSygus::toStreamSygus(std::ostream& out, Node n)
 {
-  if (n.isNull())
-  {
-    out << n;
-    return;
-  }
   // use external conversion
   out << datatypes::utils::sygusToBuiltin(n, true);
 }
