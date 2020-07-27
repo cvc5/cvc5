@@ -144,7 +144,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   if (d_doRewSynth)
   {
     Node rsol = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
-    ret = (sol==rsol);
+    ret = (sol == rsol);
   }
 
   // a unique term, let's try the query generator

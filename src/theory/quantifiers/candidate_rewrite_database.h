@@ -44,7 +44,7 @@ namespace quantifiers {
 class CandidateRewriteDatabase : public ExprMiner
 {
  public:
-  /** 
+  /**
    * Constructor
    * @param doCheck Whether to check rewrite rules using subsolvers.
    * @param rewAccel Whether to construct symmetry breaking lemmas based on
@@ -52,7 +52,9 @@ class CandidateRewriteDatabase : public ExprMiner
    * @param silent Whether to silence the output of rewrites discovered by this
    * class.
    */
-  CandidateRewriteDatabase(bool doCheck, bool rewAccel=false, bool silent=false);
+  CandidateRewriteDatabase(bool doCheck,
+                           bool rewAccel = false,
+                           bool silent = false);
   ~CandidateRewriteDatabase() {}
   /**  Initialize this class */
   void initialize(const std::vector<Node>& var,
@@ -77,7 +79,7 @@ class CandidateRewriteDatabase : public ExprMiner
    *
    * Notifies this class that the solution sol was enumerated. This may
    * cause a candidate-rewrite to be printed on the output stream out.
-   * 
+   *
    * @param sol The term to add to this class.
    * @param rec If true, then we also recursively add all subterms of sol
    * to this class as well.
@@ -88,7 +90,7 @@ class CandidateRewriteDatabase : public ExprMiner
    */
   Node addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
   Node addTerm(Node sol, bool rec, std::ostream& out);
-  /** 
+  /**
    * Same as above, returns true if the return value of addTerm was equal to
    * sol, in other words, sol was a new unique term. This assumes false for
    * the argument rec.

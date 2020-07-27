@@ -32,7 +32,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck, bool rewAccel, bool silent)
+CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
+                                                   bool rewAccel,
+                                                   bool silent)
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
@@ -275,7 +277,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
   Node rsol = addTerm(sol, false, out);
-  return sol==rsol;
+  return sol == rsol;
 }
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
