@@ -152,7 +152,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   // https://en.cppreference.com/w/cpp/algorithm/remove Find first interval that
   // covers the next one.
   std::size_t first = 0;
-  for (; first < intervals.size() - 1; ++first)
+  for (std::size_t n = intervals.size(); first < n - 1; ++first)
   {
     if (intervalCovers(intervals[first].mInterval,
                        intervals[first + 1].mInterval))
@@ -163,7 +163,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   // If such an interval exists, remove accordingly.
   if (first < intervals.size() - 1)
   {
-    for (std::size_t i = first + 2; i < intervals.size(); ++i)
+    for (std::size_t i = first + 2, n = intervals.size(); i < n; ++i)
     {
       if (!intervalCovers(intervals[first].mInterval, intervals[i].mInterval))
       {
@@ -212,7 +212,7 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
         Value::minus_infty().get_internal(), true, &i->a, !i->a_open);
     return true;
   }
-  for (std::size_t i = 0; i < infeasible.size() - 1; ++i)
+  for (std::size_t i = 0, n = infeasible.size(); i < n - 1; ++i)
   {
     // Search for two subsequent intervals that do not connect
     if (!intervalConnect(infeasible[i].mInterval, infeasible[i + 1].mInterval))
