@@ -583,7 +583,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     Node templ = eiv.d_template;
     if (!templ.isNull())
     {
-      // substitute and evaluate
+      // Substitute and evaluate, notice that the template skeleton may
+      // involve the sygus variables e.g. (>= x _) where x is a sygus
+      // variable, hence we must compute the substituted template before
+      // calling the evaluator.
       Node stempl = templ.substitute(eiv.d_template_arg, bv);
       std::vector<Node> sresults;
       eec->evaluateVec(stempl, sresults);
