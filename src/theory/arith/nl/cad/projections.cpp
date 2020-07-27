@@ -14,7 +14,7 @@
  ** Implements utilities for CAD projection operators.
  **/
 
-#include "projections.h"
+#include "theory/arith/nl/cad/projections.h"
 
 #ifdef CVC4_POLY_IMP
 

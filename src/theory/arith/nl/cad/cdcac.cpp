@@ -15,10 +15,10 @@
  ** https://arxiv.org/pdf/2003.05633.pdf.
  **/
 
-#include "cdcac.h"
+#include "theory/arith/nl/cad/cdcac.h"
 
-#include "projections.h"
-#include "variable_ordering.h"
+#include "theory/arith/nl/cad/projections.h"
+#include "theory/arith/nl/cad/variable_ordering.h"
 
 namespace CVC4 {
 namespace theory {

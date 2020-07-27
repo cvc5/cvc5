@@ -14,6 +14,7 @@
  ** Implements the CDCAC approach as described in
  ** https://arxiv.org/pdf/2003.05633.pdf.
  **/
+#include "cvc4_private.h"
 
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
 #define CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
@@ -22,10 +23,10 @@
 
 #include <vector>
 
-#include "../nl_model.h"
-#include "cdcac_utils.h"
-#include "constraints.h"
-#include "variable_ordering.h"
+#include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/cad/cdcac_utils.h"
+#include "theory/arith/nl/cad/constraints.h"
+#include "theory/arith/nl/cad/variable_ordering.h"
 
 namespace CVC4 {
 namespace theory {

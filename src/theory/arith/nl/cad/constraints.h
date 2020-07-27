@@ -14,6 +14,8 @@
  ** Implements a container for CAD constraints.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
 #define CVC4__THEORY__ARITH__NL__CAD__CONSTRAINTS_H
 
@@ -27,9 +29,9 @@
 #include <tuple>
 #include <vector>
 
-#include "../poly_conversion.h"
 #include "expr/kind.h"
 #include "expr/node_manager_attributes.h"
+#include "theory/arith/nl/poly_conversion.h"
 
 namespace CVC4 {
 namespace theory {

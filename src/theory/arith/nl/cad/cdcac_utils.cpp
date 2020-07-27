@@ -14,9 +14,7 @@
  ** Implements utilities for cdcac.
  **/
 
-#include "cdcac_utils.h"
-
-#include <fstream>
+#include "theory/arith/nl/cad/cdcac_utils.h"
 
 namespace CVC4 {
 namespace theory {

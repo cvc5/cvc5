@@ -14,13 +14,13 @@
  ** Implements a container for CAD constraints.
  **/
 
-#include "constraints.h"
+#include "theory/arith/nl/cad/constraints.h"
 
 #ifdef CVC4_POLY_IMP
 
 #include <algorithm>
 
-#include "../poly_conversion.h"
+#include "theory/arith/nl/poly_conversion.h"
 #include "util/poly_util.h"
 
 namespace CVC4 {

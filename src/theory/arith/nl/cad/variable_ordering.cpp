@@ -14,7 +14,7 @@
  ** Implements variable orderings tailored to CAD.
  **/
 
-#include "variable_ordering.h"
+#include "theory/arith/nl/cad/variable_ordering.h"
 
 #ifdef CVC4_POLY_IMP
 

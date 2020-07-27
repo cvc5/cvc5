@@ -14,6 +14,8 @@
  ** Implements utilities for CAD projection operators.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
 #define CVC4__THEORY__ARITH__NL__CAD_PROJECTIONS_H
 

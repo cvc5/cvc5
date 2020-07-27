@@ -14,6 +14,8 @@
  ** Implements utilities for cdcac.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
 #define CVC4__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
 

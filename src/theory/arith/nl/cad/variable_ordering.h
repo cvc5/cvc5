@@ -14,6 +14,8 @@
  ** Implements variable orderings tailored to CAD.
  **/
 
+#include "cvc4_private.h"
+
 #ifndef CVC4__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
 #define CVC4__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
 
@@ -23,7 +25,7 @@
 
 #include <poly/polyxx.h>
 
-#include "constraints.h"
+#include "theory/arith/nl/cad/constraints.h"
 #include "util/poly_util.h"
 
 namespace CVC4 {
