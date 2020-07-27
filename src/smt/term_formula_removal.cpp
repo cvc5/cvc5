@@ -126,6 +126,7 @@ Node RemoveTermFormulas::run(TNode node,
           //      (= node node[2]))           node = skolem
           // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
           // (ite node[0] (= skolem node[1]) (= skolem node[2]))
+          //
           // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
           // of skolem into its witness form, which is node.
           Node axiom = getAxiomFor(node);
