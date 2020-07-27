@@ -104,7 +104,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
       }
     }
   }
-
+  
   if (Debug.isOn("lemma-ites"))
   {
     Debug("lemma-ites") << "removed ITEs from lemma: " << ttfr.getNode()
@@ -120,6 +120,8 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // Rewrite the main node, we rewrite and store the proof step, if necessary,
   // in d_tpg, which maintains the fact that d_tpg can prove the rewrite.
   retNode = rewriteWithProof(retNode);
+
+  retNode = Rewriter::rewrite(retNode);
 
   // now, rewrite the lemmas
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)

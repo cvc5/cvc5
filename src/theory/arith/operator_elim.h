@@ -30,7 +30,13 @@ class OperatorElim : public EagerProofGenerator
  public:
   OperatorElim(ProofNodeManager* pnm, const LogicInfo& info);
   ~OperatorElim() {}
-  /** eliminate */
+  /** Eliminate operators in this term.
+    *
+    * Eliminate operators in term n. If n has top symbol that is not a core
+    * one (including division, int division, mod, to_int, is_int, syntactic sugar
+    * transcendental functions), then we replace it by a form that eliminates
+    * that operator. This may involve the introduction of witness terms.
+    */
   TrustNode eliminate(Node n);
   /**
    * Get axiom for term n. This returns the axiom that this class uses to

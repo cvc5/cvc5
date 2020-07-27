@@ -79,11 +79,14 @@ class RemoveTermFormulas {
    * With reportDeps true, report reasoning dependences to the proof
    * manager (for unsat cores).
    *
-   * If pft is provided, then we provide it proofs of elimination steps, e.g.
-   * (= (ite C a b) k).
-   *
-   * If pfa is provided, then we provide proofs of the new lemmas added to
-   * assertions, e.g. (ite C (= k a) (= k b).
+   * @param assertion The assertion to remove term formulas from
+   * @param newAsserts The new assertions corresponding to axioms for newly
+   * introduced skolems.
+   * @param newSkolems The skolems corresponding to each of the newAsserts.
+   * @param reportDeps Used for unsat cores in the old proof infrastructure.
+   * @return a trust node of kind TrustNodeKind::REWRITE whose
+   * right hand side is assertion after removing term formulas, and the proof
+   * generator (if provided) that can prove the equivalence.
    */
   theory::TrustNode run(Node assertion,
                         std::vector<theory::TrustNode>& newAsserts,
@@ -102,7 +105,10 @@ class RemoveTermFormulas {
   /** Garbage collects non-context dependent data-structures. */
   void garbageCollect();
 
-  /** Set proof node manager, also enabled proofs TODO: improve design */
+  /**
+   * Set proof node manager, which signals this class to enable proofs using the
+   * given checker.
+   */
   void setProofNodeManager(ProofNodeManager* pnm);
 
   /**
@@ -188,7 +194,7 @@ class RemoveTermFormulas {
            bool inQuant,
            bool inTerm);
 
-  /** Proofs enabled */
+  /** Whether proofs are enabled */
   bool isProofEnabled() const;
 };/* class RemoveTTE */
 

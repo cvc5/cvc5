@@ -437,7 +437,7 @@ private:
                      OutputChannel& out,
                      Valuation valuation,
                      const LogicInfo& logicInfo,
-                     ProofNodeManager* pnm = nullptr);
+                     ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }

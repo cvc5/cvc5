@@ -43,9 +43,6 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  // Do this in two steps to avoid Node problems(?)
-  // Appears related to bug 512, splitting this into two lines
-  // fixes the bug on clang on Mac OS
   Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps
@@ -129,6 +126,9 @@ Node RemoveTermFormulas::run(TNode node,
           //      (= node node[2]))           node = skolem
           // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
           // (ite node[0] (= skolem node[1]) (= skolem node[2]))
+          //
+          // Note that the MACRO_SR_PRED_INTRO step holds due to conversion
+          // of skolem into its witness form, which is node.
           Node axiom = getAxiomFor(node);
           d_lp->addStep(axiom, PfRule::REMOVE_TERM_FORMULA_AXIOM, {}, {node});
           Node eq = node.eqNode(skolem);
@@ -171,8 +171,14 @@ Node RemoveTermFormulas::run(TNode node,
         // axiom defining skolem
         newAssertion = nodeManager->mkNode(kind::FORALL, children);
 
-        // lambda lifting is trivial to justify, hence we don't set a proof
-        // generator here
+        // Lambda lifting is trivial to justify, hence we don't set a proof
+        // generator here. In particular, replacing the skolem introduced
+        // here with its original lambda ensures the new assertion rewrites
+        // to true.
+        // For example, if (lambda y. t[y]) has skolem k, then this lemma is:
+        //   forall x. k(x)=t[x]
+        // whose witness form rewrites
+        //   forall x. (lambda y. t[y])(x)=t[x] --> forall x. t[x]=t[x] --> true
       }
     }
   }
@@ -202,7 +208,7 @@ Node RemoveTermFormulas::run(TNode node,
         // of the witness operator holds for the Skolem
         newAssertion = node[1].substitute(node[0][0], skolem);
 
-        // Get the proof generator if one exists, which was responsible for
+        // Get the proof generator, if one exists, which was responsible for
         // constructing this witness term. This may not exist, in which case
         // the witness term was trivial to justify. This is the case e.g. for
         // purification witness terms.
@@ -252,7 +258,8 @@ Node RemoveTermFormulas::run(TNode node,
       newAssertion = skolem.eqNode(node);
 
       // Boolean term removal is trivial to justify, hence we don't set a proof
-      // generator here
+      // generator here. It is trivial to justify since it is an instance of
+      // purification, which is justified by conversion to witness forms.
     }
   }
 

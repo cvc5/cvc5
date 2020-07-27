@@ -364,26 +364,20 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     }
     return args[0];
   }
-  else if (id == PfRule::THEORY_LEMMA)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 2);
-    Assert(args[0].getType().isBoolean());
-    // TODO?
-    return args[0];
-  }
-  else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::WITNESS_AXIOM)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 1);
-    return args[0];
-  }
   else if (id == PfRule::REMOVE_TERM_FORMULA_AXIOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
+  }
+  else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
+           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA)
+  {
+    // "trusted" rules
+    Assert(children.empty());
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
+    return args[0];
   }
   // no rule
   return Node::null();

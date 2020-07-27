@@ -171,7 +171,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_opElim(d_pnm, logicInfo)
+      d_opElim(pnm, logicInfo)
 {
   // only need to create if non-linear logic
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
@@ -1978,7 +1978,8 @@ void TheoryArithPrivate::outputConflicts(){
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof())
+        if (confConstraint->hasSimpleFarkasProof()
+            && confConstraint->getNegation()->isPossiblyTightenedAssumption())
         {
           d_containing.d_proofRecorder->saveFarkasCoefficients(
               conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
