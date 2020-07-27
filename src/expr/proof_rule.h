@@ -189,7 +189,7 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: RemoveTermFormulas::getAxiomFor(t).
   REMOVE_TERM_FORMULA_AXIOM,
-  
+
   //================================================= Boolean rules
   // ======== Split
   // Children: none
