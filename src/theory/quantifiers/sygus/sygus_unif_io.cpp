@@ -983,7 +983,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
 
 void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 {
-  Trace("sygus-sui-debug") << "Add enum value " << this << " " << v << " : " << results << std::endl;
+  Trace("sygus-sui-debug") << "Add enum value " << this << " " << v << " : "
+                           << results << std::endl;
   // should not have been enumerated before
   Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
@@ -1375,7 +1376,9 @@ Node SygusUnifIo::constructSol(
           prev = x.d_vals;
           Trace("ajr-temp") << "Update context ";
           print_val("ajr-temp", x.d_vals);
-          Trace("ajr-temp") << " sc=" << sc << ", with " << ecache_cond.d_enum_vals_res[split_cond_res_index] << std::endl;
+          Trace("ajr-temp")
+              << " sc=" << sc << ", with "
+              << ecache_cond.d_enum_vals_res[split_cond_res_index] << std::endl;
           x.updateContext(this,
                           ecache_cond.d_enum_vals_res[split_cond_res_index],
                           sc == 1);
@@ -1429,8 +1432,9 @@ Node SygusUnifIo::constructSol(
           }
           else
           {
-            // if the child types are different, it could still make a difference to recurse
-            bool childTypesEqual = ce.getType()==etn;
+            // if the child types are different, it could still make a
+            // difference to recurse
+            bool childTypesEqual = ce.getType() == etn;
             if (!childTypesEqual)
             {
               if (!ecache_child.d_enum_vals.empty())
@@ -1439,15 +1443,18 @@ Node SygusUnifIo::constructSol(
                 rec_c = constructBestConditional(ce, ecache_child.d_enum_vals);
                 indent("sygus-sui-dt", ind);
                 Trace("sygus-sui-dt")
-                    << "PBE: ITE strategy : choose arbitrary conditional due to disequal child types "
+                    << "PBE: ITE strategy : choose arbitrary conditional due "
+                       "to disequal child types "
                     << d_tds->sygusToBuiltin(rec_c) << std::endl;
               }
             }
             if (rec_c.isNull())
             {
               indent("sygus-sui-dt", ind);
-              Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
-                                        "cannot find a distinguishable condition, childTypesEqual=" << childTypesEqual << std::endl;
+              Trace("sygus-sui-dt")
+                  << "return PBE: failed ITE strategy, "
+                     "cannot find a distinguishable condition, childTypesEqual="
+                  << childTypesEqual << std::endl;
             }
           }
           if (!rec_c.isNull())
