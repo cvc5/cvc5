@@ -182,9 +182,8 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
   else
   {
     // set default grammar
-		std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
-		std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
-			exclude_cons;
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>
         include_cons = getIncludeCons(axioms, conj);
     std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
