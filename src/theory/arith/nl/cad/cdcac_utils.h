@@ -45,17 +45,17 @@ namespace cad {
 struct CACInterval
 {
   /** The actual interval. */
-  poly::Interval mInterval;
+  poly::Interval d_interval;
   /** The polynomials characterizing the lower bound. */
-  std::vector<poly::Polynomial> mLowerPolys;
+  std::vector<poly::Polynomial> d_lowerPolys;
   /** The polynomials characterizing the upper bound. */
-  std::vector<poly::Polynomial> mUpperPolys;
+  std::vector<poly::Polynomial> d_upperPolys;
   /** The characterizing polynomials in the main variable. */
-  std::vector<poly::Polynomial> mMainPolys;
+  std::vector<poly::Polynomial> d_mainPolys;
   /** The characterizing polynomials in lower variables. */
-  std::vector<poly::Polynomial> mDownPolys;
+  std::vector<poly::Polynomial> d_downPolys;
   /** The constraints used to derive this interval. */
-  std::vector<Node> mOrigins;
+  std::vector<Node> d_origins;
 };
 /** Check whether to intervals are the same. */
 bool operator==(const CACInterval& lhs, const CACInterval& rhs);

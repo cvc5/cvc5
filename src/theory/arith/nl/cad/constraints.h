@@ -46,7 +46,7 @@ class Constraints
   using Constraint = std::tuple<poly::Polynomial, poly::SignCondition, Node>;
   using ConstraintVector = std::vector<Constraint>;
 
-  VariableMapper& varMapper() { return mVarMapper; }
+  VariableMapper& varMapper() { return d_varMapper; }
 
   /**
    * Add a constraint (represented by a polynomial and a sign condition) to the
@@ -78,12 +78,12 @@ class Constraints
    * A list of constraints, each comprised of a polynomial and a sign
    * condition.
    */
-  ConstraintVector mConstraints;
+  ConstraintVector d_constraints;
 
   /**
    * A mapping from CVC4 variables to poly variables.
    */
-  VariableMapper mVarMapper;
+  VariableMapper d_varMapper;
 
   void sortConstraints();
 };

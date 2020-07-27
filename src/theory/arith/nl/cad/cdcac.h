@@ -35,8 +35,6 @@ namespace arith {
 namespace nl {
 namespace cad {
 
-using namespace poly;
-
 /**
  * This class implements Cylindrical Algebraic Coverings as presented in
  * https://arxiv.org/pdf/2003.05633.pdf
@@ -47,7 +45,7 @@ class CDCAC
   /** Initialize without a variable ordering. */
   CDCAC();
   /** Initialize this method with the given variable ordering. */
-  CDCAC(const std::vector<Variable>& ordering);
+  CDCAC(const std::vector<poly::Variable>& ordering);
 
   /** Reset this instance. */
   void reset();
@@ -67,15 +65,15 @@ class CDCAC
    * Returns the current assignment. This is a satisfying model if
    * get_unsat_cover() returned an empty vector.
    */
-  const Assignment& getModel() const;
+  const poly::Assignment& getModel() const;
 
   /** Returns the current variable ordering. */
-  const std::vector<Variable>& getVariableOrdering() const;
+  const std::vector<poly::Variable>& getVariableOrdering() const;
 
   /**
    * Collect all unsatisfiable intervals for the given variable.
-   * Combines unsatisfiable regions from mConstraints evaluated over
-   * mAssignment. Implements Algorithm 2.
+   * Combines unsatisfiable regions from d_constraints evaluated over
+   * d_assignment. Implements Algorithm 2.
    */
   std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable) const;
 
@@ -83,14 +81,15 @@ class CDCAC
    * Collects the coefficients required for projection from the given
    * polynomial. Implements Algorithm 6.
    */
-  std::vector<Polynomial> requiredCoefficients(const Polynomial& p) const;
+  std::vector<poly::Polynomial> requiredCoefficients(
+      const poly::Polynomial& p) const;
 
   /**
    * Constructs a characterization of the given covering.
    * A characterization contains polynomials whose roots bound the region around
    * the current assignment. Implements Algorithm 4.
    */
-  std::vector<Polynomial> constructCharacterization(
+  std::vector<poly::Polynomial> constructCharacterization(
       std::vector<CACInterval>& intervals);
 
   /**
@@ -98,16 +97,16 @@ class CDCAC
    * Implements Algorithm 5.
    */
   CACInterval intervalFromCharacterization(
-      const std::vector<Polynomial>& characterization,
+      const std::vector<poly::Polynomial>& characterization,
       std::size_t cur_variable,
-      const Value& sample);
+      const poly::Value& sample);
 
   /**
    * Main method that checks for the satisfiability of the constraints.
    * Recursively explores possible assignments and excludes regions based on the
    * coverings. Returns either a covering for the lowest dimension or an empty
    * vector. If the covering is empty, the result is SAT and an assignment can
-   * be obtained from mAssignment. If the covering is not empty, the result is
+   * be obtained from d_assignment. If the covering is not empty, the result is
    * UNSAT and an infeasible subset can be extracted from the returned covering.
    * Implements Algorithm 2.
    */
@@ -118,16 +117,16 @@ class CDCAC
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.
    */
-  Assignment mAssignment;
+  poly::Assignment d_assignment;
 
   /** The set of input constraints to be checked for consistency. */
-  Constraints mConstraints;
+  Constraints d_constraints;
 
   /** The computed variable ordering used for this method. */
-  std::vector<Variable> mVariableOrdering;
+  std::vector<poly::Variable> d_variableOrdering;
 
   /** The object computing the variable ordering. */
-  VariableOrdering mVarOrder;
+  VariableOrdering d_varOrder;
 };
 
 }  // namespace cad

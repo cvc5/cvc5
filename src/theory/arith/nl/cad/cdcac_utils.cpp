@@ -26,11 +26,11 @@ using namespace poly;
 
 bool operator==(const CACInterval& lhs, const CACInterval& rhs)
 {
-  return lhs.mInterval == rhs.mInterval;
+  return lhs.d_interval == rhs.d_interval;
 }
 bool operator<(const CACInterval& lhs, const CACInterval& rhs)
 {
-  return lhs.mInterval < rhs.mInterval;
+  return lhs.d_interval < rhs.d_interval;
 }
 
 /**
@@ -144,7 +144,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   std::sort(intervals.begin(),
             intervals.end(),
             [](const CACInterval& lhs, const CACInterval& rhs) {
-              return compareForCleanup(lhs.mInterval, rhs.mInterval);
+              return compareForCleanup(lhs.d_interval, rhs.d_interval);
             });
 
   // Remove intervals that are covered by others.
@@ -154,8 +154,8 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   std::size_t first = 0;
   for (std::size_t n = intervals.size(); first < n - 1; ++first)
   {
-    if (intervalCovers(intervals[first].mInterval,
-                       intervals[first + 1].mInterval))
+    if (intervalCovers(intervals[first].d_interval,
+                       intervals[first + 1].d_interval))
     {
       break;
     }
@@ -165,7 +165,7 @@ void cleanIntervals(std::vector<CACInterval>& intervals)
   {
     for (std::size_t i = first + 2, n = intervals.size(); i < n; ++i)
     {
-      if (!intervalCovers(intervals[first].mInterval, intervals[i].mInterval))
+      if (!intervalCovers(intervals[first].d_interval, intervals[i].d_interval))
       {
         // Interval is not covered. Move it to the front and bump front.
         ++first;
@@ -186,7 +186,7 @@ std::vector<Node> collectConstraints(const std::vector<CACInterval>& intervals)
   std::vector<Node> res;
   for (const auto& i : intervals)
   {
-    res.insert(res.end(), i.mOrigins.begin(), i.mOrigins.end());
+    res.insert(res.end(), i.d_origins.begin(), i.d_origins.end());
   }
   std::sort(res.begin(), res.end());
   auto it = std::unique(res.begin(), res.end());
@@ -202,12 +202,12 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
     sample = poly::Integer();
     return true;
   }
-  if (!is_minus_infinity(get_lower(infeasible.front().mInterval)))
+  if (!is_minus_infinity(get_lower(infeasible.front().d_interval)))
   {
     // First does not cover -oo, just take sufficiently low value
-    Trace("cdcac") << "Sample before " << infeasible.front().mInterval
+    Trace("cdcac") << "Sample before " << infeasible.front().d_interval
                    << std::endl;
-    const auto* i = infeasible.front().mInterval.get_internal();
+    const auto* i = infeasible.front().d_interval.get_internal();
     sample = value_between(
         Value::minus_infty().get_internal(), true, &i->a, !i->a_open);
     return true;
@@ -215,14 +215,15 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
   for (std::size_t i = 0, n = infeasible.size(); i < n - 1; ++i)
   {
     // Search for two subsequent intervals that do not connect
-    if (!intervalConnect(infeasible[i].mInterval, infeasible[i + 1].mInterval))
+    if (!intervalConnect(infeasible[i].d_interval,
+                         infeasible[i + 1].d_interval))
     {
       // Two intervals do not connect, take something from the gap
-      const auto* l = infeasible[i].mInterval.get_internal();
-      const auto* r = infeasible[i + 1].mInterval.get_internal();
+      const auto* l = infeasible[i].d_interval.get_internal();
+      const auto* r = infeasible[i + 1].d_interval.get_internal();
 
-      Trace("cdcac") << "Sample between " << infeasible[i].mInterval << " and "
-                     << infeasible[i + 1].mInterval << std::endl;
+      Trace("cdcac") << "Sample between " << infeasible[i].d_interval << " and "
+                     << infeasible[i + 1].d_interval << std::endl;
 
       if (l->is_point)
       {
@@ -236,16 +237,16 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
     }
     else
     {
-      Trace("cdcac") << infeasible[i].mInterval << " and "
-                     << infeasible[i + 1].mInterval << " connect" << std::endl;
+      Trace("cdcac") << infeasible[i].d_interval << " and "
+                     << infeasible[i + 1].d_interval << " connect" << std::endl;
     }
   }
-  if (!is_plus_infinity(get_upper(infeasible.back().mInterval)))
+  if (!is_plus_infinity(get_upper(infeasible.back().d_interval)))
   {
     // Last does not cover oo, just take something sufficiently large
-    Trace("cdcac") << "Sample above " << infeasible.back().mInterval
+    Trace("cdcac") << "Sample above " << infeasible.back().d_interval
                    << std::endl;
-    const auto* i = infeasible.back().mInterval.get_internal();
+    const auto* i = infeasible.back().d_interval.get_internal();
     if (i->is_point)
     {
       sample =

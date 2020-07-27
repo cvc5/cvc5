@@ -28,27 +28,27 @@ namespace cad {
 
 CDCAC::CDCAC() {}
 
-CDCAC::CDCAC(const std::vector<Variable>& ordering)
-    : mVariableOrdering(ordering)
+CDCAC::CDCAC(const std::vector<poly::Variable>& ordering)
+    : d_variableOrdering(ordering)
 {
 }
 
 void CDCAC::reset()
 {
-  mConstraints.reset();
-  mAssignment.clear();
+  d_constraints.reset();
+  d_assignment.clear();
 }
 
 void CDCAC::computeVariableOrdering() {}
 
-Constraints& CDCAC::getConstraints() { return mConstraints; }
-const Constraints& CDCAC::getConstraints() const { return mConstraints; }
+Constraints& CDCAC::getConstraints() { return d_constraints; }
+const Constraints& CDCAC::getConstraints() const { return d_constraints; }
 
-const Assignment& CDCAC::getModel() const { return mAssignment; }
+const poly::Assignment& CDCAC::getModel() const { return d_assignment; }
 
-const std::vector<Variable>& CDCAC::getVariableOrdering() const
+const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 {
-  return mVariableOrdering;
+  return d_variableOrdering;
 }
 
 std::vector<CACInterval> CDCAC::getUnsatIntervals(
@@ -57,21 +57,22 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
   return {};
 }
 
-std::vector<Polynomial> CDCAC::requiredCoefficients(const Polynomial& p) const
+std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
+    const poly::Polynomial& p) const
 {
   return {};
 }
 
-std::vector<Polynomial> CDCAC::constructCharacterization(
+std::vector<poly::Polynomial> CDCAC::constructCharacterization(
     std::vector<CACInterval>& intervals)
 {
   return {};
 }
 
 CACInterval CDCAC::intervalFromCharacterization(
-    const std::vector<Polynomial>& characterization,
+    const std::vector<poly::Polynomial>& characterization,
     std::size_t cur_variable,
-    const Value& sample)
+    const poly::Value& sample)
 {
   return {};
 }

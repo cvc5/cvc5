@@ -33,29 +33,29 @@ void Constraints::addConstraint(const poly::Polynomial& lhs,
                                 poly::SignCondition sc,
                                 Node n)
 {
-  mConstraints.emplace_back(lhs, sc, n);
+  d_constraints.emplace_back(lhs, sc, n);
   sortConstraints();
 }
 
 void Constraints::addConstraint(Node n)
 {
-  auto c = as_poly_constraint(n, mVarMapper);
+  auto c = as_poly_constraint(n, d_varMapper);
   addConstraint(c.first, c.second, n);
   sortConstraints();
 }
 
 const Constraints::ConstraintVector& Constraints::getConstraints() const
 {
-  return mConstraints;
+  return d_constraints;
 }
 
-void Constraints::reset() { mConstraints.clear(); }
+void Constraints::reset() { d_constraints.clear(); }
 
 void Constraints::sortConstraints()
 {
   using Tpl = std::tuple<poly::Polynomial, poly::SignCondition, Node>;
-  std::sort(mConstraints.begin(),
-            mConstraints.end(),
+  std::sort(d_constraints.begin(),
+            d_constraints.end(),
             [](const Tpl& at, const Tpl& bt) {
               // Check if a is smaller than b
               const poly::Polynomial& a = std::get<0>(at);
@@ -68,7 +68,7 @@ void Constraints::sortConstraints()
               if (tda != tdb) return tda < tdb;
               return degree(a) < degree(b);
             });
-  for (auto& c : mConstraints)
+  for (auto& c : d_constraints)
   {
     auto* p = std::get<0>(c).get_internal();
     lp_polynomial_set_external(p);
