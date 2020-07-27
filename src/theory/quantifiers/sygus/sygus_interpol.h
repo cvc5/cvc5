@@ -103,7 +103,7 @@ class SygusInterpol
 	 * @param axioms input argument
 	 * @param conj input argument
 	 */
-	std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> SygusInterpol::getIncludeCons(const std::vector<Node>& axioms, const Node& conj);
+	std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> getIncludeCons(const std::vector<Node>& axioms, const Node& conj);
 
   /**
    * Set up the grammar for the interpol-to-synthesis.

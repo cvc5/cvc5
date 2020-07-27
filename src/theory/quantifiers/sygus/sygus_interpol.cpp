@@ -93,7 +93,7 @@ void SygusInterpol::createVariables(bool needsShared)
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
-std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > SygusInterpol::getIncludeCons(
+std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> SygusInterpol::getIncludeCons(
     const std::vector<Node>& axioms, const Node& conj)
 {
   NodeManager* nm = NodeManager::currentNM();
