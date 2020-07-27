@@ -36,7 +36,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     PfRule id, const std::vector<Node>& children, const std::vector<Node>& args)
 {
   NodeManager* nm = NodeManager::currentNM();
-    SkolemManager* sm = nm->getSkolemManager();
+  SkolemManager* sm = nm->getSkolemManager();
   // compute what was proven
   if (id == PfRule::EXISTS_INTRO)
   {
@@ -50,7 +50,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
   {
     Assert(children.size() == 1);
     Assert(args.empty());
-    if (children[0].getKind()!=EXISTS || children[0][0].getNumChildren()!=1)
+    if (children[0].getKind() != EXISTS || children[0][0].getNumChildren() != 1)
     {
       return Node::null();
     }
@@ -58,7 +58,7 @@ Node QuantifiersProofRuleChecker::checkInternal(
     sm->mkSkolemize(children[0], skolems, "k");
     Assert(skolems.size() == 1);
     Node witness = SkolemManager::getWitnessForm(skolems[0]);
-    Assert (witness.getKind()==WITNESS && witness[0]==children[0][0]);
+    Assert(witness.getKind() == WITNESS && witness[0] == children[0][0]);
     return skolems[0].eqNode(witness);
   }
   else if (id == PfRule::SKOLEMIZE)

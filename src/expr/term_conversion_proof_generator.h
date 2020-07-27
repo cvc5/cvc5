@@ -100,7 +100,7 @@ class TConvProofGenerator : public ProofGenerator
                       context::Context* c = nullptr,
                       TConvPolicy pol = TConvPolicy::FIXPOINT,
                       TConvCachePolicy cpol = TConvCachePolicy::NEVER,
-                      std::string name="TConvProofGenerator");
+                      std::string name = "TConvProofGenerator");
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.

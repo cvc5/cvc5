@@ -134,7 +134,9 @@ namespace CVC4 {
 class CDProof : public ProofGenerator
 {
  public:
-  CDProof(ProofNodeManager* pnm, context::Context* c = nullptr, std::string name = "CDProof");
+  CDProof(ProofNodeManager* pnm,
+          context::Context* c = nullptr,
+          std::string name = "CDProof");
   virtual ~CDProof();
   /**
    * Make proof for fact.

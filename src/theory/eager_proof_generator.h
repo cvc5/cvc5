@@ -86,7 +86,9 @@ class EagerProofGenerator : public ProofGenerator
       NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr, std::string name = "EagerProofGenerator");
+  EagerProofGenerator(ProofNodeManager* pnm,
+                      context::Context* c = nullptr,
+                      std::string name = "EagerProofGenerator");
   ~EagerProofGenerator() {}
   /** Get the proof for formula f. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;

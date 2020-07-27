@@ -238,7 +238,8 @@ bool Instantiate::addInstantiation(
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
+    pfTmp.reset(new LazyCDProof(
+        d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
   }
 
   // construct the instan::tiation

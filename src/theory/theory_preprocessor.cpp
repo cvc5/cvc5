@@ -33,8 +33,18 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
       d_ppCache(),
       d_tfr(tfr),
       d_pfContext(),
-      d_tpg(pnm ? new TConvProofGenerator(pnm, &d_pfContext, TConvPolicy::FIXPOINT, TConvCachePolicy::NEVER, "TheoryPreprocessor::TConvProofGenerator") : nullptr),
-      d_lp(pnm ? new LazyCDProof(pnm, nullptr, &d_pfContext, "TheoryPreprocessor::LazyCDProof") : nullptr)
+      d_tpg(pnm ? new TConvProofGenerator(
+                      pnm,
+                      &d_pfContext,
+                      TConvPolicy::FIXPOINT,
+                      TConvCachePolicy::NEVER,
+                      "TheoryPreprocessor::TConvProofGenerator")
+                : nullptr),
+      d_lp(pnm ? new LazyCDProof(pnm,
+                                 nullptr,
+                                 &d_pfContext,
+                                 "TheoryPreprocessor::LazyCDProof")
+               : nullptr)
 {
   if (isProofEnabled())
   {

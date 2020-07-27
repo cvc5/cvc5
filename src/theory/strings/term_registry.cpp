@@ -54,7 +54,11 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(pnm ? new EagerProofGenerator(pnm, s.getUserContext(), "strings::TermRegistry::EagerProofGenerator") : nullptr)
+      d_epg(pnm ? new EagerProofGenerator(
+                      pnm,
+                      s.getUserContext(),
+                      "strings::TermRegistry::EagerProofGenerator")
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));

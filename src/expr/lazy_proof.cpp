@@ -81,20 +81,22 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           {
             Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
                                   << afactGen << std::endl;
-                                  /*
-            std::shared_ptr<ProofNode> afgp = getProof(afactGen);
-            AlwaysAssert (afgp!=nullptr);
-            if (!afgp->isClosed()) 
-            {
-              Trace("lazy-cdproof-warn") << "LazyCDProof::getProofFor: " << pg->identify() << " within " << identify() << " generated a non-closed proof for " << afactGen << "\n";
-            }
-            */
+            /*
+std::shared_ptr<ProofNode> afgp = getProof(afactGen);
+AlwaysAssert (afgp!=nullptr);
+if (!afgp->isClosed())
+{
+Trace("lazy-cdproof-warn") << "LazyCDProof::getProofFor: " << pg->identify() <<
+" within " << identify() << " generated a non-closed proof for " << afactGen <<
+"\n";
+}
+*/
           }
         }
         else
         {
-          Trace("lazy-cdproof")
-              << "LazyCDProof: " << identify() << " : No generator for " << afact << std::endl;
+          Trace("lazy-cdproof") << "LazyCDProof: " << identify()
+                                << " : No generator for " << afact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
@@ -150,9 +152,11 @@ void LazyCDProof::addLazyStep(Node expected,
   /*
   std::shared_ptr<ProofNode> afgp = pg->getProofFor(expected);
   AlwaysAssert (afgp!=nullptr);
-  if (!afgp->isClosed()) 
+  if (!afgp->isClosed())
   {
-    Trace("lazy-cdproof-warn") << "LazyCDProof::addLazyStep: " << pg->identify() << " within " << identify() << " generated a non-closed proof for " << expected << "\n";
+    Trace("lazy-cdproof-warn") << "LazyCDProof::addLazyStep: " << pg->identify()
+  << " within " << identify() << " generated a non-closed proof for " <<
+  expected << "\n";
   }
   */
 }

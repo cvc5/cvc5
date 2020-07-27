@@ -20,7 +20,7 @@ namespace CVC4 {
 namespace theory {
 
 EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c, 
+                                         context::Context* c,
                                          std::string name)
     : d_pnm(pnm), d_name(name), d_proofs(c == nullptr ? &d_context : c)
 {

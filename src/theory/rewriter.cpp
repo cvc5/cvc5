@@ -122,7 +122,11 @@ void Rewriter::setProofNodeManager(ProofNodeManager* pnm)
   {
     // the rewriter is staticly determinstic, thus use static cache policy
     // for the term conversion proof generator
-    d_tpg.reset(new TConvProofGenerator(pnm, nullptr, TConvPolicy::FIXPOINT, TConvCachePolicy::STATIC, "Rewriter::TConvProofGenerator"));
+    d_tpg.reset(new TConvProofGenerator(pnm,
+                                        nullptr,
+                                        TConvPolicy::FIXPOINT,
+                                        TConvCachePolicy::STATIC,
+                                        "Rewriter::TConvProofGenerator"));
   }
 }
 

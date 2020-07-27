@@ -190,9 +190,11 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_logicInfo(logicInfo),
       d_pchecker(pnm ? pnm->getChecker() : nullptr),
       d_pnm(pnm),
-      d_lazyProof(d_pnm != nullptr
-                      ? new LazyCDProof(d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
-                      : nullptr),
+      d_lazyProof(
+          d_pnm != nullptr
+              ? new LazyCDProof(
+                    d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
+              : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_sharedTerms(this, context, userContext, d_pnm),
       d_masterEqualityEngine(nullptr),
@@ -1978,7 +1980,8 @@ theory::TrustNode TheoryEngine::getExplanation(
   {
     Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
-    lcp.reset(new LazyCDProof(d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::tmp"));
+    lcp.reset(new LazyCDProof(
+        d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::tmp"));
   }
   unsigned i = 0; // Index of the current literal we are processing
 

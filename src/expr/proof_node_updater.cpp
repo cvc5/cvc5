@@ -14,8 +14,8 @@
 
 #include "expr/proof_node_updater.h"
 
-#include "expr/proof_node_algorithm.h"
 #include "expr/lazy_proof.h"
+#include "expr/proof_node_algorithm.h"
 
 namespace CVC4 {
 
@@ -45,8 +45,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
   std::vector<ProofNode*> visit;
   ProofNode* cur;
   visit.push_back(pf.get());
-  std::map<Node, ProofNode * >::iterator itc;
-  std::map<Node, ProofNode * > resCache;
+  std::map<Node, ProofNode*>::iterator itc;
+  std::map<Node, ProofNode*> resCache;
   // NOTE: temporary, debugging
   unsigned counterReuse = 0;
   unsigned counterNew = 0;
@@ -60,7 +60,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
     if (it == visited.end())
     {
       itc = resCache.find(res);
-      if (itc!=resCache.end())
+      if (itc != resCache.end())
       {
         counterReuse++;
         // already have a proof
@@ -78,7 +78,7 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
         // now, process children
         for (const std::shared_ptr<ProofNode>& cp : ccp)
         {
-          if (cp->getRule()==PfRule::SCOPE)
+          if (cp->getRule() == PfRule::SCOPE)
           {
             // process in new scope separately
             process(cp);
@@ -87,7 +87,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
           visit.push_back(cp.get());
         }
       }
-      Trace("pf-process-debug") << "Processing " << counterReuse << "/" << counterNew << std::endl;
+      Trace("pf-process-debug")
+          << "Processing " << counterReuse << "/" << counterNew << std::endl;
     }
     else if (!it->second)
     {
@@ -118,7 +119,8 @@ void ProofNodeUpdater::runUpdate(ProofNode* cur)
     // store in the proof
     cpf.addProof(cp);
   }
-  Trace("pf-process-debug") << "Updating (" << cur->getRule() << ")..." << std::endl;
+  Trace("pf-process-debug")
+      << "Updating (" << cur->getRule() << ")..." << std::endl;
   Node res = cur->getResult();
   // only if the callback updated the node
   if (d_cb.update(res, id, ccn, cur->getArguments(), &cpf))
