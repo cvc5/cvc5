@@ -93,8 +93,8 @@ void SygusInterpol::createVariables(bool needsShared)
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
-std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
-    const std::vector<Node>& assumptions, const Node& conclusion)
+std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > SygusInterpol::getIncludeCons(
+    const std::vector<Node>& axioms, const Node& conj)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
@@ -103,43 +103,43 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   if (options::produceInterpols() == options::ProduceInterpols::ASSUMPTIONS)
   {
     Node tmpAssumptions =
-        (assumptions.size() == 1 ? assumptions[0]
-                                 : nm->mkNode(kind::AND, assumptions));
+        (axioms.size() == 1 ? axioms[0]
+                                 : nm->mkNode(kind::AND, axioms));
     expr::getOperatorsMap(tmpAssumptions, result);
   }
   // CONJECTURE
   else if (options::produceInterpols() == options::ProduceInterpols::CONJECTURE)
   {
-    expr::getOperatorsMap(conclusion, result);
+    expr::getOperatorsMap(conj, result);
   }
   // SHARED
   else if (options::produceInterpols() == options::ProduceInterpols::SHARED)
   {
-    // Get operators from assumptions
+    // Get operators from axioms
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
-        include_cons_assumptions;
+        include_cons_axioms;
     Node tmpAssumptions =
-        (assumptions.size() == 1 ? assumptions[0]
-                                 : nm->mkNode(kind::AND, assumptions));
-    expr::getOperatorsMap(tmpAssumptions, include_cons_assumptions);
+        (axioms.size() == 1 ? axioms[0]
+                                 : nm->mkNode(kind::AND, axioms));
+    expr::getOperatorsMap(tmpAssumptions, include_cons_axioms);
 
-    // Get operators from conclusion
+    // Get operators from conj
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >
-        include_cons_conclusion;
-    expr::getOperatorsMap(conclusion, include_cons_conclusion);
+        include_cons_conj;
+    expr::getOperatorsMap(conj, include_cons_conj);
 
     // Compute intersection
-    for (auto& [tn, assumptionsOps] : include_cons_assumptions)
+    for (auto& [tn, axiomsOps] : include_cons_axioms)
     {
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >::iterator
-          concIter = include_cons_conclusion.find(tn);
-      if (concIter != include_cons_conclusion.end())
+          concIter = include_cons_conj.find(tn);
+      if (concIter != include_cons_conj.end())
       {
-        std::unordered_set<Node, NodeHashFunction> conclusionOps =
+        std::unordered_set<Node, NodeHashFunction> conjOps =
             concIter->second;
-        for (const Node& n : assumptionsOps)
+        for (const Node& n : axiomsOps)
         {
-          if (conclusionOps.find(n) != conclusionOps.end())
+          if (conjOps.find(n) != conjOps.end())
           {
             if (result.find(tn) == result.end())
             {
@@ -155,9 +155,9 @@ std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > getIncludeCons(
   else if (options::produceInterpols() == options::ProduceInterpols::ALL)
   {
     Node tmpAssumptions =
-        (assumptions.size() == 1 ? assumptions[0]
-                                 : nm->mkNode(kind::AND, assumptions));
-    Node tmpAll = nm->mkNode(kind::AND, tmpAssumptions, conclusion);
+        (axioms.size() == 1 ? axioms[0]
+                                 : nm->mkNode(kind::AND, axioms));
+    Node tmpAll = nm->mkNode(kind::AND, tmpAssumptions, conj);
     expr::getOperatorsMap(tmpAll, result);
   }
   return result;
