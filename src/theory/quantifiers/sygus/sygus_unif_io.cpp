@@ -1080,7 +1080,7 @@ Node SygusUnifIo::constructSol(
         {
           ret_dt = constructBestSolvedTerm(e, subsumed_by);
           indent("sygus-sui-dt", ind);
-          Trace("sygus-sui-dt") << "return PBE: success : conditionally solved"
+          Trace("sygus-sui-dt") << "return PBE: success : conditionally solved "
                                 << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         }
         else
@@ -1442,12 +1442,26 @@ Node SygusUnifIo::constructSol(
           }
           else
           {
-            // TODO (#1250) : degenerate case where children have different
-            // types?
-            indent("sygus-sui-dt", ind);
-            Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
-                                      "cannot find a distinguishable condition"
-                                  << std::endl;
+            // if the child types are different, it could still make a difference to recurse
+            bool childTypesEqual = ce.getType()==etn;
+            if (!childTypesEqual)
+            {
+              if (!ecache_child.d_enum_vals.empty())
+              {
+                // take arbitrary
+                rec_c = constructBestConditional(ce, ecache_child.d_enum_vals);
+                indent("sygus-sui-dt", ind);
+                Trace("sygus-sui-dt")
+                    << "PBE: ITE strategy : choose arbitrary conditional due to disequal child types "
+                    << d_tds->sygusToBuiltin(rec_c) << std::endl;
+              }
+            }
+            if (rec_c.isNull())
+            {
+              indent("sygus-sui-dt", ind);
+              Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
+                                        "cannot find a distinguishable condition, childTypesEqual=" << childTypesEqual << std::endl;
+            }
           }
           if (!rec_c.isNull())
           {
