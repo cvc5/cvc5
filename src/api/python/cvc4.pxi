@@ -283,6 +283,8 @@ cdef class Grammar:
             ntc.push_back((<Term?> nt).cterm)	    
         self.cgrammar = new c_Grammar(solver.csolver, <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
 
+    def __cinit__(self):
+        self.cgrammar = NULL
 
 cdef class Result:
     cdef c_Result cr
@@ -809,7 +811,8 @@ cdef class Solver:
             bvc.push_back((<Term?> bv).cterm)
         for nt in ntSymbols:
             ntc.push_back((<Term?> nt).cterm)
-        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
+        grammar.cgrammar = new c_Grammar(self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc))
+        return grammar
 
 
     @expand_list_arg(num_req_args=0)
