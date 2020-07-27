@@ -43,9 +43,6 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  // Do this in two steps to avoid Node problems(?)
-  // Appears related to bug 512, splitting this into two lines
-  // fixes the bug on clang on Mac OS
   Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps
