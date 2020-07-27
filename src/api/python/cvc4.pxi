@@ -345,6 +345,9 @@ cdef class Solver:
     def __cinit__(self):
         self.csolver = new c_Solver(NULL)
 
+    def __dealloc__(self):
+        del self.csolver
+
     def getBooleanSort(self):
         cdef Sort sort = Sort()
         sort.csort = self.csolver.getBooleanSort()
