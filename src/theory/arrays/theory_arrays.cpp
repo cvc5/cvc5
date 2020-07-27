@@ -869,9 +869,7 @@ void TheoryArrays::propagate(Effort e)
 
 TrustNode TheoryArrays::explain(TNode literal)
 {
-  Node explanation = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
-  // return d_pfEqualityEngine->explain(literal);
+  return d_pfEqualityEngine->explain(literal);
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
@@ -1371,7 +1369,8 @@ void TheoryArrays::check(Effort e) {
     // Do the work
     switch (fact.getKind()) {
       case kind::EQUAL:
-        d_equalityEngine.assertEquality(fact, true, fact);
+        // must use assert assume since fact may involve Boolean equality
+        d_pfEqualityEngine->assertAssume(fact);
         break;
       case kind::SELECT:
         d_equalityEngine.assertPredicate(fact, true, fact);
@@ -1383,7 +1382,8 @@ void TheoryArrays::check(Effort e) {
         else
         {
           // Assert the dis-equality
-          d_equalityEngine.assertEquality(fact[0], false, fact);
+          // must use assert assume since fact may involve Boolean disequality
+          d_pfEqualityEngine->assertAssume(fact);
 
           // Apply ArrDiseq Rule if diseq is between arrays
           if(fact[0][0].getType().isArray() && !d_conflict) {
@@ -2048,8 +2048,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
     if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
-      Node i_eq_j = i.eqNode(j);
-      Node reason = nm->mkNode(kind::OR, aj_eq_bj, i_eq_j);
+      Node reason = (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTermInternal(aj);
@@ -2063,9 +2062,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj,true)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node aj_eq_bj = aj.eqNode(bj);
+      Node reason = (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
-      Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
       assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
@@ -2138,7 +2136,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!d_equalityEngine.hasTerm(aj2)) {
         preRegisterTermInternal(aj2);
       }
-      d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
+      assertInference(aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -2148,7 +2146,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!d_equalityEngine.hasTerm(bj2)) {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
+      assertInference(bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -2244,7 +2242,7 @@ bool TheoryArrays::dischargeLemmas()
       if (!d_equalityEngine.hasTerm(aj2)) {
         preRegisterTermInternal(aj2);
       }
-      d_equalityEngine.assertEquality(aj.eqNode(aj2), true, d_true);
+      assertInference(aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -2254,7 +2252,7 @@ bool TheoryArrays::dischargeLemmas()
       if (!d_equalityEngine.hasTerm(bj2)) {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine.assertEquality(bj.eqNode(bj2), true, d_true);
+      assertInference(bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
 
     }
     if (aj2 == bj2) {
@@ -2271,14 +2269,14 @@ bool TheoryArrays::dischargeLemmas()
       if (!d_equalityEngine.hasTerm(bj2)) {
         preRegisterTermInternal(bj2);
       }
-      d_equalityEngine.assertEquality(eq1, true, d_true);
+      assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      d_equalityEngine.assertEquality(eq2, true, d_true);
+      assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
@@ -2300,7 +2298,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
   TrustNode tconf;
   std::shared_ptr<eq::EqProof> proof = nullptr;
-  if (options::proofNew() && false)
+  if (options::proofNew())
   {
     tconf = d_pfEqualityEngine->assertConflict(a.eqNode(b));
     d_conflictNode = tconf.getNode();
@@ -2317,7 +2315,7 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   }
 
   if (!d_inCheckModel) {
-    if (options::proofNew() && false)
+    if (options::proofNew())
     {
       d_out->trustedConflict(tconf);
     }
@@ -2437,8 +2435,6 @@ bool TheoryArrays::assertInference(TNode eq,
         r = PfRule::TRUST;
         break;
     }
-    // TODO
-    // return d_equalityEngine.assertEquality(eq, polarity, reason);
     return d_pfEqualityEngine->assertFact(fact, r, reason, args);
   }
   unsigned pid = eq::MERGED_THROUGH_EQUALITY;

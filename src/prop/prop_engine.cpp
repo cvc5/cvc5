@@ -115,6 +115,7 @@ PropEngine::PropEngine(TheoryEngine* te,
          );
 
   NodeManager* nm = NodeManager::currentNM();
+  // TODO: if block below seems unecessary
   if (false && d_pfCnfStream)
   {
     d_pfCnfStream->convertAndAssert(nm->mkConst(true), false, false, nullptr);
@@ -522,7 +523,7 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
   Trace("sat-proof") << "PropEngine::explainPropagation: proven explanation"
                      << proven << "\n";
   Assert(trn.getGenerator());
-  Trace("sat-proof-steps") << proven << " by explainPropagation" << std::endl;
+  Trace("sat-proof-steps") << proven << " by explainPropagation " << trn.identifyGenerator() << std::endl;
   // TODO: due to lifetime of explanations, need to cache this now?
   /*
   std::shared_ptr<ProofNode> exp = trn.toProofNode();

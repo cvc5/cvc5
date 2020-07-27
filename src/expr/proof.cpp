@@ -111,12 +111,12 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       CDPOverwrite opolicy)
 {
-  Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
+  Trace("cdproof") << "CDProof::addStep: " << identify() << " : " << id << " " << expected
                    << ", ensureChildren = " << ensureChildren
                    << ", overwrite policy = " << opolicy << std::endl;
-  Trace("cdproof-debug") << "CDProof::addStep:   children: " << children
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify() << " : children: " << children
                          << "\n";
-  Trace("cdproof-debug") << "CDProof::addStep:       args: " << args << "\n";
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify() << " : args: " << args << "\n";
   // TODO:
   // if (id == PfRule::ASSUME || id == PfRule::SYMM)
   //{

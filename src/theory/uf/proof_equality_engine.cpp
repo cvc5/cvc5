@@ -52,6 +52,44 @@ bool ProofEqEngine::assertAssume(TNode lit)
   // explanation. Notice we do not reference count atom/lit.
   if (atom.getKind() == EQUAL)
   {
+    if (options::proofNew())
+    {
+      // If proofs are enabled, we check if lit is an assertion of the form
+      //   (= P true), (= P false), (= false P) or (= true P).
+      // Such literals must be handled as a special case here, since equality
+      // with Boolean constants have a special status internally within equality
+      // engine. In particular, the proofs constructed by EqProof conversion
+      // always produce proofs involving equalities with Boolean constants, and
+      // whose assumptions are only of the form P or (not P). However, in the
+      // case that (= P true) (resp (= P false)) is itself an input to the
+      // equality engine, we will explain in terms of P (resp. (not P)), which
+      // leads to a bogus proof, typically encountered in
+      // ProofNodeManager::mkScope.
+      //
+      // To correct this, we add an explicit *fact* that P holds by (= P true)
+      // here. This means that EqProof conversion may generate a proof where
+      // the internal equality (= P true) is justified by assumption P, and that
+      // afterwards, P is explained in terms of the original (external) equality
+      // (= P true) by the step provided here. This means that the proof may end
+      // up using (= P true) in a roundabout way (through two redundant steps),
+      // but regardless this allows the core proof utilities (EqProof conversion,
+      // proof equality engine, lazy proof, etc.) to be unconcerned with this
+      // case. In particular, SharedTermsDatabase is the only class that
+      // asserts unrewritten equalities between Boolean terms to its equality
+      // engine.
+      if (atom[0].getKind() == kind::CONST_BOOLEAN
+              || atom[1].getKind() == kind::CONST_BOOLEAN)
+      {
+        Node nlit = Rewriter::rewrite(lit);
+        if (!CDProof::isSame(lit, nlit))
+        {
+          // use a rewrite step as a fact
+          std::vector<Node> pfChildren;
+          pfChildren.push_back(lit);
+          return assertFact(nlit, PfRule::MACRO_SR_PRED_ELIM, pfChildren, {});
+        }
+      }
+    }
     return d_ee.assertEquality(atom, polarity, lit);
   }
   return d_ee.assertPredicate(atom, polarity, lit);
