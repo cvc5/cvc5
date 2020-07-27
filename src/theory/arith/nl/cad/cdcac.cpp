@@ -62,15 +62,15 @@ void CDCAC::reset()
 void CDCAC::computeVariableOrdering()
 {
   // Actually compute the variable ordering
-  mVariableOrdering = mVarOrder(mConstraints.get_constraints(),
-                                VariableOrderingStrategy::BROWN);
-  Trace("cdcac") << "Variable ordering is now " << mVariableOrdering
+  d_variableOrdering = d_varOrder(d_constraints.getConstraints(),
+                                  VariableOrderingStrategy::BROWN);
+  Trace("cdcac") << "Variable ordering is now " << d_variableOrdering
                  << std::endl;
 
   // Write variable ordering back to libpoly.
   lp_variable_order_t* vo = poly::Context::get_context().get_variable_order();
   lp_variable_order_clear(vo);
-  for (const auto& v : mVariableOrdering)
+  for (const auto& v : d_variableOrdering)
   {
     lp_variable_order_push(vo, v.get_internal());
   }
@@ -90,25 +90,25 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
     std::size_t cur_variable) const
 {
   std::vector<CACInterval> res;
-  for (const auto& c : mConstraints.get_constraints())
+  for (const auto& c : d_constraints.getConstraints())
   {
-    const Polynomial& p = std::get<0>(c);
-    SignCondition sc = std::get<1>(c);
+    const poly::Polynomial& p = std::get<0>(c);
+    poly::SignCondition sc = std::get<1>(c);
     const Node& n = std::get<2>(c);
 
-    if (main_variable(p) != mVariableOrdering[cur_variable])
+    if (main_variable(p) != d_variableOrdering[cur_variable])
     {
       // Constraint is in another variable, ignore it.
       continue;
     }
 
     Trace("cdcac") << "Infeasible intervals for " << p << " " << sc
-                   << " 0 over " << mAssignment << std::endl;
-    auto intervals = infeasible_regions(p, mAssignment, sc);
+                   << " 0 over " << d_assignment << std::endl;
+    auto intervals = infeasible_regions(p, d_assignment, sc);
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i << std::endl;
-      std::vector<Polynomial> l, u, m, d;
+      std::vector<poly::Polynomial> l, u, m, d;
       // TODO(Gereon): Factorize polynomials here.
       if (!is_minus_infinity(get_lower(i))) l.emplace_back(p);
       if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
@@ -116,19 +116,20 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
       res.emplace_back(CACInterval{i, l, u, m, d, {n}});
     }
   }
-  clean_intervals(res);
+  cleanIntervals(res);
   return res;
 }
 
-std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
+std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
+    const poly::Polynomial& p) const
 {
-  std::vector<Polynomial> res;
+  std::vector<poly::Polynomial> res;
   for (long deg = degree(p); deg >= 0; --deg)
   {
     auto coeff = coefficient(p, deg);
     if (lp_polynomial_is_constant(coeff.get_internal())) break;
     res.emplace_back(coeff);
-    if (evaluate_constraint(coeff, mAssignment, SignCondition::NE))
+    if (evaluate_constraint(coeff, d_assignment, poly::SignCondition::NE))
     {
       break;
     }
@@ -136,53 +137,53 @@ std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
   return res;
 }
 
-std::vector<Polynomial> CDCAC::construct_characterization(
+std::vector<poly::Polynomial> CDCAC::constructCharacterization(
     std::vector<CACInterval>& intervals)
 {
   Assert(!intervals.empty()) << "A covering can not be empty";
   Trace("cdcac") << "Constructing characterization now" << std::endl;
-  std::vector<Polynomial> res;
+  std::vector<poly::Polynomial> res;
 
   for (const auto& i : intervals)
   {
-    Trace("cdcac") << "Considering " << i.mInterval << std::endl;
-    Trace("cdcac") << "-> " << i.mLowerPolys << " / " << i.mUpperPolys
-                   << " and " << i.mMainPolys << " / " << i.mDownPolys
+    Trace("cdcac") << "Considering " << i.d_interval << std::endl;
+    Trace("cdcac") << "-> " << i.d_lowerPolys << " / " << i.d_upperPolys
+                   << " and " << i.d_mainPolys << " / " << i.d_downPolys
                    << std::endl;
-    Trace("cdcac") << "-> " << i.mOrigins << std::endl;
-    for (const auto& p : i.mDownPolys)
+    Trace("cdcac") << "-> " << i.d_origins << std::endl;
+    for (const auto& p : i.d_downPolys)
     {
       // Add all polynomial from lower levels.
-      add_polynomial(res, p);
+      addPolynomial(res, p);
     }
-    for (const auto& p : i.mMainPolys)
+    for (const auto& p : i.d_mainPolys)
     {
       Trace("cdcac") << "Discriminant of " << p << " -> " << discriminant(p)
                      << std::endl;
       // Add all discriminants
-      add_polynomial(res, discriminant(p));
+      addPolynomial(res, discriminant(p));
 
-      for (const auto& q : required_coefficients(p))
+      for (const auto& q : requiredCoefficients(p))
       {
         // Add all required coefficients
         Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
-        add_polynomial(res, q);
+        addPolynomial(res, q);
       }
       // TODO(Gereon): Only add if p(s \times a) = a for some a <= l
-      for (const auto& q : i.mLowerPolys)
+      for (const auto& q : i.d_lowerPolys)
       {
         if (p == q) continue;
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
-        add_polynomial(res, resultant(p, q));
+        addPolynomial(res, resultant(p, q));
       }
       // TODO(Gereon): Only add if p(s \times a) = a for some a >= u
-      for (const auto& q : i.mUpperPolys)
+      for (const auto& q : i.d_upperPolys)
       {
         if (p == q) continue;
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
-        add_polynomial(res, resultant(p, q));
+        addPolynomial(res, resultant(p, q));
       }
     }
   }
@@ -190,21 +191,21 @@ std::vector<Polynomial> CDCAC::construct_characterization(
   for (std::size_t i = 0; i < intervals.size() - 1; ++i)
   {
     // Add resultants of consecutive intervals.
-    cad::make_finest_square_free_basis(intervals[i].mUpperPolys,
-                                       intervals[i + 1].mLowerPolys);
-    for (const auto& p : intervals[i].mUpperPolys)
+    cad::makeFinestSquareFreeBasis(intervals[i].d_upperPolys,
+                                   intervals[i + 1].d_lowerPolys);
+    for (const auto& p : intervals[i].d_upperPolys)
     {
-      for (const auto& q : intervals[i + 1].mLowerPolys)
+      for (const auto& q : intervals[i + 1].d_lowerPolys)
       {
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
-        add_polynomial(res, resultant(p, q));
+        addPolynomial(res, resultant(p, q));
       }
     }
   }
 
   remove_duplicates(res);
-  make_finest_square_free_basis(res);
+  makeFinestSquareFreeBasis(res);
 
   return res;
 }
@@ -214,15 +215,15 @@ CACInterval CDCAC::intervalFromCharacterization(
     std::size_t cur_variable,
     const poly::Value& sample)
 {
-  std::vector<Polynomial> l;
-  std::vector<Polynomial> u;
-  std::vector<Polynomial> m;
-  std::vector<Polynomial> d;
+  std::vector<poly::Polynomial> l;
+  std::vector<poly::Polynomial> u;
+  std::vector<poly::Polynomial> m;
+  std::vector<poly::Polynomial> d;
 
   for (const auto& p : characterization)
   {
     // Add polynomials to either main or down
-    if (main_variable(p) == mVariableOrdering[cur_variable])
+    if (main_variable(p) == d_variableOrdering[cur_variable])
     {
       m.emplace_back(p);
     }
@@ -233,19 +234,19 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
 
   // Collect -oo, all roots, oo
-  std::vector<Value> roots;
-  roots.emplace_back(Value::minus_infty());
+  std::vector<poly::Value> roots;
+  roots.emplace_back(poly::Value::minus_infty());
   for (const auto& p : m)
   {
-    auto tmp = isolate_real_roots(p, mAssignment);
+    auto tmp = isolate_real_roots(p, d_assignment);
     roots.insert(roots.end(), tmp.begin(), tmp.end());
   }
-  roots.emplace_back(Value::plus_infty());
+  roots.emplace_back(poly::Value::plus_infty());
   std::sort(roots.begin(), roots.end());
 
   // Now find the interval bounds
-  Value lower;
-  Value upper;
+  poly::Value lower;
+  poly::Value upper;
   for (std::size_t i = 0; i < roots.size(); ++i)
   {
     if (sample < roots[i])
@@ -263,102 +264,108 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
   Assert(!is_none(lower) && !is_none(upper));
 
-  if (lower != Value::minus_infty())
+  if (!is_minus_infinity(lower))
   {
     // Identify polynomials that have a root at the lower bound
-    mAssignment.set(mVariableOrdering[cur_variable], lower);
+    d_assignment.set(d_variableOrdering[cur_variable], lower);
     for (const auto& p : m)
     {
-      if (evaluate_constraint(p, mAssignment, SignCondition::EQ))
+      if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
         l.emplace_back(p);
       }
     }
-    mAssignment.unset(mVariableOrdering[cur_variable]);
+    d_assignment.unset(d_variableOrdering[cur_variable]);
   }
-  if (upper != Value::plus_infty())
+  if (!is_plus_infinity(upper))
   {
     // Identify polynomials that have a root at the upper bound
-    mAssignment.set(mVariableOrdering[cur_variable], upper);
+    d_assignment.set(d_variableOrdering[cur_variable], upper);
     for (const auto& p : m)
     {
-      if (evaluate_constraint(p, mAssignment, SignCondition::EQ))
+      if (evaluate_constraint(p, d_assignment, poly::SignCondition::EQ))
       {
         u.emplace_back(p);
       }
     }
-    mAssignment.unset(mVariableOrdering[cur_variable]);
+    d_assignment.unset(d_variableOrdering[cur_variable]);
   }
 
   if (lower == upper)
   {
     // construct a point interval
-    return CACInterval{Interval(lower, false, upper, false), l, u, m, d, {}};
+    return CACInterval{
+        poly::Interval(lower, false, upper, false), l, u, m, d, {}};
   }
   else
   {
     // construct an open interval
     Assert(lower < upper);
-    return CACInterval{Interval(lower, true, upper, true), l, u, m, d, {}};
+    return CACInterval{
+        poly::Interval(lower, true, upper, true), l, u, m, d, {}};
   }
 }
 
 std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
 {
   Trace("cdcac") << "Looking for unsat cover for "
-                 << mVariableOrdering[cur_variable] << std::endl;
-  std::vector<CACInterval> intervals = get_unsat_intervals(cur_variable);
-  Trace("cdcac") << "Unsat intervals for " << mVariableOrdering[cur_variable]
+                 << d_variableOrdering[cur_variable] << std::endl;
+  std::vector<CACInterval> intervals = getUnsatIntervals(cur_variable);
+  Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[cur_variable]
                  << ":" << std::endl;
   for (const auto& i : intervals)
-    Trace("cdcac") << "-> " << i.mInterval << " from " << i.mOrigins
+    Trace("cdcac") << "-> " << i.d_interval << " from " << i.d_origins
                    << std::endl;
-  Value sample;
+  poly::Value sample;
 
-  while (sample_outside(intervals, sample))
+  while (sampleOutside(intervals, sample))
   {
-    mAssignment.set(mVariableOrdering[cur_variable], sample);
-    Trace("cdcac") << "Sample: " << mAssignment << std::endl;
-    if (cur_variable == mVariableOrdering.size() - 1)
+    d_assignment.set(d_variableOrdering[cur_variable], sample);
+    Trace("cdcac") << "Sample: " << d_assignment << std::endl;
+    if (cur_variable == d_variableOrdering.size() - 1)
     {
       // We have a full assignment. SAT!
-      Trace("cdcac") << "Found full assignment: " << mAssignment << std::endl;
+      Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
     }
     // Recurse to next variable
-    auto cov = get_unsat_cover(cur_variable + 1);
+    auto cov = getUnsatCover(cur_variable + 1);
     if (cov.empty())
     {
       // Found SAT!
       Trace("cdcac") << "SAT!" << std::endl;
       return {};
     }
-    Trace("cdcac") << "Refuting Sample: " << mAssignment << std::endl;
-    auto characterization = construct_characterization(cov);
+    Trace("cdcac") << "Refuting Sample: " << d_assignment << std::endl;
+    auto characterization = constructCharacterization(cov);
     Trace("cdcac") << "Characterization: " << characterization << std::endl;
 
-    mAssignment.unset(mVariableOrdering[cur_variable]);
+    d_assignment.unset(d_variableOrdering[cur_variable]);
 
     auto new_interval =
-        interval_from_characterization(characterization, cur_variable, sample);
-    new_interval.mOrigins = collect_constraints(cov);
+        intervalFromCharacterization(characterization, cur_variable, sample);
+    new_interval.d_origins = collectConstraints(cov);
     intervals.emplace_back(new_interval);
-    
-    Trace("cdcac") << "Added " << intervals.back().mInterval << std::endl;
-    Trace("cdcac") << "\tlower:   " << intervals.back().mLowerPolys << std::endl;
-    Trace("cdcac") << "\tupper:   " << intervals.back().mUpperPolys << std::endl;
-    Trace("cdcac") << "\tmain:    " << intervals.back().mMainPolys << std::endl;
-    Trace("cdcac") << "\tdown:    " << intervals.back().mDownPolys << std::endl;
-    Trace("cdcac") << "\torigins: " << intervals.back().mOrigins << std::endl;
-    
+
+    Trace("cdcac") << "Added " << intervals.back().d_interval << std::endl;
+    Trace("cdcac") << "\tlower:   " << intervals.back().d_lowerPolys
+                   << std::endl;
+    Trace("cdcac") << "\tupper:   " << intervals.back().d_upperPolys
+                   << std::endl;
+    Trace("cdcac") << "\tmain:    " << intervals.back().d_mainPolys
+                   << std::endl;
+    Trace("cdcac") << "\tdown:    " << intervals.back().d_downPolys
+                   << std::endl;
+    Trace("cdcac") << "\torigins: " << intervals.back().d_origins << std::endl;
+
     // Remove redundant intervals
-    clean_intervals(intervals);
+    cleanIntervals(intervals);
   }
 
   Trace("cdcac") << "Returning intervals for "
-                 << mVariableOrdering[cur_variable] << ":" << std::endl;
+                 << d_variableOrdering[cur_variable] << ":" << std::endl;
   for (const auto& i : intervals)
-    Trace("cdcac") << "-> " << i.mInterval << std::endl;
+    Trace("cdcac") << "-> " << i.d_interval << std::endl;
   return intervals;
 }
 
