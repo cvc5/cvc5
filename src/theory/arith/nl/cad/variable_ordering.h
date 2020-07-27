@@ -60,7 +60,7 @@ class VariableOrdering
  * If with_totals is set, the last element of the vector contains totals as
  * computed by get_variable_information if no variable is specified.
  */
-std::vector<poly_utils::VariableInformation> collect_information(
+std::vector<poly_utils::VariableInformation> collectInformation(
     const Constraints::ConstraintVector& polys, bool with_totals = false);
 
 }  // namespace cad

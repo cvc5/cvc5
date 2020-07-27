@@ -24,11 +24,20 @@ namespace cad {
 
 using namespace poly;
 
+bool operator==(const CACInterval& lhs, const CACInterval& rhs)
+{
+  return lhs.mInterval == rhs.mInterval;
+}
+bool operator<(const CACInterval& lhs, const CACInterval& rhs)
+{
+  return lhs.mInterval < rhs.mInterval;
+}
+
 /**
  * Induces an ordering on poly intervals that is suitable for redundancy
  * removal as implemented in clean_intervals.
  */
-inline bool compare_for_cleanup(const Interval& lhs, const Interval& rhs)
+inline bool compareForCleanup(const Interval& lhs, const Interval& rhs)
 {
   const lp_value_t* ll = &(lhs.get_internal()->a);
   const lp_value_t* lu =
@@ -62,7 +71,7 @@ inline bool compare_for_cleanup(const Interval& lhs, const Interval& rhs)
   return false;
 }
 
-bool interval_covers(const Interval& lhs, const Interval& rhs)
+bool intervalCovers(const Interval& lhs, const Interval& rhs)
 {
   const lp_value_t* ll = &(lhs.get_internal()->a);
   const lp_value_t* lu =
@@ -94,7 +103,7 @@ bool interval_covers(const Interval& lhs, const Interval& rhs)
   return true;
 }
 
-bool interval_connect(const Interval& lhs, const Interval& rhs)
+bool intervalConnect(const Interval& lhs, const Interval& rhs)
 {
   Assert(lhs < rhs) << "Can only check for a connection if lhs < rhs.";
   const lp_value_t* lu = lhs.get_internal()->is_point
@@ -126,7 +135,7 @@ bool interval_connect(const Interval& lhs, const Interval& rhs)
   return false;
 }
 
-void clean_intervals(std::vector<CACInterval>& intervals)
+void cleanIntervals(std::vector<CACInterval>& intervals)
 {
   // Simplifies removal of redundancies later on.
   if (intervals.size() < 2) return;
@@ -135,7 +144,7 @@ void clean_intervals(std::vector<CACInterval>& intervals)
   std::sort(intervals.begin(),
             intervals.end(),
             [](const CACInterval& lhs, const CACInterval& rhs) {
-              return compare_for_cleanup(lhs.mInterval, rhs.mInterval);
+              return compareForCleanup(lhs.mInterval, rhs.mInterval);
             });
 
   // Remove intervals that are covered by others.
@@ -145,8 +154,8 @@ void clean_intervals(std::vector<CACInterval>& intervals)
   std::size_t first = 0;
   for (; first < intervals.size() - 1; ++first)
   {
-    if (interval_covers(intervals[first].mInterval,
-                        intervals[first + 1].mInterval))
+    if (intervalCovers(intervals[first].mInterval,
+                       intervals[first + 1].mInterval))
     {
       break;
     }
@@ -156,7 +165,7 @@ void clean_intervals(std::vector<CACInterval>& intervals)
   {
     for (std::size_t i = first + 2; i < intervals.size(); ++i)
     {
-      if (!interval_covers(intervals[first].mInterval, intervals[i].mInterval))
+      if (!intervalCovers(intervals[first].mInterval, intervals[i].mInterval))
       {
         // Interval is not covered. Move it to the front and bump front.
         ++first;
@@ -172,7 +181,7 @@ void clean_intervals(std::vector<CACInterval>& intervals)
   }
 }
 
-std::vector<Node> collect_constraints(const std::vector<CACInterval>& intervals)
+std::vector<Node> collectConstraints(const std::vector<CACInterval>& intervals)
 {
   std::vector<Node> res;
   for (const auto& i : intervals)
@@ -185,7 +194,7 @@ std::vector<Node> collect_constraints(const std::vector<CACInterval>& intervals)
   return res;
 }
 
-bool sample_outside(const std::vector<CACInterval>& infeasible, Value& sample)
+bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
 {
   if (infeasible.empty())
   {
@@ -206,7 +215,7 @@ bool sample_outside(const std::vector<CACInterval>& infeasible, Value& sample)
   for (std::size_t i = 0; i < infeasible.size() - 1; ++i)
   {
     // Search for two subsequent intervals that do not connect
-    if (!interval_connect(infeasible[i].mInterval, infeasible[i + 1].mInterval))
+    if (!intervalConnect(infeasible[i].mInterval, infeasible[i + 1].mInterval))
     {
       // Two intervals do not connect, take something from the gap
       const auto* l = infeasible[i].mInterval.get_internal();

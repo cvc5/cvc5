@@ -29,9 +29,29 @@ namespace arith {
 namespace nl {
 namespace cad {
 
-using namespace poly;
+void Constraints::addConstraint(const poly::Polynomial& lhs,
+                                poly::SignCondition sc,
+                                Node n)
+{
+  mConstraints.emplace_back(lhs, sc, n);
+  sortConstraints();
+}
 
-void Constraints::sort_constraints()
+void Constraints::addConstraint(Node n)
+{
+  auto c = as_poly_constraint(n, mVarMapper);
+  addConstraint(c.first, c.second, n);
+  sortConstraints();
+}
+
+const Constraints::ConstraintVector& Constraints::getConstraints() const
+{
+  return mConstraints;
+}
+
+void Constraints::reset() { mConstraints.clear(); }
+
+void Constraints::sortConstraints()
 {
   using Tpl = std::tuple<poly::Polynomial, poly::SignCondition, Node>;
   std::sort(mConstraints.begin(),
@@ -54,28 +74,6 @@ void Constraints::sort_constraints()
     lp_polynomial_set_external(p);
   }
 }
-
-void Constraints::add_constraint(const Polynomial& lhs,
-                                 SignCondition sc,
-                                 Node n)
-{
-  mConstraints.emplace_back(lhs, sc, n);
-  sort_constraints();
-}
-
-void Constraints::add_constraint(Node n)
-{
-  auto c = as_poly_constraint(n, mVarMapper);
-  add_constraint(c.first, c.second, n);
-  sort_constraints();
-}
-
-const Constraints::ConstraintVector& Constraints::get_constraints() const
-{
-  return mConstraints;
-}
-
-void Constraints::reset() { mConstraints.clear(); }
 
 }  // namespace cad
 }  // namespace nl

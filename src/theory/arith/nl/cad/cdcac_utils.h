@@ -58,36 +58,29 @@ struct CACInterval
   std::vector<Node> mOrigins;
 };
 /** Check whether to intervals are the same. */
-inline bool operator==(const CACInterval& lhs, const CACInterval& rhs)
-{
-  return lhs.mInterval == rhs.mInterval;
-}
+bool operator==(const CACInterval& lhs, const CACInterval& rhs);
 /** Compare two intervals. */
-inline bool operator<(const CACInterval& lhs, const CACInterval& rhs)
-{
-  return lhs.mInterval < rhs.mInterval;
-}
+bool operator<(const CACInterval& lhs, const CACInterval& rhs);
 
 /** Check whether lhs covers rhs. */
-bool interval_covers(const poly::Interval& lhs, const poly::Interval& rhs);
+bool intervalCovers(const poly::Interval& lhs, const poly::Interval& rhs);
 /**
  * Check whether two intervals connect, assuming lhs < rhs.
  * They connect, if their union has no gap.
  */
-bool interval_connect(const poly::Interval& lhs, const poly::Interval& rhs);
+bool intervalConnect(const poly::Interval& lhs, const poly::Interval& rhs);
 
 /**
  * Sort intervals according to section 4.4.1.
  * Also removes fully redundant intervals as in 4.5. 1.
  */
-void clean_intervals(std::vector<CACInterval>& intervals);
+void cleanIntervals(std::vector<CACInterval>& intervals);
 
 /**
  * Collect all origins from the list of intervals to construct the origins for a
  * whole covering.
  */
-std::vector<Node> collect_constraints(
-    const std::vector<CACInterval>& intervals);
+std::vector<Node> collectConstraints(const std::vector<CACInterval>& intervals);
 
 /**
  * Sample a point outside of the infeasible intervals.
@@ -95,8 +88,8 @@ std::vector<Node> collect_constraints(
  * If false is returned, the infeasible intervals cover the real line.
  * Implements sample_outside() from section 4.3
  */
-bool sample_outside(const std::vector<CACInterval>& infeasible,
-                    poly::Value& sample);
+bool sampleOutside(const std::vector<CACInterval>& infeasible,
+                   poly::Value& sample);
 
 }  // namespace cad
 }  // namespace nl

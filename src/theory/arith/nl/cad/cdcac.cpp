@@ -39,36 +39,36 @@ void CDCAC::reset()
   mAssignment.clear();
 }
 
-void CDCAC::compute_variable_ordering() {}
+void CDCAC::computeVariableOrdering() {}
 
-Constraints& CDCAC::get_constraints() { return mConstraints; }
-const Constraints& CDCAC::get_constraints() const { return mConstraints; }
+Constraints& CDCAC::getConstraints() { return mConstraints; }
+const Constraints& CDCAC::getConstraints() const { return mConstraints; }
 
-const Assignment& CDCAC::get_model() const { return mAssignment; }
+const Assignment& CDCAC::getModel() const { return mAssignment; }
 
-const std::vector<Variable>& CDCAC::get_variable_ordering() const
+const std::vector<Variable>& CDCAC::getVariableOrdering() const
 {
   return mVariableOrdering;
 }
 
-std::vector<CACInterval> CDCAC::get_unsat_intervals(
+std::vector<CACInterval> CDCAC::getUnsatIntervals(
     std::size_t cur_variable) const
 {
   return {};
 }
 
-std::vector<Polynomial> CDCAC::required_coefficients(const Polynomial& p) const
+std::vector<Polynomial> CDCAC::requiredCoefficients(const Polynomial& p) const
 {
   return {};
 }
 
-std::vector<Polynomial> CDCAC::construct_characterization(
+std::vector<Polynomial> CDCAC::constructCharacterization(
     std::vector<CACInterval>& intervals)
 {
   return {};
 }
 
-CACInterval CDCAC::interval_from_characterization(
+CACInterval CDCAC::intervalFromCharacterization(
     const std::vector<Polynomial>& characterization,
     std::size_t cur_variable,
     const Value& sample)
@@ -76,7 +76,7 @@ CACInterval CDCAC::interval_from_characterization(
   return {};
 }
 
-std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable)
+std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
 {
   return {};
 }

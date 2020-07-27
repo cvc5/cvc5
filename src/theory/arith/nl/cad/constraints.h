@@ -46,6 +46,33 @@ class Constraints
   using Constraint = std::tuple<poly::Polynomial, poly::SignCondition, Node>;
   using ConstraintVector = std::vector<Constraint>;
 
+  VariableMapper& varMapper() { return mVarMapper; }
+
+  /**
+   * Add a constraint (represented by a polynomial and a sign condition) to the
+   * list of constraints.
+   */
+  void addConstraint(const poly::Polynomial& lhs,
+                     poly::SignCondition sc,
+                     Node n);
+
+  /**
+   * Add a constraints (represented by a node) to the list of constraints.
+   * The given node can either be a negation (NOT) or a suitable relation symbol
+   * as checked by is_suitable_relation().
+   */
+  void addConstraint(Node n);
+
+  /**
+   * Gives the list of added constraints.
+   */
+  const ConstraintVector& getConstraints() const;
+
+  /**
+   * Remove all constraints.
+   */
+  void reset();
+
  private:
   /**
    * A list of constraints, each comprised of a polynomial and a sign
@@ -58,35 +85,7 @@ class Constraints
    */
   VariableMapper mVarMapper;
 
-  void sort_constraints();
-
- public:
-  VariableMapper& var_mapper() { return mVarMapper; }
-
-  /**
-   * Add a constraint (represented by a polynomial and a sign condition) to the
-   * list of constraints.
-   */
-  void add_constraint(const poly::Polynomial& lhs,
-                      poly::SignCondition sc,
-                      Node n);
-
-  /**
-   * Add a constraints (represented by a node) to the list of constraints.
-   * The given node can either be a negation (NOT) or a suitable relation symbol
-   * as checked by is_suitable_relation().
-   */
-  void add_constraint(Node n);
-
-  /**
-   * Gives the list of added constraints.
-   */
-  const ConstraintVector& get_constraints() const;
-
-  /**
-   * Remove all constraints.
-   */
-  void reset();
+  void sortConstraints();
 };
 
 }  // namespace cad

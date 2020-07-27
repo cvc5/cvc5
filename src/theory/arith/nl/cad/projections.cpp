@@ -26,14 +26,14 @@ namespace cad {
 
 using namespace poly;
 
-void reduce_projection_polynomials(std::vector<Polynomial>& polys)
+void reduceProjectionPolynomials(std::vector<Polynomial>& polys)
 {
   std::sort(polys.begin(), polys.end());
   auto it = std::unique(polys.begin(), polys.end());
   polys.erase(it, polys.end());
 }
 
-void add_polynomial(std::vector<Polynomial>& polys, const Polynomial& poly)
+void addPolynomial(std::vector<Polynomial>& polys, const Polynomial& poly)
 {
   for (const auto& p : square_free_factors(poly))
   {
@@ -42,13 +42,13 @@ void add_polynomial(std::vector<Polynomial>& polys, const Polynomial& poly)
   }
 }
 
-void add_polynomials(std::vector<Polynomial>& polys,
-                     const std::vector<Polynomial>& p)
+void addPolynomials(std::vector<Polynomial>& polys,
+                    const std::vector<Polynomial>& p)
 {
-  for (const auto& q : p) add_polynomial(polys, q);
+  for (const auto& q : p) addPolynomial(polys, q);
 }
 
-void make_finest_square_free_basis(std::vector<Polynomial>& polys)
+void makeFinestSquareFreeBasis(std::vector<Polynomial>& polys)
 {
   for (std::size_t i = 0, n = polys.size(); i < n; ++i)
   {
@@ -67,11 +67,11 @@ void make_finest_square_free_basis(std::vector<Polynomial>& polys)
     return is_constant(p);
   });
   polys.erase(it, polys.end());
-  reduce_projection_polynomials(polys);
+  reduceProjectionPolynomials(polys);
 }
 
-void make_finest_square_free_basis(std::vector<poly::Polynomial>& lhs,
-                                   std::vector<poly::Polynomial>& rhs)
+void makeFinestSquareFreeBasis(std::vector<poly::Polynomial>& lhs,
+                               std::vector<poly::Polynomial>& rhs)
 {
   for (std::size_t i = 0, ln = lhs.size(); i < ln; ++i)
   {
@@ -88,8 +88,8 @@ void make_finest_square_free_basis(std::vector<poly::Polynomial>& lhs,
       }
     }
   }
-  reduce_projection_polynomials(lhs);
-  reduce_projection_polynomials(rhs);
+  reduceProjectionPolynomials(lhs);
+  reduceProjectionPolynomials(rhs);
 }
 
 std::vector<Polynomial> projection_mccallum(
@@ -101,19 +101,19 @@ std::vector<Polynomial> projection_mccallum(
   {
     for (const auto& coeff : coefficients(p))
     {
-      add_polynomial(res, coeff);
+      addPolynomial(res, coeff);
     }
-    add_polynomial(res, discriminant(p));
+    addPolynomial(res, discriminant(p));
   }
   for (std::size_t i = 0, n = polys.size(); i < n; ++i)
   {
     for (std::size_t j = i + 1; j < n; ++j)
     {
-      add_polynomial(res, resultant(polys[i], polys[j]));
+      addPolynomial(res, resultant(polys[i], polys[j]));
     }
   }
 
-  reduce_projection_polynomials(res);
+  reduceProjectionPolynomials(res);
   return res;
 }
 
