@@ -95,15 +95,21 @@ class SygusInterpol
    */
   void createVariables(bool needsShared);
 
-	/**
-	 * Get include_cons for mkSygusDefaultType.
-	 * mkSygusDefaultType() is a function to make default grammar. It has an arguemnt include_cons, which will restrict what operators we want in the grammar.
-	 * The return value is depends on the options::produceInterpols(). In ASSUMPTIONS option, it will return the operators from axioms. In CONJECTURE option, it will return the operators from conj. In SHARED option, it will return the oprators shared by axioms and conj. In ALL option, it will return the operators from either axioms or conj.
-	 *
-	 * @param axioms input argument
-	 * @param conj input argument
-	 */
-	std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> getIncludeCons(const std::vector<Node>& axioms, const Node& conj);
+  /**
+   * Get include_cons for mkSygusDefaultType.
+   * mkSygusDefaultType() is a function to make default grammar. It has an
+   * arguemnt include_cons, which will restrict what operators we want in the
+   * grammar. The return value is depends on the options::produceInterpols(). In
+   * ASSUMPTIONS option, it will return the operators from axioms. In CONJECTURE
+   * option, it will return the operators from conj. In SHARED option, it will
+   * return the oprators shared by axioms and conj. In ALL option, it will
+   * return the operators from either axioms or conj.
+   *
+   * @param axioms input argument
+   * @param conj input argument
+   */
+  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> getIncludeCons(
+      const std::vector<Node>& axioms, const Node& conj);
 
   /**
    * Set up the grammar for the interpol-to-synthesis.
