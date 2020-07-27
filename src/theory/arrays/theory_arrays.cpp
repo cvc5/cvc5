@@ -1554,11 +1554,10 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
 {
   if (conjunctions.empty())
   {
-    return d_false;
+    return invert ? d_false : d_true;
   }
 
   std::set<TNode> all;
-  std::set<TNode> explained;
 
   unsigned i = startIndex;
   TNode t;
@@ -1573,23 +1572,6 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
           continue;
         }
         all.insert(*child_it);
-      }
-    }
-    else if (t.getKind() == kind::OR) {
-      // Expand explanation resulting from propagating a ROW or EXT lemma
-      if ((explained.find(t) == explained.end())) {
-        if (t[1].getKind() == kind::EQUAL) {
-          // ROW lemma
-          d_equalityEngine.explainEquality(t[1][0], t[1][1], false, conjunctions);
-          explained.insert(t);
-        } else {
-          // EXT lemma
-          Assert(t[1].getKind() == kind::NOT
-                 && t[1][0].getKind() == kind::EQUAL);
-          Assert(t[0].getKind() == kind::EQUAL);
-          all.insert(t[0].notNode());
-          explained.insert(t);
-        }
       }
     }
     else {
