@@ -9,16 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
  ** \brief Implements utilities for cdcac.
  **
  ** Implements utilities for cdcac.
  **/
+
+#include "cvc4_private.h"
 
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
 #define CVC4__THEORY__ARITH__NL__CAD__CDCAC_UTILS_H
@@ -49,49 +45,42 @@ namespace cad {
 struct CACInterval
 {
   /** The actual interval. */
-  poly::Interval mInterval;
+  poly::Interval d_interval;
   /** The polynomials characterizing the lower bound. */
-  std::vector<poly::Polynomial> mLowerPolys;
+  std::vector<poly::Polynomial> d_lowerPolys;
   /** The polynomials characterizing the upper bound. */
-  std::vector<poly::Polynomial> mUpperPolys;
+  std::vector<poly::Polynomial> d_upperPolys;
   /** The characterizing polynomials in the main variable. */
-  std::vector<poly::Polynomial> mMainPolys;
+  std::vector<poly::Polynomial> d_mainPolys;
   /** The characterizing polynomials in lower variables. */
-  std::vector<poly::Polynomial> mDownPolys;
+  std::vector<poly::Polynomial> d_downPolys;
   /** The constraints used to derive this interval. */
-  std::vector<Node> mOrigins;
+  std::vector<Node> d_origins;
 };
 /** Check whether to intervals are the same. */
-inline bool operator==(const CACInterval& lhs, const CACInterval& rhs)
-{
-  return lhs.mInterval == rhs.mInterval;
-}
+bool operator==(const CACInterval& lhs, const CACInterval& rhs);
 /** Compare two intervals. */
-inline bool operator<(const CACInterval& lhs, const CACInterval& rhs)
-{
-  return lhs.mInterval < rhs.mInterval;
-}
+bool operator<(const CACInterval& lhs, const CACInterval& rhs);
 
 /** Check whether lhs covers rhs. */
-bool interval_covers(const poly::Interval& lhs, const poly::Interval& rhs);
+bool intervalCovers(const poly::Interval& lhs, const poly::Interval& rhs);
 /**
  * Check whether two intervals connect, assuming lhs < rhs.
  * They connect, if their union has no gap.
  */
-bool interval_connect(const poly::Interval& lhs, const poly::Interval& rhs);
+bool intervalConnect(const poly::Interval& lhs, const poly::Interval& rhs);
 
 /**
  * Sort intervals according to section 4.4.1.
  * Also removes fully redundant intervals as in 4.5. 1.
  */
-void clean_intervals(std::vector<CACInterval>& intervals);
+void cleanIntervals(std::vector<CACInterval>& intervals);
 
 /**
  * Collect all origins from the list of intervals to construct the origins for a
  * whole covering.
  */
-std::vector<Node> collect_constraints(
-    const std::vector<CACInterval>& intervals);
+std::vector<Node> collectConstraints(const std::vector<CACInterval>& intervals);
 
 /**
  * Sample a point outside of the infeasible intervals.
@@ -99,8 +88,8 @@ std::vector<Node> collect_constraints(
  * If false is returned, the infeasible intervals cover the real line.
  * Implements sample_outside() from section 4.3
  */
-bool sample_outside(const std::vector<CACInterval>& infeasible,
-                    poly::Value& sample);
+bool sampleOutside(const std::vector<CACInterval>& infeasible,
+                   poly::Value& sample);
 
 }  // namespace cad
 }  // namespace nl

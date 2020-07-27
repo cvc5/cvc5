@@ -9,22 +9,16 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
  ** \brief Implements the CDCAC approach.
  **
  ** Implements the CDCAC approach as described in
  ** https://arxiv.org/pdf/2003.05633.pdf.
  **/
 
-#include "cdcac.h"
+#include "theory/arith/nl/cad/cdcac.h"
 
-#include "projections.h"
-#include "variable_ordering.h"
+#include "theory/arith/nl/cad/projections.h"
+#include "theory/arith/nl/cad/variable_ordering.h"
 
 namespace std {
 /** Generic streaming operator for std::vector. */
@@ -54,18 +48,18 @@ void remove_duplicates(std::vector<T>& v)
 
 CDCAC::CDCAC() {}
 
-CDCAC::CDCAC(const std::vector<Variable>& ordering)
-    : mVariableOrdering(ordering)
+CDCAC::CDCAC(const std::vector<poly::Variable>& ordering)
+    : d_variableOrdering(ordering)
 {
 }
 
 void CDCAC::reset()
 {
-  mConstraints.reset();
-  mAssignment.clear();
+  d_constraints.reset();
+  d_assignment.clear();
 }
 
-void CDCAC::compute_variable_ordering()
+void CDCAC::computeVariableOrdering()
 {
   // Actually compute the variable ordering
   mVariableOrdering = mVarOrder(mConstraints.get_constraints(),
@@ -82,17 +76,17 @@ void CDCAC::compute_variable_ordering()
   }
 }
 
-Constraints& CDCAC::get_constraints() { return mConstraints; }
-const Constraints& CDCAC::get_constraints() const { return mConstraints; }
+Constraints& CDCAC::getConstraints() { return d_constraints; }
+const Constraints& CDCAC::getConstraints() const { return d_constraints; }
 
-const Assignment& CDCAC::get_model() const { return mAssignment; }
+const poly::Assignment& CDCAC::getModel() const { return d_assignment; }
 
-const std::vector<Variable>& CDCAC::get_variable_ordering() const
+const std::vector<poly::Variable>& CDCAC::getVariableOrdering() const
 {
-  return mVariableOrdering;
+  return d_variableOrdering;
 }
 
-std::vector<CACInterval> CDCAC::get_unsat_intervals(
+std::vector<CACInterval> CDCAC::getUnsatIntervals(
     std::size_t cur_variable) const
 {
   std::vector<CACInterval> res;
@@ -215,10 +209,10 @@ std::vector<Polynomial> CDCAC::construct_characterization(
   return res;
 }
 
-CACInterval CDCAC::interval_from_characterization(
-    const std::vector<Polynomial>& characterization,
+CACInterval CDCAC::intervalFromCharacterization(
+    const std::vector<poly::Polynomial>& characterization,
     std::size_t cur_variable,
-    const Value& sample)
+    const poly::Value& sample)
 {
   std::vector<Polynomial> l;
   std::vector<Polynomial> u;
@@ -309,7 +303,7 @@ CACInterval CDCAC::interval_from_characterization(
   }
 }
 
-std::vector<CACInterval> CDCAC::get_unsat_cover(std::size_t cur_variable)
+std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
 {
   Trace("cdcac") << "Looking for unsat cover for "
                  << mVariableOrdering[cur_variable] << std::endl;
