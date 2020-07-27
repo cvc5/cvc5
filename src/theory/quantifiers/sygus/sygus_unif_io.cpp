@@ -49,6 +49,11 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   Node poln = pol ? d_true : d_false;
   for (unsigned i = 0; i < vals.size(); i++)
   {
+    if (vals[i].isNull())
+    {
+      // nothing can be inferred if the evaluation is unknown
+      continue;
+    }
     if (vals[i] != poln)
     {
       if (d_vals[i] == d_true)
@@ -571,8 +576,6 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   eec->evaluateVec(bv, base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
-  Evaluator* ev = d_tds->getEvaluator();
-  bool tryEval = options::sygusEvalOpt();
   for (const Node& xs : ei.d_enum_slave)
   {
     Assert(srmap.find(xs) == srmap.end());
@@ -580,34 +583,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     Node templ = eiv.d_template;
     if (!templ.isNull())
     {
-      TNode templ_var = eiv.d_template_arg;
-      std::vector<Node> args;
-      args.push_back(templ_var);
+      // substitute and evaluate
+      Node stempl = templ.substitute(eiv.d_template_arg, bv);
       std::vector<Node> sresults;
-      for (const Node& res : base_results)
-      {
-        TNode tres = res;
-        Node sres;
-        // It may not be constant, e.g. if we involve a partial operator
-        // like datatype selectors. In this case, we avoid using the evaluator,
-        // which expects a constant substitution.
-        if (tres.isConst())
-        {
-          std::vector<Node> vals;
-          vals.push_back(tres);
-          if (tryEval)
-          {
-            sres = ev->eval(templ, args, vals);
-          }
-        }
-        if (sres.isNull())
-        {
-          // fall back on rewriter
-          sres = templ.substitute(templ_var, tres);
-          sres = Rewriter::rewrite(sres);
-        }
-        sresults.push_back(sres);
-      }
+      eec->evaluateVec(stempl, sresults);
       srmap[xs] = sresults;
     }
     else
@@ -658,6 +637,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       std::vector<Node> results;
       std::map<Node, bool> cond_vals;
       std::map<Node, std::vector<Node>>::iterator itsr = srmap.find(xs);
+      Trace("sygus-sui-debug") << " {" << itsr->second << "} ";
       Assert(itsr != srmap.end());
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
@@ -1003,6 +983,7 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
 
 void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 {
+  Trace("sygus-sui-debug") << "Add enum value " << this << " " << v << " : " << results << std::endl;
   // should not have been enumerated before
   Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
@@ -1392,9 +1373,15 @@ Node SygusUnifIo::constructSol(
           Assert(set_split_cond_res_index);
           Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
           prev = x.d_vals;
+          Trace("ajr-temp") << "Update context ";
+          print_val("ajr-temp", x.d_vals);
+          Trace("ajr-temp") << " sc=" << sc << ", with " << ecache_cond.d_enum_vals_res[split_cond_res_index] << std::endl;
           x.updateContext(this,
                           ecache_cond.d_enum_vals_res[split_cond_res_index],
                           sc == 1);
+          Trace("ajr-temp") << "Got: ";
+          print_val("ajr-temp", x.d_vals);
+          Trace("ajr-temp") << std::endl;
           // return value of above call may be false in corner cases where we
           // must choose a non-separating condition to traverse to another
           // strategy node
