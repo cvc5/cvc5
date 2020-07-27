@@ -60,8 +60,20 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
+  pc->registerChecker(PfRule::THEORY_REWRITE, this);
+  pc->registerChecker(PfRule::PREPROCESS, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
 }
+
+Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
+{
+  TheoryId tid = Theory::theoryOf(n);
+  Rewriter* rewriter = Rewriter::getInstance();
+  Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
+                        : rewriter->postRewrite(tid, n).d_node;
+  return nkr;
+}
+
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
@@ -316,6 +328,12 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
+  }
+  else if (id == PfRule::PREPROCESS)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    return args[0];
   }
   // no rule
   return Node::null();

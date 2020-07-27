@@ -1447,7 +1447,7 @@ void TheoryArithPrivate::preRegisterTerm(TNode n) {
 
   if (d_nonlinearExtension != nullptr)
   {
-    d_containing.getExtTheory()->registerTermRec( n );
+    d_nonlinearExtension->preRegisterTerm(n);
   }
 
   try {
@@ -1933,7 +1933,8 @@ void TheoryArithPrivate::outputConflicts(){
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof())
+        if (confConstraint->hasSimpleFarkasProof()
+            && confConstraint->getNegation()->isPossiblyTightenedAssumption())
         {
           d_containing.d_proofRecorder->saveFarkasCoefficients(
               conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);

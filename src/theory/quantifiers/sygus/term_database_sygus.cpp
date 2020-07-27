@@ -89,7 +89,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       ss << "fv_" << tn << "_" << i;
     }
     Assert(!vtn.isNull());
-    Node v = nm->mkSkolem(ss.str(), vtn, "for sygus invariance testing");
+    Node v = nm->mkBoundVar(ss.str(), vtn);
     // store its id, which is unique per builtin type, regardless of how it is
     // otherwise cached.
     d_fvId[v] = d_fvTypeIdCounter[builtinType];
@@ -723,17 +723,16 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    if (n.isNull())
-    {
-      Trace(c) << n;
-    }
-    else
-    {
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-      Trace(c) << ss.str();
-    }
+    std::stringstream ss;
+    toStreamSygus(ss, n);
+    Trace(c) << ss.str();
   }
+}
+
+void TermDbSygus::toStreamSygus(std::ostream& out, Node n)
+{
+  // use external conversion
+  out << datatypes::utils::sygusToBuiltin(n, true);
 }
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)

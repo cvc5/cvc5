@@ -43,23 +43,21 @@
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
+class ProofNodeManager;
 
 namespace theory {
 
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
-class ExtTheory;
 class TheoryRewriter;
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -105,6 +103,9 @@ class Theory {
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
 
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
+
   /**
    * The assertFact() queue.
    *
@@ -133,9 +134,6 @@ class Theory {
 
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
-
-  /** Extended theory module or NULL. Owned by the theory. */
-  ExtTheory* d_extTheory;
 
  protected:
 
@@ -199,6 +197,7 @@ class Theory {
          OutputChannel& out,
          Valuation valuation,
          const LogicInfo& logicInfo,
+         ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -440,6 +439,19 @@ class Theory {
   virtual void finishInit() { }
 
   /**
+   * Expand definitions in the term node. This returns a term that is
+   * equivalent to node. It wraps this term in a TrustNode of kind
+   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
+   * null TrustNode may be returned. This is an optimization to avoid
+   * constructing the trivial equality (= node node) internally within
+   * TrustNode.
+   *
+   * The purpose of this method is typically to eliminate the operators in node
+   * that are syntax sugar that cannot otherwise be eliminated during rewriting.
+   * For example, division relies on the introduction of an uninterpreted
+   * function for the divide-by-zero case, which we do not introduce with
+   * the rewriter, since this function may be cached in a non-global fashion.
+   *
    * Some theories have kinds that are effectively definitions and should be
    * expanded before they are handled.  Definitions allow a much wider range of
    * actions than the normal forms given by the rewriter. However no
@@ -453,10 +465,10 @@ class Theory {
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
    */
-  virtual Node expandDefinition(Node node)
+  virtual TrustNode expandDefinition(Node node)
   {
     // by default, do nothing
-    return node;
+    return TrustNode::null();
   }
 
   /**
@@ -534,7 +546,8 @@ class Theory {
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual Node explain(TNode n) {
+  virtual TrustNode explain(TNode n)
+  {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
@@ -579,9 +592,12 @@ class Theory {
    * Given an atom of the theory coming from the input formula, this
    * method can be overridden in a theory implementation to rewrite
    * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine.
+   * before an input atom to the engine. This method returns a TrustNode of
+   * kind TrustNodeKind::REWRITE, which carries information about the proof
+   * generator for the rewrite. Similarly to expandDefinition, this method may
+   * return the null TrustNode if atom is unchanged.
    */
-  virtual Node ppRewrite(TNode atom) { return atom; }
+  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after
@@ -814,35 +830,16 @@ class Theory {
    *
    * The theory may always return false!
    *
-   * The search is controlled by the parameter params.  For default behavior,
-   * this may be left NULL.
-   *
-   * Theories that want parameters extend the virtual EntailmentCheckParameters
-   * class.  Users ask the theory for an appropriate subclass from the theory
-   * and configure that.  How this is implemented is on a per theory basis.
-   *
-   * The search may provide additional output to guide the user of
-   * this function.  This output is stored in a EntailmentCheckSideEffects*
-   * output parameter.  The implementation of this is theory specific.  For
-   * no output, this is NULL.
-   *
    * Theories may not touch their output stream during an entailment check.
    *
    * @param  lit     a literal belonging to the theory.
-   * @param  params  the control parameters for the entailment check.
-   * @param  out     a theory specific output object of the entailment search.
    * @return         a pair <b,E> s.t. if b is true, then a formula E such that
    * E |= lit in the theory.
    */
-  virtual std::pair<bool, Node> entailmentCheck(
-      TNode lit, const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL);
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
   /* equality engine TODO: use? */
   virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-
-  /* Get extended theory if one has been installed. */
-  ExtTheory* getExtTheory();
 
   /* get current substitution at an effort
    *   input : vars
@@ -910,26 +907,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   }
   return out;
 }
-
-class EntailmentCheckParameters {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckParameters(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckParameters();
-};/* class EntailmentCheckParameters */
-
-class EntailmentCheckSideEffects {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckSideEffects(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckSideEffects();
-};/* class EntailmentCheckSideEffects */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

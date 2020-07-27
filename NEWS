@@ -8,6 +8,8 @@ New Features:
   syntax for sequences used by Z3.
 * Arrays: Added support for an `eqrange` predicate. `(eqrange a b i j)` is true
   if arrays `a` and `b` are equal on all indices within indices `i` and `j`.
+* Support for an integer operator `(_ iand n)` that returns the bitwise `and`
+  of two integers, seen as integers modulo n.
 
 Improvements:
 * New API: Added functions to retrieve the heap/nil term when using separation
@@ -16,6 +18,10 @@ Improvements:
 Changes:
 * SyGuS: Removed support for SyGuS-IF 1.0.
 * Removed Java and Python bindings for the legacy API
+* Interactive shell: the GPL-licensed Readline library has been replaced the
+  BSD-licensed Editline. Compiling with `--best` now enables Editline, instead
+  of Readline. Without selecting optional GPL components, Editline-enabled CVC4
+  builds will be BSD licensed.
 
 Changes since 1.7
 =================
