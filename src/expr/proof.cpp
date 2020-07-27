@@ -18,8 +18,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
-    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
+CDProof::CDProof(ProofNodeManager* pnm, context::Context* c, std::string name)
+    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context), d_name(name)
 {
 }
 
@@ -435,6 +435,6 @@ Node CDProof::getSymmFact(TNode f)
   return polarity ? symFact : symFact.notNode();
 }
 
-std::string CDProof::identify() const { return "CDProof"; }
+std::string CDProof::identify() const { return d_name; }
 
 }  // namespace CVC4

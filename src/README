@@ -125,7 +125,7 @@ PRs future:
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
 (52) theory preprocess proof producing (req 27, 48, 51, 50)
 (53) CNF proof producing [Haniel]
-(54) DSL rewrite rule TODO
+(54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)

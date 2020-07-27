@@ -73,6 +73,8 @@ class ProofNodeUpdater
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
+  /** update node */
+  void runUpdate(ProofNode* cur);
 };
 
 }  // namespace CVC4

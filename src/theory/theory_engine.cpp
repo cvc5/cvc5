@@ -191,7 +191,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_pchecker(pnm ? pnm->getChecker() : nullptr),
       d_pnm(pnm),
       d_lazyProof(d_pnm != nullptr
-                      ? new LazyCDProof(d_pnm, nullptr, d_userContext)
+                      ? new LazyCDProof(d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
                       : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
       d_sharedTerms(this, context, userContext, d_pnm),
@@ -1660,11 +1660,9 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     if (Trace.isOn("te-proof-debug"))
     {
       std::shared_ptr<ProofNode> ppn = tlemma.toProofNode();
-      std::stringstream ss;
-      ppn->printDebug(ss);
       Trace("te-proof-debug")
           << "=== Initial proof from " << tlemma.identifyGenerator();
-      Trace("te-proof-debug") << std::endl << ss.str();
+      Trace("te-proof-debug") << std::endl << *ppn.get() << std::endl;
       Assert(ppn->isClosed());
     }
   }
@@ -1730,13 +1728,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     // ensure closed, make the proof node eagerly here to debug
     if (Trace.isOn("te-proof-debug"))
     {
-      Trace("te-proof-debug") << "=== Proof of " << tlemma;
+      Trace("te-proof-debug") << "=== Proof of " << tlemma.getProven();
       Trace("te-proof-debug") << " from " << tlemma.identifyGenerator();
       Trace("te-proof-debug") << ":" << std::endl;
       std::shared_ptr<ProofNode> pn = tlemma.toProofNode();
-      std::stringstream ss;
-      pn->printDebug(ss);
-      Trace("te-proof-debug") << ss.str();
+      Trace("te-proof-debug") << *pn.get();
       Trace("te-proof-debug") << std::endl << "====" << std::endl;
       Assert(pn->isClosed());
     }
@@ -1745,6 +1741,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
+    if (Trace.isOn("te-proof-debug"))
+    {
+      std::shared_ptr<ProofNode> pn = newLemmas[i].toProofNode();
+      Assert(pn->isClosed());
+    }
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
 
@@ -1977,7 +1978,7 @@ theory::TrustNode TheoryEngine::getExplanation(
   {
     Trace("te-proof-exp") << "=== TheoryEngine::getExplanation " << conclusion
                           << std::endl;
-    lcp.reset(new LazyCDProof(d_pnm));
+    lcp.reset(new LazyCDProof(d_pnm, nullptr, nullptr, "TheoryEngine::LazyCDProof::tmp"));
   }
   unsigned i = 0; // Index of the current literal we are processing
 

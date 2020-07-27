@@ -93,10 +93,7 @@ bool ProofPostprocessCallback::update(Node res,
         {
           Trace("smt-proof-pp")
               << "=== Connect proof for preprocessing: " << f << std::endl;
-          std::stringstream ss;
-          pfn->printDebug(ss);
-          Trace("smt-proof-pp") << ss.str();
-          Trace("smt-proof-pp") << std::endl;
+          Trace("smt-proof-pp") << *pfn.get() << std::endl;
         }
       }
       d_assumpToProof[f] = pfn;
@@ -268,7 +265,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
     // wa = toWitness(apply_SR(args[0])) and
     // wc = toWitness(apply_SR(children[0])).
     Trace("smt-proof-pp-debug")
-        << "Tranform " << children[0] << " == " << args[0] << std::endl;
+        << "Transform " << children[0] << " == " << args[0] << std::endl;
     if (CDProof::isSame(children[0], args[0]))
     {
       // nothing to do

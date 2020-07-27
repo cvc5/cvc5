@@ -24,7 +24,7 @@ ProofCnfStream::ProofCnfStream(context::UserContext* u,
                                bool pfEnabled)
     : d_cnfStream(cnfStream),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, u),
+      d_proof(pnm, nullptr, u, "ProofCnfStream::LazyCDProof"),
       d_pfEnabled(pfEnabled)
 {
 }
@@ -50,11 +50,9 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
   if (pg)
   {
+    //std::shared_ptr<ProofNode> ppn = pg->getProofFor(toJustify);
+    //AlwaysAssert(ppn->isClosed());    
     d_proof.addLazyStep(toJustify, pg);
-  }
-  else
-  {
-    d_proof.addStep(toJustify, PfRule::ASSUME, {}, {toJustify});
   }
   convertAndAssert(node, negated);
 }
@@ -90,6 +88,17 @@ void ProofCnfStream::convertAndAssert(TNode node, bool negated)
         d_proof.addStep(
             nnode, PfRule::MACRO_SR_PRED_TRANSFORM, {node.notNode()}, {nnode});
       }
+      /*
+      Trace("cnf") << "Proof of " << nnode << " is : " << std::endl;
+      std::shared_ptr<ProofNode> pn = d_proof.getProofFor(nnode);
+      Trace("cnf") << "-- " << *pn.get() << std::endl;
+      Trace("cnf") << "-- closed = " << pn->isClosed() << std::endl;
+      if (!pn->isClosed())
+      {
+        Trace("cnf-open") << "Non-closed: " << nnode << std::endl;
+      }
+      d_proof.addProof(pn);
+      */
     }
   }
 }

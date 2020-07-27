@@ -29,10 +29,25 @@ std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol)
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol)
+{
+  switch (tcpol)
+  {
+    case TConvCachePolicy::STATIC: out << "STATIC"; break;
+    case TConvCachePolicy::DYNAMIC: out << "DYNAMIC"; break;
+    case TConvCachePolicy::NEVER: out << "NEVER"; break;
+    default: out << "TConvCachePolicy:unknown"; break;
+  }
+  return out;
+}
+
 TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          context::Context* c,
-                                         TConvPolicy tpol)
-    : d_proof(pnm, nullptr, c), d_rewriteMap(c ? c : &d_context), d_policy(tpol)
+                                         TConvPolicy pol,
+                                         TConvCachePolicy cpol,
+                      std::string name
+                                        )
+    : d_proof(pnm, nullptr, c, name + "::LazyCDProof"), d_rewriteMap(c ? c : &d_context), d_policy(pol), d_cpolicy(cpol), d_name(name)
 {
 }
 
@@ -87,6 +102,11 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s)
     return Node::null();
   }
   d_rewriteMap[t] = s;
+  if (d_cpolicy==TConvCachePolicy::DYNAMIC)
+  {
+    // clear the cache
+    d_cache.clear();
+  }
   return t.eqNode(s);
 }
 
@@ -101,7 +121,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     return nullptr;
   }
   // we use the existing proofs
-  LazyCDProof lpf(d_proof.getManager(), &d_proof);
+  LazyCDProof lpf(d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProof");
   Node conc = getProofForRewriting(f[0], lpf);
   if (conc != f)
   {
@@ -118,7 +138,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
     Node f, ProofGenerator* pg)
 {
   // we use the existing proofs
-  LazyCDProof lpf(d_proof.getManager(), &d_proof);
+  LazyCDProof lpf(d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProof");
   lpf.addLazyStep(f, pg);
   // ------ from pg  ------- from getProofForRewriting
   // f                f = f'
@@ -152,6 +172,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
   std::unordered_map<TNode, Node, TNodeHashFunction> rewritten;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itr;
+  std::map<Node, std::shared_ptr<ProofNode> >::iterator itc;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(t);
@@ -159,8 +180,17 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
   {
     cur = visit.back();
     visit.pop_back();
+    // has the proof for cur been cached?
+    itc = d_cache.find(cur);
+    if (itc!=d_cache.end())
+    {
+      Node res = itc->second->getResult();
+      Assert (res.getKind()==EQUAL);
+      visited[cur] = res[1];
+      pf.addProof(itc->second);
+      continue;
+    }
     it = visited.find(cur);
-
     if (it == visited.end())
     {
       visited[cur] = Node::null();
@@ -184,6 +214,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
           Assert(d_policy == TConvPolicy::ONCE);
           // not rewriting again, rcur is final
           visited[cur] = rcur;
+          doCache(cur, rcur, pf);
         }
       }
       else
@@ -216,6 +247,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
           pf.addStep(result, PfRule::TRANS, pfChildren, {});
         }
         visited[cur] = rcurFinal;
+        doCache(cur, rcurFinal, pf);
       }
       else
       {
@@ -286,6 +318,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
         {
           // it is final
           visited[cur] = ret;
+          doCache(cur, ret, pf);
         }
       }
     }
@@ -294,6 +327,15 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
   Assert(!visited.find(t)->second.isNull());
   // return the conclusion of the overall proof
   return t.eqNode(visited[t]);
+}
+
+void TConvProofGenerator::doCache(Node cur, Node r, LazyCDProof& pf)
+{
+  if (d_cpolicy!=TConvCachePolicy::NEVER)
+  {
+    Node eq = cur.eqNode(r);
+    d_cache[cur] = pf.getProofFor(eq);
+  }
 }
 
 Node TConvProofGenerator::getRewriteStep(Node t) const
@@ -307,7 +349,7 @@ Node TConvProofGenerator::getRewriteStep(Node t) const
 }
 std::string TConvProofGenerator::identify() const
 {
-  return "TConvProofGenerator";
+  return d_name;
 }
 
 }  // namespace CVC4

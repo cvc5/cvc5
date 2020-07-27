@@ -21,7 +21,7 @@ namespace CVC4 {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
-    : d_tcpg(pnm), d_wintroPf(pnm)
+    : d_tcpg(pnm, nullptr, TConvPolicy::FIXPOINT, TConvCachePolicy::NEVER, "WfGenerator::TConvProofGenerator"), d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof")
 {
 }
 

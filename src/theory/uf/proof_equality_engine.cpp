@@ -27,10 +27,10 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              context::UserContext* u,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
-    : EagerProofGenerator(pnm, u),
+    : EagerProofGenerator(pnm, u, "pfee::" + ee.identify()),
       d_ee(ee),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, c),
+      d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
       d_factPg(c, pnm),
       d_keep(c),
       d_pfEnabled(pnm != nullptr)
@@ -342,7 +342,7 @@ TrustNode ProofEqEngine::explain(Node conc)
 std::string ProofEqEngine::identify() const
 {
   std::stringstream ss;
-  ss << "pf::" << d_ee.identify();
+  ss << "pfee::" << d_ee.identify();
   return ss.str();
 }
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,

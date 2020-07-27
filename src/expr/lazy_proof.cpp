@@ -20,8 +20,9 @@ namespace CVC4 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          ProofGenerator* dpg,
-                         context::Context* c)
-    : CDProof(pnm, c), d_gens(c ? c : &d_context), d_defaultGen(dpg)
+                         context::Context* c,
+                         std::string name)
+    : CDProof(pnm, c, name), d_gens(c ? c : &d_context), d_defaultGen(dpg)
 {
 }
 
@@ -80,12 +81,20 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           {
             Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
                                   << afactGen << std::endl;
+                                  /*
+            std::shared_ptr<ProofNode> afgp = getProof(afactGen);
+            AlwaysAssert (afgp!=nullptr);
+            if (!afgp->isClosed()) 
+            {
+              Trace("lazy-cdproof-warn") << "LazyCDProof::getProofFor: " << pg->identify() << " within " << identify() << " generated a non-closed proof for " << afactGen << "\n";
+            }
+            */
           }
         }
         else
         {
           Trace("lazy-cdproof")
-              << "LazyCDProof: No generator for " << afact << std::endl;
+              << "LazyCDProof: " << identify() << " : No generator for " << afact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
@@ -138,6 +147,14 @@ void LazyCDProof::addLazyStep(Node expected,
   }
   // just store now
   d_gens.insert(expected, pg);
+  /*
+  std::shared_ptr<ProofNode> afgp = pg->getProofFor(expected);
+  AlwaysAssert (afgp!=nullptr);
+  if (!afgp->isClosed()) 
+  {
+    Trace("lazy-cdproof-warn") << "LazyCDProof::addLazyStep: " << pg->identify() << " within " << identify() << " generated a non-closed proof for " << expected << "\n";
+  }
+  */
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
@@ -190,7 +207,5 @@ bool LazyCDProof::hasGenerator(Node fact) const
   }
   return it != d_gens.end();
 }
-
-std::string LazyCDProof::identify() const { return "LazyCDProof"; }
 
 }  // namespace CVC4

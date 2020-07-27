@@ -603,11 +603,11 @@ enum class PfRule : uint32_t
 
   //================================================= Quantifiers rules
   // ======== Witness intro
-  // Children: (P:F[t])
-  // Arguments: (t)
+  // Children: (P:(exists ((x T)) F[x]))
+  // Arguments: none
   // ----------------------------------------
-  // Conclusion: (= t (witness ((x T)) F[x]))
-  // where x is a BOUND_VARIABLE unique to the pair F,t.
+  // Conclusion: (= k (witness ((x T)) F[x]))
+  // where k is the Skolem form of (witness ((x T)) F[x]).
   WITNESS_INTRO,
   // ======== Exists intro
   // Children: (P:F[t])

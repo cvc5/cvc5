@@ -49,12 +49,7 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
   std::shared_ptr<ProofNode> apf = getProofFor(f);
   if (apf != nullptr)
   {
-    if (Trace.isOn("pfgen"))
-    {
-      std::stringstream ss;
-      apf->printDebug(ss);
-      Trace("pfgen") << "...got proof " << ss.str() << std::endl;
-    }
+    Trace("pfgen") << "...got proof " << *apf.get() << std::endl;
     // Add the proof, without deep copying.
     if (pf->addProof(apf, opolicy, false))
     {

@@ -45,7 +45,7 @@ class LazyCDProof : public CDProof
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
-              context::Context* c = nullptr);
+              context::Context* c = nullptr, std::string name = "LazyCDProof");
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
@@ -85,8 +85,6 @@ class LazyCDProof : public CDProof
   bool hasGenerators() const;
   /** Does the given fact have an explicitly provided generator? */
   bool hasGenerator(Node fact) const;
-  /** identify */
-  std::string identify() const override;
 
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>

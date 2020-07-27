@@ -16,6 +16,7 @@
 
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "expr/proof_node_algorithm.h"
 
 namespace CVC4 {
 namespace smt {
@@ -61,15 +62,24 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
   // d_finalProof should just be a ProofNode
   std::shared_ptr<ProofNode> body = pg->getProofFor(d_false)->clone();
 
-  if (Trace.isOn("smt-proof"))
+  if (Trace.isOn("smt-proof-debug"))
   {
-    Trace("smt-proof") << "SmtEngine::setFinalProof(): Proof node for false:\n";
-    std::stringstream ss;
-    body->printDebug(ss);
-    Trace("smt-proof") << ss.str() << std::endl;
-    Trace("smt-proof") << "=====" << std::endl;
+    Trace("smt-proof-debug") << "SmtEngine::setFinalProof(): Proof node for false:\n";
+    Trace("smt-proof-debug") << *body.get() << std::endl;
+    Trace("smt-proof-debug") << "=====" << std::endl;
   }
 
+  if (Trace.isOn("smt-proof"))
+  {
+    std::vector<Node> fassumps;
+    expr::getFreeAssumptions(body.get(), fassumps);
+    Trace("smt-proof") << "SmtEngine::setFinalProof(): initial free assumptions are:\n";
+    for (const Node& a : fassumps)
+    {
+      Trace("smt-proof") << "- " << a << std::endl;
+    }
+  }
+  
   std::vector<Node> assertions;
   Trace("smt-proof") << "SmtEngine::setFinalProof(): assertions are:\n";
   for (context::CDList<Node>::const_iterator i = al->begin(); i != al->end();

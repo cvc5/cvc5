@@ -81,7 +81,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_registrar(NULL),
       d_cnfStream(NULL),
       d_pNodeManager(pnm),
-      d_proof(pnm, nullptr, userContext),
+      d_proof(pnm, nullptr, userContext, "PropEngine::LazyCDProof"),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)
@@ -115,7 +115,7 @@ PropEngine::PropEngine(TheoryEngine* te,
          );
 
   NodeManager* nm = NodeManager::currentNM();
-  if (d_pfCnfStream)
+  if (false && d_pfCnfStream)
   {
     d_pfCnfStream->convertAndAssert(nm->mkConst(true), false, false, nullptr);
     d_pfCnfStream->convertAndAssert(
@@ -485,6 +485,7 @@ void PropEngine::registerClause(SatLiteral satLit)
   // lazily, like CNF stream and internal SAT solver
   // TODO this should be a lazy step with a generator that will query the proof
   // cnf stream
+  Trace("sat-proof-steps") << clauseNode << " by literal CNF" << std::endl;
   d_proof.addLazyStep(clauseNode, d_pfCnfStream.get());
   Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
 }
@@ -509,6 +510,7 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
   // not possible yet to know, in general, how this clause came to be. Some
   // components register facts eagerly, like the theory engine, but other
   // lazily, like CNF stream and internal SAT solver propagation.
+  Trace("sat-proof-steps") << clauseNode << " by clause CNF" << std::endl;
   d_proof.addLazyStep(clauseNode, d_pfCnfStream.get());
   Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
                      << clauseNode << "\n";
@@ -520,6 +522,12 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
   Trace("sat-proof") << "PropEngine::explainPropagation: proven explanation"
                      << proven << "\n";
   Assert(trn.getGenerator());
+  Trace("sat-proof-steps") << proven << " by explainPropagation" << std::endl;
+  // TODO: due to lifetime of explanations, need to cache this now?
+  /*
+  std::shared_ptr<ProofNode> exp = trn.toProofNode();
+  d_proof.addProof(exp);
+  */
   d_proof.addLazyStep(proven, trn.getGenerator());
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
