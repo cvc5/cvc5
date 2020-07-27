@@ -20,8 +20,9 @@ namespace CVC4 {
 
 LazyCDProof::LazyCDProof(ProofNodeManager* pnm,
                          ProofGenerator* dpg,
-                         context::Context* c)
-    : CDProof(pnm, c), d_gens(c ? c : &d_context), d_defaultGen(dpg)
+                         context::Context* c,
+                         std::string name)
+    : CDProof(pnm, c, name), d_gens(c ? c : &d_context), d_defaultGen(dpg)
 {
 }
 
@@ -84,8 +85,8 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
         }
         else
         {
-          Trace("lazy-cdproof")
-              << "LazyCDProof: No generator for " << afact << std::endl;
+          Trace("lazy-cdproof") << "LazyCDProof: " << identify()
+                                << " : No generator for " << afact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
@@ -109,9 +110,24 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
-                              bool forceOverwrite)
+                              bool forceOverwrite,
+                              PfRule idNull)
 {
-  Assert(pg != nullptr);
+  if (pg == nullptr)
+  {
+    // null generator, should have given a proof rule
+    if (idNull == PfRule::ASSUME)
+    {
+      Assert(false);
+      return;
+    }
+    Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
+                          << " set (trusted) step " << idNull << "\n";
+    addStep(expected, idNull, {}, {expected});
+    return;
+  }
+  Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
+                        << " set to generator " << pg->identify() << "\n";
   if (!forceOverwrite)
   {
     NodeProofGeneratorMap::const_iterator it = d_gens.find(expected);
@@ -175,7 +191,5 @@ bool LazyCDProof::hasGenerator(Node fact) const
   }
   return it != d_gens.end();
 }
-
-std::string LazyCDProof::identify() const { return "LazyCDProof"; }
 
 }  // namespace CVC4

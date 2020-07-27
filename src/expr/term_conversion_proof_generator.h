@@ -35,6 +35,19 @@ enum class TConvPolicy : uint32_t
 /** Writes a term conversion policy name to a stream. */
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol);
 
+/** A policy for how proofs are cache in TConvProofGenerator */
+enum class TConvCachePolicy : uint32_t
+{
+  // proofs are statically cached
+  STATIC,
+  // proofs are dynamically cached, cleared when a new rewrite is added
+  DYNAMIC,
+  // proofs are never cached
+  NEVER,
+};
+/** Writes a term conversion cache policy name to a stream. */
+std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
+
 /**
  * The term conversion proof generator.
  *
@@ -85,7 +98,9 @@ class TConvProofGenerator : public ProofGenerator
    */
   TConvProofGenerator(ProofNodeManager* pnm,
                       context::Context* c = nullptr,
-                      TConvPolicy pol = TConvPolicy::FIXPOINT);
+                      TConvPolicy pol = TConvPolicy::FIXPOINT,
+                      TConvCachePolicy cpol = TConvCachePolicy::NEVER,
+                      std::string name = "TConvProofGenerator");
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
@@ -136,6 +151,12 @@ class TConvProofGenerator : public ProofGenerator
    *   f(a,c) = f(f(c),d) if d_policy is ONCE.
    */
   TConvPolicy d_policy;
+  /** The cache policy */
+  TConvCachePolicy d_cpolicy;
+  /** Name identifier */
+  std::string d_name;
+  /** The cache for terms */
+  std::map<Node, std::shared_ptr<ProofNode> > d_cache;
   /**
    * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
    * t based on the rewrite steps registered to this class. This method then
@@ -147,6 +168,8 @@ class TConvProofGenerator : public ProofGenerator
    * and a rewrite step has not already been registered for t.
    */
   Node registerRewriteStep(Node t, Node s);
+  /** cache that r is the rewritten form of cur, pf can provide a proof */
+  void doCache(Node cur, Node r, LazyCDProof& pf);
 };
 
 }  // namespace CVC4
