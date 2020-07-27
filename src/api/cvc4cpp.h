@@ -1936,7 +1936,7 @@ class CVC4_PUBLIC Grammar
   Grammar(const Solver* slv,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
-
+  Grammar();
 
   
 private:

@@ -186,6 +186,8 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         void assertFormula(Term term) except +
         void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +	
         Result checkSat() except +
+        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
+        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
         Result checkSynth() except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +	
         Result checkSatAssuming(const vector[Term]& assumptions) except +
@@ -226,7 +228,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
     cdef cppclass Grammar:
         Grammar() except +
         Grammar(Solver* solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
-        Grammar(Grammar g) except +
         void addRule(Term ntSymbol, Term rule) except +
         void addAnyConstant(Term ntSymbol) except +
         void addAnyVariable(Term ntSymbol) except +
