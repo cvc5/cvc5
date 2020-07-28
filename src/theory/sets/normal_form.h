@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Kshitij Bansal, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,16 +27,21 @@ class NormalForm {
  public:
   template <bool ref_count>
   static Node elementsToSet(const std::set<NodeTemplate<ref_count> >& elements,
-                            TypeNode setType) {
+                            TypeNode setType)
+  {
     typedef typename std::set<NodeTemplate<ref_count> >::const_iterator
         ElementsIterator;
     NodeManager* nm = NodeManager::currentNM();
-    if (elements.size() == 0) {
-      return nm->mkConst(EmptySet(nm->toType(setType)));
-    } else {
+    if (elements.size() == 0)
+    {
+      return nm->mkConst(EmptySet(setType));
+    }
+    else
+    {
       ElementsIterator it = elements.begin();
       Node cur = nm->mkNode(kind::SINGLETON, *it);
-      while (++it != elements.end()) {
+      while (++it != elements.end())
+      {
         cur = nm->mkNode(kind::UNION, cur, nm->mkNode(kind::SINGLETON, *it));
       }
       return cur;
@@ -71,7 +76,7 @@ class NormalForm {
             << "[sets-checknormal]              element = " << n[1][0] << " "
             << n[1][0].getId() << std::endl;
         if (n[1][0] >= prvs) return false;
-        TNode prvs = n[1][0];
+        prvs = n[1][0];
         n = n[0];
       }
 
@@ -123,7 +128,7 @@ class NormalForm {
   }
   static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
     if( index>=els.size() ){
-      return NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
+      return NodeManager::currentNM()->mkConst(EmptySet(tn));
     }else if( index==els.size()-1 ){
       return els[index];
     }else{

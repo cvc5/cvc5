@@ -2,9 +2,9 @@
 /*! \file options_handler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Aina Niemetz
+ **   Tim King, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -74,10 +74,6 @@ public:
 
   void setBitblastAig(std::string option, bool arg);
 
-  // theory/options_handlers.h
-  void notifyUseTheoryList(std::string option);
-  std::string handleUseTheoryList(std::string option, std::string optarg);
-
   // printer/options_handlers.h
   InstFormatMode stringToInstFormatMode(std::string option, std::string optarg);
 
@@ -88,33 +84,17 @@ public:
    * Throws a ModalException if this option is being set after final
    * initialization.
    */
-  void notifyBeforeSearch(const std::string& option);
-  void notifyDumpMode(std::string option);
   void setProduceAssertions(std::string option, bool value);
   void proofEnabledBuild(std::string option, bool value);
   void LFSCEnabledBuild(std::string option, bool value);
-  void notifyDumpToFile(std::string option);
-  void notifySetRegularOutputChannel(std::string option);
-  void notifySetDiagnosticOutputChannel(std::string option);
-  std::string checkReplayFilename(std::string option, std::string optarg);
-  void notifySetReplayLogFilename(std::string option);
 
   void statsEnabledBuild(std::string option, bool value);
 
   unsigned long limitHandler(std::string option, std::string optarg);
 
-  void notifyTlimit(const std::string& option);
-  void notifyTlimitPer(const std::string& option);
-  void notifyRlimit(const std::string& option);
-  void notifyRlimitPer(const std::string& option);
-
-
   /* expr/options_handlers.h */
   void setDefaultExprDepthPredicate(std::string option, int depth);
   void setDefaultDagThreshPredicate(std::string option, int dag);
-  void notifySetDefaultExprDepth(std::string option);
-  void notifySetDefaultDagThresh(std::string option);
-  void notifySetPrintExprTypes(std::string option);
 
   /* main/options_handlers.h */
   void copyright(std::string option);
@@ -131,7 +111,6 @@ public:
   InputLanguage stringToInputLanguage(std::string option, std::string optarg);
   void enableTraceTag(std::string option, std::string optarg);
   void enableDebugTag(std::string option, std::string optarg);
-  void notifyPrintSuccess(std::string option);
 
  private:
 
@@ -146,10 +125,11 @@ public:
 template<class T>
 void OptionsHandler::checkSatSolverEnabled(std::string option, T m)
 {
-#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL)
+#if !defined(CVC4_USE_CRYPTOMINISAT) && !defined(CVC4_USE_CADICAL) \
+    && !defined(CVC4_USE_KISSAT)
   std::stringstream ss;
   ss << "option `" << option
-     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL";
+     << "' requires CVC4 to be built with CryptoMiniSat or CaDiCaL or Kissat";
   throw OptionException(ss.str());
 #endif
 }

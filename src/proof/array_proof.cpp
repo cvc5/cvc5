@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Yoni Zohar, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -475,7 +475,6 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
     pf.d_children[0]->d_node = simplifyBooleanNode(pf.d_children[0]->d_node);
 
     Node n1 = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
-    Node n2;
     Debug("mgd") << "\ndoing trans proof, got n1 " << n1 << "\n";
     if(tb == 1) {
       Debug("mgdx") << "\ntrans proof[0], got n1 " << n1 << "\n";
@@ -489,7 +488,6 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
     std::map<size_t, Node> childToStream;
 
-    std::stringstream ss1(ss.str()), ss2;
     std::pair<Node, Node> nodePair;
     for (size_t i = 1; i < pf.d_children.size(); ++i)
     {
@@ -562,9 +560,9 @@ Node ProofArray::toStreamRecLFSC(std::ostream& out,
 
             while (j < pf.d_children.size() && !sequenceOver)
             {
-              std::stringstream dontCare;
-              nodeAfterEqualitySequence = toStreamRecLFSC(
-                  dontCare, tp, *(pf.d_children[j]), tb + 1, map);
+              std::stringstream ignore;
+              nodeAfterEqualitySequence =
+                  toStreamRecLFSC(ignore, tp, *(pf.d_children[j]), tb + 1, map);
               if (((nodeAfterEqualitySequence[0] == n1[0])
                    && (nodeAfterEqualitySequence[1] == n1[1]))
                   || ((nodeAfterEqualitySequence[0] == n1[1])
@@ -1123,7 +1121,11 @@ std::string ArrayProof::skolemToLiteral(Expr skolem) {
   return d_skolemToLiteral[skolem];
 }
 
-void LFSCArrayProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+void LFSCArrayProof::printOwnedTermAsType(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          TypeNode expectedType)
+{
   Assert(theory::Theory::theoryOf(term) == theory::THEORY_ARRAYS);
 
   if (theory::Theory::theoryOf(term) != theory::THEORY_ARRAYS) {

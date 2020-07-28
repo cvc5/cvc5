@@ -2,9 +2,9 @@
 /*! \file theory_bv.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Andrew Reynolds
+ **   Liana Hadarean, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory.h"
 #include "util/hash.h"
@@ -37,10 +38,11 @@ namespace CVC4 {
 namespace proof {
 class BitVectorProof;
 }
-}  // namespace CVC4
 
-namespace CVC4 {
 namespace theory {
+
+class ExtTheory;
+
 namespace bv {
 
 class CoreSolver;
@@ -64,19 +66,24 @@ class TheoryBV : public Theory {
   std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
-public:
-
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
+ public:
+  TheoryBV(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr,
            std::string name = "");
 
   ~TheoryBV();
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   void finishInit() override;
 
-  Node expandDefinition(LogicRequest& logicRequest, Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
@@ -86,7 +93,7 @@ public:
 
   void propagate(Effort e) override;
 
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -97,27 +104,28 @@ public:
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
+                              std::map<Node, std::vector<Node>>& exp) override;
   int getReduction(int effort, Node n, Node& nr) override;
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   void enableCoreTheorySlicer();
 
-  Node ppRewrite(TNode t) override;
+  TrustNode ppRewrite(TNode t) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   void presolve() override;
 
-  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  bool applyAbstraction(const std::vector<Node>& assertions,
+                        std::vector<Node>& new_assertions);
 
   void setProofLog(proof::BitVectorProof* bvp);
 
  private:
-
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;
     TimerStat   d_solveTimer;
@@ -131,7 +139,7 @@ public:
 
   Statistics d_statistics;
 
-  void spendResource(unsigned amount);
+  void spendResource(ResourceManager::Resource r);
 
   /**
    * Return the uninterpreted function symbol corresponding to division-by-zero
@@ -172,6 +180,9 @@ public:
 
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
+
+  /** Extended theory module, for context-dependent simplification. */
+  std::unique_ptr<ExtTheory> d_extTheory;
 
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
@@ -256,6 +267,9 @@ public:
   void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
 
   void checkForLemma(TNode node);
+
+  /** The theory rewriter for this theory. */
+  TheoryBVRewriter d_rewriter;
 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;

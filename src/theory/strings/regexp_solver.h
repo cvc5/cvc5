@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,16 +23,16 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
-#include "util/regexp.h"
+#include "util/string.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
-class TheoryStrings;
 
 class RegExpSolver
 {
@@ -44,13 +44,26 @@ class RegExpSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  RegExpSolver(TheoryStrings& p,
-               SolverState& s,
+  RegExpSolver(SolverState& s,
                InferenceManager& im,
+               CoreSolver& cs,
+               ExtfSolver& es,
+               SequencesStatistics& stats,
                context::Context* c,
                context::UserContext* u);
   ~RegExpSolver() {}
 
+  /** check regular expression memberships
+   *
+   * This checks the satisfiability of all regular expression memberships
+   * of the form (not) s in R. We use various heuristic techniques based on
+   * unrolling, combined with techniques from Liang et al, "A Decision Procedure
+   * for Regular Membership and Length Constraints over Unbounded Strings",
+   * FroCoS 2015.
+   */
+  void checkMemberships();
+
+ private:
   /** check
    *
    * Tells this solver to check whether the regular expressions in mems
@@ -63,8 +76,6 @@ class RegExpSolver
    * engine of the theory of strings.
    */
   void check(const std::map<Node, std::vector<Node>>& mems);
-
- private:
   /**
    * Check memberships in equivalence class for regular expression
    * inclusion.
@@ -100,12 +111,16 @@ class RegExpSolver
   Node d_emptyRegexp;
   Node d_true;
   Node d_false;
-  /** the parent of this object */
-  TheoryStrings& d_parent;
   /** The solver state of the parent of this object */
   SolverState& d_state;
   /** the output channel of the parent of this object */
   InferenceManager& d_im;
+  /** reference to the core solver, used for certain queries */
+  CoreSolver& d_csolver;
+  /** reference to the extended function solver of the parent */
+  ExtfSolver& d_esolver;
+  /** Reference to the statistics for the theory of strings/sequences. */
+  SequencesStatistics& d_statistics;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   /**

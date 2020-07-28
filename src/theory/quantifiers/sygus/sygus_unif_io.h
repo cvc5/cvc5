@@ -2,9 +2,9 @@
 /*! \file sygus_unif_io.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -83,7 +83,7 @@ class UnifContextIo : public UnifContext
   * role to nrole.
   */
   bool updateStringPosition(SygusUnifIo* sui,
-                            std::vector<unsigned>& pos,
+                            std::vector<size_t>& pos,
                             NodeRole nrole);
   /** get current strings
   *
@@ -94,7 +94,7 @@ class UnifContextIo : public UnifContext
   */
   void getCurrentStrings(SygusUnifIo* sui,
                          const std::vector<Node>& vals,
-                         std::vector<String>& ex_vals);
+                         std::vector<Node>& ex_vals);
   /** get string increment
   *
   * If this method returns true, then inc and tot are updated such that
@@ -107,13 +107,13 @@ class UnifContextIo : public UnifContext
   */
   bool getStringIncrement(SygusUnifIo* sui,
                           bool isPrefix,
-                          const std::vector<String>& ex_vals,
+                          const std::vector<Node>& ex_vals,
                           const std::vector<Node>& vals,
-                          std::vector<unsigned>& inc,
-                          unsigned& tot);
+                          std::vector<size_t>& inc,
+                          size_t& tot);
   /** returns true if ex_vals[i] = vals[i] for all active indices i. */
   bool isStringSolved(SygusUnifIo* sui,
-                      const std::vector<String>& ex_vals,
+                      const std::vector<Node>& ex_vals,
                       const std::vector<Node>& vals);
   //----------end for CONCAT strategies
 
@@ -243,19 +243,19 @@ class SubsumeTrie
                          int status);
 };
 
+class SynthConjecture;
+
 /** Sygus unification I/O utility
  *
  * This class implement synthesis-by-unification, where the specification is
- * I/O examples. With respect to SygusUnif, it's main interface function is
- * addExample, which adds an I/O example to the specification.
+ * I/O examples.
  *
  * Since I/O specifications for multiple functions can be fully separated, we
  * assume that this class is used only for a single function to synthesize.
  *
  * In addition to the base class which maintains a strategy tree, this class
  * maintains:
- * (1) A set of input/output examples that are the specification for f. This
- * can be updated via calls to resetExmaples/addExamples,
+ * (1) A set of input/output examples that are the specification for f.
  * (2) A set of terms that have been enumerated for enumerators (d_ecache). This
  * can be updated via calls to notifyEnumeration.
  */
@@ -264,10 +264,13 @@ class SygusUnifIo : public SygusUnif
   friend class UnifContextIo;
 
  public:
-  SygusUnifIo();
+  SygusUnifIo(SynthConjecture* p);
   ~SygusUnifIo();
 
   /** initialize
+   *
+   * This initializes this class for solving PBE conjectures for
+   * function-to-synthesize f.
    *
    * We only initialize for one function f, since I/O specifications across
    * multiple functions can be separated.
@@ -283,29 +286,10 @@ class SygusUnifIo : public SygusUnif
   /** Construct solution */
   bool constructSolution(std::vector<Node>& sols,
                          std::vector<Node>& lemmas) override;
-
-  /** add example
-   *
-   * This adds input -> output to the specification for f. The arity of
-   * input should be equal to the number of arguments in the sygus variable
-   * list of the grammar of f. That is, if we are searching for solutions for f
-   * of the form (lambda v1...vn. t), then the arity of input should be n.
-   */
-  void addExample(const std::vector<Node>& input, Node output);
-
-  /** compute examples
-   *
-   * This adds the result of evaluating bv on the set of input examples managed
-   * by this class. Term bv is the builtin version of a term generated for
-   * enumerator e. It stores the resulting output for each example in exOut.
-   */
-  void computeExamples(Node e, Node bv, std::vector<Node>& exOut);
-
-  /** clear example cache */
-  void clearExampleCache(Node e, Node bv);
-
  protected:
-  /** the candidate */
+  /** The synthesis conjecture */
+  SynthConjecture* d_parent;
+  /** the function-to-synthesize */
   Node d_candidate;
   /**
    * Whether we will try to construct solution on the next call to
@@ -362,9 +346,6 @@ class SygusUnifIo : public SygusUnif
   std::vector<std::vector<Node>> d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
-
-  /** cache for computeExamples */
-  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 
   /**
   * This class stores information regarding an enumerator, including:

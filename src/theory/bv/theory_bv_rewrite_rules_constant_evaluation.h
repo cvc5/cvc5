@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Clark Barrett, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -452,7 +452,8 @@ template<> inline
 Node RewriteRule<EvalSignExtend>::apply(TNode node) {
   Debug("bv-rewrite") << "RewriteRule<EvalSignExtend>(" << node << ")" << std::endl;
   BitVector a = node[0].getConst<BitVector>();
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount; 
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   BitVector res = a.signExtend(amount);
   
   return utils::mkConst(res);

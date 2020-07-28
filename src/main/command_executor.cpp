@@ -2,9 +2,9 @@
 /*! \file command_executor.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Kshitij Bansal, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,7 +24,6 @@
 #include <string>
 #include <vector>
 
-#include "api/cvc4cpp.h"
 #include "main/main.h"
 #include "smt/command.h"
 
@@ -49,14 +48,14 @@ void setNoLimitCPU() {
 
 void printStatsIncremental(std::ostream& out, const std::string& prvsStatsString, const std::string& curStatsString);
 
-CommandExecutor::CommandExecutor(api::Solver* solver, Options& options)
-    : d_solver(solver),
+CommandExecutor::CommandExecutor(Options& options)
+    : d_solver(new api::Solver(&options)),
       d_smtEngine(d_solver->getSmtEngine()),
       d_options(options),
       d_stats("driver"),
-      d_result(),
-      d_replayStream(NULL)
-{}
+      d_result()
+{
+}
 
 void CommandExecutor::flushStatistics(std::ostream& out) const
 {
@@ -72,12 +71,6 @@ void CommandExecutor::safeFlushStatistics(int fd) const
   d_stats.safeFlushInformation(fd);
 }
 
-void CommandExecutor::setReplayStream(ExprStream* replayStream) {
-  assert(d_replayStream == NULL);
-  d_replayStream = replayStream;
-  d_smtEngine->setReplayStream(d_replayStream);
-}
-
 bool CommandExecutor::doCommand(Command* cmd)
 {
   if( d_options.getParseOnly() ) {
@@ -85,7 +78,7 @@ bool CommandExecutor::doCommand(Command* cmd)
   }
 
   CommandSequence *seq = dynamic_cast<CommandSequence*>(cmd);
-  if(seq != NULL) {
+  if(seq != nullptr) {
     // assume no error
     bool status = true;
 
@@ -112,7 +105,13 @@ void CommandExecutor::reset()
   {
     flushStatistics(*d_options.getErr());
   }
-  d_solver->reset();
+  /* We have to keep options passed via CL on reset. These options are stored
+   * in CommandExecutor::d_options (populated and created in the driver), and
+   * CommandExecutor::d_options only contains *these* options since the
+   * NodeManager copies the options into a new options object before SmtEngine
+   * configures additional options based on the given CL options.
+   * We can thus safely reuse CommandExecutor::d_options here. */
+  d_solver.reset(new api::Solver(&d_options));
 }
 
 bool CommandExecutor::doCommandSingleton(Command* cmd)
@@ -121,24 +120,24 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   if(d_options.getVerbosity() >= -1) {
     status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
   } else {
-    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
+    status = smtEngineInvoke(d_smtEngine, cmd, nullptr);
   }
 
   Result res;
-  CheckSatCommand* cs = dynamic_cast<CheckSatCommand*>(cmd);
-  if(cs != NULL) {
+  const CheckSatCommand* cs = dynamic_cast<const CheckSatCommand*>(cmd);
+  if(cs != nullptr) {
     d_result = res = cs->getResult();
   }
-  QueryCommand* q = dynamic_cast<QueryCommand*>(cmd);
-  if(q != NULL) {
+  const QueryCommand* q = dynamic_cast<const QueryCommand*>(cmd);
+  if(q != nullptr) {
     d_result = res = q->getResult();
   }
-  CheckSynthCommand* csy = dynamic_cast<CheckSynthCommand*>(cmd);
-  if(csy != NULL) {
+ const  CheckSynthCommand* csy = dynamic_cast<const CheckSynthCommand*>(cmd);
+  if(csy != nullptr) {
     d_result = res = csy->getResult();
   }
 
-  if((cs != NULL || q != NULL) && d_options.getStatsEveryQuery()) {
+  if((cs != nullptr || q != nullptr) && d_options.getStatsEveryQuery()) {
     std::ostringstream ossCurStats;
     flushStatistics(ossCurStats);
     std::ostream& err = *d_options.getErr();
@@ -149,13 +148,15 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   // dump the model/proof/unsat core if option is set
   if (status) {
     std::vector<std::unique_ptr<Command> > getterCommands;
-    if (d_options.getProduceModels() && d_options.getDumpModels() &&
-        (res.asSatisfiabilityResult() == Result::SAT ||
-         (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE))) {
+    if (d_options.getDumpModels()
+        && (res.asSatisfiabilityResult() == Result::SAT
+            || (res.isUnknown() && res.whyUnknown() == Result::INCOMPLETE)))
+    {
       getterCommands.emplace_back(new GetModelCommand());
     }
-    if (d_options.getProof() && d_options.getDumpProofs() &&
-        res.asSatisfiabilityResult() == Result::UNSAT) {
+    if (d_options.getDumpProofs()
+        && res.asSatisfiabilityResult() == Result::UNSAT)
+    {
       getterCommands.emplace_back(new GetProofCommand());
     }
 

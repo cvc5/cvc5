@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,14 +46,15 @@ TypeNode TypeNode::substitute(const TypeNode& type,
     // push the operator
     nb << TypeNode(d_nv->d_children[0]);
   }
-  for(TypeNode::const_iterator i = begin(),
-        iend = end();
-      i != iend;
-      ++i) {
-    if(*i == type) {
+  for (TypeNode::const_iterator j = begin(), iend = end(); j != iend; ++j)
+  {
+    if (*j == type)
+    {
       nb << replacement;
-    } else {
-      (*i).substitute(type, replacement);
+    }
+    else
+    {
+      (*j).substitute(type, replacement);
     }
   }
 
@@ -116,11 +117,12 @@ bool TypeNode::isFiniteInternal(bool usortFinite)
   {
     ret = usortFinite;
   }
-  else if (isBoolean() || isBitVector() || isFloatingPoint())
+  else if (isBoolean() || isBitVector() || isFloatingPoint()
+           || isRoundingMode())
   {
     ret = true;
   }
-  else if (isString() || isRegExp() || isReal())
+  else if (isString() || isRegExp() || isSequence() || isReal())
   {
     ret = false;
   }
@@ -243,6 +245,10 @@ bool TypeNode::isClosedEnumerable()
     {
       ret = getSetElementType().isClosedEnumerable();
     }
+    else if (isSequence())
+    {
+      ret = getSequenceElementType().isClosedEnumerable();
+    }
     else if (isDatatype())
     {
       // avoid infinite loops: initially set to true
@@ -298,6 +304,8 @@ Node TypeNode::mkGroundValue() const
   return *te;
 }
 
+bool TypeNode::isStringLike() const { return isString() || isSequence(); }
+
 bool TypeNode::isSubtypeOf(TypeNode t) const {
   if(*this == t) {
     return true;
@@ -343,6 +351,12 @@ bool TypeNode::isComparableTo(TypeNode t) const {
     return !leastCommonTypeNode(*this, t).isNull();
   }
   return false;
+}
+
+TypeNode TypeNode::getSequenceElementType() const
+{
+  Assert(isSequence());
+  return (*this)[0];
 }
 
 TypeNode TypeNode::getBaseType() const {
@@ -451,9 +465,16 @@ TypeNode TypeNode::instantiateParametricDatatype(
   return nm->mkTypeNode(kind::PARAMETRIC_DATATYPE, paramsNodes);
 }
 
+uint64_t TypeNode::getSortConstructorArity() const
+{
+  Assert(isSortConstructor() && hasAttribute(expr::SortArityAttr()));
+  return getAttribute(expr::SortArityAttr());
+}
+
 TypeNode TypeNode::instantiateSortConstructor(
     const std::vector<TypeNode>& params) const
 {
+  Assert(isSortConstructor());
   return NodeManager::currentNM()->mkSort(*this, params);
 }
 
@@ -554,7 +575,8 @@ TypeNode TypeNode::commonTypeNode(TypeNode t0, TypeNode t1, bool isLeast) {
     case kind::TESTER_TYPE:
     case kind::ARRAY_TYPE:
     case kind::DATATYPE_TYPE:
-    case kind::PARAMETRIC_DATATYPE: return TypeNode();
+    case kind::PARAMETRIC_DATATYPE:
+    case kind::SEQUENCE_TYPE: return TypeNode();
     case kind::SET_TYPE:
     {
       // take the least common subtype of element types
@@ -635,6 +657,15 @@ bool TypeNode::isCodatatype() const
   if (isDatatype())
   {
     return getDType().isCodatatype();
+  }
+  return false;
+}
+
+bool TypeNode::isSygusDatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isSygus();
   }
   return false;
 }

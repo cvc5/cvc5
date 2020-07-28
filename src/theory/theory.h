@@ -2,9 +2,9 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,22 +42,22 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_rewriter.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
+class ProofNodeManager;
 
 namespace theory {
 
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
-class ExtTheory;
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
+class TheoryRewriter;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -78,9 +78,7 @@ namespace eq {
  * all calls to them.)
  */
 class Theory {
-
-private:
-
+ private:
   friend class ::CVC4::TheoryEngine;
 
   // Disallow default construction, copy, assignment.
@@ -104,6 +102,9 @@ private:
 
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
+
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
 
   /**
    * The assertFact() queue.
@@ -134,11 +135,7 @@ private:
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
 
-  /** Extended theory module or NULL. Owned by the theory. */
-  ExtTheory* d_extTheory;
-
  protected:
-
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -200,6 +197,7 @@ private:
          OutputChannel& out,
          Valuation valuation,
          const LogicInfo& logicInfo,
+         ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -249,8 +247,24 @@ private:
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-public:
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x. This is
+   * useful for ppAssert, when x = val is an entailed equality. This function
+   * determines whether indeed x can be eliminated from the problem via the
+   * substituion x -> val.
+   *
+   * The following criteria imply that x -> val is *not* a legal elimination:
+   * (1) If x is contained in val,
+   * (2) If the type of val is not a subtype of the type of x,
+   * (3) If val contains an operator that cannot be evaluated, and produceModels
+   * is true. For example, x -> sqrt(2) is not a legal elimination if we
+   * are producing models. This is because we care about the value of x, and
+   * its value must be computed (approximated) by the non-linear solver.
+   */
+  bool isLegalElimination(TNode x, TNode val);
 
+ public:
   /**
    * Return the ID of the theory responsible for the given type.
    */
@@ -315,6 +329,11 @@ public:
    * Destructs a Theory.
    */
   virtual ~Theory();
+
+  /**
+   * @return The theory rewriter associated with this theory.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
@@ -420,24 +439,36 @@ public:
   virtual void finishInit() { }
 
   /**
-   * Some theories have kinds that are effectively definitions and
-   * should be expanded before they are handled.  Definitions allow
-   * a much wider range of actions than the normal forms given by the
-   * rewriter; they can enable other theories and create new terms.
-   * However no assumptions can be made about subterms having been
-   * expanded or rewritten.  Where possible rewrite rules should be
-   * used, definitions should only be used when rewrites are not
-   * possible, for example in handling under-specified operations
-   * using partially defined functions.
+   * Expand definitions in the term node. This returns a term that is
+   * equivalent to node. It wraps this term in a TrustNode of kind
+   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
+   * null TrustNode may be returned. This is an optimization to avoid
+   * constructing the trivial equality (= node node) internally within
+   * TrustNode.
+   *
+   * The purpose of this method is typically to eliminate the operators in node
+   * that are syntax sugar that cannot otherwise be eliminated during rewriting.
+   * For example, division relies on the introduction of an uninterpreted
+   * function for the divide-by-zero case, which we do not introduce with
+   * the rewriter, since this function may be cached in a non-global fashion.
+   *
+   * Some theories have kinds that are effectively definitions and should be
+   * expanded before they are handled.  Definitions allow a much wider range of
+   * actions than the normal forms given by the rewriter. However no
+   * assumptions can be made about subterms having been expanded or rewritten.
+   * Where possible rewrite rules should be used, definitions should only be
+   * used when rewrites are not possible, for example in handling
+   * under-specified operations using partially defined functions.
    *
    * Some theories like sets use expandDefinition as a "context
    * independent preRegisterTerm".  This is required for cases where
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
    */
-  virtual Node expandDefinition(LogicRequest &logicRequest, Node node) {
+  virtual TrustNode expandDefinition(Node node)
+  {
     // by default, do nothing
-    return node;
+    return TrustNode::null();
   }
 
   /**
@@ -515,7 +546,8 @@ public:
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual Node explain(TNode n) {
+  virtual TrustNode explain(TNode n)
+  {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
@@ -560,9 +592,12 @@ public:
    * Given an atom of the theory coming from the input formula, this
    * method can be overridden in a theory implementation to rewrite
    * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine.
+   * before an input atom to the engine. This method returns a TrustNode of
+   * kind TrustNodeKind::REWRITE, which carries information about the proof
+   * generator for the rewrite. Similarly to expandDefinition, this method may
+   * return the null TrustNode if atom is unchanged.
    */
-  virtual Node ppRewrite(TNode atom) { return atom; }
+  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after
@@ -795,35 +830,16 @@ public:
    *
    * The theory may always return false!
    *
-   * The search is controlled by the parameter params.  For default behavior,
-   * this may be left NULL.
-   *
-   * Theories that want parameters extend the virtual EntailmentCheckParameters
-   * class.  Users ask the theory for an appropriate subclass from the theory
-   * and configure that.  How this is implemented is on a per theory basis.
-   *
-   * The search may provide additional output to guide the user of
-   * this function.  This output is stored in a EntailmentCheckSideEffects*
-   * output parameter.  The implementation of this is theory specific.  For
-   * no output, this is NULL.
-   *
    * Theories may not touch their output stream during an entailment check.
    *
    * @param  lit     a literal belonging to the theory.
-   * @param  params  the control parameters for the entailment check.
-   * @param  out     a theory specific output object of the entailment search.
    * @return         a pair <b,E> s.t. if b is true, then a formula E such that
    * E |= lit in the theory.
    */
-  virtual std::pair<bool, Node> entailmentCheck(
-      TNode lit, const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL);
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
   /* equality engine TODO: use? */
   virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-
-  /* Get extended theory if one has been installed. */
-  ExtTheory* getExtTheory();
 
   /* get current substitution at an effort
    *   input : vars
@@ -867,7 +883,7 @@ inline theory::Assertion Theory::get() {
   Trace("theory") << "Theory::get() => " << fact << " (" << d_facts.size() - d_factsHead << " left)" << std::endl;
 
   if(Dump.isOn("state")) {
-    Dump("state") << AssertCommand(fact.assertion.toExpr());
+    Dump("state") << AssertCommand(fact.d_assertion.toExpr());
   }
 
   return fact;
@@ -891,26 +907,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   }
   return out;
 }
-
-class EntailmentCheckParameters {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckParameters(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckParameters();
-};/* class EntailmentCheckParameters */
-
-class EntailmentCheckSideEffects {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckSideEffects(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckSideEffects();
-};/* class EntailmentCheckSideEffects */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

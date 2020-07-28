@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -158,6 +158,11 @@ class TransitionInference
    * was called on formula that does not have the shape of a transition system.
    */
   bool isComplete() const { return d_complete; }
+  /**
+   * Was the analysis of the conjecture trivial? This is true if the function
+   * did not occur in the conjecture.
+   */
+  bool isTrivial() const { return d_trivial; }
 
   /**
    * The following two functions are used for computing whether this transition
@@ -212,6 +217,8 @@ class TransitionInference
    * of this class complete?
    */
   bool d_complete;
+  /** Was the analyis trivial? */
+  bool d_trivial;
 
   /** process disjunct
    *

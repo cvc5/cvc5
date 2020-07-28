@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,15 +14,18 @@
  ** The theory of booleans.
  **/
 
-#include "theory/theory.h"
 #include "theory/booleans/theory_bool.h"
-#include "theory/booleans/circuit_propagator.h"
-#include "theory/valuation.h"
-#include "smt_util/boolean_simplification.h"
-#include "theory/substitutions.h"
 
-#include <vector>
 #include <stack>
+#include <vector>
+
+#include "expr/proof_node_manager.h"
+#include "smt_util/boolean_simplification.h"
+#include "theory/booleans/circuit_propagator.h"
+#include "theory/booleans/theory_bool_rewriter.h"
+#include "theory/substitutions.h"
+#include "theory/theory.h"
+#include "theory/valuation.h"
 #include "util/hash.h"
 
 using namespace std;
@@ -30,6 +33,22 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 namespace booleans {
+
+TheoryBool::TheoryBool(context::Context* c,
+                       context::UserContext* u,
+                       OutputChannel& out,
+                       Valuation valuation,
+                       const LogicInfo& logicInfo,
+                       ProofNodeManager* pnm)
+    : Theory(THEORY_BOOL, c, u, out, valuation, logicInfo, pnm)
+{
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_bProofChecker.registerTo(pc);
+  }
+}
 
 Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
 
@@ -55,22 +74,6 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
 
   return Theory::ppAssert(in, outSubstitutions);
 }
-
-/*
-void TheoryBool::check(Effort level) {
-  if (done() && !fullEffort(level)) {
-    return;
-  }
-  while (!done())
-  {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.assertion;
-  }
-  if( Theory::fullEffort(level) ){
-  }
-}  
-*/
 
 }/* CVC4::theory::booleans namespace */
 }/* CVC4::theory namespace */

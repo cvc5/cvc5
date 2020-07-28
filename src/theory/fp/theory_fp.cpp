@@ -2,9 +2,9 @@
 /*! \file theory_fp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Andrew Reynolds
+ **   Martin Brain, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,17 +15,17 @@
  ** \todo document this file
  **/
 
-
-#include "options/fp_options.h"
-#include "theory/rewriter.h"
-#include "theory/theory_model.h"
 #include "theory/fp/theory_fp.h"
-
 
 #include <set>
 #include <stack>
 #include <unordered_set>
 #include <vector>
+
+#include "options/fp_options.h"
+#include "theory/fp/theory_fp_rewriter.h"
+#include "theory/rewriter.h"
+#include "theory/theory_model.h"
 
 using namespace std;
 
@@ -99,12 +99,13 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context *c,
-                   context::UserContext *u,
-                   OutputChannel &out,
+TheoryFp::TheoryFp(context::Context* c,
+                   context::UserContext* u,
+                   OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo &logicInfo)
-    : Theory(THEORY_FP, c, u, out, valuation, logicInfo),
+                   const LogicInfo& logicInfo,
+                   ProofNodeManager* pnm)
+    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
       d_notification(*this),
       d_equalityEngine(d_notification, c, "theory::fp::ee", true),
       d_registeredTerms(u),
@@ -174,7 +175,6 @@ TheoryFp::TheoryFp(context::Context *c,
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
   d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
   d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
-
 } /* TheoryFp::TheoryFp() */
 
 Node TheoryFp::minUF(Node node) {
@@ -319,17 +319,6 @@ Node TheoryFp::toRealUF(Node node) {
   return nm->mkNode(kind::APPLY_UF, fun, node[0]);
 }
 
-void TheoryFp::enableUF(LogicRequest &lr)
-{
-  if (!this->d_expansionRequested) {
-    // Needed for conversions to/from real and min/max
-    lr.widenLogic(THEORY_UF);
-    // THEORY_BV has to be enabled when the logic is set
-    this->d_expansionRequested = true;
-  }
-  return;
-}
-
 Node TheoryFp::abstractRealToFloat(Node node)
 {
   Assert(node.getKind() == kind::FLOATINGPOINT_TO_FP_REAL);
@@ -394,7 +383,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   return uf;
 }
 
-Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
+TrustNode TheoryFp::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                << std::endl;
@@ -405,17 +394,14 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
     res = removeToFPGeneric::removeToFPGeneric(node);
 
   } else if (node.getKind() == kind::FLOATINGPOINT_MIN) {
-    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_MIN_TOTAL,
                                            node[0], node[1], minUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_MAX) {
-    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_MAX_TOTAL,
                                            node[0], node[1], maxUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_UBV) {
-    enableUF(lr);
     FloatingPointToUBV info = node.getOperator().getConst<FloatingPointToUBV>();
     FloatingPointToUBVTotal newInfo(info);
 
@@ -425,7 +411,6 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
             toUBVUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_SBV) {
-    enableUF(lr);
     FloatingPointToSBV info = node.getOperator().getConst<FloatingPointToSBV>();
     FloatingPointToSBVTotal newInfo(info);
 
@@ -435,7 +420,6 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
             toSBVUF(node));
 
   } else if (node.getKind() == kind::FLOATINGPOINT_TO_REAL) {
-    enableUF(lr);
     res = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_TO_REAL_TOTAL,
                                            node[0], toRealUF(node));
 
@@ -443,22 +427,15 @@ Node TheoryFp::expandDefinition(LogicRequest &lr, Node node)
     // Do nothing
   }
 
-  // We will need to enable UF to abstract these in ppRewrite
-  if (res.getKind() == kind::FLOATINGPOINT_TO_REAL_TOTAL
-      || res.getKind() == kind::FLOATINGPOINT_TO_FP_REAL)
-  {
-    enableUF(lr);
-  }
-
   if (res != node) {
     Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
-
-  return res;
+  return TrustNode::null();
 }
 
-Node TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
@@ -516,9 +493,10 @@ Node TheoryFp::ppRewrite(TNode node)
   {
     Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
                           << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
 
-  return res;
+  return TrustNode::null();
 }
 
 bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
@@ -813,33 +791,40 @@ void TheoryFp::registerTerm(TNode node) {
   Trace("fp-registerTerm") << "TheoryFp::registerTerm(): " << node << std::endl;
 
   if (!isRegistered(node)) {
+    Kind k = node.getKind();
+    Assert(k != kind::FLOATINGPOINT_TO_FP_GENERIC
+           && k != kind::FLOATINGPOINT_SUB && k != kind::FLOATINGPOINT_EQ
+           && k != kind::FLOATINGPOINT_GEQ && k != kind::FLOATINGPOINT_GT);
+
     bool success = d_registeredTerms.insert(node);
     (void)success;  // Only used for assertion
     Assert(success);
 
     // Add to the equality engine
-    if (node.getKind() == kind::EQUAL) {
+    if (k == kind::EQUAL)
+    {
       d_equalityEngine.addTriggerEquality(node);
-    } else {
+    }
+    else
+    {
       d_equalityEngine.addTerm(node);
     }
 
     // Give the expansion of classifications in terms of equalities
     // This should make equality reasoning slightly more powerful.
-    if ((node.getKind() == kind::FLOATINGPOINT_ISNAN)
-        || (node.getKind() == kind::FLOATINGPOINT_ISZ)
-        || (node.getKind() == kind::FLOATINGPOINT_ISINF))
+    if ((k == kind::FLOATINGPOINT_ISNAN) || (k == kind::FLOATINGPOINT_ISZ)
+        || (k == kind::FLOATINGPOINT_ISINF))
     {
       NodeManager *nm = NodeManager::currentNM();
       FloatingPointSize s = node[0].getType().getConst<FloatingPointSize>();
       Node equalityAlias = Node::null();
 
-      if (node.getKind() == kind::FLOATINGPOINT_ISNAN)
+      if (k == kind::FLOATINGPOINT_ISNAN)
       {
         equalityAlias = nm->mkNode(
             kind::EQUAL, node[0], nm->mkConst(FloatingPoint::makeNaN(s)));
       }
-      else if (node.getKind() == kind::FLOATINGPOINT_ISZ)
+      else if (k == kind::FLOATINGPOINT_ISZ)
       {
         equalityAlias = nm->mkNode(
             kind::OR,
@@ -850,7 +835,7 @@ void TheoryFp::registerTerm(TNode node) {
                        node[0],
                        nm->mkConst(FloatingPoint::makeZero(s, false))));
       }
-      else if (node.getKind() == kind::FLOATINGPOINT_ISINF)
+      else if (k == kind::FLOATINGPOINT_ISINF)
       {
         equalityAlias = nm->mkNode(
             kind::OR,
@@ -895,7 +880,8 @@ void TheoryFp::preRegisterTerm(TNode node)
            << sig_sz
            << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
               "are supported in default mode. Try the experimental solver via "
-              "--fp-exp";
+              "--fp-exp. Note: There are known issues with the experimental "
+              "solver, use at your own risk.";
         throw LogicException(ss.str());
       }
     }
@@ -916,9 +902,8 @@ void TheoryFp::addSharedTerm(TNode node) {
 
 void TheoryFp::handleLemma(Node node) {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-
-  d_out->lemma(node, false,
-               true);  // Has to be true because it contains embedded ITEs
+  // Preprocess has to be true because it contains embedded ITEs
+  d_out->lemma(node, LemmaProperty::PREPROCESS);
   // Ignore the LemmaStatus structure for now...
 
   return;
@@ -954,7 +939,7 @@ void TheoryFp::check(Effort level) {
   while (!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("fp") << "TheoryFp::check(): processing " << fact << std::endl;
 
@@ -1026,7 +1011,8 @@ void TheoryFp::setMasterEqualityEngine(eq::EqualityEngine *eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
-Node TheoryFp::explain(TNode n) {
+TrustNode TheoryFp::explain(TNode n)
+{
   Trace("fp") << "TheoryFp::explain(): explain " << n << std::endl;
 
   // All things we assert directly (and not via bit-vector) should
@@ -1041,7 +1027,8 @@ Node TheoryFp::explain(TNode n) {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
   }
 
-  return helper::buildConjunct(assumptions);
+  Node exp = helper::buildConjunct(assumptions);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 Node TheoryFp::getModelValue(TNode var) {

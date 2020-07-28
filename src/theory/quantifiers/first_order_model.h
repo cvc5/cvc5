@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -132,10 +132,31 @@ class FirstOrderModel : public TheoryModel
   QuantifiersEngine* d_qe;
   /** list of quantifiers asserted in the current context */
   context::CDList<Node> d_forall_asserts;
-  /** quantified formulas marked as relevant */
+  /** 
+   * The (ordered) list of quantified formulas marked as relevant using
+   * markRelevant, where the quantified formula q in the most recent
+   * call to markRelevant comes last in the list.
+   */
   std::vector<Node> d_forall_rlv_vec;
+  /** The last quantified formula marked as relevant, if one exists. */
   Node d_last_forall_rlv;
+  /** 
+   * The list of asserted quantified formulas, ordered by relevance.
+   * Relevance is a dynamic partial ordering where q1 < q2 if there has been
+   * a call to markRelevant( q1 ) after the last call to markRelevant( q2 )
+   * (or no call to markRelevant( q2 ) has been made). 
+   * 
+   * This list is used primarily as an optimization for conflict-based
+   * instantiation so that quantifed formulas that have been instantiated
+   * most recently are processed first, since these are (statistically) more
+   * likely to have conflicting instantiations.
+   */
   std::vector<Node> d_forall_rlv_assert;
+  /** 
+   * Whether the above list has been computed. This flag is updated during
+   * reset_round and is valid within a full effort check.
+   */
+  bool d_forallRlvComputed;
   /** get variable id */
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */

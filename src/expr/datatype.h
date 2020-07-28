@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -171,32 +171,6 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   DatatypeConstructorArg(std::string name, Expr selector);
 };/* class DatatypeConstructorArg */
 
-class Printer;
-
-/** sygus datatype constructor printer
- *
- * This is a virtual class that is used to specify
- * a custom printing callback for sygus terms. This is
- * useful for sygus grammars that include defined
- * functions or let expressions.
- */
-class CVC4_PUBLIC SygusPrintCallback
-{
- public:
-  SygusPrintCallback() {}
-  virtual ~SygusPrintCallback() {}
-  /**
-   * Writes the term that sygus datatype expression e
-   * encodes to stream out. p is the printer that
-   * requested that expression e be written on output
-   * stream out. Calls may be made to p to print
-   * subterms of e.
-   */
-  virtual void toStreamSygus(const Printer* p,
-                             std::ostream& out,
-                             Expr e) const = 0;
-};
-
 class DTypeConstructor;
 
 /**
@@ -213,24 +187,14 @@ class CVC4_PUBLIC DatatypeConstructor {
 
   /**
    * Create a new Datatype constructor with the given name for the
-   * constructor and the same name (prefixed with "is_") for the
-   * tester.  The actual constructor and tester (meaning, the Exprs
+   * constructor.  The actual constructor and tester (meaning, the Exprs
    * representing operators for these entities) aren't created until
    * resolution time.
-   */
-  explicit DatatypeConstructor(std::string name);
-
-  /**
-   * Create a new Datatype constructor with the given name for the
-   * constructor and the given name for the tester.  The actual
-   * constructor and tester aren't created until resolution time.
    * weight is the value that this constructor carries when computing size.
    * For example, if A, B, C have weights 0, 1, and 3 respectively, then
    * C( B( A() ), B( A() ) ) has size 5.
    */
-  DatatypeConstructor(std::string name,
-                      std::string tester,
-                      unsigned weight = 1);
+  explicit DatatypeConstructor(std::string name, unsigned weight = 1);
 
   ~DatatypeConstructor() {}
   /**
@@ -294,25 +258,12 @@ class CVC4_PUBLIC DatatypeConstructor {
    * of the form (lambda (x) x).
    */
   bool isSygusIdFunc() const;
-  /** get sygus print callback
-   *
-   * This class stores custom ways of printing
-   * sygus datatype constructors, for instance,
-   * to handle defined or let expressions that
-   * appear in user-provided grammars.
-   */
-  std::shared_ptr<SygusPrintCallback> getSygusPrintCallback() const;
   /** get weight
    *
    * Get the weight of this constructor. This value is used when computing the
    * size of datatype terms that involve this constructor.
    */
   unsigned getWeight() const;
-
-  /**
-   * Get the tester name for this Datatype constructor.
-   */
-  std::string getTesterName() const;
 
   /**
    * Get the number of arguments (so far) of this Datatype constructor.
@@ -443,7 +394,7 @@ class CVC4_PUBLIC DatatypeConstructor {
    * operator op. spc is the sygus callback of this datatype constructor,
    * which is stored in a shared pointer.
    */
-  void setSygus(Expr op, std::shared_ptr<SygusPrintCallback> spc);
+  void setSygus(Expr op);
 
   /**
    * Get the list of arguments to this constructor.
@@ -456,14 +407,10 @@ class CVC4_PUBLIC DatatypeConstructor {
  private:
   /** The internal representation */
   std::shared_ptr<DTypeConstructor> d_internal;
-  /** the name of the tester */
-  std::string d_testerName;
   /** The constructor */
   Expr d_constructor;
   /** the arguments of this constructor */
   std::vector<DatatypeConstructorArg> d_args;
-  /** sygus print callback */
-  std::shared_ptr<SygusPrintCallback> d_sygus_pc;
 };/* class DatatypeConstructor */
 
 class DType;
@@ -612,8 +559,6 @@ class CVC4_PUBLIC Datatype {
    *      this constructor encodes
    * cname : the name of the constructor (for printing only)
    * cargs : the arguments of the constructor
-   * spc : an (optional) callback that is used for custom printing. This is
-   *       to accomodate user-provided grammars in the sygus format.
    *
    * It should be the case that cargs are sygus datatypes that
    * encode the arguments of op. For example, a sygus constructor
@@ -628,7 +573,13 @@ class CVC4_PUBLIC Datatype {
   void addSygusConstructor(Expr op,
                            const std::string& cname,
                            const std::vector<Type>& cargs,
-                           std::shared_ptr<SygusPrintCallback> spc = nullptr,
+                           int weight = -1);
+  /**
+   * Same as above, with builtin kind k.
+   */
+  void addSygusConstructor(Kind k,
+                           const std::string& cname,
+                           const std::vector<Type>& cargs,
                            int weight = -1);
 
   /** set that this datatype is a tuple */
@@ -714,6 +665,12 @@ class CVC4_PUBLIC Datatype {
    * This datatype must be resolved or an exception is thrown.
    */
   bool isWellFounded() const;
+  /** has nested recursion
+   *
+   * Return true iff this datatype has nested recursion.
+   * This datatype must be resolved or an exception is thrown.
+   */
+  bool hasNestedRecursion() const;
 
   /** is recursive singleton
    *
@@ -891,7 +848,7 @@ class CVC4_PUBLIC Datatype {
   /** self type */
   Type d_self;
   /** the data of the record for this datatype (if applicable) */
-  Record* d_record;
+  std::shared_ptr<Record> d_record;
   /** whether the datatype is a record */
   bool d_isRecord;
   /** the constructors of this datatype */

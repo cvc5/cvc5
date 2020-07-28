@@ -2,9 +2,9 @@
 /*! \file extended_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,6 +69,8 @@ class ExtendedRewriter
   Node d_false;
   /** cache that the extended rewritten form of n is ret */
   void setCache(Node n, Node ret);
+  /** get the cache for n */
+  Node getCache(Node n);
   /** add to children
    *
    * Adds nc to the vector of children, if dropDup is true, we do not add
@@ -198,11 +200,17 @@ class ExtendedRewriter
   /** Partial substitute
    *
    * Applies the substitution specified by assign to n, recursing only beneath
-   * terms whose Kind appears in rec_kinds.
+   * terms whose Kind appears in rkinds (when rkinds is empty), and additionally
+   * never recursing beneath WITNESS.
    */
   Node partialSubstitute(Node n,
-                         std::map<Node, Node>& assign,
-                         std::map<Kind, bool>& rkinds);
+                         const std::map<Node, Node>& assign,
+                         const std::map<Kind, bool>& rkinds);
+  /** same as above, with vectors */
+  Node partialSubstitute(Node n,
+                         const std::vector<Node>& vars,
+                         const std::vector<Node>& subs,
+                         const std::map<Kind, bool>& rkinds);
   /** solve equality
    *
    * If this function returns a non-null node n', then n' is equivalent to n

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --cbqi-bv --cbqi-bv-ineq=keep --no-cbqi-full --bv-div-zero-const
+; COMMAND-LINE: --cegqi-bv --cegqi-bv-ineq=keep --no-cegqi-full --bv-div-zero-const
 ; EXPECT: unsat
 (set-logic BV)
 (set-info :status unsat)

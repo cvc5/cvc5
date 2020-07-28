@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,10 +14,12 @@
 
 #include "theory/quantifiers/expr_miner.h"
 
+#include "api/cvc4cpp.h"
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -68,50 +70,17 @@ Node ExprMiner::convertToSkolem(Node n)
 }
 
 void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
-                                  ExprManager& em,
-                                  ExprManagerMapCollection& varMap,
-                                  Node query,
-                                  bool& needExport)
+                                  Node query)
 {
+  Assert (!query.isNull());
+  initializeSubsolver(checker);
+  // also set the options
+  checker->setOption("sygus-rr-synth-input", false);
+  checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
-  NodeManager* nm = NodeManager::currentNM();
-  if (options::sygusExprMinerCheckUseExport())
-  {
-    // To support a separate timeout for the subsolver, we need to create
-    // a separate ExprManager with its own options. This requires that
-    // the expressions sent to the subsolver can be exported from on
-    // ExprManager to another. If the export fails, we throw an
-    // OptionException.
-    try
-    {
-      checker.reset(new SmtEngine(&em));
-      checker->setIsInternalSubsolver();
-      checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
-      checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-      checker->setOption("sygus-rr-synth-input", false);
-      checker->setOption("input-language", "smt2");
-      Expr equery = squery.toExpr().exportTo(&em, varMap);
-      checker->assertFormula(equery);
-    }
-    catch (const CVC4::ExportUnsupportedException& e)
-    {
-      std::stringstream msg;
-      msg << "Unable to export " << squery
-          << " but exporting expressions is "
-             "required for an expression "
-             "miner check.";
-      throw OptionException(msg.str());
-    }
-    needExport = true;
-  }
-  else
-  {
-    needExport = false;
-    checker.reset(new SmtEngine(nm->toExprManager()));
-    checker->assertFormula(squery.toExpr());
-  }
+  checker->assertFormula(squery);
 }
 
 Result ExprMiner::doCheck(Node query)
@@ -128,12 +97,8 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
-  bool needExport = false;
-  ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> smte;
-  ExprManagerMapCollection varMap;
-  initializeChecker(smte, em, varMap, queryr, needExport);
+  initializeChecker(smte, query);
   return smte->checkSat();
 }
 

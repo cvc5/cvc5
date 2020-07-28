@@ -2,9 +2,9 @@
 /*! \file context_mm_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andres Noetzli
+ **   Dejan Jovanovic, Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,19 +43,25 @@ private:
     // Push, then allocate, then pop
     // We make sure that we don't allocate too much so that all the regions
     // should be reclaimed
-    unsigned chunkSizeBytes = 16384;
-    unsigned maxFreeChunks = 100;
-    unsigned piecesPerChunk = 13;
-    unsigned len = chunkSizeBytes / piecesPerChunk; // Length of the individual block
-    unsigned N = maxFreeChunks*piecesPerChunk;
-    for(unsigned p = 0; p < 5; ++ p) {
+    uint32_t chunkSizeBytes = 16384;
+    uint32_t maxFreeChunks = 100;
+    uint32_t piecesPerChunk = 13;
+    uint32_t len;
+    uint32_t N;
+
+    len = chunkSizeBytes / piecesPerChunk;  // Length of the individual block
+    N = maxFreeChunks * piecesPerChunk;
+    for (uint32_t p = 0; p < 5; ++p)
+    {
       d_cmm->push();
-      for(unsigned i = 0; i < N; ++i) {
+      for (uint32_t i = 0; i < N; ++i)
+      {
         char* newMem = (char*)d_cmm->newData(len);
         // We only setup the memory in the first run, the others should
         // reclaim the same memory
         if(p == 0) {
-          for(unsigned k = 0; k < len - 1; k ++) {
+          for (uint32_t k = 0; k < len - 1; k++)
+          {
             newMem[k] = 'a';
           }
           newMem[len-1] = 0;
@@ -68,23 +74,26 @@ private:
       d_cmm->pop();
     }
 
-    unsigned factor = 3;
+    uint32_t factor = 3;
     N = 16384 / factor;
-
     // Push, then allocate, then pop all at once
-    for(unsigned p = 0; p < 5; ++ p) {
+    for (uint32_t p = 0; p < 5; ++p)
+    {
       d_cmm->push();
-      for(unsigned i = 1; i < N; ++i) {
-        unsigned len = i * factor;
+      for (uint32_t i = 1; i < N; ++i)
+      {
+        len = i * factor;
         char* newMem = (char*)d_cmm->newData(len);
-        for(unsigned k = 0; k < len - 1; k ++) {
+        for (uint32_t k = 0; k < len - 1; k++)
+        {
           newMem[k] = 'a';
         }
-        newMem[len-1] = 0;
+        newMem[len - 1] = 0;
         TS_ASSERT(strlen(newMem) == len - 1);
       }
     }
-    for(unsigned p = 0; p < 5; ++ p) {
+    for (uint32_t p = 0; p < 5; ++p)
+    {
       d_cmm->pop();
     }
 

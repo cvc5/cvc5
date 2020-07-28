@@ -2,9 +2,9 @@
 /*! \file op_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Makai Mann, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,11 +25,9 @@ class OpBlack : public CxxTest::TestSuite
   void tearDown() override {}
 
   void testGetKind();
-  void testGetSort();
   void testIsNull();
   void testOpFromKind();
   void testGetIndicesString();
-  void testGetIndicesKind();
   void testGetIndicesUint();
   void testGetIndicesPairUint();
 
@@ -40,17 +38,8 @@ class OpBlack : public CxxTest::TestSuite
 void OpBlack::testGetKind()
 {
   Op x;
-  TS_ASSERT_THROWS(x.getSort(), CVC4ApiException&);
   x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
   TS_ASSERT_THROWS_NOTHING(x.getKind());
-}
-
-void OpBlack::testGetSort()
-{
-  Op x;
-  TS_ASSERT_THROWS(x.getSort(), CVC4ApiException&);
-  x = d_solver.mkOp(BITVECTOR_EXTRACT, 31, 1);
-  TS_ASSERT_THROWS_NOTHING(x.getSort());
 }
 
 void OpBlack::testIsNull()
@@ -63,7 +52,7 @@ void OpBlack::testIsNull()
 
 void OpBlack::testOpFromKind()
 {
-  Op plus(PLUS);
+  Op plus(&d_solver, PLUS);
   TS_ASSERT(!plus.isIndexed());
   TS_ASSERT_THROWS(plus.getIndices<uint32_t>(), CVC4ApiException&);
 
@@ -86,14 +75,6 @@ void OpBlack::testGetIndicesString()
   std::string record_update_idx = record_update_ot.getIndices<std::string>();
   TS_ASSERT(record_update_idx == "test");
   TS_ASSERT_THROWS(record_update_ot.getIndices<uint32_t>(), CVC4ApiException&);
-}
-
-void OpBlack::testGetIndicesKind()
-{
-  Op chain_ot = d_solver.mkOp(CHAIN, AND);
-  TS_ASSERT(chain_ot.isIndexed());
-  Kind chain_idx = chain_ot.getIndices<Kind>();
-  TS_ASSERT(chain_idx == AND);
 }
 
 void OpBlack::testGetIndicesUint()
@@ -135,22 +116,10 @@ void OpBlack::testGetIndicesUint()
       floatingpoint_to_ubv_ot.getIndices<uint32_t>();
   TS_ASSERT(floatingpoint_to_ubv_idx == 11);
 
-  Op floatingpoint_to_ubv_total_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_UBV_TOTAL, 12);
-  uint32_t floatingpoint_to_ubv_total_idx =
-      floatingpoint_to_ubv_total_ot.getIndices<uint32_t>();
-  TS_ASSERT(floatingpoint_to_ubv_total_idx == 12);
-
   Op floatingpoint_to_sbv_ot = d_solver.mkOp(FLOATINGPOINT_TO_SBV, 13);
   uint32_t floatingpoint_to_sbv_idx =
       floatingpoint_to_sbv_ot.getIndices<uint32_t>();
   TS_ASSERT(floatingpoint_to_sbv_idx == 13);
-
-  Op floatingpoint_to_sbv_total_ot =
-      d_solver.mkOp(FLOATINGPOINT_TO_SBV_TOTAL, 14);
-  uint32_t floatingpoint_to_sbv_total_idx =
-      floatingpoint_to_sbv_total_ot.getIndices<uint32_t>();
-  TS_ASSERT(floatingpoint_to_sbv_total_idx == 14);
 
   Op tuple_update_ot = d_solver.mkOp(TUPLE_UPDATE, 5);
   uint32_t tuple_update_idx = tuple_update_ot.getIndices<uint32_t>();

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1194,9 +1194,6 @@ bool MatchGen::reset_round(QuantConflictFind* p)
       return false;
     }
   }
-  for( std::map< int, TNode >::iterator it = d_qni_gterm.begin(); it != d_qni_gterm.end(); ++it ){
-    d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
-  }
   if( d_type==typ_ground ){
     // int e = p->evaluate( d_n );
     // if( e==1 ){
@@ -1324,14 +1321,15 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     if( d_type==typ_pred ){
       nn[0] = qi->getCurrentValue( d_n );
       vn[0] = qi->getCurrentRepVar( qi->getVarNum( nn[0] ) );
-      nn[1] = p->getRepresentative( d_tgt ? p->d_true : p->d_false );
+      nn[1] = d_tgt ? p->d_true : p->d_false;
       vn[1] = -1;
       d_tgt = true;
     }else{
       for( unsigned i=0; i<2; i++ ){
         TNode nc;
-        std::map< int, TNode >::iterator it = d_qni_gterm_rep.find( i );
-        if( it!=d_qni_gterm_rep.end() ){
+        std::map<int, TNode>::iterator it = d_qni_gterm.find(i);
+        if (it != d_qni_gterm.end())
+        {
           nc = it->second;
         }else{
           nc = d_n[i];
@@ -1698,14 +1696,14 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
           }else{
             Debug("qcf-match-debug") << "       Match " << index << " is ground term" << std::endl;
             Assert(d_qni_gterm.find(index) != d_qni_gterm.end());
-            Assert(d_qni_gterm_rep.find(index) != d_qni_gterm_rep.end());
-            val = d_qni_gterm_rep[index];
+            val = d_qni_gterm[index];
             Assert(!val.isNull());
           }
           if( !val.isNull() ){
+            Node valr = p->getRepresentative(val);
             //constrained by val
             std::map<TNode, TNodeTrie>::iterator it =
-                d_qn[index]->d_data.find(val);
+                d_qn[index]->d_data.find(valr);
             if( it!=d_qn[index]->d_data.end() ){
               Debug("qcf-match-debug") << "       Match" << std::endl;
               d_qni.push_back( it );
@@ -1927,7 +1925,7 @@ void QuantConflictFind::reset_round( Theory::Effort level ) {
     if (tdb->hasTermCurrent(r))
     {
       TypeNode rtn = r.getType();
-      if (!options::cbqi() || !TermUtil::hasInstConstAttr(r))
+      if (!options::cegqi() || !TermUtil::hasInstConstAttr(r))
       {
         d_eqcs[rtn].push_back(r);
       }

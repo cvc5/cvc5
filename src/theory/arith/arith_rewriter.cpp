@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/theory.h"
+#include "util/iand.h"
 
 namespace CVC4 {
 namespace theory {
@@ -101,8 +102,8 @@ RewriteResponse ArithRewriter::preRewriteTerm(TNode t){
     case kind::PLUS:
       return preRewritePlus(t);
     case kind::MULT:
-    case kind::NONLINEAR_MULT:
-      return preRewriteMult(t);  
+    case kind::NONLINEAR_MULT: return preRewriteMult(t);
+    case kind::IAND: return RewriteResponse(REWRITE_DONE, t);
     case kind::EXPONENTIAL:
     case kind::SINE:
     case kind::COSINE:
@@ -165,8 +166,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
     case kind::PLUS:
       return postRewritePlus(t);
     case kind::MULT:
-    case kind::NONLINEAR_MULT:
-      return postRewriteMult(t);    
+    case kind::NONLINEAR_MULT: return postRewriteMult(t);
+    case kind::IAND: return postRewriteIAnd(t);
     case kind::EXPONENTIAL:
     case kind::SINE:
     case kind::COSINE:
@@ -371,6 +372,47 @@ RewriteResponse ArithRewriter::postRewriteMult(TNode t){
   return RewriteResponse(REWRITE_DONE, res.getNode());
 }
 
+RewriteResponse ArithRewriter::postRewriteIAnd(TNode t)
+{
+  Assert(t.getKind() == kind::IAND);
+  NodeManager* nm = NodeManager::currentNM();
+  // if constant, we eliminate
+  if (t[0].isConst() && t[1].isConst())
+  {
+    size_t bsize = t.getOperator().getConst<IntAnd>().d_size;
+    Node iToBvop = nm->mkConst(IntToBitVector(bsize));
+    Node arg1 = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvop, t[0]);
+    Node arg2 = nm->mkNode(kind::INT_TO_BITVECTOR, iToBvop, t[1]);
+    Node bvand = nm->mkNode(kind::BITVECTOR_AND, arg1, arg2);
+    Node ret = nm->mkNode(kind::BITVECTOR_TO_NAT, bvand);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
+  }
+  else if (t[0] > t[1])
+  {
+    // ((_ iand k) x y) ---> ((_ iand k) y x) if x > y by node ordering
+    Node ret = nm->mkNode(kind::IAND, t.getOperator(), t[1], t[0]);
+    return RewriteResponse(REWRITE_AGAIN, ret);
+  }
+  else if (t[0] == t[1])
+  {
+    // ((_ iand k) x x) ---> x
+    return RewriteResponse(REWRITE_DONE, t[0]);
+  }
+  // simplifications involving constants
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (!t[i].isConst())
+    {
+      continue;
+    }
+    if (t[i].getConst<Rational>().sgn() == 0)
+    {
+      // ((_ iand k) 0 y) ---> 0
+      return RewriteResponse(REWRITE_DONE, t[i]);
+    }
+  }
+  return RewriteResponse(REWRITE_DONE, t);
+}
 
 RewriteResponse ArithRewriter::preRewriteTranscendental(TNode t) {
   return RewriteResponse(REWRITE_DONE, t);
@@ -390,12 +432,18 @@ RewriteResponse ArithRewriter::postRewriteTranscendental(TNode t) {
       }else{          
         return RewriteResponse(REWRITE_DONE, t);
       }
-    }else if(t[0].getKind() == kind::PLUS ){
+    }
+    else if (t[0].getKind() == kind::PLUS)
+    {
       std::vector<Node> product;
-      for( unsigned i=0; i<t[0].getNumChildren(); i++ ){
-        product.push_back(nm->mkNode(kind::EXPONENTIAL, t[0][i]));
+      for (const Node tc : t[0])
+      {
+        product.push_back(nm->mkNode(kind::EXPONENTIAL, tc));
       }
-      return RewriteResponse(REWRITE_AGAIN, nm->mkNode(kind::MULT, product));
+      // We need to do a full rewrite here, since we can get exponentials of
+      // constants, e.g. when we are rewriting exp(2 + x)
+      return RewriteResponse(REWRITE_AGAIN_FULL,
+                             nm->mkNode(kind::MULT, product));
     }
   }
     break;
@@ -633,14 +681,16 @@ RewriteResponse ArithRewriter::preRewriteAtom(TNode atom){
 RewriteResponse ArithRewriter::postRewrite(TNode t){
   if(isTerm(t)){
     RewriteResponse response = postRewriteTerm(t);
-    if(Debug.isOn("arith::rewriter") && response.status == REWRITE_DONE) {
-      Polynomial::parsePolynomial(response.node);
+    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    {
+      Polynomial::parsePolynomial(response.d_node);
     }
     return response;
   }else if(isAtom(t)){
     RewriteResponse response = postRewriteAtom(t);
-    if(Debug.isOn("arith::rewriter") && response.status == REWRITE_DONE) {
-      Comparison::parseNormalForm(response.node);
+    if (Debug.isOn("arith::rewriter") && response.d_status == REWRITE_DONE)
+    {
+      Comparison::parseNormalForm(response.d_node);
     }
     return response;
   }else{
@@ -745,7 +795,7 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
     Node ret = (k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL)
                    ? nm->mkNode(kind::UMINUS, nn)
                    : nn;
-    return RewriteResponse(REWRITE_AGAIN, ret);
+    return RewriteResponse(REWRITE_AGAIN_FULL, ret);
   }
   else if (dIsConstant && n.getKind() == kind::CONST_RATIONAL)
   {

@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Mudathir Mohamed, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,9 @@
  ** Sets theory implementation.
  **/
 
-#include <algorithm>
 #include "theory/sets/theory_sets_private.h"
+
+#include <algorithm>
 
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
@@ -52,9 +53,9 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_rels_enabled(false),
       d_card_enabled(false)
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
-  d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
 
   d_equalityEngine.addFunctionKind(kind::SINGLETON);
   d_equalityEngine.addFunctionKind(kind::UNION);
@@ -65,74 +66,91 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_equalityEngine.addFunctionKind(kind::SUBSET);
 }
 
-TheorySetsPrivate::~TheorySetsPrivate(){
-  for (std::pair<const Node, EqcInfo*>& current_pair : d_eqc_info) {
+TheorySetsPrivate::~TheorySetsPrivate()
+{
+  for (std::pair<const Node, EqcInfo*>& current_pair : d_eqc_info)
+  {
     delete current_pair.second;
   }
 }
 
-void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
-  if( t.getKind()==kind::SINGLETON || t.getKind()==kind::EMPTYSET ){
-    EqcInfo * e = getOrMakeEqcInfo( t, true );
+void TheorySetsPrivate::eqNotifyNewClass(TNode t)
+{
+  if (t.getKind() == kind::SINGLETON || t.getKind() == kind::EMPTYSET)
+  {
+    EqcInfo* e = getOrMakeEqcInfo(t, true);
     e->d_singleton = t;
   }
 }
 
-void TheorySetsPrivate::eqNotifyPreMerge(TNode t1, TNode t2){
+void TheorySetsPrivate::eqNotifyPreMerge(TNode t1, TNode t2) {}
 
-}
-
-void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
+void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2)
+{
   if (!d_state.isInConflict())
   {
-    Trace("sets-prop-debug") << "Merge " << t1 << " and " << t2 << "..." << std::endl;
+    Trace("sets-prop-debug")
+        << "Merge " << t1 << " and " << t2 << "..." << std::endl;
     Node s1, s2;
-    EqcInfo * e2 = getOrMakeEqcInfo( t2 );
-    if( e2 ){
+    EqcInfo* e2 = getOrMakeEqcInfo(t2);
+    if (e2)
+    {
       s2 = e2->d_singleton;
-      EqcInfo * e1 = getOrMakeEqcInfo( t1 );
-      Node s1;
+      EqcInfo* e1 = getOrMakeEqcInfo(t1);
       Trace("sets-prop-debug") << "Merging singletons..." << std::endl;
-      if( e1 ){
+      if (e1)
+      {
         s1 = e1->d_singleton;
-        if( !s1.isNull() && !s2.isNull() ){
-          if( s1.getKind()==s2.getKind() ){
-            Trace("sets-prop") << "Propagate eq inference : " << s1 << " == " << s2 << std::endl;
-            //infer equality between elements of singleton
-            Node exp = s1.eqNode( s2 );
-            Node eq = s1[0].eqNode( s2[0] );
-            d_keep.insert( exp );
-            d_keep.insert( eq );
-            assertFact( eq, exp );
-          }else{
-            //singleton equal to emptyset, conflict
-            Trace("sets-prop") << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
-            conflict( s1, s2 );
+        if (!s1.isNull() && !s2.isNull())
+        {
+          if (s1.getKind() == s2.getKind())
+          {
+            Trace("sets-prop") << "Propagate eq inference : " << s1
+                               << " == " << s2 << std::endl;
+            // infer equality between elements of singleton
+            Node exp = s1.eqNode(s2);
+            Node eq = s1[0].eqNode(s2[0]);
+            d_keep.insert(exp);
+            d_keep.insert(eq);
+            assertFact(eq, exp);
+          }
+          else
+          {
+            // singleton equal to emptyset, conflict
+            Trace("sets-prop")
+                << "Propagate conflict : " << s1 << " == " << s2 << std::endl;
+            conflict(s1, s2);
             return;
           }
         }
-      }else{
-        //copy information
-        e1 = getOrMakeEqcInfo( t1, true );
-        e1->d_singleton.set( e2->d_singleton );
+      }
+      else
+      {
+        // copy information
+        e1 = getOrMakeEqcInfo(t1, true);
+        e1->d_singleton.set(e2->d_singleton);
       }
     }
-    //merge membership list
+    // merge membership list
     Trace("sets-prop-debug") << "Copying membership list..." << std::endl;
-    NodeIntMap::iterator mem_i2 = d_members.find( t2 );
-    if( mem_i2 != d_members.end() ) {
-      NodeIntMap::iterator mem_i1 = d_members.find( t1 );
+    NodeIntMap::iterator mem_i2 = d_members.find(t2);
+    if (mem_i2 != d_members.end())
+    {
+      NodeIntMap::iterator mem_i1 = d_members.find(t1);
       int n_members = 0;
-      if( mem_i1 != d_members.end() ) {
+      if (mem_i1 != d_members.end())
+      {
         n_members = (*mem_i1).second;
       }
-      for( int i=0; i<(*mem_i2).second; i++ ){
+      for (int i = 0; i < (*mem_i2).second; i++)
+      {
         Assert(i < (int)d_members_data[t2].size()
                && d_members_data[t2][i].getKind() == kind::MEMBER);
         Node m2 = d_members_data[t2][i];
-        //check if redundant
+        // check if redundant
         bool add = true;
-        for( int j=0; j<n_members; j++ ){
+        for (int j = 0; j < n_members; j++)
+        {
           Assert(j < (int)d_members_data[t1].size()
                  && d_members_data[t1][j].getKind() == kind::MEMBER);
           if (d_state.areEqual(m2[0], d_members_data[t1][j][0]))
@@ -141,30 +159,42 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
             break;
           }
         }
-        if( add ){
-          if( !s1.isNull() && s2.isNull() ){
+        if (add)
+        {
+          if (!s1.isNull() && s2.isNull())
+          {
             Assert(m2[1].getType().isComparableTo(s1.getType()));
             Assert(d_state.areEqual(m2[1], s1));
-            Node exp = NodeManager::currentNM()->mkNode( kind::AND, m2[1].eqNode( s1 ), m2 );
-            if( s1.getKind()==kind::SINGLETON ){
-              if( s1[0]!=m2[0] ){
-                Node eq = s1[0].eqNode( m2[0] );
-                d_keep.insert( exp );
-                d_keep.insert( eq );
-                Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp << " => " << eq << std::endl;
-                assertFact( eq, exp );
+            Node exp = NodeManager::currentNM()->mkNode(
+                kind::AND, m2[1].eqNode(s1), m2);
+            if (s1.getKind() == kind::SINGLETON)
+            {
+              if (s1[0] != m2[0])
+              {
+                Node eq = s1[0].eqNode(m2[0]);
+                d_keep.insert(exp);
+                d_keep.insert(eq);
+                Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
+                                   << " => " << eq << std::endl;
+                assertFact(eq, exp);
               }
-            }else{
-              //conflict
-              Trace("sets-prop") << "Propagate eq-mem conflict : " << exp << std::endl;
+            }
+            else
+            {
+              // conflict
+              Trace("sets-prop")
+                  << "Propagate eq-mem conflict : " << exp << std::endl;
               d_state.setConflict(exp);
               return;
             }
           }
-          if( n_members<(int)d_members_data[t1].size() ){
+          if (n_members < (int)d_members_data[t1].size())
+          {
             d_members_data[t1][n_members] = m2;
-          }else{
-            d_members_data[t1].push_back( m2 );
+          }
+          else
+          {
+            d_members_data[t1].push_back(m2);
           }
           n_members++;
         }
@@ -174,52 +204,69 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
   }
 }
 
-void TheorySetsPrivate::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-  if( t1.getType().isSet() ){
-    Node eq = t1.eqNode( t2 );
-    if( d_deq.find( eq )==d_deq.end() ){
+void TheorySetsPrivate::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  if (t1.getType().isSet())
+  {
+    Node eq = t1.eqNode(t2);
+    if (d_deq.find(eq) == d_deq.end())
+    {
       d_deq[eq] = true;
     }
   }
 }
 
-TheorySetsPrivate::EqcInfo::EqcInfo( context::Context* c ) : d_singleton( c ){
-  
-}
+TheorySetsPrivate::EqcInfo::EqcInfo(context::Context* c) : d_singleton(c) {}
 
-TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo( TNode n, bool doMake ){
-  std::map< Node, EqcInfo* >::iterator eqc_i = d_eqc_info.find( n );
-  if( eqc_i==d_eqc_info.end() ){
+TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
+                                                                bool doMake)
+{
+  std::map<Node, EqcInfo*>::iterator eqc_i = d_eqc_info.find(n);
+  if (eqc_i == d_eqc_info.end())
+  {
     EqcInfo* ei = NULL;
-    if( doMake ){
-      ei = new EqcInfo( d_external.getSatContext() );
+    if (doMake)
+    {
+      ei = new EqcInfo(d_external.getSatContext());
       d_eqc_info[n] = ei;
     }
     return ei;
-  }else{
+  }
+  else
+  {
     return eqc_i->second;
   }
 }
 
 bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 {
-  if( d_equalityEngine.isTriggerTerm(a, THEORY_SETS) && d_equalityEngine.isTriggerTerm(b, THEORY_SETS) ){
-    TNode a_shared = d_equalityEngine.getTriggerTermRepresentative(a, THEORY_SETS);
-    TNode b_shared = d_equalityEngine.getTriggerTermRepresentative(b, THEORY_SETS);
-    EqualityStatus eqStatus = d_external.d_valuation.getEqualityStatus(a_shared, b_shared);
-    if( eqStatus==EQUALITY_FALSE_AND_PROPAGATED || eqStatus==EQUALITY_FALSE || eqStatus==EQUALITY_FALSE_IN_MODEL ){
+  if (d_equalityEngine.isTriggerTerm(a, THEORY_SETS)
+      && d_equalityEngine.isTriggerTerm(b, THEORY_SETS))
+  {
+    TNode a_shared =
+        d_equalityEngine.getTriggerTermRepresentative(a, THEORY_SETS);
+    TNode b_shared =
+        d_equalityEngine.getTriggerTermRepresentative(b, THEORY_SETS);
+    EqualityStatus eqStatus =
+        d_external.d_valuation.getEqualityStatus(a_shared, b_shared);
+    if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
+        || eqStatus == EQUALITY_FALSE_IN_MODEL)
+    {
       return true;
     }
   }
   return false;
 }
 
-bool TheorySetsPrivate::isMember( Node x, Node s ) {
+bool TheorySetsPrivate::isMember(Node x, Node s)
+{
   Assert(d_equalityEngine.hasTerm(s)
          && d_equalityEngine.getRepresentative(s) == s);
-  NodeIntMap::iterator mem_i = d_members.find( s );
-  if( mem_i != d_members.end() ) {
-    for( int i=0; i<(*mem_i).second; i++ ){
+  NodeIntMap::iterator mem_i = d_members.find(s);
+  if (mem_i != d_members.end())
+  {
+    for (int i = 0; i < (*mem_i).second; i++)
+    {
       if (d_state.areEqual(d_members_data[s][i][0], x))
       {
         return true;
@@ -228,53 +275,72 @@ bool TheorySetsPrivate::isMember( Node x, Node s ) {
   }
   return false;
 }
-        
-bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
-  Trace("sets-assert") << "TheorySets::assertFact : " << fact << ", exp = " << exp << std::endl;
+
+bool TheorySetsPrivate::assertFact(Node fact, Node exp)
+{
+  Trace("sets-assert") << "TheorySets::assertFact : " << fact
+                       << ", exp = " << exp << std::endl;
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
   if (!d_state.isEntailed(atom, polarity))
   {
-    if( atom.getKind()==kind::EQUAL ){
-      d_equalityEngine.assertEquality( atom, polarity, exp );
-    }else{
-      d_equalityEngine.assertPredicate( atom, polarity, exp );
+    if (atom.getKind() == kind::EQUAL)
+    {
+      d_equalityEngine.assertEquality(atom, polarity, exp);
+    }
+    else
+    {
+      d_equalityEngine.assertPredicate(atom, polarity, exp);
     }
     if (!d_state.isInConflict())
     {
-      if( atom.getKind()==kind::MEMBER && polarity ){
-        //check if set has a value, if so, we can propagate
-        Node r = d_equalityEngine.getRepresentative( atom[1] );
-        EqcInfo * e = getOrMakeEqcInfo( r, true );
-        if( e ){
+      if (atom.getKind() == kind::MEMBER && polarity)
+      {
+        // check if set has a value, if so, we can propagate
+        Node r = d_equalityEngine.getRepresentative(atom[1]);
+        EqcInfo* e = getOrMakeEqcInfo(r, true);
+        if (e)
+        {
           Node s = e->d_singleton;
-          if( !s.isNull() ){
-            Node exp = NodeManager::currentNM()->mkNode( kind::AND, atom, atom[1].eqNode( s ) );
-            d_keep.insert( exp );
-            if( s.getKind()==kind::SINGLETON ){
-              if( s[0]!=atom[0] ){
-                Trace("sets-prop") << "Propagate mem-eq : " << exp << std::endl;
-                Node eq = s[0].eqNode( atom[0] );
-                d_keep.insert( eq );
-                assertFact( eq, exp ); 
+          if (!s.isNull())
+          {
+            Node pexp = NodeManager::currentNM()->mkNode(
+                kind::AND, atom, atom[1].eqNode(s));
+            d_keep.insert(pexp);
+            if (s.getKind() == kind::SINGLETON)
+            {
+              if (s[0] != atom[0])
+              {
+                Trace("sets-prop")
+                    << "Propagate mem-eq : " << pexp << std::endl;
+                Node eq = s[0].eqNode(atom[0]);
+                d_keep.insert(eq);
+                assertFact(eq, pexp);
               }
-            }else{
-              Trace("sets-prop") << "Propagate mem-eq conflict : " << exp << std::endl;
-              d_state.setConflict(exp);
+            }
+            else
+            {
+              Trace("sets-prop")
+                  << "Propagate mem-eq conflict : " << pexp << std::endl;
+              d_state.setConflict(pexp);
             }
           }
         }
-        //add to membership list
-        NodeIntMap::iterator mem_i = d_members.find( r );
+        // add to membership list
+        NodeIntMap::iterator mem_i = d_members.find(r);
         int n_members = 0;
-        if( mem_i != d_members.end() ) {
+        if (mem_i != d_members.end())
+        {
           n_members = (*mem_i).second;
         }
         d_members[r] = n_members + 1;
-        if( n_members<(int)d_members_data[r].size() ){
+        if (n_members < (int)d_members_data[r].size())
+        {
           d_members_data[r][n_members] = atom;
-        }else{
-          d_members_data[r].push_back( atom );
+        }
+        else
+        {
+          d_members_data[r].push_back(atom);
         }
       }
     }
@@ -302,44 +368,54 @@ void TheorySetsPrivate::fullEffortReset()
   d_cardSolver->reset();
 }
 
-void TheorySetsPrivate::fullEffortCheck(){
+void TheorySetsPrivate::fullEffortCheck()
+{
   Trace("sets") << "----- Full effort check ------" << std::endl;
-  do{
+  do
+  {
+    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
 
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
     std::map<TypeNode, unsigned> eqcTypeCount;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-    while( !eqcs_i.isFinished() ){
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
+    while (!eqcs_i.isFinished())
+    {
       Node eqc = (*eqcs_i);
       bool isSet = false;
       TypeNode tn = eqc.getType();
       d_state.registerEqc(tn, eqc);
       eqcTypeCount[tn]++;
-      //common type node and term
+      // common type node and term
       TypeNode tnc;
       Node tnct;
-      if( tn.isSet() ){
+      if (tn.isSet())
+      {
         isSet = true;
         tnc = tn.getSetElementType();
         tnct = eqc;
       }
       Trace("sets-eqc") << "[" << eqc << "] : ";
-      eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-      while( !eqc_i.isFinished() ) {
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &d_equalityEngine);
+      while (!eqc_i.isFinished())
+      {
         Node n = (*eqc_i);
-        if( n!=eqc ){
+        if (n != eqc)
+        {
           Trace("sets-eqc") << n << " ";
         }
         TypeNode tnn = n.getType();
-        if( isSet ){
+        if (isSet)
+        {
           Assert(tnn.isSet());
           TypeNode tnnel = tnn.getSetElementType();
-          tnc = TypeNode::mostCommonTypeNode( tnc, tnnel );
+          tnc = TypeNode::mostCommonTypeNode(tnc, tnnel);
           Assert(!tnc.isNull());
-          //update the common type term
-          if( tnc==tnnel ){
+          // update the common type term
+          if (tnc == tnnel)
+          {
             tnct = n;
           }
         }
@@ -353,23 +429,33 @@ void TheorySetsPrivate::fullEffortCheck(){
           // if we do not handle the kind, set incomplete
           Kind nk = n[0].getKind();
           // some kinds of cardinality we cannot handle
-          if (nk == kind::UNIVERSE_SET || d_rels->isRelationKind(nk))
+          if (d_rels->isRelationKind(nk))
           {
             d_full_check_incomplete = true;
             Trace("sets-incomplete")
                 << "Sets : incomplete because of " << n << "." << std::endl;
-            // TODO (#1124) handle this case
+            // TODO (#1124):  The issue can be divided into 4 parts
+            // 1- Supporting the universe cardinality for finite types with
+            // finite cardinality (done)
+            // 2- Supporting the universe cardinality for uninterpreted sorts
+            // with finite-model-find (pending) See the implementation of
+            //    CardinalityExtension::checkCardinalityExtended
+            // 3- Supporting the universe cardinality for non-finite types
+            // (done)
+            // 4- Supporting cardinality for relations (hard)
           }
         }
         else
         {
-          if( d_rels->isRelationKind( n.getKind() ) ){
+          if (d_rels->isRelationKind(n.getKind()))
+          {
             d_rels_enabled = true;
           }
         }
         ++eqc_i;
       }
-      if( isSet ){
+      if (isSet)
+      {
         Assert(tnct.getType().getSetElementType() == tnc);
         d_most_common_type[eqc] = tnc;
         d_most_common_type_term[eqc] = tnct;
@@ -392,69 +478,85 @@ void TheorySetsPrivate::fullEffortCheck(){
 
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
-    if (!d_im.hasProcessed())
+    if (d_im.hasProcessed())
     {
-      if( Trace.isOn("sets-mem") ){
-        const std::vector<Node>& sec = d_state.getSetsEqClasses();
-        for (const Node& s : sec)
-        {
-          Trace("sets-mem") << "Eqc " << s << " : ";
-          const std::map<Node, Node>& smem = d_state.getMembers(s);
-          if (!smem.empty())
-          {
-            Trace("sets-mem") << "Memberships : ";
-            for (const std::pair<const Node, Node>& it2 : smem)
-            {
-              Trace("sets-mem") << it2.first << " ";
-            }
-          }
-          Node ss = d_state.getSingletonEqClass(s);
-          if (!ss.isNull())
-          {
-            Trace("sets-mem") << " : Singleton : " << ss;
-          }
-          Trace("sets-mem") << std::endl;
-        }
-      }
-      checkSubtypes();
-      d_im.flushPendingLemmas(true);
-      if (!d_im.hasProcessed())
+      continue;
+    }
+    if (Trace.isOn("sets-mem"))
+    {
+      const std::vector<Node>& sec = d_state.getSetsEqClasses();
+      for (const Node& s : sec)
       {
-        checkDownwardsClosure();
-        if( options::setsInferAsLemmas() ){
-          d_im.flushPendingLemmas();
-        }
-        if (!d_im.hasProcessed())
+        Trace("sets-mem") << "Eqc " << s << " : ";
+        const std::map<Node, Node>& smem = d_state.getMembers(s);
+        if (!smem.empty())
         {
-          checkUpwardsClosure();
-          d_im.flushPendingLemmas();
-          if (!d_im.hasProcessed())
+          Trace("sets-mem") << "Memberships : ";
+          for (const std::pair<const Node, Node>& it2 : smem)
           {
-            checkDisequalities();
-            d_im.flushPendingLemmas();
-            if (!d_im.hasProcessed())
-            {
-              checkReduceComprehensions();
-              d_im.flushPendingLemmas();
-
-              if (!d_im.hasProcessed() && d_card_enabled)
-              {
-                // call the check method of the cardinality solver
-                d_cardSolver->check();
-              }
-            }
+            Trace("sets-mem") << it2.first << " ";
           }
         }
+        Node ss = d_state.getSingletonEqClass(s);
+        if (!ss.isNull())
+        {
+          Trace("sets-mem") << " : Singleton : " << ss;
+        }
+        Trace("sets-mem") << std::endl;
       }
     }
-    if (!d_im.hasProcessed())
+    // check subtypes
+    checkSubtypes();
+    d_im.flushPendingLemmas(true);
+    if (d_im.hasProcessed())
     {
-      // invoke relations solver
+      continue;
+    }
+    // check downwards closure
+    checkDownwardsClosure();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check upwards closure
+    checkUpwardsClosure();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check disequalities
+    checkDisequalities();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    // check reduce comprehensions
+    checkReduceComprehensions();
+    d_im.flushPendingLemmas();
+    if (d_im.hasProcessed())
+    {
+      continue;
+    }
+    if (d_card_enabled)
+    {
+      // call the check method of the cardinality solver
+      d_cardSolver->check();
+      if (d_im.hasProcessed())
+      {
+        continue;
+      }
+    }
+    if (d_rels_enabled)
+    {
+      // call the check method of the relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
-    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
            && d_im.hasAddedFact());
+  Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
@@ -482,7 +584,7 @@ void TheorySetsPrivate::checkSubtypes()
           Node mctt = d_most_common_type_term[s];
           Assert(!mctt.isNull());
           Trace("sets") << "    most common type term is " << mctt << std::endl;
-          std::vector< Node > exp;
+          std::vector<Node> exp;
           exp.push_back(it2.second);
           Assert(d_state.areEqual(mctt, it2.second[1]));
           exp.push_back(mctt.eqNode(it2.second[1]));
@@ -506,7 +608,7 @@ void TheorySetsPrivate::checkSubtypes()
 void TheorySetsPrivate::checkDownwardsClosure()
 {
   Trace("sets") << "TheorySetsPrivate: check downwards closure..." << std::endl;
-  //downwards closure
+  // downwards closure
   const std::vector<Node>& sec = d_state.getSetsEqClasses();
   for (const Node& s : sec)
   {
@@ -523,33 +625,42 @@ void TheorySetsPrivate::checkDownwardsClosure()
             Node mem = it2.second;
             Node eq_set = nv;
             Assert(d_equalityEngine.areEqual(mem[1], eq_set));
-            if( mem[1]!=eq_set ){
-              Trace("sets-debug") << "Downwards closure based on " << mem << ", eq_set = " << eq_set << std::endl;
-              if( !options::setsProxyLemmas() ){
-                Node nmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], eq_set );
-                nmem = Rewriter::rewrite( nmem );
-                std::vector< Node > exp;
-                exp.push_back( mem );
-                exp.push_back( mem[1].eqNode( eq_set ) );
+            if (mem[1] != eq_set)
+            {
+              Trace("sets-debug") << "Downwards closure based on " << mem
+                                  << ", eq_set = " << eq_set << std::endl;
+              if (!options::setsProxyLemmas())
+              {
+                Node nmem = NodeManager::currentNM()->mkNode(
+                    kind::MEMBER, mem[0], eq_set);
+                nmem = Rewriter::rewrite(nmem);
+                std::vector<Node> exp;
+                exp.push_back(mem);
+                exp.push_back(mem[1].eqNode(eq_set));
                 d_im.assertInference(nmem, exp, "downc");
                 if (d_state.isInConflict())
                 {
                   return;
                 }
-              }else{
-                //use proxy set
+              }
+              else
+              {
+                // use proxy set
                 Node k = d_state.getProxy(eq_set);
-                Node pmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], k );
-                Node nmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], eq_set );
-                nmem = Rewriter::rewrite( nmem );
-                std::vector< Node > exp;
+                Node pmem =
+                    NodeManager::currentNM()->mkNode(kind::MEMBER, mem[0], k);
+                Node nmem = NodeManager::currentNM()->mkNode(
+                    kind::MEMBER, mem[0], eq_set);
+                nmem = Rewriter::rewrite(nmem);
+                std::vector<Node> exp;
                 if (d_state.areEqual(mem, pmem))
                 {
-                  exp.push_back( pmem );
+                  exp.push_back(pmem);
                 }
                 else
                 {
-                  nmem = NodeManager::currentNM()->mkNode( kind::OR, pmem.negate(), nmem );
+                  nmem = NodeManager::currentNM()->mkNode(
+                      kind::OR, pmem.negate(), nmem);
                 }
                 d_im.assertInference(nmem, exp, "downc");
               }
@@ -563,7 +674,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
 
 void TheorySetsPrivate::checkUpwardsClosure()
 {
-  //upwards closure
+  // upwards closure
   NodeManager* nm = NodeManager::currentNM();
   const std::map<Kind, std::map<Node, std::map<Node, Node> > >& boi =
       d_state.getBinaryOpIndex();
@@ -576,7 +687,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
     for (const std::pair<const Node, std::map<Node, Node> >& it : itb.second)
     {
       Node r1 = it.first;
-      //see if there are members in first argument r1
+      // see if there are members in first argument r1
       const std::map<Node, Node>& r1mem = d_state.getMembers(r1);
       if (!r1mem.empty() || k == kind::UNION)
       {
@@ -584,7 +695,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
         {
           Node r2 = it2.first;
           Node term = it2.second;
-          //see if there are members in second argument
+          // see if there are members in second argument
           const std::map<Node, Node>& r2mem = d_state.getMembers(r2);
           const std::map<Node, Node>& r2nmem = d_state.getNegativeMembers(r2);
           if (!r2mem.empty() || k != kind::INTERSECTION)
@@ -592,7 +703,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
             Trace("sets-debug")
                 << "Checking " << term << ", members = " << (!r1mem.empty())
                 << ", " << (!r2mem.empty()) << std::endl;
-            //for all members of r1
+            // for all members of r1
             if (!r1mem.empty())
             {
               for (const std::pair<const Node, Node>& itm1m : r1mem)
@@ -601,14 +712,17 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 Node x = itm1m.second[0];
                 Trace("sets-debug") << "checking membership " << xr << " "
                                     << itm1m.second << std::endl;
-                std::vector< Node > exp;
+                std::vector<Node> exp;
                 exp.push_back(itm1m.second);
                 d_state.addEqualityToExp(term[0], itm1m.second[1], exp);
                 bool valid = false;
                 int inferType = 0;
-                if( k==kind::UNION ){
+                if (k == kind::UNION)
+                {
                   valid = true;
-                }else if( k==kind::INTERSECTION ){
+                }
+                else if (k == kind::INTERSECTION)
+                {
                   // conclude x is in term
                   // if also existing in members of r2
                   std::map<Node, Node>::const_iterator itm = r2mem.find(xr);
@@ -621,7 +735,8 @@ void TheorySetsPrivate::checkUpwardsClosure()
                   }
                   else
                   {
-                    // if not, check whether it is definitely not a member, if unknown, split
+                    // if not, check whether it is definitely not a member, if
+                    // unknown, split
                     if (r2nmem.find(xr) == r2nmem.end())
                     {
                       exp.push_back(nm->mkNode(kind::MEMBER, x, term[1]));
@@ -629,7 +744,9 @@ void TheorySetsPrivate::checkUpwardsClosure()
                       inferType = 1;
                     }
                   }
-                }else{
+                }
+                else
+                {
                   Assert(k == kind::SETMINUS);
                   std::map<Node, Node>::const_iterator itm = r2mem.find(xr);
                   if (itm == r2mem.end())
@@ -642,9 +759,11 @@ void TheorySetsPrivate::checkUpwardsClosure()
                     inferType = 1;
                   }
                 }
-                if( valid ){
+                if (valid)
+                {
                   Node rr = d_equalityEngine.getRepresentative(term);
-                  if( !isMember( x, rr ) ){
+                  if (!isMember(x, rr))
+                  {
                     Node kk = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
                     d_im.assertInference(fact, exp, "upc", inferType);
@@ -658,20 +777,22 @@ void TheorySetsPrivate::checkUpwardsClosure()
                                     << itm1m.second << std::endl;
               }
             }
-            if( k==kind::UNION ){
+            if (k == kind::UNION)
+            {
               if (!r2mem.empty())
               {
-                //for all members of r2
+                // for all members of r2
                 for (const std::pair<const Node, Node>& itm2m : r2mem)
                 {
                   Node x = itm2m.second[0];
                   Node rr = d_equalityEngine.getRepresentative(term);
-                  if( !isMember( x, rr ) ){
-                    std::vector< Node > exp;
+                  if (!isMember(x, rr))
+                  {
+                    std::vector<Node> exp;
                     exp.push_back(itm2m.second);
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
-                    Node k = d_state.getProxy(term);
-                    Node fact = nm->mkNode(kind::MEMBER, x, k);
+                    Node r = d_state.getProxy(term);
+                    Node fact = nm->mkNode(kind::MEMBER, x, r);
                     d_im.assertInference(fact, exp, "upc2");
                     if (d_state.isInConflict())
                     {
@@ -688,40 +809,46 @@ void TheorySetsPrivate::checkUpwardsClosure()
   }
   if (!d_im.hasProcessed())
   {
-    if( options::setsExt() ){
-      //universal sets
+    if (options::setsExt())
+    {
+      // universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
-      //all elements must be in universal set
+      // all elements must be in universal set
       const std::vector<Node>& sec = d_state.getSetsEqClasses();
       for (const Node& s : sec)
       {
-        //if equivalence class contains a variable
+        // if equivalence class contains a variable
         Node v = d_state.getVariableSet(s);
         if (!v.isNull())
         {
-          //the variable in the equivalence class
-          std::map< TypeNode, Node > univ_set;
+          // the variable in the equivalence class
+          std::map<TypeNode, Node> univ_set;
           const std::map<Node, Node>& smems = d_state.getMembers(s);
           for (const std::pair<const Node, Node>& it2 : smems)
           {
             Node e = it2.second[0];
-            TypeNode tn = NodeManager::currentNM()->mkSetType( e.getType() );
+            TypeNode tn = NodeManager::currentNM()->mkSetType(e.getType());
             Node u;
-            std::map< TypeNode, Node >::iterator itu = univ_set.find( tn );
-            if( itu==univ_set.end() ){
+            std::map<TypeNode, Node>::iterator itu = univ_set.find(tn);
+            if (itu == univ_set.end())
+            {
               Node ueqc = d_state.getUnivSetEqClass(tn);
-              // if the universe does not yet exist, or is not in this equivalence class
+              // if the universe does not yet exist, or is not in this
+              // equivalence class
               if (s != ueqc)
               {
                 u = d_state.getUnivSet(tn);
               }
               univ_set[tn] = u;
-            }else{
+            }
+            else
+            {
               u = itu->second;
             }
-            if( !u.isNull() ){
+            if (!u.isNull())
+            {
               Assert(it2.second.getKind() == kind::MEMBER);
-              std::vector< Node > exp;
+              std::vector<Node> exp;
               exp.push_back(it2.second);
               if (v != it2.second[1])
               {
@@ -743,10 +870,11 @@ void TheorySetsPrivate::checkUpwardsClosure()
 
 void TheorySetsPrivate::checkDisequalities()
 {
-  //disequalities
+  // disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  for(NodeBoolMap::const_iterator it=d_deq.begin(); it !=d_deq.end(); ++it) {
+  for (NodeBoolMap::const_iterator it = d_deq.begin(); it != d_deq.end(); ++it)
+  {
     if (!(*it).second)
     {
       // not active
@@ -784,7 +912,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node mem2 = nm->mkNode(MEMBER, x, deq[1]);
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
-    d_im.assertInference(lem, d_emp_exp, "diseq", 1);
+    d_im.assertInference(lem, d_true, "diseq", 1);
     d_im.flushPendingLemmas();
     if (d_im.hasProcessed())
     {
@@ -832,26 +960,31 @@ void TheorySetsPrivate::checkReduceComprehensions()
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
 
-void TheorySetsPrivate::check(Theory::Effort level) {
+void TheorySetsPrivate::check(Theory::Effort level)
+{
   Trace("sets-check") << "Sets check effort " << level << std::endl;
-  if( level == Theory::EFFORT_LAST_CALL ){
+  if (level == Theory::EFFORT_LAST_CALL)
+  {
     return;
   }
   while (!d_external.done() && !d_state.isInConflict())
   {
     // Get all the assertions
     Assertion assertion = d_external.get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
     Trace("sets-assert") << "Assert from input " << fact << std::endl;
-    //assert the fact
-    assertFact( fact, fact );
+    // assert the fact
+    assertFact(fact, fact);
   }
-  Trace("sets-check") << "Sets finished assertions effort " << level << std::endl;
-  //invoke full effort check, relations check
+  Trace("sets-check") << "Sets finished assertions effort " << level
+                      << std::endl;
+  // invoke full effort check, relations check
   if (!d_state.isInConflict())
   {
-    if( level == Theory::EFFORT_FULL ){
-      if( !d_external.d_valuation.needCheck() ){
+    if (level == Theory::EFFORT_FULL)
+    {
+      if (!d_external.d_valuation.needCheck())
+      {
         fullEffortCheck();
         if (!d_state.isInConflict() && !d_im.hasSentLemma()
             && d_full_check_incomplete)
@@ -862,13 +995,14 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     }
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
-}/* TheorySetsPrivate::check() */
+} /* TheorySetsPrivate::check() */
 
 /************************ Sharing ************************/
 /************************ Sharing ************************/
 /************************ Sharing ************************/
 
-void TheorySetsPrivate::addSharedTerm(TNode n) {
+void TheorySetsPrivate::addSharedTerm(TNode n)
+{
   Debug("sets") << "[sets] TheorySetsPrivate::addSharedTerm( " << n << ")"
                 << std::endl;
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
@@ -880,74 +1014,98 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
                                      unsigned depth,
                                      unsigned& n_pairs)
 {
-  if( depth==arity ){
-    if( t2!=NULL ){
+  if (depth == arity)
+  {
+    if (t2 != NULL)
+    {
       Node f1 = t1->getData();
       Node f2 = t2->getData();
       if (!d_state.areEqual(f1, f2))
       {
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
-        vector< pair<TNode, TNode> > currentPairs;
-        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
+        vector<pair<TNode, TNode> > currentPairs;
+        for (unsigned k = 0; k < f1.getNumChildren(); ++k)
+        {
           TNode x = f1[k];
           TNode y = f2[k];
           Assert(d_equalityEngine.hasTerm(x));
           Assert(d_equalityEngine.hasTerm(y));
           Assert(!d_state.areDisequal(x, y));
           Assert(!areCareDisequal(x, y));
-          if( !d_equalityEngine.areEqual( x, y ) ){
-            Trace("sets-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
-            if( d_equalityEngine.isTriggerTerm(x, THEORY_SETS) && d_equalityEngine.isTriggerTerm(y, THEORY_SETS) ){
-              TNode x_shared = d_equalityEngine.getTriggerTermRepresentative(x, THEORY_SETS);
-              TNode y_shared = d_equalityEngine.getTriggerTermRepresentative(y, THEORY_SETS);
+          if (!d_equalityEngine.areEqual(x, y))
+          {
+            Trace("sets-cg")
+                << "Arg #" << k << " is " << x << " " << y << std::endl;
+            if (d_equalityEngine.isTriggerTerm(x, THEORY_SETS)
+                && d_equalityEngine.isTriggerTerm(y, THEORY_SETS))
+            {
+              TNode x_shared =
+                  d_equalityEngine.getTriggerTermRepresentative(x, THEORY_SETS);
+              TNode y_shared =
+                  d_equalityEngine.getTriggerTermRepresentative(y, THEORY_SETS);
               currentPairs.push_back(make_pair(x_shared, y_shared));
-            }else if( isCareArg( f1, k ) && isCareArg( f2, k ) ){
-              //splitting on sets (necessary for handling set of sets properly)
-              if( x.getType().isSet() ){
+            }
+            else if (isCareArg(f1, k) && isCareArg(f2, k))
+            {
+              // splitting on sets (necessary for handling set of sets properly)
+              if (x.getType().isSet())
+              {
                 Assert(y.getType().isSet());
                 if (!d_state.areDisequal(x, y))
                 {
-                  Trace("sets-cg-lemma") << "Should split on : " << x << "==" << y << std::endl;
+                  Trace("sets-cg-lemma")
+                      << "Should split on : " << x << "==" << y << std::endl;
                   d_im.split(x.eqNode(y));
                 }
               }
             }
           }
         }
-        for (unsigned c = 0; c < currentPairs.size(); ++ c) {
-          Trace("sets-cg-pair") << "Pair : " << currentPairs[c].first << " " << currentPairs[c].second << std::endl;
+        for (unsigned c = 0; c < currentPairs.size(); ++c)
+        {
+          Trace("sets-cg-pair") << "Pair : " << currentPairs[c].first << " "
+                                << currentPairs[c].second << std::endl;
           d_external.addCarePair(currentPairs[c].first, currentPairs[c].second);
           n_pairs++;
         }
       }
     }
-  }else{
-    if( t2==NULL ){
-      if( depth<(arity-1) ){
-        //add care pairs internal to each child
+  }
+  else
+  {
+    if (t2 == NULL)
+    {
+      if (depth < (arity - 1))
+      {
+        // add care pairs internal to each child
         for (std::pair<const TNode, TNodeTrie>& t : t1->d_data)
         {
           addCarePairs(&t.second, NULL, arity, depth + 1, n_pairs);
         }
       }
-      //add care pairs based on each pair of non-disequal arguments
+      // add care pairs based on each pair of non-disequal arguments
       for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
            it != t1->d_data.end();
            ++it)
       {
         std::map<TNode, TNodeTrie>::iterator it2 = it;
         ++it2;
-        for( ; it2 != t1->d_data.end(); ++it2 ){
-          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
+        for (; it2 != t1->d_data.end(); ++it2)
+        {
+          if (!d_equalityEngine.areDisequal(it->first, it2->first, false))
+          {
             if (!areCareDisequal(it->first, it2->first))
             {
-              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+              addCarePairs(
+                  &it->second, &it2->second, arity, depth + 1, n_pairs);
             }
           }
         }
       }
-    }else{
-      //add care pairs based on product of indices, non-disequal arguments
+    }
+    else
+    {
+      // add care pairs based on product of indices, non-disequal arguments
       for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
       {
         for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
@@ -965,7 +1123,8 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
   }
 }
 
-void TheorySetsPrivate::computeCareGraph() {
+void TheorySetsPrivate::computeCareGraph()
+{
   const std::map<Kind, std::vector<Node> >& ol = d_state.getOperatorList();
   for (const std::pair<const Kind, std::vector<Node> >& it : ol)
   {
@@ -978,32 +1137,39 @@ void TheorySetsPrivate::computeCareGraph() {
       Trace("sets-cg") << "Build index for " << k << "..." << std::endl;
       std::map<TypeNode, TNodeTrie> index;
       unsigned arity = 0;
-      //populate indices
+      // populate indices
       for (TNode f1 : it.second)
       {
         Assert(d_equalityEngine.hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         Assert(d_equalityEngine.hasTerm(f1));
-        //break into index based on operator, and type of first argument (since some operators are parametric)
+        // break into index based on operator, and type of first argument (since
+        // some operators are parametric)
         TypeNode tn = f1[0].getType();
-        std::vector< TNode > reps;
+        std::vector<TNode> reps;
         bool hasCareArg = false;
-        for( unsigned j=0; j<f1.getNumChildren(); j++ ){
-          reps.push_back( d_equalityEngine.getRepresentative( f1[j] ) );
-          if( isCareArg( f1, j ) ){
+        for (unsigned j = 0; j < f1.getNumChildren(); j++)
+        {
+          reps.push_back(d_equalityEngine.getRepresentative(f1[j]));
+          if (isCareArg(f1, j))
+          {
             hasCareArg = true;
           }
         }
-        if( hasCareArg ){
+        if (hasCareArg)
+        {
           Trace("sets-cg-debug") << "......adding." << std::endl;
-          index[tn].addTerm( f1, reps );
+          index[tn].addTerm(f1, reps);
           arity = reps.size();
-        }else{
+        }
+        else
+        {
           Trace("sets-cg-debug") << "......skip." << std::endl;
         }
       }
-      if( arity>0 ){
-        //for each index
+      if (arity > 0)
+      {
+        // for each index
         for (std::pair<const TypeNode, TNodeTrie>& tt : index)
         {
           Trace("sets-cg") << "Process index " << tt.first << "..."
@@ -1016,23 +1182,33 @@ void TheorySetsPrivate::computeCareGraph() {
   }
 }
 
-bool TheorySetsPrivate::isCareArg( Node n, unsigned a ) {
-  if( d_equalityEngine.isTriggerTerm( n[a], THEORY_SETS ) ){
+bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
+{
+  if (d_equalityEngine.isTriggerTerm(n[a], THEORY_SETS))
+  {
     return true;
-  }else if( ( n.getKind()==kind::MEMBER || n.getKind()==kind::SINGLETON ) && a==0 && n[0].getType().isSet() ){
+  }
+  else if ((n.getKind() == kind::MEMBER || n.getKind() == kind::SINGLETON)
+           && a == 0 && n[0].getType().isSet())
+  {
     return true;
-  }else{
+  }
+  else
+  {
     return false;
   }
 }
 
-EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
+EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b)
+{
   Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
-  if (d_equalityEngine.areEqual(a, b)) {
+  if (d_equalityEngine.areEqual(a, b))
+  {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
   }
-  if (d_equalityEngine.areDisequal(a, b, false)) {
+  if (d_equalityEngine.areDisequal(a, b, false))
+  {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
@@ -1058,13 +1234,43 @@ EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b) {
 /******************** Model generation ********************/
 /******************** Model generation ********************/
 
+namespace {
+/**
+ * This function is a helper function to print sets as
+ * Set A = { a0, a1, a2, }
+ * instead of
+ * (union (singleton a0) (union (singleton a1) (singleton a2)))
+ */
+void traceSetElementsRecursively(stringstream& stream, const Node& set)
+{
+  Assert(set.getType().isSet());
+  if (set.getKind() == SINGLETON)
+  {
+    stream << set[0] << ", ";
+  }
+  if (set.getKind() == UNION)
+  {
+    traceSetElementsRecursively(stream, set[0]);
+    traceSetElementsRecursively(stream, set[1]);
+  }
+}
+
+std::string traceElements(const Node& set)
+{
+  std::stringstream stream;
+  traceSetElementsRecursively(stream, set);
+  return stream.str();
+}
+
+}  // namespace
+
 bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
 {
   Trace("sets-model") << "Set collect model info" << std::endl;
   set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
   d_external.computeRelevantTerms(termSet);
-  
+
   // Assert equalities and disequalities to the model
   if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
@@ -1072,7 +1278,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
   }
 
   NodeManager* nm = NodeManager::currentNM();
-  std::map< Node, Node > mvals;
+  std::map<Node, Node> mvals;
   // If cardinality is enabled, we need to use the ordered equivalence class
   // list computed by the cardinality solver, where sets equivalence classes
   // are assigned model values based on their position in the cardinality
@@ -1084,13 +1290,19 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
   for (int i = (int)(sec.size() - 1); i >= 0; i--)
   {
     Node eqc = sec[i];
-    if( termSet.find( eqc )==termSet.end() ){
-      Trace("sets-model") << "* Do not assign value for " << eqc << " since is not relevant." << std::endl;
-    }else{
-      std::vector< Node > els;
+    if (termSet.find(eqc) == termSet.end())
+    {
+      Trace("sets-model") << "* Do not assign value for " << eqc
+                          << " since is not relevant." << std::endl;
+    }
+    else
+    {
+      std::vector<Node> els;
       bool is_base = !d_card_enabled || d_cardSolver->isModelValueBasic(eqc);
-      if( is_base ){
-        Trace("sets-model") << "Collect elements of base eqc " << eqc << std::endl;
+      if (is_base)
+      {
+        Trace("sets-model")
+            << "Collect elements of base eqc " << eqc << std::endl;
         // members that must be in eqc
         const std::map<Node, Node>& emems = d_state.getMembers(eqc);
         if (!emems.empty())
@@ -1098,24 +1310,44 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
           for (const std::pair<const Node, Node>& itmm : emems)
           {
             Node t = nm->mkNode(kind::SINGLETON, itmm.first);
-            els.push_back( t );
+            els.push_back(t);
           }
         }
       }
-      if( d_card_enabled ){
+      if (d_card_enabled)
+      {
         // make the slack elements for the equivalence class based on set
         // cardinality
-        d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals);
+        d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals, m);
       }
-      Node rep = NormalForm::mkBop( kind::UNION, els, eqc.getType() );
-      rep = Rewriter::rewrite( rep );
-      Trace("sets-model") << "* Assign representative of " << eqc << " to " << rep << std::endl;
+      Node rep = NormalForm::mkBop(kind::UNION, els, eqc.getType());
+      rep = Rewriter::rewrite(rep);
+      Trace("sets-model") << "* Assign representative of " << eqc << " to "
+                          << rep << std::endl;
       mvals[eqc] = rep;
       if (!m->assertEquality(eqc, rep, true))
       {
         return false;
       }
       m->assertSkeleton(rep);
+
+      Trace("sets-model") << "Set " << eqc << " = { " << traceElements(rep)
+                          << " }" << std::endl;
+    }
+  }
+
+  // handle slack elements constraints for finite types
+  if (d_card_enabled)
+  {
+    const std::map<TypeNode, std::vector<TNode> >& slackElements =
+        d_cardSolver->getFiniteTypeSlackElements();
+    for (const std::pair<TypeNode, std::vector<TNode> >& pair : slackElements)
+    {
+      const std::vector<Node>& members =
+          d_cardSolver->getFiniteTypeMembers(pair.first);
+      m->setAssignmentExclusionSetGroup(pair.second, members);
+      Trace("sets-model") << "ExclusionSet: Group " << pair.second
+                          << " is excluded from set" << members << std::endl;
     }
   }
   return true;
@@ -1125,26 +1357,32 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
 
-Node mkAnd(const std::vector<TNode>& conjunctions) {
+Node mkAnd(const std::vector<TNode>& conjunctions)
+{
   Assert(conjunctions.size() > 0);
 
   std::set<TNode> all;
-  for (unsigned i = 0; i < conjunctions.size(); ++i) {
+  for (unsigned i = 0; i < conjunctions.size(); ++i)
+  {
     TNode t = conjunctions[i];
-    if (t.getKind() == kind::AND) {
-      for(TNode::iterator child_it = t.begin();
-          child_it != t.end(); ++child_it) {
+    if (t.getKind() == kind::AND)
+    {
+      for (TNode::iterator child_it = t.begin(); child_it != t.end();
+           ++child_it)
+      {
         Assert((*child_it).getKind() != kind::AND);
         all.insert(*child_it);
       }
     }
-    else {
+    else
+    {
       all.insert(t);
     }
   }
 
   Assert(all.size() > 0);
-  if (all.size() == 1) {
+  if (all.size() == 1)
+  {
     // All the same, or just one
     return conjunctions[0];
   }
@@ -1152,35 +1390,37 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
   NodeBuilder<> conjunction(kind::AND);
   std::set<TNode>::const_iterator it = all.begin();
   std::set<TNode>::const_iterator it_end = all.end();
-  while (it != it_end) {
+  while (it != it_end)
+  {
     conjunction << *it;
-    ++ it;
+    ++it;
   }
   return conjunction;
-}/* mkAnd() */
+} /* mkAnd() */
 
-void TheorySetsPrivate::propagate(Theory::Effort effort) {
+void TheorySetsPrivate::propagate(Theory::Effort effort) {}
 
-}
-
-bool TheorySetsPrivate::propagate(TNode literal) {
-  Debug("sets-prop") << " propagate(" << literal  << ")" << std::endl;
+bool TheorySetsPrivate::propagate(TNode literal)
+{
+  Debug("sets-prop") << " propagate(" << literal << ")" << std::endl;
 
   // If already in conflict, no more propagation
   if (d_state.isInConflict())
   {
-    Debug("sets-prop") << "TheoryUF::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("sets-prop") << "TheoryUF::propagate(" << literal
+                       << "): already in conflict" << std::endl;
     return false;
   }
 
   // Propagate out
   bool ok = d_external.d_out->propagate(literal);
-  if (!ok) {
+  if (!ok)
+  {
     d_state.setConflict();
   }
 
   return ok;
-}/* TheorySetsPrivate::propagate(TNode) */
+} /* TheorySetsPrivate::propagate(TNode) */
 
 OutputChannel* TheorySetsPrivate::getOutputChannel()
 {
@@ -1189,10 +1429,10 @@ OutputChannel* TheorySetsPrivate::getOutputChannel()
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
-void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq)
+{
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
-
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
@@ -1205,18 +1445,22 @@ void TheorySetsPrivate::conflict(TNode a, TNode b)
 
 Node TheorySetsPrivate::explain(TNode literal)
 {
-  Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")"
-                << std::endl;
+  Debug("sets") << "TheorySetsPrivate::explain(" << literal << ")" << std::endl;
 
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
   std::vector<TNode> assumptions;
 
-  if(atom.getKind() == kind::EQUAL) {
+  if (atom.getKind() == kind::EQUAL)
+  {
     d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
-  } else if(atom.getKind() == kind::MEMBER) {
+  }
+  else if (atom.getKind() == kind::MEMBER)
+  {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
-  } else {
+  }
+  else
+  {
     Debug("sets") << "unhandled: " << literal << "; (" << atom << ", "
                   << polarity << "); kind" << atom.getKind() << std::endl;
     Unhandled();
@@ -1229,63 +1473,67 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
 {
   Debug("sets") << "TheorySetsPrivate::preRegisterTerm(" << node << ")"
                 << std::endl;
-  switch(node.getKind()) {
-  case kind::EQUAL:
-    d_equalityEngine.addTriggerEquality(node);
-    break;
-  case kind::MEMBER:
-    d_equalityEngine.addTriggerPredicate(node);
-    break;
-  case kind::CARD:
-    d_equalityEngine.addTriggerTerm(node, THEORY_SETS);
-    break;
-  default:
-    d_equalityEngine.addTerm(node);
-    break;
-  }
-}
-
-Node TheorySetsPrivate::expandDefinition(LogicRequest &logicRequest, Node n) {
-  Debug("sets-proc") << "expandDefinition : " << n << std::endl;
-  return n;
-}
-
-Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-  Debug("sets-proc") << "ppAssert : " << in << std::endl;
-  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
-  
-  //TODO: allow variable elimination for sets when setsExt = true
-  
-  //this is based off of Theory::ppAssert
-  if (in.getKind() == kind::EQUAL)
+  switch (node.getKind())
   {
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType()))
-    {
-      if (!in[0].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[0], in[1]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-             && (in[0].getType()).isSubtypeOf(in[1].getType()))
-    {
-      if (!in[1].getType().isSet() || !options::setsExt())
-      {
-        outSubstitutions.addSubstitution(in[1], in[0]);
-        status = Theory::PP_ASSERT_STATUS_SOLVED;
-      }
-    }
-    else if (in[0].isConst() && in[1].isConst())
-    {
-      if (in[0] != in[1])
-      {
-        status = Theory::PP_ASSERT_STATUS_CONFLICT;
-      }
-    }
+    case kind::EQUAL: d_equalityEngine.addTriggerEquality(node); break;
+    case kind::MEMBER: d_equalityEngine.addTriggerPredicate(node); break;
+    case kind::CARD: d_equalityEngine.addTriggerTerm(node, THEORY_SETS); break;
+    default: d_equalityEngine.addTerm(node); break;
   }
-  return status;
+}
+
+TrustNode TheorySetsPrivate::expandDefinition(Node node)
+{
+  Debug("sets-proc") << "expandDefinition : " << node << std::endl;
+
+  if (node.getKind() == kind::CHOOSE)
+  {
+    // (choose A) is expanded as
+    // (witness ((x elementType))
+    //    (ite
+    //      (= A (as emptyset setType))
+    //      (= x chooseUf(A))
+    //      (and (member x A) (= x chooseUf(A)))
+
+    NodeManager* nm = NodeManager::currentNM();
+    Node set = node[0];
+    TypeNode setType = set.getType();
+    Node chooseSkolem = getChooseFunction(setType);
+    Node apply = NodeManager::currentNM()->mkNode(APPLY_UF, chooseSkolem, set);
+
+    Node witnessVariable = nm->mkBoundVar(setType.getSetElementType());
+
+    Node equal = witnessVariable.eqNode(apply);
+    Node emptySet = nm->mkConst(EmptySet(setType));
+    Node isEmpty = set.eqNode(emptySet);
+    Node member = nm->mkNode(MEMBER, witnessVariable, set);
+    Node memberAndEqual = member.andNode(equal);
+    Node ite = nm->mkNode(kind::ITE, isEmpty, equal, memberAndEqual);
+    Node witnessVariables = nm->mkNode(BOUND_VAR_LIST, witnessVariable);
+    Node witness = nm->mkNode(WITNESS, witnessVariables, ite);
+    return TrustNode::mkTrustRewrite(node, witness, nullptr);
+  }
+
+  return TrustNode::null();
+}
+
+Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
+{
+  std::map<TypeNode, Node>::iterator it = d_chooseFunctions.find(setType);
+  if (it != d_chooseFunctions.end())
+  {
+    return it->second;
+  }
+
+  NodeManager* nm = NodeManager::currentNM();
+  TypeNode chooseUf = nm->mkFunctionType(setType, setType.getSetElementType());
+  stringstream stream;
+  stream << "chooseUf" << setType.getId();
+  string name = stream.str();
+  Node chooseSkolem = nm->mkSkolem(
+      name, chooseUf, "choose function", NodeManager::SKOLEM_EXACT_NAME);
+  d_chooseFunctions[setType] = chooseSkolem;
+  return chooseSkolem;
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }
@@ -1294,68 +1542,88 @@ void TheorySetsPrivate::presolve() { d_state.reset(); }
 /**************************** eq::NotifyClass *****************************/
 /**************************** eq::NotifyClass *****************************/
 
-
-bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value)
+bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerEquality(TNode equality,
+                                                             bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = " << equality
-                   << " value = " << value << std::endl;
-  if (value) {
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = "
+                   << equality << " value = " << value << std::endl;
+  if (value)
+  {
     return d_theory.propagate(equality);
-  } else {
+  }
+  else
+  {
     // We use only literal triggers so taking not is safe
     return d_theory.propagate(equality.notNode());
   }
 }
 
-bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool value)
+bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
+                                                              bool value)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = " << predicate
-                   << " value = " << value << std::endl;
-  if (value) {
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = "
+                   << predicate << " value = " << value << std::endl;
+  if (value)
+  {
     return d_theory.propagate(predicate);
-  } else {
+  }
+  else
+  {
     return d_theory.propagate(predicate.notNode());
   }
 }
 
-bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value)
+bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
+                                                                 TNode t1,
+                                                                 TNode t2,
+                                                                 bool value)
 {
   Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
-                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value << std::endl;
-  d_theory.propagate( value ? t1.eqNode( t2 ) : t1.eqNode( t2 ).negate() );
+                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value
+                   << std::endl;
+  d_theory.propagate(value ? t1.eqNode(t2) : t1.eqNode(t2).negate());
   return true;
 }
 
-void TheorySetsPrivate::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2)
+void TheorySetsPrivate::NotifyClass::eqNotifyConstantTermMerge(TNode t1,
+                                                               TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge " << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge "
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.conflict(t1, t2);
 }
 
 void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:" << " t = " << t << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:"
+                   << " t = " << t << std::endl;
   d_theory.eqNotifyNewClass(t);
 }
 
 void TheorySetsPrivate::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:"
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.eqNotifyPreMerge(t1, t2);
 }
 
 void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:" << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:"
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
   d_theory.eqNotifyPostMerge(t1, t2);
 }
 
-void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1,
+                                                      TNode t2,
+                                                      TNode reason)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:" << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason << std::endl;
+  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:"
+                   << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
+                   << std::endl;
   d_theory.eqNotifyDisequal(t1, t2, reason);
 }
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace CVC4

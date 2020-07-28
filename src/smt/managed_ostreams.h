@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -74,20 +74,6 @@ class ManagedOstream {
   std::ostream* d_managed;
 }; /* class ManagedOstream */
 
-class SetToDefaultSourceListener : public Listener {
- public:
-  SetToDefaultSourceListener(ManagedOstream* managedOstream)
-      : d_managedOstream(managedOstream){}
-
-  void notify() override
-  {
-    d_managedOstream->set(d_managedOstream->defaultSource());
-  }
-
- private:
-  ManagedOstream* d_managedOstream;
-};
-
 /**
  * This controls the memory associated with --dump-to.
  * This is is assumed to recieve a set whenever diagnosticChannelName
@@ -154,27 +140,6 @@ class ManagedDiagnosticOutputChannel : public ManagedOstream {
 
   /** Adds special cases to an ostreamopener. */
   void addSpecialCases(OstreamOpener* opener) const override;
-};/* class ManagedRegularOutputChannel */
-
-/** This controls the memory associated with replay-log. */
-class ManagedReplayLogOstream : public ManagedOstream {
- public:
-  ManagedReplayLogOstream();
-  ~ManagedReplayLogOstream();
-
-  std::ostream* getReplayLog() const { return d_replayLog; }
-  const char* getName() const override { return "replay-log"; }
-  std::string defaultSource() const override;
-
- protected:
-  /** Initializes an output stream. Not necessarily managed. */
-  void initialize(std::ostream* outStream) override;
-
-  /** Adds special cases to an ostreamopener. */
-  void addSpecialCases(OstreamOpener* opener) const override;
-
- private:
-  std::ostream* d_replayLog;
 };/* class ManagedRegularOutputChannel */
 
 }/* CVC4 namespace */

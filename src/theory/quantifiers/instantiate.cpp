@@ -2,9 +2,9 @@
 /*! \file instantiate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
     : d_qe(qe),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_count_debug(0),
+      d_total_inst_debug(u),
       d_c_inst_match_trie_dom(u)
 {
 }
@@ -81,22 +81,9 @@ bool Instantiate::checkComplete()
   return true;
 }
 
-void Instantiate::addNotify(InstantiationNotify* in)
-{
-  d_inst_notify.push_back(in);
-}
-
 void Instantiate::addRewriter(InstantiationRewriter* ir)
 {
   d_instRewrite.push_back(ir);
-}
-
-void Instantiate::notifyFlushLemmas()
-{
-  for (InstantiationNotify*& in : d_inst_notify)
-  {
-    in->filterInstantiations();
-  }
 }
 
 bool Instantiate::addInstantiation(
@@ -110,7 +97,7 @@ bool Instantiate::addInstantiation(
     Node q, std::vector<Node>& terms, bool mkRep, bool modEq, bool doVts)
 {
   // For resource-limiting (also does a time check).
-  d_qe->getOutputChannel().safePoint(options::quantifierStep());
+  d_qe->getOutputChannel().safePoint(ResourceManager::Resource::QuantifierStep);
   Assert(!d_qe->inConflict());
   Assert(terms.size() == q[0].getNumChildren());
   Assert(d_term_db != nullptr);
@@ -126,16 +113,15 @@ bool Instantiate::addInstantiation(
     {
       terms[i] = getTermForType(tn);
     }
+    // Ensure the type is correct, this for instance ensures that real terms
+    // are cast to integers for { x -> t } where x has type Int and t has
+    // type Real.
+    terms[i] = ensureType(terms[i], tn);
     if (mkRep)
     {
       // pick the best possible representative for instantiation, based on past
       // use and simplicity of term
       terms[i] = d_qe->getInternalRepresentative(terms[i], q, i);
-    }
-    else
-    {
-      // ensure the type is correct
-      terms[i] = quantifiers::TermUtil::ensureType(terms[i], tn);
     }
     Trace("inst-add-debug") << " -> " << terms[i] << std::endl;
     if (terms[i].isNull())
@@ -160,7 +146,7 @@ bool Instantiate::addInstantiation(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cbqi())
+    else if (options::cegqi())
     {
       Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
@@ -278,9 +264,8 @@ bool Instantiate::addInstantiation(
     return false;
   }
 
-  d_total_inst_debug[q]++;
+  d_total_inst_debug[q] = d_total_inst_debug[q] + 1;
   d_temp_inst_debug[q]++;
-  d_total_inst_count_debug++;
   if (Trace.isOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
@@ -304,7 +289,10 @@ bool Instantiate::addInstantiation(
     {
       // virtual term substitution/instantiation level features are
       // incompatible
-      Assert(false);
+      std::stringstream ss;
+      ss << "Cannot combine instantiation strategies that require virtual term "
+            "substitution with those that restrict instantiation levels";
+      throw LogicException(ss.str());
     }
     else
     {
@@ -321,26 +309,8 @@ bool Instantiate::addInstantiation(
           orig_body, q[1], maxInstLevel + 1);
     }
   }
-  QuantifiersModule::QEffort elevel = d_qe->getCurrentQEffort();
-  if (elevel > QuantifiersModule::QEFFORT_CONFLICT
-      && elevel < QuantifiersModule::QEFFORT_NONE
-      && !d_inst_notify.empty())
-  {
-    // notify listeners
-    for (InstantiationNotify*& in : d_inst_notify)
-    {
-      if (!in->notifyInstantiation(elevel, q, lem, terms, body))
-      {
-        Trace("inst-add-debug") << "...we are in conflict." << std::endl;
-        d_qe->setConflict();
-        Assert(d_qe->getNumLemmasWaiting() > 0);
-        break;
-      }
-    }
-  }
   if (options::trackInstLemmas())
   {
-    bool recorded;
     if (options::incrementalSolving())
     {
       recorded = d_c_inst_match_trie[q]->recordInstLemma(q, terms, lem);
@@ -495,6 +465,16 @@ Node Instantiate::getTermForType(TypeNode tn)
 
 bool Instantiate::printInstantiations(std::ostream& out)
 {
+  if (options::printInstMode() == options::PrintInstMode::NUM)
+  {
+    return printInstantiationsNum(out);
+  }
+  Assert(options::printInstMode() == options::PrintInstMode::LIST);
+  return printInstantiationsList(out);
+}
+
+bool Instantiate::printInstantiationsList(std::ostream& out)
+{
   bool useUnsatCore = false;
   std::vector<Node> active_lemmas;
   if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
@@ -502,33 +482,86 @@ bool Instantiate::printInstantiations(std::ostream& out)
     useUnsatCore = true;
   }
   bool printed = false;
+  bool isFull = options::printInstFull();
   if (options::incrementalSolving())
   {
     for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second->print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiations " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   else
   {
     for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second.print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiations " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   return printed;
+}
+
+bool Instantiate::printInstantiationsNum(std::ostream& out)
+{
+  if (d_total_inst_debug.empty())
+  {
+    return false;
+  }
+  bool isFull = options::printInstFull();
+  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+       it != d_total_inst_debug.end();
+       ++it)
+  {
+    std::stringstream ss;
+    if (printQuant((*it).first, ss, isFull))
+    {
+      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
+          << std::endl;
+    }
+  }
+  return true;
+}
+
+bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
+{
+  if (isFull)
+  {
+    out << q;
+    return true;
+  }
+  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
+  Node name = qa->getQuantName(q);
+  if (name.isNull())
+  {
+    return false;
+  }
+  out << name;
+  return true;
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -750,16 +783,30 @@ Node Instantiate::getInstantiatedConjunction(Node q)
   return ret;
 }
 
-void Instantiate::debugPrint()
+void Instantiate::debugPrint(std::ostream& out)
 {
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::pair<const Node, int>& i : d_temp_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
                                     << std::endl;
       d_temp_inst_debug[i.first] = 0;
+    }
+  }
+  if (options::debugInst())
+  {
+    bool isFull = options::printInstFull();
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    {
+      std::stringstream ss;
+      if (!printQuant(i.first, ss, isFull))
+      {
+        continue;
+      }
+      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+          << std::endl;
     }
   }
 }
@@ -768,12 +815,30 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::pair<const Node, int>& i : d_total_inst_debug)
+    for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+         it != d_total_inst_debug.end();
+         ++it)
     {
-      Trace("inst-per-quant") << " * " << i.second << " for " << i.first
-                              << std::endl;
+      Trace("inst-per-quant")
+          << " * " << (*it).second << " for " << (*it).first << std::endl;
     }
   }
+}
+
+Node Instantiate::ensureType(Node n, TypeNode tn)
+{
+  Trace("inst-add-debug2") << "Ensure " << n << " : " << tn << std::endl;
+  TypeNode ntn = n.getType();
+  Assert(ntn.isComparableTo(tn));
+  if (ntn.isSubtypeOf(tn))
+  {
+    return n;
+  }
+  if (tn.isInteger())
+  {
+    return NodeManager::currentNM()->mkNode(TO_INTEGER, n);
+  }
+  return Node::null();
 }
 
 Instantiate::Statistics::Statistics()

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Aina Niemetz, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -97,8 +97,8 @@ Node SygusUnif::constructBestConditional(Node ce,
 
 Node SygusUnif::constructBestStringToConcat(
     const std::vector<Node>& strs,
-    const std::map<Node, unsigned>& total_inc,
-    const std::map<Node, std::vector<unsigned>>& incr)
+    const std::map<Node, size_t>& total_inc,
+    const std::map<Node, std::vector<size_t>>& incr)
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;
@@ -106,7 +106,7 @@ Node SygusUnif::constructBestStringToConcat(
   // prefer one that has incremented by more than 0
   for (const Node& ns : strs_tmp)
   {
-    const std::map<Node, unsigned>::const_iterator iti = total_inc.find(ns);
+    const std::map<Node, size_t>::const_iterator iti = total_inc.find(ns);
     if (iti != total_inc.end() && iti->second > 0)
     {
       return ns;

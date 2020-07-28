@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -310,7 +310,7 @@ private:
   /** are universal disequal */
   bool areUniversalDisequal( TNode n1, TNode n2 );
   /** get universal representative */
-  TNode getUniversalRepresentative( TNode n, bool add = false );
+  Node getUniversalRepresentative(TNode n, bool add = false);
   /** set relevant */
   void setUniversalRelevant( TNode n );
   /** ordering for universal terms */

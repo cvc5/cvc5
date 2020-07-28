@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Haniel Barbosa, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,11 +18,11 @@
 #include "expr/datatype.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
-#include "printer/sygus_print_callback.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -80,159 +80,40 @@ SygusGrammarNorm::TypeObject::TypeObject(TypeNode src_tn, TypeNode unres_tn)
       d_sdt(unres_tn.getAttribute(expr::VarNameAttr()))
 {
 }
-Kind SygusGrammarNorm::TypeObject::getEliminateKind(Kind ok)
-{
-  Kind nk = ok;
-  // We also must ensure that builtin operators which are eliminated
-  // during expand definitions are replaced by the proper operator.
-  if (ok == BITVECTOR_UDIV)
-  {
-    nk = BITVECTOR_UDIV_TOTAL;
-  }
-  else if (ok == BITVECTOR_UREM)
-  {
-    nk = BITVECTOR_UREM_TOTAL;
-  }
-  else if (ok == DIVISION)
-  {
-    nk = DIVISION_TOTAL;
-  }
-  else if (ok == INTS_DIVISION)
-  {
-    nk = INTS_DIVISION_TOTAL;
-  }
-  else if (ok == INTS_MODULUS)
-  {
-    nk = INTS_MODULUS_TOTAL;
-  }
-  return nk;
-}
 
-Node SygusGrammarNorm::TypeObject::eliminatePartialOperators(Node n)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
-  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-
-    if (it == visited.end())
-    {
-      visited[cur] = Node::null();
-      visit.push_back(cur);
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (it->second.isNull())
-    {
-      Node ret = cur;
-      bool childChanged = false;
-      std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED)
-      {
-        children.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        it = visited.find(cn);
-        Assert(it != visited.end());
-        Assert(!it->second.isNull());
-        childChanged = childChanged || cn != it->second;
-        children.push_back(it->second);
-      }
-      Kind ok = cur.getKind();
-      Kind nk = getEliminateKind(ok);
-      if (nk != ok || childChanged)
-      {
-        ret = nm->mkNode(nk, children);
-      }
-      visited[cur] = ret;
-    }
-  } while (!visit.empty());
-  Assert(visited.find(n) != visited.end());
-  Assert(!visited.find(n)->second.isNull());
-  return visited[n];
-}
-
-void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
-                                               const DatatypeConstructor& cons)
+void SygusGrammarNorm::TypeObject::addConsInfo(
+    SygusGrammarNorm* sygus_norm,
+    const DTypeConstructor& cons)
 {
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
    * operator (NOT, ITE, etc) */
-  Node sygus_op = Node::fromExpr(cons.getSygusOp());
+  Node sygus_op = cons.getSygusOp();
   Trace("sygus-grammar-normalize-debug")
       << ".....operator is " << sygus_op << std::endl;
-  Node exp_sop_n = sygus_op;
-  if (exp_sop_n.isConst())
-  {
-    // If it is a builtin operator, convert to total version if necessary.
-    // First, get the kind for the operator.
-    Kind ok = NodeManager::operatorToKind(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
-        << "...builtin kind is " << ok << std::endl;
-    Kind nk = getEliminateKind(ok);
-    if (nk != ok)
-    {
-      Trace("sygus-grammar-normalize-debug")
-          << "...replace by builtin operator " << nk << std::endl;
-      exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
-    }
-  }
-  else
-  {
-    // Only expand definitions if the operator is not constant, since calling
-    // expandDefinitions on them should be a no-op. This check ensures we don't
-    // try to expand e.g. bitvector extract operators, whose type is undefined,
-    // and thus should not be passed to expandDefinitions.
-    exp_sop_n = Node::fromExpr(
-        smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
-    exp_sop_n = Rewriter::rewrite(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
-        << ".....operator (post-rewrite) is " << exp_sop_n << std::endl;
-    // eliminate all partial operators from it
-    exp_sop_n = eliminatePartialOperators(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug")
-        << ".....operator (eliminate partial operators) is " << exp_sop_n
-        << std::endl;
-    // rewrite again
-    exp_sop_n = Rewriter::rewrite(exp_sop_n);
-  }
 
   std::vector<TypeNode> consTypes;
-  for (const DatatypeConstructorArg& arg : cons)
+  const std::vector<std::shared_ptr<DTypeSelector> >& args = cons.getArgs();
+  for (const std::shared_ptr<DTypeSelector>& arg : args)
   {
     // Collect unresolved type nodes corresponding to the typenode of the
     // arguments.
-    TypeNode atype = TypeNode::fromType(arg.getRangeType());
+    TypeNode atype = arg->getRangeType();
     // normalize it recursively
     atype = sygus_norm->normalizeSygusRec(atype);
     consTypes.push_back(atype);
   }
 
-  Trace("sygus-type-cons-defs") << "\tOriginal op: " << cons.getSygusOp()
-                                << "\n\tExpanded one: " << exp_sop_n << "\n\n";
-  d_sdt.addConstructor(exp_sop_n,
-                       cons.getName(),
-                       consTypes,
-                       cons.getSygusPrintCallback(),
-                       cons.getWeight());
+  d_sdt.addConstructor(
+      sygus_op, cons.getName(), consTypes, cons.getWeight());
 }
 
 void SygusGrammarNorm::TypeObject::initializeDatatype(
-    SygusGrammarNorm* sygus_norm, const Datatype& dt)
+    SygusGrammarNorm* sygus_norm, const DType& dt)
 {
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
-  TypeNode sygusType = TypeNode::fromType(dt.getSygusType());
+  TypeNode sygusType = dt.getSygusType();
   d_sdt.initializeDatatype(sygusType,
                            sygus_norm->d_sygus_vars.toExpr(),
                            dt.getSygusAllowConst(),
@@ -247,7 +128,7 @@ void SygusGrammarNorm::TypeObject::initializeDatatype(
 
 void SygusGrammarNorm::TransfDrop::buildType(SygusGrammarNorm* sygus_norm,
                                              TypeObject& to,
-                                             const Datatype& dt,
+                                             const DType& dt,
                                              std::vector<unsigned>& op_pos)
 {
   std::vector<unsigned> difference;
@@ -287,7 +168,7 @@ bool SygusGrammarNorm::TransfChain::isId(TypeNode tn, Node op, Node n)
 
 void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
                                               TypeObject& to,
-                                              const Datatype& dt,
+                                              const DType& dt,
                                               std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -324,8 +205,7 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     Trace("sygus-grammar-normalize-chain") << "\n";
   }
   /* Build identity operator and empty callback */
-  Node iden_op =
-      SygusGrammarNorm::getIdOp(TypeNode::fromType(dt.getSygusType()));
+  Node iden_op = SygusGrammarNorm::getIdOp(dt.getSygusType());
   /* If all operators are claimed, create a monomial */
   if (nb_op_pos == d_elem_pos.size() + 1)
   {
@@ -343,7 +223,6 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
     to.d_sdt.addConstructor(iden_op,
                             "id",
                             ctypes,
-                            printer::SygusEmptyPrintCallback::getEmptyPC(),
                             0);
     Trace("sygus-grammar-normalize-chain")
         << "\tAdding  " << t << " to " << to.d_unres_tn << "\n";
@@ -385,7 +264,6 @@ void SygusGrammarNorm::TransfChain::buildType(SygusGrammarNorm* sygus_norm,
   to.d_sdt.addConstructor(iden_op,
                           "id_next",
                           ctypes,
-                          printer::SygusEmptyPrintCallback::getEmptyPC(),
                           0);
 }
 
@@ -398,10 +276,10 @@ std::map<TypeNode, Node> SygusGrammarNorm::d_tn_to_id = {};
  * returns true if collected anything
  */
 std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
-    TypeNode tn, const Datatype& dt, const std::vector<unsigned>& op_pos)
+    TypeNode tn, const DType& dt, const std::vector<unsigned>& op_pos)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TypeNode sygus_tn = TypeNode::fromType(dt.getSygusType());
+  TypeNode sygus_tn = dt.getSygusType();
   Trace("sygus-gnorm") << "Infer transf for " << dt.getName() << "..."
                        << std::endl;
   Trace("sygus-gnorm") << "  #cons = " << op_pos.size() << " / "
@@ -436,21 +314,20 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
   {
     Assert(op_pos[i] < dt.getNumConstructors());
-    Expr sop = dt[op_pos[i]].getSygusOp();
+    Node sop = dt[op_pos[i]].getSygusOp();
     /* Collects a chainable operator such as PLUS */
-    if (sop.getKind() == BUILTIN
-        && TransfChain::isChainable(sygus_tn, Node::fromExpr(sop)))
+    if (sop.getKind() == BUILTIN && TransfChain::isChainable(sygus_tn, sop))
     {
-      Assert(nm->operatorToKind(Node::fromExpr(sop)) == PLUS);
+      Assert(nm->operatorToKind(sop) == PLUS);
       /* TODO #1304: be robust for this case */
       /* For now only transforms applications whose arguments have the same type
        * as the root */
       bool same_type_plus = true;
-      for (const DatatypeConstructorArg& arg : dt[op_pos[i]])
+      const std::vector<std::shared_ptr<DTypeSelector> >& args =
+          dt[op_pos[i]].getArgs();
+      for (const std::shared_ptr<DTypeSelector>& arg : args)
       {
-        if (TypeNode::fromType(
-                static_cast<SelectorType>(arg.getType()).getRangeType())
-            != tn)
+        if (arg->getRangeType() != tn)
         {
           same_type_plus = false;
           break;
@@ -472,7 +349,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
     }
     /* TODO #1304: check this for each operator */
     /* Collects elements that are not the identity (e.g. 0 is the id of PLUS) */
-    if (!TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), Node::fromExpr(sop)))
+    if (!TransfChain::isId(sygus_tn, nm->operatorOf(PLUS), sop))
     {
       Trace("sygus-grammar-normalize-infer")
           << "\tCollecting for NON_ID_ELEMS the sop " << sop
@@ -492,7 +369,7 @@ std::unique_ptr<SygusGrammarNorm::Transf> SygusGrammarNorm::inferTransf(
 }
 
 TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
-                                             const Datatype& dt,
+                                             const DType& dt,
                                              std::vector<unsigned>& op_pos)
 {
   Assert(tn.isDatatype());
@@ -541,7 +418,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
 
   if (dt.getSygusAllowConst())
   {
-    TypeNode sygus_type = TypeNode::fromType(dt.getSygusType());
+    TypeNode sygus_type = dt.getSygusType();
     // must be handled by counterexample-guided instantiation
     // don't do it for Boolean (not worth the trouble, since it has only
     // minimal gain (1 any constant vs 2 constructors for true/false), and
@@ -551,13 +428,26 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
         && !sygus_type.isBoolean())
     {
       Trace("sygus-grammar-normalize") << "...add any constant constructor.\n";
-      TypeNode dtn = TypeNode::fromType(dt.getSygusType());
+      TypeNode dtn = dt.getSygusType();
       // we add this constructor first since we use left associative chains
       // and our symmetry breaking should group any constants together
       // beneath the same application
       // we set its weight to zero since it should be considered at the
       // same level as constants.
       to.d_sdt.addAnyConstantConstructor(dtn);
+    }
+    else
+    {
+      // add default constant constructors
+      std::vector<Node> ops;
+      CegGrammarConstructor::mkSygusConstantsForType(sygus_type, ops);
+      for (const Node& op : ops)
+      {
+        std::stringstream ss;
+        ss << op;
+        std::vector<TypeNode> ctypes;
+        to.d_sdt.addConstructor(op, ss.str(), ctypes);
+      }
     }
   }
 
@@ -570,11 +460,15 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
     transformation->buildType(this, to, dt, op_pos);
   }
 
-  /* Remaining operators are rebuilt as they are */
+  // Remaining operators are rebuilt as they are.
+  // Notice that we must extract the Datatype here to get the (Expr-layer)
+  // sygus print callback.
+  const Datatype& dtt = DatatypeType(tn.toType()).getDatatype();
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
   {
-    Assert(op_pos[i] < dt.getNumConstructors());
-    to.addConsInfo(this, dt[op_pos[i]]);
+    unsigned oi = op_pos[i];
+    Assert(oi < dt.getNumConstructors());
+    to.addConsInfo(this, dt[oi]);
   }
   /* Build normalize datatype */
   if (Trace.isOn("sygus-grammar-normalize"))
@@ -599,7 +493,7 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn)
     return tn;
   }
   /* Collect all operators for normalization */
-  const Datatype& dt = DatatypeType(tn.toType()).getDatatype();
+  const DType& dt = tn.getDType();
   if (!dt.isSygus())
   {
     // datatype but not sygus datatype case

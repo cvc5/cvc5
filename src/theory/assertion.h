@@ -2,9 +2,9 @@
 /*! \file assertion.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,19 +28,21 @@ namespace theory {
 /** Information about an assertion for the theories. */
 struct Assertion {
   /** The assertion expression. */
-  const Node assertion;
+  const Node d_assertion;
 
   /** Has this assertion been preregistered with this theory. */
-  const bool isPreregistered;
+  const bool d_isPreregistered;
 
   Assertion(TNode assertion, bool isPreregistered)
-      : assertion(assertion), isPreregistered(isPreregistered) {}
+      : d_assertion(assertion), d_isPreregistered(isPreregistered)
+  {
+  }
 
   /** Convert the assertion to a TNode. */
-  operator TNode() const { return assertion; }
+  operator TNode() const { return d_assertion; }
 
   /** Convert the assertion to a Node. */
-  operator Node() const { return assertion; }
+  operator Node() const { return d_assertion; }
 
 }; /* struct Assertion */
 

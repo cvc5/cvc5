@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,10 +18,12 @@
 
 #include "base/check.h"
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
@@ -34,20 +36,29 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
-    Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo)
+TheoryQuantifiers::TheoryQuantifiers(Context* c,
+                                     context::UserContext* u,
+                                     OutputChannel& out,
+                                     Valuation valuation,
+                                     const LogicInfo& logicInfo,
+                                     ProofNodeManager* pnm)
+    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm)
 {
-  out.handleUserAttribute( "axiom", this );
-  out.handleUserAttribute( "conjecture", this );
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
-  out.handleUserAttribute("quant-name", this);
+  out.handleUserAttribute("qid", this);
   out.handleUserAttribute("sygus-synth-grammar", this);
   out.handleUserAttribute( "sygus-synth-fun-var-list", this );
   out.handleUserAttribute( "quant-inst-max-level", this );
-  out.handleUserAttribute( "rr-priority", this );
   out.handleUserAttribute( "quant-elim", this );
   out.handleUserAttribute( "quant-elim-partial", this );
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add the proof rules
+    d_qChecker.registerTo(pc);
+  }
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
@@ -60,6 +71,8 @@ void TheoryQuantifiers::finishInit()
   Assert(tm != nullptr);
   tm->setUnevaluatedKind(EXISTS);
   tm->setUnevaluatedKind(FORALL);
+  // witness is used in several instantiation strategies
+  tm->setUnevaluatedKind(WITNESS);
 }
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {
@@ -95,13 +108,17 @@ void TheoryQuantifiers::ppNotifyAssertions(
 bool TheoryQuantifiers::collectModelInfo(TheoryModel* m)
 {
   for(assertions_iterator i = facts_begin(); i != facts_end(); ++i) {
-    if((*i).assertion.getKind() == kind::NOT) {
-      Debug("quantifiers::collectModelInfo") << "got quant FALSE: " << (*i).assertion[0] << endl;
-      if (!m->assertPredicate((*i).assertion[0], false))
+    if ((*i).d_assertion.getKind() == kind::NOT)
+    {
+      Debug("quantifiers::collectModelInfo")
+          << "got quant FALSE: " << (*i).d_assertion[0] << endl;
+      if (!m->assertPredicate((*i).d_assertion[0], false))
       {
         return false;
       }
-    } else {
+    }
+    else
+    {
       Debug("quantifiers::collectModelInfo") << "got quant TRUE : " << *i << endl;
       if (!m->assertPredicate(*i, true))
       {

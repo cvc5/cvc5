@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -350,6 +350,7 @@ int RepSetIterator::incrementAtIndex(int i)
 #ifdef DISABLE_EVAL_SKIP_MULTIPLE
   i = (int)d_index.size()-1;
 #endif
+  Trace("rsi-debug") << "RepSetIterator::incrementAtIndex: " << i << std::endl;
   //increment d_index
   if( i>=0){
     Trace("rsi-debug") << "domain size of " << i << " is " << domainSize(i) << std::endl;
@@ -361,6 +362,7 @@ int RepSetIterator::incrementAtIndex(int i)
     }
   }
   if( i==-1 ){
+    Trace("rsi-debug") << "increment failed" << std::endl;
     d_index.clear();
     return -1;
   }else{
@@ -371,8 +373,10 @@ int RepSetIterator::incrementAtIndex(int i)
 }
 
 int RepSetIterator::do_reset_increment( int i, bool initial ) {
-  bool emptyDomain = false;
+  Trace("rsi-debug") << "RepSetIterator::do_reset_increment: " << i
+                     << ", initial=" << initial << std::endl;
   for( unsigned ii=(i+1); ii<d_index.size(); ii++ ){
+    bool emptyDomain = false;
     int ri_res = resetIndex( ii, initial );
     if( ri_res==-1 ){
       //failed
@@ -383,16 +387,25 @@ int RepSetIterator::do_reset_increment( int i, bool initial ) {
       emptyDomain = true;
     }
     //force next iteration if currently an empty domain
-    if( emptyDomain ){
-      d_index[ii] = domainSize(ii)-1;
+    if (emptyDomain)
+    {
+      Trace("rsi-debug") << "This is an empty domain (index " << ii << ")."
+                         << std::endl;
+      if (ii > 0)
+      {
+        // increment at the previous index
+        return incrementAtIndex(ii - 1);
+      }
+      else
+      {
+        // this is the first index, we are done
+        d_index.clear();
+        return -1;
+      }
     }
   }
-  if( emptyDomain ){
-    Trace("rsi-debug") << "This is an empty domain, increment." << std::endl;
-    return increment();
-  }else{
-    return i;
-  }
+  Trace("rsi-debug") << "Finished, return " << i << std::endl;
+  return i;
 }
 
 int RepSetIterator::increment(){

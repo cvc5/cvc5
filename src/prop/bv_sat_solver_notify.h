@@ -2,9 +2,9 @@
 /*! \file bv_sat_solver_notify.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Alex Ozdemir, Tim King
+ **   Liana Hadarean, Alex Ozdemir, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #define CVC4__PROP__BVSATSOLVERNOTIFY_H
 
 #include "prop/sat_solver_types.h"
+#include "util/resource_manager.h"
 
 namespace CVC4 {
 namespace prop {
@@ -38,8 +39,8 @@ public:
    * Notify about a learnt clause.
    */
   virtual void notify(SatClause& clause) = 0;
-  virtual void spendResource(unsigned amount) = 0;
-  virtual void safePoint(unsigned amount) = 0;
+  virtual void spendResource(ResourceManager::Resource r) = 0;
+  virtual void safePoint(ResourceManager::Resource r) = 0;
 
 };/* class BVSatSolverInterface::Notify */
 

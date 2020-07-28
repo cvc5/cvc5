@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,6 +28,7 @@
 #include "theory/ext_theory.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
+#include "theory/theory_rewriter.h"
 
 using namespace std;
 
@@ -59,19 +60,20 @@ Theory::Theory(TheoryId id,
                OutputChannel& out,
                Valuation valuation,
                const LogicInfo& logicInfo,
+               ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
       d_instanceName(name),
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
+      d_pnm(pnm),
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(NULL),
       d_quantEngine(NULL),
       d_decManager(nullptr),
-      d_extTheory(NULL),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
                              + "::computeCareGraphTime"),
@@ -87,8 +89,6 @@ Theory::Theory(TheoryId id,
 Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_checkTime);
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
-
-  delete d_extTheory;
 }
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
@@ -267,6 +267,33 @@ void Theory::debugPrintFacts() const{
   printFacts(DebugChannel.getStream());
 }
 
+bool Theory::isLegalElimination(TNode x, TNode val)
+{
+  Assert(x.isVar());
+  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
+      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+  {
+    return false;
+  }
+  if (expr::hasSubterm(val, x))
+  {
+    return false;
+  }
+  if (!val.getType().isSubtypeOf(x.getType()))
+  {
+    return false;
+  }
+  if (!options::produceModels())
+  {
+    // don't care about the model, we are fine
+    return true;
+  }
+  // if there is a model object
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  return tm->isLegalElimination(x, val);
+}
+
 std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
   std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
@@ -336,15 +363,13 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType())
+    if (in[0].isVar() && isLegalElimination(in[0], in[1])
         && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-        && (in[0].getType()).isSubtypeOf(in[1].getType())
+    if (in[1].isVar() && isLegalElimination(in[1], in[0])
         && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[1], in[0]);
@@ -362,16 +387,9 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
+{
   return make_pair(false, Node::null());
-}
-
-ExtTheory* Theory::getExtTheory() {
-  Assert(d_extTheory != NULL);
-  return d_extTheory;
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
@@ -401,33 +419,6 @@ void Theory::setDecisionManager(DecisionManager* dm)
   Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
   d_decManager = dm;
-}
-
-void Theory::setupExtTheory() {
-  Assert(d_extTheory == NULL);
-  d_extTheory = new ExtTheory(this);
-}
-
-
-EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
-  : d_tid(tid) {
-}
-
-EntailmentCheckParameters::~EntailmentCheckParameters(){}
-
-TheoryId EntailmentCheckParameters::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::EntailmentCheckSideEffects(TheoryId tid)
-  : d_tid(tid)
-{}
-
-TheoryId EntailmentCheckSideEffects::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
 }
 
 }/* CVC4::theory namespace */

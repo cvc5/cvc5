@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 
 #include "base/check.h"
 #include "context/context.h"
+#include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
 #include "proof/clause_id.h"
@@ -31,7 +32,6 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/output_channel.h"
 #include "theory/term_registration_visitor.h"
@@ -60,9 +60,9 @@ std::string append(const std::string& str, uint64_t num) {
 
 ProofManager::ProofManager(context::Context* context, ProofFormat format)
     : d_context(context),
-      d_satProof(NULL),
-      d_cnfProof(NULL),
-      d_theoryProof(NULL),
+      d_satProof(nullptr),
+      d_cnfProof(nullptr),
+      d_theoryProof(nullptr),
       d_inputFormulas(),
       d_inputCoreFormulas(context),
       d_outputCoreFormulas(context),
@@ -73,11 +73,7 @@ ProofManager::ProofManager(context::Context* context, ProofFormat format)
 {
 }
 
-ProofManager::~ProofManager() {
-  if (d_satProof) delete d_satProof;
-  if (d_cnfProof) delete d_cnfProof;
-  if (d_theoryProof) delete d_theoryProof;
-}
+ProofManager::~ProofManager() {}
 
 ProofManager* ProofManager::currentPM() {
   return smt::currentProofManager();
@@ -89,26 +85,29 @@ const Proof& ProofManager::getProof(SmtEngine* smt)
     Assert(currentPM()->d_format == LFSC);
     currentPM()->d_fullProof.reset(new LFSCProof(
         smt,
-        static_cast<CoreSatProof*>(getSatProof()),
+        getSatProof(),
         static_cast<LFSCCnfProof*>(getCnfProof()),
         static_cast<LFSCTheoryProofEngine*>(getTheoryProofEngine())));
   }
   return *(currentPM()->d_fullProof);
 }
 
-CoreSatProof* ProofManager::getSatProof() {
+CoreSatProof* ProofManager::getSatProof()
+{
   Assert(currentPM()->d_satProof);
-  return currentPM()->d_satProof;
+  return currentPM()->d_satProof.get();
 }
 
-CnfProof* ProofManager::getCnfProof() {
+CnfProof* ProofManager::getCnfProof()
+{
   Assert(currentPM()->d_cnfProof);
-  return currentPM()->d_cnfProof;
+  return currentPM()->d_cnfProof.get();
 }
 
-TheoryProofEngine* ProofManager::getTheoryProofEngine() {
+TheoryProofEngine* ProofManager::getTheoryProofEngine()
+{
   Assert(currentPM()->d_theoryProof != NULL);
-  return currentPM()->d_theoryProof;
+  return currentPM()->d_theoryProof.get();
 }
 
 UFProof* ProofManager::getUfProof() {
@@ -141,43 +140,45 @@ SkolemizationManager* ProofManager::getSkolemizationManager() {
   return &(currentPM()->d_skolemizationManager);
 }
 
-void ProofManager::initSatProof(Minisat::Solver* solver) {
-  Assert(currentPM()->d_satProof == NULL);
-  Assert(currentPM()->d_format == LFSC);
-  currentPM()->d_satProof = new CoreSatProof(solver, d_context, "");
+void ProofManager::initSatProof(Minisat::Solver* solver)
+{
+  Assert(d_format == LFSC);
+  // Destroy old instance before initializing new one to avoid issues with
+  // registering stats
+  d_satProof.reset();
+  d_satProof.reset(new CoreSatProof(solver, d_context, ""));
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
-                                context::Context* ctx) {
-  ProofManager* pm = currentPM();
-  Assert(pm->d_satProof != NULL);
-  Assert(pm->d_cnfProof == NULL);
-  Assert(pm->d_format == LFSC);
-  CnfProof* cnf = new LFSCCnfProof(cnfStream, ctx, "");
-  pm->d_cnfProof = cnf;
+                                context::Context* ctx)
+{
+  Assert(d_satProof != nullptr);
+  Assert(d_format == LFSC);
+
+  d_cnfProof.reset(new LFSCCnfProof(cnfStream, ctx, ""));
 
   // true and false have to be setup in a special way
   Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
   Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
 
-  pm->d_cnfProof->pushCurrentAssertion(true_node);
-  pm->d_cnfProof->pushCurrentDefinition(true_node);
-  pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getTrueUnit());
-  pm->d_cnfProof->popCurrentAssertion();
-  pm->d_cnfProof->popCurrentDefinition();
+  d_cnfProof->pushCurrentAssertion(true_node);
+  d_cnfProof->pushCurrentDefinition(true_node);
+  d_cnfProof->registerConvertedClause(d_satProof->getTrueUnit());
+  d_cnfProof->popCurrentAssertion();
+  d_cnfProof->popCurrentDefinition();
 
-  pm->d_cnfProof->pushCurrentAssertion(false_node);
-  pm->d_cnfProof->pushCurrentDefinition(false_node);
-  pm->d_cnfProof->registerConvertedClause(pm->d_satProof->getFalseUnit());
-  pm->d_cnfProof->popCurrentAssertion();
-  pm->d_cnfProof->popCurrentDefinition();
-
+  d_cnfProof->pushCurrentAssertion(false_node);
+  d_cnfProof->pushCurrentDefinition(false_node);
+  d_cnfProof->registerConvertedClause(d_satProof->getFalseUnit());
+  d_cnfProof->popCurrentAssertion();
+  d_cnfProof->popCurrentDefinition();
 }
 
-void ProofManager::initTheoryProofEngine() {
-  Assert(currentPM()->d_theoryProof == NULL);
-  Assert(currentPM()->d_format == LFSC);
-  currentPM()->d_theoryProof = new LFSCTheoryProofEngine();
+void ProofManager::initTheoryProofEngine()
+{
+  Assert(d_theoryProof == NULL);
+  Assert(d_format == LFSC);
+  d_theoryProof.reset(new LFSCTheoryProofEngine());
 }
 
 std::string ProofManager::getInputClauseName(ClauseId id,
@@ -564,6 +565,30 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
   Unreachable();
 }
 
+void collectAtoms(TNode node, std::set<Node>& seen, CnfProof* cnfProof)
+{
+  Debug("pf::pm::atoms") << "collectAtoms: Colleting atoms from " << node
+                         << "\n";
+  if (seen.find(node) != seen.end())
+  {
+    Debug("pf::pm::atoms") << "collectAtoms:\t already seen\n";
+    return;
+  }
+  // if I have a SAT literal for a node, save it, unless this node is a
+  // negation, in which case its underlying will be collected downstream
+  if (cnfProof->hasLiteral(node) && node.getKind() != kind::NOT)
+  {
+    Debug("pf::pm::atoms") << "collectAtoms: has SAT literal, save\n";
+    seen.insert(node);
+  }
+  for (unsigned i = 0; i < node.getNumChildren(); ++i)
+  {
+    Debug("pf::pm::atoms") << push;
+    collectAtoms(node[i], seen, cnfProof);
+    Debug("pf::pm::atoms") << pop;
+  }
+}
+
 void LFSCProof::toStream(std::ostream& out) const
 {
   TimerStat::CodeTimer proofProductionTimer(
@@ -682,12 +707,15 @@ void LFSCProof::toStream(std::ostream& out) const
     d_cnfProof->collectAtomsForClauses(used_lemmas, atoms);
 
     // collects the atoms in the assertions
-    for (NodeSet::const_iterator it = used_assertions.begin();
-         it != used_assertions.end();
-         ++it)
+    Debug("pf::pm") << std::endl
+                    << "LFSCProof::toStream: Colleting atoms from assertions "
+                    << used_assertions << "\n"
+                    << push;
+    for (TNode used_assertion : used_assertions)
     {
-      utils::collectAtoms(*it, atoms);
+      collectAtoms(used_assertion, atoms, d_cnfProof);
     }
+    Debug("pf::pm") << pop;
 
     std::set<Node>::iterator atomIt;
     Debug("pf::pm") << std::endl

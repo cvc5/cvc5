@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -867,8 +867,9 @@ void DefaultSignExtendBB (TNode node, std::vector<T>& res_bits, TBitblaster<T>* 
   std::vector<T> bits;
   bb->bbTerm(node[0], bits);
   
-  T sign_bit = bits.back(); 
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount; 
+  T sign_bit = bits.back();
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
 
   for (unsigned i = 0; i < bits.size(); ++i ) {
     res_bits.push_back(bits[i]); 

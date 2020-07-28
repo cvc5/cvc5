@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -344,7 +344,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_pp_lemmas.find(lem) == d_pp_lemmas.end())
     {
       d_pp_lemmas.insert(lem);
-      d_parent->getOutputChannel().lemma(lem, false, true);
+      d_parent->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
       return true;
     }
   }

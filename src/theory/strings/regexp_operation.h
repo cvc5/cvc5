@@ -2,9 +2,9 @@
 /*! \file regexp_operation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds
+ **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,10 +24,9 @@
 #include <algorithm>
 #include <climits>
 #include "util/hash.h"
-#include "util/regexp.h"
+#include "util/string.h"
 #include "theory/theory.h"
 #include "theory/rewriter.h"
-//#include "context/cdhashmap.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,10 +40,13 @@ namespace strings {
  */
 enum RegExpConstType
 {
-  // the regular expression doesn't contain variables or re.allchar or re.range
+  // the regular expression doesn't contain variables or re.comp,
+  // re.allchar or re.range (call these three operators "non-concrete
+  // operators"). Notice that re.comp is a non-concrete operator
+  // since it can be seen as indirectly defined in terms of re.allchar.
   RE_C_CONRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
-  // re.allchar or re.range
+  // re.comp, re.allchar or re.range
   RE_C_CONSTANT,
   // the regular expression may contain variables
   RE_C_VARIABLE,
@@ -59,7 +61,7 @@ class RegExpOpr {
 
  private:
   /** the code point of the last character in the alphabet we are using */
-  unsigned d_lastchar;
+  uint32_t d_lastchar;
   Node d_emptyString;
   Node d_true;
   Node d_false;
@@ -119,9 +121,21 @@ class RegExpOpr {
   bool checkConstRegExp( Node r );
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
-  /** is k a native operator whose return type is a regular expression? */
-  static bool isRegExpKind(Kind k);
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
+  /**
+   * This method returns 1 if the empty string is in r, 2 if the empty string
+   * is not in r, or 0 if it is unknown whether the empty string is in r.
+   * TODO (project #2): refactor the return value of this function.
+   *
+   * If this method returns 0, then exp is updated to an explanation that
+   * would imply that the empty string is in r.
+   *
+   * For example,
+   * - delta( (re.inter (str.to.re x) (re.* "A")) ) returns 0 and sets exp to
+   * x = "",
+   * - delta( (re.++ (str.to.re "A") R) ) returns 2,
+   * - delta( (re.union (re.* "A") R) ) returns 1.
+   */
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );
@@ -136,15 +150,9 @@ class RegExpOpr {
   /**
    * Returns true if we can show that the regular expression `r1` includes
    * the regular expression `r2` (i.e. `r1` matches a superset of sequences
-   * that `r2` matches). This method only works on a fragment of regular
-   * expressions, specifically regular expressions that pass the
-   * `isSimpleRegExp` check.
-   *
-   * @param r1 The regular expression that may include `r2` (must be in
-   *           rewritten form)
-   * @param r2 The regular expression that may be included by `r1` (must be
-   *           in rewritten form)
-   * @return True if the inclusion can be shown, false otherwise
+   * that `r2` matches). See documentation in RegExpEntail::regExpIncludes for
+   * more details. This call caches the result (which is context-independent),
+   * for performance reasons.
    */
   bool regExpIncludes(Node r1, Node r2);
 };

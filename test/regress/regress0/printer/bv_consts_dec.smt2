@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-bv-print-consts-in-binary
+; COMMAND-LINE: --bv-print-consts-as-indexed-symbols
 ; EXPECT: sat
 ; EXPECT: ((x (_ bv1 4)))
 (set-option :produce-models true)

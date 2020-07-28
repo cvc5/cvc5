@@ -2,9 +2,9 @@
 /*! \file solver_state.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -404,7 +404,7 @@ Node SolverState::getProxy(Node n)
 {
   Kind nk = n.getKind();
   if (nk != EMPTYSET && nk != SINGLETON && nk != INTERSECTION && nk != SETMINUS
-      && nk != UNION)
+      && nk != UNION && nk != UNIVERSE_SET)
   {
     return n;
   }
@@ -453,7 +453,7 @@ Node SolverState::getEmptySet(TypeNode tn)
   {
     return it->second;
   }
-  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn.toType()));
+  Node n = NodeManager::currentNM()->mkConst(EmptySet(tn));
   d_emptyset[tn] = n;
   return n;
 }
@@ -603,6 +603,19 @@ void SolverState::debugPrintSet(Node s, const char* c) const
     }
     Trace(c) << ")";
   }
+}
+
+const vector<Node> SolverState::getSetsEqClasses(const TypeNode& t) const
+{
+  vector<Node> representatives;
+  for (const Node& eqc : getSetsEqClasses())
+  {
+    if (eqc.getType().getSetElementType() == t)
+    {
+      representatives.push_back(eqc);
+    }
+  }
+  return representatives;
 }
 
 }  // namespace sets

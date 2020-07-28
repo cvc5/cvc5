@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -736,7 +736,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       }
 #endif
 
-      set<Node>* repSet = typeRepSet.getSet(t);
       TypeNode tb = t.getBaseType();
       if (!assignOne)
       {
@@ -755,6 +754,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       bool assignable, evaluable CVC4_UNUSED;
       std::map<Node, Assigner>::iterator itAssigner;
       std::map<Node, Node>::iterator itAssignerM;
+      set<Node>* repSet = typeRepSet.getSet(t);
       for (i = noRepSet.begin(); i != noRepSet.end();)
       {
         i2 = i;
@@ -788,13 +788,12 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
         {
           Assert(!evaluable || assignOne);
           // this assertion ensures that if we are assigning to a term of
-          // Boolean type, then the term is either a variable or an APPLY_UF.
+          // Boolean type, then the term must be assignable.
           // Note we only assign to terms of Boolean type if the term occurs in
           // a singleton equivalence class; otherwise the term would have been
           // in the equivalence class of true or false and would not need
           // assigning.
-          Assert(!t.isBoolean() || (*i2).isVar()
-                 || (*i2).getKind() == kind::APPLY_UF);
+          Assert(!t.isBoolean() || isAssignable(*i2));
           Node n;
           if (itAssigner != eqcToAssigner.end())
           {
@@ -929,11 +928,10 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   for (it = typeNoRepSet.begin(); it != typeNoRepSet.end(); ++it)
   {
     set<Node>& noRepSet = TypeSet::getSet(it);
-    set<Node>::iterator i;
-    for (i = noRepSet.begin(); i != noRepSet.end(); ++i)
+    for (const Node& node : noRepSet)
     {
-      tm->d_reps[*i] = *i;
-      tm->d_rep_set.add((*i).getType(), *i);
+      tm->d_reps[node] = node;
+      tm->d_rep_set.add(node.getType(), node);
     }
   }
 
@@ -968,7 +966,7 @@ void TheoryEngineModelBuilder::computeAssignableInfo(
   bool evaluable = false;
   // Set to true if a term in the current equivalence class has been given an
   // assignment exclusion set.
-  bool hasESet = false;
+  bool hasESet CVC4_UNUSED = false;
   // Set to true if we found that a term in the current equivalence class has
   // been given an assignment exclusion set, and we have not seen this term
   // as part of a previous assignment exclusion group. In other words, when
@@ -1117,7 +1115,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   TheoryModel* tm = static_cast<TheoryModel*>(m);
   Assert(tm != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::checkModels())
+  if (options::debugCheckModels())
   {
     debugCheckModel(tm);
   }
@@ -1127,6 +1125,11 @@ void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
 #ifdef CVC4_ASSERTIONS
   Assert(tm->isBuilt());
+  if (tm->hasApproximations())
+  {
+    // models with approximations may fail the assertions below
+    return;
+  }
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
   std::map<Node, Node>::iterator itMap;
   // Check that every term evaluates to its representative in the model

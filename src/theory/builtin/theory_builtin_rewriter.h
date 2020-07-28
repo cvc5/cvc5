@@ -2,9 +2,9 @@
 /*! \file theory_builtin_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ **   Andrew Reynolds, Andres Noetzli, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,18 +30,16 @@ namespace builtin {
 class TheoryBuiltinRewriter : public TheoryRewriter
 {
   static Node blastDistinct(TNode node);
-  static Node blastChain(TNode node);
 
-public:
+ public:
 
-  static inline RewriteResponse doRewrite(TNode node) {
-    switch(node.getKind()) {
-    case kind::DISTINCT:
-      return RewriteResponse(REWRITE_DONE, blastDistinct(node));
-    case kind::CHAIN:
-      return RewriteResponse(REWRITE_DONE, blastChain(node));
-    default:
-      return RewriteResponse(REWRITE_DONE, node);
+  static inline RewriteResponse doRewrite(TNode node)
+  {
+    switch (node.getKind())
+    {
+      case kind::DISTINCT:
+        return RewriteResponse(REWRITE_DONE, blastDistinct(node));
+      default: return RewriteResponse(REWRITE_DONE, node);
     }
   }
 

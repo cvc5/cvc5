@@ -2,9 +2,9 @@
 /*! \file inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,12 +14,11 @@
 
 #include "theory/strings/inference_manager.h"
 
-#include "expr/kind.h"
 #include "options/strings_options.h"
+#include "theory/ext_theory.h"
 #include "theory/rewriter.h"
-#include "theory/strings/theory_strings.h"
-#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/word.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -29,24 +28,38 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(TheoryStrings& p,
-                                   context::Context* c,
+InferenceManager::InferenceManager(context::Context* c,
                                    context::UserContext* u,
                                    SolverState& s,
-                                   OutputChannel& out)
-    : d_parent(p), d_state(s), d_out(out), d_keep(c), d_lengthLemmaTermsCache(u)
+                                   TermRegistry& tr,
+                                   ExtTheory& e,
+                                   OutputChannel& out,
+                                   SequencesStatistics& statistics)
+    : d_state(s),
+      d_termReg(tr),
+      d_extt(e),
+      d_out(out),
+      d_statistics(statistics),
+      d_keep(c)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
-  d_emptyString = nm->mkConst(::CVC4::String(""));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
 }
 
+void InferenceManager::sendAssumption(TNode lit)
+{
+  bool polarity = lit.getKind() != kind::NOT;
+  TNode atom = polarity ? lit : lit[0];
+  // assert pending fact
+  assertPendingFact(atom, polarity, lit);
+}
+
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
-                                             const char* c)
+                                             Inference infer)
 {
   if (conc.getKind() == AND
       || (conc.getKind() == NOT && conc[0].getKind() == OR))
@@ -56,7 +69,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     bool ret = true;
     for (const Node& cc : conj)
     {
-      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), infer);
       ret = ret && retc;
     }
     return ret;
@@ -99,137 +112,91 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
     // already holds
     return true;
   }
-  sendInference(exp, conc, c);
+  sendInference(exp, conc, infer);
   return true;
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& exp_n,
+                                     const std::vector<Node>& expn,
                                      Node eq,
-                                     const char* c,
+                                     Inference infer,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
-  if (Trace.isOn("strings-infer-debug"))
-  {
-    Trace("strings-infer-debug")
-        << "By " << c << ", infer : " << eq << " from: " << std::endl;
-    for (unsigned i = 0; i < exp.size(); i++)
-    {
-      Trace("strings-infer-debug") << "  " << exp[i] << std::endl;
-    }
-    for (unsigned i = 0; i < exp_n.size(); i++)
-    {
-      Trace("strings-infer-debug") << "  N:" << exp_n[i] << std::endl;
-    }
-  }
   if (eq == d_true)
   {
     return;
   }
-  Node atom = eq.getKind() == NOT ? eq[0] : eq;
-  // check if we should send a lemma or an inference
-  if (asLemma || atom == d_false || atom.getKind() == OR || !exp_n.empty()
-      || options::stringInferAsLemmas())
-  {
-    Node eq_exp;
-    if (options::stringRExplainLemmas())
-    {
-      eq_exp = mkExplain(exp, exp_n);
-    }
-    else
-    {
-      if (exp.empty())
-      {
-        eq_exp = utils::mkAnd(exp_n);
-      }
-      else if (exp_n.empty())
-      {
-        eq_exp = utils::mkAnd(exp);
-      }
-      else
-      {
-        std::vector<Node> ev;
-        ev.insert(ev.end(), exp.begin(), exp.end());
-        ev.insert(ev.end(), exp_n.begin(), exp_n.end());
-        eq_exp = NodeManager::currentNM()->mkNode(AND, ev);
-      }
-    }
-    // if we have unexplained literals, this lemma is not a conflict
-    if (eq == d_false && !exp_n.empty())
-    {
-      eq = eq_exp.negate();
-      eq_exp = d_true;
-    }
-    sendLemma(eq_exp, eq, c);
-  }
-  else
-  {
-    sendInfer(utils::mkAnd(exp), eq, c);
-  }
+  // wrap in infer info and send below
+  InferInfo ii;
+  ii.d_id = infer;
+  ii.d_conc = eq;
+  ii.d_ant = exp;
+  ii.d_antn = expn;
+  sendInference(ii, asLemma);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
-                                     const char* c,
+                                     Inference infer,
                                      bool asLemma)
 {
-  std::vector<Node> exp_n;
-  sendInference(exp, exp_n, eq, c, asLemma);
+  std::vector<Node> expn;
+  sendInference(exp, expn, eq, infer, asLemma);
 }
 
-void InferenceManager::sendInference(const InferInfo& i)
+void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 {
-  std::stringstream ssi;
-  ssi << i.d_id;
-  sendInference(i.d_ant, i.d_antn, i.d_conc, ssi.str().c_str(), true);
-}
-
-void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
-{
-  if (conc.isNull() || conc == d_false)
+  Assert(!ii.isTrivial());
+  Trace("strings-infer-debug")
+      << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
+  // check if we should send a conflict, lemma or a fact
+  if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
   {
-    Trace("strings-conflict")
-        << "Strings::Conflict : " << c << " : " << ant << std::endl;
-    Trace("strings-lemma") << "Strings::Conflict : " << c << " : " << ant
-                           << std::endl;
-    Trace("strings-assert")
-        << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
-    d_out.conflict(ant);
-    d_state.setConflict();
+    if (ii.isConflict())
+    {
+      Trace("strings-infer-debug") << "...as conflict" << std::endl;
+      Trace("strings-lemma") << "Strings::Conflict: " << ii.d_ant << " by "
+                             << ii.d_id << std::endl;
+      Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
+                                << " by " << ii.d_id << std::endl;
+      // we must fully explain it
+      Node conf = mkExplain(ii.d_ant);
+      Trace("strings-assert") << "(assert (not " << conf << ")) ; conflict "
+                              << ii.d_id << std::endl;
+      ++(d_statistics.d_conflictsInfer);
+      // only keep stats if we process it here
+      d_statistics.d_inferences << ii.d_id;
+      d_out.conflict(conf);
+      d_state.setConflict();
+      return;
+    }
+    Trace("strings-infer-debug") << "...as lemma" << std::endl;
+    d_pendingLem.push_back(ii);
     return;
   }
-  Node lem;
-  if (ant == d_true)
-  {
-    lem = conc;
-  }
-  else
-  {
-    lem = NodeManager::currentNM()->mkNode(IMPLIES, ant, conc);
-  }
-  Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
-  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c
-                          << std::endl;
-  d_pendingLem.push_back(lem);
-}
-
-void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
-{
   if (options::stringInferSym())
   {
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
+    for (const Node& ac : ii.d_ant)
+    {
+      d_termReg.inferSubstitutionProxyVars(ac, vars, subs, unproc);
+    }
     if (unproc.empty())
     {
-      Node eqs =
-          eq.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      Node eqs = ii.d_conc.substitute(
+          vars.begin(), vars.end(), subs.begin(), subs.end());
+      InferInfo iiSubsLem;
+      // keep the same id for now, since we are transforming the form of the
+      // inference, not the root reason.
+      iiSubsLem.d_id = ii.d_id;
+      iiSubsLem.d_conc = eqs;
       if (Trace.isOn("strings-lemma-debug"))
       {
-        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from "
-                                     << eq_exp << " by " << c << std::endl;
+        Trace("strings-lemma-debug")
+            << "Strings::Infer " << iiSubsLem << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
         for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
@@ -238,7 +205,8 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
         }
       }
-      sendLemma(d_true, eqs, c);
+      Trace("strings-infer-debug") << "...as symbolic lemma" << std::endl;
+      d_pendingLem.push_back(iiSubsLem);
       return;
     }
     if (Trace.isOn("strings-lemma-debug"))
@@ -250,17 +218,12 @@ void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
       }
     }
   }
-  Trace("strings-lemma") << "Strings::Infer " << eq << " from " << eq_exp
-                         << " by " << c << std::endl;
-  Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
-                          << ")) ; infer " << c << std::endl;
-  d_pending.push_back(eq);
-  d_pendingExp[eq] = eq_exp;
-  d_keep.insert(eq);
-  d_keep.insert(eq_exp);
+  Trace("strings-infer-debug") << "...as fact" << std::endl;
+  // add to pending, to be processed as a fact
+  d_pending.push_back(ii);
 }
 
-bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
+bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
   Node eq = a.eqNode(b);
   eq = Rewriter::rewrite(eq);
@@ -269,11 +232,11 @@ bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
-  Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
-  Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
-                         << std::endl;
-  d_pendingLem.push_back(lemma_or);
+  InferInfo iiSplit;
+  iiSplit.d_id = infer;
+  iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   sendPhaseRequirement(eq, preq);
+  d_pendingLem.push_back(iiSplit);
   return true;
 }
 
@@ -283,94 +246,7 @@ void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
   d_pendingReqPhase[lit] = pol;
 }
 
-void InferenceManager::registerLength(Node n, LengthStatus s)
-{
-  if (d_lengthLemmaTermsCache.find(n) != d_lengthLemmaTermsCache.end())
-  {
-    return;
-  }
-  d_lengthLemmaTermsCache.insert(n);
-
-  if (s == LENGTH_IGNORE)
-  {
-    // ignore it
-    return;
-  }
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node n_len = nm->mkNode(kind::STRING_LENGTH, n);
-
-  if (s == LENGTH_GEQ_ONE)
-  {
-    Node neq_empty = n.eqNode(d_emptyString).negate();
-    Node len_n_gt_z = nm->mkNode(GT, n_len, d_zero);
-    Node len_geq_one = nm->mkNode(AND, neq_empty, len_n_gt_z);
-    Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    d_out.lemma(len_geq_one);
-    return;
-  }
-
-  if (s == LENGTH_ONE)
-  {
-    Node len_one = n_len.eqNode(d_one);
-    Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
-                           << std::endl;
-    Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    d_out.lemma(len_one);
-    return;
-  }
-  Assert(s == LENGTH_SPLIT);
-
-  if (options::stringSplitEmp() || !options::stringLenGeqZ())
-  {
-    Node n_len_eq_z = n_len.eqNode(d_zero);
-    Node n_len_eq_z_2 = n.eqNode(d_emptyString);
-    Node case_empty = nm->mkNode(AND, n_len_eq_z, n_len_eq_z_2);
-    case_empty = Rewriter::rewrite(case_empty);
-    Node case_nempty = nm->mkNode(GT, n_len, d_zero);
-    if (!case_empty.isConst())
-    {
-      Node lem = nm->mkNode(OR, case_empty, case_nempty);
-      d_out.lemma(lem);
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH >= 0 : " << lem << std::endl;
-      // prefer trying the empty case first
-      // notice that requirePhase must only be called on rewritten literals that
-      // occur in the CNF stream.
-      n_len_eq_z = Rewriter::rewrite(n_len_eq_z);
-      Assert(!n_len_eq_z.isConst());
-      d_out.requirePhase(n_len_eq_z, true);
-      n_len_eq_z_2 = Rewriter::rewrite(n_len_eq_z_2);
-      Assert(!n_len_eq_z_2.isConst());
-      d_out.requirePhase(n_len_eq_z_2, true);
-    }
-    else if (!case_empty.getConst<bool>())
-    {
-      // the rewriter knows that n is non-empty
-      Trace("strings-lemma")
-          << "Strings::Lemma LENGTH > 0 (non-empty): " << case_nempty
-          << std::endl;
-      d_out.lemma(case_nempty);
-    }
-    else
-    {
-      // If n = "" ---> true or len( n ) = 0 ----> true, then we expect that
-      // n ---> "". Since this method is only called on non-constants n, it must
-      // be that n = "" ^ len( n ) = 0 does not rewrite to true.
-      Assert(false);
-    }
-  }
-
-  // additionally add len( x ) >= 0 ?
-  if (options::stringLenGeqZ())
-  {
-    Node n_len_geq = nm->mkNode(kind::GEQ, n_len, d_zero);
-    n_len_geq = Rewriter::rewrite(n_len_geq);
-    d_out.lemma(n_len_geq);
-  }
-}
+void InferenceManager::setIncomplete() { d_out.setIncomplete(); }
 
 void InferenceManager::addToExplanation(Node a,
                                         Node b,
@@ -398,134 +274,183 @@ void InferenceManager::doPendingFacts()
   size_t i = 0;
   while (!d_state.isInConflict() && i < d_pending.size())
   {
-    Node fact = d_pending[i];
-    Node exp = d_pendingExp[fact];
-    if (fact.getKind() == AND)
+    InferInfo& ii = d_pending[i];
+    // At this point, ii should be a "fact", i.e. something whose conclusion
+    // should be added as a normal equality or predicate to the equality engine
+    // with no new external assumptions (ii.d_antn).
+    Assert(ii.isFact());
+    Node facts = ii.d_conc;
+    Node exp = utils::mkAnd(ii.d_ant);
+    Trace("strings-assert") << "(assert (=> " << exp << " " << facts
+                            << ")) ; fact " << ii.d_id << std::endl;
+    // only keep stats if we process it here
+    Trace("strings-lemma") << "Strings::Fact: " << facts << " from " << exp
+                           << " by " << ii.d_id << std::endl;
+    d_statistics.d_inferences << ii.d_id;
+    // assert it as a pending fact
+    if (facts.getKind() == AND)
     {
-      for (const Node& lit : fact)
+      for (const Node& fact : facts)
       {
-        bool polarity = lit.getKind() != NOT;
-        TNode atom = polarity ? lit : lit[0];
-        d_parent.assertPendingFact(atom, polarity, exp);
+        bool polarity = fact.getKind() != NOT;
+        TNode atom = polarity ? fact : fact[0];
+        // no double negation or double (conjunctive) conclusions
+        Assert(atom.getKind() != NOT && atom.getKind() != AND);
+        assertPendingFact(atom, polarity, exp);
       }
     }
     else
     {
-      bool polarity = fact.getKind() != NOT;
-      TNode atom = polarity ? fact : fact[0];
-      d_parent.assertPendingFact(atom, polarity, exp);
+      bool polarity = facts.getKind() != NOT;
+      TNode atom = polarity ? facts : facts[0];
+      // no double negation or double (conjunctive) conclusions
+      Assert(atom.getKind() != NOT && atom.getKind() != AND);
+      assertPendingFact(atom, polarity, exp);
     }
+    // Must reference count the equality and its explanation, which is not done
+    // by the equality engine. Notice that we do not need to do this for
+    // external assertions, which enter as facts through sendAssumption.
+    d_keep.insert(facts);
+    d_keep.insert(exp);
     i++;
   }
   d_pending.clear();
-  d_pendingExp.clear();
 }
 
 void InferenceManager::doPendingLemmas()
 {
-  if (!d_state.isInConflict())
+  if (d_state.isInConflict())
   {
-    for (const Node& lc : d_pendingLem)
+    // just clear the pending vectors, nothing else to do
+    d_pendingLem.clear();
+    d_pendingReqPhase.clear();
+    return;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
+  {
+    InferInfo& ii = d_pendingLem[i];
+    Assert(!ii.isTrivial());
+    Assert(!ii.isConflict());
+    // get the explanation
+    Node eqExp;
+    if (options::stringRExplainLemmas())
     {
-      Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
-      d_out.lemma(lc);
+      eqExp = mkExplain(ii.d_ant, ii.d_antn);
     }
-    for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
+    else
     {
-      Trace("strings-pending") << "Require phase : " << prp.first
-                               << ", polarity = " << prp.second << std::endl;
-      d_out.requirePhase(prp.first, prp.second);
+      std::vector<Node> ev;
+      ev.insert(ev.end(), ii.d_ant.begin(), ii.d_ant.end());
+      ev.insert(ev.end(), ii.d_antn.begin(), ii.d_antn.end());
+      eqExp = utils::mkAnd(ev);
     }
+    // make the lemma node
+    Node lem = ii.d_conc;
+    if (eqExp != d_true)
+    {
+      lem = nm->mkNode(IMPLIES, eqExp, lem);
+    }
+    Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
+    Trace("strings-assert")
+        << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
+    Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
+                           << std::endl;
+    // only keep stats if we process it here
+    d_statistics.d_inferences << ii.d_id;
+    ++(d_statistics.d_lemmasInfer);
+
+    // Process the side effects of the inference info.
+    // Register the new skolems from this inference. We register them here
+    // (lazily), since this is the moment when we have decided to process the
+    // inference.
+    for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
+         ii.d_new_skolem)
+    {
+      for (const Node& n : sks.second)
+      {
+        d_termReg.registerTermAtomic(n, sks.first);
+      }
+    }
+
+    d_out.lemma(lem);
+  }
+  // process the pending require phase calls
+  for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
+  {
+    Trace("strings-pending") << "Require phase : " << prp.first
+                             << ", polarity = " << prp.second << std::endl;
+    d_out.requirePhase(prp.first, prp.second);
   }
   d_pendingLem.clear();
   d_pendingReqPhase.clear();
 }
 
+void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
+{
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
+  Trace("strings-pending") << "Assert pending fact : " << atom << " "
+                           << polarity << " from " << exp << std::endl;
+  Assert(atom.getKind() != OR) << "Infer error: a split.";
+  if (atom.getKind() == EQUAL)
+  {
+    // we must ensure these terms are registered
+    Trace("strings-pending-debug") << "  Register term" << std::endl;
+    for (const Node& t : atom)
+    {
+      // terms in the equality engine are already registered, hence skip
+      // currently done for only string-like terms, but this could potentially
+      // be avoided.
+      if (!ee->hasTerm(t) && t.getType().isStringLike())
+      {
+        d_termReg.registerTerm(t, 0);
+      }
+    }
+    Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
+    ee->assertEquality(atom, polarity, exp);
+    Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
+  }
+  else
+  {
+    ee->assertPredicate(atom, polarity, exp);
+    if (atom.getKind() == STRING_IN_REGEXP)
+    {
+      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
+      {
+        Node eqc = ee->getRepresentative(atom[0]);
+        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
+      }
+    }
+  }
+  // process the conflict
+  if (!d_state.isInConflict())
+  {
+    Node pc = d_state.getPendingConflict();
+    if (!pc.isNull())
+    {
+      std::vector<Node> a;
+      a.push_back(pc);
+      Trace("strings-pending")
+          << "Process pending conflict " << pc << std::endl;
+      Node conflictNode = mkExplain(a);
+      d_state.setConflict();
+      Trace("strings-conflict")
+          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
+      d_out.conflict(conflictNode);
+    }
+  }
+  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
+  // Collect extended function terms in the atom. Notice that we must register
+  // all extended functions occurring in assertions and shared terms. We
+  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
+  d_extt.registerTermRec(atom);
+  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
+}
+
 bool InferenceManager::hasProcessed() const
 {
   return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
-}
-
-void InferenceManager::inferSubstitutionProxyVars(
-    Node n,
-    std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::vector<Node>& unproc) const
-{
-  if (n.getKind() == AND)
-  {
-    for (const Node& nc : n)
-    {
-      inferSubstitutionProxyVars(nc, vars, subs, unproc);
-    }
-    return;
-  }
-  if (n.getKind() == EQUAL)
-  {
-    Node ns = n.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-    ns = Rewriter::rewrite(ns);
-    if (ns.getKind() == EQUAL)
-    {
-      Node s;
-      Node v;
-      for (unsigned i = 0; i < 2; i++)
-      {
-        Node ss;
-        // determine whether this side has a proxy variable
-        if (ns[i].getAttribute(StringsProxyVarAttribute()))
-        {
-          // it is a proxy variable
-          ss = ns[i];
-        }
-        else if (ns[i].isConst())
-        {
-          ss = d_parent.getProxyVariableFor(ns[i]);
-        }
-        if (!ss.isNull())
-        {
-          v = ns[1 - i];
-          // if the other side is a constant or variable
-          if (v.getNumChildren() == 0)
-          {
-            if (s.isNull())
-            {
-              s = ss;
-            }
-            else
-            {
-              // both sides of the equality correspond to a proxy variable
-              if (ss == s)
-              {
-                // it is a trivial equality, e.g. between a proxy variable
-                // and its definition
-                return;
-              }
-              else
-              {
-                // equality between proxy variables, non-trivial
-                s = Node::null();
-              }
-            }
-          }
-        }
-      }
-      if (!s.isNull())
-      {
-        // the equality can be turned into a substitution
-        subs.push_back(s);
-        vars.push_back(v);
-        return;
-      }
-    }
-    else
-    {
-      n = ns;
-    }
-  }
-  if (n != d_true)
-  {
-    unproc.push_back(n);
-  }
 }
 
 Node InferenceManager::mkExplain(const std::vector<Node>& a) const
@@ -580,7 +505,7 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   }
   else
   {
-    ant = NodeManager::currentNM()->mkNode(kind::AND, antec_exp);
+    ant = NodeManager::currentNM()->mkNode(AND, antec_exp);
   }
   return ant;
 }
@@ -624,6 +549,20 @@ void InferenceManager::explain(TNode literal,
       Debug("strings-explain-debug") << "   " << a << std::endl;
     }
   }
+}
+
+void InferenceManager::markCongruent(Node a, Node b)
+{
+  Assert(a.getKind() == b.getKind());
+  if (d_extt.hasFunctionKind(a.getKind()))
+  {
+    d_extt.markCongruent(a, b);
+  }
+}
+
+void InferenceManager::markReduced(Node n, bool contextDepend)
+{
+  d_extt.markReduced(n, contextDepend);
 }
 
 }  // namespace strings

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -121,9 +121,10 @@ std::string BitVectorProof::getBBTermName(Expr expr)
   return os.str();
 }
 
-void BitVectorProof::printOwnedTerm(Expr term,
-                                    std::ostream& os,
-                                    const ProofLetMap& map)
+void BitVectorProof::printOwnedTermAsType(Expr term,
+                                          std::ostream& os,
+                                          const ProofLetMap& map,
+                                          TypeNode expectedType)
 {
   Debug("pf::bv") << std::endl
                   << "(pf::bv) BitVectorProof::printOwnedTerm( " << term
@@ -234,7 +235,7 @@ void BitVectorProof::printBitOf(Expr term,
                                 const ProofLetMap& map)
 {
   Assert(term.getKind() == kind::BITVECTOR_BITOF);
-  unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
+  unsigned bit = term.getOperator().getConst<BitVectorBitOf>().d_bitIndex;
   Expr var = term[0];
 
   Debug("pf::bv") << "BitVectorProof::printBitOf( " << term << " ), "
@@ -318,16 +319,19 @@ void BitVectorProof::printOperatorParametric(Expr term,
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os <<" ";
   if (term.getKind() == kind::BITVECTOR_REPEAT) {
-    unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
+    unsigned amount =
+        term.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
     os << amount <<" _ ";
   }
   if (term.getKind() == kind::BITVECTOR_SIGN_EXTEND) {
-    unsigned amount = term.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+    unsigned amount =
+        term.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
     os << amount <<" _ ";
   }
 
   if (term.getKind() == kind::BITVECTOR_ZERO_EXTEND) {
-    unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+    unsigned amount =
+        term.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
     os << amount<<" _ ";
   }
   if (term.getKind() == kind::BITVECTOR_EXTRACT) {
@@ -522,16 +526,19 @@ void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os)
     os << "(bv_bbl_" << utils::toLFSCKind(kind) << " ";
     os << utils::getSize(term) << " ";
     if (term.getKind() == kind::BITVECTOR_REPEAT) {
-      unsigned amount = term.getOperator().getConst<BitVectorRepeat>().repeatAmount;
+      unsigned amount =
+          term.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
       os << amount;
     }
     if (term.getKind() == kind::BITVECTOR_SIGN_EXTEND) {
-      unsigned amount = term.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+      unsigned amount =
+          term.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
       os << amount;
     }
 
     if (term.getKind() == kind::BITVECTOR_ZERO_EXTEND) {
-      unsigned amount = term.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      unsigned amount =
+          term.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
       os << amount;
     }
 

@@ -2,9 +2,9 @@
 /*! \file equality_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Guy Katz
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,6 +32,7 @@
 #include "expr/node.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/uf/eq_proof.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
 
@@ -211,13 +212,13 @@ public:
   /** Statistics about the equality engine instance */
   struct Statistics {
     /** Total number of merges */
-    IntStat mergesCount;
+    IntStat d_mergesCount;
     /** Number of terms managed by the system */
-    IntStat termsCount;
+    IntStat d_termsCount;
     /** Number of function terms managed by the system */
-    IntStat functionTermsCount;
+    IntStat d_functionTermsCount;
     /** Number of constant terms managed by the system */
-    IntStat constantTermsCount;
+    IntStat d_constantTermsCount;
 
     Statistics(std::string name);
 
@@ -300,12 +301,14 @@ private:
    */
   struct Equality {
     /** Left hand side of the equality */
-    EqualityNodeId lhs;
+    EqualityNodeId d_lhs;
     /** Right hand side of the equality */
-    EqualityNodeId rhs;
+    EqualityNodeId d_rhs;
     /** Equality constructor */
-    Equality(EqualityNodeId lhs = null_id, EqualityNodeId rhs = null_id)
-    : lhs(lhs), rhs(rhs) {}
+    Equality(EqualityNodeId l = null_id, EqualityNodeId r = null_id)
+        : d_lhs(l), d_rhs(r)
+    {
+    }
   };/* struct EqualityEngine::Equality */
 
   /** The ids of the classes we have merged */
@@ -402,12 +405,15 @@ private:
    */
   struct Trigger {
     /** The current class id of the LHS of the trigger */
-    EqualityNodeId classId;
+    EqualityNodeId d_classId;
     /** Next trigger for class */
-    TriggerId nextTrigger;
+    TriggerId d_nextTrigger;
 
-    Trigger(EqualityNodeId classId = null_id, TriggerId nextTrigger = null_trigger)
-    : classId(classId), nextTrigger(nextTrigger) {}
+    Trigger(EqualityNodeId classId = null_id,
+            TriggerId nextTrigger = null_trigger)
+        : d_classId(classId), d_nextTrigger(nextTrigger)
+    {
+    }
   };/* struct EqualityEngine::Trigger */
 
   /**
@@ -573,14 +579,17 @@ private:
   /** Set of trigger terms */
   struct TriggerTermSet {
     /** Set of theories in this set */
-    Theory::Set tags;
+    Theory::Set d_tags;
     /** The trigger terms */
-    EqualityNodeId triggers[0];
+    EqualityNodeId d_triggers[0];
     /** Returns the theory tags */
-    Theory::Set hasTrigger(TheoryId tag) const { return Theory::setContains(tag, tags); }
+    Theory::Set hasTrigger(TheoryId tag) const
+    {
+      return Theory::setContains(tag, d_tags);
+    }
     /** Returns a trigger by tag */
     EqualityNodeId getTrigger(TheoryId tag) const {
-      return triggers[Theory::setIndex(tag, tags)];
+      return d_triggers[Theory::setIndex(tag, d_tags)];
     }
   };/* struct EqualityEngine::TriggerTermSet */
 
@@ -618,10 +627,13 @@ private:
   context::CDO<DefaultSizeType> d_triggerDatabaseSize;
 
   struct TriggerSetUpdate {
-    EqualityNodeId classId;
-    TriggerTermSetRef oldValue;
-    TriggerSetUpdate(EqualityNodeId classId = null_id, TriggerTermSetRef oldValue = null_set_id)
-    : classId(classId), oldValue(oldValue) {}
+    EqualityNodeId d_classId;
+    TriggerTermSetRef d_oldValue;
+    TriggerSetUpdate(EqualityNodeId classId = null_id,
+                     TriggerTermSetRef oldValue = null_set_id)
+        : d_classId(classId), d_oldValue(oldValue)
+    {
+    }
   };/* struct EqualityEngine::TriggerSetUpdate */
 
   /**
@@ -693,14 +705,18 @@ private:
    */
   struct TaggedEquality {
     /** Id of the equality */
-    EqualityNodeId equalityId;
+    EqualityNodeId d_equalityId;
     /** TriggerSet reference for the class of one of the sides */
-    TriggerTermSetRef triggerSetRef;
+    TriggerTermSetRef d_triggerSetRef;
     /** Is trigger equivalent to the lhs (rhs otherwise) */
-    bool lhs;
+    bool d_lhs;
 
-    TaggedEquality(EqualityNodeId equalityId = null_id, TriggerTermSetRef triggerSetRef = null_set_id, bool lhs = true)
-    : equalityId(equalityId), triggerSetRef(triggerSetRef), lhs(lhs) {}
+    TaggedEquality(EqualityNodeId equalityId = null_id,
+                   TriggerTermSetRef triggerSetRef = null_set_id,
+                   bool lhs = true)
+        : d_equalityId(equalityId), d_triggerSetRef(triggerSetRef), d_lhs(lhs)
+    {
+    }
   };
 
   /** A map from equivalence class id's to tagged equalities */
@@ -742,9 +758,9 @@ public:
   }
 
   /**
-   * Add a kind to treat as function applications. 
-   * When extOperator is true, this equality engine will treat the operators of this kind 
-   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will 
+   * Add a kind to treat as function applications.
+   * When extOperator is true, this equality engine will treat the operators of this kind
+   * as "external" e.g. not internal nodes (see d_isInternal). This means that we will
    * consider equivalence classes containing the operators of such terms, and "hasTerm" will
    * return true.
    */
@@ -787,11 +803,6 @@ public:
    * @param reason the reason to keep for building explanations
    */
   void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
-
-  /**
-   * Adds predicate p and q and makes them equal.
-   */
-  void mergePredicates(TNode p, TNode q, TNode reason);
 
   /**
    * Adds an equality eq with the given polarity to the database.
@@ -940,34 +951,6 @@ public:
   EqClassIterator operator++(int);
   bool isFinished() const;
 };/* class EqClassIterator */
-
-class EqProof
-{
-public:
-  class PrettyPrinter {
-  public:
-    virtual ~PrettyPrinter() {}
-    virtual std::string printTag(unsigned tag) = 0;
-  };
-
-  EqProof() : d_id(MERGED_THROUGH_REFLEXIVITY){}
-  unsigned d_id;
-  Node d_node;
-  std::vector<std::shared_ptr<EqProof>> d_children;
-  /**
-   * Debug print this proof on debug trace c with tabulation tb and pretty
-   * printer prettyPrinter.
-   */
-  void debug_print(const char* c, unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
-  /**
-   * Debug print this proof on output stream os with tabulation tb and pretty
-   * printer prettyPrinter.
-   */
-  void debug_print(std::ostream& os,
-                   unsigned tb = 0,
-                   PrettyPrinter* prettyPrinter = nullptr) const;
-};/* class EqProof */
 
 } // Namespace eq
 } // Namespace theory

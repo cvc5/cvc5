@@ -2,9 +2,9 @@
 /*! \file LinearArith.java
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,7 +15,7 @@
  ** the push pop of CVC4. This also gives an example option.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 
 public class LinearArith {
   public static void main(String[] args) {
@@ -61,8 +61,9 @@ public class LinearArith {
     smt.push();
     Expr diff_leq_two_thirds = em.mkExpr(Kind.LEQ, diff, two_thirds);
     System.out.println("Prove that " + diff_leq_two_thirds + " with CVC4.");
-    System.out.println("CVC4 should report VALID.");
-    System.out.println("Result from CVC4 is: " + smt.query(diff_leq_two_thirds));
+    System.out.println("CVC4 should report ENTAILED.");
+    System.out.println(
+        "Result from CVC4 is: " + smt.checkEntailed(diff_leq_two_thirds));
     smt.pop();
 
     System.out.println();

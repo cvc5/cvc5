@@ -2,9 +2,9 @@
 /*! \file vts_term_cache.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -144,7 +144,7 @@ Node VtsTermCache::rewriteVtsSymbols(Node n)
           std::vector<Node> subs_lhs;
           subs_lhs.push_back(inf);
           std::vector<Node> subs_rhs;
-          subs_lhs.push_back(rew_vts_inf);
+          subs_rhs.push_back(rew_vts_inf);
           n = n.substitute(subs_lhs.begin(),
                            subs_lhs.end(),
                            subs_rhs.begin(),

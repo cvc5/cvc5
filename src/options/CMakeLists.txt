@@ -13,9 +13,6 @@ if(RET_TOML)
 endif()
 
 libcvc4_add_sources(
-  argument_extender.h
-  argument_extender_implementation.cpp
-  argument_extender_implementation.h
   base_handlers.h
   decision_weight.h
   didyoumean.cpp
@@ -29,6 +26,7 @@ libcvc4_add_sources(
   options.h
   options_handler.cpp
   options_handler.h
+  options_listener.h
   options_public_functions.cpp
   printer_modes.cpp
   printer_modes.h
@@ -47,7 +45,6 @@ set(options_toml_files
   decision_options.toml
   expr_options.toml
   fp_options.toml
-  idl_options.toml
   main_options.toml
   parser_options.toml
   printer_options.toml

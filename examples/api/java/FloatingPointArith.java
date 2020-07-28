@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,7 +18,7 @@
  ** IEEE 754-2008 bit-vector to a floating-point number.
  **/
 
-import edu.nyu.acsys.CVC4.*;
+import edu.stanford.CVC4.*;
 import java.util.Iterator;
 
 public class FloatingPointArith {

@@ -2,9 +2,9 @@
 /*! \file cardinality_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "theory/sets/inference_manager.h"
 #include "theory/sets/solver_state.h"
+#include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -124,7 +125,8 @@ class CardinalityExtension
   void mkModelValueElementsFor(Valuation& v,
                                Node eqc,
                                std::vector<Node>& els,
-                               const std::map<Node, Node>& mvals);
+                               const std::map<Node, Node>& mvals,
+                               TheoryModel* model);
   /** get ordered sets equivalence classes
    *
    * Get the ordered set of equivalence classes computed by this class. This
@@ -135,8 +137,26 @@ class CardinalityExtension
    */
   const std::vector<Node>& getOrderedSetsEqClasses() { return d_oSetEqc; }
 
+  /**
+   * get the slack elements generated for each finite type. This function is
+   * called by TheorySetsPrivate::collectModelInfo to ask the TheoryModel to
+   * exclude these slack elements from the members in all sets of that type.
+   */
+  const std::map<TypeNode, std::vector<TNode> >& getFiniteTypeSlackElements()
+      const
+  {
+    return d_finite_type_slack_elements;
+  }
+  /**
+   * get non-slack members in all sets of the given finite type. This function
+   * is called by TheorySetsPrivate::collectModelInfo to specify the exclusion
+   * sets for TheoryModel
+   */
+  const std::vector<Node>& getFiniteTypeMembers(TypeNode typeNode);
+
  private:
   /** constants */
+  Node d_true;
   Node d_zero;
   /** the empty vector */
   std::vector<Node> d_emp_exp;
@@ -302,6 +322,25 @@ class CardinalityExtension
    * function.
    */
   void checkNormalForm(Node eqc, std::vector<Node>& intro_sets);
+
+  /**
+   * Add cardinality lemmas for the univset of each type with cardinality terms.
+   * The lemmas are explained below.
+   */
+  void checkCardinalityExtended();
+  /**
+   * This function adds the following lemmas for type t for each S
+   * where S is a (representative) set term of type t, and for each negative
+   * member x not in S:
+   * 1- (=> true (<= (card (as univset t)) n) where n is the
+   * cardinality of t, which may be symbolic
+   * 2- (=> true (subset S (as univset t)) where S is a set
+   * term of type t
+   * 3- (=> (not (member negativeMember S))) (member
+   * negativeMember (as univset t)))
+   */
+  void checkCardinalityExtended(TypeNode& t);
+
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;
   /**
@@ -338,6 +377,38 @@ class CardinalityExtension
    * ( A ^ B ), and (B \ A).
    */
   std::map<Node, Node> d_localBase;
+
+  /**
+   * a map to store proxy nodes for the universe sets
+   */
+  std::map<Node, Node> d_univProxy;
+
+  /**
+   * collect the elements in all sets of finite types in model, and
+   * store them in the field d_finite_type_elements
+   */
+  void collectFiniteTypeSetElements(TheoryModel* model);
+  /**
+   * a map to store the non-slack elements encountered so far in all finite
+   * types
+   */
+  std::map<TypeNode, std::vector<Node> > d_finite_type_elements;
+  /**
+   * a map to store slack elements in all finite types
+   */
+  std::map<TypeNode, std::vector<TNode> > d_finite_type_slack_elements;
+  /** This boolean determines whether we already collected finite type constants
+   *  present in the current model.
+   *  Default value is false
+   */
+  bool d_finite_type_constants_processed;
+
+  /*
+   * a map that stores skolem nodes n that satisfies the constraint
+   * (<= (card t) n) where t is an infinite type
+   */
+  std::map<TypeNode, Node> d_infiniteTypeUnivCardSkolems;
+
 }; /* class CardinalityExtension */
 
 }  // namespace sets

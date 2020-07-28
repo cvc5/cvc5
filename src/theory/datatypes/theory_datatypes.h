@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "expr/attribute.h"
 #include "expr/datatype.h"
 #include "expr/node_trie.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/sygus_extension.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -266,10 +267,15 @@ private:
   void computeCareGraph() override;
 
  public:
-  TheoryDatatypes(context::Context* c, context::UserContext* u,
-                  OutputChannel& out, Valuation valuation,
-                  const LogicInfo& logicInfo);
+  TheoryDatatypes(context::Context* c,
+                  context::UserContext* u,
+                  OutputChannel& out,
+                  Valuation valuation,
+                  const LogicInfo& logicInfo,
+                  ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
+
+  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
@@ -282,7 +288,8 @@ private:
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
   void explainPredicate( TNode p, bool polarity, std::vector<TNode>& assumptions );
   void explain( TNode literal, std::vector<TNode>& assumptions );
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
+  Node explainLit(TNode literal);
   Node explain( std::vector< Node >& lits );
   /** Conflict when merging two constants */
   void conflict(TNode a, TNode b);
@@ -299,8 +306,8 @@ private:
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
   void finishInit() override;
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
-  Node ppRewrite(TNode n) override;
+  TrustNode expandDefinition(Node n) override;
+  TrustNode ppRewrite(TNode n) override;
   void presolve() override;
   void addSharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
@@ -319,10 +326,7 @@ private:
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */
-  std::pair<bool, Node> entailmentCheck(
-      TNode lit,
-      const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL) override;
+  std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
  private:
   /** add tester to equivalence class info */
@@ -368,10 +372,13 @@ private:
   bool areDisequal( TNode a, TNode b );
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
-private:
- /** sygus symmetry breaking utility */
- std::unique_ptr<SygusExtension> d_sygusExtension;
 
+ private:
+  /** sygus symmetry breaking utility */
+  std::unique_ptr<SygusExtension> d_sygusExtension;
+
+  /** The theory rewriter for this theory. */
+  DatatypesRewriter d_rewriter;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

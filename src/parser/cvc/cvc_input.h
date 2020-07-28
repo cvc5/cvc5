@@ -2,9 +2,9 @@
 /*! \file cvc_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Tim King
+ **   Christopher L. Conway, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -57,12 +57,12 @@ class CvcInput : public AntlrInput {
    */
   Command* parseCommand() override;
 
-  /** Parse an expression from the input. Returns a null <code>Expr</code>
+  /** Parse an expression from the input. Returns a null <code>api::Term</code>
    * if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() override;
+  api::Term parseExpr() override;
 
  private:
   /** Initialize the class. Called from the constructors once the input stream

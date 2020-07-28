@@ -1,8 +1,9 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic BV)
 (define-sort BV () (_ BitVec 8))
 (synth-fun IC ((s BV) (t BV)) Bool
+  ((Start Bool) (StartBv BV))
   ((Start Bool (
      true
      false
@@ -15,18 +16,18 @@
      #x00
      #x01
      #x7E
-     (bvnot  StartBv)
-     (bvmul  StartBv StartBv)
-     (bvudiv  StartBv StartBv)
-     (bvurem  StartBv StartBv)
-     (bvand  StartBv StartBv)
+     (bvnot StartBv)
+     (bvmul StartBv StartBv)
+     (bvudiv StartBv StartBv)
+     (bvurem StartBv StartBv)
+     (bvand StartBv StartBv)
    ))
 ))
-(constraint (not (IC (_ bv32 8) (_ bv187 8) )))
-(constraint (not (IC (_ bv102 8) (_ bv15 8) )))
-(constraint (not (IC (_ bv92 8) (_ bv85 8) )))
-(constraint (IC (_ bv39 8) (_ bv214 8) ))
-(constraint (IC (_ bv155 8) (_ bv82 8) ))
-(constraint (IC (_ bv53 8) (_ bv98 8) ))
-(constraint (IC (_ bv41 8) (_ bv47 8) ))
+(constraint (not (IC (_ bv32 8) (_ bv187 8))))
+(constraint (not (IC (_ bv102 8) (_ bv15 8))))
+(constraint (not (IC (_ bv92 8) (_ bv85 8))))
+(constraint (IC (_ bv39 8) (_ bv214 8)))
+(constraint (IC (_ bv155 8) (_ bv82 8)))
+(constraint (IC (_ bv53 8) (_ bv98 8)))
+(constraint (IC (_ bv41 8) (_ bv47 8)))
 (check-synth)

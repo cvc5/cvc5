@@ -2,9 +2,9 @@
 /*! \file theory_bv_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andrew Reynolds, Morgan Deters
+ **   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -240,7 +240,7 @@ class BitVectorBitOfTypeRule
       {
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
-      if (info.bitIndex >= t.getBitVectorSize())
+      if (info.d_bitIndex >= t.getBitVectorSize())
       {
         throw TypeCheckingExceptionPrivate(
             n, "extract index is larger than the bitvector size");
@@ -262,7 +262,7 @@ class BitVectorExtractTypeRule
     // NOTE: We're throwing a type-checking exception here even
     // if check is false, bc if we allow high < low the resulting
     // type will be illegal
-    if (extractInfo.high < extractInfo.low)
+    if (extractInfo.d_high < extractInfo.d_low)
     {
       throw TypeCheckingExceptionPrivate(
           n, "high extract index is smaller than the low extract index");
@@ -275,13 +275,14 @@ class BitVectorExtractTypeRule
       {
         throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
       }
-      if (extractInfo.high >= t.getBitVectorSize())
+      if (extractInfo.d_high >= t.getBitVectorSize())
       {
         throw TypeCheckingExceptionPrivate(
             n, "high extract index is bigger than the size of the bit-vector");
       }
     }
-    return nodeManager->mkBitVectorType(extractInfo.high - extractInfo.low + 1);
+    return nodeManager->mkBitVectorType(extractInfo.d_high - extractInfo.d_low
+                                        + 1);
   }
 }; /* class BitVectorExtractTypeRule */
 
@@ -301,6 +302,10 @@ class BitVectorRepeatTypeRule
       throw TypeCheckingExceptionPrivate(n, "expecting bit-vector term");
     }
     unsigned repeatAmount = n.getOperator().getConst<BitVectorRepeat>();
+    if (repeatAmount == 0)
+    {
+      throw TypeCheckingExceptionPrivate(n, "expecting number of repeats > 0");
+    }
     return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
 }; /* class BitVectorRepeatTypeRule */
@@ -338,6 +343,10 @@ class IntToBitVectorOpTypeRule
     if (n.getKind() == kind::INT_TO_BITVECTOR_OP)
     {
       size_t bvSize = n.getConst<IntToBitVector>();
+      if (bvSize == 0)
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting bit-width > 0");
+      }
       return nodeManager->mkFunctionType(nodeManager->integerType(),
                                          nodeManager->mkBitVectorType(bvSize));
     }

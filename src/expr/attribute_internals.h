@@ -2,9 +2,9 @@
 /*! \file attribute_internals.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -91,15 +91,45 @@ namespace attr {
  *
  * This general (non-specialized) implementation of the template does
  * nothing.
+ *
+ * The `Enable` template parameter is used to instantiate the template
+ * conditionally: If the template substitution of Enable fails (e.g. when using
+ * `std::enable_if` in the template parameter and the condition is false), the
+ * instantiation is ignored due to the SFINAE rule.
  */
-template <class T>
-struct KindValueToTableValueMapping {
+template <class T, class Enable = void>
+struct KindValueToTableValueMapping
+{
   /** Simple case: T == table_value_type */
   typedef T table_value_type;
   /** No conversion necessary */
   inline static T convert(const T& t) { return t; }
   /** No conversion necessary */
   inline static T convertBack(const T& t) { return t; }
+};
+
+/**
+ * This converts arbitrary unsigned integers (up to 64-bit) to and from 64-bit
+ * integers s.t. they can be stored in the hash table for integral-valued
+ * attributes.
+ */
+template <class T>
+struct KindValueToTableValueMapping<
+    T,
+    // Use this specialization only for unsigned integers
+    typename std::enable_if<std::is_unsigned<T>::value>::type>
+{
+  typedef uint64_t table_value_type;
+  /** Convert from unsigned integer to uint64_t */
+  static uint64_t convert(const T& t)
+  {
+    static_assert(sizeof(T) <= sizeof(uint64_t),
+                  "Cannot store integer attributes of a bit-width that is "
+                  "greater than 64-bits");
+    return static_cast<uint64_t>(t);
+  }
+  /** Convert from uint64_t to unsigned integer */
+  static T convertBack(const uint64_t& t) { return static_cast<T>(t); }
 };
 
 }/* CVC4::expr::attr namespace */

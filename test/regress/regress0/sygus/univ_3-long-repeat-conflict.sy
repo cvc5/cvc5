@@ -1,21 +1,21 @@
 ; EXPECT: unknown
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 (set-logic SLIA)
- 
+
 (synth-fun f ((col1 String) (col2 String)) String
-    ((Start String (ntString))
-     (ntString String (col1 col2 " " "," "USA" "PA" "CT" "CA" "MD" "NY"
+    ((ntString String) (ntInt Int) (ntBool Bool))
+    ((ntString String (col1 col2 " " "," "USA" "PA" "CT" "CA" "MD" "NY"
                        (str.++ ntString ntString)
                        (str.replace ntString ntString ntString)
                        (str.at ntString ntInt)
-                       (int.to.str ntInt)
+                       (str.from_int ntInt)
                        (ite ntBool ntString ntString)
                        (str.substr ntString ntInt ntInt)))
       (ntInt Int (0 1 2
                   (+ ntInt ntInt)
                   (- ntInt ntInt)
                   (str.len ntString)
-                  (str.to.int ntString)
+                  (str.to_int ntString)
                   (str.indexof ntString ntString ntInt)))
       (ntBool Bool (true false
                     (str.prefixof ntString ntString)

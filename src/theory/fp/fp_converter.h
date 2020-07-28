@@ -2,9 +2,9 @@
 /*! \file fp_converter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain
+ **   Martin Brain, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -318,11 +318,11 @@ class FpConverter
   typedef context::CDHashMap<Node, ubv, NodeHashFunction> ubvMap;
   typedef context::CDHashMap<Node, sbv, NodeHashFunction> sbvMap;
 
-  fpMap f;
-  rmMap r;
-  boolMap b;
-  ubvMap u;
-  sbvMap s;
+  fpMap d_fpMap;
+  rmMap d_rmMap;
+  boolMap d_boolMap;
+  ubvMap d_ubvMap;
+  sbvMap d_sbvMap;
 
   /* These functions take a symfpu object and convert it to a node.
    * These should ensure that constant folding it will give a

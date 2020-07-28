@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,17 +32,18 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
-  : SubtheorySolver(c, bv),
-    d_notify(*this),
-    d_equalityEngine(d_notify, c, "theory::bv::ee", true),
-    d_slicer(new Slicer()),
-    d_isComplete(c, true),
-    d_lemmaThreshold(16),
-    d_useSlicer(false),
-    d_preregisterCalled(false),
-    d_checkCalled(false),
-    d_reasons(c)
+CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
+    : SubtheorySolver(c, bv),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::bv::ee", true),
+      d_slicer(new Slicer()),
+      d_isComplete(c, true),
+      d_lemmaThreshold(16),
+      d_useSlicer(false),
+      d_preregisterCalled(false),
+      d_checkCalled(false),
+      d_extTheory(extt),
+      d_reasons(c)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::BITVECTOR_CONCAT, true);
@@ -171,7 +172,7 @@ bool CoreSolver::decomposeFact(TNode fact) {
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
-  d_bv->spendResource(options::theoryCheckStep());
+  d_bv->spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   d_checkCalled = true;
   Assert(!d_bv->inConflict());
@@ -411,10 +412,7 @@ void CoreSolver::conflict(TNode a, TNode b) {
   d_bv->setConflict(conflict);
 }
 
-void CoreSolver::eqNotifyNewClass(TNode t) {
-  Assert(d_bv->getExtTheory() != NULL);
-  d_bv->getExtTheory()->registerTerm( t );
-}
+void CoreSolver::eqNotifyNewClass(TNode t) { d_extTheory->registerTerm(t); }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   if (d_useSlicer)

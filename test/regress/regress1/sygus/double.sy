@@ -1,12 +1,12 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 
 (set-logic SLIA)
 (declare-datatype Ex ((Ex2 (ex Int))))
 
 (synth-fun double ((x1 Ex)) Int
+	((ntInt Int) (ntEx Ex))
 	(
-		(Start Int (ntInt))
 		(ntInt Int
 			(
 				(ex ntEx)

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,13 +44,6 @@
 using namespace std;
 using namespace CVC4::context;
 
-
-#ifdef CVC4_REPLAY
-#  define CVC4_USE_REPLAY true
-#else /* CVC4_REPLAY */
-#  define CVC4_USE_REPLAY false
-#endif /* CVC4_REPLAY */
-
 namespace CVC4 {
 namespace prop {
 
@@ -74,32 +67,34 @@ public:
   }
 };
 
-PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext,
-                       Context* userContext, std::ostream* replayLog,
-                       ExprStream* replayStream, LemmaChannels* channels) :
-  d_inCheckSat(false),
-  d_theoryEngine(te),
-  d_decisionEngine(de),
-  d_context(satContext),
-  d_theoryProxy(NULL),
-  d_satSolver(NULL),
-  d_registrar(NULL),
-  d_cnfStream(NULL),
-  d_interrupted(false),
-  d_resourceManager(NodeManager::currentResourceManager())
+PropEngine::PropEngine(TheoryEngine* te,
+                       Context* satContext,
+                       UserContext* userContext,
+                       ResourceManager* rm)
+    : d_inCheckSat(false),
+      d_theoryEngine(te),
+      d_context(satContext),
+      d_theoryProxy(NULL),
+      d_satSolver(NULL),
+      d_registrar(NULL),
+      d_cnfStream(NULL),
+      d_interrupted(false),
+      d_resourceManager(rm)
 {
 
   Debug("prop") << "Constructing the PropEngine" << endl;
+
+  d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
+  d_decisionEngine->init();  // enable appropriate strategies
 
   d_satSolver = SatSolverFactory::createDPLLMinisat(smtStatisticsRegistry());
 
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream = new CVC4::prop::TseitinCnfStream(
-      d_satSolver, d_registrar, userContext, true);
+      d_satSolver, d_registrar, userContext, rm, true);
 
   d_theoryProxy = new TheoryProxy(
-      this, d_theoryEngine, d_decisionEngine, d_context, d_cnfStream, replayLog,
-      replayStream, channels);
+      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -107,10 +102,17 @@ PropEngine::PropEngine(TheoryEngine* te, DecisionEngine *de, Context* satContext
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+
+  NodeManager* nm = NodeManager::currentNM();
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(
+      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
 }
 
 PropEngine::~PropEngine() {
   Debug("prop") << "Destructing the PropEngine" << endl;
+  d_decisionEngine->shutdown();
+  d_decisionEngine.reset(nullptr);
   delete d_cnfStream;
   delete d_registrar;
   delete d_satSolver;
@@ -133,6 +135,12 @@ void PropEngine::assertLemma(TNode node, bool negated,
 
   // Assert as (possibly) removable
   d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+}
+
+void PropEngine::addAssertionsToDecisionEngine(
+    const preprocessing::AssertionPipeline& assertions)
+{
+  d_decisionEngine->addAssertions(assertions);
 }
 
 void PropEngine::requirePhase(TNode n, bool phase) {
@@ -295,9 +303,9 @@ void PropEngine::interrupt()
   Debug("prop") << "interrupt()" << endl;
 }
 
-void PropEngine::spendResource(unsigned amount)
+void PropEngine::spendResource(ResourceManager::Resource r)
 {
-  d_resourceManager->spendResource(amount);
+  d_resourceManager->spendResource(r);
 }
 
 bool PropEngine::properExplanation(TNode node, TNode expl) const {

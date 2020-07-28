@@ -2,9 +2,9 @@
 /*! \file cegis.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, FabianWolff
+ **   Andrew Reynolds, Haniel Barbosa, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -114,6 +114,7 @@ class Cegis : public SygusModule
   std::vector<Node> d_rl_vals;
   /** all variables appearing in refinement lemmas */
   std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
+
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -175,7 +176,7 @@ class Cegis : public SygusModule
   /** Get refinement evaluation lemmas
    *
    * This method performs "refinement evaluation", that is, it tests
-   * whether the current solution, given by { candidates -> candidate_values },
+   * whether the current solution, given by { vs -> ms },
    * satisfies all current refinement lemmas. If it does not, it may add
    * blocking lemmas L to lems which exclude (a generalization of) the current
    * solution.
@@ -184,13 +185,22 @@ class Cegis : public SygusModule
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
    *
-   * Returns true if any such lemma exists. If doGen is false, then the
-   * lemmas are not generated or added to lems.
+   * Returns true if any such lemma exists.
    */
   bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems,
-                               bool doGen);
+                               std::vector<Node>& lems);
+  /** Check refinement evaluation lemmas
+   *
+   * This method is similar to above, but does not perform any generalization
+   * techniques. It is used when we are using only fast enumerators for
+   * all functions-to-synthesize.
+   *
+   * Returns true if a refinement lemma is false for the solution
+   * { vs -> ms }.
+   */
+  bool checkRefinementEvalLemmas(const std::vector<Node>& vs,
+                                 const std::vector<Node>& ms);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis

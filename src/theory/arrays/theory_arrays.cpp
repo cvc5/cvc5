@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,6 +29,7 @@
 #include "smt/command.h"
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -61,8 +62,9 @@ TheoryArrays::TheoryArrays(context::Context* c,
                            OutputChannel& out,
                            Valuation valuation,
                            const LogicInfo& logicInfo,
+                           ProofNodeManager* pnm,
                            std::string name)
-    : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, name),
+    : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, pnm, name),
       d_numRow(name + "theory::arrays::number of Row lemmas", 0),
       d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
       d_numProp(name + "theory::arrays::number of propagations", 0),
@@ -314,16 +316,20 @@ Node TheoryArrays::solveWrite(TNode term, bool solve1, bool solve2, bool ppCheck
   return term;
 }
 
-
-Node TheoryArrays::ppRewrite(TNode term) {
-  if (!d_preprocess) return term;
+TrustNode TheoryArrays::ppRewrite(TNode term)
+{
+  if (!d_preprocess)
+  {
+    return TrustNode::null();
+  }
   d_ppEqualityEngine.addTerm(term);
+  Node ret;
   switch (term.getKind()) {
     case kind::SELECT: {
       // select(store(a,i,v),j) = select(a,j)
       //    IF i != j
       if (term[0].getKind() == kind::STORE && ppDisequal(term[0][1], term[1])) {
-        return NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
+        ret = NodeBuilder<2>(kind::SELECT) << term[0][0] << term[1];
       }
       break;
     }
@@ -333,18 +339,22 @@ Node TheoryArrays::ppRewrite(TNode term) {
       if (term[0].getKind() == kind::STORE && (term[1] < term[0][1]) && ppDisequal(term[1],term[0][1])) {
         Node inner = NodeBuilder<3>(kind::STORE) << term[0][0] << term[1] << term[2];
         Node outer = NodeBuilder<3>(kind::STORE) << inner << term[0][1] << term[0][2];
-        return outer;
+        ret = outer;
       }
       break;
     }
     case kind::EQUAL: {
-      return solveWrite(term, d_solveWrite, d_solveWrite2, true);
+      ret = solveWrite(term, d_solveWrite, d_solveWrite2, true);
       break;
     }
     default:
       break;
   }
-  return term;
+  if (!ret.isNull() && ret != term)
+  {
+    return TrustNode::mkTrustRewrite(term, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 
@@ -354,14 +364,12 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-          && (in[1].getType()).isSubtypeOf(in[0].getType()))
+      if (in[0].isVar() && isLegalElimination(in[0], in[1]))
       {
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-          && (in[0].getType()).isSubtypeOf(in[1].getType()))
+      if (in[1].isVar() && isLegalElimination(in[1], in[0]))
       {
         outSubstitutions.addSubstitution(in[1], in[0]);
         return PP_ASSERT_STATUS_SOLVED;
@@ -800,7 +808,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       break;
     }
     ArrayStoreAll storeAll = node.getConst<ArrayStoreAll>();
-    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    Node defaultValue = storeAll.getValue();
     if (!defaultValue.isConst()) {
       throw LogicException("Array theory solver does not yet support non-constant default values for arrays");
     }
@@ -849,10 +857,10 @@ void TheoryArrays::propagate(Effort e)
   // direct propagation now
 }
 
-
-Node TheoryArrays::explain(TNode literal) {
+TrustNode TheoryArrays::explain(TNode literal)
+{
   Node explanation = explain(literal, NULL);
-  return explanation;
+  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
 }
 
 Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
@@ -1222,7 +1230,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
       }
 
       // Build the STORE_ALL term with the default value
-      rep = nm->mkConst(ArrayStoreAll(nrep.getType().toType(), rep.toExpr()));
+      rep = nm->mkConst(ArrayStoreAll(nrep.getType(), rep));
       /*
     }
     else {
@@ -1319,7 +1327,7 @@ void TheoryArrays::check(Effort e) {
     return;
   }
 
-  getOutputChannel().spendResource(options::theoryCheckStep());
+  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
 
@@ -1327,14 +1335,15 @@ void TheoryArrays::check(Effort e) {
   {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
 
     Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::check(): processing " << fact << std::endl;
 
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
 
-    if (!assertion.isPreregistered) {
+    if (!assertion.d_isPreregistered)
+    {
       if (atom.getKind() == kind::EQUAL) {
         if (!d_equalityEngine.hasTerm(atom[0])) {
           Assert(atom[0].isConst());
@@ -1475,18 +1484,21 @@ void TheoryArrays::check(Effort e) {
       mayRep = d_mayEqualEqualityEngine.getRepresentative(r[0]);
       iRep = d_equalityEngine.getRepresentative(r[1]);
       std::pair<TNode, TNode> key(mayRep, iRep);
-      ReadBucketMap::iterator it = d_readBucketTable.find(key);
-      if (it == d_readBucketTable.end()) {
+      ReadBucketMap::iterator rbm_it = d_readBucketTable.find(key);
+      if (rbm_it == d_readBucketTable.end())
+      {
         bucketList = new(true) CTNodeList(d_readTableContext);
         d_readBucketAllocations.push_back(bucketList);
         d_readBucketTable[key] = bucketList;
       }
       else {
-        bucketList = it->second;
+        bucketList = rbm_it->second;
       }
-      CTNodeList::const_iterator it2 = bucketList->begin(), iend = bucketList->end();
-      for (; it2 != iend; ++it2) {
-        const TNode& r2 = *it2;
+      CTNodeList::const_iterator ctnl_it = bucketList->begin(),
+                                 ctnl_iend = bucketList->end();
+      for (; ctnl_it != ctnl_iend; ++ctnl_it)
+      {
+        const TNode& r2 = *ctnl_it;
         Assert(r2.getKind() == kind::SELECT);
         Assert(mayRep == d_mayEqualEqualityEngine.getRepresentative(r2[0]));
         Assert(iRep == d_equalityEngine.getRepresentative(r2[1]));
@@ -1510,7 +1522,7 @@ void TheoryArrays::check(Effort e) {
           lemma = mkAnd(conjunctions, true);
           // LSH FIXME: which kind of arrays lemma is this
           Trace("arrays-lem") << "Arrays::addExtLemma " << lemma <<"\n";
-          d_out->lemma(lemma, RULE_INVALID, false, false, true);
+          d_out->lemma(lemma, RULE_INVALID, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
           return;
@@ -1892,7 +1904,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
   TNode constArr = d_infoMap.getConstArr(a);
   if (!constArr.isNull()) {
     ArrayStoreAll storeAll = constArr.getConst<ArrayStoreAll>();
-    Node defValue = Node::fromExpr(storeAll.getExpr());
+    Node defValue = storeAll.getValue();
     Node selConst = NodeManager::currentNM()->mkNode(kind::SELECT, constArr, i);
     if (!d_equalityEngine.hasTerm(selConst)) {
       preRegisterTermInternal(selConst);
@@ -2307,6 +2319,62 @@ Node TheoryArrays::TheoryArraysDecisionStrategy::getNextDecisionRequest()
 std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
 {
   return std::string("th_arrays_dec");
+}
+
+TrustNode TheoryArrays::expandDefinition(Node node)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Kind kind = node.getKind();
+
+  /* Expand
+   *
+   *   (eqrange a b i j)
+   *
+   * to
+   *
+   *  forall k . i <= k <= j => a[k] = b[k]
+   *
+   */
+  if (kind == kind::EQ_RANGE)
+  {
+    TNode a = node[0];
+    TNode b = node[1];
+    TNode i = node[2];
+    TNode j = node[3];
+    Node k = nm->mkBoundVar(i.getType());
+    Node bvl = nm->mkNode(kind::BOUND_VAR_LIST, k);
+    TypeNode type = k.getType();
+
+    Kind kle;
+    Node range;
+    if (type.isBitVector())
+    {
+      kle = kind::BITVECTOR_ULE;
+    }
+    else if (type.isFloatingPoint())
+    {
+      kle = kind::FLOATINGPOINT_LEQ;
+    }
+    else if (type.isInteger() || type.isReal())
+    {
+      kle = kind::LEQ;
+    }
+    else
+    {
+      Unimplemented() << "Type " << type << " is not supported for predicate "
+                      << kind;
+    }
+
+    range = nm->mkNode(kind::AND, nm->mkNode(kle, i, k), nm->mkNode(kle, k, j));
+
+    Node eq = nm->mkNode(kind::EQUAL,
+                         nm->mkNode(kind::SELECT, a, k),
+                         nm->mkNode(kind::SELECT, b, k));
+    Node implies = nm->mkNode(kind::IMPLIES, range, eq);
+    Node ret = nm->mkNode(kind::FORALL, bvl, implies);
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 }/* CVC4::theory::arrays namespace */

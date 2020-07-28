@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --lang=sygus2 --sygus-out=status
 ; EXPECT: unsat
 (set-logic ALL_SUPPORTED)
 
@@ -27,6 +27,7 @@
 
 ; provide synthesis template 
 (synth-fun f ((secret Ship) (prior ShipRange) (response Bool)) ShipRange
+((Start ShipRange) (B Bool) (SR ShipRange) (IR IntRange) (LR LocRange) (I Int))
 (
      (Start ShipRange ((ite B SR SR)))
      (B Bool (response))

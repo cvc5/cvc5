@@ -2,9 +2,9 @@
 /*! \file proof_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Morgan Deters
+ **   Liana Hadarean, Guy Katz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -143,9 +143,9 @@ private:
 class ProofManager {
   context::Context* d_context;
 
-  CoreSatProof*  d_satProof;
-  CnfProof*      d_cnfProof;
-  TheoryProofEngine* d_theoryProof;
+  std::unique_ptr<CoreSatProof> d_satProof;
+  std::unique_ptr<CnfProof> d_cnfProof;
+  std::unique_ptr<TheoryProofEngine> d_theoryProof;
 
   // information that will need to be shared across proofs
   ExprSet    d_inputFormulas;
@@ -179,10 +179,9 @@ public:
   static ProofManager* currentPM();
 
   // initialization
-  void         initSatProof(Minisat::Solver* solver);
-  static void         initCnfProof(CVC4::prop::CnfStream* cnfStream,
-                                   context::Context* ctx);
-  static void         initTheoryProofEngine();
+  void initSatProof(Minisat::Solver* solver);
+  void initCnfProof(CVC4::prop::CnfStream* cnfStream, context::Context* ctx);
+  void initTheoryProofEngine();
 
   // getting various proofs
   static const Proof& getProof(SmtEngine* smt);

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,7 +38,8 @@ FirstOrderModel::FirstOrderModel(QuantifiersEngine* qe,
                                  std::string name)
     : TheoryModel(c, name, true),
       d_qe(qe),
-      d_forall_asserts(c)
+      d_forall_asserts(c),
+      d_forallRlvComputed(false)
 {
 }
 
@@ -55,12 +56,13 @@ unsigned FirstOrderModel::getNumAssertedQuantifiers() {
 }
 
 Node FirstOrderModel::getAssertedQuantifier( unsigned i, bool ordered ) { 
-  if( !ordered ){
+  if( !ordered || !d_forallRlvComputed ){
     return d_forall_asserts[i]; 
-  }else{
-    Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
-    return d_forall_rlv_assert[i];
   }
+  // If we computed the relevant forall assertion vector, in reset_round,
+  // then it should have the same size as the default assertion vector.
+  Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
+  return d_forall_rlv_assert[i];
 }
 
 void FirstOrderModel::initialize() {
@@ -160,7 +162,9 @@ void FirstOrderModel::reset_round() {
   }
   //order the quantified formulas
   d_forall_rlv_assert.clear();
+  d_forallRlvComputed = false;
   if( !d_forall_rlv_vec.empty() ){
+    d_forallRlvComputed = true;
     Trace("fm-relevant") << "Build sorted relevant list..." << std::endl;
     Trace("fm-relevant-debug") << "Add relevant asserted formulas..." << std::endl;
     std::map<Node, bool>::iterator ita;
@@ -187,10 +191,6 @@ void FirstOrderModel::reset_round() {
     }
     Trace("fm-relevant-debug") << "Sizes : " << d_forall_rlv_assert.size() << " " << d_forall_asserts.size() << std::endl;
     Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
-  }else{
-    for( unsigned i=0; i<d_forall_asserts.size(); i++ ){
-      d_forall_rlv_assert.push_back( d_forall_asserts[i] );
-    }
   }
 }
 
@@ -225,8 +225,7 @@ bool FirstOrderModel::isQuantifierActive(TNode q) const
 
 bool FirstOrderModel::isQuantifierAsserted(TNode q) const
 {
-  Assert(d_forall_rlv_assert.size() == d_forall_asserts.size());
-  return std::find( d_forall_rlv_assert.begin(), d_forall_rlv_assert.end(), q )!=d_forall_rlv_assert.end();
+  return std::find( d_forall_asserts.begin(), d_forall_asserts.end(), q )!=d_forall_asserts.end();
 }
 
 Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
@@ -357,8 +356,14 @@ void FirstOrderModelFmc::processInitialize( bool ispre ) {
 
 void FirstOrderModelFmc::processInitializeModelForTerm(Node n) {
   if( n.getKind()==APPLY_UF ){
-    if( d_models.find(n.getOperator())==d_models.end()) {
-      d_models[n.getOperator()] = new Def;
+    // cannot be a bound variable
+    Node op = n.getOperator();
+    if (op.getKind() != BOUND_VARIABLE)
+    {
+      if (d_models.find(op) == d_models.end())
+      {
+        d_models[op] = new Def;
+      }
     }
   }
 }

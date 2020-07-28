@@ -2,9 +2,9 @@
 /*! \file uf_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
+ **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,9 +75,10 @@ public:
   LFSCUFProof(theory::uf::TheoryUF* uf, TheoryProofEngine* proofEngine)
     : UFProof(uf, proofEngine)
   {}
-  void printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
+  void printOwnedTermAsType(Expr term,
+                            std::ostream& os,
+                            const ProofLetMap& map,
+                            TypeNode expectedType) override;
   void printOwnedSort(Type type, std::ostream& os) override;
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,17 +69,20 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
       d_okay(true),
       d_statistics(registry, name)
 {
+}
+
+void CryptoMinisatSolver::init()
+{
   d_true = newVar();
   d_false = newVar();
 
   std::vector<CMSat::Lit> clause(1);
   clause[0] = CMSat::Lit(d_true, false);
   d_solver->add_clause(clause);
-  
+
   clause[0] = CMSat::Lit(d_false, true);
   d_solver->add_clause(clause);
 }
-
 
 CryptoMinisatSolver::~CryptoMinisatSolver() {}
 

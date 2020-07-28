@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Mathias Preiner, Justin Xu
+ **   Aina Niemetz, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,16 +39,14 @@ class PreprocessingPassContext
  public:
   PreprocessingPassContext(
       SmtEngine* smt,
-      ResourceManager* resourceManager,
       RemoveTermFormulas* iteRemover,
       theory::booleans::CircuitPropagator* circuitPropagator);
 
   SmtEngine* getSmt() { return d_smt; }
-  TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
-  DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
-  prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
-  context::Context* getUserContext() { return d_smt->d_userContext; }
-  context::Context* getDecisionContext() { return d_smt->d_context; }
+  TheoryEngine* getTheoryEngine() { return d_smt->getTheoryEngine(); }
+  prop::PropEngine* getPropEngine() { return d_smt->getPropEngine(); }
+  context::Context* getUserContext() { return d_smt->getUserContext(); }
+  context::Context* getDecisionContext() { return d_smt->getContext(); }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
 
   theory::booleans::CircuitPropagator* getCircuitPropagator()
@@ -61,9 +59,9 @@ class PreprocessingPassContext
     return d_symsInAssertions;
   }
 
-  void spendResource(unsigned amount)
+  void spendResource(ResourceManager::Resource r)
   {
-    d_resourceManager->spendResource(amount);
+    d_resourceManager->spendResource(r);
   }
 
   const LogicInfo& getLogicInfo() { return d_smt->d_logic; }

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,10 +48,6 @@ bool Configuration::isDebugBuild() {
 
 bool Configuration::isStatisticsBuild() {
   return IS_STATISTICS_BUILD;
-}
-
-bool Configuration::isReplayBuild() {
-  return IS_REPLAY_BUILD;
 }
 
 bool Configuration::isTracingBuild() {
@@ -118,7 +114,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2019 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2020 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -126,7 +122,7 @@ std::string Configuration::copyright() {
        << "the GNU General Public License (GPL) version 3.  Versions of CVC4\n"
        << "are available that are covered by the (modified) BSD license. If\n"
        << "you want to license CVC4 under this license, please configure CVC4\n"
-       << "with the \"--bsd\" option before building from sources.\n\n";
+       << "with the \"--no-gpl\" option before building from sources.\n\n";
   } else {
     ss << "CVC4 is open-source and is covered by the BSD license (modified)."
        << "\n\n";
@@ -142,7 +138,9 @@ std::string Configuration::copyright() {
   if (Configuration::isBuiltWithAbc() || Configuration::isBuiltWithLfsc()
       || Configuration::isBuiltWithCadical()
       || Configuration::isBuiltWithCryptominisat()
-      || Configuration::isBuiltWithSymFPU())
+      || Configuration::isBuiltWithKissat()
+      || Configuration::isBuiltWithSymFPU()
+      || Configuration::isBuiltWithEditline())
   {
     ss << "This version of CVC4 is linked against the following non-(L)GPL'ed\n"
        << "third party libraries.\n\n";
@@ -168,15 +166,27 @@ std::string Configuration::copyright() {
          << "  See https://github.com/msoos/cryptominisat for copyright "
          << "information.\n\n";
     }
+    if (Configuration::isBuiltWithKissat())
+    {
+      ss << "  Kissat - Simplified Satisfiability Solver\n"
+         << "  See https://fmv.jku.at/kissat for copyright "
+         << "information.\n\n";
+    }
     if (Configuration::isBuiltWithSymFPU())
     {
       ss << "  SymFPU - The Symbolic Floating Point Unit\n"
          << "  See https://github.com/martin-cs/symfpu/tree/CVC4 for copyright "
          << "information.\n\n";
     }
+    if (Configuration::isBuiltWithEditline())
+    {
+      ss << "  Editline Library\n"
+         << "  See https://thrysoee.dk/editline\n"
+         << "  for copyright information.\n\n";
+    }
   }
 
-  if (Configuration::isBuiltWithGmp())
+  if (Configuration::isBuiltWithGmp() || Configuration::isBuiltWithPoly())
   {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the LGPLv3 license.\n"
@@ -185,11 +195,16 @@ std::string Configuration::copyright() {
       ss << "  GMP - Gnu Multi Precision Arithmetic Library\n"
          << "  See http://gmplib.org for copyright information.\n\n";
     }
+    if (Configuration::isBuiltWithPoly())
+    {
+      ss << "  LibPoly polynomial library\n"
+         << "  See https://github.com/SRI-CSL/libpoly for copyright and\n"
+         << "  licensing information.\n\n";
+    }
   }
 
   if (Configuration::isBuiltWithCln()
-      || Configuration::isBuiltWithGlpk ()
-      || Configuration::isBuiltWithReadline()) {
+      || Configuration::isBuiltWithGlpk ()) {
     ss << "This version of CVC4 is linked against the following third party\n"
        << "libraries covered by the GPLv3 license.\n"
        << "See licenses/gpl-3.0.txt for more information.\n\n";
@@ -202,11 +217,6 @@ std::string Configuration::copyright() {
          << "the GNU Linear Programming Kit\n"
          << "  See http://github.com/timothy-king/glpk-cut-log for copyright"
          << "information\n\n";
-    }
-    if (Configuration::isBuiltWithReadline()) {
-      ss << "  GNU Readline\n"
-         << "  See http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html\n"
-         << "  for copyright information.\n\n";
     }
   }
 
@@ -254,14 +264,19 @@ bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }
 
+bool Configuration::isBuiltWithKissat() { return IS_KISSAT_BUILD; }
+
 bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
 
-bool Configuration::isBuiltWithReadline() {
-  return IS_READLINE_BUILD;
-}
+bool Configuration::isBuiltWithEditline() { return IS_EDITLINE_BUILD; }
 
 bool Configuration::isBuiltWithLfsc() {
   return IS_LFSC_BUILD;
+}
+
+bool Configuration::isBuiltWithPoly()
+{
+  return IS_POLY_BUILD;
 }
 
 bool Configuration::isBuiltWithSymFPU() { return IS_SYMFPU_BUILD; }

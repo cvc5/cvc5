@@ -2,9 +2,9 @@
 /*! \file normal_form.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -138,6 +138,20 @@ class NormalForm
    * when isRev is false (resp. true).
    */
   void getExplanation(int index, std::vector<Node>& curr_exp);
+
+  /**
+   * Collects the constant string starting at a given index, i.e. concatenates
+   * all the consecutive constant strings. If the normal form is reverse order,
+   * this function searches backwards but the result will be in the original
+   * order.
+   *
+   * @param index The index to start at, updated to point to the first
+   *              non-constant component of the normal form or set equal to the
+   *              size of the normal form if the remainder is all constants
+   * @return The combined string constants
+   */
+  Node collectConstantStringAt(size_t& index);
+
   /** get explanation for prefix equality
    *
    * This adds to curr_exp the reason why the prefix of nfi up to index index_i

@@ -2,9 +2,9 @@
 /*! \file fun_def_process.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,6 +33,7 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
   std::vector< int > fd_assertions;
   std::map< int, Node > subs_head;
   //first pass : find defined functions, transform quantifiers
+  NodeManager* nm = NodeManager::currentNM();
   for( unsigned i=0; i<assertions.size(); i++ ){
     Node n = QuantAttributes::getFunDefHead( assertions[i] );
     if( !n.isNull() ){
@@ -62,9 +63,10 @@ void FunDefFmf::simplify( std::vector< Node >& assertions ) {
         //create functions f1...fn mapping from this sort to concrete elements
         for( unsigned j=0; j<n.getNumChildren(); j++ ){
           TypeNode typ = NodeManager::currentNM()->mkFunctionType( iType, n[j].getType() );
-          std::stringstream ss;
-          ss << f << "_arg_" << j;
-          d_input_arg_inj[f].push_back( NodeManager::currentNM()->mkSkolem( ss.str(), typ, "op created during fun def fmf" ) );
+          std::stringstream ssf;
+          ssf << f << "_arg_" << j;
+          d_input_arg_inj[f].push_back(
+              nm->mkSkolem(ssf.str(), typ, "op created during fun def fmf"));
         }
 
         //construct new quantifier forall S. F[f1(S)/x1....fn(S)/xn]
@@ -211,8 +213,8 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         }
       }else{
         //simplify term
-        std::map<Node, Node> visited;
-        getConstraints(n, constraints, visited);
+        std::map<Node, Node> visitedT;
+        getConstraints(n, constraints, visitedT);
       }
       if( !constraints.empty() && isBool && hasPol ){
         //conjoin with current

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,7 +52,6 @@ private:
   unsigned d_qni_size;
   std::map< int, int > d_qni_var_num;
   std::map< int, TNode > d_qni_gterm;
-  std::map< int, TNode > d_qni_gterm_rep;
   std::map< int, int > d_qni_bound;
   std::vector< int > d_qni_bound_except;
   std::map< int, TNode > d_qni_bound_cons;

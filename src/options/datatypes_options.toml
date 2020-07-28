@@ -32,15 +32,6 @@ header = "options/datatypes_options.h"
   help       = "do binary splits for datatype constructor types"
 
 [[option]]
-  name       = "dtRefIntro"
-  category   = "regular"
-  long       = "dt-ref-sk-intro"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "introduce reference skolems for shorter explanations"
-
-[[option]]
   name       = "cdtBisimilar"
   category   = "regular"
   long       = "cdt-bisimilar"
@@ -75,6 +66,15 @@ header = "options/datatypes_options.h"
   default    = "false"
   read_only  = true
   help       = "when applicable, blast splitting lemmas for all variables at once"
+
+[[option]]
+  name       = "dtNestedRec"
+  category   = "regular"
+  long       = "dt-nested-rec"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "allow nested recursion in datatype definitions"
 
 [[option]]
   name       = "dtSharedSelectors"
@@ -119,15 +119,6 @@ header = "options/datatypes_options.h"
   type       = "bool"
   default    = "true"
   help       = "sygus symmetry breaking lemmas based on pbe conjectures"
-  
-[[option]]
-  name       = "sygusOpt1"
-  category   = "regular"
-  long       = "sygus-opt1"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "sygus experimental option"
 
 [[option]]
   name       = "sygusSymBreakLazy"

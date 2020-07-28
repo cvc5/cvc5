@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,10 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
 #include <sstream>
 
+#include "api/cvc4cpp.h"
 #include "expr/datatype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
@@ -27,14 +29,11 @@ using namespace CVC4;
 using namespace std;
 
 class DatatypeBlack : public CxxTest::TestSuite {
-
-  ExprManager* d_em;
-  ExprManagerScope* d_scope;
-
  public:
   void setUp() override
   {
-    d_em = new ExprManager();
+    d_slv = new api::Solver();
+    d_em = d_slv->getExprManager();
     d_scope = new ExprManagerScope(*d_em);
     Debug.on("datatypes");
     Debug.on("groundterms");
@@ -43,16 +42,16 @@ class DatatypeBlack : public CxxTest::TestSuite {
   void tearDown() override
   {
     delete d_scope;
-    delete d_em;
+    delete d_slv;
   }
 
   void testEnumeration() {
     Datatype colors(d_em, "colors");
 
-    DatatypeConstructor yellow("yellow", "is_yellow");
-    DatatypeConstructor blue("blue", "is_blue");
-    DatatypeConstructor green("green", "is_green");
-    DatatypeConstructor red("red", "is_red");
+    DatatypeConstructor yellow("yellow");
+    DatatypeConstructor blue("blue");
+    DatatypeConstructor green("green");
+    DatatypeConstructor red("red");
 
     colors.addConstructor(yellow);
     colors.addConstructor(blue);
@@ -87,11 +86,11 @@ class DatatypeBlack : public CxxTest::TestSuite {
   void testNat() {
     Datatype nat(d_em, "nat");
 
-    DatatypeConstructor succ("succ", "is_succ");
+    DatatypeConstructor succ("succ");
     succ.addArg("pred", DatatypeSelfType());
     nat.addConstructor(succ);
 
-    DatatypeConstructor zero("zero", "is_zero");
+    DatatypeConstructor zero("zero");
     nat.addConstructor(zero);
 
     Debug("datatypes") << nat << std::endl;
@@ -115,12 +114,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Datatype tree(d_em, "tree");
     Type integerType = d_em->integerType();
 
-    DatatypeConstructor node("node", "is_node");
+    DatatypeConstructor node("node");
     node.addArg("left", DatatypeSelfType());
     node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
 
-    DatatypeConstructor leaf("leaf", "is_leaf");
+    DatatypeConstructor leaf("leaf");
     leaf.addArg("leaf", integerType);
     tree.addConstructor(leaf);
 
@@ -147,12 +146,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Datatype list(d_em, "list");
     Type integerType = d_em->integerType();
 
-    DatatypeConstructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons");
     cons.addArg("car", integerType);
     cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    DatatypeConstructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -172,12 +171,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Datatype list(d_em, "list");
     Type realType = d_em->realType();
 
-    DatatypeConstructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons");
     cons.addArg("car", realType);
     cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    DatatypeConstructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -197,12 +196,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Datatype list(d_em, "list");
     Type booleanType = d_em->booleanType();
 
-    DatatypeConstructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons");
     cons.addArg("car", booleanType);
     cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    DatatypeConstructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -227,24 +226,24 @@ class DatatypeBlack : public CxxTest::TestSuite {
      *   END;
      */
     Datatype tree(d_em, "tree");
-    DatatypeConstructor node("node", "is_node");
+    DatatypeConstructor node("node");
     node.addArg("left", DatatypeSelfType());
     node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
 
-    DatatypeConstructor leaf("leaf", "is_leaf");
+    DatatypeConstructor leaf("leaf");
     leaf.addArg("leaf", DatatypeUnresolvedType("list"));
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
 
     Datatype list(d_em, "list");
-    DatatypeConstructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons");
     cons.addArg("car", DatatypeUnresolvedType("tree"));
     cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    DatatypeConstructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
@@ -281,27 +280,27 @@ class DatatypeBlack : public CxxTest::TestSuite {
   void testMutualListTrees2()
   {
     Datatype tree(d_em, "tree");
-    DatatypeConstructor node("node", "is_node");
+    DatatypeConstructor node("node");
     node.addArg("left", DatatypeSelfType());
     node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
 
-    DatatypeConstructor leaf("leaf", "is_leaf");
+    DatatypeConstructor leaf("leaf");
     leaf.addArg("leaf", DatatypeUnresolvedType("list"));
     tree.addConstructor(leaf);
 
     Datatype list(d_em, "list");
-    DatatypeConstructor cons("cons", "is_cons");
+    DatatypeConstructor cons("cons");
     cons.addArg("car", DatatypeUnresolvedType("tree"));
     cons.addArg("cdr", DatatypeSelfType());
     list.addConstructor(cons);
 
-    DatatypeConstructor nil("nil", "is_nil");
+    DatatypeConstructor nil("nil");
     list.addConstructor(nil);
 
     // add another constructor to list datatype resulting in an
     // "otherNil-list"
-    DatatypeConstructor otherNil("otherNil", "is_otherNil");
+    DatatypeConstructor otherNil("otherNil");
     list.addConstructor(otherNil);
 
     vector<Datatype> dts;
@@ -329,7 +328,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   void testNotSoWellFounded() {
     Datatype tree(d_em, "tree");
 
-    DatatypeConstructor node("node", "is_node");
+    DatatypeConstructor node("node");
     node.addArg("left", DatatypeSelfType());
     node.addArg("right", DatatypeSelfType());
     tree.addConstructor(node);
@@ -436,4 +435,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(TypeNode::fromType(pairIntInt), TypeNode::fromType(pairIntInt)).toType(), pairIntInt);
   }
 
+ private:
+  api::Solver* d_slv;
+  ExprManager* d_em;
+  ExprManagerScope* d_scope;
 };/* class DatatypeBlack */

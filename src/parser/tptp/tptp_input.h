@@ -2,9 +2,9 @@
 /*! \file tptp_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Tim King
+ **   Francois Bobot, Mathias Preiner, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -72,11 +72,11 @@ class TptpInput : public AntlrInput {
 
   /**
    * Parse an expression from the input. Returns a null
-   * <code>Expr</code> if there is no expression there to parse.
+   * <code>api::Term</code> if there is no expression there to parse.
    *
    * @throws ParserException if an error is encountered during parsing.
    */
-  Expr parseExpr() override;
+  api::Term parseExpr() override;
 
 };/* class TptpInput */
 

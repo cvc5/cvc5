@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -234,12 +234,12 @@ ITESimp::ITESimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ITESimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  d_preprocContext->spendResource(options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   size_t nasserts = assertionsToPreprocess->size();
   for (size_t i = 0; i < nasserts; ++i)
   {
-    d_preprocContext->spendResource(options::preprocessStep());
+    d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
     Node simp = simpITE(&d_iteUtilities, (*assertionsToPreprocess)[i]);
     assertionsToPreprocess->replace(i, simp);
     if (simp.isConst() && !simp.getConst<bool>())

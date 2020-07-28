@@ -2,9 +2,9 @@
 /*! \file inst_strategy_cegqi.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -66,7 +66,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   d_small_const =
       NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000));
   d_check_vts_lemma_lc = false;
-  if (options::cbqiBv())
+  if (options::cegqiBv())
   {
     // if doing instantiation for BV, need the inverter class
     d_bv_invert.reset(new quantifiers::BvInverter);
@@ -94,8 +94,9 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 bool InstStrategyCegqi::registerCbqiLemma(Node q)
 {
   if( !hasAddedCbqiLemma( q ) ){
+    NodeManager* nm = NodeManager::currentNM();
     d_added_cbqi_lemma.insert( q );
-    Trace("cbqi-debug") << "Do cbqi for " << q << std::endl;
+    Trace("cegqi-debug") << "Do cbqi for " << q << std::endl;
     //add cbqi lemma
     //get the counterexample literal
     Node ceLit = getCounterexampleLiteral(q);
@@ -105,10 +106,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       Node lem = NodeManager::currentNM()->mkNode( OR, ceLit.negate(), ceBody.negate() );
       //require any decision on cel to be phase=true
       d_quantEngine->addRequirePhase( ceLit, true );
-      Debug("cbqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
+      Debug("cegqi-debug") << "Require phase " << ceLit << " = true." << std::endl;
       //add counterexample lemma
       lem = Rewriter::rewrite( lem );
-      Trace("cbqi-lemma") << "Counterexample lemma : " << lem << std::endl;
+      Trace("cegqi-lemma") << "Counterexample lemma : " << lem << std::endl;
       registerCounterexampleLemma( q, lem );
       
       //totality lemmas for EPR
@@ -128,43 +129,44 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
                   disj.push_back( ic.eqNode( itc->second[j] ) );
                 }
                 Node tlem = disj.size()==1 ? disj[0] : NodeManager::currentNM()->mkNode( kind::OR, disj );
-                Trace("cbqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
+                Trace("cegqi-lemma") << "EPR totality lemma : " << tlem << std::endl;
                 d_quantEngine->getOutputChannel().lemma( tlem );
               }else{
                 Assert(false);
               }                  
-            }else{
-              Assert(!options::cbqiAll());
             }
           }
         }
       }      
       
       //compute dependencies between quantified formulas
-      if( options::cbqiLitDepend() || options::cbqiInnermost() ){
-        std::vector< Node > ics;
-        TermUtil::computeInstConstContains(q, ics);
-        d_parent_quant[q].clear();
-        d_children_quant[q].clear();
-        std::vector< Node > dep;
-        for( unsigned i=0; i<ics.size(); i++ ){
-          Node qi = ics[i].getAttribute(InstConstantAttribute());
-          if( std::find( d_parent_quant[q].begin(), d_parent_quant[q].end(), qi )==d_parent_quant[q].end() ){
-            d_parent_quant[q].push_back( qi );
-            d_children_quant[qi].push_back( q );
-            Assert(hasAddedCbqiLemma(qi));
-            Node qicel = getCounterexampleLiteral(qi);
-            dep.push_back( qi );
-            dep.push_back( qicel );
-          }
-        }
-        if( !dep.empty() ){
-          Node dep_lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, ceLit, NodeManager::currentNM()->mkNode( kind::AND, dep ) );
-          Trace("cbqi-lemma") << "Counterexample dependency lemma : " << dep_lemma << std::endl;
-          d_quantEngine->getOutputChannel().lemma( dep_lemma );
+      std::vector<Node> ics;
+      TermUtil::computeInstConstContains(q, ics);
+      d_parent_quant[q].clear();
+      d_children_quant[q].clear();
+      std::vector<Node> dep;
+      for (const Node& ic : ics)
+      {
+        Node qi = ic.getAttribute(InstConstantAttribute());
+        if (std::find(d_parent_quant[q].begin(), d_parent_quant[q].end(), qi)
+            == d_parent_quant[q].end())
+        {
+          d_parent_quant[q].push_back(qi);
+          d_children_quant[qi].push_back(q);
+          Assert(hasAddedCbqiLemma(qi));
+          Node qicel = getCounterexampleLiteral(qi);
+          dep.push_back(qi);
+          dep.push_back(qicel);
         }
       }
-      
+      if (!dep.empty())
+      {
+        Node dep_lemma = nm->mkNode(IMPLIES, ceLit, nm->mkNode(AND, dep));
+        Trace("cegqi-lemma")
+            << "Counterexample dependency lemma : " << dep_lemma << std::endl;
+        d_quantEngine->getOutputChannel().lemma(dep_lemma);
+      }
+
       //must register all sub-quantifiers of counterexample lemma, register their lemmas
       std::vector< Node > quants;
       TermUtil::computeQuantContains( lem, quants );
@@ -172,14 +174,14 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         if( doCbqi( quants[i] ) ){
           registerCbqiLemma( quants[i] );
         }
-        if( options::cbqiNestedQE() ){
+        if( options::cegqiNestedQE() ){
           //record these as counterexample quantifiers
           QAttributes qa;
           QuantAttributes::computeQuantAttributes( quants[i], qa );
           if( !qa.d_qid_num.isNull() ){
             d_id_to_ce_quant[ qa.d_qid_num ] = quants[i];
             d_ce_quant_to_id[ quants[i] ] = qa.d_qid_num;
-            Trace("cbqi-nqe") << "CE quant id = " << qa.d_qid_num << " is " << quants[i] << std::endl;
+            Trace("cegqi-nqe") << "CE quant id = " << qa.d_qid_num << " is " << quants[i] << std::endl;
           }
         }
       }
@@ -224,21 +226,21 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
       Assert(hasAddedCbqiLemma(q));
       if( d_quantEngine->getModel()->isQuantifierActive( q ) ){
         d_active_quant[q] = true;
-        Debug("cbqi-debug") << "Check quantified formula " << q << "..." << std::endl;
+        Debug("cegqi-debug") << "Check quantified formula " << q << "..." << std::endl;
         Node cel = getCounterexampleLiteral(q);
         bool value;
         if( d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-          Debug("cbqi-debug") << "...CE Literal has value " << value << std::endl;
+          Debug("cegqi-debug") << "...CE Literal has value " << value << std::endl;
           if( !value ){
             if( d_quantEngine->getValuation().isDecision( cel ) ){
-              Trace("cbqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
+              Trace("cegqi-warn") << "CBQI WARNING: Bad decision on CE Literal." << std::endl;
             }else{
-              Trace("cbqi") << "Inactive : " << q << std::endl;
+              Trace("cegqi") << "Inactive : " << q << std::endl;
               d_quantEngine->getModel()->setQuantifierActive( q, false );
               d_cbqi_set_quant_inactive = true;
               d_active_quant.erase( q );
               d_elim_quants.insert( q );
-              Trace("cbqi-nqe") << "Inactive, waitlist proc/size = " << d_nested_qe_waitlist_proc[q].get() << "/" << d_nested_qe_waitlist_size[q].get() << std::endl;
+              Trace("cegqi-nqe") << "Inactive, waitlist proc/size = " << d_nested_qe_waitlist_proc[q].get() << "/" << d_nested_qe_waitlist_size[q].get() << std::endl;
               //process from waitlist
               while( d_nested_qe_waitlist_proc[q]<d_nested_qe_waitlist_size[q] ){
                 int index = d_nested_qe_waitlist_proc[q];
@@ -247,43 +249,43 @@ void InstStrategyCegqi::reset_round(Theory::Effort effort)
                 Node nq = d_nested_qe_waitlist[q][index];
                 Node nqeqn = doNestedQENode( d_nested_qe_info[nq].d_q, q, nq, d_nested_qe_info[nq].d_inst_terms, d_nested_qe_info[nq].d_doVts );
                 Node dqelem = nq.eqNode( nqeqn ); 
-                Trace("cbqi-lemma") << "Delayed nested quantifier elimination lemma : " << dqelem << std::endl;
+                Trace("cegqi-lemma") << "Delayed nested quantifier elimination lemma : " << dqelem << std::endl;
                 d_quantEngine->getOutputChannel().lemma( dqelem );
                 d_nested_qe_waitlist_proc[q] = index + 1;
               }
             }
           }
         }else{
-          Debug("cbqi-debug") << "...CE Literal does not have value " << std::endl;
+          Debug("cegqi-debug") << "...CE Literal does not have value " << std::endl;
         }
       }
     }
   }
 
   //refinement: only consider innermost active quantified formulas
-  if( options::cbqiInnermost() ){
+  if( options::cegqiInnermost() ){
     if( !d_children_quant.empty() && !d_active_quant.empty() ){
-      Trace("cbqi-debug") << "Find non-innermost quantifiers..." << std::endl;
+      Trace("cegqi-debug") << "Find non-innermost quantifiers..." << std::endl;
       std::vector< Node > ninner;
       for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
         std::map< Node, std::vector< Node > >::iterator itc = d_children_quant.find( it->first );
         if( itc!=d_children_quant.end() ){
           for( unsigned j=0; j<itc->second.size(); j++ ){
             if( d_active_quant.find( itc->second[j] )!=d_active_quant.end() ){
-              Trace("cbqi-debug") << "Do not consider " << it->first << " since it is not innermost (" << itc->second[j] << std::endl;
+              Trace("cegqi-debug") << "Do not consider " << it->first << " since it is not innermost (" << itc->second[j] << std::endl;
               ninner.push_back( it->first );
               break;
             }
           }
         }
       } 
-      Trace("cbqi-debug") << "Found " << ninner.size() << " non-innermost." << std::endl;
+      Trace("cegqi-debug") << "Found " << ninner.size() << " non-innermost." << std::endl;
       for( unsigned i=0; i<ninner.size(); i++ ){
         Assert(d_active_quant.find(ninner[i]) != d_active_quant.end());
         d_active_quant.erase( ninner[i] );
       }
       Assert(!d_active_quant.empty());
-      Trace("cbqi-debug") << "...done removing." << std::endl;
+      Trace("cegqi-debug") << "...done removing." << std::endl;
     }
   }
   d_check_vts_lemma_lc = false;
@@ -295,9 +297,9 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   {
     Assert(!d_quantEngine->inConflict());
     double clSet = 0;
-    if( Trace.isOn("cbqi-engine") ){
+    if( Trace.isOn("cegqi-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("cbqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
+      Trace("cegqi-engine") << "---Cbqi Engine Round, effort = " << e << "---" << std::endl;
     }
     unsigned lastWaiting = d_quantEngine->getNumLemmasWaiting();
     for( int ee=0; ee<=1; ee++ ){
@@ -306,14 +308,14 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
       //  if( doCbqi( q ) && d_quantEngine->getModel()->isQuantifierActive( q ) ){
       for( std::map< Node, bool >::iterator it = d_active_quant.begin(); it != d_active_quant.end(); ++it ){
         Node q = it->first;
-        Trace("cbqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
+        Trace("cegqi") << "CBQI : Process quantifier " << q[0] << " at effort " << ee << std::endl;
         if( d_nested_qe.find( q )==d_nested_qe.end() ){
           process( q, e, ee );
           if( d_quantEngine->inConflict() ){
             break;
           }
         }else{
-          Trace("cbqi-warn") << "CBQI : Cannot process already eliminated quantified formula " << q << std::endl;
+          Trace("cegqi-warn") << "CBQI : Cannot process already eliminated quantified formula " << q << std::endl;
           Assert(false);
         }
       }
@@ -321,19 +323,19 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
         break;
       }
     }
-    if( Trace.isOn("cbqi-engine") ){
+    if( Trace.isOn("cegqi-engine") ){
       if( d_quantEngine->getNumLemmasWaiting()>lastWaiting ){
-        Trace("cbqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
+        Trace("cegqi-engine") << "Added lemmas = " << (d_quantEngine->getNumLemmasWaiting()-lastWaiting) << std::endl;
       }
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
-      Trace("cbqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
+      Trace("cegqi-engine") << "Finished cbqi engine, time = " << (clSet2-clSet) << std::endl;
     }
   }
 }
 
 bool InstStrategyCegqi::checkComplete()
 {
-  if( ( !options::cbqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
+  if( ( !options::cegqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
     return false;
   }else{
     return true;
@@ -413,7 +415,7 @@ void InstStrategyCegqi::checkOwnership(Node q)
 void InstStrategyCegqi::preRegisterQuantifier(Node q)
 {
   // mark all nested quantifiers with id
-  if (options::cbqiNestedQE())
+  if (options::cegqiNestedQE())
   {
     if( d_quantEngine->getOwner(q)==this )
     {
@@ -434,20 +436,20 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
         }
         Node qq = NodeManager::currentNM()->mkNode(FORALL, qqc);
         Node mlem = NodeManager::currentNM()->mkNode(IMPLIES, q, qq);
-        Trace("cbqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
+        Trace("cegqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
         d_quantEngine->addLemma(mlem);
       }
     }
   }
   if( doCbqi( q ) ){
     // get the instantiator
-    if (options::cbqiPreRegInst())
+    if (options::cegqiPreRegInst())
     {
       getInstantiator(q);
     }
     // register the cbqi lemma
     if( registerCbqiLemma( q ) ){
-      Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
+      Trace("cegqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
     }
   }
 }
@@ -464,7 +466,7 @@ Node InstStrategyCegqi::rewriteInstantiation(Node q,
     inst = d_vtsCache->rewriteVtsSymbols(inst);
     Trace("quant-vts-debug") << "...got " << inst << std::endl;
   }
-  if (options::cbqiNestedQE())
+  if (options::cegqiNestedQE())
   {
     inst = doNestedQE(q, terms, inst, doVts);
   }
@@ -486,11 +488,11 @@ Node InstStrategyCegqi::doNestedQENode(
   // in this case, q is equivalent to the quantifier-free formula C[t].
   if( d_nested_qe.find( ceq )==d_nested_qe.end() ){
     d_nested_qe[ceq] = d_quantEngine->getInstantiatedConjunction( ceq );
-    Trace("cbqi-nqe") << "CE quantifier elimination : " << std::endl;
-    Trace("cbqi-nqe") << "  " << ceq << std::endl; 
-    Trace("cbqi-nqe") << "  " << d_nested_qe[ceq] << std::endl;
+    Trace("cegqi-nqe") << "CE quantifier elimination : " << std::endl;
+    Trace("cegqi-nqe") << "  " << ceq << std::endl; 
+    Trace("cegqi-nqe") << "  " << d_nested_qe[ceq] << std::endl;
     //should not contain quantifiers
-    Assert(!QuantifiersRewriter::containsQuantifiers(d_nested_qe[ceq]));
+    Assert(!expr::hasClosure(d_nested_qe[ceq]));
   }
   Assert(d_quantEngine->getTermUtil()->d_inst_constants[q].size()
          == inst_terms.size());
@@ -503,9 +505,9 @@ Node InstStrategyCegqi::doNestedQENode(
     ret = Rewriter::rewrite( ret );
     ret = d_vtsCache->rewriteVtsSymbols(ret);
   }
-  Trace("cbqi-nqe") << "Nested quantifier elimination: " << std::endl;
-  Trace("cbqi-nqe") << "  " << n << std::endl; 
-  Trace("cbqi-nqe") << "  " << ret << std::endl;
+  Trace("cegqi-nqe") << "Nested quantifier elimination: " << std::endl;
+  Trace("cegqi-nqe") << "  " << n << std::endl; 
+  Trace("cegqi-nqe") << "  " << ret << std::endl;
   return ret;
 }
 
@@ -529,10 +531,10 @@ Node InstStrategyCegqi::doNestedQERec(Node q,
           if( doNestedQe ){
             ret = doNestedQENode( q, ceq, n, inst_terms, doVts );
           }else{
-            Trace("cbqi-nqe") << "Add to nested qe waitlist : " << std::endl;
+            Trace("cegqi-nqe") << "Add to nested qe waitlist : " << std::endl;
             Node nr = Rewriter::rewrite( n );
-            Trace("cbqi-nqe") << "  " << ceq << std::endl;
-            Trace("cbqi-nqe") << "  " << nr << std::endl;
+            Trace("cegqi-nqe") << "  " << ceq << std::endl;
+            Trace("cegqi-nqe") << "  " << nr << std::endl;
             int wlsize = d_nested_qe_waitlist_size[ceq] + 1;
             d_nested_qe_waitlist_size[ceq] = wlsize;
             if( wlsize<(int)d_nested_qe_waitlist[ceq].size() ){
@@ -545,7 +547,7 @@ Node InstStrategyCegqi::doNestedQERec(Node q,
             d_nested_qe_info[nr].d_inst_terms.insert( d_nested_qe_info[nr].d_inst_terms.end(), inst_terms.begin(), inst_terms.end() );
             d_nested_qe_info[nr].d_doVts = doVts;
             //TODO: ensure this holds by restricting prenex when cbqiNestedQe is true.
-            Assert(!options::cbqiInnermost());
+            Assert(!options::cegqiInnermost());
           }
         } 
       } 
@@ -591,15 +593,18 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   {
     ce_vars.push_back(tutil->getInstantiationConstant(q, i));
   }
-  std::vector<Node> lems;
-  lems.push_back(lem);
   CegInstantiator* cinst = getInstantiator(q);
-  cinst->registerCounterexampleLemma(lems, ce_vars);
-  for (unsigned i = 0, size = lems.size(); i < size; i++)
+  LemmaStatus status = d_quantEngine->getOutputChannel().lemma(lem);
+  Node ppLem = status.getRewrittenLemma();
+  Trace("cegqi-debug") << "Counterexample lemma (post-preprocess): " << ppLem
+                       << std::endl;
+  std::vector<Node> auxLems;
+  cinst->registerCounterexampleLemma(ppLem, ce_vars, auxLems);
+  for (unsigned i = 0, size = auxLems.size(); i < size; i++)
   {
-    Trace("cbqi-debug") << "Counterexample lemma " << i << " : " << lems[i]
-                        << std::endl;
-    d_quantEngine->addLemma(lems[i], false);
+    Trace("cegqi-debug") << "Auxiliary CE lemma " << i << " : " << auxLems[i]
+                         << std::endl;
+    d_quantEngine->addLemma(auxLems[i], false);
   }
 }
 
@@ -608,7 +613,7 @@ bool InstStrategyCegqi::doCbqi(Node q)
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
     CegHandledStatus ret = CegInstantiator::isCbqiQuant(q, d_quantEngine);
-    Trace("cbqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
+    Trace("cegqi-quant") << "doCbqi " << q << " returned " << ret << std::endl;
     d_do_cbqi[q] = ret;
     return ret != CEG_UNHANDLED;
   }
@@ -685,7 +690,7 @@ bool InstStrategyCegqi::doAddInstantiation( std::vector< Node >& subs ) {
       return true;
     }else{
       //this should never happen for monotonic selection strategies
-      Trace("cbqi-warn") << "WARNING: Existing instantiation" << std::endl;
+      Trace("cegqi-warn") << "WARNING: Existing instantiation" << std::endl;
       return false;
     }
   }
@@ -717,13 +722,13 @@ BvInverter* InstStrategyCegqi::getBvInverter() const
 }
 
 void InstStrategyCegqi::presolve() {
-  if (!options::cbqiPreRegInst())
+  if (!options::cegqiPreRegInst())
   {
     return;
   }
   for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
   {
-    Trace("cbqi-presolve") << "Presolve " << ci.first << std::endl;
+    Trace("cegqi-presolve") << "Presolve " << ci.first << std::endl;
     ci.second->presolve(ci.first);
   }
 }

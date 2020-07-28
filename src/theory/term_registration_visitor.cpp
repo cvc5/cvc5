@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,7 +35,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
 
   Debug("register::internal") << "PreRegisterVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
-  if ((parent.isClosure() || parent.getKind() == kind::REWRITE_RULE
+  if ((parent.isClosure()
        || parent.getKind() == kind::SEP_STAR
        || parent.getKind() == kind::SEP_WAND
        || (parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean())
@@ -88,9 +88,9 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
     // The current theory has already visited it, so now it depends on the parent and the type
     if (Theory::setContains(parentTheoryId, visitedTheories)) {
       if (useType) {
-        TheoryId typeTheoryId = Theory::theoryOf(current.getType());
-        d_theories = Theory::setInsert(typeTheoryId, d_theories);
-        return Theory::setContains(typeTheoryId, visitedTheories);
+        TheoryId typeTheoryId2 = Theory::theoryOf(current.getType());
+        d_theories = Theory::setInsert(typeTheoryId2, d_theories);
+        return Theory::setContains(typeTheoryId2, visitedTheories);
       } else {
         return true;
       }
@@ -178,7 +178,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
 
   Debug("register::internal") << "SharedTermsVisitor::alreadyVisited(" << current << "," << parent << ")" << std::endl;
 
-  if ((parent.isClosure() || parent.getKind() == kind::REWRITE_RULE
+  if ((parent.isClosure()
        || parent.getKind() == kind::SEP_STAR
        || parent.getKind() == kind::SEP_WAND
        || (parent.getKind() == kind::SEP_LABEL && current.getType().isBoolean())

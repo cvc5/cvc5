@@ -2,9 +2,9 @@
 /*! \file sygus_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/smt_engine_subsolver.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -154,16 +155,18 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
         TypeNode tnv = v.getType();
         unsigned vnum = type_count[tnv];
         type_count[tnv]++;
+        vars.push_back(v);
         if (vnum < qtvars[tnv].size())
         {
-          vars.push_back(v);
           subs.push_back(qtvars[tnv][vnum]);
         }
         else
         {
           Assert(vnum == qtvars[tnv].size());
-          qtvars[tnv].push_back(v);
-          qvars.push_back(v);
+          Node bv = nm->mkBoundVar(tnv);
+          qtvars[tnv].push_back(bv);
+          qvars.push_back(bv);
+          subs.push_back(bv);
         }
       }
       pas = pas[1];
@@ -298,11 +301,11 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   Trace("sygus-infer") << "*** Return sygus inference : " << body << std::endl;
 
   // make a separate smt call
-  SmtEngine rrSygus(nm->toExprManager());
-  rrSygus.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  rrSygus.assertFormula(body.toExpr());
+  std::unique_ptr<SmtEngine> rrSygus;
+  theory::initializeSubsolver(rrSygus);
+  rrSygus->assertFormula(body);
   Trace("sygus-infer") << "*** Check sat..." << std::endl;
-  Result r = rrSygus.checkSat();
+  Result r = rrSygus->checkSat();
   Trace("sygus-infer") << "...result : " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
@@ -311,7 +314,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   }
   // get the synthesis solutions
   std::map<Expr, Expr> synth_sols;
-  rrSygus.getSynthSolutions(synth_sols);
+  rrSygus->getSynthSolutions(synth_sols);
 
   std::vector<Node> final_ff;
   std::vector<Node> final_ff_sol;
@@ -328,10 +331,10 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Node body = Node::fromExpr(it->second);
-      Trace("sygus-infer") << "Define " << ff << " as " << body << std::endl;
+      Node body2 = Node::fromExpr(it->second);
+      Trace("sygus-infer") << "Define " << ff << " as " << body2 << std::endl;
       funs.push_back(ff);
-      sols.push_back(body);
+      sols.push_back(body2);
     }
   }
   return true;

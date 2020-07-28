@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,7 +31,6 @@
 #include "proof/proof_manager.h"
 #include "prop/registrar.h"
 #include "prop/theory_proxy.h"
-#include "smt_util/lemma_channels.h"
 
 namespace CVC4 {
 
@@ -254,11 +253,15 @@ class TseitinCnfStream : public CnfStream {
    * @param satSolver the sat solver to use
    * @param registrar the entity that takes care of pre-registration of Nodes
    * @param context the context that the CNF should respect.
+   * @param rm the resource manager of the CNF stream
    * @param fullLitToNodeMap maintain a full SAT-literal-to-Node mapping,
    * even for non-theory literals
    */
-  TseitinCnfStream(SatSolver* satSolver, Registrar* registrar,
-                   context::Context* context, bool fullLitToNodeMap = false,
+  TseitinCnfStream(SatSolver* satSolver,
+                   Registrar* registrar,
+                   context::Context* context,
+                   ResourceManager* rm,
+                   bool fullLitToNodeMap = false,
                    std::string name = "");
 
   /**
@@ -314,6 +317,8 @@ class TseitinCnfStream : public CnfStream {
 
   void ensureLiteral(TNode n, bool noPreregistration = false) override;
 
+  /** Pointer to resource manager for associated SmtEngine */
+  ResourceManager* d_resourceManager;
 }; /* class TseitinCnfStream */
 
 } /* CVC4::prop namespace */

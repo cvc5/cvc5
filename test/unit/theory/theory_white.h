@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
  **/
 
 #include <cxxtest/TestSuite.h>
+
 #include <memory>
 #include <vector>
 
@@ -26,6 +27,7 @@
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
 #include "util/proof.h"
+#include "util/resource_manager.h"
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -45,7 +47,7 @@ class TestOutputChannel : public OutputChannel {
   TestOutputChannel() {}
   ~TestOutputChannel() override {}
 
-  void safePoint(uint64_t amount) override {}
+  void safePoint(ResourceManager::Resource r) override {}
   void conflict(TNode n, std::unique_ptr<Proof> pf) override
   {
     push(CONFLICT, n);
@@ -56,8 +58,10 @@ class TestOutputChannel : public OutputChannel {
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus lemma(TNode n,
+                    ProofRule rule,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
@@ -91,14 +95,21 @@ class TestOutputChannel : public OutputChannel {
 };
 
 class DummyTheory : public Theory {
-public:
+ public:
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo)
-      : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
+  DummyTheory(Context* ctxt,
+              UserContext* uctxt,
+              OutputChannel& out,
+              Valuation valuation,
+              const LogicInfo& logicInfo,
+              ProofNodeManager* pnm)
+      : Theory(
+            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {}
+
+  TheoryRewriter* getTheoryRewriter() { return nullptr; }
 
   void registerTerm(TNode n) {
     // check that we registerTerm() a term only once
@@ -132,7 +143,7 @@ public:
   void presolve() override { Unimplemented(); }
   void preRegisterTerm(TNode n) override {}
   void propagate(Effort level) override {}
-  Node explain(TNode n) override { return Node::null(); }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */
@@ -160,8 +171,8 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
-    d_ctxt = d_smt->d_context;
-    d_uctxt = d_smt->d_userContext;
+    d_ctxt = d_smt->getContext();
+    d_uctxt = d_smt->getUserContext();
     d_scope = new SmtScope(d_smt);
     d_logicInfo = new LogicInfo();
     d_logicInfo->lock();
@@ -176,8 +187,12 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
     d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(
-        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_dummy = new DummyTheory(d_ctxt,
+                              d_uctxt,
+                              d_outputChannel,
+                              Valuation(NULL),
+                              *d_logicInfo,
+                              nullptr);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);

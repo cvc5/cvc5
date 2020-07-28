@@ -2,9 +2,9 @@
 /*! \file sygus_invariance.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -91,14 +91,16 @@ void EquivSygusInvarianceTest::init(
 {
   // compute the current examples
   d_bvr = bvr;
-  if (aconj->getPbe()->hasExamples(e))
+  Assert(tds != nullptr);
+  if (aconj != nullptr)
   {
-    d_conj = aconj;
-    d_enum = e;
-    unsigned nex = aconj->getPbe()->getNumExamples(e);
-    for (unsigned i = 0; i < nex; i++)
+    ExampleEvalCache* eec = aconj->getExampleEvalCache(e);
+    if (eec != nullptr)
     {
-      d_exo.push_back(d_conj->getPbe()->evaluateBuiltin(tn, bvr, e, i));
+      // get the result of evaluating bvr on the examples of enumerator e.
+      eec->evaluateVec(bvr, d_exo, false);
+      d_conj = aconj;
+      d_enum = e;
     }
   }
 }
@@ -149,9 +151,11 @@ bool EquivSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
     if (!d_enum.isNull())
     {
       bool ex_equiv = true;
-      for (unsigned j = 0; j < d_exo.size(); j++)
+      ExampleEvalCache* eec = d_conj->getExampleEvalCache(d_enum);
+      Assert(eec != nullptr);
+      for (unsigned j = 0, esize = d_exo.size(); j < esize; j++)
       {
-        Node nbvr_ex = d_conj->getPbe()->evaluateBuiltin(tn, nbvr, d_enum, j);
+        Node nbvr_ex = eec->evaluate(nbvr, j);
         if (nbvr_ex != d_exo[j])
         {
           ex_equiv = false;

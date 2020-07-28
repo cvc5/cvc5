@@ -7,14 +7,14 @@ libcvc4_add_sources(
   attribute.cpp
   attribute_internals.h
   attribute_unique_id.h
-  chain.h
   emptyset.cpp
   emptyset.h
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
-  expr_stream.h
   kind_map.h
+  lazy_proof.cpp
+  lazy_proof.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -25,17 +25,44 @@ libcvc4_add_sources(
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h
-  node_manager_listeners.cpp
-  node_manager_listeners.h
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
+  node_traversal.cpp
+  node_traversal.h
   node_value.cpp
   node_value.h
+  sequence.cpp
+  sequence.h
+  node_visitor.h
+  proof.cpp
+  proof.h
+  proof_checker.cpp
+  proof_checker.h
+  proof_generator.cpp
+  proof_generator.h
+  proof_node.cpp
+  proof_node.h
+  proof_node_algorithm.cpp
+  proof_node_algorithm.h
+  proof_node_to_sexpr.cpp
+  proof_node_to_sexpr.h
+  proof_node_manager.cpp
+  proof_node_manager.h
+  proof_node_updater.cpp
+  proof_node_updater.h
+  proof_rule.cpp
+  proof_rule.h
+  proof_step_buffer.cpp
+  proof_step_buffer.h
+  skolem_manager.cpp
+  skolem_manager.h
   symbol_table.cpp
   symbol_table.h
   term_canonize.cpp
   term_canonize.h
+  term_conversion_proof_generator.cpp
+  term_conversion_proof_generator.h
   type.cpp
   type.h
   type_checker.h
@@ -54,6 +81,8 @@ libcvc4_add_sources(
   dtype_selector.cpp
   record.cpp
   record.h
+  sequence.cpp
+  sequence.h
   sygus_datatype.cpp
   sygus_datatype.h
   uninterpreted_constant.cpp

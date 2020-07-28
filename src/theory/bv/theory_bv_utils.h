@@ -2,9 +2,9 @@
 /*! \file theory_bv_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Tim King
+ **   Aina Niemetz, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -206,6 +206,24 @@ void intersect(const std::vector<uint32_t>& v1,
                const std::vector<uint32_t>& v2,
                std::vector<uint32_t>& intersection);
 
+/**
+ * Returns the rewritten form of node, which is a term of the form bv2nat(x).
+ * The return value of this method is the integer sum:
+ *   (+ ite( (= ((_ extract (n-1) (n-1)) x) 1) (^ 2 (n-1)) 0)
+ *      ...
+ *      ite( (= ((_ extract 0 0) x) 1) (^ 2 0) 0))
+ * where n is the bitwidth of x.
+ */
+Node eliminateBv2Nat(TNode node);
+/**
+ * Returns the rewritten form of node, which is a term of the form int2bv(x).
+ * The return value of this method is the concatenation term:
+ *   (bvconcat ite( (>= (mod x (^ 2 n)) (^ 2 (n-1))) (_ bv1 1) (_ bv1 0))
+ *             ...
+ *             ite( (>= (mod x (^ 2 1)) (^ 2 0)) (_ bv1 1) (_ bv1 0)))
+ * where n is the bit-width of x.
+ */
+Node eliminateInt2Bv(TNode node);
 }
 }
 }

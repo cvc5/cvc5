@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,18 +24,8 @@
 #include "theory/datatypes/theory_datatypes_utils.h"
 
 namespace CVC4 {
-
-namespace expr {
-namespace attr {
-struct DatatypeConstructorTypeGroundTermTag {};
-} /* CVC4::expr::attr namespace */
-} /* CVC4::expr namespace */
-
 namespace theory {
 namespace datatypes {
-
-typedef expr::Attribute<expr::attr::DatatypeConstructorTypeGroundTermTag, Node>
-    GroundTermAttr;
 
 struct DatatypeConstructorTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,

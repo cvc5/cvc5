@@ -2,9 +2,9 @@
 /*! \file static_learning.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Yoni Zohar
+ **   Yoni Zohar, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,8 +29,7 @@ StaticLearning::StaticLearning(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult StaticLearning::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager::currentResourceManager()->spendResource(
-      options::preprocessStep());
+  d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {

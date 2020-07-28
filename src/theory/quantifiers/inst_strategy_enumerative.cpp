@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,12 +33,19 @@ using namespace inst;
 namespace quantifiers {
 
 InstStrategyEnum::InstStrategyEnum(QuantifiersEngine* qe, RelevantDomain* rd)
-    : QuantifiersModule(qe), d_rd(rd)
+    : QuantifiersModule(qe), d_rd(rd), d_fullSaturateLimit(-1)
 {
 }
-
+void InstStrategyEnum::presolve()
+{
+  d_fullSaturateLimit = options::fullSaturateLimit();
+}
 bool InstStrategyEnum::needsCheck(Theory::Effort e)
 {
+  if (d_fullSaturateLimit == 0)
+  {
+    return false;
+  }
   if (options::fullSaturateInterleave())
   {
     if (d_quantEngine->getInstWhenNeedsCheck(e))
@@ -61,20 +68,27 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
 {
   bool doCheck = false;
   bool fullEffort = false;
-  if (options::fullSaturateInterleave())
+  if (d_fullSaturateLimit != 0)
   {
-    // we only add when interleaved with other strategies
-    doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
-  }
-  if (options::fullSaturateQuant() && !doCheck)
-  {
-    doCheck = quant_e == QEFFORT_LAST_CALL;
-    fullEffort = !d_quantEngine->hasAddedLemma();
+    if (options::fullSaturateInterleave())
+    {
+      // we only add when interleaved with other strategies
+      doCheck = quant_e == QEFFORT_STANDARD && d_quantEngine->hasAddedLemma();
+    }
+    if (options::fullSaturateQuant() && !doCheck)
+    {
+      if (!d_quantEngine->theoryEngineNeedsCheck())
+      {
+        doCheck = quant_e == QEFFORT_LAST_CALL;
+        fullEffort = true;
+      }
+    }
   }
   if (!doCheck)
   {
     return;
   }
+  Assert(!d_quantEngine->inConflict());
   double clSet = 0;
   if (Trace.isOn("fs-engine"))
   {
@@ -127,10 +141,10 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
             }
             // added lemma
             addedLemmas++;
-            if (d_quantEngine->inConflict())
-            {
-              break;
-            }
+          }
+          if (d_quantEngine->inConflict())
+          {
+            break;
           }
         }
       }
@@ -149,6 +163,10 @@ void InstStrategyEnum::check(Theory::Effort e, QEffort quant_e)
     double clSet2 = double(clock()) / double(CLOCKS_PER_SEC);
     Trace("fs-engine") << "Finished full saturation engine, time = "
                        << (clSet2 - clSet) << std::endl;
+  }
+  if (d_fullSaturateLimit > 0)
+  {
+    d_fullSaturateLimit--;
   }
 }
 
@@ -189,7 +207,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
         for (unsigned j = 0; j < ts; j++)
         {
           Node gt = tdb->getTypeGroundTerm(ftypes[i], j);
-          if (!options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
+          if (!options::cegqi() || !quantifiers::TermUtil::hasInstConstAttr(gt))
           {
             Node rep = qy->getRepresentative(gt);
             if (reps_found.find(rep) == reps_found.end())
@@ -284,7 +302,7 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
             {
               terms.push_back(d_rd->getRDomain(f, i)->d_terms[childIndex[i]]);
               Trace("inst-alg-rd")
-                  << "  " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
+                  << "  (rd) " << d_rd->getRDomain(f, i)->d_terms[childIndex[i]]
                   << std::endl;
             }
             else
@@ -295,6 +313,8 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
                   << "  " << term_db_list[ftypes[i]][childIndex[i]]
                   << std::endl;
             }
+            Assert(terms[i].isNull()
+                   || terms[i].getType().isComparableTo(ftypes[i]));
           }
           if (ie->addInstantiation(f, terms))
           {
@@ -305,6 +325,12 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
           else
           {
             index--;
+          }
+          if (d_quantEngine->inConflict())
+          {
+            // could be conflicting for an internal reason (such as term
+            // indices computed in above calls)
+            return false;
           }
         }
       } while (success);

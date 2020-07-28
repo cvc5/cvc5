@@ -2,9 +2,9 @@
 /*! \file quant_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -119,7 +119,8 @@ class QuantifiersModule {
    *
    * Called once for new quantified formulas q that are pre-registered by the
    * quantifiers theory, after internal ownership of quantified formulas is
-   * finalized. This does context-dependent initialization of this module.
+   * finalized. This does context-independent initialization of this module
+   * for quantified formula q.
    */
   virtual void registerQuantifier(Node q) {}
   /** Pre-register quantifier

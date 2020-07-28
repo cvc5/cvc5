@@ -2,9 +2,9 @@
 /*! \file node_algorithm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,7 @@
 #include "expr/node_algorithm.h"
 
 #include "expr/attribute.h"
+#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace expr {
@@ -128,6 +129,60 @@ bool hasSubtermMulti(TNode n, TNode t)
   return false;
 }
 
+bool hasSubtermKind(Kind k, Node n)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
+      {
+        return true;
+      }
+      for (const Node& cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+  return false;
+}
+
+bool hasSubtermKinds(const std::unordered_set<Kind, kind::KindHashFunction>& ks,
+                     Node n)
+{
+  if (ks.empty())
+  {
+    return false;
+  }
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      if (ks.find(cur.getKind()) != ks.end())
+      {
+        return true;
+      }
+      visited.insert(cur);
+      visit.insert(visit.end(), cur.begin(), cur.end());
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 bool hasSubterm(TNode n, const std::vector<Node>& t, bool strict)
 {
   if (t.empty())
@@ -226,6 +281,43 @@ bool hasFreeVar(TNode n)
 {
   std::unordered_set<Node, NodeHashFunction> fvs;
   return getFreeVariables(n, fvs, false);
+}
+
+struct HasClosureTag
+{
+};
+struct HasClosureComputedTag
+{
+};
+/** Attribute true for expressions with closures in them */
+typedef expr::Attribute<HasClosureTag, bool> HasClosureAttr;
+typedef expr::Attribute<HasClosureComputedTag, bool> HasClosureComputedAttr;
+
+bool hasClosure(Node n)
+{
+  if (!n.getAttribute(HasClosureComputedAttr()))
+  {
+    bool hasC = false;
+    if (n.isClosure())
+    {
+      hasC = true;
+    }
+    else
+    {
+      for (auto i = n.begin(); i != n.end() && !hasC; ++i)
+      {
+        hasC = hasClosure(*i);
+      }
+    }
+    if (!hasC && n.hasOperator())
+    {
+      hasC = hasClosure(n.getOperator());
+    }
+    n.setAttribute(HasClosureAttr(), hasC);
+    n.setAttribute(HasClosureComputedAttr(), true);
+    return hasC;
+  }
+  return n.getAttribute(HasClosureAttr());
 }
 
 bool getFreeVariables(TNode n,
@@ -399,7 +491,13 @@ void getOperatorsMap(
       // add the current operator to the result
       if (cur.hasOperator())
       {
-        ops[tn].insert(NodeManager::currentNM()->operatorOf(cur.getKind()));
+       Node o;
+       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED) {
+         o = cur.getOperator();
+       } else {
+         o = NodeManager::currentNM()->operatorOf(cur.getKind());
+       }
+        ops[tn].insert(o);
       }
       // add children to visit in the future
       for (TNode cn : cur)
@@ -453,8 +551,7 @@ Node substituteCaptureAvoiding(TNode n,
             (std::distance(src.begin(), itt.base()) - 1) >= 0
             && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
                    < dest.size());
-        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
-        visited[curr] = n;
+        visited[curr] = dest[std::distance(src.begin(), itt.base()) - 1];
         continue;
       }
       if (curr.getNumChildren() == 0)
@@ -504,8 +601,7 @@ Node substituteCaptureAvoiding(TNode n,
         Assert(visited.find(curr[i]) != visited.end());
         nb << visited[curr[i]];
       }
-      Node n = nb;
-      visited[curr] = n;
+      visited[curr] = nb;
 
       // remove renaming
       if (curr.isClosure())
@@ -520,6 +616,115 @@ Node substituteCaptureAvoiding(TNode n,
   } while (!visit.empty());
   Assert(visited.find(n) != visited.end());
   return visited[n];
+}
+
+void getComponentTypes(
+    TypeNode t, std::unordered_set<TypeNode, TypeNodeHashFunction>& types)
+{
+  std::vector<TypeNode> toProcess;
+  toProcess.push_back(t);
+  do
+  {
+    TypeNode curr = toProcess.back();
+    toProcess.pop_back();
+    // if not already visited
+    if (types.find(curr) == types.end())
+    {
+      types.insert(curr);
+      // get component types from the children
+      for (unsigned i = 0, nchild = curr.getNumChildren(); i < nchild; i++)
+      {
+        toProcess.push_back(curr[i]);
+      }
+    }
+  } while (!toProcess.empty());
+}
+
+bool match(Node x,
+           Node y,
+           std::unordered_map<Node, Node, NodeHashFunction>& subs)
+{
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction> visited;
+  std::unordered_set<std::pair<TNode, TNode>, TNodePairHashFunction>::iterator
+      it;
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator subsIt;
+
+  std::vector<std::pair<TNode, TNode>> stack;
+  stack.emplace_back(x, y);
+  std::pair<TNode, TNode> curr;
+
+  while (!stack.empty())
+  {
+    curr = stack.back();
+    stack.pop_back();
+    if (curr.first == curr.second)
+    {
+      // holds trivially
+      continue;
+    }
+    it = visited.find(curr);
+    if (it != visited.end())
+    {
+      // already processed
+      continue;
+    }
+    visited.insert(curr);
+    if (curr.first.getNumChildren() == 0)
+    {
+      if (!curr.first.getType().isComparableTo(curr.second.getType()))
+      {
+        // the two subterms have different types
+        return false;
+      }
+      // if the two subterms are not equal and the first one is a bound
+      // variable...
+      if (curr.first.getKind() == kind::BOUND_VARIABLE)
+      {
+        // and we have not seen this variable before...
+        subsIt = subs.find(curr.first);
+        if (subsIt == subs.cend())
+        {
+          // add the two subterms to `sub`
+          subs.emplace(curr.first, curr.second);
+        }
+        else
+        {
+          // if we saw this variable before, make sure that (now and before) it
+          // maps to the same subterm
+          if (curr.second != subsIt->second)
+          {
+            return false;
+          }
+        }
+      }
+      else
+      {
+        // the two subterms are not equal
+        return false;
+      }
+    }
+    else
+    {
+      // if the two subterms are not equal, make sure that their operators are
+      // equal
+      // we compare operators instead of kinds because different terms may have
+      // the same kind (both `(id x)` and `(square x)` have kind APPLY_UF)
+      // since many builtin operators like `PLUS` allow arbitrary number of
+      // arguments, we also need to check if the two subterms have the same
+      // number of children
+      if (curr.first.getNumChildren() != curr.second.getNumChildren()
+          || curr.first.getOperator() != curr.second.getOperator())
+      {
+        return false;
+      }
+      // recurse on children
+      for (size_t i = 0, n = curr.first.getNumChildren(); i < n; ++i)
+      {
+        stack.emplace_back(curr.first[i], curr.second[i]);
+      }
+    }
+  }
+  return true;
 }
 
 }  // namespace expr

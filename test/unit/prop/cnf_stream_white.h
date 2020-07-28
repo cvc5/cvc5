@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -140,13 +140,14 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
     d_smt->finalOptionsAreSet();
-    d_theoryEngine = d_smt->d_theoryEngine;
+    d_theoryEngine = d_smt->getTheoryEngine();
 
     d_satSolver = new FakeSatSolver();
     d_cnfContext = new context::Context();
     d_cnfRegistrar = new theory::TheoryRegistrar(d_theoryEngine);
+    ResourceManager* rm = d_smt->getResourceManager();
     d_cnfStream = new CVC4::prop::TseitinCnfStream(
-        d_satSolver, d_cnfRegistrar, d_cnfContext, d_smt->channels());
+        d_satSolver, d_cnfRegistrar, d_cnfContext, rm);
   }
 
   void tearDown() override

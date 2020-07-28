@@ -25,12 +25,7 @@ header = "options/parser_options.h"
   type       = "bool"
   default    = "DO_SEMANTIC_CHECKS_BY_DEFAULT"
   read_only  = true
-  help       = "disable ALL semantic checks, including type checks"
-
-[[alias]]
-  category   = "undocumented"
-  long       = "no-checking"
-  links      = ["--no-type-checking"]
+  help       = "enable semantic checks, including type checks"
 
 [[option]]
   name       = "globalDeclarations"
@@ -60,11 +55,6 @@ header = "options/parser_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-
-[[alias]]
-  category   = "undocumented"
-  long       = "no-include-file"
-  links      = ["--no-filesystem-access"]
 
 [[option]]
   name       = "forceLogicString"

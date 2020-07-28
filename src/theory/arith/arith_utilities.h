@@ -2,9 +2,9 @@
 /*! \file arith_utilities.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Morgan Deters
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -334,6 +334,9 @@ void printRationalApprox(const char* c, Node cr, unsigned prec = 5);
  *   (5*f(x) + 7*x ){ x -> 3 } returns 5*f(x) + 7*3.
  */
 Node arithSubstitute(Node n, std::vector<Node>& vars, std::vector<Node>& subs);
+
+/** Make the node u >= a ^ a >= l */
+Node mkBounded(Node l, Node a, Node u);
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

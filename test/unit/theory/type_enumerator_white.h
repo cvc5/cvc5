@@ -2,9 +2,9 @@
 /*! \file type_enumerator_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Morgan Deters, Andres Noetzli, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,30 +25,32 @@
 #include "expr/node_manager.h"
 #include "expr/type_node.h"
 #include "options/language.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "theory/type_enumerator.h"
 
 using namespace CVC4;
+using namespace CVC4::smt;
 using namespace CVC4::theory;
 using namespace CVC4::kind;
 
 using namespace std;
 
 class TypeEnumeratorWhite : public CxxTest::TestSuite {
-  ExprManager* d_em;
-  NodeManager* d_nm;
-  NodeManagerScope* d_scope;
-
  public:
   void setUp() override
   {
     d_em = new ExprManager();
+    d_smt = new SmtEngine(d_em);
     d_nm = NodeManager::fromExprManager(d_em);
-    d_scope = new NodeManagerScope(d_nm);
+    d_scope = new SmtScope(d_smt);
+    d_smt->finalOptionsAreSet();
   }
 
   void tearDown() override
   {
     delete d_scope;
+    delete d_smt;
     delete d_em;
   }
 
@@ -68,11 +70,9 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
   }
 
   void testUF() {
-    TypeNode sortn = d_nm->mkSort("T");
-    Type sort = sortn.toType();
-    TypeNode sortn2 = d_nm->mkSort("U");
-    Type sort2 = sortn2.toType();
-    TypeEnumerator te(sortn);
+    TypeNode sort = d_nm->mkSort("T");
+    TypeNode sort2 = d_nm->mkSort("U");
+    TypeEnumerator te(sort);
     TS_ASSERT_EQUALS(*te, d_nm->mkConst(UninterpretedConstant(sort, 0)));
     for(size_t i = 1; i < 100; ++i) {
       TS_ASSERT_DIFFERS(*te, d_nm->mkConst(UninterpretedConstant(sort, i)));
@@ -232,13 +232,20 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
 
     // ensure that certain items were found
-    ArrayType arrayType(d_em->mkArrayType(d_em->integerType(), d_em->integerType()));
-    Node zeroes = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(0))));
-    Node ones = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(1))));
-    Node twos = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(2))));
-    Node threes = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(3))));
-    Node fours = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(4))));
-    Node tens = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(10))));
+    TypeNode arrayType =
+        d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
+    Node zeroes =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(0))));
+    Node ones =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(1))));
+    Node twos =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(2))));
+    Node threes =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(3))));
+    Node fours =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(4))));
+    Node tens =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(10))));
 
     Node zero = d_nm->mkConst(Rational(0));
     Node one = d_nm->mkConst(Rational(1));
@@ -272,4 +279,9 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
+ private:
+  ExprManager* d_em;
+  SmtEngine* d_smt;
+  NodeManager* d_nm;
+  SmtScope* d_scope;
 };/* class TypeEnumeratorWhite */

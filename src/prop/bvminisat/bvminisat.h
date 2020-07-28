@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,9 +23,10 @@
 #include "context/cdo.h"
 #include "proof/clause_id.h"
 #include "proof/resolution_bitvector_proof.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
-#include "prop/bv_sat_solver_notify.h"
+#include "util/resource_manager.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -46,11 +47,14 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
       return d_notify->notify(toSatLiteral(lit));
     }
     void notify(BVMinisat::vec<BVMinisat::Lit>& clause) override;
-    void spendResource(unsigned amount) override
+    void spendResource(ResourceManager::Resource r) override
     {
-      d_notify->spendResource(amount);
+      d_notify->spendResource(r);
     }
-    void safePoint(unsigned amount) override { d_notify->safePoint(amount); }
+    void safePoint(ResourceManager::Resource r) override
+    {
+      d_notify->safePoint(r);
+    }
   };
 
 	std::unique_ptr<BVMinisat::SimpSolver> d_minisat;

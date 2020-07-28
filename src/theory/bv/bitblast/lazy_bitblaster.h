@@ -2,9 +2,9 @@
 /*! \file lazy_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Mathias Preiner, Tim King
+ **   Liana Hadarean, Mathias Preiner, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -120,8 +120,8 @@ class TLazyBitblaster : public TBitblaster<Node>
 
     bool notify(prop::SatLiteral lit) override;
     void notify(prop::SatClause& clause) override;
-    void spendResource(unsigned amount) override;
-    void safePoint(unsigned amount) override;
+    void spendResource(ResourceManager::Resource r) override;
+    void safePoint(ResourceManager::Resource r) override;
   };
 
   TheoryBV* d_bv;

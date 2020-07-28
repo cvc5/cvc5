@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,15 +60,20 @@ EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
       solver = prop::SatSolverFactory::createCryptoMinisat(
           smtStatisticsRegistry(), "EagerBitblaster");
       break;
+    case options::SatSolverMode::KISSAT:
+      solver = prop::SatSolverFactory::createKissat(smtStatisticsRegistry(),
+                                                    "EagerBitblaster");
+      break;
     default: Unreachable() << "Unknown SAT solver type";
   }
   d_satSolver.reset(solver);
-  d_cnfStream.reset(
-      new prop::TseitinCnfStream(d_satSolver.get(),
-                                 d_bitblastingRegistrar.get(),
-                                 d_nullContext.get(),
-                                 options::proof(),
-                                 "EagerBitblaster"));
+  ResourceManager* rm = smt::currentResourceManager();
+  d_cnfStream.reset(new prop::TseitinCnfStream(d_satSolver.get(),
+                                               d_bitblastingRegistrar.get(),
+                                               d_nullContext.get(),
+                                               rm,
+                                               options::proof(),
+                                               "EagerBitblaster"));
 }
 
 EagerBitblaster::~EagerBitblaster() {}
@@ -152,7 +157,7 @@ void EagerBitblaster::bbTerm(TNode node, Bits& bits) {
     return;
   }
 
-  d_bv->spendResource(options::bitblastStep());
+  d_bv->spendResource(ResourceManager::Resource::BitblastStep);
   Debug("bitvector-bitblast") << "Bitblasting node " << node << "\n";
 
   d_termBBStrategies[node.getKind()](node, bits, this);

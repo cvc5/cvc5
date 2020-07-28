@@ -2,9 +2,9 @@
 /*! \file transition_inference.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -197,6 +197,7 @@ void TransitionInference::process(Node n)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_complete = true;
+  d_trivial = true;
   std::vector<Node> n_check;
   if (n.getKind() == AND)
   {
@@ -418,8 +419,9 @@ bool TransitionInference::processDisjunct(
   {
     Node op = lit.getOperator();
     // initialize the variables
-    if (d_vars.empty())
+    if (d_trivial)
     {
+      d_trivial = false;
       d_func = op;
       Trace("cegqi-inv-debug") << "Use " << op << " with args ";
       NodeManager* nm = NodeManager::currentNM();

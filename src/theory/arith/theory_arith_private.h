@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -35,15 +35,12 @@
 #include "smt/logic_exception.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arith/arith_rewriter.h"
-#include "theory/arith/arith_rewriter.h"
 #include "theory/arith/arith_static_learner.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/attempt_solution_simplex.h"
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint.h"
-#include "theory/arith/constraint.h"
-#include "theory/arith/delta_rational.h"
 #include "theory/arith/delta_rational.h"
 #include "theory/arith/dio_solver.h"
 #include "theory/arith/dual_simplex.h"
@@ -51,9 +48,8 @@
 #include "theory/arith/infer_bounds.h"
 #include "theory/arith/linear_equality.h"
 #include "theory/arith/matrix.h"
-#include "theory/arith/matrix.h"
 #include "theory/arith/normal_form.h"
-#include "theory/arith/partial_model.h"
+#include "theory/arith/operator_elim.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/simplex.h"
 #include "theory/arith/soi_simplex.h"
@@ -83,7 +79,9 @@ namespace inferbounds {
 }
 class InferBoundsResult;
 
+namespace nl {
 class NonlinearExtension;
+}
 
 /**
  * Implementation of QF_LRA.
@@ -189,9 +187,6 @@ public:
     d_setupNodes.insert(n);
   }
 private:
-
-  void setupDivLike(const Variable& x);
-
   void setupVariable(const Variable& x);
   void setupVariableList(const VarList& vl);
   void setupPolynomial(const Polynomial& poly);
@@ -375,7 +370,7 @@ private:
   AttemptSolutionSDP d_attemptSolSimplex;
   
   /** non-linear algebraic approach */
-  NonlinearExtension * d_nonlinearExtension;
+  nl::NonlinearExtension* d_nonlinearExtension;
 
   bool solveRealRelaxation(Theory::Effort effortLevel);
 
@@ -420,17 +415,25 @@ private:
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
   // handle linear /, div, mod, and also is_int, to_int
-  Node ppRewriteTerms(TNode atom);
+  TrustNode ppRewriteTerms(TNode atom);
 
-public:
-  TheoryArithPrivate(TheoryArith& containing, context::Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo);
+ public:
+  TheoryArithPrivate(TheoryArith& containing,
+                     context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     Valuation valuation,
+                     const LogicInfo& logicInfo,
+                     ProofNodeManager* pnm);
   ~TheoryArithPrivate();
+
+  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  Node expandDefinition(LogicRequest &logicRequest, Node node);
+  TrustNode expandDefinition(Node node);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
@@ -450,7 +453,7 @@ public:
   void presolve();
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+  TrustNode ppRewrite(TNode atom);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
@@ -655,8 +658,9 @@ private:
     d_nlIncomplete = true;
   }
   void outputLemma(TNode lem);
-  inline void outputPropagate(TNode lit) { (d_containing.d_out)->propagate(lit); }
-  inline void outputRestart() { (d_containing.d_out)->demandRestart(); }
+  void outputConflict(TNode lit);
+  void outputPropagate(TNode lit);
+  void outputRestart();
 
   inline bool isSatLiteral(TNode l) const {
     return (d_containing.d_valuation).isSatLiteral(l);
@@ -828,59 +832,10 @@ private:
 
   Statistics d_statistics;
 
-  enum class ArithSkolemId
-  {
-    /* an uninterpreted function f s.t. f(x) = x / 0.0 (real division) */
-    DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x / 0 (integer division) */
-    INT_DIV_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = x mod 0 */
-    MOD_BY_ZERO,
-    /* an uninterpreted function f s.t. f(x) = sqrt(x) */
-    SQRT,
-  };
-
-  /**
-   * Function symbols used to implement:
-   * (1) Uninterpreted division-by-zero semantics.  Needed to deal with partial
-   * division function ("/"),
-   * (2) Uninterpreted int-division-by-zero semantics.  Needed to deal with
-   * partial function "div",
-   * (3) Uninterpreted mod-zero semantics.  Needed to deal with partial
-   * function "mod".
-   *
-   * If the option arithNoPartialFun() is enabled, then the range of this map
-   * stores Skolem constants instead of Skolem functions, meaning that the
-   * function-ness of e.g. division by zero is ignored.
-   */
-  std::map<ArithSkolemId, Node> d_arith_skolem;
-  /** get arithmetic skolem
-   *
-   * Returns the Skolem in the above map for the given id, creating it if it
-   * does not already exist. If a Skolem function is created, the logic is
-   * widened to include UF.
-   */
-  Node getArithSkolem(LogicRequest& logicRequest, ArithSkolemId asi);
-  /** get arithmetic skolem application
-   *
-   * By default, this returns the term f( n ), where f is the Skolem function
-   * for the identifier asi.
-   *
-   * If the option arithNoPartialFun is enabled, this returns f, where f is
-   * the Skolem constant for the identifier asi.
-   */
-  Node getArithSkolemApp(LogicRequest& logicRequest, Node n, ArithSkolemId asi);
-
-  /**
-   *  Maps for Skolems for to-integer, real/integer div-by-k, and inverse
-   *  non-linear operators that are introduced during ppRewriteTerms.
-   */
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  NodeMap d_to_int_skolem;
-  NodeMap d_div_skolem;
-  NodeMap d_int_div_skolem;
-  NodeMap d_nlin_inverse_skolem;
-
+  /** The theory rewriter for this theory. */
+  ArithRewriter d_rewriter;
+  /** The operator elimination utility */
+  OperatorElim d_opElim;
 };/* class TheoryArithPrivate */
 
 }/* CVC4::theory::arith namespace */

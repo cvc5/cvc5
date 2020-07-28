@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,41 +33,6 @@ namespace quantifiers {
 
 class TermDb;
 class TermUtil;
-
-/** instantiation notify
- *
- * This class is a listener for all instantiations generated with quantifiers.
- * By default, no notify classes are used. For an example of an instantiation
- * notify class, see quantifiers/inst_propagate.h, which has a notify class
- * that recognizes when the set of enqueued instantiations form a conflict.
- */
-class InstantiationNotify
-{
- public:
-  InstantiationNotify() {}
-  virtual ~InstantiationNotify() {}
-  /** notify instantiation
-   *
-   * This is called when an instantiation of quantified formula q is
-   * instantiated by a substitution whose range is terms at quantifier effort
-   * quant_e. Furthermore:
-   *   body is the substituted, preprocessed body of the quantified formula,
-   *   lem is the instantiation lemma ( ~q V body ) after rewriting.
-   */
-  virtual bool notifyInstantiation(QuantifiersModule::QEffort quant_e,
-                                   Node q,
-                                   Node lem,
-                                   std::vector<Node>& terms,
-                                   Node body) = 0;
-  /** filter instantiations
-   *
-   * This is called just before the quantifiers engine flushes its lemmas to the
-   * output channel. During this call, the instantiation notify object may
-   * call, e.g. QuantifiersEngine::getInstantiate()->removeInstantiation
-   * to remove instantiations that should not be sent on the output channel.
-   */
-  virtual void filterInstantiations() = 0;
-};
 
 /** Instantiation rewriter
  *
@@ -116,6 +81,8 @@ class InstantiationRewriter
  */
 class Instantiate : public QuantifiersUtil
 {
+  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
+
  public:
   Instantiate(QuantifiersEngine* qe, context::UserContext* u);
   ~Instantiate();
@@ -129,15 +96,7 @@ class Instantiate : public QuantifiersUtil
   /** check incomplete */
   bool checkComplete() override;
 
-  //--------------------------------------notify/rewrite objects
-  /** add instantiation notify
-   *
-   * Adds an instantiation notify class to listen to the instantiations reported
-   * to this class.
-   */
-  void addNotify(InstantiationNotify* in);
-  /** get number of instantiation notify added to this class */
-  bool hasNotify() const { return !d_inst_notify.empty(); }
+  //--------------------------------------rewrite objects
   /** add instantiation rewriter */
   void addRewriter(InstantiationRewriter* ir);
   /** notify flush lemmas
@@ -146,7 +105,7 @@ class Instantiate : public QuantifiersUtil
    * the output channel.
    */
   void notifyFlushLemmas();
-  //--------------------------------------end notify objects
+  //--------------------------------------end rewrite objects
 
   /** do instantiation specified by m
    *
@@ -243,8 +202,12 @@ class Instantiate : public QuantifiersUtil
   Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
-  /** debug print, called once per instantiation round. */
-  void debugPrint();
+  /**
+   * Debug print, called once per instantiation round. This prints
+   * instantiations added this round to trace inst-per-quant-round, if
+   * applicable, and prints to out if the option debug-inst is enabled.
+   */
+  void debugPrint(std::ostream& out);
   /** debug print model, called once, before we terminate with sat/unknown. */
   void debugPrintModel();
 
@@ -252,7 +215,8 @@ class Instantiate : public QuantifiersUtil
   /** print instantiations
    *
    * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed.
+   * returns true if at least one instantiation was printed. The type of output
+   * (list, num, etc.) is determined by printInstMode.
    */
   bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
@@ -361,6 +325,21 @@ class Instantiate : public QuantifiersUtil
                                    bool addedLem = true);
   /** remove instantiation from the cache */
   bool removeInstantiationInternal(Node q, std::vector<Node>& terms);
+  /**
+   * Ensure that n has type tn, return a term equivalent to it for that type
+   * if possible.
+   */
+  static Node ensureType(Node n, TypeNode tn);
+  /** print instantiations in list format */
+  bool printInstantiationsList(std::ostream& out);
+  /** print instantiations in num format */
+  bool printInstantiationsNum(std::ostream& out);
+  /**
+   * Print quantified formula q on output out. If isFull is false, then we print
+   * the identifier of the quantified formula if it has one, or print
+   * nothing and return false otherwise.
+   */
+  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
@@ -368,17 +347,13 @@ class Instantiate : public QuantifiersUtil
   TermDb* d_term_db;
   /** cache of term util for quantifiers engine */
   TermUtil* d_term_util;
-  /** instantiation notify classes */
-  std::vector<InstantiationNotify*> d_inst_notify;
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
-  /** statistics for debugging total instantiation */
-  int d_total_inst_count_debug;
   /** statistics for debugging total instantiations per quantifier */
-  std::map<Node, int> d_total_inst_debug;
+  NodeUIntMap d_total_inst_debug;
   /** statistics for debugging total instantiations per quantifier per round */
-  std::map<Node, int> d_temp_inst_debug;
+  std::map<Node, uint32_t> d_temp_inst_debug;
 
   /** list of all instantiations produced for each quantifier
    *

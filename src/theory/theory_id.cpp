@@ -1,3 +1,20 @@
+/*********************                                                        */
+/*! \file theory_id.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Aina Niemetz, Tim King, Dejan Jovanovic
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief [[ Add one-line brief description here ]]
+ **
+ ** [[ Add lengthier description here ]]
+ ** \todo document this file
+ **/
+
 #include "theory/theory_id.h"
 
 namespace CVC4 {
@@ -20,6 +37,7 @@ std::ostream& operator<<(std::ostream& out, TheoryId theoryId)
     case THEORY_FP: out << "THEORY_FP"; break;
     case THEORY_ARRAYS: out << "THEORY_ARRAYS"; break;
     case THEORY_DATATYPES: out << "THEORY_DATATYPES"; break;
+    case THEORY_SAT_SOLVER: out << "THEORY_SAT_SOLVER"; break;
     case THEORY_SEP: out << "THEORY_SEP"; break;
     case THEORY_SETS: out << "THEORY_SETS"; break;
     case THEORY_STRINGS: out << "THEORY_STRINGS"; break;

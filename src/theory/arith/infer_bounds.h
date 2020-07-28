@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -58,8 +58,9 @@ public:
 std::ostream& operator<<(std::ostream& os, const Algorithms a);
 } /* namespace inferbounds */
 
-class ArithEntailmentCheckParameters : public EntailmentCheckParameters {
-private:
+class ArithEntailmentCheckParameters
+{
+ private:
   typedef std::vector<inferbounds::InferBoundAlgorithm> VecInferBoundAlg;
   VecInferBoundAlg d_algorithms;
 
@@ -146,8 +147,9 @@ private:
 
 std::ostream& operator<<(std::ostream& os, const InferBoundsResult& ibr);
 
-class ArithEntailmentCheckSideEffects : public EntailmentCheckSideEffects{
-public:
+class ArithEntailmentCheckSideEffects
+{
+ public:
   ArithEntailmentCheckSideEffects();
   ~ArithEntailmentCheckSideEffects();
 

@@ -2,9 +2,9 @@
 /*! \file node_builder.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Christopher L. Conway
+ **   Morgan Deters, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1311,13 +1311,11 @@ inline void NodeBuilder<nchild_thresh>::maybeCheckType(const TNode n) const
 {
   /* force an immediate type check, if early type checking is
      enabled and the current node isn't a variable or constant */
-  if( d_nm->getOptions()[options::earlyTypeChecking] ) {
-    kind::MetaKind mk = n.getMetaKind();
-    if( mk != kind::metakind::VARIABLE
-        && mk != kind::metakind::NULLARY_OPERATOR
-        && mk != kind::metakind::CONSTANT ) {
-      d_nm->getType(n, true);
-    }
+  kind::MetaKind mk = n.getMetaKind();
+  if (mk != kind::metakind::VARIABLE && mk != kind::metakind::NULLARY_OPERATOR
+      && mk != kind::metakind::CONSTANT)
+  {
+    d_nm->getType(n, true);
   }
 }
 #endif /* CVC4_DEBUG */

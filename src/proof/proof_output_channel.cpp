@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,8 +48,10 @@ bool ProofOutputChannel::propagate(TNode x) {
   return true;
 }
 
-theory::LemmaStatus ProofOutputChannel::lemma(TNode n, ProofRule rule, bool,
-                                              bool, bool) {
+theory::LemmaStatus ProofOutputChannel::lemma(TNode n,
+                                              ProofRule rule,
+                                              theory::LemmaProperty p)
+{
   Trace("pf::tp") << "ProofOutputChannel: new lemma: " << n << std::endl;
   // TODO(#1231): We should transition to supporting multiple lemmas. The
   // following assertion cannot be enabled due to

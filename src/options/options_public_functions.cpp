@@ -2,9 +2,9 @@
 /*! \file options_public_functions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng
+ **   Tim King, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,15 +75,13 @@ bool Options::getDumpSynth() const{
 }
 
 bool Options::getDumpUnsatCores() const{
-  return (*this)[options::dumpUnsatCores];
+  // dump unsat cores full enables dumpUnsatCores
+  return (*this)[options::dumpUnsatCores]
+         || (*this)[options::dumpUnsatCoresFull];
 }
 
 bool Options::getEarlyExit() const{
   return (*this)[options::earlyExit];
-}
-
-bool Options::getFallbackSequential() const{
-  return (*this)[options::fallbackSequential];
 }
 
 bool Options::getFilesystemAccess() const{
@@ -96,10 +94,6 @@ bool Options::getForceNoLimitCpuWhileDump() const{
 
 bool Options::getHelp() const{
   return (*this)[options::help];
-}
-
-bool Options::getIncrementalParallel() const{
-  return (*this)[options::incrementalParallel];
 }
 
 bool Options::getIncrementalSolving() const{
@@ -143,7 +137,8 @@ bool Options::getSemanticChecks() const{
 }
 
 bool Options::getStatistics() const{
-  return (*this)[options::statistics];
+  // statsEveryQuery enables stats
+  return (*this)[options::statistics] || (*this)[options::statsEveryQuery];
 }
 
 bool Options::getStatsEveryQuery() const{
@@ -162,12 +157,12 @@ int Options::getTearDownIncremental() const{
   return (*this)[options::tearDownIncremental];
 }
 
-bool Options::getVersion() const{
-  return (*this)[options::version];
+unsigned long Options::getCumulativeTimeLimit() const {
+  return (*this)[options::cumulativeMillisecondLimit];
 }
 
-bool Options::getWaitToJoin() const{
-  return (*this)[options::waitToJoin];
+bool Options::getVersion() const{
+  return (*this)[options::version];
 }
 
 const std::string& Options::getForceLogicString() const{
@@ -199,10 +194,6 @@ std::string Options::getBinaryName() const{
   return (*this)[options::binary_name];
 }
 
-std::string Options::getReplayInputFilename() const{
-  return (*this)[options::replayInputFilename];
-}
-
 unsigned Options::getParseStep() const{
   return (*this)[options::parseStep];
 }
@@ -228,10 +219,6 @@ void Options::setOut(std::ostream* value) {
 
 void Options::setOutputLanguage(OutputLanguage value) {
   set(options::outputLanguage, value);
-}
-
-bool Options::wasSetByUserCeGuidedInst() const {
-  return wasSetByUser(options::ceGuidedInst);
 }
 
 bool Options::wasSetByUserDumpSynth() const {

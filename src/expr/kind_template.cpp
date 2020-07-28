@@ -2,9 +2,9 @@
 /*! \file kind_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli, Morgan Deters, Dejan Jovanovic
+ **   Andres Noetzli, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,19 +20,24 @@
 namespace CVC4 {
 namespace kind {
 
-std::ostream& operator<<(std::ostream& out, CVC4::Kind k) {
+const char* toString(CVC4::Kind k)
+{
   using namespace CVC4::kind;
 
-  switch(k) {
-
-  /* special cases */
-  case UNDEFINED_KIND: out << "UNDEFINED_KIND"; break;
-  case NULL_EXPR: out << "NULL"; break;
-${kind_printers}
-  case LAST_KIND: out << "LAST_KIND"; break;
-  default: out << "UNKNOWNKIND!" << int(k); break;
+  switch (k)
+  {
+    /* special cases */
+    case UNDEFINED_KIND: return "UNDEFINED_KIND";
+    case NULL_EXPR: return "NULL";
+    ${kind_printers}
+    case LAST_KIND: return "LAST_KIND";
+    default: return "?";
   }
+}
 
+std::ostream& operator<<(std::ostream& out, CVC4::Kind k)
+{
+  out << toString(k);
   return out;
 }
 
@@ -64,7 +69,7 @@ std::string kindToString(::CVC4::Kind k) {
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_descriptions}
-#line 68 "${template}"
+#line 73 "${template}"
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -80,7 +85,7 @@ TheoryId kindToTheoryId(::CVC4::Kind k) {
   case kind::NULL_EXPR:
     break;
 ${kind_to_theory_id}
-#line 84 "${template}"
+#line 89 "${template}"
   case kind::LAST_KIND:
     break;
   }
@@ -92,7 +97,7 @@ TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant)
   switch (typeConstant)
   {
 ${type_constant_to_theory_id}
-#line 96 "${template}"
+#line 101 "${template}"
     case LAST_TYPE: break;
   }
   throw IllegalArgumentException(

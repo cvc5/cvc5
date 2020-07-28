@@ -1,0 +1,10 @@
+(set-logic ALL_SUPPORTED)
+(set-info :status sat)
+(set-option :produce-models true)
+(set-option :sets-ext true)
+(declare-fun A () (Set (_ BitVec 3)))
+(declare-fun universe () (Set (_ BitVec 3)))
+(assert (= (card A) 3))
+(assert (= universe (as univset (Set (_ BitVec 3)))))
+(check-sat)
+

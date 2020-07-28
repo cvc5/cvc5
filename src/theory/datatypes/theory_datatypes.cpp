@@ -2,9 +2,9 @@
 /*! \file theory_datatypes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes_type_rules.h"
 #include "theory/datatypes/theory_datatypes_utils.h"
 #include "theory/quantifiers_engine.h"
@@ -44,8 +45,9 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
                                  UserContext* u,
                                  OutputChannel& out,
                                  Valuation valuation,
-                                 const LogicInfo& logicInfo)
-    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
+                                 const LogicInfo& logicInfo,
+                                 ProofNodeManager* pnm)
+    : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo, pnm),
       d_infer(c),
       d_infer_exp(c),
       d_term_sk(u),
@@ -154,7 +156,7 @@ void TheoryDatatypes::check(Effort e) {
   while(!done() && !d_conflict) {
     // Get all the assertions
     Assertion assertion = get();
-    TNode fact = assertion.assertion;
+    TNode fact = assertion.d_assertion;
     Trace("datatypes-assert") << "Assert " << fact << std::endl;
 
     TNode atom CVC4_UNUSED = fact.getKind() == kind::NOT ? fact[0] : fact;
@@ -226,20 +228,20 @@ void TheoryDatatypes::check(Effort e) {
                   //otherwise, if the logic is quantified, under the assumption that all uninterpreted sorts have cardinality one,
                   //  infer the equality.
                   for( unsigned i=0; i<dt.getNumRecursiveSingletonArgTypes( tt ); i++ ){
-                    TypeNode tn = dt.getRecursiveSingletonArgType(tt, i);
+                    TypeNode type = dt.getRecursiveSingletonArgType(tt, i);
                     if( getQuantifiersEngine() ){
                       // under the assumption that the cardinality of this type is one
-                      Node a = getSingletonLemma( tn, true );
+                      Node a = getSingletonLemma(type, true);
                       assumptions.push_back( a.negate() );
                     }else{
                       success = false;
                       // assert that the cardinality of this type is more than one
-                      getSingletonLemma( tn, false );
+                      getSingletonLemma(type, false);
                     }
                   }
                   if( success ){
-                    Node eq = n.eqNode( itrs->second );
-                    assumptions.push_back( eq );
+                    Node assumption = n.eqNode(itrs->second);
+                    assumptions.push_back(assumption);
                     Node lemma = assumptions.size()==1 ? assumptions[0] : NodeManager::currentNM()->mkNode( OR, assumptions );
                     Trace("dt-singleton") << "*************Singleton equality lemma " << lemma << std::endl;
                     doSendLemma( lemma );
@@ -318,7 +320,7 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    d_out->lemma( lemma, false, false, true );
+                    d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
                     d_addedLemma = true;
                   }
                   if( !options::dtBlastSplits() ){
@@ -414,8 +416,9 @@ void TheoryDatatypes::flushPendingFacts(){
           lem = fact;
         }else{
           std::vector< Node > children;
-          for( unsigned i=0; i<assumptions.size(); i++ ){
-            children.push_back( assumptions[i].negate() );
+          for (const TNode& assumption : assumptions)
+          {
+            children.push_back(assumption.negate());
           }
           children.push_back( fact );
           lem = NodeManager::currentNM()->mkNode( OR, children );
@@ -547,7 +550,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
 }
 
 void TheoryDatatypes::finishInit() {
-  if( getQuantifiersEngine() && options::ceGuidedInst() ){
+  if (getQuantifiersEngine() && options::sygus())
+  {
     d_sygusExtension.reset(
         new SygusExtension(this, getQuantifiersEngine(), getSatContext()));
     // do congruence on evaluation functions
@@ -555,13 +559,36 @@ void TheoryDatatypes::finishInit() {
   }
 }
 
-Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+TrustNode TheoryDatatypes::expandDefinition(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
+  // must ensure the type is well founded and has no nested recursion if
+  // the option dtNestedRec is not set to true.
+  TypeNode tn = n.getType();
+  if (tn.isDatatype())
+  {
+    const DType& dt = tn.getDType();
+    if (!dt.isWellFounded())
+    {
+      std::stringstream ss;
+      ss << "Cannot handle non-well-founded datatype " << dt.getName();
+      throw LogicException(ss.str());
+    }
+    if (!options::dtNestedRec())
+    {
+      if (dt.hasNestedRecursion())
+      {
+        std::stringstream ss;
+        ss << "Cannot handle nested-recursive datatype " << dt.getName();
+        throw LogicException(ss.str());
+      }
+    }
+  }
+  Node ret;
   switch (n.getKind())
   {
     case kind::APPLY_SELECTOR:
     {
-      Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
       Node selector = n.getOperator();
       // APPLY_SELECTOR always applies to an external selector, cindexOf is
       // legal here
@@ -583,64 +610,59 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       Node sel = nm->mkNode(kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
       if (options::dtRewriteErrorSel())
       {
-        return sel;
+        ret = sel;
       }
       else
       {
         Node tester = c.getTester();
         Node tst = nm->mkNode(APPLY_TESTER, tester, n[0]);
         tst = Rewriter::rewrite(tst);
-        Node n_ret;
         if (tst == d_true)
         {
-          n_ret = sel;
+          ret = sel;
         }else{
           mkExpDefSkolem(selector, ndt, n.getType());
           Node sk =
               nm->mkNode(kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
           if (tst == nm->mkConst(false))
           {
-            n_ret = sk;
+            ret = sk;
           }
           else
           {
-            n_ret = nm->mkNode(kind::ITE, tst, sel, sk);
+            ret = nm->mkNode(kind::ITE, tst, sel, sk);
           }
         }
-        // n_ret = Rewriter::rewrite( n_ret );
-        Trace("dt-expand") << "Expand def : " << n << " to " << n_ret
+        Trace("dt-expand") << "Expand def : " << n << " to " << ret
                            << std::endl;
-        return n_ret;
       }
     }
     break;
     case TUPLE_UPDATE:
     case RECORD_UPDATE:
     {
-      TypeNode t = n.getType();
-      Assert(t.isDatatype());
-      const DType& dt = t.getDType();
+      Assert(tn.isDatatype());
+      const DType& dt = tn.getDType();
       NodeBuilder<> b(APPLY_CONSTRUCTOR);
       b << dt[0].getConstructor();
       size_t size, updateIndex;
       if (n.getKind() == TUPLE_UPDATE)
       {
-        Assert(t.isTuple());
-        size = t.getTupleLength();
+        Assert(tn.isTuple());
+        size = tn.getTupleLength();
         updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
       }
       else
       {
-        Assert(t.toType().isRecord());
-        const Record& record =
-            DatatypeType(t.toType()).getRecord();
+        Assert(tn.toType().isRecord());
+        const Record& record = DatatypeType(tn.toType()).getRecord();
         size = record.getNumFields();
         updateIndex = record.getIndex(
             n.getOperator().getConst<RecordUpdate>().getField());
       }
       Debug("tuprec") << "expr is " << n << std::endl;
       Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-      Debug("tuprec") << "t is " << t << std::endl;
+      Debug("tuprec") << "t is " << tn << std::endl;
       Debug("tuprec") << "t has arity " << size << std::endl;
       for (size_t i = 0; i < size; ++i)
       {
@@ -653,19 +675,22 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         else
         {
           b << nm->mkNode(
-              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(t, i), n[0]);
+              APPLY_SELECTOR_TOTAL, dt[0].getSelectorInternal(tn, i), n[0]);
           Debug("tuprec") << "arg " << i << " copies "
                           << b[b.getNumChildren() - 1] << std::endl;
         }
       }
-      Node n_ret = b;
-      Debug("tuprec") << "return " << n_ret << std::endl;
-      return n_ret;
+      ret = b;
+      Debug("tuprec") << "return " << ret << std::endl;
     }
     break;
-    default: return n; break;
+    default: break;
   }
-  Unreachable();
+  if (!ret.isNull() && n != ret)
+  {
+    return TrustNode::mkTrustRewrite(n, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryDatatypes::presolve()
@@ -673,7 +698,7 @@ void TheoryDatatypes::presolve()
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in)
+TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 
@@ -689,12 +714,14 @@ Node TheoryDatatypes::ppRewrite(TNode in)
       nn = rew.size()==0 ? d_true :
                 ( rew.size()==1 ? rew[0] : NodeManager::currentNM()->mkNode( kind::AND, rew ) );
     }
-    return nn;
+    if (in != nn)
+    {
+      return TrustNode::mkTrustRewrite(in, nn, nullptr);
+    }
   }
 
   // nothing to do
-  return in;
-
+  return TrustNode::null();
 }
 
 void TheoryDatatypes::addSharedTerm(TNode t) {
@@ -777,7 +804,14 @@ void TheoryDatatypes::explain(TNode literal, std::vector<TNode>& assumptions){
   }
 }
 
-Node TheoryDatatypes::explain( TNode literal ){
+TrustNode TheoryDatatypes::explain(TNode literal)
+{
+  Node exp = explainLit(literal);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+}
+
+Node TheoryDatatypes::explainLit(TNode literal)
+{
   std::vector< TNode > assumptions;
   explain( literal, assumptions );
   return mkAnd( assumptions );
@@ -793,7 +827,8 @@ Node TheoryDatatypes::explain( std::vector< Node >& lits ) {
 
 /** Conflict when merging two constants */
 void TheoryDatatypes::conflict(TNode a, TNode b){
-  d_conflictNode = explain( a.eqNode(b) );
+  Node eq = a.eqNode(b);
+  d_conflictNode = explainLit(eq);
   Trace("dt-conflict") << "CONFLICT: Eq engine conflict : " << d_conflictNode << std::endl;
   d_out->conflict( d_conflictNode );
   d_conflict = true;
@@ -846,7 +881,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
           std::vector< Node > rew;
           if (utils::checkClash(cons1, cons2, rew))
           {
-            d_conflictNode = explain( unifEq );
+            d_conflictNode = explainLit(unifEq);
             Trace("dt-conflict") << "CONFLICT: Clash conflict : " << d_conflictNode << std::endl;
             d_out->conflict( d_conflictNode );
             d_conflict = true;
@@ -1304,15 +1339,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
   Trace("dt-collapse-sel") << "collapse selector : " << s << " " << c << std::endl;
   Node r;
   bool wrong = false;
-  Node use_s;
-  Node eq_exp;
-  if( options::dtRefIntro() ){
-    eq_exp = d_true;
-    use_s = getTermSkolemFor( c );
-  }else{
-    eq_exp = c.eqNode( s[0] );
-    use_s = s;
-  }
+  Node eq_exp = c.eqNode(s[0]);
   if( s.getKind()==kind::APPLY_SELECTOR_TOTAL ){
     Node selector = s.getOperator();
     size_t constructorIndex = utils::indexOf(c.getOperator());
@@ -1320,14 +1347,7 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
     const DTypeConstructor& dtc = dt[constructorIndex];
     int selectorIndex = dtc.getSelectorIndexInternal(selector);
     wrong = selectorIndex<0;
-    
-    //if( wrong ){
-    //  return;
-    //}
     r = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), c );
-    if( options::dtRefIntro() ){
-      use_s = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, s.getOperator(), use_s );
-    }
   }
   if( !r.isNull() ){
     Node rr = Rewriter::rewrite( r );
@@ -1339,21 +1359,17 @@ void TheoryDatatypes::collapseSelector( Node s, Node c ) {
       std::map< Node, Node > visited;
       rrs = removeUninterpretedConstants( rr, visited );
     }
-    if( use_s!=rrs ){
-      Node eq = use_s.eqNode( rrs );
-      Node eq_exp;
-      if( options::dtRefIntro() ){
-        eq_exp = d_true;
-      }else{
-        eq_exp = c.eqNode( s[0] );
-      }
+    if (s != rrs)
+    {
+      Node eq = s.eqNode(rrs);
+      Node peq = c.eqNode(s[0]);
       Trace("datatypes-infer") << "DtInfer : collapse sel";
       //Trace("datatypes-infer") << ( wrong ? " wrong" : "");
-      Trace("datatypes-infer") << " : " << eq << " by " << eq_exp << std::endl;
+      Trace("datatypes-infer") << " : " << eq << " by " << peq << std::endl;
       d_pending.push_back( eq );
-      d_pending_exp[ eq ] = eq_exp;
+      d_pending_exp[eq] = peq;
       d_infer.push_back( eq );
-      d_infer_exp.push_back( eq_exp );
+      d_infer_exp.push_back(peq);
     }
   }
 }
@@ -1626,7 +1642,8 @@ Node TheoryDatatypes::getCodatatypesValue( Node n, std::map< Node, Node >& eqc_c
   std::map< Node, int >::iterator itv = vmap.find( n );
   if( itv!=vmap.end() ){
     int debruijn = depth - 1 - itv->second;
-    return NodeManager::currentNM()->mkConst(UninterpretedConstant(n.getType().toType(), debruijn));
+    return NodeManager::currentNM()->mkConst(
+        UninterpretedConstant(n.getType(), debruijn));
   }else if( n.getType().isDatatype() ){
     Node nc = eqc_cons[n];
     if( !nc.isNull() ){
@@ -2039,14 +2056,18 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
   if( visited.find( nn ) == visited.end() ) {
     Trace("datatypes-cycle-check2") << "  visit : " << nn << std::endl;
     visited[nn] = true;
-    TNode ncons = getEqcConstructor( nn );
-    if( ncons.getKind()==APPLY_CONSTRUCTOR ) {
-      for( unsigned i=0; i<ncons.getNumChildren(); i++ ) {
-        TNode cn = searchForCycle( ncons[i], on, visited, proc, explanation, false );
+    TNode nncons = getEqcConstructor(nn);
+    if (nncons.getKind() == APPLY_CONSTRUCTOR)
+    {
+      for (unsigned i = 0; i < nncons.getNumChildren(); i++)
+      {
+        TNode cn =
+            searchForCycle(nncons[i], on, visited, proc, explanation, false);
         if( cn==on ) {
           //add explanation for why the constructor is connected
-          if( n != ncons ) {
-            explainEquality( n, ncons, true, explanation );
+          if (n != nncons)
+          {
+            explainEquality(n, nncons, true, explanation);
           }
           return on;
         }else if( !cn.isNull() ){
@@ -2275,7 +2296,8 @@ void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
                   << " relevant terms..." << std::endl;
 }
 
-std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const EntailmentCheckParameters* params, EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)
+{
   Trace("dt-entail") << "Check entailed : " << lit << std::endl;
   Node atom = lit.getKind()==NOT ? lit[0] : lit;
   bool pol = lit.getKind()!=NOT;
@@ -2303,8 +2325,6 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
         return make_pair(true, exp);
       }
     }
-  }else{
-
   }
   return make_pair(false, Node::null());
 }

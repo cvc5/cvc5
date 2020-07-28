@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewrite_rules_operator_elimination.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Clark Barrett
+ **   Liana Hadarean, Aina Niemetz, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -200,7 +200,8 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<RepeatEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorRepeat>().repeatAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorRepeat>().d_repeatAmount;
   Assert(amount >= 1);
   if(amount == 1) {
     return a; 
@@ -224,7 +225,8 @@ inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<RotateLeftEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorRotateLeft>().rotateLeftAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorRotateLeft>().d_rotateLeftAmount;
   amount = amount % utils::getSize(a); 
   if (amount == 0) {
     return a; 
@@ -248,7 +250,8 @@ inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<RotateRightEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorRotateRight>().rotateRightAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorRotateRight>().d_rotateRightAmount;
   amount = amount % utils::getSize(a); 
   if (amount == 0) {
     return a; 
@@ -275,20 +278,7 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
   //if( node[0].isConst() ){
     //TODO? direct computation instead of term construction+rewriting
   //}
-
-  const unsigned size = utils::getSize(node[0]);
-  NodeManager* const nm = NodeManager::currentNM();
-  const Node z = nm->mkConst(Rational(0));
-  const Node bvone = utils::mkOne(1);
-
-  NodeBuilder<> result(kind::PLUS);
-  Integer i = 1;
-  for(unsigned bit = 0; bit < size; ++bit, i *= 2) {
-    Node cond = nm->mkNode(kind::EQUAL, nm->mkNode(nm->mkConst(BitVectorExtract(bit, bit)), node[0]), bvone);
-    result << nm->mkNode(kind::ITE, cond, nm->mkConst(Rational(i)), z);
-  }
-
-  return Node(result);
+  return utils::eliminateBv2Nat(node);
 }
 
 template <>
@@ -305,23 +295,7 @@ inline Node RewriteRule<IntToBVEliminate>::apply(TNode node)
   //if( node[0].isConst() ){
     //TODO? direct computation instead of term construction+rewriting
   //}
-
-  const unsigned size = node.getOperator().getConst<IntToBitVector>().size;
-  NodeManager* const nm = NodeManager::currentNM();
-  const Node bvzero = utils::mkZero(1);
-  const Node bvone = utils::mkOne(1);
-
-  std::vector<Node> v;
-  Integer i = 2;
-  while(v.size() < size) {
-    Node cond = nm->mkNode(kind::GEQ, nm->mkNode(kind::INTS_MODULUS_TOTAL, node[0], nm->mkConst(Rational(i))), nm->mkConst(Rational(i, 2)));
-    v.push_back(nm->mkNode(kind::ITE, cond, bvone, bvzero));
-    i *= 2;
-  }
-
-  NodeBuilder<> result(kind::BITVECTOR_CONCAT);
-  result.append(v.rbegin(), v.rend());
-  return Node(result);
+  return utils::eliminateInt2Bv(node);
 }
 
 template <>
@@ -535,7 +509,8 @@ inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<ZeroExtendEliminate>(" << node << ")" << std::endl;
 
   TNode bv = node[0];
-  unsigned amount = node.getOperator().getConst<BitVectorZeroExtend>().zeroExtendAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorZeroExtend>().d_zeroExtendAmount;
   if (amount == 0) {
     return node[0]; 
   }
@@ -556,7 +531,8 @@ inline Node RewriteRule<SignExtendEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SignExtendEliminate>(" << node << ")" << std::endl;
 
-  unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
+  unsigned amount =
+      node.getOperator().getConst<BitVectorSignExtend>().d_signExtendAmount;
   if(amount == 0) {
     return node[0]; 
   }

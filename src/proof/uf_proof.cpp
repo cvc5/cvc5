@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -337,7 +337,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
     Node n1 = toStreamRecLFSC(ss, tp, *(pf.d_children[0]), tb + 1, map);
     Debug("pf::uf") << "\ndoing trans proof, got n1 " << n1 << "\n";
-    Node n2;
     if(tb == 1) {
       Debug("pf::uf") << "\ntrans proof[0], got n1 " << n1 << "\n";
     }
@@ -349,7 +348,6 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
         toStreamRecLFSC(dontCare, tp, *(pf.d_children[0]), tb + 1, map);
 
     std::map<size_t, Node> childToStream;
-    std::stringstream ss1(ss.str()), ss2;
     std::pair<Node, Node> nodePair;
     for(size_t i = 1; i < pf.d_children.size(); ++i) {
       std::stringstream ss1(ss.str()), ss2;
@@ -410,9 +408,9 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
             while (j < pf.d_children.size() && !sequenceOver)
             {
-              std::stringstream dontCare;
-              nodeAfterEqualitySequence = toStreamRecLFSC(
-                  dontCare, tp, *(pf.d_children[j]), tb + 1, map);
+              std::stringstream ignore;
+              nodeAfterEqualitySequence =
+                  toStreamRecLFSC(ignore, tp, *(pf.d_children[j]), tb + 1, map);
 
               if (((nodeAfterEqualitySequence[0] == n1[0])
                    && (nodeAfterEqualitySequence[1] == n1[1]))
@@ -623,33 +621,40 @@ void UFProof::registerTerm(Expr term) {
   }
 }
 
-void LFSCUFProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << term << std::endl;
+void LFSCUFProof::printOwnedTermAsType(Expr term,
+                                       std::ostream& os,
+                                       const ProofLetMap& map,
+                                       TypeNode expectedType)
+{
+  Node node = Node::fromExpr(term);
+  Debug("pf::uf") << std::endl << "(pf::uf) LFSCUfProof::printOwnedTerm: term = " << node << std::endl;
 
-  Assert(theory::Theory::theoryOf(term) == theory::THEORY_UF);
+  Assert(theory::Theory::theoryOf(node) == theory::THEORY_UF);
 
-  if (term.getKind() == kind::VARIABLE ||
-      term.getKind() == kind::SKOLEM ||
-      term.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
-    os << term;
+  if (node.getKind() == kind::VARIABLE ||
+      node.getKind() == kind::SKOLEM ||
+      node.getKind() == kind::BOOLEAN_TERM_VARIABLE) {
+    os << node;
     return;
   }
 
-  Assert(term.getKind() == kind::APPLY_UF);
+  Assert(node.getKind() == kind::APPLY_UF);
 
-  if(term.getType().isBoolean()) {
+  if(node.getType().isBoolean()) {
     os << "(p_app ";
   }
-  Expr func = term.getOperator();
+  Node func = node.getOperator();
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
     os << "(apply _ _ ";
   }
   os << func << " ";
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+  Assert(func.getType().isFunction());
+  std::vector<TypeNode> argsTypes = node.getOperator().getType().getArgTypes();
+  for (unsigned i = 0; i < node.getNumChildren(); ++i) {
 
-    bool convertToBool = (term[i].getType().isBoolean() && !d_proofEngine->printsAsBool(term[i]));
+    bool convertToBool = (node[i].getType().isBoolean() && !d_proofEngine->printsAsBool(node[i]));
     if (convertToBool) os << "(f_to_b ";
-    d_proofEngine->printBoundTerm(term[i], os, map);
+    d_proofEngine->printBoundTerm(term[i], os, map, argsTypes[i]);
     if (convertToBool) os << ")";
     os << ")";
   }

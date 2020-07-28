@@ -2,9 +2,9 @@
 /*! \file theory_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,9 +20,12 @@
 #define CVC4__THEORY__THEORY_REWRITER_H
 
 #include "expr/node.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class Rewriter;
 
 /**
  * Theory rewriters signal whether more rewriting is needed (or not)
@@ -46,17 +49,44 @@ enum RewriteStatus
  */
 struct RewriteResponse
 {
-  const RewriteStatus status;
-  const Node node;
-  RewriteResponse(RewriteStatus status, Node node) : status(status), node(node)
-  {
-  }
+  const RewriteStatus d_status;
+  const Node d_node;
+  RewriteResponse(RewriteStatus status, Node n) : d_status(status), d_node(n) {}
 }; /* struct RewriteResponse */
 
+/** Same as above, with trust node instead of node. */
+struct TrustRewriteResponse
+{
+  TrustRewriteResponse(RewriteStatus status,
+                       Node n,
+                       Node nr,
+                       ProofGenerator* pg);
+  /** The status of the rewrite */
+  const RewriteStatus d_status;
+  /**
+   * The trust node corresponding to the rewrite.
+   */
+  TrustNode d_node;
+};
+
+/**
+ * The interface that a theory rewriter has to implement.
+ *
+ * Note: A theory rewriter is expected to handle all kinds of a theory, even
+ * the ones that are removed by `Theory::expandDefinition()` since it may be
+ * called on terms before the definitions have been expanded.
+ */
 class TheoryRewriter
 {
  public:
   virtual ~TheoryRewriter() = default;
+
+  /**
+   * Registers the rewrites of a given theory with the rewriter.
+   *
+   * @param rewriter The rewriter to register the rewrites with.
+   */
+  virtual void registerRewrites(Rewriter* rewriter) {}
 
   /**
    * Performs a pre-rewrite step.
@@ -66,11 +96,47 @@ class TheoryRewriter
   virtual RewriteResponse postRewrite(TNode node) = 0;
 
   /**
+   * Performs a pre-rewrite step, with proofs.
+   *
+   * @param node The node to rewrite
+   */
+  virtual TrustRewriteResponse postRewriteWithProof(TNode node);
+
+  /**
    * Performs a post-rewrite step.
    *
    * @param node The node to rewrite
    */
   virtual RewriteResponse preRewrite(TNode node) = 0;
+
+  /**
+   * Performs a pre-rewrite step, with proofs.
+   *
+   * @param node The node to rewrite
+   */
+  virtual TrustRewriteResponse preRewriteWithProof(TNode node);
+
+  /** rewrite equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two terms s = t, given by node.
+   *
+   * Specifically, this method performs rewrites whose conclusion is not
+   * necessarily one of { s = t, t = s, true, false }. This is in constrast
+   * to postRewrite and preRewrite above, where the rewritten form of an
+   * equality must be one of these.
+   *
+   * @param node The node to rewrite
+   */
+  virtual Node rewriteEqualityExt(Node node);
+
+  /** rewrite equality extended, with proofs
+   *
+   * @param node The node to rewrite
+   * @return A trust node of kind TrustNodeKind::REWRITE, or the null trust
+   * node if no rewrites are applied.
+   */
+  virtual TrustNode rewriteEqualityExtWithProof(Node node);
 };
 
 }  // namespace theory

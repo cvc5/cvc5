@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -57,9 +57,9 @@ int main(int argc, char* argv[]) {
 #ifdef CVC4_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
 #endif
-    cerr << "CVC4 Error:" << endl << e << endl << endl
-         << "Please use --help to get help on command-line options."
-         << endl;
+    cerr << "(error \"" << e << "\")" << endl
+         << endl
+         << "Please use --help to get help on command-line options." << endl;
   } catch(Exception& e) {
 #ifdef CVC4_COMPETITION_MODE
     *opts.getOut() << "unknown" << endl;
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     {
       *opts.getOut() << "(error \"" << e << "\")" << endl;
     } else {
-      *opts.getErr() << "CVC4 Error:" << endl << e << endl;
+      *opts.getErr() << "(error \"" << e << "\")" << endl;
     }
     if(opts.getStatistics() && pExecutor != NULL) {
       pTotalTime->stop();
