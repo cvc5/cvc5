@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #####################
-#! \file linear_arith.py
+#! \file sygus-grammar.py
 ## \verbatim
 ## Top contributors (to current version):
 ##   Yoni Zohar
@@ -12,7 +12,7 @@
 ##
 ## \brief A simple demonstration of the solving capabilities of the CVC4
 ## sygus solver through the Python API. This is a direct
-## translation of sygus_grammar.cpp.
+## translation of sygus-grammar.cpp.
 import copy
 import pycvc4
 from pycvc4 import kinds
