@@ -645,9 +645,8 @@ uint32_t minArity(Kind k)
   Assert(isDefinedIntKind(extToIntKind(k)));
   uint32_t min = CVC4::ExprManager::minArity(extToIntKind(k));
 
-  // special cases for API level
-  // higher-order logic perspective at API
-  // functions/constructors/selectors/testers are terms
+  // At the API level, we treat functions/constructors/selectors/testers as
+  // normal terms instead of making them part of the operator
   if (isApplyKind(extToIntKind(k)))
   {
     min++;
@@ -661,9 +660,8 @@ uint32_t maxArity(Kind k)
   Assert(isDefinedIntKind(extToIntKind(k)));
   uint32_t max = CVC4::ExprManager::maxArity(extToIntKind(k));
 
-  // special cases for API level
-  // higher-order logic perspective at API
-  // functions/constructors/selectors/testers are terms
+  // At the API level, we treat functions/constructors/selectors/testers as
+  // normal terms instead of making them part of the operator
   if (isApplyKind(extToIntKind(k))
       && max != std::numeric_limits<uint32_t>::max())  // be careful not to
                                                        // overflow
