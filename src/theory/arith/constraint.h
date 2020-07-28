@@ -514,6 +514,11 @@ class Constraint {
    *
    */
   bool hasSimpleFarkasProof() const;
+  /**
+   * Returns whether this constraint is an assumption or a tightened
+   * assumption.
+   */
+  bool isPossiblyTightenedAssumption() const;
 
   /** Returns true if the node has a int bound tightening proof. */
   bool hasIntTightenProof() const;
