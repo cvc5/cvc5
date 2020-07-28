@@ -377,12 +377,6 @@ TrustNode ProofEqEngine::explain(Node conc)
   return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, nullptr);
 }
 
-std::string ProofEqEngine::identify() const
-{
-  std::stringstream ss;
-  ss << "pfee::" << d_ee.identify();
-  return ss.str();
-}
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
                                              const std::vector<Node>& noExplain,

@@ -597,7 +597,17 @@ enum class PfRule : uint32_t
   // Conclusion: (not F)
   FALSE_ELIM,
   //================================================= Array rules
+  // ======== Read over write
+  // Children: (P:(not (= i1 i2)))
+  // Arguments: ((select (store a i2 e) i1))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i2 e) i1) (select a i1))
   ARRAYS_READ_OVER_WRITE,
+  // ======== Read over write 1
+  // Children: none
+  // Arguments: ((select (store a i e) i))
+  // ----------------------------------------
+  // Conclusion: (= (select (store a i e) i) e)
   ARRAYS_READ_OVER_WRITE_1,
   ARRAYS_EXT,
 
@@ -955,7 +965,7 @@ std::ostream& operator<<(std::ostream& out, PfRule id);
 struct PfRuleHashFunction
 {
   size_t operator()(PfRule id) const;
-}; /* struct KindHashFunction */
+}; /* struct PfRuleHashFunction */
 
 }  // namespace CVC4
 

@@ -26,7 +26,6 @@
 namespace CVC4 {
 
 class ProofChecker;
-class CDProof;
 
 /** A virtual base class for checking a proof rule */
 class ProofRuleChecker

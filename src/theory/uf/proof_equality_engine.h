@@ -232,8 +232,6 @@ class ProofEqEngine : public EagerProofGenerator
    * (this class) that can prove the implication.
    */
   TrustNode explain(Node conc);
-  /** identify */
-  std::string identify() const override;
 
  protected:
   /** Add proof step */

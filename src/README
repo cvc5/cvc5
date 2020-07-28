@@ -80,6 +80,7 @@ PR finished:
 (25) Arithmetic proof checker [Alex]
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
+(30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64)
 (32) Add trustedConflict/trustedLemma to output channel (req 0, 12, 27)
 (33) split operator elimination from arith (req 28)
 (34) theory proof step buffer
@@ -91,6 +92,7 @@ PR finished:
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (48) remove snorm option
 (49) re elim static
+(50) term formula removal proof producing (req 36, 38, 51, 64)
 (51) TrustNode rewrite kind
 (59) updates to TConvGenerator for ONCE policy
 (60) proof node updater utility (req 23)
@@ -105,12 +107,12 @@ PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
 (26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
-(30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64) *
 (45) regexp operation refactor (req 3, 7, 8) *
-(50) term formula removal proof producing (req 36, 38, 51, 64) *
+(52) theory preprocess proof producing (req 27, 48, 51, 50)
 (70) rewriter unit test [Andres] (req 36, 37)
 (72) witness form proof generator *
 (73) ProofNode print ast
+(74) identify/misc refactoring *
 
 PRs future:
 
@@ -123,7 +125,6 @@ PRs future:
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
 (46) strings term registry proof producing (req 32, 35, 65)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
-(52) theory preprocess proof producing (req 27, 48, 51, 50)
 (53) CNF proof producing [Haniel]
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
@@ -139,4 +140,4 @@ PRs wish list:
 - SEXPR simply typed
 (56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?
-- arith op eliminate proof producing
+- arith op eliminate proof producing, defining axioms (req 30)
