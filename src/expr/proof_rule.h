@@ -183,6 +183,13 @@ enum class PfRule : uint32_t
   // based on some preprocessing pass, or otherwise F was added as a new
   // assertion by some preprocessing pass.
   PREPROCESS,
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
+
   //================================================= Boolean rules
   // ======== Split
   // Children: none

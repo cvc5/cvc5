@@ -1610,10 +1610,25 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                      << CheckSatCommand(n.toExpr());
   }
 
-  // the assertion pipeline storing the lemmas
-  AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess);
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
+
+  // must use an assertion pipeline due to decision engine below
+  AssertionPipeline lemmas;
+  // make the assertion pipeline
+  lemmas.push_back(tlemma.getNode());
+  lemmas.updateRealAssertionsEnd();
+  Assert(newSkolems.size() == newLemmas.size());
+  for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)
+  {
+    // store skolem mapping here
+    IteSkolemMap& imap = lemmas.getIteSkolemMap();
+    imap[newSkolems[i]] = lemmas.size();
+    lemmas.push_back(newLemmas[i].getNode());
+  }
+
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
