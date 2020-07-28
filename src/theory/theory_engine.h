@@ -330,14 +330,12 @@ class TheoryEngine {
    * Adds a new lemma, returning its status.
    * @param node the lemma
    * @param negated should the lemma be asserted negated
-   * @param removable can the lemma be remove (restrictions apply)
-   * @param needAtoms if not THEORY_LAST, then
+   * @param p the properties of the lemma.
    */
   theory::LemmaStatus lemma(TNode node,
                             ProofRule rule,
                             bool negated,
-                            bool removable,
-                            bool preprocess,
+                            theory::LemmaProperty p,
                             theory::TheoryId atomsTo);
 
   /** Enusre that the given atoms are send to the given theory */
