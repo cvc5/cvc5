@@ -1643,11 +1643,6 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<Node> newSkolems;
   TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
 
-  if (d_relManager != nullptr && (p & LemmaProperty::NEEDS_JUSTIFY))
-  {
-    d_relManager->notifyPreprocessedAssertions(lemmas.ref());
-  }
-
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline
@@ -1660,6 +1655,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     IteSkolemMap& imap = lemmas.getIteSkolemMap();
     imap[newSkolems[i]] = lemmas.size();
     lemmas.push_back(newLemmas[i].getNode());
+  }
+
+  if (d_relManager != nullptr && ((p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE))
+  {
+    d_relManager->notifyPreprocessedAssertions(lemmas.ref());
   }
 
   // assert lemmas to prop engine
