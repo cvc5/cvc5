@@ -183,6 +183,14 @@ enum class PfRule : uint32_t
   // based on some preprocessing pass, or otherwise F was added as a new
   // assertion by some preprocessing pass.
   PREPROCESS,
+  // ======== Theory preprocess (trusted)
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form t = Theory::ppRewrite(t) for some
+  // theory. Notice this is a "trusted" rule.
+  THEORY_PREPROCESS,
   // ======== Remove Term Formulas Axiom
   // Children: none
   // Arguments: (t)
