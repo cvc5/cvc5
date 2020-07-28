@@ -59,19 +59,19 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
   else
   {
     out << "{";
-    if (p & LemmaProperty::REMOVABLE)
+    if (isLemmaPropertyRemovable(p))
     {
       out << " REMOVABLE";
     }
-    if (p & LemmaProperty::PREPROCESS)
+    if (isLemmaPropertyPreprocess(p))
     {
       out << " PREPROCESS";
     }
-    if (p & LemmaProperty::SEND_ATOMS)
+    if (isLemmaPropertySendAtoms(p))
     {
       out << " SEND_ATOMS";
     }
-    if (p & LemmaProperty::NEEDS_JUSTIFY)
+    if (p & LemmaProperty::NEEDS_JUSTIFY != LemmaProperty::NONE)
     {
       out << " NEEDS_JUSTIFY";
     }
