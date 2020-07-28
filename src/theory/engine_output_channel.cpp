@@ -82,7 +82,7 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
   d_engine->d_outputChannelUsed = true;
 
   PROOF({
-    bool preprocess = p & LemmaProperty::PREPROCESS;
+    bool preprocess = isLemmaPropertyPreprocess(p);
     registerLemmaRecipe(lemma, lemma, preprocess, d_theory);
   });
 
@@ -92,7 +92,7 @@ theory::LemmaStatus EngineOutputChannel::lemma(TNode lemma,
       rule,
       false,
       p,
-      (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
+      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST);
   return result;
 }
 
@@ -332,7 +332,7 @@ LemmaStatus EngineOutputChannel::trustedLemma(TrustNode plem, LemmaProperty p)
       RULE_INVALID,
       false,
       p,
-      (p & LemmaProperty::SEND_ATOMS) ? d_theory : theory::THEORY_LAST);
+      isLemmaPropertySendAtoms(p) ? d_theory : theory::THEORY_LAST);
 }
 
 }  // namespace theory

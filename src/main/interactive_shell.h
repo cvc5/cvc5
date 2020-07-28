@@ -42,7 +42,7 @@ class CVC4_PUBLIC InteractiveShell
   std::ostream& d_out;
   parser::Parser* d_parser;
   bool d_quit;
-  bool d_usingReadline;
+  bool d_usingEditline;
 
   std::string d_historyFilename;
 

@@ -1484,6 +1484,9 @@ TypeNode NodeManager::mkTypeConst(const T& val) {
 
 template <class NodeClass, class T>
 NodeClass NodeManager::mkConstInternal(const T& val) {
+  // This method indirectly calls `NodeValue::inc()`, which relies on having
+  // the correct `NodeManager` in scope.
+  NodeManagerScope nms(this);
 
   // typedef typename kind::metakind::constantMap<T>::OwningTheory theory_t;
   NVStorage<1> nvStorage;

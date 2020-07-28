@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#
+source "$(dirname "$0")/get-script-header.sh"
+
+POLY_DIR="$DEPS_DIR/poly"
+version="v0.1.8"
+
+check_dep_dir "$POLY_DIR"
+setup_dep \
+  "https://github.com/SRI-CSL/libpoly/archive/master.tar.gz" "$POLY_DIR"
+# TODO(Gereon, #4706): Go back to fixed version with the next release
+
+pwd
+cd "$POLY_DIR/build/"
+
+CMAKEFLAGS="\
+  -DCMAKE_BUILD_TYPE=Release \
+  -DLIBPOLY_BUILD_PYTHON_API=OFF \
+  -DLIBPOLY_BUILD_STATIC=ON \
+  -DLIBPOLY_BUILD_STATIC_PIC=ON \
+"
+
+echo "Installing to $INSTALL_DIR"
+
+cmake -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" $CMAKEFLAGS  ../ && make -j${NPROC} install
+
+echo
+echo "Using poly version $version"
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure.sh --poly

@@ -71,6 +71,10 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
+  /**
+   * Does non-context dependent setup for a node connected to a theory.
+   */
+  void preRegisterTerm(TNode n);
   /** Get current substitution
    *
    * This function and the one below are
@@ -251,11 +255,9 @@ class NonlinearExtension
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
-
   /** compute relevant assertions */
   void computeRelevantAssertions(const std::vector<Node>& assertions,
                                  std::vector<Node>& keep);
-
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
@@ -290,8 +292,13 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+<<<<<<< HEAD
   /** check counter */
   unsigned d_checkCounter;
+=======
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
+>>>>>>> e63544462eb850a27f7b416f2f0613efb96eef1d
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
@@ -326,6 +333,11 @@ class NonlinearExtension
    * NlModel::getModelValueRepair.
    */
   std::map<Node, std::pair<Node, Node>> d_approximations;
+  /**
+   * The witnesses computed during collectModelInfo. For details, see
+   * NlModel::getModelValueRepair.
+   */
+  std::map<Node, Node> d_witnesses;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */

@@ -54,6 +54,7 @@ extern int optreset;
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/options_handler.h"
+#include "options/options_listener.h"
 
 ${headers_module}$
 
@@ -223,11 +224,10 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
   // that can throw exceptions.
 }
 
-
-Options::Options()
-    : d_holder(new options::OptionsHolder())
-    , d_handler(new options::OptionsHandler(this))
-    , d_beforeSearchListeners()
+Options::Options(OptionsListener* ol)
+    : d_holder(new options::OptionsHolder()),
+      d_handler(new options::OptionsHandler(this)),
+      d_olisten(ol)
 {}
 
 Options::~Options() {
@@ -250,93 +250,7 @@ std::string Options::formatThreadOptionException(const std::string& option) {
   return ss.str();
 }
 
-ListenerCollection::Registration* Options::registerAndNotify(
-    ListenerCollection& collection, Listener* listener, bool notify)
-{
-  ListenerCollection::Registration* registration =
-      collection.registerListener(listener);
-  if(notify) {
-    try
-    {
-      listener->notify();
-    }
-    catch (OptionException& e)
-    {
-      // It can happen that listener->notify() throws an OptionException. In
-      // that case, we have to make sure that we delete the registration of our
-      // listener before rethrowing the exception. Otherwise the
-      // ListenerCollection deconstructor will complain that not all
-      // registrations have been removed before invoking the deconstructor.
-      delete registration;
-      throw OptionException(e.getRawMessage());
-    }
-  }
-  return registration;
-}
-
-ListenerCollection::Registration* Options::registerBeforeSearchListener(
-   Listener* listener)
-{
-  return d_beforeSearchListeners.registerListener(listener);
-}
-
-ListenerCollection::Registration* Options::registerSetDefaultExprDepthListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::defaultExprDepth);
-  return registerAndNotify(d_setDefaultExprDepthListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDefaultExprDagListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::defaultDagThresh);
-  return registerAndNotify(d_setDefaultDagThreshListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetPrintExprTypesListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::printExprTypes);
-  return registerAndNotify(d_setPrintExprTypesListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDumpModeListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::dumpModeString);
-  return registerAndNotify(d_setDumpModeListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetPrintSuccessListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::printSuccess);
-  return registerAndNotify(d_setPrintSuccessListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerDumpToFileNameListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::dumpToFileName);
-  return registerAndNotify(d_dumpToFileListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetRegularOutputChannelListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::regularChannelName);
-  return registerAndNotify(d_setRegularChannelListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetDiagnosticOutputChannelListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::diagnosticChannelName);
-  return registerAndNotify(d_setDiagnosticChannelListeners, listener, notify);
-}
+void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 ${custom_handlers}$
 
@@ -492,7 +406,6 @@ std::vector<std::string> Options::parseOptions(Options* options,
     progName = x + 1;
   }
   options->d_holder->binary_name = std::string(progName);
-
 
   std::vector<std::string> nonoptions;
   parseOptionsRecursive(options, argc, argv, &nonoptions);
@@ -662,23 +575,30 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
+  Trace("options") << "setOption(" << key << ", " << optionarg << ")"
+                   << std::endl;
+  // first update this object
+  setOptionInternal(key, optionarg);
+  // then, notify the provided listener
+  if (d_olisten != nullptr)
+  {
+    d_olisten->notifySetOption(key);
+  }
+}
+
+void Options::setOptionInternal(const std::string& key,
+                                const std::string& optionarg)
+{
   options::OptionsHandler* handler = d_handler;
   Options* options = this;
-  Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
-                   << std::endl;
-
   ${setoption_handlers}$
-
-
   throw UnrecognizedOptionException(key);
 }
 
 std::string Options::getOption(const std::string& key) const
 {
-  Trace("options") << "SMT getOption(" << key << ")" << std::endl;
-
+  Trace("options") << "Options::getOption(" << key << ")" << std::endl;
   ${getoption_handlers}$
-
 
   throw UnrecognizedOptionException(key);
 }

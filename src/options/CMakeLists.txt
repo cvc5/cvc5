@@ -26,6 +26,7 @@ libcvc4_add_sources(
   options.h
   options_handler.cpp
   options_handler.h
+  options_listener.h
   options_public_functions.cpp
   printer_modes.cpp
   printer_modes.h

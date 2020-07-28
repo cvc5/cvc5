@@ -50,10 +50,16 @@ enum class LemmaProperty : uint32_t
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs);
 /** Define operator lhs |= rhs */
 LemmaProperty& operator|=(LemmaProperty& lhs, LemmaProperty rhs);
+/** Define operator lhs & rhs */
+LemmaProperty operator&(LemmaProperty lhs, LemmaProperty rhs);
 /** Define operator lhs &= rhs */
 LemmaProperty& operator&=(LemmaProperty& lhs, LemmaProperty rhs);
-/** check set lhs & rhs */
-bool operator&(LemmaProperty lhs, LemmaProperty rhs);
+/** is the removable bit set on p? */
+bool isLemmaPropertyRemovable(LemmaProperty p);
+/** is the preprocess bit set on p? */
+bool isLemmaPropertyPreprocess(LemmaProperty p);
+/** is the send atoms bit set on p? */
+bool isLemmaPropertySendAtoms(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.

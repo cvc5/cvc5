@@ -80,7 +80,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
-  checker->assertFormula(squery.toExpr());
+  checker->assertFormula(squery);
 }
 
 Result ExprMiner::doCheck(Node query)
