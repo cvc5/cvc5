@@ -21,6 +21,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
+LemmaProperty NlLemma::getLemmaProperty() const
+{
+  return d_preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
+}
+
 std::ostream& operator<<(std::ostream& out, NlLemma& n)
 {
   out << n.d_lemma;
