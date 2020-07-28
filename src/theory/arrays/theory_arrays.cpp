@@ -1522,7 +1522,7 @@ void TheoryArrays::check(Effort e) {
           lemma = mkAnd(conjunctions, true);
           // LSH FIXME: which kind of arrays lemma is this
           Trace("arrays-lem") << "Arrays::addExtLemma " << lemma <<"\n";
-          d_out->lemma(lemma, RULE_INVALID, false, false, true);
+          d_out->lemma(lemma, RULE_INVALID, LemmaProperty::SEND_ATOMS);
           d_readTableContext->pop();
           Trace("arrays") << spaces(getSatContext()->getLevel()) << "Arrays::check(): done" << endl;
           return;

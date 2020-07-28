@@ -181,6 +181,7 @@ void Smt2::addStringOperators() {
     addOperator(api::SEQ_REV, "seq.rev");
     addOperator(api::SEQ_REPLACE_ALL, "seq.replace_all");
     addOperator(api::SEQ_UNIT, "seq.unit");
+    addOperator(api::SEQ_NTH, "seq.nth");
   }
   // at the moment, we only use this syntax for smt2.6
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
