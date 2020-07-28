@@ -1610,10 +1610,25 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
                      << CheckSatCommand(n.toExpr());
   }
 
-  // the assertion pipeline storing the lemmas
-  AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess);
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
+
+  // must use an assertion pipeline due to decision engine below
+  AssertionPipeline lemmas;
+  // make the assertion pipeline
+  lemmas.push_back(tlemma.getNode());
+  lemmas.updateRealAssertionsEnd();
+  Assert(newSkolems.size() == newLemmas.size());
+  for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)
+  {
+    // store skolem mapping here
+    IteSkolemMap& imap = lemmas.getIteSkolemMap();
+    imap[newSkolems[i]] = lemmas.size();
+    lemmas.push_back(newLemmas[i].getNode());
+  }
+
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
@@ -1788,7 +1803,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
   });
   // cache of nodes we have already explained by some theory
-  std::unordered_set<Node, NodeHashFunction> cache;
+  std::unordered_map<Node, size_t, NodeHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1798,6 +1813,14 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         << "[i=" << i << "] TheoryEngine::explain(): processing ["
         << toExplain.d_timestamp << "] " << toExplain.d_node << " sent from "
         << toExplain.d_theory << endl;
+
+    if (cache.find(toExplain.d_node) != cache.end()
+        && cache[toExplain.d_node] < toExplain.d_timestamp)
+    {
+      ++i;
+      continue;
+    }
+    cache[toExplain.d_node] = toExplain.d_timestamp;
 
     // If a true constant or a negation of a false constant we can ignore it
     if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
@@ -1870,16 +1893,7 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         continue;
       }
     }
-    // We must cache after checking the timestamp in the block of code above.
-    // Afterwards, we can ignore this timestamp, as well as caching the Node,
-    // since any theory's explanation will suffice.
-    if (cache.find(toExplain.d_node) != cache.end())
-    {
-      ++i;
-      continue;
-    }
-    cache.insert(toExplain.d_node);
-    // It was produced by the theory, so ask for an explanation
+
     Node explanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
     {
@@ -2021,11 +2035,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
 }
 
-std::pair<bool, Node> TheoryEngine::entailmentCheck(
-    options::TheoryOfMode mode,
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* seffects)
+std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
+                                                    TNode lit)
 {
   TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
   if( atom.getKind()==kind::AND || atom.getKind()==kind::OR || atom.getKind()==kind::IMPLIES ){
@@ -2038,7 +2049,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
       if( pol==( lit.getKind()==kind::IMPLIES && i==0 ) ){
         ch = atom[i].negate();
       }
-      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      std::pair<bool, Node> chres = entailmentCheck(mode, ch);
       if( chres.first ){
         if( !is_conjunction ){
           return chres;
@@ -2061,13 +2072,13 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
       if( r==1 ){
         ch = ch.negate();
       }
-      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      std::pair<bool, Node> chres = entailmentCheck(mode, ch);
       if( chres.first ){
         Node ch2 = atom[ atom.getKind()==kind::ITE ? r+1 : 1 ];
         if( pol==( atom.getKind()==kind::ITE ? true : r==1 ) ){
           ch2 = ch2.negate();
         }
-        std::pair<bool, Node> chres2 = entailmentCheck( mode, ch2, params, seffects );
+        std::pair<bool, Node> chres2 = entailmentCheck(mode, ch2);
         if( chres2.first ){
           return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, chres.second, chres2.second));
         }else{
@@ -2082,11 +2093,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
     theory::Theory* th = theoryOf(tid);
 
     Assert(th != NULL);
-    Assert(params == NULL || tid == params->getTheoryId());
-    Assert(seffects == NULL || tid == seffects->getTheoryId());
     Trace("theory-engine-entc") << "Entailment check : " << lit << std::endl;
 
-    std::pair<bool, Node> chres = th->entailmentCheck(lit, params, seffects);
+    std::pair<bool, Node> chres = th->entailmentCheck(lit);
     return chres;
   }
 }

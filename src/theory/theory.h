@@ -57,11 +57,7 @@ namespace theory {
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
-class ExtTheory;
 class TheoryRewriter;
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -138,9 +134,6 @@ class Theory {
 
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
-
-  /** Extended theory module or NULL. Owned by the theory. */
-  ExtTheory* d_extTheory;
 
  protected:
 
@@ -837,35 +830,16 @@ class Theory {
    *
    * The theory may always return false!
    *
-   * The search is controlled by the parameter params.  For default behavior,
-   * this may be left NULL.
-   *
-   * Theories that want parameters extend the virtual EntailmentCheckParameters
-   * class.  Users ask the theory for an appropriate subclass from the theory
-   * and configure that.  How this is implemented is on a per theory basis.
-   *
-   * The search may provide additional output to guide the user of
-   * this function.  This output is stored in a EntailmentCheckSideEffects*
-   * output parameter.  The implementation of this is theory specific.  For
-   * no output, this is NULL.
-   *
    * Theories may not touch their output stream during an entailment check.
    *
    * @param  lit     a literal belonging to the theory.
-   * @param  params  the control parameters for the entailment check.
-   * @param  out     a theory specific output object of the entailment search.
    * @return         a pair <b,E> s.t. if b is true, then a formula E such that
    * E |= lit in the theory.
    */
-  virtual std::pair<bool, Node> entailmentCheck(
-      TNode lit, const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL);
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
   /* equality engine TODO: use? */
   virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-
-  /* Get extended theory if one has been installed. */
-  ExtTheory* getExtTheory();
 
   /* get current substitution at an effort
    *   input : vars
@@ -933,26 +907,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   }
   return out;
 }
-
-class EntailmentCheckParameters {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckParameters(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckParameters();
-};/* class EntailmentCheckParameters */
-
-class EntailmentCheckSideEffects {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckSideEffects(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckSideEffects();
-};/* class EntailmentCheckSideEffects */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

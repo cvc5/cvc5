@@ -139,6 +139,8 @@ class CVC4_PUBLIC String {
   bool hasPrefix(const String& y) const;
   /** Returns true if y is a suffix of this */
   bool hasSuffix(const String& y) const;
+  /** Replace the character at index i in this string with t */
+  String update(std::size_t i, const String& t) const;
   /** Replace the first occurrence of s in this string with t */
   String replace(const String& s, const String& t) const;
   /** Return the substring of this string starting at index i */

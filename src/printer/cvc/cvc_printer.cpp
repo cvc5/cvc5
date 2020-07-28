@@ -26,7 +26,6 @@
 
 #include "expr/dtype.h"
 #include "expr/expr.h"  // for ExprSetDepth etc..
-#include "expr/expr_sequence.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "expr/node_visitor.h"
 #include "expr/sequence.h"
@@ -169,7 +168,7 @@ void CvcPrinter::toStream(
     }
     case kind::CONST_SEQUENCE:
     {
-      const Sequence& sn = n.getConst<ExprSequence>().getSequence();
+      const Sequence& sn = n.getConst<Sequence>();
       const std::vector<Node>& snvec = sn.getVec();
       if (snvec.size() > 1)
       {
@@ -247,8 +246,9 @@ void CvcPrinter::toStream(
 
     case kind::STORE_ALL: {
       const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
-      out << "ARRAY(" << asa.getType().getIndexType() << " OF "
-          << asa.getType().getConstituentType() << ") : " << asa.getExpr();
+      out << "ARRAY(" << asa.getType().getArrayIndexType() << " OF "
+          << asa.getType().getArrayConstituentType()
+          << ") : " << asa.getValue();
       break;
     }
 

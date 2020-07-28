@@ -32,6 +32,7 @@
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -70,6 +71,10 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
+  /**
+   * Does non-context dependent setup for a node connected to a theory.
+   */
+  void preRegisterTerm(TNode n);
   /** Get current substitution
    *
    * This function and the one below are
@@ -289,6 +294,8 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
@@ -323,6 +330,11 @@ class NonlinearExtension
    * NlModel::getModelValueRepair.
    */
   std::map<Node, std::pair<Node, Node>> d_approximations;
+  /**
+   * The witnesses computed during collectModelInfo. For details, see
+   * NlModel::getModelValueRepair.
+   */
+  std::map<Node, Node> d_witnesses;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */

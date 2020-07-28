@@ -110,7 +110,8 @@ RewriteResponse TheorySepRewriter::postRewrite(TNode node) {
         }
       }
       if( node[0].getKind()==kind::SEP_EMP ){
-        retNode = node[1].eqNode( NodeManager::currentNM()->mkConst(EmptySet(node[1].getType().toType())) );
+        retNode = node[1].eqNode(
+            NodeManager::currentNM()->mkConst(EmptySet(node[1].getType())));
       }
       break;
     }

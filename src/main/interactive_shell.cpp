@@ -12,7 +12,7 @@
  ** \brief Interactive shell for CVC4
  **
  ** This file is the implementation for the CVC4 interactive shell.
- ** The shell supports the readline library.
+ ** The shell supports the editline library.
  **/
 #include "main/interactive_shell.h"
 
@@ -26,16 +26,15 @@
 #include <utility>
 #include <vector>
 
-//This must go before HAVE_LIBREADLINE.
+// This must go before HAVE_LIBEDITLINE.
 #include "cvc4autoconfig.h"
 
-#if HAVE_LIBREADLINE
-#  include <readline/readline.h>
-#  include <readline/history.h>
+#if HAVE_LIBEDITLINE
+#include <editline/readline.h>
 #  if HAVE_EXT_STDIO_FILEBUF_H
 #    include <ext/stdio_filebuf.h>
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
-#endif /* HAVE_LIBREADLINE */
+#endif   /* HAVE_LIBEDITLINE */
 
 #include "api/cvc4cpp.h"
 #include "base/output.h"
@@ -56,7 +55,7 @@ using namespace language;
 
 const string InteractiveShell::INPUT_FILENAME = "<shell>";
 
-#if HAVE_LIBREADLINE
+#if HAVE_LIBEDITLINE
 
 #if HAVE_EXT_STDIO_FILEBUF_H
 using __gnu_cxx::stdio_filebuf;
@@ -82,7 +81,7 @@ static const std::string* commandsEnd;
 
 static set<string> s_declarations;
 
-#endif /* HAVE_LIBREADLINE */
+#endif /* HAVE_LIBEDITLINE */
 
 InteractiveShell::InteractiveShell(api::Solver* solver)
     : d_options(solver->getOptions()),
@@ -98,14 +97,14 @@ InteractiveShell::InteractiveShell(api::Solver* solver)
     d_parser->forceLogic(tmp.getLogicString());
   }
 
-#if HAVE_LIBREADLINE
+#if HAVE_LIBEDITLINE
   if(&d_in == &cin) {
     ::rl_readline_name = const_cast<char*>("CVC4");
-#if READLINE_COMPENTRY_FUNC_RETURNS_CHARP
+#if EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP
     ::rl_completion_entry_function = commandGenerator;
-#else /* READLINE_COMPENTRY_FUNC_RETURNS_CHARP */
+#else /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::rl_completion_entry_function = (int (*)(const char*, int)) commandGenerator;
-#endif /* READLINE_COMPENTRY_FUNC_RETURNS_CHARP */
+#endif /* EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP */
     ::using_history();
 
     OutputLanguage lang = toOutputLanguage(d_options.getInputLanguage());
@@ -135,7 +134,7 @@ InteractiveShell::InteractiveShell(api::Solver* solver)
         throw Exception(ss.str());
       }
     }
-    d_usingReadline = true;
+    d_usingEditline = true;
     int err = ::read_history(d_historyFilename.c_str());
     ::stifle_history(s_historyLimit);
     if(Notice.isOn()) {
@@ -148,15 +147,15 @@ InteractiveShell::InteractiveShell(api::Solver* solver)
       }
     }
   } else {
-    d_usingReadline = false;
+    d_usingEditline = false;
   }
-#else /* HAVE_LIBREADLINE */
-  d_usingReadline = false;
-#endif /* HAVE_LIBREADLINE */
+#else  /* HAVE_LIBEDITLINE */
+  d_usingEditline = false;
+#endif /* HAVE_LIBEDITLINE */
 }/* InteractiveShell::InteractiveShell() */
 
 InteractiveShell::~InteractiveShell() {
-#if HAVE_LIBREADLINE
+#if HAVE_LIBEDITLINE
   int err = ::write_history(d_historyFilename.c_str());
   if(err == 0) {
     Notice() << "Wrote " << ::history_length << " lines of history to "
@@ -165,7 +164,7 @@ InteractiveShell::~InteractiveShell() {
     Notice() << "Could not write history to " << d_historyFilename
              << ": " << strerror(err) << std::endl;
   }
-#endif /* HAVE_LIBREADLINE */
+#endif /* HAVE_LIBEDITLINE */
   delete d_parser;
 }
 
@@ -189,8 +188,9 @@ restart:
   }
 
   /* Prompt the user for input. */
-  if(d_usingReadline) {
-#if HAVE_LIBREADLINE
+  if (d_usingEditline)
+  {
+#if HAVE_LIBEDITLINE
     lineBuf = ::readline(d_options.getInteractivePrompt()
                          ? (line == "" ? "CVC4> " : "... > ") : "");
     if(lineBuf != NULL && lineBuf[0] != '\0') {
@@ -198,8 +198,10 @@ restart:
     }
     line += lineBuf == NULL ? "" : lineBuf;
     free(lineBuf);
-#endif /* HAVE_LIBREADLINE */
-  } else {
+#endif /* HAVE_LIBEDITLINE */
+  }
+  else
+  {
     if(d_options.getInteractivePrompt()) {
       if(line == "") {
         d_out << "CVC4> " << flush;
@@ -236,8 +238,9 @@ restart:
     }
 
     /* If we hit EOF, we're done. */
-    if( (!d_usingReadline && d_in.eof()) ||
-        (d_usingReadline && lineBuf == NULL) ) {
+    if ((!d_usingEditline && d_in.eof())
+        || (d_usingEditline && lineBuf == NULL))
+    {
       input += line;
 
       if(input.empty()) {
@@ -254,7 +257,8 @@ restart:
       goto restart;
     }
 
-    if(!d_usingReadline) {
+    if (!d_usingEditline)
+    {
       /* Extract the newline delimiter from the stream too */
       int c CVC4_UNUSED = d_in.get();
       assert(c == '\n');
@@ -268,16 +272,19 @@ restart:
     n = input.length() - 1;
     if( !line.empty() && input[n] == '\\' ) {
       input[n] = '\n';
-      if(d_usingReadline) {
-#if HAVE_LIBREADLINE
+      if (d_usingEditline)
+      {
+#if HAVE_LIBEDITLINE
         lineBuf = ::readline(d_options.getInteractivePrompt() ? "... > " : "");
         if(lineBuf != NULL && lineBuf[0] != '\0') {
           ::add_history(lineBuf);
         }
         line = lineBuf == NULL ? "" : lineBuf;
         free(lineBuf);
-#endif /* HAVE_LIBREADLINE */
-      } else {
+#endif /* HAVE_LIBEDITLINE */
+      }
+      else
+      {
         if(d_options.getInteractivePrompt()) {
           d_out << "... > " << flush;
         }
@@ -309,7 +316,7 @@ restart:
         d_quit = true;
         break;
       } else {
-#if HAVE_LIBREADLINE
+#if HAVE_LIBEDITLINE
         if(dynamic_cast<DeclareFunctionCommand*>(cmd) != NULL) {
           s_declarations.insert(dynamic_cast<DeclareFunctionCommand*>(cmd)->getSymbol());
         } else if(dynamic_cast<DefineFunctionCommand*>(cmd) != NULL) {
@@ -319,7 +326,7 @@ restart:
         } else if(dynamic_cast<DefineTypeCommand*>(cmd) != NULL) {
           s_declarations.insert(dynamic_cast<DefineTypeCommand*>(cmd)->getSymbol());
         }
-#endif /* HAVE_LIBREADLINE */
+#endif /* HAVE_LIBEDITLINE */
       }
     }
   } catch(ParserEndOfFileException& pe) {
@@ -350,7 +357,7 @@ restart:
   return cmd_seq;
 }/* InteractiveShell::readCommand() */
 
-#if HAVE_LIBREADLINE
+#if HAVE_LIBEDITLINE
 
 char** commandCompletion(const char* text, int start, int end) {
   Debug("rl") << "text: " << text << endl;
@@ -400,6 +407,6 @@ char* commandGenerator(const char* text, int state) {
   return *rlDeclaration == jj ? NULL : strdup((*(*rlDeclaration)++).c_str());
 }
 
-#endif /* HAVE_LIBREADLINE */
+#endif /* HAVE_LIBEDITLINE */
 
 }/* CVC4 namespace */
