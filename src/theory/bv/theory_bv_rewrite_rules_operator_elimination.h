@@ -27,6 +27,8 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
+//This rewrite is not meant to be used by the BV rewriter.
+//It is specifically designed for the bv-to-int preprocessing pass.
 template <>
 inline bool RewriteRule<NegEliminate>::applies(TNode node)
 {
@@ -49,6 +51,8 @@ inline Node RewriteRule<NegEliminate>::apply(TNode node)
   return bvadd;
 }
 
+//This rewrite is not meant to be used by the BV rewriter.
+//It is specifically designed for the bv-to-int preprocessing pass.
 template <>
 inline bool RewriteRule<OrEliminate>::applies(TNode node)
 {
@@ -71,6 +75,8 @@ inline Node RewriteRule<OrEliminate>::apply(TNode node)
   return result;
 }
 
+//This rewrite is not meant to be used by the BV rewriter.
+//It is specifically designed for the bv-to-int preprocessing pass.
 template <>
 inline bool RewriteRule<XorEliminate>::applies(TNode node)
 {
@@ -463,6 +469,8 @@ inline Node RewriteRule<SdivEliminate>::apply(TNode node)
   return result;
 }
 
+//This rewrite is not meant to be used by the BV rewriter
+//It is specifically designed for the bv-to-int preprocessing pass.
 template <>
 inline bool RewriteRule<SdivEliminateFewerBitwiseOps>::applies(TNode node)
 {
@@ -539,6 +547,8 @@ inline Node RewriteRule<SremEliminate>::apply(TNode node)
   return result;
 }
 
+//This rewrite is not meant to be used by the BV rewriter.
+//It is specifically designed for the bv-to-int preprocessing pass.
 template <>
 inline bool RewriteRule<SremEliminateFewerBitwiseOps>::applies(TNode node)
 {
@@ -636,6 +646,9 @@ inline Node RewriteRule<SmodEliminate>::apply(TNode node)
   return result;
 }
 
+
+//This rewrite is not meant to be used by the BV rewriter.
+//It is specifically designed for the bv-to-int preprocessing pass.
 template <>
 inline bool RewriteRule<SmodEliminateFewerBitwiseOps>::applies(TNode node)
 {
