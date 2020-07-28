@@ -479,10 +479,8 @@ TypeNode NodeManager::mkSequenceType(TypeNode elementType)
   return mkTypeNode(kind::SEQUENCE_TYPE, elementType);
 }
 
-
-TypeNode NodeManager::mkDatatypeType(DType& datatype,
-                            uint32_t flags)
-{  
+TypeNode NodeManager::mkDatatypeType(DType& datatype, uint32_t flags)
+{
   // Not worth a special implementation; this doesn't need to be fast
   // code anyway.
   std::vector<DType> datatypes;
@@ -509,8 +507,9 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   std::vector<TypeNode> dtts;
 
   // have to build deep copy so that datatypes will live in this class
-  std::vector< std::shared_ptr<DType> > dt_copies;
-  for (const DType& dt : datatypes){
+  std::vector<std::shared_ptr<DType> > dt_copies;
+  for (const DType& dt : datatypes)
+  {
     d_ownedDTypes.push_back(std::unique_ptr<DType>(new DType(dt)));
     dt_copies.push_back(std::move(d_ownedDTypes.back()));
   }
@@ -520,27 +519,31 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   // simple self- and mutual-recursion, for example in the definition
   // "nat = succ(pred:nat) | zero", a named resolution can handle the
   // pred selector.
-  for (const std::shared_ptr<DType>& dtc : dt_copies){
+  for (const std::shared_ptr<DType>& dtc : dt_copies)
+  {
     TypeNode typeNode;
     // register datatype with the node manager
     size_t index = registerDatatype(dtc);
-    if( dtc->getNumParameters() == 0 ) {
+    if (dtc->getNumParameters() == 0)
+    {
       typeNode = mkTypeConst(DatatypeIndexConstant(index));
-    } else {
+    }
+    else
+    {
       TypeNode cons = mkTypeConst(DatatypeIndexConstant(index));
-      std::vector< TypeNode > params;
-      params.push_back( cons );
-      for( unsigned int ip = 0; ip < dtc->getNumParameters(); ++ip ) {
-        params.push_back( dtc->getParameter( ip )  );
+      std::vector<TypeNode> params;
+      params.push_back(cons);
+      for (unsigned int ip = 0; ip < dtc->getNumParameters(); ++ip)
+      {
+        params.push_back(dtc->getParameter(ip));
       }
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    CheckArgument(
-        nameResolutions.find(dtc->getName()) == nameResolutions.end(),
-        dt_copies,
-        "cannot construct two datatypes at the same time "
-        "with the same name");
+    CheckArgument(nameResolutions.find(dtc->getName()) == nameResolutions.end(),
+                  dt_copies,
+                  "cannot construct two datatypes at the same time "
+                  "with the same name");
     nameResolutions.insert(std::make_pair(dtc->getName(), typeNode));
     dtts.push_back(typeNode);
   }
@@ -559,12 +562,9 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   std::vector< TypeNode > paramReplacements;
   std::vector<TypeNode> placeholders;// to hold the "unresolved placeholders"
   std::vector<TypeNode> replacements;// to hold our final, resolved types
-  for(std::set<TypeNode>::iterator i = unresolvedTypes.begin(), i_end = unresolvedTypes.end(); i != i_end; ++i) {
-    std::string name;
-    if( (*i).isSort() ) {
-      name = SortType(*i).getName();
-    } else {
-      Assert((*i).isSortConstructor());
+  for(std::set<TypeNode>::iterator i = unresolvedTypes.begin(), i_end =
+  unresolvedTypes.end(); i != i_end; ++i) { std::string name; if( (*i).isSort()
+  ) { name = SortType(*i).getName(); } else { Assert((*i).isSortConstructor());
       name = SortConstructorType(*i).getName();
     }
     std::map<std::string, DatatypeType>::const_iterator resolver =
@@ -611,17 +611,8 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     nml->nmNotifyNewDatatypes(dtts, flags);
   }
   */
-  
+
   return dtts;
-  
-  
-  
-  
-  
-  
-  
-  
-  
 }
 
 TypeNode NodeManager::mkConstructorType(const DatatypeConstructor& constructor,
