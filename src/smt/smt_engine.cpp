@@ -1731,14 +1731,14 @@ void SmtEngine::declareSynthFun(const std::string& id,
   setSygusConjectureStale();
 }
 
-void SmtEngine::assertSygusConstraint(Expr constraint)
+void SmtEngine::assertSygusConstraint(const Node& constraint)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
-  Dump("raw-benchmark") << SygusConstraintCommand(constraint);
+  Dump("raw-benchmark") << SygusConstraintCommand(constraint.toExpr());
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
