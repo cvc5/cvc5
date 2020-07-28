@@ -117,7 +117,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::delta( Node r, Node &exp ) {
-  std::map<Node, std::pair<int, Node> >::iterator itd = d_delta_cache.find(r);
+  std::map<Node, std::pair<int, Node> >::const_iterator itd = d_delta_cache.find(r);
   if (itd != d_delta_cache.end())
   {
     // already computed
