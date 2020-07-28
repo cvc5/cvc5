@@ -446,11 +446,7 @@ bool ArithIteUtils::solveBinOr(TNode binor){
 
         Node sk = nm->mkSkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
-        if (!cnd.isNull())
-        {
-          Node fp = applySubstitutions(cnd);
-          d_skolems.insert(sk, fp);
-        }
+        d_skolems.insert(sk, cnd);
         addSubstitution(sel, ite);
         return true;
       }
