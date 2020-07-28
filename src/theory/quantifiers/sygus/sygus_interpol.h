@@ -107,17 +107,21 @@ class SygusInterpol
    *
    * @param axioms input argument
    * @param conj input argument
-	 * @param result the return value
-	 */
-	void getIncludeCons(const std::vector<Node>& axioms, const Node& conj, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result);
+   * @param result the return value
+   */
+  void getIncludeCons(
+      const std::vector<Node>& axioms,
+      const Node& conj,
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result);
 
-	/**
+  /**
    * Set up the grammar for the interpol-to-synthesis.
    *
    * The user-defined grammar will be encoded by itpGType. The options for
    * grammar is given by options::produceInterpols(). In DEFAULT option, it will
    * set up the grammar from itpGType. And if itpGType is null, it will set up
-   * the default grammar, which is built according to a policy handled by getIncludeCons().
+   * the default grammar, which is built according to a policy handled by
+   * getIncludeCons().
    *
    * @param itpGType (if non-null) a sygus datatype type that encodes the
    * grammar that should be used for solutions of the interpolation conjecture.

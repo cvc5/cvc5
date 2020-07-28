@@ -93,7 +93,10 @@ void SygusInterpol::createVariables(bool needsShared)
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 }
 
-void SygusInterpol::getIncludeCons(const std::vector<Node>& axioms, const Node& conj, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result)
+void SygusInterpol::getIncludeCons(
+    const std::vector<Node>& axioms,
+    const Node& conj,
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result)
 {
   NodeManager* nm = NodeManager::currentNM();
   Assert(options::produceInterpols() != options::ProduceInterpols::NONE);
@@ -178,7 +181,7 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
-		getIncludeCons(axioms, conj, include_cons);
+    getIncludeCons(axioms, conj, include_cons);
     std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
     itpGTypeS =
         CVC4::theory::quantifiers::CegGrammarConstructor::mkSygusDefaultType(
