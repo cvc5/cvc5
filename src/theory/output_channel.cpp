@@ -71,7 +71,7 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     {
       out << " SEND_ATOMS";
     }
-    if (p & LemmaProperty::NEEDS_JUSTIFY != LemmaProperty::NONE)
+    if ((p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE)
     {
       out << " NEEDS_JUSTIFY";
     }
