@@ -964,7 +964,8 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
-  return d_tpp.theoryPreprocess(assertion);
+  TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  return trn.getNode();
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
