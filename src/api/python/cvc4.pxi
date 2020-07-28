@@ -826,9 +826,6 @@ cdef class Solver:
           term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort, grammar.cgrammar)
         return term
 
-
-
-
     def mkSygusGrammar(self, boundVars, ntSymbols):
         cdef Grammar grammar = Grammar()
         cdef vector[c_Term] bvc
@@ -840,6 +837,13 @@ cdef class Solver:
         grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
+    def mkSygusVar(self, Sort sort, symbol=""):
+        cdef Term term = Term()
+        term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
+        return term
+
+    def addSygusConstraint(self, Term t):
+        self.csolver.addSygusConstraint(t.cterm)
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
