@@ -150,6 +150,8 @@ NodeManager::~NodeManager() {
   d_rt_cache.d_data = dummy;
 
   d_registeredDTypes.clear();
+  // clear the datatypes
+  d_ownedDTypes.clear();
 
   Assert(!d_attrManager->inGarbageCollection());
 
@@ -200,23 +202,6 @@ size_t NodeManager::registerDatatype(std::shared_ptr<DType> dt)
 {
   size_t sz = d_registeredDTypes.size();
   d_registeredDTypes.push_back(dt);
-  return sz;
-}
-
-size_t NodeManager::mkDatatype(std::string name, bool isCo)
-{
-  size_t sz = d_ownedDTypes.size();
-  d_ownedDTypes.push_back(std::unique_ptr<DType>(new DType(name, isCo)));
-  return sz;
-}
-
-size_t NodeManager::mkDatatype(std::string name,
-                               const std::vector<TypeNode>& params,
-                               bool isCo)
-{
-  size_t sz = d_ownedDTypes.size();
-  d_ownedDTypes.push_back(
-      std::unique_ptr<DType>(new DType(name, params, isCo)));
   return sz;
 }
 
@@ -557,7 +542,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   //
   // @TODO get rid of named resolutions altogether and handle
   // everything with these resolutions?
-  /*
   std::vector< TypeNode > paramTypes;
   std::vector< TypeNode > paramReplacements;
   std::vector<TypeNode> placeholders;// to hold the "unresolved placeholders"
@@ -610,7 +594,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   for(NodeManagerListener* nml : d_listeners){
     nml->nmNotifyNewDatatypes(dtts, flags);
   }
-  */
 
   return dtts;
 }
