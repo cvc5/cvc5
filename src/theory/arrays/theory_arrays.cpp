@@ -2048,7 +2048,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
-      Node reason = (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
+      Node reason =
+          (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTermInternal(aj);
@@ -2062,7 +2063,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj,true)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node reason = (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
+      Node reason =
+          (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
       d_permRef.push_back(reason);
       assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
@@ -2136,7 +2138,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!d_equalityEngine.hasTerm(aj2)) {
         preRegisterTermInternal(aj2);
       }
-      assertInference(aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      assertInference(
+          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -2146,7 +2149,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       if (!d_equalityEngine.hasTerm(bj2)) {
         preRegisterTermInternal(bj2);
       }
-      assertInference(bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      assertInference(
+          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       return;
@@ -2242,7 +2246,8 @@ bool TheoryArrays::dischargeLemmas()
       if (!d_equalityEngine.hasTerm(aj2)) {
         preRegisterTermInternal(aj2);
       }
-      assertInference(aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      assertInference(
+          aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
     if (bj != bj2) {
@@ -2252,8 +2257,8 @@ bool TheoryArrays::dischargeLemmas()
       if (!d_equalityEngine.hasTerm(bj2)) {
         preRegisterTermInternal(bj2);
       }
-      assertInference(bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
-
+      assertInference(
+          bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
       continue;

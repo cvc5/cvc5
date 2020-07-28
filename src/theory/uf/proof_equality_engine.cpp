@@ -72,13 +72,13 @@ bool ProofEqEngine::assertAssume(TNode lit)
       // afterwards, P is explained in terms of the original (external) equality
       // (= P true) by the step provided here. This means that the proof may end
       // up using (= P true) in a roundabout way (through two redundant steps),
-      // but regardless this allows the core proof utilities (EqProof conversion,
-      // proof equality engine, lazy proof, etc.) to be unconcerned with this
-      // case. In particular, SharedTermsDatabase is the only class that
-      // asserts unrewritten equalities between Boolean terms to its equality
-      // engine.
+      // but regardless this allows the core proof utilities (EqProof
+      // conversion, proof equality engine, lazy proof, etc.) to be unconcerned
+      // with this case. In particular, SharedTermsDatabase is the only class
+      // that asserts unrewritten equalities between Boolean terms to its
+      // equality engine.
       if (atom[0].getKind() == kind::CONST_BOOLEAN
-              || atom[1].getKind() == kind::CONST_BOOLEAN)
+          || atom[1].getKind() == kind::CONST_BOOLEAN)
       {
         Node nlit = Rewriter::rewrite(lit);
         if (!CDProof::isSame(lit, nlit))

@@ -104,7 +104,7 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
       }
     }
   }
-  
+
   if (Debug.isOn("lemma-ites"))
   {
     Debug("lemma-ites") << "removed ITEs from lemma: " << ttfr.getNode()
