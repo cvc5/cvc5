@@ -903,6 +903,62 @@ public:
 
   /** Make the type of sequences with the given parameterization */
   TypeNode mkSequenceType(TypeNode elementType);
+  
+  /** Bits for use in mkDatatypeType() flags.
+   *
+   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
+   * out as a definition, for example, in models or during dumping.
+   */
+  enum
+  {
+    DATATYPE_FLAG_NONE = 0,
+    DATATYPE_FLAG_PLACEHOLDER = 1
+  }; /* enum */
+
+  /** Make a type representing the given datatype. */
+  TypeNode mkDatatypeType(DType& datatype,
+                              uint32_t flags = DATATYPE_FLAG_NONE);
+
+  /**
+   * Make a set of types representing the given datatypes, which may be
+   * mutually recursive.
+   */
+  std::vector<TypeNode> mkMutualDatatypeTypes(
+      std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+
+  /**
+   * Make a set of types representing the given datatypes, which may
+   * be mutually recursive.  unresolvedTypes is a set of SortTypes
+   * that were used as placeholders in the Datatypes for the Datatypes
+   * of the same name.  This is just a more complicated version of the
+   * above mkMutualDatatypeTypes() function, but is required to handle
+   * complex types.
+   *
+   * For example, unresolvedTypes might contain the single sort "list"
+   * (with that name reported from SortType::getName()).  The
+   * datatypes list might have the single datatype
+   *
+   *   DATATYPE
+   *     list = cons(car:ARRAY INT OF list, cdr:list) | nil;
+   *   END;
+   *
+   * To represent the Type of the array, the user had to create a
+   * placeholder type (an uninterpreted sort) to stand for "list" in
+   * the type of "car".  It is this placeholder sort that should be
+   * passed in unresolvedTypes.  If the datatype was of the simpler
+   * form:
+   *
+   *   DATATYPE
+   *     list = cons(car:list, cdr:list) | nil;
+   *   END;
+   *
+   * then no complicated Type needs to be created, and the above,
+   * simpler form of mkMutualDatatypeTypes() is enough.
+   */
+  std::vector<TypeNode> mkMutualDatatypeTypes(
+      std::vector<DType>& datatypes,
+      std::set<TypeNode>& unresolvedTypes,
+      uint32_t flags = DATATYPE_FLAG_NONE);
 
   /** Make a type representing a constructor with the given parameterization */
   TypeNode mkConstructorType(const DatatypeConstructor& constructor, TypeNode range);
