@@ -446,7 +446,6 @@ class TheoryArrays : public Theory {
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);
-  void checkRIntro1(TNode a, TNode b);
   Node removeRepLoops(TNode a, TNode rep);
   Node expandStores(TNode s, std::vector<TNode>& assumptions, bool checkLoop = false, TNode a = TNode(), TNode b = TNode());
   void mergeArrays(TNode a, TNode b);
