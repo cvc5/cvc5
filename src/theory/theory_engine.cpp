@@ -1647,7 +1647,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   {
     d_relManager->notifyPreprocessedAssertions(lemmas.ref());
   }
-  
+
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline

@@ -17,7 +17,6 @@
 namespace CVC4 {
 namespace theory {
 
-
 LemmaProperty operator|(LemmaProperty lhs, LemmaProperty rhs)
 {
   return static_cast<LemmaProperty>(static_cast<uint32_t>(lhs)
