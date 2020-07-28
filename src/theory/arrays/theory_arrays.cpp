@@ -751,18 +751,16 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       Assert(d_mayEqualEqualityEngine.consistent());
     }
 
-    if (options::arraysWeakEquivalence()) {
-      TNode i = node[1];
-      TNode v = node[2];
-      NodeManager* nm = NodeManager::currentNM();
-      Node ni = nm->mkNode(kind::SELECT, node, i);
-      if (!d_equalityEngine.hasTerm(ni)) {
-        preRegisterTermInternal(ni);
-      }
-
-      // Apply RIntro1 Rule
-      d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, d_reasonRow1);
+    TNode i = node[1];
+    TNode v = node[2];
+    NodeManager* nm = NodeManager::currentNM();
+    Node ni = nm->mkNode(kind::SELECT, node, i);
+    if (!d_equalityEngine.hasTerm(ni)) {
+      preRegisterTermInternal(ni);
     }
+
+    // Apply RIntro1 Rule
+    d_equalityEngine.assertEquality(ni.eqNode(v), true, d_true, d_reasonRow1);
 
     d_infoMap.addStore(node, node);
     d_infoMap.addInStore(a, node);
