@@ -51,9 +51,7 @@ class EngineOutputChannel : public theory::OutputChannel
 
   theory::LemmaStatus lemma(TNode lemma,
                             ProofRule rule,
-                            bool removable = false,
-                            bool preprocess = false,
-                            bool sendAtoms = false) override;
+                            LemmaProperty p = LemmaProperty::NONE) override;
 
   theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;
 
@@ -81,9 +79,7 @@ class EngineOutputChannel : public theory::OutputChannel
    * the same as calling OutputChannel::lemma on lem.
    */
   LemmaStatus trustedLemma(TrustNode plem,
-                           bool removable = false,
-                           bool preprocess = false,
-                           bool sendAtoms = false) override;
+                           LemmaProperty p = LemmaProperty::NONE) override;
 
  protected:
   /**
