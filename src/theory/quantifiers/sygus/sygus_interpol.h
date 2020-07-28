@@ -99,7 +99,7 @@ class SygusInterpol
    * Get include_cons for mkSygusDefaultType.
    * mkSygusDefaultType() is a function to make default grammar. It has an
    * arguemnt include_cons, which will restrict what operators we want in the
-   * grammar. The return value is depends on the options::produceInterpols(). In
+   * grammar. The return value depends on options::produceInterpols(). In
    * ASSUMPTIONS option, it will return the operators from axioms. In CONJECTURE
    * option, it will return the operators from conj. In SHARED option, it will
    * return the oprators shared by axioms and conj. In ALL option, it will
@@ -107,22 +107,17 @@ class SygusInterpol
    *
    * @param axioms input argument
    * @param conj input argument
-   */
-  std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> getIncludeCons(
-      const std::vector<Node>& axioms, const Node& conj);
+	 * @param result the return value
+	 */
+	void getIncludeCons(const std::vector<Node>& axioms, const Node& conj, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result);
 
-  /**
+	/**
    * Set up the grammar for the interpol-to-synthesis.
    *
    * The user-defined grammar will be encoded by itpGType. The options for
    * grammar is given by options::produceInterpols(). In DEFAULT option, it will
    * set up the grammar from itpGType. And if itpGType is null, it will set up
-   * the default grammar. In ASSUMPTIONS option, it will set up the grammar by
-   * only using the operators from axioms. In CONJECTURE option, it will set up
-   * the grammar by only using the operators from conj. In SHARED option, it
-   * will set up the grammar by only using the operators shared by axioms and
-   * conj. In ALL option, it will set up the grammar by only using the operators
-   * from either axioms or conj.
+   * the default grammar, which is built according to a policy handled by getIncludeCons().
    *
    * @param itpGType (if non-null) a sygus datatype type that encodes the
    * grammar that should be used for solutions of the interpolation conjecture.
