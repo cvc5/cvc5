@@ -542,56 +542,71 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   //
   // @TODO get rid of named resolutions altogether and handle
   // everything with these resolutions?
-  std::vector< TypeNode > paramTypes;
-  std::vector< TypeNode > paramReplacements;
-  std::vector<TypeNode> placeholders;// to hold the "unresolved placeholders"
-  std::vector<TypeNode> replacements;// to hold our final, resolved types
-  for(std::set<TypeNode>::iterator i = unresolvedTypes.begin(), i_end =
-  unresolvedTypes.end(); i != i_end; ++i) { std::string name; if( (*i).isSort()
-  ) { name = SortType(*i).getName(); } else { Assert((*i).isSortConstructor());
+  std::vector<TypeNode> paramTypes;
+  std::vector<TypeNode> paramReplacements;
+  std::vector<TypeNode> placeholders;  // to hold the "unresolved placeholders"
+  std::vector<TypeNode> replacements;  // to hold our final, resolved types
+  for (std::set<TypeNode>::iterator i = unresolvedTypes.begin(),
+                                    i_end = unresolvedTypes.end();
+       i != i_end;
+       ++i)
+  {
+    std::string name;
+    if ((*i).isSort())
+    {
+      name = SortType(*i).getName();
+    }
+    else
+    {
+      Assert((*i).isSortConstructor());
       name = SortConstructorType(*i).getName();
     }
     std::map<std::string, DatatypeType>::const_iterator resolver =
-      nameResolutions.find(name);
-    CheckArgument(
-        resolver != nameResolutions.end(),
-        unresolvedTypes,
-        "cannot resolve type `%s'; it's not among "
-        "the datatypes being defined", name.c_str());
+        nameResolutions.find(name);
+    CheckArgument(resolver != nameResolutions.end(),
+                  unresolvedTypes,
+                  "cannot resolve type `%s'; it's not among "
+                  "the datatypes being defined",
+                  name.c_str());
     // We will instruct the Datatype to substitute "*i" (the
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the DatatypeType we created in the
     // first step, above).
-    if( (*i).isSort() ) {
+    if ((*i).isSort())
+    {
       placeholders.push_back(*i);
-      replacements.push_back( (*resolver).second );
-    } else {
+      replacements.push_back((*resolver).second);
+    }
+    else
+    {
       Assert((*i).isSortConstructor());
-      paramTypes.push_back( SortConstructorType(*i) );
-      paramReplacements.push_back( (*resolver).second );
+      paramTypes.push_back(SortConstructorType(*i));
+      paramReplacements.push_back((*resolver).second);
     }
   }
 
   // Lastly, perform the final resolutions and checks.
-  for(std::vector<TypeNode>::iterator i = dtts.begin(),
-        i_end = dtts.end();
-      i != i_end;
-      ++i) {
+  for (std::vector<TypeNode>::iterator i = dtts.begin(), i_end = dtts.end();
+       i != i_end;
+       ++i)
+  {
     const DType& dt = (*i).getDType();
-    if(!dt.isResolved()) {
+    if (!dt.isResolved())
+    {
       const_cast<DType&>(dt).resolve(nameResolutions,
-                                        placeholders,
-                                        replacements,
-                                        paramTypes,
-                                        paramReplacements);
+                                     placeholders,
+                                     replacements,
+                                     paramTypes,
+                                     paramReplacements);
     }
 
     // Now run some checks, including a check to make sure that no
     // selector is function-valued.
-    //checkResolvedDatatype(*i);
+    // checkResolvedDatatype(*i);
   }
 
-  for(NodeManagerListener* nml : d_listeners){
+  for (NodeManagerListener* nml : d_listeners)
+  {
     nml->nmNotifyNewDatatypes(dtts, flags);
   }
 
