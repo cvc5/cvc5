@@ -756,7 +756,7 @@ sygusGrammar[CVC4::api::Sort & ret,
     {
       bool aci = allowConst.find(i)!=allowConst.end();
       api::Sort btt = sortedVarNames[i].second;
-      datatypes[i].getDatatype().setSygus(btt.getType(), bvl.getExpr(), aci, false);
+      datatypes[i].setSygus(btt, bvl, aci, false);
       Trace("parser-sygus2") << "- " << datatypes[i].getName()
                              << ", #cons= " << datatypes[i].getNumConstructors()
                              << ", aci= " << aci << std::endl;
