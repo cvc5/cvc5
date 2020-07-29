@@ -343,13 +343,11 @@ class TheoryEngine {
   /**
    * Adds a new lemma, returning its status.
    * @param node the lemma
-   * @param removable can the lemma be remove (restrictions apply)
-   * @param needAtoms if not THEORY_LAST, then
+   * @param p the properties of the lemma.
    */
   theory::LemmaStatus lemma(theory::TrustNode node,
                             ProofRule rule,
-                            bool removable,
-                            bool preprocess,
+                            theory::LemmaProperty p,
                             theory::TheoryId atomsTo = theory::THEORY_LAST,
                             theory::TheoryId from = theory::THEORY_LAST);
 

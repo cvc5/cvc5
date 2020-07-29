@@ -42,6 +42,7 @@
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
@@ -660,7 +661,7 @@ void TheoryEngine::combineTheories() {
     }
     TrustNode tsplit = TrustNode::mkTrustLemma(split, d_lazyProof.get());
     // send the lemma
-    lemma(tsplit, RULE_INVALID, false, false, carePair.d_theory);
+    lemma(tsplit, RULE_INVALID, LemmaProperty::NONE, carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
     // but it doesn't seem to make a big difference - need to explore more -Clark
@@ -1612,8 +1613,7 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 
 theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
                                         ProofRule rule,
-                                        bool removable,
-                                        bool preprocess,
+                                        theory::LemmaProperty p,
                                         theory::TheoryId atomsTo,
                                         theory::TheoryId from)
 {
@@ -1656,6 +1656,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
   }
+  bool removable = isLemmaPropertyRemovable(p);
+  bool preprocess = isLemmaPropertyPreprocess(p);
 
   if (options::proofNew())
   {
@@ -1885,7 +1887,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
         TrustNode::mkTrustConflict(fullConflict, d_lazyProof.get());
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(tconf, RULE_CONFLICT, true, false);
+    lemma(tconf, RULE_CONFLICT, LemmaProperty::REMOVABLE);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
@@ -1915,7 +1917,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       });
 
     // pass the trust node that was sent from the theory
-    lemma(tconflict, RULE_CONFLICT, true, false, THEORY_LAST, theoryId);
+    lemma(tconflict, RULE_CONFLICT, LemmaProperty::REMOVABLE, THEORY_LAST, theoryId);
   }
 
   PROOF({

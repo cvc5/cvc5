@@ -971,7 +971,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, false, true);
+      getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
     return;
   }
@@ -1022,7 +1022,6 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
     Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     BoolMap::const_iterator itp = d_lemmas_produced_c.find( lem );
     if( itp==d_lemmas_produced_c.end() || !(*itp).second ){
-      //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Trace("inst-add-debug") << "Added lemma" << std::endl;
@@ -1131,11 +1130,11 @@ options::UserPatMode QuantifiersEngine::getInstUserPatMode()
 }
 
 void QuantifiersEngine::flushLemmas(){
+  OutputChannel& out = getOutputChannel();
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     std::map<Node, ProofGenerator*>::iterator itp;
-    OutputChannel& out = getOutputChannel();
     for (const Node& lemw : d_lemmas_waiting)
     {
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
@@ -1143,11 +1142,11 @@ void QuantifiersEngine::flushLemmas(){
       if (itp != d_lemmasWaitingPg.end())
       {
         TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
-        out.trustedLemma(tlemw, false, true);
+        out.trustedLemma(tlemw, LemmaProperty::PREPROCESS);
       }
       else
       {
-        out.lemma(lemw, false, true);
+        out.lemma(lemw, LemmaProperty::PREPROCESS);
       }
     }
     d_lemmas_waiting.clear();
@@ -1155,7 +1154,7 @@ void QuantifiersEngine::flushLemmas(){
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
       Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      getOutputChannel().requirePhase( it->first, it->second );
+      out.requirePhase( it->first, it->second );
     }
     d_phase_req_waiting.clear();
   }

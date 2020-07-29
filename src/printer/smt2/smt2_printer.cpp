@@ -662,6 +662,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
   case kind::SEQ_UNIT:
+  case kind::SEQ_NTH:
   case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
@@ -1231,6 +1232,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_COMPLEMENT: return "re.comp";
   case kind::SEQUENCE_TYPE: return "Seq";
   case kind::SEQ_UNIT: return "seq.unit";
+  case kind::SEQ_NTH: return "seq.nth";
 
   //sep theory
   case kind::SEP_STAR: return "sep";
