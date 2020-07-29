@@ -525,10 +525,9 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    CheckArgument(nameResolutions.find(dtc->getName()) == nameResolutions.end(),
-                  dt_copies,
+    AlwaysAssert(nameResolutions.find(dtc->getName()) == nameResolutions.end()) <<
                   "cannot construct two datatypes at the same time "
-                  "with the same name");
+                  "with the same name";
     nameResolutions.insert(std::make_pair(dtc->getName(), typeNode));
     dtts.push_back(typeNode);
   }
@@ -548,22 +547,11 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
   std::vector<TypeNode> replacements;  // to hold our final, resolved types
   for (const TypeNode& ut : unresolvedTypes)
   {
-    std::string name;
-    if (ut.isSort())
-    {
-      name = ut.getName();
-    }
-    else
-    {
-      Assert(ut.isSortConstructor());
-      name = ut.getName();
-    }
+    std::string name = ut.getAttribute(expr::VarNameAttr());
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
-    CheckArgument(resolver != nameResolutions.end(),
-                  unresolvedTypes,
-                  "cannot resolve type " + name + "; it's not among "
-                  "the datatypes being defined");
+    AlwaysAssert(resolver != nameResolutions.end()) <<
+                  "cannot resolve type " + name + "; it's not among the datatypes being defined";
     // We will instruct the Datatype to substitute "ut" (the
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
@@ -599,10 +587,12 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     // checkResolvedDatatype(ut);
   }
 
+  /*
   for (NodeManagerListener* nml : d_listeners)
   {
     nml->nmNotifyNewDatatypes(dtts, flags);
   }
+  */
 
   return dtts;
 }
