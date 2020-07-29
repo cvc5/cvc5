@@ -75,17 +75,7 @@ Datatype::Datatype(ExprManager* em,
 }
 
 const Datatype& Datatype::datatypeOf(Expr item) {
-  ExprManagerScope ems(item);
-  TypeNode t = Node::fromExpr(item).getType();
-  switch(t.getKind()) {
-  case kind::CONSTRUCTOR_TYPE:
-    return DatatypeType(t[t.getNumChildren() - 1].toType()).getDatatype();
-  case kind::SELECTOR_TYPE:
-  case kind::TESTER_TYPE:
-    return DatatypeType(t[0].toType()).getDatatype();
-  default:
-    Unhandled() << "arg must be a datatype constructor, selector, or tester";
-  }
+  Unhandled() << "arg must be a datatype constructor, selector, or tester";
 }
 
 size_t Datatype::indexOf(Expr item) {
@@ -309,7 +299,6 @@ void Datatype::setRecord() {
 Cardinality Datatype::getCardinality(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->getCardinality(tn);
@@ -325,7 +314,6 @@ Cardinality Datatype::getCardinality() const
 bool Datatype::isRecursiveSingleton(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isRecursiveSingleton(tn);
@@ -371,7 +359,6 @@ Type Datatype::getRecursiveSingletonArgType(unsigned i) const
 bool Datatype::isFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isFinite(tn);
@@ -386,7 +373,6 @@ bool Datatype::isFinite() const
 bool Datatype::isInterpretedFinite(Type t) const
 {
   PrettyCheckArgument(isResolved(), this, "this datatype is not yet resolved");
-  Assert(t.isDatatype() && ((DatatypeType)t).getDatatype() == *this);
   ExprManagerScope ems(d_self);
   TypeNode tn = TypeNode::fromType(t);
   return d_internal->isInterpretedFinite(tn);

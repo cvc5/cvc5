@@ -1308,6 +1308,11 @@ class CVC4_PUBLIC DatatypeDecl
    * @param ctor the datatype constructor declaration to add
    */
   void addConstructor(const DatatypeConstructorDecl& ctor);
+  
+  /** !!!!!!!!!!!!!TEMPORARY
+   */
+  void addSygusConstructor(Term op, std::string name, const std::vector<Sort>& args);
+  void setSygus(Sort st, Term bvl, bool allowConst, bool allowAll);
 
   /** Get the number of constructors (so far) for this Datatype declaration. */
   size_t getNumConstructors() const;

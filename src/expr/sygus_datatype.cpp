@@ -91,7 +91,7 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
 
-const Datatype& SygusDatatype::getDatatype() const
+const DType& SygusDatatype::getDatatype() const
 {
   // should have initialized by this point
   Assert(isInitialized());

@@ -2027,6 +2027,22 @@ void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
   d_dtype->addConstructor(ctor.d_ctor);
 }
 
+void DatatypeDecl::addSygusConstructor(Term op, std::string name, const std::vector<Sort>& args)
+{
+  CVC4_API_CHECK_NOT_NULL;
+  std::vector<TypeNode> cargst;
+  for (const Sort& s : args)
+  {
+    cargst.push_back(TypeNode::fromType(s.getType()));
+  }
+  d_dtype->addSygusConstructor(op.getNode(), name, cargst);
+}
+
+void DatatypeDecl::setSygus(Sort st, Term bvl, bool allowConst, bool allowAll)
+{
+  d_dtype->setSygus(TypeNode::fromType(st.getType()), bvl.getNode(), allowConst, allowAll);
+}
+
 size_t DatatypeDecl::getNumConstructors() const
 {
   CVC4_API_CHECK_NOT_NULL;
