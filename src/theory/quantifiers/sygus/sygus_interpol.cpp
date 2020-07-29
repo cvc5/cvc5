@@ -227,7 +227,8 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   std::vector<Node> ichildren;
   ichildren.push_back(itp);
   ichildren.insert(ichildren.end(), d_varsShared.begin(), d_varsShared.end());
-  Node itpApp = d_varsShared.empty() ? itp : nm->mkNode(kind::APPLY_UF, ichildren);
+  Node itpApp =
+      d_varsShared.empty() ? itp : nm->mkNode(kind::APPLY_UF, ichildren);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // set the sygus bound variable list
@@ -302,7 +303,7 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     }
     if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
     {
-			std::vector<Node> formals;
+      std::vector<Node> formals;
       for (Node n : interpoln[0])
       {
         formals.push_back(n);
