@@ -142,21 +142,20 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
-        
         # Sygus related functions
         Grammar mkSygusGrammar(const vector[Term]& boundVard, const vector[Term]& ntSymbols) except +
         Term mkSygusVar(Sort sort, const string& symbol) except +
         Term mkSygusVar(Sort sort) except +
         void addSygusConstraint(Term term) except +
-        void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +	
+        void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
         Result checkSynth() except +
         Term getSynthSolution(Term t) except +
         vector[Term] getSynthSolutions(const vector[Term]& terms) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +	
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +	
-        void printSynthSolution(ostream& out)	
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
+        void printSynthSolution(ostream& out) except +
         # End of sygus related functions
 
         Term mkTrue() except +
@@ -242,7 +241,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         void addAnyConstant(Term ntSymbol) except +
         void addAnyVariable(Term ntSymbol) except +
         void addRules(Term ntSymbol, vector[Term] rules) except +
-
 
     cdef cppclass Sort:
         Sort() except +

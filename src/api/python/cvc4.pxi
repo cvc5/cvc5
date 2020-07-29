@@ -278,14 +278,14 @@ cdef class Grammar:
         self.cgrammar = c_Grammar()
 
     def addRule(self, Term ntSymbol, Term rule):
-        self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)    
+        self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
 
     def addAnyConstant(self, Term ntSymbol):
         self.cgrammar.addAnyConstant(ntSymbol.cterm)
-    
+
     def addAnyVariable(self, Term ntSymbol):
         self.cgrammar.addAnyVariable(ntSymbol.cterm)
-    
+
     def addRules(self, Term ntSymbol, rules):
         cdef vector[c_Term] crules
         for r in rules:
@@ -796,7 +796,7 @@ cdef class Solver:
     def mkSygusGrammar(self, boundVars, ntSymbols):
         cdef Grammar grammar = Grammar()
         cdef vector[c_Term] bvc
-        cdef vector[c_Term] ntc	
+        cdef vector[c_Term] ntc
         for bv in boundVars:
             bvc.push_back((<Term?> bv).cterm)
         for nt in ntSymbols:
