@@ -56,8 +56,10 @@ class RelevanceManager
               std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** the valuation object */
   Valuation d_val;
-  /** The input assertions */
+  /** The (non-unit) input assertions */
   NodeList d_input;
+  /** The always relevant literals (top level unit clauses) */
+  NodeList d_alwaysRel;
   /** the set of lterails that are sufficient for justifying the input. */
   std::unordered_set<TNode, TNodeHashFunction> d_rset;
   /*** have we computed relevance this round? */

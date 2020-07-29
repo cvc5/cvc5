@@ -21,7 +21,7 @@ namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
                                    Valuation val)
-    : d_val(val), d_input(userContext), d_computed(false), d_success(false)
+    : d_val(val), d_input(userContext), d_alwaysRel(userContext), d_computed(false), d_success(false)
 {
 }
 
@@ -29,9 +29,40 @@ void RelevanceManager::notifyPreprocessedAssertions(
     const std::vector<Node>& assertions)
 {
   // add to input list, which is user-context dependent
+  std::vector<Node> toProcess;
   for (const Node& a : assertions)
   {
-    d_input.push_back(a);
+    if (a.getKind()==AND)
+    {
+      // split AND
+      for (const Node& ac : a)
+      {
+        toProcess.push_back(ac);
+      }
+    }
+    else
+    {
+      d_input.push_back(a);
+    }
+  }
+  size_t i = 0;
+  while (i<toProcess.size())
+  {
+    Node a = toProcess[i];
+    if (a.getKind()==AND)
+    {
+      // split AND
+      for (const Node& ac : a)
+      {
+        toProcess.push_back(ac);
+      }
+    }
+    else
+    {
+      // TODO: always relevant?
+      d_input.push_back(a);
+    }
+    i++;
   }
 }
 
