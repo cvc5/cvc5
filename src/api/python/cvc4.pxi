@@ -807,12 +807,20 @@ cdef class Solver:
         r.cr = self.csolver.checkSynth()
         return r
 
-    def synthInv(self, symbol, bound_vars):
+    def getSynthSolution(Term term):
+        cdef Term t = Term()
+        t.cterm = self.csolver.getSynthSolution(term.cterm)
+        return t
+
+    def synthInv(self, symbol, bound_vars, Grammar=None):
         cdef Term term = Term()
         cdef vector[c_Term] v
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
-        term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v)
+        if grammar is None:
+            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v)
+        else:
+            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
         return term
 
     def synthFun(self, symbol, bound_vars, Sort sort, Grammar grammar=None):

@@ -192,7 +192,10 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
         Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
         Result checkSynth() except +
+        Term getSynthSolution(Term t) except +
+        vector[Term] getSynthSolutions(const vector[Term]& terms) except +
         Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +	
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +	
         Result checkSatAssuming(const vector[Term]& assumptions) except +
         Result checkEntailed(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
