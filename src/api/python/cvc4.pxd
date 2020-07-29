@@ -142,10 +142,23 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
+        
+        # Sygus related functions
         Grammar mkSygusGrammar(const vector[Term]& boundVard, const vector[Term]& ntSymbols) except +
         Term mkSygusVar(Sort sort, const string& symbol) except +
         Term mkSygusVar(Sort sort) except +
         void addSygusConstraint(Term term) except +
+        void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +	
+        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
+        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
+        Result checkSynth() except +
+        Term getSynthSolution(Term t) except +
+        vector[Term] getSynthSolutions(const vector[Term]& terms) except +
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +	
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +	
+        void printSynthSolution(ostream& out)	
+        # End of sygus related functions
+
         Term mkTrue() except +
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
@@ -187,15 +200,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkVar(Sort sort) except +
         Term simplify(const Term& t) except +
         void assertFormula(Term term) except +
-        void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +	
         Result checkSat() except +
-        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
-        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
-        Result checkSynth() except +
-        Term getSynthSolution(Term t) except +
-        vector[Term] getSynthSolutions(const vector[Term]& terms) except +
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +	
-        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +	
         Result checkSatAssuming(const vector[Term]& assumptions) except +
         Result checkEntailed(const vector[Term]& assumptions) except +
         Sort declareDatatype(const string& symbol, const vector[DatatypeConstructorDecl]& ctors)
@@ -223,7 +228,6 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term getSeparationNilTerm() except +
         void pop(uint32_t nscopes) except +
         void printModel(ostream& out)
-        void printSynthSolution(ostream& out)	
         void push(uint32_t nscopes) except +
         void reset() except +
         void resetAssertions() except +

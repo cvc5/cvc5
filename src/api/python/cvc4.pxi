@@ -794,45 +794,10 @@ cdef class Solver:
     def assertFormula(self, Term term):
         self.csolver.assertFormula(term.cterm)
 
-    def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
-        self.csolver.addSygusInvConstraint(inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
-
     def checkSat(self):
         cdef Result r = Result()
         r.cr = self.csolver.checkSat()
         return r
-
-    def checkSynth(self):
-        cdef Result r = Result()
-        r.cr = self.csolver.checkSynth()
-        return r
-
-    def getSynthSolution(Term term):
-        cdef Term t = Term()
-        t.cterm = self.csolver.getSynthSolution(term.cterm)
-        return t
-
-    def synthInv(self, symbol, bound_vars, Grammar=None):
-        cdef Term term = Term()
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
-        if grammar is None:
-            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v)
-        else:
-            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
-        return term
-
-    def synthFun(self, symbol, bound_vars, Sort sort, Grammar grammar=None):
-        cdef Term term = Term()
-        cdef vector[c_Term] v
-        for bv in bound_vars:
-            v.push_back((<Term?> bv).cterm)
-        if grammar is None:
-          term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort)
-        else:
-          term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort, grammar.cgrammar)
-        return term
 
     def mkSygusGrammar(self, boundVars, ntSymbols):
         cdef Grammar grammar = Grammar()
@@ -852,6 +817,41 @@ cdef class Solver:
 
     def addSygusConstraint(self, Term t):
         self.csolver.addSygusConstraint(t.cterm)
+
+    def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
+        self.csolver.addSygusInvConstraint(inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
+
+    def synthFun(self, symbol, bound_vars, Sort sort, Grammar grammar=None):
+        cdef Term term = Term()
+        cdef vector[c_Term] v
+        for bv in bound_vars:
+            v.push_back((<Term?> bv).cterm)
+        if grammar is None:
+          term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort)
+        else:
+          term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort, grammar.cgrammar)
+        return term
+
+    def checkSynth(self):
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSynth()
+        return r
+
+    def getSynthSolution(self, Term term):
+        cdef Term t = Term()
+        t.cterm = self.csolver.getSynthSolution(term.cterm)
+        return t
+
+    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
+        cdef Term term = Term()
+        cdef vector[c_Term] v
+        for bv in bound_vars:
+            v.push_back((<Term?> bv).cterm)
+        if grammar is None:
+            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v)
+        else:
+            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
+        return term
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
