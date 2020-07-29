@@ -2447,7 +2447,7 @@ bool Datatype::const_iterator::operator!=(
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
 
-Grammar::Grammar() 
+Grammar::Grammar()
     : d_solver(nullptr),
       d_sygusVars(),
       d_ntSyms(),
@@ -2455,7 +2455,8 @@ Grammar::Grammar()
       d_allowConst(),
       d_allowVars(),
       d_isResolved(false)
-{}
+{
+}
 
 Grammar::Grammar(const Solver* slv,
                  const std::vector<Term>& sygusVars,

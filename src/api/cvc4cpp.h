@@ -1960,9 +1960,7 @@ class CVC4_PUBLIC Grammar
    */
   Grammar();
 
-  
-private:
-
+ private:
   /**
    * Constructor.
    * @param slv the solver that created this grammar
