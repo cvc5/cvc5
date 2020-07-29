@@ -218,9 +218,9 @@ Node SygusInterpol::mkPredicate(const std::string& name)
 
 void SygusInterpol::mkSygusConjecture(Node itp,
                                       const std::vector<Node>& axioms,
-																			const Node& conj)
+                                      const Node& conj)
 {
-	NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // make the interpolation application to synthesize
   Trace("sygus-interpol-debug")
       << "Make interpolation predicate app..." << std::endl;
@@ -281,7 +281,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 
 bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
 {
-	// get the synthesis solution
+  // get the synthesis solution
   std::map<Expr, Expr> sols;
   d_subsolver->getSynthSolutions(sols);
   Assert(sols.size() == 1);
@@ -295,16 +295,22 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     if (interpoln.getKind() == kind::LAMBDA)
     {
       interpoln_reduced = interpoln[1];
-    } else {
+    }
+    else
+    {
       interpoln_reduced = interpoln;
     }
-    if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0) {
+    if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
+    {
       vector<Node> formals;
-      for (Node n : interpoln[0]) {
+      for (Node n : interpoln[0])
+      {
         formals.push_back(n);
       }
-      interpoln_reduced = interpoln_reduced.substitute(
-          formals.begin(), formals.end(), d_symsShared.begin(), d_symsShared.end());
+      interpoln_reduced = interpoln_reduced.substitute(formals.begin(),
+                                                       formals.end(),
+                                                       d_symsShared.begin(),
+                                                       d_symsShared.end());
     }
     // convert to expression
     interpol = interpoln_reduced.toExpr();
@@ -322,7 +328,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
                                        const TypeNode& itpGType,
                                        Expr& interpol)
 {
-	NodeManager* nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // we generate a new smt engine to do the interpolation query
   d_subsolver.reset(new SmtEngine(nm->toExprManager()));
   d_subsolver->setIsInternalSubsolver();
@@ -342,7 +348,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
   d_subsolver->declareSynthFun(
-     name, itp.toExpr(), grammarType.toType(), false, vars_empty);
+      name, itp.toExpr(), grammarType.toType(), false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
