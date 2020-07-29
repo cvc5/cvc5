@@ -10,14 +10,14 @@ def test_add_rule():
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = Term()
+  nullTerm = pycvc4.Term()
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
   
   # expecting no error
-  g = solver.mkSygusGrammar(start, nts)
+  g = solver.mkSygusGrammar([], [start])
 
-  g.addRule(start, solver.mkBoolean(false))
+  g.addRule(start, solver.mkBoolean(False))
 
   # expecting errors
   with pytest.raises(Exception):
@@ -37,39 +37,43 @@ def test_add_rule():
     g.addRule(start, solver.mkBoolean(false))
 
 def test_add_rules():
-
+  solver = pycvc4.Solver()
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = Term()
+  nullTerm = pycvc4.Term()
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
-  g = solver.mkSygusGrammar({}, start)
+  g = solver.mkSygusGrammar([], [start])
 
-  g.addRules(start, solver.mkBoolean(false))
+  g.addRules(start, {solver.mkBoolean(False)})
 
+  #Expecting errors
   with pytest.raises(Exception):
-    g.addRules(nullTerm, solver.mkBoolean(false))
+    g.addRules(nullTerm, solver.mkBoolean(False))
   with pytest.raises(Exception):
-    g.addRules(start, nullTerm)
+    g.addRules(start, {nullTerm})
   with pytest.raises(Exception):
-    g.addRules(nts, solver.mkBoolean(false))
+    g.addRules(nts, {solver.mkBoolean(False)})
   with pytest.raises(Exception):
-    g.addRules(start, solver.mkReal(0))
+    g.addRules(start, {solver.mkReal(0)})
+  #Expecting no errors
   solver.synthFun("f", {}, boolean, g)
+  
+  #Expecting an error
   with pytest.raises(Exception):
-    g.addRules(start, solver.mkBoolean(false))
+    g.addRules(start, solver.mkBoolean(False))
 
 def testAddAnyConstant():
-
+  solver = pycvc4.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = Term()
+  nullTerm = pycvc4.Term()
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
-  g = solver.mkSygusGrammar({}, start)
+  g = solver.mkSygusGrammar({}, {start})
 
   g.addAnyConstant(start)
   g.addAnyConstant(start)
@@ -86,15 +90,16 @@ def testAddAnyConstant():
 
 
 def testAddAnyVariable():
+  solver = pycvc4.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = Term()
+  nullTerm = pycvc4.Term()
   x = solver.mkVar(boolean)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
-  g1 = solver.mkSygusGrammar({x}, start)
-  g2 = solver.mkSygusGrammar({}, start)
+  g1 = solver.mkSygusGrammar({x}, {start})
+  g2 = solver.mkSygusGrammar({}, {start})
 
   g1.addAnyVariable(start)
   g1.addAnyVariable(start)
@@ -105,7 +110,7 @@ def testAddAnyVariable():
   with pytest.raises(Exception):
     g1.addAnyVariable(nts)
 
-    solver.synthFun("f", {}, boolean, g1)
+  solver.synthFun("f", {}, boolean, g1)
 
   with pytest.raises(Exception):
     g1.addAnyVariable(start)

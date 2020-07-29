@@ -143,7 +143,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
         # Sygus related functions
-        Grammar mkSygusGrammar(const vector[Term]& boundVard, const vector[Term]& ntSymbols) except +
+        Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
         Term mkSygusVar(Sort sort, const string& symbol) except +
         Term mkSygusVar(Sort sort) except +
         void addSygusConstraint(Term term) except +
