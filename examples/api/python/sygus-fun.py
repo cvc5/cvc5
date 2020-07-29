@@ -13,6 +13,8 @@
 ## \brief A simple demonstration of the solving capabilities of the CVC4
 ## sygus solver through the Python API. This is a direct
 ## translation of sygus-fun.cpp.
+#####################
+
 import copy
 import pycvc4
 from pycvc4 import kinds
