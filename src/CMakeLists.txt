@@ -479,6 +479,7 @@ libcvc4_add_sources(
   theory/interrupted.h
   theory/logic_info.cpp
   theory/logic_info.h
+  theory/output_channel.cpp
   theory/output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h
