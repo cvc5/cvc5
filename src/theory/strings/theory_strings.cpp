@@ -594,6 +594,40 @@ TrustNode TheoryStrings::expandDefinition(Node node)
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
 
+  if (node.getKind() == SEQ_NTH)
+  {
+    // str.nth(s,i) --->
+    //   ite(0<=i<=len(s), witness k. 0<=i<=len(s)->unit(k) = seq.at(s,i),
+    //   uf(s,i))
+    NodeManager* nm = NodeManager::currentNM();
+    Node s = node[0];
+    Node i = node[1];
+    Node len = nm->mkNode(STRING_LENGTH, s);
+    Node cond =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LT, i, len));
+    TypeNode elemType = s.getType().getSequenceElementType();
+    Node k = nm->mkBoundVar(elemType);
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
+    std::vector<TypeNode> argTypes;
+    argTypes.push_back(s.getType());
+    argTypes.push_back(nm->integerType());
+    TypeNode ufType = nm->mkFunctionType(argTypes, elemType);
+    SkolemCache* sc = d_termReg.getSkolemCache();
+    Node uf = sc->mkTypedSkolemCached(
+        ufType, Node::null(), Node::null(), SkolemCache::SK_NTH, "Uf");
+    Node ret = nm->mkNode(
+        ITE,
+        cond,
+        nm->mkNode(WITNESS,
+                   bvl,
+                   nm->mkNode(IMPLIES,
+                              cond,
+                              nm->mkNode(SEQ_UNIT, k)
+                                  .eqNode(nm->mkNode(STRING_CHARAT, s, i)))),
+        nm->mkNode(APPLY_UF, uf, s, i));
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+
   return TrustNode::null();
 }
 
