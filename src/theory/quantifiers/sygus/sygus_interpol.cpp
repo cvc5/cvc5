@@ -227,25 +227,25 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   std::vector<Node> ichildren;
   ichildren.push_back(itp);
   ichildren.insert(ichildren.end(), d_varsShared.begin(), d_varsShared.end());
-  Node itpApp = d_varsShared.empty() ? itp : nm->mkNode(APPLY_UF, ichildren);
+  Node itpApp = d_varsShared.empty() ? itp : nm->mkNode(kind::APPLY_UF, ichildren);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
-  itp.setAttribute(theory::SygusSynthFunVarListAttribute(), d_abvlShared);
+  itp.setAttribute(theory::SygusSynthFunVarListAttribute(), d_ibvlShared);
   // sygus attribute
   Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
   theory::SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
-  Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
+  Node instAttr = nm->mkNode(kind::INST_ATTRIBUTE, sygusVar);
   std::vector<Node> iplc;
   iplc.push_back(instAttr);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
+  Node instAttrList = nm->mkNode(kind::INST_PATTERN_LIST, iplc);
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // Fa( x )
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
-  Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
+  Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms);
   Trace("sygus-interpol-debug") << "Fa before substitution: " << Fa << std::endl
                                 << std::endl;
   Fa =
@@ -255,7 +255,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl
                                 << std::endl;
   // Fa( x ) => A( x )
-  Node firstImplication = nm->mkNode(IMPLIES, Fa, itpApp);
+  Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")
       << "first implication: " << firstImplication << std::endl
       << std::endl;
@@ -263,12 +263,12 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   Node Fc = conj;
   Fc =
       Fc.substitute(d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
-  Node secondImplication = nm->mkNode(IMPLIES, itpApp, Fc);
+  Node secondImplication = nm->mkNode(kind::IMPLIES, itpApp, Fc);
   Trace("sygus-interpol-debug")
       << "second implication: " << secondImplication << std::endl
       << std::endl;
   // Fa( x ) => A( x ) ^ A( x ) => Fc( x )
-  Node constraint = nm->mkNode(AND, firstImplication, secondImplication);
+  Node constraint = nm->mkNode(kind::AND, firstImplication, secondImplication);
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
   constraint = theory::Rewriter::rewrite(constraint);
 
@@ -283,7 +283,7 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
 {
   // get the synthesis solution
   std::map<Expr, Expr> sols;
-  d_subsolver->getSynthSolutions(sols);
+  d_subSolver->getSynthSolutions(sols);
   Assert(sols.size() == 1);
   std::map<Expr, Expr>::iterator its = sols.find(itp.toExpr());
   if (its != sols.end())
@@ -302,15 +302,15 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
     }
     if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
     {
-      vector<Node> formals;
+			std::vector<Node> formals;
       for (Node n : interpoln[0])
       {
         formals.push_back(n);
       }
       interpoln_reduced = interpoln_reduced.substitute(formals.begin(),
                                                        formals.end(),
-                                                       d_symsShared.begin(),
-                                                       d_symsShared.end());
+                                                       d_symSetShared.begin(),
+                                                       d_symSetShared.end());
     }
     // convert to expression
     interpol = interpoln_reduced.toExpr();
@@ -330,34 +330,34 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
 {
   NodeManager* nm = NodeManager::currentNM();
   // we generate a new smt engine to do the interpolation query
-  d_subsolver.reset(new SmtEngine(nm->toExprManager()));
-  d_subsolver->setIsInternalSubsolver();
+  d_subSolver.reset(new SmtEngine(nm->toExprManager()));
+  d_subSolver->setIsInternalSubsolver();
   // get the logic
   LogicInfo l = d_logic.getUnlockedCopy();
   // enable everything needed for sygus
   l.enableSygus();
-  d_subsolver->setLogic(l);
+  d_subSolver->setLogic(l);
 
   collectSymbols(axioms, conj);
   createVariables(itpGType.isNull());
   for (Node var : d_vars)
   {
-    d_subsolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
+    d_subSolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
   }
   std::vector<Expr> vars_empty;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
-  d_subsolver->declareSynthFun(
+  d_subSolver->declareSynthFun(
       name, itp.toExpr(), grammarType.toType(), false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
                           << d_sygusConj[0][0].toExpr() << std::endl;
-  d_subsolver->assertSygusConstraint(d_sygusConj.toExpr());
+  d_subSolver->assertSygusConstraint(d_sygusConj.toExpr());
 
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
-  Result r = d_subsolver->checkSynth();
+  Result r = d_subSolver->checkSynth();
   Trace("sygus-interpol") << "  SmtEngine::getInterpol result: " << r
                           << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
