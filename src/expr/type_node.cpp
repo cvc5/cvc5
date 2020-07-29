@@ -401,6 +401,10 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
 bool TypeNode::isTuple() const {
   return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
 }
+bool TypeNode::isRecord() const
+{
+  return false;
+}
 
 size_t TypeNode::getTupleLength() const {
   Assert(isTuple());

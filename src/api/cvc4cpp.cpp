@@ -47,6 +47,7 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type.h"
+#include "expr/dtype.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -965,7 +966,7 @@ bool Sort::isComparableTo(Sort s) const
 Datatype Sort::getDatatype() const
 {
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
-  return Datatype(d_solver, DatatypeType(*d_type).getDatatype());
+  return Datatype(d_solver, TypeNode::fromType(*d_type).getDType());
 }
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
@@ -1933,7 +1934,7 @@ DatatypeConstructorDecl::DatatypeConstructorDecl()
 
 DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
                                                  const std::string& name)
-    : d_solver(slv), d_ctor(new CVC4::DatatypeConstructor(name))
+    : d_solver(slv), d_ctor(new CVC4::DTypeConstructor(name))
 {
 }
 
@@ -1941,12 +1942,12 @@ void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
       << "non-null range sort for selector";
-  d_ctor->addArg(name, *sort.d_type);
+  d_ctor->addArg(name, TypeNode::fromType(*sort.d_type));
 }
 
 void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
 {
-  d_ctor->addArg(name, DatatypeSelfType());
+  d_ctor->addArgSelf(name);
 }
 
 std::string DatatypeConstructorDecl::toString() const
@@ -1958,7 +1959,7 @@ std::string DatatypeConstructorDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::DatatypeConstructor&
+const CVC4::DTypeConstructor&
 DatatypeConstructorDecl::getDatatypeConstructor(void) const
 {
   return *d_ctor;
@@ -1986,7 +1987,7 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
     : d_solver(slv),
-      d_dtype(new CVC4::Datatype(slv->getExprManager(), name, isCoDatatype))
+      d_dtype(new CVC4::DType(name, isCoDatatype))
 {
 }
 
@@ -1995,9 +1996,8 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            Sort param,
                            bool isCoDatatype)
     : d_solver(slv),
-      d_dtype(new CVC4::Datatype(slv->getExprManager(),
-                                 name,
-                                 std::vector<Type>{*param.d_type},
+      d_dtype(new CVC4::DType(name,
+                                 std::vector<TypeNode>{TypeNode::fromType(*param.d_type)},
                                  isCoDatatype))
 {
 }
@@ -2008,13 +2008,13 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            bool isCoDatatype)
     : d_solver(slv)
 {
-  std::vector<Type> tparams;
+  std::vector<TypeNode> tparams;
   for (const Sort& p : params)
   {
-    tparams.push_back(*p.d_type);
+    tparams.push_back(TypeNode::fromType(*p.d_type));
   }
-  d_dtype = std::shared_ptr<CVC4::Datatype>(
-      new CVC4::Datatype(slv->getExprManager(), name, tparams, isCoDatatype));
+  d_dtype = std::shared_ptr<CVC4::DType>(
+      new CVC4::DType(name, tparams, isCoDatatype));
 }
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
@@ -2024,7 +2024,7 @@ DatatypeDecl::~DatatypeDecl() {}
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
   CVC4_API_CHECK_NOT_NULL;
-  d_dtype->addConstructor(*ctor.d_ctor);
+  d_dtype->addConstructor(ctor.d_ctor);
 }
 
 size_t DatatypeDecl::getNumConstructors() const
@@ -2057,7 +2057,7 @@ bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+CVC4::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 {
@@ -2070,8 +2070,8 @@ std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 DatatypeSelector::DatatypeSelector() : d_solver(nullptr), d_stor(nullptr) {}
 
 DatatypeSelector::DatatypeSelector(const Solver* slv,
-                                   const CVC4::DatatypeConstructorArg& stor)
-    : d_solver(slv), d_stor(new CVC4::DatatypeConstructorArg(stor))
+                                   const CVC4::DTypeSelector& stor)
+    : d_solver(slv), d_stor(new CVC4::DTypeSelector(stor))
 {
   CVC4_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
@@ -2088,7 +2088,7 @@ Term DatatypeSelector::getSelectorTerm() const
 
 Sort DatatypeSelector::getRangeSort() const
 {
-  return Sort(d_solver, d_stor->getRangeType());
+  return Sort(d_solver, d_stor->getRangeType().toType());
 }
 
 std::string DatatypeSelector::toString() const
@@ -2100,7 +2100,7 @@ std::string DatatypeSelector::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DatatypeConstructorArg DatatypeSelector::getDatatypeConstructorArg(
+CVC4::DTypeSelector DatatypeSelector::getDatatypeConstructorArg(
     void) const
 {
   return *d_stor;
@@ -2119,8 +2119,8 @@ DatatypeConstructor::DatatypeConstructor() : d_solver(nullptr), d_ctor(nullptr)
 }
 
 DatatypeConstructor::DatatypeConstructor(const Solver* slv,
-                                         const CVC4::DatatypeConstructor& ctor)
-    : d_solver(slv), d_ctor(new CVC4::DatatypeConstructor(ctor))
+                                         const CVC4::DTypeConstructor& ctor)
+    : d_solver(slv), d_ctor(new CVC4::DTypeConstructor(ctor))
 {
   CVC4_API_CHECK(d_ctor->isResolved())
       << "Expected resolved datatype constructor";
@@ -2168,86 +2168,6 @@ Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
   return sel.getSelectorTerm();
 }
 
-DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
-{
-  return DatatypeConstructor::const_iterator(d_solver, *d_ctor, true);
-}
-
-DatatypeConstructor::const_iterator DatatypeConstructor::end() const
-{
-  return DatatypeConstructor::const_iterator(d_solver, *d_ctor, false);
-}
-
-DatatypeConstructor::const_iterator::const_iterator(
-    const Solver* slv, const CVC4::DatatypeConstructor& ctor, bool begin)
-{
-  d_solver = slv;
-  d_int_stors = ctor.getArgs();
-
-  const std::vector<CVC4::DatatypeConstructorArg>* sels =
-      static_cast<const std::vector<CVC4::DatatypeConstructorArg>*>(
-          d_int_stors);
-  for (const auto& s : *sels)
-  {
-    /* Can not use emplace_back here since constructor is private. */
-    d_stors.push_back(DatatypeSelector(d_solver, s));
-  }
-  d_idx = begin ? 0 : sels->size();
-}
-
-DatatypeConstructor::const_iterator::const_iterator()
-    : d_solver(nullptr), d_int_stors(nullptr), d_idx(0)
-{
-}
-
-DatatypeConstructor::const_iterator&
-DatatypeConstructor::const_iterator::operator=(
-    const DatatypeConstructor::const_iterator& it)
-{
-  d_solver = it.d_solver;
-  d_int_stors = it.d_int_stors;
-  d_stors = it.d_stors;
-  d_idx = it.d_idx;
-  return *this;
-}
-
-const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const
-{
-  return d_stors[d_idx];
-}
-
-const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const
-{
-  return &d_stors[d_idx];
-}
-
-DatatypeConstructor::const_iterator&
-DatatypeConstructor::const_iterator::operator++()
-{
-  ++d_idx;
-  return *this;
-}
-
-DatatypeConstructor::const_iterator
-DatatypeConstructor::const_iterator::operator++(int)
-{
-  DatatypeConstructor::const_iterator it(*this);
-  ++d_idx;
-  return it;
-}
-
-bool DatatypeConstructor::const_iterator::operator==(
-    const DatatypeConstructor::const_iterator& other) const
-{
-  return d_int_stors == other.d_int_stors && d_idx == other.d_idx;
-}
-
-bool DatatypeConstructor::const_iterator::operator!=(
-    const DatatypeConstructor::const_iterator& other) const
-{
-  return d_int_stors != other.d_int_stors || d_idx != other.d_idx;
-}
-
 std::string DatatypeConstructor::toString() const
 {
   std::stringstream ss;
@@ -2257,7 +2177,7 @@ std::string DatatypeConstructor::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
+const CVC4::DTypeConstructor& DatatypeConstructor::getDatatypeConstructor(
     void) const
 {
   return *d_ctor;
@@ -2290,8 +2210,8 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 
 /* Datatype ----------------------------------------------------------------- */
 
-Datatype::Datatype(const Solver* slv, const CVC4::Datatype& dtype)
-    : d_solver(slv), d_dtype(new CVC4::Datatype(dtype))
+Datatype::Datatype(const Solver* slv, const CVC4::DType& dtype)
+    : d_solver(slv), d_dtype(new CVC4::DType(dtype))
 {
   CVC4_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
@@ -2334,7 +2254,7 @@ bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
 
 bool Datatype::isTuple() const { return d_dtype->isTuple(); }
 
-bool Datatype::isRecord() const { return d_dtype->isRecord(); }
+bool Datatype::isRecord() const { return false; }//d_dtype->isRecord(); }
 
 bool Datatype::isFinite() const { return d_dtype->isFinite(); }
 bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
@@ -2345,19 +2265,9 @@ bool Datatype::hasNestedRecursion() const
 
 std::string Datatype::toString() const { return d_dtype->getName(); }
 
-Datatype::const_iterator Datatype::begin() const
-{
-  return Datatype::const_iterator(d_solver, *d_dtype, true);
-}
-
-Datatype::const_iterator Datatype::end() const
-{
-  return Datatype::const_iterator(d_solver, *d_dtype, false);
-}
-
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
+const CVC4::DType& Datatype::getDatatype(void) const { return *d_dtype; }
 
 DatatypeConstructor Datatype::getConstructorForName(
     const std::string& name) const
@@ -2376,71 +2286,6 @@ DatatypeConstructor Datatype::getConstructorForName(
   CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
                             << getName() << " exists";
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
-}
-
-Datatype::const_iterator::const_iterator(const Solver* slv,
-                                         const CVC4::Datatype& dtype,
-                                         bool begin)
-    : d_solver(slv), d_int_ctors(dtype.getConstructors())
-{
-  const std::vector<CVC4::DatatypeConstructor>* cons =
-      static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
-  for (const auto& c : *cons)
-  {
-    /* Can not use emplace_back here since constructor is private. */
-    d_ctors.push_back(DatatypeConstructor(d_solver, c));
-  }
-  d_idx = begin ? 0 : cons->size();
-}
-
-Datatype::const_iterator::const_iterator()
-    : d_solver(nullptr), d_int_ctors(nullptr), d_idx(0)
-{
-}
-
-Datatype::const_iterator& Datatype::const_iterator::operator=(
-    const Datatype::const_iterator& it)
-{
-  d_solver = it.d_solver;
-  d_int_ctors = it.d_int_ctors;
-  d_ctors = it.d_ctors;
-  d_idx = it.d_idx;
-  return *this;
-}
-
-const DatatypeConstructor& Datatype::const_iterator::operator*() const
-{
-  return d_ctors[d_idx];
-}
-
-const DatatypeConstructor* Datatype::const_iterator::operator->() const
-{
-  return &d_ctors[d_idx];
-}
-
-Datatype::const_iterator& Datatype::const_iterator::operator++()
-{
-  ++d_idx;
-  return *this;
-}
-
-Datatype::const_iterator Datatype::const_iterator::operator++(int)
-{
-  Datatype::const_iterator it(*this);
-  ++d_idx;
-  return it;
-}
-
-bool Datatype::const_iterator::operator==(
-    const Datatype::const_iterator& other) const
-{
-  return d_int_ctors == other.d_int_ctors && d_idx == other.d_idx;
-}
-
-bool Datatype::const_iterator::operator!=(
-    const Datatype::const_iterator& other) const
-{
-  return d_int_ctors != other.d_int_ctors || d_idx != other.d_idx;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2552,8 +2397,8 @@ Sort Grammar::resolve()
         Sort(d_solver, d_solver->getExprManager()->mkSort(ntsymbol.toString()));
   }
 
-  std::vector<CVC4::Datatype> datatypes;
-  std::set<Type> unresTypes;
+  std::vector<CVC4::DType> datatypes;
+  std::set<TypeNode> unresTypes;
 
   datatypes.reserve(d_ntSyms.size());
 
@@ -2574,8 +2419,8 @@ Sort Grammar::resolve()
     }
 
     bool aci = d_allowConst.find(ntSym) != d_allowConst.end();
-    Type btt = ntSym.d_node->getType().toType();
-    dtDecl.d_dtype->setSygus(btt, bvl.d_node->toExpr(), aci, false);
+    TypeNode btt = ntSym.d_node->getType();
+    dtDecl.d_dtype->setSygus(btt, *bvl.d_node, aci, false);
 
     // We can be in a case where the only rule specified was (Variable T)
     // and there are no variables of type T, in which case this is a bogus
@@ -2585,15 +2430,15 @@ Sort Grammar::resolve()
         << " produced an empty rule list";
 
     datatypes.push_back(*dtDecl.d_dtype);
-    unresTypes.insert(*ntsToUnres[ntSym].d_type);
+    unresTypes.insert(TypeNode::fromType(*ntsToUnres[ntSym].d_type));
   }
 
-  std::vector<DatatypeType> datatypeTypes =
-      d_solver->getExprManager()->mkMutualDatatypeTypes(
-          datatypes, unresTypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> datatypeTypes =
+      d_solver->getNodeManager()->mkMutualDatatypeTypes(
+          datatypes, unresTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
 
   // return is the first datatype
-  return Sort(d_solver, datatypeTypes[0]);
+  return Sort(d_solver, datatypeTypes[0].toType());
 }
 
 void Grammar::addSygusConstructorTerm(
@@ -2625,8 +2470,12 @@ void Grammar::addSygusConstructorTerm(
         d_solver->getExprManager()->mkExpr(
             CVC4::kind::LAMBDA, {lbvl.d_node->toExpr(), op.d_node->toExpr()}));
   }
-  dt.d_dtype->addSygusConstructor(
-      op.d_node->toExpr(), ssCName.str(), sortVectorToTypes(cargs));
+  std::vector<TypeNode> cargst;
+  for (const Sort& s : cargs)
+  {
+    cargst.push_back(TypeNode::fromType(s.getType()));
+  }
+  dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
 }
 
 Term Grammar::purifySygusGTerm(
@@ -2691,9 +2540,8 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const
     {
       std::stringstream ss;
       ss << v;
-      std::vector<Sort> cargs;
-      dt.d_dtype->addSygusConstructor(
-          v.d_node->toExpr(), ss.str(), sortVectorToTypes(cargs));
+      std::vector<TypeNode> cargs;
+      dt.d_dtype->addSygusConstructor(*v.d_node, ss.str(), cargs);
     }
   }
 }
@@ -2935,7 +2783,7 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
-  std::vector<CVC4::Datatype> datatypes;
+  std::vector<CVC4::DType> datatypes;
   for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(this == dtypedecls[i].d_solver,
@@ -2954,13 +2802,17 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   {
     CVC4_API_SOLVER_CHECK_SORT(sort);
   }
-  std::set<Type> utypes = sortSetToTypes(unresolvedSorts);
-  std::vector<CVC4::DatatypeType> dtypes =
-      d_exprMgr->mkMutualDatatypeTypes(datatypes, utypes);
-  std::vector<Sort> retTypes;
-  for (CVC4::DatatypeType t : dtypes)
+  std::set<TypeNode> utypes;
+  for (const Sort& s : unresolvedSorts)
   {
-    retTypes.push_back(Sort(this, t));
+    utypes.insert(TypeNode::fromType(s.getType()));
+  }
+  std::vector<CVC4::TypeNode> dtypes =
+      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
+  std::vector<Sort> retTypes;
+  for (CVC4::TypeNode t : dtypes)
+  {
+    retTypes.push_back(Sort(this, t.toType()));
   }
   return retTypes;
 
@@ -3115,7 +2967,7 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
       << "a datatype declaration with at least one constructor";
 
-  return Sort(this, d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype));
+  return Sort(this, getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -4363,7 +4215,7 @@ Sort Solver::declareDatatype(
         << "datatype constructor declaration associated to this solver object";
     dtdecl.addConstructor(ctors[i]);
   }
-  return Sort(this, d_exprMgr->mkDatatypeType(*dtdecl.d_dtype));
+  return Sort(this, getNodeManager()->mkDatatypeType(*dtdecl.d_dtype).toType());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

@@ -40,9 +40,9 @@ template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class Expr;
-class Datatype;
-class DatatypeConstructor;
-class DatatypeConstructorArg;
+class DType;
+class DTypeConstructor;
+class DTypeSelector;
 class ExprManager;
 class NodeManager;
 class SmtEngine;
@@ -1257,7 +1257,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1277,9 +1277,9 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * This is a shared_ptr rather than a unique_ptr since
-   * CVC4::DatatypeConstructor is not ref counted.
+   * CVC4::DTypeConstructor is not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 class Solver;
@@ -1330,7 +1330,7 @@ class CVC4_PUBLIC DatatypeDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype& getDatatype(void) const;
+  CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1383,10 +1383,10 @@ class CVC4_PUBLIC DatatypeDecl
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1411,7 +1411,7 @@ class CVC4_PUBLIC DatatypeSelector
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const Solver* slv, const CVC4::DatatypeConstructorArg& stor);
+  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
 
   /**
    * Destructor.
@@ -1437,7 +1437,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructorArg getDatatypeConstructorArg(void) const;
+  CVC4::DTypeSelector getDatatypeConstructorArg(void) const;
 
  private:
   /**
@@ -1450,7 +1450,7 @@ class CVC4_PUBLIC DatatypeSelector
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructorArg> d_stor;
+  std::shared_ptr<CVC4::DTypeSelector> d_stor;
 };
 
 /**
@@ -1474,7 +1474,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const Solver* slv, const CVC4::DatatypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1527,104 +1527,9 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   std::string toString() const;
 
-  /**
-   * Iterator for the selectors of a datatype constructor.
-   */
-  class const_iterator
-      : public std::iterator<std::input_iterator_tag, DatatypeConstructor>
-  {
-    friend class DatatypeConstructor;  // to access constructor
-
-   public:
-    /** Nullary constructor (required for Cython). */
-    const_iterator();
-
-    /**
-     * Assignment operator.
-     * @param it the iterator to assign to
-     * @return the reference to the iterator after assignment
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
-     * Equality operator.
-     * @param it the iterator to compare to for equality
-     * @return true if the iterators are equal
-     */
-    bool operator==(const const_iterator& it) const;
-
-    /**
-     * Disequality operator.
-     * @param it the iterator to compare to for disequality
-     * @return true if the iterators are disequal
-     */
-    bool operator!=(const const_iterator& it) const;
-
-    /**
-     * Increment operator (prefix).
-     * @return a reference to the iterator after incrementing by one
-     */
-    const_iterator& operator++();
-
-    /**
-     * Increment operator (postfix).
-     * @return a reference to the iterator after incrementing by one
-     */
-    const_iterator operator++(int);
-
-    /**
-     * Dereference operator.
-     * @return a reference to the selector this iterator points to
-     */
-    const DatatypeSelector& operator*() const;
-
-    /**
-     * Dereference operator.
-     * @return a pointer to the selector this iterator points to
-     */
-    const DatatypeSelector* operator->() const;
-
-   private:
-    /**
-     * Constructor.
-     * @param slv the associated Solver object
-     * @param ctor the internal datatype constructor to iterate over
-     * @param true if this is a begin() iterator
-     */
-    const_iterator(const Solver* slv,
-                   const CVC4::DatatypeConstructor& ctor,
-                   bool begin);
-
-    /**
-     * The associated solver object.
-     */
-    const Solver* d_solver;
-
-    /* A pointer to the list of selectors of the internal datatype
-     * constructor to iterate over.
-     * This pointer is maintained for operators == and != only. */
-    const void* d_int_stors;
-
-    /* The list of datatype selector (wrappers) to iterate over. */
-    std::vector<DatatypeSelector> d_stors;
-
-    /* The current index of the iterator. */
-    size_t d_idx;
-  };
-
-  /**
-   * @return an iterator to the first selector of this constructor
-   */
-  const_iterator begin() const;
-
-  /**
-   * @return an iterator to one-off-the-last selector of this constructor
-   */
-  const_iterator end() const;
-
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1644,7 +1549,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 /*
@@ -1663,7 +1568,7 @@ class CVC4_PUBLIC Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const Solver* slv, const CVC4::Datatype& dtype);
+  Datatype(const Solver* slv, const CVC4::DType& dtype);
 
   // Nullary constructor for Cython
   Datatype();
@@ -1744,101 +1649,9 @@ class CVC4_PUBLIC Datatype
    */
   std::string toString() const;
 
-  /**
-   * Iterator for the constructors of a datatype.
-   */
-  class const_iterator : public std::iterator<std::input_iterator_tag, Datatype>
-  {
-    friend class Datatype;  // to access constructor
-
-   public:
-    /** Nullary constructor (required for Cython). */
-    const_iterator();
-
-    /**
-     * Assignment operator.
-     * @param it the iterator to assign to
-     * @return the reference to the iterator after assignment
-     */
-    const_iterator& operator=(const const_iterator& it);
-
-    /**
-     * Equality operator.
-     * @param it the iterator to compare to for equality
-     * @return true if the iterators are equal
-     */
-    bool operator==(const const_iterator& it) const;
-
-    /**
-     * Disequality operator.
-     * @param it the iterator to compare to for disequality
-     * @return true if the iterators are disequal
-     */
-    bool operator!=(const const_iterator& it) const;
-
-    /**
-     * Increment operator (prefix).
-     * @return a reference to the iterator after incrementing by one
-     */
-    const_iterator& operator++();
-
-    /**
-     * Increment operator (postfix).
-     * @return a reference to the iterator after incrementing by one
-     */
-    const_iterator operator++(int);
-
-    /**
-     * Dereference operator.
-     * @return a reference to the constructor this iterator points to
-     */
-    const DatatypeConstructor& operator*() const;
-
-    /**
-     * Dereference operator.
-     * @return a pointer to the constructor this iterator points to
-     */
-    const DatatypeConstructor* operator->() const;
-
-   private:
-    /**
-     * Constructor.
-     * @param slv the associated Solver object
-     * @param dtype the internal datatype to iterate over
-     * @param true if this is a begin() iterator
-     */
-    const_iterator(const Solver* slv, const CVC4::Datatype& dtype, bool begin);
-
-    /**
-     * The associated solver object.
-     */
-    const Solver* d_solver;
-
-    /* A pointer to the list of constructors of the internal datatype
-     * to iterate over.
-     * This pointer is maintained for operators == and != only. */
-    const void* d_int_ctors;
-
-    /* The list of datatype constructor (wrappers) to iterate over. */
-    std::vector<DatatypeConstructor> d_ctors;
-
-    /* The current index of the iterator. */
-    size_t d_idx;
-  };
-
-  /**
-   * @return an iterator to the first constructor of this datatype
-   */
-  const_iterator begin() const;
-
-  /**
-   * @return an iterator to one-off-the-last constructor of this datatype
-   */
-  const_iterator end() const;
-
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  const CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1855,10 +1668,10 @@ class CVC4_PUBLIC Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**

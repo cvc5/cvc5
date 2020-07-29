@@ -295,7 +295,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   void nmNotifyNewDatatypes(const std::vector<TypeNode>& dtts,
                             uint32_t flags) override
   {
-    if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
+    if ((flags & NodeManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
     {
       std::vector<Type> types;
       for (const TypeNode& dt : dtts)
@@ -1720,10 +1720,9 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-fun-var-list", func, attr_val_bvl, "");
   }
   // whether sygus type encodes syntax restrictions
-  if (sygusType.isDatatype()
-      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  TypeNode stn = TypeNode::fromType(sygusType);
+  if (sygusType.isDatatype() && stn.getDType().isSygus())
   {
-    TypeNode stn = TypeNode::fromType(sygusType);
     Node sym = d_nodeManager->mkBoundVar("sfproxy", stn);
     std::vector<Expr> attr_value;
     attr_value.push_back(sym.toExpr());

@@ -191,6 +191,30 @@ class DType
    * be unique; they are for convenience and pretty-printing only.
    */
   void addConstructor(std::shared_ptr<DTypeConstructor> c);
+  /** add sygus constructor
+   *
+   * This adds a sygus constructor to this datatype, where
+   * this datatype should be currently unresolved.
+   *
+   * op : the builtin operator, constant, or variable that
+   *      this constructor encodes
+   * cname : the name of the constructor (for printing only)
+   * cargs : the arguments of the constructor
+   *
+   * It should be the case that cargs are sygus datatypes that
+   * encode the arguments of op. For example, a sygus constructor
+   * with op = PLUS should be such that cargs.size()>=2 and
+   * the sygus type of cargs[i] is Real/Int for each i.
+   *
+   * weight denotes the value added by the constructor when computing the size
+   * of datatype terms. Passing a value < 0 denotes the default weight for the
+   * constructor, which is 0 for nullary constructors and 1 for non-nullary
+   * constructors.
+   */
+  void addSygusConstructor(Node op,
+                           const std::string& cname,
+                           const std::vector<TypeNode>& cargs,
+                           int weight = -1);
 
   /** set sygus
    *

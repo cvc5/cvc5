@@ -654,10 +654,11 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
       }
       else
       {
-        Assert(tn.toType().isRecord());
-        const Record& record = DatatypeType(tn.toType()).getRecord();
-        size = record.getNumFields();
-        updateIndex = record.getIndex(
+        Assert(tn.isRecord());
+        const DTypeConstructor& recCons = dt[0];
+        size = recCons.getNumArgs();
+        // get the index for the name
+        updateIndex = recCons.getSelectorIndexForName(
             n.getOperator().getConst<RecordUpdate>().getField());
       }
       Debug("tuprec") << "expr is " << n << std::endl;
