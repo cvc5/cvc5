@@ -902,9 +902,8 @@ void TheoryFp::addSharedTerm(TNode node) {
 
 void TheoryFp::handleLemma(Node node) {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-
-  d_out->lemma(node, false,
-               true);  // Has to be true because it contains embedded ITEs
+  // Preprocess has to be true because it contains embedded ITEs
+  d_out->lemma(node, LemmaProperty::PREPROCESS);
   // Ignore the LemmaStatus structure for now...
 
   return;
