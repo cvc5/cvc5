@@ -66,7 +66,7 @@ class NodeManagerListener {
   virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes,
+  virtual void nmNotifyNewDatatypes(const std::vector<TypeNode>& datatypes,
                                     uint32_t flags)
   {
   }

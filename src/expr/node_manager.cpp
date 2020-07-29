@@ -587,12 +587,10 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     // checkResolvedDatatype(ut);
   }
 
-  /*
   for (NodeManagerListener* nml : d_listeners)
   {
     nml->nmNotifyNewDatatypes(dtts, flags);
   }
-  */
 
   return dtts;
 }
