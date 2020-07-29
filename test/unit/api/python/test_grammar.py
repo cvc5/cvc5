@@ -8,7 +8,7 @@ def test_add_rule():
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  null = Term()
+  nullTerm = Term()
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
   
@@ -39,7 +39,7 @@ def test_add_rules():
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  null = Term()
+  nullTerm = Term()
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -86,7 +86,7 @@ def testAddAnyConstant():
 def testAddAnyVariable():
   boolean = solver.getBooleanSort()
 
-  null = Term()
+  nullTerm = Term()
   x = solver.mkVar(boolean)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
