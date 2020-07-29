@@ -274,14 +274,8 @@ cdef class Op:
 
 cdef class Grammar:
     cdef c_Grammar  cgrammar
-    def __cinit__(self, Solver solver=None, boundVars=[], ntSymbols=[]):
-       cdef vector[c_Term] bvc
-       cdef vector[c_Term] ntc	
-       for bv in boundVars:
-           bvc.push_back((<Term?> bv).cterm)
-       for nt in ntSymbols:
-           ntc.push_back((<Term?> nt).cterm)	    
-       self.cgrammar = c_Grammar(solver.csolver, <const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
+    def __cinit__(self):
+        self.cgrammar = c_Grammar()
 
     def addRule(self, Term ntSymbol, Term rule):
         self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)    

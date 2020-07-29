@@ -1926,6 +1926,13 @@ class CVC4_PUBLIC Grammar
    */
   void addRules(Term ntSymbol, std::vector<Term> rules);
 
+  /**
+   * Nullary constructor. Needed for the python api.
+   */
+  Grammar();
+
+  
+private:
 
   /**
    * Constructor.
@@ -1936,10 +1943,6 @@ class CVC4_PUBLIC Grammar
   Grammar(const Solver* slv,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
-  Grammar();
-
-  
-private:
   
   /**
    * Returns the resolved datatype of the Start symbol of the grammar.
