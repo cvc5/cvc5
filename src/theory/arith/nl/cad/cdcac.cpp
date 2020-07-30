@@ -310,11 +310,17 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[cur_variable] << std::endl;
   std::vector<CACInterval> intervals = getUnsatIntervals(cur_variable);
-  Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[cur_variable]
-                 << ":" << std::endl;
-  for (const auto& i : intervals)
-    Trace("cdcac") << "-> " << i.d_interval << " from " << i.d_origins
-                   << std::endl;
+
+  if (Trace.isOn("cdcac"))
+  {
+    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[cur_variable]
+                   << ":" << std::endl;
+    for (const auto& i : intervals)
+    {
+      Trace("cdcac") << "-> " << i.d_interval << " from " << i.d_origins
+                     << std::endl;
+    }
+  }
   poly::Value sample;
 
   while (sampleOutside(intervals, sample))
@@ -361,10 +367,15 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
     cleanIntervals(intervals);
   }
 
-  Trace("cdcac") << "Returning intervals for "
-                 << d_variableOrdering[cur_variable] << ":" << std::endl;
-  for (const auto& i : intervals)
-    Trace("cdcac") << "-> " << i.d_interval << std::endl;
+  if (Trace.isOn("cdcac"))
+  {
+    Trace("cdcac") << "Returning intervals for "
+                   << d_variableOrdering[cur_variable] << ":" << std::endl;
+    for (const auto& i : intervals)
+    {
+      Trace("cdcac") << "-> " << i.d_interval << std::endl;
+    }
+  }
   return intervals;
 }
 
