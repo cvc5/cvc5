@@ -93,6 +93,8 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class ResourceOutListener;
+class SmtNodeManagerListener;
 class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
@@ -1122,6 +1124,10 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** Resource out listener */
+  std::unique_ptr<smt::ResourceOutListener> d_routListener;
+  /** Node manager listener */
+  std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
