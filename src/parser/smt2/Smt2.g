@@ -1514,15 +1514,23 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           {
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
+          argTypes = type.getConstructorDomainSorts();
           if (type.getConstructorCodomainSort().getDatatype().isParametric())
           {
-            PARSER_STATE->parseError("Par borken.");
+            std::stringstream ss;
+            ss << "Match issue : " << expr << " with sort " << expr.getSort() << " needing specialized constructor sort from " << type;
+            ss << std::endl << "My argument types now are";
+            for (unsigned k=0; k<argTypes.size(); k++)
+            {
+              ss << argTypes[k] << " ";
+            }
+            ss << std::endl;
+            PARSER_STATE->parseError(ss.str());
             //type = api::Sort(
             //    SOLVER,
             //    Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
             //        .getSpecializedConstructorType(expr.getSort().getType()));
           }
-          argTypes = type.getConstructorDomainSorts();
         }
         // arguments of the pattern
         ( symbol[name,CHECK_NONE,SYM_VARIABLE] {
