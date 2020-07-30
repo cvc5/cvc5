@@ -20,6 +20,10 @@
 #ifndef CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
 #define CVC4__THEORY__ARITH__NL__CAD__CDCAC_H
 
+#include "util/real_algebraic_number.h"
+
+#ifdef CVC4_POLY_IMP
+
 #include <poly/polyxx.h>
 
 #include <vector>
@@ -134,5 +138,7 @@ class CDCAC
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif
 
 #endif
