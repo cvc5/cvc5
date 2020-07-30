@@ -453,7 +453,7 @@ class CVC4_PUBLIC SmtEngine
                        const std::vector<Expr>& vars);
 
   /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Expr constraint);
+  void assertSygusConstraint(const Node& constraint);
 
   /**
    * Add an invariant constraint.

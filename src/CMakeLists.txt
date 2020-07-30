@@ -306,6 +306,10 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad/cdcac.cpp
+  theory/arith/nl/cad/cdcac.h
+  theory/arith/nl/cad/cdcac_utils.cpp
+  theory/arith/nl/cad/cdcac_utils.h
   theory/arith/nl/cad/constraints.cpp
   theory/arith/nl/cad/constraints.h
   theory/arith/nl/cad/projections.cpp
@@ -475,6 +479,7 @@ libcvc4_add_sources(
   theory/interrupted.h
   theory/logic_info.cpp
   theory/logic_info.h
+  theory/output_channel.cpp
   theory/output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h

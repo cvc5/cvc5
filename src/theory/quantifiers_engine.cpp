@@ -970,7 +970,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, false, true);
+      getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
     return;
   }
@@ -1021,7 +1021,6 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
     Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     BoolMap::const_iterator itp = d_lemmas_produced_c.find( lem );
     if( itp==d_lemmas_produced_c.end() || !(*itp).second ){
-      //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Trace("inst-add-debug") << "Added lemma" << std::endl;
@@ -1122,7 +1121,7 @@ void QuantifiersEngine::flushLemmas(){
     d_hasAddedLemma = true;
     for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
       Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
+      getOutputChannel().lemma(d_lemmas_waiting[i], LemmaProperty::PREPROCESS);
     }
     d_lemmas_waiting.clear();
   }
