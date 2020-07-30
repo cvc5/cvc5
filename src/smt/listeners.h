@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file abstract_values.h
+/*! \file listeners.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implements listener classes for SMT engine.
+ ** \brief Listener classes for SMT engine.
  **/
 
 #include "cvc4_private.h"
@@ -17,7 +17,7 @@
 #ifndef CVC4__SMT__LISTENERS_H
 #define CVC4__SMT__LISTENERS_H
 
-#include <unordered_map>
+#include <vector>
 
 #include "base/listener.h"
 #include "expr/node.h"
