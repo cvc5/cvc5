@@ -1969,6 +1969,7 @@ class CVC4_PUBLIC Grammar
   Grammar(const Solver* slv,
           const std::vector<Term>& sygusVars,
           const std::vector<Term>& ntSymbols);
+
   /**
    * Returns the resolved datatype of the Start symbol of the grammar.
    * @return the resolved datatype of the Start symbol of the grammar
