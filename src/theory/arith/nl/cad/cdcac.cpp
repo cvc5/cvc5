@@ -17,6 +17,8 @@
 
 #include "theory/arith/nl/cad/cdcac.h"
 
+#ifdef CVC4_POLY_IMP
+
 #include "theory/arith/nl/cad/projections.h"
 #include "theory/arith/nl/cad/variable_ordering.h"
 
@@ -87,3 +89,5 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif
