@@ -64,8 +64,9 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
         ProofGenerator* pg = getGeneratorFor(afact, isSym);
         if (pg != nullptr)
         {
-          Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
-                                << afact << std::endl;
+          Trace("lazy-cdproof")
+              << "LazyCDProof: Call generator " << pg->identify()
+              << " for assumption " << afact << std::endl;
           Node afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
           Assert(!afactGen.isNull());
           // use the addProofTo interface

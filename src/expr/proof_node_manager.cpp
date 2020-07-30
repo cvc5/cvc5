@@ -29,6 +29,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     const std::vector<Node>& args,
     Node expected)
 {
+  Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
+               << "} " << expected << "\n";
   Node res = checkInternal(id, children, args, expected);
   if (res.isNull())
   {

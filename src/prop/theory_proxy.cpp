@@ -113,13 +113,14 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   }
   if (Trace.isOn("sat-proof"))
   {
-    Trace("sat-proof") << "PropEngine::explainPropagation: clause for lit is ";
+    std::stringstream ss;
+    ss << "TheoryProxy::explainPropagation: clause for lit is ";
     for (unsigned i = 0, size = explanation.size(); i < size; ++i)
     {
-      Trace("sat-proof") << explanation[i] << " ["
-                         << d_cnfStream->getNode(explanation[i]) << "] ";
+      ss << explanation[i] << " [" << d_cnfStream->getNode(explanation[i])
+         << "] ";
     }
-    Trace("sat-proof") << "\n";
+    Trace("sat-proof") << ss.str() << "\n";
   }
 }
 
