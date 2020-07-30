@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "expr/type.h"

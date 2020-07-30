@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "expr/array_store_all.h"
+#include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
 #include "expr/node_manager.h"
@@ -145,51 +146,51 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
   }
 
-  void testDatatypesFinite() {
-    Datatype dt(d_em, "Colors");
-    dt.addConstructor(DatatypeConstructor("red"));
-    dt.addConstructor(DatatypeConstructor("orange"));
-    dt.addConstructor(DatatypeConstructor("yellow"));
-    dt.addConstructor(DatatypeConstructor("green"));
-    dt.addConstructor(DatatypeConstructor("blue"));
-    dt.addConstructor(DatatypeConstructor("violet"));
-    TypeNode datatype = TypeNode::fromType(d_em->mkDatatypeType(dt));
+  void testDTypesFinite() {
+    DType dt(d_nm, "Colors");
+    dt.addConstructor(DTypeConstructor("red"));
+    dt.addConstructor(DTypeConstructor("orange"));
+    dt.addConstructor(DTypeConstructor("yellow"));
+    dt.addConstructor(DTypeConstructor("green"));
+    dt.addConstructor(DTypeConstructor("blue"));
+    dt.addConstructor(DTypeConstructor("violet"));
+    TypeNode datatype = TypeNode::fromType(d_nm->mkDatatypeType(dt));
     TypeEnumerator te(datatype);
-    TS_ASSERT_EQUALS(*te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("red")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("orange")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("yellow")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("green")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("blue")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("violet")));
+    TS_ASSERT_EQUALS(*te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("red")));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("orange")));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("yellow")));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("green")));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("blue")));
+    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("violet")));
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
-  void testDatatypesInfinite1() {
-    Datatype colors(d_em, "Colors");
-    colors.addConstructor(DatatypeConstructor("red"));
-    colors.addConstructor(DatatypeConstructor("orange"));
-    colors.addConstructor(DatatypeConstructor("yellow"));
-    colors.addConstructor(DatatypeConstructor("green"));
-    colors.addConstructor(DatatypeConstructor("blue"));
-    colors.addConstructor(DatatypeConstructor("violet"));
-    TypeNode colorsType = TypeNode::fromType(d_em->mkDatatypeType(colors));
-    Datatype listColors(d_em, "ListColors");
-    DatatypeConstructor consC("cons");
+  void testDTypesInfinite1() {
+    DType colors("Colors");
+    colors.addConstructor(DTypeConstructor("red"));
+    colors.addConstructor(DTypeConstructor("orange"));
+    colors.addConstructor(DTypeConstructor("yellow"));
+    colors.addConstructor(DTypeConstructor("green"));
+    colors.addConstructor(DTypeConstructor("blue"));
+    colors.addConstructor(DTypeConstructor("violet"));
+    TypeNode colorsType = TypeNode::fromType(d_nm->mkDatatypeType(colors));
+    DType listColors(d_nm, "ListColors");
+    DTypeConstructor consC("cons");
     consC.addArg("car", colorsType.toType());
-    consC.addArg("cdr", DatatypeSelfType());
+    consC.addArg("cdr", DTypeSelfType());
     listColors.addConstructor(consC);
-    listColors.addConstructor(DatatypeConstructor("nil"));
-    TypeNode listColorsType = TypeNode::fromType(d_em->mkDatatypeType(listColors));
+    listColors.addConstructor(DTypeConstructor("nil"));
+    TypeNode listColorsType = TypeNode::fromType(d_nm->mkDatatypeType(listColors));
 
     TypeEnumerator te(listColorsType);
     TS_ASSERT( ! te.isFinished() );
-    Node cons = Node::fromExpr(DatatypeType(listColorsType.toType()).getDatatype().getConstructor("cons"));
-    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(listColorsType.toType()).getDatatype().getConstructor("nil"));
-    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("red"));
-    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("orange"));
-    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("yellow"));
+    Node cons = listColorsType.getDType().getConstructor("cons");
+    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, listColorsType.getDType().getConstructor("nil"));
+    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, colorsType.getDType().getConstructor("red"));
+    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, colorsType.getDType().getConstructor("orange"));
+    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, colorsType.getDType().getConstructor("yellow"));
     TS_ASSERT_EQUALS(*te, nil);
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
     TS_ASSERT( ! te.isFinished() );
@@ -212,7 +213,7 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
   }
 
-  void NOTYETtestDatatypesInfinite2() {
+  void NOTYETtestDTypesInfinite2() {
     //TypeNode datatype;
     //TypeEnumerator te(datatype);
     //TS_ASSERT( ! te.isFinished() );
@@ -280,7 +281,7 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
   }
 
  private:
-  ExprManager* d_em;
+  ExprManager* d_nm;
   SmtEngine* d_smt;
   NodeManager* d_nm;
   SmtScope* d_scope;

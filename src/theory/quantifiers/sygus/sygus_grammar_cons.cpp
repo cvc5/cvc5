@@ -16,7 +16,6 @@
 
 #include <stack>
 
-#include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"

@@ -331,9 +331,7 @@ bool Type::isTuple() const {
 /** Is this a record type? */
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return false;
-  //return d_typeNode->getKind() == kind::DATATYPE_TYPE
-  //       && DatatypeType(*this).getDatatype().isRecord();
+  return d_typeNode->isRecord();
 }
 
 /** Is this a symbolic expression type? */

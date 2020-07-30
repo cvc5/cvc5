@@ -16,17 +16,11 @@
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
-#include "expr/sygus_datatype.h"
 #include "options/smt_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {

@@ -479,31 +479,6 @@ class CVC4_PUBLIC Datatype {
   friend class ExprManager;  // for access to resolve()
   friend class NodeManager;  // temporary, for access to d_internal
  public:
-  /**
-   * Get the datatype of a constructor, selector, or tester operator.
-   */
-  static const Datatype& datatypeOf(Expr item) CVC4_PUBLIC;
-
-  /**
-   * Get the index of a constructor or tester in its datatype, or the
-   * index of a selector in its constructor.  (Zero is always the
-   * first index.)
-   */
-  static size_t indexOf(Expr item) CVC4_PUBLIC;
-
-  /**
-   * Get the index of constructor corresponding to selector.  (Zero is
-   * always the first index.)
-   */
-  static size_t cindexOf(Expr item) CVC4_PUBLIC;
-
-  /**
-   * Same as above, but without checks. These methods should be used by
-   * internal (Node-level) code.
-   */
-  static size_t indexOfInternal(Expr item);
-  static size_t cindexOfInternal(Expr item);
-
   /** The type for iterators over constructors. */
   typedef DatatypeConstructorIterator iterator;
   /** The (const) type for iterators over constructors. */

@@ -665,7 +665,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
         sst << "_" << (*i).first << "_" << (*i).second;
       }
       DType dt(sst.str());
-      //dt.setRecord();
+      dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
       std::shared_ptr<DTypeConstructor> c = std::make_shared<DTypeConstructor>(ssc.str());

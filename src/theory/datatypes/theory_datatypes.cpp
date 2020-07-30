@@ -18,7 +18,6 @@
 #include <map>
 
 #include "base/check.h"
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "options/datatypes_options.h"

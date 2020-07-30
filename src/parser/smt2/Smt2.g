@@ -1514,13 +1514,13 @@ termNonVariable[CVC4::api::Term& expr, CVC4::api::Term& expr2]
           {
             PARSER_STATE->parseError("Pattern must be application of a constructor or a variable.");
           }
-          Expr ef = f.getExpr();
-          if (Datatype::datatypeOf(ef).isParametric())
+          if (type.getConstructorCodomainSort().getDatatype().isParametric())
           {
-            type = api::Sort(
-                SOLVER,
-                Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
-                    .getSpecializedConstructorType(expr.getSort().getType()));
+            PARSER_STATE->parseError("Par borken.");
+            //type = api::Sort(
+            //    SOLVER,
+            //    Datatype::datatypeOf(ef)[Datatype::indexOf(ef)]
+            //        .getSpecializedConstructorType(expr.getSort().getType()));
           }
           argTypes = type.getConstructorDomainSorts();
         }

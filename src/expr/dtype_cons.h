@@ -26,18 +26,6 @@
 
 namespace CVC4 {
 
-class DatatypeConstructor;
-
-
-/**
- * A holder type (used in calls to DatatypeConstructor::addArg())
- * to allow a Datatype to refer to itself.  Self-typed fields of
- * Datatypes will be properly typed when a Type is created for the
- * Datatype by the ExprManager (which calls Datatype::resolve()).
- */
-class DTypeSelfType {
-};/* class DTypeSelfType */
-
 /**
  * The Node-level representation of a constructor for a datatype, which
  * currently resides in the Expr-level DatatypeConstructor class
@@ -45,7 +33,6 @@ class DTypeSelfType {
  */
 class DTypeConstructor
 {
-  friend class DatatypeConstructor;
   friend class DType;
 
  public:

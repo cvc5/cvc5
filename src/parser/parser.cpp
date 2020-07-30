@@ -606,6 +606,10 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
     // parametric datatype.
     if (s.isParametricDatatype())
     {
+      std::stringstream ss;
+      ss << "Parametric ascription broken";
+      parseError(ss.str());
+      /*
       ExprManager* em = d_solver->getExprManager();
       // apply type ascription to the operator
       Expr e = t.getExpr();
@@ -617,6 +621,7 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
                      em->mkConst(AscriptionType(
                          dtc.getSpecializedConstructorType(s.getType()))),
                      e));
+                     */
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.

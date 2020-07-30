@@ -15,7 +15,6 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
-#include "expr/datatype.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"

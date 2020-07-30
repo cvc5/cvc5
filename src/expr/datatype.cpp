@@ -74,49 +74,6 @@ Datatype::Datatype(ExprManager* em,
   d_internal = std::make_shared<DType>(name, paramsn, isCo);
 }
 
-const Datatype& Datatype::datatypeOf(Expr item) {
-  Unhandled() << "arg must be a datatype constructor, selector, or tester";
-}
-
-size_t Datatype::indexOf(Expr item) {
-  ExprManagerScope ems(item);
-  PrettyCheckArgument(item.getType().isConstructor() ||
-                item.getType().isTester() ||
-                item.getType().isSelector(),
-                item,
-                "arg must be a datatype constructor, selector, or tester");
-  return indexOfInternal(item);
-}
-
-size_t Datatype::indexOfInternal(Expr item)
-{
-  TNode n = Node::fromExpr(item);
-  if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
-    return indexOf( item[0] );
-  }else{
-    Assert(n.hasAttribute(DTypeIndexAttr()));
-    return n.getAttribute(DTypeIndexAttr());
-  }
-}
-
-size_t Datatype::cindexOf(Expr item) {
-  ExprManagerScope ems(item);
-  PrettyCheckArgument(item.getType().isSelector(),
-                item,
-                "arg must be a datatype selector");
-  return cindexOfInternal(item);
-}
-size_t Datatype::cindexOfInternal(Expr item)
-{
-  TNode n = Node::fromExpr(item);
-  if( item.getKind()==kind::APPLY_TYPE_ASCRIPTION ){
-    return cindexOf( item[0] );
-  }else{
-    Assert(n.hasAttribute(DTypeConsIndexAttr()));
-    return n.getAttribute(DTypeConsIndexAttr());
-  }
-}
-
 void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
                        const std::vector<Type>& placeholders,
                        const std::vector<Type>& replacements,
@@ -165,16 +122,7 @@ void Datatype::resolve(const std::map<std::string, DatatypeType>& resolutions,
   {
     paramReplacementsn.push_back(TypeNode::fromType(t));
   }
-  bool res = d_internal->resolve(resolutionsn,
-                                 placeholdersn,
-                                 replacementsn,
-                                 paramTypesn,
-                                 paramReplacementsn);
-  if (!res)
-  {
-    IllegalArgument(*this,
-                    "could not resolve datatype that is not well formed");
-  }
+  AlwaysAssert(false);
   Trace("dt-debug") << "Datatype::resolve: finished " << getName() << " "
                     << d_constructors.size() << std::endl;
   AlwaysAssert(isResolved());
