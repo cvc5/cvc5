@@ -237,6 +237,10 @@ class PropEngine
   void endResChain(Minisat::Solver::TLit lit);
   void endResChain(Minisat::Solver::TClause& clause);
   void endResChain(Node conclusion);
+
+  /** If lit is not already justified, try to. Otherwise no-op. */
+  void tryJustifyingLit(prop::SatLiteral lit);
+
   void finalizeProof(ClauseId conflict_id);
   void finalizeProof(Node inConflictNode,
                      const std::vector<SatLiteral>& inConflict);
@@ -291,9 +295,6 @@ class PropEngine
 
   /** resolution steps accumulator for chain resolution */
   std::vector<std::pair<Node, Node>> d_resolution;
-
-  /** If lit is not already justified, try to. Otherwise no-op. */
-  void tryJustifyingLit(prop::SatLiteral lit);
 
   Node getClauseNode(SatLiteral satLit);
   Node getClauseNode(const Minisat::Solver::TClause& clause);

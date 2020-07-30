@@ -673,7 +673,22 @@ void Solver::removeClause(CRef cr) {
     }
     detachClause(cr);
     // Don't leave pointers to free'd memory!
-    if (locked(c)) vardata[var(c[0])].d_reason = CRef_Undef;
+    if (locked(c))
+    {
+      // a locked clause c is one whose first literal c[0] is true and is
+      // propagated by c itself, i.e. vardata[var(c[0])].d_reason == c. Because
+      // of this if we need to justify the propagation of c[0], via
+      // Solver::reason, if it appears in a resolution chain built lazily we
+      // will be unable to do so after the step below. Thus we eagerly justify
+      // this propagation here.
+      if (CVC4::options::proofNew())
+      {
+        Debug("pf::sat") << "Solver::removeClause: eagerly compute propagation of " << c[0] << "\n";
+        d_proxy->getPropEngine()->tryJustifyingLit(
+            MinisatSatSolver::toSatLiteral(c[0]));
+      }
+      vardata[var(c[0])].d_reason = CRef_Undef;
+    }
     c.mark(1);
     ca.free(cr);
 }
