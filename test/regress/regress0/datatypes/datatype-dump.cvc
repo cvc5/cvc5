@@ -4,12 +4,11 @@
 % COMMAND-LINE: --dump raw-benchmark
 %
 % EXPECT: OPTION "incremental" false;
-% EXPECT: OPTION "logic" "ALL";
+% EXPECT: QUERY NOT(is_succ(x)) AND NOT(is_zero(x));
 % EXPECT: DATATYPE
 % EXPECT:   nat = succ(pred: nat) | zero
 % EXPECT: END;
 % EXPECT: x : nat;
-% EXPECT: QUERY NOT(is_succ(x)) AND NOT(is_zero(x));
 % EXPECT: not_entailed
 %
 

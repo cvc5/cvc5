@@ -407,6 +407,7 @@ set(regress_0_tests
   regress0/datatypes/datatype2.cvc
   regress0/datatypes/datatype3.cvc
   regress0/datatypes/datatype4.cvc
+  regress0/datatypes/datatype-dump.cvc
   regress0/datatypes/dt-2.6.smt2
   regress0/datatypes/dt-match-pat-param-2.6.smt2
   regress0/datatypes/dt-param-2.6.smt2
@@ -2322,8 +2323,6 @@ set(regression_disabled_tests
   regress0/bv/inequality05.smt2
   regress0/bv/test00.smtv1.smt2
   regress0/cvc3-bug15.cvc
-  # regress0/datatypes/datatype-dump.cvc (FIXME #1649)
-  regress0/datatypes/datatype-dump.cvc
   regress0/decision/uflia-xs-09-16-3-4-1-5.smtv1.smt2
   regress0/decision/wchains010ue.smtv1.smt2
   regress0/incorrect1.smtv1.smt2
