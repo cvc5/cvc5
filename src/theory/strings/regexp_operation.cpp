@@ -117,161 +117,147 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
 
 // 0-unknown, 1-yes, 2-no
 int RegExpOpr::delta( Node r, Node &exp ) {
-  Trace("regexp-delta") << "RegExp-Delta starts with /" << mkString( r ) << "/" << std::endl;
+  std::map<Node, std::pair<int, Node> >::const_iterator itd =
+      d_delta_cache.find(r);
+  if (itd != d_delta_cache.end())
+  {
+    // already computed
+    exp = itd->second.second;
+    return itd->second.first;
+  }
+  Trace("regexp-delta") << "RegExpOpr::delta: " << r << std::endl;
   int ret = 0;
-  if( d_delta_cache.find( r ) != d_delta_cache.end() ) {
-    ret = d_delta_cache[r].first;
-    exp = d_delta_cache[r].second;
-  } else {
-    Kind k = r.getKind();
-    switch( k ) {
-      case kind::REGEXP_EMPTY: {
-        ret = 2;
-        break;
-      }
-      case kind::REGEXP_SIGMA: {
-        ret = 2;
-        break;
-      }
-      case kind::STRING_TO_REGEXP: {
-        Node tmp = Rewriter::rewrite(r[0]);
-        if(tmp.isConst()) {
-          if(tmp == d_emptyString) {
-            ret = 1;
-          } else {
-            ret = 2;
-          }
-        } else {
-          ret = 0;
-          if(tmp.getKind() == kind::STRING_CONCAT) {
-            for(unsigned i=0; i<tmp.getNumChildren(); i++) {
-              if(tmp[i].isConst()) {
-                ret = 2; break;
-              }
-            }
-
-          }
-          if(ret == 0) {
-            exp = r[0].eqNode(d_emptyString);
-          }
-        }
-        break;
-      }
-      case kind::REGEXP_CONCAT: {
-        bool flag = false;
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<r.getNumChildren(); ++i) {
-          Node exp2;
-          int tmp = delta( r[i], exp2 );
-          if(tmp == 2) {
-            ret = 2;
-            break;
-          } else if(tmp == 0) {
-            vec_nodes.push_back( exp2 );
-            flag = true;
-          }
-        }
-        if(ret != 2) {
-          if(!flag) {
-            ret = 1;
-          } else {
-            exp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
-          }
-        }
-        break;
-      }
-      case kind::REGEXP_UNION: {
-        bool flag = false;
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<r.getNumChildren(); ++i) {
-          Node exp2;
-          int tmp = delta( r[i], exp2 );
-          if(tmp == 1) {
-            ret = 1;
-            break;
-          } else if(tmp == 0) {
-            vec_nodes.push_back( exp2 );
-            flag = true;
-          }
-        }
-        if(ret != 1) {
-          if(!flag) {
-            ret = 2;
-          } else {
-            exp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::OR, vec_nodes);
-          }
-        }
-        break;
-      }
-      case kind::REGEXP_INTER: {
-        bool flag = false;
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<r.getNumChildren(); ++i) {
-          Node exp2;
-          int tmp = delta( r[i], exp2 );
-          if(tmp == 2) {
-            ret = 2;
-            break;
-          } else if(tmp == 0) {
-            vec_nodes.push_back( exp2 );
-            flag = true;
-          }
-        }
-        if(ret != 2) {
-          if(!flag) {
-            ret = 1;
-          } else {
-            exp = vec_nodes.size()==1 ? vec_nodes[0] : NodeManager::currentNM()->mkNode(kind::AND, vec_nodes);
-          }
-        }
-        break;
-      }
-      case kind::REGEXP_STAR: {
-        ret = 1;
-        break;
-      }
-      case kind::REGEXP_PLUS: {
-        ret = delta( r[0], exp );
-        break;
-      }
-      case kind::REGEXP_OPT: {
-        ret = 1;
-        break;
-      }
-      case kind::REGEXP_RANGE: {
-        ret = 2;
-        break;
-      }
-      case kind::REGEXP_LOOP: {
-        uint32_t lo = utils::getLoopMinOccurrences(r);
-        if (lo == 0)
+  NodeManager* nm = NodeManager::currentNM();
+  Kind k = r.getKind();
+  switch (k)
+  {
+    case REGEXP_EMPTY:
+    case REGEXP_SIGMA:
+    case REGEXP_RANGE:
+    {
+      // does not contain empty string
+      ret = 2;
+      break;
+    }
+    case STRING_TO_REGEXP:
+    {
+      Node tmp = Rewriter::rewrite(r[0]);
+      if (tmp.isConst())
+      {
+        if (tmp == d_emptyString)
         {
           ret = 1;
         } else {
-          ret = delta(r[0], exp);
+          ret = 2;
         }
-        break;
       }
-      case kind::REGEXP_COMPLEMENT:
+      else
       {
-        int tmp = delta(r[0], exp);
-        // flip the result if known
-        tmp = tmp == 0 ? 0 : (3 - tmp);
-        exp = exp.isNull() ? exp : exp.negate();
-        break;
+        ret = 0;
+        if (tmp.getKind() == STRING_CONCAT)
+        {
+          for (const Node& tmpc : tmp)
+          {
+            if (tmpc.isConst())
+            {
+              ret = 2;
+              break;
+            }
+          }
+        }
+        if (ret == 0)
+        {
+          exp = r[0].eqNode(d_emptyString);
+        }
       }
-      default: {
-        Assert(!utils::isRegExpKind(k));
-        break;
+      break;
+    }
+    case REGEXP_CONCAT:
+    case REGEXP_UNION:
+    case REGEXP_INTER:
+    {
+      // has there been an unknown child?
+      bool hasUnknownChild = false;
+      std::vector<Node> vec;
+      int checkTmp = k == REGEXP_UNION ? 1 : 2;
+      int retTmp = k == REGEXP_UNION ? 2 : 1;
+      for (const Node& rc : r)
+      {
+        Node exp2;
+        int tmp = delta(rc, exp2);
+        if (tmp == checkTmp)
+        {
+          // return is implied by the child's return value
+          ret = checkTmp;
+          break;
+        }
+        else if (tmp == 0)
+        {
+          // unknown if child contains empty string
+          Assert(!exp2.isNull());
+          vec.push_back(exp2);
+          hasUnknownChild = true;
+        }
       }
+      if (ret != checkTmp)
+      {
+        if (!hasUnknownChild)
+        {
+          ret = retTmp;
+        } else {
+          Kind kr = k == REGEXP_UNION ? OR : AND;
+          exp = vec.size() == 1 ? vec[0] : nm->mkNode(kr, vec);
+        }
+      }
+      break;
     }
-    if(!exp.isNull()) {
-      exp = Rewriter::rewrite(exp);
+    case REGEXP_STAR:
+    case REGEXP_OPT:
+    {
+      // contains empty string
+      ret = 1;
+      break;
     }
-    std::pair< int, Node > p(ret, exp);
-    d_delta_cache[r] = p;
+    case REGEXP_PLUS:
+    {
+      ret = delta(r[0], exp);
+      break;
+    }
+    case REGEXP_LOOP:
+    {
+      uint32_t lo = utils::getLoopMinOccurrences(r);
+      if (lo == 0)
+      {
+        ret = 1;
+      }
+      else
+      {
+        ret = delta(r[0], exp);
+      }
+      break;
+    }
+    case REGEXP_COMPLEMENT:
+    {
+      int tmp = delta(r[0], exp);
+      // flip the result if known
+      ret = tmp == 0 ? 0 : (3 - tmp);
+      exp = exp.isNull() ? exp : exp.negate();
+      break;
+    }
+    default:
+    {
+      Assert(!utils::isRegExpKind(k));
+      break;
+    }
   }
-  Trace("regexp-delta") << "RegExp-Delta returns : " << ret << std::endl;
+  if (!exp.isNull())
+  {
+    exp = Rewriter::rewrite(exp);
+  }
+  std::pair<int, Node> p(ret, exp);
+  d_delta_cache[r] = p;
+  Trace("regexp-delta") << "RegExpOpr::delta returns " << ret << " for " << r
+                        << ", expr = " << exp << std::endl;
   return ret;
 }
 

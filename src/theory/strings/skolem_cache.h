@@ -138,6 +138,11 @@ class SkolemCache
     //   where b is a regular expression, n is the number of occurrences of b
     //   in a, and k(0)=0.
     SK_OCCUR_LEN,
+    // For function k: ((Seq U) x Int) -> U
+    // exists k.
+    // forall s, n.
+    //  k(s, n) is some undefined value of sort U
+    SK_NTH,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
