@@ -517,6 +517,27 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
                      << clauseNode << "\n";
 }
 
+void PropEngine::registerPropagatedTheoryLiteral(Node lit)
+{
+  if (d_proof.hasStep(lit))
+  {
+    Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
+                       << " already has step\n";
+    return;
+  }
+  if (d_proof.hasGenerator(lit))
+  {
+    Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
+                       << " already has generator\n";
+    return;
+  }
+  // defer to d_pfCnfStream to justify it, which could be the case for example
+  // for unit clauses l1, ..., ln derived from input assertion l1 ^ ... ^ ln
+  d_proof.addLazyStep(lit, d_pfCnfStream.get());
+  Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
+                     << " to be justified by cnf conversion\n";
+}
+
 void PropEngine::explainPropagation(theory::TrustNode trn)
 {
   Node proven = trn.getProven();

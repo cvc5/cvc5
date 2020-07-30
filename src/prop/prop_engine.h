@@ -222,6 +222,8 @@ class PropEngine
   void registerClause(SatLiteral satLit);
   void registerClause(Minisat::Solver::TClause& clause);
 
+  void registerPropagatedTheoryLiteral(Node lit);
+
   void explainPropagation(theory::TrustNode trn);
 
   void startResChain(Minisat::Solver::TClause& start);

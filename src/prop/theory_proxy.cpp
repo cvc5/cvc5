@@ -129,6 +129,7 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
   d_queue.push(literalNode);
+  d_propEngine->registerPropagatedTheoryLiteral(literalNode);
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
