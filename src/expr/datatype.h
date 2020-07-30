@@ -17,6 +17,8 @@
 #ifndef CVC4__DATATYPE_H
 #define CVC4__DATATYPE_H
 
+#include <iostream>
+
 namespace CVC4 {
 
 /* stores an index to Datatype residing in NodeManager */

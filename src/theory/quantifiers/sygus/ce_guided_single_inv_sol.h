@@ -22,6 +22,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace theory {
