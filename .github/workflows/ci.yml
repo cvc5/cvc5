@@ -85,6 +85,7 @@ jobs:
           cxxtest \
           cln \
           gmp \
+          pkgconfig \
           swig
         python3 -m pip install toml
         python3 -m pip install setuptools
