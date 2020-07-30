@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__SMT__ABSTRACT_VALUES_H
-#define CVC4__SMT__ABSTRACT_VALUES_H
+#ifndef CVC4__SMT__LISTENERS_H
+#define CVC4__SMT__LISTENERS_H
 
 #include <unordered_map>
 

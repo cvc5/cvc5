@@ -34,7 +34,7 @@
 #include "base/configuration.h"
 #include "base/configuration_private.h"
 #include "base/exception.h"
-#include "base/listener.h"
+#include "smt/listeners.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "context/cdhashmap.h"
@@ -236,7 +236,6 @@ class SmtEnginePrivate{
       d_propagator.finish();
       d_propagator.setNeedsFinish(false);
     }
-    d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
   void spendResource(ResourceManager::Resource r)
@@ -614,6 +613,9 @@ SmtEngine::~SmtEngine()
 
     d_stats.reset(nullptr);
     d_private.reset(nullptr);
+    d_nodeManager->unsubscribeEvents(d_snmListener.get());
+    d_snmListener.reset(nullptr);
+    d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
