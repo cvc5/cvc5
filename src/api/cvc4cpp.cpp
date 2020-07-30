@@ -1470,7 +1470,7 @@ Kind Term::getKindHelper() const
   }
   // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
   // INTERNAL_KIND.
-  return intToExtKind(k);
+  return intToExtKind(d_node->getKind());
 }
 
 bool Term::operator==(const Term& t) const { return *d_node == *t.d_node; }
