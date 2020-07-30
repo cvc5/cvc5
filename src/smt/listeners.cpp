@@ -19,7 +19,10 @@
 #include "smt/command.h"
 #include "expr/attribute.h"
 #include "smt/smt_engine_scope.h"
-#include "base/output.h"
+#include "smt/dump.h"
+#include "expr/expr.h"
+#include "expr/node_manager_attributes.h"
+
 
 namespace CVC4 {
 namespace smt {

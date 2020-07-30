@@ -148,6 +148,7 @@ class CVC4_PUBLIC SmtEngine
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
+  friend class ::CVC4::smt::SmtNodeManagerListener;  // to access addToModelCommandAndDump
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
 
