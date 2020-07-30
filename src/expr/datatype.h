@@ -18,6 +18,7 @@
 #define CVC4__DATATYPE_H
 
 #include <iostream>
+#include "util/hash.h"
 
 namespace CVC4 {
 
