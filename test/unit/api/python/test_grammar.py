@@ -13,7 +13,7 @@ def test_add_rule():
   nullTerm = pycvc4.Term()
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
-  
+
   # expecting no error
   g = solver.mkSygusGrammar([], [start])
 
@@ -60,7 +60,7 @@ def test_add_rules():
     g.addRules(start, {solver.mkReal(0)})
   #Expecting no errors
   solver.synthFun("f", {}, boolean, g)
-  
+
   #Expecting an error
   with pytest.raises(Exception):
     g.addRules(start, solver.mkBoolean(False))
