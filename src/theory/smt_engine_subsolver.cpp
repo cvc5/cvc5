@@ -53,7 +53,7 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
   smte->setLogic(smtCurr->getLogicInfo());
   if (needsTimeout)
   {
-    smte->setTimeLimit(timeout, true);
+    smte->setTimeLimit(timeout);
   }
   smte->setLogic(smt::currentSmtEngine()->getLogicInfo());
 }

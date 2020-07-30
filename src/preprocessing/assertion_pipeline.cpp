@@ -28,7 +28,8 @@ AssertionPipeline::AssertionPipeline()
       d_storeSubstsInAsserts(false),
       d_substsIndex(0),
       d_assumptionsStart(0),
-      d_numAssumptions(0)
+      d_numAssumptions(0),
+      d_pppg(nullptr)
 {
 }
 
@@ -40,11 +41,15 @@ void AssertionPipeline::clear()
   d_numAssumptions = 0;
 }
 
-void AssertionPipeline::push_back(Node n, bool isAssumption)
+void AssertionPipeline::push_back(Node n,
+                                  bool isAssumption,
+                                  bool isInput,
+                                  ProofGenerator* pgen)
 {
   d_nodes.push_back(n);
   if (isAssumption)
   {
+    Assert(pgen == nullptr);
     if (d_numAssumptions == 0)
     {
       d_assumptionsStart = d_nodes.size() - 1;
@@ -56,38 +61,59 @@ void AssertionPipeline::push_back(Node n, bool isAssumption)
     Assert(d_assumptionsStart + d_numAssumptions == d_nodes.size() - 1);
     d_numAssumptions++;
   }
+  if (!isInput && isProofEnabled())
+  {
+    // notice this is always called, regardless of whether pgen is nullptr
+    d_pppg->notifyNewAssert(n, pgen);
+  }
 }
 
-void AssertionPipeline::replace(size_t i, Node n)
+void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
+{
+  Assert(trn.getKind() == theory::TrustNodeKind::LEMMA);
+  // push back what was proven
+  push_back(trn.getProven(), false, trn.getGenerator());
+}
+
+void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
+  if (isProofEnabled())
+  {
+    d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
+  }
   d_nodes[i] = n;
+}
+
+void AssertionPipeline::replaceTrusted(size_t i, theory::TrustNode trn)
+{
+  Assert(trn.getKind() == theory::TrustNodeKind::REWRITE);
+  replace(i, trn.getNode(), trn.getGenerator());
 }
 
 void AssertionPipeline::replace(size_t i,
                                 Node n,
-                                const std::vector<Node>& addnDeps)
+                                const std::vector<Node>& addnDeps,
+                                ProofGenerator* pgen)
 {
   PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
         for (const auto& addnDep
              : addnDeps) {
           ProofManager::currentPM()->addDependence(n, addnDep);
         });
+  if (isProofEnabled())
+  {
+    d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
+  }
   d_nodes[i] = n;
 }
 
-void AssertionPipeline::replace(size_t i, const std::vector<Node>& ns)
+void AssertionPipeline::setProofGenerator(smt::PreprocessProofGenerator* pppg)
 {
-  PROOF(
-      for (const auto& n
-           : ns) { ProofManager::currentPM()->addDependence(n, d_nodes[i]); });
-  d_nodes[i] = NodeManager::currentNM()->mkConst<bool>(true);
-
-  for (const auto& n : ns)
-  {
-    d_nodes.push_back(n);
-  }
+  d_pppg = pppg;
 }
+
+bool AssertionPipeline::isProofEnabled() const { return d_pppg != nullptr; }
 
 void AssertionPipeline::enableStoreSubstsInAsserts()
 {

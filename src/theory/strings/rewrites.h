@@ -212,7 +212,8 @@ enum class Rewrite : uint32_t
   LEN_CONV_INV,
   LEN_SEQ_UNIT,
   CHARAT_ELIM,
-  SEQ_UNIT_EVAL
+  SEQ_UNIT_EVAL,
+  SEQ_NTH_EVAL
 };
 
 /**
