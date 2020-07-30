@@ -187,7 +187,7 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
     }
   }
 
-  for (std::size_t i = 0; i < intervals.size() - 1; ++i)
+  for (std::size_t i = 0, n = intervals.size(); i < n - 1; ++i)
   {
     // Add resultants of consecutive intervals.
     cad::makeFinestSquareFreeBasis(intervals[i].d_upperPolys,
@@ -246,7 +246,7 @@ CACInterval CDCAC::intervalFromCharacterization(
   // Now find the interval bounds
   poly::Value lower;
   poly::Value upper;
-  for (std::size_t i = 0; i < roots.size(); ++i)
+  for (std::size_t i = 0, n = roots.size(); i < n; ++i)
   {
     if (sample < roots[i])
     {
