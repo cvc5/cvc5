@@ -39,7 +39,7 @@ namespace cad {
 namespace {
 /** Removed duplicates from a vector. */
 template <typename T>
-void remove_duplicates(std::vector<T>& v)
+void removeDuplicates(std::vector<T>& v)
 {
   std::sort(v.begin(), v.end());
   v.erase(std::unique(v.begin(), v.end()), v.end());
@@ -203,7 +203,7 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
     }
   }
 
-  remove_duplicates(res);
+  removeDuplicates(res);
   makeFinestSquareFreeBasis(res);
 
   return res;
