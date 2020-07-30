@@ -19,6 +19,7 @@
 #include <vector>
 #include "expr/node.h"
 #include "theory/arith/nl/inference.h"
+#include "theory/output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -61,6 +62,8 @@ struct NlLemma
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
+  /** get lemma property (preprocess or none) */
+  LemmaProperty getLemmaProperty() const;
 };
 /**
  * Writes a non-linear lemma to a stream.

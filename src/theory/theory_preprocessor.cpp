@@ -36,41 +36,52 @@ TheoryPreprocessor::~TheoryPreprocessor() {}
 
 void TheoryPreprocessor::clearCache() { d_ppCache.clear(); }
 
-void TheoryPreprocessor::preprocess(TNode node,
-                                    preprocessing::AssertionPipeline& lemmas,
-                                    bool doTheoryPreprocess)
+TrustNode TheoryPreprocessor::preprocess(TNode node,
+                                         std::vector<TrustNode>& newLemmas,
+                                         std::vector<Node>& newSkolems,
+                                         bool doTheoryPreprocess)
 {
   // Run theory preprocessing, maybe
   Node ppNode = doTheoryPreprocess ? theoryPreprocess(node) : Node(node);
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
-  lemmas.push_back(ppNode);
-  lemmas.updateRealAssertionsEnd();
-  d_tfr.run(lemmas.ref(), lemmas.getIteSkolemMap());
-  Trace("te-tform-rm") << "..done " << lemmas[0] << std::endl;
+  TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, false);
+  Trace("te-tform-rm") << "..done " << ttfr.getNode() << std::endl;
+  Node retNode = ttfr.getNode();
 
   if (Debug.isOn("lemma-ites"))
   {
-    Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
-    Debug("lemma-ites") << " + now have the following " << lemmas.size()
+    Debug("lemma-ites") << "removed ITEs from lemma: " << ttfr.getNode()
+                        << endl;
+    Debug("lemma-ites") << " + now have the following " << newLemmas.size()
                         << " lemma(s):" << endl;
-    for (std::vector<Node>::const_iterator i = lemmas.begin();
-         i != lemmas.end();
-         ++i)
+    for (size_t i = 0, lsize = newLemmas.size(); i <= lsize; ++i)
     {
-      Debug("lemma-ites") << " + " << *i << endl;
+      Debug("lemma-ites") << " + " << newLemmas[i].getNode() << endl;
     }
     Debug("lemma-ites") << endl;
   }
 
+  retNode = Rewriter::rewrite(retNode);
+
   // now, rewrite the lemmas
-  Node retLemma;
-  for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
+  for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
-    Node rewritten = Rewriter::rewrite(lemmas[i]);
-    lemmas.replace(i, rewritten);
+    // get the trust node to process
+    TrustNode trn = newLemmas[i];
+    Assert(trn.getKind() == TrustNodeKind::LEMMA);
+    Node assertion = trn.getNode();
+    // rewrite, which is independent of d_tpg, since additional lemmas
+    // are justified separately.
+    Node rewritten = Rewriter::rewrite(assertion);
+    if (assertion != rewritten)
+    {
+      // not tracking proofs, just make new
+      newLemmas[i] = TrustNode::mkTrustLemma(rewritten, nullptr);
+    }
   }
+  return TrustNode::mkTrustRewrite(node, retNode, nullptr);
 }
 
 struct preprocess_stack_element
