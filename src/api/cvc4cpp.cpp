@@ -1468,8 +1468,9 @@ Kind Term::getKindHelper() const
         break;
     }
   }
-
-  return intToExtKind(d_node->getKind());
+  // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
+  // INTERNAL_KIND.
+  return intToExtKind(k);
 }
 
 bool Term::operator==(const Term& t) const { return *d_node == *t.d_node; }
@@ -2150,6 +2151,18 @@ Term DatatypeConstructor::getConstructorTerm() const
 {
   Term ctor = Term(d_solver, d_ctor->getConstructor());
   return ctor;
+}
+
+Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
+{
+  NodeManager * nm = d_solver->getNodeManager();
+  // apply type ascription to the operator
+  return api::Term(
+      d_solver,
+      nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                  nm->mkConst(AscriptionType(
+                      d_ctor->getSpecializedConstructorType(TypeNode::fromType(retSort.getType())).toType())),
+                  d_ctor->getConstructor()));
 }
 
 Term DatatypeConstructor::getTesterTerm() const

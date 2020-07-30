@@ -1494,6 +1494,17 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the constructor term
    */
   Term getConstructorTerm() const;
+  
+  /**
+   * Get the constructor operator of this datatype constructor whose return
+   * type is retSort. This method is intended to be used on constructors of
+   * parametric datatypes and can be seen as returning the constructor
+   * term that has been explicitly cast to the given sort.
+   * 
+   * @param retSort the desired return sort of the constructor
+   * @return the constructor term
+   */
+  Term getSpecializedConstructorTerm(Sort retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.
