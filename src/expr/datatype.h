@@ -59,9 +59,7 @@ private:
 std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) CVC4_PUBLIC;
 
 struct CVC4_PUBLIC DatatypeIndexConstantHashFunction {
-  inline size_t operator()(const DatatypeIndexConstant& dic) const {
-    return IntegerHashFunction()(dic.getIndex());
-  }
+  size_t operator()(const DatatypeIndexConstant& dic) const;
 };/* struct DatatypeIndexConstantHashFunction */
 
 

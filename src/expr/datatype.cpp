@@ -15,6 +15,7 @@
 
 #include <string>
 #include <sstream>
+#include "util/integer.h"
 
 using namespace std;
 
@@ -25,4 +26,8 @@ std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
   return out << "index_" << dic.getIndex();
 }
 
+size_t DatatypeIndexConstantHashFunction::operator()(const DatatypeIndexConstant& dic) const {
+  return IntegerHashFunction()(dic.getIndex());
+}
+  
 }/* CVC4 namespace */
