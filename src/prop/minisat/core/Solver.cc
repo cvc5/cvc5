@@ -306,7 +306,27 @@ CRef Solver::reason(Var x) {
   Debug("pf::sat") << "Solver::reason(" << x << ")" << std::endl;
 
   // If we already have a reason, just return it
-  if (vardata[x].d_reason != CRef_Lazy) return vardata[x].d_reason;
+  if (vardata[x].d_reason != CRef_Lazy)
+  {
+    if (Debug.isOn("pf::sat"))
+    {
+      Debug("pf::sat") << "  Solver::reason: " << vardata[x].d_reason << ", ";
+      if (vardata[x].d_reason == CRef_Undef)
+      {
+        Debug("pf::sat") << "CRef_Undef";
+      }
+      else
+      {
+        for (unsigned i = 0, size = ca[vardata[x].d_reason].size(); i < size;
+             ++i)
+        {
+          Debug("pf::sat") << ca[vardata[x].d_reason][i] << " ";
+        }
+      }
+      Debug("pf::sat") << "\n";
+    }
+    return vardata[x].d_reason;
+  }
 
   // What's the literal we are trying to explain
   Lit l = mkLit(x, value(x) != l_True);
@@ -544,7 +564,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         if(assigns[var(ps[0])] == l_Undef) {
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          Debug("cores") << "i'm registering a unit clause, input" << std::endl;
+          Debug("cores") << "i'm registering a unit clause " << ps[0] << ", input" << std::endl;
           PROOF(
                 if(ps.size() == 1) {
                   id = ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT);
@@ -613,7 +633,17 @@ void Solver::attachClause(CRef cr) {
 void Solver::detachClause(CRef cr, bool strict) {
     const Clause& c = ca[cr];
     PROOF( ProofManager::getSatProof()->markDeleted(cr); );
-    Debug("minisat") << "Solver::detachClause(" << c << ")" << std::endl;
+    if (Debug.isOn("minisat"))
+    {
+      Debug("minisat") << "Solver::detachClause(" << c << "), CRef " << cr
+                       << ", clause ";
+      for (unsigned i = 0, size = c.size(); i < size; ++i)
+      {
+        Debug("minisat") << c[i] << " ";
+      }
+
+      Debug("minisat") << "\n";
+    }
     assert(c.size() > 1);
 
     if (strict){
@@ -631,7 +661,16 @@ void Solver::detachClause(CRef cr, bool strict) {
 
 void Solver::removeClause(CRef cr) {
     Clause& c = ca[cr];
-    Debug("minisat::remove-clause") << "Solver::removeClause(" << c << ")" << std::endl;
+    if (Debug.isOn("minisat::remove-clause"))
+    {
+      Debug("minisat::remove-clause")
+          << "Solver::removeClause(" << c << "), CRef " << cr << ", clause ";
+      for (unsigned i = 0, size = c.size(); i < size; ++i)
+      {
+        Debug("minisat::remove-clause") << c[i] << " ";
+      }
+      Debug("minisat::remove-clause") << "\n";
+    }
     detachClause(cr);
     // Don't leave pointers to free'd memory!
     if (locked(c)) vardata[var(c[0])].d_reason = CRef_Undef;
@@ -1107,21 +1146,43 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
     seen[var(p)] = 0;
 }
 
-
 void Solver::uncheckedEnqueue(Lit p, CRef from)
 {
-    Debug("minisat") << "unchecked enqueue of " << p << " (" << trail_index(var(p)) << ") trail size is " << trail.size() << " cap is " << trail.capacity() << std::endl;
-    assert(value(p) == l_Undef);
-    assert(var(p) < nVars());
-    assigns[var(p)] = lbool(!sign(p));
-    vardata[var(p)] = VarData(from, decisionLevel(), assertionLevel, intro_level(var(p)), trail.size());
-    trail.push_(p);
-    if (theory[var(p)]) {
-      // Enqueue to the theory
-      d_proxy->enqueueTheoryLiteral(MinisatSatSolver::toSatLiteral(p));
+  if (Debug.isOn("minisat"))
+  {
+    Debug("minisat") << "unchecked enqueue of " << p << " ("
+                     << trail_index(var(p)) << ") trail size is "
+                     << trail.size() << " cap is " << trail.capacity()
+                     << ", reason is " << from << ", ";
+    if (from == CRef_Lazy)
+    {
+      Debug("minisat") << "CRef_Lazy";
     }
+    else if (from == CRef_Undef)
+    {
+      Debug("minisat") << "CRef_Undef";
+    }
+    else
+    {
+      for (unsigned i = 0, size = ca[from].size(); i < size; ++i)
+      {
+        Debug("minisat") << ca[from][i] << " ";
+      }
+    }
+    Debug("minisat") << "\n";
+  }
+  assert(value(p) == l_Undef);
+  assert(var(p) < nVars());
+  assigns[var(p)] = lbool(!sign(p));
+  vardata[var(p)] = VarData(
+      from, decisionLevel(), assertionLevel, intro_level(var(p)), trail.size());
+  trail.push_(p);
+  if (theory[var(p)])
+  {
+    // Enqueue to the theory
+    d_proxy->enqueueTheoryLiteral(MinisatSatSolver::toSatLiteral(p));
+  }
 }
-
 
 CRef Solver::propagate(TheoryCheckType type)
 {
@@ -1382,7 +1443,7 @@ void Solver::removeSatisfied(vec<CRef>& cs)
             // store a resolution of the literal c propagated
             PROOF( ProofManager::getSatProof()->storeUnitResolution(c[0]); )
           }
-            removeClause(cs[i]);
+          removeClause(cs[i]);
         }
         else
             cs[j++] = cs[i];
@@ -2060,7 +2121,11 @@ CRef Solver::updateLemmas() {
           ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
           ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
         }
-
+        if (CVC4::options::proofNew())
+        {
+          Debug("pf::sat") << "Solver::updateLemmas: unit theory lemma: "
+                           << lemma[0] << std::endl;
+        }
         if (value(lemma[0]) == l_False) {
           // We have a conflict
           if (lemma.size() > 1) {
@@ -2102,7 +2167,7 @@ void ClauseAllocator::reloc(CRef& cr,
                             ClauseAllocator& to,
                             CVC4::TSatProof<Solver>* proof)
 {
-
+  Debug("minisat") << "ClauseAllocator::reloc: cr " << cr << std::endl;
   // FIXME what is this CRef_lazy
   if (cr == CRef_Lazy) return;
 
