@@ -16,6 +16,8 @@
 
 #include "theory/arith/nl/cad/cdcac_utils.h"
 
+#ifdef CVC4_POLY_IMP
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -267,3 +269,5 @@ bool sampleOutside(const std::vector<CACInterval>& infeasible, Value& sample)
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
+
+#endif
