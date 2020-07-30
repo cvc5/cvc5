@@ -109,7 +109,6 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
     {
       Trace("cdcac") << "-> " << i << std::endl;
       std::vector<poly::Polynomial> l, u, m, d;
-      // TODO(Gereon): Factorize polynomials here.
       if (!is_minus_infinity(get_lower(i))) l.emplace_back(p);
       if (!is_plus_infinity(get_upper(i))) u.emplace_back(p);
       m.emplace_back(p);
@@ -169,7 +168,7 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
         Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
         addPolynomial(res, q);
       }
-      // TODO(Gereon): Only add if p(s \times a) = a for some a <= l
+      // TODO(#4814): Only add if p(s \times a) = 0 for some a <= l
       for (const auto& q : i.d_lowerPolys)
       {
         if (p == q) continue;
@@ -177,7 +176,7 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
                        << resultant(p, q) << std::endl;
         addPolynomial(res, resultant(p, q));
       }
-      // TODO(Gereon): Only add if p(s \times a) = a for some a >= u
+      // TODO(#4814): Only add if p(s \times a) = 0 for some a >= u
       for (const auto& q : i.d_upperPolys)
       {
         if (p == q) continue;
