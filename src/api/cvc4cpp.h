@@ -36,11 +36,15 @@
 
 namespace CVC4 {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
 class Expr;
 class Datatype;
 class DatatypeConstructor;
 class DatatypeConstructorArg;
 class ExprManager;
+class NodeManager;
 class SmtEngine;
 class Type;
 class Options;
@@ -674,6 +678,17 @@ class CVC4_PUBLIC Op
    */
   Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
 
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
+
   /**
    * Destructor.
    */
@@ -763,7 +778,7 @@ class CVC4_PUBLIC Op
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -791,6 +806,16 @@ class CVC4_PUBLIC Term
    * @return the Term
    */
   Term(const Solver* slv, const CVC4::Expr& e);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const Solver* slv, const CVC4::Node& n);
 
   /**
    * Constructor.
@@ -1003,7 +1028,7 @@ class CVC4_PUBLIC Term
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
-                   const std::shared_ptr<CVC4::Expr>& e,
+                   const std::shared_ptr<CVC4::Node>& e,
                    uint32_t p);
 
     /**
@@ -1055,8 +1080,8 @@ class CVC4_PUBLIC Term
      * The associated solver object.
      */
     const Solver* d_solver;
-    /* The original expression to be iterated over */
-    std::shared_ptr<CVC4::Expr> d_orig_expr;
+    /* The original node to be iterated over */
+    std::shared_ptr<CVC4::Node> d_origNode;
     /* Keeps track of the iteration position */
     uint32_t d_pos;
   };
@@ -1074,6 +1099,10 @@ class CVC4_PUBLIC Term
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   CVC4::Expr getExpr(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  const CVC4::Node& getNode(void) const;
 
  protected:
   /**
@@ -1101,7 +1130,7 @@ class CVC4_PUBLIC Term
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /**
@@ -3261,6 +3290,10 @@ class CVC4_PUBLIC Solver
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
+  NodeManager* getNodeManager(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
 
   // !!! This is only temporarily available until options are refactored at
@@ -3350,6 +3383,7 @@ class CVC4_PUBLIC Solver
 // !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,
