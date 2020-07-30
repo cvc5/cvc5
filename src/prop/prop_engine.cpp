@@ -526,11 +526,13 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
   Trace("sat-proof-steps") << proven << " by explainPropagation "
                            << trn.identifyGenerator() << std::endl;
   // TODO: due to lifetime of explanations, need to cache this now?
-  /*
-  std::shared_ptr<ProofNode> exp = trn.toProofNode();
-  d_proof.addProof(exp);
-  */
+  // Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
+  // std::shared_ptr<ProofNode> exp = trn.toProofNode();
+  // d_proof.addProof(exp);
+
+  Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
   d_proof.addLazyStep(proven, trn.getGenerator());
+
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
   NodeManager* nm = NodeManager::currentNM();

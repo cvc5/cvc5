@@ -50,8 +50,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
   if (pg)
   {
-    // std::shared_ptr<ProofNode> ppn = pg->getProofFor(toJustify);
-    // AlwaysAssert(ppn->isClosed());
+    Assert(pg->getProofFor(toJustify)->isClosed());
     d_proof.addLazyStep(toJustify, pg);
   }
   convertAndAssert(node, negated);
