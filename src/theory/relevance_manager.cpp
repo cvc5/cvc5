@@ -34,7 +34,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
   {
     if (a.getKind()==AND)
     {
-      // split AND
+      // split top-level AND
       for (const Node& ac : a)
       {
         toProcess.push_back(ac);
@@ -59,7 +59,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
     else
     {
-      // TODO: always relevant?
+      // TODO: always relevant literals?
       d_input.push_back(a);
     }
     i++;

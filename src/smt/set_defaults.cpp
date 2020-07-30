@@ -1312,13 +1312,17 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
-  // FIXME: model unsound for logics that have "reduction lemmas", e.g.
-  // quantifiers and strings
-  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear())
+  if (options::nlRlvMode()!=options::NlRlvMode::NONE)
   {
-    // use relevance filtering techniques for non-linear arithmetic
-    if (!options::relevanceFilter.wasSetByUser())
+    if (!options::relevanceFilter())
     {
+      if (options::relevanceFilter.wasSetByUser())
+      {
+        Warning()
+            << "SmtEngine: turning on relevance filtering to support --nl-ext-rlv=" << options::nlRlvMode()
+            << std::endl;
+      }
+      // must use relevance filtering techniques
       options::relevanceFilter.set(true);
     }
   }

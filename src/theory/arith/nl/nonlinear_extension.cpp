@@ -266,17 +266,14 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
 {
   Trace("nl-ext") << "Getting assertions..." << std::endl;
   bool useRelevance = false;
-  if (options::relevanceFilter())
+  if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
   {
-    if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
-    {
-      d_checkCounter++;
-      useRelevance = (d_checkCounter % 2);
-    }
-    else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
-    {
-      useRelevance = true;
-    }
+    d_checkCounter++;
+    useRelevance = (d_checkCounter % 2);
+  }
+  else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
+  {
+    useRelevance = true;
   }
   Valuation v = d_containing.getValuation();
   NodeManager* nm = NodeManager::currentNM();
@@ -431,7 +428,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
   std::vector<Node> passertions;
-  if (options::relevanceFilter())
+  if (options::nlRlvMode()!=options::NlRlvMode::NONE)
   {
     // only keep the relevant assertions (those required for showing input
     // is satisfied)

@@ -151,7 +151,7 @@ void TheoryEngine::finishInit() {
         d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
-  // create the relevance filter
+  // create the relevance filter if any option requires it
   if (options::relevanceFilter())
   {
     d_relManager.reset(
@@ -941,6 +941,7 @@ bool TheoryEngine::isRelevant(Node lit) const
   {
     return d_relManager->isRelevant(lit);
   }
+  // otherwise must assume its relevant
   return true;
 }
 
