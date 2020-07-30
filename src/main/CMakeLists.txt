@@ -71,7 +71,7 @@ endif()
 if(USE_EDITLINE)
   target_link_libraries(cvc4-bin ${Editline_LIBRARIES})
   target_link_libraries(main-test ${Editline_LIBRARIES})
-  target_include_directories(main PRIVATE ${Editline_INCLUDE_DIR})
+  target_include_directories(main PRIVATE ${Editline_INCLUDE_DIRS})
 endif()
 
 #-----------------------------------------------------------------------------#
