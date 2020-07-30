@@ -370,17 +370,6 @@ class CVC4_PUBLIC ExprManager {
   /** Make the type of sequence with the given parameterization. */
   SequenceType mkSequenceType(Type elementType) const;
 
-  /**
-   * Make a type representing a constructor with the given parameterization.
-   */
-  ConstructorType mkConstructorType(const DatatypeConstructor& constructor, Type range) const;
-
-  /** Make a type representing a selector with the given parameterization. */
-  SelectorType mkSelectorType(Type domain, Type range) const;
-
-  /** Make a type representing a tester with the given parameterization. */
-  TesterType mkTesterType(Type domain) const;
-
   /** Bits for use in mkSort() flags. */
   enum {
     SORT_FLAG_NONE = 0,

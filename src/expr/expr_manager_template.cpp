@@ -646,21 +646,6 @@ SequenceType ExprManager::mkSequenceType(Type elementType) const
       new TypeNode(d_nodeManager->mkSequenceType(*elementType.d_typeNode))));
 }
 
-ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkConstructorType(constructor, *range.d_typeNode)));
-}
-
-SelectorType ExprManager::mkSelectorType(Type domain, Type range) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSelectorType(*domain.d_typeNode, *range.d_typeNode)));
-}
-
-TesterType ExprManager::mkTesterType(Type domain) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkTesterType(*domain.d_typeNode)));
-}
-
 SortType ExprManager::mkSort(const std::string& name, uint32_t flags) const {
   NodeManagerScope nms(d_nodeManager);
   return SortType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSort(name, flags))));
