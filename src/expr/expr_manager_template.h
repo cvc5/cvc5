@@ -88,19 +88,8 @@ class CVC4_PUBLIC ExprManager {
   /** A list of datatypes owned by this expr manager. */
   std::vector<std::unique_ptr<Datatype> > d_ownedDatatypes;
 
-  /**
-   * Creates an expression manager with default options.
-   */
+  /** Creates an expression manager. */
   ExprManager();
-
-  /**
-   * Creates an expression manager.
-   *
-   * @param options the earlyTypeChecking field is used to configure
-   * whether to do at Expr creation time.
-   */
-  explicit ExprManager(const Options& options);
-
  public:
   /**
    * Destroys the expression manager. No will be deallocated at this point, so
@@ -108,12 +97,6 @@ class CVC4_PUBLIC ExprManager {
    * manager and are left-over are bad.
    */
   ~ExprManager();
-
-  /** Get this expr manager's options */
-  const Options& getOptions() const;
-
-  /** Get this expr manager's resource manager */
-  ResourceManager* getResourceManager();
 
   /** Get the type for booleans */
   BooleanType booleanType() const;
@@ -393,6 +376,9 @@ class CVC4_PUBLIC ExprManager {
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
 
+  /** Make the type of sequence with the given parameterization. */
+  SequenceType mkSequenceType(Type elementType) const;
+
   /** Bits for use in mkDatatypeType() flags.
    *
    * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
@@ -587,6 +573,11 @@ class CVC4_PUBLIC ExprManager {
 
   /** Returns the maximum arity of the given kind. */
   static unsigned maxArity(Kind kind);
+
+  /** Whether a kind is n-ary. The test is based on n-ary kinds having their
+   * maximal arity as the maximal possible number of children of a node.
+   **/
+  static bool isNAryKind(Kind fun);
 
   /**
    * Return the datatype at the given index owned by this class. Type nodes are

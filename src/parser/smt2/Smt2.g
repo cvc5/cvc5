@@ -1898,6 +1898,16 @@ attribute[CVC4::api::Term& expr, CVC4::api::Term& retExpr, std::string& attr]
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
+  | tok=( ATTRIBUTE_QUANTIFIER_ID_TOK ) symbolicExpr[sexpr]
+    {
+      api::Sort boolType = SOLVER->getBooleanSort();
+      api::Term avar = SOLVER->mkConst(boolType, sexpr.toString());
+      attr = std::string(":qid");
+      retExpr = MK_TERM(api::INST_ATTRIBUTE, avar);
+      Command* c = new SetUserAttributeCommand("qid", avar.getExpr());
+      c->setMuted(true);
+      PARSER_STATE->preemptCommand(c);
+    }
   | ATTRIBUTE_NAMED_TOK symbolicExpr[sexpr]
     {
       attr = std::string(":named");
@@ -2122,7 +2132,13 @@ sortSymbol[CVC4::api::Sort& t, CVC4::parser::DeclarationCheck check]
             PARSER_STATE->parseError("Illegal set type.");
           }
           t = SOLVER->mkSetSort( args[0] );
-        } else if(name == "Tuple") {
+        } else if(name == "Seq" && !PARSER_STATE->strictModeEnabled() &&
+                  PARSER_STATE->isTheoryEnabled(theory::THEORY_STRINGS) ) {
+          if(args.size() != 1) {
+            PARSER_STATE->parseError("Illegal sequence type.");
+          }
+          t = SOLVER->mkSequenceSort( args[0] );
+        } else if (name == "Tuple" && !PARSER_STATE->strictModeEnabled()) {
           t = SOLVER->mkTupleSort(args);
         } else if(check == CHECK_DECLARED ||
                   PARSER_STATE->isDeclared(name, SYM_SORT)) {
@@ -2345,6 +2361,7 @@ ATTRIBUTE_PATTERN_TOK : ':pattern';
 ATTRIBUTE_NO_PATTERN_TOK : ':no-pattern';
 ATTRIBUTE_NAMED_TOK : ':named';
 ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
+ATTRIBUTE_QUANTIFIER_ID_TOK : ':qid';
 
 // operators (NOTE: theory symbols go here)
 EXISTS_TOK        : 'exists';

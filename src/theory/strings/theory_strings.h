@@ -25,6 +25,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
+#include "theory/ext_theory.h"
 #include "theory/strings/base_solver.h"
 #include "theory/strings/core_solver.h"
 #include "theory/strings/extf_solver.h"
@@ -61,9 +62,12 @@ class TheoryStrings : public Theory {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashSet<TypeNode, TypeNodeHashFunction> TypeNodeSet;
  public:
-  TheoryStrings(context::Context* c, context::UserContext* u,
-                OutputChannel& out, Valuation valuation,
-                const LogicInfo& logicInfo);
+  TheoryStrings(context::Context* c,
+                context::UserContext* u,
+                OutputChannel& out,
+                Valuation valuation,
+                const LogicInfo& logicInfo,
+                ProofNodeManager* pnm);
   ~TheoryStrings();
   /** finish initialization */
   void finishInit() override;
@@ -76,7 +80,7 @@ class TheoryStrings : public Theory {
   /** Propagate */
   void propagate(Effort e) override;
   /** Explain */
-  Node explain(TNode literal) override;
+  TrustNode explain(TNode literal) override;
   /** Get the equality engine */
   eq::EqualityEngine* getEqualityEngine() override;
   /** Get current substitution */
@@ -95,7 +99,7 @@ class TheoryStrings : public Theory {
   /** preregister term */
   void preRegisterTerm(TNode n) override;
   /** Expand definition */
-  Node expandDefinition(Node n) override;
+  TrustNode expandDefinition(Node n) override;
   /** Check at effort e */
   void check(Effort e) override;
   /** needs check last effort */
@@ -105,7 +109,7 @@ class TheoryStrings : public Theory {
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
   /** preprocess rewrite */
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
   /**
    * Get all relevant information in this theory regarding the current
    * model. Return false if a contradiction is discovered.
@@ -272,27 +276,29 @@ class TheoryStrings : public Theory {
   SolverState d_state;
   /** The term registry for this theory */
   TermRegistry d_termReg;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The (custom) output channel of the theory of strings */
-  std::unique_ptr<InferenceManager> d_im;
+  InferenceManager d_im;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.
    */
-  std::unique_ptr<BaseSolver> d_bsolver;
+  BaseSolver d_bsolver;
   /**
    * The core solver, responsible for reasoning about string concatenation
    * with length constraints.
    */
-  std::unique_ptr<CoreSolver> d_csolver;
+  CoreSolver d_csolver;
   /**
    * Extended function solver, responsible for reductions and simplifications
    * involving extended string functions.
    */
-  std::unique_ptr<ExtfSolver> d_esolver;
+  ExtfSolver d_esolver;
   /** regular expression solver module */
-  std::unique_ptr<RegExpSolver> d_rsolver;
+  RegExpSolver d_rsolver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
   /** Strings finite model finding decision strategy */

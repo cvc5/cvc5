@@ -56,7 +56,7 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
 
     Node actual0 = *setEnumerator;
     Node expected0 =
-        d_nm->mkConst(EmptySet(d_nm->mkSetType(boolType).toType()));
+        d_nm->mkConst(EmptySet(d_nm->mkSetType(boolType)));
     TS_ASSERT_EQUALS(expected0, actual0);
     TS_ASSERT(!setEnumerator.isFinished());
 
@@ -86,13 +86,11 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
 
   void testSetOfUF()
   {
-    TypeNode typeNode = d_nm->mkSort("Atom");
-    Type sort = typeNode.toType();
-    SetEnumerator setEnumerator(d_nm->mkSetType(typeNode));
+    TypeNode sort = d_nm->mkSort("Atom");
+    SetEnumerator setEnumerator(d_nm->mkSetType(sort));
 
     Node actual0 = *setEnumerator;
-    Node expected0 =
-        d_nm->mkConst(EmptySet(d_nm->mkSetType(typeNode).toType()));
+    Node expected0 = d_nm->mkConst(EmptySet(d_nm->mkSetType(sort)));
     TS_ASSERT_EQUALS(expected0, actual0);
     TS_ASSERT(!setEnumerator.isFinished());
 
@@ -158,7 +156,7 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
 
     Node actual0 = *setEnumerator;
     Node expected0 =
-        d_nm->mkConst(EmptySet(d_nm->mkSetType(datatype).toType()));
+        d_nm->mkConst(EmptySet(d_nm->mkSetType(datatype)));
     TS_ASSERT_EQUALS(expected0, actual0);
     TS_ASSERT(!setEnumerator.isFinished());
 
@@ -217,7 +215,7 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
 
     Node actual0 = *setEnumerator;
     Node expected0 =
-        d_nm->mkConst(EmptySet(d_nm->mkSetType(bitVector2).toType()));
+        d_nm->mkConst(EmptySet(d_nm->mkSetType(bitVector2)));
     TS_ASSERT_EQUALS(expected0, actual0);
     TS_ASSERT(!setEnumerator.isFinished());
 

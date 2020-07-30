@@ -70,11 +70,9 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
   }
 
   void testUF() {
-    TypeNode sortn = d_nm->mkSort("T");
-    Type sort = sortn.toType();
-    TypeNode sortn2 = d_nm->mkSort("U");
-    Type sort2 = sortn2.toType();
-    TypeEnumerator te(sortn);
+    TypeNode sort = d_nm->mkSort("T");
+    TypeNode sort2 = d_nm->mkSort("U");
+    TypeEnumerator te(sort);
     TS_ASSERT_EQUALS(*te, d_nm->mkConst(UninterpretedConstant(sort, 0)));
     for(size_t i = 1; i < 100; ++i) {
       TS_ASSERT_DIFFERS(*te, d_nm->mkConst(UninterpretedConstant(sort, i)));
@@ -234,13 +232,20 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
 
     // ensure that certain items were found
-    ArrayType arrayType(d_em->mkArrayType(d_em->integerType(), d_em->integerType()));
-    Node zeroes = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(0))));
-    Node ones = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(1))));
-    Node twos = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(2))));
-    Node threes = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(3))));
-    Node fours = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(4))));
-    Node tens = d_nm->mkConst(ArrayStoreAll(arrayType, d_em->mkConst(Rational(10))));
+    TypeNode arrayType =
+        d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
+    Node zeroes =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(0))));
+    Node ones =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(1))));
+    Node twos =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(2))));
+    Node threes =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(3))));
+    Node fours =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(4))));
+    Node tens =
+        d_nm->mkConst(ArrayStoreAll(arrayType, d_nm->mkConst(Rational(10))));
 
     Node zero = d_nm->mkConst(Rational(0));
     Node one = d_nm->mkConst(Rational(1));

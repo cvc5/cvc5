@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.4)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -73,6 +73,9 @@ endif()
 if(LFSC_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${LFSC_DIR}")
 endif()
+if(POLY_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${POLY_DIR}")
+endif()
 if(SYMFPU_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
 endif()
@@ -136,11 +139,12 @@ cvc4_option(USE_CLN           "Use CLN instead of GMP")
 cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 cvc4_option(USE_GLPK          "Use GLPK simplex solver")
 cvc4_option(USE_KISSAT        "Use Kissat SAT solver")
-cvc4_option(USE_READLINE      "Use readline for better interactive support")
+cvc4_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
 option(USE_LFSC               "Use LFSC proof checker")
+option(USE_POLY               "Use LibPoly for polynomial arithmetic")
 option(USE_SYMFPU             "Use SymFPU for floating point support")
 option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
 option(USE_PYTHON3            "Prefer using Python 3 (for Python bindings)")
@@ -160,6 +164,7 @@ set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
+set(POLY_DIR          "" CACHE STRING "Set LibPoly install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Prepend binaries with prefix on make install
@@ -269,7 +274,7 @@ if(ENABLE_BEST)
   cvc4_set_option(USE_CLN ON)
   cvc4_set_option(USE_CRYPTOMINISAT ON)
   cvc4_set_option(USE_GLPK ON)
-  cvc4_set_option(USE_READLINE ON)
+  cvc4_set_option(USE_EDITLINE ON)
 endif()
 
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
@@ -298,9 +303,16 @@ if(ENABLE_SHARED)
   # we do not set this option, then the linker will not be able to find the
   # required libraries when trying to run CVC4.
   #
+  # Also embed the installation prefix of the installed contrib libraries as an
+  # RPATH. This allows to install a dynamically linked binary that depends on
+  # dynamically linked libraries. This is dangerous, as the installed binary
+  # breaks if the contrib library is removed or changes in other ways, we thus
+  # print a big warning and only allow if installing to a custom installation
+  # prefix.
+  #
   # More information on RPATH in CMake:
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
@@ -494,12 +506,19 @@ if(USE_LFSC)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
 
-if(USE_READLINE)
-  set(GPL_LIBS "${GPL_LIBS} readline")
-  find_package(Readline REQUIRED)
-  set(HAVE_LIBREADLINE 1)
-  if(Readline_COMPENTRY_FUNC_RETURNS_CHARPTR)
-    set(READLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
+if(USE_POLY)
+  find_package(Poly REQUIRED)
+  add_definitions(-DCVC4_USE_POLY)
+  set(CVC4_USE_POLY_IMP 1)
+else()
+  set(CVC4_USE_POLY_IMP 0)
+endif()
+
+if(USE_EDITLINE)
+  find_package(Editline REQUIRED)
+  set(HAVE_LIBEDITLINE 1)
+  if(Editline_COMPENTRY_FUNC_RETURNS_CHARPTR)
+    set(EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
   endif()
 endif()
 
@@ -554,6 +573,52 @@ endif()
 # Export CVC4 targets to support find_package(CVC4) in other cmake projects.
 
 include(CMakePackageConfigHelpers)
+
+# If we install a dynamically linked binary that also uses dynamically used
+# libraries from deps/install/lib, we need to be cautious. Changing these
+# shared libraries from deps/install/lib most probably breaks the binary.
+# We only allow such an installation for custom installation prefixes
+# (in the assumption that only reasonably experienced users use this and 
+# also that custom installation prefixes are not used for longer periods of
+# time anyway). Also, we print a big warning with further instructions.
+if(NOT ENABLE_STATIC_BINARY)
+  # Get the libraries that cvc4 links against
+  get_target_property(libs cvc4 INTERFACE_LINK_LIBRARIES)
+  set(LIBS_SHARED_FROM_DEPS "")
+  foreach(lib ${libs})
+    # Filter out those that are linked dynamically and come from deps/install
+    if(lib MATCHES ".*/deps/install/lib/.*\.so")
+      list(APPEND LIBS_SHARED_FROM_DEPS ${lib})
+    endif()
+  endforeach()
+  list(LENGTH LIBS_SHARED_FROM_DEPS list_len)
+  # Check if we actually use such "dangerous" libraries
+  if(list_len GREATER 0)
+    # Print a generic warning
+    install(CODE "message(WARNING \"You are installing a dynamically linked \
+    binary of CVC4 which may be a problem if you are using any dynamically \
+    linked third-party library that you obtained through one of the \
+    contrib/get-xxx scripts. The binary uses the rpath mechanism to find these \
+    locally, hence executing such a contrib script removing the \
+    \\\"deps/install\\\" folder most probably breaks the installed binary! \
+    Consider installing the dynamically linked dependencies on your system \
+    manually or link cvc4 statically.\")")
+    # Print the libraries in question
+    foreach(lib ${LIBS_SHARED_FROM_DEPS})
+      install(CODE "message(WARNING \"The following library is used by the cvc4 binary: ${lib}\")")
+    endforeach()
+    # Check if we use a custom installation prefix
+    if(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+      install(CODE "message(FATAL_ERROR \"To avoid installing a \
+      soon-to-be-broken binary, system-wide installation is disabled if the \
+      binary depends on locally-built shared libraries.\")")
+    else()
+      install(CODE "message(WARNING \"You have selected a custom install \
+      directory ${CMAKE_INSTALL_PREFIX}, so we expect you understood the \
+      previous warning and know what you are doing.\")")
+    endif()
+  endif()
+endif()
 
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
@@ -634,13 +699,14 @@ print_config("drat2er                   :" USE_DRAT2ER)
 print_config("GLPK                      :" USE_GLPK)
 print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
+print_config("LibPoly                   :" USE_POLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")
 else()
   message("MP library                : gmp")
 endif()
-print_config("Readline                  :" ${USE_READLINE})
+print_config("Editline                  :" ${USE_EDITLINE})
 print_config("SymFPU                    :" ${USE_SYMFPU})
 message("")
 if(ABC_DIR)
@@ -669,6 +735,9 @@ if(KISSAT_DIR)
 endif()
 if(LFSC_DIR)
   message("LFSC dir                  : ${LFSC_DIR}")
+endif()
+if(POLY_DIR)
+  message("LibPoly dir               : ${POLY_DIR}")
 endif()
 if(SYMFPU_DIR)
   message("SYMFPU dir                : ${SYMFPU_DIR}")

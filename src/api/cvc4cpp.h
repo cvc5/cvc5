@@ -36,11 +36,15 @@
 
 namespace CVC4 {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
 class Expr;
 class Datatype;
 class DatatypeConstructor;
 class DatatypeConstructorArg;
 class ExprManager;
+class NodeManager;
 class SmtEngine;
 class Type;
 class Options;
@@ -380,6 +384,12 @@ class CVC4_PUBLIC Sort
   bool isSet() const;
 
   /**
+   * Is this a Sequence sort?
+   * @return true if the sort is a Sequence sort
+   */
+  bool isSequence() const;
+
+  /**
    * Is this a sort kind?
    * @return true if this is a sort kind
    */
@@ -511,6 +521,13 @@ class CVC4_PUBLIC Sort
    * @return the element sort of a set sort
    */
   Sort getSetElementSort() const;
+
+  /* Sequence sort ------------------------------------------------------- */
+
+  /**
+   * @return the element sort of a sequence sort
+   */
+  Sort getSequenceElementSort() const;
 
   /* Uninterpreted sort -------------------------------------------------- */
 
@@ -661,6 +678,17 @@ class CVC4_PUBLIC Op
    */
   Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
 
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
+
   /**
    * Destructor.
    */
@@ -750,7 +778,7 @@ class CVC4_PUBLIC Op
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -778,6 +806,16 @@ class CVC4_PUBLIC Term
    * @return the Term
    */
   Term(const Solver* slv, const CVC4::Expr& e);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const Solver* slv, const CVC4::Node& n);
 
   /**
    * Constructor.
@@ -907,6 +945,13 @@ class CVC4_PUBLIC Term
   Term getConstArrayBase() const;
 
   /**
+   *  Return the elements of a constant sequence
+   *  throws an exception if the kind is not CONST_SEQUENCE
+   *  @return the elements of the constant sequence.
+   */
+  std::vector<Term> getConstSequenceElements() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
@@ -983,7 +1028,7 @@ class CVC4_PUBLIC Term
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
-                   const std::shared_ptr<CVC4::Expr>& e,
+                   const std::shared_ptr<CVC4::Node>& e,
                    uint32_t p);
 
     /**
@@ -1035,8 +1080,8 @@ class CVC4_PUBLIC Term
      * The associated solver object.
      */
     const Solver* d_solver;
-    /* The original expression to be iterated over */
-    std::shared_ptr<CVC4::Expr> d_orig_expr;
+    /* The original node to be iterated over */
+    std::shared_ptr<CVC4::Node> d_origNode;
     /* Keeps track of the iteration position */
     uint32_t d_pos;
   };
@@ -1055,6 +1100,10 @@ class CVC4_PUBLIC Term
   // to the new API. !!!
   CVC4::Expr getExpr(void) const;
 
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  const CVC4::Node& getNode(void) const;
+
  protected:
   /**
    * The associated solver object.
@@ -1069,12 +1118,19 @@ class CVC4_PUBLIC Term
   bool isNullHelper() const;
 
   /**
+   * Helper function that returns the kind of the term, which takes into
+   * account special cases of the conversion for internal to external kinds.
+   * @return the kind of this term
+   */
+  Kind getKindHelper() const;
+
+  /**
    * The internal expression wrapped by this term.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /**
@@ -2026,7 +2082,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Constructor.
-   * @param opts a pointer to a solver options object (for parser only)
+   * @param opts an optional pointer to a solver options object
    * @return the Solver
    */
   Solver(Options* opts = nullptr);
@@ -2185,6 +2241,13 @@ class CVC4_PUBLIC Solver
    * @return the set sort
    */
   Sort mkSetSort(Sort elemSort) const;
+
+  /**
+   * Create a sequence sort.
+   * @param elemSort the sort of the sequence elements
+   * @return the sequence sort
+   */
+  Sort mkSequenceSort(Sort elemSort) const;
 
   /**
    * Create an uninterpreted sort.
@@ -2549,6 +2612,13 @@ class CVC4_PUBLIC Solver
    * @return the character constant
    */
   Term mkChar(const char* s) const;
+
+  /**
+   * Create an empty sequence of the given element sort.
+   * @param sort The element sort of the sequence.
+   * @return the empty sequence with given element sort.
+   */
+  Term mkEmptySequence(Sort sort) const;
 
   /**
    * Create a universe set of the given sort.
@@ -3220,7 +3290,15 @@ class CVC4_PUBLIC Solver
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
+  NodeManager* getNodeManager(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
+
+  // !!! This is only temporarily available until options are refactored at
+  // the driver level. !!!
+  Options& getOptions(void);
 
  private:
   /* Helper to convert a vector of internal types to sorts. */
@@ -3305,6 +3383,7 @@ class CVC4_PUBLIC Solver
 // !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,

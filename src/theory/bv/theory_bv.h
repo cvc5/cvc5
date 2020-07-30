@@ -38,10 +38,11 @@ namespace CVC4 {
 namespace proof {
 class BitVectorProof;
 }
-}  // namespace CVC4
 
-namespace CVC4 {
 namespace theory {
+
+class ExtTheory;
+
 namespace bv {
 
 class CoreSolver;
@@ -65,10 +66,13 @@ class TheoryBV : public Theory {
   std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
-public:
-
-  TheoryBV(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
+ public:
+  TheoryBV(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr,
            std::string name = "");
 
   ~TheoryBV();
@@ -79,7 +83,7 @@ public:
 
   void finishInit() override;
 
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode n) override;
 
@@ -89,7 +93,7 @@ public:
 
   void propagate(Effort e) override;
 
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -100,27 +104,28 @@ public:
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
+                              std::map<Node, std::vector<Node>>& exp) override;
   int getReduction(int effort, Node n, Node& nr) override;
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   void enableCoreTheorySlicer();
 
-  Node ppRewrite(TNode t) override;
+  TrustNode ppRewrite(TNode t) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   void presolve() override;
 
-  bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
+  bool applyAbstraction(const std::vector<Node>& assertions,
+                        std::vector<Node>& new_assertions);
 
   void setProofLog(proof::BitVectorProof* bvp);
 
  private:
-
-  class Statistics {
-  public:
+  class Statistics
+  {
+   public:
     AverageStat d_avgConflictSize;
     IntStat     d_solveSubstitutions;
     TimerStat   d_solveTimer;
@@ -175,6 +180,9 @@ public:
 
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
+
+  /** Extended theory module, for context-dependent simplification. */
+  std::unique_ptr<ExtTheory> d_extTheory;
 
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it

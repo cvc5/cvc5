@@ -25,6 +25,7 @@
 #include "expr/dtype.h"
 #include "expr/node_manager_attributes.h"
 #include "expr/node_visitor.h"
+#include "expr/sequence.h"
 #include "options/bv_options.h"
 #include "options/language.h"
 #include "options/printer_options.h"
@@ -34,6 +35,7 @@
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
@@ -211,10 +213,32 @@ void Smt2Printer::toStream(std::ostream& out,
       out << '"';
       break;
     }
+    case kind::CONST_SEQUENCE:
+    {
+      const Sequence& sn = n.getConst<Sequence>();
+      const std::vector<Node>& snvec = sn.getVec();
+      if (snvec.empty())
+      {
+        out << "(as seq.empty " << n.getType() << ")";
+      }
+      if (snvec.size() > 1)
+      {
+        out << "(seq.++ ";
+      }
+      for (const Node& snvc : snvec)
+      {
+        out << "(seq.unit " << snvc << ")";
+      }
+      if (snvec.size() > 1)
+      {
+        out << ")";
+      }
+      break;
+    }
 
     case kind::STORE_ALL: {
       ArrayStoreAll asa = n.getConst<ArrayStoreAll>();
-      out << "((as const " << asa.getType() << ") " << asa.getExpr() << ")";
+      out << "((as const " << asa.getType() << ") " << asa.getValue() << ")";
       break;
     }
 
@@ -577,6 +601,10 @@ void Smt2Printer::toStream(std::ostream& out,
     parametricTypeChildren = true;
     out << smtKindString(k, d_variant) << " ";
     break;
+  case kind::IAND:
+    out << "(_ iand " << n.getOperator().getConst<IntAnd>().d_size << ") ";
+    stillNeedToPrintParams = false;
+    break;
 
   case kind::DIVISIBLE:
     out << "(_ divisible " << n.getOperator().getConst<Divisible>().k << ")";
@@ -602,6 +630,7 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   case kind::STRING_LENGTH:
   case kind::STRING_SUBSTR:
+  case kind::STRING_UPDATE:
   case kind::STRING_CHARAT:
   case kind::STRING_STRCTN:
   case kind::STRING_STRIDOF:
@@ -631,7 +660,10 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_LOOP:
   case kind::REGEXP_COMPLEMENT:
   case kind::REGEXP_EMPTY:
-  case kind::REGEXP_SIGMA: out << smtKindString(k, d_variant) << " "; break;
+  case kind::REGEXP_SIGMA:
+  case kind::SEQ_UNIT:
+  case kind::SEQ_NTH:
+  case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
   case kind::CARDINALITY_VALUE: out << "fmf.card.val "; break;
@@ -1005,6 +1037,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::PLUS: return "+";
   case kind::MULT:
   case kind::NONLINEAR_MULT: return "*";
+  case kind::IAND: return "iand";
   case kind::EXPONENTIAL: return "exp";
   case kind::SINE: return "sin";
   case kind::COSINE: return "cos";
@@ -1165,6 +1198,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CONCAT: return "str.++";
   case kind::STRING_LENGTH: return "str.len";
   case kind::STRING_SUBSTR: return "str.substr" ;
+  case kind::STRING_UPDATE: return "str.update";
   case kind::STRING_STRCTN: return "str.contains" ;
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
@@ -1196,6 +1230,9 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_RANGE: return "re.range";
   case kind::REGEXP_LOOP: return "re.loop";
   case kind::REGEXP_COMPLEMENT: return "re.comp";
+  case kind::SEQUENCE_TYPE: return "Seq";
+  case kind::SEQ_UNIT: return "seq.unit";
+  case kind::SEQ_NTH: return "seq.nth";
 
   //sep theory
   case kind::SEP_STAR: return "sep";
@@ -1264,7 +1301,8 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<DeclareSygusVarCommand>(out, c)
       || tryToStream<SygusConstraintCommand>(out, c)
       || tryToStream<SygusInvConstraintCommand>(out, c)
-      || tryToStream<CheckSynthCommand>(out, c))
+      || tryToStream<CheckSynthCommand>(out, c)
+      || tryToStream<GetAbductCommand>(out, c))
   {
     return;
   }
@@ -1456,51 +1494,6 @@ void Smt2Printer::toStream(std::ostream& out,
   {
     Unreachable();
   }
-}
-
-void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
-{
-  if (n.getKind() == kind::APPLY_CONSTRUCTOR)
-  {
-    TypeNode tn = n.getType();
-    const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
-    if (dt.isSygus())
-    {
-      int cIndex = Datatype::indexOf(n.getOperator().toExpr());
-      Assert(!dt[cIndex].getSygusOp().isNull());
-      SygusPrintCallback* spc = dt[cIndex].getSygusPrintCallback().get();
-      if (spc != nullptr && options::sygusPrintCallbacks())
-      {
-        spc->toStreamSygus(this, out, n.toExpr());
-      }
-      else
-      {
-        if (n.getNumChildren() > 0)
-        {
-          out << "(";
-        }
-        // print operator without letification (the fifth argument is set to 0).
-        toStream(out, dt[cIndex].getSygusOp(), -1, false, 0);
-        if (n.getNumChildren() > 0)
-        {
-          for (Node nc : n)
-          {
-            out << " ";
-            toStreamSygus(out, nc);
-          }
-          out << ")";
-        }
-      }
-      return;
-    }
-  }
-  Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
-  if (p.isNull())
-  {
-    p = n;
-  }
-  // cannot convert term to analog, print original, without letification.
-  toStream(out, p, -1, false, 0);
 }
 
 static void toStream(std::ostream& out, const AssertCommand* c)
@@ -2016,52 +2009,21 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
    --------------------------------------------------------------------------
 */
 
-static void toStream(std::ostream& out, const SynthFunCommand* c)
+static void toStreamSygusGrammar(std::ostream& out, const Type& t)
 {
-  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
-      << ' ';
-  Type type = c->getFunction().getType();
-  const std::vector<Expr>& vars = c->getVars();
-  Assert(!type.isFunction() || !vars.empty());
-  out << '(';
-  if (type.isFunction())
-  {
-    // print variable list
-    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
-    Assert(i != i_end);
-    out << '(' << *i << ' ' << i->getType() << ')';
-    ++i;
-    while (i != i_end)
-    {
-      out << " (" << *i << ' ' << i->getType() << ')';
-      ++i;
-    }
-    FunctionType ft = type;
-    type = ft.getRangeType();
-  }
-  out << ')';
-  // if not invariant-to-synthesize, print return type
-  if (!c->isInv())
-  {
-    out << ' ' << type;
-  }
-  // print grammar, if any
-  Type sygusType = c->getSygusType();
-  if (sygusType.isDatatype()
-      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  if (!t.isNull() && t.isDatatype()
+      && static_cast<DatatypeType>(t).getDatatype().isSygus())
   {
     std::stringstream types_predecl, types_list;
     std::set<Type> grammarTypes;
     std::list<Type> typesToPrint;
-    grammarTypes.insert(sygusType);
-    typesToPrint.push_back(sygusType);
+    grammarTypes.insert(t);
+    typesToPrint.push_back(t);
     NodeManager* nm = NodeManager::currentNM();
     // for each datatype in grammar
     //   name
     //   sygus type
     //   constructors in order
-    Printer* sygus_printer =
-        Printer::getPrinter(language::output::LANG_SYGUS_V2);
     do
     {
       Type curr = typesToPrint.front();
@@ -2094,8 +2056,8 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
           }
         }
         Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
-        // now, print it
-        sygus_printer->toStreamSygus(types_list, consToPrint);
+        // now, print it using the conversion to builtin with external
+        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint, true);
         types_list << ' ';
       }
       types_list << "))\n";
@@ -2103,6 +2065,39 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
 
     out << "\n(" << types_predecl.str() << ")\n(" << types_list.str() << ')';
   }
+}
+
+static void toStream(std::ostream& out, const SynthFunCommand* c)
+{
+  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
+      << ' ';
+  Type type = c->getFunction().getType();
+  const std::vector<Expr>& vars = c->getVars();
+  Assert(!type.isFunction() || !vars.empty());
+  out << '(';
+  if (type.isFunction())
+  {
+    // print variable list
+    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
+    Assert(i != i_end);
+    out << '(' << *i << ' ' << i->getType() << ')';
+    ++i;
+    while (i != i_end)
+    {
+      out << " (" << *i << ' ' << i->getType() << ')';
+      ++i;
+    }
+    FunctionType ft = type;
+    type = ft.getRangeType();
+  }
+  out << ')';
+  // if not invariant-to-synthesize, print return type
+  if (!c->isInv())
+  {
+    out << ' ' << type;
+  }
+  // print grammar, if any
+  toStreamSygusGrammar(out, c->getSygusType());
   out << ')';
 }
 
@@ -2147,6 +2142,18 @@ static void toStream(std::ostream& out, const SygusInvConstraintCommand* c)
 static void toStream(std::ostream& out, const CheckSynthCommand* c)
 {
   out << '(' << c->getCommandName() << ')';
+}
+
+static void toStream(std::ostream& out, const GetAbductCommand* c)
+{
+  out << '(';
+  out << c->getCommandName() << ' ';
+  out << c->getAbductName() << ' ';
+  out << c->getConjecture();
+
+  // print grammar, if any
+  toStreamSygusGrammar(out, c->getGrammarType());
+  out << ')';
 }
 
 /*

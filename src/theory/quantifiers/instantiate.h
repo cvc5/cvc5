@@ -81,6 +81,8 @@ class InstantiationRewriter
  */
 class Instantiate : public QuantifiersUtil
 {
+  typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
+
  public:
   Instantiate(QuantifiersEngine* qe, context::UserContext* u);
   ~Instantiate();
@@ -200,8 +202,12 @@ class Instantiate : public QuantifiersUtil
   Node getTermForType(TypeNode tn);
   //--------------------------------------end general utilities
 
-  /** debug print, called once per instantiation round. */
-  void debugPrint();
+  /**
+   * Debug print, called once per instantiation round. This prints
+   * instantiations added this round to trace inst-per-quant-round, if
+   * applicable, and prints to out if the option debug-inst is enabled.
+   */
+  void debugPrint(std::ostream& out);
   /** debug print model, called once, before we terminate with sat/unknown. */
   void debugPrintModel();
 
@@ -209,7 +215,8 @@ class Instantiate : public QuantifiersUtil
   /** print instantiations
    *
    * Print all instantiations for all quantified formulas on out,
-   * returns true if at least one instantiation was printed.
+   * returns true if at least one instantiation was printed. The type of output
+   * (list, num, etc.) is determined by printInstMode.
    */
   bool printInstantiations(std::ostream& out);
   /** get instantiated quantified formulas
@@ -323,6 +330,16 @@ class Instantiate : public QuantifiersUtil
    * if possible.
    */
   static Node ensureType(Node n, TypeNode tn);
+  /** print instantiations in list format */
+  bool printInstantiationsList(std::ostream& out);
+  /** print instantiations in num format */
+  bool printInstantiationsNum(std::ostream& out);
+  /**
+   * Print quantified formula q on output out. If isFull is false, then we print
+   * the identifier of the quantified formula if it has one, or print
+   * nothing and return false otherwise.
+   */
+  bool printQuant(Node q, std::ostream& out, bool isFull);
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
@@ -333,12 +350,10 @@ class Instantiate : public QuantifiersUtil
   /** instantiation rewriter classes */
   std::vector<InstantiationRewriter*> d_instRewrite;
 
-  /** statistics for debugging total instantiation */
-  int d_total_inst_count_debug;
   /** statistics for debugging total instantiations per quantifier */
-  std::map<Node, int> d_total_inst_debug;
+  NodeUIntMap d_total_inst_debug;
   /** statistics for debugging total instantiations per quantifier per round */
-  std::map<Node, int> d_temp_inst_debug;
+  std::map<Node, uint32_t> d_temp_inst_debug;
 
   /** list of all instantiations produced for each quantifier
    *

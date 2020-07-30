@@ -297,11 +297,10 @@ bool CegisCoreConnective::constructSolution(
   {
     Trace("sygus-ccore")
         << "CegisCoreConnective: Construct candidate solutions..." << std::endl;
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     for (unsigned i = 0, size = candidates.size(); i < size; i++)
     {
       std::stringstream ss;
-      p->toStreamSygus(ss, candidate_values[i]);
+      TermDbSygus::toStreamSygus(ss, candidate_values[i]);
       Trace("sygus-ccore") << "  " << candidates[i] << " -> " << ss.str()
                            << std::endl;
     }
@@ -735,9 +734,8 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
   {
     addSuccess = false;
     // try a new core
-    std::unique_ptr<SmtEngine> checkSol(
-        new SmtEngine(NodeManager::currentNM()->toExprManager()));
-    initializeSubsolver(checkSol.get());
+    std::unique_ptr<SmtEngine> checkSol;
+    initializeSubsolver(checkSol);
     Trace("sygus-ccore") << "----- Check candidate " << an << std::endl;
     std::vector<Node> rasserts = asserts;
     rasserts.push_back(d_sc);
@@ -746,7 +744,7 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
     Node query = rasserts.size() == 1 ? rasserts[0] : nm->mkNode(AND, rasserts);
     for (const Node& a : rasserts)
     {
-      checkSol->assertFormula(a.toExpr());
+      checkSol->assertFormula(a);
     }
     Result r = checkSol->checkSat();
     Trace("sygus-ccore") << "----- check-sat returned " << r << std::endl;
@@ -776,16 +774,15 @@ Node CegisCoreConnective::constructSolutionFromPool(Component& ccheck,
         {
           // In terms of Variant #2, this is the check "if S ^ U is unsat"
           Trace("sygus-ccore") << "----- Check side condition" << std::endl;
-          std::unique_ptr<SmtEngine> checkSc(
-              new SmtEngine(NodeManager::currentNM()->toExprManager()));
-          initializeSubsolver(checkSc.get());
+          std::unique_ptr<SmtEngine> checkSc;
+          initializeSubsolver(checkSc);
           std::vector<Node> scasserts;
           scasserts.insert(scasserts.end(), uasserts.begin(), uasserts.end());
           scasserts.push_back(d_sc);
           std::shuffle(scasserts.begin(), scasserts.end(), Random::getRandom());
           for (const Node& sca : scasserts)
           {
-            checkSc->assertFormula(sca.toExpr());
+            checkSc->assertFormula(sca);
           }
           Result rsc = checkSc->checkSat();
           Trace("sygus-ccore")

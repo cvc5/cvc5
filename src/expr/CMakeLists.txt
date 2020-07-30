@@ -12,8 +12,6 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
-  expr_sequence.cpp
-  expr_sequence.h
   kind_map.h
   lazy_proof.cpp
   lazy_proof.h
@@ -27,8 +25,6 @@ libcvc4_add_sources(
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h
-  node_manager_listeners.cpp
-  node_manager_listeners.h
   node_self_iterator.h
   node_trie.cpp
   node_trie.h

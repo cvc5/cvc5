@@ -23,7 +23,6 @@
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/smt2/smt2_input.h"
-#include "printer/sygus_print_callback.h"
 #include "util/bitvector.h"
 
 // ANTLR defines these, which is really bad!
@@ -156,18 +155,34 @@ void Smt2::addStringOperators() {
   addOperator(api::STRING_CHARAT, "str.at");
   addOperator(api::STRING_INDEXOF, "str.indexof");
   addOperator(api::STRING_REPLACE, "str.replace");
-  addOperator(api::STRING_REPLACE_RE, "str.replace_re");
-  addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
-  if (!strictModeEnabled())
-  {
-    addOperator(api::STRING_TOLOWER, "str.tolower");
-    addOperator(api::STRING_TOUPPER, "str.toupper");
-    addOperator(api::STRING_REV, "str.rev");
-  }
   addOperator(api::STRING_PREFIX, "str.prefixof");
   addOperator(api::STRING_SUFFIX, "str.suffixof");
   addOperator(api::STRING_FROM_CODE, "str.from_code");
   addOperator(api::STRING_IS_DIGIT, "str.is_digit");
+  addOperator(api::STRING_REPLACE_RE, "str.replace_re");
+  addOperator(api::STRING_REPLACE_RE_ALL, "str.replace_re_all");
+  if (!strictModeEnabled())
+  {
+    addOperator(api::STRING_UPDATE, "str.update");
+    addOperator(api::STRING_TOLOWER, "str.tolower");
+    addOperator(api::STRING_TOUPPER, "str.toupper");
+    addOperator(api::STRING_REV, "str.rev");
+    // sequence versions
+    addOperator(api::SEQ_CONCAT, "seq.++");
+    addOperator(api::SEQ_LENGTH, "seq.len");
+    addOperator(api::SEQ_EXTRACT, "seq.extract");
+    addOperator(api::SEQ_UPDATE, "seq.update");
+    addOperator(api::SEQ_AT, "seq.at");
+    addOperator(api::SEQ_CONTAINS, "seq.contains");
+    addOperator(api::SEQ_INDEXOF, "seq.indexof");
+    addOperator(api::SEQ_REPLACE, "seq.replace");
+    addOperator(api::SEQ_PREFIX, "seq.prefixof");
+    addOperator(api::SEQ_SUFFIX, "seq.suffixof");
+    addOperator(api::SEQ_REV, "seq.rev");
+    addOperator(api::SEQ_REPLACE_ALL, "seq.replace_all");
+    addOperator(api::SEQ_UNIT, "seq.unit");
+    addOperator(api::SEQ_NTH, "seq.nth");
+  }
   // at the moment, we only use this syntax for smt2.6
   if (getLanguage() == language::input::LANG_SMTLIB_V2_6
       || getLanguage() == language::input::LANG_SYGUS_V2)
@@ -319,8 +334,7 @@ bool Smt2::isTheoryEnabled(theory::TheoryId theory) const
 
 bool Smt2::isHoEnabled() const
 {
-  return getLogic().isHigherOrder()
-         && d_solver->getExprManager()->getOptions().getUfHo();
+  return getLogic().isHigherOrder() && d_solver->getOptions().getUfHo();
 }
 
 bool Smt2::logicIsSet() {
@@ -627,6 +641,11 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       defineVar("real.pi", d_solver->mkTerm(api::PI));
       addTranscendentalOperators();
     }
+    if (!strictModeEnabled())
+    {
+      // integer version of AND
+      addIndexedOperator(api::IAND, api::IAND, "iand");
+    }
   }
 
   if(d_logic.isTheoryEnabled(theory::THEORY_ARRAYS)) {
@@ -691,6 +710,10 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
       defineVar("re.nostr", d_solver->mkRegexpEmpty());
     }
     defineVar("re.allchar", d_solver->mkRegexpSigma());
+
+    // Boolean is a placeholder
+    defineVar("seq.empty",
+              d_solver->mkEmptySequence(d_solver->getBooleanSort()));
 
     addStringOperators();
   }
@@ -906,10 +929,6 @@ void Smt2::addSygusConstructorTerm(
   Trace("parser-sygus2") << "Purified operator " << op
                          << ", #args/cargs=" << args.size() << "/"
                          << cargs.size() << std::endl;
-  std::shared_ptr<SygusPrintCallback> spc;
-  // callback prints as the expression
-  spc = std::make_shared<printer::SygusExprPrintCallback>(
-      op.getExpr(), api::termVectorToExprs(args));
   if (!args.empty())
   {
     api::Term lbvl = d_solver->mkTerm(api::BOUND_VAR_LIST, args);
@@ -919,7 +938,7 @@ void Smt2::addSygusConstructorTerm(
   Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
                          << std::endl;
   dt.getDatatype().addSygusConstructor(
-      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs), spc);
+      op.getExpr(), ssCName.str(), api::sortVectorToTypes(cargs));
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,
@@ -982,7 +1001,7 @@ void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
 
 InputLanguage Smt2::getLanguage() const
 {
-  return d_solver->getExprManager()->getOptions().getInputLanguage();
+  return d_solver->getOptions().getInputLanguage();
 }
 
 void Smt2::parseOpApplyTypeAscription(ParseOp& p, api::Sort type)
@@ -1145,7 +1164,7 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     }
   }
   // Second phase: apply the arguments to the parse op
-  const Options& opts = d_solver->getExprManager()->getOptions();
+  const Options& opts = d_solver->getOptions();
   // handle special cases
   if (p.d_kind == api::CONST_ARRAY && !p.d_type.isNull())
   {

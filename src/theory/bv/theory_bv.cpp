@@ -49,8 +49,9 @@ TheoryBV::TheoryBV(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
+                   ProofNodeManager* pnm,
                    std::string name)
-    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, name),
+    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, pnm, name),
       d_context(c),
       d_alreadyPropagatedSet(c),
       d_sharedTermsSet(c),
@@ -65,6 +66,7 @@ TheoryBV::TheoryBV(context::Context* c,
       d_invalidateModelCache(c, true),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
+      d_extTheory(new ExtTheory(this)),
       d_propagatedBy(c),
       d_eagerSolver(),
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
@@ -74,9 +76,8 @@ TheoryBV::TheoryBV(context::Context* c,
       d_extf_range_infer(u),
       d_extf_collapse_infer(u)
 {
-  setupExtTheory();
-  getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
-  getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
+  d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
+  d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     d_eagerSolver.reset(new EagerBitblastSolver(c, this));
@@ -85,7 +86,7 @@ TheoryBV::TheoryBV(context::Context* c,
 
   if (options::bitvectorEqualitySolver() && !options::proof())
   {
-    d_subtheories.emplace_back(new CoreSolver(c, this));
+    d_subtheories.emplace_back(new CoreSolver(c, this, d_extTheory.get()));
     d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
@@ -194,15 +195,16 @@ void TheoryBV::finishInit()
   tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
-Node TheoryBV::expandDefinition(Node node)
+TrustNode TheoryBV::expandDefinition(Node node)
 {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
+  Node ret;
   switch (node.getKind()) {
   case kind::BITVECTOR_SDIV:
   case kind::BITVECTOR_SREM:
   case kind::BITVECTOR_SMOD:
-    return TheoryBVRewriter::eliminateBVSDiv(node);
+    ret = TheoryBVRewriter::eliminateBVSDiv(node);
     break;
 
   case kind::BITVECTOR_UDIV:
@@ -212,7 +214,8 @@ Node TheoryBV::expandDefinition(Node node)
 
     if (options::bitvectorDivByZeroConst()) {
       Kind kind = node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL : kind::BITVECTOR_UREM_TOTAL;
-      return nm->mkNode(kind, node[0], node[1]);
+      ret = nm->mkNode(kind, node[0], node[1]);
+      break;
     }
 
     TNode num = node[0], den = node[1];
@@ -221,17 +224,18 @@ Node TheoryBV::expandDefinition(Node node)
 				     kind::BITVECTOR_UREM_TOTAL, num, den);
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
-    node = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
-    return node;
+    ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
   }
     break;
 
   default:
-    return node;
     break;
   }
-
-  Unreachable();
+  if (!ret.isNull() && node != ret)
+  {
+    return TrustNode::mkTrustRewrite(node, ret, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::preRegisterTerm(TNode node) {
@@ -258,9 +262,10 @@ void TheoryBV::preRegisterTerm(TNode node) {
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     d_subtheories[i]->preRegister(node);
   }
-  
-  // AJR : equality solver currently registers all terms to ExtTheory, if we want a lazy reduction without the bv equality solver, need to call this
-  //getExtTheory()->registerTermRec( node );
+
+  // AJR : equality solver currently registers all terms to ExtTheory, if we
+  // want a lazy reduction without the bv equality solver, need to call this
+  // d_extTheory->registerTermRec( node );
 }
 
 void TheoryBV::sendConflict() {
@@ -315,7 +320,7 @@ void TheoryBV::check(Effort e)
   
   //last call : do reductions on extended bitvector functions
   if (e == Theory::EFFORT_LAST_CALL) {
-    std::vector<Node> nred = getExtTheory()->getActive();
+    std::vector<Node> nred = d_extTheory->getActive();
     doExtfReductions(nred);
     return;
   }
@@ -400,7 +405,8 @@ void TheoryBV::check(Effort e)
   if (Theory::fullEffort(e)) {
     //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
     std::vector< Node > nred;
-    if( getExtTheory()->doInferences( 0, nred ) ){
+    if (d_extTheory->doInferences(0, nred))
+    {
       return;
     }
     d_needsLastCallCheck = false;
@@ -509,7 +515,8 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
 
 bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
   std::vector< Node > nredr;
-  if( getExtTheory()->doReductions( 0, terms, nredr ) ){
+  if (d_extTheory->doReductions(0, terms, nredr))
+  {
     return true;
   }
   Assert(nredr.empty());
@@ -709,7 +716,7 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-Node TheoryBV::ppRewrite(TNode t)
+TrustNode TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
@@ -790,7 +797,11 @@ Node TheoryBV::ppRewrite(TNode t)
     d_abstractionModule->addInputAtom(res);
   }
   Debug("bv-pp-rewrite") << "to   " << res << "\n";
-  return res;
+  if (res != t)
+  {
+    return TrustNode::mkTrustRewrite(t, res, nullptr);
+  }
+  return TrustNode::null();
 }
 
 void TheoryBV::presolve() {
@@ -851,22 +862,26 @@ void TheoryBV::explain(TNode literal, std::vector<TNode>& assumptions) {
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
 
-
-Node TheoryBV::explain(TNode node) {
+TrustNode TheoryBV::explain(TNode node)
+{
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation
   explain(node, assumptions);
   // this means that it is something true at level 0
+  Node explanation;
   if (assumptions.size() == 0) {
-    return utils::mkTrue();
+    explanation = utils::mkTrue();
   }
-  // return the explanation
-  Node explanation = utils::mkAnd(assumptions);
+  else
+  {
+    // return the explanation
+    explanation = utils::mkAnd(assumptions);
+  }
   Debug("bitvector::explain") << "TheoryBV::explain(" << node << ") => " << explanation << std::endl;
   Debug("bitvector::explain") << "TheoryBV::explain done. \n";
-  return explanation;
+  return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
 

@@ -249,7 +249,6 @@ header = "options/bv_options.h"
   long       = "bv-intro-pow2"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "introduce bitvector powers of two as a preprocessing pass"
 
 [[option]]

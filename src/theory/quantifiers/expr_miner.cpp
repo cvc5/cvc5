@@ -69,32 +69,18 @@ Node ExprMiner::convertToSkolem(Node n)
   return n.substitute(sfvs.begin(), sfvs.end(), sks.begin(), sks.end());
 }
 
-void ExprMiner::initializeChecker(SmtEngine* checker,
-                                  ExprManager* em,
-                                  ExprManagerMapCollection& varMap,
-                                  Node query,
-                                  bool& needExport)
+void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
+                                  Node query)
 {
+  Assert (!query.isNull());
+  initializeSubsolver(checker);
+  // also set the options
+  checker->setOption("sygus-rr-synth-input", false);
+  checker->setOption("input-language", "smt2");
   // Convert bound variables to skolems. This ensures the satisfiability
   // check is ground.
   Node squery = convertToSkolem(query);
-  if (options::sygusExprMinerCheckUseExport())
-  {
-    initializeSubsolverWithExport(checker,
-                                  em,
-                                  varMap,
-                                  squery.toExpr(),
-                                  true,
-                                  options::sygusExprMinerCheckTimeout());
-    checker->setOption("sygus-rr-synth-input", false);
-    checker->setOption("input-language", "smt2");
-    needExport = true;
-  }
-  else
-  {
-    initializeSubsolver(checker, squery.toExpr());
-    needExport = false;
-  }
+  checker->assertFormula(squery);
 }
 
 Result ExprMiner::doCheck(Node query)
@@ -111,18 +97,8 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  // This is only temporarily until we have separate options for each
-  // SmtEngine instance. We should reuse the same ExprManager with
-  // a different SmtEngine (and different options) here, eventually.
-  // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  NodeManager* nm = NodeManager::currentNM();
-  bool needExport = false;
-  api::Solver slv(&nm->getOptions());
-  ExprManager* em = slv.getExprManager();
-  SmtEngine* smte = slv.getSmtEngine();
-  ExprManagerMapCollection varMap;
-  initializeChecker(smte, em, varMap, queryr, needExport);
+  std::unique_ptr<SmtEngine> smte;
+  initializeChecker(smte, query);
   return smte->checkSat();
 }
 

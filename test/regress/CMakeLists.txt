@@ -861,6 +861,21 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
+  regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
+  regress0/seq/seq-2var.smt2
+  regress0/seq/seq-ex1.smt2
+  regress0/seq/seq-ex2.smt2
+  regress0/seq/seq-ex3.smt2
+  regress0/seq/seq-ex4.smt2
+  regress0/seq/seq-ex5-dd.smt2
+  regress0/seq/seq-ex5.smt2
+  regress0/seq/seq-nemp.smt2
+  regress0/seq/seq-nth.smt2
+  regress0/seq/seq-nth-uf.smt2
+  regress0/seq/seq-nth-uf-z.smt2
+  regress0/seq/seq-nth-undef.smt2        
+  regress0/seq/seq-rewrites.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
   regress0/sets/abt-te-exh2.smt2
@@ -1036,6 +1051,7 @@ set(regress_0_tests
   regress0/sygus/parse-bv-let.sy
   regress0/sygus/pbe-pred-contra.sy
   regress0/sygus/pLTL-sygus-syntax-err.sy
+  regress0/sygus/print-debug.sy
   regress0/sygus/print-define-fun.sy
   regress0/sygus/real-si-all.sy
   regress0/sygus/sygus-no-wf.sy
@@ -1393,6 +1409,7 @@ set(regress_1_tests
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
+  regress1/nl/iand-native-1.smt2
   regress1/nl/issue3300-approx-sqrt-witness.smt2
   regress1/nl/issue3441.smt2
   regress1/nl/issue3617.smt2
@@ -1559,6 +1576,7 @@ set(regress_1_tests
   regress1/quantifiers/issue4243-prereg-inc.smt2
   regress1/quantifiers/issue4290-cegqi-r.smt2
   regress1/quantifiers/issue4620-erq-witness-unsound.smt2
+  regress1/quantifiers/issue4685-wrewrite.smt2
   regress1/quantifiers/issue993.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
@@ -1592,6 +1610,8 @@ set(regress_1_tests
   regress1/quantifiers/qcft-smtlib3dbc51.smt2
   regress1/quantifiers/qe-partial.smt2
   regress1/quantifiers/qe.smt2
+  regress1/quantifiers/qid.smt2
+  regress1/quantifiers/qid-debug-inst.smt2
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/recfact.cvc
@@ -1788,6 +1808,9 @@ set(regress_1_tests
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
   regress1/strings/issue4608-re-derive.smt2
+  regress1/strings/issue4735.smt2
+  regress1/strings/issue4735_2.smt2
+  regress1/strings/issue4759-comp-delta.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1860,6 +1883,8 @@ set(regress_1_tests
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
+  regress1/strings/update-ex1.smt2
+  regress1/strings/update-ex2.smt2
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-ex1-grammar.smt2
   regress1/sygus-abduct-test.smt2
@@ -1892,6 +1917,7 @@ set(regress_1_tests
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
   regress1/sygus/error1-dt.sy
+  regress1/sygus/eval-uc.sy
   regress1/sygus/extract.sy
   regress1/sygus/fast-enum-backtrack.sy
   regress1/sygus/fg_polynomial3.sy
@@ -2102,6 +2128,8 @@ set(regress_2_tests
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
+  regress2/strings/update-ex3.smt2
+  regress2/strings/update-ex4-seq.smt2
   regress2/sygus/DRAGON_1.lus.sy
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
@@ -2146,6 +2174,7 @@ set(regress_3_tests
   regress3/incorrect1.smtv1.smt2
   regress3/issue2429.smt2
   regress3/issue4170.smt2
+  regress3/issue4714.smt2
   regress3/pp-regfile.smtv1.smt2
   regress3/qwh.35.405.shuffled-as.sat03-1651.smtv1.smt2
   regress3/siegel-nl-bases.smt2

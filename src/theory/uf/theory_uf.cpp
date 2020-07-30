@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "expr/node_algorithm.h"
+#include "expr/proof_node_manager.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
@@ -45,8 +46,9 @@ TheoryUF::TheoryUF(context::Context* c,
                    OutputChannel& out,
                    Valuation valuation,
                    const LogicInfo& logicInfo,
+                   ProofNodeManager* pnm,
                    std::string instanceName)
-    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, instanceName),
+    : Theory(THEORY_UF, c, u, out, valuation, logicInfo, pnm, instanceName),
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
@@ -61,6 +63,12 @@ TheoryUF::TheoryUF(context::Context* c,
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    d_ufProofChecker.registerTo(pc);
+  }
 }
 
 TheoryUF::~TheoryUF() {
@@ -159,7 +167,7 @@ void TheoryUF::check(Effort level) {
         }else{
           // support for cardinality constraints is not enabled, set incomplete
           d_out->setIncomplete();
-        } 
+        }
       }
       //needed for models
       if( options::produceModels() ){
@@ -201,7 +209,7 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
   return node.getKind()==kind::APPLY_UF ? 0 : 1;
 }
 
-Node TheoryUF::expandDefinition(Node node)
+TrustNode TheoryUF::expandDefinition(Node node)
 {
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
                       << node << std::endl;
@@ -216,10 +224,10 @@ Node TheoryUF::expandDefinition(Node node)
     {
       Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
                           << node << " to " << ret << std::endl;
-      return ret;
+      return TrustNode::mkTrustRewrite(node, ret, nullptr);
     }
   }
-  return node;
+  return TrustNode::null();
 }
 
 void TheoryUF::preRegisterTerm(TNode node) {
@@ -304,8 +312,10 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
   Debug("pf::uf") << std::endl;
 }
 
-Node TheoryUF::explain(TNode literal) {
-  return explain(literal, NULL);
+TrustNode TheoryUF::explain(TNode literal)
+{
+  Node exp = explain(literal, NULL);
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {

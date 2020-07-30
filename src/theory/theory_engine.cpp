@@ -41,6 +41,7 @@
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
@@ -173,6 +174,7 @@ void TheoryEngine::eqNotifyNewClass(TNode t){
 
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
+                           ResourceManager* rm,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo)
     : d_propEngine(nullptr),
@@ -205,7 +207,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_true(),
       d_false(),
       d_interrupted(false),
-      d_resourceManager(NodeManager::currentResourceManager()),
+      d_resourceManager(rm),
       d_inPreregister(false),
       d_factsAsserted(context, false),
       d_preRegistrationVisitor(this, context),
@@ -620,8 +622,7 @@ void TheoryEngine::combineTheories() {
     lemma(equality.orNode(equality.notNode()),
           RULE_INVALID,
           false,
-          false,
-          false,
+          LemmaProperty::NONE,
           carePair.d_theory);
 
     // This code is supposed to force preference to follow what the theory models already have
@@ -1401,7 +1402,8 @@ Node TheoryEngine::getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRe
                              << " Responsible theory is: "
                              << theoryOf(atom)->getId() << std::endl;
 
-    Node explanation = theoryOf(atom)->explain(node);
+    TrustNode texplanation = theoryOf(atom)->explain(node);
+    Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
     PROOF({
         if(proofRecipe) {
@@ -1585,9 +1587,9 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 theory::LemmaStatus TheoryEngine::lemma(TNode node,
                                         ProofRule rule,
                                         bool negated,
-                                        bool removable,
-                                        bool preprocess,
-                                        theory::TheoryId atomsTo) {
+                                        theory::LemmaProperty p,
+                                        theory::TheoryId atomsTo)
+{
   // For resource-limiting (also does a time check).
   // spendResource();
 
@@ -1607,11 +1609,28 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     Dump("t-lemmas") << CommentCommand("theory lemma: expect valid")
                      << CheckSatCommand(n.toExpr());
   }
+  bool removable = isLemmaPropertyRemovable(p);
+  bool preprocess = isLemmaPropertyPreprocess(p);
 
-  // the assertion pipeline storing the lemmas
-  AssertionPipeline lemmas;
   // call preprocessor
-  d_tpp.preprocess(node, lemmas, preprocess);
+  std::vector<TrustNode> newLemmas;
+  std::vector<Node> newSkolems;
+  TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
+
+  // must use an assertion pipeline due to decision engine below
+  AssertionPipeline lemmas;
+  // make the assertion pipeline
+  lemmas.push_back(tlemma.getNode());
+  lemmas.updateRealAssertionsEnd();
+  Assert(newSkolems.size() == newLemmas.size());
+  for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)
+  {
+    // store skolem mapping here
+    IteSkolemMap& imap = lemmas.getIteSkolemMap();
+    imap[newSkolems[i]] = lemmas.size();
+    lemmas.push_back(newLemmas[i].getNode());
+  }
+
   // assert lemmas to prop engine
   for (size_t i = 0, lsize = lemmas.size(); i < lsize; ++i)
   {
@@ -1688,8 +1707,11 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     Node fullConflict = mkExplanation(explanationVector);
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    lemma(fullConflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
-
+    lemma(fullConflict,
+          RULE_CONFLICT,
+          true,
+          LemmaProperty::REMOVABLE,
+          THEORY_LAST);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
@@ -1718,7 +1740,7 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
         ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
       });
 
-    lemma(conflict, RULE_CONFLICT, true, true, false, THEORY_LAST);
+    lemma(conflict, RULE_CONFLICT, true, LemmaProperty::REMOVABLE, THEORY_LAST);
   }
 
   PROOF({
@@ -1785,6 +1807,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
           new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
     }
   });
+  // cache of nodes we have already explained by some theory
+  std::unordered_map<Node, size_t, NodeHashFunction> cache;
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -1794,6 +1818,14 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         << "[i=" << i << "] TheoryEngine::explain(): processing ["
         << toExplain.d_timestamp << "] " << toExplain.d_node << " sent from "
         << toExplain.d_theory << endl;
+
+    if (cache.find(toExplain.d_node) != cache.end()
+        && cache[toExplain.d_node] < toExplain.d_timestamp)
+    {
+      ++i;
+      continue;
+    }
+    cache[toExplain.d_node] = toExplain.d_timestamp;
 
     // If a true constant or a negation of a false constant we can ignore it
     if (toExplain.d_node.isConst() && toExplain.d_node.getConst<bool>())
@@ -1867,7 +1899,6 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
       }
     }
 
-    // It was produced by the theory, so ask for an explanation
     Node explanation;
     if (toExplain.d_theory == THEORY_BUILTIN)
     {
@@ -1876,7 +1907,8 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     }
     else
     {
-      explanation = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      TrustNode texp = theoryOf(toExplain.d_theory)->explain(toExplain.d_node);
+      explanation = texp.getNode();
       Debug("theory::explain") << "\tTerm was propagated by owner theory: "
                                << theoryOf(toExplain.d_theory)->getId()
                                << ". Explanation: " << explanation << std::endl;
@@ -2008,11 +2040,8 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
   }
 }
 
-std::pair<bool, Node> TheoryEngine::entailmentCheck(
-    options::TheoryOfMode mode,
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* seffects)
+std::pair<bool, Node> TheoryEngine::entailmentCheck(options::TheoryOfMode mode,
+                                                    TNode lit)
 {
   TNode atom = (lit.getKind() == kind::NOT) ? lit[0] : lit;
   if( atom.getKind()==kind::AND || atom.getKind()==kind::OR || atom.getKind()==kind::IMPLIES ){
@@ -2025,7 +2054,7 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
       if( pol==( lit.getKind()==kind::IMPLIES && i==0 ) ){
         ch = atom[i].negate();
       }
-      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      std::pair<bool, Node> chres = entailmentCheck(mode, ch);
       if( chres.first ){
         if( !is_conjunction ){
           return chres;
@@ -2048,13 +2077,13 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
       if( r==1 ){
         ch = ch.negate();
       }
-      std::pair<bool, Node> chres = entailmentCheck( mode, ch, params, seffects );
+      std::pair<bool, Node> chres = entailmentCheck(mode, ch);
       if( chres.first ){
         Node ch2 = atom[ atom.getKind()==kind::ITE ? r+1 : 1 ];
         if( pol==( atom.getKind()==kind::ITE ? true : r==1 ) ){
           ch2 = ch2.negate();
         }
-        std::pair<bool, Node> chres2 = entailmentCheck( mode, ch2, params, seffects );
+        std::pair<bool, Node> chres2 = entailmentCheck(mode, ch2);
         if( chres2.first ){
           return std::pair<bool, Node>(true, NodeManager::currentNM()->mkNode(kind::AND, chres.second, chres2.second));
         }else{
@@ -2069,11 +2098,9 @@ std::pair<bool, Node> TheoryEngine::entailmentCheck(
     theory::Theory* th = theoryOf(tid);
 
     Assert(th != NULL);
-    Assert(params == NULL || tid == params->getTheoryId());
-    Assert(seffects == NULL || tid == seffects->getTheoryId());
     Trace("theory-engine-entc") << "Entailment check : " << lit << std::endl;
 
-    std::pair<bool, Node> chres = th->entailmentCheck(lit, params, seffects);
+    std::pair<bool, Node> chres = th->entailmentCheck(lit);
     return chres;
   }
 }
