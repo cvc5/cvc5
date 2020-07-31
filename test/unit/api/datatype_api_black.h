@@ -560,7 +560,6 @@ void DatatypeBlack::testDatatypeSpecializedCons()
   TS_ASSERT(dtsorts.size() == 1);
   Datatype d = dtsorts[0].getDatatype();
   DatatypeConstructor nilc = d[0];
-  DatatypeConstructor consc = d[1];
 
   Sort isort = d_solver.getIntegerSort();
   std::vector<Sort> iargs;
