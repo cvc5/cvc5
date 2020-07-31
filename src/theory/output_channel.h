@@ -60,6 +60,8 @@ bool isLemmaPropertyRemovable(LemmaProperty p);
 bool isLemmaPropertyPreprocess(LemmaProperty p);
 /** is the send atoms bit set on p? */
 bool isLemmaPropertySendAtoms(LemmaProperty p);
+/** is the needs justify bit set on p? */
+bool isLemmaPropertyNeedsJustify(LemmaProperty p);
 
 /**
  * Writes an lemma property name to a stream.

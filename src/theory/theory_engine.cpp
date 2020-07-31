@@ -1658,7 +1658,10 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     lemmas.push_back(newLemmas[i].getNode());
   }
 
-  if (d_relManager != nullptr && ((p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE))
+  // If specified, we must add this lemma to the set of those that need to be
+  // justified, where note we pass all auxiliary lemmas in lemmas, since these
+  // by extension must be justified as well.
+  if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
   {
     d_relManager->notifyPreprocessedAssertions(lemmas.ref());
   }

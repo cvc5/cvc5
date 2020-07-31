@@ -59,7 +59,8 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
     else
     {
-      // TODO: always relevant literals?
+      // note that a could be a literal, in which case we could add it to
+      // an "always relevant" set here.
       d_input.push_back(a);
     }
     i++;
@@ -88,9 +89,10 @@ void RelevanceManager::computeRelevance()
     int val = justify(n, cache);
     if (val != 1)
     {
-      Trace("rel-manager") << "WARNING: failed to justify " << n << ", fail..."
-                           << std::endl;
-      AlwaysAssert(false);
+      std::stringstream serr;
+      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify " << n;
+      Trace("rel-manager") << serr.str() << std::endl;
+      Assert(false) << serr.str();
       d_success = false;
       return;
     }
