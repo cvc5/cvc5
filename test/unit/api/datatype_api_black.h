@@ -37,6 +37,7 @@ class DatatypeBlack : public CxxTest::TestSuite
   void testDatatypeSimplyRec();
 
   void testDatatypeSpecializedCons();
+
  private:
   Solver d_solver;
 };
@@ -560,16 +561,17 @@ void DatatypeBlack::testDatatypeSpecializedCons()
   Datatype d = dtsorts[0].getDatatype();
   DatatypeConstructor nilc = d[0];
   DatatypeConstructor consc = d[1];
-  
+
   Sort isort = d_solver.getIntegerSort();
   std::vector<Sort> iargs;
   iargs.push_back(isort);
   Sort urListInt = unresList.instantiate(iargs);
-  
+
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
-  TS_ASSERT_THROWS_NOTHING(testConsTerm = nilc.getSpecializedConstructor(urListInt));
-  TS_ASSERT(testConsTerm!=nilc.getConstructorTerm());
+  TS_ASSERT_THROWS_NOTHING(testConsTerm =
+                               nilc.getSpecializedConstructor(urListInt));
+  TS_ASSERT(testConsTerm != nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
   TS_ASSERT_THROWS(nilc.getSpecializedConstructor(isort), CVC4ApiException&);
 }
