@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file datatype.cpp
+/*! \file datatype_index.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
@@ -11,7 +11,7 @@
  **
  ** \brief A class representing an index to a datatype living in NodeManager.
  **/
-#include "expr/datatype.h"
+#include "expr/datatype_index.h"
 
 #include <string>
 #include <sstream>

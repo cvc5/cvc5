@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file datatype.h
+/*! \file datatype_index.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef CVC4__DATATYPE_H
-#define CVC4__DATATYPE_H
+#ifndef CVC4__DATATYPE_INDEX_H
+#define CVC4__DATATYPE_INDEX_H
 
 #include <iostream>
 #include "util/hash.h"
