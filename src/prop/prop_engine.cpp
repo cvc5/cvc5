@@ -531,11 +531,16 @@ void PropEngine::registerPropagatedTheoryLiteral(Node lit)
                        << " already has generator\n";
     return;
   }
-  // defer to d_pfCnfStream to justify it, which could be the case for example
-  // for unit clauses l1, ..., ln derived from input assertion l1 ^ ... ^ ln
-  d_proof.addLazyStep(lit, d_pfCnfStream.get());
-  Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
-                     << " to be justified by cnf conversion\n";
+  // need to guard because if proofs are not on this is null
+  if (d_pfCnfStream.get())
+  {
+    // defer to d_pfCnfStream to justify it, which could be the case for
+    // example
+    // for unit clauses l1, ..., ln derived from input assertion l1 ^ ... ^ ln
+    d_proof.addLazyStep(lit, d_pfCnfStream.get());
+    Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
+                       << " to be justified by cnf conversion\n";
+  }
 }
 
 void PropEngine::explainPropagation(theory::TrustNode trn)
