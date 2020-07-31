@@ -157,6 +157,16 @@ def testGetSetElementSort():
     with pytest.raises(Exception):
         bvSort.getSetElementSort()
 
+def testGetSequenceElementSort():
+    solver = pycvc4.Solver()
+    seqSort = solver.mkSequenceSort(solver.getIntegerSort())
+    seqSort.getSequenceElementSort()
+    bvSort = solver.mkBitVectorSort(32)
+    assert not bvSort.isSequence()
+
+    with pytest.raises(Exception):
+        bvSort.getSetElementSort()
+
 def testGetUninterpretedSortName():
     solver = pycvc4.Solver()
     uSort = solver.mkUninterpretedSort("u")

@@ -9,16 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
- ** in the top-level source directory) and their institutional affiliations.
- ** All rights reserved.  See the file COPYING in the top-level source
- ** directory for licensing information.\endverbatim
- **
  ** \brief Implements variable orderings tailored to CAD.
  **
  ** Implements variable orderings tailored to CAD.
  **/
+
+#include "cvc4_private.h"
 
 #ifndef CVC4__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
 #define CVC4__THEORY__ARITH__NL__CAD__VARIABLE_ORDERING_H
@@ -29,7 +25,7 @@
 
 #include <poly/polyxx.h>
 
-#include "constraints.h"
+#include "theory/arith/nl/cad/constraints.h"
 #include "util/poly_util.h"
 
 namespace CVC4 {
@@ -64,7 +60,7 @@ class VariableOrdering
  * If with_totals is set, the last element of the vector contains totals as
  * computed by get_variable_information if no variable is specified.
  */
-std::vector<poly_utils::VariableInformation> collect_information(
+std::vector<poly_utils::VariableInformation> collectInformation(
     const Constraints::ConstraintVector& polys, bool with_totals = false);
 
 }  // namespace cad

@@ -308,6 +308,10 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad/cdcac.cpp
+  theory/arith/nl/cad/cdcac.h
+  theory/arith/nl/cad/cdcac_utils.cpp
+  theory/arith/nl/cad/cdcac_utils.h
   theory/arith/nl/cad/constraints.cpp
   theory/arith/nl/cad/constraints.h
   theory/arith/nl/cad/projections.cpp

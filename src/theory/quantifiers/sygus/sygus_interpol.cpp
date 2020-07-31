@@ -127,8 +127,14 @@ void SygusInterpol::getIncludeCons(
     expr::getOperatorsMap(conj, include_cons_conj);
 
     // Compute intersection
-    for (auto& [tn, axiomsOps] : include_cons_axioms)
+    for (std::map<TypeNode,
+                  std::unordered_set<Node, NodeHashFunction>>::iterator it =
+             include_cons_axioms.begin();
+         it != include_cons_axioms.end();
+         it++)
     {
+      TypeNode tn = it->first;
+      std::unordered_set<Node, NodeHashFunction> axiomsOps = it->second;
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
           concIter = include_cons_conj.find(tn);
       if (concIter != include_cons_conj.end())
