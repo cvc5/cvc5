@@ -1489,13 +1489,13 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the constructor term
    */
   Term getConstructorTerm() const;
-  
+
   /**
    * Get the constructor operator of this datatype constructor whose return
    * type is retSort. This method is intended to be used on constructors of
    * parametric datatypes and can be seen as returning the constructor
    * term that has been explicitly cast to the given sort.
-   * 
+   *
    * This method is required for constructors of parametric datatypes whose
    * return type cannot be determined by type inference. For example, given:
    *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
@@ -1504,7 +1504,7 @@ class CVC4_PUBLIC DatatypeConstructor
    *   (as nil (List Int))
    * This method is equivalent of applying the above, where this
    * DatatypeConstructor is the one corresponding to nil, and retSort is
-   * (List Int). 
+   * (List Int).
    *
    * Furthermore note that the returned constructor term t is an operator,
    * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above

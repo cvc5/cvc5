@@ -2140,14 +2140,15 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
 {
   NodeManager* nm = d_solver->getNodeManager();
   // apply type ascription to the operator
-  Term sctor = api::Term(d_solver,
-                   nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                              nm->mkConst(AscriptionType(
-                                  d_ctor
-                                      ->getSpecializedConstructorType(
-                                          TypeNode::fromType(retSort.getType()))
-                                      .toType())),
-                              d_ctor->getConstructor()));
+  Term sctor =
+      api::Term(d_solver,
+                nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                           nm->mkConst(AscriptionType(
+                               d_ctor
+                                   ->getSpecializedConstructorType(
+                                       TypeNode::fromType(retSort.getType()))
+                                   .toType())),
+                           d_ctor->getConstructor()));
   return sctor;
 }
 
