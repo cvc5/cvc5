@@ -75,4 +75,10 @@ void ProofNode::printDebug(std::ostream& os) const
   os << ps;
 }
 
+std::ostream& operator<<(std::ostream& out, const ProofNode& pn)
+{
+  pn.printDebug(out);
+  return out;
+}
+
 }  // namespace CVC4
