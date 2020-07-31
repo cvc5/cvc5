@@ -20,7 +20,7 @@ from pycvc4 import kinds
 if __name__ == "__main__":
     slv = pycvc4.Solver()
     # Set the logic
-    slv.setLogic("S")
+    slv.setLogic("QF_SLIA")
     # Produce models
     slv.setOption("produce-models", "true")
     # The option strings-exp is needed
