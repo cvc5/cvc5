@@ -23,26 +23,29 @@
 #include "expr/node.h"
 
 namespace CVC4 {
-  
+
 class SmtEngine;
 
 namespace smt {
 
 /** A listener for resource outs */
-class ResourceOutListener : public Listener {
+class ResourceOutListener : public Listener
+{
  public:
   ResourceOutListener(SmtEngine& smt);
   /** notify method, interupts SmtEngine */
   void notify() override;
+
  private:
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;
 };
-  
+
 /**
  * A listener for node manager calls, which impacts certain dumping traces.
  */
-class SmtNodeManagerListener : public NodeManagerListener {
+class SmtNodeManagerListener : public NodeManagerListener
+{
  public:
   SmtNodeManagerListener(SmtEngine& smt);
   /** Notify when new sort is created */
@@ -60,11 +63,11 @@ class SmtNodeManagerListener : public NodeManagerListener {
                          uint32_t flags) override;
   /** Notify when a term is deleted */
   void nmNotifyDeleteNode(TNode n) override {}
-private:
+
+ private:
   /** Reference to the smt engine */
   SmtEngine& d_smt;
 };
-
 
 }  // namespace smt
 }  // namespace CVC4

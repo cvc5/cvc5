@@ -34,7 +34,6 @@
 #include "base/configuration.h"
 #include "base/configuration_private.h"
 #include "base/exception.h"
-#include "smt/listeners.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "context/cdhashmap.h"
@@ -86,6 +85,7 @@
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
+#include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
@@ -161,7 +161,8 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
  * one) becomes an "interface shell" which simply acts as a forwarder
  * of method calls.
  */
-class SmtEnginePrivate{
+class SmtEnginePrivate
+{
   SmtEngine& d_smt;
 
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;

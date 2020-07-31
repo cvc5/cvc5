@@ -14,15 +14,14 @@
 
 #include "smt/listeners.h"
 
-#include "options/smt_options.h"
-#include "smt/smt_engine.h"
-#include "smt/command.h"
 #include "expr/attribute.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/dump.h"
 #include "expr/expr.h"
 #include "expr/node_manager_attributes.h"
-
+#include "options/smt_options.h"
+#include "smt/command.h"
+#include "smt/dump.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 
 namespace CVC4 {
 namespace smt {
@@ -36,35 +35,31 @@ void ResourceOutListener::notify()
   d_smt.interrupt();
 }
 
-
-SmtNodeManagerListener::SmtNodeManagerListener(SmtEngine& smt)
-    : d_smt(smt)
-{
-}
+SmtNodeManagerListener::SmtNodeManagerListener(SmtEngine& smt) : d_smt(smt) {}
 
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
-  DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                        0,
-                        tn.toType());
-  if((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0) {
+  DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn.toType());
+  if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
+  {
     d_smt.addToModelCommandAndDump(c, flags);
   }
 }
 
-void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags)
+void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
+                                                        uint32_t flags)
 {
   DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                        tn.getAttribute(expr::SortArityAttr()),
-                        tn.toType());
+                       tn.getAttribute(expr::SortArityAttr()),
+                       tn.toType());
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
     d_smt.addToModelCommandAndDump(c);
   }
 }
 
-void SmtNodeManagerListener::nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts,
-                          uint32_t flags)
+void SmtNodeManagerListener::nmNotifyNewDatatypes(
+    const std::vector<DatatypeType>& dtts, uint32_t flags)
 {
   if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
   {
@@ -76,24 +71,26 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(const std::vector<DatatypeType
 
 void SmtNodeManagerListener::nmNotifyNewVar(TNode n, uint32_t flags)
 {
-  DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
-                            n.toExpr(),
-                            n.getType().toType());
-  if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
+  DeclareFunctionCommand c(
+      n.getAttribute(expr::VarNameAttr()), n.toExpr(), n.getType().toType());
+  if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
+  {
     d_smt.addToModelCommandAndDump(c, flags);
   }
 }
 
 void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
-                        const std::string& comment,
-                        uint32_t flags)
+                                               const std::string& comment,
+                                               uint32_t flags)
 {
   std::string id = n.getAttribute(expr::VarNameAttr());
   DeclareFunctionCommand c(id, n.toExpr(), n.getType().toType());
-  if(Dump.isOn("skolems") && comment != "") {
+  if (Dump.isOn("skolems") && comment != "")
+  {
     Dump("skolems") << CommentCommand(id + " is " + comment);
   }
-  if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
+  if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
+  {
     d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
   }
 }
