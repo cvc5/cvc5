@@ -565,12 +565,12 @@ void DatatypeBlack::testDatatypeSpecializedCons()
   Sort isort = d_solver.getIntegerSort();
   std::vector<Sort> iargs;
   iargs.push_back(isort);
-  Sort urListInt = unresList.instantiate(iargs);
+  Sort listInt = dtsorts[0].instantiate(iargs);
 
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
   TS_ASSERT_THROWS_NOTHING(testConsTerm =
-                               nilc.getSpecializedConstructorTerm(urListInt));
+                               nilc.getSpecializedConstructorTerm(listInt));
   TS_ASSERT(testConsTerm != nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
   TS_ASSERT_THROWS(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException&);
