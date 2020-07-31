@@ -1667,7 +1667,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       Trace("te-proof-debug")
           << "=== Initial proof from " << tlemma.identifyGenerator();
       Trace("te-proof-debug") << std::endl << *ppn.get() << std::endl;
-      Assert(ppn->isClosed());
+      AlwaysAssert(ppn->isClosed());
     }
   }
 
@@ -1738,7 +1738,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
       std::shared_ptr<ProofNode> pn = tlemma.toProofNode();
       Trace("te-proof-debug") << *pn.get();
       Trace("te-proof-debug") << std::endl << "====" << std::endl;
-      Assert(pn->isClosed());
+      AlwaysAssert(pn->isClosed());
     }
   }
   d_propEngine->assertLemma(tlemma, removable, rule, node);
@@ -1747,8 +1747,11 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
     if (Trace.isOn("te-proof-debug"))
     {
+      Trace("te-proof-debug") << "=== Proof of " << newLemmas[i].getProven();
+      Trace("te-proof-debug") << " from " << newLemmas[i].identifyGenerator();
       std::shared_ptr<ProofNode> pn = newLemmas[i].toProofNode();
-      Assert(pn->isClosed());
+      Trace("te-proof-debug") << *pn.get() << std::endl;
+      AlwaysAssert(pn->isClosed());
     }
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
