@@ -23,7 +23,8 @@
 namespace CVC4 {
 
 /* stores an index to Datatype residing in NodeManager */
-class CVC4_PUBLIC DatatypeIndexConstant {
+class CVC4_PUBLIC DatatypeIndexConstant
+{
  public:
   DatatypeIndexConstant(unsigned index);
 
@@ -52,17 +53,19 @@ class CVC4_PUBLIC DatatypeIndexConstant {
   {
     return !(*this < uc);
   }
-private:
+
+ private:
   const unsigned d_index;
-};/* class DatatypeIndexConstant */
+}; /* class DatatypeIndexConstant */
 
-std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out,
+                         const DatatypeIndexConstant& dic) CVC4_PUBLIC;
 
-struct CVC4_PUBLIC DatatypeIndexConstantHashFunction {
+struct CVC4_PUBLIC DatatypeIndexConstantHashFunction
+{
   size_t operator()(const DatatypeIndexConstant& dic) const;
-};/* struct DatatypeIndexConstantHashFunction */
+}; /* struct DatatypeIndexConstantHashFunction */
 
-
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__DATATYPE_H */

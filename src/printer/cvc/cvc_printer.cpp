@@ -211,9 +211,8 @@ void CvcPrinter::toStream(
       break;
 
     case kind::DATATYPE_TYPE: {
-      const DType& dt =
-          NodeManager::currentNM()->getDTypeForIndex(
-              n.getConst<DatatypeIndexConstant>().getIndex());
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
+          n.getConst<DatatypeIndexConstant>().getIndex());
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
@@ -224,7 +223,9 @@ void CvcPrinter::toStream(
           out << t;
         }
         out << ']';
-      }else if( false ){//dt.isRecord() ){
+      }
+      else if (false)
+      {  // dt.isRecord() ){
         out << "[# ";
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
           if (i > 0) {
@@ -413,15 +414,17 @@ void CvcPrinter::toStream(
           }
         }
         else if (t.toType().isRecord())
-        {     
+        {
           const DType& dt = t.getDType();
           const DTypeConstructor& recCons = dt[0];
           out << "(# ";
-          for (size_t i=0, nargs=recCons.getNumArgs(); i<nargs; i++){
-            if(i!=0) {
+          for (size_t i = 0, nargs = recCons.getNumArgs(); i < nargs; i++)
+          {
+            if (i != 0)
+            {
               out << ", ";
             }
-            out << recCons[i].getName()  << " := ";
+            out << recCons[i].getName() << " := ";
             toStream(out, n[i], depth, types, false);
           }
           out << " #)";
@@ -447,8 +450,7 @@ void CvcPrinter::toStream(
         {
           toStream(op, opn, depth, types, false);
         }
-        else if (t.isTuple()
-                 || t.isRecord())
+        else if (t.isTuple() || t.isRecord())
         {
           toStream(out, n[0], depth, types, true);
           out << '.';
@@ -1514,7 +1516,7 @@ static void toStream(std::ostream& out,
   Assert(!datatypes.empty() && datatypes[0].isDatatype());
   const DType& dt0 = TypeNode::fromType(datatypes[0]).getDType();
   //do not print tuple/datatype internal declarations
-  if (datatypes.size() != 1 || (!dt0.isTuple()))//&& !dt0.isRecord()))
+  if (datatypes.size() != 1 || (!dt0.isTuple()))  //&& !dt0.isRecord()))
   {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
@@ -1536,19 +1538,21 @@ static void toStream(std::ostream& out,
         out << ']';
       }
       out << " = ";
-      for (size_t j=0, ncons = dt.getNumConstructors(); j<ncons; j++)
+      for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
       {
         const DTypeConstructor& cons = dt[j];
-        if(j!=0) {
+        if (j != 0)
+        {
           out << " | ";
         }
         out << cons.getName();
         if (cons.getNumArgs() > 0)
         {
           out << '(';
-          for (size_t k=0, nargs = cons.getNumArgs(); k<nargs; k++)
+          for (size_t k = 0, nargs = cons.getNumArgs(); k < nargs; k++)
           {
-            if(k!=0) {
+            if (k != 0)
+            {
               out << ", ";
             }
             const DTypeSelector& selector = cons[k];

@@ -236,7 +236,7 @@ class DType
 
   /** set that this datatype is a tuple */
   void setTuple();
-  
+
   /** set that this datatype is a recird */
   void setRecord();
 
@@ -266,7 +266,7 @@ class DType
 
   /** is this a tuple datatype? */
   bool isTuple() const;
-  
+
   /** is this a record datatype? */
   bool isRecord() const;
 

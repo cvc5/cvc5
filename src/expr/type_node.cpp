@@ -396,7 +396,7 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
   return params;
 }
 
-bool TypeNode::isTuple() const 
+bool TypeNode::isTuple() const
 {
   return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
 }

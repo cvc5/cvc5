@@ -377,10 +377,11 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   return visited[n];
 }
 
-
-TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name, std::set<TypeNode>& unres) {
+TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
+                                                 std::set<TypeNode>& unres)
+{
   TypeNode unresolved = NodeManager::currentNM()->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert( unresolved );
+  unres.insert(unresolved);
   return unresolved;
 }
 
@@ -1407,9 +1408,8 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   }
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
-  std::vector<TypeNode> types =
-      NodeManager::currentNM()->mkMutualDatatypeTypes(
-          datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
   return types[0];

@@ -222,7 +222,8 @@ public:
   };
 
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
-  static TypeNode mkUnresolvedType(const std::string& name, std::set<TypeNode>& unres);
+  static TypeNode mkUnresolvedType(const std::string& name,
+                                   std::set<TypeNode>& unres);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor(TypeNode range,
                                           std::vector<TypeNode>& types);

@@ -132,7 +132,6 @@ class SygusDatatype
   std::vector<SygusDatatypeConstructor> d_cons;
   /** Datatype to represent type's structure */
   DType d_dt;
-
 };
 
 }  // namespace CVC4

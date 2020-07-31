@@ -419,8 +419,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // set that this is a sygus datatype
     sdttl.initializeDatatype(t, sygusVarList, false, false);
     DType dttl = sdttl.getDatatype();
-    TypeNode tlt = nm->mkDatatypeType(
-        dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+    TypeNode tlt =
+        nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
     tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
     Trace("srs-input") << tlt.getDType() << std::endl;

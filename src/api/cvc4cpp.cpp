@@ -38,6 +38,7 @@
 
 #include "base/check.h"
 #include "base/configuration.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -47,7 +48,6 @@
 #include "expr/node_manager.h"
 #include "expr/sequence.h"
 #include "expr/type.h"
-#include "expr/dtype.h"
 #include "options/main_options.h"
 #include "options/options.h"
 #include "options/smt_options.h"
@@ -1960,8 +1960,8 @@ std::string DatatypeConstructorDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::DTypeConstructor&
-DatatypeConstructorDecl::getDatatypeConstructor(void) const
+const CVC4::DTypeConstructor& DatatypeConstructorDecl::getDatatypeConstructor(
+    void) const
 {
   return *d_ctor;
 }
@@ -1987,8 +1987,7 @@ DatatypeDecl::DatatypeDecl() : d_solver(nullptr), d_dtype(nullptr) {}
 DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
-    : d_solver(slv),
-      d_dtype(new CVC4::DType(name, isCoDatatype))
+    : d_solver(slv), d_dtype(new CVC4::DType(name, isCoDatatype))
 {
 }
 
@@ -1997,9 +1996,10 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            Sort param,
                            bool isCoDatatype)
     : d_solver(slv),
-      d_dtype(new CVC4::DType(name,
-                                 std::vector<TypeNode>{TypeNode::fromType(*param.d_type)},
-                                 isCoDatatype))
+      d_dtype(new CVC4::DType(
+          name,
+          std::vector<TypeNode>{TypeNode::fromType(*param.d_type)},
+          isCoDatatype))
 {
 }
 
@@ -2028,7 +2028,9 @@ void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
   d_dtype->addConstructor(ctor.d_ctor);
 }
 
-void DatatypeDecl::addSygusConstructor(Term op, std::string name, const std::vector<Sort>& args)
+void DatatypeDecl::addSygusConstructor(Term op,
+                                       std::string name,
+                                       const std::vector<Sort>& args)
 {
   CVC4_API_CHECK_NOT_NULL;
   std::vector<TypeNode> cargst;
@@ -2041,7 +2043,8 @@ void DatatypeDecl::addSygusConstructor(Term op, std::string name, const std::vec
 
 void DatatypeDecl::setSygus(Sort st, Term bvl, bool allowConst, bool allowAll)
 {
-  d_dtype->setSygus(TypeNode::fromType(st.getType()), bvl.getNode(), allowConst, allowAll);
+  d_dtype->setSygus(
+      TypeNode::fromType(st.getType()), bvl.getNode(), allowConst, allowAll);
 }
 
 size_t DatatypeDecl::getNumConstructors() const
@@ -2117,8 +2120,7 @@ std::string DatatypeSelector::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DTypeSelector DatatypeSelector::getDatatypeConstructorArg(
-    void) const
+CVC4::DTypeSelector DatatypeSelector::getDatatypeConstructorArg(void) const
 {
   return *d_stor;
 }
@@ -2155,14 +2157,16 @@ Term DatatypeConstructor::getConstructorTerm() const
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
 {
-  NodeManager * nm = d_solver->getNodeManager();
+  NodeManager* nm = d_solver->getNodeManager();
   // apply type ascription to the operator
-  return api::Term(
-      d_solver,
-      nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                  nm->mkConst(AscriptionType(
-                      d_ctor->getSpecializedConstructorType(TypeNode::fromType(retSort.getType())).toType())),
-                  d_ctor->getConstructor()));
+  return api::Term(d_solver,
+                   nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                              nm->mkConst(AscriptionType(
+                                  d_ctor
+                                      ->getSpecializedConstructorType(
+                                          TypeNode::fromType(retSort.getType()))
+                                      .toType())),
+                              d_ctor->getConstructor()));
 }
 
 Term DatatypeConstructor::getTesterTerm() const
@@ -2283,7 +2287,7 @@ bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
 
 bool Datatype::isTuple() const { return d_dtype->isTuple(); }
 
-bool Datatype::isRecord() const { return false; }//d_dtype->isRecord(); }
+bool Datatype::isRecord() const { return false; }  // d_dtype->isRecord(); }
 
 bool Datatype::isFinite() const { return d_dtype->isFinite(); }
 bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
@@ -2996,7 +3000,8 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
   CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
       << "a datatype declaration with at least one constructor";
 
-  return Sort(this, getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype).toType());
+  return Sort(this,
+              getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

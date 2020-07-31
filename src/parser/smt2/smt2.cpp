@@ -937,8 +937,7 @@ void Smt2::addSygusConstructorTerm(
   }
   Trace("parser-sygus2") << "addSygusConstructor:  operator " << op
                          << std::endl;
-  dt.addSygusConstructor(
-      op, ssCName.str(), cargs);
+  dt.addSygusConstructor(op, ssCName.str(), cargs);
 }
 
 api::Term Smt2::purifySygusGTerm(api::Term term,
@@ -993,8 +992,7 @@ void Smt2::addSygusConstructorVariables(api::DatatypeDecl& dt,
       std::stringstream ss;
       ss << v;
       std::vector<api::Sort> cargs;
-      dt.addSygusConstructor(
-          v, ss.str(), cargs);
+      dt.addSygusConstructor(v, ss.str(), cargs);
     }
   }
 }
@@ -1240,10 +1238,8 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       parseError(ss.str());
     }
     const api::Datatype& dt = t.getDatatype();
-    api::Term ret =
-        d_solver->mkTerm(api::APPLY_SELECTOR,
-                         dt[0][n].getSelectorTerm(),
-                         args[0]);
+    api::Term ret = d_solver->mkTerm(
+        api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }

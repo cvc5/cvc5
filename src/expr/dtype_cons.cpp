@@ -288,7 +288,7 @@ int DTypeConstructor::getSelectorIndexForName(const std::string& name) const
 {
   for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
   {
-    if (d_args[i]->getName()==name)
+    if (d_args[i]->getName() == name)
     {
       return i;
     }

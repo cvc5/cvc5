@@ -221,18 +221,20 @@ void DType::addConstructor(std::shared_ptr<DTypeConstructor> c)
 }
 
 void DType::addSygusConstructor(Node op,
-                                   const std::string& cname,
-                                   const std::vector<TypeNode>& cargs,
-                                   int weight)
+                                const std::string& cname,
+                                const std::vector<TypeNode>& cargs,
+                                int weight)
 {
   // avoid name clashes
   std::stringstream ss;
   ss << getName() << "_" << getNumConstructors() << "_" << cname;
   std::string name = ss.str();
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
-  std::shared_ptr<DTypeConstructor> c = std::make_shared<DTypeConstructor>(name, cweight);
+  std::shared_ptr<DTypeConstructor> c =
+      std::make_shared<DTypeConstructor>(name, cweight);
   c->setSygus(op);
-  for( size_t j=0, nargs =cargs.size(); j<nargs; j++ ){
+  for (size_t j = 0, nargs = cargs.size(); j < nargs; j++)
+  {
     std::stringstream sname;
     sname << name << "_" << j;
     c->addArg(sname.str(), cargs[j]);
@@ -275,12 +277,13 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
       std::stringstream ss;
       ss << getName() << "_" << getNumConstructors() << "_" << op;
       // it has zero weight
-      std::shared_ptr<DTypeConstructor> c = std::make_shared<DTypeConstructor>(ss.str(), 0);
+      std::shared_ptr<DTypeConstructor> c =
+          std::make_shared<DTypeConstructor>(ss.str(), 0);
       c->setSygus(op);
       addConstructor(c);
     }
   }
-  
+
   d_sygusType = st;
   d_sygusBvl = bvl;
   d_sygusAllowConst = allowConst || allowAll;

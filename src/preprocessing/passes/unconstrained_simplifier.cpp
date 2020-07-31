@@ -18,10 +18,10 @@
 
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
+#include "expr/dtype.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
-#include "expr/dtype.h"
 
 namespace CVC4 {
 namespace preprocessing {

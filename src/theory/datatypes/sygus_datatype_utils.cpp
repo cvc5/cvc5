@@ -742,9 +742,8 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
     datatypes.push_back(sdts[i].getDatatype());
   }
   // make the datatype types
-  std::vector<TypeNode> datatypeTypes =
-      nm->mkMutualDatatypeTypes(
-          datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   TypeNode sdtS = datatypeTypes[0];
   if (Trace.isOn("dtsygus-gen-debug"))
   {

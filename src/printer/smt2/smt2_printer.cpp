@@ -903,11 +903,19 @@ void Smt2Printer::toStream(std::ostream& out,
         if (isVariant_2_6(d_variant))
         {
           out << "(_ is ";
-          toStream(out, dt[cindex].getConstructor(), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
+          toStream(out,
+                   dt[cindex].getConstructor(),
+                   toDepth < 0 ? toDepth : toDepth - 1,
+                   types,
+                   TypeNode::null());
           out << ")";
         }else{
           out << "is-";
-          toStream(out, dt[cindex].getConstructor(), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
+          toStream(out,
+                   dt[cindex].getConstructor(),
+                   toDepth < 0 ? toDepth : toDepth - 1,
+                   types,
+                   TypeNode::null());
         }
       }else{
         toStream(out, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
@@ -1846,20 +1854,20 @@ static void toStream(std::ostream& out, const GetOptionCommand* c)
   out << "(get-option :" << c->getFlag() << ")";
 }
 
-static void toStream(std::ostream& out, const DType & dt) {
-  for (size_t i=0, ncons = dt.getNumConstructors(); i<ncons; i++)
+static void toStream(std::ostream& out, const DType& dt)
+{
+  for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     const DTypeConstructor& cons = dt[i];
-    if( i!=0 )
+    if (i != 0)
     {
       out << " ";
     }
     out << "(" << CVC4::quoteSymbol(cons.getName());
-    for (size_t j=0, nargs= cons.getNumArgs(); j<nargs; j++)
+    for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
     {
       const DTypeSelector& arg = cons[j];
-      out << " (" << arg.getSelector() << " "
-          << arg.getRangeType() << ")";
+      out << " (" << arg.getSelector() << " " << arg.getRangeType() << ")";
     }
     out << ")";
   }
@@ -2031,8 +2039,7 @@ static void toStreamSygusGrammar(std::ostream& out, const Type& t)
     {
       TypeNode curr = typesToPrint.front();
       typesToPrint.pop_front();
-      Assert(curr.isDatatype()
-             && curr.getDType().isSygus());
+      Assert(curr.isDatatype() && curr.getDType().isSygus());
       const DType& dt = curr.getDType();
       types_list << '(' << dt.getName() << ' ' << dt.getSygusType() << " (";
       types_predecl << '(' << dt.getName() << ' ' << dt.getSygusType() << ") ";
@@ -2040,13 +2047,13 @@ static void toStreamSygusGrammar(std::ostream& out, const Type& t)
       {
         types_list << "(Constant " << dt.getSygusType() << ") ";
       }
-      for (size_t i=0, ncons = dt.getNumConstructors(); i<ncons; i++)
+      for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
         const DTypeConstructor& cons = dt[i];
         // make a sygus term
         std::vector<Node> cchildren;
         cchildren.push_back(cons.getConstructor());
-        for (size_t j=0, nargs= cons.getNumArgs(); j<nargs; j++)
+        for (size_t j = 0, nargs = cons.getNumArgs(); j < nargs; j++)
         {
           TypeNode argType = cons[j].getRangeType();
           std::stringstream ss;

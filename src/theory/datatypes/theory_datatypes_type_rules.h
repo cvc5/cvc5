@@ -284,7 +284,8 @@ struct RecordUpdateTypeRule {
       }
       const DType& dt = recordType.getDType();
       const DTypeConstructor& recCons = dt[0];
-      if (recCons.getSelectorIndexForName(ru.getField())==-1) {
+      if (recCons.getSelectorIndexForName(ru.getField()) == -1)
+      {
         std::stringstream ss;
         ss << "Record-update field `" << ru.getField()
            << "' is not a valid field name for the record type";

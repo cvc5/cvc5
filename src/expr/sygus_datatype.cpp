@@ -18,10 +18,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-SygusDatatype::SygusDatatype(const std::string& name)
-    : d_dt(DType(name))
-{
-}
+SygusDatatype::SygusDatatype(const std::string& name) : d_dt(DType(name)) {}
 
 std::string SygusDatatype::getName() const { return d_dt.getName(); }
 
@@ -90,9 +87,11 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
     std::vector<TypeNode>& cargs = d_cons[i].d_argTypes;
     int cweight = d_cons[i].d_weight;
     cweight = cweight >= 0 ? cweight : (cargs.empty() ? 0 : 1);
-    std::shared_ptr<DTypeConstructor> c = std::make_shared<DTypeConstructor>(name, cweight);
+    std::shared_ptr<DTypeConstructor> c =
+        std::make_shared<DTypeConstructor>(name, cweight);
     c->setSygus(d_cons[i].d_op);
-    for( size_t j=0, nargs =cargs.size(); j<nargs; j++ ){
+    for (size_t j = 0, nargs = cargs.size(); j < nargs; j++)
+    {
       std::stringstream sname;
       sname << name << "_" << j;
       c->addArg(sname.str(), cargs[j]);

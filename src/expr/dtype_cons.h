@@ -205,9 +205,9 @@ class DTypeConstructor
    * of this constructor, then this method returns
    *   stoa(T,C,index)
    */
-  int getSelectorIndexInternal(Node sel) const; 
-  /** get selector index for name 
-   * 
+  int getSelectorIndexInternal(Node sel) const;
+  /** get selector index for name
+   *
    * Returns the index of selector with the given name, or -1 if it
    * does not exist.
    */

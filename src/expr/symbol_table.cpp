@@ -26,10 +26,10 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/type.h"
-#include "expr/dtype.h"
 
 namespace CVC4 {
 

@@ -146,7 +146,8 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
   }
 
-  void testDTypesFinite() {
+  void testDTypesFinite()
+  {
     DType dt(d_nm, "Colors");
     dt.addConstructor(DTypeConstructor("red"));
     dt.addConstructor(DTypeConstructor("orange"));
@@ -156,18 +157,34 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     dt.addConstructor(DTypeConstructor("violet"));
     TypeNode datatype = TypeNode::fromType(d_nm->mkDatatypeType(dt));
     TypeEnumerator te(datatype);
-    TS_ASSERT_EQUALS(*te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("red")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("orange")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("yellow")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("green")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("blue")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, datatype.getDType().getConstructor("violet")));
+    TS_ASSERT_EQUALS(*te,
+                     d_nm->mkNode(APPLY_CONSTRUCTOR,
+                                  datatype.getDType().getConstructor("red")));
+    TS_ASSERT_EQUALS(
+        *++te,
+        d_nm->mkNode(APPLY_CONSTRUCTOR,
+                     datatype.getDType().getConstructor("orange")));
+    TS_ASSERT_EQUALS(
+        *++te,
+        d_nm->mkNode(APPLY_CONSTRUCTOR,
+                     datatype.getDType().getConstructor("yellow")));
+    TS_ASSERT_EQUALS(*++te,
+                     d_nm->mkNode(APPLY_CONSTRUCTOR,
+                                  datatype.getDType().getConstructor("green")));
+    TS_ASSERT_EQUALS(*++te,
+                     d_nm->mkNode(APPLY_CONSTRUCTOR,
+                                  datatype.getDType().getConstructor("blue")));
+    TS_ASSERT_EQUALS(
+        *++te,
+        d_nm->mkNode(APPLY_CONSTRUCTOR,
+                     datatype.getDType().getConstructor("violet")));
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
-  void testDTypesInfinite1() {
+  void testDTypesInfinite1()
+  {
     DType colors("Colors");
     colors.addConstructor(DTypeConstructor("red"));
     colors.addConstructor(DTypeConstructor("orange"));
@@ -182,15 +199,20 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     consC.addArg("cdr", DTypeSelfType());
     listColors.addConstructor(consC);
     listColors.addConstructor(DTypeConstructor("nil"));
-    TypeNode listColorsType = TypeNode::fromType(d_nm->mkDatatypeType(listColors));
+    TypeNode listColorsType =
+        TypeNode::fromType(d_nm->mkDatatypeType(listColors));
 
     TypeEnumerator te(listColorsType);
     TS_ASSERT( ! te.isFinished() );
     Node cons = listColorsType.getDType().getConstructor("cons");
-    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, listColorsType.getDType().getConstructor("nil"));
-    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, colorsType.getDType().getConstructor("red"));
-    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, colorsType.getDType().getConstructor("orange"));
-    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, colorsType.getDType().getConstructor("yellow"));
+    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR,
+                            listColorsType.getDType().getConstructor("nil"));
+    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR,
+                            colorsType.getDType().getConstructor("red"));
+    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR,
+                               colorsType.getDType().getConstructor("orange"));
+    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR,
+                               colorsType.getDType().getConstructor("yellow"));
     TS_ASSERT_EQUALS(*te, nil);
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
     TS_ASSERT( ! te.isFinished() );
@@ -213,7 +235,8 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
   }
 
-  void NOTYETtestDTypesInfinite2() {
+  void NOTYETtestDTypesInfinite2()
+  {
     //TypeNode datatype;
     //TypeEnumerator te(datatype);
     //TS_ASSERT( ! te.isFinished() );

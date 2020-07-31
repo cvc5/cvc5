@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
-#include "expr/node.h"
 #include "expr/dtype.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {

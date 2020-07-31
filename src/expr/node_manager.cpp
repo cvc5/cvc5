@@ -525,9 +525,9 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
 
       typeNode = mkTypeNode(kind::PARAMETRIC_DATATYPE, params);
     }
-    AlwaysAssert(nameResolutions.find(dtc->getName()) == nameResolutions.end()) <<
-                  "cannot construct two datatypes at the same time "
-                  "with the same name";
+    AlwaysAssert(nameResolutions.find(dtc->getName()) == nameResolutions.end())
+        << "cannot construct two datatypes at the same time "
+           "with the same name";
     nameResolutions.insert(std::make_pair(dtc->getName(), typeNode));
     dtts.push_back(typeNode);
   }
@@ -550,8 +550,9 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     std::string name = ut.getAttribute(expr::VarNameAttr());
     std::map<std::string, TypeNode>::const_iterator resolver =
         nameResolutions.find(name);
-    AlwaysAssert(resolver != nameResolutions.end()) <<
-                  "cannot resolve type " + name + "; it's not among the datatypes being defined";
+    AlwaysAssert(resolver != nameResolutions.end())
+        << "cannot resolve type " + name
+               + "; it's not among the datatypes being defined";
     // We will instruct the Datatype to substitute "ut" (the
     // unresolved SortType used as a placeholder in complex types)
     // with "(*resolver).second" (the TypeNode we created in the
@@ -615,7 +616,8 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
       dt.setTuple();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
-      std::shared_ptr<DTypeConstructor> c = std::make_shared<DTypeConstructor>(ssc.str());
+      std::shared_ptr<DTypeConstructor> c =
+          std::make_shared<DTypeConstructor>(ssc.str());
       for (unsigned i = 0; i < types.size(); ++ i) {
         std::stringstream ss;
         ss << sst.str() << "_stor_" << i;
@@ -644,7 +646,8 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
-      std::shared_ptr<DTypeConstructor> c = std::make_shared<DTypeConstructor>(ssc.str());
+      std::shared_ptr<DTypeConstructor> c =
+          std::make_shared<DTypeConstructor>(ssc.str());
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         c->addArg((*i).first, TypeNode::fromType((*i).second));
       }
