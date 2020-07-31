@@ -274,7 +274,7 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
       std::stringstream ss;
       ss << op;
       std::vector<TypeNode> cargs;
-      addSygusConstructor(op, ss.str(), cargs, weight);
+      addSygusConstructor(op, ss.str(), cargs);
       /*
       // use same naming convention as SygusDatatype
       std::stringstream ss;
