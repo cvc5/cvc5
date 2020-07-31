@@ -564,7 +564,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         if(assigns[var(ps[0])] == l_Undef) {
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          Debug("cores") << "i'm registering a unit clause " << ps[0] << ", input" << std::endl;
+          Debug("cores") << "i'm registering a unit clause " << ps[0]
+                         << ", input" << std::endl;
           PROOF(
                 if(ps.size() == 1) {
                   id = ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT);
@@ -683,7 +684,9 @@ void Solver::removeClause(CRef cr) {
       // this propagation here.
       if (CVC4::options::proofNew())
       {
-        Debug("pf::sat") << "Solver::removeClause: eagerly compute propagation of " << c[0] << "\n";
+        Debug("pf::sat")
+            << "Solver::removeClause: eagerly compute propagation of " << c[0]
+            << "\n";
         d_proxy->getPropEngine()->tryJustifyingLit(
             MinisatSatSolver::toSatLiteral(c[0]));
       }

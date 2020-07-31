@@ -1651,7 +1651,6 @@ void TheoryArrays::setNonLinear(TNode a)
 
 }
 
-
 void TheoryArrays::mergeArrays(TNode a, TNode b)
 {
   // Note: a is the new representative

@@ -87,8 +87,7 @@ public:
     return LemmaStatus(Node::null(), 0);
   }
 
-  LemmaStatus trustedLemma(TrustNode n,
-                           LemmaProperty p) override
+  LemmaStatus trustedLemma(TrustNode n, LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
     return LemmaStatus(Node::null(), 0);

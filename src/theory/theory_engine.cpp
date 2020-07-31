@@ -1920,7 +1920,11 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       });
 
     // pass the trust node that was sent from the theory
-    lemma(tconflict, RULE_CONFLICT, LemmaProperty::REMOVABLE, THEORY_LAST, theoryId);
+    lemma(tconflict,
+          RULE_CONFLICT,
+          LemmaProperty::REMOVABLE,
+          THEORY_LAST,
+          theoryId);
   }
 
   PROOF({

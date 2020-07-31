@@ -104,7 +104,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
     if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
     {
-      if (args.size()<=1)
+      if (args.size() <= 1)
       {
         return Node::null();
       }
@@ -112,7 +112,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
       lchildren.push_back(args[1]);
       rchildren.push_back(args[1]);
     }
-    else if (args.size()>1)
+    else if (args.size() > 1)
     {
       return Node::null();
     }

@@ -1154,7 +1154,7 @@ void QuantifiersEngine::flushLemmas(){
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
       Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      out.requirePhase( it->first, it->second );
+      out.requirePhase(it->first, it->second);
     }
     d_phase_req_waiting.clear();
   }

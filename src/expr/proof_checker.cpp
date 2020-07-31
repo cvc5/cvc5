@@ -98,7 +98,7 @@ bool ProofRuleChecker::getKind(TNode n, Kind& k)
 
 Node ProofRuleChecker::mkKindNode(Kind k)
 {
-  if (k==UNDEFINED_KIND)
+  if (k == UNDEFINED_KIND)
   {
     // UNDEFINED_KIND is negative, hence return null to avoid cast
     return Node::null();

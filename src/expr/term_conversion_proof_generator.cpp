@@ -115,12 +115,13 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s)
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 {
-  Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << identify() << ": " << f
-                        << std::endl;
+  Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << identify()
+                        << ": " << f << std::endl;
   if (f.getKind() != EQUAL)
   {
     std::stringstream serr;
-    serr << "TConvProofGenerator::getProofFor: " << identify() << ": fail, non-equality " << f;
+    serr << "TConvProofGenerator::getProofFor: " << identify()
+         << ": fail, non-equality " << f;
     AlwaysAssert(false) << serr.str();
     Trace("tconv-pf-gen") << serr.str() << std::endl;
     return nullptr;
@@ -132,8 +133,9 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   if (conc != f)
   {
     std::stringstream serr;
-    serr << "TConvProofGenerator::getProofFor: " << identify() << ": failed, mismatch: returned proof concludes "
-                          << conc << ", expected " << f;
+    serr << "TConvProofGenerator::getProofFor: " << identify()
+         << ": failed, mismatch: returned proof concludes " << conc
+         << ", expected " << f;
     AlwaysAssert(false) << serr.str();
     Trace("tconv-pf-gen") << serr.str() << std::endl;
     return nullptr;
