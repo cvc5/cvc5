@@ -88,9 +88,7 @@ public:
   }
 
   LemmaStatus trustedLemma(TrustNode n,
-                           bool removable = false,
-                           bool preprocess = false,
-                           bool sendAtoms = false) override
+                           LemmaProperty p) override
   {
     push(LEMMA, n.getNode());
     return LemmaStatus(Node::null(), 0);
