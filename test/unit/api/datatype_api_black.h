@@ -570,8 +570,8 @@ void DatatypeBlack::testDatatypeSpecializedCons()
   Term testConsTerm;
   // get the specialized constructor term for list[Int]
   TS_ASSERT_THROWS_NOTHING(testConsTerm =
-                               nilc.getSpecializedConstructor(urListInt));
+                               nilc.getSpecializedConstructorTerm(urListInt));
   TS_ASSERT(testConsTerm != nilc.getConstructorTerm());
   // error to get the specialized constructor term for Int
-  TS_ASSERT_THROWS(nilc.getSpecializedConstructor(isort), CVC4ApiException&);
+  TS_ASSERT_THROWS(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException&);
 }
