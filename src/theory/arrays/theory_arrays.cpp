@@ -433,13 +433,16 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
   }
   if (Debug.isOn("pf::array"))
   {
-    if(proof){
+    if (proof)
+    {
       Debug("pf::array") << " Proof is : " << std::endl;
       proof->debug_print("pf::array");
     }
 
-    Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl << "\t";
-    for (unsigned i = 0; i < assumptions.size(); ++i) {
+    Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl
+                       << "\t";
+    for (unsigned i = 0; i < assumptions.size(); ++i)
+    {
       Debug("pf::array") << assumptions[i] << " ";
     }
     Debug("pf::array") << std::endl;
@@ -1918,7 +1921,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
-      Node reason = (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
+      Node reason =
+          (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTermInternal(aj);
@@ -1932,7 +1936,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj,true)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node reason = (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
+      Node reason =
+          (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
       d_permRef.push_back(reason);
       d_equalityEngine.assertEquality(i_eq_j, true, reason, d_reasonRow);
