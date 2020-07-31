@@ -2138,6 +2138,8 @@ Term DatatypeConstructor::getConstructorTerm() const
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  
   NodeManager* nm = d_solver->getNodeManager();
   // apply type ascription to the operator
   Term sctor =
@@ -2149,6 +2151,8 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
                                        retSort.getType()))),
                            d_ctor->getConstructor()));
   return sctor;
+  
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Term DatatypeConstructor::getTesterTerm() const
