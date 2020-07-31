@@ -2146,8 +2146,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
                            nm->mkConst(AscriptionType(
                                d_ctor
                                    ->getSpecializedConstructorType(
-                                       TypeNode::fromType(retSort.getType()))
-                                   .toType())),
+                                       retSort.getType()))),
                            d_ctor->getConstructor()));
   return sctor;
 }
