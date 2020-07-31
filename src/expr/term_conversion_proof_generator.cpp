@@ -115,12 +115,14 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s)
 
 std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
 {
-  Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << f
+  Trace("tconv-pf-gen") << "TConvProofGenerator::getProofFor: " << identify() << ": " << f
                         << std::endl;
   if (f.getKind() != EQUAL)
   {
-    Trace("tconv-pf-gen") << "... fail, non-equality" << std::endl;
-    Assert(false);
+    std::stringstream serr;
+    serr << "TConvProofGenerator::getProofFor: " << identify() << ": fail, non-equality " << f;
+    AlwaysAssert(false) << serr.str();
+    Trace("tconv-pf-gen") << serr.str() << std::endl;
     return nullptr;
   }
   // we use the existing proofs
@@ -129,9 +131,11 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   Node conc = getProofForRewriting(f[0], lpf);
   if (conc != f)
   {
-    Trace("tconv-pf-gen") << "...failed, mismatch: returned proof concludes "
-                          << conc << ", expected " << f << std::endl;
-    Assert(false);
+    std::stringstream serr;
+    serr << "TConvProofGenerator::getProofFor: " << identify() << ": failed, mismatch: returned proof concludes "
+                          << conc << ", expected " << f;
+    AlwaysAssert(false) << serr.str();
+    Trace("tconv-pf-gen") << serr.str() << std::endl;
     return nullptr;
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
@@ -288,13 +292,10 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
           }
           std::vector<Node> pfArgs;
           Kind k = cur.getKind();
+          pfArgs.push_back(ProofRuleChecker::mkKindNode(k));
           if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
           {
             pfArgs.push_back(cur.getOperator());
-          }
-          else
-          {
-            pfArgs.push_back(nm->operatorOf(k));
           }
           Node result = cur.eqNode(ret);
           pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);

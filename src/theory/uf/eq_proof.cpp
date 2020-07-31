@@ -480,7 +480,7 @@ bool EqProof::expandTransitivityForDisequalities(
     p->addStep(congConclusion,
                PfRule::CONG,
                substPremises,
-               {nm->operatorOf(kind::EQUAL)},
+               {ProofRuleChecker::mkKindNode(kind::EQUAL)},
                true);
     Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
                              "congruence derived "
@@ -1253,13 +1253,10 @@ Node EqProof::addToProof(
   }
   // Get node of the function operator over which congruence is being applied.
   std::vector<Node> args;
+  args.push_back(ProofRuleChecker::mkKindNode(k));
   if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
   {
     args.push_back(conclusion[0].getOperator());
-  }
-  else
-  {
-    args.push_back(nm->operatorOf(k));
   }
   // Add congruence step
   Trace("eqproof-conv") << "EqProof::addToProof: build cong step of "

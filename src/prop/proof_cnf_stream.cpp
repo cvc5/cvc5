@@ -872,7 +872,7 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     // pre-rewrite in the Boolean rewriter, will always hold under the standard
     // rewriter.
     Node congEq = oldn.eqNode(n);
-    p->addStep(congEq, PfRule::CONG, childrenEqs, {nm->operatorOf(kind::OR)});
+    p->addStep(congEq, PfRule::CONG, childrenEqs, {ProofRuleChecker::mkKindNode(kind::OR)});
     // add an equality resolution step to derive normalize clause
     p->addStep(n, PfRule::EQ_RESOLVE, {oldn, congEq}, {});
   }

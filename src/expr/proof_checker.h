@@ -69,6 +69,10 @@ class ProofRuleChecker
   static bool getUInt32(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */
   static bool getBool(TNode n, bool& b);
+  /** get a Kind from a node, return false if we fail */
+  static bool getKind(TNode n, Kind& k);
+  /** Make a Kind into a node */
+  static Node mkKindNode(Kind k);
 
   /** Register all rules owned by this rule checker into pc. */
   virtual void registerTo(ProofChecker* pc) {}
