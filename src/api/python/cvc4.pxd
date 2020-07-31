@@ -132,6 +132,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Sort mkPredicateSort(const vector[Sort]& sorts) except +
         Sort mkRecordSort(const vector[pair[string, Sort]]& fields) except +
         Sort mkSetSort(Sort elemSort) except +
+        Sort mkSequenceSort(Sort elemSort) except +
         Sort mkUninterpretedSort(const string& symbol) except +
         Sort mkSortConstructorSort(const string& symbol, size_t arity) except +
         Sort mkTupleSort(const vector[Sort]& sorts) except +
@@ -169,6 +170,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term mkSepNil(Sort sort) except +
         Term mkString(const string& s) except +
         Term mkString(const vector[unsigned]& s) except +
+        Term mkEmptySequence(Sort sort) except +
         Term mkUniverseSet(Sort sort) except +
         Term mkBitVector(uint32_t size) except +
         Term mkBitVector(uint32_t size, uint64_t val) except +
@@ -269,6 +271,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint isRecord() except +
         bint isArray() except +
         bint isSet() except +
+        bint isSequence() except +
         bint isUninterpretedSort() except +
         bint isSortConstructor() except +
         bint isFirstClass() except +
@@ -286,6 +289,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Sort getArrayIndexSort() except +
         Sort getArrayElementSort() except +
         Sort getSetElementSort() except +
+        Sort getSequenceElementSort() except +
         string getUninterpretedSortName() except +
         bint isUninterpretedSortParameterized() except +
         vector[Sort] getUninterpretedSortParamSorts() except +
@@ -316,6 +320,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         bint isNull() except +
         bint isConst() except +
         Term getConstArrayBase() except +
+        vector[Term] getConstSequenceElements() except +
         Term notTerm() except +
         Term andTerm(const Term& t) except +
         Term orTerm(const Term& t) except +
