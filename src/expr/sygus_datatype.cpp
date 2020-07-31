@@ -83,9 +83,10 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   for (unsigned i = 0, ncons = d_cons.size(); i < ncons; ++i)
   {
     // add (sygus) constructor
+    /*
     // we must avoid name clashes
     std::stringstream ss;
-    ss << getName() << "_" << i << "_" << d_cons[i].d_name;
+    ss << d_dt.getName() << "_" << i << "_" << d_cons[i].d_name;
     std::string name = ss.str();
     std::vector<TypeNode>& cargs = d_cons[i].d_argTypes;
     unsigned cweight = d_cons[i].d_weight;
@@ -98,6 +99,11 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
       c->addArg(sname.str(), cargs[j]);
     }
     d_dt.addConstructor(c);
+    */
+    d_dt.addSygusConstructor(d_cons[i].d_op,
+                             d_cons[i].d_name,
+                             d_cons[i].d_argTypes,
+                             d_cons[i].d_weight);
   }
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
