@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file abstract_values.cpp
+/*! \file dump_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utility for constructing and maintaining abstract values.
+ ** \brief Implementation of the dump manager.
  **/
 
-#include "smt/abstract_values.h"
+#include "smt/dump_manager.h"
 
 #include "options/smt_options.h"
 

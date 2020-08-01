@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file abstract_values.h
+/*! \file dump_manager.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utility for constructing and maintaining abstract values.
+ ** \brief The dump manager of the SmtEngine.
  **/
 
 #include "cvc4_private.h"
