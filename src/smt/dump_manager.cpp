@@ -65,7 +65,7 @@ void DumpManager::resetAssertions()
 }
 
 void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, const char* dumpTag) {
-  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << endl;
+  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << std::endl;
   // If we aren't yet fully inited, the user might still turn on
   // produce-models.  So let's keep any commands around just in
   // case.  This is useful in two cases: (1) SMT-LIBv1 auto-declares
