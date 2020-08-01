@@ -39,12 +39,12 @@ Model::Model() : d_smt(*smt::currentSmtEngine()), d_isKnownSat(false) {}
 
 size_t Model::getNumCommands() const 
 {
-  return d_smt.getDumpManager()->getNumCommands();
+  return d_smt.getDumpManager()->getNumModelCommands();
 }
 
 const Command* Model::getCommand(size_t i) const 
 {
-  return d_smt.getDumpManager()->getCommand(i);
+  return d_smt.getDumpManager()->getModelCommand(i);
 }
 
 }/* CVC4 namespace */

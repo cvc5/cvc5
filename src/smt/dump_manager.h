@@ -63,9 +63,9 @@ class DumpManager
    */
   void setPrintFuncInModel(Node f, bool p);
   /** get number of commands to report in a model */
-  size_t getNumCommands() const;
-  /** get command at index i */
-  const Command* getCommand(size_t i) const;
+  size_t getNumModelCommands() const;
+  /** get model command at index i */
+  const Command* getModelCommand(size_t i) const;
  private:
   /** Pointer to the used node manager */
   NodeManager* d_nm;

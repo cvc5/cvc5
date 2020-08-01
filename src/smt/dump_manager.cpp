@@ -130,11 +130,11 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
   }
 }
 
-size_t DumpManager::getNumCommands() const {
+size_t DumpManager::getNumModelCommands() const {
   return d_modelCommands.size() + d_modelGlobalCommands.size();
 }
 
-const Command* DumpManager::getCommand(size_t i) const {
+const Command* DumpManager::getModelCommand(size_t i) const {
   Assert(i < getNumCommands());
   // index the global commands first, then the locals
   if (i < d_modelGlobalCommands.size())
