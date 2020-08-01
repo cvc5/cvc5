@@ -98,12 +98,12 @@ inline Node RewriteRule<XorEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<XorEliminate>(" << node << ")"
                       << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   TNode b = node[1];
-  Node bvor = NodeManager::currentNM()->mkNode(kind::BITVECTOR_OR, a, b);
-  Node bvand = NodeManager::currentNM()->mkNode(kind::BITVECTOR_AND, a, b);
-  Node result =
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, bvor, bvand);
+  Node bvor = nm->mkNode(kind::BITVECTOR_OR, a, b);
+  Node bvand = nm->mkNode(kind::BITVECTOR_AND, a, b);
+  Node result = nm->mkNode(kind::BITVECTOR_SUB, bvor, bvand);
   return result;
 }
 
