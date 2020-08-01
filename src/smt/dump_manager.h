@@ -35,6 +35,12 @@ namespace smt {
  */
 class DumpManager
 {
+  /** 
+   * Class for context-dependent deletion of command pointers in a context
+   * dependent list below. This is required since we store pointers of
+   * Command, not shared pointers of Command. The latter is not feasible since
+   * Command is an abstract class.
+   */
   struct CommandCleanup
   {
     void operator()(Command** c);
