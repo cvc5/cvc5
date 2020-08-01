@@ -16,6 +16,7 @@
 
 #include "options/smt_options.h"
 #include "smt/dump.h"
+#include "expr/expr_manager.h"
 
 namespace CVC4 {
 namespace smt {
@@ -57,7 +58,7 @@ void DumpManager::finishInit()
 
 void DumpManager::resetAssertions()
 {
-  
+  DeleteAndClearCommandVector(d_modelGlobalCommands);
 }
 
 void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, const char* dumpTag) {
@@ -73,9 +74,9 @@ void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, con
   if((!d_fullyInited || options::produceModels()) &&
      (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
     if(flags & ExprManager::VAR_FLAG_GLOBAL) {
-      d_modelGlobalCommands.push_back(std::make_shared<Command>(c.clone()));
+      d_modelGlobalCommands.push_back(c.clone());
     } else {
-      d_modelCommands->push_back(c.clone());
+      d_modelCommands.push_back(c.clone());
     }
   }
   if(Dump.isOn(dumpTag)) {
@@ -83,6 +84,29 @@ void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, con
       Dump(dumpTag) << c;
     } else {
       d_dumpCommands.push_back(c.clone());
+    }
+  }
+}
+
+void DumpManager::setPrintFuncInModel(Node f, bool p)
+{
+  Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
+  for (Command * c : d_modelGlobalCommands){
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    if(dfc != NULL) {
+      Node df = Node::fromExpr(dfc->getFunction());
+      if( df==f ){
+        dfc->setPrintInModel( p );
+      }
+    }
+  }
+  for (Command * c : d_modelCommands){
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    if(dfc != NULL) {
+      Node df = Node::fromExpr(dfc->getFunction());
+      if( df==f ){
+        dfc->setPrintInModel( p );
+      }
     }
   }
 }

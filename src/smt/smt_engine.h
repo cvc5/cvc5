@@ -852,9 +852,6 @@ class CVC4_PUBLIC SmtEngine
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
 
-  /** Set print function in model. */
-  void setPrintFuncInModel(Expr f, bool p);
-
   /**
    * Get expression name.
    *
@@ -878,6 +875,9 @@ class CVC4_PUBLIC SmtEngine
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
 
+  /** Permit access to the underlying dump manager. */
+  smt::DumpManager* getDumpManager();
+  
   /**
    * Get expanded assertions.
    *

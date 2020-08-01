@@ -83,7 +83,6 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/command.h"
-#include "smt/command_list.h"
 #include "smt/defined_function.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
@@ -3024,13 +3023,14 @@ void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
 
+  d_dumpm->resetAssertions();
+  
   if (!d_fullyInited)
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
     // (see solver execution modes in the SMT-LIB standard)
     Assert(d_context->getLevel() == 0);
     Assert(d_userContext->getLevel() == 0);
-    DeleteAndClearCommandVector(d_modelGlobalCommands);
     return;
   }
 
@@ -3052,7 +3052,6 @@ void SmtEngine::resetAssertions()
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
-  DeleteAndClearCommandVector(d_modelGlobalCommands);
   d_userContext->push();
   d_context->push();
 
@@ -3127,28 +3126,6 @@ void SmtEngine::setUserAttribute(const std::string& attr,
     node_values.push_back( expr_values[i].getNode() );
   }
   d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
-}
-
-void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
-  Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  for( unsigned i=0; i<d_modelGlobalCommands.size(); i++ ){
-    Command * c = d_modelGlobalCommands[i];
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
-      if( dfc->getFunction()==f ){
-        dfc->setPrintInModel( p );
-      }
-    }
-  }
-  for( unsigned i=0; i<d_modelCommands->size(); i++ ){
-    Command * c = (*d_modelCommands)[i];
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
-      if( dfc->getFunction()==f ){
-        dfc->setPrintInModel( p );
-      }
-    }
-  }
 }
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
@@ -3267,6 +3244,11 @@ const Options& SmtEngine::getOptions() const { return d_options; }
 ResourceManager* SmtEngine::getResourceManager()
 {
   return d_resourceManager.get();
+}
+
+DumpManager* SmtEngine::getDumpManager()
+{
+  return d_dumpm.get();
 }
 
 void SmtEngine::setSygusConjectureStale()

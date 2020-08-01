@@ -21,12 +21,10 @@
 
 #include "context/cdlist.h"
 #include "smt/command.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace smt {
-  
-// ???
-typedef context::CDList<std::shared_ptr<Command> > CommandList;
 
 /**
  * This utility is responsible for constructing and maintaining abstract
@@ -35,6 +33,8 @@ typedef context::CDList<std::shared_ptr<Command> > CommandList;
  */
 class DumpManager
 {
+  friend class ::CVC4::Model;  // to access d_modelCommands
+  typedef context::CDList<Command* > CommandList;
  public:
   DumpManager(context::UserContext* u);
   ~DumpManager();
@@ -54,6 +54,11 @@ class DumpManager
   void addToModelCommandAndDump(const Command& c,
                                 uint32_t flags = 0,
                                 const char* dumpTag = "declarations");
+  
+  /** 
+   * Set that function f should print in the model if and only if p is true.
+   */
+  void setPrintFuncInModel(Node f, bool p);
  private:
   /** Pointer to the used node manager */
   NodeManager* d_nm;

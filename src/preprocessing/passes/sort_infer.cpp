@@ -18,6 +18,7 @@
 #include "options/uf_options.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
+#include "smt/dump_manager.h"
 
 using namespace std;
 
@@ -65,12 +66,12 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       assertionsToPreprocess->push_back(nar);
     }
     // indicate correspondence between the functions
-    // TODO (#2308): move this to a better place
     SmtEngine* smt = smt::currentSmtEngine();
+    smt::DumpManager * dm = smt->getDumpManager();
     for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
-      smt->setPrintFuncInModel(mrf.first.toExpr(), false);
-      smt->setPrintFuncInModel(mrf.second.toExpr(), true);
+      dm->setPrintFuncInModel(mrf.first, false);
+      dm->setPrintFuncInModel(mrf.second, true);
     }
   }
   // only need to compute monotonicity on the resulting formula if we are
