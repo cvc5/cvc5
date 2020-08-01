@@ -32,6 +32,10 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands)
   commands.clear();
 }
 
+void DumpManager::CommandCleanup::operator()(Command** c) {
+  delete *c;
+}
+
 DumpManager::DumpManager(context::UserContext* u)
     : d_modelGlobalCommands(), d_modelCommands(u), d_dumpCommands()
 {

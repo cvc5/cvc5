@@ -35,8 +35,10 @@ namespace smt {
  */
 class DumpManager
 {
-  typedef context::CDList<Command*> CommandList;
-
+  struct CommandCleanup {
+    void operator()(Command** c);
+  };
+  typedef context::CDList<Command*, CommandCleanup> CommandList;
  public:
   DumpManager(context::UserContext* u);
   ~DumpManager();
@@ -67,8 +69,6 @@ class DumpManager
   /** get model command at index i */
   const Command* getModelCommand(size_t i) const;
  private:
-  /** Pointer to the used node manager */
-  NodeManager* d_nm;
   /** Fully inited */
   bool d_fullyInited;
 
