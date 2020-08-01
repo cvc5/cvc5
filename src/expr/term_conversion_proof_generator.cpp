@@ -136,12 +136,13 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     serr << "TConvProofGenerator::getProofFor: " << identify()
          << ": failed, mismatch: returned proof concludes " << conc
          << ", expected " << f << std::endl;
-        /* 
-    for (NodeNodeMap::const_iterator it = d_rewriteMap.begin(); it != d_rewriteMap.end(); ++it)
-    {
-      serr << (*it).first << " -> " << (*it).second << std::endl;
-    }
-    */
+    /*
+for (NodeNodeMap::const_iterator it = d_rewriteMap.begin(); it !=
+d_rewriteMap.end(); ++it)
+{
+  serr << (*it).first << " -> " << (*it).second << std::endl;
+}
+*/
     AlwaysAssert(false) << serr.str();
     Trace("tconv-pf-gen") << serr.str() << std::endl;
     return nullptr;

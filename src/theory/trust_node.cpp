@@ -121,22 +121,24 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
-void TrustNode::debugCheckClosed(const char * c, const char * ctx)
+void TrustNode::debugCheckClosed(const char* c, const char* ctx)
 {
   std::stringstream ss;
   ss << identifyGenerator() << " in context " << ctx;
   Trace(c) << "=== TrustNode::debugCheckClosed: " << ss.str();
   Trace(c) << "Check proof of " << getProven() << std::endl;
   std::shared_ptr<ProofNode> pn = toProofNode();
-  if (pn==nullptr)
+  if (pn == nullptr)
   {
-    AlwaysAssert(false) << "...TrustNode::debugCheckClosed: null proof from " << ss.str();
+    AlwaysAssert(false) << "...TrustNode::debugCheckClosed: null proof from "
+                        << ss.str();
   }
   Trace(c) << *pn.get();
   Trace(c) << std::endl << "====" << std::endl;
-  AlwaysAssert(pn->isClosed())  << "...TrustNode::debugCheckClosed: open proof from " << ss.str();
+  AlwaysAssert(pn->isClosed())
+      << "...TrustNode::debugCheckClosed: open proof from " << ss.str();
 }
-  
+
 std::string TrustNode::identifyGenerator() const
 {
   if (d_gen == nullptr)

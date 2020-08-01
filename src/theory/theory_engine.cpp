@@ -1740,7 +1740,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     bool isTraceDebug = Trace.isOn("te-proof-debug");
     if (options::proofNewEagerChecking() || isTraceDebug)
     {
-      newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
+      newLemmas[i].debugCheckClosed("te-proof-debug",
+                                    "TheoryEngine::lemma_new");
     }
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }

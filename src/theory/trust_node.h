@@ -146,7 +146,8 @@ class TrustNode
   std::string identifyGenerator() const;
 
   /** debug check closed on Trace c, context ctx is string for debugging */
-  void debugCheckClosed(const char * c, const char * ctx);
+  void debugCheckClosed(const char* c, const char* ctx);
+
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);
   /** The kind */
