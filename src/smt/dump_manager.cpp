@@ -32,16 +32,12 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
 DumpManager::DumpManager(context::UserContext* u) 
     : d_modelGlobalCommands(),
       d_modelCommands(u),
-      d_dumpCommands(),
+      d_dumpCommands()
 {
 }
 
 DumpManager::~DumpManager() {
-  for(size_t i = 0, ncoms = d_dumpCommands.size(); i < ncoms; ++i) {
-    delete d_dumpCommands[i];
-    d_dumpCommands[i] = nullptr;
-  }
-  d_dumpCommands.clear();
+  DeleteAndClearCommandVector(d_dumpCommands);
 
   DeleteAndClearCommandVector(d_modelGlobalCommands);
 }
@@ -52,9 +48,8 @@ void DumpManager::finishInit()
   // dump out any pending declaration commands
   for(size_t i = 0, ncoms = d_dumpCommands.size(); i < ncoms; ++i) {
     Dump("declarations") << *d_dumpCommands[i];
-    delete d_dumpCommands[i];
   }
-  d_dumpCommands.clear();
+  DeleteAndClearCommandVector(d_dumpCommands);
   
   d_fullyInited = true;
 }
