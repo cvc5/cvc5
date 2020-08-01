@@ -459,6 +459,11 @@ cdef class Solver:
         sort.csort = self.csolver.mkSetSort(elemSort.csort)
         return sort
 
+    def mkSequenceSort(self, Sort elemSort):
+        cdef Sort sort = Sort()
+        sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
+        return sort
+
     def mkUninterpretedSort(self, str name):
         cdef Sort sort = Sort()
         sort.csort = self.csolver.mkUninterpretedSort(name.encode())
@@ -611,6 +616,11 @@ cdef class Solver:
         else:
             raise ValueError("Expected string or vector of ASCII codes"
                              " but got: {}".format(str_or_vec))
+        return term
+
+    def mkEmptySequence(self, Sort sort):
+        cdef Term term = Term()
+        term.cterm = self.csolver.mkEmptySequence(sort.csort)
         return term
 
     def mkUniverseSet(self, Sort sort):
@@ -1081,6 +1091,9 @@ cdef class Sort:
     def isSet(self):
         return self.csort.isSet()
 
+    def isSequence(self):
+        return self.csort.isSequence()
+
     def isUninterpretedSort(self):
         return self.csort.isUninterpretedSort()
 
@@ -1157,6 +1170,11 @@ cdef class Sort:
     def getSetElementSort(self):
         cdef Sort sort = Sort()
         sort.csort = self.csort.getSetElementSort()
+        return sort
+
+    def getSequenceElementSort(self):
+        cdef Sort sort = Sort()
+        sort.csort = self.csort.getSequenceElementSort()
         return sort
 
     def getUninterpretedSortName(self):
@@ -1281,6 +1299,14 @@ cdef class Term:
         cdef Term term = Term()
         term.cterm = self.cterm.getConstArrayBase()
         return term
+
+    def getConstSequenceElements(self):
+        elems = []
+        for e in self.cterm.getConstSequenceElements():
+            term = Term()
+            term.cterm = e
+            elems.append(term)
+        return elems
 
     def notTerm(self):
         cdef Term term = Term()
