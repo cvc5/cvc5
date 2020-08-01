@@ -1954,6 +1954,11 @@ class CVC4_PUBLIC Grammar
    */
   void addRules(Term ntSymbol, std::vector<Term> rules);
 
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
+
  private:
   /**
    * Constructor.
