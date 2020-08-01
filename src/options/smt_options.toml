@@ -175,6 +175,15 @@ header = "options/smt_options.h"
   help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
 
 [[option]]
+  name       = "proofNewEagerChecking"
+  category   = "regular"
+  long       = "proof-new-eager-checking"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "check proofs eagerly with proof-new for local debugging"
+
+[[option]]
   name       = "proofGranularityMode"
   category   = "regular"
   long       = "proof-granularity=MODE"

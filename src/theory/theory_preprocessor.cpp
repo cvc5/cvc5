@@ -135,22 +135,18 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     Node rewritten = Rewriter::rewrite(assertion);
     if (assertion != rewritten)
     {
-      if (trn.getGenerator() != nullptr)
+      if (isProofEnabled())
       {
         Assert(d_lp != nullptr);
         // store in the lazy proof
-        d_lp->addLazyStep(assertion, trn.getGenerator());
+        // TODO: specific trusted step
+        d_lp->addLazyStep(assertion, trn.getGenerator(), false, PfRule::TRUST);
         d_lp->addStep(rewritten,
                       PfRule::MACRO_SR_PRED_TRANSFORM,
                       {assertion},
                       {rewritten});
-        newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
       }
-      else
-      {
-        // not tracking proofs, just make new
-        newLemmas[i] = TrustNode::mkTrustLemma(rewritten, nullptr);
-      }
+      newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
     }
   }
   return TrustNode::mkTrustRewrite(node, retNode, d_tpg.get());

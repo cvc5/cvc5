@@ -1661,13 +1661,10 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
 
   if (options::proofNew())
   {
-    if (Trace.isOn("te-proof-debug"))
+    bool isTraceDebug = Trace.isOn("te-proof-debug");
+    if (options::proofNewEagerChecking() || isTraceDebug)
     {
-      std::shared_ptr<ProofNode> ppn = tlemma.toProofNode();
-      Trace("te-proof-debug")
-          << "=== Initial proof from " << tlemma.identifyGenerator();
-      Trace("te-proof-debug") << std::endl << *ppn.get() << std::endl;
-      AlwaysAssert(ppn->isClosed());
+      tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
     }
   }
 
@@ -1730,28 +1727,20 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   if (options::proofNew())
   {
     // ensure closed, make the proof node eagerly here to debug
-    if (Trace.isOn("te-proof-debug"))
+    bool isTraceDebug = Trace.isOn("te-proof-debug");
+    if (options::proofNewEagerChecking() || isTraceDebug)
     {
-      Trace("te-proof-debug") << "=== Proof of " << tlemma.getProven();
-      Trace("te-proof-debug") << " from " << tlemma.identifyGenerator();
-      Trace("te-proof-debug") << ":" << std::endl;
-      std::shared_ptr<ProofNode> pn = tlemma.toProofNode();
-      Trace("te-proof-debug") << *pn.get();
-      Trace("te-proof-debug") << std::endl << "====" << std::endl;
-      AlwaysAssert(pn->isClosed());
+      tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
     }
   }
   d_propEngine->assertLemma(tlemma, removable, rule, node);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
-    if (Trace.isOn("te-proof-debug"))
+    bool isTraceDebug = Trace.isOn("te-proof-debug");
+    if (options::proofNewEagerChecking() || isTraceDebug)
     {
-      Trace("te-proof-debug") << "=== Proof of " << newLemmas[i].getProven();
-      Trace("te-proof-debug") << " from " << newLemmas[i].identifyGenerator();
-      std::shared_ptr<ProofNode> pn = newLemmas[i].toProofNode();
-      Trace("te-proof-debug") << *pn.get() << std::endl;
-      AlwaysAssert(pn->isClosed());
+      newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
     }
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }

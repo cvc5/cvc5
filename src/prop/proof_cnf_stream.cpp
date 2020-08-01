@@ -13,7 +13,9 @@
  **/
 
 #include "prop/proof_cnf_stream.h"
+
 #include "theory/builtin/proof_checker.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace prop {
@@ -50,7 +52,11 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
   if (pg)
   {
-    Assert(pg->getProofFor(toJustify)->isClosed());
+    if (options::proofNewEagerChecking())
+    {
+      theory::TrustNode trn = theory::TrustNode::mkTrustLemma(toJustify, pg);
+      trn.debugCheckClosed("cnf", "ProofCnfStream::convertAndAssert");
+    }
     d_proof.addLazyStep(toJustify, pg);
   }
   convertAndAssert(node, negated);
