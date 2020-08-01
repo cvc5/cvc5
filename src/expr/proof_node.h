@@ -117,6 +117,15 @@ class ProofNode
   Node d_proven;
 };
 
+/**
+ * Serializes a given proof node to the given stream.
+ *
+ * @param out the output stream to use
+ * @param pn the proof node to output to the stream
+ * @return the stream
+ */
+std::ostream& operator<<(std::ostream& out, const ProofNode& pn);
+
 }  // namespace CVC4
 
 #endif /* CVC4__EXPR__PROOF_NODE_H */

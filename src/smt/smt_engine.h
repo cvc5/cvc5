@@ -93,6 +93,9 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class ResourceOutListener;
+class SmtNodeManagerListener;
+class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
 /**
@@ -145,6 +148,8 @@ class CVC4_PUBLIC SmtEngine
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::Model;  // to access d_modelCommands
+  friend class ::CVC4::smt::SmtNodeManagerListener;  // to access
+                                                     // addToModelCommandAndDump
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
 
@@ -452,7 +457,7 @@ class CVC4_PUBLIC SmtEngine
                        const std::vector<Expr>& vars);
 
   /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Expr constraint);
+  void assertSygusConstraint(const Node& constraint);
 
   /**
    * Add an invariant constraint.
@@ -856,14 +861,6 @@ class CVC4_PUBLIC SmtEngine
   void setPrintFuncInModel(Expr f, bool p);
 
   /**
-   * Check and throw a ModalException if the SmtEngine has been fully
-   * initialized.
-   *
-   * throw@ ModalException
-   */
-  void beforeSearch();
-
-  /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.
@@ -1129,6 +1126,10 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** Resource out listener */
+  std::unique_ptr<smt::ResourceOutListener> d_routListener;
+  /** Node manager listener */
+  std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
@@ -1298,6 +1299,12 @@ class CVC4_PUBLIC SmtEngine
    * Manager for limiting time and abstract resource usage.
    */
   std::unique_ptr<ResourceManager> d_resourceManager;
+  /**
+   * The options manager, which is responsible for implementing core options
+   * such as those related to time outs and printing. It is also responsible
+   * for set default options based on the logic.
+   */
+  std::unique_ptr<smt::OptionsManager> d_optm;
   /**
    * The global scope object. Upon creation of this SmtEngine, it becomes the
    * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
