@@ -38,16 +38,17 @@ inline bool RewriteRule<NegEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<NegEliminate>::apply(TNode node)
 {
-  // hacker's delight section 2-2 eqation a:
+  // Hacker's Delight section 2-2 equation a:
   // -x = ~x-1
   Debug("bv-rewrite") << "RewriteRule<NegEliminate>(" << node << ")"
                       << std::endl;
+   NodeManager* nm = NodeManager::currentNM();                     
   TNode a = node[0];
   unsigned size = utils::getSize(a);
-  Node one = utils::mkConst(size, 1);
-  Node nota = NodeManager::currentNM()->mkNode(kind::BITVECTOR_NOT, a);
+  Node one = utils::mkOne(size);
+  Node nota = nm->mkNode(kind::BITVECTOR_NOT, a);
   Node bvadd =
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, nota, one);
+      nm->mkNode(kind::BITVECTOR_PLUS, nota, one);
   return bvadd;
 }
 
@@ -62,16 +63,17 @@ inline bool RewriteRule<OrEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<OrEliminate>::apply(TNode node)
 {
-  // hacker's delight section 2-2 eqation h:
+  // Hacker's Delight section 2-2 equation h:
   // x+y = x|y + x&y
   Debug("bv-rewrite") << "RewriteRule<OrEliminate>(" << node << ")"
                       << std::endl;
+   NodeManager* nm = NodeManager::currentNM();                     
   TNode a = node[0];
   TNode b = node[1];
-  Node bvadd = NodeManager::currentNM()->mkNode(kind::BITVECTOR_PLUS, a, b);
-  Node bvand = NodeManager::currentNM()->mkNode(kind::BITVECTOR_AND, a, b);
+  Node bvadd = nm->mkNode(kind::BITVECTOR_PLUS, a, b);
+  Node bvand = nm->mkNode(kind::BITVECTOR_AND, a, b);
   Node result =
-      NodeManager::currentNM()->mkNode(kind::BITVECTOR_SUB, bvadd, bvand);
+      nm->mkNode(kind::BITVECTOR_SUB, bvadd, bvand);
   return result;
 }
 
@@ -86,7 +88,7 @@ inline bool RewriteRule<XorEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<XorEliminate>::apply(TNode node)
 {
-  // hacker's delight section 2-2 eqation n:
+  // Hacker's Delight section 2-2 equation n:
   // x xor y = x|y - x&y
   Debug("bv-rewrite") << "RewriteRule<XorEliminate>(" << node << ")"
                       << std::endl;
@@ -503,8 +505,7 @@ inline Node RewriteRule<SdivEliminateFewerBitwiseOps>::apply(TNode node)
                  abs_b);
   Node neg_result = nm->mkNode(kind::BITVECTOR_NEG, a_udiv_b);
 
-  Node condition = nm->mkNode(kind::XOR, a_lt_0, b_lt_0);
-  Node result = nm->mkNode(kind::ITE, condition, neg_result, a_udiv_b);
+  Node result = nm->mkNode(kind::ITE, a_lt_0.xorNode(b_lt_0), neg_result, a_udiv_b);
 
   return result;
 }
