@@ -582,10 +582,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
                                      paramTypes,
                                      paramReplacements);
     }
-
-    // Now run some checks, including a check to make sure that no
-    // selector is function-valued.
-    // checkResolvedDatatype(ut);
   }
 
   for (NodeManagerListener* nml : d_listeners)
