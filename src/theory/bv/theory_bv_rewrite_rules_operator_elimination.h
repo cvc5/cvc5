@@ -27,8 +27,12 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-//This rewrite is not meant to be used by the BV rewriter.
-//It is specifically designed for the bv-to-int preprocessing pass.
+/*
+ * This rewrite is not meant to be used by the BV rewriter.
+ * It is specifically designed for the bv-to-int preprocessing pass.
+ * Based on Hacker's Delight section 2-2 equation a:
+ * -x = ~x-1
+ */
 template <>
 inline bool RewriteRule<NegEliminate>::applies(TNode node)
 {
@@ -38,8 +42,6 @@ inline bool RewriteRule<NegEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<NegEliminate>::apply(TNode node)
 {
-  // Hacker's Delight section 2-2 equation a:
-  // -x = ~x-1
   Debug("bv-rewrite") << "RewriteRule<NegEliminate>(" << node << ")"
                       << std::endl;
    NodeManager* nm = NodeManager::currentNM();                     
@@ -52,8 +54,12 @@ inline Node RewriteRule<NegEliminate>::apply(TNode node)
   return bvadd;
 }
 
-//This rewrite is not meant to be used by the BV rewriter.
-//It is specifically designed for the bv-to-int preprocessing pass.
+/*
+ * This rewrite is not meant to be used by the BV rewriter.
+ * It is specifically designed for the bv-to-int preprocessing pass.
+ * Based on Hacker's Delight section 2-2 equation h:
+ * x+y = x|y + x&y
+ */
 template <>
 inline bool RewriteRule<OrEliminate>::applies(TNode node)
 {
@@ -63,8 +69,6 @@ inline bool RewriteRule<OrEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<OrEliminate>::apply(TNode node)
 {
-  // Hacker's Delight section 2-2 equation h:
-  // x+y = x|y + x&y
   Debug("bv-rewrite") << "RewriteRule<OrEliminate>(" << node << ")"
                       << std::endl;
    NodeManager* nm = NodeManager::currentNM();                     
@@ -77,8 +81,12 @@ inline Node RewriteRule<OrEliminate>::apply(TNode node)
   return result;
 }
 
-//This rewrite is not meant to be used by the BV rewriter.
-//It is specifically designed for the bv-to-int preprocessing pass.
+/*
+ * This rewrite is not meant to be used by the BV rewriter.
+ * It is specifically designed for the bv-to-int preprocessing pass.
+ * Based on Hacker's Delight section 2-2 equation n:
+ * x xor y = x|y - x&y
+ */
 template <>
 inline bool RewriteRule<XorEliminate>::applies(TNode node)
 {
@@ -88,8 +96,6 @@ inline bool RewriteRule<XorEliminate>::applies(TNode node)
 template <>
 inline Node RewriteRule<XorEliminate>::apply(TNode node)
 {
-  // Hacker's Delight section 2-2 equation n:
-  // x xor y = x|y - x&y
   Debug("bv-rewrite") << "RewriteRule<XorEliminate>(" << node << ")"
                       << std::endl;
   TNode a = node[0];
@@ -471,8 +477,12 @@ inline Node RewriteRule<SdivEliminate>::apply(TNode node)
   return result;
 }
 
-//This rewrite is not meant to be used by the BV rewriter
-//It is specifically designed for the bv-to-int preprocessing pass.
+/*
+ * This rewrite is not meant to be used by the BV rewriter
+ * It is specifically designed for the bv-to-int preprocessing pass.
+ * Similar to ordinary sdiv elimination.
+ * The sign-check is done with bvult instead of bit-extraction.
+ */
 template <>
 inline bool RewriteRule<SdivEliminateFewerBitwiseOps>::applies(TNode node)
 {
@@ -482,8 +492,6 @@ inline bool RewriteRule<SdivEliminateFewerBitwiseOps>::applies(TNode node)
 template <>
 inline Node RewriteRule<SdivEliminateFewerBitwiseOps>::apply(TNode node)
 {
-  // Similar to ordinary sdiv elimination
-  // sign-check is done with bvult instead of bit-extraction
   Debug("bv-rewrite") << "RewriteRule<SdivEliminateFewerBitwiseOps>(" << node
                       << ")" << std::endl;
 
@@ -548,8 +556,12 @@ inline Node RewriteRule<SremEliminate>::apply(TNode node)
   return result;
 }
 
-//This rewrite is not meant to be used by the BV rewriter.
-//It is specifically designed for the bv-to-int preprocessing pass.
+/*
+ * This rewrite is not meant to be used by the BV rewriter
+ * It is specifically designed for the bv-to-int preprocessing pass.
+ * Similar to ordinary srem elimination.
+ * The sign-check is done with bvult instead of bit-extraction.
+ */
 template <>
 inline bool RewriteRule<SremEliminateFewerBitwiseOps>::applies(TNode node)
 {
@@ -559,8 +571,6 @@ inline bool RewriteRule<SremEliminateFewerBitwiseOps>::applies(TNode node)
 template <>
 inline Node RewriteRule<SremEliminateFewerBitwiseOps>::apply(TNode node)
 {
-  // Similar to ordinary srem elimination
-  // sign-check is done with bvult instead of bit-extraction
   Debug("bv-rewrite") << "RewriteRule<SremEliminateFewerBitwiseOps>(" << node
                       << ")" << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -647,9 +657,12 @@ inline Node RewriteRule<SmodEliminate>::apply(TNode node)
   return result;
 }
 
-
-//This rewrite is not meant to be used by the BV rewriter.
-//It is specifically designed for the bv-to-int preprocessing pass.
+/*
+ * This rewrite is not meant to be used by the BV rewriter
+ * It is specifically designed for the bv-to-int preprocessing pass.
+ * Similar to ordinary smod elimination.
+ * The sign-check is done with bvult instead of bit-extraction.
+ */
 template <>
 inline bool RewriteRule<SmodEliminateFewerBitwiseOps>::applies(TNode node)
 {
@@ -659,8 +672,6 @@ inline bool RewriteRule<SmodEliminateFewerBitwiseOps>::applies(TNode node)
 template <>
 inline Node RewriteRule<SmodEliminateFewerBitwiseOps>::apply(TNode node)
 {
-  // Similar to ordinary smod elimination
-  // sign-check is done with bvult instead of bit-extraction
   Debug("bv-rewrite") << "RewriteRule<SmodEliminate>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -668,21 +679,23 @@ inline Node RewriteRule<SmodEliminateFewerBitwiseOps>::apply(TNode node)
   TNode t = node[1];
   unsigned size = utils::getSize(s);
 
-  // (bvsmod s t) abbreviates
-  //     (let ((?msb_s ((_ extract |m-1| |m-1|) s))
-  //           (?msb_t ((_ extract |m-1| |m-1|) t)))
-  //       (let ((abs_s (ite (= ?msb_s #b0) s (bvneg s)))
-  //             (abs_t (ite (= ?msb_t #b0) t (bvneg t))))
-  //         (let ((u (bvurem abs_s abs_t)))
-  //           (ite (= u (_ bv0 m))
-  //                u
-  //           (ite (and (= ?msb_s #b0) (= ?msb_t #b0))
-  //                u
-  //           (ite (and (= ?msb_s #b1) (= ?msb_t #b0))
-  //                (bvadd (bvneg u) t)
-  //           (ite (and (= ?msb_s #b0) (= ?msb_t #b1))
-  //                (bvadd u t)
-  //                (bvneg u))))))))
+  /*
+   * (bvsmod s t) abbreviates
+   *    (let ((?msb_s ((_ extract |m-1| |m-1|) s))
+   *          (?msb_t ((_ extract |m-1| |m-1|) t)))
+   *      (let ((abs_s (ite (= ?msb_s #b0) s (bvneg s)))
+   *            (abs_t (ite (= ?msb_t #b0) t (bvneg t))))
+   *        (let ((u (bvurem abs_s abs_t)))
+   *          (ite (= u (_ bv0 m))
+   *               u
+   *          (ite (and (= ?msb_s #b0) (= ?msb_t #b0))
+   *               u
+   *          (ite (and (= ?msb_s #b1) (= ?msb_t #b0))
+   *               (bvadd (bvneg u) t)
+   *          (ite (and (= ?msb_s #b0) (= ?msb_t #b1))
+   *               (bvadd u t)
+   *               (bvneg u))))))))
+   */
 
   Node s_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, s, utils::mkMinSigned(size));
   Node t_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, t, utils::mkMinSigned(size));
