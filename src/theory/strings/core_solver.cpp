@@ -2124,18 +2124,22 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node uy = r == 0 ? y : x;
           Node uxLen = nm->mkNode(STRING_LENGTH, ux);
           Node uyLen = nm->mkNode(STRING_LENGTH, uy);
+          // We always request the length constraint in the conclusion here
+          // because the skolem needs to have length `uyLen`. If we only assert
+          // that the skolem's length is greater or equal to one, we can end up
+          // in a loop:
+          //
+          // 1. Split: x = k1 ++ k2 ^ len(k1) >= 1
+          // 2. Assume: k2 = ""
+          // 3. Deduce: x = k1
+          //
+          // After step 3, `k1` is marked congruent because `x` is the older
+          // variable. So we get `x` in the normal form again.
           std::vector<Node> newSkolems;
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, true, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-          if (options::stringLenConc())
-          {
             d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
-          }
-          else
-          {
-            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_GEQ_ONE);
-          }
           std::vector<Node> antecLen;
           antecLen.push_back(nm->mkNode(GEQ, uxLen, uyLen));
           d_im.sendInference(
