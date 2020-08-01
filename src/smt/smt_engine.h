@@ -877,7 +877,7 @@ class CVC4_PUBLIC SmtEngine
 
   /** Permit access to the underlying dump manager. */
   smt::DumpManager* getDumpManager();
-  
+
   /**
    * Get expanded assertions.
    *

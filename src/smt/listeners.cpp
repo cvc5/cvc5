@@ -20,9 +20,9 @@
 #include "options/smt_options.h"
 #include "smt/command.h"
 #include "smt/dump.h"
+#include "smt/dump_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/dump_manager.h"
 
 namespace CVC4 {
 namespace smt {

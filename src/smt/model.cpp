@@ -20,9 +20,9 @@
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/command.h"
+#include "smt/dump_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "smt/dump_manager.h"
 
 using namespace std;
 
@@ -38,15 +38,16 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
 Model::Model() : d_smt(*smt::currentSmtEngine()), d_isKnownSat(false) {}
 
 size_t Model::getNumCommands() const {
-  smt::DumpManager * dm = d_smt.getDumpManager();
+  smt::DumpManager* dm = d_smt.getDumpManager();
   return dm->d_modelCommands.size() + dm->d_modelGlobalCommands.size();
 }
 
 const Command* Model::getCommand(size_t i) const {
   Assert(i < getNumCommands());
-  smt::DumpManager * dm = d_smt.getDumpManager();
+  smt::DumpManager* dm = d_smt.getDumpManager();
   // index the global commands first, then the locals
-  if(i < dm->d_modelGlobalCommands.size()) {
+  if (i < dm->d_modelGlobalCommands.size())
+  {
     return dm->d_modelGlobalCommands[i];
   }
   return dm->d_modelCommands[i - dm->d_modelGlobalCommands.size()];

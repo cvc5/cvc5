@@ -16,9 +16,9 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
+#include "smt/dump_manager.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
-#include "smt/dump_manager.h"
 
 using namespace std;
 
@@ -67,7 +67,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
     }
     // indicate correspondence between the functions
     SmtEngine* smt = smt::currentSmtEngine();
-    smt::DumpManager * dm = smt->getDumpManager();
+    smt::DumpManager* dm = smt->getDumpManager();
     for (const std::pair<const Node, Node>& mrf : model_replace_f)
     {
       dm->setPrintFuncInModel(mrf.first, false);

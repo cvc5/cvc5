@@ -14,9 +14,9 @@
 
 #include "smt/dump_manager.h"
 
+#include "expr/expr_manager.h"
 #include "options/smt_options.h"
 #include "smt/dump.h"
-#include "expr/expr_manager.h"
 
 namespace CVC4 {
 namespace smt {
@@ -26,19 +26,19 @@ struct DeleteCommandFunction : public std::unary_function<const Command*, void>
   void operator()(const Command* command) { delete command; }
 };
 
-void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
+void DeleteAndClearCommandVector(std::vector<Command*>& commands)
+{
   std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
   commands.clear();
 }
-  
-DumpManager::DumpManager(context::UserContext* u) 
-    : d_modelGlobalCommands(),
-      d_modelCommands(u),
-      d_dumpCommands()
+
+DumpManager::DumpManager(context::UserContext* u)
+    : d_modelGlobalCommands(), d_modelCommands(u), d_dumpCommands()
 {
 }
 
-DumpManager::~DumpManager() {
+DumpManager::~DumpManager()
+{
   DeleteAndClearCommandVector(d_dumpCommands);
 
   DeleteAndClearCommandVector(d_modelGlobalCommands);
@@ -48,11 +48,12 @@ void DumpManager::finishInit()
 {
   Trace("smt-debug") << "Dump declaration commands..." << std::endl;
   // dump out any pending declaration commands
-  for(size_t i = 0, ncoms = d_dumpCommands.size(); i < ncoms; ++i) {
+  for (size_t i = 0, ncoms = d_dumpCommands.size(); i < ncoms; ++i)
+  {
     Dump("declarations") << *d_dumpCommands[i];
   }
   DeleteAndClearCommandVector(d_dumpCommands);
-  
+
   d_fullyInited = true;
 }
 
@@ -61,7 +62,11 @@ void DumpManager::resetAssertions()
   DeleteAndClearCommandVector(d_modelGlobalCommands);
 }
 
-void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {
+void DumpManager::addToModelCommandAndDump(const Command& c,
+                                           uint32_t flags,
+                                           bool userVisible,
+                                           const char* dumpTag)
+{
   Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << std::endl;
   // If we aren't yet fully inited, the user might still turn on
   // produce-models.  So let's keep any commands around just in
@@ -71,18 +76,26 @@ void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, boo
   // decouple SmtEngine and ExprManager if the user does a few
   // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
   // and expects to find their cardinalities in the model.
-  if((!d_fullyInited || options::produceModels()) &&
-     (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-    if(flags & ExprManager::VAR_FLAG_GLOBAL) {
+  if ((!d_fullyInited || options::produceModels())
+      && (flags & ExprManager::VAR_FLAG_DEFINED) == 0)
+  {
+    if (flags & ExprManager::VAR_FLAG_GLOBAL)
+    {
       d_modelGlobalCommands.push_back(c.clone());
-    } else {
+    }
+    else
+    {
       d_modelCommands.push_back(c.clone());
     }
   }
-  if(Dump.isOn(dumpTag)) {
-    if(d_fullyInited) {
+  if (Dump.isOn(dumpTag))
+  {
+    if (d_fullyInited)
+    {
       Dump(dumpTag) << c;
-    } else {
+    }
+    else
+    {
       d_dumpCommands.push_back(c.clone());
     }
   }
@@ -91,21 +104,27 @@ void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, boo
 void DumpManager::setPrintFuncInModel(Node f, bool p)
 {
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  for (Command * c : d_modelGlobalCommands){
+  for (Command* c : d_modelGlobalCommands)
+  {
     DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
+    if (dfc != NULL)
+    {
       Node df = Node::fromExpr(dfc->getFunction());
-      if( df==f ){
-        dfc->setPrintInModel( p );
+      if (df == f)
+      {
+        dfc->setPrintInModel(p);
       }
     }
   }
-  for (Command * c : d_modelCommands){
+  for (Command* c : d_modelCommands)
+  {
     DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
+    if (dfc != NULL)
+    {
       Node df = Node::fromExpr(dfc->getFunction());
-      if( df==f ){
-        dfc->setPrintInModel( p );
+      if (df == f)
+      {
+        dfc->setPrintInModel(p);
       }
     }
   }

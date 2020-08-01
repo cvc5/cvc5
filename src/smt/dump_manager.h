@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "context/cdlist.h"
-#include "smt/command.h"
 #include "expr/node.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 namespace smt {
@@ -36,11 +36,12 @@ namespace smt {
 class DumpManager
 {
   friend class ::CVC4::Model;  // to access d_modelCommands
-  typedef context::CDList<Command* > CommandList;
+  typedef context::CDList<Command*> CommandList;
+
  public:
   DumpManager(context::UserContext* u);
   ~DumpManager();
-  /** 
+  /**
    * Finish init, called during SmtEngine::finishInit, which is triggered
    * when initialization of options is finished.
    */
@@ -55,13 +56,14 @@ class DumpManager
    */
   void addToModelCommandAndDump(const Command& c,
                                 uint32_t flags = 0,
-                                bool userVisible=true,
+                                bool userVisible = true,
                                 const char* dumpTag = "declarations");
-  
-  /** 
+
+  /**
    * Set that function f should print in the model if and only if p is true.
    */
   void setPrintFuncInModel(Node f, bool p);
+
  private:
   /** Pointer to the used node manager */
   NodeManager* d_nm;

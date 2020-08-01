@@ -84,6 +84,7 @@
 #include "smt/abstract_values.h"
 #include "smt/command.h"
 #include "smt/defined_function.h"
+#include "smt/dump_manager.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
@@ -115,7 +116,6 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "smt/dump_manager.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -3014,7 +3014,7 @@ void SmtEngine::resetAssertions()
   SmtScope smts(this);
 
   d_dumpm->resetAssertions();
-  
+
   if (!d_fullyInited)
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
@@ -3236,10 +3236,7 @@ ResourceManager* SmtEngine::getResourceManager()
   return d_resourceManager.get();
 }
 
-DumpManager* SmtEngine::getDumpManager()
-{
-  return d_dumpm.get();
-}
+DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
 
 void SmtEngine::setSygusConjectureStale()
 {
