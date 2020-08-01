@@ -690,7 +690,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
     TypeNode* typeNode;
     // register datatype with the node manager
-    unsigned index = d_nodeManager->registerDatatype((*i)->d_internal);
+    size_t index = d_nodeManager->registerDatatype((*i)->d_internal);
     if( (*i)->getNumParameters() == 0 ) {
       typeNode = new TypeNode(d_nodeManager->mkTypeConst(DatatypeIndexConstant(index)));
       //typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
