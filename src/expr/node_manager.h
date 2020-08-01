@@ -168,7 +168,9 @@ class NodeManager {
    */
   std::vector<NodeManagerListener*> d_listeners;
 
-  /** A list of datatypes registered by its corresponding expr manager. */
+  /** A list of datatypes registered by its corresponding expr manager.
+   * !!! this member should be deleted when the Expr-layer is deleted.
+   */
   std::vector<std::shared_ptr<DType> > d_registeredDTypes;
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType> > d_ownedDTypes;

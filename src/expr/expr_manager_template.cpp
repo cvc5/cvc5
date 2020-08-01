@@ -825,11 +825,6 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
   }
 }
 
-ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkConstructorType(constructor, *range.d_typeNode)));
-}
-
 SelectorType ExprManager::mkSelectorType(Type domain, Type range) const {
   NodeManagerScope nms(d_nodeManager);
   return Type(d_nodeManager, new TypeNode(d_nodeManager->mkSelectorType(*domain.d_typeNode, *range.d_typeNode)));
