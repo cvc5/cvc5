@@ -612,16 +612,15 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
       for (unsigned i = 0; i < types.size(); ++ i) {
         sst << "_" << types[i];
       }
-      DType dt(sst.str());
+      Datatype dt(nm->toExprManager(), sst.str());
       dt.setTuple();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
-      std::shared_ptr<DTypeConstructor> c =
-          std::make_shared<DTypeConstructor>(ssc.str());
+      DatatypeConstructor c(ssc.str());
       for (unsigned i = 0; i < types.size(); ++ i) {
         std::stringstream ss;
         ss << sst.str() << "_stor_" << i;
-        c->addArg(ss.str().c_str(), types[i]);
+        c.addArg(ss.str().c_str(), types[i].toType());
       }
       dt.addConstructor(c);
       d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
@@ -642,14 +641,13 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
         sst << "_" << (*i).first << "_" << (*i).second;
       }
-      DType dt(sst.str());
+      Datatype dt(nm->toExprManager(), sst.str());
       dt.setRecord();
       std::stringstream ssc;
       ssc << sst.str() << "_ctor";
-      std::shared_ptr<DTypeConstructor> c =
-          std::make_shared<DTypeConstructor>(ssc.str());
+      DatatypeConstructor c(ssc.str());
       for(Record::FieldVector::const_iterator i = fields.begin(); i != fields.end(); ++i) {
-        c->addArg((*i).first, TypeNode::fromType((*i).second));
+        c.addArg((*i).first, (*i).second);
       }
       dt.addConstructor(c);
       d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
