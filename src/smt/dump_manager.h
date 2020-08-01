@@ -35,7 +35,6 @@ namespace smt {
  */
 class DumpManager
 {
-  friend class ::CVC4::Model;  // to access d_modelCommands
   typedef context::CDList<Command*> CommandList;
 
  public:
@@ -63,7 +62,10 @@ class DumpManager
    * Set that function f should print in the model if and only if p is true.
    */
   void setPrintFuncInModel(Node f, bool p);
-
+  /** get number of commands to report in a model */
+  size_t getNumCommands() const;
+  /** get command at index i */
+  const Command* getCommand(size_t i) const;
  private:
   /** Pointer to the used node manager */
   NodeManager* d_nm;

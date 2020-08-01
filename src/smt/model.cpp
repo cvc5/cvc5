@@ -37,20 +37,14 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
 
 Model::Model() : d_smt(*smt::currentSmtEngine()), d_isKnownSat(false) {}
 
-size_t Model::getNumCommands() const {
-  smt::DumpManager* dm = d_smt.getDumpManager();
-  return dm->d_modelCommands.size() + dm->d_modelGlobalCommands.size();
+size_t Model::getNumCommands() const 
+{
+  return d_smt.getDumpManager()->getNumCommands();
 }
 
-const Command* Model::getCommand(size_t i) const {
-  Assert(i < getNumCommands());
-  smt::DumpManager* dm = d_smt.getDumpManager();
-  // index the global commands first, then the locals
-  if (i < dm->d_modelGlobalCommands.size())
-  {
-    return dm->d_modelGlobalCommands[i];
-  }
-  return dm->d_modelCommands[i - dm->d_modelGlobalCommands.size()];
+const Command* Model::getCommand(size_t i) const 
+{
+  return d_smt.getDumpManager()->getCommand(i);
 }
 
 }/* CVC4 namespace */

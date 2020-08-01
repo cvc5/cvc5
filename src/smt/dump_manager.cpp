@@ -130,5 +130,19 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
   }
 }
 
+size_t DumpManager::getNumCommands() const {
+  return d_modelCommands.size() + d_modelGlobalCommands.size();
+}
+
+const Command* DumpManager::getCommand(size_t i) const {
+  Assert(i < getNumCommands());
+  // index the global commands first, then the locals
+  if (i < d_modelGlobalCommands.size())
+  {
+    return d_modelGlobalCommands[i];
+  }
+  return d_modelCommands[i - d_modelGlobalCommands.size()];
+}
+
 }  // namespace smt
 }  // namespace CVC4
