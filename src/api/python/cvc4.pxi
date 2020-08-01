@@ -814,7 +814,7 @@ cdef class Solver:
         grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
         return grammar
 
-    def mkSygusVar(self, Sort sort, symbol=""):
+    def mkSygusVar(self, Sort sort, str symbol=""):
         cdef Term term = Term()
         term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
         return term
@@ -825,7 +825,7 @@ cdef class Solver:
     def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
         self.csolver.addSygusInvConstraint(inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
 
-    def synthFun(self, symbol, bound_vars, Sort sort, Grammar grammar=None):
+    def synthFun(self, str symbol, bound_vars, Sort sort, Grammar grammar=None):
         cdef Term term = Term()
         cdef vector[c_Term] v
         for bv in bound_vars:
