@@ -839,8 +839,12 @@ size_t CoreSolver::getSufficientNonEmptyOverlap(Node c, Node d, bool isRev)
   return p2 == std::string::npos ? p : (p > p2 + 1 ? p2 + 1 : p);
 }
 
-Node CoreSolver::getDecomposeConclusion(
-    Node x, Node l, bool isRev, SkolemCache* skc, std::vector<Node>& newSkolems)
+Node CoreSolver::getDecomposeConclusion(Node x,
+                                        Node l,
+                                        bool isRev,
+                                        bool addLenConc,
+                                        SkolemCache* skc,
+                                        std::vector<Node>& newSkolems)
 {
   Assert(l.getType().isInteger());
   NodeManager* nm = NodeManager::currentNM();
@@ -850,7 +854,7 @@ Node CoreSolver::getDecomposeConclusion(
   Node sk2 = skc->mkSkolemCached(x, n, SkolemCache::SK_SUFFIX_REM, "dc_spt2");
   newSkolems.push_back(sk2);
   Node conc = x.eqNode(nm->mkNode(STRING_CONCAT, sk1, sk2));
-  if (options::stringLenConc())
+  if (addLenConc)
   {
     Node lc = nm->mkNode(STRING_LENGTH, isRev ? sk2 : sk1).eqNode(l);
     conc = nm->mkNode(AND, conc, lc);
@@ -2081,8 +2085,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
           // len(x)>=1 => x = k1 ++ k2 ^ len(k1) = 1
           SkolemCache* skc = d_termReg.getSkolemCache();
           std::vector<Node> newSkolems;
-          Node conc =
-              getDecomposeConclusion(nck, d_one, false, skc, newSkolems);
+          Node conc = getDecomposeConclusion(
+              nck, d_one, false, options::stringLenConc(), skc, newSkolems);
           Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
@@ -2121,7 +2125,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node uxLen = nm->mkNode(STRING_LENGTH, ux);
           Node uyLen = nm->mkNode(STRING_LENGTH, uy);
           std::vector<Node> newSkolems;
-          Node conc = getDecomposeConclusion(ux, uyLen, false, skc, newSkolems);
+          Node conc =
+              getDecomposeConclusion(ux, uyLen, false, true, skc, newSkolems);
           Assert(newSkolems.size() == 2);
           if (options::stringLenConc())
           {
