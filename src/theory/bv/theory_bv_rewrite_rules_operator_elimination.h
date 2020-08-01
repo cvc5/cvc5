@@ -31,7 +31,7 @@ namespace bv {
  * This rewrite is not meant to be used by the BV rewriter.
  * It is specifically designed for the bv-to-int preprocessing pass.
  * Based on Hacker's Delight section 2-2 equation a:
- * -x = ~x-1
+ * -x = ~x+1
  */
 template <>
 inline bool RewriteRule<NegEliminate>::applies(TNode node)
@@ -499,8 +499,8 @@ inline Node RewriteRule<SdivEliminateFewerBitwiseOps>::apply(TNode node)
   TNode a = node[0];
   TNode b = node[1];
   unsigned size = utils::getSize(a);
-  Node a_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, a, utils::mkMinSigned(size));
-  Node b_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, b, utils::mkMinSigned(size));
+  Node a_lt_0 = nm->mkNode(kind::BITVECTOR_UGE, a, utils::mkMinSigned(size));
+  Node b_lt_0 = nm->mkNode(kind::BITVECTOR_UGE, b, utils::mkMinSigned(size));
   Node abs_a =
       nm->mkNode(kind::ITE, a_lt_0, nm->mkNode(kind::BITVECTOR_NEG, a), a);
   Node abs_b =
@@ -577,8 +577,8 @@ inline Node RewriteRule<SremEliminateFewerBitwiseOps>::apply(TNode node)
   TNode a = node[0];
   TNode b = node[1];
   unsigned size = utils::getSize(a);
-  Node a_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, a, utils::mkMinSigned(size));
-  Node b_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, b, utils::mkMinSigned(size));
+  Node a_lt_0 = nm->mkNode(kind::BITVECTOR_UGE, a, utils::mkMinSigned(size));
+  Node b_lt_0 = nm->mkNode(kind::BITVECTOR_UGE, b, utils::mkMinSigned(size));
   Node abs_a =
       nm->mkNode(kind::ITE, a_lt_0, nm->mkNode(kind::BITVECTOR_NEG, a), a);
   Node abs_b =
@@ -697,8 +697,8 @@ inline Node RewriteRule<SmodEliminateFewerBitwiseOps>::apply(TNode node)
    *               (bvneg u))))))))
    */
 
-  Node s_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, s, utils::mkMinSigned(size));
-  Node t_lt_0 = nm->mkNode(kind::BITVECTOR_ULT, t, utils::mkMinSigned(size));
+  Node s_lt_0 = nm->mkNode(kind::BITVECTOR_UGE, s, utils::mkMinSigned(size));
+  Node t_lt_0 = nm->mkNode(kind::BITVECTOR_UGE, t, utils::mkMinSigned(size));
   Node abs_s =
       nm->mkNode(kind::ITE, s_lt_0, nm->mkNode(kind::BITVECTOR_NEG, s), s);
   Node abs_t =
