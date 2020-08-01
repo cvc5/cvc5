@@ -230,6 +230,8 @@ libcvc4_add_sources(
   smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
+  smt/dump_manager.cpp
+  smt/dump_manager.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
