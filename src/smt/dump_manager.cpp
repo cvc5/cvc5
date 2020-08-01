@@ -139,7 +139,7 @@ size_t DumpManager::getNumModelCommands() const
 
 const Command* DumpManager::getModelCommand(size_t i) const
 {
-  Assert(i < getNumCommands());
+  Assert(i < getNumModelCommands());
   // index the global commands first, then the locals
   if (i < d_modelGlobalCommands.size())
   {
