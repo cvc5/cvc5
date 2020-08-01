@@ -31,10 +31,9 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   
 DumpManager::DumpManager(context::UserContext* u) 
     : d_modelGlobalCommands(),
-      d_modelCommands(nullptr),
+      d_modelCommands(u),
       d_dumpCommands(),
 {
-  d_modelCommands = new (true) smt::CommandList(u);
 }
 
 DumpManager::~DumpManager() {
@@ -45,10 +44,6 @@ DumpManager::~DumpManager() {
   d_dumpCommands.clear();
 
   DeleteAndClearCommandVector(d_modelGlobalCommands);
-
-  if(d_modelCommands != nullptr) {
-    d_modelCommands->deleteSelf();
-  }
 }
 
 void DumpManager::finishInit()
@@ -82,7 +77,7 @@ void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, con
   if((!d_fullyInited || options::produceModels()) &&
      (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
     if(flags & ExprManager::VAR_FLAG_GLOBAL) {
-      d_modelGlobalCommands.push_back(c.clone());
+      d_modelGlobalCommands.push_back(std::make_shared<Command>(c.clone()));
     } else {
       d_modelCommands->push_back(c.clone());
     }

@@ -26,8 +26,7 @@ namespace CVC4 {
 namespace smt {
   
 // ???
-struct CommandCleanup;
-typedef context::CDList<Command*, CommandCleanup> CommandList;
+typedef context::CDList<std::shared_ptr<Command> > CommandList;
 
 /**
  * This utility is responsible for constructing and maintaining abstract
@@ -73,7 +72,7 @@ class DumpManager
    * it is context-dependent on push/pop).  Only maintained if
    * produce-models option is on.
    */
-  CommandList* d_modelCommands;
+  CommandList d_modelCommands;
 
   /**
    * A vector of declaration commands waiting to be dumped out.
