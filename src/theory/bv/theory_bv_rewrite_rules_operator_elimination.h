@@ -44,7 +44,7 @@ inline Node RewriteRule<NegEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<NegEliminate>(" << node << ")"
                       << std::endl;
-   NodeManager* nm = NodeManager::currentNM();                     
+  NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   unsigned size = utils::getSize(a);
   Node one = utils::mkOne(size);
@@ -71,7 +71,7 @@ inline Node RewriteRule<OrEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<OrEliminate>(" << node << ")"
                       << std::endl;
-   NodeManager* nm = NodeManager::currentNM();                     
+  NodeManager* nm = NodeManager::currentNM();
   TNode a = node[0];
   TNode b = node[1];
   Node bvadd = nm->mkNode(kind::BITVECTOR_PLUS, a, b);
