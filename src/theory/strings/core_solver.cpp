@@ -2112,8 +2112,8 @@ void CoreSolver::processDeq(Node ni, Node nj)
         // are both non-constants. We split them into parts that have the same
         // lengths.
         //
-        // len(x) >= len(y) => x = k1 ++ k2 ^ len(k1) = len(y)
-        // len(y) >= len(x) => y = k3 ++ k4 ^ len(k3) = len(x)
+        // len(x) > len(y) => x = k1 ++ k2 ^ len(k1) = len(y)
+        // len(y) > len(x) => y = k3 ++ k4 ^ len(k3) = len(x)
         Trace("strings-solve")
             << "Non-Simple Case 1 : add lemmas " << std::endl;
         SkolemCache* skc = d_termReg.getSkolemCache();
@@ -2139,9 +2139,9 @@ void CoreSolver::processDeq(Node ni, Node nj)
           Node conc =
               getDecomposeConclusion(ux, uyLen, false, true, skc, newSkolems);
           Assert(newSkolems.size() == 2);
-            d_termReg.registerTermAtomic(newSkolems[0], LENGTH_IGNORE);
+          d_termReg.registerTermAtomic(newSkolems[1], LENGTH_GEQ_ONE);
           std::vector<Node> antecLen;
-          antecLen.push_back(nm->mkNode(GEQ, uxLen, uyLen));
+          antecLen.push_back(nm->mkNode(GT, uxLen, uyLen));
           d_im.sendInference(
               {}, antecLen, conc, Inference::DEQ_DISL_STRINGS_SPLIT, true);
         }
