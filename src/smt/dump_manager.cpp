@@ -15,6 +15,7 @@
 #include "smt/dump_manager.h"
 
 #include "options/smt_options.h"
+#include "smt/dump.h"
 
 namespace CVC4 {
 namespace smt {

@@ -116,6 +116,7 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "smt/dump_manager.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
