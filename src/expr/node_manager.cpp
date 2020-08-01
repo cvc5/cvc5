@@ -624,7 +624,7 @@ TypeNode NodeManager::TupleTypeCache::getTupleType( NodeManager * nm, std::vecto
         c->addArg(ss.str().c_str(), types[i]);
       }
       dt.addConstructor(c);
-      d_data = nm->mkDatatypeType(dt);
+      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
@@ -652,7 +652,7 @@ TypeNode NodeManager::RecTypeCache::getRecordType( NodeManager * nm, const Recor
         c->addArg((*i).first, TypeNode::fromType((*i).second));
       }
       dt.addConstructor(c);
-      d_data = nm->mkDatatypeType(dt);
+      d_data = TypeNode::fromType(nm->toExprManager()->mkDatatypeType(dt));
       Debug("tuprec-debug") << "Return type : " << d_data << std::endl;
     }
     return d_data;
