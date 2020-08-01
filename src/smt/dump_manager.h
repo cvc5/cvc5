@@ -27,9 +27,11 @@ namespace CVC4 {
 namespace smt {
 
 /**
- * This utility is responsible for constructing and maintaining abstract
- * values, which are used in some responses to e.g. get-value / get-model
- * commands. See SMT-LIB standard 2.6 page 65 for details.
+ * This utility is responsible for:
+ * (1) storing information required for SMT-LIB queries such as get-model,
+ * which requires knowing what symbols are declared and should be printed in
+ * the model.
+ * (2) implementing some dumping traces e.g. --dump=declarations.
  */
 class DumpManager
 {
@@ -53,6 +55,7 @@ class DumpManager
    */
   void addToModelCommandAndDump(const Command& c,
                                 uint32_t flags = 0,
+                                bool userVisible=true,
                                 const char* dumpTag = "declarations");
   
   /** 

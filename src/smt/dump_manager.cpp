@@ -61,7 +61,7 @@ void DumpManager::resetAssertions()
   DeleteAndClearCommandVector(d_modelGlobalCommands);
 }
 
-void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, const char* dumpTag) {
+void DumpManager::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {
   Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << std::endl;
   // If we aren't yet fully inited, the user might still turn on
   // produce-models.  So let's keep any commands around just in

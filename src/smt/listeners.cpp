@@ -36,7 +36,7 @@ void ResourceOutListener::notify()
   d_smt.interrupt();
 }
 
-SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& smt) : d_dm(dm) {}
+SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm) : d_dm(dm) {}
 
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {

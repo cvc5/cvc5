@@ -137,16 +137,6 @@ extern const char* const plf_signatures;
 
 namespace smt {
 
-struct DeleteCommandFunction : public std::unary_function<const Command*, void>
-{
-  void operator()(const Command* command) { delete command; }
-};
-
-void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
-  std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
-  commands.clear();
-}
-
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -338,9 +328,9 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
-      d_dumpm(new DumpManager(d_userContext)),
+      d_dumpm(new DumpManager(d_userContext.get())),
       d_routListener(new ResourceOutListener(*this)),
-      d_snmListener(new SmtNodeManagerListener(*this)),
+      d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -931,7 +921,7 @@ void SmtEngine::defineFunction(Expr func,
      << func;
   DefineFunctionCommand c(ss.str(), func, formals, formula, global);
   d_dumpm->addToModelCommandAndDump(
-      c, ExprManager::VAR_FLAG_DEFINED, "declarations");
+      c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   PROOF(if (options::checkUnsatCores()) {
     d_defineCommands.push_back(c.clone());
