@@ -760,6 +760,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   }
 
   // Lastly, perform the final resolutions and checks.
+  std::vector<TypeNode> tns;
   for(std::vector<DatatypeType>::iterator i = dtts.begin(),
         i_end = dtts.end();
       i != i_end;
@@ -776,10 +777,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
     // Now run some checks, including a check to make sure that no
     // selector is function-valued.
     checkResolvedDatatype(*i);
+    tns.push_back(TypeNode::fromType(*i));
   }
 
   for(std::vector<NodeManagerListener*>::iterator i = d_nodeManager->d_listeners.begin(); i != d_nodeManager->d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewDatatypes(dtts, flags);
+    (*i)->nmNotifyNewDatatypes(tns, flags);
   }
   
   return dtts;
