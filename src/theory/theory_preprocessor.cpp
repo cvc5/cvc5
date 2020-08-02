@@ -49,10 +49,7 @@ TheoryPreprocessor::TheoryPreprocessor(TheoryEngine& engine,
   if (isProofEnabled())
   {
     // enable proofs in the term formula remover
-    if (pnm != nullptr)
-    {
-      d_tfr.setProofNodeManager(pnm);
-    }
+    d_tfr.setProofNodeManager(pnm);
     // push the proof context, since proof steps may be cleared on calls to
     // clearCache() below.
     d_pfContext.push();
@@ -121,13 +118,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   // in d_tpg, which maintains the fact that d_tpg can prove the rewrite.
   retNode = rewriteWithProof(retNode);
 
-  retNode = Rewriter::rewrite(retNode);
-
   // now, rewrite the lemmas
+  Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: process lemmas" << std::endl;
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     // get the trust node to process
-    TrustNode trn = newLemmas[i];
+    TrustNode trn = newLemmas[i];    
+    trn.debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::lemma_new_initial", false);
     Assert(trn.getKind() == TrustNodeKind::LEMMA);
     Node assertion = trn.getNode();
     // rewrite, which is independent of d_tpg, since additional lemmas
@@ -148,8 +145,12 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
       }
       newLemmas[i] = TrustNode::mkTrustLemma(rewritten, d_lp.get());
     }
+    Assert (!isProofEnabled() || newLemmas[i].getGenerator()!=nullptr);
+    newLemmas[i].debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::lemma_new");
   }
-  return TrustNode::mkTrustRewrite(node, retNode, d_tpg.get());
+  TrustNode tret = TrustNode::mkTrustRewrite(node, retNode, d_tpg.get());
+  tret.debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::lemma_ret");
+  return tret;
 }
 
 struct preprocess_stack_element
@@ -348,6 +349,7 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   {
     if (trn.getGenerator() != nullptr)
     {
+      trn.debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::preprocessWithProof");
       d_tpg->addRewriteStep(term, termr, trn.getGenerator());
     }
     else

@@ -1659,14 +1659,8 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   bool removable = isLemmaPropertyRemovable(p);
   bool preprocess = isLemmaPropertyPreprocess(p);
 
-  if (options::proofNew())
-  {
-    bool isTraceDebug = Trace.isOn("te-proof-debug");
-    if (options::proofNewEagerChecking() || isTraceDebug)
-    {
-      tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
-    }
-  }
+  // ensure closed
+  tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_initial");
 
   // call preprocessor
   std::vector<TrustNode> newLemmas;
@@ -1724,25 +1718,14 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
 
   // assert lemmas to prop engine
   Assert(!options::proofNew() || tlemma.getGenerator() != nullptr);
-  if (options::proofNew())
-  {
-    // ensure closed, make the proof node eagerly here to debug
-    bool isTraceDebug = Trace.isOn("te-proof-debug");
-    if (options::proofNewEagerChecking() || isTraceDebug)
-    {
-      tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
-    }
-  }
+  // ensure closed, make the proof node eagerly here to debug
+  tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
   d_propEngine->assertLemma(tlemma, removable, rule, node);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
-    bool isTraceDebug = Trace.isOn("te-proof-debug");
-    if (options::proofNewEagerChecking() || isTraceDebug)
-    {
-      newLemmas[i].debugCheckClosed("te-proof-debug",
+    newLemmas[i].debugCheckClosed("te-proof-debug",
                                     "TheoryEngine::lemma_new");
-    }
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
 

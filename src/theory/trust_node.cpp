@@ -15,6 +15,7 @@
 #include "theory/trust_node.h"
 
 #include "expr/proof_generator.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 namespace theory {
@@ -121,12 +122,33 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
-void TrustNode::debugCheckClosed(const char* c, const char* ctx)
+void TrustNode::debugCheckClosed(const char* c, const char* ctx, bool reqNullGen)
 {
+  if (!options::proofNew())
+  {
+    // proofs not enabled, do not do check
+    return;
+  }
+  bool isTraceDebug = Trace.isOn(c);
+  if (!options::proofNewEagerChecking() && !isTraceDebug)
+  {
+    // trace is off and proof new eager checking is off, do not do check
+    return;
+  }
   std::stringstream ss;
   ss << identifyGenerator() << " in context " << ctx;
-  Trace(c) << "=== TrustNode::debugCheckClosed: " << ss.str();
+  Trace(c) << "=== TrustNode::debugCheckClosed: " << ss.str() << std::endl;
   Trace(c) << "Check proof of " << getProven() << std::endl;
+  if (d_gen == nullptr)
+  {
+    // only failure if flag is true
+    if (reqNullGen)
+    {
+      AlwaysAssert(false) << "...TrustNode::debugCheckClosed: no generator in context " << ctx;
+    }
+    Trace(c) << "...TrustNode::debugCheckClosed: no generator in context " << ctx << std::endl;
+    return;
+  }
   std::shared_ptr<ProofNode> pn = toProofNode();
   if (pn == nullptr)
   {
