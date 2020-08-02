@@ -1809,6 +1809,7 @@ set(regress_1_tests
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
   regress1/strings/issue4608-re-derive.smt2
+  regress1/strings/issue4701_substr_splice.smt2
   regress1/strings/issue4735.smt2
   regress1/strings/issue4735_2.smt2
   regress1/strings/issue4759-comp-delta.smt2
