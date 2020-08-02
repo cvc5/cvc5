@@ -616,7 +616,7 @@ class CVC4_PUBLIC DatatypeType : public Type {
   /** Construct from the base type */
   DatatypeType(const Type& type = Type());
 
-  /** Get the underlying datatype */	
+  /** Get the underlying datatype */
   const Datatype& getDatatype() const;
 
   /** Is this datatype parametric? */

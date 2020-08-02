@@ -226,7 +226,7 @@ void CvcPrinter::toStream(
         }
         out << ']';
       }
-      else if (dt.isRecord() )
+      else if (dt.isRecord())
       {
         out << "[# ";
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
