@@ -596,27 +596,17 @@ api::Term Parser::applyTypeAscription(api::Term t, api::Sort s)
   api::Sort etype = t.getSort();
   if (etype.isConstructor())
   {
-    // get the datatype that t belongs to
-    api::Sort etyped = etype.getConstructorCodomainSort();
-    api::Datatype d = etyped.getDatatype();
-    // lookup by name
-    api::DatatypeConstructor dc = d.getConstructor(t.toString());
-
     // Type ascriptions only have an effect on the node structure if this is a
     // parametric datatype.
     if (s.isParametricDatatype())
     {
-      ExprManager* em = d_solver->getExprManager();
-      // apply type ascription to the operator
-      Expr e = t.getExpr();
-      const DatatypeConstructor& dtc =
-          Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-      t = api::Term(
-          d_solver,
-          em->mkExpr(kind::APPLY_TYPE_ASCRIPTION,
-                     em->mkConst(AscriptionType(
-                         dtc.getSpecializedConstructorType(s.getType()))),
-                     e));
+      // get the datatype that t belongs to
+      api::Sort etyped = etype.getConstructorCodomainSort();
+      api::Datatype d = etyped.getDatatype();
+      // lookup by name
+      api::DatatypeConstructor dc = d.getConstructor(t.toString());
+      // ask the constructor for the specialized constructor term
+      t = dc.getSpecializedConstructorTerm(s);
     }
     // the type of t does not match the sort s by design (constructor type
     // vs datatype type), thus we use an alternative check here.
