@@ -39,11 +39,7 @@ DumpManager::DumpManager(context::UserContext* u)
 
 DumpManager::~DumpManager()
 {
-  for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
-    delete d_dumpCommands[i];
-    d_dumpCommands[i] = nullptr;
-  }
-  d_dumpCommands.clear();
+  DeleteAndClearCommandVector(d_dumpCommands);
   DeleteAndClearCommandVector(d_modelCommandsAlloc);
   DeleteAndClearCommandVector(d_modelGlobalCommands);
 }
