@@ -19,7 +19,7 @@
 #include <sstream>
 
 #include "api/cvc4cpp.h"
-#include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -34,7 +34,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   {
     d_slv = new api::Solver();
     d_nm = d_slv->getNodeManager();
-    d_scope = new NodeManagerScope(*d_nm);
+    d_scope = new NodeManagerScope(d_nm);
     Debug.on("datatypes");
     Debug.on("groundterms");
   }
@@ -46,12 +46,16 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testEnumeration() {
-    DType colors(d_em, "colors");
+    DType colors("colors");
 
-    std::shared_ptr<DTypeConstructor> yellow = std::make_shared<DTypeConstructor>("yellow");
-    std::shared_ptr<DTypeConstructor> blue = std::make_shared<DTypeConstructor>("blue");
-    std::shared_ptr<DTypeConstructor> green = std::make_shared<DTypeConstructor>("green");
-    std::shared_ptr<DTypeConstructor> red = std::make_shared<DTypeConstructor>("red");
+    std::shared_ptr<DTypeConstructor> yellow =
+        std::make_shared<DTypeConstructor>("yellow");
+    std::shared_ptr<DTypeConstructor> blue =
+        std::make_shared<DTypeConstructor>("blue");
+    std::shared_ptr<DTypeConstructor> green =
+        std::make_shared<DTypeConstructor>("green");
+    std::shared_ptr<DTypeConstructor> red =
+        std::make_shared<DTypeConstructor>("red");
 
     colors.addConstructor(yellow);
     colors.addConstructor(blue);
@@ -62,156 +66,168 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TypeNode colorsType = d_nm->mkDatatypeType(colors);
     Debug("datatypes") << colorsType << std::endl;
 
-    Expr ctor = colorsType.getDType()[1].getConstructor();
-    Expr apply = d_em->mkExpr(kind::APPLY_CONSTRUCTOR, ctor);
+    Node ctor = colorsType.getDType()[1].getConstructor();
+    Node apply = d_nm->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
     Debug("datatypes") << apply << std::endl;
 
-    const DType& colorsDT = colorsType.getDType();
-    TS_ASSERT(colorsDT.getConstructor("blue") == ctor);
-    TS_ASSERT(colorsDT["blue"].getConstructor() == ctor);
-    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"),
-                     IllegalArgumentException&);
-    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException&);
-
-    TS_ASSERT(! colorsType.getDType().isParametric());
+    TS_ASSERT(!colorsType.getDType().isParametric());
     TS_ASSERT(colorsType.getDType().isFinite());
-    TS_ASSERT(colorsType.getDType().getCardinality().compare(4) == Cardinality::EQUAL);
+    TS_ASSERT(colorsType.getDType().getCardinality().compare(4)
+              == Cardinality::EQUAL);
     TS_ASSERT(ctor.getType().getCardinality().compare(1) == Cardinality::EQUAL);
     TS_ASSERT(colorsType.getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << colorsType.getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << colorsType.getDType().getName()
+                         << endl
                          << "  is " << colorsType.mkGroundTerm() << endl;
     TS_ASSERT(colorsType.mkGroundTerm().getType() == colorsType);
   }
 
   void testNat() {
-    DType nat(d_em, "nat");
+    DType nat("nat");
 
-    std::shared_ptr<DTypeConstructor> succ = std::make_shared<DTypeConstructor>("succ");
-    succ.addArgSelf("pred");
+    std::shared_ptr<DTypeConstructor> succ =
+        std::make_shared<DTypeConstructor>("succ");
+    succ->addArgSelf("pred");
     nat.addConstructor(succ);
 
-    std::shared_ptr<DTypeConstructor> zero = std::make_shared<DTypeConstructor>("zero");
+    std::shared_ptr<DTypeConstructor> zero =
+        std::make_shared<DTypeConstructor>("zero");
     nat.addConstructor(zero);
 
     Debug("datatypes") << nat << std::endl;
     TypeNode natType = d_nm->mkDatatypeType(nat);
     Debug("datatypes") << natType << std::endl;
 
-    Expr ctor = natType.getDType()[1].getConstructor();
-    Expr apply = d_em->mkExpr(kind::APPLY_CONSTRUCTOR, ctor);
+    Node ctor = natType.getDType()[1].getConstructor();
+    Node apply = d_nm->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
     Debug("datatypes") << apply << std::endl;
 
-    TS_ASSERT(! natType.getDType().isParametric());
-    TS_ASSERT(! natType.getDType().isFinite());
-    TS_ASSERT(natType.getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!natType.getDType().isParametric());
+    TS_ASSERT(!natType.getDType().isFinite());
+    TS_ASSERT(natType.getDType().getCardinality().compare(Cardinality::INTEGERS)
+              == Cardinality::EQUAL);
     TS_ASSERT(natType.getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << natType.getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << natType.getDType().getName()
+                         << endl
                          << "  is " << natType.mkGroundTerm() << endl;
     TS_ASSERT(natType.mkGroundTerm().getType() == natType);
   }
 
   void testTree() {
-    DType tree(d_em, "tree");
-    Type integerType = d_em->integerType();
+    DType tree("tree");
+    TypeNode integerType = d_nm->integerType();
 
-    std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    std::shared_ptr<DTypeConstructor> node =
+        std::make_shared<DTypeConstructor>("node");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
-    std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf.addArg("leaf", integerType);
+    std::shared_ptr<DTypeConstructor> leaf =
+        std::make_shared<DTypeConstructor>("leaf");
+    leaf->addArg("leaf", integerType);
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
     TypeNode treeType = d_nm->mkDatatypeType(tree);
     Debug("datatypes") << treeType << std::endl;
 
-    Expr ctor = treeType.getDType()[1].getConstructor();
-    TS_ASSERT(treeType.getConstructor("leaf") == ctor);
-    TS_ASSERT(treeType.getConstructor("leaf") == ctor);
-    TS_ASSERT_THROWS(treeType.getConstructor("leff"),
-                     IllegalArgumentException&);
-
-    TS_ASSERT(! treeType.getDType().isParametric());
-    TS_ASSERT(! treeType.getDType().isFinite());
-    TS_ASSERT(treeType.getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!treeType.getDType().isParametric());
+    TS_ASSERT(!treeType.getDType().isFinite());
+    TS_ASSERT(
+        treeType.getDType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
     TS_ASSERT(treeType.getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << treeType.getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << treeType.getDType().getName()
+                         << endl
                          << "  is " << treeType.mkGroundTerm() << endl;
     TS_ASSERT(treeType.mkGroundTerm().getType() == treeType);
   }
 
   void testListInt() {
-    DType list(d_em, "list");
-    Type integerType = d_em->integerType();
+    DType list("list");
+    TypeNode integerType = d_nm->integerType();
 
-    std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", integerType);
-    cons.addArgSelf("cdr");
+    std::shared_ptr<DTypeConstructor> cons =
+        std::make_shared<DTypeConstructor>("cons");
+    cons->addArg("car", integerType);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
-    std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
+    std::shared_ptr<DTypeConstructor> nil =
+        std::make_shared<DTypeConstructor>("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
     TypeNode listType = d_nm->mkDatatypeType(list);
     Debug("datatypes") << listType << std::endl;
 
-    TS_ASSERT(! listType.getDType().isParametric());
-    TS_ASSERT(! listType.getDType().isFinite());
-    TS_ASSERT(listType.getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!listType.getDType().isParametric());
+    TS_ASSERT(!listType.getDType().isFinite());
+    TS_ASSERT(
+        listType.getDType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
     TS_ASSERT(listType.getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << listType.getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << listType.getDType().getName()
+                         << endl
                          << "  is " << listType.mkGroundTerm() << endl;
     TS_ASSERT(listType.mkGroundTerm().getType() == listType);
   }
 
   void testListReal() {
-    DType list(d_em, "list");
-    Type realType = d_em->realType();
+    DType list("list");
+    TypeNode realType = d_nm->realType();
 
-    std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", realType);
-    cons.addArgSelf("cdr");
+    std::shared_ptr<DTypeConstructor> cons =
+        std::make_shared<DTypeConstructor>("cons");
+    cons->addArg("car", realType);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
-    std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
+    std::shared_ptr<DTypeConstructor> nil =
+        std::make_shared<DTypeConstructor>("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
     TypeNode listType = d_nm->mkDatatypeType(list);
     Debug("datatypes") << listType << std::endl;
 
-    TS_ASSERT(! listType.getDType().isParametric());
-    TS_ASSERT(! listType.getDType().isFinite());
-    TS_ASSERT(listType.getDType().getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL);
+    TS_ASSERT(!listType.getDType().isParametric());
+    TS_ASSERT(!listType.getDType().isFinite());
+    TS_ASSERT(listType.getDType().getCardinality().compare(Cardinality::REALS)
+              == Cardinality::EQUAL);
     TS_ASSERT(listType.getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << listType.getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << listType.getDType().getName()
+                         << endl
                          << "  is " << listType.mkGroundTerm() << endl;
     TS_ASSERT(listType.mkGroundTerm().getType() == listType);
   }
 
   void testListBoolean() {
-    DType list(d_em, "list");
-    Type booleanType = d_em->booleanType();
+    DType list("list");
+    TypeNode booleanType = d_nm->booleanType();
 
-    std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", booleanType);
-    cons.addArgSelf("cdr");
+    std::shared_ptr<DTypeConstructor> cons =
+        std::make_shared<DTypeConstructor>("cons");
+    cons->addArg("car", booleanType);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
-    std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
+    std::shared_ptr<DTypeConstructor> nil =
+        std::make_shared<DTypeConstructor>("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
     TypeNode listType = d_nm->mkDatatypeType(list);
     Debug("datatypes") << listType << std::endl;
 
-    TS_ASSERT(! listType.getDType().isFinite());
-    TS_ASSERT(listType.getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!listType.getDType().isFinite());
+    TS_ASSERT(
+        listType.getDType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
     TS_ASSERT(listType.getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << listType.getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << listType.getDType().getName()
+                         << endl
                          << "  is " << listType.mkGroundTerm() << endl;
     TS_ASSERT(listType.mkGroundTerm().getType() == listType);
   }
@@ -225,155 +241,191 @@ class DatatypeBlack : public CxxTest::TestSuite {
      *     list = cons(car: tree, cdr: list) | nil
      *   END;
      */
-    DType tree(d_em, "tree");
-    std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    std::set<TypeNode> unresolvedTypes;
+    TypeNode unresList =
+        d_nm->mkSort("list", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresList);
+    TypeNode unresTree =
+        d_nm->mkSort("tree", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresTree);
+
+    DType tree("tree");
+    std::shared_ptr<DTypeConstructor> node =
+        std::make_shared<DTypeConstructor>("node");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
-    std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf.addArg("leaf", DTypeUnresolvedType("list"));
+    std::shared_ptr<DTypeConstructor> leaf =
+        std::make_shared<DTypeConstructor>("leaf");
+    leaf->addArg("leaf", unresList);
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
 
-    DType list(d_em, "list");
-    std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", DTypeUnresolvedType("tree"));
-    cons.addArgSelf("cdr");
+    DType list("list");
+    std::shared_ptr<DTypeConstructor> cons =
+        std::make_shared<DTypeConstructor>("cons");
+    cons->addArg("car", unresTree);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
-    std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
+    std::shared_ptr<DTypeConstructor> nil =
+        std::make_shared<DTypeConstructor>("nil");
     list.addConstructor(nil);
 
     Debug("datatypes") << list << std::endl;
 
     TS_ASSERT(! tree.isResolved());
-    TS_ASSERT(! node.isResolved());
-    TS_ASSERT(! leaf.isResolved());
     TS_ASSERT(! list.isResolved());
-    TS_ASSERT(! cons.isResolved());
-    TS_ASSERT(! nil.isResolved());
 
     vector<DType> dts;
     dts.push_back(tree);
     dts.push_back(list);
-    vector<TypeNode> dtts = d_em->mkMutualTypeNodes(dts);
+    vector<TypeNode> dtts = d_nm->mkMutualDatatypeTypes(dts, unresolvedTypes);
 
     TS_ASSERT(dtts[0].getDType().isResolved());
     TS_ASSERT(dtts[1].getDType().isResolved());
 
-    TS_ASSERT(! dtts[0].getDType().isFinite());
-    TS_ASSERT(dtts[0].getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!dtts[0].getDType().isFinite());
+    TS_ASSERT(dtts[0].getDType().getCardinality().compare(Cardinality::INTEGERS)
+              == Cardinality::EQUAL);
     TS_ASSERT(dtts[0].getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << dtts[0].getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << dtts[0].getDType().getName()
+                         << endl
                          << "  is " << dtts[0].mkGroundTerm() << endl;
     TS_ASSERT(dtts[0].mkGroundTerm().getType() == dtts[0]);
 
-    TS_ASSERT(! dtts[1].getDType().isFinite());
-    TS_ASSERT(dtts[1].getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!dtts[1].getDType().isFinite());
+    TS_ASSERT(dtts[1].getDType().getCardinality().compare(Cardinality::INTEGERS)
+              == Cardinality::EQUAL);
     TS_ASSERT(dtts[1].getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << dtts[1].getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << dtts[1].getDType().getName()
+                         << endl
                          << "  is " << dtts[1].mkGroundTerm() << endl;
     TS_ASSERT(dtts[1].mkGroundTerm().getType() == dtts[1]);
   }
   void testMutualListTrees2()
   {
-    DType tree(d_em, "tree");
-    std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    std::set<TypeNode> unresolvedTypes;
+    TypeNode unresList =
+        d_nm->mkSort("list", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresList);
+    TypeNode unresTree =
+        d_nm->mkSort("tree", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresTree);
+
+    DType tree("tree");
+    std::shared_ptr<DTypeConstructor> node =
+        std::make_shared<DTypeConstructor>("node");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
-    std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf.addArg("leaf", DTypeUnresolvedType("list"));
+    std::shared_ptr<DTypeConstructor> leaf =
+        std::make_shared<DTypeConstructor>("leaf");
+    leaf->addArg("leaf", unresList);
     tree.addConstructor(leaf);
 
-    DType list(d_em, "list");
-    std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", DTypeUnresolvedType("tree"));
-    cons.addArgSelf("cdr");
+    DType list("list");
+    std::shared_ptr<DTypeConstructor> cons =
+        std::make_shared<DTypeConstructor>("cons");
+    cons->addArg("car", unresTree);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
-    std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
+    std::shared_ptr<DTypeConstructor> nil =
+        std::make_shared<DTypeConstructor>("nil");
     list.addConstructor(nil);
 
     // add another constructor to list datatype resulting in an
     // "otherNil-list"
-    std::shared_ptr<DTypeConstructor> otherNil = std::make_shared<DTypeConstructor>("otherNil");
+    std::shared_ptr<DTypeConstructor> otherNil =
+        std::make_shared<DTypeConstructor>("otherNil");
     list.addConstructor(otherNil);
 
     vector<DType> dts;
     dts.push_back(tree);
     dts.push_back(list);
     // remake the types
-    vector<TypeNode> dtts2 = d_em->mkMutualTypeNodes(dts);
+    vector<TypeNode> dtts2 = d_nm->mkMutualDatatypeTypes(dts, unresolvedTypes);
 
-    TS_ASSERT(! dtts2[0].getDType().isFinite());
-    TS_ASSERT(dtts2[0].getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!dtts2[0].getDType().isFinite());
+    TS_ASSERT(
+        dtts2[0].getDType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
     TS_ASSERT(dtts2[0].getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << dtts2[0].getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << dtts2[0].getDType().getName()
+                         << endl
                          << "  is " << dtts2[0].mkGroundTerm() << endl;
     TS_ASSERT(dtts2[0].mkGroundTerm().getType() == dtts2[0]);
 
-    TS_ASSERT(! dtts2[1].getDType().isParametric());
-    TS_ASSERT(! dtts2[1].getDType().isFinite());
-    TS_ASSERT(dtts2[1].getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
+    TS_ASSERT(!dtts2[1].getDType().isParametric());
+    TS_ASSERT(!dtts2[1].getDType().isFinite());
+    TS_ASSERT(
+        dtts2[1].getDType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
     TS_ASSERT(dtts2[1].getDType().isWellFounded());
-    Debug("groundterms") << "ground term of " << dtts2[1].getDType().getName() << endl
+    Debug("groundterms") << "ground term of " << dtts2[1].getDType().getName()
+                         << endl
                          << "  is " << dtts2[1].mkGroundTerm() << endl;
     TS_ASSERT(dtts2[1].mkGroundTerm().getType() == dtts2[1]);
   }
 
   void testNotSoWellFounded() {
-    DType tree(d_em, "tree");
+    DType tree("tree");
 
-    std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    std::shared_ptr<DTypeConstructor> node =
+        std::make_shared<DTypeConstructor>("node");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
     Debug("datatypes") << tree << std::endl;
     TypeNode treeType = d_nm->mkDatatypeType(tree);
     Debug("datatypes") << treeType << std::endl;
 
-    TS_ASSERT(! treeType.getDType().isParametric());
-    TS_ASSERT(! treeType.getDType().isFinite());
-    TS_ASSERT(treeType.getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
-    TS_ASSERT(! treeType.getDType().isWellFounded());
+    TS_ASSERT(!treeType.getDType().isParametric());
+    TS_ASSERT(!treeType.getDType().isFinite());
+    TS_ASSERT(
+        treeType.getDType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
+    TS_ASSERT(!treeType.getDType().isWellFounded());
     TS_ASSERT_THROWS_ANYTHING( treeType.mkGroundTerm() );
-    TS_ASSERT_THROWS_ANYTHING( treeType.getDType().mkGroundTerm( treeType ) );
+    TS_ASSERT_THROWS_ANYTHING(treeType.getDType().mkGroundTerm(treeType));
   }
 
-  void testParametricDType() {
-    vector<Type> v;
-    Type t1, t2;
-    v.push_back(t1 = d_em->mkSort("T1"));
-    v.push_back(t2 = d_em->mkSort("T2"));
-    DType pair(d_em, "pair", v);
+  void testParametricDType()
+  {
+    vector<TypeNode> v;
+    TypeNode t1, t2;
+    v.push_back(t1 = d_nm->mkSort("T1"));
+    v.push_back(t2 = d_nm->mkSort("T2"));
+    DType pair("pair", v);
 
-    std::shared_ptr<DTypeConstructor> mkpair = std::make_shared<DTypeConstructor>("mk-pair");
-    mkpair.addArg("first", t1);
-    mkpair.addArg("second", t2);
+    std::shared_ptr<DTypeConstructor> mkpair =
+        std::make_shared<DTypeConstructor>("mk-pair");
+    mkpair->addArg("first", t1);
+    mkpair->addArg("second", t2);
     pair.addConstructor(mkpair);
     TypeNode pairType = d_nm->mkDatatypeType(pair);
 
     TS_ASSERT(pairType.getDType().isParametric());
     v.clear();
-    v.push_back(d_em->integerType());
-    v.push_back(d_em->integerType());
+    v.push_back(d_nm->integerType());
+    v.push_back(d_nm->integerType());
     TypeNode pairIntInt = pairType.getDType().getTypeNode(v);
     v.clear();
-    v.push_back(d_em->realType());
-    v.push_back(d_em->realType());
+    v.push_back(d_nm->realType());
+    v.push_back(d_nm->realType());
     TypeNode pairRealReal = pairType.getDType().getTypeNode(v);
     v.clear();
-    v.push_back(d_em->realType());
-    v.push_back(d_em->integerType());
+    v.push_back(d_nm->realType());
+    v.push_back(d_nm->integerType());
     TypeNode pairRealInt = pairType.getDType().getTypeNode(v);
     v.clear();
-    v.push_back(d_em->integerType());
-    v.push_back(d_em->realType());
+    v.push_back(d_nm->integerType());
+    v.push_back(d_nm->realType());
     TypeNode pairIntReal = pairType.getDType().getTypeNode(v);
 
     TS_ASSERT_DIFFERS(pairIntInt, pairRealReal);
@@ -417,26 +469,34 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TS_ASSERT(!pairRealInt.isSubtypeOf(pairIntInt));
     TS_ASSERT(pairIntInt.isSubtypeOf(pairIntInt));
 
-    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairRealReal, pairRealReal), pairRealReal);
-    TS_ASSERT(TypeNode::leastCommonTypeNode(pairIntReal, pairRealReal).isNull());
-    TS_ASSERT(TypeNode::leastCommonTypeNode(pairRealInt, pairRealReal).isNull());
+    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairRealReal, pairRealReal),
+                     pairRealReal);
+    TS_ASSERT(
+        TypeNode::leastCommonTypeNode(pairIntReal, pairRealReal).isNull());
+    TS_ASSERT(
+        TypeNode::leastCommonTypeNode(pairRealInt, pairRealReal).isNull());
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairIntInt, pairRealReal).isNull());
-    TS_ASSERT(TypeNode::leastCommonTypeNode(pairRealReal, pairRealInt).isNull());
+    TS_ASSERT(
+        TypeNode::leastCommonTypeNode(pairRealReal, pairRealInt).isNull());
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairIntReal, pairRealInt).isNull());
-    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairRealInt, pairRealInt), pairRealInt);
+    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairRealInt, pairRealInt),
+                     pairRealInt);
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairIntInt, pairRealInt).isNull());
-    TS_ASSERT(TypeNode::leastCommonTypeNode(pairRealReal, pairIntReal).isNull());
-    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairIntReal, pairIntReal), pairIntReal);
+    TS_ASSERT(
+        TypeNode::leastCommonTypeNode(pairRealReal, pairIntReal).isNull());
+    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairIntReal, pairIntReal),
+                     pairIntReal);
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairRealInt, pairIntReal).isNull());
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairIntInt, pairIntReal).isNull());
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairRealReal, pairIntInt).isNull());
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairIntReal, pairIntInt).isNull());
     TS_ASSERT(TypeNode::leastCommonTypeNode(pairRealInt, pairIntInt).isNull());
-    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt), pairIntInt);
+    TS_ASSERT_EQUALS(TypeNode::leastCommonTypeNode(pairIntInt, pairIntInt),
+                     pairIntInt);
   }
 
  private:
   api::Solver* d_slv;
   NodeManager* d_nm;
   NodeManagerScope* d_scope;
-};/* class DTypeBlack */
+}; /* class DTypeBlack */
