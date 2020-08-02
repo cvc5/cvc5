@@ -34,7 +34,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   {
     d_slv = new api::Solver();
     d_nm = d_slv->getNodeManager();
-    d_scope = new NodeManagerScope(*d_nm);
+    d_scope = new NodeManagerScope(d_nm);
     Debug.on("datatypes");
     Debug.on("groundterms");
   }
@@ -46,7 +46,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testEnumeration() {
-    DType colors(d_em, "colors");
+    DType colors("colors");
 
     std::shared_ptr<DTypeConstructor> yellow = std::make_shared<DTypeConstructor>("yellow");
     std::shared_ptr<DTypeConstructor> blue = std::make_shared<DTypeConstructor>("blue");
@@ -62,8 +62,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TypeNode colorsType = d_nm->mkDatatypeType(colors);
     Debug("datatypes") << colorsType << std::endl;
 
-    Expr ctor = colorsType.getDType()[1].getConstructor();
-    Expr apply = d_em->mkExpr(kind::APPLY_CONSTRUCTOR, ctor);
+    Node ctor = colorsType.getDType()[1].getConstructor();
+    Node apply = d_nm->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
     Debug("datatypes") << apply << std::endl;
 
     const DType& colorsDT = colorsType.getDType();
@@ -84,10 +84,10 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testNat() {
-    DType nat(d_em, "nat");
+    DType nat("nat");
 
     std::shared_ptr<DTypeConstructor> succ = std::make_shared<DTypeConstructor>("succ");
-    succ.addArgSelf("pred");
+    succ->addArgSelf("pred");
     nat.addConstructor(succ);
 
     std::shared_ptr<DTypeConstructor> zero = std::make_shared<DTypeConstructor>("zero");
@@ -97,8 +97,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TypeNode natType = d_nm->mkDatatypeType(nat);
     Debug("datatypes") << natType << std::endl;
 
-    Expr ctor = natType.getDType()[1].getConstructor();
-    Expr apply = d_em->mkExpr(kind::APPLY_CONSTRUCTOR, ctor);
+    Node ctor = natType.getDType()[1].getConstructor();
+    Node apply = d_nm->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
     Debug("datatypes") << apply << std::endl;
 
     TS_ASSERT(! natType.getDType().isParametric());
@@ -111,23 +111,23 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testTree() {
-    DType tree(d_em, "tree");
+    DType tree("tree");
     Type integerType = d_em->integerType();
 
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
     std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf.addArg("leaf", integerType);
+    leaf->addArg("leaf", integerType);
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
     TypeNode treeType = d_nm->mkDatatypeType(tree);
     Debug("datatypes") << treeType << std::endl;
 
-    Expr ctor = treeType.getDType()[1].getConstructor();
+    Node ctor = treeType.getDType()[1].getConstructor();
     TS_ASSERT(treeType.getConstructor("leaf") == ctor);
     TS_ASSERT(treeType.getConstructor("leaf") == ctor);
     TS_ASSERT_THROWS(treeType.getConstructor("leff"),
@@ -143,12 +143,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testListInt() {
-    DType list(d_em, "list");
+    DType list("list");
     Type integerType = d_em->integerType();
 
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", integerType);
-    cons.addArgSelf("cdr");
+    cons->addArg("car", integerType);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
     std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
@@ -168,12 +168,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testListReal() {
-    DType list(d_em, "list");
+    DType list("list");
     Type realType = d_em->realType();
 
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", realType);
-    cons.addArgSelf("cdr");
+    cons->addArg("car", realType);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
     std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
@@ -193,12 +193,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testListBoolean() {
-    DType list(d_em, "list");
+    DType list("list");
     Type booleanType = d_em->booleanType();
 
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", booleanType);
-    cons.addArgSelf("cdr");
+    cons->addArg("car", booleanType);
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
     std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
@@ -225,22 +225,22 @@ class DatatypeBlack : public CxxTest::TestSuite {
      *     list = cons(car: tree, cdr: list) | nil
      *   END;
      */
-    DType tree(d_em, "tree");
+    DType tree("tree");
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
     std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf.addArg("leaf", DTypeUnresolvedType("list"));
+    leaf->addArg("leaf", DTypeUnresolvedType("list"));
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
 
-    DType list(d_em, "list");
+    DType list("list");
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", DTypeUnresolvedType("tree"));
-    cons.addArgSelf("cdr");
+    cons->addArg("car", DTypeUnresolvedType("tree"));
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
     std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
@@ -279,20 +279,20 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
   void testMutualListTrees2()
   {
-    DType tree(d_em, "tree");
+    DType tree("tree");
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
     std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf.addArg("leaf", DTypeUnresolvedType("list"));
+    leaf->addArg("leaf", DTypeUnresolvedType("list"));
     tree.addConstructor(leaf);
 
-    DType list(d_em, "list");
+    DType list("list");
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons.addArg("car", DTypeUnresolvedType("tree"));
-    cons.addArgSelf("cdr");
+    cons->addArg("car", DTypeUnresolvedType("tree"));
+    cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
     std::shared_ptr<DTypeConstructor> nil = std::make_shared<DTypeConstructor>("nil");
@@ -326,11 +326,11 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testNotSoWellFounded() {
-    DType tree(d_em, "tree");
+    DType tree("tree");
 
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
-    node.addArgSelf("left");
-    node.addArgSelf("right");
+    node->addArgSelf("left");
+    node->addArgSelf("right");
     tree.addConstructor(node);
 
     Debug("datatypes") << tree << std::endl;
@@ -350,11 +350,11 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Type t1, t2;
     v.push_back(t1 = d_em->mkSort("T1"));
     v.push_back(t2 = d_em->mkSort("T2"));
-    DType pair(d_em, "pair", v);
+    DType pair("pair", v);
 
     std::shared_ptr<DTypeConstructor> mkpair = std::make_shared<DTypeConstructor>("mk-pair");
-    mkpair.addArg("first", t1);
-    mkpair.addArg("second", t2);
+    mkpair->addArg("first", t1);
+    mkpair->addArg("second", t2);
     pair.addConstructor(mkpair);
     TypeNode pairType = d_nm->mkDatatypeType(pair);
 
