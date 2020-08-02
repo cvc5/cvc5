@@ -2,9 +2,9 @@
 /*! \file tptp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Francois Bobot, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -311,7 +311,7 @@ api::Term Tptp::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
     isBuiltinKind = true;
   }
   assert(kind != api::NULL_EXPR);
-  const Options& opts = d_solver->getExprManager()->getOptions();
+  const Options& opts = d_solver->getOptions();
   // Second phase: apply parse op to the arguments
   if (isBuiltinKind)
   {

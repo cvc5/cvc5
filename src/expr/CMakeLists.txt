@@ -12,9 +12,9 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
-  expr_sequence.cpp
-  expr_sequence.h
   kind_map.h
+  lazy_proof.cpp
+  lazy_proof.h
   match_trie.cpp
   match_trie.h
   node.cpp
@@ -25,8 +25,6 @@ libcvc4_add_sources(
   node_manager.cpp
   node_manager.h
   node_manager_attributes.h
-  node_manager_listeners.cpp
-  node_manager_listeners.h
   node_self_iterator.h
   node_trie.cpp
   node_trie.h
@@ -45,10 +43,14 @@ libcvc4_add_sources(
   proof_generator.h
   proof_node.cpp
   proof_node.h
+  proof_node_algorithm.cpp
+  proof_node_algorithm.h
   proof_node_to_sexpr.cpp
   proof_node_to_sexpr.h
   proof_node_manager.cpp
   proof_node_manager.h
+  proof_node_updater.cpp
+  proof_node_updater.h
   proof_rule.cpp
   proof_rule.h
   proof_step_buffer.cpp
@@ -59,6 +61,8 @@ libcvc4_add_sources(
   symbol_table.h
   term_canonize.cpp
   term_canonize.h
+  term_conversion_proof_generator.cpp
+  term_conversion_proof_generator.h
   type.cpp
   type.h
   type_checker.h

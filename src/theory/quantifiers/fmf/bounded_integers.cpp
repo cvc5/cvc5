@@ -2,9 +2,9 @@
 /*! \file bounded_integers.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -723,7 +723,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem, false, true);
+      d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
     return false;
   }else{

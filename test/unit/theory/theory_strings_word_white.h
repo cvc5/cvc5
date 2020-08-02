@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,8 +37,8 @@ class TheoryStringsWordWhite : public CxxTest::TestSuite
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
-    d_em = new ExprManager(opts);
-    d_smt = new SmtEngine(d_em);
+    d_em = new ExprManager;
+    d_smt = new SmtEngine(d_em, &opts);
     d_scope = new SmtScope(d_smt);
 
     d_nm = NodeManager::currentNM();
@@ -63,7 +63,8 @@ class TheoryStringsWordWhite : public CxxTest::TestSuite
     Node cac = d_nm->mkConst(String("cac"));
     Node abca = d_nm->mkConst(String("abca"));
 
-    TS_ASSERT(Word::mkEmptyWord(kind::CONST_STRING) == empty);
+    TypeNode stringType = d_nm->stringType();
+    TS_ASSERT(Word::mkEmptyWord(stringType) == empty);
 
     std::vector<Node> vec;
     vec.push_back(abc);

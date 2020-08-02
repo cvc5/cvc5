@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,8 +40,8 @@ class ProofRuleChecker
    * premises and arguments, or null if such a proof node is not well-formed.
    *
    * Note that the input/output of this method expects to be terms in *Skolem
-   * form*. To facilitate checking, this method converts to/from witness
-   * form, calling the subprocedure checkInternal below.
+   * form*, which is passed to checkInternal below. Rule checkers may
+   * convert premises to witness form when necessary.
    *
    * @param id The id of the proof node to check
    * @param children The premises of the proof node to check. These are nodes
@@ -75,17 +75,15 @@ class ProofRuleChecker
 
  protected:
   /**
-   * This checks a single step in a proof. It is identical to check above
-   * except that children and args have been converted to "witness form"
-   * (see SkolemManager). Likewise, its output should be in witness form.
+   * This checks a single step in a proof.
    *
    * @param id The id of the proof node to check
    * @param children The premises of the proof node to check. These are nodes
    * corresponding to the conclusion (ProofNode::getResult) of the children
-   * of the proof node we are checking, in witness form.
+   * of the proof node we are checking.
    * @param args The arguments of the proof node to check
-   * @return The conclusion of the proof node, in witness form, if successful or
-   * null if such a proof node is malformed.
+   * @return The conclusion of the proof node if successful or null if such a
+   * proof node is malformed.
    */
   virtual Node checkInternal(PfRule id,
                              const std::vector<Node>& children,
@@ -158,6 +156,8 @@ class ProofChecker
                   const char* traceTag);
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
+  /** get checker for */
+  ProofRuleChecker* getCheckerFor(PfRule id);
 
  private:
   /** statistics class */

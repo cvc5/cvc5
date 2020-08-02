@@ -2,9 +2,9 @@
 /*! \file expr_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -181,8 +181,8 @@ private:
     if(n.getMetaKind() == metakind::CONSTANT) {
       if(n.getKind() == kind::EMPTYSET) {
         Type type = d_from->exportType(
-            n.getConst< ::CVC4::EmptySet>().getType(), d_to, d_vmap);
-        return d_to->mkConst(::CVC4::EmptySet(type));
+            n.getConst< ::CVC4::EmptySet>().getType().toType(), d_to, d_vmap);
+        return d_to->mkConst(::CVC4::EmptySet(TypeNode::fromType(type)));
       }
       return exportConstant(n, NodeManager::fromExprManager(d_to), d_vmap);
     } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
@@ -694,8 +694,9 @@ static Node exportConstant(TNode n, NodeManager* to, ExprManagerMapCollection& v
     // for export so those don't matter.
     ExprManager* toEm = to->toExprManager();
     const ArrayStoreAll& asa = n.getConst<ArrayStoreAll>();
-    return to->mkConst(ArrayStoreAll(asa.getType().exportTo(toEm, vmap),
-                                     asa.getExpr().exportTo(toEm, vmap)));
+    return to->mkConst(ArrayStoreAll(
+        TypeNode::fromType(asa.getType().toType().exportTo(toEm, vmap)),
+        Node::fromExpr(asa.getValue().toExpr().exportTo(toEm, vmap))));
   }
 
   switch(n.getKind()) {

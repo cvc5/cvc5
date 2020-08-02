@@ -2,9 +2,9 @@
 /*! \file synth_rew_rules.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -344,7 +343,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           sdts[i].addConstructor(lambdaOp,
                                  sscs.str(),
                                  argListc,
-                                 printer::SygusEmptyPrintCallback::getEmptyPC(),
                                  0);
         }
         // recursive apply
@@ -413,7 +411,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       sdttl.addConstructor(lambdaOp,
                            ssc.str(),
                            argList,
-                           printer::SygusEmptyPrintCallback::getEmptyPC(),
                            0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;

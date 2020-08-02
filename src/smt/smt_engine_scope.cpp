@@ -2,9 +2,9 @@
 /*! \file smt_engine_scope.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Andres Noetzli, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,9 +46,16 @@ ProofManager* currentProofManager() {
 #endif /* IS_PROOFS_BUILD */
 }
 
+ResourceManager* currentResourceManager()
+{
+  return s_smtEngine_current->getResourceManager();
+}
+
 SmtScope::SmtScope(const SmtEngine* smt)
     : NodeManagerScope(smt->d_nodeManager),
-      d_oldSmtEngine(s_smtEngine_current) {
+      d_oldSmtEngine(s_smtEngine_current),
+      d_optionsScope(smt ? &const_cast<SmtEngine*>(smt)->getOptions() : nullptr)
+{
   Assert(smt != NULL);
   s_smtEngine_current = const_cast<SmtEngine*>(smt);
   Debug("current") << "smt scope: " << s_smtEngine_current << std::endl;

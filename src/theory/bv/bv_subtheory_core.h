@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,6 +24,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/ext_theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -90,7 +91,10 @@ class CoreSolver : public SubtheorySolver {
   bool d_useSlicer;
   bool d_preregisterCalled;
   bool d_checkCalled;
-  
+
+  /** Pointer to the extended theory module. */
+  ExtTheory* d_extTheory;
+
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
   ModelValue d_modelValues;
@@ -101,18 +105,18 @@ class CoreSolver : public SubtheorySolver {
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 public:
-  CoreSolver(context::Context* c, TheoryBV* bv);
-  ~CoreSolver();
-  bool isComplete() override { return d_isComplete; }
-  void  setMasterEqualityEngine(eq::EqualityEngine* eq);
-  void preRegister(TNode node) override;
-  bool check(Theory::Effort e) override;
-  void explain(TNode literal, std::vector<TNode>& assumptions) override;
-  bool collectModelInfo(TheoryModel* m, bool fullModel) override;
-  Node getModelValue(TNode var) override;
-  void addSharedTerm(TNode t) override
-  {
-    d_equalityEngine.addTriggerTerm(t, THEORY_BV);
+ CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
+ ~CoreSolver();
+ bool isComplete() override { return d_isComplete; }
+ void setMasterEqualityEngine(eq::EqualityEngine* eq);
+ void preRegister(TNode node) override;
+ bool check(Theory::Effort e) override;
+ void explain(TNode literal, std::vector<TNode>& assumptions) override;
+ bool collectModelInfo(TheoryModel* m, bool fullModel) override;
+ Node getModelValue(TNode var) override;
+ void addSharedTerm(TNode t) override
+ {
+   d_equalityEngine.addTriggerTerm(t, THEORY_BV);
   }
   EqualityStatus getEqualityStatus(TNode a, TNode b) override
   {

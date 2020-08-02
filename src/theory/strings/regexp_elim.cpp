@@ -2,9 +2,9 @@
 /*! \file regexp_elim.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang
+ **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,10 +27,6 @@ using namespace CVC4::theory::strings;
 
 RegExpElimination::RegExpElimination()
 {
-  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  d_one = NodeManager::currentNM()->mkConst(Rational(1));
-  d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
-  d_regExpType = NodeManager::currentNM()->regExpType();
 }
 
 Node RegExpElimination::eliminate(Node atom)
@@ -53,6 +49,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
+  Node zero = nm->mkConst(Rational(0));
   std::vector<Node> children;
   utils::getConcat(re, children);
 
@@ -80,7 +77,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         hasPivotIndex = true;
         pivotIndex = i;
         // set to zero for the sum below
-        fl = d_zero;
+        fl = zero;
       }
       else
       {
@@ -100,7 +97,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     Node sum = nm->mkNode(PLUS, childLengths);
     std::vector<Node> conc;
     conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, sum));
-    Node currEnd = d_zero;
+    Node currEnd = zero;
     for (unsigned i = 0, size = childLengths.size(); i < size; i++)
     {
       if (hasPivotIndex && i == pivotIndex)
@@ -190,7 +187,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // set of string terms are found, in order, in string x.
     // prev_end stores the current (symbolic) index in x that we are
     // searching.
-    Node prev_end = d_zero;
+    Node prev_end = zero;
     // the symbolic index we start searching, for each child in sep_children.
     std::vector<Node> prev_ends;
     unsigned gap_minsize_end = gap_minsize.back();
@@ -232,7 +229,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
           prev_end = nm->mkNode(PLUS, prev_end, k);
         }
         Node curr = nm->mkNode(STRING_STRIDOF, x, sc, prev_end);
-        Node idofFind = curr.eqNode(d_neg_one).negate();
+        Node idofFind = curr.eqNode(nm->mkConst(Rational(-1))).negate();
         conj.push_back(idofFind);
         prev_end = nm->mkNode(PLUS, curr, lensc);
       }
@@ -308,7 +305,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         for (const Node& v : non_greedy_find_vars)
         {
           Node bound = nm->mkNode(
-              AND, nm->mkNode(LEQ, d_zero, v), nm->mkNode(LT, v, lenx));
+              AND, nm->mkNode(LEQ, zero, v), nm->mkNode(LT, v, lenx));
           children2.push_back(bound);
         }
         children2.push_back(res);
@@ -341,7 +338,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
 
   // if the first or last child is constant string, we can split the membership
   // into a conjunction of two memberships.
-  Node sStartIndex = d_zero;
+  Node sStartIndex = zero;
   Node sLength = lenx;
   std::vector<Node> sConstraints;
   std::vector<Node> rexpElimChildren;
@@ -356,7 +353,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       Assert(children[index + (r == 0 ? 1 : -1)].getKind() != STRING_TO_REGEXP);
       Node s = c[0];
       Node lens = nm->mkNode(STRING_LENGTH, s);
-      Node sss = r == 0 ? d_zero : nm->mkNode(MINUS, lenx, lens);
+      Node sss = r == 0 ? zero : nm->mkNode(MINUS, lenx, lens);
       Node ss = nm->mkNode(STRING_SUBSTR, x, sss, lens);
       sConstraints.push_back(ss.eqNode(s));
       if (r == 0)
@@ -383,7 +380,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
     Assert(!rexpElimChildren.empty());
-    Node regElim = utils::mkConcat(rexpElimChildren, d_regExpType);
+    Node regElim = utils::mkConcat(rexpElimChildren, nm->regExpType());
     sConstraints.push_back(nm->mkNode(STRING_IN_REGEXP, ss, regElim));
     Node ret = nm->mkNode(AND, sConstraints);
     // e.g.
@@ -402,7 +399,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       std::vector<Node> echildren;
       if (i == 0)
       {
-        k = d_zero;
+        k = zero;
       }
       else if (i + 1 == nchildren)
       {
@@ -413,7 +410,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         k = nm->mkBoundVar(nm->integerType());
         Node bound =
             nm->mkNode(AND,
-                       nm->mkNode(LEQ, d_zero, k),
+                       nm->mkNode(LEQ, zero, k),
                        nm->mkNode(LEQ, k, nm->mkNode(MINUS, lenx, lens)));
         echildren.push_back(bound);
       }
@@ -423,16 +420,16 @@ Node RegExpElimination::eliminateConcat(Node atom)
       {
         std::vector<Node> rprefix;
         rprefix.insert(rprefix.end(), children.begin(), children.begin() + i);
-        Node rpn = utils::mkConcat(rprefix, d_regExpType);
+        Node rpn = utils::mkConcat(rprefix, nm->regExpType());
         Node substrPrefix = nm->mkNode(
-            STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, d_zero, k), rpn);
+            STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, zero, k), rpn);
         echildren.push_back(substrPrefix);
       }
       if (i + 1 < nchildren)
       {
         std::vector<Node> rsuffix;
         rsuffix.insert(rsuffix.end(), children.begin() + i + 1, children.end());
-        Node rps = utils::mkConcat(rsuffix, d_regExpType);
+        Node rps = utils::mkConcat(rsuffix, nm->regExpType());
         Node ks = nm->mkNode(PLUS, k, lens);
         Node substrSuffix = nm->mkNode(
             STRING_IN_REGEXP,
@@ -470,6 +467,7 @@ Node RegExpElimination::eliminateStar(Node atom)
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
+  Node zero = nm->mkConst(Rational(0));
   // for regular expression star,
   // if the period is a fixed constant, we can turn it into a bounded
   // quantifier
@@ -488,7 +486,8 @@ Node RegExpElimination::eliminateStar(Node atom)
   bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
   Node index = nm->mkBoundVar(nm->integerType());
-  Node substr_ch = nm->mkNode(STRING_SUBSTR, x, index, d_one);
+  Node substr_ch =
+      nm->mkNode(STRING_SUBSTR, x, index, nm->mkConst(Rational(1)));
   substr_ch = Rewriter::rewrite(substr_ch);
   // handle the case where it is purely characters
   for (const Node& r : disj)
@@ -526,7 +525,7 @@ Node RegExpElimination::eliminateStar(Node atom)
   {
     Assert(!char_constraints.empty());
     Node bound = nm->mkNode(
-        AND, nm->mkNode(LEQ, d_zero, index), nm->mkNode(LT, index, lenx));
+        AND, nm->mkNode(LEQ, zero, index), nm->mkNode(LT, index, lenx));
     Node conc = char_constraints.size() == 1 ? char_constraints[0]
                                              : nm->mkNode(OR, char_constraints);
     Node body = nm->mkNode(OR, bound.negate(), conc);
@@ -554,7 +553,7 @@ Node RegExpElimination::eliminateStar(Node atom)
         // lens is a positive constant, so it is safe to use total div/mod here.
         Node bound = nm->mkNode(
             AND,
-            nm->mkNode(LEQ, d_zero, index),
+            nm->mkNode(LEQ, zero, index),
             nm->mkNode(LT, index, nm->mkNode(INTS_DIVISION_TOTAL, lenx, lens)));
         Node conc =
             nm->mkNode(STRING_SUBSTR, x, nm->mkNode(MULT, index, lens), lens)
@@ -563,9 +562,7 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
         Node res = nm->mkNode(FORALL, bvl, body);
         res = nm->mkNode(
-            AND,
-            nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(d_zero),
-            res);
+            AND, nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(zero), res);
         // e.g.
         //    x in ("abc")* --->
         //    forall k. 0 <= k < (len( x ) div 3) => substr(x,3*k,3) = "abc" ^

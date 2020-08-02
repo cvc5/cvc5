@@ -2,9 +2,9 @@
 /*! \file inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -212,7 +212,9 @@ void InferenceManager::flushLemma(Node lem, bool preprocess)
   }
   Trace("sets-lemma-debug") << "Send lemma : " << lem << std::endl;
   d_lemmas_produced.insert(lem);
-  d_parent.getOutputChannel()->lemma(lem, false, preprocess);
+  LemmaProperty p =
+      preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
+  d_parent.getOutputChannel()->lemma(lem, p);
   d_sentLemma = true;
 }
 

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Guy Katz, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,7 +38,9 @@ class ProofOutputChannel : public theory::OutputChannel {
    */
   void conflict(TNode n, std::unique_ptr<Proof> pf) override;
   bool propagate(TNode x) override;
-  theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
+  theory::LemmaStatus lemma(TNode n,
+                            ProofRule rule,
+                            theory::LemmaProperty p) override;
   theory::LemmaStatus splitLemma(TNode, bool) override;
   void requirePhase(TNode n, bool b) override;
   void setIncomplete() override;

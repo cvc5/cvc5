@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -208,8 +208,8 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(Node n);
-  
+  TrustNode expandDefinition(Node n);
+
   void presolve();
 
   void propagate(Theory::Effort);

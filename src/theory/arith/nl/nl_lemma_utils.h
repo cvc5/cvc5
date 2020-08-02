@@ -2,9 +2,9 @@
 /*! \file nl_lemma_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,8 @@
 #include <tuple>
 #include <vector>
 #include "expr/node.h"
+#include "theory/arith/nl/inference.h"
+#include "theory/output_channel.h"
 
 namespace CVC4 {
 namespace theory {
@@ -39,8 +41,13 @@ class NlModel;
  */
 struct NlLemma
 {
-  NlLemma(Node lem) : d_lemma(lem), d_preprocess(false) {}
+  NlLemma(Node lem, Inference id = Inference::UNKNOWN)
+      : d_id(id), d_lemma(lem), d_preprocess(false)
+  {
+  }
   ~NlLemma() {}
+  /** The inference id for the lemma */
+  Inference d_id;
   /** The lemma */
   Node d_lemma;
   /** Whether to preprocess the lemma */
@@ -55,6 +62,8 @@ struct NlLemma
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
+  /** get lemma property (preprocess or none) */
+  LemmaProperty getLemmaProperty() const;
 };
 /**
  * Writes a non-linear lemma to a stream.

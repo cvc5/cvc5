@@ -2,9 +2,9 @@
 /*! \file boilerplate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,18 +19,14 @@
 #include <iostream>
 #include <sstream>
 
-#include "expr/expr.h"
-#include "smt/smt_engine.h"
+#include "api/cvc4cpp.h"
 
-using namespace CVC4;
+using namespace CVC4::api;
 using namespace std;
 
 int main() {
-  ExprManager em;
-  Options opts;
-  SmtEngine smt(&em);
-  Result r = smt.checkEntailed(em.mkConst(true));
-
-  return (Result::ENTAILED == r) ? 0 : 1;
+  Solver slv;
+  Result r = slv.checkEntailed(slv.mkBoolean(true));
+  return r.isEntailed() ? 0 : 1;
 }
 

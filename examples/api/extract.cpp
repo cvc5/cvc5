@@ -2,9 +2,9 @@
 /*! \file extract.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,40 +16,40 @@
 
 #include <iostream>
 
-#include <cvc4/cvc4.h>
+#include <cvc4/api/cvc4cpp.h>
 
 using namespace std;
-using namespace CVC4;
+using namespace CVC4::api;
 
-int main() {
-  ExprManager em;
-  SmtEngine smt(&em);
-  smt.setLogic("QF_BV"); // Set the logic
+int main()
+{
+  Solver slv;
+  slv.setLogic("QF_BV"); // Set the logic
 
-  Type bitvector32 = em.mkBitVectorType(32);
+  Sort bitvector32 = slv.mkBitVectorSort(32);
 
-  Expr x = em.mkVar("a", bitvector32);
+  Term x = slv.mkConst(bitvector32, "a");
 
-  Expr ext_31_1 = em.mkConst(CVC4::BitVectorExtract(31,1));
-  Expr x_31_1 = em.mkExpr(ext_31_1, x);
+  Op ext_31_1 = slv.mkOp(BITVECTOR_EXTRACT, 31, 1);
+  Term x_31_1 = slv.mkTerm(ext_31_1, x);
 
-  Expr ext_30_0 = em.mkConst(CVC4::BitVectorExtract(30,0));
-  Expr x_30_0 = em.mkExpr(ext_30_0, x);
+  Op ext_30_0 = slv.mkOp(BITVECTOR_EXTRACT, 30, 0);
+  Term x_30_0 = slv.mkTerm(ext_30_0, x);
 
-  Expr ext_31_31 = em.mkConst(CVC4::BitVectorExtract(31,31));
-  Expr x_31_31 = em.mkExpr(ext_31_31, x);
+  Op ext_31_31 = slv.mkOp(BITVECTOR_EXTRACT, 31, 31);
+  Term x_31_31 = slv.mkTerm(ext_31_31, x);
 
-  Expr ext_0_0 = em.mkConst(CVC4::BitVectorExtract(0,0));
-  Expr x_0_0 = em.mkExpr(ext_0_0, x);
+  Op ext_0_0 = slv.mkOp(BITVECTOR_EXTRACT, 0, 0);
+  Term x_0_0 = slv.mkTerm(ext_0_0, x);
 
-  Expr eq = em.mkExpr(kind::EQUAL, x_31_1, x_30_0);
+  Term eq = slv.mkTerm(EQUAL, x_31_1, x_30_0);
   cout << " Asserting: " << eq << endl;
-  smt.assertFormula(eq);
+  slv.assertFormula(eq);
 
-  Expr eq2 = em.mkExpr(kind::EQUAL, x_31_31, x_0_0);
-  cout << " Querying: " << eq2 << endl;
-  cout << " Expect entailed. " << endl;
-  cout << " CVC4: " << smt.checkEntailed(eq2) << endl;
+  Term eq2 = slv.mkTerm(EQUAL, x_31_31, x_0_0);
+  cout << " Check entailment assuming: " << eq2 << endl;
+  cout << " Expect ENTAILED. " << endl;
+  cout << " CVC4: " << slv.checkEntailed(eq2) << endl;
 
   return 0;
 }

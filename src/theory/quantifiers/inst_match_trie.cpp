@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -131,7 +131,6 @@ bool InstMatchTrie::recordInstLemma(Node q,
 void InstMatchTrie::print(std::ostream& out,
                           Node q,
                           std::vector<TNode>& terms,
-                          bool& firstTime,
                           bool useActive,
                           std::vector<Node>& active) const
 {
@@ -156,11 +155,6 @@ void InstMatchTrie::print(std::ostream& out,
     }
     if (print)
     {
-      if (firstTime)
-      {
-        out << "(instantiation " << q << std::endl;
-        firstTime = false;
-      }
       out << "  ( ";
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
@@ -178,7 +172,7 @@ void InstMatchTrie::print(std::ostream& out,
     for (const std::pair<const Node, InstMatchTrie>& d : d_data)
     {
       terms.push_back(d.first);
-      d.second.print(out, q, terms, firstTime, useActive, active);
+      d.second.print(out, q, terms, useActive, active);
       terms.pop_back();
     }
   }
@@ -392,7 +386,6 @@ bool CDInstMatchTrie::recordInstLemma(Node q,
 void CDInstMatchTrie::print(std::ostream& out,
                             Node q,
                             std::vector<TNode>& terms,
-                            bool& firstTime,
                             bool useActive,
                             std::vector<Node>& active) const
 {
@@ -419,11 +412,6 @@ void CDInstMatchTrie::print(std::ostream& out,
       }
       if (print)
       {
-        if (firstTime)
-        {
-          out << "(instantiation " << q << std::endl;
-          firstTime = false;
-        }
         out << "  ( ";
         for (unsigned i = 0; i < terms.size(); i++)
         {
@@ -438,7 +426,7 @@ void CDInstMatchTrie::print(std::ostream& out,
       for (const std::pair<const Node, CDInstMatchTrie*>& d : d_data)
       {
         terms.push_back(d.first);
-        d.second->print(out, q, terms, firstTime, useActive, active);
+        d.second->print(out, q, terms, useActive, active);
         terms.pop_back();
       }
     }

@@ -2,9 +2,9 @@
 /*! \file solver_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
+ **   Aina Niemetz, Abdalrhman Mohamed, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,6 +46,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkPredicateSort();
   void testMkRecordSort();
   void testMkSetSort();
+  void testMkSequenceSort();
   void testMkSortConstructorSort();
   void testMkTupleSort();
   void testMkUninterpretedSort();
@@ -56,6 +57,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkConst();
   void testMkConstArray();
   void testMkEmptySet();
+  void testMkEmptySequence();
   void testMkFalse();
   void testMkFloatingPoint();
   void testMkNaN();
@@ -86,13 +88,16 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFun();
   void testDefineFunGlobal();
   void testDefineFunRec();
+  void testDefineFunRecWrongLogic();
   void testDefineFunRecGlobal();
   void testDefineFunsRec();
+  void testDefineFunsRecWrongLogic();
   void testDefineFunsRecGlobal();
 
   void testUFIteration();
 
   void testGetInfo();
+  void testGetInterpolant();
   void testGetOp();
   void testGetOption();
   void testGetUnsatAssumptions1();
@@ -104,6 +109,22 @@ class SolverBlack : public CxxTest::TestSuite
   void testGetValue1();
   void testGetValue2();
   void testGetValue3();
+  void testGetSeparationHeapTerm1();
+  void testGetSeparationHeapTerm2();
+  void testGetSeparationHeapTerm3();
+  void testGetSeparationHeapTerm4();
+  void testGetSeparationHeapTerm5();
+  void testGetSeparationNilTerm1();
+  void testGetSeparationNilTerm2();
+  void testGetSeparationNilTerm3();
+  void testGetSeparationNilTerm4();
+  void testGetSeparationNilTerm5();
+
+  /**
+   * When using separation logic, obtain the term for nil.
+   * @return The term for nil
+   */
+  Term getSeparationNilTerm() const;
 
   void testPush1();
   void testPush2();
@@ -146,7 +167,7 @@ class SolverBlack : public CxxTest::TestSuite
 
 void SolverBlack::setUp() { d_solver.reset(new Solver()); }
 
-void SolverBlack::tearDown() {}
+void SolverBlack::tearDown() { d_solver.reset(nullptr); }
 
 void SolverBlack::testGetBooleanSort()
 {
@@ -369,6 +390,17 @@ void SolverBlack::testMkSetSort()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testMkSequenceSort()
+{
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->mkSequenceSort(d_solver->getBooleanSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkSequenceSort(
+      d_solver->mkSequenceSort(d_solver->getIntegerSort())));
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkSequenceSort(d_solver->getIntegerSort()),
+                   CVC4ApiException&);
+}
+
 void SolverBlack::testMkUninterpretedSort()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver->mkUninterpretedSort("u"));
@@ -519,6 +551,16 @@ void SolverBlack::testMkEmptySet()
   TS_ASSERT_THROWS(d_solver->mkEmptySet(d_solver->getBooleanSort()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(slv.mkEmptySet(s), CVC4ApiException&);
+}
+
+void SolverBlack::testMkEmptySequence()
+{
+  Solver slv;
+  Sort s = d_solver->mkSequenceSort(d_solver->getBooleanSort());
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkEmptySequence(s));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->mkEmptySequence(d_solver->getBooleanSort()));
+  TS_ASSERT_THROWS(slv.mkEmptySequence(s), CVC4ApiException&);
 }
 
 void SolverBlack::testMkFalse()
@@ -1117,6 +1159,19 @@ void SolverBlack::testDefineFunRec()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testDefineFunRecWrongLogic()
+{
+  d_solver->setLogic("QF_BV");
+  Sort bvSort = d_solver->mkBitVectorSort(32);
+  Sort funSort = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
+  Term b = d_solver->mkVar(bvSort, "b");
+  Term v = d_solver->mkConst(bvSort, "v");
+  Term f = d_solver->mkConst(funSort, "f");
+  TS_ASSERT_THROWS(d_solver->defineFunRec("f", {}, bvSort, v),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->defineFunRec(f, {b, b}, v), CVC4ApiException&);
+}
+
 void SolverBlack::testDefineFunRecGlobal()
 {
   Sort bSort = d_solver->getBooleanSort();
@@ -1214,6 +1269,23 @@ void SolverBlack::testDefineFunsRec()
       CVC4ApiException&);
 }
 
+void SolverBlack::testDefineFunsRecWrongLogic()
+{
+  d_solver->setLogic("QF_BV");
+  Sort uSort = d_solver->mkUninterpretedSort("u");
+  Sort bvSort = d_solver->mkBitVectorSort(32);
+  Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
+  Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
+  Term b = d_solver->mkVar(bvSort, "b");
+  Term u = d_solver->mkVar(uSort, "u");
+  Term v1 = d_solver->mkConst(bvSort, "v1");
+  Term v2 = d_solver->mkConst(d_solver->getIntegerSort(), "v2");
+  Term f1 = d_solver->mkConst(funSort1, "f1");
+  Term f2 = d_solver->mkConst(funSort2, "f2");
+  TS_ASSERT_THROWS(d_solver->defineFunsRec({f1, f2}, {{b, b}, {u}}, {v1, v2}),
+                   CVC4ApiException&);
+}
+
 void SolverBlack::testDefineFunsRecGlobal()
 {
   Sort bSort = d_solver->getBooleanSort();
@@ -1259,6 +1331,11 @@ void SolverBlack::testGetInfo()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver->getInfo("name"));
   TS_ASSERT_THROWS(d_solver->getInfo("asdf"), CVC4ApiException&);
+}
+
+void SolverBlack::testGetInterpolant()
+{
+  // TODO
 }
 
 void SolverBlack::testGetOp()
@@ -1459,6 +1536,124 @@ void SolverBlack::testGetValue3()
 
   Solver slv;
   TS_ASSERT_THROWS(slv.getValue(x), CVC4ApiException&);
+}
+
+namespace {
+/**
+ * Helper function for testGetSeparation{Heap,Nil}TermX. Asserts and checks
+ * some simple separation logic constraints.
+ */
+void checkSimpleSeparationConstraints(Solver* solver)
+{
+  Sort integer = solver->getIntegerSort();
+  Term x = solver->mkConst(integer, "x");
+  Term p = solver->mkConst(integer, "p");
+  Term heap = solver->mkTerm(Kind::SEP_PTO, p, x);
+  solver->assertFormula(heap);
+  Term nil = solver->mkSepNil(integer);
+  solver->assertFormula(nil.eqTerm(solver->mkReal(5)));
+  solver->checkSat();
+}
+}  // namespace
+
+void SolverBlack::testGetSeparationHeapTerm1()
+{
+  d_solver->setLogic("QF_BV");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkTrue();
+  d_solver->assertFormula(t);
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationHeapTerm2()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "false");
+  checkSimpleSeparationConstraints(d_solver.get());
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationHeapTerm3()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkFalse();
+  d_solver->assertFormula(t);
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationHeapTerm4()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkTrue();
+  d_solver->assertFormula(t);
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getSeparationHeap(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationHeapTerm5()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  checkSimpleSeparationConstraints(d_solver.get());
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSeparationHeap());
+}
+
+void SolverBlack::testGetSeparationNilTerm1()
+{
+  d_solver->setLogic("QF_BV");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkTrue();
+  d_solver->assertFormula(t);
+  TS_ASSERT_THROWS(d_solver->getSeparationNilTerm(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationNilTerm2()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "false");
+  checkSimpleSeparationConstraints(d_solver.get());
+  TS_ASSERT_THROWS(d_solver->getSeparationNilTerm(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationNilTerm3()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkFalse();
+  d_solver->assertFormula(t);
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getSeparationNilTerm(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationNilTerm4()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  Term t = d_solver->mkTrue();
+  d_solver->assertFormula(t);
+  d_solver->checkSat();
+  TS_ASSERT_THROWS(d_solver->getSeparationNilTerm(), CVC4ApiException&);
+}
+
+void SolverBlack::testGetSeparationNilTerm5()
+{
+  d_solver->setLogic("ALL_SUPPORTED");
+  d_solver->setOption("incremental", "false");
+  d_solver->setOption("produce-models", "true");
+  checkSimpleSeparationConstraints(d_solver.get());
+  TS_ASSERT_THROWS_NOTHING(d_solver->getSeparationNilTerm());
 }
 
 void SolverBlack::testPush1()

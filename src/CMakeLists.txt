@@ -116,8 +116,6 @@ libcvc4_add_sources(
   printer/printer.h
   printer/smt2/smt2_printer.cpp
   printer/smt2/smt2_printer.h
-  printer/sygus_print_callback.cpp
-  printer/sygus_print_callback.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
   proof/arith_proof.cpp
@@ -221,6 +219,10 @@ libcvc4_add_sources(
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
+  smt/abduction_solver.cpp
+  smt/abduction_solver.h
+  smt/abstract_values.cpp
+  smt/abstract_values.h
   smt/command.cpp
   smt/command.h
   smt/command_list.cpp
@@ -228,6 +230,8 @@ libcvc4_add_sources(
   smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
+  smt/listeners.cpp
+  smt/listeners.h
   smt/logic_exception.h
   smt/logic_request.cpp
   smt/logic_request.h
@@ -239,6 +243,10 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/options_manager.cpp
+  smt/options_manager.h
+  smt/preprocess_proof_generator.cpp
+  smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
   smt/process_assertions.h
   smt/set_defaults.cpp
@@ -300,6 +308,20 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad/cdcac.cpp
+  theory/arith/nl/cad/cdcac.h
+  theory/arith/nl/cad/cdcac_utils.cpp
+  theory/arith/nl/cad/cdcac_utils.h
+  theory/arith/nl/cad/constraints.cpp
+  theory/arith/nl/cad/constraints.h
+  theory/arith/nl/cad/projections.cpp
+  theory/arith/nl/cad/projections.h
+  theory/arith/nl/cad/variable_ordering.cpp
+  theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/iand_solver.cpp
+  theory/arith/nl/iand_solver.h
+  theory/arith/nl/inference.cpp
+  theory/arith/nl/inference.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp
@@ -312,10 +334,16 @@ libcvc4_add_sources(
   theory/arith/nl/nl_solver.h
   theory/arith/nl/nonlinear_extension.cpp
   theory/arith/nl/nonlinear_extension.h
+  theory/arith/nl/poly_conversion.cpp
+  theory/arith/nl/poly_conversion.h
+  theory/arith/nl/stats.cpp
+  theory/arith/nl/stats.h
   theory/arith/nl/transcendental_solver.cpp
   theory/arith/nl/transcendental_solver.h
   theory/arith/normal_form.cpp
   theory/arith/normal_form.h
+  theory/arith/operator_elim.cpp
+  theory/arith/operator_elim.h
   theory/arith/partial_model.cpp
   theory/arith/partial_model.h
   theory/arith/simplex.cpp
@@ -363,13 +391,13 @@ libcvc4_add_sources(
   theory/booleans/theory_bool_rewriter.h
   theory/booleans/theory_bool_type_rules.h
   theory/booleans/type_enumerator.h
+  theory/builtin/proof_checker.cpp
+  theory/builtin/proof_checker.h
   theory/builtin/theory_builtin.cpp
   theory/builtin/theory_builtin.h
   theory/builtin/theory_builtin_rewriter.cpp
   theory/builtin/theory_builtin_rewriter.h
   theory/builtin/theory_builtin_type_rules.h
-  theory/builtin/proof_checker.cpp
-  theory/builtin/proof_checker.h
   theory/builtin/type_enumerator.cpp
   theory/builtin/type_enumerator.h
   theory/bv/abstraction.cpp
@@ -417,6 +445,8 @@ libcvc4_add_sources(
   theory/care_graph.h
   theory/datatypes/datatypes_rewriter.cpp
   theory/datatypes/datatypes_rewriter.h
+  theory/datatypes/sygus_datatype_utils.cpp
+  theory/datatypes/sygus_datatype_utils.h
   theory/datatypes/sygus_extension.cpp
   theory/datatypes/sygus_extension.h
   theory/datatypes/sygus_simple_sym.cpp
@@ -432,6 +462,10 @@ libcvc4_add_sources(
   theory/decision_manager.h
   theory/decision_strategy.cpp
   theory/decision_strategy.h
+  theory/eager_proof_generator.cpp
+  theory/eager_proof_generator.h
+  theory/engine_output_channel.cpp
+  theory/engine_output_channel.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -447,6 +481,7 @@ libcvc4_add_sources(
   theory/interrupted.h
   theory/logic_info.cpp
   theory/logic_info.h
+  theory/output_channel.cpp
   theory/output_channel.h
   theory/quantifiers/alpha_equivalence.cpp
   theory/quantifiers/alpha_equivalence.h
@@ -528,6 +563,8 @@ libcvc4_add_sources(
   theory/quantifiers/instantiate.h
   theory/quantifiers/lazy_trie.cpp
   theory/quantifiers/lazy_trie.h
+  theory/quantifiers/proof_checker.cpp
+  theory/quantifiers/proof_checker.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -592,6 +629,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_grammar_norm.h
   theory/quantifiers/sygus/sygus_grammar_red.cpp
   theory/quantifiers/sygus/sygus_grammar_red.h
+  theory/quantifiers/sygus/sygus_interpol.cpp
+  theory/quantifiers/sygus/sygus_interpol.h
   theory/quantifiers/sygus/sygus_invariance.cpp
   theory/quantifiers/sygus/sygus_invariance.h
   theory/quantifiers/sygus/sygus_module.cpp
@@ -643,7 +682,6 @@ libcvc4_add_sources(
   theory/rewriter.h
   theory/rewriter_attributes.h
   theory/sep/theory_sep.cpp
-  theory/theory_rewriter.h
   theory/sep/theory_sep.h
   theory/sep/theory_sep_rewriter.cpp
   theory/sep/theory_sep_rewriter.h
@@ -709,6 +747,8 @@ libcvc4_add_sources(
   theory/strings/skolem_cache.h
   theory/strings/solver_state.cpp
   theory/strings/solver_state.h
+  theory/strings/strategy.cpp
+  theory/strings/strategy.h
   theory/strings/strings_entail.cpp
   theory/strings/strings_entail.h
   theory/strings/strings_fmf.cpp
@@ -738,12 +778,20 @@ libcvc4_add_sources(
   theory/theory.h
   theory/theory_engine.cpp
   theory/theory_engine.h
+  theory/theory_engine_proof_generator.cpp
+  theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
   theory/theory_model.cpp
   theory/theory_model.h
   theory/theory_model_builder.cpp
   theory/theory_model_builder.h
+  theory/theory_preprocessor.cpp
+  theory/theory_preprocessor.h
+  theory/theory_proof_step_buffer.cpp
+  theory/theory_proof_step_buffer.h
+  theory/theory_rewriter.cpp
+  theory/theory_rewriter.h
   theory/theory_registrar.h
   theory/theory_test_utils.h
   theory/trust_node.cpp
@@ -756,6 +804,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/eq_proof.cpp
+  theory/uf/eq_proof.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
   theory/uf/ho_extension.cpp
@@ -867,6 +917,10 @@ if(USE_LFSC)
   target_link_libraries(cvc4 ${LFSC_LIBRARIES})
   target_include_directories(cvc4 PRIVATE ${LFSC_INCLUDE_DIR})
 endif()
+if(USE_POLY)
+  target_link_libraries(cvc4 ${POLY_LIBRARIES})
+  target_include_directories(cvc4 PRIVATE ${POLY_INCLUDE_DIR})
+endif()
 if(USE_SYMFPU)
   target_include_directories(cvc4
     PUBLIC $<BUILD_INTERFACE:${SymFPU_INCLUDE_DIR}>)
@@ -931,8 +985,8 @@ install(FILES
           expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
-          expr/expr_sequence.h
           expr/record.h
+          expr/sequence.h
           expr/symbol_table.h
           expr/type.h
           expr/uninterpreted_constant.h
@@ -959,7 +1013,6 @@ install(FILES
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/parser)
 install(FILES
-          printer/sygus_print_callback.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/printer)
 install(FILES
@@ -985,12 +1038,15 @@ install(FILES
           util/divisible.h
           util/gmp_util.h
           util/hash.h
+          util/iand.h
           util/integer_cln_imp.h
           util/integer_gmp_imp.h
           util/maybe.h
+          util/poly_util.h
           util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
+          util/real_algebraic_number_poly_imp.h
           util/regexp.h
           util/resource_manager.h
           util/result.h
@@ -1002,6 +1058,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
+          ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
         DESTINATION
           ${INCLUDE_INSTALL_DIR}/cvc4/util)
 

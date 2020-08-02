@@ -46,14 +46,11 @@ The following flags enable optional features (disable with --no-<option name>).
   --python2                prefer using Python 2 (also for Python bindings)
   --python3                prefer using Python 3 (also for Python bindings)
   --python-bindings        build Python bindings based on new C++ API
+  --java-bindings          build Java bindings based on new C++ API
+  --all-bindings           build bindings for all supported languages
   --asan                   build with ASan instrumentation
   --ubsan                  build with UBSan instrumentation
   --tsan                   build with TSan instrumentation
-
-The following options configure parameterized features.
-
-  --language-bindings[=java,python,all]
-                          specify language bindings to build
 
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
@@ -65,8 +62,9 @@ The following flags enable optional packages (disable with --no-<option name>).
   --drat2er                use drat2er (required for eager BV proofs)
   --kissat                 use the Kissat SAT solver
   --lfsc                   use the LFSC proof checker
+  --poly                   use the LibPoly library
   --symfpu                 use SymFPU for floating point solver
-  --readline               support the readline library
+  --editline               support the editline library
 
 Optional Path to Optional Packages:
   --abc-dir=PATH           path to top level of ABC source tree
@@ -79,6 +77,7 @@ Optional Path to Optional Packages:
   --gmp-dir=PATH           path to top level of GMP installation
   --kissat-dir=PATH        path to top level of Kissat source tree
   --lfsc-dir=PATH          path to top level of LFSC source tree
+  --poly-dir=PATH          path to top level of LibPoly source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
 EOF
@@ -127,6 +126,7 @@ glpk=default
 gpl=default
 kissat=default
 lfsc=default
+poly=default
 muzzle=default
 ninja=default
 optimized=default
@@ -135,7 +135,8 @@ proofs=default
 python2=default
 python3=default
 python_bindings=default
-readline=default
+java_bindings=default
+editline=default
 shared=default
 static_binary=default
 statistics=default
@@ -147,9 +148,6 @@ unit_testing=default
 valgrind=default
 win64=default
 
-language_bindings_java=default
-language_bindings_python=default
-
 abc_dir=default
 antlr_dir=default
 cadical_dir=default
@@ -160,6 +158,7 @@ glpk_dir=default
 gmp_dir=default
 kissat_dir=default
 lfsc_dir=default
+poly_dir=default
 symfpu_dir=default
 
 #--------------------------------------------------------------------------#
@@ -246,6 +245,9 @@ do
     --lfsc) lfsc=ON;;
     --no-lfsc) lfsc=OFF;;
 
+    --poly) poly=ON;;
+    --no-poly) poly=OFF;;
+
     --muzzle) muzzle=ON;;
     --no-muzzle) muzzle=OFF;;
 
@@ -282,31 +284,19 @@ do
     --python-bindings) python_bindings=ON;;
     --no-python-bindings) python_bindings=OFF;;
 
+    --java-bindings) java_bindings=ON;;
+    --no-java-bindings) java_bindings=OFF;;
+
+    --all-bindings) python_bindings=ON;;
+
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
 
     --profiling) profiling=ON;;
     --no-profiling) profiling=OFF;;
 
-    --readline) readline=ON;;
-    --no-readline) readline=OFF;;
-
-    --language-bindings) die "missing argument to $1 (try -h)" ;;
-    --language-bindings=*)
-      lang="${1##*=}"
-      IFS=','
-      for l in $lang; do
-        case $l in
-          java) language_bindings_java=ON ;;
-          python) language_bindings_python=ON ;;
-          all)
-            language_bindings_python=ON
-            language_bindings_java=ON ;;
-          *) die "invalid language binding '$l' specified  (try -h)" ;;
-        esac
-      done
-      unset IFS
-      ;;
+    --editline) editline=ON;;
+    --no-editline) editline=OFF;;
 
     --abc-dir) die "missing argument to $1 (try -h)" ;;
     --abc-dir=*) abc_dir=${1##*=} ;;
@@ -337,6 +327,9 @@ do
 
     --lfsc-dir) die "missing argument to $1 (try -h)" ;;
     --lfsc-dir=*) lfsc_dir=${1##*=} ;;
+
+    --poly-dir) die "missing argument to $1 (try -h)" ;;
+    --poly-dir=*) poly_dir=${1##*=} ;;
 
     --symfpu-dir) die "missing argument to $1 (try -h)" ;;
     --symfpu-dir=*) symfpu_dir=${1##*=} ;;
@@ -410,12 +403,14 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_PYTHON3=$python3"
 [ $python_bindings != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$python_bindings"
+[ $java_bindings != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$java_bindings"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
 [ $profiling != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling"
-[ $readline != default ] \
-  && cmake_opts="$cmake_opts -DUSE_READLINE=$readline"
+[ $editline != default ] \
+  && cmake_opts="$cmake_opts -DUSE_EDITLINE=$editline"
 [ $abc != default ] \
   && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
 [ $cadical != default ] \
@@ -432,14 +427,10 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_KISSAT=$kissat"
 [ $lfsc != default ] \
   && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc"
+[ $poly != default ] \
+  && cmake_opts="$cmake_opts -DUSE_POLY=$poly"
 [ $symfpu != default ] \
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
-
-[ $language_bindings_java != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_SWIG_BINDINGS_JAVA=$language_bindings_java"
-[ $language_bindings_python != default ] \
-  && cmake_opts="$cmake_opts -DBUILD_SWIG_BINDINGS_PYTHON=$language_bindings_python"
-
 [ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ "$antlr_dir" != default ] \
@@ -460,6 +451,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DKISSAT=$kissat_dir"
 [ "$lfsc_dir" != default ] \
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
+[ "$poly_dir" != default ] \
+  && cmake_opts="$cmake_opts -DPOLY_DIR=$poly_dir"
 [ "$symfpu_dir" != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
 [ "$install_prefix" != default ] \

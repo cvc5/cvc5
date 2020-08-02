@@ -2,9 +2,9 @@
 /*! \file ceg_instantiator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Andres Noetzli
+ **   Andrew Reynolds, Piotr Trojanek, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1394,7 +1394,7 @@ void CegInstantiator::presolve( Node q ) {
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cegqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
       Assert(!expr::hasFreeVar(lem));
-      d_qe->getOutputChannel().lemma( lem, false, true );
+      d_qe->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
   }
 }

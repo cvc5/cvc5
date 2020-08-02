@@ -2,9 +2,9 @@
 /*! \file theory_fp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Andrew Reynolds
+ **   Martin Brain, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -99,12 +99,13 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context *c,
-                   context::UserContext *u,
-                   OutputChannel &out,
+TheoryFp::TheoryFp(context::Context* c,
+                   context::UserContext* u,
+                   OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo &logicInfo)
-    : Theory(THEORY_FP, c, u, out, valuation, logicInfo),
+                   const LogicInfo& logicInfo,
+                   ProofNodeManager* pnm)
+    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
       d_notification(*this),
       d_equalityEngine(d_notification, c, "theory::fp::ee", true),
       d_registeredTerms(u),
@@ -382,7 +383,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   return uf;
 }
 
-Node TheoryFp::expandDefinition(Node node)
+TrustNode TheoryFp::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                << std::endl;
@@ -429,12 +430,12 @@ Node TheoryFp::expandDefinition(Node node)
   if (res != node) {
     Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
-
-  return res;
+  return TrustNode::null();
 }
 
-Node TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
@@ -492,9 +493,10 @@ Node TheoryFp::ppRewrite(TNode node)
   {
     Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
                           << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
 
-  return res;
+  return TrustNode::null();
 }
 
 bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
@@ -900,9 +902,8 @@ void TheoryFp::addSharedTerm(TNode node) {
 
 void TheoryFp::handleLemma(Node node) {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-
-  d_out->lemma(node, false,
-               true);  // Has to be true because it contains embedded ITEs
+  // Preprocess has to be true because it contains embedded ITEs
+  d_out->lemma(node, LemmaProperty::PREPROCESS);
   // Ignore the LemmaStatus structure for now...
 
   return;
@@ -1010,7 +1011,8 @@ void TheoryFp::setMasterEqualityEngine(eq::EqualityEngine *eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
-Node TheoryFp::explain(TNode n) {
+TrustNode TheoryFp::explain(TNode n)
+{
   Trace("fp") << "TheoryFp::explain(): explain " << n << std::endl;
 
   // All things we assert directly (and not via bit-vector) should
@@ -1025,7 +1027,8 @@ Node TheoryFp::explain(TNode n) {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions);
   }
 
-  return helper::buildConjunct(assumptions);
+  Node exp = helper::buildConjunct(assumptions);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 Node TheoryFp::getModelValue(TNode var) {

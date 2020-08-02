@@ -2,9 +2,9 @@
 /*! \file unconstrained_simplifier.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andres Noetzli, Tim King
+ **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -74,6 +74,16 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         if (current.isVar())
         {
           d_unconstrained.erase(current);
+        }
+        else
+        {
+          // Also erase the children from the visited-once set when we visit a
+          // node a second time, otherwise variables in this node are not
+          // erased from the set of unconstrained variables.
+          for (TNode childNode : current)
+          {
+            toVisit.push_back(unc_preprocess_stack_element(childNode, current));
+          }
         }
       }
       ++find->second;

@@ -2,9 +2,9 @@
 /*! \file quantifiers_attributes.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -126,9 +126,9 @@ struct QAttributes
   /** the instantiation pattern list for this quantified formula (its 3rd child)
    */
   Node d_ipl;
-  /** the name of this quantified formula */
+  /** The name of this quantified formula, used for :qid */
   Node d_name;
-  /** the quantifier id associated with this formula */
+  /** The (internal) quantifier id associated with this formula */
   Node d_qid_num;
   /** is this quantified formula a function definition? */
   bool isFunDef() const { return !d_fundef_f.isNull(); }
@@ -198,9 +198,11 @@ public:
   bool isQuantElim( Node q );
   /** is quant elim partial */
   bool isQuantElimPartial( Node q );
-  /** get quant id num */
+  /** get quant name, which is used for :qid */
+  Node getQuantName(Node q) const;
+  /** get (internal) quant id num */
   int getQuantIdNum( Node q );
-  /** get quant id num */
+  /** get (internal)quant id num */
   Node getQuantIdNumNode( Node q );
 
   /** set instantiation level attr */

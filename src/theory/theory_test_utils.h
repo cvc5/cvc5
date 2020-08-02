@@ -2,9 +2,9 @@
 /*! \file theory_test_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,8 +79,8 @@ public:
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
