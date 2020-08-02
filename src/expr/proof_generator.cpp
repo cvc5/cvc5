@@ -67,7 +67,11 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
   return false;
 }
 
-void pfgEnsureClosed(Node proven, ProofGenerator * pg, const char* c, const char* ctx, bool reqGen)
+void pfgEnsureClosed(Node proven,
+                     ProofGenerator* pg,
+                     const char* c,
+                     const char* ctx,
+                     bool reqGen)
 {
   if (!options::proofNew())
   {
@@ -81,9 +85,9 @@ void pfgEnsureClosed(Node proven, ProofGenerator * pg, const char* c, const char
     return;
   }
   std::stringstream ss;
-  ss << (pg==nullptr ? "null" : pg->identify()) << " in context " << ctx;
+  ss << (pg == nullptr ? "null" : pg->identify()) << " in context " << ctx;
   std::stringstream sdiag;
-  sdiag  << ", use -t " << c << " for details";
+  sdiag << ", use -t " << c << " for details";
   Trace(c) << "=== TrustNode::debugCheckClosed: " << ss.str() << std::endl;
   Trace(c) << "Check proof of " << proven << std::endl;
   if (pg == nullptr)
@@ -92,7 +96,8 @@ void pfgEnsureClosed(Node proven, ProofGenerator * pg, const char* c, const char
     if (reqGen)
     {
       AlwaysAssert(false)
-          << "...TrustNode::debugCheckClosed: no generator in context " << ctx << sdiag.str();
+          << "...TrustNode::debugCheckClosed: no generator in context " << ctx
+          << sdiag.str();
     }
     Trace(c) << "...TrustNode::debugCheckClosed: no generator in context "
              << ctx << std::endl;
@@ -107,7 +112,8 @@ void pfgEnsureClosed(Node proven, ProofGenerator * pg, const char* c, const char
   Trace(c) << *pn.get();
   Trace(c) << std::endl << "====" << std::endl;
   AlwaysAssert(pn->isClosed())
-      << "...TrustNode::debugCheckClosed: open proof from " << ss.str() << sdiag.str();
+      << "...TrustNode::debugCheckClosed: open proof from " << ss.str()
+      << sdiag.str();
 }
 
 }  // namespace CVC4

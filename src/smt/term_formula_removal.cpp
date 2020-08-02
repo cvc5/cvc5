@@ -222,7 +222,12 @@ Node RemoveTermFormulas::run(TNode node,
           // node[1] * { x -> skolem }
           ProofGenerator* expg = sm->getProofGenerator(existsAssertion);
           // TODO: should have more descriptive trust kind
-          d_lp->addLazyStep(existsAssertion, expg, true, "RemoveTermFormulas::run:skolem_pf", false, PfRule::TRUST);
+          d_lp->addLazyStep(existsAssertion,
+                            expg,
+                            true,
+                            "RemoveTermFormulas::run:skolem_pf",
+                            false,
+                            PfRule::TRUST);
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }

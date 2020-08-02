@@ -104,11 +104,11 @@ class TConvProofGenerator : public ProofGenerator
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
-   * 
+   *
    * @param isClosed whether to expect that pg can provide a closed proof for
    * this fact.
    */
-  void addRewriteStep(Node t, Node s, ProofGenerator* pg, bool isClosed=true);
+  void addRewriteStep(Node t, Node s, ProofGenerator* pg, bool isClosed = true);
   /** Same as above, for a single step */
   void addRewriteStep(Node t, Node s, ProofStep ps);
   /** Same as above, with explicit arguments */

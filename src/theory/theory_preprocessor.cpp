@@ -139,7 +139,12 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
         Assert(d_lp != nullptr);
         // store in the lazy proof
         // TODO: specific trusted step
-        d_lp->addLazyStep(assertion, trn.getGenerator(), true, "TheoryPreprocessor::rewrite_lemma_new", false, PfRule::TRUST);
+        d_lp->addLazyStep(assertion,
+                          trn.getGenerator(),
+                          true,
+                          "TheoryPreprocessor::rewrite_lemma_new",
+                          false,
+                          PfRule::TRUST);
         d_lp->addStep(rewritten,
                       PfRule::MACRO_SR_PRED_TRANSFORM,
                       {assertion},
