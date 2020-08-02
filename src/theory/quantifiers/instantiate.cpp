@@ -265,7 +265,7 @@ bool Instantiate::addInstantiation(
       Node proven = tpBody.getProven();
       // add the transformation proof, or THEORY_PREPROCESS if none provided
       pfTmp->addLazyStep(
-          proven, tpBody.getGenerator(), false, PfRule::THEORY_PREPROCESS);
+          proven, tpBody.getGenerator(), true, "Instantiate::getInstantiation:qpreprocess", false, PfRule::THEORY_PREPROCESS);
       pfTmp->addStep(
           body, PfRule::MACRO_SR_PRED_TRANSFORM, {orig_body, proven}, {body});
     }
@@ -483,7 +483,7 @@ Node Instantiate::getInstantiation(Node q,
       {
         Node proven = trn.getProven();
         pf->addLazyStep(
-            proven, trn.getGenerator(), false, PfRule::THEORY_PREPROCESS);
+            proven, trn.getGenerator(), true, "Instantiate::getInstantiation:rewrite_inst", false, PfRule::THEORY_PREPROCESS);
         pf->addStep(newBody,
                     PfRule::MACRO_SR_PRED_TRANSFORM,
                     {body, proven},

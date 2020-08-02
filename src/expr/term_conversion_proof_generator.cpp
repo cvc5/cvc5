@@ -56,12 +56,12 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
 
 TConvProofGenerator::~TConvProofGenerator() {}
 
-void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg)
+void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofGenerator* pg, bool isClosed)
 {
   Node eq = registerRewriteStep(t, s);
   if (!eq.isNull())
   {
-    d_proof.addLazyStep(eq, pg);
+    d_proof.addLazyStep(eq, pg, isClosed);
   }
 }
 
@@ -70,6 +70,7 @@ void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps)
   Node eq = registerRewriteStep(t, s);
   if (!eq.isNull())
   {
+    AlwaysAssert(ps.d_rule!=PfRule::ASSUME);
     d_proof.addStep(eq, ps);
   }
 }
@@ -83,6 +84,7 @@ void TConvProofGenerator::addRewriteStep(Node t,
   Node eq = registerRewriteStep(t, s);
   if (!eq.isNull())
   {
+    AlwaysAssert(id!=PfRule::ASSUME);
     d_proof.addStep(eq, id, children, args);
   }
 }

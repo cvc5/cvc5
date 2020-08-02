@@ -15,6 +15,7 @@
 #include "expr/proof_generator.h"
 
 #include "expr/proof.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 
@@ -64,6 +65,49 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
     Assert(false) << "Failed to get proof from generator for fact " << f;
   }
   return false;
+}
+
+void pfgEnsureClosed(Node proven, ProofGenerator * pg, const char* c, const char* ctx, bool reqGen)
+{
+  if (!options::proofNew())
+  {
+    // proofs not enabled, do not do check
+    return;
+  }
+  bool isTraceDebug = Trace.isOn(c);
+  if (!options::proofNewEagerChecking() && !isTraceDebug)
+  {
+    // trace is off and proof new eager checking is off, do not do check
+    return;
+  }
+  std::stringstream ss;
+  ss << (pg==nullptr ? "null" : pg->identify()) << " in context " << ctx;
+  std::stringstream sdiag;
+  sdiag  << ", use -t " << c << " for details";
+  Trace(c) << "=== TrustNode::debugCheckClosed: " << ss.str() << std::endl;
+  Trace(c) << "Check proof of " << proven << std::endl;
+  if (pg == nullptr)
+  {
+    // only failure if flag is true
+    if (reqGen)
+    {
+      AlwaysAssert(false)
+          << "...TrustNode::debugCheckClosed: no generator in context " << ctx << sdiag.str();
+    }
+    Trace(c) << "...TrustNode::debugCheckClosed: no generator in context "
+             << ctx << std::endl;
+    return;
+  }
+  std::shared_ptr<ProofNode> pn = pg->getProofFor(proven);
+  if (pn == nullptr)
+  {
+    AlwaysAssert(false) << "...TrustNode::debugCheckClosed: null proof from "
+                        << ss.str() << sdiag.str();
+  }
+  Trace(c) << *pn.get();
+  Trace(c) << std::endl << "====" << std::endl;
+  AlwaysAssert(pn->isClosed())
+      << "...TrustNode::debugCheckClosed: open proof from " << ss.str() << sdiag.str();
 }
 
 }  // namespace CVC4

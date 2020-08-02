@@ -121,6 +121,8 @@ Trace("lazy-cdproof-warn") << "LazyCDProof::getProofFor: " << pg->identify() <<
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
+                              bool isClosed,
+                              const char* ctx,
                               bool forceOverwrite,
                               PfRule idNull)
 {
@@ -129,7 +131,7 @@ void LazyCDProof::addLazyStep(Node expected,
     // null generator, should have given a proof rule
     if (idNull == PfRule::ASSUME)
     {
-      Assert(false);
+      AlwaysAssert(false) << "LazyCDProof::addLazyStep: failed to provide proof generator for " << expected;
       return;
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
@@ -150,16 +152,12 @@ void LazyCDProof::addLazyStep(Node expected,
   }
   // just store now
   d_gens.insert(expected, pg);
-  /*
-  std::shared_ptr<ProofNode> afgp = pg->getProofFor(expected);
-  AlwaysAssert (afgp!=nullptr);
-  if (!afgp->isClosed())
+  // debug checking
+  if (isClosed)
   {
-    Trace("lazy-cdproof-warn") << "LazyCDProof::addLazyStep: " << pg->identify()
-  << " within " << identify() << " generated a non-closed proof for " <<
-  expected << "\n";
+    Trace("lazy-cdproof-debug") << "Checking closed..." << std::endl;
+    pfgEnsureClosed(expected, pg, "lazy-cdproof-debug", ctx);
   }
-  */
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
