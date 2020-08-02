@@ -53,7 +53,7 @@ class SmtNodeManagerListener : public NodeManagerListener
   /** Notify when new sort constructor is created */
   void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override;
   /** Notify when list of datatypes is created */
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts,
+  void nmNotifyNewDatatypes(const std::vector<TypeNode>& dtts,
                             uint32_t flags) override;
   /** Notify when new variable is created */
   void nmNotifyNewVar(TNode n, uint32_t flags) override;
