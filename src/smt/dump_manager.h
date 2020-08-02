@@ -35,18 +35,7 @@ namespace smt {
  */
 class DumpManager
 {
-  /** 
-   * Class for context-dependent deletion of command pointers in a context
-   * dependent list below. This is required since we store pointers of
-   * Command, not shared pointers of Command. The latter is not feasible since
-   * Command is an abstract class.
-   */
-  struct CommandCleanup
-  {
-    void operator()(Command** c);
-  };
-  typedef context::CDList<Command*, CommandCleanup> CommandList;
-
+  typedef context::CDList<Command*> CommandList;
  public:
   DumpManager(context::UserContext* u);
   ~DumpManager();
@@ -93,7 +82,12 @@ class DumpManager
    * it is context-dependent on push/pop).  Only maintained if
    * produce-models option is on.
    */
-  CommandList* d_modelCommands;
+  CommandList d_modelCommands;
+  /** 
+   * A list of model commands allocated to d_modelCommands at any time. This
+   * is maintained for memory management purposes.
+   */
+  std::vector<Command*> d_modelCommandsAlloc;
 
   /**
    * A vector of declaration commands waiting to be dumped out.
