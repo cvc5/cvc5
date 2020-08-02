@@ -903,7 +903,7 @@ public:
    * mutually recursive.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -935,8 +935,8 @@ public:
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      std::vector<DType>& datatypes,
-      std::set<TypeNode>& unresolvedTypes,
+      const std::vector<DType>& datatypes,
+      const std::set<TypeNode>& unresolvedTypes,
       uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**

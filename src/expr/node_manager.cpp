@@ -483,8 +483,8 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
 }
 
 std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
-    std::vector<DType>& datatypes,
-    std::set<TypeNode>& unresolvedTypes,
+    const std::vector<DType>& datatypes,
+    const std::set<TypeNode>& unresolvedTypes,
     uint32_t flags)
 {
   NodeManagerScope nms(this);
