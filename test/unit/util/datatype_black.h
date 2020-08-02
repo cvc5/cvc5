@@ -212,6 +212,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
      *     list = cons(car: tree, cdr: list) | nil
      *   END;
      */
+    std::set<TypeNode> unresolvedTypes;
+    TypeNode unresList = d_nm->mkSort("list", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresList);
+    TypeNode unresTree = d_nm->mkSort("tree", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresTree);
+    
     DType tree("tree");
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
     node->addArgSelf("left");
@@ -219,14 +225,14 @@ class DatatypeBlack : public CxxTest::TestSuite {
     tree.addConstructor(node);
 
     std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf->addArg("leaf", DTypeUnresolvedType("list"));
+    leaf->addArg("leaf", unresList);
     tree.addConstructor(leaf);
 
     Debug("datatypes") << tree << std::endl;
 
     DType list("list");
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons->addArg("car", DTypeUnresolvedType("tree"));
+    cons->addArg("car", unresTree);
     cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
@@ -236,16 +242,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Debug("datatypes") << list << std::endl;
 
     TS_ASSERT(! tree.isResolved());
-    TS_ASSERT(! node.isResolved());
-    TS_ASSERT(! leaf.isResolved());
     TS_ASSERT(! list.isResolved());
-    TS_ASSERT(! cons.isResolved());
-    TS_ASSERT(! nil.isResolved());
 
     vector<DType> dts;
     dts.push_back(tree);
     dts.push_back(list);
-    vector<TypeNode> dtts = d_nm->mkMutualTypeNodes(dts);
+    vector<TypeNode> dtts = d_nm->mkMutualDatatypeTypes(dts, unresolvedTypes);
 
     TS_ASSERT(dtts[0].getDType().isResolved());
     TS_ASSERT(dtts[1].getDType().isResolved());
@@ -266,6 +268,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
   void testMutualListTrees2()
   {
+    std::set<TypeNode> unresolvedTypes;
+    TypeNode unresList = d_nm->mkSort("list", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresList);
+    TypeNode unresTree = d_nm->mkSort("tree", ExprManager::SORT_FLAG_PLACEHOLDER);
+    unresolvedTypes.insert(unresTree);
+    
     DType tree("tree");
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
     node->addArgSelf("left");
@@ -273,12 +281,12 @@ class DatatypeBlack : public CxxTest::TestSuite {
     tree.addConstructor(node);
 
     std::shared_ptr<DTypeConstructor> leaf = std::make_shared<DTypeConstructor>("leaf");
-    leaf->addArg("leaf", DTypeUnresolvedType("list"));
+    leaf->addArg("leaf", unresList);
     tree.addConstructor(leaf);
 
     DType list("list");
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
-    cons->addArg("car", DTypeUnresolvedType("tree"));
+    cons->addArg("car", unresTree);
     cons->addArgSelf("cdr");
     list.addConstructor(cons);
 
@@ -294,7 +302,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
     dts.push_back(tree);
     dts.push_back(list);
     // remake the types
-    vector<TypeNode> dtts2 = d_nm->mkMutualTypeNodes(dts);
+    vector<TypeNode> dtts2 = d_nm->mkMutualDatatypeTypes(dts, unresolvedTypes);
 
     TS_ASSERT(! dtts2[0].getDType().isFinite());
     TS_ASSERT(dtts2[0].getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
