@@ -141,7 +141,8 @@ class SygusInterpol
 
   /**
    * Make the sygus conjecture to be synthesis.
-	 * The conjecture body is Fa( x ) => A( x ) ^ A( x ) => Fc( x ) as described above.
+   * The conjecture body is Fa( x ) => A( x ) ^ A( x ) => Fc( x ) as described
+   * above.
    *
    * @param itp the interpolation predicate.
    * @param axioms the assertions (Fa above)
