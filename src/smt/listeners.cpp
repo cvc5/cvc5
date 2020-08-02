@@ -59,11 +59,16 @@ void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
 }
 
 void SmtNodeManagerListener::nmNotifyNewDatatypes(
-    const std::vector<DatatypeType>& dtts, uint32_t flags)
+    const std::vector<TypeNode>& dtts, uint32_t flags)
 {
   if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
   {
-    std::vector<Type> types(dtts.begin(), dtts.end());
+    std::vector<Type> types;
+    for (const TypeNode& dt : dtts)
+    {
+      Assert(dt.isDatatype());
+      types.push_back(dt.toType());
+    }
     DatatypeDeclarationCommand c(types);
     d_smt.addToModelCommandAndDump(c);
   }

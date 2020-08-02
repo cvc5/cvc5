@@ -143,6 +143,22 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Op mkOp(Kind kind, const string& arg) except +
         Op mkOp(Kind kind, uint32_t arg) except +
         Op mkOp(Kind kind, uint32_t arg1, uint32_t arg2) except +
+        # Sygus related functions
+        Grammar mkSygusGrammar(const vector[Term]& boundVars, const vector[Term]& ntSymbols) except +
+        Term mkSygusVar(Sort sort, const string& symbol) except +
+        Term mkSygusVar(Sort sort) except +
+        void addSygusConstraint(Term term) except +
+        void addSygusInvConstraint(Term inv_f, Term pre_f, Term trans_f, Term post_f) except +
+        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort) except +
+        Term synthFun(const string& symbol, const vector[Term]& bound_vars, Sort sort, Grammar grammar) except +
+        Result checkSynth() except +
+        Term getSynthSolution(Term t) except +
+        vector[Term] getSynthSolutions(const vector[Term]& terms) except +
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars) except +
+        Term synthInv(const string& symbol, const vector[Term]& bound_vars, Grammar grammar) except +
+        void printSynthSolution(ostream& out) except +
+        # End of sygus related functions
+
         Term mkTrue() except +
         Term mkFalse() except +
         Term mkBoolean(bint val) except +
@@ -220,6 +236,13 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         void setLogic(const string& logic) except +
         void setOption(const string& option, const string& value) except +
 
+    cdef cppclass Grammar:
+        Grammar() except +
+        Grammar(Solver* solver, vector[Term] boundVars, vector[Term] ntSymbols) except +
+        void addRule(Term ntSymbol, Term rule) except +
+        void addAnyConstant(Term ntSymbol) except +
+        void addAnyVariable(Term ntSymbol) except +
+        void addRules(Term ntSymbol, vector[Term] rules) except +
 
     cdef cppclass Sort:
         Sort() except +

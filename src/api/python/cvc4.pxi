@@ -17,6 +17,7 @@ from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport Op as c_Op
 from cvc4 cimport OpHashFunction as c_OpHashFunction
 from cvc4 cimport Solver as c_Solver
+from cvc4 cimport Grammar as c_Grammar
 from cvc4 cimport Sort as c_Sort
 from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
@@ -271,6 +272,25 @@ cdef class Op:
 
         return indices
 
+cdef class Grammar:
+    cdef c_Grammar  cgrammar
+    def __cinit__(self):
+        self.cgrammar = c_Grammar()
+
+    def addRule(self, Term ntSymbol, Term rule):
+        self.cgrammar.addRule(ntSymbol.cterm, rule.cterm)
+
+    def addAnyConstant(self, Term ntSymbol):
+        self.cgrammar.addAnyConstant(ntSymbol.cterm)
+
+    def addAnyVariable(self, Term ntSymbol):
+        self.cgrammar.addAnyVariable(ntSymbol.cterm)
+
+    def addRules(self, Term ntSymbol, rules):
+        cdef vector[c_Term] crules
+        for r in rules:
+            crules.push_back((<Term?> r).cterm)
+        self.cgrammar.addRules(ntSymbol.cterm, crules)
 
 cdef class Result:
     cdef c_Result cr
@@ -782,6 +802,63 @@ cdef class Solver:
         cdef Result r = Result()
         r.cr = self.csolver.checkSat()
         return r
+
+    def mkSygusGrammar(self, boundVars, ntSymbols):
+        cdef Grammar grammar = Grammar()
+        cdef vector[c_Term] bvc
+        cdef vector[c_Term] ntc
+        for bv in boundVars:
+            bvc.push_back((<Term?> bv).cterm)
+        for nt in ntSymbols:
+            ntc.push_back((<Term?> nt).cterm)
+        grammar.cgrammar = self.csolver.mkSygusGrammar(<const vector[c_Term]&> bvc, <const vector[c_Term]&> ntc)
+        return grammar
+
+    def mkSygusVar(self, Sort sort, str symbol=""):
+        cdef Term term = Term()
+        term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
+        return term
+
+    def addSygusConstraint(self, Term t):
+        self.csolver.addSygusConstraint(t.cterm)
+
+    def addSygusInvConstraint(self, Term inv_f, Term pre_f, Term trans_f, Term post_f):
+        self.csolver.addSygusInvConstraint(inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
+
+    def synthFun(self, str symbol, bound_vars, Sort sort, Grammar grammar=None):
+        cdef Term term = Term()
+        cdef vector[c_Term] v
+        for bv in bound_vars:
+            v.push_back((<Term?> bv).cterm)
+        if grammar is None:
+          term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort)
+        else:
+          term.cterm = self.csolver.synthFun(symbol.encode(), <const vector[c_Term]&> v, sort.csort, grammar.cgrammar)
+        return term
+
+    def checkSynth(self):
+        cdef Result r = Result()
+        r.cr = self.csolver.checkSynth()
+        return r
+
+    def getSynthSolution(self, Term term):
+        cdef Term t = Term()
+        t.cterm = self.csolver.getSynthSolution(term.cterm)
+        return t
+
+    def synthInv(self, symbol, bound_vars, Grammar grammar=None):
+        cdef Term term = Term()
+        cdef vector[c_Term] v
+        for bv in bound_vars:
+            v.push_back((<Term?> bv).cterm)
+        if grammar is None:
+            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v)
+        else:
+            term.cterm = self.csolver.synthInv(symbol.encode(), <const vector[c_Term]&> v, grammar.cgrammar)
+        return term
+
+    def printSynthSolution(self):
+        self.csolver.printSynthSolution(cout)
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
