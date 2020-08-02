@@ -35,14 +35,17 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands)
 void DumpManager::CommandCleanup::operator()(Command** c) { delete *c; }
 
 DumpManager::DumpManager(context::UserContext* u)
-    : d_modelGlobalCommands(), d_modelCommands(u), d_dumpCommands()
+    : d_modelGlobalCommands(), d_modelCommands(nullptr), d_dumpCommands()
 {
+  d_modelCommands = new (true) CommandList(u);
 }
 
 DumpManager::~DumpManager()
 {
   DeleteAndClearCommandVector(d_dumpCommands);
-
+  if(d_modelCommands != nullptr) {
+    d_modelCommands->deleteSelf();
+  }
   DeleteAndClearCommandVector(d_modelGlobalCommands);
 }
 
@@ -87,7 +90,7 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
     }
     else
     {
-      d_modelCommands.push_back(c.clone());
+      d_modelCommands->push_back(c.clone());
     }
   }
   if (Dump.isOn(dumpTag))
@@ -118,7 +121,7 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
       }
     }
   }
-  for (Command* c : d_modelCommands)
+  for (Command* c : *d_modelCommands)
   {
     DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
     if (dfc != NULL)
@@ -134,7 +137,7 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
 
 size_t DumpManager::getNumModelCommands() const
 {
-  return d_modelCommands.size() + d_modelGlobalCommands.size();
+  return d_modelCommands->size() + d_modelGlobalCommands.size();
 }
 
 const Command* DumpManager::getModelCommand(size_t i) const
@@ -145,7 +148,7 @@ const Command* DumpManager::getModelCommand(size_t i) const
   {
     return d_modelGlobalCommands[i];
   }
-  return d_modelCommands[i - d_modelGlobalCommands.size()];
+  return (*d_modelCommands)[i - d_modelGlobalCommands.size()];
 }
 
 }  // namespace smt
