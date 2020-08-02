@@ -2222,15 +2222,13 @@ DatatypeConstructor::const_iterator::const_iterator(
     const Solver* slv, const CVC4::DTypeConstructor& ctor, bool begin)
 {
   d_solver = slv;
-  d_int_stors = ctor.getArgs();
+  d_int_stors = &ctor.getArgs();
 
-  const std::vector<CVC4::DTypeConstructorArg>* sels =
-      static_cast<const std::vector<CVC4::DTypeConstructorArg>*>(
-          d_int_stors);
-  for (const auto& s : *sels)
+  const std::vector<std::shared_ptr<CVC4::DTypeSelector> >& sels = ctor.getArgs();
+  for (const std::shared_ptr<CVC4::DTypeSelector>& s : sels)
   {
     /* Can not use emplace_back here since constructor is private. */
-    d_stors.push_back(DatatypeSelector(d_solver, s));
+    d_stors.push_back(DatatypeSelector(d_solver, s.get()));
   }
   d_idx = begin ? 0 : sels->size();
 }
@@ -2385,30 +2383,6 @@ bool Datatype::hasNestedRecursion() const
 
 std::string Datatype::toString() const { return d_dtype->getName(); }
 
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-const CVC4::DType& Datatype::getDatatype(void) const { return *d_dtype; }
-
-DatatypeConstructor Datatype::getConstructorForName(
-    const std::string& name) const
-{
-  bool foundCons = false;
-  size_t index = 0;
-  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
-  {
-    if ((*d_dtype)[i].getName() == name)
-    {
-      index = i;
-      foundCons = true;
-      break;
-    }
-  }
-  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
-                            << getName() << " exists";
-  return DatatypeConstructor(d_solver, (*d_dtype)[index]);
-}
-
-
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(d_solver, *d_dtype, true);
@@ -2445,14 +2419,13 @@ DatatypeConstructor Datatype::getConstructorForName(
 Datatype::const_iterator::const_iterator(const Solver* slv,
                                          const CVC4::DType& dtype,
                                          bool begin)
-    : d_solver(slv), d_int_ctors(dtype.getConstructors())
+    : d_solver(slv), d_int_ctors(&dtype.getConstructors())
 {
-  const std::vector<CVC4::DTypeConstructor>* cons =
-      static_cast<const std::vector<CVC4::DTypeConstructor>*>(d_int_ctors);
-  for (const auto& c : *cons)
+  const std::vector<std::shared_ptr<DTypeConstructor> >& cons = dtype.getConstructors();
+  for (const std::shared_ptr<DTypeConstructor>& c : cons)
   {
     /* Can not use emplace_back here since constructor is private. */
-    d_ctors.push_back(DatatypeConstructor(d_solver, c));
+    d_ctors.push_back(DatatypeConstructor(d_solver, c.get()));
   }
   d_idx = begin ? 0 : cons->size();
 }

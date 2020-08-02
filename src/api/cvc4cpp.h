@@ -1454,7 +1454,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
   std::shared_ptr<CVC4::DTypeSelector> d_stor;
@@ -1611,7 +1611,7 @@ class CVC4_PUBLIC DatatypeConstructor
      * @param true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
-                   const CVC4::DatatypeConstructor& ctor,
+                   const CVC4::DTypeConstructor& ctor,
                    bool begin);
 
     /**
@@ -1660,7 +1660,7 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
   std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
@@ -1827,7 +1827,7 @@ class CVC4_PUBLIC Datatype
      * @param dtype the internal datatype to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const Solver* slv, const CVC4::Datatype& dtype, bool begin);
+    const_iterator(const Solver* slv, const CVC4::DType& dtype, bool begin);
 
     /**
      * The associated solver object.
