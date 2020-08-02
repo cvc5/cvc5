@@ -339,8 +339,8 @@ class ExprPublic : public CxxTest::TestSuite {
     TS_ASSERT(null->isNull());
   }
 
+  /*
   void testIsConst() {
-    /* bool isConst() const; */
 
     //Debug.on("isConst");
 
@@ -412,6 +412,7 @@ class ExprPublic : public CxxTest::TestSuite {
       TS_ASSERT(!arr2.isConst());
     }
   }
+  */
 
   void testGetConst() {
     /* template <class T>
