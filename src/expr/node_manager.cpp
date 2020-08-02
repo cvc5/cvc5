@@ -476,15 +476,15 @@ TypeNode NodeManager::mkDatatypeType(DType& datatype, uint32_t flags)
 }
 
 std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
-    std::vector<DType>& datatypes, uint32_t flags)
+    const std::vector<DType>& datatypes, uint32_t flags)
 {
   std::set<TypeNode> unresolvedTypes;
   return mkMutualDatatypeTypes(datatypes, unresolvedTypes, flags);
 }
 
 std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
-    std::vector<DType>& datatypes,
-    std::set<TypeNode>& unresolvedTypes,
+    const std::vector<DType>& datatypes,
+    const std::set<TypeNode>& unresolvedTypes,
     uint32_t flags)
 {
   NodeManagerScope nms(this);
@@ -582,10 +582,6 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
                                      paramTypes,
                                      paramReplacements);
     }
-
-    // Now run some checks, including a check to make sure that no
-    // selector is function-valued.
-    // checkResolvedDatatype(ut);
   }
 
   for (NodeManagerListener* nml : d_listeners)

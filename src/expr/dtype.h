@@ -237,7 +237,7 @@ class DType
   /** set that this datatype is a tuple */
   void setTuple();
 
-  /** set that this datatype is a recird */
+  /** set that this datatype is a record */
   void setRecord();
 
   /** Get the name of this DType. */

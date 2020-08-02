@@ -168,7 +168,9 @@ class NodeManager {
    */
   std::vector<NodeManagerListener*> d_listeners;
 
-  /** A list of datatypes registered by its corresponding expr manager. */
+  /** A list of datatypes registered by its corresponding expr manager.
+   * !!! this member should be deleted when the Expr-layer is deleted.
+   */
   std::vector<std::shared_ptr<DType> > d_registeredDTypes;
   /** A list of datatypes owned by this node manager */
   std::vector<std::unique_ptr<DType> > d_ownedDTypes;
@@ -897,7 +899,7 @@ public:
    * mutually recursive.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
+      const std::vector<DType>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -929,8 +931,8 @@ public:
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
   std::vector<TypeNode> mkMutualDatatypeTypes(
-      std::vector<DType>& datatypes,
-      std::set<TypeNode>& unresolvedTypes,
+      const std::vector<DType>& datatypes,
+      const std::set<TypeNode>& unresolvedTypes,
       uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
