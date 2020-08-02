@@ -45,7 +45,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_regexp_ucached(s.getUserContext()),
       d_regexp_ccached(s.getSatContext()),
       d_processed_memberships(s.getSatContext()),
-      d_regexp_opr(sk)
+      d_regexp_opr(skc)
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   std::vector<Node> nvec;

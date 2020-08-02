@@ -1055,12 +1055,11 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
     // beginning and the end of `x` simultaneously.
     //
     // x in R* ---> (x = "") v (x in R) v (x in (re.++ R (re.* R) R))
-    if (r.getKind() == REGEXP_STAR)
-    {
-      // We also immediately unfold the last disjunct for re.*. The advantage
-      // of doing this is that we use the same scheme for skolems above.
-      sinRExp = reduceRegExpPos(sinRExp, sc);
-    }
+
+    // We also immediately unfold the last disjunct for re.*. The advantage
+    // of doing this is that we use the same scheme for skolems above.
+    sinRExp = reduceRegExpPos(sinRExp, sc);
+    // make the return lemma
     conc = nm->mkNode(OR, se, sinr, sinRExp);
   }
   else

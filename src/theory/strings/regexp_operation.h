@@ -152,7 +152,7 @@ class RegExpOpr {
    * This uses reLen as an optimization to improve the reduction. If reLen
    * is null, then this optimization is not applied.
    */
-  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index);
+  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index);
   //------------------------ end trusted reductions
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
