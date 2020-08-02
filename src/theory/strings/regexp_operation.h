@@ -129,11 +129,11 @@ class RegExpOpr {
   /**
    * Given regular expression of the form
    *   (re.++ r_0 ... r_{n-1})
-   * This returns a node non-null node reLen and updates index such that
+   * This returns a non-null node reLen and updates index such that
    *   RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
    * where index is set to either 0 or n-1.
    */
-  static Node getRegExpConcatFixed(Node r, unsigned& index);
+  static Node getRegExpConcatFixed(Node r, size_t& index);
   //------------------------ trusted reductions
   /**
    * Return the unfolded form of mem of the form (str.in_re s r).

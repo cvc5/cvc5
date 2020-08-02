@@ -860,7 +860,7 @@ Node RegExpOpr::simplify(Node t, bool polarity)
     if (r.getKind() == REGEXP_CONCAT)
     {
       // the index we are removing from the RE concatenation
-      unsigned index = 0;
+      size_t index = 0;
       // As an optimization to the reduction, if we can determine that
       // all strings in the language of R1 have the same length, say n,
       // then the conclusion of the reduction is quantifier-free:
@@ -882,7 +882,7 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   return conc;
 }
 
-Node RegExpOpr::getRegExpConcatFixed(Node r, unsigned& index)
+Node RegExpOpr::getRegExpConcatFixed(Node r, size_t& index)
 {
   Assert(r.getKind() == REGEXP_CONCAT);
   index = 0;
@@ -892,7 +892,7 @@ Node RegExpOpr::getRegExpConcatFixed(Node r, unsigned& index)
     return reLen;
   }
   // try from the opposite end
-  unsigned indexE = r.getNumChildren() - 1;
+  size_t indexE = r.getNumChildren() - 1;
   reLen = RegExpEntail::getFixedLengthForRegexp(r[indexE]);
   if (!reLen.isNull())
   {
@@ -915,7 +915,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   {
     // do not use length entailment, call regular expression concat
     Node reLen;
-    unsigned i = 0;
+    size_t i = 0;
     conc = reduceRegExpNegConcatFixed(mem, reLen, i);
   }
   else if (k == REGEXP_STAR)
@@ -945,7 +945,7 @@ Node RegExpOpr::reduceRegExpNeg(Node mem)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, unsigned index)
+Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
 {
   Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
   Node s = mem[0][0];
