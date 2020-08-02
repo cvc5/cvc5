@@ -2228,9 +2228,9 @@ DatatypeConstructor::const_iterator::const_iterator(
   for (const std::shared_ptr<CVC4::DTypeSelector>& s : sels)
   {
     /* Can not use emplace_back here since constructor is private. */
-    d_stors.push_back(DatatypeSelector(d_solver, s.get()));
+    d_stors.push_back(DatatypeSelector(d_solver, *s.get()));
   }
-  d_idx = begin ? 0 : sels->size();
+  d_idx = begin ? 0 : sels.size();
 }
 
 DatatypeConstructor::const_iterator::const_iterator()
@@ -2425,9 +2425,9 @@ Datatype::const_iterator::const_iterator(const Solver* slv,
   for (const std::shared_ptr<DTypeConstructor>& c : cons)
   {
     /* Can not use emplace_back here since constructor is private. */
-    d_ctors.push_back(DatatypeConstructor(d_solver, c.get()));
+    d_ctors.push_back(DatatypeConstructor(d_solver, *c.get()));
   }
-  d_idx = begin ? 0 : cons->size();
+  d_idx = begin ? 0 : cons.size();
 }
 
 Datatype::const_iterator::const_iterator()
