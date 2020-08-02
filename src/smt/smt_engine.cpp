@@ -578,7 +578,8 @@ SmtEngine::~SmtEngine()
 #endif
 
     d_absValues.reset(nullptr);
-
+    d_dumpm.reset(nullptr);
+    
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
 
