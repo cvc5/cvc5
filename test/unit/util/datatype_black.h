@@ -19,7 +19,7 @@
 #include <sstream>
 
 #include "api/cvc4cpp.h"
-#include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -66,13 +66,6 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Node apply = d_nm->mkNode(kind::APPLY_CONSTRUCTOR, ctor);
     Debug("datatypes") << apply << std::endl;
 
-    const DType& colorsDT = colorsType.getDType();
-    TS_ASSERT(colorsDT.getConstructor("blue") == ctor);
-    TS_ASSERT(colorsDT["blue"].getConstructor() == ctor);
-    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"),
-                     IllegalArgumentException&);
-    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException&);
-
     TS_ASSERT(! colorsType.getDType().isParametric());
     TS_ASSERT(colorsType.getDType().isFinite());
     TS_ASSERT(colorsType.getDType().getCardinality().compare(4) == Cardinality::EQUAL);
@@ -112,7 +105,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
   void testTree() {
     DType tree("tree");
-    Type integerType = d_em->integerType();
+    TypeNode integerType = d_nm->integerType();
 
     std::shared_ptr<DTypeConstructor> node = std::make_shared<DTypeConstructor>("node");
     node->addArgSelf("left");
@@ -127,12 +120,6 @@ class DatatypeBlack : public CxxTest::TestSuite {
     TypeNode treeType = d_nm->mkDatatypeType(tree);
     Debug("datatypes") << treeType << std::endl;
 
-    Node ctor = treeType.getDType()[1].getConstructor();
-    TS_ASSERT(treeType.getConstructor("leaf") == ctor);
-    TS_ASSERT(treeType.getConstructor("leaf") == ctor);
-    TS_ASSERT_THROWS(treeType.getConstructor("leff"),
-                     IllegalArgumentException&);
-
     TS_ASSERT(! treeType.getDType().isParametric());
     TS_ASSERT(! treeType.getDType().isFinite());
     TS_ASSERT(treeType.getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
@@ -144,7 +131,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
   void testListInt() {
     DType list("list");
-    Type integerType = d_em->integerType();
+    TypeNode integerType = d_nm->integerType();
 
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
     cons->addArg("car", integerType);
@@ -169,7 +156,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
   void testListReal() {
     DType list("list");
-    Type realType = d_em->realType();
+    TypeNode realType = d_nm->realType();
 
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
     cons->addArg("car", realType);
@@ -194,7 +181,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
   void testListBoolean() {
     DType list("list");
-    Type booleanType = d_em->booleanType();
+    TypeNode booleanType = d_nm->booleanType();
 
     std::shared_ptr<DTypeConstructor> cons = std::make_shared<DTypeConstructor>("cons");
     cons->addArg("car", booleanType);
@@ -258,7 +245,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
     vector<DType> dts;
     dts.push_back(tree);
     dts.push_back(list);
-    vector<TypeNode> dtts = d_em->mkMutualTypeNodes(dts);
+    vector<TypeNode> dtts = d_nm->mkMutualTypeNodes(dts);
 
     TS_ASSERT(dtts[0].getDType().isResolved());
     TS_ASSERT(dtts[1].getDType().isResolved());
@@ -307,7 +294,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
     dts.push_back(tree);
     dts.push_back(list);
     // remake the types
-    vector<TypeNode> dtts2 = d_em->mkMutualTypeNodes(dts);
+    vector<TypeNode> dtts2 = d_nm->mkMutualTypeNodes(dts);
 
     TS_ASSERT(! dtts2[0].getDType().isFinite());
     TS_ASSERT(dtts2[0].getDType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL);
@@ -346,10 +333,10 @@ class DatatypeBlack : public CxxTest::TestSuite {
   }
 
   void testParametricDType() {
-    vector<Type> v;
-    Type t1, t2;
-    v.push_back(t1 = d_em->mkSort("T1"));
-    v.push_back(t2 = d_em->mkSort("T2"));
+    vector<TypeNode> v;
+    TypeNode t1, t2;
+    v.push_back(t1 = d_nm->mkSort("T1"));
+    v.push_back(t2 = d_nm->mkSort("T2"));
     DType pair("pair", v);
 
     std::shared_ptr<DTypeConstructor> mkpair = std::make_shared<DTypeConstructor>("mk-pair");
@@ -360,20 +347,20 @@ class DatatypeBlack : public CxxTest::TestSuite {
 
     TS_ASSERT(pairType.getDType().isParametric());
     v.clear();
-    v.push_back(d_em->integerType());
-    v.push_back(d_em->integerType());
+    v.push_back(d_nm->integerType());
+    v.push_back(d_nm->integerType());
     TypeNode pairIntInt = pairType.getDType().getTypeNode(v);
     v.clear();
-    v.push_back(d_em->realType());
-    v.push_back(d_em->realType());
+    v.push_back(d_nm->realType());
+    v.push_back(d_nm->realType());
     TypeNode pairRealReal = pairType.getDType().getTypeNode(v);
     v.clear();
-    v.push_back(d_em->realType());
-    v.push_back(d_em->integerType());
+    v.push_back(d_nm->realType());
+    v.push_back(d_nm->integerType());
     TypeNode pairRealInt = pairType.getDType().getTypeNode(v);
     v.clear();
-    v.push_back(d_em->integerType());
-    v.push_back(d_em->realType());
+    v.push_back(d_nm->integerType());
+    v.push_back(d_nm->realType());
     TypeNode pairIntReal = pairType.getDType().getTypeNode(v);
 
     TS_ASSERT_DIFFERS(pairIntInt, pairRealReal);
