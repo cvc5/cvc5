@@ -2207,6 +2207,87 @@ Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
   return sel.getSelectorTerm();
 }
 
+
+DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
+{
+  return DatatypeConstructor::const_iterator(d_solver, *d_ctor, true);
+}
+
+DatatypeConstructor::const_iterator DatatypeConstructor::end() const
+{
+  return DatatypeConstructor::const_iterator(d_solver, *d_ctor, false);
+}
+
+DatatypeConstructor::const_iterator::const_iterator(
+    const Solver* slv, const CVC4::DTypeConstructor& ctor, bool begin)
+{
+  d_solver = slv;
+  d_int_stors = ctor.getArgs();
+
+  const std::vector<CVC4::DTypeConstructorArg>* sels =
+      static_cast<const std::vector<CVC4::DTypeConstructorArg>*>(
+          d_int_stors);
+  for (const auto& s : *sels)
+  {
+    /* Can not use emplace_back here since constructor is private. */
+    d_stors.push_back(DatatypeSelector(d_solver, s));
+  }
+  d_idx = begin ? 0 : sels->size();
+}
+
+DatatypeConstructor::const_iterator::const_iterator()
+    : d_solver(nullptr), d_int_stors(nullptr), d_idx(0)
+{
+}
+
+DatatypeConstructor::const_iterator&
+DatatypeConstructor::const_iterator::operator=(
+    const DatatypeConstructor::const_iterator& it)
+{
+  d_solver = it.d_solver;
+  d_int_stors = it.d_int_stors;
+  d_stors = it.d_stors;
+  d_idx = it.d_idx;
+  return *this;
+}
+
+const DatatypeSelector& DatatypeConstructor::const_iterator::operator*() const
+{
+  return d_stors[d_idx];
+}
+
+const DatatypeSelector* DatatypeConstructor::const_iterator::operator->() const
+{
+  return &d_stors[d_idx];
+}
+
+DatatypeConstructor::const_iterator&
+DatatypeConstructor::const_iterator::operator++()
+{
+  ++d_idx;
+  return *this;
+}
+
+DatatypeConstructor::const_iterator
+DatatypeConstructor::const_iterator::operator++(int)
+{
+  DatatypeConstructor::const_iterator it(*this);
+  ++d_idx;
+  return it;
+}
+
+bool DatatypeConstructor::const_iterator::operator==(
+    const DatatypeConstructor::const_iterator& other) const
+{
+  return d_int_stors == other.d_int_stors && d_idx == other.d_idx;
+}
+
+bool DatatypeConstructor::const_iterator::operator!=(
+    const DatatypeConstructor::const_iterator& other) const
+{
+  return d_int_stors != other.d_int_stors || d_idx != other.d_idx;
+}
+
 std::string DatatypeConstructor::toString() const
 {
   std::stringstream ss;
@@ -2325,6 +2406,105 @@ DatatypeConstructor Datatype::getConstructorForName(
   CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
                             << getName() << " exists";
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
+}
+
+
+Datatype::const_iterator Datatype::begin() const
+{
+  return Datatype::const_iterator(d_solver, *d_dtype, true);
+}
+
+Datatype::const_iterator Datatype::end() const
+{
+  return Datatype::const_iterator(d_solver, *d_dtype, false);
+}
+
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+const CVC4::DType& Datatype::getDatatype(void) const { return *d_dtype; }
+
+DatatypeConstructor Datatype::getConstructorForName(
+    const std::string& name) const
+{
+  bool foundCons = false;
+  size_t index = 0;
+  for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+  {
+    if ((*d_dtype)[i].getName() == name)
+    {
+      index = i;
+      foundCons = true;
+      break;
+    }
+  }
+  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+                            << getName() << " exists";
+  return DatatypeConstructor(d_solver, (*d_dtype)[index]);
+}
+
+Datatype::const_iterator::const_iterator(const Solver* slv,
+                                         const CVC4::DType& dtype,
+                                         bool begin)
+    : d_solver(slv), d_int_ctors(dtype.getConstructors())
+{
+  const std::vector<CVC4::DTypeConstructor>* cons =
+      static_cast<const std::vector<CVC4::DTypeConstructor>*>(d_int_ctors);
+  for (const auto& c : *cons)
+  {
+    /* Can not use emplace_back here since constructor is private. */
+    d_ctors.push_back(DatatypeConstructor(d_solver, c));
+  }
+  d_idx = begin ? 0 : cons->size();
+}
+
+Datatype::const_iterator::const_iterator()
+    : d_solver(nullptr), d_int_ctors(nullptr), d_idx(0)
+{
+}
+
+Datatype::const_iterator& Datatype::const_iterator::operator=(
+    const Datatype::const_iterator& it)
+{
+  d_solver = it.d_solver;
+  d_int_ctors = it.d_int_ctors;
+  d_ctors = it.d_ctors;
+  d_idx = it.d_idx;
+  return *this;
+}
+
+const DatatypeConstructor& Datatype::const_iterator::operator*() const
+{
+  return d_ctors[d_idx];
+}
+
+const DatatypeConstructor* Datatype::const_iterator::operator->() const
+{
+  return &d_ctors[d_idx];
+}
+
+Datatype::const_iterator& Datatype::const_iterator::operator++()
+{
+  ++d_idx;
+  return *this;
+}
+
+Datatype::const_iterator Datatype::const_iterator::operator++(int)
+{
+  Datatype::const_iterator it(*this);
+  ++d_idx;
+  return it;
+}
+
+bool Datatype::const_iterator::operator==(
+    const Datatype::const_iterator& other) const
+{
+  return d_int_ctors == other.d_int_ctors && d_idx == other.d_idx;
+}
+
+bool Datatype::const_iterator::operator!=(
+    const Datatype::const_iterator& other) const
+{
+  return d_int_ctors != other.d_int_ctors || d_idx != other.d_idx;
 }
 
 /* -------------------------------------------------------------------------- */
