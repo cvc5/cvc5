@@ -18,6 +18,7 @@
 #include <map>
 
 #include "base/check.h"
+#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "options/datatypes_options.h"
@@ -653,11 +654,10 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
       }
       else
       {
-        Assert(tn.isRecord());
-        const DTypeConstructor& recCons = dt[0];
-        size = recCons.getNumArgs();
-        // get the index for the name
-        updateIndex = recCons.getSelectorIndexForName(
+        Assert(tn.toType().isRecord());
+        const Record& record = DatatypeType(tn.toType()).getRecord();
+        size = record.getNumFields();
+        updateIndex = record.getIndex(
             n.getOperator().getConst<RecordUpdate>().getField());
       }
       Debug("tuprec") << "expr is " << n << std::endl;
