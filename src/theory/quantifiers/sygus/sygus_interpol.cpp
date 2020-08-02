@@ -229,6 +229,8 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   ichildren.insert(ichildren.end(), d_varsShared.begin(), d_varsShared.end());
   Node itpApp =
       d_varsShared.empty() ? itp : nm->mkNode(kind::APPLY_UF, ichildren);
+  Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl
+                                << std::endl;
   Trace("sygus-interpol-debug") << "...finish" << std::endl;
 
   // set the sygus bound variable list
@@ -247,14 +249,6 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   // Fa( x )
   Trace("sygus-interpol-debug") << "Make conjecture body..." << std::endl;
   Node Fa = axioms.size() == 1 ? axioms[0] : nm->mkNode(kind::AND, axioms);
-  Trace("sygus-interpol-debug") << "Fa before substitution: " << Fa << std::endl
-                                << std::endl;
-  Fa =
-      Fa.substitute(d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
-  Trace("sygus-interpol-debug") << "Fa after substitution: " << Fa << std::endl
-                                << std::endl;
-  Trace("sygus-interpol-debug") << "itpApp: " << itpApp << std::endl
-                                << std::endl;
   // Fa( x ) => A( x )
   Node firstImplication = nm->mkNode(kind::IMPLIES, Fa, itpApp);
   Trace("sygus-interpol-debug")
@@ -262,65 +256,62 @@ void SygusInterpol::mkSygusConjecture(Node itp,
       << std::endl;
   // A( x ) => Fc( x )
   Node Fc = conj;
-  Fc =
-      Fc.substitute(d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Node secondImplication = nm->mkNode(kind::IMPLIES, itpApp, Fc);
   Trace("sygus-interpol-debug")
       << "second implication: " << secondImplication << std::endl
       << std::endl;
   // Fa( x ) => A( x ) ^ A( x ) => Fc( x )
   Node constraint = nm->mkNode(kind::AND, firstImplication, secondImplication);
+	constraint = constraint.substitute(d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
   constraint = theory::Rewriter::rewrite(constraint);
 
-  // forall A. exists x. ~( Fa( x ) => A( x ) ^ A( x ) => Fc( x ) )
-  Trace("sygus-interpol-debug") << "Make conjecture..." << std::endl;
   d_sygusConj = constraint;
-  Trace("sygus-interpol-debug") << "...finish" << std::endl;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;
 }
 
 bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
 {
-  // get the synthesis solution
-  std::map<Expr, Expr> sols;
-  d_subSolver->getSynthSolutions(sols);
-  Assert(sols.size() == 1);
-  std::map<Expr, Expr>::iterator its = sols.find(itp.toExpr());
-  if (its != sols.end())
-  {
-    Trace("sygus-interpol")
-        << "SmtEngine::getInterpol: solution is " << its->second << std::endl;
-    Node interpoln = Node::fromExpr(its->second);
-    Node interpoln_reduced;
-    if (interpoln.getKind() == kind::LAMBDA)
-    {
-      interpoln_reduced = interpoln[1];
-    }
-    else
-    {
-      interpoln_reduced = interpoln;
-    }
-    if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
-    {
-      std::vector<Node> formals;
-      for (Node n : interpoln[0])
-      {
-        formals.push_back(n);
-      }
-      interpoln_reduced = interpoln_reduced.substitute(formals.begin(),
-                                                       formals.end(),
-                                                       d_symSetShared.begin(),
-                                                       d_symSetShared.end());
-    }
-    // convert to expression
-    interpol = interpoln_reduced.toExpr();
-    return true;
-  }
-  Trace("sygus-interpol") << "SmtEngine::getInterpol: could not find solution!"
-                          << std::endl;
-  throw RecoverableModalException("Could not find solution for get-interpol.");
-  return false;
+	// get the synthesis solution
+	std::map<Expr, Expr> sols;
+	d_subSolver->getSynthSolutions(sols);
+	Assert(sols.size() == 1);
+	std::map<Expr, Expr>::iterator its = sols.find(itp.toExpr());
+	if (its == sols.end())
+	{
+		Trace("sygus-interpol") << "SmtEngine::getInterpol: could not find solution!"
+			<< std::endl;
+		throw RecoverableModalException("Could not find solution for get-interpol.");
+		return false;
+	}
+	Trace("sygus-interpol")
+		<< "SmtEngine::getInterpol: solution is " << its->second << std::endl;
+	Node interpoln = Node::fromExpr(its->second);
+	// replace back the created variables to original symbols.
+	Node interpoln_reduced;
+	if (interpoln.getKind() == kind::LAMBDA)
+	{
+		interpoln_reduced = interpoln[1];
+	}
+	else
+	{
+		interpoln_reduced = interpoln;
+	}
+	if (interpoln.getNumChildren() != 0 && interpoln[0].getNumChildren() != 0)
+	{
+		std::vector<Node> formals;
+		for (const Node& n : interpoln[0])
+		{
+			formals.push_back(n);
+		}
+		interpoln_reduced = interpoln_reduced.substitute(formals.begin(),
+				formals.end(),
+				d_symSetShared.begin(),
+				d_symSetShared.end());
+	}
+	// convert to expression
+	interpol = interpoln_reduced.toExpr();
+	return true;
 }
 
 bool SygusInterpol::SolveInterpolation(const std::string& name,
