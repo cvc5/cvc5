@@ -3013,14 +3013,13 @@ void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
 
-  d_dumpm->resetAssertions();
-
   if (!d_fullyInited)
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
     // (see solver execution modes in the SMT-LIB standard)
     Assert(d_context->getLevel() == 0);
     Assert(d_userContext->getLevel() == 0);
+    d_dumpm->resetAssertions();
     return;
   }
 
@@ -3042,6 +3041,7 @@ void SmtEngine::resetAssertions()
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
+  d_dumpm->resetAssertions();
   d_userContext->push();
   d_context->push();
 
