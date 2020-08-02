@@ -224,8 +224,8 @@ void CvcPrinter::toStream(
         }
         out << ']';
       }
-      else if (false)
-      {  // dt.isRecord() ){
+      else if (dt.isRecord() )
+      {
         out << "[# ";
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
           if (i > 0) {
@@ -1516,7 +1516,7 @@ static void toStream(std::ostream& out,
   Assert(!datatypes.empty() && datatypes[0].isDatatype());
   const DType& dt0 = TypeNode::fromType(datatypes[0]).getDType();
   //do not print tuple/datatype internal declarations
-  if (datatypes.size() != 1 || (!dt0.isTuple()))  //&& !dt0.isRecord()))
+  if (datatypes.size() != 1 || (!dt0.isTuple() && !dt0.isRecord()))
   {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
