@@ -221,7 +221,7 @@ void CvcPrinter::toStream(
           if (i > 0) {
             out << ", ";
           }
-          TypeNode t = dt[0][i].getRangeType();
+          Type t = dt[0][i].getRangeType();
           out << t;
         }
         out << ']';
@@ -233,7 +233,7 @@ void CvcPrinter::toStream(
           if (i > 0) {
             out << ", ";
           }
-          TypeNode t = dt[0][i].getRangeType();
+          Type t = dt[0][i].getRangeType();
           out << dt[0][i].getSelector() << ":" << t;
         }
         out << " #]";
