@@ -1724,8 +1724,7 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
-    newLemmas[i].debugCheckClosed("te-proof-debug",
-                                    "TheoryEngine::lemma_new");
+    newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
     d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
   }
 

@@ -269,7 +269,9 @@ Node RemoveTermFormulas::run(TNode node,
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
     {
-      Trace("tfr-proof-debug") << "RemoveTermFormulas::run: setup proof for new assertion " << newAssertion << std::endl;
+      Trace("tfr-proof-debug")
+          << "RemoveTermFormulas::run: setup proof for new assertion "
+          << newAssertion << std::endl;
       // if proofs are enabled
       if (isProofEnabled())
       {
@@ -304,9 +306,10 @@ Node RemoveTermFormulas::run(TNode node,
 
       theory::TrustNode trna =
           theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
-          
-      trna.debugCheckClosed("rtf-proof-debug","RemoveTermFormulas::run:new_assert");
-          
+
+      trna.debugCheckClosed("rtf-proof-debug",
+                            "RemoveTermFormulas::run:new_assert");
+
       output.push_back(trna);
       newSkolems.push_back(skolem);
     }

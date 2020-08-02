@@ -145,12 +145,12 @@ class TrustNode
   /** For debugging */
   std::string identifyGenerator() const;
 
-  /** 
+  /**
    * debug check closed on Trace c, context ctx is string for debugging
-   * 
+   *
    * @param reqNullGen Whether we consider a null generator to be a failure.
    */
-  void debugCheckClosed(const char* c, const char* ctx, bool reqNullGen=true);
+  void debugCheckClosed(const char* c, const char* ctx, bool reqNullGen = true);
 
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);

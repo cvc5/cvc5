@@ -122,7 +122,9 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
-void TrustNode::debugCheckClosed(const char* c, const char* ctx, bool reqNullGen)
+void TrustNode::debugCheckClosed(const char* c,
+                                 const char* ctx,
+                                 bool reqNullGen)
 {
   if (!options::proofNew())
   {
@@ -144,9 +146,11 @@ void TrustNode::debugCheckClosed(const char* c, const char* ctx, bool reqNullGen
     // only failure if flag is true
     if (reqNullGen)
     {
-      AlwaysAssert(false) << "...TrustNode::debugCheckClosed: no generator in context " << ctx;
+      AlwaysAssert(false)
+          << "...TrustNode::debugCheckClosed: no generator in context " << ctx;
     }
-    Trace(c) << "...TrustNode::debugCheckClosed: no generator in context " << ctx << std::endl;
+    Trace(c) << "...TrustNode::debugCheckClosed: no generator in context "
+             << ctx << std::endl;
     return;
   }
   std::shared_ptr<ProofNode> pn = toProofNode();
