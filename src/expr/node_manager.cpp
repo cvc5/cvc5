@@ -476,7 +476,7 @@ TypeNode NodeManager::mkDatatypeType(DType& datatype, uint32_t flags)
 }
 
 std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
-    std::vector<DType>& datatypes, uint32_t flags)
+    const std::vector<DType>& datatypes, uint32_t flags)
 {
   std::set<TypeNode> unresolvedTypes;
   return mkMutualDatatypeTypes(datatypes, unresolvedTypes, flags);

@@ -66,6 +66,7 @@ void SmtNodeManagerListener::nmNotifyNewDatatypes(
     std::vector<Type> types;
     for (const TypeNode& dt : dtts)
     {
+      Assert (dt.isDatatype());
       types.push_back(dt.toType());
     }
     DatatypeDeclarationCommand c(types);
