@@ -1317,7 +1317,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       || options::checkModels())
   {
     options::arraysOptimizeLinear.set(false);
-    options::arraysLazyRIntro1.set(false);
   }
 
   if (options::proof())

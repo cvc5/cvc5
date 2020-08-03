@@ -86,6 +86,7 @@ void getFreeAssumptionsMap(ProofNode* pn,
           }
           // will need to unbind the variables below
           visited[cur] = false;
+          visit.push_back(cur);
         }
         // The following loop cannot be merged with the loop above because the
         // same subproof
@@ -98,6 +99,7 @@ void getFreeAssumptionsMap(ProofNode* pn,
     }
     else if (!it->second)
     {
+      visited[cur] = true;
       Assert(cur->getRule() == PfRule::SCOPE);
       // unbind its assumptions
       for (const Node& a : cargs)

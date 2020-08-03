@@ -11,14 +11,6 @@ header = "options/arrays_options.h"
   help       = "turn on optimization for linear array terms (see de Moura FMCAD 09 arrays paper)"
 
 [[option]]
-  name       = "arraysLazyRIntro1"
-  category   = "regular"
-  long       = "arrays-lazy-rintro1"
-  type       = "bool"
-  default    = "true"
-  help       = "turn on optimization to only perform RIntro1 rule lazily (see Jovanovic/Barrett 2012: Being Careful with Theory Combination)"
-
-[[option]]
   name       = "arraysWeakEquivalence"
   category   = "regular"
   long       = "arrays-weak-equiv"

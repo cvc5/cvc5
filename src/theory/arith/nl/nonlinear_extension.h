@@ -257,9 +257,6 @@ class NonlinearExtension
                   std::vector<Node>& gs);
   //---------------------------end check model
 
-  /** Is n entailed with polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol);
-
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
