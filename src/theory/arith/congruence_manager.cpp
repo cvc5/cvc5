@@ -555,7 +555,7 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
         Trace("arith-pfee") << std::endl;
       }
       // The proof equality engine *does* ref-count for us...
-      d_pfee->assertFact(lit, reason, d_pfGenEe.get(), false, "ArithCongruenceManager");
+      d_pfee->assertFact(lit, reason, d_pfGenEe.get());
     }
   }
   else
