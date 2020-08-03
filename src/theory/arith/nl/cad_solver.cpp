@@ -18,7 +18,6 @@
 #include <poly/polyxx.h>
 #endif
 
-#include "cad/theory_call_exporter.h"
 #include "inference.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/poly_conversion.h"
