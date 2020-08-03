@@ -135,6 +135,9 @@ class ProofEqEngine : public EagerProofGenerator
    * the premises that are used when calling explain(lit).
    * @param pg The proof generator that can provide a proof concluding lit
    * from free asumptions in exp.
+   * @param isClosed Whether to expect that pg can provide a closed proof for
+   * this fact.
+   * @param ctx The context we are in (for debugging).
    * @return true if this fact was processed by this method. If lit already
    * holds in the equality engine, this method returns false.
    */
