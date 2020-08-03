@@ -30,7 +30,6 @@ namespace smt {
  */
 class ExprNames
 {
-  typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
  public:
   ExprNames(context::UserContext* u);
   /**
