@@ -90,7 +90,6 @@ ostream& operator<<(ostream& out, const CommandStatus* s)
   return out;
 }
 
-
 /* output stream insertion operator for benchmark statuses */
 std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
 {
@@ -137,7 +136,7 @@ std::ostream& operator<<(std::ostream& out, CommandPrintSuccess cps)
 
 Command::Command() : d_commandStatus(nullptr), d_muted(false) {}
 
-Command::Command(api::Solver* solver)
+Command::Command(const api::Solver* solver)
     : d_solver(solver), d_commandStatus(nullptr), d_muted(false)
 {
 }
@@ -652,60 +651,58 @@ std::string DeclareSygusFunctionCommand::getCommandName() const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class SynthFunCommand                                                    */
+/* class SynthFunCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-SynthFunCommand::SynthFunCommand(const std::string& id,
-                                 Expr func,
-                                 Type sygusType,
+SynthFunCommand::SynthFunCommand(const api::Solver* solver,
+                                 const std::string& id,
+                                 const std::vector<api::Term>& vars,
+                                 api::Sort sort,
                                  bool isInv,
-                                 const std::vector<Expr>& vars)
+                                 std::unique_ptr<api::Grammar> g)
     : DeclarationDefinitionCommand(id),
-      d_func(func),
-      d_sygusType(sygusType),
+      d_vars(vars),
+      d_sort(sort),
       d_isInv(isInv),
-      d_vars(vars)
+      d_grammar(std::move(g))
 {
+  d_solver = solver;
 }
 
-SynthFunCommand::SynthFunCommand(const std::string& id,
-                                 Expr func,
-                                 Type sygusType,
-                                 bool isInv)
-    : SynthFunCommand(id, func, sygusType, isInv, {})
+const std::vector<api::Term>& SynthFunCommand::getVars() const
 {
+  return d_vars;
 }
 
-Expr SynthFunCommand::getFunction() const { return d_func; }
-const std::vector<Expr>& SynthFunCommand::getVars() const { return d_vars; }
-Type SynthFunCommand::getSygusType() const { return d_sygusType; }
+api::Sort SynthFunCommand::getSort() const { return d_sort; }
 bool SynthFunCommand::isInv() const { return d_isInv; }
+
+const std::unique_ptr<api::Grammar>& SynthFunCommand::getGrammar() const
+{
+  return d_grammar;
+}
 
 void SynthFunCommand::invoke(SmtEngine* smtEngine)
 {
-  try
-  {
-    smtEngine->declareSynthFun(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
+  d_commandStatus = CommandSuccess::instance();
 }
 
 Command* SynthFunCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
 {
-  return new SynthFunCommand(d_symbol,
-                             d_func.exportTo(exprManager, variableMap),
-                             d_sygusType.exportTo(exprManager, variableMap),
-                             d_isInv);
+  Unimplemented();
 }
 
 Command* SynthFunCommand::clone() const
 {
-  return new SynthFunCommand(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
+  return new SynthFunCommand(
+      d_solver,
+      d_symbol,
+      d_vars,
+      d_sort,
+      d_isInv,
+      d_grammar ? std::unique_ptr<api::Grammar>(new api::Grammar(*d_grammar))
+                : nullptr);
 }
 
 std::string SynthFunCommand::getCommandName() const
@@ -1352,7 +1349,7 @@ Command* DefineNamedFunctionCommand::clone() const
 /* -------------------------------------------------------------------------- */
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    api::Solver* solver,
+    const api::Solver* solver,
     api::Term func,
     const std::vector<api::Term>& formals,
     api::Term formula,
@@ -1365,7 +1362,7 @@ DefineFunctionRecCommand::DefineFunctionRecCommand(
 }
 
 DefineFunctionRecCommand::DefineFunctionRecCommand(
-    api::Solver* solver,
+    const api::Solver* solver,
     const std::vector<api::Term>& funcs,
     const std::vector<std::vector<api::Term>>& formals,
     const std::vector<api::Term>& formulas,
@@ -2094,40 +2091,49 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
-GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+/* -------------------------------------------------------------------------- */
+/* class GetInterpolCommand                                                   */
+/* -------------------------------------------------------------------------- */
+
+GetInterpolCommand::GetInterpolCommand(const api::Solver* solver,
                                        const std::string& name,
                                        api::Term conj)
     : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
-GetInterpolCommand::GetInterpolCommand(api::Solver* solver,
+GetInterpolCommand::GetInterpolCommand(const api::Solver* solver,
                                        const std::string& name,
                                        api::Term conj,
-                                       const Type& gtype)
+                                       std::unique_ptr<api::Grammar> g)
     : Command(solver),
       d_name(name),
       d_conj(conj),
-      d_sygus_grammar_type(gtype),
+      d_sygus_grammar(std::move(g)),
       d_resultStatus(false)
 {
 }
 
 api::Term GetInterpolCommand::getConjecture() const { return d_conj; }
-Type GetInterpolCommand::getGrammarType() const { return d_sygus_grammar_type; }
+
+const std::unique_ptr<api::Grammar>& GetInterpolCommand::getGrammar() const
+{
+  return d_sygus_grammar;
+}
+
 api::Term GetInterpolCommand::getResult() const { return d_result; }
 
 void GetInterpolCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    if (d_sygus_grammar_type.isNull())
+    if (!d_sygus_grammar)
     {
       d_resultStatus = d_solver->getInterpolant(d_conj, d_result);
     }
     else
     {
       d_resultStatus =
-          d_solver->getInterpolant(d_conj, d_sygus_grammar_type, d_result);
+          d_solver->getInterpolant(d_conj, *d_sygus_grammar, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2167,7 +2173,13 @@ Command* GetInterpolCommand::exportTo(ExprManager* exprManager,
 
 Command* GetInterpolCommand::clone() const
 {
-  GetInterpolCommand* c = new GetInterpolCommand(d_solver, d_name, d_conj);
+  GetInterpolCommand* c = new GetInterpolCommand(
+      d_solver,
+      d_name,
+      d_conj,
+      d_sygus_grammar
+          ? std::unique_ptr<api::Grammar>(new api::Grammar(*d_sygus_grammar))
+          : nullptr);
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;
   return c;
@@ -2178,42 +2190,50 @@ std::string GetInterpolCommand::getCommandName() const
   return "get-interpol";
 }
 
-GetAbductCommand::GetAbductCommand() {}
-GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
-    : d_name(name), d_conj(conj), d_resultStatus(false)
+/* -------------------------------------------------------------------------- */
+/* class GetAbductCommand                                                     */
+/* -------------------------------------------------------------------------- */
+
+GetAbductCommand::GetAbductCommand(const api::Solver* solver,
+                                   const std::string& name,
+                                   api::Term conj)
+    : Command(solver), d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
-GetAbductCommand::GetAbductCommand(const std::string& name,
-                                   Expr conj,
-                                   const Type& gtype)
-    : d_name(name),
+GetAbductCommand::GetAbductCommand(const api::Solver* solver,
+                                   const std::string& name,
+                                   api::Term conj,
+                                   std::unique_ptr<api::Grammar> g)
+    : Command(solver),
+      d_name(name),
       d_conj(conj),
-      d_sygus_grammar_type(gtype),
+      d_sygus_grammar(std::move(g)),
       d_resultStatus(false)
 {
 }
 
-Expr GetAbductCommand::getConjecture() const { return d_conj; }
-Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+api::Term GetAbductCommand::getConjecture() const { return d_conj; }
+
+const std::unique_ptr<api::Grammar>& GetAbductCommand::getGrammar() const
+{
+  return d_sygus_grammar;
+}
+
 std::string GetAbductCommand::getAbductName() const { return d_name; }
-Expr GetAbductCommand::getResult() const { return d_result; }
+api::Term GetAbductCommand::getResult() const { return d_result; }
 
 void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    Node conjNode = Node::fromExpr(d_conj);
-    Node resn;
-    if (d_sygus_grammar_type.isNull())
+    if (!d_sygus_grammar)
     {
-      d_resultStatus = smtEngine->getAbduct(conjNode, resn);
+      d_resultStatus = d_solver->getAbduct(d_conj, d_result);
     }
     else
     {
-      TypeNode gtype = TypeNode::fromType(d_sygus_grammar_type);
-      d_resultStatus = smtEngine->getAbduct(conjNode, gtype, resn);
+      d_resultStatus = d_solver->getAbduct(d_conj, *d_sygus_grammar, d_result);
     }
-    d_result = resn.toExpr();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -2246,19 +2266,18 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* GetAbductCommand::exportTo(ExprManager* exprManager,
                                     ExprManagerMapCollection& variableMap)
 {
-  GetAbductCommand* c =
-      new GetAbductCommand(d_name, d_conj.exportTo(exprManager, variableMap));
-  c->d_sygus_grammar_type =
-      d_sygus_grammar_type.exportTo(exprManager, variableMap);
-  c->d_result = d_result.exportTo(exprManager, variableMap);
-  c->d_resultStatus = d_resultStatus;
-  return c;
+  Unimplemented();
 }
 
 Command* GetAbductCommand::clone() const
 {
-  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj);
-  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  GetAbductCommand* c = new GetAbductCommand(
+      d_solver,
+      d_name,
+      d_conj,
+      d_sygus_grammar
+          ? std::unique_ptr<api::Grammar>(new api::Grammar(*d_sygus_grammar))
+          : nullptr);
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;
   return c;

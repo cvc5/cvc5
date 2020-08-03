@@ -1935,6 +1935,13 @@ class CVC4_PUBLIC Grammar
   void addRule(Term ntSymbol, Term rule);
 
   /**
+   * Add <rules> to the set of rules corresponding to <ntSymbol>.
+   * @param ntSymbol the non-terminal to which the rules are added
+   * @param rule the rules to add
+   */
+  void addRules(Term ntSymbol, std::vector<Term> rules);
+
+  /**
    * Allow <ntSymbol> to be an arbitrary constant.
    * @param ntSymbol the non-terminal allowed to be any constant
    */
@@ -1948,11 +1955,9 @@ class CVC4_PUBLIC Grammar
   void addAnyVariable(Term ntSymbol);
 
   /**
-   * Add <rules> to the set of rules corresponding to <ntSymbol>.
-   * @param ntSymbol the non-terminal to which the rules are added
-   * @param rule the rules to add
+   * @return a string representation of this grammar.
    */
-  void addRules(Term ntSymbol, std::vector<Term> rules);
+  std::string toString() const;
 
   /**
    * Nullary constructor. Needed for the Cython API.
@@ -2046,6 +2051,14 @@ class CVC4_PUBLIC Grammar
   /** Did we call resolve() before? */
   bool d_isResolved;
 };
+
+/**
+ * Serialize a grammar to given stream.
+ * @param out the output stream
+ * @param g the grammar to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
@@ -3099,7 +3112,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <term> )
+   * SMT-LIB: ( get-interpol <conj> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -3110,15 +3123,40 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <term> )
+   * SMT-LIB: ( get-interpol <conj> <g> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param gtype the grammar for the interpolant I
+   * @param g the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
-  bool getInterpolant(Term conj, const Type& gtype, Term& output) const;
+  bool getInterpolant(Term conj, Grammar& g, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> <g> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param g the grammar for the abduct C
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Grammar& g, Term& output) const;
 
   /**
    * Print the model of a satisfiable query to the given output stream.

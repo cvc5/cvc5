@@ -198,7 +198,7 @@ class Smt2 : public Parser
      * Creates an instance of `SynthFunFactory`.
      *
      * @param smt2 Pointer to the parser state
-     * @param fun Name of the function to synthesize
+     * @param id Name of the function to synthesize
      * @param isInv True if the goal is to synthesize an invariant, false
      * otherwise
      * @param range The return type of the function-to-synthesize
@@ -206,11 +206,10 @@ class Smt2 : public Parser
      */
     SynthFunFactory(
         Smt2* smt2,
-        const std::string& fun,
+        const std::string& id,
         bool isInv,
         api::Sort range,
         std::vector<std::pair<std::string, api::Sort>>& sortedVarNames);
-    ~SynthFunFactory();
 
     const std::vector<api::Term>& getSygusVars() const { return d_sygusVars; }
 
@@ -220,13 +219,12 @@ class Smt2 : public Parser
      * @param grammar Optional grammar associated with the synth-fun command
      * @return The instance of `SynthFunCommand`
      */
-    std::unique_ptr<Command> mkCommand(api::Sort grammar);
+    std::unique_ptr<Command> mkCommand(std::unique_ptr<api::Grammar> grammar);
 
    private:
     Smt2* d_smt2;
-    std::string d_fun;
-    api::Term d_synthFun;
-    api::Sort d_sygusType;
+    std::string d_id;
+    api::Sort d_sort;
     bool d_isInv;
     std::vector<api::Term> d_sygusVars;
   };

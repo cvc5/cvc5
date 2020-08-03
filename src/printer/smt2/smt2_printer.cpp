@@ -2071,33 +2071,32 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
 {
   out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
       << ' ';
-  Type type = c->getFunction().getType();
-  const std::vector<Expr>& vars = c->getVars();
-  Assert(!type.isFunction() || !vars.empty());
+  const std::vector<api::Term>& vars = c->getVars();
   out << '(';
-  if (type.isFunction())
+  if (!vars.empty())
   {
     // print variable list
-    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
-    Assert(i != i_end);
-    out << '(' << *i << ' ' << i->getType() << ')';
+    std::vector<api::Term>::const_iterator i = vars.begin(), i_end = vars.end();
+    out << '(' << *i << ' ' << i->getSort() << ')';
     ++i;
     while (i != i_end)
     {
-      out << " (" << *i << ' ' << i->getType() << ')';
+      out << " (" << *i << ' ' << i->getSort() << ')';
       ++i;
     }
-    FunctionType ft = type;
-    type = ft.getRangeType();
   }
   out << ')';
   // if not invariant-to-synthesize, print return type
   if (!c->isInv())
   {
-    out << ' ' << type;
+    out << ' ' << c->getSort();
   }
+  out << '\n';
   // print grammar, if any
-  toStreamSygusGrammar(out, c->getSygusType());
+  if (c->getGrammar())
+  {
+    out << *c->getGrammar();
+  }
   out << ')';
 }
 
@@ -2152,7 +2151,10 @@ static void toStream(std::ostream& out, const GetAbductCommand* c)
   out << c->getConjecture();
 
   // print grammar, if any
-  toStreamSygusGrammar(out, c->getGrammarType());
+  if (c->getGrammar())
+  {
+    out << *c->getGrammar();
+  }
   out << ')';
 }
 

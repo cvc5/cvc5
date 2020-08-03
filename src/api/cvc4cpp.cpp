@@ -1413,16 +1413,14 @@ size_t OpHashFunction::operator()(const Op& t) const
 
 Term::Term() : d_solver(nullptr), d_node(new CVC4::Node()) {}
 
-Term::Term(const Solver* slv, const CVC4::Expr& e)
-    : d_solver(slv)
+Term::Term(const Solver* slv, const CVC4::Expr& e) : d_solver(slv)
 {
   // Ensure that we create the node in the correct node manager.
   NodeManagerScope scope(d_solver->getNodeManager());
   d_node.reset(new CVC4::Node(e));
 }
 
-Term::Term(const Solver* slv, const CVC4::Node& n)
-    : d_solver(slv)
+Term::Term(const Solver* slv, const CVC4::Node& n) : d_solver(slv)
 {
   // Ensure that we create the node in the correct node manager.
   NodeManagerScope scope(d_solver->getNodeManager());
@@ -2547,6 +2545,69 @@ void Grammar::addAnyVariable(Term ntSymbol)
   d_allowVars.insert(ntSymbol);
 }
 
+template <typename Iterator, typename Function>
+std::string join(Iterator first, Iterator last, Function f, std::string sep)
+{
+  std::stringstream ss;
+  Iterator i = first;
+
+  if (i != last)
+  {
+    ss << f(*i);
+    ++i;
+  }
+
+  while (i != last)
+  {
+    ss << sep << f(*i);
+    ++i;
+  }
+
+  return ss.str();
+}
+
+std::string Grammar::toString() const
+{
+  std::stringstream ss;
+  ss << "  ("  // pre-declaration
+     << join(
+            d_ntSyms.cbegin(),
+            d_ntSyms.cend(),
+            [](const Term& t) {
+              std::stringstream s;
+              s << '(' << t << ' ' << t.getSort() << ')';
+              return s.str();
+            },
+            " ")
+     << ")\n  ("  // grouped rule listing
+     << join(
+            d_ntSyms.cbegin(),
+            d_ntSyms.cend(),
+            [this](const Term& t) {
+              bool allowConst = d_allowConst.find(t) != d_allowConst.cend(),
+                   allowVars = d_allowVars.find(t) != d_allowVars.cend();
+              const std::vector<Term>& rules = d_ntsToTerms.at(t);
+              std::stringstream s;
+              s << '(' << t << ' ' << t.getSort() << " ("
+                << (allowConst ? "(Constant " + t.getSort().toString() + ")"
+                               : "")
+                << (allowConst && allowVars ? " " : "")
+                << (allowVars ? "(Var " + t.getSort().toString() + ")" : "")
+                << ((allowConst || allowVars) && !rules.empty() ? " " : "")
+                << join(
+                       rules.cbegin(),
+                       rules.cend(),
+                       [](const Term& rule) { return rule.toString(); },
+                       " ")
+                << "))";
+              return s.str();
+            },
+            "\n   ")
+     << ')';
+
+  return ss.str();
+}
+
 Sort Grammar::resolve()
 {
   d_isResolved = true;
@@ -2714,6 +2775,11 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const
           v.d_node->toExpr(), ss.str(), sortVectorToTypes(cargs));
     }
   }
+}
+
+std::ostream& operator<<(std::ostream& out, const Grammar& g)
+{
+  return out << g.toString();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4961,18 +5027,47 @@ bool Solver::getInterpolant(Term conj, Term& output) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Expr result;
   bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), result);
-  if (success) {
+  if (success)
+  {
     output = Term(output.d_solver, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(Term conj, const Type& gtype, Term& output) const
+bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   Expr result;
-  bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), gtype, result);
+  bool success = d_smtEngine->getInterpol(
+      conj.d_node->toExpr(), *g.resolve().d_type, result);
+  if (success)
+  {
+    output = Term(output.d_solver, result);
+  }
+  return success;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+bool Solver::getAbduct(Term conj, Term& output) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Node result;
+  bool success = d_smtEngine->getAbduct(*conj.d_node, result);
+  if (success)
+  {
+    output = Term(output.d_solver, result);
+  }
+  return success;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  Node result;
+  bool success = d_smtEngine->getAbduct(
+      *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
   if (success)
   {
     output = Term(output.d_solver, result);
