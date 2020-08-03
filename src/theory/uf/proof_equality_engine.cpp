@@ -187,7 +187,8 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
   return assertFactInternal(atom, polarity, exp);
 }
 
-bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
+bool ProofEqEngine::assertFact(
+    Node lit, Node exp, ProofGenerator* pg, bool isClosed, const char* ctx)
 {
   Trace("pfee") << "pfee::assertFact " << lit << ", exp = " << exp
                 << " via generator" << std::endl;
@@ -201,7 +202,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
       return false;
     }
     // note the proof generator is responsible for remembering the explanation
-    d_proof.addLazyStep(lit, pg);
+    d_proof.addLazyStep(lit, pg, isClosed, ctx);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);

@@ -138,18 +138,22 @@ class ProofEqEngine : public EagerProofGenerator
    * @return true if this fact was processed by this method. If lit already
    * holds in the equality engine, this method returns false.
    */
-  bool assertFact(Node lit, Node exp, ProofGenerator* pg);
-  //-------------------------- assert conflicts
-  /**
-   * This method is called when the equality engine of this class is
-   * inconsistent (false has been proven) by a contradictory literal lit. This
-   * returns the trust node corresponding to the current conflict.
-   *
-   * @param lit The conflicting literal, which must rewrite to false.
-   * @return The trust node capturing the fact that this class can provide a
-   * proof for this conflict.
-   */
-  TrustNode assertConflict(Node lit);
+  bool assertFact(Node lit,
+                  Node exp,
+                  ProofGenerator* pg,
+                  bool isClosed = true,
+                  const char* ctx = "ProofEqEngine::assertFact");
+      //-------------------------- assert conflicts
+      /**
+       * This method is called when the equality engine of this class is
+       * inconsistent (false has been proven) by a contradictory literal lit.
+       * This returns the trust node corresponding to the current conflict.
+       *
+       * @param lit The conflicting literal, which must rewrite to false.
+       * @return The trust node capturing the fact that this class can provide a
+       * proof for this conflict.
+       */
+      TrustNode assertConflict(Node lit);
   /**
    * Get proven conflict from contradictory facts. This method is called when
    * the proof rule with premises exp and arguments args implies a contradiction
