@@ -859,7 +859,7 @@ class CVC4_PUBLIC SmtEngine
    * Return true if given expressoion has a name in the current context.
    * If it returns true, the name of expression 'e' is stored in 'name'.
    */
-  bool getExpressionName(Node e, std::string& name) const;
+  bool getExpressionName(const Node& e, std::string& name) const;
 
   /**
    * Set name of given expression 'e' to 'name'.
@@ -867,7 +867,7 @@ class CVC4_PUBLIC SmtEngine
    * This information is user-context-dependent.
    * If 'e' already has a name, it is overwritten.
    */
-  void setExpressionName(Node e, const std::string& name);
+  void setExpressionName(const Node& e, const std::string& name);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();

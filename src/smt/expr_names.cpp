@@ -21,7 +21,6 @@ ExprNames::ExprNames(context::UserContext* u)
     : d_exprNames(u)
 {
 }
-ExprNames::~ExprNames() {}
 
 void ExprNames::setExpressionName(Node e, const std::string& name) {
   d_exprNames[e] = name;

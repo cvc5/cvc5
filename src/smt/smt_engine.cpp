@@ -3199,11 +3199,11 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   return SExpr::parseAtom(d_options.getOption(key));
 }
 
-bool SmtEngine::getExpressionName(Node e, std::string& name) const {
+bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
   return d_exprNames->getExpressionName(e, name);
 }
 
-void SmtEngine::setExpressionName(Node e, const std::string& name) {
+void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
   d_exprNames->setExpressionName(e,name);
 }

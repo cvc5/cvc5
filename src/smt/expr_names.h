@@ -33,14 +33,13 @@ class ExprNames
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
  public:
   ExprNames(context::UserContext* u);
-  ~ExprNames();
   /**
    * Get expression name.
    *
-   * Return true if given expressoion has a name in the current context.
+   * Return true if given expression has a name in the current context.
    * If it returns true, the name of expression 'e' is stored in 'name'.
    */
-  bool getExpressionName(Node e, std::string& name) const;
+  bool getExpressionName(const Node& e, std::string& name) const;
 
   /**
    * Set name of given expression 'e' to 'name'.
@@ -48,7 +47,7 @@ class ExprNames
    * This information is user-context-dependent.
    * If 'e' already has a name, it is overwritten.
    */
-  void setExpressionName(Node e, const std::string& name);
+  void setExpressionName(const Node& e, const std::string& name);
 
  private:
   /** mapping from expressions to name */
