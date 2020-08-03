@@ -99,6 +99,7 @@ class ResourceOutListener;
 class SmtNodeManagerListener;
 class OptionsManager;
 /** Subsolvers */
+class SygusSolver;
 class AbductionSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -148,6 +149,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
+  friend class ::CVC4::smt::SygusSolver;
 
   /* .......................................................................  */
  public:
