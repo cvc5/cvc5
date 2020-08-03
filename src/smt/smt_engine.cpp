@@ -83,8 +83,8 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/command.h"
-#include "smt/command_list.h"
 #include "smt/defined_function.h"
+#include "smt/dump_manager.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
@@ -136,16 +136,6 @@ extern const char* const plf_signatures;
 }  // namespace proof
 
 namespace smt {
-
-struct DeleteCommandFunction : public std::unary_function<const Command*, void>
-{
-  void operator()(const Command* command) { delete command; }
-};
-
-void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
-  std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
-  commands.clear();
-}
 
 /**
  * This is an inelegant solution, but for the present, it will work.
@@ -338,8 +328,9 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
+      d_dumpm(new DumpManager(d_userContext.get())),
       d_routListener(new ResourceOutListener(*this)),
-      d_snmListener(new SmtNodeManagerListener(*this)),
+      d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -348,9 +339,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_abductSolver(nullptr),
       d_assertionList(nullptr),
       d_assignments(nullptr),
-      d_modelGlobalCommands(),
-      d_modelCommands(nullptr),
-      d_dumpCommands(),
       d_defineCommands(),
       d_logic(),
       d_originalOptions(),
@@ -413,7 +401,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
 #endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
-  d_modelCommands = new (true) smt::CommandList(getUserContext());
 }
 
 void SmtEngine::finishInit()
@@ -495,13 +482,8 @@ void SmtEngine::finishInit()
                                everything.getLogicString());
   }
 
-  Trace("smt-debug") << "Dump declaration commands..." << std::endl;
-  // dump out any pending declaration commands
-  for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
-    Dump("declarations") << *d_dumpCommands[i];
-    delete d_dumpCommands[i];
-  }
-  d_dumpCommands.clear();
+  // initialize the dump manager
+  d_dumpm->finishInit();
 
   // subsolvers
   if (options::produceAbducts())
@@ -579,18 +561,6 @@ SmtEngine::~SmtEngine()
       d_assertionList->deleteSelf();
     }
 
-    for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
-      delete d_dumpCommands[i];
-      d_dumpCommands[i] = NULL;
-    }
-    d_dumpCommands.clear();
-
-    DeleteAndClearCommandVector(d_modelGlobalCommands);
-
-    if(d_modelCommands != NULL) {
-      d_modelCommands->deleteSelf();
-    }
-
     d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
@@ -608,6 +578,7 @@ SmtEngine::~SmtEngine()
 #endif
 
     d_absValues.reset(nullptr);
+    d_dumpm.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
@@ -950,7 +921,7 @@ void SmtEngine::defineFunction(Expr func,
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
   DefineFunctionCommand c(ss.str(), func, formals, formula, global);
-  addToModelCommandAndDump(
+  d_dumpm->addToModelCommandAndDump(
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   PROOF(if (options::checkUnsatCores()) {
@@ -2050,35 +2021,6 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   return res;
 }
 
-void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {
-  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << endl;
-  SmtScope smts(this);
-  // If we aren't yet fully inited, the user might still turn on
-  // produce-models.  So let's keep any commands around just in
-  // case.  This is useful in two cases: (1) SMT-LIBv1 auto-declares
-  // sort "U" in QF_UF before setLogic() is run and we still want to
-  // support finding card(U) with --finite-model-find, and (2) to
-  // decouple SmtEngine and ExprManager if the user does a few
-  // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
-  // and expects to find their cardinalities in the model.
-  if(/* userVisible && */
-     (!d_fullyInited || options::produceModels()) &&
-     (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-    if(flags & ExprManager::VAR_FLAG_GLOBAL) {
-      d_modelGlobalCommands.push_back(c.clone());
-    } else {
-      d_modelCommands->push_back(c.clone());
-    }
-  }
-  if(Dump.isOn(dumpTag)) {
-    if(d_fullyInited) {
-      Dump(dumpTag) << c;
-    } else {
-      d_dumpCommands.push_back(c.clone());
-    }
-  }
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
@@ -3078,7 +3020,7 @@ void SmtEngine::resetAssertions()
     // (see solver execution modes in the SMT-LIB standard)
     Assert(d_context->getLevel() == 0);
     Assert(d_userContext->getLevel() == 0);
-    DeleteAndClearCommandVector(d_modelGlobalCommands);
+    d_dumpm->resetAssertions();
     return;
   }
 
@@ -3100,7 +3042,7 @@ void SmtEngine::resetAssertions()
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
-  DeleteAndClearCommandVector(d_modelGlobalCommands);
+  d_dumpm->resetAssertions();
   d_userContext->push();
   d_context->push();
 
@@ -3175,28 +3117,6 @@ void SmtEngine::setUserAttribute(const std::string& attr,
     node_values.push_back( expr_values[i].getNode() );
   }
   d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
-}
-
-void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
-  Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  for( unsigned i=0; i<d_modelGlobalCommands.size(); i++ ){
-    Command * c = d_modelGlobalCommands[i];
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
-      if( dfc->getFunction()==f ){
-        dfc->setPrintInModel( p );
-      }
-    }
-  }
-  for( unsigned i=0; i<d_modelCommands->size(); i++ ){
-    Command * c = (*d_modelCommands)[i];
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
-      if( dfc->getFunction()==f ){
-        dfc->setPrintInModel( p );
-      }
-    }
-  }
 }
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
@@ -3316,6 +3236,8 @@ ResourceManager* SmtEngine::getResourceManager()
 {
   return d_resourceManager.get();
 }
+
+DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
 
 void SmtEngine::setSygusConjectureStale()
 {
