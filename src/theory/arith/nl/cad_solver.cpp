@@ -29,14 +29,13 @@ namespace arith {
 namespace nl {
 
 CadSolver::CadSolver(TheoryArith& containing, NlModel& model)
-    : d_foundSatisfiability(false),
-      d_containing(containing),
-      d_model(model)
+    : d_foundSatisfiability(false), d_containing(containing), d_model(model)
 {
-	d_ranVariable = NodeManager::currentNM()->mkSkolem("__z",
-                                           NodeManager::currentNM()->realType(),
-                                           "",
-                                           NodeManager::SKOLEM_EXACT_NAME);
+  d_ranVariable =
+      NodeManager::currentNM()->mkSkolem("__z",
+                                         NodeManager::currentNM()->realType(),
+                                         "",
+                                         NodeManager::SKOLEM_EXACT_NAME);
 }
 
 CadSolver::~CadSolver() {}
