@@ -46,10 +46,7 @@ void DumpManager::finishInit()
   d_fullyInited = true;
 }
 
-void DumpManager::resetAssertions()
-{
-  d_modelGlobalCommands.clear();
-}
+void DumpManager::resetAssertions() { d_modelGlobalCommands.clear(); }
 
 void DumpManager::addToModelCommandAndDump(const Command& c,
                                            uint32_t flags,
@@ -74,7 +71,7 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
     }
     else
     {
-      Command * cc = c.clone();
+      Command* cc = c.clone();
       d_modelCommands.push_back(cc);
       // also remember for memory management purposes
       d_modelCommandsAlloc.push_back(std::unique_ptr<Command>(cc));
@@ -98,7 +95,8 @@ void DumpManager::setPrintFuncInModel(Node f, bool p)
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
   for (std::unique_ptr<Command>& c : d_modelGlobalCommands)
   {
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c.get());
+    DeclareFunctionCommand* dfc =
+        dynamic_cast<DeclareFunctionCommand*>(c.get());
     if (dfc != NULL)
     {
       Node df = Node::fromExpr(dfc->getFunction());

@@ -17,8 +17,8 @@
 #ifndef CVC4__SMT__DUMP_MANAGER_H
 #define CVC4__SMT__DUMP_MANAGER_H
 
-#include <vector>
 #include <memory>
+#include <vector>
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -37,6 +37,7 @@ namespace smt {
 class DumpManager
 {
   typedef context::CDList<Command*> CommandList;
+
  public:
   DumpManager(context::UserContext* u);
   ~DumpManager();
@@ -76,7 +77,7 @@ class DumpManager
    * regardless of push/pop).  Only maintained if produce-models option
    * is on.
    */
-  std::vector<std::unique_ptr<Command> > d_modelGlobalCommands;
+  std::vector<std::unique_ptr<Command>> d_modelGlobalCommands;
 
   /**
    * A list of commands that should be in the Model locally (i.e.,
@@ -84,7 +85,7 @@ class DumpManager
    * produce-models option is on.
    */
   CommandList d_modelCommands;
-  /** 
+  /**
    * A list of model commands allocated to d_modelCommands at any time. This
    * is maintained for memory management purposes.
    */
