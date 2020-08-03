@@ -46,6 +46,7 @@ class DatatypeConstructorArg;
 class ExprManager;
 class NodeManager;
 class SmtEngine;
+class SynthFunCommand;
 class Type;
 class Options;
 class Random;
@@ -1925,6 +1926,7 @@ std::ostream& operator<<(std::ostream& out,
 class CVC4_PUBLIC Grammar
 {
   friend class Solver;
+  friend class CVC4::SynthFunCommand;
 
  public:
   /**

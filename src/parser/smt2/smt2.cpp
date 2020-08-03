@@ -491,7 +491,7 @@ Smt2::SynthFunFactory::SynthFunFactory(
     bool isInv,
     api::Sort range,
     std::vector<std::pair<std::string, api::Sort>>& sortedVarNames)
-    : d_smt2(smt2), d_id(id), d_isInv(isInv)
+    : d_smt2(smt2), d_id(id), d_sort(range), d_isInv(isInv)
 {
   if (range.isNull())
   {
@@ -501,40 +501,32 @@ Smt2::SynthFunFactory::SynthFunFactory(
   {
     smt2->parseError("Cannot use synth-fun with function return type.");
   }
+
   std::vector<api::Sort> varSorts;
   for (const std::pair<std::string, api::Sort>& p : sortedVarNames)
   {
     varSorts.push_back(p.second);
   }
-  Debug("parser-sygus") << "Define synth fun : " << id << std::endl;
 
-  // set the sort to be range
-  d_sort = range;
+  api::Sort funSort = varSorts.empty()
+                          ? range
+                          : d_smt2->d_solver->mkFunctionSort(varSorts, range);
+
+  // we do not allow overloading for synth fun
+  d_fun = d_smt2->bindBoundVar(id, funSort);
+
+  Debug("parser-sygus") << "Define synth fun : " << id << std::endl;
 
   d_smt2->pushScope(true);
   d_sygusVars = d_smt2->bindBoundVars(sortedVarNames);
 }
 
-std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(
-    std::unique_ptr<api::Grammar> grammar)
+std::unique_ptr<Command> Smt2::SynthFunFactory::mkCommand(api::Grammar* grammar)
 {
   Debug("parser-sygus") << "...read synth fun " << d_id << std::endl;
-  api::Term fun =
-      d_isInv
-          ? (grammar ? d_smt2->d_solver->synthInv(d_id, d_sygusVars, *grammar)
-                     : d_smt2->d_solver->synthInv(d_id, d_sygusVars))
-          : (grammar ? d_smt2->d_solver->synthFun(
-                 d_id, d_sygusVars, d_sort, *grammar)
-                     : d_smt2->d_solver->synthFun(d_id, d_sygusVars, d_sort));
-  // we do not allow overloading for synth fun
   d_smt2->popScope();
-  d_smt2->defineVar(d_id, fun);
-  return std::unique_ptr<Command>(new SynthFunCommand(d_smt2->d_solver,
-                                                      d_id,
-                                                      d_sygusVars,
-                                                      d_sort,
-                                                      d_isInv,
-                                                      std::move(grammar)));
+  return std::unique_ptr<Command>(new SynthFunCommand(
+      d_smt2->d_solver, d_id, d_fun, d_sygusVars, d_sort, d_isInv, grammar));
 }
 
 std::unique_ptr<Command> Smt2::invConstraint(

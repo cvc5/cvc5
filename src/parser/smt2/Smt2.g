@@ -580,7 +580,8 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
       sygusGrammar[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      cmd = synthFunFactory->mkCommand(std::move(grammar));
+      cmd = synthFunFactory->mkCommand(grammar.get());
+      PARSER_STATE->getAllocGrammars().push_back(std::move(grammar));
     }
   | /* constraint */
     CONSTRAINT_TOK {
@@ -1084,7 +1085,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetAbductCommand(SOLVER, name, e, std::move(g)));
+      cmd->reset(new GetAbductCommand(SOLVER, name, e, g.get()));
+      PARSER_STATE->getAllocGrammars().push_back(std::move(g));
     }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
@@ -1095,7 +1097,8 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetInterpolCommand(SOLVER, name, e, std::move(g)));
+      cmd->reset(new GetInterpolCommand(SOLVER, name, e, g.get()));
+      PARSER_STATE->getAllocGrammars().push_back(std::move(g));
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]

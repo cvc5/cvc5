@@ -2545,6 +2545,15 @@ void Grammar::addAnyVariable(Term ntSymbol)
   d_allowVars.insert(ntSymbol);
 }
 
+/**
+ * this function concatinates the outputs of calling f on each element between
+ * first and last, seperated by sep.
+ * @param first the beginning of the range
+ * @param last the end of the range
+ * @param f the function to call on each element in the range, its output must
+ *          be overloaded for operator<<
+ * @param sep the string to add between successive calls to f
+ */
 template <typename Iterator, typename Function>
 std::string join(Iterator first, Iterator last, Function f, std::string sep)
 {
@@ -5301,11 +5310,14 @@ Term Solver::synthFunHelper(const std::string& symbol,
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
 
   CVC4_API_ARG_CHECK_EXPECTED(sort.d_type->isFirstClass(), sort)
-      << "first-class sort as codomain sort for function sort";
+      << "first-class codomain sort for function";
 
   std::vector<Type> varTypes;
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
+        << "non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
         << "bound variable associated to this solver object";
@@ -5315,9 +5327,6 @@ Term Solver::synthFunHelper(const std::string& symbol,
         boundVars[i],
         i)
         << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
-        << "non-null term";
     varTypes.push_back(boundVars[i].d_node->getType().toType());
   }
   CVC4_API_SOLVER_CHECK_SORT(sort);

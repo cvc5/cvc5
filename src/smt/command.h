@@ -718,10 +718,13 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
  public:
   SynthFunCommand(const api::Solver* solver,
                   const std::string& id,
+                  api::Term fun,
                   const std::vector<api::Term>& vars,
                   api::Sort sort,
                   bool isInv,
-                  std::unique_ptr<api::Grammar> g);
+                  api::Grammar* g);
+  /** returns the function-to-synthesize */
+  api::Term getFunction() const;
   /** returns the input variables of the function-to-synthesize */
   const std::vector<api::Term>& getVars() const;
   /** returns the sygus sort of the function-to-synthesize */
@@ -729,7 +732,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   /** returns whether the function-to-synthesize should be an invariant */
   bool isInv() const;
   /** Get the sygus grammar given for the synth fun command */
-  const std::unique_ptr<api::Grammar>& getGrammar() const;
+  const api::Grammar* getGrammar() const;
 
   /** invokes this command
    *
@@ -746,6 +749,8 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   std::string getCommandName() const override;
 
  protected:
+  /** the function-to-synthesize */
+  api::Term d_fun;
   /** the input variables of the function-to-synthesize */
   std::vector<api::Term> d_vars;
   /** sort of the function-to-synthesize */
@@ -753,7 +758,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   /** whether the function-to-synthesize should be an invariant */
   bool d_isInv;
   /** optional grammar for the possible values of the function-to-sytnhesize */
-  std::unique_ptr<api::Grammar> d_grammar;
+  api::Grammar* d_grammar;
 };
 
 /** Declares a sygus constraint */
@@ -1055,12 +1060,12 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
   GetInterpolCommand(const api::Solver* solver,
                      const std::string& name,
                      api::Term conj,
-                     std::unique_ptr<api::Grammar> g);
+                     api::Grammar* g);
 
   /** Get the conjecture of the interpolation query */
   api::Term getConjecture() const;
   /** Get the sygus grammar given for the interpolation query */
-  const std::unique_ptr<api::Grammar>& getGrammar() const;
+  const api::Grammar* getGrammar() const;
   /** Get the result of the query, which is the solution to the interpolation
    * query. */
   api::Term getResult() const;
@@ -1078,7 +1083,7 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
   /** The conjecture of the interpolation query */
   api::Term d_conj;
   /** The (optional) grammar of the interpolation query */
-  std::unique_ptr<api::Grammar> d_sygus_grammar;
+  api::Grammar* d_sygus_grammar;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */
@@ -1106,12 +1111,12 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   GetAbductCommand(const api::Solver* solver,
                    const std::string& name,
                    api::Term conj,
-                   std::unique_ptr<api::Grammar> g);
+                   api::Grammar* g);
 
   /** Get the conjecture of the abduction query */
   api::Term getConjecture() const;
   /** Get the grammar given for the abduction query */
-  const std::unique_ptr<api::Grammar>& getGrammar() const;
+  const api::Grammar* getGrammar() const;
   /** Get the name of the abduction predicate for the abduction query */
   std::string getAbductName() const;
   /** Get the result of the query, which is the solution to the abduction query.
@@ -1131,7 +1136,7 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   /** The conjecture of the abduction query */
   api::Term d_conj;
   /** The (optional) grammar of the abduction query */
-  std::unique_ptr<api::Grammar> d_sygus_grammar;
+  api::Grammar* d_sygus_grammar;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */

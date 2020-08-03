@@ -2093,7 +2093,7 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
   }
   out << '\n';
   // print grammar, if any
-  if (c->getGrammar())
+  if (c->getGrammar() != nullptr)
   {
     out << *c->getGrammar();
   }
@@ -2151,7 +2151,7 @@ static void toStream(std::ostream& out, const GetAbductCommand* c)
   out << c->getConjecture();
 
   // print grammar, if any
-  if (c->getGrammar())
+  if (c->getGrammar() != nullptr)
   {
     out << *c->getGrammar();
   }

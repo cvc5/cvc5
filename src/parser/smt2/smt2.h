@@ -60,6 +60,11 @@ class Smt2 : public Parser
    */
   std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<api::Term, std::string> d_lastNamedTerm;
+  /**
+   * A list of sygus grammar objects. We keep track of them here to ensure that
+   * they don't get deleted before the commands using them get invoked.
+   */
+  std::vector<std::unique_ptr<api::Grammar>> d_allocGrammars;
 
  protected:
   Smt2(api::Solver* solver,
@@ -219,11 +224,12 @@ class Smt2 : public Parser
      * @param grammar Optional grammar associated with the synth-fun command
      * @return The instance of `SynthFunCommand`
      */
-    std::unique_ptr<Command> mkCommand(std::unique_ptr<api::Grammar> grammar);
+    std::unique_ptr<Command> mkCommand(api::Grammar* grammar);
 
    private:
     Smt2* d_smt2;
     std::string d_id;
+    api::Term d_fun;
     api::Sort d_sort;
     bool d_isInv;
     std::vector<api::Term> d_sygusVars;
@@ -254,6 +260,14 @@ class Smt2 : public Parser
    * Get the logic.
    */
   const LogicInfo& getLogic() const { return d_logic; }
+
+  /**
+   * Get the sygus grammars.
+   */
+  std::vector<std::unique_ptr<api::Grammar>>& getAllocGrammars()
+  {
+    return d_allocGrammars;
+  }
 
   bool v2_0() const
   {
@@ -306,10 +320,13 @@ class Smt2 : public Parser
    */
   void checkLogicAllowsFunctions();
 
-  void checkUserSymbol(const std::string& name) {
-    if(name.length() > 0 && (name[0] == '.' || name[0] == '@')) {
+  void checkUserSymbol(const std::string& name)
+  {
+    if (name.length() > 0 && (name[0] == '.' || name[0] == '@'))
+    {
       std::stringstream ss;
-      ss << "cannot declare or define symbol `" << name << "'; symbols starting with . and @ are reserved in SMT-LIB";
+      ss << "cannot declare or define symbol `" << name
+         << "'; symbols starting with . and @ are reserved in SMT-LIB";
       parseError(ss.str());
     }
     else if (isOperatorEnabled(name))
@@ -327,7 +344,8 @@ class Smt2 : public Parser
     d_lastNamedTerm = std::make_pair(e, name);
   }
 
-  void clearLastNamedTerm() {
+  void clearLastNamedTerm()
+  {
     d_lastNamedTerm = std::make_pair(api::Term(), "");
   }
 
@@ -472,7 +490,6 @@ class Smt2 : public Parser
   api::Term applyParseOp(ParseOp& p, std::vector<api::Term>& args);
   //------------------------- end processing parse operators
  private:
-
   /** Purify sygus grammar term
    *
    * This returns a term where all occurrences of non-terminal symbols (those
@@ -517,7 +534,7 @@ class Smt2 : public Parser
   api::Term mkAnd(const std::vector<api::Term>& es);
 }; /* class Smt2 */
 
-}/* CVC4::parser namespace */
-}/* CVC4 namespace */
+}  // namespace parser
+}  // namespace CVC4
 
 #endif /* CVC4__PARSER__SMT2_H */
