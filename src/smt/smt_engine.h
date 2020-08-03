@@ -93,6 +93,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class ExprNames;
 class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;

@@ -19,7 +19,7 @@
 
 #include <string>
 
-#include "context/cdmap.h"
+#include "context/cdhashmap.h"
 #include "expr/node.h"
 
 namespace CVC4 {
