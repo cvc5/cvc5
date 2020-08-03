@@ -93,6 +93,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
 class OptionsManager;
@@ -112,9 +113,6 @@ class SmtScope;
 class ProcessAssertions;
 
 ProofManager* currentProofManager();
-
-struct CommandCleanup;
-typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 
 /* -------------------------------------------------------------------------- */
@@ -147,9 +145,6 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::Model;  // to access d_modelCommands
-  friend class ::CVC4::smt::SmtNodeManagerListener;  // to access
-                                                     // addToModelCommandAndDump
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
 
@@ -857,9 +852,6 @@ class CVC4_PUBLIC SmtEngine
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
 
-  /** Set print function in model. */
-  void setPrintFuncInModel(Expr f, bool p);
-
   /**
    * Get expression name.
    *
@@ -882,6 +874,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
+
+  /** Permit access to the underlying dump manager. */
+  smt::DumpManager* getDumpManager();
 
   /**
    * Get expanded assertions.
@@ -1126,6 +1121,8 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** The dump manager */
+  std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */
   std::unique_ptr<smt::ResourceOutListener> d_routListener;
   /** Node manager listener */
@@ -1177,28 +1174,6 @@ class CVC4_PUBLIC SmtEngine
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
-
-  /**
-   * A list of commands that should be in the Model globally (i.e.,
-   * regardless of push/pop).  Only maintained if produce-models option
-   * is on.
-   */
-  std::vector<Command*> d_modelGlobalCommands;
-
-  /**
-   * A list of commands that should be in the Model locally (i.e.,
-   * it is context-dependent on push/pop).  Only maintained if
-   * produce-models option is on.
-   */
-  smt::CommandList* d_modelCommands;
-
-  /**
-   * A vector of declaration commands waiting to be dumped out.
-   * Once the SmtEngine is fully initialized, we'll dump them.
-   * This ensures the declarations come after the set-logic and
-   * any necessary set-option commands are dumped.
-   */
-  std::vector<Command*> d_dumpCommands;
 
   /**
    * A vector of command definitions to be imported in the new

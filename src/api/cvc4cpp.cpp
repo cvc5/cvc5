@@ -1414,13 +1414,19 @@ size_t OpHashFunction::operator()(const Op& t) const
 Term::Term() : d_solver(nullptr), d_node(new CVC4::Node()) {}
 
 Term::Term(const Solver* slv, const CVC4::Expr& e)
-    : d_solver(slv), d_node(new CVC4::Node(e))
+    : d_solver(slv)
 {
+  // Ensure that we create the node in the correct node manager.
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_node.reset(new CVC4::Node(e));
 }
 
 Term::Term(const Solver* slv, const CVC4::Node& n)
-    : d_solver(slv), d_node(new CVC4::Node(n))
+    : d_solver(slv)
 {
+  // Ensure that we create the node in the correct node manager.
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_node.reset(new CVC4::Node(n));
 }
 
 Term::~Term()
@@ -2446,6 +2452,18 @@ bool Datatype::const_iterator::operator!=(
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
+
+Grammar::Grammar()
+    : d_solver(nullptr),
+      d_sygusVars(),
+      d_ntSyms(),
+      d_ntsToTerms(0),
+      d_allowConst(),
+      d_allowVars(),
+      d_isResolved(false)
+{
+}
+
 Grammar::Grammar(const Solver* slv,
                  const std::vector<Term>& sygusVars,
                  const std::vector<Term>& ntSymbols)
