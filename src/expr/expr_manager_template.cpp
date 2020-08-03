@@ -690,7 +690,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   for(std::vector<Datatype*>::iterator i = dt_copies.begin(), i_end = dt_copies.end(); i != i_end; ++i) {
     TypeNode* typeNode;
     // register datatype with the node manager
-    unsigned index = d_nodeManager->registerDatatype((*i)->d_internal);
+    size_t index = d_nodeManager->registerDatatype((*i)->d_internal);
     if( (*i)->getNumParameters() == 0 ) {
       typeNode = new TypeNode(d_nodeManager->mkTypeConst(DatatypeIndexConstant(index)));
       //typeNode = new TypeNode(d_nodeManager->mkTypeConst(*i));
@@ -760,6 +760,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
   }
 
   // Lastly, perform the final resolutions and checks.
+  std::vector<TypeNode> tns;
   for(std::vector<DatatypeType>::iterator i = dtts.begin(),
         i_end = dtts.end();
       i != i_end;
@@ -776,10 +777,11 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
     // Now run some checks, including a check to make sure that no
     // selector is function-valued.
     checkResolvedDatatype(*i);
+    tns.push_back(TypeNode::fromType(*i));
   }
 
   for(std::vector<NodeManagerListener*>::iterator i = d_nodeManager->d_listeners.begin(); i != d_nodeManager->d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewDatatypes(dtts, flags);
+    (*i)->nmNotifyNewDatatypes(tns, flags);
   }
   
   return dtts;
@@ -823,11 +825,6 @@ void ExprManager::checkResolvedDatatype(DatatypeType dtt) const {
           << "cannot put function-like things in datatypes";
     }
   }
-}
-
-ConstructorType ExprManager::mkConstructorType(const DatatypeConstructor& constructor, Type range) const {
-  NodeManagerScope nms(d_nodeManager);
-  return Type(d_nodeManager, new TypeNode(d_nodeManager->mkConstructorType(constructor, *range.d_typeNode)));
 }
 
 SelectorType ExprManager::mkSelectorType(Type domain, Type range) const {

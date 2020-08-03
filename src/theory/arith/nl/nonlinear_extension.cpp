@@ -18,6 +18,7 @@
 #include "theory/arith/nl/nonlinear_extension.h"
 
 #include "options/arith_options.h"
+#include "options/theory_options.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/ext_theory.h"
@@ -164,14 +165,14 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
   for (const NlLemma& nlem : out)
   {
     Node lem = nlem.d_lemma;
-    bool preprocess = nlem.d_preprocess;
+    LemmaProperty p = nlem.getLemmaProperty();
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_id
                           << " : " << lem << std::endl;
-    d_containing.getOutputChannel().lemma(lem, false, preprocess);
+    d_containing.getOutputChannel().lemma(lem, p);
     // process the side effect
     processSideEffect(nlem);
-    // add to cache if not preprocess
-    if (preprocess)
+    // add to cache based on preprocess
+    if (isLemmaPropertyPreprocess(p))
     {
       d_lemmasPp.insert(lem);
     }
@@ -408,7 +409,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
 
   Trace("nl-ext-cm") << "-----" << std::endl;
   unsigned tdegree = d_trSlv.getTaylorDegree();
-  bool ret = d_model.checkModel(passertions, tdegree, lemmas, gs);
+  bool ret =
+      d_model.checkModel(passertions, tdegree, lemmas, gs);
   return ret;
 }
 

@@ -415,7 +415,7 @@ private:
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
   // handle linear /, div, mod, and also is_int, to_int
-  Node ppRewriteTerms(TNode atom);
+  TrustNode ppRewriteTerms(TNode atom);
 
  public:
   TheoryArithPrivate(TheoryArith& containing,
@@ -423,7 +423,8 @@ private:
                      context::UserContext* u,
                      OutputChannel& out,
                      Valuation valuation,
-                     const LogicInfo& logicInfo);
+                     const LogicInfo& logicInfo,
+                     ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
@@ -432,7 +433,7 @@ private:
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  Node expandDefinition(Node node);
+  TrustNode expandDefinition(Node node);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
@@ -452,7 +453,7 @@ private:
   void presolve();
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+  TrustNode ppRewrite(TNode atom);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }
