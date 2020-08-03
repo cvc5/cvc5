@@ -313,8 +313,7 @@ class NonlinearExtension
    * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
-  /** The CAD-based solver
-   */
+  /** The CAD-based solver */
   CadSolver d_cadSlv;
   /** The integer and solver
    *
