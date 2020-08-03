@@ -557,6 +557,7 @@ SmtEngine::~SmtEngine()
 #endif
 
     d_absValues.reset(nullptr);
+    d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
