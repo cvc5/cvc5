@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file abstract_values.h
+/*! \file expr_names.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -52,7 +52,7 @@ class ExprNames
 
  private:
   /** mapping from expressions to name */
-  context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;`
+  context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
 };
 
 }  // namespace smt

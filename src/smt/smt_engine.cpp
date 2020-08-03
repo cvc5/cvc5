@@ -211,7 +211,6 @@ class SmtEnginePrivate
         d_assertions(),
         d_assertionsProcessed(smt.getUserContext(), false),
         d_processor(smt, *smt.getResourceManager()),
-        d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
   {
