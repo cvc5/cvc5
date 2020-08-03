@@ -58,6 +58,12 @@ class CDCAC
   void computeVariableOrdering();
 
   /**
+   * Extract an initial assignment from the given model.
+   * This initial assignment is used to guide sampling if possible.
+   */
+  void retrieveInitialAssignment(NlModel& model, const Node& ran_variable);
+
+  /**
    * Returns the constraints as a non-const reference. Can be used to add new
    * constraints.
    */
@@ -80,6 +86,14 @@ class CDCAC
    * d_assignment. Implements Algorithm 2.
    */
   std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable) const;
+
+  /**
+   * Sample outside of the set of intervals.
+   * Uses a given initial value from mInitialAssignment if possible.
+   */
+  bool sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
+                                poly::Value& sample,
+                                std::size_t cur_variable);
 
   /**
    * Collects the coefficients required for projection from the given
@@ -131,6 +145,9 @@ class CDCAC
 
   /** The object computing the variable ordering. */
   VariableOrdering d_varOrder;
+
+  /** The linear assignment used as an initial guess. */
+  std::vector<poly::Value> d_initialAssignment;
 };
 
 }  // namespace cad
