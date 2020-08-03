@@ -149,8 +149,8 @@ class ProofEqEngine : public EagerProofGenerator
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
-   * inconsistent (false has been proven) by a contradictory literal lit.
-   * This returns the trust node corresponding to the current conflict.
+   * inconsistent (false has been proven) by a contradictory literal lit. This
+   * returns the trust node corresponding to the current conflict.
    *
    * @param lit The conflicting literal, which must rewrite to false.
    * @return The trust node capturing the fact that this class can provide a
