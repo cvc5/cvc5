@@ -201,7 +201,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
       return false;
     }
     // note the proof generator is responsible for remembering the explanation
-    d_proof.addLazyStep(lit, pg);
+    d_proof.addLazyStep(lit, pg, false);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
