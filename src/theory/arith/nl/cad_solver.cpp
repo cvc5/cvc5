@@ -62,7 +62,9 @@ void CadSolver::initLastCall(const std::vector<Node>& assertions)
   }
   d_CAC.computeVariableOrdering();
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile with --poly." << std::endl;
+  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+               "with --poly."
+            << std::endl;
 #endif
 }
 
@@ -99,7 +101,9 @@ std::vector<NlLemma> CadSolver::checkFull()
   }
   return lems;
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile with --poly." << std::endl;
+  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+               "with --poly."
+            << std::endl;
 #endif
 }
 
@@ -120,13 +124,16 @@ std::vector<NlLemma> CadSolver::checkPartial()
       Node first_var =
           d_CAC.getConstraints().varMapper()(d_CAC.getVariableOrdering()[0]);
       Node lemma = excluding_interval_to_lemma(first_var, interval.d_interval);
-      Trace("nl-cad") << "Excluding " << first_var << " -> " << interval.d_interval << " using " << lemma << std::endl;
+      Trace("nl-cad") << "Excluding " << first_var << " -> "
+                      << interval.d_interval << " using " << lemma << std::endl;
       lems.emplace_back(lemma, Inference::CAD_EXCLUDED_INTERVAL);
     }
   }
   return lems;
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile with --poly." << std::endl;
+  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+               "with --poly."
+            << std::endl;
 #endif
 }
 
@@ -154,7 +161,9 @@ bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
   }
   return true;
 #else
-  Warning() << "Tried to use CadSolver but libpoly is not available. Compile with --poly." << std::endl;
+  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+               "with --poly."
+            << std::endl;
 #endif
 }
 

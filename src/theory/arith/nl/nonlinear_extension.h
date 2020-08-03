@@ -19,6 +19,7 @@
 #define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
 #include <stdint.h>
+
 #include <map>
 #include <vector>
 
