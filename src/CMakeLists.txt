@@ -225,11 +225,15 @@ libcvc4_add_sources(
   smt/abstract_values.h
   smt/command.cpp
   smt/command.h
-  smt/command_list.cpp
-  smt/command_list.h
   smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
+  smt/dump_manager.cpp
+  smt/dump_manager.h
+  smt/expr_names.cpp
+  smt/expr_names.h
+  smt/listeners.cpp
+  smt/listeners.h
   smt/logic_exception.h
   smt/logic_request.cpp
   smt/logic_request.h
