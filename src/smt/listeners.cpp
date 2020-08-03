@@ -20,6 +20,7 @@
 #include "options/smt_options.h"
 #include "smt/command.h"
 #include "smt/dump.h"
+#include "smt/dump_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
@@ -35,14 +36,14 @@ void ResourceOutListener::notify()
   d_smt.interrupt();
 }
 
-SmtNodeManagerListener::SmtNodeManagerListener(SmtEngine& smt) : d_smt(smt) {}
+SmtNodeManagerListener::SmtNodeManagerListener(DumpManager& dm) : d_dm(dm) {}
 
 void SmtNodeManagerListener::nmNotifyNewSort(TypeNode tn, uint32_t flags)
 {
   DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()), 0, tn.toType());
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
-    d_smt.addToModelCommandAndDump(c, flags);
+    d_dm.addToModelCommandAndDump(c, flags);
   }
 }
 
@@ -54,18 +55,23 @@ void SmtNodeManagerListener::nmNotifyNewSortConstructor(TypeNode tn,
                        tn.toType());
   if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
   {
-    d_smt.addToModelCommandAndDump(c);
+    d_dm.addToModelCommandAndDump(c);
   }
 }
 
 void SmtNodeManagerListener::nmNotifyNewDatatypes(
-    const std::vector<DatatypeType>& dtts, uint32_t flags)
+    const std::vector<TypeNode>& dtts, uint32_t flags)
 {
   if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
   {
-    std::vector<Type> types(dtts.begin(), dtts.end());
+    std::vector<Type> types;
+    for (const TypeNode& dt : dtts)
+    {
+      Assert(dt.isDatatype());
+      types.push_back(dt.toType());
+    }
     DatatypeDeclarationCommand c(types);
-    d_smt.addToModelCommandAndDump(c);
+    d_dm.addToModelCommandAndDump(c);
   }
 }
 
@@ -75,7 +81,7 @@ void SmtNodeManagerListener::nmNotifyNewVar(TNode n, uint32_t flags)
       n.getAttribute(expr::VarNameAttr()), n.toExpr(), n.getType().toType());
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {
-    d_smt.addToModelCommandAndDump(c, flags);
+    d_dm.addToModelCommandAndDump(c, flags);
   }
 }
 
@@ -91,7 +97,7 @@ void SmtNodeManagerListener::nmNotifyNewSkolem(TNode n,
   }
   if ((flags & ExprManager::VAR_FLAG_DEFINED) == 0)
   {
-    d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
+    d_dm.addToModelCommandAndDump(c, flags, false, "skolems");
   }
 }
 
