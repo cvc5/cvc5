@@ -27,7 +27,7 @@ void ExprNames::setExpressionName(Node e, const std::string& name) {
 }
 
 bool ExprNames::getExpressionName(Node e, std::string& name) const {
-  context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
+  auto it = d_exprNames.find(e);
   if(it!=d_exprNames.end()) {
     name = (*it).second;
     return true;
