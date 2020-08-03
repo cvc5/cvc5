@@ -112,7 +112,10 @@ class CandidateRewriteDatabase : public ExprMiner
   Node d_candidate;
   /** whether we are checking equivalence using subsolver */
   bool d_doCheck;
-  /** if true, we use acceleration for symmetry breaking rewrites */
+  /**
+   * If true, we use acceleration for symmetry breaking rewrites (see option
+   * sygusRewSynthAccel()).
+   */
   bool d_rewAccel;
   /** if true, we silence the output of candidate rewrites */
   bool d_silent;
