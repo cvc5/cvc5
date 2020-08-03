@@ -132,7 +132,7 @@ void LazyCDProof::addLazyStep(Node expected,
     if (idNull == PfRule::ASSUME)
     {
       AlwaysAssert(false)
-          << "LazyCDProof::addLazyStep: failed to provide proof generator for "
+          << "LazyCDProof::addLazyStep: " << identify() << ": failed to provide proof generator for "
           << expected;
       return;
     }

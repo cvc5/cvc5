@@ -324,20 +324,23 @@ Node RemoveTermFormulas::run(TNode node,
       Node newAssertionPre = newAssertion;
       newAssertion = run(newAssertion, output, newSkolems, false, false);
 
-      if (newAssertionPre != newAssertion)
+      if (isProofEnabled())
       {
-        Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: setup proof for processed new lemma"
-            << std::endl;
-        // for new assertions that rewrite recursively
-        Node naEq = newAssertionPre.eqNode(newAssertion);
-        d_lp->addLazyStep(naEq, d_tpg.get());
-        // ---------------- from lp  ------------------------------- from tpg
-        // newAssertionPre            newAssertionPre = newAssertion
-        // --------------------------------------------------------- EQ_RESOLVE
-        // newAssertion
-        d_lp->addStep(
-            newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre, naEq}, {});
+        if (newAssertionPre != newAssertion)
+        {
+          Trace("rtf-proof-debug")
+              << "RemoveTermFormulas::run: setup proof for processed new lemma"
+              << std::endl;
+          // for new assertions that rewrite recursively
+          Node naEq = newAssertionPre.eqNode(newAssertion);
+          d_lp->addLazyStep(naEq, d_tpg.get());
+          // ---------------- from lp  ------------------------------- from tpg
+          // newAssertionPre            newAssertionPre = newAssertion
+          // --------------------------------------------------------- EQ_RESOLVE
+          // newAssertion
+          d_lp->addStep(
+              newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre, naEq}, {});
+        }
       }
 
       theory::TrustNode trna =
