@@ -216,6 +216,9 @@ class DType
   /** set that this datatype is a tuple */
   void setTuple();
 
+  /** set that this datatype is a record */
+  void setRecord();
+
   /** Get the name of this DType. */
   std::string getName() const;
 
@@ -242,6 +245,9 @@ class DType
 
   /** is this a tuple datatype? */
   bool isTuple() const;
+
+  /** is this a record datatype? */
+  bool isRecord() const;
 
   /**
    * Return the cardinality of this datatype.
@@ -553,6 +559,8 @@ class DType
   bool d_isCo;
   /** whether the datatype is a tuple */
   bool d_isTuple;
+  /** whether the datatype is a record */
+  bool d_isRecord;
   /** the constructors of this datatype */
   std::vector<std::shared_ptr<DTypeConstructor> > d_constructors;
   /** whether this datatype has been resolved */

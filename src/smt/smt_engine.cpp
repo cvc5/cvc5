@@ -34,7 +34,6 @@
 #include "base/configuration.h"
 #include "base/configuration_private.h"
 #include "base/exception.h"
-#include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "context/cdhashmap.h"
@@ -86,6 +85,7 @@
 #include "smt/command.h"
 #include "smt/command_list.h"
 #include "smt/defined_function.h"
+#include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
@@ -147,19 +147,6 @@ void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
   commands.clear();
 }
 
-class ResourceOutListener : public Listener {
- public:
-  ResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    SmtScope scope(d_smt);
-    Assert(smt::smtEngineInScope());
-    d_smt->interrupt();
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class ResourceOutListener */
-
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -174,19 +161,12 @@ class ResourceOutListener : public Listener {
  * one) becomes an "interface shell" which simply acts as a forwarder
  * of method calls.
  */
-class SmtEnginePrivate : public NodeManagerListener {
+class SmtEnginePrivate
+{
   SmtEngine& d_smt;
 
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
-
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  ResourceManager* d_resourceManager;
-
-  /** Resource out listener */
-  std::unique_ptr<ResourceOutListener> d_routListener;
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
@@ -240,7 +220,6 @@ class SmtEnginePrivate : public NodeManagerListener {
  public:
   SmtEnginePrivate(SmtEngine& smt)
       : d_smt(smt),
-        d_routListener(new ResourceOutListener(d_smt)),
         d_propagator(true, true),
         d_assertions(),
         d_assertionsProcessed(smt.getUserContext(), false),
@@ -249,10 +228,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
   {
-    d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
-    ResourceManager* rm = d_smt.getResourceManager();
-    rm->registerListener(d_routListener.get());
   }
 
   ~SmtEnginePrivate()
@@ -261,7 +237,6 @@ class SmtEnginePrivate : public NodeManagerListener {
       d_propagator.finish();
       d_propagator.setNeedsFinish(false);
     }
-    d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
   void spendResource(ResourceManager::Resource r)
@@ -270,64 +245,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   }
 
   ProcessAssertions* getProcessAssertions() { return &d_processor; }
-
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
-  {
-    DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                         0,
-                         tn.toType());
-    if((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0) {
-      d_smt.addToModelCommandAndDump(c, flags);
-    }
-  }
-
-  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override
-  {
-    DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                         tn.getAttribute(expr::SortArityAttr()),
-                         tn.toType());
-    if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
-    {
-      d_smt.addToModelCommandAndDump(c);
-    }
-  }
-
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts,
-                            uint32_t flags) override
-  {
-    if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
-    {
-      std::vector<Type> types(dtts.begin(), dtts.end());
-      DatatypeDeclarationCommand c(types);
-      d_smt.addToModelCommandAndDump(c);
-    }
-  }
-
-  void nmNotifyNewVar(TNode n, uint32_t flags) override
-  {
-    DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
-                             n.toExpr(),
-                             n.getType().toType());
-    if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-      d_smt.addToModelCommandAndDump(c, flags);
-    }
-  }
-
-  void nmNotifyNewSkolem(TNode n,
-                         const std::string& comment,
-                         uint32_t flags) override
-  {
-    string id = n.getAttribute(expr::VarNameAttr());
-    DeclareFunctionCommand c(id, n.toExpr(), n.getType().toType());
-    if(Dump.isOn("skolems") && comment != "") {
-      Dump("skolems") << CommentCommand(id + " is " + comment);
-    }
-    if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-      d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
-    }
-  }
-
-  void nmNotifyDeleteNode(TNode n) override {}
 
   Node applySubstitutions(TNode node)
   {
@@ -421,6 +338,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
+      d_routListener(new ResourceOutListener(*this)),
+      d_snmListener(new SmtNodeManagerListener(*this)),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -474,6 +393,11 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
+  // listen to node manager events
+  d_nodeManager->subscribeEvents(d_snmListener.get());
+  // listen to resource out
+  d_resourceManager->registerListener(d_routListener.get());
+  // make statistics
   d_stats.reset(new SmtEngineStatistics());
   
   // The ProofManager is constructed before any other proof objects such as
@@ -690,6 +614,9 @@ SmtEngine::~SmtEngine()
 
     d_stats.reset(nullptr);
     d_private.reset(nullptr);
+    d_nodeManager->unsubscribeEvents(d_snmListener.get());
+    d_snmListener.reset(nullptr);
+    d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
