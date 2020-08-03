@@ -55,14 +55,6 @@ class CadSolver
   std::vector<NlLemma> checkFull();
 
   /**
-   * Perform a partial check, returning either {} or a list of lemmas.
-   * If the result is empty, the input is satisfiable and a model is available
-   * for construct_model_if_available. Otherwise, the lemmas exclude some part
-   * of the search space.
-   */
-  std::vector<NlLemma> checkPartial();
-
-  /**
    * If a model is available (indicated by the last call to check_full() or
    * check_partial()) this method puts a satisfying assignment in d_model,
    * clears the list of assertions, and returns true.
