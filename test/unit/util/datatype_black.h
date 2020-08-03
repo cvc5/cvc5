@@ -391,7 +391,7 @@ class DatatypeBlack : public CxxTest::TestSuite {
         treeType.getDType().getCardinality().compare(Cardinality::INTEGERS)
         == Cardinality::EQUAL);
     TS_ASSERT(!treeType.getDType().isWellFounded());
-    TS_ASSERT( treeType.mkGroundTerm().isNull() );
+    TS_ASSERT(treeType.mkGroundTerm().isNull());
     TS_ASSERT(treeType.getDType().mkGroundTerm(treeType).isNull());
   }
 
