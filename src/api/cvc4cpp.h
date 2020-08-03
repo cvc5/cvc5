@@ -2788,7 +2788,8 @@ class CVC4_PUBLIC Solver
   Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
-   * Create (bound) variable.
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable
