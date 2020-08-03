@@ -66,7 +66,7 @@ void DTypeConstructor::addArgSelf(std::string selectorName)
 {
   Trace("datatypes") << "DTypeConstructor::addArgSelf" << std::endl;
   std::shared_ptr<DTypeSelector> a =
-      std::make_shared<DTypeSelector>(selectorName, Node::null());
+      std::make_shared<DTypeSelector>(selectorName + '\0', Node::null());
   addArg(a);
 }
 
