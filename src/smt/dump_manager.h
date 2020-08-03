@@ -18,6 +18,7 @@
 #define CVC4__SMT__DUMP_MANAGER_H
 
 #include <vector>
+#include <memory>
 
 #include "context/cdlist.h"
 #include "expr/node.h"
@@ -75,7 +76,7 @@ class DumpManager
    * regardless of push/pop).  Only maintained if produce-models option
    * is on.
    */
-  std::vector<Command*> d_modelGlobalCommands;
+  std::vector<std::unique_ptr<Command> > d_modelGlobalCommands;
 
   /**
    * A list of commands that should be in the Model locally (i.e.,
@@ -87,7 +88,7 @@ class DumpManager
    * A list of model commands allocated to d_modelCommands at any time. This
    * is maintained for memory management purposes.
    */
-  std::vector<Command*> d_modelCommandsAlloc;
+  std::vector<std::unique_ptr<Command>> d_modelCommandsAlloc;
 
   /**
    * A vector of declaration commands waiting to be dumped out.
@@ -95,7 +96,7 @@ class DumpManager
    * This ensures the declarations come after the set-logic and
    * any necessary set-option commands are dumped.
    */
-  std::vector<Command*> d_dumpCommands;
+  std::vector<std::unique_ptr<Command>> d_dumpCommands;
 };
 
 }  // namespace smt

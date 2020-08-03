@@ -21,17 +21,6 @@
 namespace CVC4 {
 namespace smt {
 
-struct DeleteCommandFunction : public std::unary_function<const Command*, void>
-{
-  void operator()(const Command* command) { delete command; }
-};
-
-void DeleteAndClearCommandVector(std::vector<Command*>& commands)
-{
-  std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
-  commands.clear();
-}
-
 DumpManager::DumpManager(context::UserContext* u)
     : d_modelGlobalCommands(), d_modelCommands(u), d_dumpCommands()
 {
@@ -39,9 +28,9 @@ DumpManager::DumpManager(context::UserContext* u)
 
 DumpManager::~DumpManager()
 {
-  DeleteAndClearCommandVector(d_dumpCommands);
-  DeleteAndClearCommandVector(d_modelCommandsAlloc);
-  DeleteAndClearCommandVector(d_modelGlobalCommands);
+  d_dumpCommands.clear();
+  d_modelCommandsAlloc.clear();
+  d_modelGlobalCommands.clear();
 }
 
 void DumpManager::finishInit()
@@ -52,14 +41,14 @@ void DumpManager::finishInit()
   {
     Dump("declarations") << *d_dumpCommands[i];
   }
-  DeleteAndClearCommandVector(d_dumpCommands);
+  d_dumpCommands.clear();
 
   d_fullyInited = true;
 }
 
 void DumpManager::resetAssertions()
 {
-  DeleteAndClearCommandVector(d_modelGlobalCommands);
+  d_modelGlobalCommands.clear();
 }
 
 void DumpManager::addToModelCommandAndDump(const Command& c,
@@ -81,14 +70,14 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
   {
     if (flags & ExprManager::VAR_FLAG_GLOBAL)
     {
-      d_modelGlobalCommands.push_back(c.clone());
+      d_modelGlobalCommands.push_back(std::unique_ptr<Command>(c.clone()));
     }
     else
     {
       Command * cc = c.clone();
       d_modelCommands.push_back(cc);
       // also remember for memory management purposes
-      d_modelCommandsAlloc.push_back(cc);
+      d_modelCommandsAlloc.push_back(std::unique_ptr<Command>(cc));
     }
   }
   if (Dump.isOn(dumpTag))
@@ -99,7 +88,7 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
     }
     else
     {
-      d_dumpCommands.push_back(c.clone());
+      d_dumpCommands.push_back(std::unique_ptr<Command>(c.clone()));
     }
   }
 }
@@ -107,9 +96,9 @@ void DumpManager::addToModelCommandAndDump(const Command& c,
 void DumpManager::setPrintFuncInModel(Node f, bool p)
 {
   Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  for (Command* c : d_modelGlobalCommands)
+  for (std::unique_ptr<Command>& c : d_modelGlobalCommands)
   {
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
+    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c.get());
     if (dfc != NULL)
     {
       Node df = Node::fromExpr(dfc->getFunction());
@@ -144,7 +133,7 @@ const Command* DumpManager::getModelCommand(size_t i) const
   // index the global commands first, then the locals
   if (i < d_modelGlobalCommands.size())
   {
-    return d_modelGlobalCommands[i];
+    return d_modelGlobalCommands[i].get();
   }
   return d_modelCommands[i - d_modelGlobalCommands.size()];
 }
