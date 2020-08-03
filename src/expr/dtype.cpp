@@ -25,6 +25,7 @@ DType::DType(std::string name, bool isCo)
       d_params(),
       d_isCo(isCo),
       d_isTuple(false),
+      d_isRecord(false),
       d_constructors(),
       d_resolved(false),
       d_self(),
@@ -43,6 +44,7 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_params(params),
       d_isCo(isCo),
       d_isTuple(false),
+      d_isRecord(false),
       d_constructors(),
       d_resolved(false),
       d_self(),
@@ -81,6 +83,8 @@ bool DType::isCodatatype() const { return d_isCo; }
 bool DType::isSygus() const { return !d_sygusType.isNull(); }
 
 bool DType::isTuple() const { return d_isTuple; }
+
+bool DType::isRecord() const { return d_isRecord; }
 
 bool DType::isResolved() const { return d_resolved; }
 
@@ -229,6 +233,12 @@ void DType::setTuple()
 {
   Assert(!d_resolved);
   d_isTuple = true;
+}
+
+void DType::setRecord()
+{
+  Assert(!d_resolved);
+  d_isRecord = true;
 }
 
 Cardinality DType::getCardinality(TypeNode t) const

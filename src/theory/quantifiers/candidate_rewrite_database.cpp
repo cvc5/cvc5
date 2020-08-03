@@ -16,7 +16,6 @@
 
 #include "api/cvc4cpp.h"
 #include "options/base_options.h"
-#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -33,12 +32,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CandidateRewriteDatabase::CandidateRewriteDatabase()
+CandidateRewriteDatabase::CandidateRewriteDatabase(bool doCheck,
+                                                   bool rewAccel,
+                                                   bool silent)
     : d_qe(nullptr),
       d_tds(nullptr),
       d_ext_rewrite(nullptr),
-      d_using_sygus(false),
-      d_silent(false)
+      d_doCheck(doCheck),
+      d_rewAccel(rewAccel),
+      d_silent(silent),
+      d_using_sygus(false)
 {
 }
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
@@ -69,13 +72,13 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   ExprMiner::initialize(vars, ss);
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol,
+Node CandidateRewriteDatabase::addTerm(Node sol,
                                        bool rec,
                                        std::ostream& out,
                                        bool& rew_print)
 {
   // have we added this term before?
-  std::unordered_map<Node, bool, NodeHashFunction>::iterator itac =
+  std::unordered_map<Node, Node, NodeHashFunction>::iterator itac =
       d_add_term_cache.find(sol);
   if (itac != d_add_term_cache.end())
   {
@@ -127,7 +130,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       bool verified = false;
       Trace("rr-check") << "Check candidate rewrite..." << std::endl;
       // verify it if applicable
-      if (options::sygusRewSynthCheck())
+      if (d_doCheck)
       {
         Node crr = solbr.eqNode(eq_solr).negate();
         Trace("rr-check") << "Check candidate rewrite : " << crr << std::endl;
@@ -177,8 +180,8 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           d_sampler->addSamplePoint(pt);
           // add the solution again
           // by construction of the above point, we should be unique now
-          Node eq_sol_new = d_sampler->registerTerm(sol);
-          Assert(eq_sol_new == sol);
+          eq_sol = d_sampler->registerTerm(sol);
+          Assert(eq_sol == sol);
         }
         else
         {
@@ -188,7 +191,11 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
       else
       {
         // just insist that constants are not relevant pairs
-        is_unique_term = solb.isConst() && eq_solb.isConst();
+        if (solb.isConst() && eq_solb.isConst())
+        {
+          is_unique_term = true;
+          eq_sol = sol;
+        }
       }
       if (!is_unique_term)
       {
@@ -222,7 +229,7 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
           Trace("sygus-rr-debug")
               << "; candidate #2 ext-rewrites to: " << eq_solr << std::endl;
         }
-        if (options::sygusRewSynthAccel() && d_using_sygus)
+        if (d_rewAccel && d_using_sygus)
         {
           Assert(d_tds != nullptr);
           // Add a symmetry breaking clause that excludes the larger
@@ -258,18 +265,19 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
     // it discards it as a redundant candidate rewrite rule before
     // checking its correctness.
   }
-  d_add_term_cache[sol] = is_unique_term;
-  return is_unique_term;
+  d_add_term_cache[sol] = eq_sol;
+  return eq_sol;
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
+Node CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
 {
   bool rew_print = false;
   return addTerm(sol, rec, out, rew_print);
 }
 bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
 {
-  return addTerm(sol, false, out);
+  Node rsol = addTerm(sol, false, out);
+  return sol == rsol;
 }
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }

@@ -439,16 +439,22 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, proof);
   }
-  if(proof){
-    Debug("pf::array") << " Proof is : " << std::endl;
-    proof->debug_print("pf::array");
-  }
+  if (Debug.isOn("pf::array"))
+  {
+    if (proof)
+    {
+      Debug("pf::array") << " Proof is : " << std::endl;
+      proof->debug_print("pf::array");
+    }
 
-  Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::array") << assumptions[i] << " ";
+    Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl
+                       << "\t";
+    for (unsigned i = 0; i < assumptions.size(); ++i)
+    {
+      Debug("pf::array") << assumptions[i] << " ";
+    }
+    Debug("pf::array") << std::endl;
   }
-  Debug("pf::array") << std::endl;
 }
 
 TNode TheoryArrays::weakEquivGetRep(TNode node) {
@@ -1538,10 +1544,12 @@ void TheoryArrays::check(Effort e) {
 
 Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned startIndex)
 {
-  Assert(conjunctions.size() > 0);
+  if (conjunctions.empty())
+  {
+    return invert ? d_false : d_true;
+  }
 
   std::set<TNode> all;
-  std::set<TNode> explained;
 
   unsigned i = startIndex;
   TNode t;
@@ -1556,23 +1564,6 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
           continue;
         }
         all.insert(*child_it);
-      }
-    }
-    else if (t.getKind() == kind::OR) {
-      // Expand explanation resulting from propagating a ROW or EXT lemma
-      if ((explained.find(t) == explained.end())) {
-        if (t[1].getKind() == kind::EQUAL) {
-          // ROW lemma
-          d_equalityEngine.explainEquality(t[1][0], t[1][1], false, conjunctions);
-          explained.insert(t);
-        } else {
-          // EXT lemma
-          Assert(t[1].getKind() == kind::NOT
-                 && t[1][0].getKind() == kind::EQUAL);
-          Assert(t[0].getKind() == kind::EQUAL);
-          all.insert(t[0].notNode());
-          explained.insert(t);
-        }
       }
     }
     else {
