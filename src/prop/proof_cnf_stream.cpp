@@ -52,12 +52,7 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
   if (pg)
   {
-    if (options::proofNewEagerChecking())
-    {
-      theory::TrustNode trn = theory::TrustNode::mkTrustLemma(toJustify, pg);
-      trn.debugCheckClosed("cnf", "ProofCnfStream::convertAndAssert");
-    }
-    d_proof.addLazyStep(toJustify, pg);
+    d_proof.addLazyStep(toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
 }

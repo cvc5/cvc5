@@ -1004,6 +1004,11 @@ void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 Node TheoryEngine::preprocess(TNode assertion)
 {
   TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  if (trn.isNull())
+  {
+    // no change
+    return assertion;
+  }
   // TODO: return the trust node?
   return trn.getNode();
 }
@@ -1667,45 +1672,52 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   std::vector<Node> newSkolems;
   TrustNode tplemma =
       d_tpp.preprocess(lemma, newLemmas, newSkolems, preprocess);
-  Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
-  Node lemmap = tplemma.getNode();
-
-  // must update the trust lemma
-  if (lemmap != lemma)
+  // the preprocessed lemma
+  Node lemmap;
+  if (tplemma.isNull())
   {
-    // process the preprocessing
-    if (options::proofNew())
+    lemmap = lemma;
+  }
+  else
+  {
+    Assert(tplemma.getKind() == TrustNodeKind::REWRITE);
+    lemmap = tplemma.getNode();
+
+    // must update the trust lemma
+    if (lemmap != lemma)
     {
-      Assert(d_lazyProof != nullptr);
-      // add the original proof to the lazy proof
-      d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
-      // only need to do anything if lemmap changed in a non-trivial way
-      if (!CDProof::isSame(lemmap, lemma))
+      // process the preprocessing
+      if (options::proofNew())
       {
-        if (tplemma.getGenerator() != nullptr)
+        Assert(d_lazyProof != nullptr);
+        // add the original proof to the lazy proof
+        d_lazyProof->addLazyStep(tlemma.getProven(), tlemma.getGenerator());
+        // only need to do anything if lemmap changed in a non-trivial way
+        if (!CDProof::isSame(lemmap, lemma))
         {
-          d_lazyProof->addLazyStep(tplemma.getProven(), tplemma.getGenerator());
+          // TODO: specific trust step
+          d_lazyProof->addLazyStep(tplemma.getProven(), tplemma.getGenerator(), true, "TheoryEngine::lemma_pp", false, PfRule::TRUST);
+          // ---------- from d_lazyProof -------------- from theory preprocess
+          // lemma                       lemma = lemmap
+          // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
+          // lemmap
+          std::vector<Node> pfChildren;
+          pfChildren.push_back(lemma);
+          pfChildren.push_back(tplemma.getProven());
+          std::vector<Node> pfArgs;
+          pfArgs.push_back(lemmap);
+          d_lazyProof->addStep(
+              lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
         }
-        // ---------- from d_lazyProof -------------- from theory preprocess
-        // lemma                       lemma = lemmap
-        // ------------------------------------------ MACRO_SR_PRED_TRANSFORM
-        // lemmap
-        std::vector<Node> pfChildren;
-        pfChildren.push_back(lemma);
-        pfChildren.push_back(tplemma.getProven());
-        std::vector<Node> pfArgs;
-        pfArgs.push_back(lemmap);
-        d_lazyProof->addStep(
-            lemmap, PfRule::MACRO_SR_PRED_TRANSFORM, pfChildren, pfArgs);
       }
+      tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
     }
-    tlemma = TrustNode::mkTrustLemma(lemmap, d_lazyProof.get());
   }
 
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline
-  lemmas.push_back(tplemma.getNode());
+  lemmas.push_back(lemmap);
   lemmas.updateRealAssertionsEnd();
   Assert(newSkolems.size() == newLemmas.size());
   for (size_t i = 0, nsize = newLemmas.size(); i < nsize; i++)

@@ -134,23 +134,32 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   // we use the existing proofs
   LazyCDProof lpf(
       d_proof.getManager(), &d_proof, nullptr, d_name + "::LazyCDProof");
-  Node conc = getProofForRewriting(f[0], lpf);
-  if (conc != f)
+  if (f[0]==f[1])
   {
-    std::stringstream serr;
-    serr << "TConvProofGenerator::getProofFor: " << identify()
-         << ": failed, mismatch: returned proof concludes " << conc
-         << ", expected " << f << std::endl;
-    /*
-for (NodeNodeMap::const_iterator it = d_rewriteMap.begin(); it !=
-d_rewriteMap.end(); ++it)
-{
-  serr << (*it).first << " -> " << (*it).second << std::endl;
-}
-*/
-    AlwaysAssert(false) << serr.str();
-    Trace("tconv-pf-gen") << serr.str() << std::endl;
-    return nullptr;
+    // assertion failure in debug
+    Assert(false) << "TConvProofGenerator::getProofFor: don't ask for trivial proofs";
+    lpf.addStep(f, PfRule::REFL, {}, {f[0]});
+  }
+  else
+  {
+    Node conc = getProofForRewriting(f[0], lpf);
+    if (conc != f)
+    {
+      std::stringstream serr;
+      serr << "TConvProofGenerator::getProofFor: " << identify()
+          << ": failed, mismatch: returned proof concludes " << conc
+          << ", expected " << f << std::endl;
+      /*
+  for (NodeNodeMap::const_iterator it = d_rewriteMap.begin(); it !=
+  d_rewriteMap.end(); ++it)
+  {
+    serr << (*it).first << " -> " << (*it).second << std::endl;
+  }
+  */
+      AlwaysAssert(false) << serr.str();
+      Trace("tconv-pf-gen") << serr.str() << std::endl;
+      return nullptr;
+    }
   }
   Trace("tconv-pf-gen") << "... success" << std::endl;
   return lpf.getProofFor(f);
