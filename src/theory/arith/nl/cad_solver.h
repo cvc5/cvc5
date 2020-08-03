@@ -78,7 +78,7 @@ class CadSolver
    * Indicates whether we found satisfiability in the last call to
    * checkFullRefine.
    */
-  bool d_foundSatisfiability = false;
+  bool d_foundSatisfiability;
 
   /** The theory of arithmetic containing this extension.*/
   TheoryArith& d_containing;
