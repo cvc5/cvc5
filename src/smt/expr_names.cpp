@@ -22,11 +22,11 @@ ExprNames::ExprNames(context::UserContext* u)
 {
 }
 
-void ExprNames::setExpressionName(Node e, const std::string& name) {
+void ExprNames::setExpressionName(const Node& e, const std::string& name) {
   d_exprNames[e] = name;
 }
 
-bool ExprNames::getExpressionName(Node e, std::string& name) const {
+bool ExprNames::getExpressionName(const Node& e, std::string& name) const {
   auto it = d_exprNames.find(e);
   if(it!=d_exprNames.end()) {
     name = (*it).second;
