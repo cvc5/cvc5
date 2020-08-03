@@ -137,7 +137,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   if (f[0]==f[1])
   {
     // assertion failure in debug
-    Assert(false) << "TConvProofGenerator::getProofFor: don't ask for trivial proofs";
+    Assert(false) << "TConvProofGenerator::getProofFor: " << identify() << ": don't ask for trivial proofs";
     lpf.addStep(f, PfRule::REFL, {}, {f[0]});
   }
   else
@@ -145,19 +145,25 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     Node conc = getProofForRewriting(f[0], lpf);
     if (conc != f)
     {
+      Assert( conc.getKind()==EQUAL && conc[0]==f[0] );
       std::stringstream serr;
       serr << "TConvProofGenerator::getProofFor: " << identify()
-          << ": failed, mismatch: returned proof concludes " << conc
-          << ", expected " << f << std::endl;
-      /*
-  for (NodeNodeMap::const_iterator it = d_rewriteMap.begin(); it !=
-  d_rewriteMap.end(); ++it)
-  {
-    serr << (*it).first << " -> " << (*it).second << std::endl;
-  }
-  */
+          << ": failed, mismatch (see -t tconv-pf-gen-debug for details)" << std::endl;
+      serr << "                  source: " << f[0] << std::endl;
+      serr << "expected after rewriting: " << f[1] << std::endl;
+      serr << "  actual after rewriting: " << conc[1] << std::endl;
+      
+      if (Trace.isOn("tconv-pf-gen-debug"))
+      {
+        Trace("tconv-pf-gen-debug") << "Printing rewrite steps..." << std::endl;
+        serr << "Rewrite steps: " << std::endl;
+        for (NodeNodeMap::const_iterator it = d_rewriteMap.begin(); it !=
+        d_rewriteMap.end(); ++it)
+        {
+          serr << (*it).first << " -> " << (*it).second << std::endl;
+        }
+      }
       AlwaysAssert(false) << serr.str();
-      Trace("tconv-pf-gen") << serr.str() << std::endl;
       return nullptr;
     }
   }

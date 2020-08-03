@@ -90,7 +90,7 @@ void pfgEnsureClosed(Node proven,
   std::stringstream sdiag;
   sdiag << ", use -t " << c << " for details";
   Trace(c) << "=== pfgEnsureClosed: " << ss.str() << std::endl;
-  Trace(c) << "Check proof of " << proven << std::endl;
+  Trace(c) << "Proven: " << proven << std::endl;
   if (pg == nullptr)
   {
     // only failure if flag is true
@@ -105,13 +105,12 @@ void pfgEnsureClosed(Node proven,
     return;
   }
   std::shared_ptr<ProofNode> pn = pg->getProofFor(proven);
+  Trace(c) << " Proof: " << *pn.get() << std::endl;
   if (pn == nullptr)
   {
     AlwaysAssert(false) << "...pfgEnsureClosed: null proof from "
                         << ss.str() << sdiag.str();
   }
-  Trace(c) << *pn.get();
-  Trace(c) << std::endl << "====" << std::endl;
   std::vector<Node> assumps;
   expr::getFreeAssumptions(pn.get(), assumps); 
   bool isClosed = assumps.empty();
@@ -126,6 +125,8 @@ void pfgEnsureClosed(Node proven,
   AlwaysAssert(isClosed)
       << "...pfgEnsureClosed: open proof from " << ss.str()
       << sdiag.str();
+  Trace(c) << "...pfgEnsureClosed: success" << std::endl;
+  Trace(c) << "====" << std::endl;
 }
 
 }  // namespace CVC4
