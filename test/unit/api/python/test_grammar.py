@@ -10,7 +10,7 @@ def test_add_rule():
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = pycvc4.Term()
+  nullTerm = pycvc4.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -41,7 +41,7 @@ def test_add_rules():
   boolean = solver.getBooleanSort()
   integer = solver.getIntegerSort()
 
-  nullTerm = pycvc4.Term()
+  nullTerm = pycvc4.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -69,7 +69,7 @@ def testAddAnyConstant():
   solver = pycvc4.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = pycvc4.Term()
+  nullTerm = pycvc4.Term(solver)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
 
@@ -93,7 +93,7 @@ def testAddAnyVariable():
   solver = pycvc4.Solver()
   boolean = solver.getBooleanSort()
 
-  nullTerm = pycvc4.Term()
+  nullTerm = pycvc4.Term(solver)
   x = solver.mkVar(boolean)
   start = solver.mkVar(boolean)
   nts = solver.mkVar(boolean)
