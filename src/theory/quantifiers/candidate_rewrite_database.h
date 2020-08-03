@@ -48,7 +48,7 @@ class CandidateRewriteDatabase : public ExprMiner
    * Constructor
    * @param doCheck Whether to check rewrite rules using subsolvers.
    * @param rewAccel Whether to construct symmetry breaking lemmas based on
-   * discovered rewrites.
+   * discovered rewrites (see option sygusRewSynthAccel()).
    * @param silent Whether to silence the output of rewrites discovered by this
    * class.
    */
