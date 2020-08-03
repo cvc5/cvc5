@@ -135,17 +135,12 @@ class ProofEqEngine : public EagerProofGenerator
    * the premises that are used when calling explain(lit).
    * @param pg The proof generator that can provide a proof concluding lit
    * from free asumptions in exp.
-   * @param isClosed Whether to expect that pg can provide a closed proof for
-   * this fact.
-   * @param ctx The context we are in (for debugging).
    * @return true if this fact was processed by this method. If lit already
    * holds in the equality engine, this method returns false.
    */
   bool assertFact(Node lit,
                   Node exp,
-                  ProofGenerator* pg,
-                  bool isClosed = true,
-                  const char* ctx = "ProofEqEngine::assertFact");
+                  ProofGenerator* pg);
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is
