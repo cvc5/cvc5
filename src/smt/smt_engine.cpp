@@ -82,6 +82,7 @@
 #include "prop/prop_engine.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
+#include "smt/expr_names.h"
 #include "smt/command.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
@@ -176,10 +177,6 @@ class SmtEnginePrivate
   /** Process assertions module */
   ProcessAssertions d_processor;
 
-  //------------------------------- expression names
-  /** mapping from expressions to name */
-  context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
-  //------------------------------- end expression names
  public:
   IteSkolemMap& getIteSkolemMap() { return d_assertions.getIteSkolemMap(); }
 
@@ -214,7 +211,6 @@ class SmtEnginePrivate
         d_assertions(),
         d_assertionsProcessed(smt.getUserContext(), false),
         d_processor(smt, *smt.getResourceManager()),
-        d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
   {
@@ -299,24 +295,6 @@ class SmtEnginePrivate
     Assert(d_assertions.size() == 0);
     return applySubstitutions(n).toExpr();
   }
-
-  //------------------------------- expression names
-  // implements setExpressionName, as described in smt_engine.h
-  void setExpressionName(Expr e, std::string name) {
-    d_exprNames[Node::fromExpr(e)] = name;
-  }
-
-  // implements getExpressionName, as described in smt_engine.h
-  bool getExpressionName(Expr e, std::string& name) const {
-    context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
-    if(it!=d_exprNames.end()) {
-      name = (*it).second;
-      return true;
-    }else{
-      return false;
-    }
-  }
-  //------------------------------- end expression names
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -328,6 +306,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
+      d_exprNames(new ExprNames(d_userContext.get())),
       d_dumpm(new DumpManager(d_userContext.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
@@ -578,6 +557,7 @@ SmtEngine::~SmtEngine()
 #endif
 
     d_absValues.reset(nullptr);
+    d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
@@ -3219,13 +3199,13 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   return SExpr::parseAtom(d_options.getOption(key));
 }
 
-bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
-  return d_private->getExpressionName(e, name);
+bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
+  return d_exprNames->getExpressionName(e, name);
 }
 
-void SmtEngine::setExpressionName(Expr e, const std::string& name) {
+void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
-  d_private->setExpressionName(e,name);
+  d_exprNames->setExpressionName(e,name);
 }
 
 Options& SmtEngine::getOptions() { return d_options; }

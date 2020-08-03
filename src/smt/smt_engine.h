@@ -93,6 +93,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class ExprNames;
 class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
@@ -858,7 +859,7 @@ class CVC4_PUBLIC SmtEngine
    * Return true if given expressoion has a name in the current context.
    * If it returns true, the name of expression 'e' is stored in 'name'.
    */
-  bool getExpressionName(Expr e, std::string& name) const;
+  bool getExpressionName(const Node& e, std::string& name) const;
 
   /**
    * Set name of given expression 'e' to 'name'.
@@ -866,7 +867,7 @@ class CVC4_PUBLIC SmtEngine
    * This information is user-context-dependent.
    * If 'e' already has a name, it is overwritten.
    */
-  void setExpressionName(Expr e, const std::string& name);
+  void setExpressionName(const Node& e, const std::string& name);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -1121,6 +1122,8 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** Expression names */
+  std::unique_ptr<smt::ExprNames> d_exprNames;
   /** The dump manager */
   std::unique_ptr<smt::DumpManager> d_dumpm;
   /** Resource out listener */
