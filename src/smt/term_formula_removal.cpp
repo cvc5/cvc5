@@ -70,7 +70,8 @@ Node RemoveTermFormulas::run(TNode node,
                              bool inTerm)
 {
   // Current node
-  Trace("rtf-debug") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << endl;
+  Trace("rtf-debug") << "removeITEs(" << node << ")"
+                     << " " << inQuant << " " << inTerm << endl;
 
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
@@ -84,7 +85,8 @@ Node RemoveTermFormulas::run(TNode node,
   if (i != d_tfCache.end())
   {
     Node cached = (*i).second;
-    Trace("rtf-debug") << "removeITEs: in-cache[" << cv << "]: " << cached << std::endl;
+    Trace("rtf-debug") << "removeITEs: in-cache[" << cv << "]: " << cached
+                       << std::endl;
     return cached.isNull() ? Node(node) : cached;
   }
 
@@ -105,8 +107,8 @@ Node RemoveTermFormulas::run(TNode node,
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
       {
-      Trace("rtf-proof-debug")
-          << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
+        Trace("rtf-proof-debug")
+            << "RemoveTermFormulas::run: make ITE skolem" << std::endl;
         // Make the skolem to represent the ITE
         SkolemManager* sm = nodeManager->getSkolemManager();
         skolem = sm->mkPurifySkolem(
@@ -123,7 +125,8 @@ Node RemoveTermFormulas::run(TNode node,
         if (isProofEnabled())
         {
           Trace("rtf-proof-debug")
-              << "RemoveTermFormulas::run: justify " << newAssertion << " with ITE axiom" << std::endl;
+              << "RemoveTermFormulas::run: justify " << newAssertion
+              << " with ITE axiom" << std::endl;
           // ---------------------- REMOVE_TERM_FORMULA_AXIOM
           // (ite node[0]
           //      (= node node[1])            ------------- MACRO_SR_PRED_INTRO
@@ -251,7 +254,8 @@ Node RemoveTermFormulas::run(TNode node,
     if (skolem.isNull())
     {
       Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: make BOOLEAN_TERM_VARIABLE skolem" << std::endl;
+          << "RemoveTermFormulas::run: make BOOLEAN_TERM_VARIABLE skolem"
+          << std::endl;
       // Make the skolem to represent the Boolean term
       // Skolems introduced for Boolean formulas appearing in terms have a
       // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
@@ -313,31 +317,32 @@ Node RemoveTermFormulas::run(TNode node,
         }
       }
       Trace("rtf-debug") << "*** term formula removal introduced " << skolem
-                   << " for " << node << std::endl;
+                         << " for " << node << std::endl;
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
       Node newAssertionPre = newAssertion;
       newAssertion = run(newAssertion, output, newSkolems, false, false);
-      
+
       if (newAssertionPre != newAssertion)
       {
         Trace("rtf-proof-debug")
-            << "RemoveTermFormulas::run: setup proof for processed new lemma" << std::endl;
+            << "RemoveTermFormulas::run: setup proof for processed new lemma"
+            << std::endl;
         // for new assertions that rewrite recursively
         Node naEq = newAssertionPre.eqNode(newAssertion);
         d_lp->addLazyStep(naEq, d_tpg.get());
         // ---------------- from lp  ------------------------------- from tpg
-        // newAssertionPre            newAssertionPre = newAssertion    
+        // newAssertionPre            newAssertionPre = newAssertion
         // --------------------------------------------------------- EQ_RESOLVE
         // newAssertion
         d_lp->addStep(
-            newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre,naEq}, {});
+            newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre, naEq}, {});
       }
 
       theory::TrustNode trna =
           theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
-      
+
       Trace("rtf-proof-debug") << "Checking closed..." << std::endl;
       trna.debugCheckClosed("rtf-proof-debug",
                             "RemoveTermFormulas::run:new_assert");
@@ -356,7 +361,8 @@ Node RemoveTermFormulas::run(TNode node,
     inQuant = true;
   }else if( !inTerm && hasNestedTermChildren( node ) ){
     // Remember if we're inside a term
-    Trace("rtf-debug") << "In term because of " << node << " " << node.getKind() << std::endl;
+    Trace("rtf-debug") << "In term because of " << node << " " << node.getKind()
+                       << std::endl;
     inTerm = true;
   }
 

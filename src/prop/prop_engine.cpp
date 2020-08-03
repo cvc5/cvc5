@@ -488,7 +488,10 @@ void PropEngine::registerClause(SatLiteral satLit)
   // cnf stream
   Trace("sat-proof-steps") << clauseNode << " by literal CNF" << std::endl;
   // FIXME: ensure closed?
-  d_proof.addLazyStep(clauseNode, d_pfCnfStream.get(), false, "PropEngine::registerClause:literal");
+  d_proof.addLazyStep(clauseNode,
+                      d_pfCnfStream.get(),
+                      false,
+                      "PropEngine::registerClause:literal");
   Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
 }
 
@@ -514,7 +517,8 @@ void PropEngine::registerClause(Minisat::Solver::TClause& clause)
   // lazily, like CNF stream and internal SAT solver propagation.
   Trace("sat-proof-steps") << clauseNode << " by clause CNF" << std::endl;
   // FIXME: ensure closed?
-  d_proof.addLazyStep(clauseNode, d_pfCnfStream.get(), false, "PropEngine::registerClause");
+  d_proof.addLazyStep(
+      clauseNode, d_pfCnfStream.get(), false, "PropEngine::registerClause");
   Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
                      << clauseNode << "\n";
 }
@@ -539,8 +543,11 @@ void PropEngine::registerPropagatedTheoryLiteral(Node lit)
     // defer to d_pfCnfStream to justify it, which could be the case for
     // example
     // for unit clauses l1, ..., ln derived from input assertion l1 ^ ... ^ ln
-  // FIXME: ensure closed?
-    d_proof.addLazyStep(lit, d_pfCnfStream.get(), false, "PropEngine::registerPropagatedTheoryLiteral");
+    // FIXME: ensure closed?
+    d_proof.addLazyStep(lit,
+                        d_pfCnfStream.get(),
+                        false,
+                        "PropEngine::registerPropagatedTheoryLiteral");
     Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
                        << " to be justified by cnf conversion\n";
   }
@@ -560,7 +567,8 @@ void PropEngine::explainPropagation(theory::TrustNode trn)
   // d_proof.addProof(exp);
 
   Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
-  d_proof.addLazyStep(proven, trn.getGenerator(), true, "PropEngine::explainPropagation");
+  d_proof.addLazyStep(
+      proven, trn.getGenerator(), true, "PropEngine::explainPropagation");
 
   // since the propagation is added directly to the SAT solver via theoryProxy,
   // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here

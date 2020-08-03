@@ -156,12 +156,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     newLemmas[i].debugCheckClosed("tpp-proof-debug",
                                   "TheoryPreprocessor::lemma_new");
   }
-  if (node==retNode)
+  if (node == retNode)
   {
     // no change
     return TrustNode::null();
   }
-  Trace("tpp-proof-debug") << "Preprocessed: " << node << " " << retNode << std::endl;
+  Trace("tpp-proof-debug") << "Preprocessed: " << node << " " << retNode
+                           << std::endl;
   TrustNode tret = TrustNode::mkTrustRewrite(node, retNode, d_tpg.get());
   tret.debugCheckClosed("tpp-proof-debug", "TheoryPreprocessor::lemma_ret");
   return tret;

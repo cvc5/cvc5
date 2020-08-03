@@ -1696,7 +1696,12 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
         if (!CDProof::isSame(lemmap, lemma))
         {
           // TODO: specific trust step
-          d_lazyProof->addLazyStep(tplemma.getProven(), tplemma.getGenerator(), true, "TheoryEngine::lemma_pp", false, PfRule::TRUST);
+          d_lazyProof->addLazyStep(tplemma.getProven(),
+                                   tplemma.getGenerator(),
+                                   true,
+                                   "TheoryEngine::lemma_pp",
+                                   false,
+                                   PfRule::TRUST);
           // ---------- from d_lazyProof -------------- from theory preprocess
           // lemma                       lemma = lemmap
           // ------------------------------------------ MACRO_SR_PRED_TRANSFORM

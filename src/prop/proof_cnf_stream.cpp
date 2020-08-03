@@ -52,7 +52,8 @@ void ProofCnfStream::convertAndAssert(TNode node,
   Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
   if (pg)
   {
-    d_proof.addLazyStep(toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
+    d_proof.addLazyStep(
+        toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
   }
   convertAndAssert(node, negated);
 }

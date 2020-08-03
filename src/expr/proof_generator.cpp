@@ -15,8 +15,8 @@
 #include "expr/proof_generator.h"
 
 #include "expr/proof.h"
-#include "options/smt_options.h"
 #include "expr/proof_node_algorithm.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 
@@ -96,23 +96,22 @@ void pfgEnsureClosed(Node proven,
     // only failure if flag is true
     if (reqGen)
     {
-      AlwaysAssert(false)
-          << "...pfgEnsureClosed: no generator in context " << ctx
-          << sdiag.str();
+      AlwaysAssert(false) << "...pfgEnsureClosed: no generator in context "
+                          << ctx << sdiag.str();
     }
-    Trace(c) << "...pfgEnsureClosed: no generator in context "
-             << ctx << std::endl;
+    Trace(c) << "...pfgEnsureClosed: no generator in context " << ctx
+             << std::endl;
     return;
   }
   std::shared_ptr<ProofNode> pn = pg->getProofFor(proven);
   Trace(c) << " Proof: " << *pn.get() << std::endl;
   if (pn == nullptr)
   {
-    AlwaysAssert(false) << "...pfgEnsureClosed: null proof from "
-                        << ss.str() << sdiag.str();
+    AlwaysAssert(false) << "...pfgEnsureClosed: null proof from " << ss.str()
+                        << sdiag.str();
   }
   std::vector<Node> assumps;
-  expr::getFreeAssumptions(pn.get(), assumps); 
+  expr::getFreeAssumptions(pn.get(), assumps);
   bool isClosed = assumps.empty();
   if (!isClosed)
   {
@@ -122,9 +121,8 @@ void pfgEnsureClosed(Node proven,
       Trace(c) << "- " << a << std::endl;
     }
   }
-  AlwaysAssert(isClosed)
-      << "...pfgEnsureClosed: open proof from " << ss.str()
-      << sdiag.str();
+  AlwaysAssert(isClosed) << "...pfgEnsureClosed: open proof from " << ss.str()
+                         << sdiag.str();
   Trace(c) << "...pfgEnsureClosed: success" << std::endl;
   Trace(c) << "====" << std::endl;
 }
