@@ -54,15 +54,15 @@ def expand_list_arg(num_req_args=0):
 #### only use default args of None at python level
 
 # References and pointers
-# The Solver object holds a pointer to a c_Solver
-# This is because the assignment operator is deleted in the C++ API for solvers
+# The Solver object holds a pointer to a c_Solver.
+# This is because the assignment operator is deleted in the C++ API for solvers.
 # Cython has a limitation where you can't stack allocate objects
-# that have constructors with arguments
-# https://groups.google.com/forum/#!topic/cython-users/fuKd-nQLpBs
+# that have constructors with arguments:
+# https://groups.google.com/forum/#!topic/cython-users/fuKd-nQLpBs.
 # To get around that you can either have a nullary constructor and assignment
-# or, use a pointer (which is what we chose)
+# or, use a pointer (which is what we chose).
 # An additional complication of this is that to free up resources, you must
-# know when to delete the object
+# know when to delete the object.
 # Python will not follow the same scoping rules as in C++, so it must be
 # able to reference count. To do this correctly, the solver must be a
 # reference in the Python class for any class that keeps a pointer to
