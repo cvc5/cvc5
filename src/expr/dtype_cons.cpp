@@ -51,7 +51,7 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       selectorType,
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-  Trace("datatypes") << type << std::endl;
+  Trace("datatypes") << "DTypeConstructor::addArg: " << type << std::endl;
   std::shared_ptr<DTypeSelector> a =
       std::make_shared<DTypeSelector>(selectorName, type);
   addArg(a);
@@ -60,6 +60,14 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
 void DTypeConstructor::addArg(std::shared_ptr<DTypeSelector> a)
 {
   d_args.push_back(a);
+}
+
+void DTypeConstructor::addArgSelf(std::string selectorName)
+{
+  Trace("datatypes") << "DTypeConstructor::addArgSelf" << std::endl;
+  std::shared_ptr<DTypeSelector> a =
+      std::make_shared<DTypeSelector>(selectorName, Node::null());
+  addArg(a);
 }
 
 std::string DTypeConstructor::getName() const { return d_name; }
@@ -271,6 +279,18 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
     if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
       return static_cast<int>(sindex);
+    }
+  }
+  return -1;
+}
+
+int DTypeConstructor::getSelectorIndexForName(const std::string& name) const
+{
+  for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
+  {
+    if (d_args[i]->getName() == name)
+    {
+      return i;
     }
   }
   return -1;

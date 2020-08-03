@@ -19,6 +19,13 @@ def test_get_kind():
     fx = solver.mkTerm(kinds.ApplyUf, f, x)
     assert fx.getKind() == kinds.ApplyUf
 
+    # Sequence kinds do not exist internally, test that the API properly
+    # converts them back.
+    seqsort = solver.mkSequenceSort(intsort)
+    s = solver.mkConst(seqsort, 's')
+    ss = solver.mkTerm(kinds.SeqConcat, s, s)
+    assert ss.getKind() == kinds.SeqConcat
+
 
 def test_eq():
     solver = pycvc4.Solver()
@@ -86,3 +93,25 @@ def test_is_const():
     assert one.isConst()
     assert not xpone.isConst()
     assert not onepone.isConst()
+
+def test_const_sequence_elements():
+    solver = pycvc4.Solver()
+    realsort = solver.getRealSort()
+    seqsort = solver.mkSequenceSort(realsort)
+    s = solver.mkEmptySequence(seqsort)
+
+    assert s.isConst()
+
+    assert s.getKind() == kinds.ConstSequence
+    # empty sequence has zero elements
+    cs = s.getConstSequenceElements()
+    assert len(cs) == 0
+
+    # A seq.unit app is not a constant sequence (regardless of whether it is
+    # applied to a constant).
+    su = solver.mkTerm(kinds.SeqUnit, solver.mkReal(1))
+    try:
+        su.getConstSequenceElements()
+        assert False
+    except:
+        assert True

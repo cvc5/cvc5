@@ -260,11 +260,13 @@ class CoreSolver
    * a conjunction of splitting string x into pieces based on length l, e.g.:
    *   x = k_1 ++ k_2
    * where k_1 (resp. k_2) is a skolem corresponding to a substring of x of
-   * length l if isRev is false (resp. true).
+   * length l if isRev is false (resp. true). The function optionally adds a
+   * length constraint len(k_1) = l (resp. len(k_2) = l).
    *
    * @param x The string term
    * @param l The length term
    * @param isRev Whether the equation is in a reverse direction
+   * @param addLenConc Whether to add the length constraint
    * @param skc The skolem cache (to allocate fresh variables if necessary)
    * @param newSkolems The vector to add new variables to
    * @return The conclusion of the inference.
@@ -272,6 +274,7 @@ class CoreSolver
   static Node getDecomposeConclusion(Node x,
                                      Node l,
                                      bool isRev,
+                                     bool addLenConc,
                                      SkolemCache* skc,
                                      std::vector<Node>& newSkolems);
 
