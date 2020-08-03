@@ -299,7 +299,9 @@ cdef class Op:
 
 cdef class Grammar:
     cdef c_Grammar  cgrammar
-    def __cinit__(self):
+    cdef Solver solver
+    def __cinit__(self, Solver solver):
+        self.solver = solver
         self.cgrammar = c_Grammar()
 
     def addRule(self, Term ntSymbol, Term rule):
@@ -508,7 +510,7 @@ cdef class Solver:
         return sort
 
     def mkSequenceSort(self, Sort elemSort):
-        cdef Sort sort = Sort()
+        cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkSequenceSort(elemSort.csort)
         return sort
 
@@ -667,7 +669,7 @@ cdef class Solver:
         return term
 
     def mkEmptySequence(self, Sort sort):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         term.cterm = self.csolver.mkEmptySequence(sort.csort)
         return term
 
@@ -832,7 +834,7 @@ cdef class Solver:
         return r
 
     def mkSygusGrammar(self, boundVars, ntSymbols):
-        cdef Grammar grammar = Grammar()
+        cdef Grammar grammar = Grammar(self)
         cdef vector[c_Term] bvc
         cdef vector[c_Term] ntc
         for bv in boundVars:
@@ -843,7 +845,7 @@ cdef class Solver:
         return grammar
 
     def mkSygusVar(self, Sort sort, str symbol=""):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         term.cterm = self.csolver.mkSygusVar(sort.csort, symbol.encode())
         return term
 
@@ -854,7 +856,7 @@ cdef class Solver:
         self.csolver.addSygusInvConstraint(inv_f.cterm, pre_f.cterm, trans_f.cterm, post_f.cterm)
 
     def synthFun(self, str symbol, bound_vars, Sort sort, Grammar grammar=None):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
@@ -870,12 +872,12 @@ cdef class Solver:
         return r
 
     def getSynthSolution(self, Term term):
-        cdef Term t = Term()
+        cdef Term t = Term(self)
         t.cterm = self.csolver.getSynthSolution(term.cterm)
         return t
 
     def synthInv(self, symbol, bound_vars, Grammar grammar=None):
-        cdef Term term = Term()
+        cdef Term term = Term(self)
         cdef vector[c_Term] v
         for bv in bound_vars:
             v.push_back((<Term?> bv).cterm)
@@ -1279,7 +1281,7 @@ cdef class Sort:
         return sort
 
     def getSequenceElementSort(self):
-        cdef Sort sort = Sort()
+        cdef Sort sort = Sort(self.solver)
         sort.csort = self.csort.getSequenceElementSort()
         return sort
 
@@ -1410,7 +1412,7 @@ cdef class Term:
     def getConstSequenceElements(self):
         elems = []
         for e in self.cterm.getConstSequenceElements():
-            term = Term()
+            term = Term(self.solver)
             term.cterm = e
             elems.append(term)
         return elems
