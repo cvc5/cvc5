@@ -247,19 +247,17 @@ Node StringsRewriter::rewriteStringLeq(Node n)
   Assert(!n1.empty() && !n2.empty());
 
   // constant prefixes
-  if (n1[0].isConst() && n2[0].isConst() && n1[0] != n2[0])
+  if (n1[0].isConst() && n2[0].isConst())
   {
     String s = n1[0].getConst<String>();
     String t = n2[0].getConst<String>();
-    // only need to truncate if s is longer
-    if (s.size() > t.size())
+    size_t prefixLen = std::min(s.size(), t.size());
+    s = s.prefix(prefixLen);
+    t = t.prefix(prefixLen);
+    // if the prefixes are not the same, then we can already decide the outcome
+    if (s != t)
     {
-      s = s.prefix(t.size());
-    }
-    // if prefix is not leq, then entire string is not leq
-    if (!s.isLeq(t))
-    {
-      Node ret = nm->mkConst(false);
+      Node ret = nm->mkConst(s.isLeq(t));
       return returnRewrite(n, ret, Rewrite::STR_LEQ_CPREFIX);
     }
   }
