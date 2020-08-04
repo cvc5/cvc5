@@ -16,7 +16,7 @@
 
 namespace CVC4 {
 
-TermContext::TermContext(int32_t dvalue) : d_defaultVal(dvalue)
+TermContext::TermContext(uint32_t ivalue) : d_initVal(ivalue)
 {
   
 }
@@ -24,10 +24,10 @@ TermContext::TermContext(int32_t dvalue) : d_defaultVal(dvalue)
 void TermContext::pushInitial(Node t)
 {
   Assert (d_stack.empty());
-  d_stack.push_back(std::pair<Node, int32_t>(t, d_defaultVal));
+  d_stack.push_back(std::pair<Node, uint32_t>(t, d_initVal));
 }
 
-void TermContext::pushChildren(Node t, int32_t tval)
+void TermContext::pushChildren(Node t, uint32_t tval)
 {
   for (size_t i=0, nchild = t.getNumChildren(); i<nchild; i++)
   {
@@ -35,16 +35,16 @@ void TermContext::pushChildren(Node t, int32_t tval)
   }
 }
 
-void TermContext::pushChild(Node t, int32_t tval, size_t index)
+void TermContext::pushChild(Node t, uint32_t tval, size_t index)
 {
   Assert (index<t.getNumChildren());
-  int32_t tcval = computePushValue(t, tval, index);
-  d_stack.push_back(std::pair<Node, int32_t>(t[index], tcval));
+  uint32_t tcval = computePushValue(t, tval, index);
+  d_stack.push_back(std::pair<Node, uint32_t>(t[index], tcval));
 }
 
-void TermContext::push(Node t, int32_t tval)
+void TermContext::push(Node t, uint32_t tval)
 {
-  d_stack.push_back(std::pair<Node, int32_t>(t, tval));
+  d_stack.push_back(std::pair<Node, uint32_t>(t, tval));
 }
 
 void TermContext::pop()
@@ -66,17 +66,41 @@ bool TermContext::empty()
   return d_stack.empty();
 }
 
-std::pair<Node, int32_t> TermContext::getCurrent() const
+std::pair<Node, uint32_t> TermContext::getCurrent() const
 {
   return d_stack.back();
 }
 
+Node TermContext::getCurrentNodeHash() const
+{
+  std::pair<Node, uint32_t> curr = getCurrent();
+  return NodeManager::currentNM()->mkNode(SEXPR, curr.first, nm->mkConst(Rational(curr.second)));
+}
+
+Node TermContext::decomposeNodeHash(Node h, uint32_t& val)
+{
+  if (h.getKind()!=SEXPR || h.getNumChildren()!=2)
+  {
+    Assert(false) << "TermContext::decomposeNodeHash: unexpected node " << h;
+    return Node::null();
+  }
+  Node ival = h[1];
+  if (!ival.isConst() || !ival.getType().isInteger()
+      || !n.getConst<Rational>().getNumerator().fitsUnsignedInt())
+  {
+    Assert(false) << "TermContext::decomposeNodeHash: unexpected term context integer in hash " << h;
+    return Node::null();
+  }
+  val = ival.getConst<Rational>().getNumerator().toUnsignedInt();
+  return h[0];
+}
+  
 RtfTermContext::RtfTermContext() : TermContext(0)
 {
   
 }
 
-int32_t RtfTermContext::computePushValue(TNode t, int32_t tval, size_t child)
+uint32_t RtfTermContext::computePushValue(TNode t, uint32_t tval, size_t child)
 {
   if (t.isClosure())
   {
@@ -97,22 +121,22 @@ int32_t RtfTermContext::computePushValue(TNode t, int32_t tval, size_t child)
 
 bool RtfTermContext::inQuant() const
 {
-  int32_t val = d_stack.back().first
+  uint32_t val = d_stack.back().first
   return val%2==1;
 }
 
 bool RtfTermContext::inTerm() const
 {
-  int32_t val = d_stack.back().first
+  uint32_t val = d_stack.back().first
   return val>=2;
 }
 
-int32_t RtfTermContext::getValue(bool inQuant, bool inTerm)
+uint32_t RtfTermContext::getValue(bool inQuant, bool inTerm)
 {
   return (inQuant ? 1 : 0) + 2*(inTerm ? 1 : 0);
 }
 
-void RtfTermContext::getFlags(int32_t val, bool& inQuant, bool& inTerm)
+void RtfTermContext::getFlags(uint32_t val, bool& inQuant, bool& inTerm)
 {
   inQuant = val%2==1;
   inTerm = val>=2;

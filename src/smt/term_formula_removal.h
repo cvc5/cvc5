@@ -31,6 +31,7 @@
 #include "theory/trust_node.h"
 #include "util/bool.h"
 #include "util/hash.h"
+#include "expr/term_context.h"
 
 namespace CVC4 {
 
@@ -97,7 +98,7 @@ class RemoveTermFormulas {
    * Substitute under node using pre-existing cache.  Do not remove
    * any ITEs not seen during previous runs.
    */
-  //Node replace(TNode node) const;
+  Node replace(TNode node) const;
 
   /** Returns true if e contains a term ite. */
   bool containsTermITE(TNode e) const;
@@ -160,8 +161,6 @@ class RemoveTermFormulas {
    */
   inline Node getSkolemForNode(Node node) const;
 
-  static bool hasNestedTermChildren( TNode node );
-
   /** A proof node manager */
   std::unique_ptr<ProofNodeManager> d_pnm;
   /**
@@ -185,10 +184,11 @@ class RemoveTermFormulas {
    * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
    *        of a parent term that is not a Boolean connective.
    */
-  Node run(TNode node,
+  Node run(RtfTermContext& cxt,
            std::vector<theory::TrustNode>& newAsserts,
-           std::vector<Node>& newSkolems,
-           RtfTermContext& cxt);
+           std::vector<Node>& newSkolems);
+  /** Replace internal */
+  Node replaceInternal(RtfTermContext& cxt) const;
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;
