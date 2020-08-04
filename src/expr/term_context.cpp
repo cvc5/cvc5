@@ -70,26 +70,31 @@ bool RtfTermContext::hasNestedTermChildren( TNode t ) {
          k!=kind::BITVECTOR_EAGER_ATOM;
 }
 
-uint32_t PolarityTermContext::computeValue( TNode t, uint32_t tval, size_t index ) 
+uint32_t PolarityTermContext::computeValue( TNode t, uint32_t tval, size_t index )  const
 {
-  Kind k = n.getKind();
-  if( k==AND || k==OR || k==SEP_STAR ){
+  switch (n.getKind())
+  {
+    case kind::AND:
+    case kind::OR:
+    case kind::SEP_STAR:
     // polarity preserved
-    return tval;
-  }else if( k==IMPLIES ){
+      return tval;
+    case kind::IMPLIES:
     // first child reverses, otherwise we preserve
     return index==0 ? (tval==0 ? 0 : (3-tval)) : tval;
-  }else if( k==NOT ){
+    case kind::NOT:
     // polarity reversed
-    return tval==0 ? 0 : (3-tval);
-  }else if( k==ITE ){
-    // head has no polarity, branches preserve
-    return index==0 ? 0 : tval;
-  }else if( k==FORALL && index==1 ){
-    // polarity preserved
-    return tval;
+      return tval==0 ? 0 : (3-tval);
+    case kind::ITE:
+      // head has no polarity, branches preserve
+      return index==0 ? 0 : tval;
+    case kind::FORALL:
+      // body preserves, others have no polarity.
+      return index==1 ? tval : 0;
+    default:
+      // no polarity
+      break;
   }
-  // no polarity
   return 0;
 }
 

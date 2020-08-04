@@ -72,7 +72,7 @@ class PolarityTermContext : public TermContext
 public:
   PolarityTermContext();
   /** Compute the value */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) override;
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
   /** get value */
   static uint32_t getValue(bool hasPol, bool pol);
   /** get flags */
