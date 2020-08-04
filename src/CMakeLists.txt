@@ -225,11 +225,13 @@ libcvc4_add_sources(
   smt/abstract_values.h
   smt/command.cpp
   smt/command.h
-  smt/command_list.cpp
-  smt/command_list.h
   smt/defined_function.h
   smt/dump.cpp
   smt/dump.h
+  smt/dump_manager.cpp
+  smt/dump_manager.h
+  smt/expr_names.cpp
+  smt/expr_names.h
   smt/listeners.cpp
   smt/listeners.h
   smt/logic_exception.h
@@ -308,6 +310,8 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad_solver.cpp
+  theory/arith/nl/cad_solver.h
   theory/arith/nl/cad/cdcac.cpp
   theory/arith/nl/cad/cdcac.h
   theory/arith/nl/cad/cdcac_utils.cpp

@@ -2140,6 +2140,27 @@ Term DatatypeConstructor::getConstructorTerm() const
   return ctor;
 }
 
+Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  
+  NodeManager* nm = d_solver->getNodeManager();
+  Node ret = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                           nm->mkConst(AscriptionType(
+                               d_ctor
+                                   ->getSpecializedConstructorType(
+                                       retSort.getType()))),
+                           d_ctor->getConstructor());
+  (void)ret.getType(true); /* kick off type checking */
+  // apply type ascription to the operator
+  Term sctor =
+      api::Term(d_solver,
+                ret);
+  return sctor;
+  
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term DatatypeConstructor::getTesterTerm() const
 {
   Term tst = Term(d_solver, d_ctor->getTester());
