@@ -5089,7 +5089,7 @@ bool Solver::getAbduct(Term conj, Term& output) const
   bool success = d_smtEngine->getAbduct(*conj.d_node, result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5104,7 +5104,7 @@ bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
       *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
