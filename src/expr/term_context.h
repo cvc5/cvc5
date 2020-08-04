@@ -21,7 +21,11 @@
 
 namespace CVC4 {
 
-
+/**
+ * This is an abstract class for computing "term context identifiers". A term
+ * context identifier is a hash value that identifies some property of the
+ * context in which a term occurs.
+ */
 class TermContext
 {
 public:
@@ -30,12 +34,12 @@ public:
   /** Initial value */
   uint32_t initialValue();
   /** 
-   * Compute the term context value of the index^th child of t, where tval
-   * is the term context value of t.
+   * Compute the term context identifier of the index^th child of t, where tval
+   * is the term context identifier of t.
    */
-  virtual uint32_t computeValue(Node t, uint32_t tval, size_t child) = 0;
+  virtual uint32_t computeValue(Node t, uint32_t tval, size_t index) = 0;
 private:
-  /** The initial value when no stack */
+  /** The initial value for terms in no context */
   uint32_t d_initVal;
 };
 
@@ -47,8 +51,8 @@ class RtfTermContext : public TermContext
 {
 public:
   RtfTermContext();
-  /** Compute the push value */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t child) override;
+  /** Compute the value */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) override;
   /** get value */
   static uint32_t getValue(bool inQuant, bool inTerm);
   /** get flags */
@@ -67,18 +71,27 @@ public:
   TCtxNode(Node n, TermContext * tctx);
   /** get number of children */
   size_t getNumChildren() const;
-  /** get child i */
+  /** get child at index i */
   TCtxNode getChild(size_t i) const;
+  //---------------------- utility methods
   /** get node */
   Node getNode() const;
   /** get term context */
   uint32_t getTermContext() const;
-  /** Get current node hash */
+  /** 
+   * Get node hash, which is a unique node representation of this TCtxNode.
+   * This method calls the method below on the data members of this class.
+   */
   Node getNodeHash() const;
-  /** get node hash */
+  /** 
+   * Get node hash, which is a unique node representation of the pair (n, val).
+   */
   static Node computeNodeHash(Node n, uint32_t val);
-  /** Decompose node hash */
+  /** 
+   * Decompose node hash, which is an inverse of the above operation.
+   */
   static Node decomposeNodeHash(Node h, uint32_t& val);
+  //---------------------- end utility methods
 private:
   /** private constructor */
   TCtxNode(Node n, uint32_t val, TermContext * tctx);
@@ -113,10 +126,6 @@ public:
   bool empty() const;
   /** Get the current stack element */
   std::pair<Node, uint32_t> getCurrent() const;
-  /** Get current node hash */
-  Node getCurrentNodeHash() const;
-  /** Decompose node hash */
-  static Node decomposeNodeHash(Node h, uint32_t& val);
 private:
   /** The stack */
   std::vector<std::pair<Node, uint32_t>> d_stack;

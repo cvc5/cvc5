@@ -49,19 +49,6 @@ uint32_t RtfTermContext::computeValue(TNode t, uint32_t tval, size_t child)
   }
   return 
 }
-/*
-bool RtfTermContext::inQuant() const
-{
-  uint32_t val = d_stack.back().first
-  return val%2==1;
-}
-
-bool RtfTermContext::inTerm() const
-{
-  uint32_t val = d_stack.back().first
-  return val>=2;
-}
-*/
 
 uint32_t RtfTermContext::getValue(bool inQuant, bool inTerm)
 {
@@ -190,17 +177,5 @@ std::pair<Node, uint32_t> TCtxStack::getCurrent() const
 {
   return d_stack.back();
 }
-
-Node TCtxStack::getCurrentNodeHash() const
-{
-  std::pair<Node, uint32_t> curr = getCurrent();
-  return TCtxNode::computeNodeHash(curr.first, curr.second);
-}
-
-Node TCtxStack::decomposeNodeHash(Node h, uint32_t& val)
-{
-  return TCtxNode::decomposeNodeHash(h, val);
-}
-
 
 }  // namespace CVC4
