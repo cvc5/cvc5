@@ -72,7 +72,7 @@ bool RtfTermContext::hasNestedTermChildren( TNode t ) {
 
 uint32_t PolarityTermContext::computeValue( TNode t, uint32_t tval, size_t index )  const
 {
-  switch (n.getKind())
+  switch (t.getKind())
   {
     case kind::AND:
     case kind::OR:
