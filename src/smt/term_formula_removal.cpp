@@ -74,12 +74,14 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   std::pair<Node, int32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
-  Debug("ite") << "removeITEs(" << node << ")" << " " << ctx.inQuant() << " " << ctx.inTerm() << std::endl;
 
   if( node.getKind()==kind::INST_PATTERN_LIST )
   {
     return Node(node);
   }
+  bool inQuant, inTerm;
+  RtfTermContext::getFlags(curr, inQuant, inTerm);
+  Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << std::endl;
 
   // The result may be cached already
   NodeManager *nodeManager = NodeManager::currentNM();
@@ -101,7 +103,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   {
     // Here, we eliminate the ITE if we are not Boolean and if we do not contain
     // a free variable.
-    if (!ctx.inQuant() || !expr::hasFreeVar(node))
+    if (!inQuant || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -146,7 +148,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   else if (node.getKind() == kind::LAMBDA)
   {
     // if a lambda, do lambda-lifting
-    if (!ctx.inQuant() || !expr::hasFreeVar(node))
+    if (!inQuant || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -188,7 +190,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
     // If a witness choice
     //   For details on this operator, see
     //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!ctx.inQuant() || !expr::hasFreeVar(node))
+    if (!inQuant || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -232,8 +234,8 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
     }
   }
   else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
-           && ctx.inTerm()
-           && !ctx.inQuant())
+           && inTerm
+           && !inQuant)
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);

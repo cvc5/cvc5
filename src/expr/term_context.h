@@ -65,8 +65,29 @@ private:
 };
 
 // TODO: polarity context
+#if 0
+/**
+ * Computes the polarity of a term.
+ */
+class PolarityTermContext : public TermContext
+{
+public:
+  PolarityTermContext();
+  /** Compute the value */
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) override;
+  /** get value */
+  static uint32_t getValue(bool hasPol, bool pol);
+  /** get flags */
+  static void getFlags(uint32_t val, bool& hasPol, bool& pol);
+};
+#endif
 
 
+/** 
+ * A (term-context) sensitive term. This is a wrapper around a Node that
+ * additionally has a term context identifier, see getTermContext(). It depends
+ * on a pointer to a TermContext callback class from above.
+ */
 class TCtxNode
 {
 public:
@@ -75,11 +96,11 @@ public:
   size_t getNumChildren() const;
   /** get child at index i */
   TCtxNode getChild(size_t i) const;
-  //---------------------- utility methods
   /** get node */
   Node getNode() const;
   /** get term context */
   uint32_t getTermContext() const;
+  //---------------------- utility methods
   /** 
    * Get node hash, which is a unique node representation of this TCtxNode.
    * This method calls the method below on the data members of this class.
@@ -104,6 +125,8 @@ private:
   /** The term context */
   TermContext * d_tctx;
 };
+
+// class RtfTCtxNode ?
 
 class TCtxStack
 {
