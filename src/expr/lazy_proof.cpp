@@ -58,7 +58,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
     {
       visited.insert(cur);
       Node cfact = cur->getResult();
-      if (getProof(cfact).get()!=cur)
+      if (getProof(cfact).get() != cur)
       {
         // we don't own this proof, skip it
         Trace("lazy-cdproof") << "...skip unowned proof" << std::endl;
@@ -110,7 +110,7 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
   } while (!visit.empty());
   // we have now updated the ASSUME leafs of opf, return it
   Trace("lazy-cdproof") << "...finished" << std::endl;
-  Assert (opf->getResult()==fact);
+  Assert(opf->getResult() == fact);
   return opf;
 }
 
@@ -126,9 +126,9 @@ void LazyCDProof::addLazyStep(Node expected,
     // null generator, should have given a proof rule
     if (idNull == PfRule::ASSUME)
     {
-      AlwaysAssert(false)
-          << "LazyCDProof::addLazyStep: " << identify() << ": failed to provide proof generator for "
-          << expected;
+      AlwaysAssert(false) << "LazyCDProof::addLazyStep: " << identify()
+                          << ": failed to provide proof generator for "
+                          << expected;
       return;
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected

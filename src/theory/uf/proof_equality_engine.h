@@ -138,9 +138,7 @@ class ProofEqEngine : public EagerProofGenerator
    * @return true if this fact was processed by this method. If lit already
    * holds in the equality engine, this method returns false.
    */
-  bool assertFact(Node lit,
-                  Node exp,
-                  ProofGenerator* pg);
+  bool assertFact(Node lit, Node exp, ProofGenerator* pg);
   //-------------------------- assert conflicts
   /**
    * This method is called when the equality engine of this class is

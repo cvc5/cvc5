@@ -1773,7 +1773,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
                             << theoryId << ")" << endl;
   Trace("te-proof-debug") << "Check closed conflict" << std::endl;
   // doesn't require proof generator, yet, since THEORY_LEMMA is added below
-  tconflict.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict_initial", false);
+  tconflict.debugCheckClosed(
+      "te-proof-debug", "TheoryEngine::conflict_initial", false);
   // If proofNew is enabled, then either:
   // (1) The lazy proof contains an explicitly provided step (probably
   // THEORY_LEMMA),
@@ -1820,8 +1821,10 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 
     // Process the explanation
     TrustNode tncExp = getExplanation(vec, proofRecipe);
-    Trace("te-proof-debug") << "Check closed conflict explained with sharing" << std::endl;
-    tncExp.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict_explained_sharing");
+    Trace("te-proof-debug")
+        << "Check closed conflict explained with sharing" << std::endl;
+    tncExp.debugCheckClosed("te-proof-debug",
+                            "TheoryEngine::conflict_explained_sharing");
     PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
     Node fullConflict = tncExp.getNode();
 
@@ -1849,9 +1852,13 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       // generator, e.g. d_tepg.
       Node proven = tncExp.getProven();
       Assert(tncExp.getGenerator() != d_lazyProof.get());
-      Trace("te-proof-debug") << "add lazy step " << tncExp.identifyGenerator() << " for " << proven << std::endl;
+      Trace("te-proof-debug") << "add lazy step " << tncExp.identifyGenerator()
+                              << " for " << proven << std::endl;
       d_lazyProof->addLazyStep(proven, tncExp.getGenerator());
-      pfgEnsureClosed(proven,d_lazyProof.get(),"te-proof-debug","TheoryEngine::conflict_during");
+      pfgEnsureClosed(proven,
+                      d_lazyProof.get(),
+                      "te-proof-debug",
+                      "TheoryEngine::conflict_during");
       Node fullConflictNeg = fullConflict.notNode();
       std::vector<Node> children;
       children.push_back(proven);
@@ -1859,7 +1866,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
       args.push_back(fullConflictNeg);
       if (conflict == d_false)
       {
-        AlwaysAssert (proven==fullConflictNeg);
+        AlwaysAssert(proven == fullConflictNeg);
       }
       else
       {
@@ -1867,8 +1874,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
         {
           // ------------------------- explained  ---------- from theory
           // fullConflict => conflict              ~conflict
-          // -------------------------------------------- MACRO_SR_PRED_TRANSFORM
-          // ~fullConflict
+          // --------------------------------------------
+          // MACRO_SR_PRED_TRANSFORM ~fullConflict
           children.push_back(conflict.notNode());
           args.push_back(mkMethodId(MethodId::SB_LITERAL));
           d_lazyProof->addStep(
@@ -1881,7 +1888,8 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
         TrustNode::mkTrustConflict(fullConflict, d_lazyProof.get());
     Debug("theory::conflict") << "TheoryEngine::conflict(" << conflict << ", " << theoryId << "): full = " << fullConflict << endl;
     Assert(properConflict(fullConflict));
-    Trace("te-proof-debug") << "Check closed conflict with sharing" << std::endl;
+    Trace("te-proof-debug")
+        << "Check closed conflict with sharing" << std::endl;
     tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
     lemma(tconf, RULE_CONFLICT, LemmaProperty::REMOVABLE);
   } else {
@@ -1911,7 +1919,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
 
         ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
       });
-    
+
     // pass the trust node that was sent from the theory
     lemma(tconflict,
           RULE_CONFLICT,

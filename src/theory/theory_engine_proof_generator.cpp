@@ -30,7 +30,7 @@ theory::TrustNode TheoryEngineProofGenerator::mkTrustExplain(
 {
   Node p;
   theory::TrustNode trn;
-  if (lit==d_false)
+  if (lit == d_false)
   {
     // propagation of false is a conflict
     trn = theory::TrustNode::mkTrustConflict(exp, this);
@@ -71,14 +71,16 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
     exp = f[0];
     conclusion = f[1];
   }
-  else if (f.getKind()==NOT)
+  else if (f.getKind() == NOT)
   {
     exp = f[0];
     conclusion = d_false;
   }
   else
   {
-    AlwaysAssert(false) << "TheoryEngineProofGenerator::getProofFor: unexpected fact " << f << std::endl;
+    AlwaysAssert(false)
+        << "TheoryEngineProofGenerator::getProofFor: unexpected fact " << f
+        << std::endl;
     return nullptr;
   }
   // get the assumptions to assume in a scope
@@ -97,13 +99,14 @@ std::shared_ptr<ProofNode> TheoryEngineProofGenerator::getProofFor(Node f)
   std::shared_ptr<ProofNode> pfb = lcp->getProofFor(conclusion);
   // call the scope method of proof node manager
   std::shared_ptr<ProofNode> pf = d_pnm->mkScope(pfb, scopeAssumps);
-  
-  if (pf->getResult()!=f)
+
+  if (pf->getResult() != f)
   {
     std::stringstream serr;
     serr << "TheoryEngineProofGenerator::getProofFor: Proof: " << std::endl;
     serr << *pf << std::endl;
-    serr << "TheoryEngineProofGenerator::getProofFor: unexpected return proof" << std::endl;
+    serr << "TheoryEngineProofGenerator::getProofFor: unexpected return proof"
+         << std::endl;
     serr << "  Expected: " << f << std::endl;
     serr << "       Got: " << pf->getResult() << std::endl;
     AlwaysAssert(false) << serr.str();
