@@ -77,28 +77,16 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
           // do not use the addProofTo interface
           // instead use the update node interface
           std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
-          bool success = false;
           if (isSym)
           {
-            success = d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
+            d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
           }
           else
           {
-            success = d_manager->updateNode(cur, pgc.get());
+            d_manager->updateNode(cur, pgc.get());
           }
-          if (success)
-          {
-            Trace("lazy-cdproof") << "LazyCDProof: Failed added fact for "
-                                  << cfactGen << std::endl;
-            Assert(false) << "Proof generator " << pg->identify()
-                          << " could not add proof for fact " << cfactGen
-                          << std::endl;
-          }
-          else
-          {
-            Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
-                                  << cfactGen << std::endl;
-          }
+          Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
+                                << cfactGen << std::endl;
         }
         else
         {
