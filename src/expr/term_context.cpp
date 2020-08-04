@@ -20,7 +20,7 @@ TermContext::TermContext(uint32_t ivalue) : d_initVal(ivalue)
 {
   
 }
-uint32_t TermContext::initialValue()
+uint32_t TermContext::initialValue() const
 {
   return d_initVal;
 }
@@ -31,7 +31,7 @@ RtfTermContext::RtfTermContext() : TermContext(0)
   
 }
 
-uint32_t RtfTermContext::computeValue(TNode t, uint32_t tval, size_t child)
+uint32_t RtfTermContext::computeValue(TNode t, uint32_t tval, size_t child) const
 {
   if (t.isClosure())
   {
@@ -62,15 +62,16 @@ void RtfTermContext::getFlags(uint32_t val, bool& inQuant, bool& inTerm)
 }
 
 bool RtfTermContext::hasNestedTermChildren( TNode t ) {
+  Kind k = t.getKind();
   // dont' worry about FORALL or EXISTS, these are part of inQuant.
-  return theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
-         node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
-         node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
-         node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
+  return theory::kindToTheoryId(k)!=theory::THEORY_BOOL && 
+         k!=kind::EQUAL && k!=kind::SEP_STAR && 
+         k!=kind::SEP_WAND && k!=kind::SEP_LABEL && 
+         k!=kind::BITVECTOR_EAGER_ATOM;
 }
 
 
-TCtxNode::TCtxNode(Node n, const TermContext * tctx) : d_node(n), d_val(val), d_tctx(tctx)
+TCtxNode::TCtxNode(Node n, const TermContext * tctx) : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
 {
 }
 
@@ -107,19 +108,20 @@ Node TCtxNode::getNodeHash() const
 
 Node TCtxNode::computeNodeHash(Node n, uint32_t val)
 {
-  return NodeManager::currentNM()->mkNode(SEXPR, n, nm->mkConst(Rational(val)));
+  NodeManager * nm = NodeManager::currentNM();
+  return nm->mkNode(kind::SEXPR, n, nm->mkConst(Rational(val)));
 }
 
 Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
 {  
-  if (h.getKind()!=SEXPR || h.getNumChildren()!=2)
+  if (h.getKind()!=kind::SEXPR || h.getNumChildren()!=2)
   {
     Assert(false) << "TermContext::decomposeNodeHash: unexpected node " << h;
     return Node::null();
   }
   Node ival = h[1];
   if (!ival.isConst() || !ival.getType().isInteger()
-      || !n.getConst<Rational>().getNumerator().fitsUnsignedInt())
+      || !ival.getConst<Rational>().getNumerator().fitsUnsignedInt())
   {
     Assert(false) << "TermContext::decomposeNodeHash: unexpected term context integer in hash " << h;
     return Node::null();
@@ -172,7 +174,7 @@ size_t TCtxStack::size() const
   return d_stack.size();
 }
 
-bool TCtxStack::empty()
+bool TCtxStack::empty() const
 {
   return d_stack.empty();
 }

@@ -32,12 +32,12 @@ public:
   TermContext(uint32_t ivalue = 0);
   virtual ~TermContext(){}
   /** Initial value */
-  uint32_t initialValue();
+  uint32_t initialValue() const;
   /** 
    * Compute the term context identifier of the index^th child of t, where tval
    * is the term context identifier of t.
    */
-  virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) = 0;
+  virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) const = 0;
 private:
   /** The initial value for terms in no context */
   uint32_t d_initVal;
@@ -52,7 +52,7 @@ class RtfTermContext : public TermContext
 public:
   RtfTermContext();
   /** Compute the value */
-  uint32_t computeValue(TNode t, uint32_t tval, size_t index) override;
+  uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
   /** get value */
   static uint32_t getValue(bool inQuant, bool inTerm);
   /** get flags */
