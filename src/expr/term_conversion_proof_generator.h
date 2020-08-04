@@ -102,7 +102,7 @@ class TConvProofGenerator : public ProofGenerator
                       TConvPolicy pol = TConvPolicy::FIXPOINT,
                       TConvCachePolicy cpol = TConvCachePolicy::NEVER,
                       std::string name = "TConvProofGenerator",
-                      TermContext * tctx = nullptr);
+                      TermContext* tctx = nullptr);
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
@@ -110,22 +110,27 @@ class TConvProofGenerator : public ProofGenerator
    * @param isClosed whether to expect that pg can provide a closed proof for
    * this fact.
    */
-  void addRewriteStep(Node t, Node s, ProofGenerator* pg, bool isClosed = true, uint32_t tctx=0);
+  void addRewriteStep(Node t,
+                      Node s,
+                      ProofGenerator* pg,
+                      bool isClosed = true,
+                      uint32_t tctx = 0);
   /** Same as above, for a single step */
-  void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx=0);
+  void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);
   /** Same as above, with explicit arguments */
   void addRewriteStep(Node t,
                       Node s,
                       PfRule id,
                       const std::vector<Node>& children,
-                      const std::vector<Node>& args, uint32_t tctx=0);
+                      const std::vector<Node>& args,
+                      uint32_t tctx = 0);
   /** Has rewrite step for term t */
-  bool hasRewriteStep(Node t, uint32_t tctx=0) const;
+  bool hasRewriteStep(Node t, uint32_t tctx = 0) const;
   /** 
    * Get rewrite step for term t, returns the s provided in a call to
    * addRewriteStep if one exists, or null otherwise.
    */
-  Node getRewriteStep(Node t, uint32_t tctx=0) const;
+  Node getRewriteStep(Node t, uint32_t tctx = 0) const;
   /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps

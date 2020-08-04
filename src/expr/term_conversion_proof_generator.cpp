@@ -46,7 +46,7 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
-                      TermContext * tctx)
+                                         TermContext* tctx)
     : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
       d_rewriteMap(c ? c : &d_context),
       d_policy(pol),
@@ -58,10 +58,8 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
 
 TConvProofGenerator::~TConvProofGenerator() {}
 
-void TConvProofGenerator::addRewriteStep(Node t,
-                                         Node s,
-                                         ProofGenerator* pg,
-                                         bool isClosed, uint32_t tctx)
+void TConvProofGenerator::addRewriteStep(
+    Node t, Node s, ProofGenerator* pg, bool isClosed, uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx);
   if (!eq.isNull())
@@ -70,7 +68,10 @@ void TConvProofGenerator::addRewriteStep(Node t,
   }
 }
 
-void TConvProofGenerator::addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx)
+void TConvProofGenerator::addRewriteStep(Node t,
+                                         Node s,
+                                         ProofStep ps,
+                                         uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx);
   if (!eq.isNull())
@@ -84,7 +85,8 @@ void TConvProofGenerator::addRewriteStep(Node t,
                                          Node s,
                                          PfRule id,
                                          const std::vector<Node>& children,
-                                         const std::vector<Node>& args, uint32_t tctx)
+                                         const std::vector<Node>& args,
+                                         uint32_t tctx)
 {
   Node eq = registerRewriteStep(t, s, tctx);
   if (!eq.isNull())
@@ -102,7 +104,7 @@ bool TConvProofGenerator::hasRewriteStep(Node t, uint32_t tctx) const
 Node TConvProofGenerator::getRewriteStep(Node t, uint32_t tctx) const
 {
   Node thash = t;
-  if (d_tcontext!=nullptr)
+  if (d_tcontext != nullptr)
   {
     thash = TCtxNode::computeNodeHash(t, tctx);
   }
@@ -116,7 +118,7 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s, uint32_t tctx)
     return Node::null();
   }
   Node thash = t;
-  if (d_tcontext!=nullptr)
+  if (d_tcontext != nullptr)
   {
     thash = TCtxNode::computeNodeHash(t, tctx);
   }
@@ -238,7 +240,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   // otherwise, visit is used if we don't have a term context
   std::vector<TNode> visit;
   Node tinitialHash;
-  if (tctx!=nullptr)
+  if (tctx != nullptr)
   {
     visitctx = std::make_shared<TCtxStack>(tctx);
     visitctx->pushInitial(t);
@@ -255,7 +257,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   do
   {
     // pop the top element
-    if (tctx!=nullptr)
+    if (tctx != nullptr)
     {
       std::pair<Node, uint32_t> curPair = visitctx->getCurrent();
       cur = curPair.first;
@@ -295,7 +297,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           // the final rewritten form for cur yet. Instead we revisit cur after
           // finishing visiting rcur.
           rewritten[curHash] = rcur;
-          if (tctx!=nullptr)
+          if (tctx != nullptr)
           {
             visitctx->push(cur, curTCtx);
             visitctx->push(rcur, curTCtx);
@@ -314,7 +316,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           doCache(curHash, cur, rcur, pf);
         }
       }
-      else if (tctx!=nullptr)
+      else if (tctx != nullptr)
       {
         visitctx->push(cur, curTCtx);
         visitctx->pushChildren(cur, curTCtx);
@@ -393,7 +395,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           }
           Node result = cur.eqNode(ret);
           pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
-          if (tctx!=nullptr)
+          if (tctx != nullptr)
           {
             // must update the hash if context dependent
             retHash = TCtxNode::computeNodeHash(ret, curTCtx);
@@ -412,7 +414,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           // here, for the same reasons as above. It also may be the case that
           // rret rewrites, hence we must revisit ret.
           rewritten[retHash] = rret;
-          if (tctx!=nullptr)
+          if (tctx != nullptr)
           {
             if (cur != ret)
             {
@@ -446,11 +448,14 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   return t.eqNode(visited[tinitialHash]);
 }
 
-void TConvProofGenerator::doCache(Node curHash, Node cur, Node r, LazyCDProof& pf)
+void TConvProofGenerator::doCache(Node curHash,
+                                  Node cur,
+                                  Node r,
+                                  LazyCDProof& pf)
 {
   if (d_cpolicy != TConvCachePolicy::NEVER)
   {
-    Node eq = cur.eqNode(r);  
+    Node eq = cur.eqNode(r);
     d_cache[curHash] = pf.getProofFor(eq);
   }
 }
