@@ -757,6 +757,12 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   return cmd;
 } /* Smt2::setLogic() */
 
+api::Grammar* Smt2::addGrammar(api::Grammar g)
+{
+  d_allocGrammars.emplace_back(new api::Grammar(std::move(g)));
+  return d_allocGrammars.back().get();
+}
+
 bool Smt2::sygus() const
 {
   InputLanguage ilang = getLanguage();

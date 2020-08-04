@@ -549,7 +549,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
   std::unique_ptr<Smt2::SynthFunFactory> synthFunFactory;
   std::string name, fun;
   bool isInv;
-  std::unique_ptr<CVC4::api::Grammar> grammar;
+  CVC4::api::Grammar* grammar = nullptr;
 }
   : /* declare-var */
     DECLARE_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -580,8 +580,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
       sygusGrammar[grammar, synthFunFactory->getSygusVars(), fun]
     )?
     {
-      cmd = synthFunFactory->mkCommand(grammar.get());
-      PARSER_STATE->getAllocGrammars().push_back(std::move(grammar));
+      cmd = synthFunFactory->mkCommand(grammar);
     }
   | /* constraint */
     CONSTRAINT_TOK {
@@ -618,7 +617,7 @@ sygusCommand returns [std::unique_ptr<CVC4::Command> cmd]
  * The argument fun is a unique identifier to avoid naming clashes for the
  * datatypes constructed by this call.
  */
-sygusGrammar[std::unique_ptr<CVC4::api::Grammar>& ret,
+sygusGrammar[CVC4::api::Grammar*& ret,
              const std::vector<CVC4::api::Term>& sygusVars,
              const std::string& fun]
 @declarations
@@ -677,8 +676,7 @@ sygusGrammar[std::unique_ptr<CVC4::api::Grammar>& ret,
       api::Term nts = PARSER_STATE->bindBoundVar(i.first, i.second);
       ntSyms.push_back(nts);
     }
-  ret.reset(
-      new api::Grammar(std::move(SOLVER->mkSygusGrammar(sygusVars, ntSyms))));
+    ret = PARSER_STATE->addGrammar(SOLVER->mkSygusGrammar(sygusVars, ntSyms));
   }
   // the grouped rule listing
   LPAREN_TOK
@@ -916,7 +914,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   std::vector<api::Sort> sorts;
   std::vector<std::pair<std::string, CVC4::api::Sort> > sortedVarNames;
   std::unique_ptr<CVC4::CommandSequence> seq;
-    std::unique_ptr<api::Grammar> g;
+  api::Grammar* g = nullptr;
 }
     /* Extended SMT-LIB set of commands syntax, not permitted in
      * --smtlib2 compliance mode. */
@@ -1085,8 +1083,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetAbductCommand(SOLVER, name, e, g.get()));
-      PARSER_STATE->getAllocGrammars().push_back(std::move(g));
+      cmd->reset(new GetAbductCommand(SOLVER, name, e, g));
     }
   | GET_INTERPOL_TOK {
       PARSER_STATE->checkThatLogicIsSet();
@@ -1097,8 +1094,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
       sygusGrammar[g, terms, name]
     )?
     {
-      cmd->reset(new GetInterpolCommand(SOLVER, name, e, g.get()));
-      PARSER_STATE->getAllocGrammars().push_back(std::move(g));
+      cmd->reset(new GetInterpolCommand(SOLVER, name, e, g));
     }
   | DECLARE_HEAP LPAREN_TOK
     sortSymbol[t, CHECK_DECLARED]

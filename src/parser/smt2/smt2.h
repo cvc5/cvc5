@@ -262,12 +262,10 @@ class Smt2 : public Parser
   const LogicInfo& getLogic() const { return d_logic; }
 
   /**
-   * Get the sygus grammars.
+   * Add g to the list of grammars to keep track of.
+   * @param g grammar to keep track of
    */
-  std::vector<std::unique_ptr<api::Grammar>>& getAllocGrammars()
-  {
-    return d_allocGrammars;
-  }
+  api::Grammar* addGrammar(api::Grammar g);
 
   bool v2_0() const
   {
