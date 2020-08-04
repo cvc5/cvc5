@@ -22,7 +22,10 @@ namespace CVC4 {
 namespace smt {
 
 DumpManager::DumpManager(context::UserContext* u)
-    : d_modelGlobalCommands(), d_modelCommands(u), d_dumpCommands()
+    : d_fullyInited(false),
+      d_modelGlobalCommands(),
+      d_modelCommands(u),
+      d_dumpCommands()
 {
 }
 

@@ -1603,7 +1603,9 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
-  Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
+  // dumping SynthFunCommand from smt-engine is currently broken (please take at
+  // CVC4/cvc4-projects#211)
+  // Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }

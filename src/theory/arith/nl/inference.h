@@ -67,6 +67,11 @@ enum class Inference : uint32_t
   T_TANGENT,
   // secant refinement, the dual of the above inference
   T_SECANT,
+  //-------------------- cad solver
+  // conflict / infeasible subset obtained from cad
+  CAD_CONFLICT,
+  // excludes an interval for a single variable
+  CAD_EXCLUDED_INTERVAL,
   //-------------------- unknown
   UNKNOWN,
 };
