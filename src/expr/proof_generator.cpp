@@ -86,9 +86,12 @@ void pfgEnsureClosed(Node proven,
     return;
   }
   std::stringstream ss;
-  ss << (pg == nullptr ? "null" : pg->identify()) << " in context " << ctx;
+  ss << "ProofGenerator: " << (pg == nullptr ? "null" : pg->identify()) << " in context " << ctx;
   std::stringstream sdiag;
-  sdiag << ", use -t " << c << " for details";
+  if (!Trace.isOn(c))
+  {
+    sdiag << ", use -t " << c << " for details";
+  }
   Trace(c) << "=== pfgEnsureClosed: " << ss.str() << std::endl;
   Trace(c) << "Proven: " << proven << std::endl;
   if (pg == nullptr)

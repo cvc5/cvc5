@@ -120,7 +120,7 @@ bool ProofEqEngine::assertFact(Node lit,
     ps.d_args = args;
     d_factPg.addStep(lit, ps);
     // add lazy step to proof
-    d_proof.addLazyStep(lit, &d_factPg);
+    d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
@@ -154,7 +154,7 @@ bool ProofEqEngine::assertFact(Node lit,
     ps.d_args = args;
     d_factPg.addStep(lit, ps);
     // add lazy step to proof
-    d_proof.addLazyStep(lit, &d_factPg);
+    d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
@@ -181,7 +181,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
       d_factPg.addStep(step.first, step.second);
     }
     // add lazy step to proof
-    d_proof.addLazyStep(lit, &d_factPg);
+    d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);

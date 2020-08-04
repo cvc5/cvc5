@@ -38,6 +38,7 @@ std::shared_ptr<ProofNode> CDProof::getProofFor(Node fact)
   std::shared_ptr<ProofNode> pfa =
       d_manager->mkNode(PfRule::ASSUME, passume, pargs, fact);
   d_nodes.insert(fact, pfa);
+  Assert (pfa->getResult()==fact);
   return pfa;
 }
 
@@ -278,9 +279,11 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
     // If we aren't doing a deep copy, we either store pn or link its top
     // node into the existing pointer
     Node curFact = pn->getResult();
+    Trace("cdproof") << "CDProof::addProof: add proof (no copy), fact " << curFact << std::endl;
     std::shared_ptr<ProofNode> cur = getProofSymm(curFact);
     if (cur == nullptr)
     {
+      Trace("cdproof") << "...simple, add " << this << " since no proof of " << curFact << std::endl;
       // Assert that the checker of this class agrees with (the externally
       // provided) pn. This ensures that if pn was checked by a different
       // checker than the one of the manager in this class, then it is double
@@ -299,8 +302,14 @@ bool CDProof::addProof(std::shared_ptr<ProofNode> pn,
       if (!d_manager->updateNode(
               cur.get(), pn->getRule(), pn->getChildren(), pn->getArguments()))
       {
+        Trace("cdproof") << "...overwrite, fail" << std::endl;
         return false;
       }
+      Trace("cdproof") << "...overwrite, success" << std::endl;
+    }
+    else
+    {
+      Trace("cdproof") << "...no overwrite" << std::endl;
     }
     // also need to connect via SYMM if necessary
     notifyNewProof(curFact);
