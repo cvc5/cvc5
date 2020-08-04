@@ -70,6 +70,40 @@ bool RtfTermContext::hasNestedTermChildren( TNode t ) {
          k!=kind::BITVECTOR_EAGER_ATOM;
 }
 
+uint32_t PolarityTermContext::computeValue( TNode t, uint32_t tval, size_t index ) 
+{
+  Kind k = n.getKind();
+  if( k==AND || k==OR || k==SEP_STAR ){
+    // polarity preserved
+    return tval;
+  }else if( k==IMPLIES ){
+    // first child reverses, otherwise we preserve
+    return index==0 ? (tval==0 ? 0 : (3-tval)) : tval;
+  }else if( k==NOT ){
+    // polarity reversed
+    return tval==0 ? 0 : (3-tval);
+  }else if( k==ITE ){
+    // head has no polarity, branches preserve
+    return index==0 ? 0 : tval;
+  }else if( k==FORALL && index==1 ){
+    // polarity preserved
+    return tval;
+  }
+  // no polarity
+  return 0;
+}
+
+uint32_t PolarityTermContext::getValue(bool hasPol, bool pol)
+{
+  return hasPol ? ( pol ? 2 : 1 ) : 0;
+}
+
+void PolarityTermContext::getFlags(uint32_t val, bool& hasPol, bool& pol)
+{
+  hasPol = val==0;
+  pol = val==2;
+}
+
 
 TCtxNode::TCtxNode(Node n, const TermContext * tctx) : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
 {
@@ -162,7 +196,7 @@ void TCtxStack::push(Node t, uint32_t tval)
 
 void TCtxStack::pop()
 {
-  d_stack.pop();
+  d_stack.pop_back();
 }
 
 void TCtxStack::clear()

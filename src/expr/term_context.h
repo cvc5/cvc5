@@ -64,8 +64,6 @@ private:
   static bool hasNestedTermChildren( TNode t );
 };
 
-// TODO: polarity context
-#if 0
 /**
  * Computes the polarity of a term.
  */
@@ -80,8 +78,6 @@ public:
   /** get flags */
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
 };
-#endif
-
 
 /** 
  * A (term-context) sensitive term. This is a wrapper around a Node that
