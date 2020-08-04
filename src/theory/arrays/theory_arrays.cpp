@@ -431,16 +431,22 @@ void TheoryArrays::explain(TNode literal, std::vector<TNode>& assumptions,
   } else {
     d_equalityEngine.explainPredicate(atom, polarity, assumptions, proof);
   }
-  if(proof){
-    Debug("pf::array") << " Proof is : " << std::endl;
-    proof->debug_print("pf::array");
-  }
+  if (Debug.isOn("pf::array"))
+  {
+    if (proof)
+    {
+      Debug("pf::array") << " Proof is : " << std::endl;
+      proof->debug_print("pf::array");
+    }
 
-  Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::array") << assumptions[i] << " ";
+    Debug("pf::array") << "Array: explain( " << literal << " ):" << std::endl
+                       << "\t";
+    for (unsigned i = 0; i < assumptions.size(); ++i)
+    {
+      Debug("pf::array") << assumptions[i] << " ";
+    }
+    Debug("pf::array") << std::endl;
   }
-  Debug("pf::array") << std::endl;
 }
 
 TNode TheoryArrays::weakEquivGetRep(TNode node) {
@@ -1526,10 +1532,12 @@ void TheoryArrays::check(Effort e) {
 
 Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned startIndex)
 {
-  Assert(conjunctions.size() > 0);
+  if (conjunctions.empty())
+  {
+    return invert ? d_false : d_true;
+  }
 
   std::set<TNode> all;
-  std::set<TNode> explained;
 
   unsigned i = startIndex;
   TNode t;
@@ -1544,23 +1552,6 @@ Node TheoryArrays::mkAnd(std::vector<TNode>& conjunctions, bool invert, unsigned
           continue;
         }
         all.insert(*child_it);
-      }
-    }
-    else if (t.getKind() == kind::OR) {
-      // Expand explanation resulting from propagating a ROW or EXT lemma
-      if ((explained.find(t) == explained.end())) {
-        if (t[1].getKind() == kind::EQUAL) {
-          // ROW lemma
-          d_equalityEngine.explainEquality(t[1][0], t[1][1], false, conjunctions);
-          explained.insert(t);
-        } else {
-          // EXT lemma
-          Assert(t[1].getKind() == kind::NOT
-                 && t[1][0].getKind() == kind::EQUAL);
-          Assert(t[0].getKind() == kind::EQUAL);
-          all.insert(t[0].notNode());
-          explained.insert(t);
-        }
       }
     }
     else {
@@ -1930,8 +1921,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
     if (d_equalityEngine.areDisequal(i,j,true) && (bothExist || prop > 1)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating aj = bj ("<<aj<<", "<<bj<<")\n";
       Node aj_eq_bj = aj.eqNode(bj);
-      Node i_eq_j = i.eqNode(j);
-      Node reason = nm->mkNode(kind::OR, aj_eq_bj, i_eq_j);
+      Node reason =
+          (i.isConst() && j.isConst()) ? d_true : i.eqNode(j).notNode();
       d_permRef.push_back(reason);
       if (!ajExists) {
         preRegisterTermInternal(aj);
@@ -1945,9 +1936,9 @@ void TheoryArrays::propagate(RowLemmaType lem)
     }
     if (bothExist && d_equalityEngine.areDisequal(aj,bj,true)) {
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::queueRowLemma: propagating i = j ("<<i<<", "<<j<<")\n";
-      Node aj_eq_bj = aj.eqNode(bj);
+      Node reason =
+          (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
-      Node reason = nm->mkNode(kind::OR, i_eq_j, aj_eq_bj);
       d_permRef.push_back(reason);
       d_equalityEngine.assertEquality(i_eq_j, true, reason, d_reasonRow);
       ++d_numProp;

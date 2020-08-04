@@ -1491,6 +1491,31 @@ class CVC4_PUBLIC DatatypeConstructor
   Term getConstructorTerm() const;
 
   /**
+   * Get the constructor operator of this datatype constructor whose return
+   * type is retSort. This method is intended to be used on constructors of
+   * parametric datatypes and can be seen as returning the constructor
+   * term that has been explicitly cast to the given sort.
+   *
+   * This method is required for constructors of parametric datatypes whose
+   * return type cannot be determined by type inference. For example, given:
+   *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
+   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * this is done via the syntax for qualified identifiers:
+   *   (as nil (List Int))
+   * This method is equivalent of applying the above, where this
+   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * (List Int).
+   *
+   * Furthermore note that the returned constructor term t is an operator,
+   * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
+   * (nullary) application of nil.
+   *
+   * @param retSort the desired return sort of the constructor
+   * @return the constructor term
+   */
+  Term getSpecializedConstructorTerm(Sort retSort) const;
+
+  /**
    * Get the tester operator of this datatype constructor.
    * @return the tester operator
    */
@@ -1953,6 +1978,11 @@ class CVC4_PUBLIC Grammar
    * @param rule the rules to add
    */
   void addRules(Term ntSymbol, std::vector<Term> rules);
+
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
 
  private:
   /**
@@ -2783,7 +2813,8 @@ class CVC4_PUBLIC Solver
   Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
-   * Create (bound) variable.
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable

@@ -36,6 +36,8 @@ class DatatypeBlack : public CxxTest::TestSuite
 
   void testDatatypeSimplyRec();
 
+  void testDatatypeSpecializedCons();
+
  private:
   Solver d_solver;
 };
@@ -518,4 +520,57 @@ void DatatypeBlack::testDatatypeSimplyRec()
   TS_ASSERT(dtsorts.size() == 1);
   TS_ASSERT(dtsorts[0].getDatatype().isWellFounded());
   TS_ASSERT(dtsorts[0].getDatatype().hasNestedRecursion());
+}
+
+void DatatypeBlack::testDatatypeSpecializedCons()
+{
+  /* Create mutual datatypes corresponding to this definition block:
+   *   DATATYPE
+   *     plist[X] = pcons(car: X, cdr: plist[X]) | pnil
+   *   END;
+   */
+  // Make unresolved types as placeholders
+  std::set<Sort> unresTypes;
+  Sort unresList = d_solver.mkSortConstructorSort("plist", 1);
+  unresTypes.insert(unresList);
+
+  std::vector<Sort> v;
+  Sort x = d_solver.mkParamSort("X");
+  v.push_back(x);
+  DatatypeDecl plist = d_solver.mkDatatypeDecl("plist", v);
+
+  std::vector<Sort> args;
+  args.push_back(x);
+  Sort urListX = unresList.instantiate(args);
+
+  DatatypeConstructorDecl pcons = d_solver.mkDatatypeConstructorDecl("pcons");
+  pcons.addSelector("car", x);
+  pcons.addSelector("cdr", urListX);
+  plist.addConstructor(pcons);
+  DatatypeConstructorDecl nil5 = d_solver.mkDatatypeConstructorDecl("pnil");
+  plist.addConstructor(nil5);
+
+  std::vector<DatatypeDecl> dtdecls;
+  dtdecls.push_back(plist);
+
+  std::vector<Sort> dtsorts;
+  // make the datatype sorts
+  TS_ASSERT_THROWS_NOTHING(dtsorts =
+                               d_solver.mkDatatypeSorts(dtdecls, unresTypes));
+  TS_ASSERT(dtsorts.size() == 1);
+  Datatype d = dtsorts[0].getDatatype();
+  DatatypeConstructor nilc = d[0];
+
+  Sort isort = d_solver.getIntegerSort();
+  std::vector<Sort> iargs;
+  iargs.push_back(isort);
+  Sort listInt = dtsorts[0].instantiate(iargs);
+
+  Term testConsTerm;
+  // get the specialized constructor term for list[Int]
+  TS_ASSERT_THROWS_NOTHING(testConsTerm =
+                               nilc.getSpecializedConstructorTerm(listInt));
+  TS_ASSERT(testConsTerm != nilc.getConstructorTerm());
+  // error to get the specialized constructor term for Int
+  TS_ASSERT_THROWS(nilc.getSpecializedConstructorTerm(isort), CVC4ApiException&);
 }

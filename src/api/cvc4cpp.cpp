@@ -1414,13 +1414,19 @@ size_t OpHashFunction::operator()(const Op& t) const
 Term::Term() : d_solver(nullptr), d_node(new CVC4::Node()) {}
 
 Term::Term(const Solver* slv, const CVC4::Expr& e)
-    : d_solver(slv), d_node(new CVC4::Node(e))
+    : d_solver(slv)
 {
+  // Ensure that we create the node in the correct node manager.
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_node.reset(new CVC4::Node(e));
 }
 
 Term::Term(const Solver* slv, const CVC4::Node& n)
-    : d_solver(slv), d_node(new CVC4::Node(n))
+    : d_solver(slv)
 {
+  // Ensure that we create the node in the correct node manager.
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_node.reset(new CVC4::Node(n));
 }
 
 Term::~Term()
@@ -2136,6 +2142,27 @@ Term DatatypeConstructor::getConstructorTerm() const
   return ctor;
 }
 
+Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  
+  NodeManager* nm = d_solver->getNodeManager();
+  Node ret = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                           nm->mkConst(AscriptionType(
+                               d_ctor
+                                   ->getSpecializedConstructorType(
+                                       retSort.getType()))),
+                           d_ctor->getConstructor());
+  (void)ret.getType(true); /* kick off type checking */
+  // apply type ascription to the operator
+  Term sctor =
+      api::Term(d_solver,
+                ret);
+  return sctor;
+  
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term DatatypeConstructor::getTesterTerm() const
 {
   Term tst = Term(d_solver, d_ctor->getTester());
@@ -2446,6 +2473,18 @@ bool Datatype::const_iterator::operator!=(
 /* -------------------------------------------------------------------------- */
 /* Grammar                                                                    */
 /* -------------------------------------------------------------------------- */
+
+Grammar::Grammar()
+    : d_solver(nullptr),
+      d_sygusVars(),
+      d_ntSyms(),
+      d_ntsToTerms(0),
+      d_allowConst(),
+      d_allowVars(),
+      d_isResolved(false)
+{
+}
+
 Grammar::Grammar(const Solver* slv,
                  const std::vector<Term>& sygusVars,
                  const std::vector<Term>& ntSymbols)
