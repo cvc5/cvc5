@@ -676,7 +676,7 @@ sygusGrammar[CVC4::api::Grammar*& ret,
       api::Term nts = PARSER_STATE->bindBoundVar(i.first, i.second);
       ntSyms.push_back(nts);
     }
-    ret = PARSER_STATE->addGrammar(SOLVER->mkSygusGrammar(sygusVars, ntSyms));
+    ret = PARSER_STATE->mkGrammar(sygusVars, ntSyms);
   }
   // the grouped rule listing
   LPAREN_TOK

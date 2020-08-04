@@ -5232,7 +5232,7 @@ Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
-      << "non-empty vector";
+      << "a non-empty vector";
 
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
@@ -5240,30 +5240,30 @@ Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
         this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
         boundVars[i],
         i)
         << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
-        << "non-null term";
   }
 
   for (size_t i = 0, n = ntSymbols.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == ntSymbols[i].d_solver, "term", ntSymbols[i], i)
+        this == ntSymbols[i].d_solver, "non-terminal", ntSymbols[i], i)
         << "term associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !ntSymbols[i].isNull(), "non-terminal", ntSymbols[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         ntSymbols[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
-        "bound variable",
+        "non-terminal",
         ntSymbols[i],
         i)
         << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !ntSymbols[i].isNull(), "parameter term", ntSymbols[i], i)
-        << "non-null term";
   }
 
   return Grammar(this, boundVars, ntSymbols);
@@ -5316,11 +5316,11 @@ Term Solver::synthFunHelper(const std::string& symbol,
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
-        << "non-null term";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
         << "bound variable associated to this solver object";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        << "a non-null term";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
