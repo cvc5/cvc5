@@ -80,7 +80,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
     return Node(node);
   }
   bool inQuant, inTerm;
-  RtfTermContext::getFlags(curr, inQuant, inTerm);
+  RtfTermContext::getFlags(curr.first, inQuant, inTerm);
   Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << std::endl;
 
   // The result may be cached already
@@ -303,7 +303,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      RtxContext cctx(&d_rtfc);
+      TCtxStack cctx(&d_rtfc);
       cctx.pushInitial(newAssertion);
       newAssertion = run(cctx, output, newSkolems);
 
