@@ -74,21 +74,20 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   std::pair<Node, int32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
-
   if( node.getKind()==kind::INST_PATTERN_LIST )
   {
     return Node(node);
   }
   bool inQuant, inTerm;
-  RtfTermContext::getFlags(curr.first, inQuant, inTerm);
+  RtfTermContext::getFlags(curr.second, inQuant, inTerm);
   Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << std::endl;
 
   // The result may be cached already
   NodeManager *nodeManager = NodeManager::currentNM();
-  TermFormulaCache::const_iterator i = d_tfCache.find(curr);
-  if (i != d_tfCache.end())
+  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
+  if (itc != d_tfCache.end())
   {
-    Node cached = (*i).second;
+    Node cached = (*itc).second;
     Debug("ite") << "removeITEs: in-cache: " << cached << endl;
     return cached.isNull() ? Node(curr.first) : cached;
   }
@@ -360,10 +359,10 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
 Node RemoveTermFormulas::replace(TNode node) const {
   TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(node);
-  replaceInternal(ctx);
+  return replaceInternal(ctx);
 }
 
-Node RemoveTermFormulas::replaceInternal(TCtxStack& cxt) const
+Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
 {  
   // get the current node, tagged with a term context identifier
   Assert (!ctx.empty());
@@ -376,10 +375,10 @@ Node RemoveTermFormulas::replaceInternal(TCtxStack& cxt) const
   }
 
   // Check the cache
-  TermFormulaCache::const_iterator i = d_tfCache.find(curr);
-  if (i != d_tfCache.end())
+  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
+  if (itc != d_tfCache.end())
   {
-    Node cached = (*i).second;
+    Node cached = (*itc).second;
     return cached.isNull() ? Node(node) : cached;
   }
 

@@ -91,7 +91,7 @@ public:
 class TCtxNode
 {
 public:
-  TCtxNode(Node n, TermContext * tctx);
+  TCtxNode(Node n, const TermContext * tctx);
   /** get number of children */
   size_t getNumChildren() const;
   /** get child at index i */
@@ -117,21 +117,19 @@ public:
   //---------------------- end utility methods
 private:
   /** private constructor */
-  TCtxNode(Node n, uint32_t val, TermContext * tctx);
+  TCtxNode(Node n, uint32_t val, const TermContext * tctx);
   /** The node */
   Node d_node;
   /** The term context identifier */
   uint32_t d_val;
   /** The term context */
-  TermContext * d_tctx;
+  const TermContext * d_tctx;
 };
-
-// class RtfTCtxNode ?
 
 class TCtxStack
 {
 public:
-  TCtxStack(TermContext * tctx);
+  TCtxStack(const TermContext * tctx);
   virtual ~TCtxStack(){}
   /** Push t to the stack */
   void pushInitial(Node t);
@@ -155,7 +153,7 @@ private:
   /** The stack */
   std::vector<std::pair<Node, uint32_t>> d_stack;
   /** The term context */
-  TermContext * d_tctx;
+  const TermContext * d_tctx;
 };
 
 }  // namespace CVC4

@@ -193,7 +193,7 @@ class RemoveTermFormulas {
            std::vector<theory::TrustNode>& newAsserts,
            std::vector<Node>& newSkolems);
   /** Replace internal */
-  Node replaceInternal(TCtxStack& cxt) const;
+  Node replaceInternal(TCtxStack& ctx) const;
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;

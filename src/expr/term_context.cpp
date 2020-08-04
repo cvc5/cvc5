@@ -70,11 +70,11 @@ bool RtfTermContext::hasNestedTermChildren( TNode t ) {
 }
 
 
-TCtxNode::TCtxNode(Node n, TermContext * tctx) : d_node(n), d_val(val), d_tctx(tctx)
+TCtxNode::TCtxNode(Node n, const TermContext * tctx) : d_node(n), d_val(val), d_tctx(tctx)
 {
 }
 
-TCtxNode::TCtxNode(Node n, uint32_t val, TermContext * tctx) : d_node(n), d_val(val), d_tctx(tctx)
+TCtxNode::TCtxNode(Node n, uint32_t val, const TermContext * tctx) : d_node(n), d_val(val), d_tctx(tctx)
 {
   
 }
@@ -87,7 +87,7 @@ size_t TCtxNode::getNumChildren() const
 TCtxNode TCtxNode::getChild(size_t i) const
 {
   Assert (i<d_node.getNumChildren());
-  return TCtxNode(d_node[i], tctx->computeValue(d_node, d_val, i), d_tctx);
+  return TCtxNode(d_node[i], d_tctx->computeValue(d_node, d_val, i), d_tctx);
 }
 
 Node TCtxNode::getNode() const
@@ -128,7 +128,7 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   return h[0];
 }
 
-TCtxStack::TCtxStack(TermContext * tctx) : d_tctx(tctx)
+TCtxStack::TCtxStack(const TermContext * tctx) : d_tctx(tctx)
 {
 }
 
