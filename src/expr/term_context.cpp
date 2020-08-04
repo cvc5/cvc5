@@ -62,7 +62,7 @@ void RtfTermContext::getFlags(uint32_t val, bool& inQuant, bool& inTerm)
 }
 
 bool RtfTermContext::hasNestedTermChildren( TNode t ) {
-  // dont' worry about FORALL or EXISTS (handled separately)
+  // dont' worry about FORALL or EXISTS, these are part of inQuant.
   return theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
          node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
          node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 

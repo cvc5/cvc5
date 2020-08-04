@@ -43,7 +43,7 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  TCtxStack ctx;
+  TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(assertion);
   Node itesRemoved = run(ctx, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
@@ -301,7 +301,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      RtxContext cctx;
+      RtxContext cctx(&d_rtfc);
       cctx.pushInitial(newAssertion);
       newAssertion = run(cctx, output, newSkolems);
 
@@ -356,7 +356,7 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
 
 
 Node RemoveTermFormulas::replace(TNode node) const {
-  TCtxStack ctx;
+  TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(node);
   replaceInternal(ctx);
 }

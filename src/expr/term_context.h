@@ -58,7 +58,9 @@ public:
   /** get flags */
   static void getFlags(uint32_t val, bool& inQuant, bool& inTerm);
 private:
-  /** has nested term children */
+  /** 
+   * Returns true if the children of t should be considered in a "term" context.
+   */
   static bool hasNestedTermChildren( TNode t );
 };
 

@@ -172,6 +172,11 @@ class RemoveTermFormulas {
    * this class is responsible for.
    */
   std::unique_ptr<LazyCDProof> d_lp;
+  /** 
+   * The remove term formula context, which computes hash values for term
+   * contexts.
+   */
+  RtfTermContext d_rtfc;
 
   /**
    * Removes terms of the form (1), (2), (3) described above from node.
