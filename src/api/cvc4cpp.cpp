@@ -5072,7 +5072,7 @@ bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
   bool success =
-      d_smtEngine->getInterpol(*conj.d_node, *g.resolve().d_type, result);
+      d_smtEngine->getInterpol(*conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
   if (success)
   {
     output = Term(this, result);
