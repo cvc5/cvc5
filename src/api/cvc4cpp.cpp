@@ -2168,7 +2168,7 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
                            nm->mkConst(AscriptionType(
                                d_ctor
                                    ->getSpecializedConstructorType(
-                                       retSort.getType()))),
+                                       TypeNode::fromType(retSort.getType())).toType())),
                            d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
