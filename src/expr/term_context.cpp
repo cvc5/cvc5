@@ -37,17 +37,17 @@ uint32_t RtfTermContext::computeValue(TNode t, uint32_t tval, size_t child)
   {
     if (tval%2==0)
     {
-      tval = tval+1;
+      return tval+1;
     }
   }
   else if (hasNestedTermChildren(t))
   {
     if (tval<2)
     {
-      tval + 2;
+      return tval + 2;
     }
   }
-  return 
+  return tval;
 }
 
 uint32_t RtfTermContext::getValue(bool inQuant, bool inTerm)

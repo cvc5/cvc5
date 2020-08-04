@@ -108,6 +108,7 @@ public:
   Node getNodeHash() const;
   /** 
    * Get node hash, which is a unique node representation of the pair (n, val).
+   * In particular, this returns (SEXPR n (CONST_RATIONAL val)).
    */
   static Node computeNodeHash(Node n, uint32_t val);
   /** 
@@ -126,6 +127,10 @@ private:
   const TermContext * d_tctx;
 };
 
+/** 
+ * A stack for term-context-sensitive terms. Its main advantage is that
+ * it does not rely on explicit construction of TCtxNode for efficiency.
+ */
 class TCtxStack
 {
 public:
@@ -134,9 +139,9 @@ public:
   /** Push t to the stack */
   void pushInitial(Node t);
   /** Push all children of t to the stack */
-  virtual void pushChildren(Node t, uint32_t tval);
+  void pushChildren(Node t, uint32_t tval);
   /** Push the child of t with the given index to the stack */
-  virtual void pushChild(Node t, uint32_t tval, size_t index);
+  void pushChild(Node t, uint32_t tval, size_t index);
   /** Push t to the stack */
   void push(Node t, uint32_t tval);
   /** Pop a term from the context */
@@ -144,7 +149,7 @@ public:
   /** Clear the stack */
   void clear();
   /** Return the size of the stack */
-  size_t size();
+  size_t size() const;
   /** Return true if the stack is empty */
   bool empty() const;
   /** Get the current stack element */
