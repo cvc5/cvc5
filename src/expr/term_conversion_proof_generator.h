@@ -172,13 +172,13 @@ class TConvProofGenerator : public ProofGenerator
   /** The cache for terms */
   std::map<Node, std::shared_ptr<ProofNode> > d_cache;
   /** A term context object */
-  virtual TermContext * getTermContext();
+  virtual TermContext* getTermContext();
   /**
    * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
    * t based on the rewrite steps registered to this class. This method then
    * returns the proved equality t = t'.
    */
-  Node getProofForRewriting(Node t, LazyCDProof& pf, TermContext * tc);
+  Node getProofForRewriting(Node t, LazyCDProof& pf, TermContext* tc);
   /**
    * Register rewrite step, returns the equality t=s if t is distinct from s
    * and a rewrite step has not already been registered for t.

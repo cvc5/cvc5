@@ -143,7 +143,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   }
   else
   {
-    TermContext * tctx = getTermContext();
+    TermContext* tctx = getTermContext();
     Node conc = getProofForRewriting(f[0], lpf, tctx);
     if (conc != f)
     {
@@ -186,7 +186,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   // f                f = f'
   // ----------------------- MACRO_SR_PRED_TRANSFORM
   // f'
-  TermContext * tctx = getTermContext();
+  TermContext* tctx = getTermContext();
   Node conc = getProofForRewriting(f, lpf, tctx);
   Assert(conc.getKind() == EQUAL);
   Node fp = f;
@@ -204,12 +204,11 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   return lpf.getProofFor(fp);
 }
 
-TermContext * TConvProofGenerator::getTermContext()
-{
-  return nullptr;
-}
+TermContext* TConvProofGenerator::getTermContext() { return nullptr; }
 
-Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf, TermContext * tctx)
+Node TConvProofGenerator::getProofForRewriting(Node t,
+                                               LazyCDProof& pf,
+                                               TermContext* tctx)
 {
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,
@@ -224,7 +223,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf, TermCont
   // visit is used if we don't have a term context
   std::vector<TNode> visit;
   // TODO: use term context for cache
-  //std::unique_ptr<
+  // std::unique_ptr<
   TNode cur;
   visit.push_back(t);
   do
