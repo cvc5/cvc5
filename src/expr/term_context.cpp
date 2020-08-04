@@ -128,10 +128,14 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   return h[0];
 }
 
+TCtxStack::TCtxStack(TermContext * tctx) : d_tctx(tctx)
+{
+}
+
 void TCtxStack::pushInitial(Node t)
 {
   Assert (d_stack.empty());
-  d_stack.push_back(std::pair<Node, uint32_t>(t, d_initVal));
+  d_stack.push_back(std::pair<Node, uint32_t>(t, d_tctx->initialValue()));
 }
 
 void TCtxStack::pushChildren(Node t, uint32_t tval)
@@ -145,7 +149,7 @@ void TCtxStack::pushChildren(Node t, uint32_t tval)
 void TCtxStack::pushChild(Node t, uint32_t tval, size_t index)
 {
   Assert (index<t.getNumChildren());
-  uint32_t tcval = computePushValue(t, tval, index);
+  uint32_t tcval = d_tctx->computeValue(t, tval, index);
   d_stack.push_back(std::pair<Node, uint32_t>(t[index], tcval));
 }
 
