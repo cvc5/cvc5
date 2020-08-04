@@ -25,13 +25,13 @@
 #include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
+#include "expr/term_context.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "smt/dump.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
 #include "util/bool.h"
 #include "util/hash.h"
-#include "expr/term_context.h"
 
 namespace CVC4 {
 
@@ -121,11 +121,11 @@ class RemoveTermFormulas {
   static Node getAxiomFor(Node n);
 
  private:
-  typedef context::
-      CDInsertHashMap<std::pair<Node, int32_t>,
-                      Node,
-                      PairHashFunction<Node, int32_t, NodeHashFunction> >
-          TermFormulaCache;
+  typedef context::CDInsertHashMap<
+      std::pair<Node, int32_t>,
+      Node,
+      PairHashFunction<Node, int32_t, NodeHashFunction> >
+      TermFormulaCache;
   /** term formula removal cache
    *
    * This stores the results of term formula removal for inputs to the run(...)
@@ -172,7 +172,7 @@ class RemoveTermFormulas {
    * this class is responsible for.
    */
   std::unique_ptr<LazyCDProof> d_lp;
-  /** 
+  /**
    * The remove term formula context, which computes hash values for term
    * contexts.
    */

@@ -70,17 +70,18 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
                              std::vector<Node>& newSkolems)
 {
   // get the current node, tagged with a term context identifier
-  Assert (!ctx.empty());
+  Assert(!ctx.empty());
   std::pair<Node, int32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
-  if( node.getKind()==kind::INST_PATTERN_LIST )
+  if (node.getKind() == kind::INST_PATTERN_LIST)
   {
     return Node(node);
   }
   bool inQuant, inTerm;
   RtfTermContext::getFlags(curr.second, inQuant, inTerm);
-  Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << std::endl;
+  Debug("ite") << "removeITEs(" << node << ")"
+               << " " << inQuant << " " << inTerm << std::endl;
 
   // The result may be cached already
   NodeManager *nodeManager = NodeManager::currentNM();
@@ -325,7 +326,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   }
   // Remove the ITEs from the children
   int32_t cval = curr.second;
-  for (size_t i=0, nchild = node.getNumChildren(); i<nchild; i++)
+  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
   {
     ctx.pushChild(node, cval, i);
     Node newChild = run(ctx, output, newSkolems);
@@ -355,21 +356,21 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
   return Node::null();
 }
 
-
-Node RemoveTermFormulas::replace(TNode node) const {
+Node RemoveTermFormulas::replace(TNode node) const
+{
   TCtxStack ctx(&d_rtfc);
   ctx.pushInitial(node);
   return replaceInternal(ctx);
 }
 
 Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
-{  
+{
   // get the current node, tagged with a term context identifier
-  Assert (!ctx.empty());
+  Assert(!ctx.empty());
   std::pair<Node, int32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
-  
+
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
@@ -389,7 +390,7 @@ Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
   }
   // Replace in children
   int32_t cval = curr.second;
-  for (size_t i=0, nchild = node.getNumChildren(); i<nchild; i++)
+  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
   {
     ctx.pushChild(node, cval, i);
     Node newChild = replaceInternal(ctx);

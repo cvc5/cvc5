@@ -28,17 +28,18 @@ namespace CVC4 {
  */
 class TermContext
 {
-public:
+ public:
   TermContext(uint32_t ivalue = 0);
-  virtual ~TermContext(){}
+  virtual ~TermContext() {}
   /** Initial value */
   uint32_t initialValue() const;
-  /** 
+  /**
    * Compute the term context identifier of the index^th child of t, where tval
    * is the term context identifier of t.
    */
   virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) const = 0;
-private:
+
+ private:
   /** The initial value for terms in no context */
   uint32_t d_initVal;
 };
@@ -49,7 +50,7 @@ private:
  */
 class RtfTermContext : public TermContext
 {
-public:
+ public:
   RtfTermContext();
   /** Compute the value */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
@@ -57,11 +58,12 @@ public:
   static uint32_t getValue(bool inQuant, bool inTerm);
   /** get flags */
   static void getFlags(uint32_t val, bool& inQuant, bool& inTerm);
-private:
-  /** 
+
+ private:
+  /**
    * Returns true if the children of t should be considered in a "term" context.
    */
-  static bool hasNestedTermChildren( TNode t );
+  static bool hasNestedTermChildren(TNode t);
 };
 
 /**
@@ -69,7 +71,7 @@ private:
  */
 class PolarityTermContext : public TermContext
 {
-public:
+ public:
   PolarityTermContext();
   /** Compute the value */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
@@ -79,15 +81,15 @@ public:
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
 };
 
-/** 
+/**
  * A (term-context) sensitive term. This is a wrapper around a Node that
  * additionally has a term context identifier, see getTermContext(). It depends
  * on a pointer to a TermContext callback class from above.
  */
 class TCtxNode
 {
-public:
-  TCtxNode(Node n, const TermContext * tctx);
+ public:
+  TCtxNode(Node n, const TermContext* tctx);
   /** get number of children */
   size_t getNumChildren() const;
   /** get child at index i */
@@ -97,41 +99,41 @@ public:
   /** get term context */
   uint32_t getTermContext() const;
   //---------------------- utility methods
-  /** 
+  /**
    * Get node hash, which is a unique node representation of this TCtxNode.
    * This method calls the method below on the data members of this class.
    */
   Node getNodeHash() const;
-  /** 
+  /**
    * Get node hash, which is a unique node representation of the pair (n, val).
    * In particular, this returns (SEXPR n (CONST_RATIONAL val)).
    */
   static Node computeNodeHash(Node n, uint32_t val);
-  /** 
+  /**
    * Decompose node hash, which is an inverse of the above operation.
    */
   static Node decomposeNodeHash(Node h, uint32_t& val);
   //---------------------- end utility methods
-private:
+ private:
   /** private constructor */
-  TCtxNode(Node n, uint32_t val, const TermContext * tctx);
+  TCtxNode(Node n, uint32_t val, const TermContext* tctx);
   /** The node */
   Node d_node;
   /** The term context identifier */
   uint32_t d_val;
   /** The term context */
-  const TermContext * d_tctx;
+  const TermContext* d_tctx;
 };
 
-/** 
+/**
  * A stack for term-context-sensitive terms. Its main advantage is that
  * it does not rely on explicit construction of TCtxNode for efficiency.
  */
 class TCtxStack
 {
-public:
-  TCtxStack(const TermContext * tctx);
-  virtual ~TCtxStack(){}
+ public:
+  TCtxStack(const TermContext* tctx);
+  virtual ~TCtxStack() {}
   /** Push t to the stack */
   void pushInitial(Node t);
   /** Push all children of t to the stack */
@@ -150,11 +152,12 @@ public:
   bool empty() const;
   /** Get the current stack element */
   std::pair<Node, uint32_t> getCurrent() const;
-private:
+
+ private:
   /** The stack */
   std::vector<std::pair<Node, uint32_t>> d_stack;
   /** The term context */
-  const TermContext * d_tctx;
+  const TermContext* d_tctx;
 };
 
 }  // namespace CVC4
