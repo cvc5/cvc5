@@ -41,13 +41,15 @@ class ResourceOutListener : public Listener
   SmtEngine& d_smt;
 };
 
+class DumpManager;
+
 /**
  * A listener for node manager calls, which impacts certain dumping traces.
  */
 class SmtNodeManagerListener : public NodeManagerListener
 {
  public:
-  SmtNodeManagerListener(SmtEngine& smt);
+  SmtNodeManagerListener(DumpManager& dm);
   /** Notify when new sort is created */
   void nmNotifyNewSort(TypeNode tn, uint32_t flags) override;
   /** Notify when new sort constructor is created */
@@ -65,8 +67,8 @@ class SmtNodeManagerListener : public NodeManagerListener
   void nmNotifyDeleteNode(TNode n) override {}
 
  private:
-  /** Reference to the smt engine */
-  SmtEngine& d_smt;
+  /** Reference to the dump manager of smt engine */
+  DumpManager& d_dm;
 };
 
 }  // namespace smt
