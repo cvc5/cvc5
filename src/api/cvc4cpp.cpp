@@ -5056,11 +5056,11 @@ bool Solver::getInterpolant(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  Expr result;
-  bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), result);
+  Node result;
+  bool success = d_smtEngine->getInterpol(*conj.d_node, result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5070,12 +5070,12 @@ bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
-  Expr result;
+  Node result;
   bool success = d_smtEngine->getInterpol(
-      conj.d_node->toExpr(), *g.resolve().d_type, result);
+      *conj.d_node, *g.resolve().d_type, result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
