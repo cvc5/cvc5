@@ -2766,16 +2766,16 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getInterpol(const Expr& conj,
-                            const Type& grammarType,
-                            Expr& interpol)
+bool SmtEngine::getInterpol(const Node& conj,
+                            const TypeNode& grammarType,
+                            Node& interpol)
 {
   return false;
 }
 
-bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+bool SmtEngine::getInterpol(const Node& conj, Node& interpol)
 {
-  Type grammarType;
+  TypeNode grammarType;
   return getInterpol(conj, grammarType, interpol);
 }
 

@@ -5055,11 +5055,12 @@ void Solver::pop(uint32_t nscopes) const
 bool Solver::getInterpolant(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Expr result;
-  bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), result);
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  Node result;
+  bool success = d_smtEngine->getInterpol(*conj.d_node, result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5068,12 +5069,13 @@ bool Solver::getInterpolant(Term conj, Term& output) const
 bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Expr result;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  Node result;
   bool success = d_smtEngine->getInterpol(
-      conj.d_node->toExpr(), *g.resolve().d_type, result);
+      *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5082,11 +5084,12 @@ bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 bool Solver::getAbduct(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
   bool success = d_smtEngine->getAbduct(*conj.d_node, result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5095,12 +5098,13 @@ bool Solver::getAbduct(Term conj, Term& output) const
 bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
   bool success = d_smtEngine->getAbduct(
       *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
