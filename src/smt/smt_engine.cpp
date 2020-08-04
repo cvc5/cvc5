@@ -2783,8 +2783,6 @@ bool SmtEngine::getAbduct(const Node& conj,
                           const TypeNode& grammarType,
                           Node& abd)
 {
-  SmtScope smts(this);
-  NodeManagerScope nms(d_nodeManager);
   if (d_abductSolver->getAbduct(conj, grammarType, abd))
   {
     // successfully generated an abduct, update to abduct state

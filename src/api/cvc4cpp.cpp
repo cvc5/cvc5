@@ -5055,6 +5055,7 @@ void Solver::pop(uint32_t nscopes) const
 bool Solver::getInterpolant(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Expr result;
   bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), result);
   if (success)
@@ -5068,6 +5069,7 @@ bool Solver::getInterpolant(Term conj, Term& output) const
 bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Expr result;
   bool success = d_smtEngine->getInterpol(
       conj.d_node->toExpr(), *g.resolve().d_type, result);
@@ -5082,6 +5084,7 @@ bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 bool Solver::getAbduct(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
   bool success = d_smtEngine->getAbduct(*conj.d_node, result);
   if (success)
@@ -5095,6 +5098,7 @@ bool Solver::getAbduct(Term conj, Term& output) const
 bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
   Node result;
   bool success = d_smtEngine->getAbduct(
       *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
