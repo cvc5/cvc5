@@ -143,7 +143,8 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
   }
   else
   {
-    Node conc = getProofForRewriting(f[0], lpf);
+    TermContext * tctx = getTermContext();
+    Node conc = getProofForRewriting(f[0], lpf, tctx);
     if (conc != f)
     {
       Assert(conc.getKind() == EQUAL && conc[0] == f[0]);
@@ -185,7 +186,8 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   // f                f = f'
   // ----------------------- MACRO_SR_PRED_TRANSFORM
   // f'
-  Node conc = getProofForRewriting(f, lpf);
+  TermContext * tctx = getTermContext();
+  Node conc = getProofForRewriting(f, lpf, tctx);
   Assert(conc.getKind() == EQUAL);
   Node fp = f;
   // if it doesn't rewrite, don't have to add any step
@@ -202,7 +204,12 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getTranformProofFor(
   return lpf.getProofFor(fp);
 }
 
-Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
+TermContext * TConvProofGenerator::getTermContext()
+{
+  return nullptr;
+}
+
+Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf, TermContext * tctx)
 {
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[t] = s or rewritten[t] = s and t,s are distinct,
@@ -214,7 +221,10 @@ Node TConvProofGenerator::getProofForRewriting(Node t, LazyCDProof& pf)
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator itr;
   std::map<Node, std::shared_ptr<ProofNode> >::iterator itc;
+  // visit is used if we don't have a term context
   std::vector<TNode> visit;
+  // TODO: use term context for cache
+  //std::unique_ptr<
   TNode cur;
   visit.push_back(t);
   do

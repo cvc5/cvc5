@@ -43,7 +43,9 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
+  TCtxStack ctx(&d_rtfc);
+  ctx.pushInitial(assertion);
+  Node itesRemoved = run(ctx, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps
       && (options::unsatCores() || options::fewerPreprocessingHoles()))
@@ -63,33 +65,32 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-Node RemoveTermFormulas::run(TNode node,
+Node RemoveTermFormulas::run(TCtxStack& ctx,
                              std::vector<theory::TrustNode>& output,
-                             std::vector<Node>& newSkolems,
-                             bool inQuant,
-                             bool inTerm)
+                             std::vector<Node>& newSkolems)
 {
-  // Current node
-  Trace("rtf-debug") << "removeITEs(" << node << ")"
-                     << " " << inQuant << " " << inTerm << endl;
-
-  if( node.getKind()==kind::INST_PATTERN_LIST ){
+  Assert(!ctx.empty());
+  std::pair<Node, int32_t> curr = ctx.getCurrent();
+  ctx.pop();
+  TNode node = curr.first;
+  if (node.getKind() == kind::INST_PATTERN_LIST)
+  {
     return Node(node);
   }
+  bool inQuant, inTerm;
+  RtfTermContext::getFlags(curr.second, inQuant, inTerm);
+  Debug("ite") << "removeITEs(" << node << ")"
+               << " " << inQuant << " " << inTerm << std::endl;
 
   // The result may be cached already
-  int cv = cacheVal( inQuant, inTerm );
-  std::pair<Node, int> cacheKey(node, cv);
   NodeManager *nodeManager = NodeManager::currentNM();
-  TermFormulaCache::const_iterator i = d_tfCache.find(cacheKey);
-  if (i != d_tfCache.end())
+  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
+  if (itc != d_tfCache.end())
   {
-    Node cached = (*i).second;
-    Trace("rtf-debug") << "removeITEs: in-cache[" << cv << "]: " << cached
-                       << std::endl;
-    return cached.isNull() ? Node(node) : cached;
+    Node cached = (*itc).second;
+    Debug("ite") << "removeITEs: in-cache: " << cached << endl;
+    return cached.isNull() ? Node(curr.first) : cached;
   }
-
 
   TypeNode nodeType = node.getType();
   Node skolem;
@@ -283,7 +284,7 @@ Node RemoveTermFormulas::run(TNode node,
   // if the term should be replaced by a skolem
   if( !skolem.isNull() ){
     // Attach the skolem
-    d_tfCache.insert(cacheKey, skolem);
+    d_tfCache.insert(curr, skolem);
 
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
@@ -322,7 +323,9 @@ Node RemoveTermFormulas::run(TNode node,
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
       Node newAssertionPre = newAssertion;
-      newAssertion = run(newAssertion, output, newSkolems, false, false);
+      TCtxStack cctx(&d_rtfc);
+      cctx.pushInitial(newAssertion);
+      newAssertion = run(cctx, output, newSkolems);
 
       if (isProofEnabled())
       {
@@ -358,39 +361,30 @@ Node RemoveTermFormulas::run(TNode node,
     return skolem;
   }
 
-  if (node.isClosure())
-  {
-    // Remember if we're inside a quantifier
-    inQuant = true;
-  }else if( !inTerm && hasNestedTermChildren( node ) ){
-    // Remember if we're inside a term
-    Trace("rtf-debug") << "In term because of " << node << " " << node.getKind()
-                       << std::endl;
-    inTerm = true;
-  }
-
   // If not an ITE, go deep
-  vector<Node> newChildren;
+  std::vector<Node> newChildren;
   bool somethingChanged = false;
   if(node.getMetaKind() == kind::metakind::PARAMETERIZED) {
     newChildren.push_back(node.getOperator());
   }
   // Remove the ITEs from the children
-  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, newSkolems, inQuant, inTerm);
-    somethingChanged |= (newChild != *it);
+  int32_t cval = curr.second;
+  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+  {
+    ctx.pushChild(node, cval, i);
+    Node newChild = run(ctx, output, newSkolems);
+    somethingChanged |= (newChild != node[i]);
     newChildren.push_back(newChild);
   }
 
   // If changes, we rewrite
   if(somethingChanged) {
     Node cached = nodeManager->mkNode(node.getKind(), newChildren);
-    d_tfCache.insert(cacheKey, cached);
+    d_tfCache.insert(curr, cached);
     return cached;
-  } else {
-    d_tfCache.insert(cacheKey, Node::null());
-    return node;
   }
+  d_tfCache.insert(curr, Node::null());
+  return node;
 }
 
 Node RemoveTermFormulas::getSkolemForNode(Node node) const
@@ -404,29 +398,32 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
   return Node::null();
 }
 
-Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
+Node RemoveTermFormulas::replace(TNode node) const
+{
+  TCtxStack ctx(&d_rtfc);
+  ctx.pushInitial(node);
+  return replaceInternal(ctx);
+}
+
+Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
+{
+  // get the current node, tagged with a term context identifier
+  Assert(!ctx.empty());
+  std::pair<Node, int32_t> curr = ctx.getCurrent();
+  ctx.pop();
+  TNode node = curr.first;
+
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
 
   // Check the cache
-  NodeManager *nodeManager = NodeManager::currentNM();
-  int cv = cacheVal( inQuant, inTerm );
-  TermFormulaCache::const_iterator i = d_tfCache.find(make_pair(node, cv));
-  if (i != d_tfCache.end())
+  TermFormulaCache::const_iterator itc = d_tfCache.find(curr);
+  if (itc != d_tfCache.end())
   {
-    Node cached = (*i).second;
+    Node cached = (*itc).second;
     return cached.isNull() ? Node(node) : cached;
   }
-
-  if (node.isClosure())
-  {
-    // Remember if we're inside a quantifier
-    inQuant = true;
-  }else if( !inTerm && hasNestedTermChildren( node ) ){
-    // Remember if we're inside a term
-    inTerm = true;
-  }  
 
   vector<Node> newChildren;
   bool somethingChanged = false;
@@ -434,27 +431,20 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
     newChildren.push_back(node.getOperator());
   }
   // Replace in children
-  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = replace(*it, inQuant, inTerm);
-    somethingChanged |= (newChild != *it);
+  int32_t cval = curr.second;
+  for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
+  {
+    ctx.pushChild(node, cval, i);
+    Node newChild = replaceInternal(ctx);
+    somethingChanged |= (newChild != node[i]);
     newChildren.push_back(newChild);
   }
 
   // If changes, we rewrite
   if(somethingChanged) {
-    return nodeManager->mkNode(node.getKind(), newChildren);
-  } else {
-    return node;
+    return NodeManager::currentNM()->mkNode(node.getKind(), newChildren);
   }
-}
-
-// returns true if the children of node should be considered nested terms 
-bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
-  return theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
-         node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
-         node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
-         node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
-         // dont' worry about FORALL or EXISTS (handled separately)
+  return node;
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
