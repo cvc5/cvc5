@@ -213,7 +213,7 @@ std::string Configuration::copyright() {
     if (Configuration::isStaticBuild())
     {
       ss << "CVC4 is statically linked against these libraries. To recompile\n"
-            "this version of CVC4 with a different version of these libraries\n"
+            "this version of CVC4 with different versions of these libraries\n"
             "follow the instructions on "
             "https://github.com/CVC4/CVC4/blob/master/INSTALL.md\n\n";
     }
