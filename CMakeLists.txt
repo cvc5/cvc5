@@ -548,9 +548,7 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
-if(ENABLE_SHARED)
-  set(CVC4_STATIC_BUILD OFF)
-else()
+if(NOT ENABLE_SHARED)
   set(CVC4_STATIC_BUILD ON)
 endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
