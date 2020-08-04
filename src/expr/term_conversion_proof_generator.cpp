@@ -286,7 +286,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
     {
       visited[curHash] = Node::null();
       // did we rewrite the current node (possibly at pre-rewrite)?
-      Node rcur = getRewriteStep(curHash);
+      Node rcur = getRewriteStepInternal(curHash);
       if (!rcur.isNull())
       {
         // d_proof has a proof of cur = rcur. Hence there is nothing
@@ -395,9 +395,10 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           }
           Node result = cur.eqNode(ret);
           pf.addStep(result, PfRule::CONG, pfChildren, pfArgs);
+          // must update the hash
+          retHash = ret;
           if (tctx != nullptr)
           {
-            // must update the hash if context dependent
             retHash = TCtxNode::computeNodeHash(ret, curTCtx);
           }
         }
@@ -406,7 +407,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         // only if not ONCE policy, which only does pre-rewrite
         if (d_policy != TConvPolicy::ONCE)
         {
-          rret = getRewriteStep(retHash);
+          rret = getRewriteStepInternal(retHash);
         }
         if (!rret.isNull())
         {
