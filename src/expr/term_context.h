@@ -37,7 +37,7 @@ public:
    * Compute the term context identifier of the index^th child of t, where tval
    * is the term context identifier of t.
    */
-  virtual uint32_t computeValue(Node t, uint32_t tval, size_t index) = 0;
+  virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) = 0;
 private:
   /** The initial value for terms in no context */
   uint32_t d_initVal;
