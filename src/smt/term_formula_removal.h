@@ -184,11 +184,11 @@ class RemoveTermFormulas {
    * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
    *        of a parent term that is not a Boolean connective.
    */
-  Node run(RtfTermContext& cxt,
+  Node run(TCtxStack& cxt,
            std::vector<theory::TrustNode>& newAsserts,
            std::vector<Node>& newSkolems);
   /** Replace internal */
-  Node replaceInternal(RtfTermContext& cxt) const;
+  Node replaceInternal(TCtxStack& cxt) const;
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;

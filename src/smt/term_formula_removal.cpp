@@ -43,7 +43,7 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  RtfTermContext ctx;
+  TCtxStack ctx;
   ctx.pushInitial(assertion);
   Node itesRemoved = run(ctx, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
@@ -65,7 +65,7 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-Node RemoveTermFormulas::run(RtfTermContext& ctx,
+Node RemoveTermFormulas::run(TCtxStack& ctx,
                              std::vector<theory::TrustNode>& output,
                              std::vector<Node>& newSkolems)
 {
@@ -74,7 +74,7 @@ Node RemoveTermFormulas::run(RtfTermContext& ctx,
   std::pair<Node, int32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
-  Debug("ite") << "removeITEs(" << node << ")" << " " << ctx.inQuant() << " " << ctx.inTerm() << endl;
+  Debug("ite") << "removeITEs(" << node << ")" << " " << ctx.inQuant() << " " << ctx.inTerm() << std::endl;
 
   if( node.getKind()==kind::INST_PATTERN_LIST )
   {
@@ -356,12 +356,12 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
 
 
 Node RemoveTermFormulas::replace(TNode node) const {
-  RtfTermContext ctx;
+  TCtxStack ctx;
   ctx.pushInitial(node);
   replaceInternal(ctx);
 }
 
-Node RemoveTermFormulas::replaceInternal(RtfTermContext& cxt) const
+Node RemoveTermFormulas::replaceInternal(TCtxStack& cxt) const
 {  
   // get the current node, tagged with a term context identifier
   Assert (!ctx.empty());
