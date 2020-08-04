@@ -43,7 +43,9 @@ theory::TrustNode RemoveTermFormulas::run(
     std::vector<Node>& newSkolems,
     bool reportDeps)
 {
-  Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
+  RtfTermContext ctx;
+  ctx.pushInitial(assertion);
+  Node itesRemoved = run(ctx, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
   if (reportDeps
       && (options::unsatCores() || options::fewerPreprocessingHoles()))
@@ -63,32 +65,31 @@ theory::TrustNode RemoveTermFormulas::run(
   return theory::TrustNode::mkTrustRewrite(assertion, itesRemoved, d_tpg.get());
 }
 
-Node RemoveTermFormulas::run(TNode node,
+Node RemoveTermFormulas::run(RtfTermContext& ctx,
                              std::vector<theory::TrustNode>& output,
-                             std::vector<Node>& newSkolems,
-                             bool inQuant,
-                             bool inTerm)
+                             std::vector<Node>& newSkolems)
 {
+  Assert (!ctx.empty());
   // Current node
-  Debug("ite") << "removeITEs(" << node << ")" << " " << inQuant << " " << inTerm << endl;
+  std::pair<Node, int32_t> curr = ctx.getCurrent();
+  ctx.pop();
+  TNode node = curr.first;
+  Debug("ite") << "removeITEs(" << node << ")" << " " << ctx.inQuant() << " " << ctx.inTerm() << endl;
 
-  if( node.getKind()==kind::INST_PATTERN_LIST ){
+  if( node.getKind()==kind::INST_PATTERN_LIST )
+  {
     return Node(node);
   }
 
   // The result may be cached already
-  int cv = cacheVal( inQuant, inTerm );
-  std::pair<Node, int> cacheKey(node, cv);
   NodeManager *nodeManager = NodeManager::currentNM();
-  TermFormulaCache::const_iterator i = d_tfCache.find(cacheKey);
+  TermFormulaCache::const_iterator i = d_tfCache.find(curr);
   if (i != d_tfCache.end())
   {
     Node cached = (*i).second;
     Debug("ite") << "removeITEs: in-cache: " << cached << endl;
-    return cached.isNull() ? Node(node) : cached;
+    return cached.isNull() ? Node(curr.first) : cached;
   }
-
-
   TypeNode nodeType = node.getType();
   Node skolem;
   Node newAssertion;
@@ -100,7 +101,7 @@ Node RemoveTermFormulas::run(TNode node,
   {
     // Here, we eliminate the ITE if we are not Boolean and if we do not contain
     // a free variable.
-    if (!inQuant || !expr::hasFreeVar(node))
+    if (!ctx.inQuant() || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -145,7 +146,7 @@ Node RemoveTermFormulas::run(TNode node,
   else if (node.getKind() == kind::LAMBDA)
   {
     // if a lambda, do lambda-lifting
-    if (!inQuant || !expr::hasFreeVar(node))
+    if (!ctx.inQuant() || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -187,7 +188,7 @@ Node RemoveTermFormulas::run(TNode node,
     // If a witness choice
     //   For details on this operator, see
     //   http://planetmath.org/hilbertsvarepsilonoperator.
-    if (!inQuant || !expr::hasFreeVar(node))
+    if (!ctx.inQuant() || !expr::hasFreeVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -231,8 +232,8 @@ Node RemoveTermFormulas::run(TNode node,
     }
   }
   else if (node.getKind() != kind::BOOLEAN_TERM_VARIABLE && nodeType.isBoolean()
-           && inTerm
-           && !inQuant)
+           && ctx.inTerm()
+           && !ctx.inQuant())
   {
     // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
@@ -265,7 +266,7 @@ Node RemoveTermFormulas::run(TNode node,
   // if the term should be replaced by a skolem
   if( !skolem.isNull() ){
     // Attach the skolem
-    d_tfCache.insert(cacheKey, skolem);
+    d_tfCache.insert(curr, skolem);
 
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
@@ -300,7 +301,9 @@ Node RemoveTermFormulas::run(TNode node,
 
       // Remove ITEs from the new assertion, rewrite it and push it to the
       // output
-      newAssertion = run(newAssertion, output, newSkolems, false, false);
+      RtxContext cctx;
+      cctx.pushInitial(newAssertion);
+      newAssertion = run(cctx, output, newSkolems);
 
       theory::TrustNode trna =
           theory::TrustNode::mkTrustLemma(newAssertion, d_lp.get());
@@ -313,16 +316,6 @@ Node RemoveTermFormulas::run(TNode node,
     return skolem;
   }
 
-  if (node.isClosure())
-  {
-    // Remember if we're inside a quantifier
-    inQuant = true;
-  }else if( !inTerm && hasNestedTermChildren( node ) ){
-    // Remember if we're inside a term
-    Debug("ite") << "In term because of " << node << " " << node.getKind() << std::endl;
-    inTerm = true;
-  }
-
   // If not an ITE, go deep
   vector<Node> newChildren;
   bool somethingChanged = false;
@@ -330,8 +323,11 @@ Node RemoveTermFormulas::run(TNode node,
     newChildren.push_back(node.getOperator());
   }
   // Remove the ITEs from the children
-  for(TNode::const_iterator it = node.begin(), end = node.end(); it != end; ++it) {
-    Node newChild = run(*it, output, newSkolems, inQuant, inTerm);
+  int32_t cval = curr.second;
+  for (size_t i=0, nchild = node.getNumChildren(); i<nchild; i++)
+  {
+    ctx.pushChild(node, cval, i);
+    Node newChild = run(ctx, output, newSkolems);
     somethingChanged |= (newChild != *it);
     newChildren.push_back(newChild);
   }
@@ -339,10 +335,10 @@ Node RemoveTermFormulas::run(TNode node,
   // If changes, we rewrite
   if(somethingChanged) {
     Node cached = nodeManager->mkNode(node.getKind(), newChildren);
-    d_tfCache.insert(cacheKey, cached);
+    d_tfCache.insert(curr, cached);
     return cached;
   } else {
-    d_tfCache.insert(cacheKey, Node::null());
+    d_tfCache.insert(curr, Node::null());
     return node;
   }
 }
@@ -358,7 +354,8 @@ Node RemoveTermFormulas::getSkolemForNode(Node node) const
   return Node::null();
 }
 
-Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
+/*
+Node RemoveTermFormulas::replace(TNode node) const {
   if( node.getKind()==kind::INST_PATTERN_LIST ){
     return Node(node);
   }
@@ -401,6 +398,7 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
     return node;
   }
 }
+*/
 
 // returns true if the children of node should be considered nested terms 
 bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {

@@ -97,7 +97,7 @@ class RemoveTermFormulas {
    * Substitute under node using pre-existing cache.  Do not remove
    * any ITEs not seen during previous runs.
    */
-  Node replace(TNode node, bool inQuant = false, bool inTerm = false) const;
+  //Node replace(TNode node) const;
 
   /** Returns true if e contains a term ite. */
   bool containsTermITE(TNode e) const;
@@ -121,9 +121,9 @@ class RemoveTermFormulas {
 
  private:
   typedef context::
-      CDInsertHashMap<std::pair<Node, int>,
+      CDInsertHashMap<std::pair<Node, int32_t>,
                       Node,
-                      PairHashFunction<Node, int, NodeHashFunction> >
+                      PairHashFunction<Node, int32_t, NodeHashFunction> >
           TermFormulaCache;
   /** term formula removal cache
    *
@@ -132,9 +132,6 @@ class RemoveTermFormulas {
    * result of cacheVal below.
    */
   TermFormulaCache d_tfCache;
-
-  /** return the integer cache value for the input flags to run(...) */
-  static inline int cacheVal( bool inQuant, bool inTerm ) { return (inQuant ? 1 : 0) + 2*(inTerm ? 1 : 0); }
 
   /** skolem cache
    *
@@ -191,8 +188,7 @@ class RemoveTermFormulas {
   Node run(TNode node,
            std::vector<theory::TrustNode>& newAsserts,
            std::vector<Node>& newSkolems,
-           bool inQuant,
-           bool inTerm);
+           RtfTermContext& cxt);
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;
