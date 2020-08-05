@@ -478,10 +478,7 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
                                       nm->mkNode(kind::UNION, node[0], node[1]),
                                       node[1]) );
   }
-  else if (k == UNION)
-  {
-    
-  }
+  // could have an efficient normalizer for union here
 
   return RewriteResponse(REWRITE_DONE, node);
 }
