@@ -67,6 +67,9 @@ class LazyCDProof : public CDProof
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
+   * @param isClosed Whether to expect that pg can provide a closed proof for
+   * this fact.
+   * @param ctx The context we are in (for debugging).
    * @param forceOverwrite If this flag is true, then this call overwrites
    * an existing proof generator provided for expected, if one was provided
    * via a previous call to addLazyStep in the current context.
@@ -77,6 +80,8 @@ class LazyCDProof : public CDProof
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
+                   bool isClosed = true,
+                   const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false,
                    PfRule trustId = PfRule::ASSUME);
   /**

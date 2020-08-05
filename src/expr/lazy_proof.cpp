@@ -57,36 +57,41 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
     if (it == visited.end())
     {
       visited.insert(cur);
-      if (cur->getRule() == PfRule::ASSUME)
+      Node cfact = cur->getResult();
+      if (getProof(cfact).get() != cur)
       {
-        Node afact = cur->getResult();
+        // we don't own this proof, skip it
+        Trace("lazy-cdproof") << "...skip unowned proof" << std::endl;
+      }
+      else if (cur->getRule() == PfRule::ASSUME)
+      {
         bool isSym = false;
-        ProofGenerator* pg = getGeneratorFor(afact, isSym);
+        ProofGenerator* pg = getGeneratorFor(cfact, isSym);
         if (pg != nullptr)
         {
-          Trace("lazy-cdproof") << "LazyCDProof: Call generator for assumption "
-                                << afact << std::endl;
-          Node afactGen = isSym ? CDProof::getSymmFact(afact) : afact;
-          Assert(!afactGen.isNull());
-          // use the addProofTo interface
-          if (!pg->addProofTo(afactGen, this))
+          Trace("lazy-cdproof")
+              << "LazyCDProof: Call generator " << pg->identify()
+              << " for assumption " << cfact << std::endl;
+          Node cfactGen = isSym ? CDProof::getSymmFact(cfact) : cfact;
+          Assert(!cfactGen.isNull());
+          // do not use the addProofTo interface
+          // instead use the update node interface
+          std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
+          if (isSym)
           {
-            Trace("lazy-cdproof") << "LazyCDProof: Failed added fact for "
-                                  << afactGen << std::endl;
-            Assert(false) << "Proof generator " << pg->identify()
-                          << " could not add proof for fact " << afactGen
-                          << std::endl;
+            d_manager->updateNode(cur, PfRule::SYMM, {pgc}, {});
           }
           else
           {
-            Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
-                                  << afactGen << std::endl;
+            d_manager->updateNode(cur, pgc.get());
           }
+          Trace("lazy-cdproof") << "LazyCDProof: Successfully added fact for "
+                                << cfactGen << std::endl;
         }
         else
         {
           Trace("lazy-cdproof") << "LazyCDProof: " << identify()
-                                << " : No generator for " << afact << std::endl;
+                                << " : No generator for " << cfact << std::endl;
         }
         // Notice that we do not traverse the proofs that have been generated
         // lazily by the proof generators here.  In other words, we assume that
@@ -105,11 +110,14 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
   } while (!visit.empty());
   // we have now updated the ASSUME leafs of opf, return it
   Trace("lazy-cdproof") << "...finished" << std::endl;
+  Assert(opf->getResult() == fact);
   return opf;
 }
 
 void LazyCDProof::addLazyStep(Node expected,
                               ProofGenerator* pg,
+                              bool isClosed,
+                              const char* ctx,
                               bool forceOverwrite,
                               PfRule idNull)
 {
@@ -118,7 +126,9 @@ void LazyCDProof::addLazyStep(Node expected,
     // null generator, should have given a proof rule
     if (idNull == PfRule::ASSUME)
     {
-      Assert(false);
+      AlwaysAssert(false) << "LazyCDProof::addLazyStep: " << identify()
+                          << ": failed to provide proof generator for "
+                          << expected;
       return;
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected
@@ -139,6 +149,12 @@ void LazyCDProof::addLazyStep(Node expected,
   }
   // just store now
   d_gens.insert(expected, pg);
+  // debug checking
+  if (isClosed)
+  {
+    Trace("lazy-cdproof-debug") << "Checking closed..." << std::endl;
+    pfgEnsureClosed(expected, pg, "lazy-cdproof-debug", ctx);
+  }
 }
 
 ProofGenerator* LazyCDProof::getGeneratorFor(Node fact,
