@@ -78,18 +78,16 @@ class Preprocessor
    * equisatisfiable formula?
    */
   Node simplify(const Node& e, bool removeItes = false);
-  /** Same as above, with a cache */
-  Node simplify(const Node& e,
-                std::unordered_map<Node, Node, NodeHashFunction>& cache,
-                bool removeItes = false);
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
    */
-  Node expandDefinitions(const Node& e);
+  Node expandDefinitions(const Node& e,
+                         bool expandOnly = false);
   /** Same as above, with a cache */
   Node expandDefinitions(
-      const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache);
+      const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache,
+                         bool expandOnly = false);
   /**
    * Get the underlying term formula remover utility.
    */

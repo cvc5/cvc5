@@ -449,9 +449,9 @@ SmtEngine::~SmtEngine()
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
-    d_pp.reset(nullptr),
-        // d_resourceManager must be destroyed before d_statisticsRegistry
-        d_resourceManager.reset(nullptr);
+    d_pp.reset(nullptr);
+    // d_resourceManager must be destroyed before d_statisticsRegistry
+    d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
 
 
@@ -1538,7 +1538,8 @@ Node SmtEngine::expandDefinitions(const Node& ex)
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  return d_pp->expandDefinitions(ex);
+  // set expandOnly flag to true
+  return d_pp->expandDefinitions(ex, true);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
@@ -2622,6 +2623,7 @@ void SmtEngine::pop() {
 
   // Clear out assertion queues etc., in case anything is still in there
   d_asserts->clearCurrent();
+  // clear the learned literals from the preprocessor
   d_pp->clearLearnedLiterals();
 
   Trace("userpushpop") << "SmtEngine: popped to level "

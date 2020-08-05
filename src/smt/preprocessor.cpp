@@ -100,10 +100,11 @@ void Preprocessor::cleanup() { d_processor.cleanup(); }
 
 RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 
-Node Preprocessor::expandDefinitions(const Node& e)
+Node Preprocessor::expandDefinitions(const Node& e,
+                         bool expandOnly)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return expandDefinitions(e, cache);
+  return expandDefinitions(e, cache, expandOnly);
 }
 
 Node Preprocessor::expandDefinitions(
@@ -118,18 +119,11 @@ Node Preprocessor::expandDefinitions(
     e.getType(true);
   }
   // expand only = true
-  return d_processor.expandDefinitions(e, cache, true);
-}
-
-Node Preprocessor::simplify(const Node& e, bool removeItes)
-{
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return simplify(e, cache, removeItes);
+  return d_processor.expandDefinitions(e, cache, expandOnly);
 }
 
 Node Preprocessor::simplify(
     const Node& ex,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache,
     bool removeItes)
 {
   Trace("smt") << "SMT simplify(" << ex << ")" << endl;
@@ -143,6 +137,7 @@ Node Preprocessor::simplify(
     // ensure expr is type-checked at this point
     e.getType(true);
   }
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_processor.expandDefinitions(e, cache);
   Node ns = applySubstitutions(n);
   if (removeItes)
