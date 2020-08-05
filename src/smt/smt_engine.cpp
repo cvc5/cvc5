@@ -1604,7 +1604,9 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
-  Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
+  // dumping SynthFunCommand from smt-engine is currently broken (please take at
+  // CVC4/cvc4-projects#211)
+  // Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
@@ -2764,16 +2766,16 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getInterpol(const Expr& conj,
-                            const Type& grammarType,
-                            Expr& interpol)
+bool SmtEngine::getInterpol(const Node& conj,
+                            const TypeNode& grammarType,
+                            Node& interpol)
 {
   return false;
 }
 
-bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+bool SmtEngine::getInterpol(const Node& conj, Node& interpol)
 {
-  Type grammarType;
+  TypeNode grammarType;
   return getInterpol(conj, grammarType, interpol);
 }
 
