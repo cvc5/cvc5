@@ -938,7 +938,7 @@ target_link_libraries(cvc4 ${RT_LIBRARIES})
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
 # Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
 
-if (NOT "${LIB_ONLY}" STREQUAL "YES")
+if (NOT LIB_ONLY)
   message("Adding main")
   add_subdirectory(main)
 endif()
