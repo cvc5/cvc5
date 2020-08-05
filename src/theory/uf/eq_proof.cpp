@@ -535,6 +535,88 @@ bool EqProof::expandTransitivityForDisequalities(
   return true;
 }
 
+// TEMPORARY NOTE: This may not be enough. Worst case scenario I need to
+// reproduce here a search for arbitrary chains between each of the variables in
+// the conclusion and a constant
+bool EqProof::expandTransitivityForTheoryDisequalities(
+    Node conclusion, std::vector<Node>& premises, CDProof* p) const
+{
+  // whether conclusion is a disequality (= (= t1 t2) false), modulo symmetry
+  unsigned termPos = -1;
+  for (unsigned i = 0; i < 2; ++i)
+  {
+    if (conclusion[i].getKind() == kind::CONST_BOOLEAN
+        && !conclusion[i].getConst<bool>()
+        && conclusion[1 - i].getKind() == kind::EQUAL)
+    {
+      termPos = i - 1;
+      break;
+    }
+  }
+  // no disequality
+  if (termPos == static_cast<unsigned>(-1))
+  {
+    return false;
+  }
+  Trace("eqproof-conv")
+      << "EqProof::expandTransitivityForTheoryDisequalities: check if need "
+         "to expand transitivity step to conclude disequality "
+      << conclusion << " from premises " << premises << "\n";
+
+  // Check if the premises are (= t1 c1) and (= t2 c2), modulo symmetry
+  std::vector<Node> subChildren, constChildren;
+  for (unsigned i = 0; i < 2; ++i)
+  {
+    Node term = conclusion[termPos][i];
+    for (const Node& premise : premises)
+    {
+      for (unsigned j = 0; j < 2; ++j)
+      {
+        if (premise[j] == term && premise[1 - j].isConst())
+        {
+          subChildren.push_back(premise[j].eqNode(premise[1 - j]));
+          constChildren.push_back(premise[1 - j]);
+          break;
+        }
+      }
+    }
+  }
+  if (subChildren.size() < 2)
+  {
+    return false;
+  }
+  // Now build
+  //   (= t1 c1)    (= t2 c2)
+  //  ------------------------- CONG   ------------------- MACRO_SR_PRED_INTRO
+  //   (= (= t1 t2) (= c1 c2))         (= (= c1 c2) false)
+  //  --------------------------------------------------------------------- TR
+  //                   (= (= t1 t2) false)
+  Node constApp = NodeManager::currentNM()->mkNode(kind::EQUAL, constChildren);
+  Node constEquality = constApp.eqNode(conclusion[1 - termPos]);
+  Trace("eqproof-conv")
+      << "EqProof::expandTransitivityForTheoryDisequalities: adding "
+      << PfRule::MACRO_SR_PRED_INTRO << " step for " << constApp << " = "
+      << conclusion[1 - termPos] << "\n";
+  p->addStep(constEquality, PfRule::MACRO_SR_PRED_INTRO, {}, {constEquality});
+  // build congruence conclusion (= (= t1 t2) (t c1 c2))
+  Node congConclusion = conclusion[termPos].eqNode(constApp);
+  Trace("eqproof-conv")
+      << "EqProof::expandTransitivityForTheoryDisequalities: adding  "
+      << PfRule::CONG << " step for " << congConclusion << " from "
+      << subChildren << "\n";
+  p->addStep(congConclusion,
+             PfRule::CONG,
+             {subChildren},
+             {ProofRuleChecker::mkKindNode(kind::EQUAL)},
+             true);
+  Trace("eqproof-conv") << "EqProof::expandTransitivityForDisequalities: via "
+                           "congruence derived "
+                        << congConclusion << "\n";
+  std::vector<Node> transitivityChildren{congConclusion, constEquality};
+  p->addStep(conclusion, PfRule::TRANS, {transitivityChildren}, {});
+  return true;
+}
+
 bool EqProof::buildTransitivityChain(Node conclusion,
                                      std::vector<Node>& premises) const
 {
@@ -954,13 +1036,16 @@ Node EqProof::addToProof(
         {
           Assert(premise[1].isConst());
           constant = premise[1];
+          break;
         }
-        else if (premise[1] == term)
+        if (premise[1] == term)
         {
           Assert(premise[0].isConst());
           constant = premise[0];
+          break;
         }
       }
+      Assert(!constant.isNull());
       subChildren.push_back(term.eqNode(constant));
       constChildren.push_back(constant);
     }
@@ -1056,22 +1141,30 @@ Node EqProof::addToProof(
             conclusion, children, p, assumptions))
     {
       Assert(!children.empty());
-      Trace("eqproof-conv")
-          << "EqProof::addToProof: build chain for transitivity premises"
-          << children << " to conclude " << conclusion << "\n";
-      // Build ordered transitivity chain from children to derive the conclusion
-      buildTransitivityChain(conclusion, children);
-      Assert(children.size() > 1
-             || (!children.empty()
-                 && (children[0] == conclusion
-                     || children[0][1].eqNode(children[0][0]) == conclusion)));
-      // Only add transitivity step if there is more than one premise in the
-      // chain. Otherwise the premise will be the conclusion itself and it'll
-      // already have had a step added to it when the premises were recursively
-      // processed.
-      if (children.size() > 1)
+      // similarly, if a disequality is concluded because of theory reasoning,
+      // the step is coarse-grained and needs to be expanded, in which case the
+      // proof is finalized in the call
+      if (!expandTransitivityForTheoryDisequalities(conclusion, children, p))
       {
-        p->addStep(conclusion, PfRule::TRANS, children, {}, true);
+        Trace("eqproof-conv")
+            << "EqProof::addToProof: build chain for transitivity premises"
+            << children << " to conclude " << conclusion << "\n";
+        // Build ordered transitivity chain from children to derive the
+        // conclusion
+        buildTransitivityChain(conclusion, children);
+        Assert(
+            children.size() > 1
+            || (!children.empty()
+                && (children[0] == conclusion
+                    || children[0][1].eqNode(children[0][0]) == conclusion)));
+        // Only add transitivity step if there is more than one premise in the
+        // chain. Otherwise the premise will be the conclusion itself and it'll
+        // already have had a step added to it when the premises were
+        // recursively processed.
+        if (children.size() > 1)
+        {
+          p->addStep(conclusion, PfRule::TRANS, children, {}, true);
+        }
       }
     }
     Assert(p->hasStep(conclusion));
