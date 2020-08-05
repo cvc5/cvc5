@@ -21,7 +21,7 @@ add_custom_target(check
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
-if (NOT "${LIB_ONLY}" STREQUAL "YES")
+if (NOT LIB_ONLY)
   add_subdirectory(regress)
 endif()
 add_subdirectory(system EXCLUDE_FROM_ALL)
