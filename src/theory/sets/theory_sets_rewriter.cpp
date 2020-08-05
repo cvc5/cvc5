@@ -38,12 +38,12 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
   }
 
   Assert(setTerm.getKind() == kind::UNION
-         && setTerm[1].getKind() == kind::SINGLETON)
+         && setTerm[0].getKind() == kind::SINGLETON)
       << "kind was " << setTerm.getKind() << ", term: " << setTerm;
 
   return
-    elementTerm == setTerm[1][0] ||
-    checkConstantMembership(elementTerm, setTerm[0]);
+    elementTerm == setTerm[0][0] ||
+    checkConstantMembership(elementTerm, setTerm[1]);
 }
 
 // static

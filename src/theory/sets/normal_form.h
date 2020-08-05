@@ -42,7 +42,7 @@ class NormalForm {
       Node cur = nm->mkNode(kind::SINGLETON, *it);
       while (++it != elements.end())
       {
-        cur = nm->mkNode(kind::UNION, cur, nm->mkNode(kind::SINGLETON, *it));
+        cur = nm->mkNode(kind::UNION, nm->mkNode(kind::SINGLETON, *it), cur);
       }
       return cur;
     }

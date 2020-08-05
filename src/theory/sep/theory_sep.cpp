@@ -1785,15 +1785,12 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
   Assert(d_heap_locs.size() == d_heap_locs_model.size());
   if( d_heap_locs.empty() ){
     return NodeManager::currentNM()->mkConst(EmptySet(tn));
-  }else if( d_heap_locs.size()==1 ){
-    return d_heap_locs[0];
-  }else{
-    Node curr = NodeManager::currentNM()->mkNode( kind::UNION, d_heap_locs[0], d_heap_locs[1] );
-    for( unsigned j=2; j<d_heap_locs.size(); j++ ){
-      curr = NodeManager::currentNM()->mkNode( kind::UNION, curr, d_heap_locs[j] );
-    }
-    return curr;
   }
+  Node curr = d_heap_locs[0];
+  for( unsigned j=1; j<d_heap_locs.size(); j++ ){
+    curr = NodeManager::currentNM()->mkNode( kind::UNION, d_heap_locs[j], curr );
+  }
+  return curr;
 }
 
 }/* CVC4::theory::sep namespace */
