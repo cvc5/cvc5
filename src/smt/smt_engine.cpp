@@ -92,7 +92,7 @@
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
-#include "smt/process_assertions.h"
+#include "smt/preprocessor.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
