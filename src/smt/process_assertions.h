@@ -77,9 +77,11 @@ class ProcessAssertions
   /**
    * Expand definitions in term n. Return the expanded form of n.
    *
-   * If expandOnly is true, then the expandDefinitions function of TheoryEngine
-   * of the SmtEngine this calls is associated with is not called on subterms of
-   * n.
+   * @param n The node to expand
+   * @param cache Cache of previous results
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of n.
+   * @return The expanded term.
    */
   Node expandDefinitions(TNode n,
                          NodeToNodeHashMap& cache,

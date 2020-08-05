@@ -74,16 +74,23 @@ class Preprocessor
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
    *
-   * @todo (design) is this meant to give an equivalent or an
-   * equisatisfiable formula?
+   * @param e The node to simplify
+   * @param removeItes Whether to remove ITE (and other terms with formulas in
+   * term positions) from the result.
+   * @return The simplified term.
    */
   Node simplify(const Node& e, bool removeItes = false);
   /**
-   * Expand the definitions in a term or formula.  No other
-   * simplification or normalization is done.
+   * Expand the definitions in a term or formula e.  No other
+   * simplification or normalization is done. 
+   *
+   * @param e The node to expand
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of e.
+   * @return The expanded term.
    */
   Node expandDefinitions(const Node& e, bool expandOnly = false);
-  /** Same as above, with a cache */
+  /** Same as above, with a cache of previous results. */
   Node expandDefinitions(
       const Node& e,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
