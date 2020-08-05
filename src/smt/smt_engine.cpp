@@ -1548,8 +1548,9 @@ Node SmtEngine::getValue(const Node& ex) const
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetValueCommand(ex);
+    Dump("benchmark") << GetValueCommand(ex.toExpr());
   }
+  TypeNode expectedType = ex.getType();
 
   // Substitute out any abstract values in ex and expand
   Node n = d_pp->expandDefinitions(ex);
@@ -1601,7 +1602,7 @@ vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
   vector<Expr> result;
   for (const Expr& e : exprs)
   {
-    result.push_back(getValue(e));
+    result.push_back(getValue(e).toExpr());
   }
   return result;
 }
