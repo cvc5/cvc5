@@ -1541,7 +1541,7 @@ Node SmtEngine::expandDefinitions(const Node& ex)
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Expr SmtEngine::getValue(const Node& ex) const
+Node SmtEngine::getValue(const Node& ex) const
 {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -1573,10 +1573,8 @@ Expr SmtEngine::getValue(const Node& ex) const
     resultNode = m->getValue(n);
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
-  resultNode = postprocess(resultNode, expectedType);
-  Trace("smt") << "--- model-post returned " << resultNode << endl;
-  Trace("smt") << "--- model-post returned " << resultNode.getType() << endl;
-  Trace("smt") << "--- model-post expected " << expectedType << endl;
+  Trace("smt") << "--- type " << resultNode.getType() << endl;
+  Trace("smt") << "--- expected type " << expectedType << endl;
 
   // type-check the result we got
   // Notice that lambdas have function type, which does not respect the subtype
@@ -1595,7 +1593,7 @@ Expr SmtEngine::getValue(const Node& ex) const
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 
-  return resultNode.toExpr();
+  return resultNode;
 }
 
 vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
