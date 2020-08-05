@@ -37,11 +37,37 @@ class Preprocessor
  public:
   Preprocessor(SmtEngine& smt, context::UserContext* u, AbstractValues& abs);
   ~Preprocessor();
-    
   /**
    * Process the assertions that have been asserted.
    */
-  void processAssertions(Assertions& as);
+  void process(Assertions& as);
+  /**
+   * Postprocess
+   */
+  void postprocess(Assertions& as);
+  /** 
+   * Clear learned literals from the Boolean propagator.
+   */
+  void clearLearnedLiterals();
+  /**
+   * Simplify a formula without doing "much" work.  Does not involve
+   * the SAT Engine in the simplification, but uses the current
+   * definitions, assertions, and the current partial model, if one
+   * has been constructed.  It also involves theory normalization.
+   *
+   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   *
+   * @todo (design) is this meant to give an equivalent or an
+   * equisatisfiable formula?
+   */
+  Node simplify(const Node& e, bool removeItes=false);
+  /**
+   * Expand the definitions in a term or formula.  No other
+   * simplification or normalization is done.
+   *
+   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
+   */
+  Node expandDefinitions(const Node& e);
   /** 
    * Get term formula remover 
    */
@@ -53,8 +79,6 @@ private:
   booleans::CircuitPropagator d_propagator;
   /** Whether any assertions have been processed */
   context::CDO<bool> d_assertionsProcessed;
-  /** Cached true value */
-  //Node d_true;
   /** The preprocessing pass context */
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
   /** Process assertions module */

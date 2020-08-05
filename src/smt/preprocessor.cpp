@@ -36,17 +36,26 @@ Preprocessor::Preprocessor(SmtEngine& smt, context::UserContext* u, AbstractValu
 
 Preprocessor::~Preprocessor()
 {
+  if(d_propagator.getNeedsFinish()) {
+    d_propagator.finish();
+    d_propagator.setNeedsFinish(false);
+  }
 }
 
 void Preprocessor::finishInit()
-{
-  
+{  
+  d_preprocessingPassContext.reset(
+      new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
+
+  // initialize the preprocessing passes
+  d_processor.finishInit(d_preprocessingPassContext.get());
 }
 
-bool Preprocessor::processAssertions(Assertions& as)
+bool Preprocessor::process(Assertions& as)
 {
   AssertionPipeline& ap = as.getAssertionPipeline();
-
+  
+  // should not be called if empty
   Assert (ap.size()!=0);
   
   if (d_assertionsProcessed && options::incrementalSolving()) {
@@ -59,11 +68,26 @@ bool Preprocessor::processAssertions(Assertions& as)
     ap.disableStoreSubstsInAsserts();
   }
 
-  // process the assertions
-  bool noConflict = d_processor.apply(as);
-  
+  // process the assertions, return true if no conflict is discovered
+  return d_processor.apply(as);
+}
+
+void Preprocessor::postprocess(Assertions& as)
+{
+  AssertionPipeline& ap = as.getAssertionPipeline();
+  // if incremental, compute which variables are assigned
+  if (options::incrementalSolving())
+  {
+    d_preprocessingPassContext->recordSymbolsInAssertions(ap.ref());
+  }
+
   // mark that we've processed assertions
   d_assertionsProcessed = true;
+}
+
+void Preprocessor::clearLearnedLiterals()
+{
+  d_propagator.getLearnedLiterals().clear();
 }
 
 RemoveTermFormulas& getTermFormulaRemover()
@@ -86,7 +110,7 @@ Node Preprocessor::expandDefinitions(const Node& ex)
   return d_processor->expandDefinitions( e, cache, true);
 }
 
-Node Preprocessor::simplify(const Node& ex)
+Node Preprocessor::simplify(const Node& ex, bool removeItes)
 {
   Trace("smt") << "SMT simplify(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) 
@@ -99,10 +123,20 @@ Node Preprocessor::simplify(const Node& ex)
     // ensure expr is type-checked at this point
     e.getType(true);
   }
-  // Make sure all preprocessing is done
-  d_private->processAssertions(*d_asserts);
-  Node n = d_private->simplify(Node::fromExpr(e));
-  return n.toExpr();
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  Node n = d_processor.expandDefinitions(in, cache);
+  Node ns = applySubstitutions(n);
+  if (removeItes)
+  {
+    // also remove ites if asked
+    ns = d_iteRemover.replace(ns);
+  }
+  return ns;
+}
+
+Node Preprocessor::removeTermFormulas(const Node& e)
+{
+  return d_rtf.replace(e);
 }
 
 Node Preprocessor::applySubstitutions(TNode node)
