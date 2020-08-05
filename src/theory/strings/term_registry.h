@@ -168,6 +168,15 @@ class TermRegistry
    */
   Node getProxyVariableFor(Node n) const;
 
+  /**
+   * Get the proxy variable for a term. If the proxy variable does not exist,
+   * this method registers the term and then returns its proxy variable.
+   *
+   * @param n The term
+   * @return Proxy variable for `n`
+   */
+  Node ensureProxyVariableFor(Node n);
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a

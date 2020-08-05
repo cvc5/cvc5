@@ -657,10 +657,12 @@ class CVC4_PUBLIC SmtEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+  bool getInterpol(const Node& conj,
+                   const TypeNode& grammarType,
+                   Node& interpol);
 
   /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Expr& conj, Expr& interpol);
+  bool getInterpol(const Node& conj, Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the

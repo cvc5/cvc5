@@ -66,9 +66,12 @@ enum RewriteRuleId
   NorEliminate,
   XnorEliminate,
   SdivEliminate,
+  SdivEliminateFewerBitwiseOps,
   UdivEliminate,
   SmodEliminate,
+  SmodEliminateFewerBitwiseOps,
   SremEliminate,
+  SremEliminateFewerBitwiseOps,
   ZeroExtendEliminate,
   SignExtendEliminate,
   BVToNatEliminate,
@@ -120,6 +123,9 @@ enum RewriteRuleId
   AndZero,
   AndOne,
   AndOrXorConcatPullUp,
+  NegEliminate,
+  OrEliminate,
+  XorEliminate,
   OrZero,
   OrOne,
   XorDuplicate,
@@ -202,6 +208,9 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case ConcatExtractMerge:  out << "ConcatExtractMerge";  return out;
   case ConcatConstantMerge: out << "ConcatConstantMerge"; return out;
   case AndOrXorConcatPullUp:out << "AndOrXorConcatPullUp";return out;
+  case NegEliminate: out << "NegEliminate"; return out;
+  case OrEliminate: out << "OrEliminate"; return out;
+  case XorEliminate: out << "XorEliminate"; return out;
   case ExtractExtract:      out << "ExtractExtract";      return out;
   case ExtractWhole:        out << "ExtractWhole";        return out;
   case ExtractConcat:       out << "ExtractConcat";       return out;
@@ -223,8 +232,17 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case NandEliminate:       out << "NandEliminate";       return out;
   case NorEliminate :       out << "NorEliminate";        return out;
   case SdivEliminate :      out << "SdivEliminate";       return out;
+  case SdivEliminateFewerBitwiseOps:
+    out << "SdivEliminateFewerBitwiseOps";
+    return out;
   case SremEliminate :      out << "SremEliminate";       return out;
+  case SremEliminateFewerBitwiseOps:
+    out << "SremEliminateFewerBitwiseOps";
+    return out;
   case SmodEliminate :      out << "SmodEliminate";       return out;
+  case SmodEliminateFewerBitwiseOps:
+    out << "SmodEliminateFewerBitwiseOps";
+    return out;
   case ZeroExtendEliminate :out << "ZeroExtendEliminate"; return out;
   case EvalEquals :         out << "EvalEquals";          return out;
   case EvalConcat :         out << "EvalConcat";          return out;
@@ -585,6 +603,12 @@ struct AllRewriteRules {
   RewriteRule<BvIteMergeThenElse>             rule137;
   RewriteRule<BvIteMergeElseElse>             rule138;
   RewriteRule<AndOrXorConcatPullUp>           rule139;
+  RewriteRule<NegEliminate> rule140;
+  RewriteRule<OrEliminate> rule141;
+  RewriteRule<XorEliminate> rule142;
+  RewriteRule<SdivEliminate> rule143;
+  RewriteRule<SremEliminate> rule144;
+  RewriteRule<SmodEliminate> rule145;
 };
 
 template<> inline
