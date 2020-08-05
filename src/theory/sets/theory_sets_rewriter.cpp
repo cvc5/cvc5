@@ -53,6 +53,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   Trace("sets-postrewrite") << "Process: " << node << std::endl;
 
   if(node.isConst()) {
+      Trace("sets-rewrite-nf") << "Sets::rewrite: no rewrite (constant) " << node << std::endl;
     // Dare you touch the const and mangle it to something else.
     return RewriteResponse(REWRITE_DONE, node);
   }
@@ -163,23 +164,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Assert(newNode.isConst());
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
-    } else {
-      std::vector< Node > els;
-      NormalForm::getElementsFromBop( kind::INTERSECTION, node, els );
-      std::sort( els.begin(), els.end() );
-      Node rew = NormalForm::mkBop( kind::INTERSECTION, els, node.getType() );
-      if( rew!=node ){
-        Trace("sets-rewrite") << "Sets::rewrite " << node << " -> " << rew << std::endl;
-      }
-      return RewriteResponse(REWRITE_DONE, rew);
     }
-    /*
-    } else if (node[0] > node[1]) {
-      Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
-      return RewriteResponse(REWRITE_DONE, newNode);
-    }
-    */
+    // we don't merge non-constant intersections
     break;
   }//kind::INTERSECION
 
@@ -200,22 +186,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                           std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
       Assert(newNode.isConst());
-      Trace("sets-postrewrite") << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;
+      Trace("sets-rewrite") << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
-    } else {
-      std::vector< Node > els;
-      NormalForm::getElementsFromBop( kind::UNION, node, els );
-      std::sort( els.begin(), els.end() );
-      Node rew = NormalForm::mkBop( kind::UNION, els, node.getType() );
-      if( rew!=node ){
-        Trace("sets-rewrite") << "Sets::rewrite: UNION " << node << " -> " << rew << std::endl;
-      }
-      else
-      {
-        Trace("sets-rewrite-nf") << "...no rewrite for " << rew << std::endl;
-      }
-      return RewriteResponse(REWRITE_DONE, rew);
     }
+    // we don't merge non-constant unions
     break;
   }//kind::UNION
   case kind::COMPLEMENT: {
