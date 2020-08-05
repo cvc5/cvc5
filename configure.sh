@@ -339,7 +339,7 @@ do
     --symfpu-dir) die "missing argument to $1 (try -h)" ;;
     --symfpu-dir=*) symfpu_dir=${1##*=} ;;
 
-    --lib-only) lib_only=YES ;;
+    --lib-only) lib_only=ON ;;
 
     -*) die "invalid option '$1' (try -h)";;
 
@@ -463,7 +463,7 @@ cmake_opts=""
 [ "$symfpu_dir" != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
 [ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DLIB_ONLY=YES"
+    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=ON"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \

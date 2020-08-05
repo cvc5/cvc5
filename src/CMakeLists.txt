@@ -843,8 +843,7 @@ set(KINDS_FILES
 add_subdirectory(base)
 add_subdirectory(expr)
 add_subdirectory(options)
-if (NOT "${LIB_ONLY}" STREQUAL "YES")
-  message("Adding parser")
+if (NOT BUILD_LIB_ONLY)
   add_subdirectory(parser)
 endif()
 add_subdirectory(theory)
@@ -938,7 +937,7 @@ target_link_libraries(cvc4 ${RT_LIBRARIES})
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
 # Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
 
-if (NOT LIB_ONLY)
+if (NOT BUILD_LIB_ONLY)
   message("Adding main")
   add_subdirectory(main)
 endif()
