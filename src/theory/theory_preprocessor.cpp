@@ -76,7 +76,8 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
 {
   // In this method, all rewriting steps of node are stored in d_tpg.
 
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: start " << node << std::endl; 
+  Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: start " << node
+                           << std::endl;
   // Run theory preprocessing, maybe
   Node ppNode = node;
   if (doTheoryPreprocess)
@@ -85,7 +86,9 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     TrustNode tpp = theoryPreprocess(node);
     ppNode = tpp.getNode();
   }
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: after preprocessing " << ppNode << std::endl; 
+  Trace("tpp-proof-debug")
+      << "TheoryPreprocessor::preprocess: after preprocessing " << ppNode
+      << std::endl;
 
   // Remove the ITEs
   Trace("te-tform-rm") << "Remove term formulas from " << ppNode << std::endl;
@@ -98,7 +101,9 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
     {
       if (ttfr.getGenerator() != nullptr)
       {
-        Trace("tpp-proof-debug") << "TheoryPreprocessor: addRewriteStep (term formula removal) " << ppNode << " -> " << retNode << std::endl; 
+        Trace("tpp-proof-debug")
+            << "TheoryPreprocessor: addRewriteStep (term formula removal) "
+            << ppNode << " -> " << retNode << std::endl;
         // store as a rewrite in d_tpg
         d_tpg->addRewriteStep(ppNode, retNode, ttfr.getGenerator());
       }
@@ -119,9 +124,13 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   }
   // Rewrite the main node, we rewrite and store the proof step, if necessary,
   // in d_tpg, which maintains the fact that d_tpg can prove the rewrite.
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: rewrite returned node " << retNode << std::endl; 
+  Trace("tpp-proof-debug")
+      << "TheoryPreprocessor::preprocess: rewrite returned node " << retNode
+      << std::endl;
   retNode = rewriteWithProof(retNode);
-  Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: after rewriting is " << retNode << std::endl; 
+  Trace("tpp-proof-debug")
+      << "TheoryPreprocessor::preprocess: after rewriting is " << retNode
+      << std::endl;
 
   // now, rewrite the lemmas
   Trace("tpp-proof-debug") << "TheoryPreprocessor::preprocess: process lemmas"
@@ -337,7 +346,9 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
     // may rewrite the same term more than once, thus check hasRewriteStep
     if (termr != term)
     {
-      Trace("tpp-proof-debug") << "TheoryPreprocessor: addRewriteStep (rewriting) " << term << " -> " << termr << std::endl; 
+      Trace("tpp-proof-debug")
+          << "TheoryPreprocessor: addRewriteStep (rewriting) " << term << " -> "
+          << termr << std::endl;
       d_tpg->addRewriteStep(term, termr, PfRule::REWRITE, {}, {term});
     }
   }
@@ -362,14 +373,18 @@ Node TheoryPreprocessor::preprocessWithProof(Node term)
   {
     if (trn.getGenerator() != nullptr)
     {
-      Trace("tpp-proof-debug") << "TheoryPreprocessor: addRewriteStep (generator) " << term << " -> " << termr << std::endl; 
+      Trace("tpp-proof-debug")
+          << "TheoryPreprocessor: addRewriteStep (generator) " << term << " -> "
+          << termr << std::endl;
       trn.debugCheckClosed("tpp-proof-debug",
                            "TheoryPreprocessor::preprocessWithProof");
       d_tpg->addRewriteStep(term, termr, trn.getGenerator());
     }
     else
     {
-      Trace("tpp-proof-debug") << "TheoryPreprocessor: addRewriteStep (trusted) " << term << " -> " << termr << std::endl; 
+      Trace("tpp-proof-debug")
+          << "TheoryPreprocessor: addRewriteStep (trusted) " << term << " -> "
+          << termr << std::endl;
       // small step trust
       d_tpg->addRewriteStep(
           term, termr, PfRule::THEORY_PREPROCESS, {}, {term.eqNode(termr)});
