@@ -2074,7 +2074,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   context::CDList<Node>* al = d_asserts->getAssertionList();
   // --check-model implies --produce-assertions, which enables the
   // assertion list, so we should be ok.
-  Assert(al != NULL)
+  Assert(al != nullptr)
       << "don't have an assertion list to check in SmtEngine::checkModel()";
 
   TimerStat::CodeTimer checkModelTimer(d_stats->d_checkModelTime);
@@ -2347,7 +2347,7 @@ void SmtEngine::checkSynthSolution()
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
   context::CDList<Node>* al = d_asserts->getAssertionList();
-  if (al == NULL)
+  if (al == nullptr)
   {
     Trace("check-synth-sol") << "No assertions to check\n";
     return;
@@ -2698,7 +2698,7 @@ vector<Expr> SmtEngine::getAssertions() {
     throw ModalException(msg);
   }
   context::CDList<Node>* al = d_asserts->getAssertionList();
-  Assert(al != NULL);
+  Assert(al != nullptr);
   std::vector<Expr> res;
   for (const Node& n : *al)
   {
