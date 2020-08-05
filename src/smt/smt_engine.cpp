@@ -428,7 +428,7 @@ SmtEngine::~SmtEngine()
     d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
-    d_private->getProcessAssertions()->cleanup();
+    d_pp->cleanup();
 
     // d_proofManager is always created when proofs are enabled at configure
     // time.  Because of this, this code should not be wrapped in PROOF() which
@@ -1683,8 +1683,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       Trace("smt") << "--- getting value of " << as << endl;
 
       // Expand, then normalize
-      unordered_map<Node, Node, NodeHashFunction> cache;
-      Node n = d_private->getProcessAssertions()->expandDefinitions(as, cache);
+      std::unordered_map<Node, Node, NodeHashFunction> cache;
+      Node n = d_pp->expandDefinitions(as, cache);
       n = Rewriter::rewrite(n);
 
       Trace("smt") << "--- getting value of " << n << endl;
@@ -1821,7 +1821,7 @@ std::vector<Expr> SmtEngine::getExpandedAssertions()
   for (const Expr& e : easserts)
   {
     Node ea = Node::fromExpr(e);
-    Node eae = d_private->getProcessAssertions()->expandDefinitions(ea, cache);
+    Node eae = d_pp->expandDefinitions(ea, cache);
     eassertsProc.push_back(eae.toExpr());
   }
   return eassertsProc;
@@ -2074,7 +2074,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
-      n = d_private->getProcessAssertions()->expandDefinitions(n, cache);
+      n = d_pp->expandDefinitions(n, cache);
     }
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
@@ -2228,7 +2228,7 @@ void SmtEngine::checkSynthSolution()
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
     Node n =
-        d_private->getProcessAssertions()->expandDefinitions(assertion, cache);
+        d_pp->expandDefinitions(assertion, cache);
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())

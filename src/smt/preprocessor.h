@@ -37,18 +37,29 @@ class Preprocessor
  public:
   Preprocessor(SmtEngine& smt, context::UserContext* u, AbstractValues& abs);
   ~Preprocessor();
-  /**
-   * Process the assertions that have been asserted.
+  /** 
+   * Finish initialization
    */
-  void process(Assertions& as);
+  void finishInit();
   /**
-   * Postprocess
+   * Process the assertions that have been asserted in argument as. Returns
+   * true if no conflict was discovered while preprocessing them.
+   */
+  bool process(Assertions& as);
+  /**
+   * Postprocess assertions, called after the SmtEngine has finished
+   * giving the assertions to the SMT solver and before the assertions are
+   * cleared.
    */
   void postprocess(Assertions& as);
   /**
    * Clear learned literals from the Boolean propagator.
    */
   void clearLearnedLiterals();
+  /** 
+   * Cleanup
+   */
+  void cleanup();
   /**
    * Simplify a formula without doing "much" work.  Does not involve
    * the SAT Engine in the simplification, but uses the current
@@ -61,6 +72,8 @@ class Preprocessor
    * equisatisfiable formula?
    */
   Node simplify(const Node& e, bool removeItes = false);
+  /** Same as above, with a cache */
+  Node simplify(const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache, bool removeItes = false);
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
@@ -68,23 +81,43 @@ class Preprocessor
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
   Node expandDefinitions(const Node& e);
+  /** Same as above, with a cache */
+  Node expandDefinitions(const Node& e, 
+  std::unordered_map<Node, Node, NodeHashFunction>& cache);
   /**
    * Get term formula remover
    */
   RemoveTermFormulas& getTermFormulaRemover();
 
  private:
+  /** 
+   * Apply substitutions that have been inferred by preprocessing, return the
+   * substituted form of node.
+   */
+  Node applySubstitutions(TNode node)
+  /** Reference to the parent SmtEngine */
+  SmtEngine& d_smt;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
-  /** A circuit propagator for non-clausal propositional deduction */
-  booleans::CircuitPropagator d_propagator;
-  /** Whether any assertions have been processed */
+  /** 
+   * A circuit propagator for non-clausal propositional deduction 
+   */
+  theory::booleans::CircuitPropagator d_propagator;
+  /** 
+   * User-context-dependent flag of whether any assertions have been processed 
+   */
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
-  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
-  /** Process assertions module */
+  std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
+  /** 
+   * Process assertions module, responsible for implementing the preprocessing
+   * passes.
+   */
   ProcessAssertions d_processor;
-  /** Instance of the term formula remover */
+  /** 
+   * The term formula remover, responsible for eliminating formulas that occur
+   * in term contexts. 
+   */
   RemoveTermFormulas d_rtf;
 };
 
