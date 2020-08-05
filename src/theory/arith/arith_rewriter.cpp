@@ -249,8 +249,8 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 
         // Todo improve the exception thrown
         std::stringstream ss;
-        ss << "The POW(^) operator can only be used with a natural number ";
-        ss << "in the exponent.  Exception occurred in:" << std::endl;
+        ss << "The exponent of the POW(^) operator can only be a constant positive number below " << INT_MAX << ". ";
+        ss << "Exception occurred in:" << std::endl;
         ss << "  " << t;
         throw LogicException(ss.str());
       }
