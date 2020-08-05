@@ -82,7 +82,7 @@ class Preprocessor
   Node simplify(const Node& e, bool removeItes = false);
   /**
    * Expand the definitions in a term or formula e.  No other
-   * simplification or normalization is done. 
+   * simplification or normalization is done.
    *
    * @param e The node to expand
    * @param expandOnly if true, then the expandDefinitions function of
