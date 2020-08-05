@@ -7,6 +7,7 @@ set(CVC4_EXAMPLES_API
   helloworld
   linear_arith
   sets
+  sequences
   strings
   sygus-fun
   sygus-grammar

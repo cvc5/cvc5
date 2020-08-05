@@ -242,7 +242,7 @@ bool PropEngine::isSatLiteral(TNode node) const {
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
   Assert(node.getType().isBoolean());
-  Assert(d_cnfStream->hasLiteral(node));
+  Assert(d_cnfStream->hasLiteral(node)) << node;
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 

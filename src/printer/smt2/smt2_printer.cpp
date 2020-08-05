@@ -662,6 +662,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::REGEXP_EMPTY:
   case kind::REGEXP_SIGMA:
   case kind::SEQ_UNIT:
+  case kind::SEQ_NTH:
   case kind::SEQUENCE_TYPE: out << smtKindString(k, d_variant) << " "; break;
 
   case kind::CARDINALITY_CONSTRAINT: out << "fmf.card "; break;
@@ -1231,6 +1232,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::REGEXP_COMPLEMENT: return "re.comp";
   case kind::SEQUENCE_TYPE: return "Seq";
   case kind::SEQ_UNIT: return "seq.unit";
+  case kind::SEQ_NTH: return "seq.nth";
 
   //sep theory
   case kind::SEP_STAR: return "sep";
@@ -2069,33 +2071,32 @@ static void toStream(std::ostream& out, const SynthFunCommand* c)
 {
   out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
       << ' ';
-  Type type = c->getFunction().getType();
-  const std::vector<Expr>& vars = c->getVars();
-  Assert(!type.isFunction() || !vars.empty());
+  const std::vector<api::Term>& vars = c->getVars();
   out << '(';
-  if (type.isFunction())
+  if (!vars.empty())
   {
     // print variable list
-    std::vector<Expr>::const_iterator i = vars.begin(), i_end = vars.end();
-    Assert(i != i_end);
-    out << '(' << *i << ' ' << i->getType() << ')';
+    std::vector<api::Term>::const_iterator i = vars.begin(), i_end = vars.end();
+    out << '(' << *i << ' ' << i->getSort() << ')';
     ++i;
     while (i != i_end)
     {
-      out << " (" << *i << ' ' << i->getType() << ')';
+      out << " (" << *i << ' ' << i->getSort() << ')';
       ++i;
     }
-    FunctionType ft = type;
-    type = ft.getRangeType();
   }
   out << ')';
   // if not invariant-to-synthesize, print return type
   if (!c->isInv())
   {
-    out << ' ' << type;
+    out << ' ' << c->getSort();
   }
+  out << '\n';
   // print grammar, if any
-  toStreamSygusGrammar(out, c->getSygusType());
+  if (c->getGrammar() != nullptr)
+  {
+    out << *c->getGrammar();
+  }
   out << ')';
 }
 
@@ -2150,7 +2151,10 @@ static void toStream(std::ostream& out, const GetAbductCommand* c)
   out << c->getConjecture();
 
   // print grammar, if any
-  toStreamSygusGrammar(out, c->getGrammarType());
+  if (c->getGrammar() != nullptr)
+  {
+    out << *c->getGrammar();
+  }
   out << ')';
 }
 

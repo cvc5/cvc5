@@ -94,6 +94,10 @@ namespace smt {
 /** Utilities */
 class AbstractValues;
 class Assertions;
+class ExprNames;
+class DumpManager;
+class ResourceOutListener;
+class SmtNodeManagerListener;
 class OptionsManager;
 /** Subsolvers */
 class AbductionSolver;
@@ -111,9 +115,6 @@ class SmtScope;
 class ProcessAssertions;
 
 ProofManager* currentProofManager();
-
-struct CommandCleanup;
-typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 
 /* -------------------------------------------------------------------------- */
@@ -146,7 +147,6 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
 
@@ -454,7 +454,7 @@ class CVC4_PUBLIC SmtEngine
                        const std::vector<Expr>& vars);
 
   /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Expr constraint);
+  void assertSygusConstraint(const Node& constraint);
 
   /**
    * Add an invariant constraint.
@@ -649,10 +649,12 @@ class CVC4_PUBLIC SmtEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+  bool getInterpol(const Node& conj,
+                   const TypeNode& grammarType,
+                   Node& interpol);
 
   /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Expr& conj, Expr& interpol);
+  bool getInterpol(const Node& conj, Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -854,16 +856,13 @@ class CVC4_PUBLIC SmtEngine
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
 
-  /** Set print function in model. */
-  void setPrintFuncInModel(Expr f, bool p);
-
   /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.
    * If it returns true, the name of expression 'e' is stored in 'name'.
    */
-  bool getExpressionName(Expr e, std::string& name) const;
+  bool getExpressionName(const Node& e, std::string& name) const;
 
   /**
    * Set name of given expression 'e' to 'name'.
@@ -871,7 +870,7 @@ class CVC4_PUBLIC SmtEngine
    * This information is user-context-dependent.
    * If 'e' already has a name, it is overwritten.
    */
-  void setExpressionName(Expr e, const std::string& name);
+  void setExpressionName(const Node& e, const std::string& name);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -879,6 +878,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
+
+  /** Permit access to the underlying dump manager. */
+  smt::DumpManager* getDumpManager();
 
   /**
    * Get expanded assertions.
@@ -1110,6 +1112,14 @@ class CVC4_PUBLIC SmtEngine
   std::unique_ptr<smt::AbstractValues> d_absValues;
   /** Assertions manager */
   std::unique_ptr<smt::Assertions> d_asserts;
+  /** Expression names */
+  std::unique_ptr<smt::ExprNames> d_exprNames;
+  /** The dump manager */
+  std::unique_ptr<smt::DumpManager> d_dumpm;
+  /** Resource out listener */
+  std::unique_ptr<smt::ResourceOutListener> d_routListener;
+  /** Node manager listener */
+  std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
@@ -1136,28 +1146,6 @@ class CVC4_PUBLIC SmtEngine
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
-
-  /**
-   * A list of commands that should be in the Model globally (i.e.,
-   * regardless of push/pop).  Only maintained if produce-models option
-   * is on.
-   */
-  std::vector<Command*> d_modelGlobalCommands;
-
-  /**
-   * A list of commands that should be in the Model locally (i.e.,
-   * it is context-dependent on push/pop).  Only maintained if
-   * produce-models option is on.
-   */
-  smt::CommandList* d_modelCommands;
-
-  /**
-   * A vector of declaration commands waiting to be dumped out.
-   * Once the SmtEngine is fully initialized, we'll dump them.
-   * This ensures the declarations come after the set-logic and
-   * any necessary set-option commands are dumped.
-   */
-  std::vector<Command*> d_dumpCommands;
 
   /**
    * A vector of command definitions to be imported in the new

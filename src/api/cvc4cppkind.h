@@ -2510,6 +2510,15 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkTerm(Kind kind, Term child1)
    */
   SEQ_UNIT,
+  /**
+   * Sequence nth, corresponding to the nth element of a sequence.
+   * Parameters: 2
+   *   -[1] Sequence term.
+   *   -[2] Integer term.
+   * Create with:
+   *   mkTerm(Kind kind, Term child1, Term child2)
+   */
+  SEQ_NTH,
 
   /* Quantifiers ----------------------------------------------------------- */
 

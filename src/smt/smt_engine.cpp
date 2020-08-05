@@ -34,7 +34,6 @@
 #include "base/configuration.h"
 #include "base/configuration_private.h"
 #include "base/exception.h"
-#include "base/listener.h"
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "context/cdhashmap.h"
@@ -84,9 +83,11 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
+#include "smt/expr_names.h"
 #include "smt/command.h"
-#include "smt/command_list.h"
 #include "smt/defined_function.h"
+#include "smt/dump_manager.h"
+#include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
@@ -138,29 +139,6 @@ extern const char* const plf_signatures;
 
 namespace smt {
 
-struct DeleteCommandFunction : public std::unary_function<const Command*, void>
-{
-  void operator()(const Command* command) { delete command; }
-};
-
-void DeleteAndClearCommandVector(std::vector<Command*>& commands) {
-  std::for_each(commands.begin(), commands.end(), DeleteCommandFunction());
-  commands.clear();
-}
-
-class ResourceOutListener : public Listener {
- public:
-  ResourceOutListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    SmtScope scope(d_smt);
-    Assert(smt::smtEngineInScope());
-    d_smt->interrupt();
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class ResourceOutListener */
-
 /**
  * This is an inelegant solution, but for the present, it will work.
  * The point of this is to separate the public and private portions of
@@ -175,19 +153,12 @@ class ResourceOutListener : public Listener {
  * one) becomes an "interface shell" which simply acts as a forwarder
  * of method calls.
  */
-class SmtEnginePrivate : public NodeManagerListener {
+class SmtEnginePrivate
+{
   SmtEngine& d_smt;
 
   typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
   typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
-
-  /**
-   * Manager for limiting time and abstract resource usage.
-   */
-  ResourceManager* d_resourceManager;
-
-  /** Resource out listener */
-  std::unique_ptr<ResourceOutListener> d_routListener;
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
@@ -204,10 +175,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Process assertions module */
   ProcessAssertions d_processor;
 
-  //------------------------------- expression names
-  /** mapping from expressions to name */
-  context::CDHashMap< Node, std::string, NodeHashFunction > d_exprNames;
-  //------------------------------- end expression names
  public:
 
   /** Instance of the ITE remover */
@@ -237,18 +204,13 @@ class SmtEnginePrivate : public NodeManagerListener {
  public:
   SmtEnginePrivate(SmtEngine& smt)
       : d_smt(smt),
-        d_routListener(new ResourceOutListener(d_smt)),
         d_propagator(true, true),
         d_assertionsProcessed(smt.getUserContext(), false),
         d_processor(smt, *smt.getResourceManager()),
-        d_exprNames(smt.getUserContext()),
         d_iteRemover(smt.getUserContext()),
         d_sygusConjectureStale(smt.getUserContext(), true)
   {
-    d_smt.d_nodeManager->subscribeEvents(this);
     d_true = NodeManager::currentNM()->mkConst(true);
-    ResourceManager* rm = d_smt.getResourceManager();
-    rm->registerListener(d_routListener.get());
   }
 
   ~SmtEnginePrivate()
@@ -257,7 +219,6 @@ class SmtEnginePrivate : public NodeManagerListener {
       d_propagator.finish();
       d_propagator.setNeedsFinish(false);
     }
-    d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
   void spendResource(ResourceManager::Resource r)
@@ -266,64 +227,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   }
 
   ProcessAssertions* getProcessAssertions() { return &d_processor; }
-
-  void nmNotifyNewSort(TypeNode tn, uint32_t flags) override
-  {
-    DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                         0,
-                         tn.toType());
-    if((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0) {
-      d_smt.addToModelCommandAndDump(c, flags);
-    }
-  }
-
-  void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) override
-  {
-    DeclareTypeCommand c(tn.getAttribute(expr::VarNameAttr()),
-                         tn.getAttribute(expr::SortArityAttr()),
-                         tn.toType());
-    if ((flags & ExprManager::SORT_FLAG_PLACEHOLDER) == 0)
-    {
-      d_smt.addToModelCommandAndDump(c);
-    }
-  }
-
-  void nmNotifyNewDatatypes(const std::vector<DatatypeType>& dtts,
-                            uint32_t flags) override
-  {
-    if ((flags & ExprManager::DATATYPE_FLAG_PLACEHOLDER) == 0)
-    {
-      std::vector<Type> types(dtts.begin(), dtts.end());
-      DatatypeDeclarationCommand c(types);
-      d_smt.addToModelCommandAndDump(c);
-    }
-  }
-
-  void nmNotifyNewVar(TNode n, uint32_t flags) override
-  {
-    DeclareFunctionCommand c(n.getAttribute(expr::VarNameAttr()),
-                             n.toExpr(),
-                             n.getType().toType());
-    if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-      d_smt.addToModelCommandAndDump(c, flags);
-    }
-  }
-
-  void nmNotifyNewSkolem(TNode n,
-                         const std::string& comment,
-                         uint32_t flags) override
-  {
-    string id = n.getAttribute(expr::VarNameAttr());
-    DeclareFunctionCommand c(id, n.toExpr(), n.getType().toType());
-    if(Dump.isOn("skolems") && comment != "") {
-      Dump("skolems") << CommentCommand(id + " is " + comment);
-    }
-    if((flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-      d_smt.addToModelCommandAndDump(c, flags, false, "skolems");
-    }
-  }
-
-  void nmNotifyDeleteNode(TNode n) override {}
 
   Node applySubstitutions(TNode node)
   {
@@ -361,24 +264,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     Node n = d_processor.expandDefinitions(in, cache).toExpr();
     return applySubstitutions(n).toExpr();
   }
-
-  //------------------------------- expression names
-  // implements setExpressionName, as described in smt_engine.h
-  void setExpressionName(Expr e, std::string name) {
-    d_exprNames[Node::fromExpr(e)] = name;
-  }
-
-  // implements getExpressionName, as described in smt_engine.h
-  bool getExpressionName(Expr e, std::string& name) const {
-    context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
-    if(it!=d_exprNames.end()) {
-      name = (*it).second;
-      return true;
-    }else{
-      return false;
-    }
-  }
-  //------------------------------- end expression names
 };/* class SmtEnginePrivate */
 
 }/* namespace CVC4::smt */
@@ -391,6 +276,10 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
       d_asserts(new Assertions(d_userContext.get(), *d_absValues.get())),
+      d_exprNames(new ExprNames(d_userContext.get())),
+      d_dumpm(new DumpManager(d_userContext.get())),
+      d_routListener(new ResourceOutListener(*this)),
+      d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_theoryEngine(nullptr),
       d_propEngine(nullptr),
       d_proofManager(nullptr),
@@ -398,9 +287,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_definedFunctions(nullptr),
       d_abductSolver(nullptr),
       d_assignments(nullptr),
-      d_modelGlobalCommands(),
-      d_modelCommands(nullptr),
-      d_dumpCommands(),
       d_defineCommands(),
       d_logic(),
       d_originalOptions(),
@@ -442,6 +328,11 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
+  // listen to node manager events
+  d_nodeManager->subscribeEvents(d_snmListener.get());
+  // listen to resource out
+  d_resourceManager->registerListener(d_routListener.get());
+  // make statistics
   d_stats.reset(new SmtEngineStatistics());
   
   // The ProofManager is constructed before any other proof objects such as
@@ -457,7 +348,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
 #endif
 
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
-  d_modelCommands = new (true) smt::CommandList(getUserContext());
 }
 
 void SmtEngine::finishInit()
@@ -529,13 +419,8 @@ void SmtEngine::finishInit()
                                everything.getLogicString());
   }
 
-  Trace("smt-debug") << "Dump declaration commands..." << std::endl;
-  // dump out any pending declaration commands
-  for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
-    Dump("declarations") << *d_dumpCommands[i];
-    delete d_dumpCommands[i];
-  }
-  d_dumpCommands.clear();
+  // initialize the dump manager
+  d_dumpm->finishInit();
 
   // subsolvers
   if (options::produceAbducts())
@@ -607,18 +492,6 @@ SmtEngine::~SmtEngine()
       d_assignments->deleteSelf();
     }
 
-    for(unsigned i = 0; i < d_dumpCommands.size(); ++i) {
-      delete d_dumpCommands[i];
-      d_dumpCommands[i] = NULL;
-    }
-    d_dumpCommands.clear();
-
-    DeleteAndClearCommandVector(d_modelGlobalCommands);
-
-    if(d_modelCommands != NULL) {
-      d_modelCommands->deleteSelf();
-    }
-
     d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
@@ -637,12 +510,17 @@ SmtEngine::~SmtEngine()
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
+    d_exprNames.reset(nullptr);
+    d_dumpm.reset(nullptr);
 
     d_theoryEngine.reset(nullptr);
     d_propEngine.reset(nullptr);
 
     d_stats.reset(nullptr);
     d_private.reset(nullptr);
+    d_nodeManager->unsubscribeEvents(d_snmListener.get());
+    d_snmListener.reset(nullptr);
+    d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
@@ -970,7 +848,7 @@ void SmtEngine::defineFunction(Expr func,
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
   DefineFunctionCommand c(ss.str(), func, formals, formula, global);
-  addToModelCommandAndDump(
+  d_dumpm->addToModelCommandAndDump(
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   PROOF(if (options::checkUnsatCores()) {
@@ -1564,19 +1442,21 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
-  Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
+  // dumping SynthFunCommand from smt-engine is currently broken (please take at
+  // CVC4/cvc4-projects#211)
+  // Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
 
-void SmtEngine::assertSygusConstraint(Expr constraint)
+void SmtEngine::assertSygusConstraint(const Node& constraint)
 {
   SmtScope smts(this);
   finalOptionsAreSet();
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
-  Dump("raw-benchmark") << SygusConstraintCommand(constraint);
+  Dump("raw-benchmark") << SygusConstraintCommand(constraint.toExpr());
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
@@ -1961,35 +1841,6 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   return res;
 }
 
-void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool userVisible, const char* dumpTag) {
-  Trace("smt") << "SMT addToModelCommandAndDump(" << c << ")" << endl;
-  SmtScope smts(this);
-  // If we aren't yet fully inited, the user might still turn on
-  // produce-models.  So let's keep any commands around just in
-  // case.  This is useful in two cases: (1) SMT-LIBv1 auto-declares
-  // sort "U" in QF_UF before setLogic() is run and we still want to
-  // support finding card(U) with --finite-model-find, and (2) to
-  // decouple SmtEngine and ExprManager if the user does a few
-  // ExprManager::mkSort() before SmtEngine::setOption("produce-models")
-  // and expects to find their cardinalities in the model.
-  if(/* userVisible && */
-     (!d_fullyInited || options::produceModels()) &&
-     (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-    if(flags & ExprManager::VAR_FLAG_GLOBAL) {
-      d_modelGlobalCommands.push_back(c.clone());
-    } else {
-      d_modelCommands->push_back(c.clone());
-    }
-  }
-  if(Dump.isOn(dumpTag)) {
-    if(d_fullyInited) {
-      Dump(dumpTag) << c;
-    } else {
-      d_dumpCommands.push_back(c.clone());
-    }
-  }
-}
-
 // TODO(#1108): Simplify the error reporting of this method.
 Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
@@ -2347,7 +2198,13 @@ void SmtEngine::checkModel(bool hardFailure) {
     Notice() << "SmtEngine::checkModel(): checking assertion " << assertion
              << endl;
     Node n = assertion;
-
+    Node nr = Rewriter::rewrite(substitutions.apply(n));
+    Trace("boolean-terms") << "n: " << n << endl;
+    Trace("boolean-terms") << "nr: " << nr << endl;
+    if (nr.isConst() && nr.getConst<bool>())
+    {
+      continue;
+    }
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
@@ -2749,16 +2606,16 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getInterpol(const Expr& conj,
-                            const Type& grammarType,
-                            Expr& interpol)
+bool SmtEngine::getInterpol(const Node& conj,
+                            const TypeNode& grammarType,
+                            Node& interpol)
 {
   return false;
 }
 
-bool SmtEngine::getInterpol(const Expr& conj, Expr& interpol)
+bool SmtEngine::getInterpol(const Node& conj, Node& interpol)
 {
-  Type grammarType;
+  TypeNode grammarType;
   return getInterpol(conj, grammarType, interpol);
 }
 
@@ -2987,7 +2844,7 @@ void SmtEngine::resetAssertions()
     // (see solver execution modes in the SMT-LIB standard)
     Assert(d_context->getLevel() == 0);
     Assert(d_userContext->getLevel() == 0);
-    DeleteAndClearCommandVector(d_modelGlobalCommands);
+    d_dumpm->resetAssertions();
     return;
   }
 
@@ -3009,7 +2866,7 @@ void SmtEngine::resetAssertions()
   Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
   d_context->popto(0);
   d_userContext->popto(0);
-  DeleteAndClearCommandVector(d_modelGlobalCommands);
+  d_dumpm->resetAssertions();
   d_userContext->push();
   d_context->push();
 
@@ -3084,28 +2941,6 @@ void SmtEngine::setUserAttribute(const std::string& attr,
     node_values.push_back( expr_values[i].getNode() );
   }
   d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
-}
-
-void SmtEngine::setPrintFuncInModel(Expr f, bool p) {
-  Trace("setp-model") << "Set printInModel " << f << " to " << p << std::endl;
-  for( unsigned i=0; i<d_modelGlobalCommands.size(); i++ ){
-    Command * c = d_modelGlobalCommands[i];
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
-      if( dfc->getFunction()==f ){
-        dfc->setPrintInModel( p );
-      }
-    }
-  }
-  for( unsigned i=0; i<d_modelCommands->size(); i++ ){
-    Command * c = (*d_modelCommands)[i];
-    DeclareFunctionCommand* dfc = dynamic_cast<DeclareFunctionCommand*>(c);
-    if(dfc != NULL) {
-      if( dfc->getFunction()==f ){
-        dfc->setPrintInModel( p );
-      }
-    }
-  }
 }
 
 void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
@@ -3208,13 +3043,13 @@ CVC4::SExpr SmtEngine::getOption(const std::string& key) const
   return SExpr::parseAtom(d_options.getOption(key));
 }
 
-bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
-  return d_private->getExpressionName(e, name);
+bool SmtEngine::getExpressionName(const Node& e, std::string& name) const {
+  return d_exprNames->getExpressionName(e, name);
 }
 
-void SmtEngine::setExpressionName(Expr e, const std::string& name) {
+void SmtEngine::setExpressionName(const Node& e, const std::string& name) {
   Trace("smt-debug") << "Set expression name " << e << " to " << name << std::endl;
-  d_private->setExpressionName(e,name);
+  d_exprNames->setExpressionName(e,name);
 }
 
 Options& SmtEngine::getOptions() { return d_options; }
@@ -3225,6 +3060,8 @@ ResourceManager* SmtEngine::getResourceManager()
 {
   return d_resourceManager.get();
 }
+
+DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
 
 void SmtEngine::setSygusConjectureStale()
 {
