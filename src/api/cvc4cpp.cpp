@@ -4952,7 +4952,7 @@ Term Solver::getValue(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
-  return Term(this, d_smtEngine->getValue(term.d_node->toExpr()));
+  return Term(this, d_smtEngine->getValue(*term.d_node));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

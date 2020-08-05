@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file assertions.cpp
+/*! \file preprocessor.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The module for storing assertions for an SMT engine.
+ ** \brief The preprocessor of the SMT engine.
  **/
 
 #include "smt/preprocessor.h"
@@ -142,7 +142,7 @@ Node Preprocessor::simplify(const Node& ex, std::unordered_map<Node, Node, NodeH
     // ensure expr is type-checked at this point
     e.getType(true);
   }
-  Node n = d_processor.expandDefinitions(in, cache);
+  Node n = d_processor.expandDefinitions(e, cache);
   Node ns = applySubstitutions(n);
   if (removeItes)
   {
@@ -150,11 +150,6 @@ Node Preprocessor::simplify(const Node& ex, std::unordered_map<Node, Node, NodeH
     ns = d_rtf.replace(ns);
   }
   return ns;
-}
-
-Node Preprocessor::removeTermFormulas(const Node& e)
-{
-  return d_rtf.replace(e);
 }
 
 Node Preprocessor::applySubstitutions(TNode node)

@@ -31,6 +31,9 @@ class AbstractValues;
 
 /**
  * The preprocessor module of an SMT engine.
+ *
+ * This class is responsible for preprocessing the set of assertions from
+ * input before they are sent to the SMT solver.
  */
 class Preprocessor
 {
@@ -88,13 +91,12 @@ class Preprocessor
    * Get term formula remover
    */
   RemoveTermFormulas& getTermFormulaRemover();
-
  private:
   /** 
    * Apply substitutions that have been inferred by preprocessing, return the
    * substituted form of node.
    */
-  Node applySubstitutions(TNode node)
+  Node applySubstitutions(TNode node);
   /** Reference to the parent SmtEngine */
   SmtEngine& d_smt;
   /** Reference to the abstract values utility */

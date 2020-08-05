@@ -155,11 +155,6 @@ namespace smt {
  */
 class SmtEnginePrivate
 {
-  SmtEngine& d_smt;
-
-  typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
-  typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
-
  public:
 
   /* Finishes the initialization of the private portion of SMTEngine. */
@@ -185,10 +180,8 @@ class SmtEnginePrivate
 
  public:
   SmtEnginePrivate(SmtEngine& smt)
-      : d_smt(smt),
-        d_sygusConjectureStale(smt.getUserContext(), true)
+      : d_sygusConjectureStale(smt.getUserContext(), true)
   {
-    d_true = NodeManager::currentNM()->mkConst(true);
   }
 
   ~SmtEnginePrivate()
@@ -259,7 +252,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
-  d_pp.reset(new smt::Preprocessor(*this, d_userContext.get(), *d_absValues.get());
+  d_pp.reset(new smt::Preprocessor(*this, d_userContext.get(), *d_absValues.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
@@ -1007,10 +1000,10 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 
 void SmtEngine::processAssertionsInternal()
 {
-  TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
+  TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_smt.d_fullyInited);
-  Assert(d_smt.d_pendingPops == 0);
+  Assert(d_fullyInited);
+  Assert(d_pendingPops == 0);
 
   AssertionPipeline& ap = d_asserts->getAssertionPipeline();
 
@@ -1021,16 +1014,16 @@ void SmtEngine::processAssertionsInternal()
   }
 
   // process the assertions with the preprocessor
-  bool noConflict = d_pp->processAssertions(*d_asserts);
+  bool noConflict = d_pp->process(*d_asserts);
 
   //notify theory engine new preprocessed assertions
-  d_smt.d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
+  d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
 
   // Push the formula to decision engine
   if (noConflict)
   {
     Chat() << "pushing to decision engine..." << endl;
-    d_smt.d_propEngine->addAssertionsToDecisionEngine(ap);
+    d_propEngine->addAssertionsToDecisionEngine(ap);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
@@ -1041,11 +1034,11 @@ void SmtEngine::processAssertionsInternal()
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
+    TimerStat::CodeTimer codeTimer(d_stats->d_cnfConversionTime);
     for (const Node& assertion : ap.ref())
     {
       Chat() << "+ " << assertion << std::endl;
-      d_smt.d_propEngine->assertFormula(assertion);
+      d_propEngine->assertFormula(assertion);
     }
   }
 
