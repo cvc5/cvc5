@@ -56,41 +56,38 @@ class NormalForm {
     } else if (n.getKind() == kind::SINGLETON) {
       return n[0].isConst();
     } else if (n.getKind() == kind::UNION) {
-      // assuming (union ... (union {SmallestNodeID} {BiggerNodeId}) ...
-      // {BiggestNodeId})
+      // assuming (union {SmallestNodeID} ... (union {BiggerNodeId} ...
 
-      // store BiggestNodeId in prvs
-      if (n[1].getKind() != kind::SINGLETON) return false;
-      if (!n[1][0].isConst()) return false;
-      Debug("sets-checknormal")
-          << "[sets-checknormal]              frst element = " << n[1][0] << " "
-          << n[1][0].getId() << std::endl;
-      TNode prvs = n[1][0];
-      n = n[0];
-
+      TNode prvs;
       // check intermediate nodes
-      while (n.getKind() == kind::UNION) {
-        if (n[1].getKind() != kind::SINGLETON) return false;
-        if (!n[1].isConst()) return false;
+      while (n.getKind() == kind::UNION) 
+      {
+        if (n[0].getKind() != kind::SINGLETON || !n[0].isConst())
+        {
+          // not a constant
+          return false;
+        }
         Debug("sets-checknormal")
-            << "[sets-checknormal]              element = " << n[1][0] << " "
-            << n[1][0].getId() << std::endl;
-        if (n[1][0] >= prvs) return false;
-        prvs = n[1][0];
-        n = n[0];
+            << "[sets-checknormal]              element = " << n[0][0] << " "
+            << n[0][0].getId() << std::endl;
+        if (!prvs.isNull() && n[0][0] >= prvs)
+        {
+          return false;
+        }
+        prvs = n[0][0];
+        n = n[1];
       }
 
       // check SmallestNodeID is smallest
-      if (n.getKind() != kind::SINGLETON) return false;
-      if (!n[0].isConst()) return false;
+      if (n.getKind() != kind::SINGLETON || !n[0].isConst())
+      {
+        return false;
+      }
       Debug("sets-checknormal")
           << "[sets-checknormal]              lst element = " << n[0] << " "
           << n[0].getId() << std::endl;
-      if (n[0] >= prvs) return false;
-
-      // we made it
-      return true;
-
+      // compare last ID
+      return n[0] < prvs;
     } else {
       return false;
     }

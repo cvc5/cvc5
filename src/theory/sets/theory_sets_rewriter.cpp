@@ -200,7 +200,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                           std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
       Assert(newNode.isConst());
-      Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
+      Trace("sets-postrewrite") << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     } else {
       std::vector< Node > els;
@@ -208,9 +208,12 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       std::sort( els.begin(), els.end() );
       Node rew = NormalForm::mkBop( kind::UNION, els, node.getType() );
       if( rew!=node ){
-        Trace("sets-rewrite") << "Sets::rewrite " << node << " -> " << rew << std::endl;
+        Trace("sets-rewrite") << "Sets::rewrite: UNION " << node << " -> " << rew << std::endl;
       }
-      Trace("sets-rewrite") << "...no rewrite." << std::endl;
+      else
+      {
+        Trace("sets-rewrite-nf") << "...no rewrite for " << rew << std::endl;
+      }
       return RewriteResponse(REWRITE_DONE, rew);
     }
     break;
@@ -468,15 +471,16 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 // static
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
-
-  if(node.getKind() == kind::EQUAL) {
+  Kind k = node.getKind();
+  if(k == kind::EQUAL) {
 
     if(node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
     }
 
-  }//kind::EQUAL
-  else if(node.getKind() == kind::INSERT) {
+  }
+  else if(k == kind::INSERT) 
+  {
 
     Node insertedElements = nm->mkNode(kind::SINGLETON, node[0]);
     size_t setNodeIndex =  node.getNumChildren()-1;
@@ -490,16 +494,20 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
                                       insertedElements,
                                       node[setNodeIndex]));
 
-  }//kind::INSERT
-  else if(node.getKind() == kind::SUBSET) {
+  }
+  else if(k== kind::SUBSET) 
+  {
 
     // rewrite (A subset-or-equal B) as (A union B = B)
     return RewriteResponse(REWRITE_AGAIN,
                            nm->mkNode(kind::EQUAL,
                                       nm->mkNode(kind::UNION, node[0], node[1]),
                                       node[1]) );
-
-  }//kind::SUBSET
+  }
+  else if (k == UNION)
+  {
+    
+  }
 
   return RewriteResponse(REWRITE_DONE, node);
 }

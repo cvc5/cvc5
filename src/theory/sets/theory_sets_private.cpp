@@ -397,14 +397,14 @@ void TheorySetsPrivate::fullEffortCheck()
         tnc = tn.getSetElementType();
         tnct = eqc;
       }
-      Trace("sets-eqc") << "[" << eqc << "] : ";
+      Trace("sets-eqc") << "[" << eqc << " (" << eqc.isConst() << ") ] : ";
       eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &d_equalityEngine);
       while (!eqc_i.isFinished())
       {
         Node n = (*eqc_i);
         if (n != eqc)
         {
-          Trace("sets-eqc") << n << " ";
+          Trace("sets-eqc") << n << " (" << n.isConst() << ") ";
         }
         TypeNode tnn = n.getType();
         if (isSet)
