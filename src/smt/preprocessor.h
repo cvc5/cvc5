@@ -32,8 +32,11 @@ class AbstractValues;
 /**
  * The preprocessor module of an SMT engine.
  *
- * This class is responsible for preprocessing the set of assertions from
- * input before they are sent to the SMT solver.
+ * This class is responsible for:
+ * (1) preprocessing the set of assertions from input before they are sent to
+ * the SMT solver,
+ * (2) implementing methods for expanding and simplifying formulas. The latter
+ * takes into account the substitutions inferred by this class.
  */
 class Preprocessor
 {
@@ -60,7 +63,9 @@ class Preprocessor
    */
   void clearLearnedLiterals();
   /**
-   * Cleanup
+   * Cleanup, which deletes the processing passes owned by this module. This
+   * is required to be done explicitly so that passes are deleted before the
+   * objects they refer to in the SmtEngine destructor.
    */
   void cleanup();
   /**
@@ -68,8 +73,6 @@ class Preprocessor
    * the SAT Engine in the simplification, but uses the current
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
-   *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    *
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
@@ -82,15 +85,13 @@ class Preprocessor
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
-   *
-   * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
   Node expandDefinitions(const Node& e);
   /** Same as above, with a cache */
   Node expandDefinitions(
       const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache);
   /**
-   * Get term formula remover
+   * Get the underlying term formula remover utility.
    */
   RemoveTermFormulas& getTermFormulaRemover();
 
@@ -105,11 +106,11 @@ class Preprocessor
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
   /**
-   * A circuit propagator for non-clausal propositional deduction
+   * A circuit propagator for non-clausal propositional deduction.
    */
   theory::booleans::CircuitPropagator d_propagator;
   /**
-   * User-context-dependent flag of whether any assertions have been processed
+   * User-context-dependent flag of whether any assertions have been processed.
    */
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
