@@ -63,7 +63,7 @@ class NormalForm {
       // check intermediate nodes
       while (n.getKind() == kind::UNION) 
       {
-        if (n[0].getKind() != kind::SINGLETON || !n[0].isConst())
+        if (n[0].getKind() != kind::SINGLETON || !n[0][0].isConst())
         {
           // not a constant
           Trace("sets-isconst") << "sets::isConst: " << orig << " not due to " << n[0] << std::endl;
@@ -84,7 +84,7 @@ class NormalForm {
       // check SmallestNodeID is smallest
       if (n.getKind() != kind::SINGLETON || !n[0].isConst())
       {
-        Trace("sets-isconst") << "sets::isConst: " << orig << " not due to final " << n[0] << std::endl;
+        Trace("sets-isconst") << "sets::isConst: " << orig << " not due to final " << n << std::endl;
         return false;
       }
       Debug("sets-checknormal")
