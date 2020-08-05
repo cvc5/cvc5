@@ -736,6 +736,14 @@ void PropEngine::endResChain(Node conclusion)
   }
   // clearing
   d_resolution.clear();
+  // whether no-op
+  if (children.size() == 1)
+  {
+    Trace("sat-proof") << "PropEngine::endResChain: no-op. The conclusion "
+                       << conclusion << " is set-equal to premise "
+                       << children[0] << "\n";
+    return;
+  }
   // since the conclusion can be both reordered and without duplucates and the
   // SAT solver does not record this information, we must recompute it here so
   // the proper CHAIN_RESOLUTION step can be created
