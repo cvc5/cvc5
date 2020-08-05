@@ -70,13 +70,14 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
                              std::vector<Node>& newSkolems)
 {
   Assert(!ctx.empty());
-  std::pair<Node, int32_t> curr = ctx.getCurrent();
+  std::pair<Node, uint32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
   if (node.getKind() == kind::INST_PATTERN_LIST)
   {
     return Node(node);
   }
+  uint32_t cval = curr.second;
   bool inQuant, inTerm;
   RtfTermContext::getFlags(curr.second, inQuant, inTerm);
   Debug("ite") << "removeITEs(" << node << ")"
@@ -285,6 +286,22 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
   if( !skolem.isNull() ){
     // Attach the skolem
     d_tfCache.insert(curr, skolem);
+    // this must be done regardless of whether the assertion was new below,
+    // since a formula-term may rewrite to the same skolem in multiple contexts.
+    if (isProofEnabled())
+    {
+      // justify the introduction of the skolem
+      // ------------------- MACRO_SR_PRED_INTRO
+      // t = witness x. x=t
+      // The above step is trivial, since the skolems introduced above are
+      // all purification skolems. We record this equality in the term
+      // conversion proof generator.
+      d_tpg->addRewriteStep(node,
+                            skolem,
+                            PfRule::MACRO_SR_PRED_INTRO,
+                            {},
+                            {node.eqNode(skolem)}, cval);
+    }
 
     // if the skolem was introduced in this call
     if (!newAssertion.isNull())
@@ -295,17 +312,6 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
       // if proofs are enabled
       if (isProofEnabled())
       {
-        // justify the introduction of the skolem
-        // ------------------- MACRO_SR_PRED_INTRO
-        // t = witness x. x=t
-        // The above step is trivial, since the skolems introduced above are
-        // all purification skolems. We record this equality in the term
-        // conversion proof generator.
-        d_tpg->addRewriteStep(node,
-                              skolem,
-                              PfRule::MACRO_SR_PRED_INTRO,
-                              {},
-                              {node.eqNode(skolem)});
         // justify the axiom that defines the skolem, if not already done so
         if (newAssertionPg == nullptr)
         {
@@ -368,7 +374,6 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
     newChildren.push_back(node.getOperator());
   }
   // Remove the ITEs from the children
-  int32_t cval = curr.second;
   for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
   {
     ctx.pushChild(node, cval, i);
@@ -409,7 +414,7 @@ Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
 {
   // get the current node, tagged with a term context identifier
   Assert(!ctx.empty());
-  std::pair<Node, int32_t> curr = ctx.getCurrent();
+  std::pair<Node, uint32_t> curr = ctx.getCurrent();
   ctx.pop();
   TNode node = curr.first;
 
@@ -431,7 +436,7 @@ Node RemoveTermFormulas::replaceInternal(TCtxStack& ctx) const
     newChildren.push_back(node.getOperator());
   }
   // Replace in children
-  int32_t cval = curr.second;
+  uint32_t cval = curr.second;
   for (size_t i = 0, nchild = node.getNumChildren(); i < nchild; i++)
   {
     ctx.pushChild(node, cval, i);
@@ -468,7 +473,9 @@ void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
                                 nullptr,
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
-                                "RemoveTermFormulas::TConvProofGenerator"));
+                                "RemoveTermFormulas::TConvProofGenerator",
+                                &d_rtfc
+                               ));
     d_lp.reset(new LazyCDProof(
         d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }

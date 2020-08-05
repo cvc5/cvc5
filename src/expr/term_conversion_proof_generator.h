@@ -194,6 +194,8 @@ class TConvProofGenerator : public ProofGenerator
   Node registerRewriteStep(Node t, Node s, uint32_t tctx);
   /** cache that r is the rewritten form of cur, pf can provide a proof */
   void doCache(Node curHash, Node cur, Node r, LazyCDProof& pf);
+  /** get debug information on this generator */
+  std::string toStringDebug() const;
 };
 
 }  // namespace CVC4

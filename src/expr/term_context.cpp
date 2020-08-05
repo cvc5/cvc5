@@ -172,7 +172,9 @@ void TCtxStack::pushChildren(Node t, uint32_t tval)
 void TCtxStack::pushChild(Node t, uint32_t tval, size_t index)
 {
   Assert(index < t.getNumChildren());
+  Trace("tctx-debug") << "TCtxStack::pushChild: computing " << t << "[" << index << "] / " << tval << std::endl;
   uint32_t tcval = d_tctx->computeValue(t, tval, index);
+  Trace("tctx-debug") << "TCtxStack::pushChild: returned " << t << "[" << index << "] / " << tval << " ---> " << tcval << std::endl;
   d_stack.push_back(std::pair<Node, uint32_t>(t[index], tcval));
 }
 
