@@ -14,10 +14,10 @@
 
 #include "smt/preprocessor.h"
 
-#include "smt/smt_engine.h"
 #include "options/smt_options.h"
-#include "smt/assertions.h"
 #include "smt/abstract_values.h"
+#include "smt/assertions.h"
+#include "smt/smt_engine.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -25,25 +25,28 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-Preprocessor::Preprocessor(SmtEngine& smt, context::UserContext* u, AbstractValues& abs)
-    :  d_propagator(true, true),
-        d_assertionsProcessed(u, false),
-        d_processor(smt, *smt.getResourceManager()),
-        d_rtf(u),
-        d_absValues(abs)
+Preprocessor::Preprocessor(SmtEngine& smt,
+                           context::UserContext* u,
+                           AbstractValues& abs)
+    : d_propagator(true, true),
+      d_assertionsProcessed(u, false),
+      d_processor(smt, *smt.getResourceManager()),
+      d_rtf(u),
+      d_absValues(abs)
 {
 }
 
 Preprocessor::~Preprocessor()
 {
-  if(d_propagator.getNeedsFinish()) {
+  if (d_propagator.getNeedsFinish())
+  {
     d_propagator.finish();
     d_propagator.setNeedsFinish(false);
   }
 }
 
 void Preprocessor::finishInit()
-{  
+{
   d_preprocessingPassContext.reset(
       new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
 
@@ -54,11 +57,12 @@ void Preprocessor::finishInit()
 bool Preprocessor::process(Assertions& as)
 {
   AssertionPipeline& ap = as.getAssertionPipeline();
-  
+
   // should not be called if empty
-  Assert (ap.size()!=0);
-  
-  if (d_assertionsProcessed && options::incrementalSolving()) {
+  Assert(ap.size() != 0);
+
+  if (d_assertionsProcessed && options::incrementalSolving())
+  {
     // TODO(b/1255): Substitutions in incremental mode should be managed with a
     // proper data structure.
     ap.enableStoreSubstsInAsserts();
@@ -90,35 +94,32 @@ void Preprocessor::clearLearnedLiterals()
   d_propagator.getLearnedLiterals().clear();
 }
 
-RemoveTermFormulas& getTermFormulaRemover()
-{
-  return d_rtf;
-}
+RemoveTermFormulas& getTermFormulaRemover() { return d_rtf; }
 
 Node Preprocessor::expandDefinitions(const Node& ex)
 {
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
   // Substitute out any abstract values in ex.
   Node e = d_absValues.substituteAbstractValues(ex);
-  if(options::typeChecking()) 
+  if (options::typeChecking())
   {
     // Ensure expr is type-checked at this point.
     e.getType(true);
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   // expand only = true
-  return d_processor->expandDefinitions( e, cache, true);
+  return d_processor->expandDefinitions(e, cache, true);
 }
 
 Node Preprocessor::simplify(const Node& ex, bool removeItes)
 {
   Trace("smt") << "SMT simplify(" << ex << ")" << endl;
-  if(Dump.isOn("benchmark")) 
+  if (Dump.isOn("benchmark"))
   {
     Dump("benchmark") << SimplifyCommand(ex);
   }
   Node e = d_absValues.substituteAbstractValues(ex);
-  if( options::typeChecking() ) 
+  if (options::typeChecking())
   {
     // ensure expr is type-checked at this point
     e.getType(true);

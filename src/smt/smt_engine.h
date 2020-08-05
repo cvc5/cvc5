@@ -1050,7 +1050,7 @@ class CVC4_PUBLIC SmtEngine
    * Process the assertions that have been asserted.
    */
   void processAssertionsInternal();
-  
+
   /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.

@@ -19,14 +19,14 @@
 
 #include <vector>
 
-#include "theory/booleans/circuit_propagator.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/process_assertions.h"
 #include "smt/term_formula_removal.h"
+#include "theory/booleans/circuit_propagator.h"
 
 namespace CVC4 {
 namespace smt {
-  
+
 class AbstractValues;
 
 /**
@@ -45,7 +45,7 @@ class Preprocessor
    * Postprocess
    */
   void postprocess(Assertions& as);
-  /** 
+  /**
    * Clear learned literals from the Boolean propagator.
    */
   void clearLearnedLiterals();
@@ -60,7 +60,7 @@ class Preprocessor
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Node simplify(const Node& e, bool removeItes=false);
+  Node simplify(const Node& e, bool removeItes = false);
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
@@ -68,13 +68,14 @@ class Preprocessor
    * @throw TypeCheckingException, LogicException, UnsafeInterruptException
    */
   Node expandDefinitions(const Node& e);
-  /** 
-   * Get term formula remover 
+  /**
+   * Get term formula remover
    */
   RemoveTermFormulas& getTermFormulaRemover();
-private:
+
+ private:
   /** Reference to the abstract values utility */
-  AbstractValues& d_absValues; 
+  AbstractValues& d_absValues;
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
   /** Whether any assertions have been processed */

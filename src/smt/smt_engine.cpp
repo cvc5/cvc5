@@ -456,8 +456,8 @@ SmtEngine::~SmtEngine()
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
     d_pp.reset(nullptr),
-    // d_resourceManager must be destroyed before d_statisticsRegistry
-    d_resourceManager.reset(nullptr);
+        // d_resourceManager must be destroyed before d_statisticsRegistry
+        d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
 
 
@@ -1037,7 +1037,7 @@ void SmtEngine::processAssertionsInternal()
   // introducing new ones
 
   d_pp->postprocess(*d_asserts);
-  
+
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
@@ -1526,7 +1526,6 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
-
 Node SmtEngine::simplify(const Node& ex)
 {
   Assert(ex.getExprManager() == d_exprManager);
@@ -1561,7 +1560,7 @@ Expr SmtEngine::getValue(const Node& ex) const
 
   // Substitute out any abstract values in ex and expand
   Node n = d_pp->expandDefinitions(ex);
-  
+
   Trace("smt") << "--- getting value of " << n << endl;
   // There are two ways model values for terms are computed (for historical
   // reasons).  One way is that used in check-model; the other is that
@@ -2091,9 +2090,12 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
 
-    // Simplify the result and replace the already-known ITEs (this is important for ground ITEs under quantifiers).
+    // Simplify the result and replace the already-known ITEs (this is important
+    // for ground ITEs under quantifiers).
     n = d_pp->simplify(n, true);
-    Notice() << "SmtEngine::checkModel(): -- simplifies with ite replacement to  " << n << endl;
+    Notice()
+        << "SmtEngine::checkModel(): -- simplifies with ite replacement to  "
+        << n << endl;
 
     // Apply our model value substitutions (again), as things may have been simplified.
     Debug("boolean-terms") << "applying subses to " << n << endl;
