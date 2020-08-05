@@ -40,7 +40,7 @@ class Preprocessor
  public:
   Preprocessor(SmtEngine& smt, context::UserContext* u, AbstractValues& abs);
   ~Preprocessor();
-  /** 
+  /**
    * Finish initialization
    */
   void finishInit();
@@ -59,7 +59,7 @@ class Preprocessor
    * Clear learned literals from the Boolean propagator.
    */
   void clearLearnedLiterals();
-  /** 
+  /**
    * Cleanup
    */
   void cleanup();
@@ -76,7 +76,9 @@ class Preprocessor
    */
   Node simplify(const Node& e, bool removeItes = false);
   /** Same as above, with a cache */
-  Node simplify(const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache, bool removeItes = false);
+  Node simplify(const Node& e,
+                std::unordered_map<Node, Node, NodeHashFunction>& cache,
+                bool removeItes = false);
   /**
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
@@ -85,14 +87,15 @@ class Preprocessor
    */
   Node expandDefinitions(const Node& e);
   /** Same as above, with a cache */
-  Node expandDefinitions(const Node& e, 
-  std::unordered_map<Node, Node, NodeHashFunction>& cache);
+  Node expandDefinitions(
+      const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache);
   /**
    * Get term formula remover
    */
   RemoveTermFormulas& getTermFormulaRemover();
+
  private:
-  /** 
+  /**
    * Apply substitutions that have been inferred by preprocessing, return the
    * substituted form of node.
    */
@@ -101,24 +104,24 @@ class Preprocessor
   SmtEngine& d_smt;
   /** Reference to the abstract values utility */
   AbstractValues& d_absValues;
-  /** 
-   * A circuit propagator for non-clausal propositional deduction 
+  /**
+   * A circuit propagator for non-clausal propositional deduction
    */
   theory::booleans::CircuitPropagator d_propagator;
-  /** 
-   * User-context-dependent flag of whether any assertions have been processed 
+  /**
+   * User-context-dependent flag of whether any assertions have been processed
    */
   context::CDO<bool> d_assertionsProcessed;
   /** The preprocessing pass context */
   std::unique_ptr<preprocessing::PreprocessingPassContext> d_ppContext;
-  /** 
+  /**
    * Process assertions module, responsible for implementing the preprocessing
    * passes.
    */
   ProcessAssertions d_processor;
-  /** 
+  /**
    * The term formula remover, responsible for eliminating formulas that occur
-   * in term contexts. 
+   * in term contexts.
    */
   RemoveTermFormulas d_rtf;
 };

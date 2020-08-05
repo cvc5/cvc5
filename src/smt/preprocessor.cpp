@@ -17,8 +17,8 @@
 #include "options/smt_options.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/smt_engine.h"
 #include "smt/command.h"
+#include "smt/smt_engine.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -49,8 +49,8 @@ Preprocessor::~Preprocessor()
 
 void Preprocessor::finishInit()
 {
-  d_ppContext.reset(
-      new preprocessing::PreprocessingPassContext(&d_smt, &d_rtf, &d_propagator));
+  d_ppContext.reset(new preprocessing::PreprocessingPassContext(
+      &d_smt, &d_rtf, &d_propagator));
 
   // initialize the preprocessing passes
   d_processor.finishInit(d_ppContext.get());
@@ -96,10 +96,7 @@ void Preprocessor::clearLearnedLiterals()
   d_propagator.getLearnedLiterals().clear();
 }
 
-void Preprocessor::cleanup()
-{
-  d_processor.cleanup();
-}
+void Preprocessor::cleanup() { d_processor.cleanup(); }
 
 RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 
@@ -109,7 +106,8 @@ Node Preprocessor::expandDefinitions(const Node& e)
   return expandDefinitions(e, cache);
 }
 
-Node Preprocessor::expandDefinitions(const Node& ex, std::unordered_map<Node, Node, NodeHashFunction>& cache)
+Node Preprocessor::expandDefinitions(
+    const Node& ex, std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
   // Substitute out any abstract values in ex.
@@ -129,7 +127,10 @@ Node Preprocessor::simplify(const Node& e, bool removeItes)
   return simplify(e, cache, removeItes);
 }
 
-Node Preprocessor::simplify(const Node& ex, std::unordered_map<Node, Node, NodeHashFunction>& cache, bool removeItes)
+Node Preprocessor::simplify(
+    const Node& ex,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache,
+    bool removeItes)
 {
   Trace("smt") << "SMT simplify(" << ex << ")" << endl;
   if (Dump.isOn("benchmark"))
@@ -154,8 +155,7 @@ Node Preprocessor::simplify(const Node& ex, std::unordered_map<Node, Node, NodeH
 
 Node Preprocessor::applySubstitutions(TNode node)
 {
-  return Rewriter::rewrite(
-      d_ppContext->getTopLevelSubstitutions().apply(node));
+  return Rewriter::rewrite(d_ppContext->getTopLevelSubstitutions().apply(node));
 }
 
 }  // namespace smt

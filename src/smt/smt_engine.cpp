@@ -83,10 +83,10 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/expr_names.h"
 #include "smt/command.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
+#include "smt/expr_names.h"
 #include "smt/listeners.h"
 #include "smt/logic_request.h"
 #include "smt/model_blocker.h"
@@ -252,7 +252,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
-  d_pp.reset(new smt::Preprocessor(*this, d_userContext.get(), *d_absValues.get()));
+  d_pp.reset(
+      new smt::Preprocessor(*this, d_userContext.get(), *d_absValues.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
@@ -2219,8 +2220,7 @@ void SmtEngine::checkSynthSolution()
              << assertion << endl;
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    Node n =
-        d_pp->expandDefinitions(assertion, cache);
+    Node n = d_pp->expandDefinitions(assertion, cache);
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
