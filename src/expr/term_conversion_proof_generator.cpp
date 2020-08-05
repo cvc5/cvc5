@@ -125,7 +125,7 @@ Node TConvProofGenerator::registerRewriteStep(Node t, Node s, uint32_t tctx)
   else
   {
     // don't use term context ids if not using term context
-    Assert(tctx==0);
+    Assert(tctx == 0);
   }
   // should not rewrite term to two different things
   if (!getRewriteStepInternal(thash).isNull())
@@ -242,7 +242,9 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   std::unordered_map<Node, Node, TNodeHashFunction>::iterator it;
   std::unordered_map<Node, Node, TNodeHashFunction>::iterator itr;
   std::map<Node, std::shared_ptr<ProofNode> >::iterator itc;
-  Trace("tconv-pf-gen-rewrite") << "TConvProofGenerator::getProofForRewriting: " << toStringDebug() << std::endl;
+  Trace("tconv-pf-gen-rewrite")
+      << "TConvProofGenerator::getProofForRewriting: " << toStringDebug()
+      << std::endl;
   Trace("tconv-pf-gen-rewrite") << "Input: " << t << std::endl;
   // if provided, we use term context for cache
   std::shared_ptr<TCtxStack> visitctx;
@@ -280,7 +282,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       curHash = cur;
       visit.pop_back();
     }
-    Trace("tconv-pf-gen-rewrite") << "* visit : " << curHash << " / " << cur << " / " << curCVal << std::endl;
+    Trace("tconv-pf-gen-rewrite") << "* visit : " << curHash << " / " << cur
+                                  << " / " << curCVal << std::endl;
     // has the proof for cur been cached?
     itc = d_cache.find(curHash);
     if (itc != d_cache.end())
@@ -301,7 +304,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       Node rcur = getRewriteStepInternal(curHash);
       if (!rcur.isNull())
       {
-        Trace("tconv-pf-gen-rewrite") << "*** " << curHash << " prerewrites to " << rcur << std::endl;
+        Trace("tconv-pf-gen-rewrite")
+            << "*** " << curHash << " prerewrites to " << rcur << std::endl;
         // d_proof has a proof of cur = rcur. Hence there is nothing
         // to do here, as pf will reference d_proof to get its proof.
         if (d_policy == TConvPolicy::FIXPOINT)
@@ -324,9 +328,10 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         else
         {
           Assert(d_policy == TConvPolicy::ONCE);
-          Trace("tconv-pf-gen-rewrite") << "-> (once, prewrite) " << curHash << " = " << rcur << std::endl;
+          Trace("tconv-pf-gen-rewrite") << "-> (once, prewrite) " << curHash
+                                        << " = " << rcur << std::endl;
           // not rewriting again, rcur is final
-          Assert (!rcur.isNull());
+          Assert(!rcur.isNull());
           visited[curHash] = rcur;
           doCache(curHash, cur, rcur, pf);
         }
@@ -353,7 +358,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         // if it was rewritten, check the status of the rewritten node,
         // which should be finished now
         Node rcur = itr->second;
-        Trace("tconv-pf-gen-rewrite") << "- postvisit, previously rewritten to " << rcur << std::endl;
+        Trace("tconv-pf-gen-rewrite")
+            << "- postvisit, previously rewritten to " << rcur << std::endl;
         Node rcurHash = rcur;
         if (tctx != nullptr)
         {
@@ -362,7 +368,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         Assert(cur != rcur);
         // the final rewritten form of cur is the final form of rcur
         Node rcurFinal = visited[rcurHash];
-        Assert (!rcurFinal.isNull());
+        Assert(!rcurFinal.isNull());
         if (rcurFinal != rcur)
         {
           // must connect via TRANS
@@ -372,7 +378,9 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
           Node result = cur.eqNode(rcurFinal);
           pf.addStep(result, PfRule::TRANS, pfChildren, {});
         }
-        Trace("tconv-pf-gen-rewrite") << "-> (rewritten postrewrite) " << curHash << " = " << rcurFinal << std::endl;
+        Trace("tconv-pf-gen-rewrite")
+            << "-> (rewritten postrewrite) " << curHash << " = " << rcurFinal
+            << std::endl;
         visited[curHash] = rcurFinal;
         doCache(curHash, cur, rcurFinal, pf);
       }
@@ -390,7 +398,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         // get the results of the children
         if (tctx != nullptr)
         {
-          for (size_t i=0, nchild = cur.getNumChildren(); i<nchild; i++)
+          for (size_t i = 0, nchild = cur.getNumChildren(); i < nchild; i++)
           {
             Node cn = cur[i];
             uint32_t cnval = tctx->computeValue(cur, curCVal, i);
@@ -459,7 +467,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         }
         if (!rret.isNull())
         {
-          Trace("tconv-pf-gen-rewrite") << "*** " << retHash << " postrewrites to " << rret << std::endl;
+          Trace("tconv-pf-gen-rewrite")
+              << "*** " << retHash << " postrewrites to " << rret << std::endl;
           // d_proof should have a proof of ret = rret, hence nothing to do
           // here, for the same reasons as above. It also may be the case that
           // rret rewrites, hence we must revisit ret.
@@ -485,9 +494,10 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
         }
         else
         {
-          Trace("tconv-pf-gen-rewrite") << "-> (postrewrite) " << curHash << " = " << ret << std::endl;
+          Trace("tconv-pf-gen-rewrite")
+              << "-> (postrewrite) " << curHash << " = " << ret << std::endl;
           // it is final
-          Assert (!ret.isNull());
+          Assert(!ret.isNull());
           visited[curHash] = ret;
           doCache(curHash, cur, ret, pf);
         }
@@ -500,7 +510,8 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   } while (!(tctx != nullptr ? visitctx->empty() : visit.empty()));
   Assert(visited.find(tinitialHash) != visited.end());
   Assert(!visited.find(tinitialHash)->second.isNull());
-  Trace("tconv-pf-gen-rewrite") << "...finished, return " << visited[tinitialHash] << std::endl;
+  Trace("tconv-pf-gen-rewrite")
+      << "...finished, return " << visited[tinitialHash] << std::endl;
   // return the conclusion of the overall proof
   return t.eqNode(visited[tinitialHash]);
 }
@@ -531,7 +542,8 @@ std::string TConvProofGenerator::identify() const { return d_name; }
 std::string TConvProofGenerator::toStringDebug() const
 {
   std::stringstream ss;
-  ss << identify() << " (policy=" << d_policy << ", cache policy=" << d_cpolicy << ( d_tcontext !=nullptr ? ", term-context-sensitive" : "") << ")";
+  ss << identify() << " (policy=" << d_policy << ", cache policy=" << d_cpolicy
+     << (d_tcontext != nullptr ? ", term-context-sensitive" : "") << ")";
   return ss.str();
 }
 

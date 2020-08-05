@@ -300,7 +300,8 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
                             skolem,
                             PfRule::MACRO_SR_PRED_INTRO,
                             {},
-                            {node.eqNode(skolem)}, cval);
+                            {node.eqNode(skolem)},
+                            cval);
     }
 
     // if the skolem was introduced in this call
@@ -474,8 +475,7 @@ void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
                                 TConvPolicy::FIXPOINT,
                                 TConvCachePolicy::NEVER,
                                 "RemoveTermFormulas::TConvProofGenerator",
-                                &d_rtfc
-                               ));
+                                &d_rtfc));
     d_lp.reset(new LazyCDProof(
         d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
