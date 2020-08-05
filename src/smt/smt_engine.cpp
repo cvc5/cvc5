@@ -1522,7 +1522,6 @@ Result SmtEngine::checkSynth()
 
 Node SmtEngine::simplify(const Node& ex)
 {
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
@@ -1545,7 +1544,6 @@ Node SmtEngine::expandDefinitions(const Node& ex)
 // TODO(#1108): Simplify the error reporting of this method.
 Node SmtEngine::getValue(const Node& ex) const
 {
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
