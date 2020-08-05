@@ -1514,9 +1514,9 @@ void TheorySep::computeLabelModel( Node lbl ) {
     Trace("sep-process") << "Model value (from valuation) for " << lbl << " : " << v_val << std::endl;
     if( v_val.getKind()!=kind::EMPTYSET ){
       while( v_val.getKind()==kind::UNION ){
-        Assert(v_val[1].getKind() == kind::SINGLETON);
-        d_label_model[lbl].d_heap_locs_model.push_back( v_val[1] );
-        v_val = v_val[0];
+        Assert(v_val[0].getKind() == kind::SINGLETON);
+        d_label_model[lbl].d_heap_locs_model.push_back( v_val[0] );
+        v_val = v_val[1];
       }
       if( v_val.getKind()==kind::SINGLETON ){
         d_label_model[lbl].d_heap_locs_model.push_back( v_val );
