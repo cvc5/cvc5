@@ -82,12 +82,12 @@ class Preprocessor
    * Expand the definitions in a term or formula.  No other
    * simplification or normalization is done.
    */
-  Node expandDefinitions(const Node& e,
-                         bool expandOnly = false);
+  Node expandDefinitions(const Node& e, bool expandOnly = false);
   /** Same as above, with a cache */
   Node expandDefinitions(
-      const Node& e, std::unordered_map<Node, Node, NodeHashFunction>& cache,
-                         bool expandOnly = false);
+      const Node& e,
+      std::unordered_map<Node, Node, NodeHashFunction>& cache,
+      bool expandOnly = false);
   /**
    * Get the underlying term formula remover utility.
    */

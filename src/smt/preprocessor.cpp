@@ -100,16 +100,16 @@ void Preprocessor::cleanup() { d_processor.cleanup(); }
 
 RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 
-Node Preprocessor::expandDefinitions(const Node& e,
-                         bool expandOnly)
+Node Preprocessor::expandDefinitions(const Node& e, bool expandOnly)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   return expandDefinitions(e, cache, expandOnly);
 }
 
 Node Preprocessor::expandDefinitions(
-    const Node& ex, std::unordered_map<Node, Node, NodeHashFunction>& cache,
-                         bool expandOnly)
+    const Node& ex,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache,
+    bool expandOnly)
 {
   Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
   // Substitute out any abstract values in ex.
@@ -123,9 +123,7 @@ Node Preprocessor::expandDefinitions(
   return d_processor.expandDefinitions(e, cache, expandOnly);
 }
 
-Node Preprocessor::simplify(
-    const Node& ex,
-    bool removeItes)
+Node Preprocessor::simplify(const Node& ex, bool removeItes)
 {
   Trace("smt") << "SMT simplify(" << ex << ")" << endl;
   if (Dump.isOn("benchmark"))
