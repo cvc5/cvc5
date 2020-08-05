@@ -58,6 +58,7 @@ class NormalForm {
     } else if (n.getKind() == kind::UNION) {
       // assuming (union {SmallestNodeID} ... (union {BiggerNodeId} ...
 
+      Node orig = n;
       TNode prvs;
       // check intermediate nodes
       while (n.getKind() == kind::UNION) 
@@ -65,6 +66,7 @@ class NormalForm {
         if (n[0].getKind() != kind::SINGLETON || !n[0].isConst())
         {
           // not a constant
+          Trace("sets-isconst") << "sets::isConst: " << orig << " not due to " << n[0] << std::endl;
           return false;
         }
         Debug("sets-checknormal")
@@ -72,6 +74,7 @@ class NormalForm {
             << n[0][0].getId() << std::endl;
         if (!prvs.isNull() && n[0][0] >= prvs)
         {
+          Trace("sets-isconst") << "sets::isConst: " << orig << " not due to compare " << n[0][0] << std::endl;
           return false;
         }
         prvs = n[0][0];
@@ -81,16 +84,20 @@ class NormalForm {
       // check SmallestNodeID is smallest
       if (n.getKind() != kind::SINGLETON || !n[0].isConst())
       {
+        Trace("sets-isconst") << "sets::isConst: " << orig << " not due to final " << n[0] << std::endl;
         return false;
       }
       Debug("sets-checknormal")
           << "[sets-checknormal]              lst element = " << n[0] << " "
           << n[0].getId() << std::endl;
       // compare last ID
-      return n[0] < prvs;
-    } else {
-      return false;
+      if (n[0] < prvs)
+      {
+        return true;
+      }
+      Trace("sets-isconst") << "sets::isConst: " << orig << " not due to compare final " << n[0] << std::endl;
     }
+    return false;
   }
 
   static std::set<Node> getElementsFromNormalConstant(TNode n) {
@@ -100,9 +107,9 @@ class NormalForm {
       return ret;
     }
     while (n.getKind() == kind::UNION) {
-      Assert(n[1].getKind() == kind::SINGLETON);
-      ret.insert(ret.begin(), n[1][0]);
-      n = n[0];
+      Assert(n[0].getKind() == kind::SINGLETON);
+      ret.insert(ret.begin(), n[0][0]);
+      n = n[1];
     }
     Assert(n.getKind() == kind::SINGLETON);
     ret.insert(n[0]);
