@@ -1014,15 +1014,20 @@ class CVC4_PUBLIC SmtEngine
 
   // --------------------------------------- callbacks from the state
   /**
-   * Notify push, which is called when the user context of the state pushes.
-   * This performs a push on the underlying prop engine.
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
    */
-  void notifyPush();
+  void notifyPushPre();
   /**
-   *Notify pop, which is called when the user context of the state pops.
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop, which is called just before the user context of the state pops.
    * This performs a pop on the underlying prop engine.
    */
-  void notifyPop();
+  void notifyPopPre();
   /**
    * Notify post solve, which is called once after each check-sat query. It
    * is triggered when a d_state.doPendingPops() is issued. This method is
@@ -1030,9 +1035,8 @@ class CVC4_PUBLIC SmtEngine
    */
   void notifyPostSolvePre();
   /**
-   * Same as above, but after contexts are popped.
-   *
-   * This calls the check-sat method of the underlying TheoryEngine.
+   * Same as above, but after contexts are popped. This calls the postsolve
+   * method of the underlying TheoryEngine.
    */
   void notifyPostSolvePost();
   // --------------------------------------- end callbacks from the state

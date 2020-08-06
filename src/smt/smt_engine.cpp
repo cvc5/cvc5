@@ -1004,8 +1004,14 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-void SmtEngine::notifyPush() { d_propEngine->push(); }
-void SmtEngine::notifyPop()
+void SmtEngine::notifyPushPre() { 
+  processAssertionsInternal();
+}
+void SmtEngine::notifyPushPost() { 
+  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+  d_propEngine->push(); 
+}
+void SmtEngine::notifyPopPre()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
   d_propEngine->pop();
@@ -2441,6 +2447,8 @@ bool SmtEngine::getAbduct(const Node& conj,
                           Node& abd)
 {
   bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
+  // notify the state of whether the get-abduct call was successfuly, which
+  // impacts the SMT mode.
   d_state->notifyGetAbduct(success);
   return success;
 }

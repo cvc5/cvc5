@@ -247,9 +247,11 @@ void SmtEngineState::internalPush()
   doPendingPops();
   if (options::incrementalSolving())
   {
+    // notifies the SmtEngine to process the assertions immediately
+    d_smt.notifyPushPre();
     d_userContext->push();
-    // the d_context push is done inside of the SAT solver
-    d_smt.notifyPush();
+    // the context push is done inside of the SAT solver
+    d_smt.notifyPushPost();
   }
 }
 
@@ -278,10 +280,12 @@ void SmtEngineState::doPendingPops()
   }
   while (d_pendingPops > 0)
   {
-    d_smt.notifyPop();
-    // the d_context pop is done inside of the SAT solver
+    // the context pop is done inside of the SAT solver
+    d_smt.notifyPopPre();
+    // pop the context
     d_userContext->pop();
     --d_pendingPops;
+    // no need for pop post (for now)
   }
   if (d_needPostsolve)
   {
