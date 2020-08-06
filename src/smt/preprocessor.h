@@ -79,7 +79,7 @@ class Preprocessor
    * term positions) from the result.
    * @return The simplified term.
    */
-  Node simplify(const Node& e, bool removeItes = false);
+  Node simplify(const Node& n, bool removeItes = false);
   /**
    * Expand the definitions in a term or formula e.  No other
    * simplification or normalization is done.
@@ -89,10 +89,10 @@ class Preprocessor
    * TheoryEngine is not called on subterms of e.
    * @return The expanded term.
    */
-  Node expandDefinitions(const Node& e, bool expandOnly = false);
+  Node expandDefinitions(const Node& n, bool expandOnly = false);
   /** Same as above, with a cache of previous results. */
   Node expandDefinitions(
-      const Node& e,
+      const Node& n,
       std::unordered_map<Node, Node, NodeHashFunction>& cache,
       bool expandOnly = false);
   /**

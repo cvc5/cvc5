@@ -61,7 +61,7 @@ bool Preprocessor::process(Assertions& as)
   preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   // should not be called if empty
-  Assert(ap.size() != 0);
+  Assert(ap.size() != 0) << "Can only preprocess a non-empty list of assertions";
 
   if (d_assertionsProcessed && options::incrementalSolving())
   {
@@ -100,41 +100,41 @@ void Preprocessor::cleanup() { d_processor.cleanup(); }
 
 RemoveTermFormulas& Preprocessor::getTermFormulaRemover() { return d_rtf; }
 
-Node Preprocessor::expandDefinitions(const Node& e, bool expandOnly)
+Node Preprocessor::expandDefinitions(const Node& n, bool expandOnly)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return expandDefinitions(e, cache, expandOnly);
+  return expandDefinitions(n, cache, expandOnly);
 }
 
 Node Preprocessor::expandDefinitions(
-    const Node& ex,
+    const Node& node,
     std::unordered_map<Node, Node, NodeHashFunction>& cache,
     bool expandOnly)
 {
-  Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
-  // Substitute out any abstract values in ex.
-  Node e = d_absValues.substituteAbstractValues(ex);
+  Trace("smt") << "SMT expandDefinitions(" << node << ")" << endl;
+  // Substitute out any abstract values in node.
+  Node n = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())
   {
-    // Ensure expr is type-checked at this point.
-    e.getType(true);
+    // Ensure node is type-checked at this point.
+    n.getType(true);
   }
   // expand only = true
-  return d_processor.expandDefinitions(e, cache, expandOnly);
+  return d_processor.expandDefinitions(n, cache, expandOnly);
 }
 
-Node Preprocessor::simplify(const Node& ex, bool removeItes)
+Node Preprocessor::simplify(const Node& node, bool removeItes)
 {
-  Trace("smt") << "SMT simplify(" << ex << ")" << endl;
+  Trace("smt") << "SMT simplify(" << node << ")" << endl;
   if (Dump.isOn("benchmark"))
   {
-    Dump("benchmark") << SimplifyCommand(ex.toExpr());
+    Dump("benchmark") << SimplifyCommand(node.toExpr());
   }
-  Node e = d_absValues.substituteAbstractValues(ex);
+  Node no = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())
   {
-    // ensure expr is type-checked at this point
-    e.getType(true);
+    // ensure node is type-checked at this point
+    no.getType(true);
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   Node n = d_processor.expandDefinitions(e, cache);
