@@ -196,9 +196,9 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
-      d_asserts(new Assertions(d_state->getUserContext(), *d_absValues.get())),
-      d_exprNames(new ExprNames(d_state->getUserContext())),
-      d_dumpm(new DumpManager(d_state->getUserContext())),
+      d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
+      d_exprNames(new ExprNames(getUserContext())),
+      d_dumpm(new DumpManager(getUserContext())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_theoryEngine(nullptr),
@@ -244,7 +244,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_pp.reset(
-      new smt::Preprocessor(*this, d_state->getUserContext(), *d_absValues.get()));
+      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
@@ -273,6 +273,8 @@ bool SmtEngine::isQueryMade() const { return d_state.isQueryMade(); }
 size_t SmtEngine::getNumUserLevels() const { return d_state.getNumUserLevels(); }
 SmtMode SmtEngine::getSmtMode() const { return d_state.getMode(); }
 Result SmtEngine::getStatusOfLastCommand() const { return d_state.getStatus(); }
+context::UserContext* SmtEngine::getUserContext() { return d_state.getUserContext(); }
+context::Context* SmtEngine::getContext() { return d_state.getContext(); }
 
 void SmtEngine::finishInit()
 {
@@ -1770,10 +1772,6 @@ std::vector<Expr> SmtEngine::getExpandedAssertions()
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
-
-context::UserContext* SmtEngine::getUserContext() { return d_state.getUserContext(); }
-
-context::Context* SmtEngine::getContext() { return d_state.getContext(); }
   
 void SmtEngine::checkProof()
 {
