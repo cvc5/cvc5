@@ -2548,7 +2548,7 @@ void SmtEngine::pop() {
 
   Trace("userpushpop") << "SmtEngine: popped to level "
                        << getUserContext()->getLevel() << endl;
-  // FIXME: should we reset d_status here?
+  // should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
 
