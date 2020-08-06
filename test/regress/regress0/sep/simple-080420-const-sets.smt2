@@ -1,6 +1,8 @@
+; COMMAND-LINE: --no-check-models
+; EXPECT: sat
 (set-logic QF_ALL_SUPPORTED)
 (set-option :produce-models true)
-(set-info :status unsat)
+(set-info :status sat)
 (declare-fun x () Int)
 
 ; works

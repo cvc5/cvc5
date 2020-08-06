@@ -1312,7 +1312,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
           {
             Node t = nm->mkNode(kind::SINGLETON, itmm.first);
             els.push_back(t);
-            elsSet.insert(t);
+            elsSet.insert(itmm.first);
           }
         }
       }
