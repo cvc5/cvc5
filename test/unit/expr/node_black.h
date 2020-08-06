@@ -706,6 +706,78 @@ class NodeBlack : public CxxTest::TestSuite {
               std::equal(children.begin(), children.end(), skolems.begin()));
   }
 
+  void testIsConst() {
+
+    //Debug.on("isConst");
+
+    TS_ASSERT(!a_bool->isConst());
+    TS_ASSERT(!b_bool->isConst());
+    TS_ASSERT(!c_bool_and->isConst());
+    TS_ASSERT(and_op->isConst());
+    TS_ASSERT(plus_op->isConst());
+    TS_ASSERT(!d_apply_fun_bool->isConst());
+    TS_ASSERT(!null->isConst());
+
+    // more complicated "constants" exist in datatypes and arrays theories
+    DType list(d_nm, "list");
+    std::shared_ptr<DTypeConstructor> consC = std::make_shared<DTypeConstructor>("cons");
+    consC->addArg("car", d_nm->integerType());
+    consC->addArg("cdr", DTypeSelfType());
+    list.addConstructor(consC);
+    list.addConstructor(DTypeConstructor("nil"));
+    TypeNode listType = d_nm->mkDatatypeType(list);
+    Node cons = listType.getDType().getConstructor("cons");
+    Node nil = listType.getDType().getConstructor("nil");
+    Node x = d_nm->mkVar("x", d_nm->integerType());
+    Node cons_x_nil = d_nm->mkNode(APPLY_CONSTRUCTOR, cons, x, d_nm->mkNode(APPLY_CONSTRUCTOR, nil));
+    Node cons_1_nil = d_nm->mkNode(APPLY_CONSTRUCTOR, cons, d_nm->mkConst(Rational(1)), d_nm->mkNode(APPLY_CONSTRUCTOR, nil));
+    Node cons_1_cons_2_nil = d_nm->mkNode(APPLY_CONSTRUCTOR, cons, d_nm->mkConst(Rational(1)), d_nm->mkNode(APPLY_CONSTRUCTOR, cons, d_nm->mkConst(Rational(2)), d_nm->mkNode(APPLY_CONSTRUCTOR, nil)));
+    TS_ASSERT(d_nm->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
+    TS_ASSERT(!cons_x_nil.isConst());
+    TS_ASSERT(cons_1_nil.isConst());
+    TS_ASSERT(cons_1_cons_2_nil.isConst());
+
+    {
+      ArrayType arrType =
+          d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
+      Node zero = d_nm->mkConst(Rational(0));
+      Node one = d_nm->mkConst(Rational(1));
+      Node storeAll = d_nm->mkConst(
+          ArrayStoreAll(arrType, zero));
+      TS_ASSERT(storeAll.isConst());
+
+      Node arr = d_nm->mkNode(STORE, storeAll, zero, zero);
+      TS_ASSERT(!arr.isConst());
+      arr = d_nm->mkNode(STORE, storeAll, zero, one);
+      TS_ASSERT(arr.isConst());
+      Node arr2 = d_nm->mkNode(STORE, arr, one, zero);
+      TS_ASSERT(!arr2.isConst());
+      arr2 = d_nm->mkNode(STORE, arr, one, one);
+      TS_ASSERT(arr2.isConst());
+      arr2 = d_nm->mkNode(STORE, arr, zero, one);
+      TS_ASSERT(!arr2.isConst());
+
+      arrType =
+          d_nm->mkArrayType(d_nm->mkBitVectorType(1), d_nm->mkBitVectorType(1));
+      zero = d_nm->mkConst(BitVector(1, unsigned(0)));
+      one = d_nm->mkConst(BitVector(1, unsigned(1)));
+      storeAll = d_nm->mkConst(
+          ArrayStoreAll(arrType, zero));
+      TS_ASSERT(storeAll.isConst());
+
+      arr = d_nm->mkNode(STORE, storeAll, zero, zero);
+      TS_ASSERT(!arr.isConst());
+      arr = d_nm->mkNode(STORE, storeAll, zero, one);
+      TS_ASSERT(arr.isConst());
+      arr2 = d_nm->mkNode(STORE, arr, one, zero);
+      TS_ASSERT(!arr2.isConst());
+      arr2 = d_nm->mkNode(STORE, arr, one, one);
+      TS_ASSERT(!arr2.isConst());
+      arr2 = d_nm->mkNode(STORE, arr, zero, one);
+      TS_ASSERT(!arr2.isConst());
+    }
+  }
+
   //  This Test is designed to fail in a way that will cause a segfault,
   //  so it is commented out.
   //  This is for demonstrating what a certain type of user error looks like.
