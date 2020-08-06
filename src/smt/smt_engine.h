@@ -1029,9 +1029,10 @@ class CVC4_PUBLIC SmtEngine
    */
   void notifyPopPre();
   /**
-   * Notify post solve pre, which is called once after each check-sat query. It
-   * is triggered when a d_state.doPendingPops() is issued. This method is
-   * called before the contexts in that method pop.
+   * Notify post solve pre, which is called once per check-sat query. It
+   * is triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This method is called before the contexts pop in the method
+   * doPendingPops.
    */
   void notifyPostSolvePre();
   /**
