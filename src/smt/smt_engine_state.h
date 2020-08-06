@@ -183,9 +183,16 @@ class SmtEngineState
   void pop();
   /** Pops the user and SAT contexts to the given level */
   void popto(int toLevel);
-  /** Internal push */
+  /** 
+   * Internal push, which processes any pending pops, and pushes (if in
+   * incremental mode).
+   */
   void internalPush();
-  /** Internal pop */
+  /** 
+   * Internal pop. If immediate is true, this processes any pending pops, and
+   * pops (if in incremental mode). Otherwise, it increments the pending pop
+   * counter and does nothing.
+   */
   void internalPop(bool immediate = false);
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;

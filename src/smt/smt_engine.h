@@ -157,29 +157,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
 
   /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT,
-    // immediately after a successful call to get-interpol
-    SMT_MODE_INTERPOL
-  };
-
-  /**
    * Construct an SmtEngine with the given expression manager.
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
@@ -1034,14 +1011,28 @@ class CVC4_PUBLIC SmtEngine
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
-  /** Notify reset solve */
-  void notifyResetSolve();
-  /** Notify push */
+  /** 
+   * Notify push, which is called when the user context of the state pushes.
+   * This performs a push on the underlying prop engine.
+   */
   void notifyPush();
-  /** Notify pop */
+  /** 
+   *Notify pop, which is called when the user context of the state pops. 
+   * This performs a pop on the underlying prop engine.
+   */
   void notifyPop();
-  /** Notify post solve */
-  void notifyPostSolve();
+  /** 
+   * Notify post solve, which is called once after each check-sat query. It
+   * is triggered when a d_state.doPendingPops() is issued. This method is
+   * called before the contexts in that method pop. 
+   */
+  void notifyPostSolvePre();
+  /**
+   * Same as above, but after contexts are popped.
+   * 
+   * This calls the check-sat method of the underlying TheoryEngine.
+   */
+  void notifyPostSolvePost();
   // --------------------------------------- end callbacks from the state
 
   /**
