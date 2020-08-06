@@ -83,6 +83,10 @@ class SmtEngineState
    */
   void notifyStartParsing(std::string filename);
   /**
+   * Notify that the expected status 
+   */
+  void notifyExpectedStatus(std::string status);
+  /**
    * Notify that we are resetting the assertions, called when a reset-assertions
    * command is issued by the user.
    */

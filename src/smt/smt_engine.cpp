@@ -192,8 +192,7 @@ class SmtEnginePrivate
 }/* namespace CVC4::smt */
 
 SmtEngine::SmtEngine(ExprManager* em, Options* optr)
-    : d_userLevels(),
-      d_state(*this),
+    : d_state(*this),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
@@ -580,7 +579,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_expectedStatus = Result(s, d_filename);
+    d_state.notifyExpectedStatus(s);
     return;
   }
   throw UnrecognizedOptionException();
@@ -655,7 +654,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "status")
   {
     // sat | unsat | unknown
-    switch (d_status.asSatisfiabilityResult().isSat())
+    Result status = d_state.getStatus();
+    switch (status.asSatisfiabilityResult().isSat())
     {
       case Result::SAT: return SExpr(SExpr::Keyword("sat"));
       case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
@@ -664,10 +664,11 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   }
   if (key == "reason-unknown")
   {
-    if (!d_status.isNull() && d_status.isUnknown())
+    Result status = d_state.getStatus();
+    if (!status.isNull() && status.isUnknown())
     {
       stringstream ss;
-      ss << d_status.whyUnknown();
+      ss << status.whyUnknown();
       string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
