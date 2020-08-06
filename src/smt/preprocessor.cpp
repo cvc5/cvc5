@@ -130,14 +130,14 @@ Node Preprocessor::simplify(const Node& node, bool removeItes)
   {
     Dump("benchmark") << SimplifyCommand(node.toExpr());
   }
-  Node no = d_absValues.substituteAbstractValues(node);
+  Node nas = d_absValues.substituteAbstractValues(node);
   if (options::typeChecking())
   {
     // ensure node is type-checked at this point
-    no.getType(true);
+    nas.getType(true);
   }
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_processor.expandDefinitions(e, cache);
+  Node n = d_processor.expandDefinitions(nas, cache);
   Node ns = applySubstitutions(n);
   if (removeItes)
   {

@@ -74,19 +74,19 @@ class Preprocessor
    * definitions, assertions, and the current partial model, if one
    * has been constructed.  It also involves theory normalization.
    *
-   * @param e The node to simplify
+   * @param n The node to simplify
    * @param removeItes Whether to remove ITE (and other terms with formulas in
    * term positions) from the result.
    * @return The simplified term.
    */
   Node simplify(const Node& n, bool removeItes = false);
   /**
-   * Expand the definitions in a term or formula e.  No other
+   * Expand the definitions in a term or formula n.  No other
    * simplification or normalization is done.
    *
-   * @param e The node to expand
+   * @param n The node to expand
    * @param expandOnly if true, then the expandDefinitions function of
-   * TheoryEngine is not called on subterms of e.
+   * TheoryEngine is not called on subterms of n.
    * @return The expanded term.
    */
   Node expandDefinitions(const Node& n, bool expandOnly = false);
