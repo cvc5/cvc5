@@ -195,6 +195,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
     : d_context(new Context()),
       d_userContext(new UserContext()),
       d_userLevels(),
+      d_state(*this),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
@@ -1115,6 +1116,8 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
+    // update the state
+    d_state.notifyCheckSat();
 
     if(d_queryMade && !options::incrementalSolving()) {
       throw ModalException("Cannot make multiple queries unless "
@@ -1168,6 +1171,9 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       Trace("smt") << "SmtEngine::global negate returned " << r << std::endl;
     }
 
+    // update our state the based on the result of the check-sat
+    d_state.notifyCheckSatResult(r);
+    
     d_needPostsolve = true;
 
     // Pop the context
