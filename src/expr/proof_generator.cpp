@@ -79,11 +79,11 @@ void pfgEnsureClosed(Node proven,
 }
 
 void pfgEnsureClosedWrt(Node proven,
-                     ProofGenerator* pg,
-                     const std::vector<Node>& assumps,
-                     const char* c,
-                     const char* ctx,
-                     bool reqGen)
+                        ProofGenerator* pg,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx,
+                        bool reqGen)
 {
   if (!options::proofNew())
   {
@@ -132,7 +132,7 @@ void pfgEnsureClosedWrt(Node proven,
   std::stringstream ssf;
   for (const Node& fa : fassumps)
   {
-    if (std::find(assumps.begin(),assumps.end(),fa)==assumps.end())
+    if (std::find(assumps.begin(), assumps.end(), fa) == assumps.end())
     {
       isClosed = false;
       ssf << "- " << fa << std::endl;
@@ -156,6 +156,5 @@ void pfgEnsureClosedWrt(Node proven,
   Trace(c) << "...pfgEnsureClosed: success" << std::endl;
   Trace(c) << "====" << std::endl;
 }
-
 
 }  // namespace CVC4

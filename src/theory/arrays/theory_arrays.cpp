@@ -1808,7 +1808,8 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     if (!d_equalityEngine.hasTerm(selConst)) {
       preRegisterTermInternal(selConst);
     }
-    assertInference(selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
+    assertInference(
+        selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);

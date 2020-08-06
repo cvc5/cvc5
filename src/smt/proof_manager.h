@@ -47,7 +47,7 @@ class PfManager
    *
    * The argument pg is the module that can provide a proof for false in the
    * current context.
-   * 
+   *
    * Throws an assertion failure if pg cannot provide a closed proof with
    * respect to assertions in al.
    */
@@ -56,7 +56,7 @@ class PfManager
    * Check proof, same as above, without printing.
    */
   void checkProof(ProofGenerator* pg, context::CDList<Node>* al);
-  
+
   /**
    * Get final proof.
    *

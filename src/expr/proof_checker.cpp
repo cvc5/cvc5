@@ -259,14 +259,15 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (d_pclevel>0)
+  if (d_pclevel > 0)
   {
     std::map<PfRule, uint32_t>::iterator itp = d_plevel.find(id);
-    if (itp!=d_plevel.end())
+    if (itp != d_plevel.end())
     {
-      if (itp->second<=d_pclevel)
+      if (itp->second <= d_pclevel)
       {
-        out << "pedantic level for " << id << " not met (" << itp->second << " < " << d_pclevel << ")" << std::endl;
+        out << "pedantic level for " << id << " not met (" << itp->second
+            << " < " << d_pclevel << ")" << std::endl;
         return Node::null();
       }
     }
@@ -287,15 +288,20 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   d_checker[id] = psc;
 }
 
-void ProofChecker::registerTrustedChecker(PfRule id, ProofRuleChecker* psc, uint32_t plevel)
+void ProofChecker::registerTrustedChecker(PfRule id,
+                                          ProofRuleChecker* psc,
+                                          uint32_t plevel)
 {
-  AlwaysAssert(plevel <= 10 ) << "ProofChecker::registerTrustedChecker: pedantic level must be 0-10, got " << plevel << " for " << id;
+  AlwaysAssert(plevel <= 10) << "ProofChecker::registerTrustedChecker: "
+                                "pedantic level must be 0-10, got "
+                             << plevel << " for " << id;
   registerChecker(id, psc);
   // overwrites if already there
-  if (d_plevel.find(id)!=d_plevel.end())
+  if (d_plevel.find(id) != d_plevel.end())
   {
-    Notice() << "ProofChecker::registerTrustedRule: already provided pedantic level for "
-            << id << std::endl;
+    Notice() << "ProofChecker::registerTrustedRule: already provided pedantic "
+                "level for "
+             << id << std::endl;
   }
   d_plevel[id] = plevel;
 }

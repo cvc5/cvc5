@@ -110,7 +110,7 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker(uint32_t pclevel=0) : d_pclevel(pclevel) {}
+  ProofChecker(uint32_t pclevel = 0) : d_pclevel(pclevel) {}
   ~ProofChecker() {}
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not
@@ -160,13 +160,15 @@ class ProofChecker
                   const char* traceTag);
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
-  /** 
+  /**
    * Indicate that id is a trusted rule with the given pedantic level, e.g.:
    *  0: (mandatory) always a failure to use the given id
    *  1: (major) failure on all (non-zero) pedantic levels
    * 10: (minor) failure only on pedantic levels >= 10.
    */
-  void registerTrustedChecker(PfRule id, ProofRuleChecker* psc, uint32_t plevel=10);
+  void registerTrustedChecker(PfRule id,
+                              ProofRuleChecker* psc,
+                              uint32_t plevel = 10);
   /** get checker for */
   ProofRuleChecker* getCheckerFor(PfRule id);
 

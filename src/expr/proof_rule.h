@@ -879,7 +879,7 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (Q)
   STRING_TRUST,
-  
+
   //================================================= Arithmetic rules
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)

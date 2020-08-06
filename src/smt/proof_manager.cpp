@@ -119,7 +119,8 @@ void PfManager::checkProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
-  Trace("smt-proof") << "PfManager::checkProof: returned " << *fp.get() << std::endl;
+  Trace("smt-proof") << "PfManager::checkProof: returned " << *fp.get()
+                     << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }
