@@ -1440,17 +1440,8 @@ Result SmtEngine::checkSynth()
 
     d_private->d_sygusConjectureStale = false;
 
-    if (options::incrementalSolving())
-    {
-      // we push a context so that this conjecture is removed if we modify it
-      // later
-      internalPush();
-      assertFormula(body, true);
-    }
-    else
-    {
-      query = body.toExpr();
-    }
+    // TODO (project #7): if incremental, we should push a context and assert
+    query = body.toExpr();
   }
 
   Result r = checkSatisfiability(query, true, false);
@@ -2793,10 +2784,7 @@ void SmtEngine::setSygusConjectureStale()
     return;
   }
   d_private->d_sygusConjectureStale = true;
-  if (options::incrementalSolving())
-  {
-    internalPop();
-  }
+  // TODO (project #7): if incremental, we should pop a context
 }
 
 }/* CVC4 namespace */
