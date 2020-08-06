@@ -282,8 +282,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
       curHash = cur;
       visit.pop_back();
     }
-    Trace("tconv-pf-gen-rewrite") << "* visit : " << curHash << " / " << cur
-                                  << " / " << curCVal << std::endl;
+    Trace("tconv-pf-gen-rewrite") << "* visit : " << curHash << std::endl;
     // has the proof for cur been cached?
     itc = d_cache.find(curHash);
     if (itc != d_cache.end())

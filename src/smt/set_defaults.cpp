@@ -74,7 +74,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   }
   // if ((options::checkProofs() || options::dumpProofs()) &&
   // !options::proofNew())
-  if (options::checkProofs() || (options::dumpProofs() && !options::proofNew()))
+  if ((options::checkProofs() || options::dumpProofs()) && !options::proofNew())
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
     options::proof.set(true);
