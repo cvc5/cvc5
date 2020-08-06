@@ -1808,7 +1808,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     if (!d_equalityEngine.hasTerm(selConst)) {
       preRegisterTermInternal(selConst);
     }
-    assertInference(selConst.eqNode(defValue), true, d_true, PfRule::TRUST);
+    assertInference(selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
   }
 
   const CTNodeList* stores = d_infoMap.getStores(a);
@@ -2322,7 +2322,7 @@ bool TheoryArrays::assertInference(TNode eq,
       case PfRule::ARRAYS_EXT:
       default:
         args.push_back(fact);
-        r = PfRule::TRUST;
+        r = PfRule::ARRAYS_TRUST;
         break;
     }
     return d_pfEqualityEngine->assertFact(fact, r, reason, args);

@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace smt {
 
 PfManager::PfManager(SmtEngine* smte)
-    : d_pchecker(new ProofChecker),
+    : d_pchecker(new ProofChecker(options::proofNewPedantic())),
       d_pnm(new ProofNodeManager(d_pchecker.get())),
       d_rewriteDb(new theory::RewriteDb),
       d_pppg(new PreprocessProofGenerator(d_pnm.get())),
@@ -107,11 +107,19 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 
 void PfManager::printProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
+  Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
   std::ostream& out = *options::out();
   out << "(proof\n";
   out << *fp;
   out << "\n)\n";
+}
+
+void PfManager::checkProof(ProofGenerator* pg, context::CDList<Node>* al)
+{
+  Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
+  std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
+  Trace("smt-proof") << "PfManager::checkProof: returned " << *fp.get() << std::endl;
 }
 
 ProofChecker* PfManager::getProofChecker() const { return d_pchecker.get(); }

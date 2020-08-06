@@ -33,8 +33,9 @@ void ArithProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::ARITH_TRICHOTOMY, this);
   pc->registerChecker(PfRule::INT_TIGHT_UB, this);
   pc->registerChecker(PfRule::INT_TIGHT_LB, this);
-  pc->registerChecker(PfRule::INT_TRUST, this);
   pc->registerChecker(PfRule::ARITH_OP_ELIM_AXIOM, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::INT_TRUST, this, 2);
 }
 
 Node ArithProofRuleChecker::checkInternal(PfRule id,

@@ -2160,6 +2160,14 @@ Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
+  if (options::proofNew())
+  {
+    // internal check the proof
+    Assert(d_assertionList != nullptr);
+    Assert(d_propEngine->getProof() != nullptr);
+    d_pfManager->checkProof(d_propEngine->getProof(), d_assertionList);
+    return;
+  }
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 
   Chat() << "generating proof..." << endl;

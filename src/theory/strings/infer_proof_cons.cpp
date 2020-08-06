@@ -917,10 +917,10 @@ Node InferProofCons::convert(Inference infer,
     ps.d_args.clear();
     ps.d_args.push_back(conc);
     // use the trust rule
-    ps.d_rule = PfRule::TRUST;
+    ps.d_rule = PfRule::STRING_TRUST;
     // add to stats
     d_statistics.d_inferencesNoPf << infer;
-    if (options::proofNewPedantic())
+    if (options::proofNewPedantic()>0)
     {
       std::stringstream serr;
       serr << "InferProofCons::convert: Failed " << infer

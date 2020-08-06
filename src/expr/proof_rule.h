@@ -612,6 +612,7 @@ enum class PfRule : uint32_t
   // Conclusion: (= (select (store a i e) i) e)
   ARRAYS_READ_OVER_WRITE_1,
   ARRAYS_EXT,
+  ARRAYS_TRUST,
 
   //================================================= Quantifiers rules
   // ======== Witness intro
@@ -872,7 +873,14 @@ enum class PfRule : uint32_t
   // Also applies t to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
-
+  // ======== String Trust
+  // Children: none
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  STRING_TRUST,
+  
+  //================================================= Arithmetic rules
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
@@ -894,7 +902,6 @@ enum class PfRule : uint32_t
   //    t1 is the sum of the polynomials.
   //    t2 is the sum of the constants.
   ARITH_SCALE_SUM_UPPER_BOUNDS,
-
   // ======== Tightening Strict Integer Upper Bounds
   // Children: (P:(< i c))
   //         where i has integer type.
@@ -902,7 +909,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (<= i greatestIntLessThan(c)})
   INT_TIGHT_UB,
-
   // ======== Tightening Strict Integer Lower Bounds
   // Children: (P:(> i c))
   //         where i has integer type.
@@ -910,7 +916,6 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (>= i leastIntGreaterThan(c)})
   INT_TIGHT_LB,
-
   // ======== Trichotomy of the reals
   // Children: (A B)
   // Arguments: (C)
@@ -922,14 +927,12 @@ enum class PfRule : uint32_t
   //                 note that "not" here denotes arithmetic negation, flipping
   //                 >= to <, etc.
   ARITH_TRICHOTOMY,
-
   // ======== Arithmetic operator elimination
   // Children: none
   // Arguments: (t)
   // ---------------------
   // Conclusion: arith::OperatorElim::getAxiomFor(t)
   ARITH_OP_ELIM_AXIOM,
-
   // ======== Int Trust
   // Children: (P1 ... Pn)
   // Arguments: (Q)

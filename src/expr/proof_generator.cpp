@@ -74,6 +74,17 @@ void pfgEnsureClosed(Node proven,
                      const char* ctx,
                      bool reqGen)
 {
+  std::vector<Node> assumps;
+  pfgEnsureClosedWrt(proven, pg, assumps, c, ctx, reqGen);
+}
+
+void pfgEnsureClosedWrt(Node proven,
+                     ProofGenerator* pg,
+                     const std::vector<Node>& assumps,
+                     const char* c,
+                     const char* ctx,
+                     bool reqGen)
+{
   if (!options::proofNew())
   {
     // proofs not enabled, do not do check
@@ -115,15 +126,29 @@ void pfgEnsureClosed(Node proven,
     AlwaysAssert(false) << "...pfgEnsureClosed: null proof from " << ss.str()
                         << sdiag.str();
   }
-  std::vector<Node> assumps;
-  expr::getFreeAssumptions(pn.get(), assumps);
-  bool isClosed = assumps.empty();
+  std::vector<Node> fassumps;
+  expr::getFreeAssumptions(pn.get(), fassumps);
+  bool isClosed = true;
+  std::stringstream ssf;
+  for (const Node& fa : fassumps)
+  {
+    if (std::find(assumps.begin(),assumps.end(),fa)==assumps.end())
+    {
+      isClosed = false;
+      ssf << "- " << fa << std::endl;
+    }
+  }
   if (!isClosed)
   {
     Trace(c) << "Free assumptions:" << std::endl;
-    for (const Node& a : assumps)
+    Trace(c) << ssf.str();
+    if (!assumps.empty())
     {
-      Trace(c) << "- " << a << std::endl;
+      Trace(c) << "Expected assumptions:" << std::endl;
+      for (const Node& a : assumps)
+      {
+        Trace(c) << "- " << a << std::endl;
+      }
     }
   }
   AlwaysAssert(isClosed) << "...pfgEnsureClosed: open proof from " << ss.str()
@@ -131,5 +156,6 @@ void pfgEnsureClosed(Node proven,
   Trace(c) << "...pfgEnsureClosed: success" << std::endl;
   Trace(c) << "====" << std::endl;
 }
+
 
 }  // namespace CVC4

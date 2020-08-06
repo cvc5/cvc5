@@ -930,7 +930,7 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the Context owned by this SmtEngine. */
   context::Context* getContext() { return d_context.get(); };
 
-  /** Get a pointer to the PfManager owned by this SmtEngine. */
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 
   ProofManager* getProofManager() { return d_proofManager.get(); };

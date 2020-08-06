@@ -427,11 +427,6 @@ void TheoryEngine::addTheoryLemmaToProof(CDProof* pf,
                                          TheoryId tid,
                                          const char* c)
 {
-  if (options::proofNewPedantic())
-  {
-    AlwaysAssert(false) << "THEORY_LEMMA : " << lemma << " from " << tid
-                        << " from " << c << std::endl;
-  }
   Assert(pf != nullptr);
   unsigned tidu = static_cast<unsigned>(tid);
   Node tidn = NodeManager::currentNM()->mkConst(Rational(tidu));

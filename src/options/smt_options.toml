@@ -145,7 +145,7 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-proofs"
   type       = "bool"
-  predicates = ["LFSCEnabledBuild"]
+  predicates = ["proofEnabledBuild"]
   help       = "after UNSAT/VALID, machine-check the generated proof"
 
 [[option]]
@@ -168,11 +168,11 @@ header = "options/smt_options.h"
 [[option]]
   name       = "proofNewPedantic"
   category   = "regular"
-  long       = "proof-new-pedantic"
-  type       = "bool"
-  default    = "false"
+  long       = "proof-new-pedantic=N"
+  type       = "uint32_t"
+  default    = "0"
   read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
+  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
 
 [[option]]
   name       = "proofNewEagerChecking"

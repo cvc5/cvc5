@@ -105,6 +105,7 @@ const char* toString(PfRule id)
     case PfRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";
     case PfRule::ARRAYS_READ_OVER_WRITE_1: return "ARRAYS_READ_OVER_WRITE_1";
     case PfRule::ARRAYS_EXT: return "ARRAYS_EXT";
+    case PfRule::ARRAYS_TRUST: return "ARRAYS_TRUST";
     //================================================= Quantifiers rules
     case PfRule::WITNESS_INTRO: return "WITNESS_INTRO";
     case PfRule::EXISTS_INTRO: return "EXISTS_INTRO";
@@ -131,13 +132,14 @@ const char* toString(PfRule id)
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
     case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case PfRule::STRING_TRUST: return "STRING_TRUST";
     //================================================= Arith rules
     case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
-    case PfRule::INT_TRUST: return "INT_TRUST";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
+    case PfRule::INT_TRUST: return "INT_TRUST";
 
     //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 

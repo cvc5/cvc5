@@ -116,6 +116,19 @@ void pfgEnsureClosed(Node proven,
                      const char* ctx,
                      bool reqGen = true);
 
+/**
+ * debug check closed on Trace c, context ctx is string for debugging, where
+ * assumps is the set of allowed open assertions.
+ *
+ * @param reqGen Whether we consider a null generator to be a failure.
+ */
+void pfgEnsureClosedWrt(Node proven,
+                     ProofGenerator* pg,
+                     const std::vector<Node>& assumps,
+                     const char* c,
+                     const char* ctx,
+                     bool reqGen = true);
+
 }  // namespace CVC4
 
 #endif /* CVC4__EXPR__PROOF_GENERATOR_H */
