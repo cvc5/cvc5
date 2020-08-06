@@ -1247,6 +1247,7 @@ set(regress_1_tests
   regress1/arith/bug547.1.smt2
   regress1/arith/bug716.0.smt2
   regress1/arith/bug716.1.cvc
+  regress1/arith/bug716.2.cvc
   regress1/arith/div.03.smt2
   regress1/arith/div.06.smt2
   regress1/arith/div.08.smt2

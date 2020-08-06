@@ -225,6 +225,8 @@ libcvc4_add_sources(
   smt/abduction_solver.h
   smt/abstract_values.cpp
   smt/abstract_values.h
+  smt/assertions.cpp
+  smt/assertions.h
   smt/command.cpp
   smt/command.h
   smt/defined_function.h

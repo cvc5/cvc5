@@ -97,6 +97,7 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class Assertions;
 class ExprNames;
 class DumpManager;
 class ResourceOutListener;
@@ -415,7 +416,7 @@ class CVC4_PUBLIC SmtEngine
    * Note that the returned set of failed assumptions is not necessarily
    * minimal.
    */
-  std::vector<Expr> getUnsatAssumptions(void);
+  std::vector<Node> getUnsatAssumptions(void);
 
   /*---------------------------- sygus commands  ---------------------------*/
 
@@ -1013,13 +1014,6 @@ class CVC4_PUBLIC SmtEngine
   void finalOptionsAreSet();
 
   /**
-   * Sets that the problem has been extended. This sets the smt mode of the
-   * solver to SMT_MODE_ASSERT, and clears the list of assumptions from the
-   * previous call to checkSatisfiability.
-   */
-  void setProblemExtended();
-
-  /**
    * Create theory engine, prop engine, decision engine. Called by
    * finalOptionsAreSet()
    */
@@ -1058,14 +1052,6 @@ class CVC4_PUBLIC SmtEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
-  /**
-   * Fully type-check the argument, and also type-check that it's
-   * actually Boolean.
-   *
-   * throw@ TypeCheckingException
-   */
-  void ensureBoolean(const Node& n);
-
   void internalPush();
 
   void internalPop(bool immediate = false);
@@ -1088,10 +1074,10 @@ class CVC4_PUBLIC SmtEngine
                                 const char* dumpTag = "declarations");
 
   /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Expr& assumption,
+  Result checkSatisfiability(const Node& assumption,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Expr>& assumptions,
+  Result checkSatisfiability(const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
 
@@ -1136,6 +1122,8 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** Assertions manager */
+  std::unique_ptr<smt::Assertions> d_asserts;
   /** Expression names */
   std::unique_ptr<smt::ExprNames> d_exprNames;
   /** The dump manager */
@@ -1172,27 +1160,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
-
-  /**
-   * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in incremental mode.
-   */
-  AssertionList* d_assertionList;
-
-  /**
-   * List of lemmas generated for global recursive function definitions. We
-   * assert this list of definitions in each check-sat call.
-   */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
-
-  /**
-   * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
-   */
-  std::vector<Expr> d_assumptions;
-
   /**
    * List of items for which to retrieve values using getAssignment().
    */
@@ -1253,11 +1220,6 @@ class CVC4_PUBLIC SmtEngine
    * by default* but gets turned off if arithRewriteEq is on
    */
   bool d_earlyTheoryPP;
-
-  /*
-   * Whether we did a global negation of the formula.
-   */
-  bool d_globalNegation;
 
   /**
    * Most recent result of last checkSatisfiability/checkEntailed or

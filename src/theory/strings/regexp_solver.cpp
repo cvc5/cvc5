@@ -33,7 +33,7 @@ namespace strings {
 
 RegExpSolver::RegExpSolver(SolverState& s,
                            InferenceManager& im,
-                           TermRegistry& tr,
+                           SkolemCache* skc,
                            CoreSolver& cs,
                            ExtfSolver& es,
                            SequencesStatistics& stats)
@@ -45,7 +45,7 @@ RegExpSolver::RegExpSolver(SolverState& s,
       d_regexp_ucached(s.getUserContext()),
       d_regexp_ccached(s.getSatContext()),
       d_processed_memberships(s.getSatContext()),
-      d_regexp_opr(tr.getSkolemCache())
+      d_regexp_opr(skc)
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   std::vector<Node> nvec;

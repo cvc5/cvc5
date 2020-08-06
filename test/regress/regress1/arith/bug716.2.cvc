@@ -1,6 +1,6 @@
 % EXPECT: The exponent of the POW(^) operator can only be a positive integral constant below 67108864. Exception occurred in:
-% EXPECT:   2 ^ x
+% EXPECT:   x ^ 67108864
 % EXIT: 1
 x: INT;
-ASSERT 2^x = 8;
+ASSERT x^67108864 = 8;
 QUERY x=3;
