@@ -85,7 +85,6 @@
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
-#include "smt/expr_names.h"
 #include "smt/command.h"
 #include "smt/defined_function.h"
 #include "smt/dump_manager.h"
@@ -95,8 +94,8 @@
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
-#include "smt/process_assertions.h"
 #include "smt/proof_manager.h"
+#include "smt/preprocessor.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
@@ -159,30 +158,7 @@ namespace smt {
  */
 class SmtEnginePrivate
 {
-  SmtEngine& d_smt;
-
-  typedef unordered_map<Node, Node, NodeHashFunction> NodeToNodeHashMap;
-  typedef unordered_map<Node, bool, NodeHashFunction> NodeToBoolHashMap;
-
-  /** A circuit propagator for non-clausal propositional deduction */
-  booleans::CircuitPropagator d_propagator;
-
-  /** Whether any assertions have been processed */
-  CDO<bool> d_assertionsProcessed;
-
-  // Cached true value
-  Node d_true;
-
-  /** The preprocessing pass context */
-  std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
-
-  /** Process assertions module */
-  ProcessAssertions d_processor;
-
  public:
-
-  /** Instance of the ITE remover */
-  RemoveTermFormulas d_iteRemover;
 
   /* Finishes the initialization of the private portion of SMTEngine. */
   void finishInit();
@@ -207,66 +183,12 @@ class SmtEnginePrivate
 
  public:
   SmtEnginePrivate(SmtEngine& smt)
-      : d_smt(smt),
-        d_propagator(true, true),
-        d_assertionsProcessed(smt.getUserContext(), false),
-        d_processor(smt, *smt.getResourceManager()),
-        d_iteRemover(smt.getUserContext()),
-        d_sygusConjectureStale(smt.getUserContext(), true)
+      : d_sygusConjectureStale(smt.getUserContext(), true)
   {
-    d_true = NodeManager::currentNM()->mkConst(true);
   }
 
   ~SmtEnginePrivate()
   {
-    if(d_propagator.getNeedsFinish()) {
-      d_propagator.finish();
-      d_propagator.setNeedsFinish(false);
-    }
-  }
-
-  void spendResource(ResourceManager::Resource r)
-  {
-    d_smt.getResourceManager()->spendResource(r);
-  }
-
-  ProcessAssertions* getProcessAssertions() { return &d_processor; }
-
-  Node applySubstitutions(TNode node)
-  {
-    return Rewriter::rewrite(
-        d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
-  }
-
-  /**
-   * Process the assertions that have been asserted.
-   */
-  void processAssertions(Assertions& as);
-
-  /** Process a user push.
-  */
-  void notifyPush() {
-  }
-
-  /**
-   * Process a user pop.  Clears out the non-context-dependent stuff in this
-   * SmtEnginePrivate.  Necessary to clear out our assertion vectors in case
-   * someone does a push-assert-pop without a check-sat. It also pops the
-   * last map of expression names from notifyPush.
-   */
-  void notifyPop() {
-    d_propagator.getLearnedLiterals().clear();
-  }
-  /**
-   * Simplify node "in" by expanding definitions and applying any
-   * substitutions learned from preprocessing.
-   */
-  Node simplify(TNode in) {
-    // Substitute out any abstract values in ex.
-    // Expand definitions.
-    NodeToNodeHashMap cache;
-    Node n = d_processor.expandDefinitions(in, cache).toExpr();
-    return applySubstitutions(n).toExpr();
   }
 };/* class SmtEnginePrivate */
 
@@ -307,6 +229,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_statisticsRegistry(nullptr),
       d_stats(nullptr),
       d_resourceManager(nullptr),
+      d_optm(nullptr),
+      d_pp(nullptr),
       d_scope(nullptr)
 {
   // !!!!!!!!!!!!!!!!!!!!!! temporary hack: this makes the current SmtEngine
@@ -332,6 +256,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager.reset(
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
+  d_pp.reset(
+      new smt::Preprocessor(*this, d_userContext.get(), *d_absValues.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
@@ -388,7 +314,7 @@ void SmtEngine::finishInit()
   d_theoryEngine.reset(new TheoryEngine(getContext(),
                                         getUserContext(),
                                         getResourceManager(),
-                                        d_private->d_iteRemover,
+                                        d_pp->getTermFormulaRemover(),
                                         const_cast<const LogicInfo&>(d_logic),
                                         pnm));
 
@@ -457,7 +383,7 @@ void SmtEngine::finishInit()
           finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
-  d_private->finishInit();
+  d_pp->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
@@ -517,7 +443,7 @@ SmtEngine::~SmtEngine()
     d_definedFunctions->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
-    d_private->getProcessAssertions()->cleanup();
+    d_pp->cleanup();
 
     // d_proofManager is always created when proofs are enabled at configure
     // time.  Because of this, this code should not be wrapped in PROOF() which
@@ -546,6 +472,7 @@ SmtEngine::~SmtEngine()
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
     d_optm.reset(nullptr);
+    d_pp.reset(nullptr);
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
@@ -1014,15 +941,6 @@ bool SmtEngine::isDefinedFunction( Expr func ){
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
 }
 
-void SmtEnginePrivate::finishInit()
-{
-  d_preprocessingPassContext.reset(
-      new PreprocessingPassContext(&d_smt, &d_iteRemover, &d_propagator));
-
-  // initialize the preprocessing passes
-  d_processor.finishInit(d_preprocessingPassContext.get());
-}
-
 Result SmtEngine::check() {
   Assert(d_fullyInited);
   Assert(d_pendingPops == 0);
@@ -1041,7 +959,7 @@ Result SmtEngine::check() {
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
-  d_private->processAssertions(*d_asserts);
+  processAssertionsInternal();
   Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
 
   TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
@@ -1104,68 +1022,52 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-void SmtEnginePrivate::processAssertions(Assertions& as)
+void SmtEngine::processAssertionsInternal()
 {
-  TimerStat::CodeTimer paTimer(d_smt.d_stats->d_processAssertionsTime);
-  spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_smt.d_fullyInited);
-  Assert(d_smt.d_pendingPops == 0);
+  TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
+  d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
+  Assert(d_fullyInited);
+  Assert(d_pendingPops == 0);
 
-  AssertionPipeline& ap = as.getAssertionPipeline();
+  AssertionPipeline& ap = d_asserts->getAssertionPipeline();
 
   if (ap.size() == 0)
   {
     // nothing to do
     return;
   }
-  if (d_assertionsProcessed && options::incrementalSolving()) {
-    // TODO(b/1255): Substitutions in incremental mode should be managed with a
-    // proper data structure.
 
-    ap.enableStoreSubstsInAsserts();
-  }
-  else
-  {
-    ap.disableStoreSubstsInAsserts();
-  }
-
-  // process the assertions
-  bool noConflict = d_processor.apply(as);
+  // process the assertions with the preprocessor
+  bool noConflict = d_pp->process(*d_asserts);
 
   //notify theory engine new preprocessed assertions
-  d_smt.d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
+  d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
 
   // Push the formula to decision engine
   if (noConflict)
   {
     Chat() << "pushing to decision engine..." << endl;
-    d_smt.d_propEngine->addAssertionsToDecisionEngine(ap);
+    d_propEngine->addAssertionsToDecisionEngine(ap);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  // if incremental, compute which variables are assigned
-  if (options::incrementalSolving())
-  {
-    d_preprocessingPassContext->recordSymbolsInAssertions(ap.ref());
-  }
+  d_pp->postprocess(*d_asserts);
 
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_cnfConversionTime);
+    TimerStat::CodeTimer codeTimer(d_stats->d_cnfConversionTime);
     for (const Node& assertion : ap.ref())
     {
       Chat() << "+ " << assertion << std::endl;
-      d_smt.d_propEngine->assertFormula(assertion);
+      d_propEngine->assertFormula(assertion);
     }
   }
 
-  d_assertionsProcessed = true;
-
   // clear the current assertions
-  as.clearCurrent();
+  d_asserts->clearCurrent();
 }
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
@@ -1648,85 +1550,42 @@ Result SmtEngine::checkSynth()
    --------------------------------------------------------------------------
 */
 
-Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
-  return node;
-}
-
-Expr SmtEngine::simplify(const Expr& ex)
+Node SmtEngine::simplify(const Node& ex)
 {
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  Trace("smt") << "SMT simplify(" << ex << ")" << endl;
-
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << SimplifyCommand(ex);
-  }
-
-  Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
-  if( options::typeChecking() ) {
-    e.getType(true); // ensure expr is type-checked at this point
-  }
-
-  // Make sure all preprocessing is done
-  d_private->processAssertions(*d_asserts);
-  Node n = d_private->simplify(Node::fromExpr(e));
-  n = postprocess(n, TypeNode::fromType(e.getType()));
-  return n.toExpr();
+  // ensure we've processed assertions
+  processAssertionsInternal();
+  return d_pp->simplify(ex);
 }
 
 Node SmtEngine::expandDefinitions(const Node& ex)
 {
-  d_private->spendResource(ResourceManager::Resource::PreprocessStep);
+  d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
   finalOptionsAreSet();
   doPendingPops();
-  Trace("smt") << "SMT expandDefinitions(" << ex << ")" << endl;
-
-  // Substitute out any abstract values in ex.
-  Node e = d_absValues->substituteAbstractValues(ex);
-  if(options::typeChecking()) {
-    // Ensure expr is type-checked at this point.
-    e.getType(true);
-  }
-
-  unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_private->getProcessAssertions()->expandDefinitions(
-      e, cache, /* expandOnly = */ true);
-  n = postprocess(n, e.getType());
-
-  return n;
+  // set expandOnly flag to true
+  return d_pp->expandDefinitions(ex, true);
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Expr SmtEngine::getValue(const Expr& ex) const
+Node SmtEngine::getValue(const Node& ex) const
 {
-  Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
 
   Trace("smt") << "SMT getValue(" << ex << ")" << endl;
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetValueCommand(ex);
+    Dump("benchmark") << GetValueCommand(ex.toExpr());
   }
+  TypeNode expectedType = ex.getType();
 
-  // Substitute out any abstract values in ex.
-  Expr e = d_absValues->substituteAbstractValues(Node::fromExpr(ex)).toExpr();
+  // Substitute out any abstract values in ex and expand
+  Node n = d_pp->expandDefinitions(ex);
 
-  // Ensure expr is type-checked at this point.
-  e.getType(options::typeChecking());
-
-  // do not need to apply preprocessing substitutions (should be recorded
-  // in model already)
-
-  Node n = Node::fromExpr(e);
   Trace("smt") << "--- getting value of " << n << endl;
-  TypeNode expectedType = n.getType();
-
-  // Expand, then normalize
-  unordered_map<Node, Node, NodeHashFunction> cache;
-  n = d_private->getProcessAssertions()->expandDefinitions(n, cache);
   // There are two ways model values for terms are computed (for historical
   // reasons).  One way is that used in check-model; the other is that
   // used by the Model classes.  It's not clear to me exactly how these
@@ -1745,10 +1604,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
     resultNode = m->getValue(n);
   }
   Trace("smt") << "--- got value " << n << " = " << resultNode << endl;
-  resultNode = postprocess(resultNode, expectedType);
-  Trace("smt") << "--- model-post returned " << resultNode << endl;
-  Trace("smt") << "--- model-post returned " << resultNode.getType() << endl;
-  Trace("smt") << "--- model-post expected " << expectedType << endl;
+  Trace("smt") << "--- type " << resultNode.getType() << endl;
+  Trace("smt") << "--- expected type " << expectedType << endl;
 
   // type-check the result we got
   // Notice that lambdas have function type, which does not respect the subtype
@@ -1767,7 +1624,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 
-  return resultNode.toExpr();
+  return resultNode;
 }
 
 vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
@@ -1775,7 +1632,7 @@ vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
   vector<Expr> result;
   for (const Expr& e : exprs)
   {
-    result.push_back(getValue(e));
+    result.push_back(getValue(e).toExpr());
   }
   return result;
 }
@@ -1848,8 +1705,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       Trace("smt") << "--- getting value of " << as << endl;
 
       // Expand, then normalize
-      unordered_map<Node, Node, NodeHashFunction> cache;
-      Node n = d_private->getProcessAssertions()->expandDefinitions(as, cache);
+      std::unordered_map<Node, Node, NodeHashFunction> cache;
+      Node n = d_pp->expandDefinitions(as, cache);
       n = Rewriter::rewrite(n);
 
       Trace("smt") << "--- getting value of " << n << endl;
@@ -1986,7 +1843,7 @@ std::vector<Expr> SmtEngine::getExpandedAssertions()
   for (const Expr& e : easserts)
   {
     Node ea = Node::fromExpr(e);
-    Node eae = d_private->getProcessAssertions()->expandDefinitions(ea, cache);
+    Node eae = d_pp->expandDefinitions(ea, cache);
     eassertsProc.push_back(eae.toExpr());
   }
   return eassertsProc;
@@ -2246,7 +2103,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     // Apply any define-funs from the problem.
     {
       unordered_map<Node, Node, NodeHashFunction> cache;
-      n = d_private->getProcessAssertions()->expandDefinitions(n, cache);
+      n = d_pp->expandDefinitions(n, cache);
     }
     Notice() << "SmtEngine::checkModel(): -- expands to " << n << endl;
 
@@ -2262,13 +2119,12 @@ void SmtEngine::checkModel(bool hardFailure) {
     n = m->getValue(n);
     Notice() << "SmtEngine::checkModel(): -- get value : " << n << std::endl;
 
-    // Simplify the result.
-    n = d_private->simplify(n);
-    Notice() << "SmtEngine::checkModel(): -- simplifies to  " << n << endl;
-
-    // Replace the already-known ITEs (this is important for ground ITEs under quantifiers).
-    n = d_private->d_iteRemover.replace(n);
-    Notice() << "SmtEngine::checkModel(): -- ite replacement gives " << n << endl;
+    // Simplify the result and replace the already-known ITEs (this is important
+    // for ground ITEs under quantifiers).
+    n = d_pp->simplify(n, true);
+    Notice()
+        << "SmtEngine::checkModel(): -- simplifies with ite replacement to  "
+        << n << endl;
 
     // Apply our model value substitutions (again), as things may have been simplified.
     Debug("boolean-terms") << "applying subses to " << n << endl;
@@ -2400,8 +2256,7 @@ void SmtEngine::checkSynthSolution()
              << assertion << endl;
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    Node n =
-        d_private->getProcessAssertions()->expandDefinitions(assertion, cache);
+    Node n = d_pp->expandDefinitions(assertion, cache);
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
@@ -2769,8 +2624,7 @@ void SmtEngine::push()
   finalOptionsAreSet();
   doPendingPops();
   Trace("smt") << "SMT push()" << endl;
-  d_private->notifyPush();
-  d_private->processAssertions(*d_asserts);
+  processAssertionsInternal();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
   }
@@ -2821,7 +2675,8 @@ void SmtEngine::pop() {
 
   // Clear out assertion queues etc., in case anything is still in there
   d_asserts->clearCurrent();
-  d_private->notifyPop();
+  // clear the learned literals from the preprocessor
+  d_pp->clearLearnedLiterals();
 
   Trace("userpushpop") << "SmtEngine: popped to level "
                        << d_userContext->getLevel() << endl;
@@ -2834,7 +2689,7 @@ void SmtEngine::internalPush() {
   Trace("smt") << "SmtEngine::internalPush()" << endl;
   doPendingPops();
   if(options::incrementalSolving()) {
-    d_private->processAssertions(*d_asserts);
+    processAssertionsInternal();
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_userContext->push();
     // the d_context push is done inside of the SAT solver
