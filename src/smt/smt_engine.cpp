@@ -690,9 +690,10 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   }
   if (key == "assertion-stack-levels")
   {
-    AlwaysAssert(d_userLevels.size()
+    size_t ulevel = d_state.getNumUserLevels();
+    AlwaysAssert(ulevel
                  <= std::numeric_limits<unsigned long int>::max());
-    return SExpr(static_cast<unsigned long int>(d_userLevels.size()));
+    return SExpr(static_cast<unsigned long int>(ulevel));
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
