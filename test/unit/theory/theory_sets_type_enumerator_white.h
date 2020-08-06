@@ -47,11 +47,11 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     delete d_smt;
     delete d_em;
   }
-  
+
   void addAndCheckUnique(Node n, std::vector<Node>& elems)
   {
     TS_ASSERT(n.isConst());
-    TS_ASSERT(std::find(elems.begin(),elems.end(),n)==elems.end());
+    TS_ASSERT(std::find(elems.begin(), elems.end(), n) == elems.end());
     elems.push_back(n);
   }
 
@@ -62,7 +62,7 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     TS_ASSERT(!setEnumerator.isFinished());
 
     std::vector<Node> elems;
-    
+
     Node actual0 = *setEnumerator;
     addAndCheckUnique(actual0, elems);
     TS_ASSERT(!setEnumerator.isFinished());
@@ -96,9 +96,9 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     Node expected0 = d_nm->mkConst(EmptySet(d_nm->mkSetType(sort)));
     TS_ASSERT_EQUALS(expected0, actual0);
     TS_ASSERT(!setEnumerator.isFinished());
-    
+
     std::vector<Node> elems;
-    for (unsigned i=0; i<7; i++)
+    for (unsigned i = 0; i < 7; i++)
     {
       Node actual = *setEnumerator;
       addAndCheckUnique(actual, elems);
@@ -129,7 +129,7 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
         DatatypeType(datatype.toType()).getDatatype().getConstructor("blue"));
 
     std::vector<Node> elems;
-    for (unsigned i=0; i<8; i++)
+    for (unsigned i = 0; i < 8; i++)
     {
       Node actual = *setEnumerator;
       addAndCheckUnique(actual, elems);
@@ -151,7 +151,7 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     SetEnumerator setEnumerator(d_nm->mkSetType(bitVector2));
 
     std::vector<Node> elems;
-    for (unsigned i=0; i<16; i++)
+    for (unsigned i = 0; i < 16; i++)
     {
       Node actual = *setEnumerator;
       addAndCheckUnique(actual, elems);
