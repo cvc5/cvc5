@@ -145,8 +145,15 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-proofs"
   type       = "bool"
-  predicates = ["proofEnabledBuild"]
+  predicates = ["LFSCEnabledBuild"]
   help       = "after UNSAT/VALID, machine-check the generated proof"
+
+[[option]]
+  name       = "checkProofsNew"
+  category   = "regular"
+  long       = "check-proofs-new"
+  type       = "bool"
+  help       = "after UNSAT/VALID, machine-check the generated proof (with proof-new)"
 
 [[option]]
   name       = "dumpProofs"

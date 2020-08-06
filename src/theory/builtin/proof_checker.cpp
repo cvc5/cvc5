@@ -71,7 +71,9 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::TRUST, this, 1);
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 2);
+  pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 2);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 2);
+  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 2);
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
 }
 
@@ -372,7 +374,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA)
+           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA || id == PfRule::PREPROCESS_LEMMA)
   {
     // "trusted" rules
     Assert(children.empty());

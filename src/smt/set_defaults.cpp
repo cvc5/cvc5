@@ -72,6 +72,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
+  //if ((options::checkProofs() || options::dumpProofs()) && !options::proofNew())
   if (options::checkProofs() || (options::dumpProofs() && !options::proofNew()))
   {
     Notice() << "SmtEngine: setting proof" << std::endl;

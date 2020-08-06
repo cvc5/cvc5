@@ -240,7 +240,7 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
                             true,
                             "RemoveTermFormulas::run:skolem_pf",
                             false,
-                            PfRule::TRUST);
+                            PfRule::WITNESS_AXIOM);
           d_lp->addStep(newAssertion, PfRule::SKOLEMIZE, {existsAssertion}, {});
           newAssertionPg = d_lp.get();
         }

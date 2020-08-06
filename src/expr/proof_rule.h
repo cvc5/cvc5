@@ -75,12 +75,6 @@ enum class PfRule : uint32_t
   // has the conclusion (=> F F) and has no free assumptions. More generally, a
   // proof with no free assumptions always concludes a valid formula.
   SCOPE,
-  // ======== Trust
-  // Children: (P1:F1 ... Pn:Fn)
-  // Arguments: (F)
-  // --------------
-  // F
-  TRUST,
 
   //%%%%%%%%%%%%%  BEGIN SHOULD BE AUTO GENERATED
 
@@ -201,7 +195,24 @@ enum class PfRule : uint32_t
   //  t' is the result of applying either a pre-rewrite or a post-rewrite step
   //  to t (depending on the second argument).
   THEORY_REWRITE,
-  // ======== Theory lemma (trusted)
+  
+
+  //================================================= Processing rules
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
+  
+  //================================================= Trusted rules
+  // ======== Uncategorized trust (not recommended, instead use new identifier)
+  // Children: (P1:F1 ... Pn:Fn)
+  // Arguments: (F)
+  // --------------
+  // F
+  TRUST,
+  // ======== Theory lemma
   // Children: none
   // Arguments: (F, tid)
   // ---------------------------------------------------------------
@@ -210,39 +221,27 @@ enum class PfRule : uint32_t
   // This is a "coarse-grained" rule that is used as a placeholder if a theory
   // did not provide a proof for a lemma or conflict.
   THEORY_LEMMA,
-
-  //================================================= Processing rules
-  // ======== Preprocess (trusted)
+  // The remaining rules in this section have the signature of a "trusted rule":
+  // 
   // Children: none
   // Arguments: (F)
   // ---------------------------------------------------------------
   // Conclusion: F
+  //
   // where F is an equality of the form t = t' where t was replaced by t'
   // based on some preprocessing pass, or otherwise F was added as a new
   // assertion by some preprocessing pass.
   PREPROCESS,
-  // ======== Theory preprocess (trusted)
-  // Children: none
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
+  // where F was added as a new assertion by some preprocessing pass.
+  PREPROCESS_LEMMA,
   // where F is an equality of the form t = Theory::ppRewrite(t) for some
   // theory. Notice this is a "trusted" rule.
   THEORY_PREPROCESS,
-  // ======== Witness axiom (trusted)
-  // Children: none
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
+  // where F was added as a new assertion by theory preprocessing.
+  THEORY_PREPROCESS_LEMMA,
   // where F is an existential (exists ((x T)) (P x)) used for introducing
   // a witness term (witness ((x T)) (P x)).
   WITNESS_AXIOM,
-  // ======== Remove Term Formulas Axiom
-  // Children: none
-  // Arguments: (t)
-  // ---------------------------------------------------------------
-  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
-  REMOVE_TERM_FORMULA_AXIOM,
 
   //================================================= Boolean rules
   // ======== Resolution

@@ -1500,7 +1500,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if(options::checkProofs()) {
+    if(options::checkProofs() || options::checkProofsNew()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
         checkProof();
       }
