@@ -188,24 +188,28 @@ class CVC4_PUBLIC SmtEngine
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
+  //--------------------------------------------- concerning the state
   /**
    * Return true if this SmtEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
    * use of the SmtEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
    */
-  bool isFullyInited();
-
+  bool isFullyInited() const;
   /**
    * Return true if a checkEntailed() or checkSatisfiability() has been made.
    */
-  bool isQueryMade();
-
+  bool isQueryMade() const;
   /** Return the user context level.  */
-  size_t getNumUserLevels();
-
+  size_t getNumUserLevels() const;
   /** Return the current mode of the solver. */
-  SmtMode getSmtMode();
+  SmtMode getSmtMode() const;
+  /**
+   * Returns the most recent result of checkSat/checkEntailed or
+   * (set-info :status).
+   */
+  Result getStatusOfLastCommand() const;
+  //--------------------------------------------- end concerning the state
 
   /**
    * Set the logic of the script.
@@ -841,12 +845,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** Flush statistic from this SmtEngine. Safe to use in a signal handler. */
   void safeFlushStatistics(int fd) const;
-
-  /**
-   * Returns the most recent result of checkSat/checkEntailed or
-   * (set-info :status).
-   */
-  Result getStatusOfLastCommand() const { return d_status; }
 
   /**
    * Set user attribute.

@@ -272,6 +272,7 @@ bool SmtEngine::isFullyInited() const { return d_state.isFullyInited(); }
 bool SmtEngine::isQueryMade() const { return d_state.isQueryMade(); }
 size_t SmtEngine::getNumUserLevels() const { return d_state.getNumUserLevels(); }
 SmtMode SmtEngine::getSmtMode() const { return d_state.getMode(); }
+Result SmtEngine::getStatusOfLastCommand() const { return d_state.getStatus(); }
 
 void SmtEngine::finishInit()
 {
