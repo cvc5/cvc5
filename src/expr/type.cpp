@@ -331,8 +331,7 @@ bool Type::isTuple() const {
 /** Is this a record type? */
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::DATATYPE_TYPE
-         && DatatypeType(*this).getDatatype().isRecord();
+  return d_typeNode->isRecord();
 }
 
 /** Is this a symbolic expression type? */
@@ -586,7 +585,8 @@ std::vector<Type> ConstructorType::getArgTypes() const {
   return args;
 }
 
-const Datatype& DatatypeType::getDatatype() const {
+const Datatype& DatatypeType::getDatatype() const
+{
   NodeManagerScope nms(d_nodeManager);
   Assert(isDatatype());
   if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
@@ -600,10 +600,6 @@ const Datatype& DatatypeType::getDatatype() const {
 
 bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
-}
-
-Expr DatatypeType::getConstructor(std::string name) const {
-  return getDatatype().getConstructor(name);
 }
 
 bool DatatypeType::isInstantiated() const {
@@ -660,14 +656,6 @@ std::vector<Type> DatatypeType::getTupleTypes() const {
     vect.push_back( vec[i].toType() );
   }
   return vect;
-}
-
-/** Get the description of the record type */
-const Record& DatatypeType::getRecord() const {
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isRecord());
-  const Datatype& dt = getDatatype();
-  return *(dt.getRecord());
 }
 
 DatatypeType SelectorType::getDomain() const {

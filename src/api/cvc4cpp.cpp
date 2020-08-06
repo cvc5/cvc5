@@ -4906,14 +4906,14 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
                  == SmtEngine::SmtMode::SMT_MODE_UNSAT)
       << "Cannot get unsat assumptions unless in unsat mode.";
 
-  std::vector<Expr> uassumptions = d_smtEngine->getUnsatAssumptions();
+  std::vector<Node> uassumptions = d_smtEngine->getUnsatAssumptions();
   /* Can not use
    *   return std::vector<Term>(uassumptions.begin(), uassumptions.end());
    * here since constructor is private */
   std::vector<Term> res;
-  for (const Expr& e : uassumptions)
+  for (const Node& e : uassumptions)
   {
-    res.push_back(Term(this, e));
+    res.push_back(Term(this, e.toExpr()));
   }
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4952,7 +4952,7 @@ Term Solver::getValue(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
-  return Term(this, d_smtEngine->getValue(term.d_node->toExpr()));
+  return Term(this, d_smtEngine->getValue(*term.d_node));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

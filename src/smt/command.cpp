@@ -1509,7 +1509,7 @@ void SimplifyCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->simplify(d_term);
+    d_result = smtEngine->simplify(Node::fromExpr(d_term)).toExpr();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (UnsafeInterruptException& e)
@@ -2359,7 +2359,12 @@ void GetUnsatAssumptionsCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->getUnsatAssumptions();
+    std::vector<Node> uassumps = smtEngine->getUnsatAssumptions();
+    d_result.clear();
+    for (const Node& n : uassumps)
+    {
+      d_result.push_back(n.toExpr());
+    }
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
