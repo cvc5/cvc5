@@ -19,17 +19,12 @@
 
 #include <string>
 
+#include "context/context.h"
 #include "util/result.h"
 
 namespace CVC4 {
   
 class SmtEngine;
-
-// These must be forward declared since they are cvc4_private.
-namespace context {
-  class Context;
-  class UserContext;
-}
 
 /**
   * The mode of the solver, which is an extension of Figure 4.1 on
