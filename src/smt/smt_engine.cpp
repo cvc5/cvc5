@@ -1199,8 +1199,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
-    std::string filename = d_state->getFilename();
-    return Result(Result::SAT_UNKNOWN, why, filename);
+    return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
   }
 }
 

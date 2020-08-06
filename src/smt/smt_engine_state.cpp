@@ -97,6 +97,7 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
     CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
                  << d_status;
   }
+  // clear expected status
   d_expectedStatus = Result();
   // Update the SMT mode
   if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
