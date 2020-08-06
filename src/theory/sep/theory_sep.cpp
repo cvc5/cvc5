@@ -1515,7 +1515,7 @@ void TheorySep::computeLabelModel( Node lbl ) {
     if( v_val.getKind()!=kind::EMPTYSET ){
       while( v_val.getKind()==kind::UNION ){
         Assert(v_val[0].getKind() == kind::SINGLETON);
-        d_label_model[lbl].d_heap_locs_model.push_back( v_val[0] );
+        d_label_model[lbl].d_heap_locs_model.push_back(v_val[0]);
         v_val = v_val[1];
       }
       if( v_val.getKind()==kind::SINGLETON ){
@@ -1787,8 +1787,9 @@ Node TheorySep::HeapInfo::getValue( TypeNode tn ) {
     return NodeManager::currentNM()->mkConst(EmptySet(tn));
   }
   Node curr = d_heap_locs[0];
-  for( unsigned j=1; j<d_heap_locs.size(); j++ ){
-    curr = NodeManager::currentNM()->mkNode( kind::UNION, d_heap_locs[j], curr );
+  for (unsigned j = 1; j < d_heap_locs.size(); j++)
+  {
+    curr = NodeManager::currentNM()->mkNode(kind::UNION, d_heap_locs[j], curr);
   }
   return curr;
 }

@@ -41,9 +41,8 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
          && setTerm[0].getKind() == kind::SINGLETON)
       << "kind was " << setTerm.getKind() << ", term: " << setTerm;
 
-  return
-    elementTerm == setTerm[0][0] ||
-    checkConstantMembership(elementTerm, setTerm[1]);
+  return elementTerm == setTerm[0][0]
+         || checkConstantMembership(elementTerm, setTerm[1]);
 }
 
 // static
@@ -53,7 +52,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   Trace("sets-postrewrite") << "Process: " << node << std::endl;
 
   if(node.isConst()) {
-      Trace("sets-rewrite-nf") << "Sets::rewrite: no rewrite (constant) " << node << std::endl;
+    Trace("sets-rewrite-nf")
+        << "Sets::rewrite: no rewrite (constant) " << node << std::endl;
     // Dare you touch the const and mangle it to something else.
     return RewriteResponse(REWRITE_DONE, node);
   }
@@ -165,7 +165,8 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     }
-    else if (node[0] > node[1]) {
+    else if (node[0] > node[1])
+    {
       Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
@@ -190,10 +191,12 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
                           std::inserter(newSet, newSet.begin()));
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
       Assert(newNode.isConst());
-      Trace("sets-rewrite") << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;
+      Trace("sets-rewrite")
+          << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     }
-    else if (node[0] > node[1]) {
+    else if (node[0] > node[1])
+    {
       Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
@@ -454,16 +457,14 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
 RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
   Kind k = node.getKind();
-  if(k == kind::EQUAL) {
-
+  if (k == kind::EQUAL)
+  {
     if(node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, nm->mkConst(true));
     }
-
   }
-  else if(k == kind::INSERT) 
+  else if (k == kind::INSERT)
   {
-
     Node insertedElements = nm->mkNode(kind::SINGLETON, node[0]);
     size_t setNodeIndex =  node.getNumChildren()-1;
     for(size_t i = 1; i < setNodeIndex; ++i) {
@@ -475,11 +476,9 @@ RewriteResponse TheorySetsRewriter::preRewrite(TNode node) {
                            nm->mkNode(kind::UNION,
                                       insertedElements,
                                       node[setNodeIndex]));
-
   }
-  else if(k== kind::SUBSET) 
+  else if (k == kind::SUBSET)
   {
-
     // rewrite (A subset-or-equal B) as (A union B = B)
     return RewriteResponse(REWRITE_AGAIN,
                            nm->mkNode(kind::EQUAL,
