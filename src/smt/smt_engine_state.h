@@ -89,10 +89,13 @@ class SmtEngineState
    */
   void initialize();
   /**
-   * Prepare for a shutdown of the SmtEngine.
+   * Prepare for a shutdown of the SmtEngine, which does pending pops and
+   * pops the user context to zero.
    */
   void shutdown();
-  /** Cleanup, which pops the contexts to level 0 */
+  /**
+   * Cleanup, which pops all contexts to level zero.
+   */
   void cleanup();
   /**
    * Do all pending pops, which ensures that the context levels are up-to-date.
