@@ -57,7 +57,11 @@ class SmtEngine;
 class DecisionEngine;
 class TheoryEngine;
 
+class ProofNode;
 class ProofManager;
+class ProofChecker;
+class ProofNodeManager;
+class CDProof;
 
 class Model;
 class LogicRequest;
@@ -101,6 +105,7 @@ class SmtNodeManagerListener;
 class OptionsManager;
 class Preprocessor;
 /** Subsolvers */
+class SmtSolver;
 class AbductionSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -114,6 +119,7 @@ struct SmtEngineStatistics;
 class SmtEnginePrivate;
 class SmtScope;
 class ProcessAssertions;
+class PfManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
@@ -123,6 +129,7 @@ ProofManager* currentProofManager();
 namespace theory {
   class TheoryModel;
   class Rewriter;
+  class RewriteDb;
 }/* CVC4::theory namespace */
 
 // TODO: SAT layer (esp. CNF- versus non-clausal solvers under the
@@ -562,7 +569,10 @@ class CVC4_PUBLIC SmtEngine
 
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
-
+  /**
+   * Print the current proof.
+   */
+  void printProof();
   /**
    * Print solution for synthesis conjectures found by counter-example guided
    * instantiation module.
@@ -873,6 +883,9 @@ class CVC4_PUBLIC SmtEngine
    */
   void setExpressionName(const Node& e, const std::string& name);
 
+  /** Get a pointer to the Rewriter owned by this SmtEngine. */
+  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
+
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
   const Options& getOptions() const;
@@ -909,10 +922,10 @@ class CVC4_PUBLIC SmtEngine
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
+  TheoryEngine* getTheoryEngine();
 
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+  prop::PropEngine* getPropEngine();
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext() { return d_userContext.get(); };
@@ -920,11 +933,11 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the Context owned by this SmtEngine. */
   context::Context* getContext() { return d_context.get(); };
 
-  /** Get a pointer to the ProofManager owned by this SmtEngine. */
+  /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
+  smt::PfManager* getPfManager() { return d_pfManager.get(); };
+
   ProofManager* getProofManager() { return d_proofManager.get(); };
 
-  /** Get a pointer to the Rewriter owned by this SmtEngine. */
-  theory::Rewriter* getRewriter() { return d_rewriter.get(); }
 
   /** Get a pointer to the StatisticsRegistry owned by this SmtEngine. */
   StatisticsRegistry* getStatisticsRegistry()
@@ -1123,10 +1136,8 @@ class CVC4_PUBLIC SmtEngine
   /** Node manager listener */
   std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
-  /** The propositional engine */
-  std::unique_ptr<prop::PropEngine> d_propEngine;
+  /** The SMT solver */
+  std::unique_ptr<SmtSolver> d_smtSolver;
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;
@@ -1138,6 +1149,12 @@ class CVC4_PUBLIC SmtEngine
    * specific to an SmtEngine/TheoryEngine instance.
    */
   std::unique_ptr<theory::Rewriter> d_rewriter;
+
+  /**
+   * The proof manager, which manages all things related to checking,
+   * processing, and printing proofs.
+   */
+  std::unique_ptr<smt::PfManager> d_pfManager;
 
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
