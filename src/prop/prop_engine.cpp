@@ -86,7 +86,6 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_interrupted(false),
       d_resourceManager(rm)
 {
-
   Debug("prop") << "Constructing the PropEngine" << endl;
 
   d_decisionEngine.reset(new DecisionEngine(satContext, userContext, rm));
@@ -97,11 +96,11 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream =
       new TseitinCnfStream(d_satSolver, d_registrar, userContext, rm, true);
-  if (options::proofNew())
+  if (d_pNodeManager)
   {
     d_conflictLit = undefSatVariable;
-    d_pfCnfStream.reset(new ProofCnfStream(
-        userContext, *d_cnfStream, pnm, options::proofNew()));
+    d_pfCnfStream.reset(
+        new ProofCnfStream(userContext, *d_cnfStream, pnm, true));
   }
 
   d_theoryProxy = new TheoryProxy(
