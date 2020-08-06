@@ -29,7 +29,7 @@ SmtEngineState::SmtEngineState(SmtEngine& smt) : d_smt(smt),
       d_needPostsolve(false),
       d_status(),
       d_expectedStatus(),
-      d_state(SMT_MODE_START)
+      d_state(SmtMode::START)
       {}
 
 void SmtEngineState::notifyExpectedStatus(std::string status)
@@ -66,7 +66,7 @@ void SmtEngineState::notifyCheckSat(bool hasAssumptions)
 
   // Note that a query has been made and we are in assert mode
   d_queryMade = true;
-  d_smtMode = SMT_MODE_ASSERT;
+  d_smtMode = SmtMode::ASSERT;
 
   // push if there are assumptions
   bool didInternalPush = false;
@@ -100,15 +100,15 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   // Update the SMT mode
   if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    d_smtMode = SMT_MODE_UNSAT;
+    d_smtMode = SmtMode::UNSAT;
   }
   else if (d_status.asSatisfiabilityResult().isSat() == Result::SAT)
   {
-    d_smtMode = SMT_MODE_SAT;
+    d_smtMode = SmtMode::SAT;
   }
   else
   {
-    d_smtMode = SMT_MODE_SAT_UNKNOWN;
+    d_smtMode = SmtMode::SAT_UNKNOWN;
   }
 }
 
@@ -117,12 +117,12 @@ void SmtEngineState::notifyGetAbduct(bool success)
   if (success)
   {
     // successfully generated an abduct, update to abduct state
-    d_smtMode = SMT_MODE_ABDUCT;
+    d_smtMode = SmtMode::ABDUCT;
   }
   else
   {
     // failed, we revert to the assert state
-    d_smtMode = SMT_MODE_ASSERT;
+    d_smtMode = SmtMode::ASSERT;
   }
 }
 
@@ -160,7 +160,7 @@ void SmtEngineState::userPush()
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmetric with pop.
-  d_smtMode = SMT_MODE_ASSERT;
+  d_smtMode = SmtMode::ASSERT;
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -176,7 +176,7 @@ void SmtEngineState::userPop()
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  d_smtMode = SMT_MODE_ASSERT;
+  d_smtMode = SmtMode::ASSERT;
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
