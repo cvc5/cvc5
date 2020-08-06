@@ -29,7 +29,7 @@ class SmtEngine;
 namespace smt {
 
 /**
-  * The current mode of the solver, which is an extension of Figure 4.1 on
+  * The mode of the solver, which is an extension of Figure 4.1 on
   * page 52 of the SMT-LIB version 2.6 standard
   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
   */
@@ -57,6 +57,14 @@ enum SmtMode
  * It has no concept of anything related to the assertions of the SmtEngine,
  * or more generally it does not depend on Node.
  * 
+ * Generally speaking, this class has three interfaces:
+ * (1) notification methods that are used by SmtEngine to notify when an event
+ * occurs (e.g. the beginning of a check-sat call),
+ * (2) maintaining the SAT and user contexts to be used by the SmtEngine,
+ * (3) querying general information about relevant state information, including
+ * the mode that the SmtEngine is in, based on the notifications it has
+ * received.
+ * 
  * It maintains a reference to the SmtEngine for the sake of making callbacks.
  */
 class SmtEngineState
@@ -75,6 +83,11 @@ class SmtEngineState
    */
   void notifyStartParsing(std::string filename);
   /**
+   * Notify that we are resetting the assertions, called when a reset-assertions
+   * command is issued by the user.
+   */
+  void notifyResetAssertions();
+  /**
    * Notify that we are about to call check-sat.
    */
   void notifyCheckSat(bool hasAssumptions);
@@ -84,44 +97,66 @@ class SmtEngineState
    */
   void notifyCheckSatResult(Result r);
   /**
+   * Notify that we finished an abduction query, where success is whether the
+   * command was successful. This is managed independently of the above
+   * calls for notifying check-sat. In other words, if a get-abduct command
+   * is issued to an SmtEngine, it may use a satsisfiability call (if desired)
+   * to solve the abduction query. This method is called *in addition* to
+   * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
+   */
+  void notifyGetAbduct(bool success);
+  /** 
+   * Intialize the context, which makes a single push to maintain a global
+   * context around everything.
+   */
+  void initialize();
+  /**
    * Prepare for a shutdown of the SmtEngine.
    */
   void shutdown();
-  
-  
-  
+  /** Cleanup, which pops the contexts to level 0 */
+  void cleanup();
+  /**
+   * Do all pending pops.
+   */
   void doPendingPops();
   
   //---------------------------- context management
-  
-  void push();
-  
-  void pop();
-  
-  void popto(int toLevel);
-  
+  /**
+   * Called when the user of SmtEngine issues a push. This corresponds to
+   * the SMT-LIB command push.
+   */
+  void userPush();
+  /**
+   * Called when the user of SmtEngine issues a pop. This corresponds to
+   * the SMT-LIB command pop.
+   */
+  void userPop();
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext();
-
   /** Get a pointer to the Context owned by this SmtEngine. */
   context::Context* getContext();
-  
   //---------------------------- end context management
   
   //---------------------------- queries
   /** Get the status of the last check-sat */
   Result getStatus() const;
-  
   /** Get the SMT mode we are in */
   SmtMode getMode() const;
-  
   /** return the input name (if any) */
   std::string getFilename() const;
   //---------------------------- end queries
   
  private:
+  /** Pushes the user and SAT contexts */
+  void push();
+  /** Pops the user and SAT contexts */
+  void pop();
+  /** Pops the user and SAT contexts to the given level */
+  void popto(int toLevel);
+  /** Internal push */
   void internalPush();
-
+  /** Internal pop */
   void internalPop(bool immediate = false);
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;

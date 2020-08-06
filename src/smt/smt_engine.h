@@ -1105,7 +1105,10 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /** The state of this SmtEngine */
+  /** 
+   * The state of this SmtEngine, which is responsible for maintaining which
+   * SMT mode we are in, the contexts, the last result, etc.
+   */
   SmtEngineState d_state;
 
   /** Our expression manager */
