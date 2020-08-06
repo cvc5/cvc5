@@ -57,7 +57,7 @@ namespace smt {
  * It has no concept of anything related to the assertions of the SmtEngine,
  * or more generally it does not depend on Node.
  * 
- * Generally speaking, this class has three interfaces:
+ * This class has three sets of interfaces:
  * (1) notification methods that are used by SmtEngine to notify when an event
  * occurs (e.g. the beginning of a check-sat call),
  * (2) maintaining the SAT and user contexts to be used by the SmtEngine,
@@ -72,16 +72,6 @@ class SmtEngineState
  public:
   SmtEngineState(SmtEngine& smt);
   ~SmtEngineState(){}
-  
-  /**
-   * Notify that we are now parsing the input with the given filename.
-   * This call sets the filename maintained by this SmtEngine for bookkeeping
-   * and also makes a copy of the current options of this SmtEngine. This
-   * is required so that the SMT-LIB command (reset) returns the SmtEngine
-   * to a state where its options were prior to parsing but after e.g.
-   * reading command line options.
-   */
-  void notifyStartParsing(std::string filename);
   /**
    * Notify that the expected status of the next check-sat is given by the
    * string status, which should be one of "sat", "unsat" or "unknown".
@@ -126,10 +116,16 @@ class SmtEngineState
   void shutdown();
   /** Cleanup, which pops the contexts to level 0 */
   void cleanup();
-  /**
-   * Do all pending pops.
+  /** 
+   * Do all pending pops, which ensures that the context levels are up-to-date.
+   * This method should be called by the SmtEngine before initializing 
    */
   void doPendingPops();
+  /**
+   * Set that the file name of the current instance is the given string. This
+   * is used for various purposes (e.g. get-info, SZS status).
+   */
+  void setFilename(std::string filename);
   
   //---------------------------- context management
   /**

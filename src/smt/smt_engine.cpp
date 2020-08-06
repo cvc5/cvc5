@@ -499,7 +499,7 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 
 void SmtEngine::notifyStartParsing(std::string filename)
 {
-  d_state.notifyStartParsing(filename);
+  d_state.setFilename(filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
@@ -543,7 +543,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
   else if (key == "filename")
   {
-    d_filename = value.getValue();
+    d_state.setFilename(value.getValue());
     return;
   }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
@@ -913,13 +913,13 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-
+  std::string filename = d_state.getFilename();
   if (d_resourceManager->out())
   {
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
-    return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
+    return Result(Result::ENTAILMENT_UNKNOWN, why, filename);
   }
   d_resourceManager->beginCall();
 
@@ -939,14 +939,15 @@ Result SmtEngine::check() {
                  << d_resourceManager->getTimeUsage() << ", resources "
                  << d_resourceManager->getResourceUsage() << endl;
 
-  return Result(result, d_filename);
+  return Result(result, filename);
 }
 
 Result SmtEngine::quickCheck() {
   Assert(d_state.isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
+  std::string filename = d_state.getFilename();
   return Result(
-      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
+      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
 theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
@@ -1180,7 +1181,8 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
-    return Result(Result::SAT_UNKNOWN, why, d_filename);
+    std::string filename = d_state.getFilename();
+    return Result(Result::SAT_UNKNOWN, why, filename);
   }
 }
 
@@ -1665,7 +1667,7 @@ Model* SmtEngine::getModel() {
     std::vector<Expr> eassertsProc = getExpandedAssertions();
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
-  m->d_inputName = d_filename;
+  m->d_inputName = d_state.getFilename();
   m->d_isKnownSat = (d_state.getMode() == SMT_MODE_SAT);
   return m;
 }
@@ -2291,7 +2293,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   finalOptionsAreSet();
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
-    out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
+    out << "% SZS output start Proof for " << d_state.getFilename() << std::endl;
   }
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
@@ -2300,7 +2302,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
-    out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
+    out << "% SZS output end Proof for " << d_state.getFilename() << std::endl;
   }
 }
 
@@ -2525,9 +2527,6 @@ void SmtEngine::pop() {
   }
   if(!options::incrementalSolving()) {
     throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
-  }
-  if(d_userLevels.size() == 0) {
-    throw ModalException("Cannot pop beyond the first user frame");
   }
 
   d_state.userPop();
