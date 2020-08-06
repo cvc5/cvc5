@@ -165,6 +165,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Trace("sets-postrewrite") << "Sets::postRewrite returning " << newNode << std::endl;
       return RewriteResponse(REWRITE_DONE, newNode);
     }
+    else if (node[0] > node[1]) {
+      Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
+      return RewriteResponse(REWRITE_DONE, newNode);
+    }
     // we don't merge non-constant intersections
     break;
   }//kind::INTERSECION
@@ -187,6 +191,10 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       Node newNode = NormalForm::elementsToSet(newSet, node.getType());
       Assert(newNode.isConst());
       Trace("sets-rewrite") << "Sets::rewrite: UNION_CONSTANT_MERGE: " << newNode << std::endl;
+      return RewriteResponse(REWRITE_DONE, newNode);
+    }
+    else if (node[0] > node[1]) {
+      Node newNode = nm->mkNode(node.getKind(), node[1], node[0]);
       return RewriteResponse(REWRITE_DONE, newNode);
     }
     // we don't merge non-constant unions
