@@ -25,6 +25,12 @@ namespace sets {
 
 class NormalForm {
  public:
+  /** 
+   * Constructs a set of the form:
+   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * from the set { c1 ... cn }, also handles empty set case, which is why
+   * setType is passed to this method.
+   */
   template <bool ref_count>
   static Node elementsToSet(const std::set<NodeTemplate<ref_count> >& elements,
                             TypeNode setType)
@@ -48,6 +54,15 @@ class NormalForm {
     }
   }
 
+  /** 
+   * Returns true if n is considered a to be a (canonical) constant set value.
+   * A canonical set value is one whose AST is:
+   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * where c1 ... cn are constants and the node identifier of these constants
+   * are such that:
+   *   c1 < ... < cn.
+   * Also handles the corner cases of empty set and singleton set.
+   */
   static bool checkNormalConstant(TNode n) {
     Debug("sets-checknormal") << "[sets-checknormal] checkNormal " << n << " :"
                               << std::endl;
@@ -106,6 +121,12 @@ class NormalForm {
     return false;
   }
 
+  /** 
+   * Converts a set term to a std::set of its elements. This expects a set of
+   * the form:
+   *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
+   * Also handles the corner cases of empty set and singleton set.
+   */
   static std::set<Node> getElementsFromNormalConstant(TNode n) {
     Assert(n.isConst());
     std::set<Node> ret;
