@@ -2517,10 +2517,6 @@ void SmtEngine::push()
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
   }
-  if(!options::incrementalSolving()) {
-    throw ModalException("Cannot push when not solving incrementally (use --incremental)");
-  }
-
   d_state->userPush();
 }
 
@@ -2531,10 +2527,6 @@ void SmtEngine::pop() {
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PopCommand();
   }
-  if(!options::incrementalSolving()) {
-    throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
-  }
-
   d_state->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there

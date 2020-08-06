@@ -152,6 +152,9 @@ void SmtEngineState::setFilename(std::string filename)
 
 void SmtEngineState::userPush()
 {
+  if(!options::incrementalSolving()) {
+    throw ModalException("Cannot push when not solving incrementally (use --incremental)");
+  }
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmetric with pop.
@@ -165,6 +168,9 @@ void SmtEngineState::userPush()
 
 void SmtEngineState::userPop()
 {
+  if(!options::incrementalSolving()) {
+    throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
+  }
   if(d_userLevels.size() == 0) {
     throw ModalException("Cannot pop beyond the first user frame");
   }
