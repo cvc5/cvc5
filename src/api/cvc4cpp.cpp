@@ -52,6 +52,7 @@
 #include "options/smt_options.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "util/random.h"

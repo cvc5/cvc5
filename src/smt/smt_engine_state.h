@@ -12,50 +12,20 @@
  ** \brief Utility for maintaining the state of the SMT engine.
  **/
 
-#include "cvc4_public.h"
+#include "cvc4_private.h"
 
 #ifndef CVC4__SMT__SMT_ENGINE_STATE_H
 #define CVC4__SMT__SMT_ENGINE_STATE_H
 
 #include <string>
 
-#include "context/context.h"
 #include "util/result.h"
+#include "smt/smt_mode.h"
+#include "context/context.h"
 
 namespace CVC4 {
   
 class SmtEngine;
-
-/**
-  * The mode of the solver, which is an extension of Figure 4.1 on
-  * page 52 of the SMT-LIB version 2.6 standard
-  * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-  */
-enum class SmtMode : uint32_t
-{
-  // the initial state of the solver
-  START,
-  // normal state of the solver, after assert/push/pop/declare/define
-  ASSERT,
-  // immediately after a check-sat returning "sat"
-  SAT,
-  // immediately after a check-sat returning "unknown"
-  SAT_UNKNOWN,
-  // immediately after a check-sat returning "unsat"
-  UNSAT,
-  // immediately after a successful call to get-abduct
-  ABDUCT,
-  // immediately after a successful call to get-interpol
-  INTERPOL
-};
-/**
- * Writes a SmtMode to a stream.
- *
- * @param out The stream to write to
- * @param m The mode to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, SmtMode m);
 
 namespace smt {
   

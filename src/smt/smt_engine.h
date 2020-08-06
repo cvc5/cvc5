@@ -31,7 +31,7 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
-#include "smt/smt_engine_state.h"
+#include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -93,6 +93,7 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
+class SmtEngineState;
 class AbstractValues;
 class Assertions;
 class ExprNames;
@@ -1098,7 +1099,7 @@ class CVC4_PUBLIC SmtEngine
    * The state of this SmtEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
-  smt::SmtEngineState d_state;
+  std::unique_ptr<smt::SmtEngineState> d_state;
 
   /** Our expression manager */
   ExprManager* d_exprManager;

@@ -261,8 +261,12 @@ libcvc4_add_sources(
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
+  smt/smt_engine_state.cpp
+  smt/smt_engine_state.h
   smt/smt_engine_stats.cpp
   smt/smt_engine_stats.h
+  smt/smt_mode.cpp
+  smt/smt_mode.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
   smt/term_formula_removal.cpp
