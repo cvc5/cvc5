@@ -424,7 +424,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         Trace("strings-pfcheck") << "...fail, no concat regexp" << std::endl;
         return Node::null();
       }
-      unsigned index;
+      size_t index;
       Node reLen = RegExpOpr::getRegExpConcatFixed(skChild[0][1], index);
       if (reLen.isNull())
       {

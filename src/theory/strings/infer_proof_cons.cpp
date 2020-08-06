@@ -585,7 +585,7 @@ Node InferProofCons::convert(Inference infer,
         Assert(mem.getKind() == NOT && mem[0].getKind() == STRING_IN_REGEXP);
         if (mem[0][1].getKind() == REGEXP_CONCAT)
         {
-          unsigned index;
+          size_t index;
           Node reLen = RegExpOpr::getRegExpConcatFixed(mem[0][1], index);
           // if we can find a fixed length for a component, use the optimized
           // version
