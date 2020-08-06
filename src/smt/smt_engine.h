@@ -1039,7 +1039,12 @@ class CVC4_PUBLIC SmtEngine
 
   void internalPop(bool immediate = false);
 
-  void doPendingPops();
+  // --------------------------------------- callbacks from the state
+  void notifyResetSolve() { d_propEngine->resetTrail(); }
+  void notifyPush() { d_propEngine->push(); }
+  void notifyPop() { d_propEngine->pop(); }
+  void notifyPostSolve() { d_theoryEngine->postsolve(); }
+  // --------------------------------------- end callbacks from the state
 
   /**
    * Internally handle the setting of a logic.  This function should always

@@ -19,8 +19,8 @@
 
 #include <string>
 
-#include "context/cdhashmap.h"
-#include "expr/node.h"
+#include "context/context.h"
+#include "util/result.h"
 
 namespace CVC4 {
   
@@ -29,7 +29,35 @@ class SmtEngine;
 namespace smt {
 
 /**
- * This utility is responsible for maintaining names for expressions.
+  * The current mode of the solver, which is an extension of Figure 4.1 on
+  * page 52 of the SMT-LIB version 2.6 standard
+  * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+  */
+enum SmtMode
+{
+  // the initial state of the solver
+  SMT_MODE_START,
+  // normal state of the solver, after assert/push/pop/declare/define
+  SMT_MODE_ASSERT,
+  // immediately after a check-sat returning "sat"
+  SMT_MODE_SAT,
+  // immediately after a check-sat returning "unknown"
+  SMT_MODE_SAT_UNKNOWN,
+  // immediately after a check-sat returning "unsat"
+  SMT_MODE_UNSAT,
+  // immediately after a successful call to get-abduct
+  SMT_MODE_ABDUCT,
+  // immediately after a successful call to get-interpol
+  SMT_MODE_INTERPOL
+};
+  
+/**
+ * This utility is responsible for maintaining the basic state of the SmtEngine.
+ *
+ * It has no concept of anything related to the assertions of the SmtEngine,
+ * or more generally it does not depend on Node.
+ * 
+ * It maintains a reference to the SmtEngine for the sake of making callbacks.
  */
 class SmtEngineState
 {
@@ -37,12 +65,40 @@ class SmtEngineState
   SmtEngineState(SmtEngine& smt);
   ~SmtEngineState(){}
   
-  void notifyCheckSat();
+  /**
+   * Notify that we are now parsing the input with the given filename.
+   * This call sets the filename maintained by this SmtEngine for bookkeeping
+   * and also makes a copy of the current options of this SmtEngine. This
+   * is required so that the SMT-LIB command (reset) returns the SmtEngine
+   * to a state where its options were prior to parsing but after e.g.
+   * reading command line options.
+   */
+  void notifyStartParsing(std::string filename);
+  /**
+   * Notify that we are about to call check-sat.
+   */
+  void notifyCheckSat(bool hasAssumptions);
+  /**
+   * Notify that the result of the last check-sat was r. This should be called
+   * once immediately following notifyCheckSat().
+   */
   void notifyCheckSatResult(Result r);
+  /**
+   * Prepare for a shutdown of the SmtEngine.
+   */
+  void shutdown();
   
-  void internalPush();
-
-  void internalPop(bool immediate = false);
+  
+  
+  void doPendingPops();
+  
+  //---------------------------- context management
+  
+  void push();
+  
+  void pop();
+  
+  void popto(int toLevel);
   
   /** Get a pointer to the UserContext owned by this SmtEngine. */
   context::UserContext* getUserContext();
@@ -50,7 +106,23 @@ class SmtEngineState
   /** Get a pointer to the Context owned by this SmtEngine. */
   context::Context* getContext();
   
+  //---------------------------- end context management
+  
+  //---------------------------- queries
+  /** Get the status of the last check-sat */
+  Result getStatus() const;
+  
+  /** Get the SMT mode we are in */
+  SmtMode getMode() const;
+  
+  /** return the input name (if any) */
+  std::string getFilename() const;
+  //---------------------------- end queries
+  
  private:
+  void internalPush();
+
+  void internalPop(bool immediate = false);
   /** Reference to the SmtEngine */
   SmtEngine& d_smt;
   /** Expr manager context */
@@ -98,9 +170,7 @@ class SmtEngineState
    */
   Result d_expectedStatus;
 
-  /** 
-   * The SMT mode  TODO
-   */
+  /** The SMT mode, for details see enumeration above. */
   SmtMode d_smtMode;
 
   /**

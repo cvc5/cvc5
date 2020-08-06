@@ -388,11 +388,7 @@ void SmtEngine::finalOptionsAreSet() {
 }
 
 void SmtEngine::shutdown() {
-  doPendingPops();
-
-  while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
-    internalPop(true);
-  }
+  d_state.shutdown();
 
   if (d_propEngine != nullptr)
   {
@@ -454,10 +450,6 @@ SmtEngine::~SmtEngine()
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
-
-
-    d_userContext.reset(nullptr);
-    d_context.reset(nullptr);
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
@@ -511,15 +503,14 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 
 void SmtEngine::notifyStartParsing(std::string filename)
 {
-  d_filename = filename;
-
+  d_state.notifyStartParsing(filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
   d_originalOptions.copyValues(d_options);
 }
 
-std::string SmtEngine::getFilename() const { return d_filename; }
+std::string SmtEngine::getFilename() const { return d_state.getFilename(); }
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_fullyInited)
@@ -1116,26 +1107,9 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
-    // update the state
-    d_state.notifyCheckSat();
-
-    if(d_queryMade && !options::incrementalSolving()) {
-      throw ModalException("Cannot make multiple queries unless "
-                           "incremental solving is enabled "
-                           "(try --incremental)");
-    }
-
-    // Note that a query has been made and we are in assert mode
-    d_queryMade = true;
-    d_smtMode = SMT_MODE_ASSERT;
-
-    // push if there are assumptions
-    bool didInternalPush = false;
-    if (!assumptions.empty())
-    {
-      internalPush();
-      didInternalPush = true;
-    }
+    // update the state to indicate we are about to run a check-sat
+    bool hasAssumptions = !assumptions.empty();
+    d_state.notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
     d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
@@ -1172,39 +1146,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     }
 
     // update our state the based on the result of the check-sat
-    d_state.notifyCheckSatResult(r);
-    
-    d_needPostsolve = true;
-
-    // Pop the context
-    if (didInternalPush)
-    {
-      internalPop();
-    }
-
-    // Remember the status
-    d_status = r;
-    // Check against expected status
-    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
-        && d_status != d_expectedStatus)
-    {
-      CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
-                   << d_status;
-    }
-    d_expectedStatus = Result();
-    // Update the SMT mode
-    if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      d_smtMode = SMT_MODE_UNSAT;
-    }
-    else if (d_status.asSatisfiabilityResult().isSat() == Result::SAT)
-    {
-      d_smtMode = SMT_MODE_SAT;
-    }
-    else
-    {
-      d_smtMode = SMT_MODE_SAT_UNKNOWN;
-    }
+    d_state.notifyCheckSatResult(hasAssumptions, r);
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
@@ -2634,52 +2576,6 @@ void SmtEngine::pop() {
                        << d_userContext->getLevel() << endl;
   // FIXME: should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
-}
-
-void SmtEngine::internalPush() {
-  Assert(d_fullyInited);
-  Trace("smt") << "SmtEngine::internalPush()" << endl;
-  doPendingPops();
-  if(options::incrementalSolving()) {
-    processAssertionsInternal();
-    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    d_userContext->push();
-    // the d_context push is done inside of the SAT solver
-    d_propEngine->push();
-  }
-}
-
-void SmtEngine::internalPop(bool immediate) {
-  Assert(d_fullyInited);
-  Trace("smt") << "SmtEngine::internalPop()" << endl;
-  if(options::incrementalSolving()) {
-    ++d_pendingPops;
-  }
-  if(immediate) {
-    doPendingPops();
-  }
-}
-
-void SmtEngine::doPendingPops() {
-  Trace("smt") << "SmtEngine::doPendingPops()" << endl;
-  Assert(d_pendingPops == 0 || options::incrementalSolving());
-  // check to see if a postsolve() is pending
-  if (d_needPostsolve)
-  {
-    d_propEngine->resetTrail();
-  }
-  while(d_pendingPops > 0) {
-    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    d_propEngine->pop();
-    // the d_context pop is done inside of the SAT solver
-    d_userContext->pop();
-    --d_pendingPops;
-  }
-  if (d_needPostsolve)
-  {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
 }
 
 void SmtEngine::reset()
