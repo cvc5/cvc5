@@ -26,6 +26,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/type.h"
@@ -212,11 +213,10 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(
           Trace("parser-overloading")
               << "Parametric overloaded datatype selector " << name << " "
               << tna << std::endl;
-          DatatypeType tnd = static_cast<DatatypeType>(argTypes[i]);
-          const Datatype& dt = tnd.getDatatype();
+          const DType& dt = TypeNode::fromType(argTypes[i]).getDType();
           // tng is the "generalized" version of the instantiated parametric
           // type tna
-          Type tng = dt.getDatatypeType();
+          Type tng = dt.getTypeNode().toType();
           itc = tat->d_children.find(tng);
           if (itc != tat->d_children.end())
           {
