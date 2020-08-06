@@ -26,8 +26,6 @@ namespace CVC4 {
   
 class SmtEngine;
 
-namespace smt {
-
 /**
   * The mode of the solver, which is an extension of Figure 4.1 on
   * page 52 of the SMT-LIB version 2.6 standard
@@ -50,6 +48,8 @@ enum SmtMode
   // immediately after a successful call to get-interpol
   SMT_MODE_INTERPOL
 };
+
+namespace smt {
   
 /**
  * This utility is responsible for maintaining the basic state of the SmtEngine.
