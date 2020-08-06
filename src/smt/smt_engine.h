@@ -1171,6 +1171,9 @@ class CVC4_PUBLIC SmtEngine
    * Keep a copy of the original option settings (for reset()).
    */
   Options d_originalOptions;
+  
+  /** Whether this is an internal subsolver. */
+  bool d_isInternalSubsolver;
 
   /**
    * Verbosity of various commands.
