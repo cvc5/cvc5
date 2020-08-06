@@ -19,12 +19,17 @@
 
 #include <string>
 
-#include "context/context.h"
 #include "util/result.h"
 
 namespace CVC4 {
   
 class SmtEngine;
+
+// These must be forward declared since they are cvc4_private.
+namespace context {
+  class Context;
+  class UserContext;
+}
 
 /**
   * The mode of the solver, which is an extension of Figure 4.1 on
@@ -48,6 +53,14 @@ enum class SmtMode : uint32_t
   // immediately after a successful call to get-interpol
   INTERPOL
 };
+/**
+ * Writes a SmtMode to a stream.
+ *
+ * @param out The stream to write to
+ * @param m The mode to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, SmtMode m);
 
 namespace smt {
   
