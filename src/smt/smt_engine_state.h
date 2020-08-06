@@ -12,7 +12,7 @@
  ** \brief Utility for maintaining the state of the SMT engine.
  **/
 
-#include "cvc4_private.h"
+#include "cvc4_public.h"
 
 #ifndef CVC4__SMT__SMT_ENGINE_STATE_H
 #define CVC4__SMT__SMT_ENGINE_STATE_H
@@ -31,22 +31,22 @@ class SmtEngine;
   * page 52 of the SMT-LIB version 2.6 standard
   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
   */
-enum SmtMode
+enum class SmtMode : uint32_t
 {
   // the initial state of the solver
-  SMT_MODE_START,
+  START,
   // normal state of the solver, after assert/push/pop/declare/define
-  SMT_MODE_ASSERT,
+  ASSERT,
   // immediately after a check-sat returning "sat"
-  SMT_MODE_SAT,
+  SAT,
   // immediately after a check-sat returning "unknown"
-  SMT_MODE_SAT_UNKNOWN,
+  SAT_UNKNOWN,
   // immediately after a check-sat returning "unsat"
-  SMT_MODE_UNSAT,
+  UNSAT,
   // immediately after a successful call to get-abduct
-  SMT_MODE_ABDUCT,
+  ABDUCT,
   // immediately after a successful call to get-interpol
-  SMT_MODE_INTERPOL
+  INTERPOL
 };
 
 namespace smt {

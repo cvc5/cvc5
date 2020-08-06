@@ -960,7 +960,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_state.getMode() != SMT_MODE_SAT && d_state.getMode() != SMT_MODE_SAT_UNKNOWN)
+  if (d_state.getMode() != SmtMode::SAT && d_state.getMode() != SmtMode::SAT_UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
@@ -1197,7 +1197,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions when produce-unsat-assumptions option "
         "is off.");
   }
-  if (d_state.getMode() != SMT_MODE_UNSAT)
+  if (d_state.getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
@@ -1669,7 +1669,7 @@ Model* SmtEngine::getModel() {
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_state.getFilename();
-  m->d_isKnownSat = (d_state.getMode() == SMT_MODE_SAT);
+  m->d_isKnownSat = (d_state.getMode() == SmtMode::SAT);
   return m;
 }
 
@@ -1812,7 +1812,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores option is off.");
   }
-  if (d_state.getMode() != SMT_MODE_UNSAT)
+  if (d_state.getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by "
@@ -2276,7 +2276,7 @@ const Proof& SmtEngine::getProof()
   if(!options::proof()) {
     throw ModalException("Cannot get a proof when produce-proofs option is off.");
   }
-  if (d_state.getMode() != SMT_MODE_UNSAT)
+  if (d_state.getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
