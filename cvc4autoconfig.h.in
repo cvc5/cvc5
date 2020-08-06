@@ -64,4 +64,6 @@
 /* Define to 1 if `strerror_r' returns (char *). */
 #cmakedefine01 STRERROR_R_CHAR_P
 
+#cmakedefine01 CVC4_STATIC_BUILD
+
 #endif /* __CVC4__CVC4AUTOCONFIG_H */

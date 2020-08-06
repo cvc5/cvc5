@@ -26,8 +26,6 @@
 
 namespace CVC4 {
 
-class DatatypeConstructor;
-
 /**
  * The Node-level representation of a constructor for a datatype, which
  * currently resides in the Expr-level DatatypeConstructor class
@@ -35,7 +33,6 @@ class DatatypeConstructor;
  */
 class DTypeConstructor
 {
-  friend class DatatypeConstructor;
   friend class DType;
 
  public:
@@ -63,6 +60,20 @@ class DTypeConstructor
    * Add an argument, given a pointer to a selector object.
    */
   void addArg(std::shared_ptr<DTypeSelector> a);
+  /**
+   * Add a self-referential (i.e., a data field) of the given name
+   * to this Datatype constructor that refers to the enclosing
+   * Datatype.  For example, using the familiar "nat" Datatype, to
+   * create the "pred" field for "succ" constructor, one uses
+   * succ::addArgSelf("pred")---the actual Type
+   * cannot be passed because the Datatype is still under
+   * construction.  Selector names need not be unique; they are for
+   * convenience and pretty-printing only.
+   *
+   * This is a special case of
+   * DTypeConstructor::addArg(std::string).
+   */
+  void addArgSelf(std::string selectorName);
 
   /** Get the name of this constructor. */
   std::string getName() const;
@@ -195,6 +206,12 @@ class DTypeConstructor
    *   stoa(T,C,index)
    */
   int getSelectorIndexInternal(Node sel) const;
+  /** get selector index for name
+   *
+   * Returns the index of selector with the given name, or -1 if it
+   * does not exist.
+   */
+  int getSelectorIndexForName(const std::string& name) const;
 
   /** involves external type
    *
