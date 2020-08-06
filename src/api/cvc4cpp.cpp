@@ -2145,12 +2145,13 @@ Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   
   NodeManager* nm = d_solver->getNodeManager();
-  Node ret = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                           nm->mkConst(AscriptionType(
-                               d_ctor
-                                   ->getSpecializedConstructorType(
-                                       TypeNode::fromType(retSort.getType())).toType())),
-                           d_ctor->getConstructor());
+  Node ret = nm->mkNode(
+      kind::APPLY_TYPE_ASCRIPTION,
+      nm->mkConst(AscriptionType(d_ctor
+                                     ->getSpecializedConstructorType(
+                                         TypeNode::fromType(retSort.getType()))
+                                     .toType())),
+      d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
   Term sctor =
@@ -2193,7 +2194,6 @@ Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
   return sel.getSelectorTerm();
 }
 
-
 DatatypeConstructor::const_iterator DatatypeConstructor::begin() const
 {
   return DatatypeConstructor::const_iterator(d_solver, *d_ctor, true);
@@ -2210,7 +2210,8 @@ DatatypeConstructor::const_iterator::const_iterator(
   d_solver = slv;
   d_int_stors = &ctor.getArgs();
 
-  const std::vector<std::shared_ptr<CVC4::DTypeSelector> >& sels = ctor.getArgs();
+  const std::vector<std::shared_ptr<CVC4::DTypeSelector>>& sels =
+      ctor.getArgs();
   for (const std::shared_ptr<CVC4::DTypeSelector>& s : sels)
   {
     /* Can not use emplace_back here since constructor is private. */
@@ -2407,7 +2408,8 @@ Datatype::const_iterator::const_iterator(const Solver* slv,
                                          bool begin)
     : d_solver(slv), d_int_ctors(&dtype.getConstructors())
 {
-  const std::vector<std::shared_ptr<DTypeConstructor> >& cons = dtype.getConstructors();
+  const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
+      dtype.getConstructors();
   for (const std::shared_ptr<DTypeConstructor>& c : cons)
   {
     /* Can not use emplace_back here since constructor is private. */

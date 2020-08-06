@@ -20,9 +20,9 @@
 #include "expr/node_algorithm.h"
 #include "options/smt_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/rewriter.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 
 namespace CVC4 {
 namespace theory {
@@ -184,15 +184,14 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
     std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
-    itpGTypeS =
-        CegGrammarConstructor::mkSygusDefaultType(
-            NodeManager::currentNM()->booleanType(),
-            d_ibvlShared,
-            "interpolation_grammar",
-            extra_cons,
-            exclude_cons,
-            include_cons,
-            terms_irrelevant);
+    itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
+        NodeManager::currentNM()->booleanType(),
+        d_ibvlShared,
+        "interpolation_grammar",
+        extra_cons,
+        exclude_cons,
+        include_cons,
+        terms_irrelevant);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;

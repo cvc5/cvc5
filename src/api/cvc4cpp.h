@@ -1553,7 +1553,6 @@ class CVC4_PUBLIC DatatypeConstructor
    */
   std::string toString() const;
 
-
   /**
    * Iterator for the selectors of a datatype constructor.
    */
@@ -1770,7 +1769,6 @@ class CVC4_PUBLIC Datatype
    * @return a string representation of this datatype
    */
   std::string toString() const;
-
 
   /**
    * Iterator for the constructors of a datatype.
