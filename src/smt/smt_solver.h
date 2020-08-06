@@ -27,8 +27,12 @@
 namespace CVC4 {
 
 class SmtEngine;
+class ResourceManager;
 
 namespace smt {
+  
+class Preprocessor;
+class SmtEngineStatistics;
 
 /**
  * A solver for SMT queries.
@@ -40,7 +44,7 @@ namespace smt {
 class SmtSolver
 {
  public:
-  SmtSolver(SmtEngine& smt);
+  SmtSolver(SmtEngine& smt, ResourceManager* rm, Preprocessor& pp, SmtEngineStatistics& stats);
   ~SmtSolver();
   /** Create theory engine, prop engine. */
   void finishInit();
@@ -69,6 +73,8 @@ class SmtSolver
   void push();
   /** Pop a user-level context. */
   void pop();
+  /** Process assertions */
+  void processAssertions(Assertions& as);
   /**
    * Check satisfiability (used to check satisfiability and entailment).
    * Returns the result of 
@@ -89,8 +95,19 @@ class SmtSolver
   prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
   //------------------------------------------ end access methods
  private:
+  /**
+   * Full check of consistency in current context.  Returns true iff
+   * consistent.
+   */
+  Result check();
   /** Reference to The parent SMT engine */
   SmtEngine& d_smt;
+  /** Pointer to a resource manager (owned by SmtEngine) */
+  ResourceManager* d_rm;
+  /** Reference to the preprocessor of SmtEngine */
+  Preprocessor& d_pp;
+  /** Reference to the statistics of SmtEngine */
+  SmtEngineStatistics& d_stats;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */

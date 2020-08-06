@@ -101,6 +101,7 @@ class SmtNodeManagerListener;
 class OptionsManager;
 class Preprocessor;
 /** Subsolvers */
+class SmtSolver;
 class AbductionSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -146,6 +147,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
+  friend class ::CVC4::smt::SmtSolver;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::theory::TheoryModel;
@@ -1010,12 +1012,6 @@ class CVC4_PUBLIC SmtEngine
   void shutdown();
 
   /**
-   * Full check of consistency in current context.  Returns true iff
-   * consistent.
-   */
-  Result check();
-
-  /**
    * Quick check of consistency in current context: calls
    * processAssertionList() then look for inconsistency (based only on
    * that).
@@ -1123,10 +1119,8 @@ class CVC4_PUBLIC SmtEngine
   /** Node manager listener */
   std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
-  /** The propositional engine */
-  std::unique_ptr<prop::PropEngine> d_propEngine;
+  /** The SMT solver */
+  std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;

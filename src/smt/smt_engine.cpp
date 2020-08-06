@@ -79,7 +79,7 @@
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
-#include "prop/prop_engine.h"
+#include "smt/smt_solver.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
@@ -203,8 +203,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_dumpm(new DumpManager(d_userContext.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
-      d_theoryEngine(nullptr),
-      d_propEngine(nullptr),
+      d_smtSolver(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
@@ -261,6 +260,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_resourceManager->registerListener(d_routListener.get());
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
+  // make the SMT solver
+  d_smtSolver.reset(new SmtSolver(*this, d_resourceManager.get(), *d_pp.get()));
   
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -292,37 +293,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  // We have mutual dependency here, so we add the prop engine to the theory
-  // engine later (it is non-essential there)
-  d_theoryEngine.reset(new TheoryEngine(getContext(),
-                                        getUserContext(),
-                                        getResourceManager(),
-                                        d_pp->getTermFormulaRemover(),
-                                        const_cast<const LogicInfo&>(d_logic)));
-
-  // Add the theories
-  for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-    TheoryConstructor::addTheory(getTheoryEngine(), id);
-    //register with proof engine if applicable
-#ifdef CVC4_PROOF
-    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
-#endif
-  }
-
-  Trace("smt-debug") << "Making decision engine..." << std::endl;
-
-  Trace("smt-debug") << "Making prop engine..." << std::endl;
-  /* force destruction of referenced PropEngine to enforce that statistics
-   * are unregistered by the obsolete PropEngine object before registered
-   * again by the new PropEngine object */
-  d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
-
-  Trace("smt-debug") << "Setting up theory engine..." << std::endl;
-  d_theoryEngine->setPropEngine(getPropEngine());
-  Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
-  d_theoryEngine->finishInit();
+  d_smtSolver->finishInit();
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
@@ -357,9 +328,10 @@ void SmtEngine::finishInit()
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
   PROOF({
+      TheoryEngine * te = d_smtSolver->getTheoryEngine();
       for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
         ProofManager::currentPM()->getTheoryProofEngine()->
-          finishRegisterTheory(d_theoryEngine->theoryOf(id));
+          finishRegisterTheory(te->theoryOf(id));
       }
     });
   d_pp->finishInit();
@@ -393,14 +365,7 @@ void SmtEngine::shutdown() {
     internalPop(true);
   }
 
-  if (d_propEngine != nullptr)
-  {
-    d_propEngine->shutdown();
-  }
-  if (d_theoryEngine != nullptr)
-  {
-    d_theoryEngine->shutdown();
-  }
+  d_smtSolver->shutdown();
 }
 
 SmtEngine::~SmtEngine()
@@ -440,8 +405,7 @@ SmtEngine::~SmtEngine()
     d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
-    d_theoryEngine.reset(nullptr);
-    d_propEngine.reset(nullptr);
+    d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
     d_private.reset(nullptr);
@@ -916,41 +880,6 @@ bool SmtEngine::isDefinedFunction( Expr func ){
   Node nf = Node::fromExpr( func );
   Debug("smt") << "isDefined function " << nf << "?" << std::endl;
   return d_definedFunctions->find(nf) != d_definedFunctions->end();
-}
-
-Result SmtEngine::check() {
-  Assert(d_fullyInited);
-  Assert(d_pendingPops == 0);
-
-  Trace("smt") << "SmtEngine::check()" << endl;
-
-
-  if (d_resourceManager->out())
-  {
-    Result::UnknownExplanation why = d_resourceManager->outOfResources()
-                                         ? Result::RESOURCEOUT
-                                         : Result::TIMEOUT;
-    return Result(Result::ENTAILMENT_UNKNOWN, why, d_filename);
-  }
-  d_resourceManager->beginCall();
-
-  // Make sure the prop layer has all of the assertions
-  Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
-  processAssertionsInternal();
-  Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
-
-  TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
-
-  Chat() << "solving..." << endl;
-  Trace("smt") << "SmtEngine::check(): running check" << endl;
-  Result result = d_propEngine->checkSat();
-
-  d_resourceManager->endCall();
-  Trace("limit") << "SmtEngine::check(): cumulative millis "
-                 << d_resourceManager->getTimeUsage() << ", resources "
-                 << d_resourceManager->getResourceUsage() << endl;
-
-  return Result(result, d_filename);
 }
 
 Result SmtEngine::quickCheck() {
@@ -2639,7 +2568,7 @@ void SmtEngine::internalPush() {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_userContext->push();
     // the d_context push is done inside of the SAT solver
-    d_propEngine->push();
+    d_smtSolver->push();
   }
 }
 
@@ -2660,11 +2589,11 @@ void SmtEngine::doPendingPops() {
   // check to see if a postsolve() is pending
   if (d_needPostsolve)
   {
-    d_propEngine->resetTrail();
+    d_smtSolver->resetTrail();
   }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    d_propEngine->pop();
+    d_smtSolver->pop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();
     --d_pendingPops;
@@ -2726,14 +2655,7 @@ void SmtEngine::resetAssertions()
   d_userContext->push();
   d_context->push();
 
-  /* Create new PropEngine.
-   * First force destruction of referenced PropEngine to enforce that
-   * statistics are unregistered by the obsolete PropEngine object before
-   * registered again by the new PropEngine object */
-  d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(
-      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
-  d_theoryEngine->setPropEngine(getPropEngine());
+  d_smtSolver->resetAssertions();
 }
 
 void SmtEngine::interrupt()
@@ -2741,8 +2663,7 @@ void SmtEngine::interrupt()
   if(!d_fullyInited) {
     return;
   }
-  d_propEngine->interrupt();
-  d_theoryEngine->interrupt();
+  d_smtSolver->interrupt();
 }
 
 void SmtEngine::setResourceLimit(unsigned long units, bool cumulative) {
