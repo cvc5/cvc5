@@ -1767,6 +1767,10 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
+context::UserContext* SmtEngine::getUserContext() { return d_state.getUserContext(); }
+
+context::Context* SmtEngine::getContext() { return d_state.getContext(); }
+  
 void SmtEngine::checkProof()
 {
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
@@ -2541,7 +2545,7 @@ void SmtEngine::pop() {
   d_pp->clearLearnedLiterals();
 
   Trace("userpushpop") << "SmtEngine: popped to level "
-                       << d_state.getUserContext()->getLevel() << endl;
+                       << getUserContext()->getLevel() << endl;
   // FIXME: should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
 }
@@ -2568,8 +2572,8 @@ void SmtEngine::resetAssertions()
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
     // (see solver execution modes in the SMT-LIB standard)
-    Assert(d_state.getContext()->getLevel() == 0);
-    Assert(d_state.getUserContext()->getLevel() == 0);
+    Assert(getContext()->getLevel() == 0);
+    Assert(getUserContext()->getLevel() == 0);
     d_dumpm->resetAssertions();
     return;
   }

@@ -910,10 +910,10 @@ class CVC4_PUBLIC SmtEngine
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext() { return d_userContext.get(); };
+  context::UserContext* getUserContext();
 
   /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext() { return d_context.get(); };
+  context::Context* getContext();
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
   TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
