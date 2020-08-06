@@ -1024,12 +1024,12 @@ class CVC4_PUBLIC SmtEngine
    */
   void notifyPushPost();
   /**
-   * Notify pop, which is called just before the user context of the state pops.
-   * This performs a pop on the underlying prop engine.
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
    */
   void notifyPopPre();
   /**
-   * Notify post solve, which is called once after each check-sat query. It
+   * Notify post solve pre, which is called once after each check-sat query. It
    * is triggered when a d_state.doPendingPops() is issued. This method is
    * called before the contexts in that method pop.
    */
