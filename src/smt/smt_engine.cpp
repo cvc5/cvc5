@@ -457,6 +457,8 @@ SmtEngine::~SmtEngine()
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
+    // destroy the state
+    d_state.reset(nullptr);
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
