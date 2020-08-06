@@ -535,6 +535,18 @@ Node TermRegistry::getProxyVariableFor(Node n) const
   return Node::null();
 }
 
+Node TermRegistry::ensureProxyVariableFor(Node n)
+{
+  Node proxy = getProxyVariableFor(n);
+  if (proxy.isNull())
+  {
+    registerTerm(n, 0);
+    proxy = getProxyVariableFor(n);
+  }
+  Assert(!proxy.isNull());
+  return proxy;
+}
+
 void TermRegistry::inferSubstitutionProxyVars(Node n,
                                               std::vector<Node>& vars,
                                               std::vector<Node>& subs,

@@ -304,6 +304,7 @@ void Datatype::setRecord() {
   PrettyCheckArgument(
       !isResolved(), this, "cannot set record to a finalized Datatype");
   d_isRecord = true;
+  d_internal->setRecord();
 }
 
 Cardinality Datatype::getCardinality(Type t) const
