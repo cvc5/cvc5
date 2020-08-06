@@ -20,12 +20,12 @@
 #include <iosfwd>
 
 namespace CVC4 {
-  
+
 /**
-  * The mode of the solver, which is an extension of Figure 4.1 on
-  * page 52 of the SMT-LIB version 2.6 standard
-  * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-  */
+ * The mode of the solver, which is an extension of Figure 4.1 on
+ * page 52 of the SMT-LIB version 2.6 standard
+ * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+ */
 enum class SmtMode : uint32_t
 {
   // the initial state of the solver

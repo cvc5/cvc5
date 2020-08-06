@@ -4903,8 +4903,7 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatAssumptions])
       << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --produce-unsat-assumptions)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 == SmtMode::UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get unsat assumptions unless in unsat mode.";
 
   std::vector<Node> uassumptions = d_smtEngine->getUnsatAssumptions();
@@ -4930,8 +4929,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 == SmtMode::UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";
   UnsatCore core = d_smtEngine->getUnsatCore();
   /* Can not use
@@ -4967,8 +4965,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtMode::UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get value when in unsat mode.";
   std::vector<Term> res;
   for (size_t i = 0, n = terms.size(); i < n; ++i)
@@ -4994,8 +4991,7 @@ Term Solver::getSeparationHeap() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtMode::UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get separtion heap term when in unsat mode.";
 
   theory::TheoryModel* m =
@@ -5019,8 +5015,7 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtMode::UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get separtion nil term when in unsat mode.";
 
   theory::TheoryModel* m =
@@ -5118,8 +5113,7 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtMode::UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get value when in unsat mode.";
   out << *d_smtEngine->getModel();
   CVC4_API_SOLVER_TRY_CATCH_END;

@@ -1013,25 +1013,25 @@ class CVC4_PUBLIC SmtEngine
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
-  /** 
+  /**
    * Notify push, which is called when the user context of the state pushes.
    * This performs a push on the underlying prop engine.
    */
   void notifyPush();
-  /** 
-   *Notify pop, which is called when the user context of the state pops. 
+  /**
+   *Notify pop, which is called when the user context of the state pops.
    * This performs a pop on the underlying prop engine.
    */
   void notifyPop();
-  /** 
+  /**
    * Notify post solve, which is called once after each check-sat query. It
    * is triggered when a d_state.doPendingPops() is issued. This method is
-   * called before the contexts in that method pop. 
+   * called before the contexts in that method pop.
    */
   void notifyPostSolvePre();
   /**
    * Same as above, but after contexts are popped.
-   * 
+   *
    * This calls the check-sat method of the underlying TheoryEngine.
    */
   void notifyPostSolvePost();
@@ -1096,7 +1096,7 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /** 
+  /**
    * The state of this SmtEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
@@ -1164,7 +1164,7 @@ class CVC4_PUBLIC SmtEngine
    * Keep a copy of the original option settings (for reset()).
    */
   Options d_originalOptions;
-  
+
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
 

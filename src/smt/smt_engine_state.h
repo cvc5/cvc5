@@ -19,22 +19,22 @@
 
 #include <string>
 
-#include "util/result.h"
-#include "smt/smt_mode.h"
 #include "context/context.h"
+#include "smt/smt_mode.h"
+#include "util/result.h"
 
 namespace CVC4 {
-  
+
 class SmtEngine;
 
 namespace smt {
-  
+
 /**
  * This utility is responsible for maintaining the basic state of the SmtEngine.
  *
  * It has no concept of anything related to the assertions of the SmtEngine,
  * or more generally it does not depend on Node.
- * 
+ *
  * This class has three sets of interfaces:
  * (1) notification methods that are used by SmtEngine to notify when an event
  * occurs (e.g. the beginning of a check-sat call),
@@ -42,14 +42,14 @@ namespace smt {
  * (3) querying general information about relevant state information, including
  * the mode that the SmtEngine is in, based on the notifications it has
  * received.
- * 
+ *
  * It maintains a reference to the SmtEngine for the sake of making callbacks.
  */
 class SmtEngineState
 {
  public:
   SmtEngineState(SmtEngine& smt);
-  ~SmtEngineState(){}
+  ~SmtEngineState() {}
   /**
    * Notify that the expected status of the next check-sat is given by the
    * string status, which should be one of "sat", "unsat" or "unknown".
@@ -83,7 +83,7 @@ class SmtEngineState
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
    */
   void notifyGetAbduct(bool success);
-  /** 
+  /**
    * Intialize the context, which makes a single push to maintain a global
    * context around everything.
    */
@@ -94,7 +94,7 @@ class SmtEngineState
   void shutdown();
   /** Cleanup, which pops the contexts to level 0 */
   void cleanup();
-  /** 
+  /**
    * Do all pending pops, which ensures that the context levels are up-to-date.
    * This method should be called by the SmtEngine before using any of its
    * members that rely on the context (e.g. PropEngine or TheoryEngine).
@@ -105,7 +105,7 @@ class SmtEngineState
    * is used for various purposes (e.g. get-info, SZS status).
    */
   void setFilename(std::string filename);
-  
+
   //---------------------------- context management
   /**
    * Called when the user of SmtEngine issues a push. This corresponds to
@@ -122,7 +122,7 @@ class SmtEngineState
   /** Get a pointer to the Context owned by this SmtEngine. */
   context::Context* getContext();
   //---------------------------- end context management
-  
+
   //---------------------------- queries
   /**
    * Return true if the SmtEngine is fully initialized (post-construction).
@@ -136,7 +136,7 @@ class SmtEngineState
    * pending pops.
    */
   bool isFullyReady() const;
-  /** 
+  /**
    * Return true if a notifyCheckSat call has been made, e.g. a query has been
    * issued to the SmtEngine.
    */
@@ -150,7 +150,7 @@ class SmtEngineState
   /** return the input name (if any) */
   std::string getFilename() const;
   //---------------------------- end queries
-  
+
  private:
   /** Pushes the user and SAT contexts */
   void push();
@@ -158,12 +158,12 @@ class SmtEngineState
   void pop();
   /** Pops the user and SAT contexts to the given level */
   void popto(int toLevel);
-  /** 
+  /**
    * Internal push, which processes any pending pops, and pushes (if in
    * incremental mode).
    */
   void internalPush();
-  /** 
+  /**
    * Internal pop. If immediate is true, this processes any pending pops, and
    * pops (if in incremental mode). Otherwise, it increments the pending pop
    * counter and does nothing.

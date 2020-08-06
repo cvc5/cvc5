@@ -71,7 +71,6 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "smt/smt_engine_state.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -95,6 +94,7 @@
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -271,10 +271,19 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
 
 bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
 bool SmtEngine::isQueryMade() const { return d_state->isQueryMade(); }
-size_t SmtEngine::getNumUserLevels() const { return d_state->getNumUserLevels(); }
+size_t SmtEngine::getNumUserLevels() const
+{
+  return d_state->getNumUserLevels();
+}
 SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
-Result SmtEngine::getStatusOfLastCommand() const { return d_state->getStatus(); }
-context::UserContext* SmtEngine::getUserContext() { return d_state->getUserContext(); }
+Result SmtEngine::getStatusOfLastCommand() const
+{
+  return d_state->getStatus();
+}
+context::UserContext* SmtEngine::getUserContext()
+{
+  return d_state->getUserContext();
+}
 context::Context* SmtEngine::getContext() { return d_state->getContext(); }
 
 void SmtEngine::finishInit()
@@ -366,7 +375,8 @@ void SmtEngine::finishInit()
 }
 
 void SmtEngine::finalOptionsAreSet() {
-  if(d_state->isFullyInited()) {
+  if (d_state->isFullyInited())
+  {
     return;
   }
 
@@ -456,7 +466,8 @@ SmtEngine::~SmtEngine()
 void SmtEngine::setLogic(const LogicInfo& logic)
 {
   SmtScope smts(this);
-  if(d_state->isFullyInited()) {
+  if (d_state->isFullyInited())
+  {
     throw ModalException("Cannot set logic in SmtEngine after the engine has "
                          "finished initializing.");
   }
@@ -692,8 +703,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "assertion-stack-levels")
   {
     size_t ulevel = d_state->getNumUserLevels();
-    AlwaysAssert(ulevel
-                 <= std::numeric_limits<unsigned long int>::max());
+    AlwaysAssert(ulevel <= std::numeric_limits<unsigned long int>::max());
     return SExpr(static_cast<unsigned long int>(ulevel));
   }
   Assert(key == "all-options");
@@ -961,7 +971,8 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_state->getMode() != SmtMode::SAT && d_state->getMode() != SmtMode::SAT_UNKNOWN)
+  if (d_state->getMode() != SmtMode::SAT
+      && d_state->getMode() != SmtMode::SAT_UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
@@ -991,12 +1002,11 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-
 void SmtEngine::notifyPush() { d_propEngine->push(); }
-void SmtEngine::notifyPop() { 
-    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    d_propEngine->pop(); 
-  
+void SmtEngine::notifyPop()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+  d_propEngine->pop();
 }
 void SmtEngine::notifyPostSolvePre() { d_propEngine->resetTrail(); }
 void SmtEngine::notifyPostSolvePost() { d_theoryEngine->postsolve(); }
@@ -1771,7 +1781,7 @@ std::vector<Expr> SmtEngine::getExpandedAssertions()
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
-  
+
 void SmtEngine::checkProof()
 {
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
@@ -2299,7 +2309,8 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   finalOptionsAreSet();
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
-    out << "% SZS output start Proof for " << d_state->getFilename() << std::endl;
+    out << "% SZS output start Proof for " << d_state->getFilename()
+        << std::endl;
   }
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
@@ -2592,7 +2603,8 @@ void SmtEngine::resetAssertions()
 
 void SmtEngine::interrupt()
 {
-  if(!d_state->isFullyInited()) {
+  if (!d_state->isFullyInited())
+  {
     return;
   }
   d_propEngine->interrupt();
@@ -2658,7 +2670,8 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   // Always check whether the SmtEngine has been initialized (which is done
   // upon entering Assert mode the first time). No option can  be set after
   // initialized.
-  if(d_state->isFullyInited()) {
+  if (d_state->isFullyInited())
+  {
     throw ModalException("SmtEngine::setOption called after initialization.");
   }
   NodeManagerScope nms(d_nodeManager);
