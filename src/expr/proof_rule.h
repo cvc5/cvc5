@@ -195,7 +195,6 @@ enum class PfRule : uint32_t
   //  t' is the result of applying either a pre-rewrite or a post-rewrite step
   //  to t (depending on the second argument).
   THEORY_REWRITE,
-  
 
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
@@ -204,7 +203,7 @@ enum class PfRule : uint32_t
   // ---------------------------------------------------------------
   // Conclusion: RemoveTermFormulas::getAxiomFor(t).
   REMOVE_TERM_FORMULA_AXIOM,
-  
+
   //================================================= Trusted rules
   // ======== Uncategorized trust (not recommended, instead use new identifier)
   // Children: (P1:F1 ... Pn:Fn)
@@ -222,7 +221,7 @@ enum class PfRule : uint32_t
   // did not provide a proof for a lemma or conflict.
   THEORY_LEMMA,
   // The remaining rules in this section have the signature of a "trusted rule":
-  // 
+  //
   // Children: none
   // Arguments: (F)
   // ---------------------------------------------------------------

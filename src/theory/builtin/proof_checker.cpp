@@ -374,7 +374,8 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA || id == PfRule::PREPROCESS_LEMMA)
+           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
+           || id == PfRule::PREPROCESS_LEMMA)
   {
     // "trusted" rules
     Assert(children.empty());
