@@ -32,6 +32,8 @@ namespace CVC4 {
 class SmtEngine;
 
 namespace smt {
+  
+class Assertions;
 
 /**
  * This class is responsible for managing the proof output of SmtEngine, as
@@ -49,13 +51,13 @@ class PfManager
    * current context.
    *
    * Throws an assertion failure if pg cannot provide a closed proof with
-   * respect to assertions in al.
+   * respect to assertions in as.
    */
-  void printProof(ProofGenerator* pg, context::CDList<Node>* al);
+  void printProof(ProofGenerator* pg, Assertions& as);
   /**
    * Check proof, same as above, without printing.
    */
-  void checkProof(ProofGenerator* pg, context::CDList<Node>* al);
+  void checkProof(ProofGenerator* pg, Assertions& as);
 
   /**
    * Get final proof.
@@ -64,7 +66,7 @@ class PfManager
    * current context.
    */
   std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg,
-                                           context::CDList<Node>* al);
+                                           Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

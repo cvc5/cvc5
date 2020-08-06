@@ -17,6 +17,7 @@
 #include "expr/proof_node_algorithm.h"
 #include "options/base_options.h"
 #include "options/smt_options.h"
+#include "smt/assertions.h"
 
 namespace CVC4 {
 namespace smt {
@@ -56,6 +57,7 @@ PfManager::~PfManager() {}
 
 void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
+  Assert (al!=nullptr);
   // TODO: don't recompute if already done so?
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 
@@ -105,20 +107,20 @@ void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
   Trace("smt-proof") << "SmtEngine::setFinalProof(): finished.\n";
 }
 
-void PfManager::printProof(ProofGenerator* pg, context::CDList<Node>* al)
+void PfManager::printProof(ProofGenerator* pg, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
   std::ostream& out = *options::out();
   out << "(proof\n";
   out << *fp;
   out << "\n)\n";
 }
 
-void PfManager::checkProof(ProofGenerator* pg, context::CDList<Node>* al)
+void PfManager::checkProof(ProofGenerator* pg, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::checkProof: start" << std::endl;
-  std::shared_ptr<ProofNode> fp = getFinalProof(pg, al);
+  std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
   Trace("smt-proof") << "PfManager::checkProof: returned " << *fp.get()
                      << std::endl;
 }
@@ -138,8 +140,9 @@ smt::PreprocessProofGenerator* PfManager::getPreprocessProofGenerator() const
 }
 
 std::shared_ptr<ProofNode> PfManager::getFinalProof(ProofGenerator* pg,
-                                                    context::CDList<Node>* al)
+                                                    Assertions& as)
 {
+  context::CDList<Node>* al = as.getAssertionList();
   setFinalProof(pg, al);
   Assert(d_finalProof);
   return d_finalProof;

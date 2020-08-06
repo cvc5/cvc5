@@ -181,9 +181,6 @@ class SmtEnginePrivate
 
  public:
 
-  /** get assertion pipeline */
-  AssertionPipeline& getAssertionPipeline() { return d_assertions; }
-
   /** Instance of the ITE remover */
   RemoveTermFormulas d_iteRemover;
 
@@ -381,7 +378,7 @@ void SmtEngine::finishInit()
     // enable proof support in the rewriter
     d_rewriter->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
-    d_private->getAssertionPipeline().setProofGenerator(
+    d_asserts->setProofGenerator(
         d_pfManager->getPreprocessProofGenerator());
   }
 
@@ -2004,9 +2001,8 @@ void SmtEngine::checkProof()
   if (options::proofNew())
   {
     // internal check the proof
-    Assert(d_assertionList != nullptr);
     Assert(d_propEngine->getProof() != nullptr);
-    d_pfManager->checkProof(d_propEngine->getProof(), d_assertionList);
+    d_pfManager->checkProof(d_propEngine->getProof(), *d_asserts);
     return;
   }
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
@@ -2543,10 +2539,9 @@ void SmtEngine::printProof()
         "Cannot print proof unless immediately preceded by "
         "UNSAT/ENTAILED.");
   }
-  Assert(d_assertionList != nullptr);
   Assert(d_propEngine->getProof() != nullptr);
   // the prop engine has the proof of false
-  d_pfManager->printProof(d_propEngine->getProof(), d_assertionList);
+  d_pfManager->printProof(d_propEngine->getProof(), *d_asserts);
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

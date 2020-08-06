@@ -109,6 +109,12 @@ class Assertions
   /** Flip the global negation flag. */
   void flipGlobalNegated();
 
+  //------------------------------------ for proofs
+  /** Set proof generator */
+  void setProofGenerator(smt::PreprocessProofGenerator* pppg);
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
+  //------------------------------------ end for proofs
  private:
   /**
    * Fully type-check the argument, and also type-check that it's

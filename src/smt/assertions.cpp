@@ -230,5 +230,15 @@ void Assertions::ensureBoolean(const Node& n)
   }
 }
 
+void Assertions::setProofGenerator(smt::PreprocessProofGenerator* pppg)
+{
+  d_assertions.setProofGenerator(pppg);
+}
+
+bool Assertions::isProofEnabled() const
+{
+  return d_assertions.isProofEnabled();
+}
+
 }  // namespace smt
 }  // namespace CVC4
