@@ -990,10 +990,10 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 }
 
 
-void SmtEngine::notifyResetSolve() { d_propEngine->resetTrail(); }
 void SmtEngine::notifyPush() { d_propEngine->push(); }
 void SmtEngine::notifyPop() { d_propEngine->pop(); }
-void SmtEngine::notifyPostSolve() { d_theoryEngine->postsolve(); }
+void SmtEngine::notifyPostSolvePre() { d_propEngine->resetTrail(); }
+void SmtEngine::notifyPostSolvePost() { d_theoryEngine->postsolve(); }
 
 void SmtEngine::processAssertionsInternal()
 {

@@ -95,7 +95,7 @@ class SmtEngineState
    * Notify that the result of the last check-sat was r. This should be called
    * once immediately following notifyCheckSat().
    */
-  void notifyCheckSatResult(Result r);
+  void notifyCheckSatResult(bool hasAssumptions, Result r);
   /**
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above
@@ -118,7 +118,8 @@ class SmtEngineState
   void cleanup();
   /** 
    * Do all pending pops, which ensures that the context levels are up-to-date.
-   * This method should be called by the SmtEngine before initializing 
+   * This method should be called by the SmtEngine before using any of its
+   * members that rely on the context (e.g. PropEngine or TheoryEngine).
    */
   void doPendingPops();
   /**
