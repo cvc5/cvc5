@@ -29,7 +29,7 @@ SmtEngineState::SmtEngineState(SmtEngine& smt) : d_smt(smt),
       d_needPostsolve(false),
       d_status(),
       d_expectedStatus(),
-      d_state(SmtMode::START)
+      d_smtMode(SmtMode::START)
       {}
 
 void SmtEngineState::notifyExpectedStatus(std::string status)
