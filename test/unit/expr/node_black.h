@@ -708,16 +708,6 @@ class NodeBlack : public CxxTest::TestSuite {
 
   void testIsConst() {
 
-    //Debug.on("isConst");
-
-    TS_ASSERT(!a_bool->isConst());
-    TS_ASSERT(!b_bool->isConst());
-    TS_ASSERT(!c_bool_and->isConst());
-    TS_ASSERT(and_op->isConst());
-    TS_ASSERT(plus_op->isConst());
-    TS_ASSERT(!d_apply_fun_bool->isConst());
-    TS_ASSERT(!null->isConst());
-
     // more complicated "constants" exist in datatypes and arrays theories
     DType list(d_nm, "list");
     std::shared_ptr<DTypeConstructor> consC = std::make_shared<DTypeConstructor>("cons");
@@ -738,7 +728,7 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(cons_1_cons_2_nil.isConst());
 
     {
-      ArrayType arrType =
+      TypeNode arrType =
           d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
       Node zero = d_nm->mkConst(Rational(0));
       Node one = d_nm->mkConst(Rational(1));
