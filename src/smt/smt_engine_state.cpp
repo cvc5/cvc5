@@ -34,8 +34,8 @@ SmtEngineState::SmtEngineState(SmtEngine& smt) : d_smt(smt),
 
 void SmtEngineState::notifyExpectedStatus(std::string status)
 {
-  Assert (s=="sat" || s=="unsat" || s=="unknown") << "SmtEngineState::notifyExpectedStatus: unexpected status string " << status;
-  d_expectedStatus = Result(s, d_filename);
+  Assert (status=="sat" || status=="unsat" || status=="unknown") << "SmtEngineState::notifyExpectedStatus: unexpected status string " << status;
+  d_expectedStatus = Result(status, d_filename);
 }
 
 void SmtEngineState::notifyFullyInited()
@@ -269,7 +269,6 @@ void SmtEngineState::doPendingPops()
     d_smt.notifyPostSolvePre();
   }
   while(d_pendingPops > 0) {
-    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_smt.notifyPop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();

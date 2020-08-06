@@ -993,7 +993,11 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 
 
 void SmtEngine::notifyPush() { d_propEngine->push(); }
-void SmtEngine::notifyPop() { d_propEngine->pop(); }
+void SmtEngine::notifyPop() { 
+    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+    d_propEngine->pop(); 
+  
+}
 void SmtEngine::notifyPostSolvePre() { d_propEngine->resetTrail(); }
 void SmtEngine::notifyPostSolvePost() { d_theoryEngine->postsolve(); }
 
