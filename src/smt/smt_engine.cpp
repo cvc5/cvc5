@@ -50,8 +50,6 @@
 #include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "expr/node_visitor.h"
-#include "expr/proof_checker.h"
-#include "expr/proof_node_manager.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
 #include "options/base_options.h"
@@ -94,7 +92,6 @@
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
-#include "smt/proof_manager.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
@@ -206,10 +203,10 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_dumpm(new DumpManager(d_userContext.get())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
-      d_smtSolver(nullptr),
+      d_theoryEngine(nullptr),
+      d_propEngine(nullptr),
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
-      d_pfManager(nullptr),
       d_definedFunctions(nullptr),
       d_abductSolver(nullptr),
       d_assignments(nullptr),
@@ -294,21 +291,38 @@ void SmtEngine::finishInit()
   // based on our heuristics.
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
-  ProofNodeManager* pnm = nullptr;
-  if (options::proofNew())
-  {
-    d_pfManager.reset(new PfManager(this));
-    // use this proof node manager
-    pnm = d_pfManager->getProofNodeManager();
-    // enable proof support in the rewriter
-    d_rewriter->setProofNodeManager(pnm);
-    // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(
-        d_pfManager->getPreprocessProofGenerator());
+  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
+  // We have mutual dependency here, so we add the prop engine to the theory
+  // engine later (it is non-essential there)
+  d_theoryEngine.reset(new TheoryEngine(getContext(),
+                                        getUserContext(),
+                                        getResourceManager(),
+                                        d_pp->getTermFormulaRemover(),
+                                        const_cast<const LogicInfo&>(d_logic)));
+
+  // Add the theories
+  for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+    TheoryConstructor::addTheory(getTheoryEngine(), id);
+    //register with proof engine if applicable
+#ifdef CVC4_PROOF
+    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
+#endif
   }
 
-  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit();
+  Trace("smt-debug") << "Making decision engine..." << std::endl;
+
+  Trace("smt-debug") << "Making prop engine..." << std::endl;
+  /* force destruction of referenced PropEngine to enforce that statistics
+   * are unregistered by the obsolete PropEngine object before registered
+   * again by the new PropEngine object */
+  d_propEngine.reset(nullptr);
+  d_propEngine.reset(new PropEngine(
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
+
+  Trace("smt-debug") << "Setting up theory engine..." << std::endl;
+  d_theoryEngine->setPropEngine(getPropEngine());
+  Trace("smt-debug") << "Finishing init for theory engine..." << std::endl;
+  d_theoryEngine->finishInit();
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
@@ -343,10 +357,9 @@ void SmtEngine::finishInit()
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
   PROOF({
-      TheoryEngine * te = d_smtSolver->getTheoryEngine();
       for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
         ProofManager::currentPM()->getTheoryProofEngine()->
-          finishRegisterTheory(te->theoryOf(id));
+          finishRegisterTheory(d_theoryEngine->theoryOf(id));
       }
     });
   d_pp->finishInit();
@@ -380,7 +393,14 @@ void SmtEngine::shutdown() {
     internalPop(true);
   }
 
-  d_smtSolver->shutdown();
+  if (d_propEngine != nullptr)
+  {
+    d_propEngine->shutdown();
+  }
+  if (d_theoryEngine != nullptr)
+  {
+    d_theoryEngine->shutdown();
+  }
 }
 
 SmtEngine::~SmtEngine()
@@ -414,15 +434,14 @@ SmtEngine::~SmtEngine()
 #ifdef CVC4_PROOF
     d_proofManager.reset(nullptr);
 #endif
-    d_rewriter.reset(nullptr);
-    d_pfManager.reset(nullptr);
 
     d_absValues.reset(nullptr);
     d_asserts.reset(nullptr);
     d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
-    d_smtSolver.reset(nullptr);
+    d_theoryEngine.reset(nullptr);
+    d_propEngine.reset(nullptr);
 
     d_stats.reset(nullptr);
     d_private.reset(nullptr);
@@ -1184,12 +1203,6 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
 
-    if (options::dumpProofs() && options::proofNew()
-        && d_smtMode == SMT_MODE_UNSAT)
-    {
-      printProof();
-    }
-
     // Check that SAT results generate a model correctly.
     if(options::checkModels()) {
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -1198,8 +1211,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (options::checkProofs() || options::checkProofsNew())
-    {
+    if(options::checkProofs()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
         checkProof();
       }
@@ -1813,13 +1825,6 @@ Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
 void SmtEngine::checkProof()
 {
-  if (options::proofNew())
-  {
-    // internal check the proof
-    Assert(d_propEngine->getProof() != nullptr);
-    d_pfManager->checkProof(d_propEngine->getProof(), *d_asserts);
-    return;
-  }
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 
   Chat() << "generating proof..." << endl;
@@ -1953,7 +1958,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   {
     d_theoryEngine->checkTheoryAssertionsWithModel(hardFailure);
   }
-
+  
   // Output the model
   Notice() << *m;
 
@@ -2338,23 +2343,6 @@ const Proof& SmtEngine::getProof()
 #else /* IS_PROOFS_BUILD */
   throw ModalException("This build of CVC4 doesn't have proof support.");
 #endif /* IS_PROOFS_BUILD */
-}
-
-void SmtEngine::printProof()
-{
-  if (d_pfManager == nullptr)
-  {
-    throw RecoverableModalException("Cannot print proof, no proof manager.");
-  }
-  if (d_smtMode != SMT_MODE_UNSAT)
-  {
-    throw RecoverableModalException(
-        "Cannot print proof unless immediately preceded by "
-        "UNSAT/ENTAILED.");
-  }
-  Assert(d_propEngine->getProof() != nullptr);
-  // the prop engine has the proof of false
-  d_pfManager->printProof(d_propEngine->getProof(), *d_asserts);
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
@@ -2742,17 +2730,9 @@ void SmtEngine::resetAssertions()
    * First force destruction of referenced PropEngine to enforce that
    * statistics are unregistered by the obsolete PropEngine object before
    * registered again by the new PropEngine object */
-  ProofNodeManager* pnm = nullptr;
-  if (options::proofNew())
-  {
-    pnm = d_pfManager->getProofNodeManager();
-  }
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(getTheoryEngine(),
-                                    getContext(),
-                                    getUserContext(),
-                                    getResourceManager(),
-                                    pnm));
+  d_propEngine.reset(new PropEngine(
+      getTheoryEngine(), getContext(), getUserContext(), getResourceManager()));
   d_theoryEngine->setPropEngine(getPropEngine());
 }
 
