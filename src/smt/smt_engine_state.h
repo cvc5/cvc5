@@ -39,9 +39,8 @@ namespace smt {
  * (1) notification methods that are used by SmtEngine to notify when an event
  * occurs (e.g. the beginning of a check-sat call),
  * (2) maintaining the SAT and user contexts to be used by the SmtEngine,
- * (3) querying general information about relevant state information, including
- * the mode that the SmtEngine is in, based on the notifications it has
- * received.
+ * (3) general information queries, including the mode that the SmtEngine is
+ * in, based on the notifications it has received.
  *
  * It maintains a reference to the SmtEngine for the sake of making callbacks.
  */
