@@ -49,7 +49,7 @@ void SmtEngineState::notifyResetAssertions()
   doPendingPops();
   while (!d_userLevels.empty())
   {
-    pop();
+    userPop();
   }
   // Remember the global push/pop around everything when beyond Start mode
   // (see solver execution modes in the SMT-LIB standard)
