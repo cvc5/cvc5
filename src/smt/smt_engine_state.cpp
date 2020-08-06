@@ -69,11 +69,9 @@ void SmtEngineState::notifyCheckSat(bool hasAssumptions)
   d_smtMode = SmtMode::ASSERT;
 
   // push if there are assumptions
-  bool didInternalPush = false;
   if (hasAssumptions)
   {
     internalPush();
-    didInternalPush = true;
   }
 }
 
@@ -154,9 +152,6 @@ void SmtEngineState::setFilename(std::string filename)
 
 void SmtEngineState::userPush()
 {
-  if(d_userLevels.size() == 0) {
-    throw ModalException("Cannot pop beyond the first user frame");
-  }
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmetric with pop.
@@ -170,6 +165,9 @@ void SmtEngineState::userPush()
 
 void SmtEngineState::userPop()
 {
+  if(d_userLevels.size() == 0) {
+    throw ModalException("Cannot pop beyond the first user frame");
+  }
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a pop, simplifying our lives somewhat.  It might
   // not be strictly necessary to do so, since the pops occur lazily,
