@@ -194,18 +194,18 @@ class CVC4_PUBLIC SmtEngine
    * use of the SmtEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
    */
-  bool isFullyInited() { return d_fullyInited; }
+  bool isFullyInited();
 
   /**
    * Return true if a checkEntailed() or checkSatisfiability() has been made.
    */
-  bool isQueryMade() { return d_queryMade; }
+  bool isQueryMade();
 
   /** Return the user context level.  */
-  size_t getNumUserLevels() { return d_userLevels.size(); }
+  size_t getNumUserLevels();
 
   /** Return the current mode of the solver. */
-  SmtMode getSmtMode() { return d_smtMode; }
+  SmtMode getSmtMode();
 
   /**
    * Set the logic of the script.

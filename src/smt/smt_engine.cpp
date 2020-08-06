@@ -268,6 +268,11 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
 }
 
+bool SmtEngine::isFullyInited() const { return d_state.isFullyInited(); }
+bool SmtEngine::isQueryMade() const { return d_state.isQueryMade(); }
+size_t SmtEngine::getNumUserLevels() const { return d_state.getNumUserLevels(); }
+SmtMode SmtEngine::getSmtMode() const { return d_state.getMode(); }
+
 void SmtEngine::finishInit()
 {
   // Notice that finishInit is called when options are finalized. If we are
@@ -357,7 +362,7 @@ void SmtEngine::finishInit()
 }
 
 void SmtEngine::finalOptionsAreSet() {
-  if(d_fullyInited) {
+  if(d_state.isFullyInited()) {
     return;
   }
 
@@ -372,7 +377,7 @@ void SmtEngine::finalOptionsAreSet() {
       << "The PropEngine has pushed but the SmtEngine "
          "hasn't finished initializing!";
 
-  d_fullyInited = true;
+  d_state.notifyFullyInited();
   Assert(d_logic.isLocked());
 }
 
@@ -447,7 +452,7 @@ SmtEngine::~SmtEngine()
 void SmtEngine::setLogic(const LogicInfo& logic)
 {
   SmtScope smts(this);
-  if(d_fullyInited) {
+  if(d_state.isFullyInited()) {
     throw ModalException("Cannot set logic in SmtEngine after the engine has "
                          "finished initializing.");
   }
@@ -501,7 +506,7 @@ void SmtEngine::notifyStartParsing(std::string filename)
 std::string SmtEngine::getFilename() const { return d_state.getFilename(); }
 void SmtEngine::setLogicInternal()
 {
-  Assert(!d_fullyInited)
+  Assert(!d_state.isFullyInited())
       << "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run";
   d_logic.lock();
@@ -901,8 +906,7 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 }
 
 Result SmtEngine::check() {
-  Assert(d_fullyInited);
-  Assert(d_pendingPops == 0);
+  Assert(d_state.isFullyReady());
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
@@ -936,7 +940,7 @@ Result SmtEngine::check() {
 }
 
 Result SmtEngine::quickCheck() {
-  Assert(d_fullyInited);
+  Assert(d_state.isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
@@ -991,8 +995,7 @@ void SmtEngine::processAssertionsInternal()
 {
   TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_fullyInited);
-  Assert(d_pendingPops == 0);
+  Assert(d_state.isFullyReady());
 
   AssertionPipeline& ap = d_asserts->getAssertionPipeline();
 
@@ -2568,7 +2571,7 @@ void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
 
-  if (!d_fullyInited)
+  if (!d_state.isFullyInited())
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
     // (see solver execution modes in the SMT-LIB standard)
@@ -2602,7 +2605,7 @@ void SmtEngine::resetAssertions()
 
 void SmtEngine::interrupt()
 {
-  if(!d_fullyInited) {
+  if(!d_state.isFullyInited()) {
     return;
   }
   d_propEngine->interrupt();
@@ -2668,7 +2671,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   // Always check whether the SmtEngine has been initialized (which is done
   // upon entering Assert mode the first time). No option can  be set after
   // initialized.
-  if(d_fullyInited) {
+  if(d_state.isFullyInited()) {
     throw ModalException("SmtEngine::setOption called after initialization.");
   }
   NodeManagerScope nms(d_nodeManager);

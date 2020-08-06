@@ -83,9 +83,15 @@ class SmtEngineState
    */
   void notifyStartParsing(std::string filename);
   /**
-   * Notify that the expected status 
+   * Notify that the expected status of the next check-sat is given by the
+   * string status, which should be one of "sat", "unsat" or "unknown".
    */
   void notifyExpectedStatus(std::string status);
+  /**
+   * Notify that the SmtEngine is fully initialized, which is called when
+   * options are finalized.
+   */
+  void notifyFullyInited();
   /**
    * Notify that we are resetting the assertions, called when a reset-assertions
    * command is issued by the user.
@@ -143,6 +149,25 @@ class SmtEngineState
   //---------------------------- end context management
   
   //---------------------------- queries
+  /**
+   * Return true if the SmtEngine is fully initialized (post-construction).
+   * This post-construction initialization is automatically triggered by the
+   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * to simplify() is issued, a scope is pushed, etc.
+   */
+  bool isFullyInited() const;
+  /**
+   * Return true if the SmtEngine is fully initialized and there are no
+   * pending pops.
+   */
+  bool isFullyReady() const;
+  /** 
+   * Return true if a notifyCheckSat call has been made, e.g. a query has been
+   * issued to the SmtEngine.
+   */
+  bool isQueryMade() const;
+  /** Return the user context level.  */
+  size_t getNumUserLevels() const;
   /** Get the status of the last check-sat */
   Result getStatus() const;
   /** Get the SMT mode we are in */
