@@ -53,7 +53,7 @@ class SmtEngineState
    * Notify that the expected status of the next check-sat is given by the
    * string status, which should be one of "sat", "unsat" or "unknown".
    */
-  void notifyExpectedStatus(std::string status);
+  void notifyExpectedStatus(const std::string& status);
   /**
    * Notify that the SmtEngine is fully initialized, which is called when
    * options are finalized.
@@ -84,7 +84,7 @@ class SmtEngineState
    * Notify that we finished an abduction query, where success is whether the
    * command was successful. This is managed independently of the above
    * calls for notifying check-sat. In other words, if a get-abduct command
-   * is issued to an SmtEngine, it may use a satsisfiability call (if desired)
+   * is issued to an SmtEngine, it may use a satisfiability call (if desired)
    * to solve the abduction query. This method is called *in addition* to
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
    */
@@ -113,7 +113,7 @@ class SmtEngineState
    * Set that the file name of the current instance is the given string. This
    * is used for various purposes (e.g. get-info, SZS status).
    */
-  void setFilename(std::string filename);
+  void setFilename(const std::string& filename);
 
   //---------------------------- context management
   /**
@@ -157,7 +157,7 @@ class SmtEngineState
   /** Get the SMT mode we are in */
   SmtMode getMode() const;
   /** return the input name (if any) */
-  std::string getFilename() const;
+  const std::string& getFilename() const;
   //---------------------------- end queries
 
  private:
