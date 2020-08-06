@@ -34,15 +34,13 @@ SmtEngineState::SmtEngineState(SmtEngine& smt)
 {
 }
 
-void SmtEngineState::notifyExpectedStatus(std::string status)
+void SmtEngineState::notifyExpectedStatus(const std::string& status)
 {
   Assert(status == "sat" || status == "unsat" || status == "unknown")
       << "SmtEngineState::notifyExpectedStatus: unexpected status string "
       << status;
   d_expectedStatus = Result(status, d_filename);
 }
-
-void SmtEngineState::notifyFullyInited() { d_fullyInited = true; }
 
 void SmtEngineState::notifyResetAssertions()
 {
@@ -128,10 +126,22 @@ void SmtEngineState::notifyGetAbduct(bool success)
   }
 }
 
-void SmtEngineState::initialize()
+void SmtEngineState::setup()
 {
   // push a context
   push();
+}
+
+void SmtEngineState::ensureFullyInit()
+{
+  if (d_fullyInited)
+  {
+    // already initialized
+    return;
+  }
+  // notify the SmtEngine to perform its initialization
+  d_smt.notifyFullyInit();
+  d_fullyInited = true; 
 }
 
 void SmtEngineState::shutdown()
@@ -150,7 +160,7 @@ void SmtEngineState::cleanup()
   popto(0);
 }
 
-void SmtEngineState::setFilename(std::string filename)
+void SmtEngineState::setFilename(const std::string& filename)
 {
   d_filename = filename;
 }
@@ -238,7 +248,7 @@ size_t SmtEngineState::getNumUserLevels() const { return d_userLevels.size(); }
 
 SmtMode SmtEngineState::getMode() const { return d_smtMode; }
 
-std::string SmtEngineState::getFilename() const { return d_filename; }
+const std::string& SmtEngineState::getFilename() const { return d_filename; }
 
 void SmtEngineState::internalPush()
 {

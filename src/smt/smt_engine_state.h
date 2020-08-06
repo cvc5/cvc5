@@ -90,10 +90,19 @@ class SmtEngineState
    */
   void notifyGetAbduct(bool success);
   /**
-   * Intialize the context, which makes a single push to maintain a global
+   * Setup the context, which makes a single push to maintain a global
    * context around everything.
    */
-  void initialize();
+  void setup();
+  /** 
+   * Ensure that we are in a fully initialized state. If not yet intialized,
+   * this calls the SmtEngine's notifyFullyInited callback to initialize it.
+   * 
+   * Should be called whenever the final options and logic for the problem are
+   * set (at least, those options that are not permitted to change after
+   * assertions and queries are made).
+   */
+  void ensureFullyInit();
   /**
    * Prepare for a shutdown of the SmtEngine, which does pending pops and
    * pops the user context to zero.
@@ -104,18 +113,18 @@ class SmtEngineState
    */
   void cleanup();
   /**
-   * Do all pending pops, which ensures that the context levels are up-to-date.
-   * This method should be called by the SmtEngine before using any of its
-   * members that rely on the context (e.g. PropEngine or TheoryEngine).
-   */
-  void doPendingPops();
-  /**
    * Set that the file name of the current instance is the given string. This
    * is used for various purposes (e.g. get-info, SZS status).
    */
   void setFilename(const std::string& filename);
 
   //---------------------------- context management
+  /**
+   * Do all pending pops, which ensures that the context levels are up-to-date.
+   * This method should be called by the SmtEngine before using any of its
+   * members that rely on the context (e.g. PropEngine or TheoryEngine).
+   */
+  void doPendingPops();
   /**
    * Called when the user of SmtEngine issues a push. This corresponds to
    * the SMT-LIB command push.

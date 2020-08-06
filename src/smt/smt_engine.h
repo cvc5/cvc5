@@ -966,14 +966,6 @@ class CVC4_PUBLIC SmtEngine
   void checkAbduct(Node a);
 
   /**
-   * This is something of an "init" procedure, but is idempotent; call
-   * as often as you like.  Should be called whenever the final options
-   * and logic for the problem are set (at least, those options that are
-   * not permitted to change after assertions and queries are made).
-   */
-  void finalOptionsAreSet();
-
-  /**
    * Create theory engine, prop engine, decision engine. Called by
    * finalOptionsAreSet()
    */
@@ -1013,6 +1005,11 @@ class CVC4_PUBLIC SmtEngine
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
+  /**
+   * Notify that we should fully initialize this SmtEngine. Called exactly
+   * once by the state during a d_state.ensureFullyInit() call.
+   */
+  void notifyFullyInit();
   /**
    * Notify push pre, which is called just before the user context of the state
    * pushes. This processes all pending assertions.
