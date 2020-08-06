@@ -25,7 +25,7 @@ namespace sets {
 
 class NormalForm {
  public:
-  /** 
+  /**
    * Constructs a set of the form:
    *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
    * from the set { c1 ... cn }, also handles empty set case, which is why
@@ -54,7 +54,7 @@ class NormalForm {
     }
   }
 
-  /** 
+  /**
    * Returns true if n is considered a to be a (canonical) constant set value.
    * A canonical set value is one whose AST is:
    *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
@@ -121,7 +121,7 @@ class NormalForm {
     return false;
   }
 
-  /** 
+  /**
    * Converts a set term to a std::set of its elements. This expects a set of
    * the form:
    *   (union (singleton c1) ... (union (singleton c_{n-1}) (singleton c_n))))
