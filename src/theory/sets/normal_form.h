@@ -121,6 +121,17 @@ class NormalForm {
     ret.insert(n[0]);
     return ret;
   }
+  
+  static Node mkBop( Kind k, std::vector< Node >& els, TypeNode tn, unsigned index = 0 ){
+    if( index>=els.size() ){
+      return NodeManager::currentNM()->mkConst(EmptySet(tn));
+    }else if( index==els.size()-1 ){
+      return els[index];
+    }else{
+      return NodeManager::currentNM()->mkNode( k, els[index], mkBop( k, els, tn, index+1 ) );
+    }
+  }
+
 };
 }
 }

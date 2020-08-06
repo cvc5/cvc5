@@ -1298,7 +1298,6 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
     else
     {
       std::vector<Node> els;
-      std::set<Node> elsSet;
       bool is_base = !d_card_enabled || d_cardSolver->isModelValueBasic(eqc);
       if (is_base)
       {
@@ -1312,7 +1311,6 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
           {
             Node t = nm->mkNode(kind::SINGLETON, itmm.first);
             els.push_back(t);
-            elsSet.insert(itmm.first);
           }
         }
       }
@@ -1322,7 +1320,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
         // cardinality
         d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals, m);
       }
-      Node rep = NormalForm::elementsToSet(elsSet, eqc.getType());
+      Node rep = NormalForm::mkBop(kind::UNION, els, eqc.getType());
       rep = Rewriter::rewrite(rep);
       Trace("sets-model") << "* Assign representative of " << eqc << " to "
                           << rep << std::endl;
