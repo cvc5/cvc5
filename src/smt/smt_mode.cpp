@@ -22,14 +22,14 @@ std::ostream& operator<<(std::ostream& out, SmtMode m)
 {
   switch(m)
   {
-    case SmtMode::START: out <<  "START";
-    case SmtMode::ASSERT: out <<  "ASSERT";
-  case SmtMode::SAT: out <<  "SAT";
-  case SmtMode::SAT_UNKNOWN: out <<  "SAT_UNKNOWN";
-  case SmtMode::UNSAT: out <<  "UNSAT";
-  case SmtMode::ABDUCT: out <<  "ABDUCT";
-  case SmtMode::INTERPOL: out <<  "INTERPOL";
-  default: out << "SmtMode!Unknown";
+    case SmtMode::START: out <<  "START"; break;
+    case SmtMode::ASSERT: out <<  "ASSERT"; break;
+  case SmtMode::SAT: out <<  "SAT"; break;
+  case SmtMode::SAT_UNKNOWN: out <<  "SAT_UNKNOWN"; break;
+  case SmtMode::UNSAT: out <<  "UNSAT"; break;
+  case SmtMode::ABDUCT: out <<  "ABDUCT"; break;
+  case SmtMode::INTERPOL: out <<  "INTERPOL"; break;
+  default: out << "SmtMode!Unknown"; break;
   }
   return out;
 }
