@@ -1109,7 +1109,7 @@ class CVC4_PUBLIC SmtEngine
    * The state of this SmtEngine, which is responsible for maintaining which
    * SMT mode we are in, the contexts, the last result, etc.
    */
-  SmtEngineState d_state;
+  smt::SmtEngineState d_state;
 
   /** Our expression manager */
   ExprManager* d_exprManager;
