@@ -196,7 +196,7 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     DType listColors(d_nm, "ListColors");
     std::shared_ptr<DTypeConstructor> consC = std::make_shared<DTypeConstructor>("cons");
     consC.addArg("car", colorsType.toType());
-    consC.addArg("cdr", DTypeSelfType());
+    consC.addArgSelf("cdr");
     listColors.addConstructor(consC);
     listColors.addConstructor(std::make_shared<DTypeConstructor>("nil"));
     TypeNode listColorsType =
