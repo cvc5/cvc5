@@ -224,7 +224,7 @@ void CvcPrinter::toStream(
         }
         out << ']';
       }
-      else if (dt.isRecord() )
+      else if (dt.isRecord())
       {
         out << "[# ";
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
@@ -1184,7 +1184,7 @@ void DeclareFunctionCommandToStream(std::ostream& out,
   {
     out << tn;
   }
-  Node val = Node::fromExpr(model.getSmtEngine()->getValue(n.toExpr()));
+  Node val = model.getSmtEngine()->getValue(n);
   if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();

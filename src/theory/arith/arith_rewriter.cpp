@@ -229,8 +229,9 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
           if(exp.sgn() == 0){
             return RewriteResponse(REWRITE_DONE, mkRationalNode(Rational(1)));
           }else if(exp.sgn() > 0 && exp.isIntegral()){
-            CVC4::Rational r(INT_MAX);
-            if( exp<r ){
+            CVC4::Rational r(expr::NodeValue::MAX_CHILDREN);
+            if (exp <= r)
+            {
               unsigned num = exp.getNumerator().toUnsignedInt();
               if( num==1 ){
                 return RewriteResponse(REWRITE_AGAIN, base);
@@ -249,8 +250,10 @@ RewriteResponse ArithRewriter::postRewriteTerm(TNode t){
 
         // Todo improve the exception thrown
         std::stringstream ss;
-        ss << "The POW(^) operator can only be used with a natural number ";
-        ss << "in the exponent.  Exception occurred in:" << std::endl;
+        ss << "The exponent of the POW(^) operator can only be a positive "
+              "integral constant below "
+           << (expr::NodeValue::MAX_CHILDREN + 1) << ". ";
+        ss << "Exception occurred in:" << std::endl;
         ss << "  " << t;
         throw LogicException(ss.str());
       }
