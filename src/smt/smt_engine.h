@@ -1035,15 +1035,15 @@ class CVC4_PUBLIC SmtEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
-  void internalPush();
-
-  void internalPop(bool immediate = false);
-
   // --------------------------------------- callbacks from the state
-  void notifyResetSolve() { d_propEngine->resetTrail(); }
-  void notifyPush() { d_propEngine->push(); }
-  void notifyPop() { d_propEngine->pop(); }
-  void notifyPostSolve() { d_theoryEngine->postsolve(); }
+  /** Notify reset solve */
+  void notifyResetSolve();
+  /** Notify push */
+  void notifyPush();
+  /** Notify pop */
+  void notifyPop();
+  /** Notify post solve */
+  void notifyPostSolve();
   // --------------------------------------- end callbacks from the state
 
   /**
