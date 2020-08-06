@@ -99,6 +99,7 @@ class DumpManager;
 class ResourceOutListener;
 class SmtNodeManagerListener;
 class OptionsManager;
+class Preprocessor;
 /** Subsolvers */
 class AbductionSolver;
 /**
@@ -506,7 +507,7 @@ class CVC4_PUBLIC SmtEngine
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Expr simplify(const Expr& e);
+  Node simplify(const Node& e);
 
   /**
    * Expand the definitions in a term or formula.  No other
@@ -524,7 +525,7 @@ class CVC4_PUBLIC SmtEngine
    * @throw ModalException, TypeCheckingException, LogicException,
    *        UnsafeInterruptException
    */
-  Expr getValue(const Expr& e) const;
+  Node getValue(const Node& e) const;
 
   /**
    * Same as getValue but for a vector of expressions
@@ -987,13 +988,6 @@ class CVC4_PUBLIC SmtEngine
   void checkAbduct(Node a);
 
   /**
-   * Postprocess a value for output to the user.  Involves doing things
-   * like turning datatypes back into tuples, length-1-bitvectors back
-   * into booleans, etc.
-   */
-  Node postprocess(TNode n, TypeNode expectedType) const;
-
-  /**
    * This is something of an "init" procedure, but is idempotent; call
    * as often as you like.  Should be called whenever the final options
    * and logic for the problem are set (at least, those options that are
@@ -1051,6 +1045,14 @@ class CVC4_PUBLIC SmtEngine
    * be called when d_logic is updated.
    */
   void setLogicInternal();
+
+  /**
+   * Process the assertions that have been asserted. This moves the set of
+   * assertions that have been buffered into the smt::Assertions object,
+   * preprocesses them, pushes them into the SMT solver, and clears the
+   * buffer.
+   */
+  void processAssertionsInternal();
 
   /**
    * Add to Model command.  This is used for recording a command
@@ -1197,12 +1199,6 @@ class CVC4_PUBLIC SmtEngine
    */
   bool d_needPostsolve;
 
-  /*
-   * Whether to call theory preprocessing during simplification - on
-   * by default* but gets turned off if arithRewriteEq is on
-   */
-  bool d_earlyTheoryPP;
-
   /**
    * Most recent result of last checkSatisfiability/checkEntailed or
    * (set-info :status).
@@ -1247,6 +1243,10 @@ class CVC4_PUBLIC SmtEngine
    * for set default options based on the logic.
    */
   std::unique_ptr<smt::OptionsManager> d_optm;
+  /**
+   * The preprocessor.
+   */
+  std::unique_ptr<smt::Preprocessor> d_pp;
   /**
    * The global scope object. Upon creation of this SmtEngine, it becomes the
    * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,

@@ -249,6 +249,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/preprocessor.cpp
+  smt/preprocessor.h
   smt/preprocess_proof_generator.cpp
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp

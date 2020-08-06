@@ -174,7 +174,7 @@ bool TheoryModel::isModelCoreSymbol(Expr sym) const
 Expr TheoryModel::getValue( Expr expr ) const{
   Node n = Node::fromExpr( expr );
   Node ret = getValue( n );
-  return d_smt.postprocess(ret, TypeNode::fromType(expr.getType())).toExpr();
+  return ret.toExpr();
 }
 
 /** get cardinality for sort */

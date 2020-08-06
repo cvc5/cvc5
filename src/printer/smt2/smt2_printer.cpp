@@ -1455,8 +1455,7 @@ void Smt2Printer::toStream(std::ostream& out,
       // don't print out internal stuff
       return;
     }
-    Node val =
-        Node::fromExpr(theory_model->getSmtEngine()->getValue(n.toExpr()));
+    Node val = theory_model->getSmtEngine()->getValue(n);
     if (val.getKind() == kind::LAMBDA)
     {
       out << "(define-fun " << n << " " << val[0] << " "

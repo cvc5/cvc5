@@ -597,7 +597,7 @@ void CegisCoreConnective::getModel(SmtEngine& smt,
 {
   for (const Node& v : d_vars)
   {
-    Node mv = Node::fromExpr(smt.getValue(v.toExpr()));
+    Node mv = smt.getValue(v);
     Trace("sygus-ccore-model") << v << " -> " << mv << " ";
     vals.push_back(mv);
   }
