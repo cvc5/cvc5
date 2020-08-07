@@ -25,6 +25,7 @@
 #include "api/cvc4cpp.h"
 #include "smt/smt_engine.h"
 #include "expr/expr_manager.h"
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
 #include "expr/node_manager.h"
@@ -709,61 +710,61 @@ class NodeBlack : public CxxTest::TestSuite {
   void testIsConst() {
 
     // more complicated "constants" exist in datatypes and arrays theories
-    DType list(d_nm, "list");
+    DType list("list");
     std::shared_ptr<DTypeConstructor> consC = std::make_shared<DTypeConstructor>("cons");
-    consC->addArg("car", d_nm->integerType());
-    consC->addArg("cdr", DTypeSelfType());
+    consC->addArg("car", d_nodeManager->integerType());
+    consC->addArgSelf("cdr");
     list.addConstructor(consC);
     list.addConstructor(DTypeConstructor("nil"));
-    TypeNode listType = d_nm->mkDatatypeType(list);
+    TypeNode listType = d_nodeManager->mkDatatypeType(list);
     Node cons = listType.getDType().getConstructor("cons");
     Node nil = listType.getDType().getConstructor("nil");
-    Node x = d_nm->mkVar("x", d_nm->integerType());
-    Node cons_x_nil = d_nm->mkNode(APPLY_CONSTRUCTOR, cons, x, d_nm->mkNode(APPLY_CONSTRUCTOR, nil));
-    Node cons_1_nil = d_nm->mkNode(APPLY_CONSTRUCTOR, cons, d_nm->mkConst(Rational(1)), d_nm->mkNode(APPLY_CONSTRUCTOR, nil));
-    Node cons_1_cons_2_nil = d_nm->mkNode(APPLY_CONSTRUCTOR, cons, d_nm->mkConst(Rational(1)), d_nm->mkNode(APPLY_CONSTRUCTOR, cons, d_nm->mkConst(Rational(2)), d_nm->mkNode(APPLY_CONSTRUCTOR, nil)));
-    TS_ASSERT(d_nm->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
+    Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
+    Node cons_x_nil = d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, x, d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
+    Node cons_1_nil = d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, d_nodeManager->mkConst(Rational(1)), d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
+    Node cons_1_cons_2_nil = d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, d_nodeManager->mkConst(Rational(1)), d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, d_nodeManager->mkConst(Rational(2)), d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
+    TS_ASSERT(d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil).isConst());
     TS_ASSERT(!cons_x_nil.isConst());
     TS_ASSERT(cons_1_nil.isConst());
     TS_ASSERT(cons_1_cons_2_nil.isConst());
 
     {
       TypeNode arrType =
-          d_nm->mkArrayType(d_nm->integerType(), d_nm->integerType());
-      Node zero = d_nm->mkConst(Rational(0));
-      Node one = d_nm->mkConst(Rational(1));
-      Node storeAll = d_nm->mkConst(
+          d_nodeManager->mkArrayType(d_nodeManager->integerType(), d_nodeManager->integerType());
+      Node zero = d_nodeManager->mkConst(Rational(0));
+      Node one = d_nodeManager->mkConst(Rational(1));
+      Node storeAll = d_nodeManager->mkConst(
           ArrayStoreAll(arrType, zero));
       TS_ASSERT(storeAll.isConst());
 
-      Node arr = d_nm->mkNode(STORE, storeAll, zero, zero);
+      Node arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
       TS_ASSERT(!arr.isConst());
-      arr = d_nm->mkNode(STORE, storeAll, zero, one);
+      arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
       TS_ASSERT(arr.isConst());
-      Node arr2 = d_nm->mkNode(STORE, arr, one, zero);
+      Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
       TS_ASSERT(!arr2.isConst());
-      arr2 = d_nm->mkNode(STORE, arr, one, one);
+      arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
       TS_ASSERT(arr2.isConst());
-      arr2 = d_nm->mkNode(STORE, arr, zero, one);
+      arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
       TS_ASSERT(!arr2.isConst());
 
       arrType =
-          d_nm->mkArrayType(d_nm->mkBitVectorType(1), d_nm->mkBitVectorType(1));
-      zero = d_nm->mkConst(BitVector(1, unsigned(0)));
-      one = d_nm->mkConst(BitVector(1, unsigned(1)));
-      storeAll = d_nm->mkConst(
+          d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(1), d_nodeManager->mkBitVectorType(1));
+      zero = d_nodeManager->mkConst(BitVector(1, unsigned(0)));
+      one = d_nodeManager->mkConst(BitVector(1, unsigned(1)));
+      storeAll = d_nodeManager->mkConst(
           ArrayStoreAll(arrType, zero));
       TS_ASSERT(storeAll.isConst());
 
-      arr = d_nm->mkNode(STORE, storeAll, zero, zero);
+      arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
       TS_ASSERT(!arr.isConst());
-      arr = d_nm->mkNode(STORE, storeAll, zero, one);
+      arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
       TS_ASSERT(arr.isConst());
-      arr2 = d_nm->mkNode(STORE, arr, one, zero);
+      arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
       TS_ASSERT(!arr2.isConst());
-      arr2 = d_nm->mkNode(STORE, arr, one, one);
+      arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
       TS_ASSERT(!arr2.isConst());
-      arr2 = d_nm->mkNode(STORE, arr, zero, one);
+      arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
       TS_ASSERT(!arr2.isConst());
     }
   }
