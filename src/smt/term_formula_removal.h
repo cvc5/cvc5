@@ -25,7 +25,6 @@
 #include "context/context.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "expr/term_context.h"
 #include "expr/term_conversion_proof_generator.h"
 #include "smt/dump.h"
 #include "theory/eager_proof_generator.h"
@@ -98,7 +97,7 @@ class RemoveTermFormulas {
    * Substitute under node using pre-existing cache.  Do not remove
    * any ITEs not seen during previous runs.
    */
-  Node replace(TNode node) const;
+  Node replace(TNode node, bool inQuant = false, bool inTerm = false) const;
 
   /** Returns true if e contains a term ite. */
   bool containsTermITE(TNode e) const;
@@ -121,11 +120,11 @@ class RemoveTermFormulas {
   static Node getAxiomFor(Node n);
 
  private:
-  typedef context::CDInsertHashMap<
-      std::pair<Node, int32_t>,
-      Node,
-      PairHashFunction<Node, int32_t, NodeHashFunction> >
-      TermFormulaCache;
+  typedef context::
+      CDInsertHashMap<std::pair<Node, int>,
+                      Node,
+                      PairHashFunction<Node, int, NodeHashFunction> >
+          TermFormulaCache;
   /** term formula removal cache
    *
    * This stores the results of term formula removal for inputs to the run(...)
@@ -133,6 +132,9 @@ class RemoveTermFormulas {
    * result of cacheVal below.
    */
   TermFormulaCache d_tfCache;
+
+  /** return the integer cache value for the input flags to run(...) */
+  static inline int cacheVal( bool inQuant, bool inTerm ) { return (inQuant ? 1 : 0) + 2*(inTerm ? 1 : 0); }
 
   /** skolem cache
    *
@@ -161,6 +163,8 @@ class RemoveTermFormulas {
    */
   inline Node getSkolemForNode(Node node) const;
 
+  static bool hasNestedTermChildren( TNode node );
+
   /** A proof node manager */
   std::unique_ptr<ProofNodeManager> d_pnm;
   /**
@@ -172,11 +176,6 @@ class RemoveTermFormulas {
    * this class is responsible for.
    */
   std::unique_ptr<LazyCDProof> d_lp;
-  /**
-   * The remove term formula context, which computes hash values for term
-   * contexts.
-   */
-  RtfTermContext d_rtfc;
 
   /**
    * Removes terms of the form (1), (2), (3) described above from node.
@@ -189,11 +188,11 @@ class RemoveTermFormulas {
    * inTerm is whether we are are processing node in a "term" position, that is, it is a subterm
    *        of a parent term that is not a Boolean connective.
    */
-  Node run(TCtxStack& cxt,
+  Node run(TNode node,
            std::vector<theory::TrustNode>& newAsserts,
-           std::vector<Node>& newSkolems);
-  /** Replace internal */
-  Node replaceInternal(TCtxStack& ctx) const;
+           std::vector<Node>& newSkolems,
+           bool inQuant,
+           bool inTerm);
 
   /** Whether proofs are enabled */
   bool isProofEnabled() const;
