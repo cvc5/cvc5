@@ -34,7 +34,7 @@ namespace quantifiers {
  * F( x ) for free symbol x, and is partitioned into axioms Fa and conjecture Fc
  * then the sygus conjecture we construct is:
  *
- * exists A. forall x. ( (Fa( x ) => A( x )) ^ (A( x ) => Fc( x )) )
+ * (Fa( x ) => A( x )) ^ (A( x ) => Fc( x ))
  *
  * where A( x ) is a predicate over the free symbols of our input that are
  * shared between Fa and Fc. In other words, A( x ) must be implied by our
@@ -71,7 +71,7 @@ class SygusInterpol
   /**
    * Collects symbols from axioms (axioms) and conjecture (conj), which are
    * stored in d_syms, and computes the shared symbols between axioms and
-   * conjecture, stored in d_symsShared.
+   * conjecture, stored in d_symSetShared.
    *
    * @param axioms the assertions (Fa above)
    * @param conj the conjecture (Fc above)
@@ -80,11 +80,11 @@ class SygusInterpol
 
   /**
    * Creates free variables and shared free variables from d_syms and
-   * d_symsShared, which are stored in d_vars and d_varsShared. And also creates
-   * the corresponding set of variables for the formal argument list, which is
-   * stored in d_vlvs and d_vlvsShared. Extracts the types of shared variables,
-   * which are stored in d_varTypesShared. Creates the formal argument list of
-   * the interpol-to-synthesis, stored in d_ibvlShared.
+   * d_symSetShared, which are stored in d_vars and d_varsShared. And also
+   * creates the corresponding set of variables for the formal argument list,
+   * which is stored in d_vlvs and d_vlvsShared. Extracts the types of shared
+   * variables, which are stored in d_varTypesShared. Creates the formal
+   * argument list of the interpol-to-synthese, stored in d_ibvlShared.
    *
    * When using default grammar, the needsShared is true. When using
    * user-defined gramar, the needsShared is false.
@@ -96,17 +96,32 @@ class SygusInterpol
   void createVariables(bool needsShared);
 
   /**
+   * Get include_cons for mkSygusDefaultType.
+   * mkSygusDefaultType() is a function to make default grammar. It has an
+   * arguemnt include_cons, which will restrict what operators we want in the
+   * grammar. The return value depends on options::produceInterpols(). In
+   * ASSUMPTIONS option, it will return the operators from axioms. In CONJECTURE
+   * option, it will return the operators from conj. In SHARED option, it will
+   * return the oprators shared by axioms and conj. In ALL option, it will
+   * return the operators from either axioms or conj.
+   *
+   * @param axioms input argument
+   * @param conj input argument
+   * @param result the return value
+   */
+  void getIncludeCons(
+      const std::vector<Node>& axioms,
+      const Node& conj,
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& result);
+
+  /**
    * Set up the grammar for the interpol-to-synthesis.
    *
    * The user-defined grammar will be encoded by itpGType. The options for
    * grammar is given by options::produceInterpols(). In DEFAULT option, it will
    * set up the grammar from itpGType. And if itpGType is null, it will set up
-   * the default grammar. In ASSUMPTIONS option, it will set up the grammar by
-   * only using the operators from axioms. In CONJECTURE option, it will set up
-   * the grammar by only using the operators from conj. In SHARED option, it
-   * will set up the grammar by only using the operators shared by axioms and
-   * conj. In ALL option, it will set up the grammar by only using the operators
-   * from either axioms or conj.
+   * the default grammar, which is built according to a policy handled by
+   * getIncludeCons().
    *
    * @param itpGType (if non-null) a sygus datatype type that encodes the
    * grammar that should be used for solutions of the interpolation conjecture.
@@ -126,6 +141,8 @@ class SygusInterpol
 
   /**
    * Make the sygus conjecture to be synthesis.
+   * The conjecture body is Fa( x ) => A( x ) ^ A( x ) => Fc( x ) as described
+   * above.
    *
    * @param itp the interpolation predicate.
    * @param axioms the assertions (Fa above)
@@ -165,15 +182,14 @@ class SygusInterpol
    * The logic for the local copy of SMT engine (d_subSolver).
    */
   LogicInfo d_logic;
-
   /**
    * symbols from axioms and conjecture.
    */
   std::vector<Node> d_syms;
   /**
-   * shared symbols between axioms and conjecture.
+   * unordered set for shared symbols between axioms and conjecture.
    */
-  std::vector<Node> d_symsShared;
+  std::unordered_set<Node, NodeHashFunction> d_symSetShared;
   /**
    * free variables created from d_syms.
    */
@@ -183,7 +199,7 @@ class SygusInterpol
    */
   std::vector<Node> d_vlvs;
   /**
-   * free variables created from d_symsShared.
+   * free variables created from d_symSetShared.
    */
   std::vector<Node> d_varsShared;
   /**
