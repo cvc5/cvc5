@@ -25,7 +25,7 @@ int main()
   Solver slv;
 
   // Set the logic
-  slv.setLogic("S");
+  slv.setLogic("QF_SLIA");
   // Produce models
   slv.setOption("produce-models", "true");
   // The option strings-exp is needed

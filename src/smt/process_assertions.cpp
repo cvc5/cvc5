@@ -91,8 +91,9 @@ void ProcessAssertions::spendResource(ResourceManager::Resource r)
   d_resourceManager.spendResource(r);
 }
 
-bool ProcessAssertions::apply(AssertionPipeline& assertions)
+bool ProcessAssertions::apply(Assertions& as)
 {
+  AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
   dumpAssertions("pre-everything", assertions);
@@ -158,7 +159,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
   {
     // global negation of the formula
     d_passes["global-negate"]->apply(&assertions);
-    d_smt.d_globalNegation = !d_smt.d_globalNegation;
+    as.flipGlobalNegated();
   }
 
   if (options::nlExtPurify())

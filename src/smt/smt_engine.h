@@ -93,7 +93,13 @@ namespace prop {
 namespace smt {
 /** Utilities */
 class AbstractValues;
+class Assertions;
+class ExprNames;
+class DumpManager;
+class ResourceOutListener;
+class SmtNodeManagerListener;
 class OptionsManager;
+class Preprocessor;
 /** Subsolvers */
 class AbductionSolver;
 /**
@@ -110,9 +116,6 @@ class SmtScope;
 class ProcessAssertions;
 
 ProofManager* currentProofManager();
-
-struct CommandCleanup;
-typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 
 /* -------------------------------------------------------------------------- */
@@ -145,7 +148,6 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::ProcessAssertions;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
-  friend class ::CVC4::Model;  // to access d_modelCommands
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
 
@@ -409,7 +411,7 @@ class CVC4_PUBLIC SmtEngine
    * Note that the returned set of failed assumptions is not necessarily
    * minimal.
    */
-  std::vector<Expr> getUnsatAssumptions(void);
+  std::vector<Node> getUnsatAssumptions(void);
 
   /*---------------------------- sygus commands  ---------------------------*/
 
@@ -453,7 +455,7 @@ class CVC4_PUBLIC SmtEngine
                        const std::vector<Expr>& vars);
 
   /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(Expr constraint);
+  void assertSygusConstraint(const Node& constraint);
 
   /**
    * Add an invariant constraint.
@@ -505,7 +507,7 @@ class CVC4_PUBLIC SmtEngine
    * @todo (design) is this meant to give an equivalent or an
    * equisatisfiable formula?
    */
-  Expr simplify(const Expr& e);
+  Node simplify(const Node& e);
 
   /**
    * Expand the definitions in a term or formula.  No other
@@ -523,7 +525,7 @@ class CVC4_PUBLIC SmtEngine
    * @throw ModalException, TypeCheckingException, LogicException,
    *        UnsafeInterruptException
    */
-  Expr getValue(const Expr& e) const;
+  Node getValue(const Node& e) const;
 
   /**
    * Same as getValue but for a vector of expressions
@@ -648,10 +650,12 @@ class CVC4_PUBLIC SmtEngine
    * This method invokes a separate copy of the SMT engine for solving the
    * corresponding sygus problem for generating such a solution.
    */
-  bool getInterpol(const Expr& conj, const Type& grammarType, Expr& interpol);
+  bool getInterpol(const Node& conj,
+                   const TypeNode& grammarType,
+                   Node& interpol);
 
   /** Same as above, but without user-provided grammar restrictions */
-  bool getInterpol(const Expr& conj, Expr& interpol);
+  bool getInterpol(const Node& conj, Node& interpol);
 
   /**
    * This method asks this SMT engine to find an abduct with respect to the
@@ -853,16 +857,13 @@ class CVC4_PUBLIC SmtEngine
                         const std::vector<Expr>& expr_values,
                         const std::string& str_value);
 
-  /** Set print function in model. */
-  void setPrintFuncInModel(Expr f, bool p);
-
   /**
    * Get expression name.
    *
    * Return true if given expressoion has a name in the current context.
    * If it returns true, the name of expression 'e' is stored in 'name'.
    */
-  bool getExpressionName(Expr e, std::string& name) const;
+  bool getExpressionName(const Node& e, std::string& name) const;
 
   /**
    * Set name of given expression 'e' to 'name'.
@@ -870,7 +871,7 @@ class CVC4_PUBLIC SmtEngine
    * This information is user-context-dependent.
    * If 'e' already has a name, it is overwritten.
    */
-  void setExpressionName(Expr e, const std::string& name);
+  void setExpressionName(const Node& e, const std::string& name);
 
   /** Get the options object (const and non-const versions) */
   Options& getOptions();
@@ -878,6 +879,9 @@ class CVC4_PUBLIC SmtEngine
 
   /** Get the resource manager of this SMT engine */
   ResourceManager* getResourceManager();
+
+  /** Permit access to the underlying dump manager. */
+  smt::DumpManager* getDumpManager();
 
   /**
    * Get expanded assertions.
@@ -984,26 +988,12 @@ class CVC4_PUBLIC SmtEngine
   void checkAbduct(Node a);
 
   /**
-   * Postprocess a value for output to the user.  Involves doing things
-   * like turning datatypes back into tuples, length-1-bitvectors back
-   * into booleans, etc.
-   */
-  Node postprocess(TNode n, TypeNode expectedType) const;
-
-  /**
    * This is something of an "init" procedure, but is idempotent; call
    * as often as you like.  Should be called whenever the final options
    * and logic for the problem are set (at least, those options that are
    * not permitted to change after assertions and queries are made).
    */
   void finalOptionsAreSet();
-
-  /**
-   * Sets that the problem has been extended. This sets the smt mode of the
-   * solver to SMT_MODE_ASSERT, and clears the list of assumptions from the
-   * previous call to checkSatisfiability.
-   */
-  void setProblemExtended();
 
   /**
    * Create theory engine, prop engine, decision engine. Called by
@@ -1044,14 +1034,6 @@ class CVC4_PUBLIC SmtEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
-  /**
-   * Fully type-check the argument, and also type-check that it's
-   * actually Boolean.
-   *
-   * throw@ TypeCheckingException
-   */
-  void ensureBoolean(const Node& n);
-
   void internalPush();
 
   void internalPop(bool immediate = false);
@@ -1065,6 +1047,14 @@ class CVC4_PUBLIC SmtEngine
   void setLogicInternal();
 
   /**
+   * Process the assertions that have been asserted. This moves the set of
+   * assertions that have been buffered into the smt::Assertions object,
+   * preprocesses them, pushes them into the SMT solver, and clears the
+   * buffer.
+   */
+  void processAssertionsInternal();
+
+  /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */
@@ -1074,10 +1064,10 @@ class CVC4_PUBLIC SmtEngine
                                 const char* dumpTag = "declarations");
 
   /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Expr& assumption,
+  Result checkSatisfiability(const Node& assumption,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Expr>& assumptions,
+  Result checkSatisfiability(const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
 
@@ -1122,6 +1112,16 @@ class CVC4_PUBLIC SmtEngine
   NodeManager* d_nodeManager;
   /** Abstract values */
   std::unique_ptr<smt::AbstractValues> d_absValues;
+  /** Assertions manager */
+  std::unique_ptr<smt::Assertions> d_asserts;
+  /** Expression names */
+  std::unique_ptr<smt::ExprNames> d_exprNames;
+  /** The dump manager */
+  std::unique_ptr<smt::DumpManager> d_dumpm;
+  /** Resource out listener */
+  std::unique_ptr<smt::ResourceOutListener> d_routListener;
+  /** Node manager listener */
+  std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
@@ -1144,53 +1144,10 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
-
-  /**
-   * The assertion list (before any conversion) for supporting
-   * getAssertions().  Only maintained if in incremental mode.
-   */
-  AssertionList* d_assertionList;
-
-  /**
-   * List of lemmas generated for global recursive function definitions. We
-   * assert this list of definitions in each check-sat call.
-   */
-  std::unique_ptr<std::vector<Node>> d_globalDefineFunRecLemmas;
-
-  /**
-   * The list of assumptions from the previous call to checkSatisfiability.
-   * Note that if the last call to checkSatisfiability was an entailment check,
-   * i.e., a call to checkEntailed(a1, ..., an), then d_assumptions contains
-   * one single assumption ~(a1 AND ... AND an).
-   */
-  std::vector<Expr> d_assumptions;
-
   /**
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
-
-  /**
-   * A list of commands that should be in the Model globally (i.e.,
-   * regardless of push/pop).  Only maintained if produce-models option
-   * is on.
-   */
-  std::vector<Command*> d_modelGlobalCommands;
-
-  /**
-   * A list of commands that should be in the Model locally (i.e.,
-   * it is context-dependent on push/pop).  Only maintained if
-   * produce-models option is on.
-   */
-  smt::CommandList* d_modelCommands;
-
-  /**
-   * A vector of declaration commands waiting to be dumped out.
-   * Once the SmtEngine is fully initialized, we'll dump them.
-   * This ensures the declarations come after the set-logic and
-   * any necessary set-option commands are dumped.
-   */
-  std::vector<Command*> d_dumpCommands;
 
   /**
    * A vector of command definitions to be imported in the new
@@ -1242,17 +1199,6 @@ class CVC4_PUBLIC SmtEngine
    */
   bool d_needPostsolve;
 
-  /*
-   * Whether to call theory preprocessing during simplification - on
-   * by default* but gets turned off if arithRewriteEq is on
-   */
-  bool d_earlyTheoryPP;
-
-  /*
-   * Whether we did a global negation of the formula.
-   */
-  bool d_globalNegation;
-
   /**
    * Most recent result of last checkSatisfiability/checkEntailed or
    * (set-info :status).
@@ -1297,6 +1243,10 @@ class CVC4_PUBLIC SmtEngine
    * for set default options based on the logic.
    */
   std::unique_ptr<smt::OptionsManager> d_optm;
+  /**
+   * The preprocessor.
+   */
+  std::unique_ptr<smt::Preprocessor> d_pp;
   /**
    * The global scope object. Upon creation of this SmtEngine, it becomes the
    * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,

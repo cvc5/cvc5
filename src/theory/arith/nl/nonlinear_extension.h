@@ -19,12 +19,14 @@
 #define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
 #include <stdint.h>
+
 #include <map>
 #include <vector>
 
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
@@ -314,6 +316,8 @@ class NonlinearExtension
    * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+  /** The CAD-based solver */
+  CadSolver d_cadSlv;
   /** The integer and solver
    *
    * This is the subsolver responsible for running the procedure for
