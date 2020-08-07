@@ -37,8 +37,23 @@ namespace theory {
  *
  * This class computes a relevant selection of the current assertion stack
  * at FULL effort with respect to the input formula + theory lemmas that are
- * critical to justify (see LemmaProperty::NEEDS_JUSTIFY). As an example
- * of the latter, notice that
+ * critical to justify (see LemmaProperty::NEEDS_JUSTIFY). By default, theory
+ * lemmas are not critical to justify; in fact, all T-valid theory lemmas
+ * are not critical to justify, since they are guaranteed to be satisfied in
+ * all inputs. However, some theory lemmas that introduce skolems need
+ * justification.
+ * 
+ * As an example of such a lemma, take the example input formula:
+ *   (and (exists ((x Int)) (P x)) (not (P 0)))
+ * A skolemization lemma like the following needs justification:
+ *   (=> (exists ((x Int)) (P x)) (P k))
+ * Intuitively, this is because the satisfiability of the existential above is
+ * being deferred to the satisfiability of (P k) where k is fresh. Thus,
+ * a relevant selection must include both (exists ((x Int)) (P x)) and (P k)
+ * in this example.
+ *
+ * Theories are responsible for marking such lemmas using the NEEDS_JUSTIFY
+ * property when calling OutputChannel::lemma.
  *
  * Internally, it stores the input assertions and can be asked if an asserted
  * literal is part of the current relevant selection. The relevant selection
