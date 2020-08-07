@@ -90,6 +90,7 @@ PR finished:
 (38) quantifiers proof checker (req 8)
 (39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
+(45) regexp operation refactor (req 3, 7, 8)
 (48) remove snorm option
 (49) re elim static
 (50) term formula removal proof producing (req 36, 38, 51, 64)
@@ -106,13 +107,14 @@ PR finished:
 PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
-(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 65)
-(45) regexp operation refactor (req 3, 7, 8) *
-(52) theory preprocess proof producing (req 27, 48, 51, 50)
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65)
+(42) Strings proof checker (req 5, 17, 22, 45, 65)
 (70) rewriter unit test [Andres] (req 36, 37)
 (72) witness form proof generator *
 (73) ProofNode print ast
-(74) identify/misc refactoring *
+(74) extend interface to proof generator *
+(75) extend interface to proof checker for trusted checkers
+(76) further generalization of eq_proof conversion [Haniel]
 
 PRs future:
 
@@ -120,11 +122,11 @@ PRs future:
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (41) SharedTermDatabase uses pfee (req 24)
-(42) Strings proof checker (req 5, 17, 22, 45, 65)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
 (46) strings term registry proof producing (req 32, 35, 65)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
+(52) theory preprocess proof producing (req 27, 48, 51, 50)
 (53) CNF proof producing [Haniel]
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
@@ -134,9 +136,14 @@ PRs future:
 (68) SAT solver proof producing [Haniel]
 (69) Initial dumping infrastructure [Haniel]
 (71) quantifiers proof producing (req 38, 52)
+(77) update rule for CONG (req 76)
+(80) update term formula removal to use term context (req 79)
+(81) generalize TConvProofGenerator for term contexts
 
 PRs wish list:
 
+(78) term context core utilities
+(79) term context extended utilities (req 78)
 - SEXPR simply typed
 (56) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 - Proof kinds infrastructure?

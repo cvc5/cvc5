@@ -74,9 +74,8 @@ bool ProofEqEngine::assertAssume(TNode lit)
       // up using (= P true) in a roundabout way (through two redundant steps),
       // but regardless this allows the core proof utilities (EqProof
       // conversion, proof equality engine, lazy proof, etc.) to be unconcerned
-      // with this case. In particular, SharedTermsDatabase is the only class
-      // that asserts unrewritten equalities between Boolean terms to its
-      // equality engine.
+      // with this case. Multiple users of the proof equality engine
+      // (SharedTermDatabase and TheoryArrays) require this special case.
       if (atom[0].getKind() == kind::CONST_BOOLEAN
           || atom[1].getKind() == kind::CONST_BOOLEAN)
       {
