@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of relevance manager
+ ** \brief Implementation of relevance manager.
  **/
 
 #include "theory/relevance_manager.h"
@@ -105,6 +105,41 @@ void RelevanceManager::computeRelevance()
   Trace("rel-manager") << "...success, size = " << d_rset.size() << std::endl;
   d_success = true;
 }
+
+// iterative?
+/*
+int RelevanceManager::justify(
+    TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+{
+  std::unordered_map<TNode, size_t, TNodeHashFunction> visited;
+  std::unordered_map<TNode, size_t, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  Kind k;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+    k = cur.getKind();
+    if (it == visited.end()) {
+      if (k==NOT || k==IMPLIES || k==AND || k==OR || k==ITE || k==XOR || (k==EQUAL && cur[0].getType().isBoolean()))
+      {
+        visited[cur] = 0;
+        visit.push_back(cur);
+        visit.insert(visit.end(),cur.begin(),cur.end());
+      }
+    }
+    else if( !it->second<cur.getNumChildren() )
+    {
+      size_t currChild = it->second;
+      // we are getting notified of the result of the index^th child.
+      
+      visited[cur] = true;
+    }
+  } while (!visit.empty());
+}
+*/
 
 int RelevanceManager::justify(
     TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)

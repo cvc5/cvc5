@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Relevance manager
+ ** \brief Relevance manager.
  **/
 
 #include "cvc4_private.h"
@@ -55,10 +55,17 @@ namespace theory {
  * Theories are responsible for marking such lemmas using the NEEDS_JUSTIFY
  * property when calling OutputChannel::lemma.
  *
- * Internally, it stores the input assertions and can be asked if an asserted
- * literal is part of the current relevant selection. The relevant selection
- * is computed lazily, i.e. only when someone asks if a literal is relevant,
- * and only at most once per FULL effort check.
+ * Notice that this class has some relation to the justification decision
+ * heuristic (--decision=justification), which constructs a relevant selection
+ * of the input formula by construction. This class is orthogonal to this
+ * method, since it computes relevant selection *after* a full assignment. Thus
+ * its main advantage with respect to decision=justification is that it can be
+ * used in combination with any SAT decision heuristic.
+ *
+ * Internally, this class stores the input assertions and can be asked if an
+ * asserted literal is part of the current relevant selection. The relevant
+ * selection is computed lazily, i.e. only when someone asks if a literal is
+ * relevant, and only at most once per FULL effort check.
  */
 class RelevanceManager
 {
@@ -67,8 +74,9 @@ class RelevanceManager
  public:
   RelevanceManager(context::UserContext* userContext, Valuation val);
   /**
-   * Notify (preprocessed) assertions. This is called for assertions that
-   * are
+   * Notify (preprocessed) assertions. This is called for input formulas or
+   * lemmas that need justification that have been fully processed, just before
+   * adding them to the PropEngine.
    */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
   /** Singleton version of above */
@@ -89,8 +97,12 @@ class RelevanceManager
   /** compute the relevant selection */
   void computeRelevance();
   /**
-   * Justify formula n, return 1 means we justified it to be true, -1 means
-   * justified it to be false, 0 means it was not justified.
+   * Justify formula n. To "justify" means we have added literals to our
+   * relevant selection set (d_rset) whose current values ensure that n
+   * evaluates to true or false. 
+   *
+   * This method returns 1 if we justified n to be true, -1 means
+   * justified n to be false, 0 means n could not be justified.
    */
   int justify(TNode n,
               std::unordered_map<TNode, int, TNodeHashFunction>& cache);
