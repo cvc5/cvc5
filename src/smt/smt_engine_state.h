@@ -198,24 +198,27 @@ class SmtEngineState
   unsigned d_pendingPops;
 
   /**
-   * Whether or not this SmtEngine is fully initialized (post-construction).
+   * Whether or not the SmtEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when the first formula is asserted, a call
-   * to simplify() is issued, a scope is pushed, etc.
+   * use of the SmtEngine which calls the finishInit method above; e.g. when
+   * the first formula is asserted, a call to simplify() is issued, a scope is
+   * pushed, etc.
    */
   bool d_fullyInited;
 
   /**
-   * Whether or not a checkEntailed() or checkSatisfiability() has already been
-   * made through this SmtEngine.  If true, and incrementalSolving is false,
-   * then attempting an additional checkEntailed() or checkSat() will fail with
+   * Whether or not a notifyCheckSat call has been made, which corresponds to
+   * when a checkEntailed() or checkSatisfiability() has already been
+   * made through the SmtEngine.  If true, and incrementalSolving is false,
+   * then attempting an additional checks for satisfiability will fail with
    * a ModalException.
    */
   bool d_queryMade;
 
   /**
-   * Internal status flag to indicate whether we've sent a theory
-   * presolve() notification and need to match it with a postsolve().
+   * Internal status flag to indicate whether we have been issued a
+   * notifyCheckSat call and have yet to process the "postsolve" methods of
+   * SmtEngine via SmtEngine::notifyPostSolvePre/notifyPostSolvePost.
    */
   bool d_needPostsolve;
 
