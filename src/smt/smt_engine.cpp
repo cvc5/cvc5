@@ -927,7 +927,7 @@ Result SmtEngine::check() {
 
   Trace("smt") << "SmtEngine::check()" << endl;
 
-  std::string filename = d_state->getFilename();
+  const std::string& filename = d_state->getFilename();
   if (d_resourceManager->out())
   {
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
@@ -959,7 +959,7 @@ Result SmtEngine::check() {
 Result SmtEngine::quickCheck() {
   Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
-  std::string filename = d_state->getFilename();
+  const std::string& filename = d_state->getFilename();
   return Result(
       Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
