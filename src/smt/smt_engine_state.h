@@ -73,7 +73,8 @@ class SmtEngineState
   void notifyCheckSat(bool hasAssumptions);
   /**
    * Notify that the result of the last check-sat was r. This should be called
-   * once immediately following notifyCheckSat().
+   * once immediately following notifyCheckSat() if the check-sat call
+   * returned normal (i.e. it was not interupted).
    *
    * @param hasAssumptions Whether the prior call to check-sat had assumptions.
    * If so, we pop a context.

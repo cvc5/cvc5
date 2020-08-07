@@ -1201,6 +1201,10 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     return r;
   } catch (UnsafeInterruptException& e) {
     AlwaysAssert(d_resourceManager->out());
+    // Notice that we do not notify the state of this result. If we wanted to
+    // make the solver resume a working state after an interupt, then we would
+    // implement a different callback and use it here, e.g.
+    // d_state.notifyCheckSatInterupt.
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
