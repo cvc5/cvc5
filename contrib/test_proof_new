@@ -1,0 +1,35 @@
+#!/bin/bash
+echo "Testing proof-new..."
+
+echo > results__summary.txt
+echo > results__summary_short.txt
+
+function testwith {
+  TESTNAME=$1
+  shift
+  echo "Run [$TESTNAME]: make regress CVC4_REGRESSION_ARGS=$@"
+  CARGS="$@"
+  make regress CVC4_REGRESSION_ARGS="$CARGS" >& results_$TESTNAME.txt
+  cat results_$TESTNAME.txt | grep "(Failed)" > temp.txt
+  NUMFAILS=$(cat temp.txt | wc -l)
+  cat results_$TESTNAME.txt | grep " Test " > temp2.txt
+  NUMTESTS=$(cat temp2.txt | wc -l)
+  echo "Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed"
+  echo "Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed" >> results__summary.txt
+  echo "Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed" >> results__summary_short.txt
+  # also add to test
+  cat temp.txt
+  cat temp.txt >> results__summary.txt
+  rm temp.txt
+  rm temp2.txt
+}
+
+testwith default
+testwith eager_checking --proof-new-eager-checking
+testwith check_proofs --check-proofs-new
+testwith check_proofs_p1 --check-proofs-new --proof-new-pedantic=1
+testwith check_proofs_p10 --check-proofs-new --proof-new-pedantic=10
+testwith check_proofs_fail --check-proofs-new --check-proofs-new-fail
+
+echo "Summary of results:"
+cat results__summary_short.txt

@@ -153,7 +153,14 @@ header = "options/smt_options.h"
   category   = "regular"
   long       = "check-proofs-new"
   type       = "bool"
-  help       = "after UNSAT/VALID, machine-check the generated proof (with proof-new)"
+  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
+
+[[option]]
+  name       = "checkProofsNewFail"
+  category   = "regular"
+  long       = "check-proofs-new-fail"
+  type       = "bool"
+  help       = "always fail when checking proofs, this is a dummy option to see how often check-proofs-new is invoked"
 
 [[option]]
   name       = "dumpProofs"

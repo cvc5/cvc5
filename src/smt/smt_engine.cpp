@@ -1242,6 +1242,11 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     if (options::checkProofs() || options::checkProofsNew())
     {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+        if (options::checkProofsNew() && !options::proofNew())
+        {
+          throw ModalException(
+              "Cannot check-proofs-new because proof-new was disabled.");
+        }
         checkProof();
       }
     }
@@ -1856,6 +1861,11 @@ void SmtEngine::checkProof()
 {
   if (options::proofNew())
   {
+    // TEMPORARY for testing
+    if (options::checkProofsNewFail())
+    {
+      AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
+    }
     // internal check the proof
     Assert(d_propEngine->getProof() != nullptr);
     d_pfManager->checkProof(d_propEngine->getProof(), *d_asserts);

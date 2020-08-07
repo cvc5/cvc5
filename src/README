@@ -9,7 +9,7 @@ ProofChecker <=> TypeChecker
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_checker.h
 ProofNodeManager <=> NodeManager
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof_node_manager.h
-CDProof
+CDProof <=> NodeBuilder
 https://github.com/ajreynol/CVC4/blob/stringsPf/src/expr/proof.h
 
 ProofGenerator
