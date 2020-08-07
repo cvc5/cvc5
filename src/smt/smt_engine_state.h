@@ -220,8 +220,7 @@ class SmtEngineState
   bool d_needPostsolve;
 
   /**
-   * Most recent result of last checkSatisfiability/checkEntailed or
-   * (set-info :status).
+   * Most recent result of last checkSatisfiability/checkEntailed.
    */
   Result d_status;
 

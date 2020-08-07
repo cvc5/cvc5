@@ -22,8 +22,8 @@ namespace smt {
 
 SmtEngineState::SmtEngineState(SmtEngine& smt)
     : d_smt(smt),
-      d_context(new context::Context),
-      d_userContext(new context::UserContext),
+      d_context(new context::Context()),
+      d_userContext(new context::UserContext()),
       d_pendingPops(0),
       d_fullyInited(false),
       d_queryMade(false),
@@ -98,17 +98,11 @@ void SmtEngineState::notifyCheckSatResult(bool hasAssumptions, Result r)
   // clear expected status
   d_expectedStatus = Result();
   // Update the SMT mode
-  if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  switch (d_status.asSatisfiabilityResult().isSat())
   {
-    d_smtMode = SmtMode::UNSAT;
-  }
-  else if (d_status.asSatisfiabilityResult().isSat() == Result::SAT)
-  {
-    d_smtMode = SmtMode::SAT;
-  }
-  else
-  {
-    d_smtMode = SmtMode::SAT_UNKNOWN;
+    case Result::UNSAT: d_smtMode = SmtMode::UNSAT; break;
+    case Result::SAT: d_smtMode = SmtMode::SAT; break;
+    default: d_smtMode = SmtMode::SAT_UNKNOWN;
   }
 }
 
@@ -173,7 +167,7 @@ void SmtEngineState::userPush()
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
-  Trace("userpushpop") << "SmtEngine: pushed to level "
+  Trace("userpushpop") << "SmtEngineState: pushed to level "
                        << d_userContext->getLevel() << std::endl;
 }
 
@@ -247,7 +241,7 @@ const std::string& SmtEngineState::getFilename() const { return d_filename; }
 void SmtEngineState::internalPush()
 {
   Assert(d_fullyInited);
-  Trace("smt") << "SmtEngine::internalPush()" << std::endl;
+  Trace("smt") << "SmtEngineState::internalPush()" << std::endl;
   doPendingPops();
   if (options::incrementalSolving())
   {
@@ -262,7 +256,7 @@ void SmtEngineState::internalPush()
 void SmtEngineState::internalPop(bool immediate)
 {
   Assert(d_fullyInited);
-  Trace("smt") << "SmtEngine::internalPop()" << std::endl;
+  Trace("smt") << "SmtEngineState::internalPop()" << std::endl;
   if (options::incrementalSolving())
   {
     ++d_pendingPops;
@@ -275,7 +269,7 @@ void SmtEngineState::internalPop(bool immediate)
 
 void SmtEngineState::doPendingPops()
 {
-  Trace("smt") << "SmtEngine::doPendingPops()" << std::endl;
+  Trace("smt") << "SmtEngineState::doPendingPops()" << std::endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
   // check to see if a postsolve() is pending
   if (d_needPostsolve)

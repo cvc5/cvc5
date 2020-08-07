@@ -520,7 +520,7 @@ void SmtEngine::notifyStartParsing(std::string filename)
   d_originalOptions.copyValues(d_options);
 }
 
-std::string SmtEngine::getFilename() const { return d_state->getFilename(); }
+const std::string& SmtEngine::getFilename() const { return d_state->getFilename(); }
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
@@ -689,7 +689,7 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
     Result status = d_state->getStatus();
     if (!status.isNull() && status.isUnknown())
     {
-      stringstream ss;
+      std::stringstream ss;
       ss << status.whyUnknown();
       string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
@@ -1171,7 +1171,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       Trace("smt") << "SmtEngine::global negate returned " << r << std::endl;
     }
 
-    // update our state the based on the result of the check-sat
+    // notify our state of the check-sat result
     d_state->notifyCheckSatResult(hasAssumptions, r);
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
@@ -2505,7 +2505,7 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   }
 }
 
-vector<Expr> SmtEngine::getAssertions() {
+std::vector<Expr> SmtEngine::getAssertions() {
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
@@ -2670,7 +2670,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
   SmtScope smts(this);
   finishInit();
   std::vector<Node> node_values;
-  for( unsigned i=0; i<expr_values.size(); i++ ){
+  for( std::size_t i=0, n = expr_values.size(); i<n; i++ ){
     node_values.push_back( expr_values[i].getNode() );
   }
   d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
