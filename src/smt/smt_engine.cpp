@@ -288,9 +288,20 @@ context::Context* SmtEngine::getContext() { return d_state->getContext(); }
 
 void SmtEngine::finishInit()
 {
-  // Notice that finishInit is called when options are finalized. If we are
-  // parsing smt2, this occurs at the moment we enter "Assert mode", page 52
+  if (d_state->isFullyInited())
+  {
+    // already initialized, return
+    return;
+  }
+  
+  // Notice that finishInitInternal is called when options are finalized. If we
+  // are parsing smt2, this occurs at the moment we enter "Assert mode", page 52
   // of SMT-LIB 2.6 standard.
+  
+  // set the logic
+  if(! d_logic.isLocked()) {
+    setLogicInternal();
+  }
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());
@@ -371,22 +382,16 @@ void SmtEngine::finishInit()
       }
     });
   d_pp->finishInit();
-  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
-}
-
-void SmtEngine::notifyFullyInit() {
-  if(! d_logic.isLocked()) {
-    setLogicInternal();
-  }
-
-  // finish initialization, create the prop engine, etc.
-  finishInit();
-
+  
   AlwaysAssert(d_propEngine->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SmtEngine "
          "hasn't finished initializing!";
 
   Assert(d_logic.isLocked());
+  
+  // store that we are finished initializing
+  d_state->finishInit();
+  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
 void SmtEngine::shutdown() {
@@ -764,7 +769,7 @@ void SmtEngine::defineFunction(Expr func,
                                bool global)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   debugCheckFormals(formals, func);
@@ -818,7 +823,7 @@ void SmtEngine::defineFunctionsRec(
     bool global)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
 
@@ -1122,7 +1127,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
   try
   {
     SmtScope smts(this);
-    d_state->ensureFullyInit();
+    finishInit();
     d_state->doPendingPops();
 
     Trace("smt") << "SmtEngine::"
@@ -1219,7 +1224,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions unless immediately preceded by "
         "UNSAT/ENTAILED.");
   }
-  d_state->ensureFullyInit();
+  finishInit();
   if (Dump.isOn("benchmark"))
   {
     Dump("benchmark") << GetUnsatAssumptionsCommand();
@@ -1240,7 +1245,7 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
 Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
 
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
@@ -1265,7 +1270,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
@@ -1277,7 +1282,7 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
                                         Type type)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
@@ -1292,7 +1297,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 const std::vector<Expr>& vars)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   Node fn = Node::fromExpr(func);
   d_private->d_sygusFunSymbols.push_back(fn);
@@ -1324,7 +1329,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
 void SmtEngine::assertSygusConstraint(const Node& constraint)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
@@ -1339,7 +1344,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
                                          const Expr& post)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   // build invariant constraint
 
   // get variables (regular and their respective primed versions)
@@ -1483,7 +1488,7 @@ Result SmtEngine::checkSynth()
 Node SmtEngine::simplify(const Node& ex)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   // ensure we've processed assertions
   processAssertionsInternal();
@@ -1495,7 +1500,7 @@ Node SmtEngine::expandDefinitions(const Node& ex)
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   // set expandOnly flag to true
   return d_pp->expandDefinitions(ex, true);
@@ -1569,7 +1574,7 @@ vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
 
 bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(Node::fromExpr(ex));
@@ -1604,7 +1609,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
 {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssignmentCommand();
   }
@@ -1664,7 +1669,7 @@ Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
-  d_state->ensureFullyInit();
+  finishInit();
 
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetModelCommand();
@@ -1694,7 +1699,7 @@ Result SmtEngine::blockModel()
   Trace("smt") << "SMT blockModel()" << endl;
   SmtScope smts(this);
 
-  d_state->ensureFullyInit();
+  finishInit();
 
   if (Dump.isOn("benchmark"))
   {
@@ -1722,7 +1727,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   Trace("smt") << "SMT blockModelValues()" << endl;
   SmtScope smts(this);
 
-  d_state->ensureFullyInit();
+  finishInit();
 
   PrettyCheckArgument(
       !exprs.empty(),
@@ -2272,7 +2277,7 @@ void SmtEngine::checkAbduct(Node a)
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
@@ -2284,7 +2289,7 @@ const Proof& SmtEngine::getProof()
 {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetProofCommand();
   }
@@ -2307,7 +2312,7 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
     out << "% SZS output start Proof for " << d_state->getFilename()
@@ -2326,7 +2331,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
   }else{
@@ -2337,7 +2342,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   std::map<Node, std::map<Node, Node>> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   // fail if the theory engine does not have synthesis solutions
@@ -2358,7 +2363,7 @@ bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
@@ -2499,7 +2504,7 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
 
 vector<Expr> SmtEngine::getAssertions() {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssertionsCommand();
@@ -2524,7 +2529,7 @@ vector<Expr> SmtEngine::getAssertions() {
 void SmtEngine::push()
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   processAssertionsInternal();
@@ -2536,7 +2541,7 @@ void SmtEngine::push()
 
 void SmtEngine::pop() {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   Trace("smt") << "SMT pop()" << endl;
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PopCommand();
@@ -2660,7 +2665,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
-  d_state->ensureFullyInit();
+  finishInit();
   std::vector<Node> node_values;
   for( unsigned i=0; i<expr_values.size(); i++ ){
     node_values.push_back( expr_values[i].getNode() );

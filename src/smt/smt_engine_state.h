@@ -46,6 +46,7 @@ namespace smt {
  */
 class SmtEngineState
 {
+  friend class SmtEngine; // for access to d_fullyInited
  public:
   SmtEngineState(SmtEngine& smt);
   ~SmtEngineState() {}
@@ -95,14 +96,9 @@ class SmtEngineState
    */
   void setup();
   /** 
-   * Ensure that we are in a fully initialized state. If not yet intialized,
-   * this calls the SmtEngine's notifyFullyInited callback to initialize it.
-   * 
-   * Should be called whenever the final options and logic for the problem are
-   * set (at least, those options that are not permitted to change after
-   * assertions and queries are made).
+   * Set that we are in a fully initialized state.
    */
-  void ensureFullyInit();
+  void finishInit();
   /**
    * Prepare for a shutdown of the SmtEngine, which does pending pops and
    * pops the user context to zero.

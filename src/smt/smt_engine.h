@@ -168,11 +168,26 @@ class CVC4_PUBLIC SmtEngine
   ~SmtEngine();
 
   //--------------------------------------------- concerning the state
+
   /**
-   * Return true if this SmtEngine is fully initialized (post-construction).
+   * This is the main initialization procedure of the SmtEngine.
+   * 
+   * Should be called whenever the final options and logic for the problem are
+   * set (at least, those options that are not permitted to change after
+   * assertions and queries are made).
+   * 
+   * Internally, this creates the theory engine, prop engine, decision engine,
+   * and other utilities whose initialization depends on the final set of
+   * options being set.
+   * 
    * This post-construction initialization is automatically triggered by the
    * use of the SmtEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
+   */
+  void finishInit();
+  /**
+   * Return true if this SmtEngine is fully initialized (post-construction)
+   * by the above call.
    */
   bool isFullyInited() const;
   /**
@@ -966,12 +981,6 @@ class CVC4_PUBLIC SmtEngine
   void checkAbduct(Node a);
 
   /**
-   * Create theory engine, prop engine, decision engine. Called by
-   * finalOptionsAreSet()
-   */
-  void finishInit();
-
-  /**
    * This is called by the destructor, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues
@@ -1005,11 +1014,6 @@ class CVC4_PUBLIC SmtEngine
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
   // --------------------------------------- callbacks from the state
-  /**
-   * Notify that we should fully initialize this SmtEngine. Called exactly
-   * once by the state during a d_state.ensureFullyInit() call.
-   */
-  void notifyFullyInit();
   /**
    * Notify push pre, which is called just before the user context of the state
    * pushes. This processes all pending assertions.

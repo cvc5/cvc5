@@ -132,15 +132,9 @@ void SmtEngineState::setup()
   push();
 }
 
-void SmtEngineState::ensureFullyInit()
+void SmtEngineState::finishInit()
 {
-  if (d_fullyInited)
-  {
-    // already initialized
-    return;
-  }
-  // notify the SmtEngine to perform its initialization
-  d_smt.notifyFullyInit();
+  // set the flag to remember that we are fully initialized
   d_fullyInited = true; 
 }
 
