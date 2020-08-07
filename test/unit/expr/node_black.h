@@ -30,6 +30,7 @@
 #include "expr/node_manager.h"
 #include "expr/node_value.h"
 #include "smt/smt_engine.h"
+#include "theory/rewriter.h"
 #include "test_utils.h"
 
 using namespace CVC4;
@@ -761,6 +762,8 @@ class NodeBlack : public CxxTest::TestSuite {
       Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
       TS_ASSERT(!arr2.isConst());
       arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+      // must rewrite since we are not guaranteed to be a constant prior to rewriting
+      arr2 = theory::Rewriter::rewrite(arr2);
       TS_ASSERT(arr2.isConst());
       arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
       TS_ASSERT(!arr2.isConst());

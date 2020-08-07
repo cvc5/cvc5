@@ -70,7 +70,7 @@ void DTypeConstructor::addArgSelf(std::string selectorName)
   addArg(a);
 }
 
-std::string DTypeConstructor::getName() const { return d_name; }
+const std::string& DTypeConstructor::getName() const { return d_name; }
 
 Node DTypeConstructor::getConstructor() const
 {
@@ -577,6 +577,12 @@ bool DTypeConstructor::resolve(
     arg->d_selector.setAttribute(DTypeIndexAttr(), index++);
     arg->d_resolved = true;
     argTypes.push_back(range);
+    // We use \0 as a distinguished marker for unresolved selectors for doing
+    // name resolutions. We now can remove \0 from name if necessary.
+    const size_t nul = arg->d_name.find('\0');
+    if(nul != std::string::npos) {
+      arg->d_name.resize(nul);
+    }
   }
 
   Assert(index == getNumArgs());

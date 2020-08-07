@@ -26,7 +26,7 @@ DTypeSelector::DTypeSelector(std::string name, Node selector)
   Assert(name != "");
 }
 
-std::string DTypeSelector::getName() const { return d_name; }
+const std::string& DTypeSelector::getName() const { return d_name; }
 
 Node DTypeSelector::getSelector() const
 {

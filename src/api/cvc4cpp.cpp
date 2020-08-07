@@ -2302,8 +2302,18 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
       break;
     }
   }
-  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
-                           << getName() << " exists";
+  if (!foundSel)
+  {
+    std::stringstream snames;
+    snames << "{ ";
+    for (size_t i = 0, ncons = getNumSelectors(); i < ncons; i++)
+    {
+      snames << (*d_ctor)[i].getName() << " ";
+    }
+    snames << "} ";
+    CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
+                            << getName() << " exists among " << snames.str();
+  }
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
 }
 
@@ -2397,9 +2407,20 @@ DatatypeConstructor Datatype::getConstructorForName(
       foundCons = true;
       break;
     }
+  }  
+  if (!foundCons)
+  {
+    std::stringstream snames;
+    snames << "{ ";
+    for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+    {
+      snames << (*d_dtype)[i].getName() << " ";
+    }
+    snames << "}";
+    CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+                              << getName() << " exists, among " << snames.str();
+      
   }
-  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
-                            << getName() << " exists";
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
 }
 
