@@ -54,11 +54,7 @@ TermRegistry::TermRegistry(SolverState& s,
       d_proxyVar(s.getUserContext()),
       d_proxyVarToLength(s.getUserContext()),
       d_lengthLemmaTermsCache(s.getUserContext()),
-      d_epg(pnm ? new EagerProofGenerator(
-                      pnm,
-                      s.getUserContext(),
-                      "strings::TermRegistry::EagerProofGenerator")
-                : nullptr)
+      d_epg(nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -461,11 +457,6 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    if (options::proofNewPedantic() > 0)
-    {
-      AlwaysAssert(false) << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
-                          << len_geq_one << std::endl;
-    }
     return TrustNode::mkTrustLemma(len_geq_one, nullptr);
   }
 
@@ -475,11 +466,6 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    if (options::proofNewPedantic() > 0)
-    {
-      AlwaysAssert(false) << "Unhandled lemma Strings::Lemma SK-ONE : "
-                          << len_one << std::endl;
-    }
     return TrustNode::mkTrustLemma(len_one, nullptr);
   }
   Assert(s == LENGTH_SPLIT);
