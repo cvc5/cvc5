@@ -85,6 +85,27 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
   return false;
 }
 
+bool ProofRuleChecker::getKind(TNode n, Kind& k)
+{
+  uint32_t i;
+  if (!getUInt32(n, i))
+  {
+    return false;
+  }
+  k = static_cast<Kind>(i);
+  return true;
+}
+
+Node ProofRuleChecker::mkKindNode(Kind k)
+{
+  if (k == UNDEFINED_KIND)
+  {
+    // UNDEFINED_KIND is negative, hence return null to avoid cast
+    return Node::null();
+  }
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(k)));
+}
+
 ProofCheckerStatistics::ProofCheckerStatistics()
     : d_ruleChecks("ProofCheckerStatistics::ruleChecks"),
     d_totalRuleChecks("ProofCheckerStatistics::totalRuleChecks", 0)
@@ -237,6 +258,20 @@ Node ProofChecker::checkInternal(PfRule id,
       return Node::null();
     }
   }
+  // fails if pedantic level is not met
+  if (d_pclevel > 0)
+  {
+    std::map<PfRule, uint32_t>::iterator itp = d_plevel.find(id);
+    if (itp != d_plevel.end())
+    {
+      if (itp->second <= d_pclevel)
+      {
+        out << "pedantic level for " << id << " not met (" << itp->second
+            << " < " << d_pclevel << ")" << std::endl;
+        return Node::null();
+      }
+    }
+  }
   return res;
 }
 
@@ -251,6 +286,24 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
     return;
   }
   d_checker[id] = psc;
+}
+
+void ProofChecker::registerTrustedChecker(PfRule id,
+                                          ProofRuleChecker* psc,
+                                          uint32_t plevel)
+{
+  AlwaysAssert(plevel <= 10) << "ProofChecker::registerTrustedChecker: "
+                                "pedantic level must be 0-10, got "
+                             << plevel << " for " << id;
+  registerChecker(id, psc);
+  // overwrites if already there
+  if (d_plevel.find(id) != d_plevel.end())
+  {
+    Notice() << "ProofChecker::registerTrustedRule: already provided pedantic "
+                "level for "
+             << id << std::endl;
+  }
+  d_plevel[id] = plevel;
 }
 
 ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
