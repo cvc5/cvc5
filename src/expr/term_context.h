@@ -52,7 +52,7 @@ class TermContext
 
 /**
  * Remove term formulas (rtf) term context.
- * 
+ *
  * Computes whether we are inside a term (as opposed to being part of Boolean
  * skeleton) and whether we are inside a quantifier. For example, for:
  *   (and (= a b) (forall ((x Int)) (P x)))
@@ -67,15 +67,16 @@ class TermContext
 class RtfTermContext : public TermContext
 {
  public:
-  RtfTermContext(){}
-  /** The initial value */
+  RtfTermContext() {}
+  /** The initial value: not in a term context or beneath a quantifier. */
   uint32_t initialValue() const override;
   /** Compute the value */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
-  /** get value */
+  /** get hash value from the flags */
   static uint32_t getValue(bool inQuant, bool inTerm);
-  /** get flags */
+  /** get flags from the hash value */
   static void getFlags(uint32_t val, bool& inQuant, bool& inTerm);
+
  private:
   /**
    * Returns true if the children of t should be considered in a "term" context.
@@ -85,7 +86,7 @@ class RtfTermContext : public TermContext
 
 /**
  * Polarity term context.
- * 
+ *
  * This class computes the polarity of a term-context-sensitive term, which is
  * one of {true, false, none}. This corresponds to the value that can be
  * assigned to that term while preservering satisfiability of the overall
@@ -106,7 +107,7 @@ class RtfTermContext : public TermContext
  *   (and P (not P))
  * We have that the P at path [0] has polarity true and the P at path [1,0] has
  * polarity false.
- * 
+ *
  * Finally, notice that polarity does not correspond to an entailed value. Thus,
  * for the formula:
  *   (or P Q)
@@ -114,19 +115,26 @@ class RtfTermContext : public TermContext
  *   P @ [0] -> true
  *   Q @ [1] -> true
  * although neither is entailed.
- * 
+ *
  * Notice that the hash of a child can be computed from the parent's hash only,
  * and hence this can be implemented without considering paths.
  */
 class PolarityTermContext : public TermContext
 {
  public:
-  PolarityTermContext(){}
+  PolarityTermContext() {}
+  /** The initial value: true polarity. */
+  uint32_t initialValue() const override;
   /** Compute the value */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
-  /** get value */
+  /**
+   * Get hash value from the flags, where hasPol false means no polarity.
+   */
   static uint32_t getValue(bool hasPol, bool pol);
-  /** get flags */
+  /**
+   * get flags from the hash value. If we have no polarity, both hasPol and pol
+   * are set to false.
+   */
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
 };
 
