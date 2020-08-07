@@ -715,11 +715,12 @@ class NodeBlack : public CxxTest::TestSuite {
     consC->addArg("car", d_nodeManager->integerType());
     consC->addArgSelf("cdr");
     list.addConstructor(consC);
-    list.addConstructor(DTypeConstructor("nil"));
+    list.addConstructor(std::make_shared<DTypeConstructor>("nil"));
     TypeNode listType = d_nodeManager->mkDatatypeType(list);
-    Node cons = listType.getDType().getConstructor("cons");
-    Node nil = listType.getDType().getConstructor("nil");
-    Node x = d_nodeManager->mkVar("x", d_nodeManager->integerType());
+    const std::vector<std::shared_ptr<DTypeConstructor> >& lcons = listType.getDType().getConstructors();
+    Node cons = lcons[0]->getConstructor();
+    Node nil = lcons[1]->getConstructor();
+    Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
     Node cons_x_nil = d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, x, d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
     Node cons_1_nil = d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, d_nodeManager->mkConst(Rational(1)), d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil));
     Node cons_1_cons_2_nil = d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, d_nodeManager->mkConst(Rational(1)), d_nodeManager->mkNode(APPLY_CONSTRUCTOR, cons, d_nodeManager->mkConst(Rational(2)), d_nodeManager->mkNode(APPLY_CONSTRUCTOR, nil)));
