@@ -451,6 +451,12 @@ void TheoryEngine::check(Theory::Effort effort) {
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
+      // Reset round for the relevance manager, which notice only sets a flag
+      // to indicate that its information must be recomputed.
+      if (d_relManager != nullptr)
+      {
+        d_relManager->resetRound();
+      }
     }
 
     // Check until done
@@ -503,11 +509,6 @@ void TheoryEngine::check(Theory::Effort effort) {
       Trace("theory::assertions-model") << endl;
       if (Trace.isOn("theory::assertions-model")) {
         printAssertions("theory::assertions-model");
-      }
-      // reset round for the relevance manager
-      if (d_relManager != nullptr)
-      {
-        d_relManager->resetRound();
       }
       //checks for theories requiring the model go at last call
       d_curr_model->reset();

@@ -29,9 +29,21 @@ namespace theory {
 
 /**
  * This class manages queries related to relevance of asserted literals.
+ * In particular, note the following definition:
+ * 
+ * Let F be a formula, and let L = { l_1, ..., l_n } be a set of
+ * literals that propositionally entail it. A "relevant selection of L with
+ * respect to F" is a subset of L that also propositionally entails F.
  *
- * It stores the input assertions and can be asked if an asserted literal is
- * critical to satisfying the input assertions.
+ * This class computes a relevant selection of the current assertion stack
+ * at FULL effort with respect to the input formula + theory lemmas that are
+ * critical to justify (see LemmaProperty::NEEDS_JUSTIFY). As an example
+ * of the latter, notice that 
+ *
+ * Internally, it stores the input assertions and can be asked if an asserted
+ * literal is part of the current relevant selection. The relevant selection
+ * is computed lazily, i.e. only when someone asks if a literal is relevant,
+ * and only at most once per FULL effort check.
  */
 class RelevanceManager
 {
@@ -39,32 +51,48 @@ class RelevanceManager
 
  public:
   RelevanceManager(context::UserContext* userContext, Valuation val);
-  /** Notify (preprocessed) assertions. */
+  /** 
+   * Notify (preprocessed) assertions. This is called for assertions that
+   * are 
+   */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
   /** Singleton version of above */
   void notifyPreprocessedAssertion(Node n);
-  /** reset round */
+  /** 
+   * Reset round, called at the beginning of a full effort check in
+   * TheoryEngine.
+   */
   void resetRound();
-  /** is relevant? */
+  /** 
+   * Is lit part of the current relevant selection? This call is valid during
+   * full effort check in TheoryEngine. This means that theories can query this
+   * during FULL or LAST_CALL efforts, through the Valuation class.
+   */
   bool isRelevant(Node lit);
-
  private:
-  /** compute relevance */
+  /** compute the relevant selection */
   void computeRelevance();
-  /** justify */
+  /** 
+   * Justify formula n, return 1 means we justified it to be true, -1 means
+   * justified it to be false, 0 means it was not justified.
+   */
   int justify(TNode n,
               std::unordered_map<TNode, int, TNodeHashFunction>& cache);
-  /** the valuation object */
+  /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The (non-unit) input assertions */
   NodeList d_input;
-  /** The always relevant literals (top level unit clauses) */
-  NodeList d_alwaysRel;
-  /** the set of lterails that are sufficient for justifying the input. */
+  /** The current relevant selection. */
   std::unordered_set<TNode, TNodeHashFunction> d_rset;
-  /*** have we computed relevance this round? */
+  /** Have we computed the relevant selection this round? */
   bool d_computed;
-  /** did we succeed? */
+  /**
+   * Did we succeed in computing the relevant selection? If this is false, there
+   * was a syncronization issue between the input formula and the satisfying
+   * assignment since this class found that the input formula was not satisfied
+   * by the assignment. This should never happen, but if it does, this class
+   * aborts and indicates that all literals are relevant.
+   */
   bool d_success;
 };
 
