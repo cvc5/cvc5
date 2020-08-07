@@ -82,6 +82,7 @@ PropEngine::PropEngine(TheoryEngine* te,
       d_cnfStream(NULL),
       d_pNodeManager(pnm),
       d_proof(pnm, nullptr, userContext, "PropEngine::LazyCDProof"),
+      d_resProof(pnm, nullptr, satContext, "PropEngine::resolutionLazyCDProof::"),
       d_pfCnfStream(nullptr),
       d_interrupted(false),
       d_resourceManager(rm)
@@ -114,19 +115,9 @@ PropEngine::PropEngine(TheoryEngine* te,
          );
 
   NodeManager* nm = NodeManager::currentNM();
-  // TODO: if block below seems unecessary
-  if (false && d_pfCnfStream)
-  {
-    d_pfCnfStream->convertAndAssert(nm->mkConst(true), false, false, nullptr);
-    d_pfCnfStream->convertAndAssert(
-        nm->mkConst(false).notNode(), false, false, nullptr);
-  }
-  else
-  {
-    d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
-    d_cnfStream->convertAndAssert(
-        nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
-  }
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(
+      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
 }
 
 PropEngine::~PropEngine() {
@@ -464,152 +455,6 @@ Node PropEngine::getClauseNode(const Minisat::Solver::TClause& clause)
   return NodeManager::currentNM()->mkNode(kind::OR, clauseNodes);
 }
 
-void PropEngine::registerClause(Minisat::Solver::TLit lit)
-{
-  registerClause(MinisatSatSolver::toSatLiteral(lit));
-}
-
-void PropEngine::registerClause(SatLiteral satLit)
-{
-  Node clauseNode = getClauseNode(satLit);
-  if (d_clauseSet.count(clauseNode))
-  {
-    Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit
-                       << " already registered\n";
-    return;
-  }
-  d_clauseSet.insert(clauseNode);
-  // register in proof as assumption, which should be filled later, since it's
-  // not possible yet to know, in general, how this literal came to be. Some
-  // components register facts eagerly, like the theory engine, but other
-  // lazily, like CNF stream and internal SAT solver
-  // TODO this should be a lazy step with a generator that will query the proof
-  // cnf stream
-  Trace("sat-proof-steps") << clauseNode << " by literal CNF" << std::endl;
-  // FIXME: ensure closed?
-  d_proof.addLazyStep(clauseNode,
-                      d_pfCnfStream.get(),
-                      false,
-                      "PropEngine::registerClause:literal");
-  Trace("sat-proof") << "PropEngine::registerClause: Lit: " << satLit << "\n";
-}
-
-void PropEngine::registerClause(Minisat::Solver::TClause& clause)
-{
-  Node clauseNode = getClauseNode(clause);
-  if (Trace.isOn("sat-proof"))
-  {
-    Trace("sat-proof") << "PropEngine::registerClause: TClause: ";
-    printClause(clause);
-    Trace("sat-proof") << "\n";
-  }
-  if (d_clauseSet.count(clauseNode))
-  {
-    Trace("sat-proof")
-        << "PropEngine::registerClause: clause already registered\n";
-    return;
-  }
-  d_clauseSet.insert(clauseNode);
-  // register in proof as assumption, which should be filled later, since it's
-  // not possible yet to know, in general, how this clause came to be. Some
-  // components register facts eagerly, like the theory engine, but other
-  // lazily, like CNF stream and internal SAT solver propagation.
-  Trace("sat-proof-steps") << clauseNode << " by clause CNF" << std::endl;
-  // FIXME: ensure closed?
-  d_proof.addLazyStep(
-      clauseNode, d_pfCnfStream.get(), false, "PropEngine::registerClause");
-  Trace("sat-proof") << "PropEngine::registerClause: registered clauseNode: "
-                     << clauseNode << "\n";
-}
-
-void PropEngine::registerPropagatedTheoryLiteral(Node lit)
-{
-  if (d_proof.hasStep(lit))
-  {
-    Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
-                       << " already has step\n";
-    return;
-  }
-  if (d_proof.hasGenerator(lit))
-  {
-    Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
-                       << " already has generator\n";
-    return;
-  }
-  // need to guard because if proofs are not on this is null
-  if (d_pfCnfStream.get())
-  {
-    // defer to d_pfCnfStream to justify it, which could be the case for
-    // example
-    // for unit clauses l1, ..., ln derived from input assertion l1 ^ ... ^ ln
-    // FIXME: ensure closed?
-    d_proof.addLazyStep(lit,
-                        d_pfCnfStream.get(),
-                        false,
-                        "PropEngine::registerPropagatedTheoryLiteral");
-    Trace("sat-proof") << "PropEngine::registerPropagatedTheoryLiteral: " << lit
-                       << " to be justified by cnf conversion\n";
-  }
-}
-
-void PropEngine::explainPropagation(theory::TrustNode trn)
-{
-  Node proven = trn.getProven();
-  Trace("sat-proof") << "PropEngine::explainPropagation: proven explanation"
-                     << proven << "\n";
-  Assert(trn.getGenerator());
-  Trace("sat-proof-steps") << proven << " by explainPropagation "
-                           << trn.identifyGenerator() << std::endl;
-  // TODO: due to lifetime of explanations, need to cache this now?
-  // Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
-  // std::shared_ptr<ProofNode> exp = trn.toProofNode();
-  // d_proof.addProof(exp);
-
-  Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
-  d_proof.addLazyStep(
-      proven, trn.getGenerator(), true, "PropEngine::explainPropagation");
-
-  // since the propagation is added directly to the SAT solver via theoryProxy,
-  // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
-  NodeManager* nm = NodeManager::currentNM();
-  Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
-  Trace("sat-proof") << "PropEngine::explainPropagation: adding "
-                     << PfRule::IMPLIES_ELIM << " rule to conclude "
-                     << clauseImpliesElim << "\n";
-  d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
-  Node clauseExp;
-  // need to eliminate AND
-  if (proven[0].getKind() == kind::AND)
-  {
-    std::vector<Node> disjunctsAndNeg{proven[0]};
-    std::vector<Node> disjunctsRes;
-    for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
-    {
-      disjunctsAndNeg.push_back(proven[0][i].notNode());
-      disjunctsRes.push_back(proven[0][i].notNode());
-    }
-    disjunctsRes.push_back(proven[1]);
-    Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
-    // add proof steps to convert into clause
-    d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
-    clauseExp = nm->mkNode(kind::OR, disjunctsRes);
-    d_proof.addStep(clauseExp,
-                    PfRule::RESOLUTION,
-                    {clauseAndNeg, clauseImpliesElim},
-                    {proven[0]});
-  }
-  else
-  {
-    clauseExp = clauseImpliesElim;
-  }
-  // Rewrite clauseNode before proceeding. This is so ordering/factoring
-  // is consistent with the clause that is added to the SAT solver
-  clauseExp = ProofCnfStream::factorReorderElimDoubleNeg(clauseExp, &d_proof);
-  Trace("sat-proof") << "PropEngine::explainPropagation: processed first "
-                        "disjunct to conclude "
-                     << clauseExp << "\n";
-}
-
 void PropEngine::startResChain(Minisat::Solver::TClause& start)
 {
   if (Trace.isOn("sat-proof"))
@@ -645,13 +490,6 @@ void PropEngine::addResolutionStep(Minisat::Solver::TClause& clause,
   // second)
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(~lit);
   Node clauseNode = getClauseNode(clause);
-  // clause has not been registered yet
-  if (d_clauseSet.count(clauseNode))
-  {
-    Trace("sat-proof") << CVC4::push;
-    registerClause(clause);
-    Trace("sat-proof") << CVC4::pop;
-  }
   d_resolution.push_back(std::pair<Node, Node>(
       clauseNode, d_cnfStream->d_literalToNodeMap[satLit]));
   if (Trace.isOn("sat-proof"))
@@ -750,21 +588,21 @@ void PropEngine::endResChain(Node conclusion)
   Node chainConclusion = d_pNodeManager->getChecker()->checkDebug(
       PfRule::CHAIN_RESOLUTION, children, args, Node::null(), "newproof::sat");
   // create step
-  d_proof.addStep(chainConclusion, PfRule::CHAIN_RESOLUTION, children, args);
+  d_resProof.addStep(chainConclusion, PfRule::CHAIN_RESOLUTION, children, args);
   if (chainConclusion != conclusion)
   {
     // if this happens that chainConclusion needs to be factored and/or
     // reordered, which in either case can be done only if it's not a unit
     // clause.
     CVC4_UNUSED Node reducedChainConclusion =
-        ProofCnfStream::factorReorderElimDoubleNeg(chainConclusion, &d_proof);
+        ProofCnfStream::factorReorderElimDoubleNeg(chainConclusion, &d_resProof);
     Assert(reducedChainConclusion == conclusion
            || reducedChainConclusion
                   == ProofCnfStream::factorReorderElimDoubleNeg(conclusion,
-                                                                &d_proof))
+                                                                nullptr))
         << "given res chain conclusion " << conclusion
         << "\nafter factorReorderElimDoubleNeg "
-        << ProofCnfStream::factorReorderElimDoubleNeg(conclusion, &d_proof)
+        << ProofCnfStream::factorReorderElimDoubleNeg(conclusion, nullptr)
         << "\nis different from chain_res " << chainConclusion
         << "\nafter factorReorderElimDoubleNeg " << reducedChainConclusion;
   }
@@ -776,11 +614,11 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
   Trace("sat-proof") << CVC4::push
                      << "PropEngine::tryJustifyingLit: Lit: " << lit << " ["
                      << litNode << "]\n";
-  if (d_clauseSet.count(litNode))
+  if (d_resProof.hasStep(litNode))
   {
-    Trace("sat-proof") << "PropEngine::tryJustifyingLit: not "
-                          "registered as clause\n"
-                       << CVC4::pop;
+    Trace("sat-proof")
+        << "PropEngine::tryJustifyingLit: literal already justified\n"
+        << CVC4::pop;
     return;
   }
   Minisat::Solver::TCRef reasonRef = d_satSolver->getSolver()->reason(
@@ -842,15 +680,35 @@ void PropEngine::tryJustifyingLit(SatLiteral lit)
       Trace("sat-proof") << "\n";
     }
   }
-  // don't overwrite litNode. If it has a justification, it is as an assumption,
-  // which may lead to cyclic proofs. When I'm properly doing the lazy proof
-  // here it becomes a matter of it having a proof generator or not maybe?
-  d_proof.addStep(litNode,
-                  PfRule::CHAIN_RESOLUTION,
-                  children,
-                  args,
-                  false,
-                  CDPOverwrite::NEVER);
+  // Do not overwrite because this can lead to cyclic proofs. The SAT solver can
+  // for example here try to dedice (or a b c) via
+  //
+  // (CHAIN_RESOLUTION
+  //   (ASSUME (or (or a b c) (not a)))
+  //   (CHAIN_RESOLUTION
+  //     (ASSUME |:args| ((or a b c)))
+  //     (FACTORING
+  //       (CHAIN_RESOLUTION
+  //         (ASSUME |:args| ((or (not (or a b c)) (not (or c a b)))))
+  //         (ASSUME |:args| ((or (or c a b) (not b))))
+  //         (ASSUME |:args| ((or (or a b c) (not b))))
+  //         |:args| ((not (or c a b)) (not (or a b c)))))
+  //     (FACTORING
+  //       (CHAIN_RESOLUTION
+  //         (ASSUME |:args| ((or (not (or a b c)) (not (or c a b)))))
+  //         (ASSUME |:args| ((or (or c a b) (not c))))
+  //         (ASSUME |:args| ((or (or a b c) (not c))))
+  //         |:args| ((not (or c a b)) (not (or a b c)))))
+  //     |:args| (b c))
+  //   |:args| (not a))
+  //
+  // where note that (or a b c) is an assumption.
+  d_resProof.addStep(litNode,
+                     PfRule::CHAIN_RESOLUTION,
+                     children,
+                     args,
+                     false,
+                     CDPOverwrite::NEVER);
   Trace("sat-proof") << CVC4::pop;
 }
 
@@ -864,6 +722,18 @@ void PropEngine::finalizeProof(Node inConflictNode,
   if (inConflictNode == falseNode)
   {
     return;
+  }
+  // if inConclictNode has a resolution proof, use that, otherwise it must be
+  // justifiable by proofCnfStream
+  if (d_pfCnfStream->hasProofFor(inConflictNode))
+  {
+    d_proof.addLazyStep(
+        inConflictNode, d_pfCnfStream.get(), true, "PropEngine::finalizeProof");
+  }
+  else
+  {
+    d_proof.addLazyStep(
+        inConflictNode, &d_resProof, true, "PropEngine::finalizeProof");
   }
   // since this clause is conflicting, I must be able to resolve away each of
   // its literals l_1...l_n. Each literal ~l_i must be justifiable
@@ -882,8 +752,23 @@ void PropEngine::finalizeProof(Node inConflictNode,
     Assert(d_cnfStream->d_literalToNodeMap.find(inConflict[i])
            != d_cnfStream->d_literalToNodeMap.end());
     tryJustifyingLit(~inConflict[i]);
+    Node negatedLitNode = d_cnfStream->d_literalToNodeMap[~inConflict[i]];
+    // if ~inConflict[i] has a resolution proof, use that to justify it,
+    // otherwise it must be justified by proofCnfStream
+    if (d_pfCnfStream->hasProofFor(negatedLitNode))
+    {
+      d_proof.addLazyStep(negatedLitNode,
+                          d_pfCnfStream.get(),
+                          true,
+                          "PropEngine::finalizeProof");
+    }
+    else
+    {
+      d_proof.addLazyStep(
+          negatedLitNode, &d_resProof, true, "PropEngine::finalizeProof");
+    }
     // save to resolution chain premises / arguments
-    children.push_back(d_cnfStream->d_literalToNodeMap[~inConflict[i]]);
+    children.push_back(negatedLitNode);
     args.push_back(d_cnfStream->d_literalToNodeMap[inConflict[i]]);
   }
   Trace("sat-proof") << CVC4::pop;
@@ -901,7 +786,6 @@ void PropEngine::finalizeProof(Node inConflictNode,
       Trace("sat-proof") << "\n";
     }
   }
-  // only build resolution if not cyclic
   d_proof.addStep(falseNode, PfRule::CHAIN_RESOLUTION, children, args);
 }
 

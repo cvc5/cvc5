@@ -67,6 +67,11 @@ class ProofCnfStream : public ProofGenerator
                         bool removable,
                         ProofGenerator* pg);
 
+  /** Does the CNF convertion of the propagation lemma *without* registering the
+   * resoluting clause in the SAT solver, as this is handled internally by the
+   * SAT solver */
+  void convertPropagation(theory::TrustNode ttn);
+
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it. The result of this function is that the Node

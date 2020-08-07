@@ -49,9 +49,9 @@ void ProofCnfStream::convertAndAssert(TNode node,
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")\n";
   d_removable = removable;
-  Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
-  if (pg)
+  if (d_pfEnabled && pg)
   {
+    Node toJustify = negated ? node.notNode() : static_cast<Node>(node);
     d_proof.addLazyStep(
         toJustify, pg, true, "ProofCnfStream::convertAndAssert:cnf");
   }
@@ -411,6 +411,60 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
       ProofCnfStream::factorReorderElimDoubleNeg(clauseNode, &d_proof);
     }
   }
+}
+
+void ProofCnfStream::convertPropagation(theory::TrustNode trn)
+{
+  Assert(d_pfEnabled);
+  Node proven = trn.getProven();
+  Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
+                     << proven << "\n";
+  Assert(trn.getGenerator());
+  Trace("cnf-steps") << proven << " by explainPropagation "
+                           << trn.identifyGenerator() << std::endl;
+  // TODO: due to lifetime of explanations, need to cache this now?
+  // Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
+  // std::shared_ptr<ProofNode> exp = trn.toProofNode();
+  // d_proof.addProof(exp);
+
+  Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
+  d_proof.addLazyStep(
+      proven, trn.getGenerator(), true, "ProofCnfStream::convertPropagation");
+
+  // since the propagation is added directly to the SAT solver via theoryProxy,
+  // do the transformation of the lemma E1 ^ ... ^ En => P into CNF here
+  NodeManager* nm = NodeManager::currentNM();
+  Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
+  Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
+                     << PfRule::IMPLIES_ELIM << " rule to conclude "
+                     << clauseImpliesElim << "\n";
+  d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
+  Node clauseExp;
+  // need to eliminate AND
+  if (proven[0].getKind() == kind::AND)
+  {
+    std::vector<Node> disjunctsAndNeg{proven[0]};
+    std::vector<Node> disjunctsRes;
+    for (unsigned i = 0, size = proven[0].getNumChildren(); i < size; ++i)
+    {
+      disjunctsAndNeg.push_back(proven[0][i].notNode());
+      disjunctsRes.push_back(proven[0][i].notNode());
+    }
+    disjunctsRes.push_back(proven[1]);
+    Node clauseAndNeg = nm->mkNode(kind::OR, disjunctsAndNeg);
+    // add proof steps to convert into clause
+    d_proof.addStep(clauseAndNeg, PfRule::CNF_AND_NEG, {}, {proven[0]});
+    clauseExp = nm->mkNode(kind::OR, disjunctsRes);
+    d_proof.addStep(clauseExp,
+                    PfRule::RESOLUTION,
+                    {clauseAndNeg, clauseImpliesElim},
+                    {proven[0]});
+  }
+  else
+  {
+    clauseExp = clauseImpliesElim;
+  }
+  ProofCnfStream::factorReorderElimDoubleNeg(clauseExp, &d_proof);
 }
 
 void ProofCnfStream::ensureLiteral(TNode n, bool noPreregistration)
@@ -835,17 +889,23 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     {
       hasDoubleNeg = true;
       childrenEqs.push_back(children[i].eqNode(children[i][0][0]));
-      p->addStep(childrenEqs.back(),
-                 PfRule::MACRO_SR_PRED_INTRO,
-                 {},
-                 {childrenEqs.back()});
+      if (p)
+      {
+        p->addStep(childrenEqs.back(),
+                   PfRule::MACRO_SR_PRED_INTRO,
+                   {},
+                   {childrenEqs.back()});
+      }
       // update child
       children[i] = children[i][0][0];
     }
     else
     {
       childrenEqs.push_back(children[i].eqNode(children[i]));
-      p->addStep(childrenEqs.back(), PfRule::REFL, {}, {children[i]});
+      if (p)
+      {
+        p->addStep(childrenEqs.back(), PfRule::REFL, {}, {children[i]});
+      }
     }
   }
   if (hasDoubleNeg)
@@ -855,31 +915,34 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
     Trace("sat-proof-norm")
         << "PropEngine::factorReorderElimDoubleNeg: eliminate double negs: "
         << oldn << " ==> " << n << "\n";
-    // Create a congruence step to justify replacement of each doubly negated
-    // literal. This is done to avoid having to use MACRO_SR_PRED_TRANSFORM from
-    // the old clause to the new one, which, under the standard rewriter, may
-    // not hold. An example is
-    //
-    //   -----------------------------------------------------------------------
-    //   (or (or (not x2) x1 x2) (not (not x2))) = (or (or (not x2) x1 x2) x2)
-    //
-    // which fails due to factoring not happening after flattening.
-    //
-    // Using congruence only the
-    //
-    //  ------------------ MACRO_SR_PRED_INTRO
-    //  (not (not t)) = t
-    //
-    // steps are added, which, since double negation is eliminated in a
-    // pre-rewrite in the Boolean rewriter, will always hold under the standard
-    // rewriter.
-    Node congEq = oldn.eqNode(n);
-    p->addStep(congEq,
-               PfRule::CONG,
-               childrenEqs,
-               {ProofRuleChecker::mkKindNode(kind::OR)});
-    // add an equality resolution step to derive normalize clause
-    p->addStep(n, PfRule::EQ_RESOLVE, {oldn, congEq}, {});
+    if (p)
+    {
+      // Create a congruence step to justify replacement of each doubly negated
+      // literal. This is done to avoid having to use MACRO_SR_PRED_TRANSFORM
+      // from the old clause to the new one, which, under the standard rewriter,
+      // may not hold. An example is
+      //
+      //   -----------------------------------------------------------------------
+      //   (or (or (not x2) x1 x2) (not (not x2))) = (or (or (not x2) x1 x2) x2)
+      //
+      // which fails due to factoring not happening after flattening.
+      //
+      // Using congruence only the
+      //
+      //  ------------------ MACRO_SR_PRED_INTRO
+      //  (not (not t)) = t
+      //
+      // steps are added, which, since double negation is eliminated in a
+      // pre-rewrite in the Boolean rewriter, will always hold under the
+      // standard rewriter.
+      Node congEq = oldn.eqNode(n);
+      p->addStep(congEq,
+                 PfRule::CONG,
+                 childrenEqs,
+                 {ProofRuleChecker::mkKindNode(kind::OR)});
+      // add an equality resolution step to derive normalize clause
+      p->addStep(n, PfRule::EQ_RESOLVE, {oldn, congEq}, {});
+    }
   }
   children.clear();
   // remove duplicates while keeping the order of children
@@ -902,8 +965,11 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
                         : children.size() == 1 ? children[0]
                                                : nm->mkNode(kind::OR, children);
     // don't overwrite what already has a proof step to avoid cycles
-    p->addStep(
-        factored, PfRule::FACTORING, {n}, {}, false, CDPOverwrite::NEVER);
+    if (p)
+    {
+      p->addStep(
+          factored, PfRule::FACTORING, {n}, {}, false, CDPOverwrite::NEVER);
+    }
     n = factored;
   }
   Trace("sat-proof-norm") << "factorReorderElimDoubleNeg: factored node: " << n
@@ -919,7 +985,7 @@ Node ProofCnfStream::factorReorderElimDoubleNeg(Node n, CDProof* p)
                           << children << "\n";
   Node ordered = nm->mkNode(kind::OR, children);
   // if ordering changed
-  if (ordered != n)
+  if (p && ordered != n)
   {
     // don't overwrite what already has a proof step to avoid cycles
     p->addStep(ordered,

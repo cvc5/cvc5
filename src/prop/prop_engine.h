@@ -218,14 +218,6 @@ class PropEngine
   bool properExplanation(TNode node, TNode expl) const;
 
   /*------------------------------ BEGIN SAT proof interface */
-  void registerClause(Minisat::Solver::TLit lit);
-  void registerClause(SatLiteral satLit);
-  void registerClause(Minisat::Solver::TClause& clause);
-
-  void registerPropagatedTheoryLiteral(Node lit);
-
-  void explainPropagation(theory::TrustNode trn);
-
   void startResChain(Minisat::Solver::TClause& start);
   // resolution with unit clause ~lit, to be justified
   void addResolutionStep(Minisat::Solver::TLit lit);
@@ -248,6 +240,8 @@ class PropEngine
   void finalizeProof(Minisat::Solver::TLit inConflict);
   void finalizeProof();
   void storeUnitConflict(Minisat::Solver::TLit inConflict);
+
+  ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
 
   LazyCDProof* getProof() { return &d_proof; }
 
@@ -290,6 +284,9 @@ class PropEngine
   ProofNodeManager* d_pNodeManager;
   /** The User-context-dependent proof object */
   LazyCDProof d_proof;
+  /** The SAT-context-dependent proof for resolutions */
+  LazyCDProof d_resProof;
+
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
 
@@ -300,7 +297,6 @@ class PropEngine
   Node getClauseNode(const Minisat::Solver::TClause& clause);
   void printClause(const Minisat::Solver::TClause& clause);
 
-  std::unordered_set<Node, NodeHashFunction> d_clauseSet;
   SatLiteral d_conflictLit;
 
   /** Whether we were just interrupted (or not) */
