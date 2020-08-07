@@ -293,13 +293,14 @@ void SmtEngine::finishInit()
     // already initialized, return
     return;
   }
-  
+
   // Notice that finishInitInternal is called when options are finalized. If we
   // are parsing smt2, this occurs at the moment we enter "Assert mode", page 52
   // of SMT-LIB 2.6 standard.
-  
+
   // set the logic
-  if(! d_logic.isLocked()) {
+  if (!d_logic.isLocked())
+  {
     setLogicInternal();
   }
 
@@ -382,13 +383,13 @@ void SmtEngine::finishInit()
       }
     });
   d_pp->finishInit();
-  
+
   AlwaysAssert(d_propEngine->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SmtEngine "
          "hasn't finished initializing!";
 
   Assert(d_logic.isLocked());
-  
+
   // store that we are finished initializing
   d_state->finishInit();
   Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
@@ -1003,12 +1004,11 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-void SmtEngine::notifyPushPre() { 
-  processAssertionsInternal();
-}
-void SmtEngine::notifyPushPost() { 
+void SmtEngine::notifyPushPre() { processAssertionsInternal(); }
+void SmtEngine::notifyPushPost()
+{
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-  d_propEngine->push(); 
+  d_propEngine->push();
 }
 void SmtEngine::notifyPopPre()
 {

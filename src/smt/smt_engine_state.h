@@ -46,7 +46,6 @@ namespace smt {
  */
 class SmtEngineState
 {
-  friend class SmtEngine; // for access to d_fullyInited
  public:
   SmtEngineState(SmtEngine& smt);
   ~SmtEngineState() {}
@@ -67,7 +66,7 @@ class SmtEngineState
   void notifyResetAssertions();
   /**
    * Notify that we are about to call check-sat.
-   * 
+   *
    * @param hasAssumptions Whether the call to check-sat has assumptions. If
    * so, we push a context.
    */
@@ -75,7 +74,7 @@ class SmtEngineState
   /**
    * Notify that the result of the last check-sat was r. This should be called
    * once immediately following notifyCheckSat().
-   * 
+   *
    * @param hasAssumptions Whether the prior call to check-sat had assumptions.
    * If so, we pop a context.
    * @param r The result of the check-sat call.
@@ -95,7 +94,7 @@ class SmtEngineState
    * context around everything.
    */
   void setup();
-  /** 
+  /**
    * Set that we are in a fully initialized state.
    */
   void finishInit();

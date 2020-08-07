@@ -171,15 +171,15 @@ class CVC4_PUBLIC SmtEngine
 
   /**
    * This is the main initialization procedure of the SmtEngine.
-   * 
+   *
    * Should be called whenever the final options and logic for the problem are
    * set (at least, those options that are not permitted to change after
    * assertions and queries are made).
-   * 
+   *
    * Internally, this creates the theory engine, prop engine, decision engine,
    * and other utilities whose initialization depends on the final set of
    * options being set.
-   * 
+   *
    * This post-construction initialization is automatically triggered by the
    * use of the SmtEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.

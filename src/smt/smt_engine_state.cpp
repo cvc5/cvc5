@@ -135,7 +135,7 @@ void SmtEngineState::setup()
 void SmtEngineState::finishInit()
 {
   // set the flag to remember that we are fully initialized
-  d_fullyInited = true; 
+  d_fullyInited = true;
 }
 
 void SmtEngineState::shutdown()
