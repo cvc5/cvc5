@@ -178,7 +178,7 @@ bool RelevanceManager::isRelevant(Node lit)
   }
   if (!d_success)
   {
-    // always relevant if we failed
+    // always relevant if we failed to compute
     return true;
   }
   // agnostic to negation
