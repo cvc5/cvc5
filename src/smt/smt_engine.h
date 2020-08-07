@@ -268,7 +268,7 @@ class CVC4_PUBLIC SmtEngine
    */
   void notifyStartParsing(std::string filename);
   /** return the input name (if any) */
-  std::string getFilename() const;
+  const std::string& getFilename() const;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED

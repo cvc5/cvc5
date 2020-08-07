@@ -1128,7 +1128,6 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
   {
     SmtScope smts(this);
     finishInit();
-    d_state->doPendingPops();
 
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("

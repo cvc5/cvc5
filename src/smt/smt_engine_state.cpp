@@ -57,6 +57,8 @@ void SmtEngineState::notifyResetAssertions()
 
 void SmtEngineState::notifyCheckSat(bool hasAssumptions)
 {
+  // process the pending pops
+  doPendingPops();
   if (d_queryMade && !options::incrementalSolving())
   {
     throw ModalException(

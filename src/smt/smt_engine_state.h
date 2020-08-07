@@ -65,7 +65,9 @@ class SmtEngineState
    */
   void notifyResetAssertions();
   /**
-   * Notify that we are about to call check-sat.
+   * Notify that we are about to call check-sat. This call is made prior to
+   * initializing the assertions. It processes pending pops and pushes a
+   * (user) context if necessary.
    *
    * @param hasAssumptions Whether the call to check-sat has assumptions. If
    * so, we push a context.
@@ -211,7 +213,7 @@ class SmtEngineState
    * when a checkEntailed() or checkSatisfiability() has already been
    * made through the SmtEngine.  If true, and incrementalSolving is false,
    * then attempting an additional checks for satisfiability will fail with
-   * a ModalException.
+   * a ModalException during notifyCheckSat.
    */
   bool d_queryMade;
 
@@ -223,7 +225,8 @@ class SmtEngineState
   bool d_needPostsolve;
 
   /**
-   * Most recent result of last checkSatisfiability/checkEntailed.
+   * Most recent result of last checkSatisfiability/checkEntailed in the
+   * SmtEngine.
    */
   Result d_status;
 
