@@ -52,6 +52,8 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::RE_ELIM, this);
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
   pc->registerChecker(PfRule::STRING_SEQ_UNIT_INJ, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::STRING_TRUST, this, 1);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,
@@ -422,7 +424,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         Trace("strings-pfcheck") << "...fail, no concat regexp" << std::endl;
         return Node::null();
       }
-      unsigned index;
+      size_t index;
       Node reLen = RegExpOpr::getRegExpConcatFixed(skChild[0][1], index);
       if (reLen.isNull())
       {
@@ -490,6 +492,13 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
         << " == " << t[1] << std::endl;
     AlwaysAssert(t[0].getType() == t[1].getType());
     return t[0].eqNode(t[1]);
+  }
+  else if (id == PfRule::STRING_TRUST)
+  {
+    // "trusted" rules
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
+    return args[0];
   }
   return Node::null();
 }
