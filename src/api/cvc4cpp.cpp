@@ -927,7 +927,7 @@ bool Sort::isDatatype() const { return d_type->isDatatype(); }
 bool Sort::isParametricDatatype() const
 {
   if (!d_type->isDatatype()) return false;
-  return DatatypeType(*d_type).isParametric();
+  return TypeNode::fromType(*d_type).isParametricDatatype();
 }
 
 bool Sort::isConstructor() const { return d_type->isConstructor(); }
@@ -973,17 +973,17 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
-  std::vector<Type> tparams;
+  std::vector<TypeNode> tparams;
   for (const Sort& s : params)
   {
-    tparams.push_back(*s.d_type.get());
+    tparams.push_back(TypeNode::fromType(*s.d_type.get()));
   }
   if (d_type->isDatatype())
   {
-    return Sort(d_solver, DatatypeType(*d_type).instantiate(tparams));
+    return Sort(d_solver, TypeNode::fromType(*d_type).instantiateParametricDatatype(tparams).toType());
   }
   Assert(d_type->isSortConstructor());
-  return Sort(d_solver, SortConstructorType(*d_type).instantiate(tparams));
+  return Sort(d_solver, d_solver->getNodeManager()->mkSort(TypeNode::fromType(*d_type), tparams).toType());
 }
 
 std::string Sort::toString() const { return d_type->toString(); }
@@ -1126,14 +1126,19 @@ uint32_t Sort::getFPSignificandSize() const
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::Type> types = DatatypeType(*d_type).getParamTypes();
-  return typeVectorToSorts(d_solver, types);
+  std::vector<CVC4::TypeNode> typeNodes = TypeNode::fromType(*d_type).getParamTypes();
+  std::vector<Sort> sorts;
+  for (size_t i = 0, tsize = typeNodes.size(); i < tsize; i++)
+  {
+    sorts.push_back(Sort(d_solver, typeNodes[i].toType()));
+  }
+  return sorts;
 }
 
 size_t Sort::getDatatypeArity() const
 {
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
-  return DatatypeType(*d_type).getArity();
+  return TypeNode::fromType(*d_type).getNumChildren()-1;
 }
 
 /* Tuple sort ---------------------------------------------------------- */
@@ -1141,14 +1146,19 @@ size_t Sort::getDatatypeArity() const
 size_t Sort::getTupleLength() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  return DatatypeType(*d_type).getTupleLength();
+  return TypeNode::fromType(*d_type).getTupleLength();
 }
 
 std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::Type> types = DatatypeType(*d_type).getTupleTypes();
-  return typeVectorToSorts(d_solver, types);
+  std::vector<CVC4::TypeNode> typeNodes = TypeNode::fromType(*d_type).getTupleTypes();
+  std::vector<Sort> sorts;
+  for (size_t i = 0, tsize = typeNodes.size(); i < tsize; i++)
+  {
+    sorts.push_back(Sort(d_solver, typeNodes[i].toType()));
+  }
+  return sorts;
 }
 
 /* --------------------------------------------------------------------- */
