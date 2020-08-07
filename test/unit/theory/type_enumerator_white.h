@@ -194,6 +194,8 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     colors.addConstructor(std::make_shared<DTypeConstructor>("blue"));
     colors.addConstructor(std::make_shared<DTypeConstructor>("violet"));
     TypeNode colorsType = d_nm->mkDatatypeType(colors);
+    // TODO
+    const std::vector<std::shared_ptr<DTypeConstructor> >& ctCons = colorsType.getDType().getConstructors();
     DType listColors("ListColors");
     std::shared_ptr<DTypeConstructor> consC =
         std::make_shared<DTypeConstructor>("cons");
@@ -203,18 +205,20 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     listColors.addConstructor(std::make_shared<DTypeConstructor>("nil"));
     TypeNode listColorsType =
         d_nm->mkDatatypeType(listColors);
+    // TODO
+    const std::vector<std::shared_ptr<DTypeConstructor> >& lctCons = listColorsType.getDType().getConstructors();
 
     TypeEnumerator te(listColorsType);
     TS_ASSERT( ! te.isFinished() );
-    Node cons = listColorsType.getDType().getConstructor("cons");
+    Node cons = lctCons[0]->getConstructor();
     Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            listColorsType.getDType().getConstructor("nil"));
+                            lctCons[1]->getConstructor());
     Node red = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            colorsType.getDType().getConstructor("red"));
+                            ctCons[0]->getConstructor());
     Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                               colorsType.getDType().getConstructor("orange"));
+                               ctCons[1]->getConstructor());
     Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                               colorsType.getDType().getConstructor("yellow"));
+                               ctCons[2]->getConstructor());
     TS_ASSERT_EQUALS(*te, nil);
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
     TS_ASSERT( ! te.isFinished() );
