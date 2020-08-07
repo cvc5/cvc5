@@ -337,18 +337,6 @@ class CVC4_PUBLIC ExprManager {
   FunctionType mkPredicateType(const std::vector<Type>& sorts);
 
   /**
-   * Make a tuple type with types from
-   * <code>types[0..types.size()-1]</code>.  <code>types</code> must
-   * have at least one element.
-   */
-  DatatypeType mkTupleType(const std::vector<Type>& types);
-
-  /**
-   * Make a record type with types from the rec parameter.
-   */
-  DatatypeType mkRecordType(const Record& rec);
-
-  /**
    * Make a symbolic expressiontype with types from
    * <code>types[0..types.size()-1]</code>.  <code>types</code> may
    * have any number of elements.

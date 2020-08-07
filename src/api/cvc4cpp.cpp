@@ -3375,7 +3375,7 @@ Sort Solver::mkRecordSort(
     f.emplace_back(p.first, *p.second.d_type);
   }
 
-  return Sort(this, d_exprMgr->mkRecordType(Record(f)));
+  return Sort(this, getNodeManager()->mkRecordType(Record(f)).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3437,9 +3437,12 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
         !sorts[i].isFunctionLike(), "parameter sort", sorts[i], i)
         << "non-function-like sort as parameter sort for tuple sort";
   }
-  std::vector<Type> types = sortVectorToTypes(sorts);
-
-  return Sort(this, d_exprMgr->mkTupleType(types));
+  std::vector<TypeNode> typeNodes;
+  for (const Sort& s : sorts)
+  {
+    typeNodes.push_back(TypeNode::fromType(*s.d_type));
+  }
+  return Sort(this, getNodeManager()->mkTupleType(typeNodes).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }

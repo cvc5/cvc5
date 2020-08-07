@@ -115,7 +115,7 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
     TypeNode returnType) const
 {
   Assert(isResolved());
-  Assert(returnType.isDatatype());
+  Assert(returnType.isDatatype()) << "DTypeConstructor::getSpecializedConstructorType: expected datatype, got " << returnType;
   const DType& dt = DType::datatypeOf(d_constructor);
   Assert(dt.isParametric());
   TypeNode dtt = dt.getTypeNode();

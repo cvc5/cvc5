@@ -595,20 +595,6 @@ FunctionType ExprManager::mkPredicateType(const std::vector<Type>& sorts) {
   return FunctionType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkPredicateType(sortNodes))));
 }
 
-DatatypeType ExprManager::mkTupleType(const std::vector<Type>& types) {
-  NodeManagerScope nms(d_nodeManager);
-  std::vector<TypeNode> typeNodes;
-  for (unsigned i = 0, i_end = types.size(); i < i_end; ++ i) {
-     typeNodes.push_back(*types[i].d_typeNode);
-  }
-  return DatatypeType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkTupleType(typeNodes))));
-}
-
-DatatypeType ExprManager::mkRecordType(const Record& rec) {
-  NodeManagerScope nms(d_nodeManager);
-  return DatatypeType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkRecordType(rec))));
-}
-
 SExprType ExprManager::mkSExprType(const std::vector<Type>& types) {
   NodeManagerScope nms(d_nodeManager);
   std::vector<TypeNode> typeNodes;
