@@ -1312,15 +1312,15 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
-  if (options::nlRlvMode()!=options::NlRlvMode::NONE)
+  if (options::nlRlvMode() != options::NlRlvMode::NONE)
   {
     if (!options::relevanceFilter())
     {
       if (options::relevanceFilter.wasSetByUser())
       {
-        Warning()
-            << "SmtEngine: turning on relevance filtering to support --nl-ext-rlv=" << options::nlRlvMode()
-            << std::endl;
+        Warning() << "SmtEngine: turning on relevance filtering to support "
+                     "--nl-ext-rlv="
+                  << options::nlRlvMode() << std::endl;
       }
       // must use relevance filtering techniques
       options::relevanceFilter.set(true);

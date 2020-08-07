@@ -30,7 +30,7 @@ namespace theory {
 /**
  * This class manages queries related to relevance of asserted literals.
  * In particular, note the following definition:
- * 
+ *
  * Let F be a formula, and let L = { l_1, ..., l_n } be a set of
  * literals that propositionally entail it. A "relevant selection of L with
  * respect to F" is a subset of L that also propositionally entails F.
@@ -38,7 +38,7 @@ namespace theory {
  * This class computes a relevant selection of the current assertion stack
  * at FULL effort with respect to the input formula + theory lemmas that are
  * critical to justify (see LemmaProperty::NEEDS_JUSTIFY). As an example
- * of the latter, notice that 
+ * of the latter, notice that
  *
  * Internally, it stores the input assertions and can be asked if an asserted
  * literal is part of the current relevant selection. The relevant selection
@@ -51,28 +51,29 @@ class RelevanceManager
 
  public:
   RelevanceManager(context::UserContext* userContext, Valuation val);
-  /** 
+  /**
    * Notify (preprocessed) assertions. This is called for assertions that
-   * are 
+   * are
    */
   void notifyPreprocessedAssertions(const std::vector<Node>& assertions);
   /** Singleton version of above */
   void notifyPreprocessedAssertion(Node n);
-  /** 
+  /**
    * Reset round, called at the beginning of a full effort check in
    * TheoryEngine.
    */
   void resetRound();
-  /** 
+  /**
    * Is lit part of the current relevant selection? This call is valid during
    * full effort check in TheoryEngine. This means that theories can query this
    * during FULL or LAST_CALL efforts, through the Valuation class.
    */
   bool isRelevant(Node lit);
+
  private:
   /** compute the relevant selection */
   void computeRelevance();
-  /** 
+  /**
    * Justify formula n, return 1 means we justified it to be true, -1 means
    * justified it to be false, 0 means it was not justified.
    */

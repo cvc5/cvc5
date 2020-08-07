@@ -429,7 +429,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get the presubstitution
   Trace("nl-ext-cm-debug") << "  apply pre-substitution..." << std::endl;
   std::vector<Node> passertions;
-  if (options::nlRlvMode()!=options::NlRlvMode::NONE)
+  if (options::nlRlvMode() != options::NlRlvMode::NONE)
   {
     // only keep the relevant assertions (those required for showing input
     // is satisfied)

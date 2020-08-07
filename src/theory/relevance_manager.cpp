@@ -21,7 +21,11 @@ namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
                                    Valuation val)
-    : d_val(val), d_input(userContext), d_alwaysRel(userContext), d_computed(false), d_success(false)
+    : d_val(val),
+      d_input(userContext),
+      d_alwaysRel(userContext),
+      d_computed(false),
+      d_success(false)
 {
 }
 
@@ -32,7 +36,7 @@ void RelevanceManager::notifyPreprocessedAssertions(
   std::vector<Node> toProcess;
   for (const Node& a : assertions)
   {
-    if (a.getKind()==AND)
+    if (a.getKind() == AND)
     {
       // split top-level AND
       for (const Node& ac : a)
@@ -46,10 +50,10 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
   }
   size_t i = 0;
-  while (i<toProcess.size())
+  while (i < toProcess.size())
   {
     Node a = toProcess[i];
-    if (a.getKind()==AND)
+    if (a.getKind() == AND)
     {
       // split AND
       for (const Node& ac : a)
@@ -90,7 +94,8 @@ void RelevanceManager::computeRelevance()
     if (val != 1)
     {
       std::stringstream serr;
-      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify " << n;
+      serr << "RelevanceManager::computeRelevance: WARNING: failed to justify "
+           << n;
       Trace("rel-manager") << serr.str() << std::endl;
       Assert(false) << serr.str();
       d_success = false;
