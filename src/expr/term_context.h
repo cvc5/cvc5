@@ -26,10 +26,13 @@ namespace CVC4 {
  * context identifier is a hash value that identifies some property of the
  * context in which a term occurs. Common examples of the implementation of
  * such a mapping are implemented in the subclasses below.
- * 
- * In the below documentation, we write t @ [p] to refer to a
- * term-context-sensitive term, where p is a list of indices corresponding to
- * its position in another term. For example, the atomic subterms of:
+ *
+ * A term context identifier is intended to be information that can be locally
+ * computed from the parent's hash, and hence does not rely on maintaining
+ * paths.
+ *
+ * In the below documentation, we write t @ [p] to a term at a given position,
+ * where p is a list of indices. For example, the atomic subterms of:
  *   (and P (not Q))
  * are P @ [0] and Q @ [1,0].
  */
@@ -38,16 +41,18 @@ class TermContext
  public:
   TermContext() {}
   virtual ~TermContext() {}
-  /** Initial value */
+  /** The default initial value of root terms. */
   virtual uint32_t initialValue() const = 0;
   /**
-   * Compute the term context identifier of the index^th child of t, where tval
+   * Returns the term context identifier of the index^th child of t, where tval
    * is the term context identifier of t.
    */
   virtual uint32_t computeValue(TNode t, uint32_t tval, size_t index) const = 0;
 };
 
 /**
+ * Remove term formulas (rtf) term context.
+ * 
  * Computes whether we are inside a term (as opposed to being part of Boolean
  * skeleton) and whether we are inside a quantifier. For example, for:
  *   (and (= a b) (forall ((x Int)) (P x)))
@@ -63,13 +68,13 @@ class RtfTermContext : public TermContext
 {
  public:
   RtfTermContext(){}
-  /** The initial value */
+  /** The initial value: not in a term context or beneath a quantifier. */
   uint32_t initialValue() const override;
   /** Compute the value */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
-  /** get value */
+  /** get hash value from the flags */
   static uint32_t getValue(bool inQuant, bool inTerm);
-  /** get flags */
+  /** get flags from the hash value */
   static void getFlags(uint32_t val, bool& inQuant, bool& inTerm);
  private:
   /**
@@ -79,15 +84,18 @@ class RtfTermContext : public TermContext
 };
 
 /**
- * Computes the polarity of a term-context-sensitive term, which is one of
- * {true, false, none}. This corresponds to the value that can be assigned to
- * that term while preservering satisfiability of the overall formula. This
+ * Polarity term context.
+ * 
+ * This class computes the polarity of a term-context-sensitive term, which is
+ * one of {true, false, none}. This corresponds to the value that can be
+ * assigned to that term while preservering satisfiability of the overall
+ * formula, or none if such a value does not exist. If not "none", this
  * typically corresponds to the number of NOT the formula is beneath, although
  * special cases exist (e.g. IMPLIES).
  *
  * For example, given the formula:
  *   (and P (not (= (f x) 0)))
- * assuming the root of this formula has positive polarity, we have that:
+ * assuming the root of this formula has true polarity, we have that:
  *   P @ [0] -> true
  *   (not (= (f x) 0)) @ [1] -> true
  *   (= (f x) 0) @ [1,0] -> false
@@ -114,11 +122,18 @@ class PolarityTermContext : public TermContext
 {
  public:
   PolarityTermContext(){}
+  /** The initial value: true polarity. */
+  uint32_t initialValue() const override;
   /** Compute the value */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
-  /** get value */
+  /**
+   * Get hash value from the flags, where hasPol false means no polarity.
+   */
   static uint32_t getValue(bool hasPol, bool pol);
-  /** get flags */
+  /** 
+   * get flags from the hash value. If we have no polarity, both hasPol and pol
+   * are set to false.
+   */
   static void getFlags(uint32_t val, bool& hasPol, bool& pol);
 };
 

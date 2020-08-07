@@ -47,7 +47,7 @@ TCtxNode TCtxNode::getChild(size_t i) const
   // we are still computing the same term context, with the given child, where
   // the hash has been updated based on the kind, node, current value and child
   // index.
-  return TCtxNode(d_kind, d_node[i], computeValueInternal(d_kind, d_node, d_val, i));
+  return TCtxNode(d_node[i], d_tctx->computeValue(d_node, d_val, i), d_tctx);
 }
 
 Node TCtxNode::getNode() const { return d_node; }

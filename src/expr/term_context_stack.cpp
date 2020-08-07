@@ -62,7 +62,7 @@ std::pair<Node, uint32_t> TCtxStack::getCurrent() const
 
 TCtxNode TCtxStack::getCurrentNode() const
 {
-  std::pair<Node, uint32_t> curr = TCtxStack::getCurrent()
+  std::pair<Node, uint32_t> curr = TCtxStack::getCurrent();
   return TCtxNode(curr.first, curr.second, d_tctx);
 }
 
