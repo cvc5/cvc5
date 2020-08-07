@@ -2389,7 +2389,7 @@ bool Datatype::isCodatatype() const { return d_dtype->isCodatatype(); }
 
 bool Datatype::isTuple() const { return d_dtype->isTuple(); }
 
-bool Datatype::isRecord() const { return false; }  // d_dtype->isRecord(); }
+bool Datatype::isRecord() const { return d_dtype->isRecord(); }
 
 bool Datatype::isFinite() const { return d_dtype->isFinite(); }
 bool Datatype::isWellFounded() const { return d_dtype->isWellFounded(); }
