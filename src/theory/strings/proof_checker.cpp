@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof.cpp
+/*! \file proof_checker.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of strings proof
+ ** \brief Implementation of strings proof checker
  **/
 
 #include "theory/strings/proof_checker.h"
