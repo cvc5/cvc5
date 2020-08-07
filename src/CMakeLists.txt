@@ -223,6 +223,8 @@ libcvc4_add_sources(
   smt/abduction_solver.h
   smt/abstract_values.cpp
   smt/abstract_values.h
+  smt/assertions.cpp
+  smt/assertions.h
   smt/command.cpp
   smt/command.h
   smt/defined_function.h
@@ -247,6 +249,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/preprocessor.cpp
+  smt/preprocessor.h
   smt/preprocess_proof_generator.cpp
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
@@ -310,6 +314,8 @@ libcvc4_add_sources(
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
   theory/arith/matrix.h
+  theory/arith/nl/cad_solver.cpp
+  theory/arith/nl/cad_solver.h
   theory/arith/nl/cad/cdcac.cpp
   theory/arith/nl/cad/cdcac.h
   theory/arith/nl/cad/cdcac_utils.cpp
