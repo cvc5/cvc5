@@ -115,7 +115,10 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
     TypeNode returnType) const
 {
   Assert(isResolved());
-  Assert(returnType.isDatatype()) << "DTypeConstructor::getSpecializedConstructorType: expected datatype, got " << returnType;
+  Assert(returnType.isDatatype())
+      << "DTypeConstructor::getSpecializedConstructorType: expected datatype, "
+         "got "
+      << returnType;
   const DType& dt = DType::datatypeOf(d_constructor);
   Assert(dt.isParametric());
   TypeNode dtt = dt.getTypeNode();
@@ -580,7 +583,8 @@ bool DTypeConstructor::resolve(
     // We use \0 as a distinguished marker for unresolved selectors for doing
     // name resolutions. We now can remove \0 from name if necessary.
     const size_t nul = arg->d_name.find('\0');
-    if(nul != std::string::npos) {
+    if (nul != std::string::npos)
+    {
       arg->d_name.resize(nul);
     }
   }

@@ -980,10 +980,16 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   if (d_type->isDatatype())
   {
-    return Sort(d_solver, TypeNode::fromType(*d_type).instantiateParametricDatatype(tparams).toType());
+    return Sort(d_solver,
+                TypeNode::fromType(*d_type)
+                    .instantiateParametricDatatype(tparams)
+                    .toType());
   }
   Assert(d_type->isSortConstructor());
-  return Sort(d_solver, d_solver->getNodeManager()->mkSort(TypeNode::fromType(*d_type), tparams).toType());
+  return Sort(d_solver,
+              d_solver->getNodeManager()
+                  ->mkSort(TypeNode::fromType(*d_type), tparams)
+                  .toType());
 }
 
 std::string Sort::toString() const { return d_type->toString(); }
@@ -1126,7 +1132,8 @@ uint32_t Sort::getFPSignificandSize() const
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::TypeNode> typeNodes = TypeNode::fromType(*d_type).getParamTypes();
+  std::vector<CVC4::TypeNode> typeNodes =
+      TypeNode::fromType(*d_type).getParamTypes();
   std::vector<Sort> sorts;
   for (size_t i = 0, tsize = typeNodes.size(); i < tsize; i++)
   {
@@ -1138,7 +1145,7 @@ std::vector<Sort> Sort::getDatatypeParamSorts() const
 size_t Sort::getDatatypeArity() const
 {
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
-  return TypeNode::fromType(*d_type).getNumChildren()-1;
+  return TypeNode::fromType(*d_type).getNumChildren() - 1;
 }
 
 /* Tuple sort ---------------------------------------------------------- */
@@ -1152,7 +1159,8 @@ size_t Sort::getTupleLength() const
 std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::TypeNode> typeNodes = TypeNode::fromType(*d_type).getTupleTypes();
+  std::vector<CVC4::TypeNode> typeNodes =
+      TypeNode::fromType(*d_type).getTupleTypes();
   std::vector<Sort> sorts;
   for (size_t i = 0, tsize = typeNodes.size(); i < tsize; i++)
   {
@@ -2322,7 +2330,7 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
     }
     snames << "} ";
     CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
-                            << getName() << " exists among " << snames.str();
+                             << getName() << " exists among " << snames.str();
   }
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
 }
@@ -2417,7 +2425,7 @@ DatatypeConstructor Datatype::getConstructorForName(
       foundCons = true;
       break;
     }
-  }  
+  }
   if (!foundCons)
   {
     std::stringstream snames;
@@ -2429,7 +2437,6 @@ DatatypeConstructor Datatype::getConstructorForName(
     snames << "}";
     CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
                               << getName() << " exists, among " << snames.str();
-      
   }
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
 }

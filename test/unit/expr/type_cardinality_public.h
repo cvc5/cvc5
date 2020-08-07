@@ -22,8 +22,8 @@
 
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
-#include "expr/node_manager.h"
 #include "expr/kind.h"
+#include "expr/node_manager.h"
 #include "expr/type.h"
 #include "util/cardinality.h"
 
@@ -182,15 +182,20 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
   }
 
   void testTernaryFunctions() {
-    vector<TypeNode> boolbool; boolbool.push_back(d_nm->booleanType()); boolbool.push_back(d_nm->booleanType());
-    vector<TypeNode> boolboolbool = boolbool; boolboolbool.push_back(d_nm->booleanType());
+    vector<TypeNode> boolbool;
+    boolbool.push_back(d_nm->booleanType());
+    boolbool.push_back(d_nm->booleanType());
+    vector<TypeNode> boolboolbool = boolbool;
+    boolboolbool.push_back(d_nm->booleanType());
 
     TypeNode boolboolTuple = d_nm->mkTupleType(boolbool);
     TypeNode boolboolboolTuple = d_nm->mkTupleType(boolboolbool);
 
-    TypeNode boolboolboolToBool = d_nm->mkFunctionType(boolboolbool, d_nm->booleanType());
+    TypeNode boolboolboolToBool =
+        d_nm->mkFunctionType(boolboolbool, d_nm->booleanType());
     TypeNode boolboolToBoolbool = d_nm->mkFunctionType(boolbool, boolboolTuple);
-    TypeNode boolToBoolboolbool = d_nm->mkFunctionType(d_nm->booleanType(), boolboolboolTuple);
+    TypeNode boolToBoolboolbool =
+        d_nm->mkFunctionType(d_nm->booleanType(), boolboolboolTuple);
 
     TS_ASSERT( boolboolboolToBool.getCardinality().compare(/* 2 ^ 8 */ 1 << 8) == Cardinality::EQUAL );
     TS_ASSERT( boolboolToBoolbool.getCardinality().compare(/* 4 ^ 4 */ 4 * 4 * 4 * 4) == Cardinality::EQUAL );
@@ -234,5 +239,5 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
  private:
   api::Solver* d_slv;
   ExprManager* d_em;
-  NodeManager * d_nm;
+  NodeManager* d_nm;
 };/* TypeCardinalityPublic */
