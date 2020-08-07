@@ -57,7 +57,7 @@ PfManager::~PfManager() {}
 
 void PfManager::setFinalProof(ProofGenerator* pg, context::CDList<Node>* al)
 {
-  Assert (al!=nullptr);
+  Assert(al != nullptr);
   // TODO: don't recompute if already done so?
   Trace("smt-proof") << "SmtEngine::setFinalProof(): get proof body...\n";
 

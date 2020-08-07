@@ -94,8 +94,8 @@
 #include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
-#include "smt/proof_manager.h"
 #include "smt/preprocessor.h"
+#include "smt/proof_manager.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
@@ -304,8 +304,7 @@ void SmtEngine::finishInit()
     // enable proof support in the rewriter
     d_rewriter->setProofNodeManager(pnm);
     // enable it in the assertions pipeline
-    d_asserts->setProofGenerator(
-        d_pfManager->getPreprocessProofGenerator());
+    d_asserts->setProofGenerator(d_pfManager->getPreprocessProofGenerator());
   }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;

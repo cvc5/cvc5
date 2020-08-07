@@ -18,17 +18,14 @@
 
 namespace CVC4 {
 
-const char* toString(TCtxKind id)
-{
-  return "unknown";
-}
+const char* toString(TCtxKind id) { return "unknown"; }
 
 std::ostream& operator<<(std::ostream& out, TCtxKind id)
 {
   out << toString(id);
   return out;
 }
-  
+
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
     : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
 {
@@ -54,10 +51,7 @@ Node TCtxNode::getNode() const { return d_node; }
 
 uint32_t TCtxNode::getContextId() const { return d_val; }
 
-const TermContext* TCtxNode::getTermContext() const
-{
-  return d_tctx;
-}
+const TermContext* TCtxNode::getTermContext() const { return d_tctx; }
 
 Node TCtxNode::getNodeHash() const { return computeNodeHash(d_node, d_val); }
 
@@ -86,6 +80,5 @@ Node TCtxNode::decomposeNodeHash(Node h, uint32_t& val)
   val = ival.getConst<Rational>().getNumerator().toUnsignedInt();
   return h[0];
 }
-
 
 }  // namespace CVC4

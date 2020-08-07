@@ -22,7 +22,7 @@
 
 namespace CVC4 {
 
-/** 
+/**
  * Kinds of term-context-sensitive nodes. This enumeration is based on the
  * set of information that the term is sensitive to.
  */
@@ -71,6 +71,7 @@ class TCtxStack;
 class TCtxNode
 {
   friend class TCtxStack;
+
  public:
   TCtxNode(Node n, const TermContext* tctx);
   /** get number of children */

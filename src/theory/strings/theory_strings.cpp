@@ -60,7 +60,12 @@ TheoryStrings::TheoryStrings(context::Context* c,
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_rsolver(d_state, d_im, d_termReg.getSkolemCache(), d_csolver, d_esolver, d_statistics),
+      d_rsolver(d_state,
+                d_im,
+                d_termReg.getSkolemCache(),
+                d_csolver,
+                d_esolver,
+                d_statistics),
       d_stringsFmf(c, u, valuation, d_termReg)
 {
   bool eagerEval = options::stringEagerEval();

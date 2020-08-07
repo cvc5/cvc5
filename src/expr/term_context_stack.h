@@ -50,6 +50,7 @@ class TCtxStack
   std::pair<Node, uint32_t> getCurrent() const;
   /** Get the current stack element, node version */
   TCtxNode getCurrentNode() const;
+
  private:
   /** The stack */
   std::vector<std::pair<Node, uint32_t>> d_stack;
