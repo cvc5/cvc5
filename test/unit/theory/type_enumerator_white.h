@@ -156,29 +156,21 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     dt.addConstructor(std::make_shared<DTypeConstructor>("blue"));
     dt.addConstructor(std::make_shared<DTypeConstructor>("violet"));
     TypeNode datatype = d_nm->mkDatatypeType(dt);
-    const std::vector<std::shared_ptr<DTypeConstructor> >& dtcons = datatype.getDType().getConstructors();
+    const std::vector<std::shared_ptr<DTypeConstructor> >& dtcons =
+        datatype.getDType().getConstructors();
     TypeEnumerator te(datatype);
-    TS_ASSERT_EQUALS(*te,
-                     d_nm->mkNode(APPLY_CONSTRUCTOR,
-                                  dtcons[0]->getConstructor()));
     TS_ASSERT_EQUALS(
-        *++te,
-        d_nm->mkNode(APPLY_CONSTRUCTOR,
-                     dtcons[1]->getConstructor()));
+        *te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[0]->getConstructor()));
     TS_ASSERT_EQUALS(
-        *++te,
-        d_nm->mkNode(APPLY_CONSTRUCTOR,
-                     dtcons[2]->getConstructor()));
-    TS_ASSERT_EQUALS(*++te,
-                     d_nm->mkNode(APPLY_CONSTRUCTOR,
-                                  dtcons[3]->getConstructor()));
-    TS_ASSERT_EQUALS(*++te,
-                     d_nm->mkNode(APPLY_CONSTRUCTOR,
-                                  dtcons[4]->getConstructor()));
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[1]->getConstructor()));
     TS_ASSERT_EQUALS(
-        *++te,
-        d_nm->mkNode(APPLY_CONSTRUCTOR,
-                     dtcons[5]->getConstructor()));
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[2]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[3]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[4]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[5]->getConstructor()));
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
@@ -195,7 +187,8 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     colors.addConstructor(std::make_shared<DTypeConstructor>("violet"));
     TypeNode colorsType = d_nm->mkDatatypeType(colors);
     // TODO
-    const std::vector<std::shared_ptr<DTypeConstructor> >& ctCons = colorsType.getDType().getConstructors();
+    const std::vector<std::shared_ptr<DTypeConstructor> >& ctCons =
+        colorsType.getDType().getConstructors();
     DType listColors("ListColors");
     std::shared_ptr<DTypeConstructor> consC =
         std::make_shared<DTypeConstructor>("cons");
@@ -203,22 +196,18 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     consC->addArgSelf("cdr");
     listColors.addConstructor(consC);
     listColors.addConstructor(std::make_shared<DTypeConstructor>("nil"));
-    TypeNode listColorsType =
-        d_nm->mkDatatypeType(listColors);
+    TypeNode listColorsType = d_nm->mkDatatypeType(listColors);
     // TODO
-    const std::vector<std::shared_ptr<DTypeConstructor> >& lctCons = listColorsType.getDType().getConstructors();
+    const std::vector<std::shared_ptr<DTypeConstructor> >& lctCons =
+        listColorsType.getDType().getConstructors();
 
     TypeEnumerator te(listColorsType);
     TS_ASSERT( ! te.isFinished() );
     Node cons = lctCons[0]->getConstructor();
-    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            lctCons[1]->getConstructor());
-    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                            ctCons[0]->getConstructor());
-    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                               ctCons[1]->getConstructor());
-    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR,
-                               ctCons[2]->getConstructor());
+    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, lctCons[1]->getConstructor());
+    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, ctCons[0]->getConstructor());
+    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, ctCons[1]->getConstructor());
+    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, ctCons[2]->getConstructor());
     TS_ASSERT_EQUALS(*te, nil);
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
     TS_ASSERT( ! te.isFinished() );

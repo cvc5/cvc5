@@ -18,9 +18,9 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include "expr/dtype.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "expr/dtype.h"
 #include "theory/sets/theory_sets_type_enumerator.h"
 
 using namespace CVC4;
@@ -141,20 +141,15 @@ class SetEnumeratorWhite : public CxxTest::TestSuite
     dt.addConstructor(std::make_shared<DTypeConstructor>("green"));
     dt.addConstructor(std::make_shared<DTypeConstructor>("blue"));
     TypeNode datatype = d_nm->mkDatatypeType(dt);
-    const std::vector<std::shared_ptr<DTypeConstructor> >& dtcons = datatype.getDType().getConstructors();
+    const std::vector<std::shared_ptr<DTypeConstructor> >& dtcons =
+        datatype.getDType().getConstructors();
     SetEnumerator setEnumerator(d_nm->mkSetType(datatype));
 
-    Node red = d_nm->mkNode(
-        APPLY_CONSTRUCTOR,
-        dtcons[0]->getConstructor());
+    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[0]->getConstructor());
 
-    Node green = d_nm->mkNode(
-        APPLY_CONSTRUCTOR,
-        dtcons[1]->getConstructor());
+    Node green = d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[1]->getConstructor());
 
-    Node blue = d_nm->mkNode(
-        APPLY_CONSTRUCTOR,
-        dtcons[2]->getConstructor());
+    Node blue = d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[2]->getConstructor());
 
     Node actual0 = *setEnumerator;
     Node expected0 =
