@@ -103,22 +103,23 @@ PR finished:
 (65) updates to strings core solver *
 (66) preprocess proof generator
 (67) AssertionsPipeline update (req 66)
+(73) ProofNode print ast
 
 PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
-(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65)
-(42) Strings proof checker (req 5, 17, 22, 45, 65)
+(42) Strings proof checker (req 5, 17, 22, 45, 65) *
 (70) rewriter unit test [Andres] (req 36, 37)
 (72) witness form proof generator *
-(73) ProofNode print ast
 (74) extend interface to proof generator *
-(75) extend interface to proof checker for trusted checkers
+(75) extend interface to proof checker for trusted checkers *
 (76) further generalization of eq_proof conversion [Haniel]
+(82) strings term registry proof preparation *
 
 PRs future:
 
 (24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23)
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65, 82)
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (41) SharedTermDatabase uses pfee (req 24)
