@@ -600,14 +600,12 @@ void NodeManager::checkResolvedDatatype(TypeNode dtt)
   const DType& dt = dtt.getDType();
   Assert(dt.isResolved()) << "datatype should have been resolved";
   // for all constructors...
-  /*
   for (size_t i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     const DTypeConstructor& c = dt[i];
     TypeNode testerType CVC4_UNUSED = c.getTester().getType();
     Assert(c.isResolved() && testerType.isTester()
-           && testerType[0] == dtt
-           && testerType[1] == booleanType())
+           && testerType[0] == dtt)
         << "malformed tester in datatype post-resolution";
     TypeNode ctorType CVC4_UNUSED = c.getConstructor().getType();
     Assert(ctorType.isConstructor()
@@ -615,7 +613,7 @@ void NodeManager::checkResolvedDatatype(TypeNode dtt)
            && ctorType.getRangeType() == dtt)
         << "malformed constructor in datatype post-resolution";
     // for all selectors...
-    for (size_t j=0, nargs = c.getNumArgs(); j< nargs; j++)
+    for (size_t j=0, nargs = c.getNumArgs(); j<nargs; j++)
     {
       const DTypeSelector& a = c[j];
       TypeNode selectorType = a.getType();
@@ -631,7 +629,6 @@ void NodeManager::checkResolvedDatatype(TypeNode dtt)
           << "cannot put function-like things in datatypes";
     }
   }
-  */
 }
 
 TypeNode NodeManager::mkConstructorType(const std::vector<TypeNode>& args,
