@@ -1962,8 +1962,11 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
 }
 DatatypeConstructorDecl::~DatatypeConstructorDecl()
 {
-  NodeManagerScope scope(d_solver->getNodeManager());
-  d_ctor = nullptr;
+  if (d_ctor!=nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_ctor = nullptr;
+  }
 }
 
 void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
@@ -2049,8 +2052,11 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
 
 DatatypeDecl::~DatatypeDecl() {
-  NodeManagerScope scope(d_solver->getNodeManager());
-  d_dtype = nullptr;
+  if (d_dtype!=nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_dtype = nullptr;
+  }
 }
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
@@ -2110,8 +2116,11 @@ DatatypeSelector::DatatypeSelector(const Solver* slv,
 }
 
 DatatypeSelector::~DatatypeSelector() {
-  NodeManagerScope scope(d_solver->getNodeManager());
-  d_stor = nullptr;
+  if (d_stor!=nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_stor = nullptr;
+  }
 }
 
 std::string DatatypeSelector::getName() const { return d_stor->getName(); }
@@ -2162,8 +2171,11 @@ DatatypeConstructor::DatatypeConstructor(const Solver* slv,
 }
 
 DatatypeConstructor::~DatatypeConstructor() {
-  NodeManagerScope scope(d_solver->getNodeManager());
-  d_ctor = nullptr;
+  if (d_ctor!=nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_ctor = nullptr;
+  }
 }
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
@@ -2370,8 +2382,11 @@ Datatype::Datatype(const Solver* slv, const CVC4::DType& dtype)
 Datatype::Datatype() : d_solver(nullptr), d_dtype(nullptr) {}
 
 Datatype::~Datatype() {
-  NodeManagerScope scope(d_solver->getNodeManager());
-  d_dtype = nullptr;
+  if (d_dtype!=nullptr)
+  {
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_dtype = nullptr;
+  }
 }
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
