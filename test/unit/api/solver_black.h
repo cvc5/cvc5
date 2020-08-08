@@ -809,6 +809,17 @@ void SolverBlack::testMkTermFromOp()
   Op opterm1 = d_solver->mkOp(BITVECTOR_EXTRACT, 2, 1);
   Op opterm2 = d_solver->mkOp(DIVISIBLE, 1);
 
+  // list datatype
+  Sort sort = d_solver->mkParamSort("T");
+  DatatypeDecl listDecl = d_solver->mkDatatypeDecl("paramlist", sort);
+  DatatypeConstructorDecl cons = d_solver->mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil = d_solver->mkDatatypeConstructorDecl("nil");
+  cons.addSelector("head", sort);
+  cons.addSelectorSelf("tail");
+  listDecl.addConstructor(cons);
+  listDecl.addConstructor(nil);
+  Sort listSort = d_solver->mkDatatypeSort(listDecl);
+
 }
 
 void SolverBlack::testMkTrue()
@@ -832,7 +843,13 @@ void SolverBlack::testMkTuple()
   TS_ASSERT_THROWS(d_solver->mkTuple({d_solver->getIntegerSort()},
                                      {d_solver->mkReal("5.3")}),
                    CVC4ApiException&);
-
+  Solver slv;
+  TS_ASSERT_THROWS(
+      slv.mkTuple({d_solver->mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver->mkBitVector("101", 2)}),
+      CVC4ApiException&);
 }
 
 void SolverBlack::testMkUniverseSet()

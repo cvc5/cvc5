@@ -1965,8 +1965,9 @@ DatatypeConstructorDecl::~DatatypeConstructorDecl()
 {
   if (d_ctor!=nullptr)
   {
+    // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
-    d_ctor = nullptr;
+    d_ctor.reset();
   }
 }
 
@@ -1980,6 +1981,7 @@ void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 
 void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   d_ctor->addArgSelf(name);
 }
 
@@ -2055,8 +2057,9 @@ bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
 DatatypeDecl::~DatatypeDecl() {
   if (d_dtype!=nullptr)
   {
+    // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
-    d_dtype = nullptr;
+    d_dtype.reset();
   }
 }
 
@@ -2119,8 +2122,9 @@ DatatypeSelector::DatatypeSelector(const Solver* slv,
 DatatypeSelector::~DatatypeSelector() {
   if (d_stor!=nullptr)
   {
+    // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
-    d_stor = nullptr;
+    d_stor.reset();
   }
 }
 
@@ -2174,8 +2178,9 @@ DatatypeConstructor::DatatypeConstructor(const Solver* slv,
 DatatypeConstructor::~DatatypeConstructor() {
   if (d_ctor!=nullptr)
   {
+    // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
-    d_ctor = nullptr;
+    d_ctor.reset();
   }
 }
 
@@ -2385,8 +2390,9 @@ Datatype::Datatype() : d_solver(nullptr), d_dtype(nullptr) {}
 Datatype::~Datatype() {
   if (d_dtype!=nullptr)
   {
+    // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
-    d_dtype = nullptr;
+    d_dtype.reset();
   }
 }
 
