@@ -76,7 +76,7 @@ class DTypeConstructor
   void addArgSelf(std::string selectorName);
 
   /** Get the name of this constructor. */
-  std::string getName() const;
+  const std::string& getName() const;
 
   /**
    * Get the constructor operator of this constructor.  The
