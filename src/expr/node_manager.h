@@ -376,10 +376,11 @@ class NodeManager {
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
   Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  
+
   /** Check some things about a newly-created datatype type. */
   void checkResolvedDatatype(TypeNode dtt);
-public:
+
+ public:
 
   explicit NodeManager(ExprManager* exprManager);
   ~NodeManager();

@@ -274,7 +274,7 @@ void SolverBlack::testMkDatatypeSorts()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(decls));
 
   // TS_ASSERT_THROWS(slv.mkDatatypeSorts(decls), CVC4ApiException&);
-  
+
   DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
   std::vector<DatatypeDecl> throwsDecls = {throwsDtypeSpec};
   TS_ASSERT_THROWS(d_solver->mkDatatypeSorts(throwsDecls), CVC4ApiException&);
@@ -292,8 +292,9 @@ void SolverBlack::testMkDatatypeSorts()
   std::vector<DatatypeDecl> udecls = {ulist};
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(udecls, unresSorts));
 
-  // TS_ASSERT_THROWS(slv.mkDatatypeSorts(udecls, unresSorts), CVC4ApiException&);
-  
+  // TS_ASSERT_THROWS(slv.mkDatatypeSorts(udecls, unresSorts),
+  // CVC4ApiException&);
+
   /* Note: More tests are in datatype_api_black. */
 }
 
@@ -857,7 +858,8 @@ void SolverBlack::testMkTermFromOp()
   // TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_SELECTOR, headTerm1),
   //                  CVC4ApiException&);
   // TS_ASSERT_THROWS(d_solver->mkTerm(opterm1), CVC4ApiException&);
-  // TS_ASSERT_THROWS(slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm1), CVC4ApiException&);
+  // TS_ASSERT_THROWS(slv.mkTerm(APPLY_CONSTRUCTOR, nilTerm1),
+  // CVC4ApiException&);
 
   // mkTerm(Op op, Term child) const
   // TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm1, a));
@@ -1776,8 +1778,8 @@ void SolverBlack::testSimplify()
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(x_eq_b));
   TS_ASSERT(d_solver->mkTrue() != x_eq_b);
   TS_ASSERT(d_solver->mkTrue() != d_solver->simplify(x_eq_b));
-  //Solver slv;	
-  //TS_ASSERT_THROWS(slv.simplify(x), CVC4ApiException&);
+  // Solver slv;
+  // TS_ASSERT_THROWS(slv.simplify(x), CVC4ApiException&);
 
   Term i1 = d_solver->mkConst(d_solver->getIntegerSort(), "i1");
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(i1));

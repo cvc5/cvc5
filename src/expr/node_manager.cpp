@@ -604,8 +604,7 @@ void NodeManager::checkResolvedDatatype(TypeNode dtt)
   {
     const DTypeConstructor& c = dt[i];
     TypeNode testerType CVC4_UNUSED = c.getTester().getType();
-    Assert(c.isResolved() && testerType.isTester()
-           && testerType[0] == dtt)
+    Assert(c.isResolved() && testerType.isTester() && testerType[0] == dtt)
         << "malformed tester in datatype post-resolution";
     TypeNode ctorType CVC4_UNUSED = c.getConstructor().getType();
     Assert(ctorType.isConstructor()
@@ -613,7 +612,7 @@ void NodeManager::checkResolvedDatatype(TypeNode dtt)
            && ctorType.getRangeType() == dtt)
         << "malformed constructor in datatype post-resolution";
     // for all selectors...
-    for (size_t j=0, nargs = c.getNumArgs(); j<nargs; j++)
+    for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
     {
       const DTypeSelector& a = c[j];
       TypeNode selectorType = a.getType();
@@ -623,9 +622,7 @@ void NodeManager::checkResolvedDatatype(TypeNode dtt)
       // This next one's a "hard" check, performed in non-debug builds
       // as well; the other ones should all be guaranteed by the
       // CVC4::Datatype class, but this actually needs to be checked.
-      AlwaysAssert(!selectorType
-                        .getRangeType()
-                        .isFunctionLike())
+      AlwaysAssert(!selectorType.getRangeType().isFunctionLike())
           << "cannot put function-like things in datatypes";
     }
   }
