@@ -246,6 +246,9 @@ void SolverBlack::testMkDatatypeSort()
   dtypeSpec.addConstructor(nil);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSort(dtypeSpec));
 
+  DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
+  TS_ASSERT_THROWS(d_solver->mkDatatypeSort(throwsDtypeSpec),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testMkDatatypeSorts()
@@ -266,6 +269,25 @@ void SolverBlack::testMkDatatypeSorts()
   dtypeSpec2.addConstructor(nil2);
   std::vector<DatatypeDecl> decls = {dtypeSpec1, dtypeSpec2};
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(decls));
+
+  DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
+  std::vector<DatatypeDecl> throwsDecls = {throwsDtypeSpec};
+  TS_ASSERT_THROWS(d_solver->mkDatatypeSorts(throwsDecls), CVC4ApiException&);
+
+  /* with unresolved sorts */
+  Sort unresList = d_solver->mkUninterpretedSort("ulist");
+  std::set<Sort> unresSorts = {unresList};
+  DatatypeDecl ulist = d_solver->mkDatatypeDecl("ulist");
+  DatatypeConstructorDecl ucons = d_solver->mkDatatypeConstructorDecl("ucons");
+  ucons.addSelector("car", unresList);
+  ucons.addSelector("cdr", unresList);
+  ulist.addConstructor(ucons);
+  DatatypeConstructorDecl unil = d_solver->mkDatatypeConstructorDecl("unil");
+  ulist.addConstructor(unil);
+  std::vector<DatatypeDecl> udecls = {ulist};
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(udecls, unresSorts));
+
+  /* Note: More tests are in datatype_api_black. */
 }
 
 void SolverBlack::testMkFunctionSort()
@@ -810,13 +832,7 @@ void SolverBlack::testMkTuple()
   TS_ASSERT_THROWS(d_solver->mkTuple({d_solver->getIntegerSort()},
                                      {d_solver->mkReal("5.3")}),
                    CVC4ApiException&);
-  Solver slv;
-  TS_ASSERT_THROWS(
-      slv.mkTuple({d_solver->mkBitVectorSort(3)}, {slv.mkBitVector("101", 2)}),
-      CVC4ApiException&);
-  TS_ASSERT_THROWS(
-      slv.mkTuple({slv.mkBitVectorSort(3)}, {d_solver->mkBitVector("101", 2)}),
-      CVC4ApiException&);
+
 }
 
 void SolverBlack::testMkUniverseSet()

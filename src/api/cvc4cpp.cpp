@@ -971,6 +971,7 @@ Datatype Sort::getDatatype() const
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
   std::vector<TypeNode> tparams;
@@ -1002,20 +1003,20 @@ CVC4::Type Sort::getType(void) const { return *d_type; }
 
 size_t Sort::getConstructorArity() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
+  CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   return ConstructorType(*d_type).getArity();
 }
 
 std::vector<Sort> Sort::getConstructorDomainSorts() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
+  CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   std::vector<CVC4::Type> types = ConstructorType(*d_type).getArgTypes();
   return typeVectorToSorts(d_solver, types);
 }
 
 Sort Sort::getConstructorCodomainSort() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
+  CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   return Sort(d_solver, ConstructorType(*d_type).getRangeType());
 }
 
