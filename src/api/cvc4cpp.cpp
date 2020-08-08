@@ -965,6 +965,7 @@ bool Sort::isComparableTo(Sort s) const
 
 Datatype Sort::getDatatype() const
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
   return Datatype(d_solver, TypeNode::fromType(*d_type).getDType());
 }
@@ -2197,6 +2198,7 @@ Term DatatypeConstructor::getConstructorTerm() const
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK(d_ctor->isResolved())
       << "Expected resolved datatype constructor";
   CVC4_API_CHECK(retSort.isDatatype())
