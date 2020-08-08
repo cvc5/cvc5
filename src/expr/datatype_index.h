@@ -17,7 +17,7 @@
 #ifndef CVC4__DATATYPE_INDEX_H
 #define CVC4__DATATYPE_INDEX_H
 
-#include <iostream>
+#include <iosfwd>
 #include "util/hash.h"
 
 namespace CVC4 {
