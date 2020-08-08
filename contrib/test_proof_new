@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# run this in a cvc4 build directory, will print a summary of the overall status of the proof-new branch
+
 echo "Testing proof-new..."
 
 echo > results__summary.txt
@@ -7,13 +10,14 @@ echo > results__summary_short.txt
 function testwith {
   TESTNAME=$1
   shift
-  echo "Run [$TESTNAME]: make regress CVC4_REGRESSION_ARGS=$@"
-  CARGS="$@"
-  make regress CVC4_REGRESSION_ARGS="$CARGS" >& results_$TESTNAME.txt
+  CARGS="--tlimit=120000 $@"
+  echo "Run [$TESTNAME]: make regress -j8 CVC4_REGRESSION_ARGS=$CARGS"
+  make regress -j8 CVC4_REGRESSION_ARGS="$CARGS" >& results_$TESTNAME.txt
   cat results_$TESTNAME.txt | grep "(Failed)" > temp.txt
   NUMFAILS=$(cat temp.txt | wc -l)
   cat results_$TESTNAME.txt | grep " Test " > temp2.txt
-  NUMTESTS=$(cat temp2.txt | wc -l)
+  NUMTESTSTR=$(cat temp2.txt | wc -l)
+  NUMTESTS=$(($NUMTESTSTR-1))
   echo "Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed"
   echo "Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed" >> results__summary.txt
   echo "Results of [$TESTNAME]: $NUMFAILS / $NUMTESTS failed" >> results__summary_short.txt
@@ -24,12 +28,26 @@ function testwith {
   rm temp2.txt
 }
 
-testwith default
-testwith eager_checking --proof-new-eager-checking
-testwith check_proofs --check-proofs-new
-testwith check_proofs_p1 --check-proofs-new --proof-new-pedantic=1
-testwith check_proofs_p10 --check-proofs-new --proof-new-pedantic=10
-testwith check_proofs_fail --check-proofs-new --check-proofs-new-fail
+# simply check that make regress passes
+testwith regress
+# fail for cases where proof-new is disabled when it shouldn't be
+testwith default --proof-new-req
+# eager checking, fail if any intermediate proof went wrong
+testwith eager_checking --proof-new-req --proof-new-eager-checking
+# check proofs, non-pedantic
+testwith check_proofs --proof-new-req --check-proofs-new
+# check proofs, pedantic level one
+testwith check_proofs_p1 --proof-new-req --check-proofs-new --proof-new-pedantic=1
+# check proofs, highest pedantic level
+testwith check_proofs_p10 --proof-new-req --check-proofs-new --proof-new-pedantic=10
+# check proofs, sanity check (always fails when a proof is checked)
+testwith check_proofs_fail --proof-new-req --check-proofs-new --check-proofs-new-fail
+
+# Note that 
+#  --proof-new-req --check-proofs-new --proof-new-pedantic=1
+# may fail more than 
+#  --proof-new-req --check-proofs-new --check-proofs-new-fail
+# since the former fails when any intermediate proof step uses a rule that fails a pedantic check
 
 echo "Summary of results:"
 cat results__summary_short.txt

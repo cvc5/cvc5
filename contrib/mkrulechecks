@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# run this in a cvc4 build directory, will print the number of PfRule applications in all regressions
+
 echo "Make regress with stats..."
 make regress $@ CVC4_REGRESSION_ARGS=--stats >& temp.txt
 echo "Do grep for rule checks..."

@@ -1861,7 +1861,7 @@ void SmtEngine::checkProof()
 {
   if (options::proofNew())
   {
-    // TEMPORARY for testing
+    // TEMPORARY for testing, this can be used to count how often checkProofs is called
     if (options::checkProofsNewFail())
     {
       AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
