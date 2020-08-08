@@ -15,6 +15,7 @@
 #include "expr/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
@@ -259,17 +260,13 @@ Node ProofChecker::checkInternal(PfRule id,
     }
   }
   // fails if pedantic level is not met
-  if (d_pclevel > 0)
+  if (options::proofNewPedanticEager())
   {
-    std::map<PfRule, uint32_t>::iterator itp = d_plevel.find(id);
-    if (itp != d_plevel.end())
+    std::stringstream serr;
+    if (isPedanticFailure(id, serr))
     {
-      if (itp->second <= d_pclevel)
-      {
-        out << "pedantic level for " << id << " not met (" << itp->second
-            << " < " << d_pclevel << ")" << std::endl;
-        return Node::null();
-      }
+      out << serr.str() << std::endl;
+      return Node::null();
     }
   }
   return res;
@@ -314,6 +311,36 @@ ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
     return nullptr;
   }
   return it->second;
+}
+
+uint32_t ProofChecker::getPedanticLevel(PfRule id) const
+{
+  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  if (itp != d_plevel.end())
+  {
+    return itp->second;
+  }
+  return 0;
+}
+
+bool ProofChecker::isPedanticFailure(PfRule id, std::ostream& out) const
+{
+  if (d_pclevel == 0)
+  {
+    return false;
+  }
+  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  if (itp != d_plevel.end())
+  {
+    if (itp->second <= d_pclevel)
+    {
+      out << "pedantic level for " << id << " not met (rule level is "
+          << itp->second << " which is strictly below the required level "
+          << d_pclevel << ")";
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace CVC4
