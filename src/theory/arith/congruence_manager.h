@@ -96,7 +96,8 @@ private:
 
   const ArithVariables& d_avariables;
 
-  eq::EqualityEngine d_ee;
+  /** The equality engine being used by this class */
+  eq::EqualityEngine* d_ee;
 
   void raiseConflict(Node conflict);
 public:
@@ -108,8 +109,6 @@ public:
   const Node getNextPropagation();
 
   bool canExplain(TNode n) const;
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
 private:
   Node externalToInternal(TNode n) const;
@@ -139,6 +138,19 @@ public:
   ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseEqualityEngineConflict raiseConflict);
   ~ArithCongruenceManager();
 
+  //--------------------------------- initialization
+  /**
+   * Allocate the equality engine, which is subsequently used as the official
+   * equality engine of the theory of arithmetic.
+   */
+  eq::EqualityEngine* allocateEqualityEngine(context::Context* c);
+  /**
+   * Finish initialize. This class is instructed by TheoryArithPrivate to use
+   * the equality engine ee.
+   */
+  void finishInit(eq::EqualityEngine* ee);
+  //--------------------------------- end initialization
+
   Node explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);
 
@@ -167,10 +179,10 @@ public:
 
 
   void addSharedTerm(Node x);
-  
-  eq::EqualityEngine * getEqualityEngine() { return &d_ee; }
 
-private:
+  eq::EqualityEngine* getEqualityEngine() { return d_ee; }
+
+ private:
   class Statistics {
   public:
     IntStat d_watchedVariables;
