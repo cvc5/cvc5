@@ -1960,6 +1960,11 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
     : d_solver(slv), d_ctor(new CVC4::DTypeConstructor(name))
 {
 }
+DatatypeConstructorDecl::~DatatypeConstructorDecl()
+{
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_ctor = nullptr;
+}
 
 void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
@@ -2045,7 +2050,7 @@ bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
 
 DatatypeDecl::~DatatypeDecl() {
   NodeManagerScope scope(d_solver->getNodeManager());
-  d_dtype.reset(nullptr);
+  d_dtype = nullptr;
 }
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
@@ -2106,7 +2111,7 @@ DatatypeSelector::DatatypeSelector(const Solver* slv,
 
 DatatypeSelector::~DatatypeSelector() {
   NodeManagerScope scope(d_solver->getNodeManager());
-  d_stor.reset(nullptr);
+  d_stor = nullptr;
 }
 
 std::string DatatypeSelector::getName() const { return d_stor->getName(); }
@@ -2158,7 +2163,7 @@ DatatypeConstructor::DatatypeConstructor(const Solver* slv,
 
 DatatypeConstructor::~DatatypeConstructor() {
   NodeManagerScope scope(d_solver->getNodeManager());
-  d_ctor.reset(nullptr);
+  d_ctor = nullptr;
 }
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
@@ -2366,7 +2371,7 @@ Datatype::Datatype() : d_solver(nullptr), d_dtype(nullptr) {}
 
 Datatype::~Datatype() {
   NodeManagerScope scope(d_solver->getNodeManager());
-  d_dtype.reset(nullptr);
+  d_dtype = nullptr;
 }
 
 DatatypeConstructor Datatype::operator[](size_t idx) const

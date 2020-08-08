@@ -417,8 +417,8 @@ class NodeBlack : public CxxTest::TestSuite {
 
     TS_ASSERT(f == fa.getOperator());
 #ifdef CVC4_ASSERTIONS
-    //TS_ASSERT_THROWS(f.getOperator(), IllegalArgumentException&);
-    //TS_ASSERT_THROWS(a.getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(f.getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(a.getOperator(), IllegalArgumentException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
