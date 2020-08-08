@@ -246,6 +246,9 @@ void SolverBlack::testMkDatatypeSort()
   dtypeSpec.addConstructor(nil);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSort(dtypeSpec));
 
+  Solver slv;
+  TS_ASSERT_THROWS(slv.mkDatatypeSort(dtypeSpec), CVC4ApiException&);
+
   DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
   TS_ASSERT_THROWS(d_solver->mkDatatypeSort(throwsDtypeSpec),
                    CVC4ApiException&);
@@ -367,7 +370,10 @@ void SolverBlack::testMkRecordSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(fields));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(empty));
   Sort recSort = d_solver->mkRecordSort(fields);
-  TS_ASSERT_THROWS_NOTHING(recSort.getDatatype());
+  TS_ASSERT_THROWS_NOTHING(recSort.getDatatype()); 
+
+  Solver slv;	
+  TS_ASSERT_THROWS(slv.mkRecordSort(fields), CVC4ApiException&);
 }
 
 void SolverBlack::testMkSetSort()

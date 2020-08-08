@@ -3422,6 +3422,7 @@ Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 Sort Solver::mkRecordSort(
     const std::vector<std::pair<std::string, Sort>>& fields) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   std::vector<std::pair<std::string, Type>> f;
   size_t i = 0;
