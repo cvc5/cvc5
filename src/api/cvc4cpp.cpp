@@ -1623,7 +1623,7 @@ Op Term::getOp() const
     return Op(d_solver, intToExtKind(d_node->getKind()), op);
   }
   // Notice this is the only case where getKindHelper is used, since the
-  // cases above do have special cases for intToExtKind.
+  // cases above do not have special cases for intToExtKind.
   return Op(d_solver, getKindHelper());
 }
 
@@ -1963,6 +1963,7 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
 
 void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
       << "non-null range sort for selector";
   d_ctor->addArg(name, TypeNode::fromType(*sort.d_type));
@@ -2042,10 +2043,14 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
 
-DatatypeDecl::~DatatypeDecl() {}
+DatatypeDecl::~DatatypeDecl() {
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_dtype.reset(nullptr);
+}
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK_NOT_NULL;
   d_dtype->addConstructor(ctor.d_ctor);
 }
@@ -2099,7 +2104,10 @@ DatatypeSelector::DatatypeSelector(const Solver* slv,
   CVC4_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
 
-DatatypeSelector::~DatatypeSelector() {}
+DatatypeSelector::~DatatypeSelector() {
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_stor.reset(nullptr);
+}
 
 std::string DatatypeSelector::getName() const { return d_stor->getName(); }
 
@@ -2148,7 +2156,10 @@ DatatypeConstructor::DatatypeConstructor(const Solver* slv,
       << "Expected resolved datatype constructor";
 }
 
-DatatypeConstructor::~DatatypeConstructor() {}
+DatatypeConstructor::~DatatypeConstructor() {
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_ctor.reset(nullptr);
+}
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
@@ -2353,7 +2364,10 @@ Datatype::Datatype(const Solver* slv, const CVC4::DType& dtype)
 
 Datatype::Datatype() : d_solver(nullptr), d_dtype(nullptr) {}
 
-Datatype::~Datatype() {}
+Datatype::~Datatype() {
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_dtype.reset(nullptr);
+}
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
 {
@@ -3090,6 +3104,7 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     std::vector<DatatypeDecl>& dtypedecls,
     std::set<Sort>& unresolvedSorts) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
   std::vector<CVC4::DType> datatypes;
@@ -3270,6 +3285,7 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 
 Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(this == dtypedecl.d_solver)
       << "Given datatype declaration is not associated with this solver";
@@ -3922,6 +3938,7 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
 DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
     const std::string& name)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeConstructorDecl(this, name);
 }
 
@@ -3930,6 +3947,7 @@ DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeDecl(this, name, isCoDatatype);
 }
 
@@ -3937,6 +3955,7 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     Sort param,
                                     bool isCoDatatype)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeDecl(this, name, param, isCoDatatype);
 }
 
@@ -3944,6 +3963,7 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     const std::vector<Sort>& params,
                                     bool isCoDatatype)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeDecl(this, name, params, isCoDatatype);
 }
 
@@ -4151,6 +4171,7 @@ Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
 Term Solver::mkTuple(const std::vector<Sort>& sorts,
                      const std::vector<Term>& terms) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(sorts.size() == terms.size())
       << "Expected the same number of sorts and elements";

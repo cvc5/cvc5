@@ -747,46 +747,39 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(cons_1_nil.isConst());
     TS_ASSERT(cons_1_cons_2_nil.isConst());
 
-    {
-      TypeNode arrType = d_nodeManager->mkArrayType(
-          d_nodeManager->integerType(), d_nodeManager->integerType());
-      Node zero = d_nodeManager->mkConst(Rational(0));
-      Node one = d_nodeManager->mkConst(Rational(1));
-      Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
-      TS_ASSERT(storeAll.isConst());
+    TypeNode arrType = d_nodeManager->mkArrayType(
+        d_nodeManager->integerType(), d_nodeManager->integerType());
+    Node zero = d_nodeManager->mkConst(Rational(0));
+    Node one = d_nodeManager->mkConst(Rational(1));
+    Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
+    TS_ASSERT(storeAll.isConst());
 
-      Node arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
-      TS_ASSERT(!arr.isConst());
-      arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
-      TS_ASSERT(arr.isConst());
-      Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
-      TS_ASSERT(!arr2.isConst());
-      arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
-      // must rewrite since we are not guaranteed to be a constant prior to
-      // rewriting
-      arr2 = theory::Rewriter::rewrite(arr2);
-      TS_ASSERT(arr2.isConst());
-      arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
-      TS_ASSERT(!arr2.isConst());
+    Node arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+    TS_ASSERT(!arr.isConst());
+    arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
+    TS_ASSERT(arr.isConst());
+    Node arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
+    TS_ASSERT(!arr2.isConst());
 
-      arrType = d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(1),
-                                           d_nodeManager->mkBitVectorType(1));
-      zero = d_nodeManager->mkConst(BitVector(1, unsigned(0)));
-      one = d_nodeManager->mkConst(BitVector(1, unsigned(1)));
-      storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
-      TS_ASSERT(storeAll.isConst());
+    arrType = d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(1),
+                                          d_nodeManager->mkBitVectorType(1));
+    zero = d_nodeManager->mkConst(BitVector(1, unsigned(0)));
+    one = d_nodeManager->mkConst(BitVector(1, unsigned(1)));
+    storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
+    TS_ASSERT(storeAll.isConst());
 
-      arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
-      TS_ASSERT(!arr.isConst());
-      arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
-      TS_ASSERT(arr.isConst());
-      arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
-      TS_ASSERT(!arr2.isConst());
-      arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
-      TS_ASSERT(!arr2.isConst());
-      arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
-      TS_ASSERT(!arr2.isConst());
-    }
+    arr = d_nodeManager->mkNode(STORE, storeAll, zero, zero);
+    TS_ASSERT(!arr.isConst());
+    arr = d_nodeManager->mkNode(STORE, storeAll, zero, one);
+    TS_ASSERT(arr.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, one, zero);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, one, one);
+    TS_ASSERT(!arr2.isConst());
+    arr2 = d_nodeManager->mkNode(STORE, arr, zero, one);
+    TS_ASSERT(!arr2.isConst());
   }
 
   //  This Test is designed to fail in a way that will cause a segfault,
