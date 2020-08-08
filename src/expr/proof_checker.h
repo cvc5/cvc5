@@ -171,18 +171,19 @@ class ProofChecker
                               uint32_t plevel = 10);
   /** get checker for */
   ProofRuleChecker* getCheckerFor(PfRule id);
-  
-  /** 
+
+  /**
    * Get the pedantic level for id if it has been assigned a pedantic
    * level via registerTrustedChecker above, or zero otherwise.
    */
   uint32_t getPedanticLevel(PfRule id) const;
 
-  /** 
+  /**
    * Is pedantic failure? If so, we return true and write a debug message on the
    * output stream out.
    */
   bool isPedanticFailure(PfRule id, std::ostream& out) const;
+
  private:
   /** statistics class */
   ProofCheckerStatistics d_stats;

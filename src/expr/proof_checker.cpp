@@ -15,8 +15,8 @@
 #include "expr/proof_checker.h"
 
 #include "expr/skolem_manager.h"
-#include "smt/smt_statistics_registry.h"
 #include "options/smt_options.h"
+#include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
 
@@ -334,9 +334,10 @@ bool ProofChecker::isPedanticFailure(PfRule id, std::ostream& out) const
   {
     if (itp->second <= d_pclevel)
     {
-      out << "pedantic level for " << id << " not met (rule level is " << itp->second
-          << " which is strictly below the required level " << d_pclevel << ")";
-          return true;
+      out << "pedantic level for " << id << " not met (rule level is "
+          << itp->second << " which is strictly below the required level "
+          << d_pclevel << ")";
+      return true;
     }
   }
   return false;

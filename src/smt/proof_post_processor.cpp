@@ -15,12 +15,12 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
+#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/builtin/proof_checker.h"
 #include "theory/rewriter.h"
-#include "options/smt_options.h"
 
 using namespace CVC4::kind;
 using namespace CVC4::theory;
@@ -568,7 +568,8 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(ProofNodeManager * pnm)
+ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
+    ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
       d_totalRuleCount("finalProof::totalRuleCount", 0),
       d_pnm(pnm),
@@ -603,7 +604,7 @@ bool ProofPostprocessFinalCallback::shouldUpdate(ProofNode* pn)
   {
     if (!d_pedanticFailure)
     {
-      Assert (d_pedanticFailureOut.str().empty());
+      Assert(d_pedanticFailureOut.str().empty());
       if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
       {
         d_pedanticFailure = true;
@@ -647,12 +648,14 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   d_finalCb.initializeUpdate();
   ProofNodeUpdater finalizer(d_pnm, d_finalCb);
   finalizer.process(pf);
-  
+
   std::stringstream serr;
   bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
   if (wasPedanticFailure)
   {
-    AlwaysAssert(!wasPedanticFailure) << "ProofPostproccess::process: pedantic failure:" << std::endl << serr.str();
+    AlwaysAssert(!wasPedanticFailure)
+        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << serr.str();
   }
 }
 

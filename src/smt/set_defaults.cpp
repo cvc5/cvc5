@@ -48,9 +48,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   // TEMPORARY for testing
   if (options::proofNewReq() && !options::proofNew())
   {
-    AlwaysAssert(false) << "Fail due to --proof-new-req " << options::proofNew.wasSetByUser();
+    AlwaysAssert(false) << "Fail due to --proof-new-req "
+                        << options::proofNew.wasSetByUser();
   }
-  
+
   // implied options
   if (options::debugCheckModels())
   {

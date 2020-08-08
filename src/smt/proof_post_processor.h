@@ -104,7 +104,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
 {
  public:
-  ProofPostprocessFinalCallback(ProofNodeManager * pnm);
+  ProofPostprocessFinalCallback(ProofNodeManager* pnm);
   ~ProofPostprocessFinalCallback();
   /**
    * Initialize, called once for each new ProofNode to process. This initializes
@@ -115,13 +115,14 @@ class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
   bool shouldUpdate(ProofNode* pn) override;
   /** was pedantic failure */
   bool wasPedanticFailure(std::ostream& out) const;
+
  private:
   /** Counts number of postprocessed proof nodes for each kind of proof rule */
   HistogramStat<PfRule> d_ruleCount;
   /** Total number of postprocessed rule applications */
   IntStat d_totalRuleCount;
   /** Proof node manager (used for pedantic checking) */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** Was there a pedantic failure? */
   bool d_pedanticFailure;
   /** The pedantic failure string for debugging */
