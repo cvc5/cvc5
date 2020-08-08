@@ -1777,8 +1777,8 @@ void SolverBlack::testSimplify()
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(x_eq_b));
   TS_ASSERT(d_solver->mkTrue() != x_eq_b);
   TS_ASSERT(d_solver->mkTrue() != d_solver->simplify(x_eq_b));
-  // Solver slv;
-  // TS_ASSERT_THROWS(slv.simplify(x), CVC4ApiException&);
+  Solver slv;
+  TS_ASSERT_THROWS(slv.simplify(x), CVC4ApiException&);
 
   Term i1 = d_solver->mkConst(d_solver->getIntegerSort(), "i1");
   TS_ASSERT_THROWS_NOTHING(d_solver->simplify(i1));
