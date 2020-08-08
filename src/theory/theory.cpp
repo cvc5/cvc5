@@ -80,6 +80,7 @@ Theory::Theory(TheoryId id,
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
+      d_equalityEngine(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -419,6 +420,24 @@ void Theory::setDecisionManager(DecisionManager* dm)
   Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
   d_decManager = dm;
+}
+
+eq::EqualityEngine* Theory::getEqualityEngine()
+{
+  // get the assigned equality engine, which is a pointer stored in this class
+  return d_equalityEngine;
+}
+
+void Theory::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  // set the equality engine pointer
+  d_equalityEngine = ee;
+}
+
+eq::EqualityEngine* Theory::allocateEqualityEngine()
+{
+  // this theory does not use an (official) equality engine
+  return nullptr;
 }
 
 }/* CVC4::theory namespace */

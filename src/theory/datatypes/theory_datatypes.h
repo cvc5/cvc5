@@ -151,8 +151,6 @@ private:
 private:
   /** The notify class */
   NotifyClass d_notify;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
   /** map from nodes to their instantiated equivalent for each constructor type */
@@ -275,9 +273,14 @@ private:
                   ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** allocate the official equality engine of this theory */
+  eq::EqualityEngine* allocateEqualityEngine() override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /** propagate */
   void propagate(Effort effort) override;
@@ -305,7 +308,6 @@ private:
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
-  void finishInit() override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
   void presolve() override;
@@ -317,8 +319,6 @@ private:
   {
     return std::string("TheoryDatatypes");
   }
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,

@@ -42,8 +42,14 @@ class TheoryFp : public Theory {
            Valuation valuation,
            const LogicInfo& logicInfo,
            ProofNodeManager* pnm = nullptr);
-
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** allocate the official equality engine of this theory */
+  eq::EqualityEngine* allocateEqualityEngine() override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   TrustNode expandDefinition(Node node) override;
 
@@ -59,8 +65,6 @@ class TheoryFp : public Theory {
   bool collectModelInfo(TheoryModel* m) override;
 
   std::string identify() const override { return "THEORY_FP"; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   TrustNode explain(TNode n) override;
 
@@ -87,7 +91,6 @@ class TheoryFp : public Theory {
   friend NotifyClass;
 
   NotifyClass d_notification;
-  eq::EqualityEngine d_equalityEngine;
 
   /** General utility **/
   void registerTerm(TNode node);

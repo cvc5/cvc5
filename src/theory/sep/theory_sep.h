@@ -74,9 +74,14 @@ class TheorySep : public Theory {
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** allocate the official equality engine of this theory */
+  eq::EqualityEngine* allocateEqualityEngine() override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   std::string identify() const override { return std::string("TheorySep"); }
 
@@ -206,9 +211,6 @@ class TheorySep : public Theory {
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
 
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-
   /** Are we in conflict? */
   context::CDO<bool> d_conflict;
   std::vector< Node > d_pending_exp;
@@ -331,7 +333,6 @@ class TheorySep : public Theory {
   void doPendingFacts();
 
  public:
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   void initializeBounds();
 };/* class TheorySep */

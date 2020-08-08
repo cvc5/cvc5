@@ -55,18 +55,21 @@ class TheoryArith : public Theory {
               ProofNodeManager* pnm = nullptr);
   virtual ~TheoryArith();
 
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /** allocate the official equality engine of this theory */
+  eq::EqualityEngine* allocateEqualityEngine() override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n) override;
 
-  void finishInit() override;
-
   TrustNode expandDefinition(Node node) override;
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
 
   void check(Effort e) override;
   bool needsCheckLastEffort() override;

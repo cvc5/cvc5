@@ -77,11 +77,14 @@ class TheoryBV : public Theory {
 
   ~TheoryBV();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** allocate the official equality engine of this theory */
+  eq::EqualityEngine* allocateEqualityEngine() override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
   TrustNode expandDefinition(Node node) override;
 
@@ -99,8 +102,6 @@ class TheoryBV : public Theory {
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override;
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,

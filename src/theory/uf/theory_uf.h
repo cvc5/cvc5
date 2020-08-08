@@ -121,9 +121,6 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
 
@@ -194,10 +191,14 @@ private:
 
   ~TheoryUF();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /** allocate the official equality engine of this theory */
+  eq::EqualityEngine* allocateEqualityEngine() override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
   void check(Effort) override;
   TrustNode expandDefinition(Node node) override;
@@ -217,8 +218,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
-
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }

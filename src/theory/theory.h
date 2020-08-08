@@ -221,6 +221,11 @@ class Theory {
    * theory engine (and other theories).
    */
   Valuation d_valuation;
+  /**
+   * Pointer to the official equality engine of this theory, which is owned by
+   * the equality engine manager of TheoryEngine.
+   */
+  eq::EqualityEngine* d_equalityEngine;
 
   /**
    * Whether proofs are enabled
@@ -492,10 +497,22 @@ class Theory {
    */
   virtual void addSharedTerm(TNode n) { }
 
+  //---------------------------------- equality engine management
+  /** Get the equality engine being used by this theory. */
+  eq::EqualityEngine* getEqualityEngine();
+  //=========== Centralized
   /**
-   * Called to set the master equality engine.
+   * Called to set the equality engine, when doing centralized congruence
+   * closure.
    */
-  virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  //=========== Distributed
+  /**
+   * Called to allocate an equality engine if doing distributed congruence
+   * closure.
+   */
+  virtual eq::EqualityEngine* allocateEqualityEngine();
+  //---------------------------------- equality engine management
 
   /** Called to set the quantifiers engine. */
   void setQuantifiersEngine(QuantifiersEngine* qe);
@@ -837,9 +854,6 @@ class Theory {
    * E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
-
-  /* equality engine TODO: use? */
-  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
 
   /* get current substitution at an effort
    *   input : vars
