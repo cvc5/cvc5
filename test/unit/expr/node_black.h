@@ -747,8 +747,8 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(cons_1_nil.isConst());
     TS_ASSERT(cons_1_cons_2_nil.isConst());
 
-    TypeNode arrType = d_nodeManager->mkArrayType(
-        d_nodeManager->integerType(), d_nodeManager->integerType());
+    TypeNode arrType = d_nodeManager->mkArrayType(d_nodeManager->integerType(),
+                                                  d_nodeManager->integerType());
     Node zero = d_nodeManager->mkConst(Rational(0));
     Node one = d_nodeManager->mkConst(Rational(1));
     Node storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));
@@ -764,7 +764,7 @@ class NodeBlack : public CxxTest::TestSuite {
     TS_ASSERT(!arr2.isConst());
 
     arrType = d_nodeManager->mkArrayType(d_nodeManager->mkBitVectorType(1),
-                                          d_nodeManager->mkBitVectorType(1));
+                                         d_nodeManager->mkBitVectorType(1));
     zero = d_nodeManager->mkConst(BitVector(1, unsigned(0)));
     one = d_nodeManager->mkConst(BitVector(1, unsigned(1)));
     storeAll = d_nodeManager->mkConst(ArrayStoreAll(arrType, zero));

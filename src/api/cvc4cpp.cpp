@@ -1963,7 +1963,7 @@ DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
 }
 DatatypeConstructorDecl::~DatatypeConstructorDecl()
 {
-  if (d_ctor!=nullptr)
+  if (d_ctor != nullptr)
   {
     // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
@@ -2054,8 +2054,9 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
 
-DatatypeDecl::~DatatypeDecl() {
-  if (d_dtype!=nullptr)
+DatatypeDecl::~DatatypeDecl()
+{
+  if (d_dtype != nullptr)
   {
     // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
@@ -2119,8 +2120,9 @@ DatatypeSelector::DatatypeSelector(const Solver* slv,
   CVC4_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
 
-DatatypeSelector::~DatatypeSelector() {
-  if (d_stor!=nullptr)
+DatatypeSelector::~DatatypeSelector()
+{
+  if (d_stor != nullptr)
   {
     // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
@@ -2175,8 +2177,9 @@ DatatypeConstructor::DatatypeConstructor(const Solver* slv,
       << "Expected resolved datatype constructor";
 }
 
-DatatypeConstructor::~DatatypeConstructor() {
-  if (d_ctor!=nullptr)
+DatatypeConstructor::~DatatypeConstructor()
+{
+  if (d_ctor != nullptr)
   {
     // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());
@@ -2194,8 +2197,11 @@ Term DatatypeConstructor::getConstructorTerm() const
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
 {
-  CVC4_API_CHECK(d_ctor->isResolved()) << "Expected resolved datatype constructor";
-  CVC4_API_CHECK(retSort.isDatatype()) << "Cannot get specialized constructor type for non-datatype type " << retSort;
+  CVC4_API_CHECK(d_ctor->isResolved())
+      << "Expected resolved datatype constructor";
+  CVC4_API_CHECK(retSort.isDatatype())
+      << "Cannot get specialized constructor type for non-datatype type "
+      << retSort;
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   
   NodeManager* nm = d_solver->getNodeManager();
@@ -2387,8 +2393,9 @@ Datatype::Datatype(const Solver* slv, const CVC4::DType& dtype)
 
 Datatype::Datatype() : d_solver(nullptr), d_dtype(nullptr) {}
 
-Datatype::~Datatype() {
-  if (d_dtype!=nullptr)
+Datatype::~Datatype()
+{
+  if (d_dtype != nullptr)
   {
     // ensure proper node manager is in scope
     NodeManagerScope scope(d_solver->getNodeManager());

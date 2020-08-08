@@ -1238,7 +1238,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * Nullary constructor for Cython.
    */
   DatatypeConstructorDecl();
-  
+
   /**
    * Destructor.
    */

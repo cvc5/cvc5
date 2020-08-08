@@ -370,9 +370,9 @@ void SolverBlack::testMkRecordSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(fields));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkRecordSort(empty));
   Sort recSort = d_solver->mkRecordSort(fields);
-  TS_ASSERT_THROWS_NOTHING(recSort.getDatatype()); 
+  TS_ASSERT_THROWS_NOTHING(recSort.getDatatype());
 
-  Solver slv;	
+  Solver slv;
   TS_ASSERT_THROWS(slv.mkRecordSort(fields), CVC4ApiException&);
 }
 
