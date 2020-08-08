@@ -273,14 +273,10 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
     {
       // add an arbitrary one
       Node op = st.mkGroundTerm();
-      // use same naming convention as SygusDatatype
-      std::stringstream ss;
-      ss << getName() << "_" << getNumConstructors() << "_" << op;
-      // it has zero weight
-      std::shared_ptr<DTypeConstructor> c =
-          std::make_shared<DTypeConstructor>(ss.str(), 0);
-      c->setSygus(op);
-      addConstructor(c);
+      std::stringstream cname;
+      cname << op;
+      std::vector<TypeNode> cargs;
+      addSygusConstructor(op, cname.str(), cargs);
     }
   }
 
