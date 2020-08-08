@@ -273,7 +273,7 @@ void SolverBlack::testMkDatatypeSorts()
   std::vector<DatatypeDecl> decls = {dtypeSpec1, dtypeSpec2};
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(decls));
 
-  // TS_ASSERT_THROWS(slv.mkDatatypeSorts(decls), CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkDatatypeSorts(decls), CVC4ApiException&);
 
   DatatypeDecl throwsDtypeSpec = d_solver->mkDatatypeDecl("list");
   std::vector<DatatypeDecl> throwsDecls = {throwsDtypeSpec};
@@ -292,8 +292,7 @@ void SolverBlack::testMkDatatypeSorts()
   std::vector<DatatypeDecl> udecls = {ulist};
   TS_ASSERT_THROWS_NOTHING(d_solver->mkDatatypeSorts(udecls, unresSorts));
 
-  // TS_ASSERT_THROWS(slv.mkDatatypeSorts(udecls, unresSorts),
-  // CVC4ApiException&);
+  TS_ASSERT_THROWS(slv.mkDatatypeSorts(udecls, unresSorts), CVC4ApiException&);
 
   /* Note: More tests are in datatype_api_black. */
 }
