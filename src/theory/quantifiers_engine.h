@@ -228,8 +228,6 @@ public:
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
-  /** use model equality engine */
-  bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
   /** get internal representative
@@ -364,8 +362,6 @@ public:
   context::CDO<bool> d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
-  /** whether to use model equality engine */
-  bool d_useModelEe;
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */

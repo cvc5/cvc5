@@ -493,15 +493,6 @@ header = "options/quantifiers_options.h"
   help       = "allow theory combination to happen once initially, before quantifier strategies are run"
 
 [[option]]
-  name       = "quantModelEe"
-  category   = "regular"
-  long       = "quant-model-ee"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use equality engine of model for last call effort"
-
-[[option]]
   name       = "instMaxLevel"
   category   = "regular"
   long       = "inst-max-level=N"
