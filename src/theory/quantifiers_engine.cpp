@@ -1261,7 +1261,7 @@ eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
-  return d_eq_query->getInternalRepresentative( a, q, index );
+  return d_eq_query->getInternalRepresentative(a, q, index);
 }
 
 bool QuantifiersEngine::getSynthSolutions(
