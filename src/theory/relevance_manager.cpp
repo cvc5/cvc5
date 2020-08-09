@@ -23,7 +23,6 @@ RelevanceManager::RelevanceManager(context::UserContext* userContext,
                                    Valuation val)
     : d_val(val),
       d_input(userContext),
-      d_alwaysRel(userContext),
       d_computed(false),
       d_success(false)
 {
