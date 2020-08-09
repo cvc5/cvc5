@@ -62,17 +62,15 @@ bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 }
 void TheoryArith::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
   if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
       && getLogicInfo().areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
-    tm->setUnevaluatedKind(kind::WITNESS);
+    d_valuation.setUnevaluatedKind(kind::WITNESS);
     // we only need to add the operators that are not syntax sugar
-    tm->setUnevaluatedKind(kind::EXPONENTIAL);
-    tm->setUnevaluatedKind(kind::SINE);
-    tm->setUnevaluatedKind(kind::PI);
+    d_valuation.setUnevaluatedKind(kind::EXPONENTIAL);
+    d_valuation.setUnevaluatedKind(kind::SINE);
+    d_valuation.setUnevaluatedKind(kind::PI);
   }
   // finish initialize internally
   d_internal->finishInit();

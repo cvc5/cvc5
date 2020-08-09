@@ -95,9 +95,8 @@ void TheoryStrings::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
 
-  TheoryModel* tm = d_valuation.getModel();
   // witness is used to eliminate str.from_code
-  tm->setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(WITNESS);
 
   bool eagerEval = options::stringEagerEval();
   // The kinds we are treating as function application in congruence

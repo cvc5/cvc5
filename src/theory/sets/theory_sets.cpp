@@ -63,6 +63,11 @@ bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 void TheorySets::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
+  
+  d_valuation.setUnevaluatedKind(COMPREHENSION);
+  // choice is used to eliminate witness
+  d_valuation.setUnevaluatedKind(WITNESS);
+  
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(kind::SINGLETON);
   d_equalityEngine->addFunctionKind(kind::UNION);
@@ -80,12 +85,6 @@ void TheorySets::finishInit()
   d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
   // we do congruence over cardinality
   d_equalityEngine->addFunctionKind(CARD);
-
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setUnevaluatedKind(COMPREHENSION);
-  // choice is used to eliminate witness
-  tm->setUnevaluatedKind(WITNESS);
 
   // finish initialization internally
   d_internal->finishInit();
