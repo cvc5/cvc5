@@ -76,10 +76,12 @@ bool equalityStatusCompatible(EqualityStatus s1, EqualityStatus s2) {
 }
 
 bool Valuation::isSatLiteral(TNode n) const {
+  Assert (d_engine!=nullptr);
   return d_engine->getPropEngine()->isSatLiteral(n);
 }
 
 Node Valuation::getSatValue(TNode n) const {
+  Assert (d_engine!=nullptr);
   if(n.getKind() == kind::NOT) {
     Node atomRes = d_engine->getPropEngine()->getValue(n[0]);
     if(atomRes.getKind() == kind::CONST_BOOLEAN) {
@@ -94,6 +96,7 @@ Node Valuation::getSatValue(TNode n) const {
 }
 
 bool Valuation::hasSatValue(TNode n, bool& value) const {
+  Assert (d_engine!=nullptr);
   if (d_engine->getPropEngine()->isSatLiteral(n)) {
     return d_engine->getPropEngine()->hasValue(n, value);
   } else {
@@ -102,36 +105,69 @@ bool Valuation::hasSatValue(TNode n, bool& value) const {
 }
 
 EqualityStatus Valuation::getEqualityStatus(TNode a, TNode b) {
+  Assert (d_engine!=nullptr);
   return d_engine->getEqualityStatus(a, b);
 }
 
 Node Valuation::getModelValue(TNode var) {
+  Assert (d_engine!=nullptr);
   return d_engine->getModelValue(var);
 }
 
 TheoryModel* Valuation::getModel() {
+  if (d_engine==nullptr)
+  {
+    // no theory engine, this we don't have a model object
+    return nullptr;
+  }
   return d_engine->getModel();
 }
 
+void Valuation::setUnevaluatedKind(Kind k)
+{
+  TheoryModel* m = getModel();
+  if (m!=nullptr)
+  {
+    m->setUnevaluatedKind(k);
+  }
+  // If no model is available, this command has no effect. This is the case
+  // when e.g. calling Theory::finishInit for theories that are using a
+  // Valuation with no model.
+}
+
+void Valuation::setSemiEvaluatedKind(Kind k)
+{
+  TheoryModel* m = getModel();
+  if (m!=nullptr)
+  {
+    m->setSemiEvaluatedKind(k);
+  }
+}
+
 Node Valuation::ensureLiteral(TNode n) {
+  Assert (d_engine!=nullptr);
   return d_engine->ensureLiteral(n);
 }
 
 bool Valuation::isDecision(Node lit) const {
+  Assert (d_engine!=nullptr);
   return d_engine->getPropEngine()->isDecision(lit);
 }
 
 unsigned Valuation::getAssertionLevel() const{
+  Assert (d_engine!=nullptr);
   return d_engine->getPropEngine()->getAssertionLevel();
 }
 
 std::pair<bool, Node> Valuation::entailmentCheck(options::TheoryOfMode mode,
                                                  TNode lit)
 {
+  Assert (d_engine!=nullptr);
   return d_engine->entailmentCheck(mode, lit);
 }
 
 bool Valuation::needCheck() const{
+  Assert (d_engine!=nullptr);
   return d_engine->needCheck();
 }
 
