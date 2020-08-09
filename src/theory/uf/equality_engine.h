@@ -809,43 +809,6 @@ public:
   unsigned getFreshMergeReasonType();
 };
 
-/**
- * Iterator to iterate over the equivalence classes.
- */
-class EqClassesIterator {
-  const eq::EqualityEngine* d_ee;
-  size_t d_it;
-public:
-  EqClassesIterator();
-  EqClassesIterator(const eq::EqualityEngine* ee);
-  Node operator*() const;
-  bool operator==(const EqClassesIterator& i) const;
-  bool operator!=(const EqClassesIterator& i) const;
-  EqClassesIterator& operator++();
-  EqClassesIterator operator++(int);
-  bool isFinished() const;
-};/* class EqClassesIterator */
-
-/**
- * Iterator to iterate over the equivalence class members.
- */
-class EqClassIterator {
-  const eq::EqualityEngine* d_ee;
-  /** Starting node */
-  EqualityNodeId d_start;
-  /** Current node */
-  EqualityNodeId d_current;
-public:
-  EqClassIterator();
-  EqClassIterator(Node eqc, const eq::EqualityEngine* ee);
-  Node operator*() const;
-  bool operator==(const EqClassIterator& i) const;
-  bool operator!=(const EqClassIterator& i) const;
-  EqClassIterator& operator++();
-  EqClassIterator operator++(int);
-  bool isFinished() const;
-};/* class EqClassIterator */
-
 } // Namespace eq
 } // Namespace theory
 } // Namespace CVC4
