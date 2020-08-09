@@ -55,7 +55,8 @@ void DTypeSelector::toStream(std::ostream& out) const
   TypeNode t;
   if (d_resolved)
   {
-    if (getType().isNull())
+    // don't try to print the range type of null, instead we print null itself.
+    if (!getType().isNull())
     {
       t = getRangeType();
     }
