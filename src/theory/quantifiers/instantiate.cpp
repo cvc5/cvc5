@@ -242,17 +242,6 @@ bool Instantiate::addInstantiation(
   // construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
-  if (d_qe->usingModelEqualityEngine() && options::instNoModelTrue())
-  {
-    Node val_body = d_qe->getModel()->getValue(body);
-    if (val_body.isConst() && val_body.getConst<bool>())
-    {
-      Trace("inst-add-debug") << " --> True in model." << std::endl;
-      ++(d_statistics.d_inst_duplicate_model_true);
-      return false;
-    }
-  }
-
   Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
   lem = Rewriter::rewrite(lem);
 
