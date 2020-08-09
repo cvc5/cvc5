@@ -512,8 +512,9 @@ void QuantifiersEngine::ppNotifyAssertions(
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-  
-  if( !getMasterEqualityEngine()->consistent() ){
+
+  if (!getMasterEqualityEngine()->consistent())
+  {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }

@@ -249,7 +249,7 @@ void TermDb::addTerm(Node n,
 void TermDb::computeArgReps( TNode n ) {
   if (d_arg_reps.find(n) == d_arg_reps.end())
   {
-    eq::EqualityEngine * ee = d_quantEngine->getMasterEqualityEngine();
+    eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
     for (const TNode& nc : n)
     {
       TNode r = ee->hasTerm(nc) ? ee->getRepresentative(nc) : nc;
@@ -905,22 +905,18 @@ void TermDb::setTermInactive( Node n ) {
 bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   if( !useMode ){
     return d_has_map.find( n )!=d_has_map.end();
-  }else{
-    //return d_quantEngine->getMasterEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
-    if (options::termDbMode() == options::TermDbMode::ALL)
-    {
-      return true;
-    }
-    else if (options::termDbMode() == options::TermDbMode::RELEVANT)
-    {
-      return d_has_map.find( n )!=d_has_map.end();
-    }
-    else
-    {
-      Assert(false);
-      return false;
-    }
   }
+  //some assertions are not sent to EE
+  if (options::termDbMode() == options::TermDbMode::ALL)
+  {
+    return true;
+  }
+  else if (options::termDbMode() == options::TermDbMode::RELEVANT)
+  {
+    return d_has_map.find( n )!=d_has_map.end();
+  }
+  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : " << options::termDbMode();
+  return false;
 }
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
