@@ -589,12 +589,12 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
     {
       const DTypeConstructor& c = dt[i];
       TypeNode testerType CVC4_UNUSED = c.getTester().getType();
-      Assert(c.isResolved() && testerType.isTester() && testerType[0] == dtt)
+      Assert(c.isResolved() && testerType.isTester() && testerType[0] == ut)
           << "malformed tester in datatype post-resolution";
       TypeNode ctorType CVC4_UNUSED = c.getConstructor().getType();
       Assert(ctorType.isConstructor()
             && ctorType.getNumChildren() == c.getNumArgs() + 1
-            && ctorType.getRangeType() == dtt)
+            && ctorType.getRangeType() == ut)
           << "malformed constructor in datatype post-resolution";
       // for all selectors...
       for (size_t j = 0, nargs = c.getNumArgs(); j < nargs; j++)
@@ -602,7 +602,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
         const DTypeSelector& a = c[j];
         TypeNode selectorType = a.getType();
         Assert(a.isResolved() && selectorType.isSelector()
-              && selectorType[0] == dtt)
+              && selectorType[0] == ut)
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
