@@ -55,7 +55,10 @@ void DTypeSelector::toStream(std::ostream& out) const
   TypeNode t;
   if (d_resolved)
   {
-    t = getRangeType();
+    if (getType().isNull())
+    {
+      t = getRangeType();
+    }
   }
   else if (d_selector.isNull())
   {
