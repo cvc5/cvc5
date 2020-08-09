@@ -599,6 +599,9 @@ public:
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Is this a record type? */
+  bool isRecord() const;
+
   /** Get the length of a tuple type */
   size_t getTupleLength() const;
 
@@ -763,6 +766,7 @@ inline Type TypeNode::toType() const
 }
 
 inline TypeNode TypeNode::fromType(const Type& t) {
+  NodeManagerScope scope(t.d_nodeManager);
   return NodeManager::fromType(t);
 }
 

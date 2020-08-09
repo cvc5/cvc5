@@ -225,6 +225,9 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
 {
   Assert(nb.empty());
   Assert(ne.empty());
+  Trace("strings-entail") << "Component contains: " << std::endl;
+  Trace("strings-entail") << "n1 = " << n1 << std::endl;
+  Trace("strings-entail") << "n2 = " << n2 << std::endl;
   // if n2 is a singleton, we can do optimized version here
   if (n2.size() == 1)
   {
@@ -301,6 +304,10 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                                       -1,
                                       computeRemainder && remainderDir != -1))
             {
+              Trace("strings-entail-debug")
+                  << "Last remainder begin is " << n1rb_last << std::endl;
+              Trace("strings-entail-debug")
+                  << "Last remainder end is " << n1re_last << std::endl;
               Assert(n1rb_last.isNull());
               if (computeRemainder)
               {
@@ -325,6 +332,9 @@ int StringsEntail::componentContains(std::vector<Node>& n1,
                   }
                 }
               }
+              Trace("strings-entail-debug") << "ne = " << ne << std::endl;
+              Trace("strings-entail-debug") << "nb = " << nb << std::endl;
+              Trace("strings-entail-debug") << "...return " << i << std::endl;
               return i;
             }
             else
@@ -444,12 +454,12 @@ bool StringsEntail::componentContainsBase(
               {
                 return false;
               }
-              if (dir != 1)
+              if (dir != -1)
               {
                 n1rb = nm->mkNode(
                     STRING_SUBSTR, n2[0], nm->mkConst(Rational(0)), start_pos);
               }
-              if (dir != -1)
+              if (dir != 1)
               {
                 n1re = nm->mkNode(STRING_SUBSTR, n2[0], end_pos, len_n2s);
               }
