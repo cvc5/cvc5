@@ -145,16 +145,8 @@ void TheoryEngine::finishInit() {
 
   // Initialize the equality engine architecture for all theories, which
   // includes the master equality engine.
-  if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
-  {
-    d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
-    d_eeDistributed->finishInit();
-  }
-  else
-  {
-    AlwaysAssert(false) << "TheoryEngine::finishInit: equality engine mode "
-                        << options::eeMode() << " not supported";
-  }
+  d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
+  d_eeDistributed->finishInit();
 
   // Initialize the model and model builder.
   if (d_logicInfo.isQuantified())
