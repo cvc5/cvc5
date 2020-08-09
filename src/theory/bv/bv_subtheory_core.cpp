@@ -49,10 +49,11 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
 
 CoreSolver::~CoreSolver() {}
 
-eq::EqualityEngine* CoreSolver::allocateEqualityEngine()
+bool CoreSolver::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, d_bv->getSatContext(), "theory::bv::ee", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::bv::ee";
+  return true;
 }
 
 void CoreSolver::finishInit()

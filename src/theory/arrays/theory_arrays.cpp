@@ -159,10 +159,11 @@ TheoryArrays::~TheoryArrays() {
 
 TheoryRewriter* TheoryArrays::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheoryArrays::allocateEqualityEngine()
+bool TheoryArrays::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, getSatContext(), "theory::arrays::ee", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = d_instanceName + "theory::arrays::ee";
+  return true;
 }
 
 void TheoryArrays::finishInit()

@@ -72,10 +72,11 @@ TheoryUF::~TheoryUF() {
 
 TheoryRewriter* TheoryUF::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheoryUF::allocateEqualityEngine()
+bool TheoryUF::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, getSatContext(), "theory::uf::ee", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = d_instanceName + "theory::uf::ee";
+  return true;
 }
 
 void TheoryUF::finishInit() {

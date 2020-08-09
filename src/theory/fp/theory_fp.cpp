@@ -125,10 +125,11 @@ TheoryFp::TheoryFp(context::Context* c,
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheoryFp::allocateEqualityEngine()
+bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notification, getSatContext(), "theory::fp::ee", true);
+  esi.d_notify = &d_notification;
+  esi.d_name = "theory::fp::ee";
+  return true;
 }
 
 void TheoryFp::finishInit()

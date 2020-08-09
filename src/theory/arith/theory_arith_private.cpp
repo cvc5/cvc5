@@ -168,9 +168,9 @@ TheoryArithPrivate::~TheoryArithPrivate(){
 }
 
 TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
-eq::EqualityEngine* TheoryArithPrivate::allocateEqualityEngine()
+bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return d_congruenceManager.allocateEqualityEngine(getSatContext());
+  return d_congruenceManager.needsEqualityEngine(esi);
 }
 void TheoryArithPrivate::finishInit()
 {

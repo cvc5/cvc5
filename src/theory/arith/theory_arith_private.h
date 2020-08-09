@@ -426,12 +426,18 @@ private:
                      const LogicInfo& logicInfo,
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();
+
+  //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter();
-  /** allocate the official equality engine of this theory */
-  eq::EqualityEngine* allocateEqualityEngine();
+  /**
+   * Returns true if we need an equality engine, see
+   * Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
   /** finish initialize */
   void finishInit();
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.

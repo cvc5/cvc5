@@ -148,7 +148,13 @@ class TheoryEngine {
    */
   SharedTermsDatabase d_sharedTerms;
 
-  /** The distributed equality manager */
+  /**
+   * The distributed equality manager. This class is responsible for
+   * configuring the theories of this class for handling equalties
+   * in a "distributed" fashion, i.e. each theory creates its own
+   * instance of an equality engine. These equality engines are managed
+   * by this class.
+   */
   std::unique_ptr<theory::EqEngineManagerDistributed> d_eeDistributed;
 
   /**
@@ -354,7 +360,13 @@ class TheoryEngine {
     d_propEngine = propEngine;
   }
 
-  /** Called when all initialization of options/logic is done */
+  /**
+   * Called when all initialization of options/logic is done, after theory
+   * objects have been created.
+   *
+   * This initializes the quantifiers engine, the "official" equality engines
+   * of each theory as required, and the model and model builder utilities.
+   */
   void finishInit();
 
   /**

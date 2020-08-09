@@ -67,10 +67,11 @@ TheorySep::~TheorySep() {
 
 TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheorySep::allocateEqualityEngine()
+bool TheorySep::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, getSatContext(), "theory::sep::ee", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::sep::ee";
+  return true;
 }
 
 void TheorySep::finishInit()

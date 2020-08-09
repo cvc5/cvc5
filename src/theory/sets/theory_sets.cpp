@@ -53,10 +53,11 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-eq::EqualityEngine* TheorySets::allocateEqualityEngine()
+bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, getSatContext(), "theory::sets::ee", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::sets::ee";
+  return true;
 }
 
 void TheorySets::finishInit()

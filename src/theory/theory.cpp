@@ -63,7 +63,6 @@ Theory::Theory(TheoryId id,
                ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
-      d_instanceName(name),
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
@@ -74,6 +73,7 @@ Theory::Theory(TheoryId id,
       d_careGraph(NULL),
       d_quantEngine(NULL),
       d_decManager(nullptr),
+      d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
                              + "::computeCareGraphTime"),
@@ -434,10 +434,10 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   d_equalityEngine = ee;
 }
 
-eq::EqualityEngine* Theory::allocateEqualityEngine()
+bool Theory::needsEqualityEngine(EeSetupInfo& esi)
 {
-  // this theory does not use an (official) equality engine
-  return nullptr;
+  // by default, this theory does not use an (official) equality engine
+  return false;
 }
 
 }/* CVC4::theory namespace */

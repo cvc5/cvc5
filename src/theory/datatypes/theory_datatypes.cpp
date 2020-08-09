@@ -80,10 +80,11 @@ TheoryDatatypes::~TheoryDatatypes() {
 
 TheoryRewriter* TheoryDatatypes::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheoryDatatypes::allocateEqualityEngine()
+bool TheoryDatatypes::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, getSatContext(), "theory::datatypes", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::datatypes::ee";
+  return true;
 }
 
 void TheoryDatatypes::finishInit()

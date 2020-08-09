@@ -115,15 +115,15 @@ TheoryBV::~TheoryBV() {}
 
 TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheoryBV::allocateEqualityEngine()
+bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
 {
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
   {
-    return core->allocateEqualityEngine();
+    return core->needsEqualityEngine(esi);
   }
   // otherwise we don't use an equality engine
-  return nullptr;
+  return false;
 }
 
 void TheoryBV::finishInit()

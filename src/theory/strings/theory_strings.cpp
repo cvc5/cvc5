@@ -84,10 +84,11 @@ TheoryStrings::~TheoryStrings() {
 
 TheoryRewriter* TheoryStrings::getTheoryRewriter() { return &d_rewriter; }
 
-eq::EqualityEngine* TheoryStrings::allocateEqualityEngine()
+bool TheoryStrings::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, getSatContext(), "theory::strings::ee", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::strings::ee";
+  return true;
 }
 
 void TheoryStrings::finishInit()

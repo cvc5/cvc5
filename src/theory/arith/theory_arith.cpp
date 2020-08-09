@@ -56,9 +56,9 @@ TheoryRewriter* TheoryArith::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-eq::EqualityEngine* TheoryArith::allocateEqualityEngine()
+bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return d_internal->allocateEqualityEngine();
+  return d_internal->needsEqualityEngine(esi);
 }
 void TheoryArith::finishInit()
 {

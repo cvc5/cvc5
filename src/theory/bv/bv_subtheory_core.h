@@ -109,7 +109,7 @@ class CoreSolver : public SubtheorySolver {
  public:
   CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
   ~CoreSolver();
-  eq::EqualityEngine* allocateEqualityEngine();
+  bool needsEqualityEngine(EeSetupInfo& esi);
   void finishInit();
   bool isComplete() override { return d_isComplete; }
   void preRegister(TNode node) override;

@@ -48,11 +48,11 @@ ArithCongruenceManager::ArithCongruenceManager(
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
 
-eq::EqualityEngine* ArithCongruenceManager::allocateEqualityEngine(
-    context::Context* c)
+bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
 {
-  return new eq::EqualityEngine(
-      d_notify, c, "theory::arith::ArithCongruenceManager", true);
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::arith::ArithCongruenceManager";
+  return true;
 }
 
 void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
