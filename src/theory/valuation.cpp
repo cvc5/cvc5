@@ -118,7 +118,7 @@ Node Valuation::getModelValue(TNode var) {
 TheoryModel* Valuation::getModel() {
   if (d_engine == nullptr)
   {
-    // no theory engine, this we don't have a model object
+    // no theory engine, thus we don't have a model object
     return nullptr;
   }
   return d_engine->getModel();
