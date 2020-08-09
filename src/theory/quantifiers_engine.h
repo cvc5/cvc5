@@ -74,8 +74,6 @@ public:
   //---------------------- utilities
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get the active equality engine */
-  eq::EqualityEngine* getActiveEqualityEngine() const;
   /** get equality query */
   EqualityQuery* getEqualityQuery() const;
   /** get the model builder */

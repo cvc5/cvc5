@@ -513,7 +513,7 @@ void QuantifiersEngine::ppNotifyAssertions(
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
   
-  if( !getActiveEqualityEngine()->consistent() ){
+  if( !getMasterEqualityEngine()->consistent() ){
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
@@ -1271,7 +1271,7 @@ bool QuantifiersEngine::getSynthSolutions(
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = getActiveEqualityEngine();
+  eq::EqualityEngine* ee = getMasterEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){
