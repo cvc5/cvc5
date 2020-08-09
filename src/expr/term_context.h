@@ -91,8 +91,8 @@ class RtfTermContext : public TermContext
  * one of {true, false, none}. This corresponds to the value that can be
  * assigned to that term while preservering satisfiability of the overall
  * formula, or none if such a value does not exist. If not "none", this
- * typically corresponds to the number of NOT the formula is beneath, although
- * special cases exist (e.g. IMPLIES).
+ * typically corresponds to whether the number of NOT the formula is beneath is
+ * even, although special cases exist (e.g. the first child of IMPLIES).
  *
  * For example, given the formula:
  *   (and P (not (= (f x) 0)))
