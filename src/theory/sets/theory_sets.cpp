@@ -63,11 +63,11 @@ bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 void TheorySets::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
-  
+
   d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
-  
+
   // functions we are doing congruence over
   d_equalityEngine->addFunctionKind(kind::SINGLETON);
   d_equalityEngine->addFunctionKind(kind::UNION);
