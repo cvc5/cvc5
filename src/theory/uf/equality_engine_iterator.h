@@ -28,8 +28,9 @@ class EqualityEngine;
 /**
  * Iterator to iterate over all the equivalence classes in an equality engine.
  */
-class EqClassesIterator {
-public:
+class EqClassesIterator
+{
+ public:
   EqClassesIterator();
   EqClassesIterator(const eq::EqualityEngine* ee);
   Node operator*() const;
@@ -38,7 +39,8 @@ public:
   EqClassesIterator& operator++();
   EqClassesIterator operator++(int);
   bool isFinished() const;
-private:
+
+ private:
   /** Pointer to the equality engine we are iterating over */
   const eq::EqualityEngine* d_ee;
   /** The iterator value */
@@ -49,10 +51,11 @@ private:
  * Iterator to iterate over the equivalence class members in a particular
  * equivalence class.
  */
-class EqClassIterator {
-public:
+class EqClassIterator
+{
+ public:
   EqClassIterator();
-  /** 
+  /**
    * Iterate over equivalence class eqc, where eqc must be a representative of
    * argument ee.
    */
@@ -63,7 +66,8 @@ public:
   EqClassIterator& operator++();
   EqClassIterator operator++(int);
   bool isFinished() const;
-private:
+
+ private:
   /** Pointer to the equality engine we are iterating over */
   const eq::EqualityEngine* d_ee;
   /** Starting node */
@@ -72,8 +76,8 @@ private:
   EqualityNodeId d_current;
 };
 
-} // Namespace eq
-} // Namespace theory
-} // Namespace CVC4
+}  // Namespace eq
+}  // Namespace theory
+}  // Namespace CVC4
 
 #endif

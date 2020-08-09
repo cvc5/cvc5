@@ -22,15 +22,15 @@
 namespace CVC4 {
 namespace theory {
 namespace eq {
-  
+
 /**
  * Interface for equality engine notifications. All the notifications
  * are safe as TNodes, but not necessarily for negations.
  */
-class EqualityEngineNotify {
-public:
-
-  virtual ~EqualityEngineNotify() {};
+class EqualityEngineNotify
+{
+ public:
+  virtual ~EqualityEngineNotify(){};
 
   /**
    * Notifies about a trigger equality that became true or false.
@@ -56,11 +56,14 @@ public:
    * @param t2 a term marked as trigger
    * @param value true if equal, false if dis-equal
    */
-  virtual bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) = 0;
+  virtual bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                           TNode t1,
+                                           TNode t2,
+                                           bool value) = 0;
 
   /**
-   * Notifies about the merge of two constant terms. After this, all work is suspended and all you
-   * can do is ask for explanations.
+   * Notifies about the merge of two constant terms. After this, all work is
+   * suspended and all you can do is ask for explanations.
    *
    * @param t1 a constant term
    * @param t2 a constant term
@@ -99,38 +102,39 @@ public:
    */
   virtual void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) = 0;
 
-};/* class EqualityEngineNotify */
+}; /* class EqualityEngineNotify */
 
 /**
  * Implementation of the notification interface that ignores all the
  * notifications.
  */
-class EqualityEngineNotifyNone : public EqualityEngineNotify {
-public:
- bool eqNotifyTriggerEquality(TNode equality, bool value) override
- {
-   return true;
- }
- bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
- {
-   return true;
- }
- bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                  TNode t1,
-                                  TNode t2,
-                                  bool value) override
- {
-   return true;
- }
- void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
- void eqNotifyNewClass(TNode t) override {}
- void eqNotifyPreMerge(TNode t1, TNode t2) override {}
- void eqNotifyPostMerge(TNode t1, TNode t2) override {}
- void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
-};/* class EqualityEngineNotifyNone */
+class EqualityEngineNotifyNone : public EqualityEngineNotify
+{
+ public:
+  bool eqNotifyTriggerEquality(TNode equality, bool value) override
+  {
+    return true;
+  }
+  bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
+  {
+    return true;
+  }
+  bool eqNotifyTriggerTermEquality(TheoryId tag,
+                                   TNode t1,
+                                   TNode t2,
+                                   bool value) override
+  {
+    return true;
+  }
+  void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
+  void eqNotifyNewClass(TNode t) override {}
+  void eqNotifyPreMerge(TNode t1, TNode t2) override {}
+  void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
+}; /* class EqualityEngineNotifyNone */
 
-} // Namespace eq
-} // Namespace theory
-} // Namespace CVC4
+}  // Namespace eq
+}  // Namespace theory
+}  // Namespace CVC4
 
 #endif
