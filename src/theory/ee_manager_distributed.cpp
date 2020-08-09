@@ -49,8 +49,17 @@ void EqEngineManagerDistributed::finishInit()
     }
     // allocate the equality engine
     EeTheoryInfo& eet = d_einfo[theoryId];
-    eet.d_allocEe.reset(
-        new eq::EqualityEngine(*esi.d_notify, c, esi.d_name, true));
+    if (esi.d_notify!=nullptr)
+    {
+      eet.d_allocEe.reset(
+          new eq::EqualityEngine(*esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers));
+    }
+    else
+    {
+      // don't care about notifications
+      eet.d_allocEe.reset(
+          new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers));
+    }
     // the theory uses this equality engine
     eq::EqualityEngine* eeAlloc = eet.d_allocEe.get();
     t->setEqualityEngine(eeAlloc);
