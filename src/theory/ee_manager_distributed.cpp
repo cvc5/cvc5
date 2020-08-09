@@ -49,10 +49,10 @@ void EqEngineManagerDistributed::finishInit()
     }
     // allocate the equality engine
     EeTheoryInfo& eet = d_einfo[theoryId];
-    if (esi.d_notify!=nullptr)
+    if (esi.d_notify != nullptr)
     {
-      eet.d_allocEe.reset(
-          new eq::EqualityEngine(*esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers));
+      eet.d_allocEe.reset(new eq::EqualityEngine(
+          *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers));
     }
     else
     {

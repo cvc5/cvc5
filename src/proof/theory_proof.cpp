@@ -1098,13 +1098,14 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                     << ProofManager::currentPM()->getLogic();
   }
   // must perform initialization on the theory
-  theory::eq::EqualityEngine * ee = nullptr;
-  if (th!=nullptr)
+  theory::eq::EqualityEngine* ee = nullptr;
+  if (th != nullptr)
   {
     // set up the equality engine for the theory
     if (needsEe)
     {
-      //ee = new theory::eq:::EqualityEngine(*esi.d_notify, &fakeContext, esi.d_name, esi.d_constantsAreTriggers);
+      // ee = new theory::eq:::EqualityEngine(*esi.d_notify, &fakeContext,
+      // esi.d_name, esi.d_constantsAreTriggers);
       th->setEqualityEngine(ee);
     }
     // finish init
