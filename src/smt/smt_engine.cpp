@@ -1355,7 +1355,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
   std::stringstream ss;
 
   Printer::getPrinter(options::outputLanguage())
-      ->toStreamCmdSynthFun(Dump.getStream(),
+      ->toStreamCmdSynthFun(ss,
                             id,
                             nodeVars,
                             TypeNode::fromType(func.getType()).getRangeType(),
