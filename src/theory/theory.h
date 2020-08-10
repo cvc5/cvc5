@@ -77,10 +77,31 @@ namespace eq {
  * RegisteredAttr works.  (If you need multiple instances of the same
  * theory, you'll have to write a multiplexed theory that dispatches
  * all calls to them.)
+ * 
+ * NOTE: A Theory has a special way of being initialized. The owner of a Theory
+ * is either:
+ *
+ * (A) Using Theory as a standalone object, not associate with a TheoryEngine.
+ * In this case, simply call the public initialization method
+ * (Theory::finishInitStandalone).
+ *
+ * (B) TheoryEngine, which determines how the Theory acts in accordance with
+ * its theory combination policy. We require the following steps in order:
+ * (B.1) Get information about which equality engine notifications the Theory
+ * would like to be notified of (Theory::needsEqualityEngine).
+ * (B.2) Set the equality engine of the theory (Theory::setEqualityEngine),
+ * which we refer to as the "official equality engine" of this Theory. The
+ * equality engine passed to the theory must respect the contract(s) specified
+ * by the equality engine setup informatio (EeSetupInfo) returned in the
+ * previous step.
+ * (B.3) Call the private initialization method (Theory::finishInit).
+ *
+ * Initialization of the second form happens during TheoryEngine::finishInit,
+ * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
- private:
   friend class ::CVC4::TheoryEngine;
+ private:
 
   // Disallow default construction, copy, assignment.
   Theory() = delete;
@@ -199,7 +220,7 @@ class Theory {
          const LogicInfo& logicInfo,
          ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
-
+  
   /**
    * This is called at shutdown time by the TheoryEngine, just before
    * destruction.  It is important because there are destruction
@@ -226,7 +247,10 @@ class Theory {
    * the equality engine manager of TheoryEngine.
    */
   eq::EqualityEngine* d_equalityEngine;
-
+  /**
+   * The official equality engine, if we allocated it.
+   */
+  std::unique_ptr<eq::EqualityEngine> d_alocEqualityEngine;
   /**
    * Whether proofs are enabled
    *
@@ -270,6 +294,47 @@ class Theory {
   bool isLegalElimination(TNode x, TNode val);
 
  public:
+   
+  //--------------------------------- initialization
+  /**
+   * @return The theory rewriter associated with this theory.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * Called to set the equality engine. This should be done by 
+   */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /**
+   * Returns true if this theory needs an equality engine for checking
+   * satisfiability.
+   *
+   * If this method returns true, then the equality engine manager will
+   * initialize its equality engine field via setEqualityEngine above during
+   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
+   *
+   * Additionally, if this method returns true, then this method is required to
+   * update the argument eni with instructions for initializing and setting up
+   * notifications from its equality engine, which is commonly done with
+   * a notifications class (eq::EqualityEngineNotify).
+   */
+  virtual bool needsEqualityEngine(EeSetupInfo& esi);
+  /**
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, the master equality engine and quantifiers
+   * engine (if any) are initialized, and the official equality engine of this
+   * theory has been assigned.  This base class implementation
+   * does nothing.
+   */
+  virtual void finishInit() { }
+  /**
+   * Finish theory initialization, standalone version. This is used to
+   * initialize this class if it is not associated with a theory engine.
+   * This allocates the official equality engine of this Theory and then
+   * calls the finishInit method above.
+   */
+  void finishInitStandalone();
+  //--------------------------------- end initialization
+  
   /**
    * Return the ID of the theory responsible for the given type.
    */
@@ -334,11 +399,6 @@ class Theory {
    * Destructs a Theory.
    */
   virtual ~Theory();
-
-  /**
-   * @return The theory rewriter associated with this theory.
-   */
-  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
@@ -434,15 +494,7 @@ class Theory {
 
   /** Get the decision manager associated to this theory. */
   DecisionManager* getDecisionManager() { return d_decManager; }
-
-  /**
-   * Finish theory initialization.  At this point, options and the logic
-   * setting are final, and the master equality engine and quantifiers
-   * engine (if any) are initialized.  This base class implementation
-   * does nothing.
-   */
-  virtual void finishInit() { }
-
+  
   /**
    * Expand definitions in the term node. This returns a term that is
    * equivalent to node. It wraps this term in a TrustNode of kind
@@ -497,31 +549,10 @@ class Theory {
    */
   virtual void addSharedTerm(TNode n) { }
 
-  //---------------------------------- equality engine management
-  /** Get the equality engine being used by this theory. */
+  /** 
+   * Get the official equality engine of this theory. 
+   */
   eq::EqualityEngine* getEqualityEngine();
-  //=========== Centralized
-  /**
-   * Called to set the equality engine, when doing centralized congruence
-   * closure.
-   */
-  void setEqualityEngine(eq::EqualityEngine* ee);
-  //=========== Distributed
-  /**
-   * Returns true if this theory needs an equality engine for checking
-   * satisfiability.
-   *
-   * If this method returns true, then the equality engine manager will
-   * initialize its equality engine field via setEqualityEngine above during
-   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
-   *
-   * Additionally, if this method returns true, then this method is required to
-   * update the argument eni with instructions for initializing and setting up
-   * notifications from its equality engine, which is commonly done with
-   * a notifications class (eq::EqualityEngineNotify).
-   */
-  virtual bool needsEqualityEngine(EeSetupInfo& esi);
-  //---------------------------------- equality engine management
 
   /** Called to set the quantifiers engine. */
   void setQuantifiersEngine(QuantifiersEngine* qe);

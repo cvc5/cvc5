@@ -81,6 +81,7 @@ Theory::Theory(TheoryId id,
       d_out(&out),
       d_valuation(valuation),
       d_equalityEngine(nullptr),
+      d_alocEqualityEngine(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -90,6 +91,32 @@ Theory::Theory(TheoryId id,
 Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_checkTime);
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
+}
+
+bool Theory::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // by default, this theory does not use an (official) equality engine
+  return false;
+}
+
+void Theory::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  // set the equality engine pointer
+  d_equalityEngine = ee;
+}
+
+void Theory::finishInitStandalone()
+{
+  EeSetupInfo esi;
+  if (needsEqualityEngine(esi))
+  {
+    // always associated with the same SAT context as the theory (d_satContext)
+    d_alocEqualityEngine.reset(new eq::EqualityEngine(
+        *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
+    // use it as the official equality engine
+    d_equalityEngine = d_alocEqualityEngine.get();
+  }
+  finishInit();
 }
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
@@ -426,18 +453,6 @@ eq::EqualityEngine* Theory::getEqualityEngine()
 {
   // get the assigned equality engine, which is a pointer stored in this class
   return d_equalityEngine;
-}
-
-void Theory::setEqualityEngine(eq::EqualityEngine* ee)
-{
-  // set the equality engine pointer
-  d_equalityEngine = ee;
-}
-
-bool Theory::needsEqualityEngine(EeSetupInfo& esi)
-{
-  // by default, this theory does not use an (official) equality engine
-  return false;
 }
 
 }/* CVC4::theory namespace */

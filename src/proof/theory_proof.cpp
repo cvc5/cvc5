@@ -1068,8 +1068,6 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   theory::Theory* th;
   Trace("pf::tp") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
 
-  theory::EeSetupInfo esi;
-  bool needsEe = false;
   if (d_theory->getId()==theory::THEORY_UF) {
     th = new theory::uf::TheoryUF(&fakeContext,
                                   &fakeContext,
@@ -1078,7 +1076,6 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                   ProofManager::currentPM()->getLogicInfo(),
                                   nullptr,
                                   "replay::");
-    needsEe = th->needsEqualityEngine(esi);
   } else if (d_theory->getId()==theory::THEORY_ARRAYS) {
     th = new theory::arrays::TheoryArrays(
         &fakeContext,
@@ -1088,7 +1085,6 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
         ProofManager::currentPM()->getLogicInfo(),
         nullptr,
         "replay::");
-    needsEe = th->needsEqualityEngine(esi);
   } else if (d_theory->getId() == theory::THEORY_ARITH) {
     Trace("theory-proof-debug") << "Arith proofs currently not supported. Use 'trust'" << std::endl;
     os << " (clausify_false trust)";
@@ -1098,18 +1094,10 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                     << ProofManager::currentPM()->getLogic();
   }
   // must perform initialization on the theory
-  theory::eq::EqualityEngine* ee = nullptr;
   if (th != nullptr)
   {
-    // set up the equality engine for the theory
-    if (needsEe)
-    {
-      // ee = new theory::eq:::EqualityEngine(*esi.d_notify, &fakeContext,
-      // esi.d_name, esi.d_constantsAreTriggers);
-      th->setEqualityEngine(ee);
-    }
-    // finish init
-    th->finishInit();
+    // finish init, standalone version
+    th->finishInitStandalone();
   }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
@@ -1173,7 +1161,6 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   }
 
   Debug("pf::tp") << "About to delete the theory solver used for proving the lemma... " << std::endl;
-  delete ee;
   delete th;
   Debug("pf::tp") << "About to delete the theory solver used for proving the lemma: DONE! " << std::endl;
 }

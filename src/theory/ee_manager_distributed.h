@@ -31,6 +31,7 @@ class TheoryEngine;
 
 namespace theory {
 
+
 /**
  * This is (theory-agnostic) information associated with the management of
  * an equality engine for a single theory. This information is maintained
@@ -44,11 +45,28 @@ struct EeTheoryInfo
   /** The equality engine allocated by this theory (if it exists) */
   std::unique_ptr<eq::EqualityEngine> d_allocEe;
 };
+  
+/** Virtual base class for equality engine managers */
+class EqEngineManager
+{
+public:
+  virtual ~EqEngineManager(){}
+  /** 
+   * Get the equality engine theory information.
+   */
+  const EeTheoryInfo * getEeTheoryInfo(TheoryId tid) const;
+protected:
+  /**
+   * Information related to the equality engine, per theory.
+   */
+  std::map<TheoryId, EeTheoryInfo> d_einfo;
+};
+
 
 /**
  * The (distributed) equality engine manager. This encapsulates the current
  * architecture for managing equalities in the TheoryEngine, in which all
- * theories.
+ * theories maintain their own copy of an equality engine.
  *
  * This call is responsible for the memory management and initialization of
  * all "official" equality engine objects owned by theories, and for setting
@@ -56,7 +74,7 @@ struct EeTheoryInfo
  * channel to quantifiers engine (e.g. for ensuring quantifiers E-matching
  * is aware of terms from all theories).
  */
-class EqEngineManagerDistributed
+class EqEngineManagerDistributed : public EqEngineManager
 {
  public:
   EqEngineManagerDistributed(TheoryEngine& te);
@@ -116,10 +134,6 @@ class EqEngineManagerDistributed
    * The master equality engine.
    */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
-  /**
-   * Information related to the equality engine, per theory.
-   */
-  std::map<TheoryId, EeTheoryInfo> d_einfo;
 };
 
 }  // namespace theory
