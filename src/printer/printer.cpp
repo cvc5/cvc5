@@ -117,5 +117,19 @@ Printer* Printer::getPrinter(OutputLanguage lang)
   return d_printers[lang].get();
 }
 
+void printUnknown(std::ostream& out, const std::string& name)
+{
+  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+}
+
+void Printer::toStreamCmdSynthFun(std::ostream& out,
+                                  const std::string& sym,
+                                  const std::vector<Node>& vars,
+                                  TypeNode range,
+                                  bool isInv,
+                                  TypeNode sygusType)
+{
+  printUnknown(out, "synth-fun");
+}
 
 }/* CVC4 namespace */
