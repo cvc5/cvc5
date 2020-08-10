@@ -66,10 +66,11 @@ class EqEngineManager
  * theories maintain their own copy of an equality engine.
  *
  * This class is not responsible for actually initializing equality engines in
- * theories, but is responsible for their construction. Instead, TheoryEngine
- * is responsible for querying this class during finishInit() to determine the
- * equality engines to pass to each theories, which uses calls to
- * getEeTheoryInfo above.
+ * theories (since this class does not have access to the internals of Theory).
+ * Instead, it is only responsible for the construction of the equality
+ * engine objects themselves. TheoryEngine is responsible for querying this
+ * class during finishInit() to determine the equality engines to pass to each
+ * theories based on getEeTheoryInfo.
  *
  * This class is also responsible for setting up the master equality engine,
  * which is used as a special communication channel to quantifiers engine (e.g.
