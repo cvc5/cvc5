@@ -151,9 +151,9 @@ class TheoryEngine {
   /**
    * The distributed equality manager. This class is responsible for
    * configuring the theories of this class for handling equalties
-   * in a "distributed" fashion, i.e. each theory creates its own
-   * instance of an equality engine. These equality engines are managed
-   * by this class.
+   * in a "distributed" fashion, i.e. each theory maintains a unique
+   * instance of an equality engine. These equality engines are memory
+   * managed by this class.
    */
   std::unique_ptr<theory::EqEngineManagerDistributed> d_eeDistributed;
 

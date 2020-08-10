@@ -1818,11 +1818,8 @@ SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 
 theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
 {
-  if (d_eeDistributed != nullptr)
-  {
-    return d_eeDistributed->getMasterEqualityEngine();
-  }
-  return nullptr;
+  Assert (d_eeDistributed != nullptr);
+  return d_eeDistributed->getMasterEqualityEngine();
 }
 
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
