@@ -995,6 +995,76 @@ std::string EqualityEngine::edgesToString(EqualityEdgeId edgeId) const {
   return out.str();
 }
 
+void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
+                                       EqualityNodeId id2,
+                                       EqProof* eqp) const
+{
+  Kind k1 = d_nodes[id1].getKind();
+  Kind k2 = d_nodes[id2].getKind();
+  // only try to build if ids do not correspond to internal nodes. If they do,
+  // only try to build build if full applications corresponding to the given ids
+  // have the same congruence n-ary non-APPLY_UF kind, since the internal nodes
+  // may be full nodes.
+  if ((d_isInternal[id1] || d_isInternal[id2])
+      && (k1 != k2 || k1 == kind::APPLY_UF || !ExprManager::isNAryKind(k1)))
+  {
+    return;
+  }
+  Node eq[2];
+  for (unsigned i = 0; i < 2; ++i)
+  {
+    EqualityNodeId equalityNodeId = i == 0 ? id1 : id2;
+    Node equalityNode = d_nodes[equalityNodeId];
+    // if not an internal node, just retrieve it
+    if (!d_isInternal[equalityNodeId])
+    {
+      eq[i] = equalityNode;
+      continue;
+    }
+    // build node relative to partial application of this
+    // n-ary kind. We get the full application, then we get
+    // the arguments relative to how partial the internal
+    // node is, and build the application
+
+    // get number of children of partial app:
+    // #children of full app - (id of full app - id of
+    // partial app)
+    EqualityNodeId fullAppId = getNodeId(equalityNode);
+    EqualityNodeId curr = fullAppId;
+    unsigned separation = 0;
+    Assert(fullAppId >= equalityNodeId);
+    while (curr != equalityNodeId)
+    {
+      separation = separation + (d_nodes[curr--] == equalityNode ? 1 : 0);
+    }
+    // compute separation, which is how many ids with the
+    // same fullappnode exist between equalityNodeId and
+    // fullAppId
+    unsigned numChildren = equalityNode.getNumChildren() - separation;
+    Assert(numChildren < equalityNode.getNumChildren())
+        << "broke for numChildren " << numChildren << ", fullAppId "
+        << fullAppId << ", equalityNodeId " << equalityNodeId << ", node "
+        << equalityNode << ", cong: {" << id1 << "} " << d_nodes[id1] << " = {"
+        << id2 << "} " << d_nodes[id2] << "\n";
+    // if has at least as many children as the minimal
+    // number of children of the n-ary kind, build the node
+    if (numChildren >= ExprManager::minArity(k1))
+    {
+      std::vector<Node> children;
+      for (unsigned j = 0; j < numChildren; ++j)
+      {
+        children.push_back(equalityNode[j]);
+      }
+      eq[i] = NodeManager::currentNM()->mkNode(k1, children);
+    }
+  }
+  // if built equality, add it as eqp's conclusion
+  if (!eq[0].isNull() && !eq[1].isNull())
+  {
+    eqp->d_node = eq[0].eqNode(eq[1]);
+  }
+}
+
 void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                                      std::vector<TNode>& equalities,
                                      EqProof* eqp) const {
@@ -1111,6 +1181,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         {
           // It may be the case that we have a proof of x = c2 and we want to
           // conclude x != c1. If this is the case, below we construct:
+          //
           //          -------- MERGED_THROUGH_EQUALITY
           // x = c2   c1 != c2
           // ----------------- TRANS
@@ -1248,8 +1319,8 @@ void EqualityEngine::getExplanation(
         // ignore equalities between function symbols, i.e. internal nullary
         // non-constant nodes.
         //
-        // This is robust for HOL because in that case function symbols are not
-        // internal nodes
+        // Note that this is robust for HOL because in that case function
+        // symbols are not internal nodes
         if (d_isInternal[t1Id] && d_nodes[t1Id].getNumChildren() == 0
             && !d_isConstant[t1Id])
         {
@@ -1379,83 +1450,22 @@ void EqualityEngine::getExplanation(
                 eqpc->d_children.push_back(eqpc2);
                 if (options::proofNew())
                 {
-                  // if full application of a congruence kind, create the result
-                  // of the congruence. Note that for nary kinds partial
-                  // applications still correspond to proper nodes, so in these
-                  // cases we also build congruence steps.
+                  // build conclusion if ids correspond to non-internal nodes or
+                  // if non-internal nodes can be retrieved from them (in the
+                  // case of n-ary applications), otherwise leave conclusion as
+                  // null. This is only done for congruence kinds, since
+                  // congruence is not used otherwise.
                   Kind k = d_nodes[currentNode].getKind();
-                  if (!d_isInternal[currentNode]
-                      || (ExprManager::isNAryKind(k) && k != kind::APPLY_UF))
+                  if (d_congruenceKinds[k])
                   {
-                    if (d_congruenceKinds[k])
-                    {
-                      Node eq[2];
-                      for (unsigned i = 0; i < 2; ++i)
-                      {
-                        EqualityNodeId equalityNodeId =
-                            i == 0 ? currentNode : edgeNode;
-                        Node equalityNode = d_nodes[equalityNodeId];
-                        if (!d_isInternal[equalityNodeId])
-                        {
-                          eq[i] = equalityNode;
-                          continue;
-                        }
-                        // build node relative to partial application of this
-                        // n-ary kind. We get the full application, then we get
-                        // the arguments relative to how partial the internal
-                        // node is, and build the application
-
-                        // get number of children of partial app:
-                        // #children of full app - (id of full app - id of
-                        // partial app)
-                        EqualityNodeId fullAppId = getNodeId(equalityNode);
-                        EqualityNodeId curr = fullAppId;
-                        unsigned separation = 0;
-                        Assert(fullAppId >= equalityNodeId);
-                        while (curr != equalityNodeId)
-                        {
-                          separation =
-                              separation
-                              + (d_nodes[curr--] == equalityNode ? 1 : 0);
-                        }
-                        // compute separation, which is how many ids with the
-                        // same fullappnode exist between equalityNodeId and
-                        // fullAppId
-                        unsigned numChildren =
-                            equalityNode.getNumChildren() - separation;
-                        Assert(numChildren < equalityNode.getNumChildren())
-                            << "broke for numChildren " << numChildren
-                            << ", fullAppId " << fullAppId
-                            << ", equalityNodeId " << equalityNodeId
-                            << ", node " << equalityNode << ", cong: {"
-                            << currentNode << "} " << d_nodes[currentNode]
-                            << " = {" << edgeNode << "} " << d_nodes[edgeNode]
-                            << "\n";
-                        // if has at least as many children as the minimal
-                        // number of children of the n-ary kind, build the node
-                        if (numChildren >= ExprManager::minArity(k))
-                        {
-                          std::vector<Node> children;
-                          for (unsigned j = 0; j < numChildren; ++j)
-                          {
-                            children.push_back(equalityNode[j]);
-                          }
-                          eq[i] = NodeManager::currentNM()->mkNode(k, children);
-                        }
-                      }
-                      if (!eq[0].isNull() && !eq[1].isNull())
-                      {
-                        eqpc->d_node = eq[0].eqNode(eq[1]);
-                      }
-                    }
-                    else
-                    {
-                      Assert(k == kind::EQUAL)
-                          << "not an internal node " << d_nodes[currentNode]
-                          << " with non-congruence with " << k << "\n";
-                    }
+                    buildEqConclusion(currentNode, edgeNode, eqpc.get());
                   }
-                  // leave null
+                  else
+                  {
+                    Assert(k == kind::EQUAL)
+                        << "not an internal node " << d_nodes[currentNode]
+                        << " with non-congruence with " << k << "\n";
+                  }
                 }
                 else if (d_nodes[currentNode].getKind() == kind::EQUAL)
                 {
@@ -1644,55 +1654,12 @@ void EqualityEngine::getExplanation(
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
               if (options::proofNew())
               {
-                // only build conclusion if not internal nodes or if equality
-                // between n-ary kinds, which probably marks this as part of a
-                // congruence series
-                Kind k1 = d_nodes[t1Id].getKind();
-                Kind k2 = d_nodes[t2Id].getKind();
-                if ((!d_isInternal[t1Id] && !d_isInternal[t2Id])
-                    || (k1 == k2 && ExprManager::isNAryKind(k1)
-                        && k1 != kind::APPLY_UF))
-                {
-                  Node eq[2];
-                  for (unsigned i = 0; i < 2; ++i)
-                  {
-                    EqualityNodeId equalityNodeId = i == 0 ? t1Id : t2Id;
-                    Node equalityNode = d_nodes[equalityNodeId];
-                    if (!d_isInternal[equalityNodeId])
-                    {
-                      eq[i] = equalityNode;
-                      continue;
-                    }
-                    // build node relative to partial application of this
-                    // n-ary kind. We get the full application, then we get
-                    // the arguments relative to how partial the internal
-                    // node is, and build the application
-
-                    // get number of children of partial app:
-                    // #children of full app - (id of full app - id of
-                    // partial app)
-                    EqualityNodeId fullAppId = getNodeId(equalityNode);
-                    unsigned numChildren = equalityNode.getNumChildren()
-                                           - (fullAppId - equalityNodeId);
-                    Assert(numChildren < equalityNode.getNumChildren());
-                    // if has at least as many children as the minimal
-                    // number of children of the n-ary kind, build the node
-                    if (numChildren >= ExprManager::minArity(k1))
-                    {
-                      std::vector<Node> children;
-                      for (unsigned j = 0; j < numChildren; ++j)
-                      {
-                        children.push_back(equalityNode[j]);
-                      }
-                      eq[i] = NodeManager::currentNM()->mkNode(k1, children);
-                    }
-                  }
-                  if (!eq[0].isNull() && !eq[1].isNull())
-                  {
-                    eqp->d_node = eq[0].eqNode(eq[1]);
-                  }
-                }
-                // leave null
+                // build conclusion in case of equality between non-internal
+                // nodes or of n-ary congruence kinds, otherwise leave as
+                // null. The latter is necessary for the overall handling of
+                // congruence proofs involving n-ary kinds, see
+                // EqProof::reduceNestedCongruence for more details.
+                buildEqConclusion(t1Id, t2Id, eqp);
               }
               else
               {
