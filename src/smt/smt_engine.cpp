@@ -1345,27 +1345,34 @@ void SmtEngine::declareSynthFun(const std::string& id,
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
 
-  std::vector<Node> nodeVars;
-  nodeVars.reserve(vars.size());
-  for (const Expr& var : vars)
+  // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
+  // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
+  // must print the command using the Node-level utility method for now.
+
+  if (Dump.isOn("raw-benchmark"))
   {
-    nodeVars.push_back(Node::fromExpr(var));
+    std::vector<Node> nodeVars;
+    nodeVars.reserve(vars.size());
+    for (const Expr& var : vars)
+    {
+      nodeVars.push_back(Node::fromExpr(var));
+    }
+
+    std::stringstream ss;
+
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamCmdSynthFun(
+            ss,
+            id,
+            nodeVars,
+            func.getType().isFunction()
+                ? TypeNode::fromType(func.getType()).getRangeType()
+                : TypeNode::fromType(func.getType()),
+            isInv,
+            TypeNode::fromType(sygusType));
+
+    Dump("raw-benchmark") << ss.str();
   }
-
-  std::stringstream ss;
-
-  Printer::getPrinter(options::outputLanguage())
-      ->toStreamCmdSynthFun(
-          ss,
-          id,
-          nodeVars,
-          func.getType().isFunction()
-              ? TypeNode::fromType(func.getType()).getRangeType()
-              : TypeNode::fromType(func.getType()),
-          isInv,
-          TypeNode::fromType(sygusType));
-
-  Dump("raw-benchmark") << ss.str();
 
   // sygus conjecture is now stale
   setSygusConjectureStale();
