@@ -200,7 +200,7 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
 }
 
-eq::EqualityEngine* getEqualityEngine() 
+eq::EqualityEngine* TheorySets::getEqualityEngine() 
 {
   return &d_equalityEngine;
 }
