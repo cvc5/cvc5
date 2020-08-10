@@ -112,8 +112,8 @@ Result checkWithSubsolver(Node query,
   {
     for (const Node& v : vars)
     {
-      Expr val = smte->getValue(v.toExpr());
-      modelVals.push_back(Node::fromExpr(val));
+      Node val = smte->getValue(v);
+      modelVals.push_back(val);
     }
   }
   return r;

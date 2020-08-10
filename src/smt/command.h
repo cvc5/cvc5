@@ -121,6 +121,7 @@ class CVC4_PUBLIC CommandStatus
  protected:
   // shouldn't construct a CommandStatus (use a derived class)
   CommandStatus() {}
+
  public:
   virtual ~CommandStatus() {}
   void toStream(std::ostream& out,
@@ -196,7 +197,7 @@ class CVC4_PUBLIC Command
   typedef CommandPrintSuccess printsuccess;
 
   Command();
-  Command(api::Solver* solver);
+  Command(const api::Solver* solver);
   Command(const Command& cmd);
 
   virtual ~Command();
@@ -273,7 +274,7 @@ class CVC4_PUBLIC Command
   }; /* class Command::ExportTransformer */
 
   /** The solver instance that this command is associated with. */
-  api::Solver* d_solver;
+  const api::Solver* d_solver;
 
   /**
    * This field contains a command status if the command has been
@@ -290,7 +291,7 @@ class CVC4_PUBLIC Command
    * successful execution.
    */
   bool d_muted;
-};   /* class Command */
+}; /* class Command */
 
 /**
  * EmptyCommands are the residue of a command after the parser handles
@@ -507,12 +508,12 @@ class CVC4_PUBLIC DefineNamedFunctionCommand : public DefineFunctionCommand
 class CVC4_PUBLIC DefineFunctionRecCommand : public Command
 {
  public:
-  DefineFunctionRecCommand(api::Solver* solver,
+  DefineFunctionRecCommand(const api::Solver* solver,
                            api::Term func,
                            const std::vector<api::Term>& formals,
                            api::Term formula,
                            bool global);
-  DefineFunctionRecCommand(api::Solver* solver,
+  DefineFunctionRecCommand(const api::Solver* solver,
                            const std::vector<api::Term>& funcs,
                            const std::vector<std::vector<api::Term> >& formals,
                            const std::vector<api::Term>& formula,
@@ -715,20 +716,23 @@ class CVC4_PUBLIC DeclareSygusFunctionCommand
 class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 {
  public:
-  SynthFunCommand(const std::string& id,
-                  Expr func,
-                  Type sygusType,
+  SynthFunCommand(const api::Solver* solver,
+                  const std::string& id,
+                  api::Term fun,
+                  const std::vector<api::Term>& vars,
+                  api::Sort sort,
                   bool isInv,
-                  const std::vector<Expr>& vars);
-  SynthFunCommand(const std::string& id, Expr func, Type sygusType, bool isInv);
+                  api::Grammar* g);
   /** returns the function-to-synthesize */
-  Expr getFunction() const;
+  api::Term getFunction() const;
   /** returns the input variables of the function-to-synthesize */
-  const std::vector<Expr>& getVars() const;
-  /** returns the sygus type of the function-to-synthesize */
-  Type getSygusType() const;
+  const std::vector<api::Term>& getVars() const;
+  /** returns the sygus sort of the function-to-synthesize */
+  api::Sort getSort() const;
   /** returns whether the function-to-synthesize should be an invariant */
   bool isInv() const;
+  /** Get the sygus grammar given for the synth fun command */
+  const api::Grammar* getGrammar() const;
 
   /** invokes this command
    *
@@ -746,17 +750,15 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 
  protected:
   /** the function-to-synthesize */
-  Expr d_func;
-  /** sygus type of the function-to-synthesize
-   *
-   * If this type is a "sygus datatype" then it encodes a grammar for the
-   * possible varlues of the function-to-sytnhesize
-   */
-  Type d_sygusType;
+  api::Term d_fun;
+  /** the input variables of the function-to-synthesize */
+  std::vector<api::Term> d_vars;
+  /** sort of the function-to-synthesize */
+  api::Sort d_sort;
   /** whether the function-to-synthesize should be an invariant */
   bool d_isInv;
-  /** the input variables of the function-to-synthesize */
-  std::vector<Expr> d_vars;
+  /** optional grammar for the possible values of the function-to-sytnhesize */
+  api::Grammar* d_grammar;
 };
 
 /** Declares a sygus constraint */
@@ -1039,7 +1041,7 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
 
-/** The command (get-interpol s B)
+/** The command (get-interpol s B (G)?)
  *
  * This command asks for an interpolant from the current set of assertions and
  * conjecture (goal) B.
@@ -1051,19 +1053,19 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
 class CVC4_PUBLIC GetInterpolCommand : public Command
 {
  public:
-  GetInterpolCommand(api::Solver* solver,
+  GetInterpolCommand(const api::Solver* solver,
                      const std::string& name,
                      api::Term conj);
-  /** The argument gtype is the grammar of the interpolation query */
-  GetInterpolCommand(api::Solver* solver,
+  /** The argument g is the grammar of the interpolation query */
+  GetInterpolCommand(const api::Solver* solver,
                      const std::string& name,
                      api::Term conj,
-                     const Type& gtype);
+                     api::Grammar* g);
 
   /** Get the conjecture of the interpolation query */
   api::Term getConjecture() const;
-  /** Get the grammar sygus datatype type given for the interpolation query */
-  Type getGrammarType() const;
+  /** Get the sygus grammar given for the interpolation query */
+  const api::Grammar* getGrammar() const;
   /** Get the result of the query, which is the solution to the interpolation
    * query. */
   api::Term getResult() const;
@@ -1080,11 +1082,8 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
   std::string d_name;
   /** The conjecture of the interpolation query */
   api::Term d_conj;
-  /**
-   * The (optional) grammar of the interpolation query, expressed as a sygus
-   * datatype type.
-   */
-  Type d_sygus_grammar_type;
+  /** The (optional) grammar of the interpolation query */
+  api::Grammar* d_sygus_grammar;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */
@@ -1100,25 +1099,29 @@ class CVC4_PUBLIC GetInterpolCommand : public Command
  * find a predicate P, then the output response of this command is:
  *   (define-fun s () Bool P)
  *
- * A grammar type G can be optionally provided to indicate the syntactic
- * restrictions on the possible solutions returned.
+ * A grammar G can be optionally provided to indicate the syntactic restrictions
+ * on the possible solutions returned.
  */
 class CVC4_PUBLIC GetAbductCommand : public Command
 {
  public:
-  GetAbductCommand();
-  GetAbductCommand(const std::string& name, Expr conj);
-  GetAbductCommand(const std::string& name, Expr conj, const Type& gtype);
+  GetAbductCommand(const api::Solver* solver,
+                   const std::string& name,
+                   api::Term conj);
+  GetAbductCommand(const api::Solver* solver,
+                   const std::string& name,
+                   api::Term conj,
+                   api::Grammar* g);
 
   /** Get the conjecture of the abduction query */
-  Expr getConjecture() const;
-  /** Get the grammar type given for the abduction query */
-  Type getGrammarType() const;
+  api::Term getConjecture() const;
+  /** Get the grammar given for the abduction query */
+  const api::Grammar* getGrammar() const;
   /** Get the name of the abduction predicate for the abduction query */
   std::string getAbductName() const;
   /** Get the result of the query, which is the solution to the abduction query.
    */
-  Expr getResult() const;
+  api::Term getResult() const;
 
   void invoke(SmtEngine* smtEngine) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
@@ -1131,16 +1134,13 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   /** The name of the abduction predicate */
   std::string d_name;
   /** The conjecture of the abduction query */
-  Expr d_conj;
-  /**
-   * The (optional) grammar of the abduction query, expressed as a sygus
-   * datatype type.
-   */
-  Type d_sygus_grammar_type;
+  api::Term d_conj;
+  /** The (optional) grammar of the abduction query */
+  api::Grammar* d_sygus_grammar;
   /** the return status of the command */
   bool d_resultStatus;
   /** the return expression of the command */
-  Expr d_result;
+  api::Term d_result;
 }; /* class GetAbductCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
@@ -1177,6 +1177,7 @@ class CVC4_PUBLIC GetUnsatAssumptionsCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+
  protected:
   std::vector<Expr> d_result;
 }; /* class GetUnsatAssumptionsCommand */
@@ -1454,6 +1455,6 @@ class CVC4_PUBLIC DeclarationSequence : public CommandSequence
 {
 };
 
-} /* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* CVC4__COMMAND_H */

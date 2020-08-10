@@ -1413,16 +1413,14 @@ size_t OpHashFunction::operator()(const Op& t) const
 
 Term::Term() : d_solver(nullptr), d_node(new CVC4::Node()) {}
 
-Term::Term(const Solver* slv, const CVC4::Expr& e)
-    : d_solver(slv)
+Term::Term(const Solver* slv, const CVC4::Expr& e) : d_solver(slv)
 {
   // Ensure that we create the node in the correct node manager.
   NodeManagerScope scope(d_solver->getNodeManager());
   d_node.reset(new CVC4::Node(e));
 }
 
-Term::Term(const Solver* slv, const CVC4::Node& n)
-    : d_solver(slv)
+Term::Term(const Solver* slv, const CVC4::Node& n) : d_solver(slv)
 {
   // Ensure that we create the node in the correct node manager.
   NodeManagerScope scope(d_solver->getNodeManager());
@@ -2142,6 +2140,27 @@ Term DatatypeConstructor::getConstructorTerm() const
   return ctor;
 }
 
+Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  
+  NodeManager* nm = d_solver->getNodeManager();
+  Node ret = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
+                           nm->mkConst(AscriptionType(
+                               d_ctor
+                                   ->getSpecializedConstructorType(
+                                       retSort.getType()))),
+                           d_ctor->getConstructor());
+  (void)ret.getType(true); /* kick off type checking */
+  // apply type ascription to the operator
+  Term sctor =
+      api::Term(d_solver,
+                ret);
+  return sctor;
+  
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
 Term DatatypeConstructor::getTesterTerm() const
 {
   Term tst = Term(d_solver, d_ctor->getTester());
@@ -2547,6 +2566,78 @@ void Grammar::addAnyVariable(Term ntSymbol)
   d_allowVars.insert(ntSymbol);
 }
 
+/**
+ * this function concatinates the outputs of calling f on each element between
+ * first and last, seperated by sep.
+ * @param first the beginning of the range
+ * @param last the end of the range
+ * @param f the function to call on each element in the range, its output must
+ *          be overloaded for operator<<
+ * @param sep the string to add between successive calls to f
+ */
+template <typename Iterator, typename Function>
+std::string join(Iterator first, Iterator last, Function f, std::string sep)
+{
+  std::stringstream ss;
+  Iterator i = first;
+
+  if (i != last)
+  {
+    ss << f(*i);
+    ++i;
+  }
+
+  while (i != last)
+  {
+    ss << sep << f(*i);
+    ++i;
+  }
+
+  return ss.str();
+}
+
+std::string Grammar::toString() const
+{
+  std::stringstream ss;
+  ss << "  ("  // pre-declaration
+     << join(
+            d_ntSyms.cbegin(),
+            d_ntSyms.cend(),
+            [](const Term& t) {
+              std::stringstream s;
+              s << '(' << t << ' ' << t.getSort() << ')';
+              return s.str();
+            },
+            " ")
+     << ")\n  ("  // grouped rule listing
+     << join(
+            d_ntSyms.cbegin(),
+            d_ntSyms.cend(),
+            [this](const Term& t) {
+              bool allowConst = d_allowConst.find(t) != d_allowConst.cend(),
+                   allowVars = d_allowVars.find(t) != d_allowVars.cend();
+              const std::vector<Term>& rules = d_ntsToTerms.at(t);
+              std::stringstream s;
+              s << '(' << t << ' ' << t.getSort() << " ("
+                << (allowConst ? "(Constant " + t.getSort().toString() + ")"
+                               : "")
+                << (allowConst && allowVars ? " " : "")
+                << (allowVars ? "(Var " + t.getSort().toString() + ")" : "")
+                << ((allowConst || allowVars) && !rules.empty() ? " " : "")
+                << join(
+                       rules.cbegin(),
+                       rules.cend(),
+                       [](const Term& rule) { return rule.toString(); },
+                       " ")
+                << "))";
+              return s.str();
+            },
+            "\n   ")
+     << ')';
+
+  return ss.str();
+}
+
 Sort Grammar::resolve()
 {
   d_isResolved = true;
@@ -2714,6 +2805,11 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const
           v.d_node->toExpr(), ss.str(), sortVectorToTypes(cargs));
     }
   }
+}
+
+std::ostream& operator<<(std::ostream& out, const Grammar& g)
+{
+  return out << g.toString();
 }
 
 /* -------------------------------------------------------------------------- */
@@ -4810,14 +4906,14 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
                  == SmtEngine::SmtMode::SMT_MODE_UNSAT)
       << "Cannot get unsat assumptions unless in unsat mode.";
 
-  std::vector<Expr> uassumptions = d_smtEngine->getUnsatAssumptions();
+  std::vector<Node> uassumptions = d_smtEngine->getUnsatAssumptions();
   /* Can not use
    *   return std::vector<Term>(uassumptions.begin(), uassumptions.end());
    * here since constructor is private */
   std::vector<Term> res;
-  for (const Expr& e : uassumptions)
+  for (const Node& e : uassumptions)
   {
-    res.push_back(Term(this, e));
+    res.push_back(Term(this, e.toExpr()));
   }
   return res;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -4856,7 +4952,7 @@ Term Solver::getValue(Term term) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_SOLVER_CHECK_TERM(term);
-  return Term(this, d_smtEngine->getValue(term.d_node->toExpr()));
+  return Term(this, d_smtEngine->getValue(*term.d_node));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -4959,23 +5055,56 @@ void Solver::pop(uint32_t nscopes) const
 bool Solver::getInterpolant(Term conj, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Expr result;
-  bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), result);
-  if (success) {
-    output = Term(output.d_solver, result);
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  Node result;
+  bool success = d_smtEngine->getInterpol(*conj.d_node, result);
+  if (success)
+  {
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-bool Solver::getInterpolant(Term conj, const Type& gtype, Term& output) const
+bool Solver::getInterpolant(Term conj, Grammar& g, Term& output) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  Expr result;
-  bool success = d_smtEngine->getInterpol(conj.d_node->toExpr(), gtype, result);
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  Node result;
+  bool success = d_smtEngine->getInterpol(
+      *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
   if (success)
   {
-    output = Term(output.d_solver, result);
+    output = Term(this, result);
+  }
+  return success;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+bool Solver::getAbduct(Term conj, Term& output) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  Node result;
+  bool success = d_smtEngine->getAbduct(*conj.d_node, result);
+  if (success)
+  {
+    output = Term(this, result);
+  }
+  return success;
+  CVC4_API_SOLVER_TRY_CATCH_END;
+}
+
+bool Solver::getAbduct(Term conj, Grammar& g, Term& output) const
+{
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4::ExprManagerScope exmgrs(*(d_exprMgr.get()));
+  Node result;
+  bool success = d_smtEngine->getAbduct(
+      *conj.d_node, TypeNode::fromType(*g.resolve().d_type), result);
+  if (success)
+  {
+    output = Term(this, result);
   }
   return success;
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5128,7 +5257,7 @@ Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(!ntSymbols.empty(), ntSymbols)
-      << "non-empty vector";
+      << "a non-empty vector";
 
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
   {
@@ -5136,30 +5265,30 @@ Grammar Solver::mkSygusGrammar(const std::vector<Term>& boundVars,
         this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
         boundVars[i],
         i)
         << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
-        << "non-null term";
   }
 
   for (size_t i = 0, n = ntSymbols.size(); i < n; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        this == ntSymbols[i].d_solver, "term", ntSymbols[i], i)
+        this == ntSymbols[i].d_solver, "non-terminal", ntSymbols[i], i)
         << "term associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !ntSymbols[i].isNull(), "non-terminal", ntSymbols[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         ntSymbols[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
-        "bound variable",
+        "non-terminal",
         ntSymbols[i],
         i)
         << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !ntSymbols[i].isNull(), "parameter term", ntSymbols[i], i)
-        << "non-null term";
   }
 
   return Grammar(this, boundVars, ntSymbols);
@@ -5206,7 +5335,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   CVC4_API_ARG_CHECK_NOT_NULL(sort);
 
   CVC4_API_ARG_CHECK_EXPECTED(sort.d_type->isFirstClass(), sort)
-      << "first-class sort as codomain sort for function sort";
+      << "first-class codomain sort for function";
 
   std::vector<Type> varTypes;
   for (size_t i = 0, n = boundVars.size(); i < n; ++i)
@@ -5215,14 +5344,14 @@ Term Solver::synthFunHelper(const std::string& symbol,
         this == boundVars[i].d_solver, "bound variable", boundVars[i], i)
         << "bound variable associated to this solver object";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !boundVars[i].isNull(), "bound variable", boundVars[i], i)
+        << "a non-null term";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         boundVars[i].d_node->getKind() == CVC4::Kind::BOUND_VARIABLE,
         "bound variable",
         boundVars[i],
         i)
         << "a bound variable";
-    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
-        !boundVars[i].isNull(), "parameter term", boundVars[i], i)
-        << "non-null term";
     varTypes.push_back(boundVars[i].d_node->getType().toType());
   }
   CVC4_API_SOLVER_CHECK_SORT(sort);
