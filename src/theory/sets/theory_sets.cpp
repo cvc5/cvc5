@@ -54,13 +54,6 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
-{
-  esi.d_notify = &d_notify;
-  esi.d_name = "theory::sets::ee";
-  return true;
-}
-
 void TheorySets::finishInit()
 {
   Assert(d_equalityEngine != nullptr);
