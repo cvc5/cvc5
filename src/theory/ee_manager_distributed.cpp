@@ -60,17 +60,7 @@ void EqEngineManagerDistributed::finishInit()
       continue;
     }
     // allocate the equality engine
-    if (esi.d_notify != nullptr)
-    {
-      eet.d_allocEe.reset(new eq::EqualityEngine(
-          *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers));
-    }
-    else
-    {
-      // don't care about notifications
-      eet.d_allocEe.reset(
-          new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers));
-    }
+    eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
   }
 
   const LogicInfo& logicInfo = d_te.getLogicInfo();
@@ -118,6 +108,18 @@ void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
 eq::EqualityEngine* EqEngineManagerDistributed::getMasterEqualityEngine()
 {
   return d_masterEqualityEngine.get();
+}
+
+eq::EqualityEngine* EqEngineManagerDistributed::allocateEqualityEngine(
+    EeSetupInfo& esi, context::Context* c)
+{
+  if (esi.d_notify != nullptr)
+  {
+    return new eq::EqualityEngine(
+        *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers);
+  }
+  // the theory don't care about explicit notifications
+  return new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers);
 }
 
 }  // namespace theory

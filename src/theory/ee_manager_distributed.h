@@ -31,14 +31,13 @@ class TheoryEngine;
 
 namespace theory {
 
-
 /**
  * This is (theory-agnostic) information associated with the management of
  * an equality engine for a single theory. This information is maintained
  * by the manager class below.
  *
- * Currently, this simply is the equality engine itself, for memory
- * management purposes.
+ * Currently, this simply is the equality engine itself, which is a unique_ptr
+ * for memory management purposes.
  */
 struct EeTheoryInfo
 {
@@ -52,13 +51,11 @@ class EqEngineManager
 public:
   virtual ~EqEngineManager(){}
   /** 
-   * Get the equality engine theory information.
+   * Get the equality engine theory information for theory with the given id.
    */
   const EeTheoryInfo * getEeTheoryInfo(TheoryId tid) const;
 protected:
-  /**
-   * Information related to the equality engine, per theory.
-   */
+  /** Information related to the equality engine, per theory. */
   std::map<TheoryId, EeTheoryInfo> d_einfo;
 };
 
@@ -67,6 +64,12 @@ protected:
  * The (distributed) equality engine manager. This encapsulates the current
  * architecture for managing equalities in the TheoryEngine, in which all
  * theories maintain their own copy of an equality engine.
+ *
+ * This class is not responsible for actually initializing equality engines in
+ * theories, but is responsible for their construction. Instead, TheoryEngine
+ * is responsible for querying this class during finishInit() to determine the
+ * equality engines to set in each theories, which is done via calls to
+ * getEeTheoryInfo.
  *
  * This call is responsible for the memory management and initialization of
  * all "official" equality engine objects owned by theories, and for setting
@@ -92,6 +95,9 @@ class EqEngineManagerDistributed : public EqEngineManager
   eq::EqualityEngine* getMasterEqualityEngine();
 
  private:
+  /** Allocate equality engine that is context-dependent on c with info esi */
+  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
+                                             context::Context* c);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** notify class for master equality engine */
