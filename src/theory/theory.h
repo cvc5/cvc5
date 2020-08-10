@@ -292,7 +292,22 @@ class Theory {
    * its value must be computed (approximated) by the non-linear solver.
    */
   bool isLegalElimination(TNode x, TNode val);
-
+  //--------------------------------- private initialization
+  /**
+   * Called to set the official equality engine. This should be done by
+   * TheoryEngine only.
+   */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /**
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, the master equality engine and quantifiers
+   * engine (if any) are initialized, and the official equality engine of this
+   * theory has been assigned.  This base class implementation
+   * does nothing. This should be done by TheoryEngine only.
+   */
+  virtual void finishInit() { }
+  //--------------------------------- end private initialization
+  
  public:
    
   //--------------------------------- initialization
@@ -300,10 +315,6 @@ class Theory {
    * @return The theory rewriter associated with this theory.
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
-  /**
-   * Called to set the equality engine. This should be done by 
-   */
-  void setEqualityEngine(eq::EqualityEngine* ee);
   /**
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
@@ -318,14 +329,6 @@ class Theory {
    * a notifications class (eq::EqualityEngineNotify).
    */
   virtual bool needsEqualityEngine(EeSetupInfo& esi);
-  /**
-   * Finish theory initialization.  At this point, options and the logic
-   * setting are final, the master equality engine and quantifiers
-   * engine (if any) are initialized, and the official equality engine of this
-   * theory has been assigned.  This base class implementation
-   * does nothing.
-   */
-  virtual void finishInit() { }
   /**
    * Finish theory initialization, standalone version. This is used to
    * initialize this class if it is not associated with a theory engine.

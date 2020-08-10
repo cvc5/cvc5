@@ -51,6 +51,8 @@ void EqEngineManagerDistributed::finishInit()
       // theory not active, skip
       continue;
     }
+    // always allocate an object in d_einfo here
+    EeTheoryInfo& eet = d_einfo[theoryId];
     EeSetupInfo esi;
     if (!t->needsEqualityEngine(esi))
     {
@@ -58,7 +60,6 @@ void EqEngineManagerDistributed::finishInit()
       continue;
     }
     // allocate the equality engine
-    EeTheoryInfo& eet = d_einfo[theoryId];
     if (esi.d_notify != nullptr)
     {
       eet.d_allocEe.reset(new eq::EqualityEngine(
@@ -70,9 +71,6 @@ void EqEngineManagerDistributed::finishInit()
       eet.d_allocEe.reset(
           new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers));
     }
-    // the theory uses this equality engine
-    eq::EqualityEngine* eeAlloc = eet.d_allocEe.get();
-    t->setEqualityEngine(eeAlloc);
   }
 
   const LogicInfo& logicInfo = d_te.getLogicInfo();

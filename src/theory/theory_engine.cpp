@@ -147,6 +147,20 @@ void TheoryEngine::finishInit() {
   // includes the master equality engine.
   d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
   d_eeDistributed->finishInit();
+  
+  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
+    Theory * t = d_theoryTable[theoryId];
+    if (t==nullptr)
+    {
+      // theory is inactive, skip
+      continue;
+    }
+    const EeTheoryInfo * eeti = d_eeDistributed->getEeTheoryInfo(theoryId);
+    Assert (eeti!=nullptr);
+    // the theory's official equality engine is the one specified by the manager
+    eq::EqualityEngine * ee = eeti->d_allocEe.get();
+    t->setEqualityEngine(ee);
+  }
 
   // Initialize the model and model builder.
   if (d_logicInfo.isQuantified())
