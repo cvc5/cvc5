@@ -26,7 +26,7 @@ namespace CVC4 {
  * page 52 of the SMT-LIB version 2.6 standard
  * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
  */
-enum class SmtMode : uint32_t
+enum class SmtMode
 {
   // the initial state of the solver
   START,
