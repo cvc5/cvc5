@@ -90,6 +90,9 @@ class SmtEngineState
    * is issued to an SmtEngine, it may use a satisfiability call (if desired)
    * to solve the abduction query. This method is called *in addition* to
    * the above calls to notifyCheckSat / notifyCheckSatResult in this case.
+   * In particular, it is called after these two methods are completed.
+   * This overwrites the SMT mode to the "ABDUCT" mode if the call to abduction
+   * was successful.
    */
   void notifyGetAbduct(bool success);
   /**
