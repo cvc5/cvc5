@@ -3,7 +3,6 @@ name: CI
 
 jobs:
   build:
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -13,6 +12,14 @@ jobs:
           debug,
           debug-cln
         ]
+
+        exclude:
+          - name: production-clang
+            os: macos-latest
+          - name: debug
+            os: macos-latest
+          - name: debug-cln
+            os: macos-latest
 
         include:
           - name: production
@@ -26,14 +33,17 @@ jobs:
             cache-key: production-clang
             check-examples: true
             env: CC=clang CXX=clang++
+            os: ubuntu-latest
 
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
+            os: ubuntu-latest
 
           - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug-cln
+            os: ubuntu-latest
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -67,6 +77,7 @@ jobs:
           cxxtest \
           cln \
           gmp \
+          pkgconfig \
           swig
         python3 -m pip install toml
         python3 -m pip install setuptools

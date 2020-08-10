@@ -34,6 +34,7 @@ const char* toString(PfRule id)
     case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::PREPROCESS: return "PREPROCESS";
     case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
+    case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";

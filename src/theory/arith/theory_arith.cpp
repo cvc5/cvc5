@@ -39,7 +39,7 @@ TheoryArith::TheoryArith(context::Context* c,
                          ProofNodeManager* pnm)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
-          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo)),
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
       d_proofRecorder(nullptr)
 {
@@ -62,24 +62,21 @@ void TheoryArith::preRegisterTerm(TNode n){
 
 void TheoryArith::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
   if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
       && getLogicInfo().areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
-    tm->setUnevaluatedKind(kind::WITNESS);
+    d_valuation.setUnevaluatedKind(kind::WITNESS);
     // we only need to add the operators that are not syntax sugar
-    tm->setUnevaluatedKind(kind::EXPONENTIAL);
-    tm->setUnevaluatedKind(kind::SINE);
-    tm->setUnevaluatedKind(kind::PI);
+    d_valuation.setUnevaluatedKind(kind::EXPONENTIAL);
+    d_valuation.setUnevaluatedKind(kind::SINE);
+    d_valuation.setUnevaluatedKind(kind::PI);
   }
 }
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
-  Node expNode = d_internal->expandDefinition(node);
-  return TrustNode::mkTrustRewrite(node, expNode, nullptr);
+  return d_internal->expandDefinition(node);
 }
 
 void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -93,12 +90,7 @@ void TheoryArith::addSharedTerm(TNode n){
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Node ret = d_internal->ppRewrite(atom);
-  if (ret != atom)
-  {
-    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-  }
-  return TrustNode::null();
+  return d_internal->ppRewrite(atom);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {

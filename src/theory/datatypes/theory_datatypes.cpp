@@ -18,7 +18,6 @@
 #include <map>
 
 #include "base/check.h"
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/kind.h"
 #include "options/datatypes_options.h"
@@ -320,7 +319,7 @@ void TheoryDatatypes::check(Effort e) {
                     Trace("dt-split") << "*************Split for constructors on " << n <<  endl;
                     Node lemma = utils::mkSplit(n, dt);
                     Trace("dt-split-debug") << "Split lemma is : " << lemma << std::endl;
-                    d_out->lemma( lemma, false, false, true );
+                    d_out->lemma(lemma, LemmaProperty::SEND_ATOMS);
                     d_addedLemma = true;
                   }
                   if( !options::dtBlastSplits() ){
@@ -654,10 +653,11 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
       }
       else
       {
-        Assert(tn.toType().isRecord());
-        const Record& record = DatatypeType(tn.toType()).getRecord();
-        size = record.getNumFields();
-        updateIndex = record.getIndex(
+        Assert(tn.isRecord());
+        const DTypeConstructor& recCons = dt[0];
+        size = recCons.getNumArgs();
+        // get the index for the name
+        updateIndex = recCons.getSelectorIndexForName(
             n.getOperator().getConst<RecordUpdate>().getField());
       }
       Debug("tuprec") << "expr is " << n << std::endl;
