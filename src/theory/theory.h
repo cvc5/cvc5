@@ -265,6 +265,30 @@ class Theory {
   bool isLegalElimination(TNode x, TNode val);
 
  public:
+  //--------------------------------- initialization
+  /**
+   * @return The theory rewriter associated with this theory. This is called
+   * for the purposes of initializing the rewriter.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * !!!! TODO: use this method (https://github.com/orgs/CVC4/projects/39).
+   * 
+   * Returns true if this theory needs an equality engine for checking
+   * satisfiability.
+   *
+   * If this method returns true, then the equality engine manager will
+   * initialize its equality engine field via setEqualityEngine above during
+   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
+   *
+   * Additionally, if this method returns true, then this method is required to
+   * update the argument esi with instructions for initializing and setting up
+   * notifications from its equality engine, which is commonly done with
+   * a notifications class (eq::EqualityEngineNotify).
+   */
+  virtual bool needsEqualityEngine(EeSetupInfo& esi);
+  //--------------------------------- end initialization
+  
   /**
    * Return the ID of the theory responsible for the given type.
    */
@@ -329,11 +353,6 @@ class Theory {
    * Destructs a Theory.
    */
   virtual ~Theory();
-
-  /**
-   * @return The theory rewriter associated with this theory.
-   */
-  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
