@@ -91,10 +91,7 @@ Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
 }
 
-bool Theory::needsEqualityEngine(EeSetupInfo& esi)
-{
-  return false;
-}
+bool Theory::needsEqualityEngine(EeSetupInfo& esi) { return false; }
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
 {

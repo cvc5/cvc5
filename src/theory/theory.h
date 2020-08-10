@@ -39,6 +39,7 @@
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
@@ -46,7 +47,6 @@
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
-#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 
@@ -274,7 +274,7 @@ class Theory {
   virtual TheoryRewriter* getTheoryRewriter() = 0;
   /**
    * !!!! TODO: use this method (https://github.com/orgs/CVC4/projects/39).
-   * 
+   *
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
    *
@@ -289,7 +289,7 @@ class Theory {
    */
   virtual bool needsEqualityEngine(EeSetupInfo& esi);
   //--------------------------------- end initialization
-  
+
   /**
    * Return the ID of the theory responsible for the given type.
    */
