@@ -46,6 +46,7 @@
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
+#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 
