@@ -1355,12 +1355,15 @@ void SmtEngine::declareSynthFun(const std::string& id,
   std::stringstream ss;
 
   Printer::getPrinter(options::outputLanguage())
-      ->toStreamCmdSynthFun(ss,
-                            id,
-                            nodeVars,
-                            TypeNode::fromType(func.getType()).getRangeType(),
-                            isInv,
-                            TypeNode::fromType(sygusType));
+      ->toStreamCmdSynthFun(
+          ss,
+          id,
+          nodeVars,
+          func.getType().isFunction()
+              ? TypeNode::fromType(func.getType()).getRangeType()
+              : TypeNode::fromType(func.getType()),
+          isInv,
+          TypeNode::fromType(sygusType));
 
   Dump("raw-benchmark") << ss.str();
 
