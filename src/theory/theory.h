@@ -267,8 +267,8 @@ class Theory {
  public:
   //--------------------------------- initialization
   /**
-   * @return The theory rewriter associated with this theory. This is called
-   * for the purposes of initializing the rewriter.
+   * @return The theory rewriter associated with this theory. This is primarily
+   * called for the purposes of initializing the rewriter.
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
   /**
