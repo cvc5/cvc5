@@ -63,22 +63,22 @@ void TheorySets::finishInit()
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
-  d_equalityEngine->addFunctionKind(kind::SINGLETON);
-  d_equalityEngine->addFunctionKind(kind::UNION);
-  d_equalityEngine->addFunctionKind(kind::INTERSECTION);
-  d_equalityEngine->addFunctionKind(kind::SETMINUS);
-  d_equalityEngine->addFunctionKind(kind::MEMBER);
-  d_equalityEngine->addFunctionKind(kind::SUBSET);
+  d_equalityEngine.addFunctionKind(kind::SINGLETON);
+  d_equalityEngine.addFunctionKind(kind::UNION);
+  d_equalityEngine.addFunctionKind(kind::INTERSECTION);
+  d_equalityEngine.addFunctionKind(kind::SETMINUS);
+  d_equalityEngine.addFunctionKind(kind::MEMBER);
+  d_equalityEngine.addFunctionKind(kind::SUBSET);
   // relation operators
-  d_equalityEngine->addFunctionKind(PRODUCT);
-  d_equalityEngine->addFunctionKind(JOIN);
-  d_equalityEngine->addFunctionKind(TRANSPOSE);
-  d_equalityEngine->addFunctionKind(TCLOSURE);
-  d_equalityEngine->addFunctionKind(JOIN_IMAGE);
-  d_equalityEngine->addFunctionKind(IDEN);
-  d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
+  d_equalityEngine.addFunctionKind(PRODUCT);
+  d_equalityEngine.addFunctionKind(JOIN);
+  d_equalityEngine.addFunctionKind(TRANSPOSE);
+  d_equalityEngine.addFunctionKind(TCLOSURE);
+  d_equalityEngine.addFunctionKind(JOIN_IMAGE);
+  d_equalityEngine.addFunctionKind(IDEN);
+  d_equalityEngine.addFunctionKind(APPLY_CONSTRUCTOR);
   // we do congruence over cardinality
-  d_equalityEngine->addFunctionKind(CARD);
+  d_equalityEngine.addFunctionKind(CARD);
 
   // finish initialization internally
   d_internal->finishInit();
