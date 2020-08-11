@@ -54,11 +54,9 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
 
 void TheorySets::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setUnevaluatedKind(COMPREHENSION);
+  d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
-  tm->setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(WITNESS);
 }
 
 void TheorySets::addSharedTerm(TNode n) {
