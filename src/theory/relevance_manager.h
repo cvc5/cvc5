@@ -106,6 +106,22 @@ class RelevanceManager
    */
   int justify(TNode n,
               std::unordered_map<TNode, int, TNodeHashFunction>& cache);
+  /** Is the top symbol of cur a Boolean connective? */
+  bool isBooleanConnective(TNode cur);
+  /** 
+   * Update justify last child. This method is a helper function for justify,
+   * which is called at the moment that Boolean connective formula cur
+   * has a new child that has been computed in the justify cache.
+   * 
+   * @param cur The Boolean connective formula
+   * @param childrenJustify The values of the previous children (not including
+   * the current one)
+   * @param cache The justify cache
+   * @return True if we wish to visit the next child. If this is the case, then
+   * the justify value of the current child is added to childrenJustify.
+   */
+  bool updateJustifyLastChild(
+    TNode cur, std::vector<int>& childrenJustify, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The (non-unit) input assertions */

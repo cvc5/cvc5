@@ -105,108 +105,194 @@ void RelevanceManager::computeRelevance()
   d_success = true;
 }
 
-// iterative?
-/*
-int RelevanceManager::justify(
-    TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+bool RelevanceManager::isBooleanConnective(TNode cur)
 {
-  std::unordered_map<TNode, size_t, TNodeHashFunction> visited;
-  std::unordered_map<TNode, size_t, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  Kind k;
-  visit.push_back(n);
-  do {
-    cur = visit.back();
-    visit.pop_back();
-    it = visited.find(cur);
-    k = cur.getKind();
-    if (it == visited.end()) {
-      if (k==NOT || k==IMPLIES || k==AND || k==OR || k==ITE || k==XOR || (k==EQUAL && cur[0].getType().isBoolean()))
+  Kind k = cur.getKind();
+  return k==NOT || k==IMPLIES || k==AND || k==OR || k==ITE || k==XOR || (k==EQUAL && cur[0].getType().isBoolean());
+}
+
+
+bool RelevanceManager::updateJustifyLastChild(
+  TNode cur, std::vector<int>& childrenJustify, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+{
+  // This method is run when we are informed that child index of cur
+  // has justify status lastChildJustify. We return true if we would like to
+  // compute the next child, in this case we push the status of the current
+  // child to childrenJustify.
+  size_t nchildren = cur.getNumChildren();
+  Assert (isBooleanConnective(cur));
+  size_t index = childrenJustify.size();
+  Assert (index<nchildren);
+  Assert (cache.find(cur[index])!=cache.end());
+  Kind k = cur.getKind();
+  // Lookup the last child's value in the overall cache, we may choose to
+  // add this to childrenJustify if we return true.
+  int lastChildJustify = cache[cur[index]];
+  if (k == NOT)
+  {
+    cache[cur] = -lastChildJustify;
+  }
+  else if (k == IMPLIES || k == AND || k == OR)
+  {
+    if (lastChildJustify!=0)
+    {
+      // see if we short circuited?
+      if (lastChildJustify==( k==AND || (k==IMPLIES && index==0) ? -1 : 1))
       {
-        visited[cur] = 0;
-        visit.push_back(cur);
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        cache[cur] = k==AND ? -1 : 1;
+        return false;
       }
     }
-    else if( !it->second<cur.getNumChildren() )
+    if (index+1==nchildren)
     {
-      size_t currChild = it->second;
-      // we are getting notified of the result of the index^th child.
-      
-      visited[cur] = true;
+      // finished all children, compute the overall value
+      int ret = k==AND ? 1 : -1;
+      for (int cv : childrenJustify)
+      {
+        if (cv==0)
+        {
+          ret = 0;
+          break;
+        }
+        Assert (ret==((k==IMPLES && index==0) ? -cv : cv));
+      }
+      cache[cur] = ret;
     }
-  } while (!visit.empty());
+    else
+    {
+      // continue
+      childrenJustify.push_back(lastChildJustify);
+      return true;
+    }
+  }
+  else if (lastChildJustify==0)
+  {
+    // all other cases, an unknown child implies we are unknown
+    cache[cur] = 0;
+  }
+  else if (k == ITE)
+  {
+    if (index==0)
+    {
+      Assert (lastChildJustify!=0);
+      // continue with branch
+      childrenJustify.push_back(lastChildJustify);
+      if (lastChildJustify==-1)
+      {
+        // mark first branch as don't care
+        childrenJustify.push_back(0);
+      }
+      return true;
+    }
+    else
+    {
+      // should be in proper branch
+      Assert (childrenJustify[0]==(index==1 ? 1 : -1));
+      // we are the value of the branch
+      cache[cur] = lastChildJustify;
+    }
+  }
+  else
+  {
+    Assert (k==XOR || k==EQUAL);
+    Assert (lastChildJustify!=0);
+    if (index==0)
+    {
+      // must compute the other child
+      childrenJustify.push_back(lastChildJustify);
+      return true;
+    }
+    else
+    {
+      // both children known, compute value
+      Assert (childrenJustify.size()==1 && childrenJustify[0]!=0);
+      cache[cur] = (( k==XOR ? -1 : 1)*lastChildJustify==childrenJustify[0]) ? 1 : -1;
+    }
+  }
+  return false;
 }
-*/
 
 int RelevanceManager::justify(
     TNode n, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
 {
-  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it =
-      cache.find(n);
-  if (it != cache.end())
+  // the vector of values of children
+  std::unordered_map<TNode, std::vector<int>, TNodeHashFunction> childJustify;
+  std::unordered_map<TNode, int, TNodeHashFunction>::iterator it;
+  std::unordered_map<TNode, std::vector<int>, TNodeHashFunction>::iterator itc;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do 
   {
-    return it->second;
-  }
-  Kind k = n.getKind();
-  int ret;
-  if (k == NOT)
-  {
-    ret = -justify(n[0], cache);
-  }
-  else if (k == IMPLIES)
-  {
-    int cret = justify(n[0], cache);
-    ret = cret == 1 ? justify(n[1], cache) : -cret;
-  }
-  else if (k == AND || k == OR)
-  {
-    // Boolean connective, recurse
-    ret = k == AND ? 1 : -1;
-    for (const Node& nc : n)
+    cur = visit.back();
+    if (it != cache.end())
     {
-      int cret = justify(nc, cache);
-      if (cret == 0)
+      visit.pop_back();
+      // already computed value
+      continue;
+    }
+    itc = childJustify.find(cur);
+    // have we traversed to children yet?
+    if (itc == childJustify.end()) 
+    {
+      // are we not a Boolean connective (including NOT)?
+      if (isBooleanConnective(cur))
       {
-        ret = 0;
+        childJustify[cur].clear();
+        // start with the first child
+        visit.push_back(cur[0]);
       }
-      else if (ret != cret)
+      else
       {
-        ret = cret;
-        break;
+        visit.pop_back();
+        // The atom case, lookup the value in the valuation class to
+        // see its current value in the SAT solver, if it has one.
+        int ret = 0;
+        // otherwise we look up the value
+        bool value;
+        if (d_val.hasSatValue(cur, value))
+        {
+          ret = value ? 1 : -1;
+          d_rset.insert(cur);
+        }
+        cache[cur] = ret;
+      }
+    } 
+    else
+    {
+      // this processes the impact of the current child on the value of cur,
+      // and possibly requests that a new child is computed.
+      bool computeChild = false;
+      while (updateJustifyLastChild(cur, itc->second, cache))
+      {
+        // cur has requested that the next child be computed.
+        // we should not request a new child out of bounds.
+        Assert (itc->second.size()<cur.getNumChildren());
+        TNode nextChild = cur[itc->second.size()];
+        // check if its already in the cache.
+        it = cache.find(nextChild);
+        if (it != cache.end())
+        {
+          // if so, we add to cur's justify children immediately.
+          itc->second.push_back(it->second);
+        }
+        else
+        {
+          // otherwise not computed yet, we exit and push the child to visit
+          visit.push_back(nextChild);
+          computeChild = true;
+          break;
+        }
+      }
+      if (!computeChild)
+      {
+        // pop the original if we are not wanting to compute the next child
+        visit.pop_back();
       }
     }
-  }
-  else if (k == ITE)
-  {
-    int cret = justify(n[0], cache);
-    ret = cret == 1 ? justify(n[1], cache)
-                    : (cret == -1 ? justify(n[2], cache) : 0);
-  }
-  else if (k == XOR)
-  {
-    int cret = justify(n[0], cache);
-    ret = cret == 0 ? 0 : -cret * justify(n[1], cache);
-  }
-  else if (k == EQUAL && n[0].getType().isBoolean())
-  {
-    int cret = justify(n[0], cache);
-    ret = cret == 0 ? 0 : cret * justify(n[1], cache);
-  }
-  else
-  {
-    ret = 0;
-    // otherwise we look up the value
-    bool value;
-    if (d_val.hasSatValue(n, value))
-    {
-      ret = value ? 1 : -1;
-      d_rset.insert(n);
-    }
-  }
-  cache[n] = ret;
-  return ret;
+  } while (!visit.empty());
+  Assert(cache.find(n) != cache.end());
+  return cache[n];
 }
 
 bool RelevanceManager::isRelevant(Node lit)
