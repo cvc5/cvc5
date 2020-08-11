@@ -137,7 +137,7 @@ bool RelevanceManager::updateJustifyLastChild(
     if (lastChildJustify!=0)
     {
       // see if we short circuited?
-      if (lastChildJustify==( k==AND || (k==IMPLIES && index==0) ? -1 : 1))
+      if (lastChildJustify==( (k==AND || (k==IMPLIES && index==0)) ? -1 : 1))
       {
         cache[cur] = k==AND ? -1 : 1;
         return false;
@@ -179,7 +179,7 @@ bool RelevanceManager::updateJustifyLastChild(
       childrenJustify.push_back(lastChildJustify);
       if (lastChildJustify==-1)
       {
-        // mark first branch as don't care
+        // also mark first branch as don't care
         childrenJustify.push_back(0);
       }
       return true;
