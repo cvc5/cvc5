@@ -476,7 +476,7 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   {
     if (std::find(noExplain.begin(), noExplain.end(), apc)!=noExplain.end())
     {
-      if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
+      if (std::find(antec_exp.begin(), antec_exp.end(), apc) == antec_exp.end())
       {
         Debug("strings-explain")
             << "Add to explanation (new literal) " << anc << std::endl;
