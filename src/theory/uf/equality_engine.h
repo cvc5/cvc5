@@ -415,7 +415,8 @@ private:
   /** Are we in propagate */
   bool d_inPropagate;
 
-  /**
+  /** Proof-new specific construction of equality conclusions for EqProofs
+   *
    * Given two equality node ids, build an equality between the nodes they
    * correspond to and add it as a conclusion to the given EqProof.
    *
