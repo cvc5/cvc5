@@ -289,11 +289,20 @@ context::UserContext* SmtEngine::getUserContext() const
 {
   return d_state->getUserContext();
 }
-context::Context* SmtEngine::getContext() const { return d_state->getContext(); }
+context::Context* SmtEngine::getContext() const
+{
+  return d_state->getContext();
+}
 
-TheoryEngine* SmtEngine::getTheoryEngine() const { return d_smtSolver->getTheoryEngine(); }
+TheoryEngine* SmtEngine::getTheoryEngine() const
+{
+  return d_smtSolver->getTheoryEngine();
+}
 
-prop::PropEngine* SmtEngine::getPropEngine() const { return d_smtSolver->getPropEngine(); }
+prop::PropEngine* SmtEngine::getPropEngine() const
+{
+  return d_smtSolver->getPropEngine();
+}
 
 void SmtEngine::finishInit()
 {
@@ -932,8 +941,8 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw ModalException(ss.str().c_str());
   }
 
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
   TheoryModel* m = te->getBuiltModel();
 
   if (m == nullptr)
@@ -953,30 +962,31 @@ void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
 void SmtEngine::notifyPushPost()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-  PropEngine * pe = getPropEngine();
-  Assert (pe!=nullptr);
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
   pe->push();
 }
 
 void SmtEngine::notifyPopPre()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-  PropEngine * pe = getPropEngine();
-  Assert (pe!=nullptr);
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
   pe->pop();
 }
 
-void SmtEngine::notifyPostSolvePre() { 
-  PropEngine * pe = getPropEngine();
-  Assert (pe!=nullptr);
-  pe->resetTrail(); 
+void SmtEngine::notifyPostSolvePre()
+{
+  PropEngine* pe = getPropEngine();
+  Assert(pe != nullptr);
+  pe->resetTrail();
 }
 
-void SmtEngine::notifyPostSolvePost() { 
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
+void SmtEngine::notifyPostSolvePost()
+{
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
   te->postsolve();
-  
 }
 
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
@@ -1012,10 +1022,10 @@ Result SmtEngine::checkEntailed(const Expr& node, bool inUnsatCore)
 {
   Dump("benchmark") << QueryCommand(node, inUnsatCore);
   return checkSatInternal(node.isNull()
-                                 ? std::vector<Node>()
-                                 : std::vector<Node>{Node::fromExpr(node)},
-                             inUnsatCore,
-                             true)
+                              ? std::vector<Node>()
+                              : std::vector<Node>{Node::fromExpr(node)},
+                          inUnsatCore,
+                          true)
       .asEntailmentResult();
 }
 
@@ -1030,8 +1040,8 @@ Result SmtEngine::checkEntailed(const vector<Expr>& nodes, bool inUnsatCore)
 }
 
 Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
-                                      bool inUnsatCore,
-                                      bool isEntailmentCheck)
+                                   bool inUnsatCore,
+                                   bool isEntailmentCheck)
 {
   try
   {
@@ -1554,8 +1564,8 @@ Model* SmtEngine::getModel() {
   // Since model m is being returned to the user, we must ensure that this
   // model object remains valid with future check-sat calls. Hence, we set
   // the theory engine into "eager model building" mode. TODO #2648: revisit.
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
   te->setEagerModelBuilding();
 
   if (options::modelCoresMode() != options::ModelCoresMode::NONE)
@@ -1797,8 +1807,8 @@ void SmtEngine::checkModel(bool hardFailure) {
   // Check individual theory assertions
   if (options::debugCheckModels())
   {
-    TheoryEngine * te = getTheoryEngine();
-    Assert (te!=nullptr);
+    TheoryEngine* te = getTheoryEngine();
+    Assert(te != nullptr);
     te->checkTheoryAssertionsWithModel(hardFailure);
   }
   
@@ -2004,8 +2014,8 @@ void SmtEngine::checkSynthSolution()
   NodeManager* nm = NodeManager::currentNM();
   Notice() << "SmtEngine::checkSynthSolution(): checking synthesis solution" << endl;
   std::map<Node, std::map<Node, Node>> sol_map;
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
   /* Get solutions and build auxiliary vectors for substituting */
   if (!te->getSynthSolutions(sol_map))
   {
@@ -2198,9 +2208,9 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
     out << "% SZS output start Proof for " << d_state->getFilename()
         << std::endl;
   }
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
-  te->printInstantiations( out );
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  te->printInstantiations(out);
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
     out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
@@ -2210,9 +2220,9 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
   finishInit();
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
-  te->printSynthSolution( out );
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  te->printSynthSolution(out);
 }
 
 bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
@@ -2220,7 +2230,7 @@ bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
   SmtScope smts(this);
   finishInit();
   std::map<Node, std::map<Node, Node>> sol_mapn;
-  TheoryEngine * te = getTheoryEngine();
+  TheoryEngine* te = getTheoryEngine();
   Assert(te != nullptr);
   // fail if the theory engine does not have synthesis solutions
   if (!te->getSynthSolutions(sol_mapn))
@@ -2255,9 +2265,10 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   TypeNode t = NodeManager::currentNM()->booleanType();
   Node n_attr = NodeManager::currentNM()->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
   std::vector< Node > node_values;
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
-  te->setUserAttribute( doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  te->setUserAttribute(
+      doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
   n_attr = NodeManager::currentNM()->mkNode(kind::INST_ATTRIBUTE, n_attr);
   n_attr = NodeManager::currentNM()->mkNode(kind::INST_PATTERN_LIST, n_attr);
   std::vector< Node > e_children;
@@ -2279,7 +2290,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       return e;
     }
     std::vector< Node > inst_qs;
-    te->getInstantiatedQuantifiedFormulas( inst_qs );
+    te->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
     Node ret_n;
     if( inst_qs.size()==1 ){
@@ -2287,7 +2298,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
       //Node top_q = Rewriter::rewrite( nn_e ).negate();
       Assert(top_q.getKind() == kind::FORALL);
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
-      ret_n = te->getInstantiatedConjunction( top_q );
+      ret_n = te->getInstantiatedConjunction(top_q);
       Trace("smt-qe") << "Returned : " << ret_n << std::endl;
       if (n_e.getKind() == kind::EXISTS)
       {
@@ -2339,39 +2350,43 @@ bool SmtEngine::getAbduct(const Node& conj, Node& abd)
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   SmtScope smts(this);
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
-  std::vector< Node > qs_n;
-  te->getInstantiatedQuantifiedFormulas( qs_n );
-  for( unsigned i=0; i<qs_n.size(); i++ ){
-    qs.push_back( qs_n[i].toExpr() );
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  std::vector<Node> qs_n;
+  te->getInstantiatedQuantifiedFormulas(qs_n);
+  for (unsigned i = 0; i < qs_n.size(); i++)
+  {
+    qs.push_back(qs_n[i].toExpr());
   }
 }
 
 void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
   SmtScope smts(this);
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
-  std::vector< Node > insts_n;
-  te->getInstantiations( Node::fromExpr( q ), insts_n );
-  for( unsigned i=0; i<insts_n.size(); i++ ){
-    insts.push_back( insts_n[i].toExpr() );
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  std::vector<Node> insts_n;
+  te->getInstantiations(Node::fromExpr(q), insts_n);
+  for (unsigned i = 0; i < insts_n.size(); i++)
+  {
+    insts.push_back(insts_n[i].toExpr());
   }
 }
 
 void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< Expr > >& tvecs ) {
   SmtScope smts(this);
   Assert(options::trackInstLemmas());
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
-  std::vector< std::vector< Node > > tvecs_n;
-  te->getInstantiationTermVectors( Node::fromExpr( q ), tvecs_n );
-  for( unsigned i=0; i<tvecs_n.size(); i++ ){
-    std::vector< Expr > tvec;
-    for( unsigned j=0; j<tvecs_n[i].size(); j++ ){
-      tvec.push_back( tvecs_n[i][j].toExpr() );
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
+  std::vector<std::vector<Node>> tvecs_n;
+  te->getInstantiationTermVectors(Node::fromExpr(q), tvecs_n);
+  for (unsigned i = 0; i < tvecs_n.size(); i++)
+  {
+    std::vector<Expr> tvec;
+    for (unsigned j = 0; j < tvecs_n[i].size(); j++)
+    {
+      tvec.push_back(tvecs_n[i][j].toExpr());
     }
-    tvecs.push_back( tvec );
+    tvecs.push_back(tvec);
   }
 }
 
@@ -2537,8 +2552,8 @@ void SmtEngine::setUserAttribute(const std::string& attr,
   {
     node_values.push_back( expr_values[i].getNode() );
   }
-  TheoryEngine * te = getTheoryEngine();
-  Assert (te!=nullptr);
+  TheoryEngine* te = getTheoryEngine();
+  Assert(te != nullptr);
   te->setUserAttribute(attr, expr.getNode(), node_values, str_value);
 }
 

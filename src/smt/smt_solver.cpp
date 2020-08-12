@@ -14,23 +14,23 @@
 
 #include "smt/smt_solver.h"
 
-#include "prop/prop_engine.h"
-#include "theory/theory_engine.h"
-#include "smt/smt_engine_state.h"
-#include "smt/assertions.h"
-#include "smt/smt_engine.h"
-#include "theory/theory_traits.h"
-#include "smt/preprocessor.h"
 #include "proof/theory_proof.h"
+#include "prop/prop_engine.h"
+#include "smt/assertions.h"
+#include "smt/preprocessor.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_state.h"
+#include "theory/theory_engine.h"
+#include "theory/theory_traits.h"
 
 namespace CVC4 {
 namespace smt {
 
 SmtSolver::SmtSolver(SmtEngine& smt,
-            SmtEngineState& state,
-            ResourceManager* rm,
-            Preprocessor& pp,
-            SmtEngineStatistics& stats)
+                     SmtEngineState& state,
+                     ResourceManager* rm,
+                     Preprocessor& pp,
+                     SmtEngineStatistics& stats)
     : d_smt(smt),
       d_state(state),
       d_rm(rm),
@@ -47,15 +47,15 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine.reset(
-      new TheoryEngine(d_smt.getContext(),
-                       d_smt.getUserContext(),
-                       d_rm,
-                       d_pp.getTermFormulaRemover(),
-                       logicInfo));
+  d_theoryEngine.reset(new TheoryEngine(d_smt.getContext(),
+                                        d_smt.getUserContext(),
+                                        d_rm,
+                                        d_pp.getTermFormulaRemover(),
+                                        logicInfo));
 
   // Add the theories
-  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST;
+       ++id)
   {
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
     // register with proof engine if applicable
@@ -237,9 +237,15 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-TheoryEngine* SmtSolver::getTheoryEngine() const { return d_theoryEngine.get(); }
+TheoryEngine* SmtSolver::getTheoryEngine() const
+{
+  return d_theoryEngine.get();
+}
 
-prop::PropEngine* SmtSolver::getPropEngine() const { return d_propEngine.get(); }
+prop::PropEngine* SmtSolver::getPropEngine() const
+{
+  return d_propEngine.get();
+}
 
 }  // namespace smt
 }  // namespace CVC4

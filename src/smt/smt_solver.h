@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "util/result.h"
 #include "theory/logic_info.h"
+#include "util/result.h"
 
 namespace CVC4 {
 
@@ -46,7 +46,7 @@ class SmtEngineStatistics;
  * This class manages the initialization of the theory engine and propositional
  * engines and implements the method for checking satisfiability of the current
  * set of assertions.
- * 
+ *
  * Notice that this class is only conceptually responsible for running
  * check-sat commands and an interface for sending formulas to the underlying
  * classes. It does not implement any query techniques beyond getting the result
@@ -63,8 +63,8 @@ class SmtSolver
             Preprocessor& pp,
             SmtEngineStatistics& stats);
   ~SmtSolver();
-  /** 
-   * Create theory engine, prop engine based on the logic info. 
+  /**
+   * Create theory engine, prop engine based on the logic info.
    */
   void finishInit(const LogicInfo& logicInfo);
   /** Reset all assertions, global declarations, etc.  */
@@ -87,7 +87,7 @@ class SmtSolver
    * in SmtEngine. This is done via adding assumptions (when necessary) to
    * assertions as, preprocessing and pushing assertions into the prop engine
    * of this class, and checking for satisfiability via the prop engine.
-   * 
+   *
    * @param as The object managing the assertions in SmtEngine. This class
    * maintains a current set of (unprocessed) assertions which are pushed
    * into the internal members of this class (TheoryEngine and PropEngine)

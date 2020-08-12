@@ -1185,9 +1185,9 @@ class CVC4_PUBLIC SmtEngine
    * for set default options based on the logic.
    */
   std::unique_ptr<smt::OptionsManager> d_optm;
-  /**	
-   * The preprocessor.	
-   */	
+  /**
+   * The preprocessor.
+   */
   std::unique_ptr<smt::Preprocessor> d_pp;
   /**
    * The global scope object. Upon creation of this SmtEngine, it becomes the
