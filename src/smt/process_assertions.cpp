@@ -462,7 +462,6 @@ bool ProcessAssertions::apply(Assertions& as)
 bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
   spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_smt.d_pendingPops == 0);
   try
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);

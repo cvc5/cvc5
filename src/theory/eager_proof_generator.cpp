@@ -20,8 +20,9 @@ namespace CVC4 {
 namespace theory {
 
 EagerProofGenerator::EagerProofGenerator(ProofNodeManager* pnm,
-                                         context::Context* c)
-    : d_pnm(pnm), d_proofs(c == nullptr ? &d_context : c)
+                                         context::Context* c,
+                                         std::string name)
+    : d_pnm(pnm), d_name(name), d_proofs(c == nullptr ? &d_context : c)
 {
 }
 
@@ -97,8 +98,7 @@ TrustNode EagerProofGenerator::mkTrustNode(Node n,
                                            const std::vector<Node>& args,
                                            bool isConflict)
 {
-  std::vector<std::shared_ptr<ProofNode>> children;
-  std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, children, args, n);
+  std::shared_ptr<ProofNode> pf = d_pnm->mkNode(id, {}, args, n);
   return mkTrustNode(n, pf, isConflict);
 }
 
@@ -117,9 +117,10 @@ TrustNode EagerProofGenerator::mkTrustNodeSplit(Node f)
 {
   // make the lemma
   Node lem = f.orNode(f.notNode());
-  std::vector<Node> args;
-  return mkTrustNode(lem, PfRule::SPLIT, args, false);
+  return mkTrustNode(lem, PfRule::SPLIT, {f}, false);
 }
+
+std::string EagerProofGenerator::identify() const { return d_name; }
 
 }  // namespace theory
 }  // namespace CVC4
