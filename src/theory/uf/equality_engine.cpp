@@ -1011,6 +1011,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
     return;
   }
   Node eq[2];
+  NodeManager* nm = NodeManager::currentNM();
   for (unsigned i = 0; i < 2; ++i)
   {
     EqualityNodeId equalityNodeId = i == 0 ? id1 : id2;
@@ -1055,7 +1056,7 @@ void EqualityEngine::buildEqConclusion(EqualityNodeId id1,
       {
         children.push_back(equalityNode[j]);
       }
-      eq[i] = NodeManager::currentNM()->mkNode(k1, children);
+      eq[i] = nm->mkNode(k1, children);
     }
   }
   // if built equality, add it as eqp's conclusion
