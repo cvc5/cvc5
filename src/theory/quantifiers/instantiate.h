@@ -305,7 +305,6 @@ class Instantiate : public QuantifiersUtil
     IntStat d_inst_duplicate;
     IntStat d_inst_duplicate_eq;
     IntStat d_inst_duplicate_ent;
-    IntStat d_inst_duplicate_model_true;
     Statistics();
     ~Statistics();
   }; /* class Instantiate::Statistics */
