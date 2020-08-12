@@ -26,7 +26,7 @@ DTypeSelector::DTypeSelector(std::string name, Node selector)
   Assert(name != "");
 }
 
-std::string DTypeSelector::getName() const { return d_name; }
+const std::string& DTypeSelector::getName() const { return d_name; }
 
 Node DTypeSelector::getSelector() const
 {
@@ -55,7 +55,11 @@ void DTypeSelector::toStream(std::ostream& out) const
   TypeNode t;
   if (d_resolved)
   {
-    t = getRangeType();
+    // don't try to print the range type of null, instead we print null itself.
+    if (!getType().isNull())
+    {
+      t = getRangeType();
+    }
   }
   else if (d_selector.isNull())
   {
