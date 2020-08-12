@@ -33,6 +33,8 @@ class TheorySetsScrutinize;
 
 class TheorySets : public Theory
 {
+  friend class TheorySetsPrivate;
+  friend class TheorySetsRels;
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
   TheorySets(context::Context* c,
@@ -67,11 +69,6 @@ class TheorySets : public Theory
   /* equality engine */
   virtual eq::EqualityEngine* getEqualityEngine() override;
  private:
-  friend class TheorySetsPrivate;
-  friend class TheorySetsScrutinize;
-  friend class TheorySetsRels;
-
-  std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify
   {
@@ -92,6 +89,8 @@ class TheorySets : public Theory
    private:
     TheorySetsPrivate& d_theory;
   };
+  /** The internal theory */
+  std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Instance of the above class */
   NotifyClass d_notify;  
   /** Equality engine */
