@@ -21,6 +21,7 @@
 
 #include "expr/node.h"
 #include "util/result.h"
+#include "theory/logic_info.h"
 
 namespace CVC4 {
 
@@ -45,6 +46,13 @@ class SmtEngineStatistics;
  * This class manages the initialization of the theory engine and propositional
  * engines and implements the method for checking satisfiability of the current
  * set of assertions.
+ * 
+ * Notice that this class is only conceptually responsible for allocation of
+ * TheoryEngine/PropEngine and for running check-sat commands. It does not
+ * implement any query techniques beyond getting the result (unsat/sat/unknown)
+ * of check-sat calls. More detailed information (e.g. models) can be queried
+ * using other classes that examine the state of the TheoryEngine directly,
+ * which can be accessed via getTheoryEngine.
  */
 class SmtSolver
 {
@@ -55,8 +63,10 @@ class SmtSolver
             Preprocessor& pp,
             SmtEngineStatistics& stats);
   ~SmtSolver();
-  /** Create theory engine, prop engine. */
-  void finishInit();
+  /** 
+   * Create theory engine, prop engine based on the logic info. 
+   */
+  void finishInit(const LogicInfo& logicInfo);
   /** Reset all assertions, global declarations, etc.  */
   void resetAssertions();
   /**
@@ -80,7 +90,9 @@ class SmtSolver
   void shutdown();
   /**
    * Check satisfiability (used to check satisfiability and entailment)
-   * in SmtEngine. 
+   * in SmtEngine. This is done via adding assumptions (when necessary) to
+   * assertions as, preprocessing and pushing assertions into the prop engine
+   * of this class, and checking for satisfiability via the prop engine.
    * 
    * @param as The object managing the assertions in SmtEngine. This class
    * maintains a current set of (unprocessed) assertions which are pushed
@@ -104,10 +116,11 @@ class SmtSolver
   //------------------------------------------ end access methods
  private:
   /**
-   * Full check of consistency in current context.  Returns the result
-   * (unsat/sat/unknown).
+   * Process the assertions that have been asserted in as. This moves the set of
+   * assertions that have been buffered into as, preprocesses them, pushes them
+   * into the SMT solver, and clears the buffer.
    */
-  Result check();
+  void processAssertionsInternal(Assertions& as);
   /** Reference to the parent SMT engine */
   SmtEngine& d_smt;
   /** Reference to the state of the SmtEngine */

@@ -18,14 +18,19 @@
 #include "theory/theory_engine.h"
 #include "smt/smt_engine_state.h"
 #include "smt/assertions.h"
+#include "smt/smt_engine.h"
+#include "theory/theory_traits.h"
+#include "smt/preprocessor.h"
+#include "proof/theory_proof.h"
 
 namespace CVC4 {
 namespace smt {
 
 SmtSolver::SmtSolver(SmtEngine& smt,
-                     ResourceManager* rm,
-                     Preprocessor& pp,
-                     SmtEngineStatistics& stats)
+            SmtEngineState& state,
+            ResourceManager* rm,
+            Preprocessor& pp,
+            SmtEngineStatistics& stats)
     : d_smt(smt),
       d_state(state),
       d_rm(rm),
@@ -38,7 +43,7 @@ SmtSolver::SmtSolver(SmtEngine& smt,
 
 SmtSolver::~SmtSolver() {}
 
-void SmtSolver::finishInit()
+void SmtSolver::finishInit(const LogicInfo& logicInfo)
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -46,13 +51,13 @@ void SmtSolver::finishInit()
       new TheoryEngine(d_smt.getContext(),
                        d_smt.getUserContext(),
                        d_rm,
-                       d_smt.getTermFormulaRemover(),
-                       const_cast<const LogicInfo&>(d_smt.getLogicInfo())));
+                       d_pp.getTermFormulaRemover(),
+                       logicInfo));
 
   // Add the theories
-  for (TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
+  for (theory::TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
   {
-    TheoryConstructor::addTheory(d_theoryEngine.get(), id);
+    theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
     // register with proof engine if applicable
 #ifdef CVC4_PROOF
     ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(
@@ -121,47 +126,9 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   as.initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
 
   // make the check
-  Result r = check();
-
-  if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
-      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-  {
-    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-  }
-  // flipped if we did a global negation
-  if (as.isGlobalNegated())
-  {
-    Trace("smt") << "SmtEngine::process global negate " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      r = Result(Result::SAT);
-    }
-    else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
-    {
-      // only if satisfaction complete
-      if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
-      {
-        r = Result(Result::UNSAT);
-      }
-      else
-      {
-        r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-      }
-    }
-    Trace("smt") << "SmtEngine::global negate returned " << r << std::endl;
-  }
-
-  // notify our state of the check-sat result
-  d_state.notifyCheckSatResult(hasAssumptions, r);
-
-  return r;
-}
-
-Result SmtEngine::check(Assertions& as)
-{
   Assert(d_smt.isFullyInited());
 
-  Trace("smt") << "SmtEngine::check()" << endl;
+  Trace("smt") << "SmtSolver::check()" << endl;
 
   const std::string& filename = d_state.getFilename();
   if (d_rm->out())
@@ -173,31 +140,65 @@ Result SmtEngine::check(Assertions& as)
   d_rm->beginCall();
 
   // Make sure the prop layer has all of the assertions
-  Trace("smt") << "SmtEngine::check(): processing assertions" << endl;
+  Trace("smt") << "SmtSolver::check(): processing assertions" << endl;
   processAssertionsInternal(as);
-  Trace("smt") << "SmtEngine::check(): done processing assertions" << endl;
+  Trace("smt") << "SmtSolver::check(): done processing assertions" << endl;
 
-  TimerStat::CodeTimer solveTimer(d_stats->d_solveTime);
+  TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
 
   Chat() << "solving..." << endl;
-  Trace("smt") << "SmtEngine::check(): running check" << endl;
+  Trace("smt") << "SmtSolver::check(): running check" << endl;
   Result result = d_propEngine->checkSat();
 
   d_rm->endCall();
-  Trace("limit") << "SmtEngine::check(): cumulative millis "
+  Trace("limit") << "SmtSolver::check(): cumulative millis "
                  << d_rm->getTimeUsage() << ", resources "
                  << d_rm->getResourceUsage() << endl;
 
-  return Result(result, d_state.getFilename());
+  Result r = Result(result, d_state.getFilename());
+
+  if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
+      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+  }
+  // flipped if we did a global negation
+  if (as.isGlobalNegated())
+  {
+    Trace("smt") << "SmtSolver::process global negate " << r << std::endl;
+    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      r = Result(Result::SAT);
+    }
+    else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    {
+      // only if satisfaction complete
+      LogicInfo logic = d_smt.getLogicInfo();
+      if (logic.isPure(theory::THEORY_ARITH) || logic.isPure(theory::THEORY_BV))
+      {
+        r = Result(Result::UNSAT);
+      }
+      else
+      {
+        r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+      }
+    }
+    Trace("smt") << "SmtSolver::global negate returned " << r << std::endl;
+  }
+
+  // notify our state of the check-sat result
+  d_state.notifyCheckSatResult(hasAssumptions, r);
+
+  return r;
 }
 
-void SmtEngine::processAssertionsInternal(Assertions& as)
+void SmtSolver::processAssertionsInternal(Assertions& as)
 {
-  TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
+  TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_rm->spendResource(ResourceManager::Resource::PreprocessStep);
   Assert(d_state.isFullyReady());
 
-  AssertionPipeline& ap = as.getAssertionPipeline();
+  preprocessing::AssertionPipeline& ap = as.getAssertionPipeline();
 
   if (ap.size() == 0)
   {
@@ -206,7 +207,7 @@ void SmtEngine::processAssertionsInternal(Assertions& as)
   }
 
   // process the assertions with the preprocessor
-  bool noConflict = d_pp.process(*d_asserts);
+  bool noConflict = d_pp.process(as);
 
   // notify theory engine new preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
@@ -221,12 +222,12 @@ void SmtEngine::processAssertionsInternal(Assertions& as)
   // end: INVARIANT to maintain: no reordering of assertions or
   // introducing new ones
 
-  d_pp.postprocess(*d_asserts);
+  d_pp.postprocess(as);
 
   // Push the formula to SAT
   {
     Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_stats->d_cnfConversionTime);
+    TimerStat::CodeTimer codeTimer(d_stats.d_cnfConversionTime);
     for (const Node& assertion : ap.ref())
     {
       Chat() << "+ " << assertion << std::endl;

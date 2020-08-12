@@ -322,7 +322,7 @@ void SmtEngine::finishInit()
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-  d_smtSolver->finishInit();
+  d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
