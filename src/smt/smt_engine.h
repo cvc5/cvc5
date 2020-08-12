@@ -1046,14 +1046,6 @@ class CVC4_PUBLIC SmtEngine
   void setLogicInternal();
 
   /**
-   * Process the assertions that have been asserted. This moves the set of
-   * assertions that have been buffered into the smt::Assertions object,
-   * preprocesses them, pushes them into the SMT solver, and clears the
-   * buffer.
-   */
-  void processAssertionsInternal();
-
-  /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */

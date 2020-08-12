@@ -948,7 +948,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
-void SmtEngine::notifyPushPre() { processAssertionsInternal(); }
+void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
 
 void SmtEngine::notifyPushPost()
 {
@@ -1362,7 +1362,7 @@ Node SmtEngine::simplify(const Node& ex)
   finishInit();
   d_state->doPendingPops();
   // ensure we've processed assertions
-  processAssertionsInternal();
+  d_smtSolver->processAssertions(*d_asserts);
   return d_pp->simplify(ex);
 }
 
@@ -2403,7 +2403,7 @@ void SmtEngine::push()
   finishInit();
   d_state->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
-  processAssertionsInternal();
+  d_smtSolver->processAssertions(*d_asserts);
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
   }

@@ -108,6 +108,12 @@ class SmtSolver
                              const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
+  /**
+   * Process the assertions that have been asserted in as. This moves the set of
+   * assertions that have been buffered into as, preprocesses them, pushes them
+   * into the SMT solver, and clears the buffer.
+   */
+  void processAssertions(Assertions& as);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine() const;
@@ -115,12 +121,6 @@ class SmtSolver
   prop::PropEngine* getPropEngine() const;
   //------------------------------------------ end access methods
  private:
-  /**
-   * Process the assertions that have been asserted in as. This moves the set of
-   * assertions that have been buffered into as, preprocesses them, pushes them
-   * into the SMT solver, and clears the buffer.
-   */
-  void processAssertionsInternal(Assertions& as);
   /** Reference to the parent SMT engine */
   SmtEngine& d_smt;
   /** Reference to the state of the SmtEngine */

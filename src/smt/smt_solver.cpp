@@ -141,7 +141,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   // Make sure the prop layer has all of the assertions
   Trace("smt") << "SmtSolver::check(): processing assertions" << endl;
-  processAssertionsInternal(as);
+  processAssertions(as);
   Trace("smt") << "SmtSolver::check(): done processing assertions" << endl;
 
   TimerStat::CodeTimer solveTimer(d_stats.d_solveTime);
@@ -192,7 +192,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   return r;
 }
 
-void SmtSolver::processAssertionsInternal(Assertions& as)
+void SmtSolver::processAssertions(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats.d_processAssertionsTime);
   d_rm->spendResource(ResourceManager::Resource::PreprocessStep);
