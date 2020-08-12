@@ -34,7 +34,9 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
-      d_internal(new TheorySetsPrivate(*this, c, u))
+      d_internal(new TheorySetsPrivate(*this, c, u)),
+      d_notify(*d_internal.get()),
+      d_equalityEngine(d_notify, c, "theory::sets::ee", true)
 {
   // Do not move me to the header.
   // The constructor + destructor are not in the header as d_internal is a
@@ -57,6 +59,27 @@ void TheorySets::finishInit()
   d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
+
+  // functions we are doing congruence over
+  d_equalityEngine.addFunctionKind(kind::SINGLETON);
+  d_equalityEngine.addFunctionKind(kind::UNION);
+  d_equalityEngine.addFunctionKind(kind::INTERSECTION);
+  d_equalityEngine.addFunctionKind(kind::SETMINUS);
+  d_equalityEngine.addFunctionKind(kind::MEMBER);
+  d_equalityEngine.addFunctionKind(kind::SUBSET);
+  // relation operators
+  d_equalityEngine.addFunctionKind(PRODUCT);
+  d_equalityEngine.addFunctionKind(JOIN);
+  d_equalityEngine.addFunctionKind(TRANSPOSE);
+  d_equalityEngine.addFunctionKind(TCLOSURE);
+  d_equalityEngine.addFunctionKind(JOIN_IMAGE);
+  d_equalityEngine.addFunctionKind(IDEN);
+  d_equalityEngine.addFunctionKind(APPLY_CONSTRUCTOR);
+  // we do congruence over cardinality
+  d_equalityEngine.addFunctionKind(CARD);
+
+  // finish initialization internally
+  d_internal->finishInit();
 }
 
 void TheorySets::addSharedTerm(TNode n) {
@@ -171,12 +194,99 @@ void TheorySets::propagate(Effort e) {
   d_internal->propagate(e);
 }
 
-void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_internal->setMasterEqualityEngine(eq);
-}
-
 bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
+}
+
+eq::EqualityEngine* TheorySets::getEqualityEngine() 
+{
+  return &d_equalityEngine;
+}
+
+void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq)
+{
+  d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
+/**************************** eq::NotifyClass *****************************/
+
+bool TheorySets::NotifyClass::eqNotifyTriggerEquality(TNode equality,
+                                                      bool value)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = "
+                   << equality << " value = " << value << std::endl;
+  if (value)
+  {
+    return d_theory.propagate(equality);
+  }
+  else
+  {
+    // We use only literal triggers so taking not is safe
+    return d_theory.propagate(equality.notNode());
+  }
+}
+
+bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
+                                                       bool value)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = "
+                   << predicate << " value = " << value << std::endl;
+  if (value)
+  {
+    return d_theory.propagate(predicate);
+  }
+  else
+  {
+    return d_theory.propagate(predicate.notNode());
+  }
+}
+
+bool TheorySets::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
+                                                          TNode t1,
+                                                          TNode t2,
+                                                          bool value)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
+                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value
+                   << std::endl;
+  d_theory.propagate(value ? t1.eqNode(t2) : t1.eqNode(t2).negate());
+  return true;
+}
+
+void TheorySets::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge "
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  d_theory.conflict(t1, t2);
+}
+
+void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:"
+                   << " t = " << t << std::endl;
+  d_theory.eqNotifyNewClass(t);
+}
+
+void TheorySets::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:"
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  d_theory.eqNotifyPreMerge(t1, t2);
+}
+
+void TheorySets::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:"
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  d_theory.eqNotifyPostMerge(t1, t2);
+}
+
+void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:"
+                   << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
+                   << std::endl;
+  d_theory.eqNotifyDisequal(t1, t2, reason);
 }
 
 }/* CVC4::theory::sets namespace */

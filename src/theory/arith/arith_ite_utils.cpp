@@ -151,7 +151,6 @@ ArithIteUtils::ArithIteUtils(
       d_subcount(uc, 0),
       d_skolems(uc),
       d_implies(),
-      d_skolemsAdded(),
       d_orBinEqs()
 {
   d_subs = new SubstitutionMap(uc);
@@ -313,16 +312,7 @@ void ArithIteUtils::learnSubstitutions(const std::vector<Node>& assertions){
     d_orBinEqs.resize(writePos);
   }while(solvedSomething);
 
-  for(size_t i = 0, N=d_skolemsAdded.size(); i<N; ++i){
-    Node sk = d_skolemsAdded[i];
-    Node to = d_skolems[sk];
-    if(!to.isNull()){
-      Node fp = applySubstitutions(to);
-      addSubstitution(sk, fp);
-    }
-  }
   d_implies.clear();
-  d_skolemsAdded.clear();
   d_orBinEqs.clear();
 }
 
@@ -457,7 +447,6 @@ bool ArithIteUtils::solveBinOr(TNode binor){
         Node sk = nm->mkSkolem("deor", nm->booleanType());
         Node ite = sk.iteNode(otherL, otherR);
         d_skolems.insert(sk, cnd);
-        d_skolemsAdded.push_back(sk);
         addSubstitution(sel, ite);
         return true;
       }
