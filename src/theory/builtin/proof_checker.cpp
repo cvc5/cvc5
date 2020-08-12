@@ -62,6 +62,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::MACRO_SR_PRED_TRANSFORM, this);
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::PREPROCESS, this);
+  pc->registerChecker(PfRule::WITNESS_AXIOM, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
 }
 
@@ -329,7 +330,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id == PfRule::PREPROCESS)
+  else if (id == PfRule::PREPROCESS || id == PfRule::WITNESS_AXIOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
