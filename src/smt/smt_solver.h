@@ -20,14 +20,18 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/theory_engine.h"
-#include "prop/prop_engine.h"
 #include "util/result.h"
 
 namespace CVC4 {
 
 class SmtEngine;
+class TheoryEngine;
 class ResourceManager;
+
+namespace prop
+{
+  class PropEngine;
+}
 
 namespace smt {
   
@@ -44,7 +48,7 @@ class SmtEngineStatistics;
 class SmtSolver
 {
  public:
-  SmtSolver(SmtEngine& smt, ResourceManager* rm, Preprocessor& pp, SmtEngineStatistics& stats);
+  SmtSolver(SmtEngine& smt, smt::SmtEngineState& state, ResourceManager* rm, Preprocessor& pp, SmtEngineStatistics& stats);
   ~SmtSolver();
   /** Create theory engine, prop engine. */
   void finishInit();
@@ -69,12 +73,6 @@ class SmtSolver
    * between PropEngine and Theory.
    */
   void shutdown();
-  /** Push a user-level context. */
-  void push();
-  /** Pop a user-level context. */
-  void pop();
-  /** Process assertions */
-  void processAssertions(Assertions& as);
   /**
    * Check satisfiability (used to check satisfiability and entailment).
    * Returns the result of 
@@ -96,12 +94,14 @@ class SmtSolver
   //------------------------------------------ end access methods
  private:
   /**
-   * Full check of consistency in current context.  Returns true iff
-   * consistent.
+   * Full check of consistency in current context.  Returns the result
+   * (unsat/sat/unknown).
    */
   Result check();
-  /** Reference to The parent SMT engine */
+  /** Reference to the parent SMT engine */
   SmtEngine& d_smt;
+  /** Reference to the state of the SmtEngine */
+  SmtEngineState& d_state;
   /** Pointer to a resource manager (owned by SmtEngine) */
   ResourceManager* d_rm;
   /** Reference to the preprocessor of SmtEngine */

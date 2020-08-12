@@ -253,7 +253,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*this, d_resourceManager.get(), *d_pp.get()));
+  d_smtSolver.reset(new SmtSolver(*this, *d_state.get(), d_resourceManager.get(), *d_pp.get(), *d_stats.get()));
   
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -951,53 +951,6 @@ void SmtEngine::notifyPopPre()
 void SmtEngine::notifyPostSolvePre() { d_propEngine->resetTrail(); }
 void SmtEngine::notifyPostSolvePost() { d_theoryEngine->postsolve(); }
 
-void SmtEngine::processAssertionsInternal()
-{
-  TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
-  d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_state->isFullyReady());
-
-  AssertionPipeline& ap = d_asserts->getAssertionPipeline();
-
-  if (ap.size() == 0)
-  {
-    // nothing to do
-    return;
-  }
-
-  // process the assertions with the preprocessor
-  bool noConflict = d_pp->process(*d_asserts);
-
-  //notify theory engine new preprocessed assertions
-  d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
-
-  // Push the formula to decision engine
-  if (noConflict)
-  {
-    Chat() << "pushing to decision engine..." << endl;
-    d_propEngine->addAssertionsToDecisionEngine(ap);
-  }
-
-  // end: INVARIANT to maintain: no reordering of assertions or
-  // introducing new ones
-
-  d_pp->postprocess(*d_asserts);
-
-  // Push the formula to SAT
-  {
-    Chat() << "converting to CNF..." << endl;
-    TimerStat::CodeTimer codeTimer(d_stats->d_cnfConversionTime);
-    for (const Node& assertion : ap.ref())
-    {
-      Chat() << "+ " << assertion << std::endl;
-      d_propEngine->assertFormula(assertion);
-    }
-  }
-
-  // clear the current assertions
-  d_asserts->clearCurrent();
-}
-
 Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
   Dump("benchmark") << CheckSatCommand(assumption);
@@ -1065,46 +1018,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
-    // update the state to indicate we are about to run a check-sat
-    bool hasAssumptions = !assumptions.empty();
-    d_state->notifyCheckSat(hasAssumptions);
-
-    // then, initialize the assertions
-    d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
-
-    // make the check
-    Result r = check();
-
-    if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
-        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-    }
-    // flipped if we did a global negation
-    if (d_asserts->isGlobalNegated())
-    {
-      Trace("smt") << "SmtEngine::process global negate " << r << std::endl;
-      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-      {
-        r = Result(Result::SAT);
-      }
-      else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
-      {
-        // only if satisfaction complete
-        if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
-        {
-          r = Result(Result::UNSAT);
-        }
-        else
-        {
-          r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
-        }
-      }
-      Trace("smt") << "SmtEngine::global negate returned " << r << std::endl;
-    }
-
-    // notify our state of the check-sat result
-    d_state->notifyCheckSatResult(hasAssumptions, r);
+    Result r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions, inUnsatCore, isEntailmentCheck);
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;

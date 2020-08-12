@@ -1062,11 +1062,10 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Node& assumption,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Node>& assumptions,
+  /* 
+   * Check satisfiability (used to check satisfiability and entailment). 
+   */
+  Result checkSatInternal(const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
 
@@ -1194,10 +1193,6 @@ class CVC4_PUBLIC SmtEngine
    * for set default options based on the logic.
    */
   std::unique_ptr<smt::OptionsManager> d_optm;
-  /**
-   * The preprocessor.
-   */
-  std::unique_ptr<smt::Preprocessor> d_pp;
   /**
    * The global scope object. Upon creation of this SmtEngine, it becomes the
    * SmtEngine in scope. It says the SmtEngine in scope until it is destructed,
