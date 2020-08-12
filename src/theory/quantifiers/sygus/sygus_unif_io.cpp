@@ -47,8 +47,9 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
-  for (const Node& v : vals)
+  for (size_t i=0, vsize=vals.size(); i<vsize; i++)
   {
+    Node v = vals[i];
     if (v.isNull())
     {
       // nothing can be inferred if the evaluation is unknown, e.g. if using
@@ -59,7 +60,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
     {
       if (v== d_true)
       {
-        v = d_false;
+        vals[i] = d_false;
         changed = true;
       }
     }
