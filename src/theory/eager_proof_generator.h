@@ -165,7 +165,7 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
-  /** Name dentifier */
+  /** Name identifier */
   std::string d_name;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;

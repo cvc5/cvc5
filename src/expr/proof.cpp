@@ -119,13 +119,8 @@ bool CDProof::addStep(Node expected,
                          << " : children: " << children << "\n";
   Trace("cdproof-debug") << "CDProof::addStep: " << identify()
                          << " : args: " << args << "\n";
-  // TODO:
-  // if (id == PfRule::ASSUME || id == PfRule::SYMM)
-  //{
-  // These rules are implicitly managed by this class. The user of this
-  // class should not have to bother with them?
-  // return true;
-  //}
+  // NOTE: we should explicitly forbid ASSUME/SYMM?
+
   // We must always provide expected to this method
   Assert(!expected.isNull());
 
