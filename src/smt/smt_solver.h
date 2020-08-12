@@ -76,12 +76,6 @@ class SmtSolver
    */
   void interrupt();
   /**
-   * Cleanup memory allocated by modules in this class. This is required to be
-   * done explicitly so that passes are deleted before the objects they refer
-   * to in the SmtEngine destructor.
-   */
-  void cleanup();
-  /**
    * This is called by the destructor of SmtEngine, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues

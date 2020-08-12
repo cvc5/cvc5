@@ -99,8 +99,6 @@ void SmtSolver::interrupt()
   d_theoryEngine->interrupt();
 }
 
-void SmtSolver::cleanup() {}
-
 void SmtSolver::shutdown()
 {
   if (d_propEngine != nullptr)
