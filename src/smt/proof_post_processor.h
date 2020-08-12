@@ -100,62 +100,6 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
                           bool isSymm = false);
 };
 
-/** Final callback class, for stats and pedantic checking */
-class ProofPostprocessFinalCallback : public ProofNodeUpdaterCallback
-{
- public:
-  ProofPostprocessFinalCallback(ProofNodeManager* pnm);
-  ~ProofPostprocessFinalCallback();
-  /**
-   * Initialize, called once for each new ProofNode to process. This initializes
-   * static information to be used by successive calls to update.
-   */
-  void initializeUpdate();
-  /** Should proof pn be updated? Returns false, adds to stats. */
-  bool shouldUpdate(ProofNode* pn) override;
-  /** was pedantic failure */
-  bool wasPedanticFailure(std::ostream& out) const;
-
- private:
-  /** Counts number of postprocessed proof nodes for each kind of proof rule */
-  HistogramStat<PfRule> d_ruleCount;
-  /** Total number of postprocessed rule applications */
-  IntStat d_totalRuleCount;
-  /** Proof node manager (used for pedantic checking) */
-  ProofNodeManager* d_pnm;
-  /** Was there a pedantic failure? */
-  bool d_pedanticFailure;
-  /** The pedantic failure string for debugging */
-  std::stringstream d_pedanticFailureOut;
-};
-
-/**
- * The proof postprocessor module. This postprocesses the final proof
- * produced by an SmtEngine. Its main two tasks are to:
- * (1) Connect proofs of preprocessing,
- * (2) Expand macro PfRule applications.
- */
-class ProofPostproccess
-{
- public:
-  ProofPostproccess(ProofNodeManager* pnm,
-                    SmtEngine* smte,
-                    ProofGenerator* pppg);
-  ~ProofPostproccess();
-  /** post-process */
-  void process(std::shared_ptr<ProofNode> pf);
-  /** set eliminate rule */
-  void setEliminateRule(PfRule rule);
-
- private:
-  /** The post process callback */
-  ProofPostprocessCallback d_cb;
-  /** The post process callback for finalization */
-  ProofPostprocessFinalCallback d_finalCb;
-  /** The proof node manager */
-  ProofNodeManager* d_pnm;
-};
-
 }  // namespace smt
 }  // namespace CVC4
 
