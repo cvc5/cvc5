@@ -43,27 +43,16 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_keep(c),
       d_full_check_incomplete(false),
       d_external(external),
-      d_notify(*this),
-      d_equalityEngine(d_notify, c, "theory::sets::ee", true),
-      d_state(*this, d_equalityEngine, c, u),
-      d_im(*this, d_state, d_equalityEngine, c, u),
-      d_rels(new TheorySetsRels(d_state, d_im, d_equalityEngine, u)),
-      d_cardSolver(
-          new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
+      d_state(*this, c, u),
+      d_im(*this, d_state, c, u),
+      d_rels(new TheorySetsRels(d_state, d_im, u)),
+      d_cardSolver(new CardinalityExtension(d_state, d_im, c, u)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-
-  d_equalityEngine.addFunctionKind(kind::SINGLETON);
-  d_equalityEngine.addFunctionKind(kind::UNION);
-  d_equalityEngine.addFunctionKind(kind::INTERSECTION);
-  d_equalityEngine.addFunctionKind(kind::SETMINUS);
-
-  d_equalityEngine.addFunctionKind(kind::MEMBER);
-  d_equalityEngine.addFunctionKind(kind::SUBSET);
 }
 
 TheorySetsPrivate::~TheorySetsPrivate()
@@ -72,6 +61,13 @@ TheorySetsPrivate::~TheorySetsPrivate()
   {
     delete current_pair.second;
   }
+}
+
+void TheorySetsPrivate::finishInit()
+{
+  d_equalityEngine = d_external.getEqualityEngine();
+  Assert(d_equalityEngine != nullptr);
+  d_state.finishInit(d_equalityEngine);
 }
 
 void TheorySetsPrivate::eqNotifyNewClass(TNode t)
@@ -240,13 +236,13 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo(TNode n,
 
 bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 {
-  if (d_equalityEngine.isTriggerTerm(a, THEORY_SETS)
-      && d_equalityEngine.isTriggerTerm(b, THEORY_SETS))
+  if (d_equalityEngine->isTriggerTerm(a, THEORY_SETS)
+      && d_equalityEngine->isTriggerTerm(b, THEORY_SETS))
   {
     TNode a_shared =
-        d_equalityEngine.getTriggerTermRepresentative(a, THEORY_SETS);
+        d_equalityEngine->getTriggerTermRepresentative(a, THEORY_SETS);
     TNode b_shared =
-        d_equalityEngine.getTriggerTermRepresentative(b, THEORY_SETS);
+        d_equalityEngine->getTriggerTermRepresentative(b, THEORY_SETS);
     EqualityStatus eqStatus =
         d_external.d_valuation.getEqualityStatus(a_shared, b_shared);
     if (eqStatus == EQUALITY_FALSE_AND_PROPAGATED || eqStatus == EQUALITY_FALSE
@@ -260,8 +256,8 @@ bool TheorySetsPrivate::areCareDisequal(Node a, Node b)
 
 bool TheorySetsPrivate::isMember(Node x, Node s)
 {
-  Assert(d_equalityEngine.hasTerm(s)
-         && d_equalityEngine.getRepresentative(s) == s);
+  Assert(d_equalityEngine->hasTerm(s)
+         && d_equalityEngine->getRepresentative(s) == s);
   NodeIntMap::iterator mem_i = d_members.find(s);
   if (mem_i != d_members.end())
   {
@@ -286,18 +282,18 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
   {
     if (atom.getKind() == kind::EQUAL)
     {
-      d_equalityEngine.assertEquality(atom, polarity, exp);
+      d_equalityEngine->assertEquality(atom, polarity, exp);
     }
     else
     {
-      d_equalityEngine.assertPredicate(atom, polarity, exp);
+      d_equalityEngine->assertPredicate(atom, polarity, exp);
     }
     if (!d_state.isInConflict())
     {
       if (atom.getKind() == kind::MEMBER && polarity)
       {
         // check if set has a value, if so, we can propagate
-        Node r = d_equalityEngine.getRepresentative(atom[1]);
+        Node r = d_equalityEngine->getRepresentative(atom[1]);
         EqcInfo* e = getOrMakeEqcInfo(r, true);
         if (e)
         {
@@ -354,7 +350,7 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
 
 void TheorySetsPrivate::fullEffortReset()
 {
-  Assert(d_equalityEngine.consistent());
+  Assert(d_equalityEngine->consistent());
   d_full_check_incomplete = false;
   d_most_common_type.clear();
   d_most_common_type_term.clear();
@@ -380,7 +376,7 @@ void TheorySetsPrivate::fullEffortCheck()
 
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
     std::map<TypeNode, unsigned> eqcTypeCount;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_equalityEngine);
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
     while (!eqcs_i.isFinished())
     {
       Node eqc = (*eqcs_i);
@@ -398,7 +394,7 @@ void TheorySetsPrivate::fullEffortCheck()
         tnct = eqc;
       }
       Trace("sets-eqc") << "[" << eqc << "] : ";
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, &d_equalityEngine);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, d_equalityEngine);
       while (!eqc_i.isFinished())
       {
         Node n = (*eqc_i);
@@ -624,7 +620,7 @@ void TheorySetsPrivate::checkDownwardsClosure()
           {
             Node mem = it2.second;
             Node eq_set = nv;
-            Assert(d_equalityEngine.areEqual(mem[1], eq_set));
+            Assert(d_equalityEngine->areEqual(mem[1], eq_set));
             if (mem[1] != eq_set)
             {
               Trace("sets-debug") << "Downwards closure based on " << mem
@@ -761,7 +757,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 }
                 if (valid)
                 {
-                  Node rr = d_equalityEngine.getRepresentative(term);
+                  Node rr = d_equalityEngine->getRepresentative(term);
                   if (!isMember(x, rr))
                   {
                     Node kk = d_state.getProxy(term);
@@ -785,7 +781,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
                 for (const std::pair<const Node, Node>& itm2m : r2mem)
                 {
                   Node x = itm2m.second[0];
-                  Node rr = d_equalityEngine.getRepresentative(term);
+                  Node rr = d_equalityEngine->getRepresentative(term);
                   if (!isMember(x, rr))
                   {
                     std::vector<Node> exp;
@@ -882,10 +878,10 @@ void TheorySetsPrivate::checkDisequalities()
     }
     Node deq = (*it).first;
     // check if it is already satisfied
-    Assert(d_equalityEngine.hasTerm(deq[0])
-           && d_equalityEngine.hasTerm(deq[1]));
-    Node r1 = d_equalityEngine.getRepresentative(deq[0]);
-    Node r2 = d_equalityEngine.getRepresentative(deq[1]);
+    Assert(d_equalityEngine->hasTerm(deq[0])
+           && d_equalityEngine->hasTerm(deq[1]));
+    Node r1 = d_equalityEngine->getRepresentative(deq[0]);
+    Node r2 = d_equalityEngine->getRepresentative(deq[1]);
     bool is_sat = d_state.isSetDisequalityEntailed(r1, r2);
     Trace("sets-debug") << "Check disequality " << deq
                         << ", is_sat = " << is_sat << std::endl;
@@ -1005,7 +1001,7 @@ void TheorySetsPrivate::addSharedTerm(TNode n)
 {
   Debug("sets") << "[sets] TheorySetsPrivate::addSharedTerm( " << n << ")"
                 << std::endl;
-  d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
+  d_equalityEngine->addTriggerTerm(n, THEORY_SETS);
 }
 
 void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
@@ -1028,21 +1024,21 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
         {
           TNode x = f1[k];
           TNode y = f2[k];
-          Assert(d_equalityEngine.hasTerm(x));
-          Assert(d_equalityEngine.hasTerm(y));
+          Assert(d_equalityEngine->hasTerm(x));
+          Assert(d_equalityEngine->hasTerm(y));
           Assert(!d_state.areDisequal(x, y));
           Assert(!areCareDisequal(x, y));
-          if (!d_equalityEngine.areEqual(x, y))
+          if (!d_equalityEngine->areEqual(x, y))
           {
             Trace("sets-cg")
                 << "Arg #" << k << " is " << x << " " << y << std::endl;
-            if (d_equalityEngine.isTriggerTerm(x, THEORY_SETS)
-                && d_equalityEngine.isTriggerTerm(y, THEORY_SETS))
+            if (d_equalityEngine->isTriggerTerm(x, THEORY_SETS)
+                && d_equalityEngine->isTriggerTerm(y, THEORY_SETS))
             {
-              TNode x_shared =
-                  d_equalityEngine.getTriggerTermRepresentative(x, THEORY_SETS);
-              TNode y_shared =
-                  d_equalityEngine.getTriggerTermRepresentative(y, THEORY_SETS);
+              TNode x_shared = d_equalityEngine->getTriggerTermRepresentative(
+                  x, THEORY_SETS);
+              TNode y_shared = d_equalityEngine->getTriggerTermRepresentative(
+                  y, THEORY_SETS);
               currentPairs.push_back(make_pair(x_shared, y_shared));
             }
             else if (isCareArg(f1, k) && isCareArg(f2, k))
@@ -1092,7 +1088,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
         ++it2;
         for (; it2 != t1->d_data.end(); ++it2)
         {
-          if (!d_equalityEngine.areDisequal(it->first, it2->first, false))
+          if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
           {
             if (!areCareDisequal(it->first, it2->first))
             {
@@ -1110,7 +1106,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
       {
         for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
+          if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
           {
             if (!areCareDisequal(tt1.first, tt2.first))
             {
@@ -1140,9 +1136,9 @@ void TheorySetsPrivate::computeCareGraph()
       // populate indices
       for (TNode f1 : it.second)
       {
-        Assert(d_equalityEngine.hasTerm(f1));
+        Assert(d_equalityEngine->hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
-        Assert(d_equalityEngine.hasTerm(f1));
+        Assert(d_equalityEngine->hasTerm(f1));
         // break into index based on operator, and type of first argument (since
         // some operators are parametric)
         TypeNode tn = f1[0].getType();
@@ -1150,7 +1146,7 @@ void TheorySetsPrivate::computeCareGraph()
         bool hasCareArg = false;
         for (unsigned j = 0; j < f1.getNumChildren(); j++)
         {
-          reps.push_back(d_equalityEngine.getRepresentative(f1[j]));
+          reps.push_back(d_equalityEngine->getRepresentative(f1[j]));
           if (isCareArg(f1, j))
           {
             hasCareArg = true;
@@ -1184,7 +1180,7 @@ void TheorySetsPrivate::computeCareGraph()
 
 bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
 {
-  if (d_equalityEngine.isTriggerTerm(n[a], THEORY_SETS))
+  if (d_equalityEngine->isTriggerTerm(n[a], THEORY_SETS))
   {
     return true;
   }
@@ -1201,13 +1197,13 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
 
 EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b)
 {
-  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
-  if (d_equalityEngine.areEqual(a, b))
+  Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
+  if (d_equalityEngine->areEqual(a, b))
   {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
   }
-  if (d_equalityEngine.areDisequal(a, b, false))
+  if (d_equalityEngine->areDisequal(a, b, false))
   {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
@@ -1272,7 +1268,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
   d_external.computeRelevantTerms(termSet);
 
   // Assert equalities and disequalities to the model
-  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
+  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
   {
     return false;
   }
@@ -1429,11 +1425,6 @@ OutputChannel* TheorySetsPrivate::getOutputChannel()
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
-void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq)
-{
-  d_equalityEngine.setMasterEqualityEngine(eq);
-}
-
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
   Node conf = explain(a.eqNode(b));
@@ -1453,11 +1444,11 @@ Node TheorySetsPrivate::explain(TNode literal)
 
   if (atom.getKind() == kind::EQUAL)
   {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
   }
   else if (atom.getKind() == kind::MEMBER)
   {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions);
   }
   else
   {
@@ -1475,10 +1466,10 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
                 << std::endl;
   switch (node.getKind())
   {
-    case kind::EQUAL: d_equalityEngine.addTriggerEquality(node); break;
-    case kind::MEMBER: d_equalityEngine.addTriggerPredicate(node); break;
-    case kind::CARD: d_equalityEngine.addTriggerTerm(node, THEORY_SETS); break;
-    default: d_equalityEngine.addTerm(node); break;
+    case kind::EQUAL: d_equalityEngine->addTriggerEquality(node); break;
+    case kind::MEMBER: d_equalityEngine->addTriggerPredicate(node); break;
+    case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
+    default: d_equalityEngine->addTerm(node); break;
   }
 }
 
@@ -1537,92 +1528,6 @@ Node TheorySetsPrivate::getChooseFunction(const TypeNode& setType)
 }
 
 void TheorySetsPrivate::presolve() { d_state.reset(); }
-
-/**************************** eq::NotifyClass *****************************/
-/**************************** eq::NotifyClass *****************************/
-/**************************** eq::NotifyClass *****************************/
-
-bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerEquality(TNode equality,
-                                                             bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = "
-                   << equality << " value = " << value << std::endl;
-  if (value)
-  {
-    return d_theory.propagate(equality);
-  }
-  else
-  {
-    // We use only literal triggers so taking not is safe
-    return d_theory.propagate(equality.notNode());
-  }
-}
-
-bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
-                                                              bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = "
-                   << predicate << " value = " << value << std::endl;
-  if (value)
-  {
-    return d_theory.propagate(predicate);
-  }
-  else
-  {
-    return d_theory.propagate(predicate.notNode());
-  }
-}
-
-bool TheorySetsPrivate::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
-                                                                 TNode t1,
-                                                                 TNode t2,
-                                                                 bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
-                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value
-                   << std::endl;
-  d_theory.propagate(value ? t1.eqNode(t2) : t1.eqNode(t2).negate());
-  return true;
-}
-
-void TheorySetsPrivate::NotifyClass::eqNotifyConstantTermMerge(TNode t1,
-                                                               TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge "
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.conflict(t1, t2);
-}
-
-void TheorySetsPrivate::NotifyClass::eqNotifyNewClass(TNode t)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:"
-                   << " t = " << t << std::endl;
-  d_theory.eqNotifyNewClass(t);
-}
-
-void TheorySetsPrivate::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:"
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyPreMerge(t1, t2);
-}
-
-void TheorySetsPrivate::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:"
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyPostMerge(t1, t2);
-}
-
-void TheorySetsPrivate::NotifyClass::eqNotifyDisequal(TNode t1,
-                                                      TNode t2,
-                                                      TNode reason)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:"
-                   << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
-                   << std::endl;
-  d_theory.eqNotifyDisequal(t1, t2, reason);
-}
 
 }  // namespace sets
 }  // namespace theory

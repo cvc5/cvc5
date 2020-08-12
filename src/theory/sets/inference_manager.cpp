@@ -27,12 +27,10 @@ namespace sets {
 
 InferenceManager::InferenceManager(TheorySetsPrivate& p,
                                    SolverState& s,
-                                   eq::EqualityEngine& e,
                                    context::Context* c,
                                    context::UserContext* u)
     : d_parent(p),
       d_state(s),
-      d_ee(e),
       d_sentLemma(false),
       d_addedFact(false),
       d_lemmas_produced(u),
