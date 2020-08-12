@@ -86,15 +86,15 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::CONG)
   {
     Assert(children.size() > 0);
-    Assert(args.size() == 1);
+    Assert(args.size() >= 1 && args.size() <= 2);
     // We do congruence over builtin kinds using operatorToKind
     std::vector<Node> lchildren;
     std::vector<Node> rchildren;
-    // get the expected kind for args[0]
-    Kind k = NodeManager::getKindForFunction(args[0]);
-    if (k == kind::UNDEFINED_KIND)
+    // get the kind encoded as args[0]
+    Kind k;
+    if (!getKind(args[0], k))
     {
-      k = NodeManager::operatorToKind(args[0]);
+      return Node::null();
     }
     if (k == kind::UNDEFINED_KIND)
     {
@@ -104,9 +104,17 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
                         << ", metakind=" << kind::metaKindOf(k) << std::endl;
     if (kind::metaKindOf(k) == kind::metakind::PARAMETERIZED)
     {
+      if (args.size() <= 1)
+      {
+        return Node::null();
+      }
       // parameterized kinds require the operator
-      lchildren.push_back(args[0]);
-      rchildren.push_back(args[0]);
+      lchildren.push_back(args[1]);
+      rchildren.push_back(args[1]);
+    }
+    else if (args.size() > 1)
+    {
+      return Node::null();
     }
     for (size_t i = 0, nchild = children.size(); i < nchild; i++)
     {
