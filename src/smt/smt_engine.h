@@ -910,10 +910,10 @@ class CVC4_PUBLIC SmtEngine
   context::Context* getContext();
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
+  TheoryEngine* getTheoryEngine();
 
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+  prop::PropEngine* getPropEngine();
 
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };

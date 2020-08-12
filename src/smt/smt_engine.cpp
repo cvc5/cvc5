@@ -291,6 +291,10 @@ context::UserContext* SmtEngine::getUserContext()
 }
 context::Context* SmtEngine::getContext() { return d_state->getContext(); }
 
+TheoryEngine* SmtEngine::getTheoryEngine() { return d_smtSolver->getTheoryEngine(); }
+
+prop::PropEngine* SmtEngine::getPropEngine() { return d_smtSolver->getPropEngine(); }
+
 void SmtEngine::finishInit()
 {
   if (d_state->isFullyInited())
