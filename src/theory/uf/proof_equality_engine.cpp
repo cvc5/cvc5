@@ -27,10 +27,10 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              context::UserContext* u,
                              EqualityEngine& ee,
                              ProofNodeManager* pnm)
-    : EagerProofGenerator(pnm, u),
+    : EagerProofGenerator(pnm, u, "pfee::" + ee.identify()),
       d_ee(ee),
       d_pnm(pnm),
-      d_proof(pnm, nullptr, c),
+      d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
       d_factPg(c, pnm),
       d_keep(c),
       d_pfEnabled(pnm != nullptr)
@@ -52,6 +52,43 @@ bool ProofEqEngine::assertAssume(TNode lit)
   // explanation. Notice we do not reference count atom/lit.
   if (atom.getKind() == EQUAL)
   {
+    if (options::proofNew())
+    {
+      // If proofs are enabled, we check if lit is an assertion of the form
+      //   (= P true), (= P false), (= false P) or (= true P).
+      // Such literals must be handled as a special case here, since equality
+      // with Boolean constants have a special status internally within equality
+      // engine. In particular, the proofs constructed by EqProof conversion
+      // always produce proofs involving equalities with Boolean constants, and
+      // whose assumptions are only of the form P or (not P). However, in the
+      // case that (= P true) (resp (= P false)) is itself an input to the
+      // equality engine, we will explain in terms of P (resp. (not P)), which
+      // leads to a bogus proof, typically encountered in
+      // ProofNodeManager::mkScope.
+      //
+      // To correct this, we add an explicit *fact* that P holds by (= P true)
+      // here. This means that EqProof conversion may generate a proof where
+      // the internal equality (= P true) is justified by assumption P, and that
+      // afterwards, P is explained in terms of the original (external) equality
+      // (= P true) by the step provided here. This means that the proof may end
+      // up using (= P true) in a roundabout way (through two redundant steps),
+      // but regardless this allows the core proof utilities (EqProof
+      // conversion, proof equality engine, lazy proof, etc.) to be unconcerned
+      // with this case. Multiple users of the proof equality engine
+      // (SharedTermDatabase and TheoryArrays) require this special case.
+      if (atom[0].getKind() == kind::CONST_BOOLEAN
+          || atom[1].getKind() == kind::CONST_BOOLEAN)
+      {
+        Node nlit = Rewriter::rewrite(lit);
+        if (!CDProof::isSame(lit, nlit))
+        {
+          // use a rewrite step as a fact
+          std::vector<Node> pfChildren;
+          pfChildren.push_back(lit);
+          return assertFact(nlit, PfRule::MACRO_SR_PRED_ELIM, pfChildren, {});
+        }
+      }
+    }
     return d_ee.assertEquality(atom, polarity, lit);
   }
   return d_ee.assertPredicate(atom, polarity, lit);
@@ -82,7 +119,7 @@ bool ProofEqEngine::assertFact(Node lit,
     ps.d_args = args;
     d_factPg.addStep(lit, ps);
     // add lazy step to proof
-    d_proof.addLazyStep(lit, &d_factPg);
+    d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
   Node reason = mkAnd(exp);
@@ -116,7 +153,7 @@ bool ProofEqEngine::assertFact(Node lit,
     ps.d_args = args;
     d_factPg.addStep(lit, ps);
     // add lazy step to proof
-    d_proof.addLazyStep(lit, &d_factPg);
+    d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
@@ -143,7 +180,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofStepBuffer& psb)
       d_factPg.addStep(step.first, step.second);
     }
     // add lazy step to proof
-    d_proof.addLazyStep(lit, &d_factPg);
+    d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
@@ -163,7 +200,7 @@ bool ProofEqEngine::assertFact(Node lit, Node exp, ProofGenerator* pg)
       return false;
     }
     // note the proof generator is responsible for remembering the explanation
-    d_proof.addLazyStep(lit, pg);
+    d_proof.addLazyStep(lit, pg, false);
   }
   // second, assert it to the equality engine
   return assertFactInternal(atom, polarity, exp);
@@ -339,12 +376,6 @@ TrustNode ProofEqEngine::explain(Node conc)
   return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, nullptr);
 }
 
-std::string ProofEqEngine::identify() const
-{
-  std::stringstream ss;
-  ss << "pf::" << d_ee.identify();
-  return ss.str();
-}
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
                                              const std::vector<Node>& exp,
                                              const std::vector<Node>& noExplain,
