@@ -36,6 +36,7 @@ namespace CVC4 {
 #include "base/exception.h"
 #include "expr/expr.h"
 #include "expr/type.h"
+#include "expr/datatype_index.h"
 #include "util/hash.h"
 
 
@@ -906,51 +907,6 @@ struct CVC4_PUBLIC DatatypeHashFunction {
     return std::hash<std::string>()(dtc->getName());
   }
 };/* struct DatatypeHashFunction */
-
-
-
-/* stores an index to Datatype residing in NodeManager */
-class CVC4_PUBLIC DatatypeIndexConstant {
- public:
-  DatatypeIndexConstant(unsigned index);
-
-  unsigned getIndex() const { return d_index; }
-  bool operator==(const DatatypeIndexConstant& uc) const
-  {
-    return d_index == uc.d_index;
-  }
-  bool operator!=(const DatatypeIndexConstant& uc) const
-  {
-    return !(*this == uc);
-  }
-  bool operator<(const DatatypeIndexConstant& uc) const
-  {
-    return d_index < uc.d_index;
-  }
-  bool operator<=(const DatatypeIndexConstant& uc) const
-  {
-    return d_index <= uc.d_index;
-  }
-  bool operator>(const DatatypeIndexConstant& uc) const
-  {
-    return !(*this <= uc);
-  }
-  bool operator>=(const DatatypeIndexConstant& uc) const
-  {
-    return !(*this < uc);
-  }
-private:
-  const unsigned d_index;
-};/* class DatatypeIndexConstant */
-
-std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) CVC4_PUBLIC;
-
-struct CVC4_PUBLIC DatatypeIndexConstantHashFunction {
-  inline size_t operator()(const DatatypeIndexConstant& dic) const {
-    return IntegerHashFunction()(dic.getIndex());
-  }
-};/* struct DatatypeIndexConstantHashFunction */
-
 
 
 // FUNCTION DECLARATIONS FOR OUTPUT STREAMS

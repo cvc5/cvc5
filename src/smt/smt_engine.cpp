@@ -94,6 +94,7 @@
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -192,15 +193,13 @@ class SmtEnginePrivate
 }/* namespace CVC4::smt */
 
 SmtEngine::SmtEngine(ExprManager* em, Options* optr)
-    : d_context(new Context()),
-      d_userContext(new UserContext()),
-      d_userLevels(),
+    : d_state(new SmtEngineState(*this)),
       d_exprManager(em),
       d_nodeManager(d_exprManager->getNodeManager()),
       d_absValues(new AbstractValues(d_nodeManager)),
-      d_asserts(new Assertions(d_userContext.get(), *d_absValues.get())),
-      d_exprNames(new ExprNames(d_userContext.get())),
-      d_dumpm(new DumpManager(d_userContext.get())),
+      d_asserts(new Assertions(getUserContext(), *d_absValues.get())),
+      d_exprNames(new ExprNames(getUserContext())),
+      d_dumpm(new DumpManager(getUserContext())),
       d_routListener(new ResourceOutListener(*this)),
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_smtSolver(nullptr),
@@ -213,13 +212,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_logic(),
       d_originalOptions(),
       d_isInternalSubsolver(false),
-      d_pendingPops(0),
-      d_fullyInited(false),
-      d_queryMade(false),
-      d_needPostsolve(false),
-      d_status(),
-      d_expectedStatus(),
-      d_smtMode(SMT_MODE_START),
       d_private(nullptr),
       d_statisticsRegistry(nullptr),
       d_stats(nullptr),
@@ -252,7 +244,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new ResourceManager(*d_statisticsRegistry.get(), d_options));
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_pp.reset(
-      new smt::Preprocessor(*this, d_userContext.get(), *d_absValues.get()));
+      new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
   d_private.reset(new smt::SmtEnginePrivate(*this));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
@@ -278,11 +270,40 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_definedFunctions = new (true) DefinedFunctionMap(getUserContext());
 }
 
+bool SmtEngine::isFullyInited() const { return d_state->isFullyInited(); }
+bool SmtEngine::isQueryMade() const { return d_state->isQueryMade(); }
+size_t SmtEngine::getNumUserLevels() const
+{
+  return d_state->getNumUserLevels();
+}
+SmtMode SmtEngine::getSmtMode() const { return d_state->getMode(); }
+Result SmtEngine::getStatusOfLastCommand() const
+{
+  return d_state->getStatus();
+}
+context::UserContext* SmtEngine::getUserContext()
+{
+  return d_state->getUserContext();
+}
+context::Context* SmtEngine::getContext() { return d_state->getContext(); }
+
 void SmtEngine::finishInit()
 {
-  // Notice that finishInit is called when options are finalized. If we are
-  // parsing smt2, this occurs at the moment we enter "Assert mode", page 52
+  if (d_state->isFullyInited())
+  {
+    // already initialized, return
+    return;
+  }
+
+  // Notice that finishInitInternal is called when options are finalized. If we
+  // are parsing smt2, this occurs at the moment we enter "Assert mode", page 52
   // of SMT-LIB 2.6 standard.
+
+  // set the logic
+  if (!d_logic.isLocked())
+  {
+    setLogicInternal();
+  }
 
   // set the random seed
   Random::getRandom().setSeed(options::seed());
@@ -297,8 +318,7 @@ void SmtEngine::finishInit()
 
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
-  d_userContext->push();
-  d_context->push();
+  d_state->setup();
 
   Trace("smt-debug") << "Set up assertions..." << std::endl;
   d_asserts->finishInit();
@@ -335,35 +355,20 @@ void SmtEngine::finishInit()
       }
     });
   d_pp->finishInit();
-  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
-}
-
-void SmtEngine::finalOptionsAreSet() {
-  if(d_fullyInited) {
-    return;
-  }
-
-  if(! d_logic.isLocked()) {
-    setLogicInternal();
-  }
-
-  // finish initialization, create the prop engine, etc.
-  finishInit();
 
   AlwaysAssert(d_propEngine->getAssertionLevel() == 0)
       << "The PropEngine has pushed but the SmtEngine "
          "hasn't finished initializing!";
 
-  d_fullyInited = true;
   Assert(d_logic.isLocked());
+
+  // store that we are finished initializing
+  d_state->finishInit();
+  Trace("smt-debug") << "SmtEngine::finishInit done" << std::endl;
 }
 
 void SmtEngine::shutdown() {
-  doPendingPops();
-
-  while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
-    internalPop(true);
-  }
+  d_state->shutdown();
 
   d_smtSolver->shutdown();
 }
@@ -377,8 +382,7 @@ SmtEngine::~SmtEngine()
 
     // global push/pop around everything, to ensure proper destruction
     // of context-dependent data structures
-    d_context->popto(0);
-    d_userContext->popto(0);
+    d_state->cleanup();
 
     if(d_assignments != NULL) {
       d_assignments->deleteSelf();
@@ -417,10 +421,8 @@ SmtEngine::~SmtEngine()
     // d_resourceManager must be destroyed before d_statisticsRegistry
     d_resourceManager.reset(nullptr);
     d_statisticsRegistry.reset(nullptr);
-
-
-    d_userContext.reset(nullptr);
-    d_context.reset(nullptr);
+    // destroy the state
+    d_state.reset(nullptr);
   } catch(Exception& e) {
     Warning() << "CVC4 threw an exception during cleanup." << endl
               << e << endl;
@@ -430,7 +432,8 @@ SmtEngine::~SmtEngine()
 void SmtEngine::setLogic(const LogicInfo& logic)
 {
   SmtScope smts(this);
-  if(d_fullyInited) {
+  if (d_state->isFullyInited())
+  {
     throw ModalException("Cannot set logic in SmtEngine after the engine has "
                          "finished initializing.");
   }
@@ -474,18 +477,20 @@ LogicInfo SmtEngine::getUserLogicInfo() const
 
 void SmtEngine::notifyStartParsing(std::string filename)
 {
-  d_filename = filename;
-
+  d_state->setFilename(filename);
   // Copy the original options. This is called prior to beginning parsing.
   // Hence reset should revert to these options, which note is after reading
   // the command line.
   d_originalOptions.copyValues(d_options);
 }
 
-std::string SmtEngine::getFilename() const { return d_filename; }
+const std::string& SmtEngine::getFilename() const
+{
+  return d_state->getFilename();
+}
 void SmtEngine::setLogicInternal()
 {
-  Assert(!d_fullyInited)
+  Assert(!d_state->isFullyInited())
       << "setting logic in SmtEngine but the engine has already"
          " finished initializing for this run";
   d_logic.lock();
@@ -519,7 +524,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
   }
   else if (key == "filename")
   {
-    d_filename = value.getValue();
+    d_state->setFilename(value.getValue());
     return;
   }
   else if (key == "smt-lib-version" && !options::inputLanguage.wasSetByUser())
@@ -563,7 +568,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_expectedStatus = Result(s, d_filename);
+    d_state->notifyExpectedStatus(s);
     return;
   }
   throw UnrecognizedOptionException();
@@ -638,7 +643,8 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   if (key == "status")
   {
     // sat | unsat | unknown
-    switch (d_status.asSatisfiabilityResult().isSat())
+    Result status = d_state->getStatus();
+    switch (status.asSatisfiabilityResult().isSat())
     {
       case Result::SAT: return SExpr(SExpr::Keyword("sat"));
       case Result::UNSAT: return SExpr(SExpr::Keyword("unsat"));
@@ -647,10 +653,11 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   }
   if (key == "reason-unknown")
   {
-    if (!d_status.isNull() && d_status.isUnknown())
+    Result status = d_state->getStatus();
+    if (!status.isNull() && status.isUnknown())
     {
-      stringstream ss;
-      ss << d_status.whyUnknown();
+      std::stringstream ss;
+      ss << status.whyUnknown();
       string s = ss.str();
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
@@ -664,9 +671,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const
   }
   if (key == "assertion-stack-levels")
   {
-    AlwaysAssert(d_userLevels.size()
-                 <= std::numeric_limits<unsigned long int>::max());
-    return SExpr(static_cast<unsigned long int>(d_userLevels.size()));
+    size_t ulevel = d_state->getNumUserLevels();
+    AlwaysAssert(ulevel <= std::numeric_limits<unsigned long int>::max());
+    return SExpr(static_cast<unsigned long int>(ulevel));
   }
   Assert(key == "all-options");
   // get the options, like all-statistics
@@ -730,8 +737,8 @@ void SmtEngine::defineFunction(Expr func,
                                bool global)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   Trace("smt") << "SMT defineFunction(" << func << ")" << endl;
   debugCheckFormals(formals, func);
 
@@ -784,8 +791,8 @@ void SmtEngine::defineFunctionsRec(
     bool global)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   Trace("smt") << "SMT defineFunctionsRec(...)" << endl;
 
   if (funcs.size() != formals.size() && funcs.size() != formulas.size())
@@ -883,10 +890,11 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 }
 
 Result SmtEngine::quickCheck() {
-  Assert(d_fullyInited);
+  Assert(d_state->isFullyInited());
   Trace("smt") << "SMT quickCheck()" << endl;
+  const std::string& filename = d_state->getFilename();
   return Result(
-      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
+      Result::ENTAILMENT_UNKNOWN, Result::REQUIRES_FULL_CHECK, filename);
 }
 
 theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
@@ -898,7 +906,8 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_smtMode != SMT_MODE_SAT && d_smtMode != SMT_MODE_SAT_UNKNOWN)
+  if (d_state->getMode() != SmtMode::SAT
+      && d_state->getMode() != SmtMode::SAT_UNKNOWN)
   {
     std::stringstream ss;
     ss << "Cannot " << c
@@ -928,12 +937,25 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   return m;
 }
 
+void SmtEngine::notifyPushPre() { processAssertionsInternal(); }
+void SmtEngine::notifyPushPost()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+  d_propEngine->push();
+}
+void SmtEngine::notifyPopPre()
+{
+  TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+  d_propEngine->pop();
+}
+void SmtEngine::notifyPostSolvePre() { d_propEngine->resetTrail(); }
+void SmtEngine::notifyPostSolvePost() { d_theoryEngine->postsolve(); }
+
 void SmtEngine::processAssertionsInternal()
 {
   TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_fullyInited);
-  Assert(d_pendingPops == 0);
+  Assert(d_state->isFullyReady());
 
   AssertionPipeline& ap = d_asserts->getAssertionPipeline();
 
@@ -1038,30 +1060,14 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
   try
   {
     SmtScope smts(this);
-    finalOptionsAreSet();
-    doPendingPops();
+    finishInit();
 
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
-
-    if(d_queryMade && !options::incrementalSolving()) {
-      throw ModalException("Cannot make multiple queries unless "
-                           "incremental solving is enabled "
-                           "(try --incremental)");
-    }
-
-    // Note that a query has been made and we are in assert mode
-    d_queryMade = true;
-    d_smtMode = SMT_MODE_ASSERT;
-
-    // push if there are assumptions
-    bool didInternalPush = false;
-    if (!assumptions.empty())
-    {
-      internalPush();
-      didInternalPush = true;
-    }
+    // update the state to indicate we are about to run a check-sat
+    bool hasAssumptions = !assumptions.empty();
+    d_state->notifyCheckSat(hasAssumptions);
 
     // then, initialize the assertions
     d_asserts->initializeCheckSat(assumptions, inUnsatCore, isEntailmentCheck);
@@ -1097,37 +1103,8 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
       Trace("smt") << "SmtEngine::global negate returned " << r << std::endl;
     }
 
-    d_needPostsolve = true;
-
-    // Pop the context
-    if (didInternalPush)
-    {
-      internalPop();
-    }
-
-    // Remember the status
-    d_status = r;
-    // Check against expected status
-    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
-        && d_status != d_expectedStatus)
-    {
-      CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
-                   << d_status;
-    }
-    d_expectedStatus = Result();
-    // Update the SMT mode
-    if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
-    {
-      d_smtMode = SMT_MODE_UNSAT;
-    }
-    else if (d_status.asSatisfiabilityResult().isSat() == Result::SAT)
-    {
-      d_smtMode = SMT_MODE_SAT;
-    }
-    else
-    {
-      d_smtMode = SMT_MODE_SAT_UNKNOWN;
-    }
+    // notify our state of the check-sat result
+    d_state->notifyCheckSatResult(hasAssumptions, r);
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;
@@ -1156,10 +1133,14 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     return r;
   } catch (UnsafeInterruptException& e) {
     AlwaysAssert(d_resourceManager->out());
+    // Notice that we do not notify the state of this result. If we wanted to
+    // make the solver resume a working state after an interupt, then we would
+    // implement a different callback and use it here, e.g.
+    // d_state.notifyCheckSatInterupt.
     Result::UnknownExplanation why = d_resourceManager->outOfResources()
                                          ? Result::RESOURCEOUT
                                          : Result::TIMEOUT;
-    return Result(Result::SAT_UNKNOWN, why, d_filename);
+    return Result(Result::SAT_UNKNOWN, why, d_state->getFilename());
   }
 }
 
@@ -1173,13 +1154,13 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions when produce-unsat-assumptions option "
         "is off.");
   }
-  if (d_smtMode != SMT_MODE_UNSAT)
+  if (d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
         "UNSAT/ENTAILED.");
   }
-  finalOptionsAreSet();
+  finishInit();
   if (Dump.isOn("benchmark"))
   {
     Dump("benchmark") << GetUnsatAssumptionsCommand();
@@ -1200,8 +1181,8 @@ std::vector<Node> SmtEngine::getUnsatAssumptions(void)
 Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
 
   Trace("smt") << "SmtEngine::assertFormula(" << formula << ")" << endl;
 
@@ -1225,7 +1206,7 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
 void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
@@ -1237,7 +1218,7 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
                                         Type type)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
   Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
   Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
@@ -1252,8 +1233,8 @@ void SmtEngine::declareSynthFun(const std::string& id,
                                 const std::vector<Expr>& vars)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   Node fn = Node::fromExpr(func);
   d_private->d_sygusFunSymbols.push_back(fn);
   if (!vars.empty())
@@ -1264,10 +1245,9 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-fun-var-list", func, attr_val_bvl, "");
   }
   // whether sygus type encodes syntax restrictions
-  if (sygusType.isDatatype()
-      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  TypeNode stn = TypeNode::fromType(sygusType);
+  if (sygusType.isDatatype() && stn.getDType().isSygus())
   {
-    TypeNode stn = TypeNode::fromType(sygusType);
     Node sym = d_nodeManager->mkBoundVar("sfproxy", stn);
     std::vector<Expr> attr_value;
     attr_value.push_back(sym.toExpr());
@@ -1284,7 +1264,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
 void SmtEngine::assertSygusConstraint(const Node& constraint)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   d_private->d_sygusConstraints.push_back(constraint);
 
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
@@ -1299,7 +1279,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
                                          const Expr& post)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   // build invariant constraint
 
   // get variables (regular and their respective primed versions)
@@ -1419,17 +1399,8 @@ Result SmtEngine::checkSynth()
 
     d_private->d_sygusConjectureStale = false;
 
-    if (options::incrementalSolving())
-    {
-      // we push a context so that this conjecture is removed if we modify it
-      // later
-      internalPush();
-      assertFormula(body, true);
-    }
-    else
-    {
-      query = body.toExpr();
-    }
+    // TODO (project #7): if incremental, we should push a context and assert
+    query = body.toExpr();
   }
 
   Result r = checkSatisfiability(query, true, false);
@@ -1452,8 +1423,8 @@ Result SmtEngine::checkSynth()
 Node SmtEngine::simplify(const Node& ex)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   // ensure we've processed assertions
   processAssertionsInternal();
   return d_pp->simplify(ex);
@@ -1464,8 +1435,8 @@ Node SmtEngine::expandDefinitions(const Node& ex)
   d_resourceManager->spendResource(ResourceManager::Resource::PreprocessStep);
 
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   // set expandOnly flag to true
   return d_pp->expandDefinitions(ex, true);
 }
@@ -1538,8 +1509,8 @@ vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
 
 bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   // Substitute out any abstract values in ex
   Node n = d_absValues->substituteAbstractValues(Node::fromExpr(ex));
   TypeNode type = n.getType(options::typeChecking());
@@ -1573,7 +1544,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
 {
   Trace("smt") << "SMT getAssignment()" << endl;
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssignmentCommand();
   }
@@ -1633,7 +1604,7 @@ Model* SmtEngine::getModel() {
   Trace("smt") << "SMT getModel()" << endl;
   SmtScope smts(this);
 
-  finalOptionsAreSet();
+  finishInit();
 
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetModelCommand();
@@ -1653,8 +1624,8 @@ Model* SmtEngine::getModel() {
     std::vector<Expr> eassertsProc = getExpandedAssertions();
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
-  m->d_inputName = d_filename;
-  m->d_isKnownSat = (d_smtMode == SMT_MODE_SAT);
+  m->d_inputName = d_state->getFilename();
+  m->d_isKnownSat = (d_state->getMode() == SmtMode::SAT);
   return m;
 }
 
@@ -1663,7 +1634,7 @@ Result SmtEngine::blockModel()
   Trace("smt") << "SMT blockModel()" << endl;
   SmtScope smts(this);
 
-  finalOptionsAreSet();
+  finishInit();
 
   if (Dump.isOn("benchmark"))
   {
@@ -1691,7 +1662,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
   Trace("smt") << "SMT blockModelValues()" << endl;
   SmtScope smts(this);
 
-  finalOptionsAreSet();
+  finishInit();
 
   PrettyCheckArgument(
       !exprs.empty(),
@@ -1797,7 +1768,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores option is off.");
   }
-  if (d_smtMode != SMT_MODE_UNSAT)
+  if (d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by "
@@ -2241,7 +2212,7 @@ void SmtEngine::checkAbduct(Node a)
 UnsatCore SmtEngine::getUnsatCore() {
   Trace("smt") << "SMT getUnsatCore()" << endl;
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
@@ -2253,7 +2224,7 @@ const Proof& SmtEngine::getProof()
 {
   Trace("smt") << "SMT getProof()" << endl;
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetProofCommand();
   }
@@ -2261,7 +2232,7 @@ const Proof& SmtEngine::getProof()
   if(!options::proof()) {
     throw ModalException("Cannot get a proof when produce-proofs option is off.");
   }
-  if (d_smtMode != SMT_MODE_UNSAT)
+  if (d_state->getMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
@@ -2276,10 +2247,11 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
-    out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
+    out << "% SZS output start Proof for " << d_state->getFilename()
+        << std::endl;
   }
   if( d_theoryEngine ){
     d_theoryEngine->printInstantiations( out );
@@ -2288,13 +2260,13 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
   }
   if (options::instFormatMode() == options::InstFormatMode::SZS)
   {
-    out << "% SZS output end Proof for " << d_filename.c_str() << std::endl;
+    out << "% SZS output end Proof for " << d_state->getFilename() << std::endl;
   }
 }
 
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
   }else{
@@ -2305,7 +2277,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   std::map<Node, std::map<Node, Node>> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   // fail if the theory engine does not have synthesis solutions
@@ -2326,7 +2298,7 @@ bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
@@ -2408,15 +2380,11 @@ bool SmtEngine::getAbduct(const Node& conj,
                           const TypeNode& grammarType,
                           Node& abd)
 {
-  if (d_abductSolver->getAbduct(conj, grammarType, abd))
-  {
-    // successfully generated an abduct, update to abduct state
-    d_smtMode = SMT_MODE_ABDUCT;
-    return true;
-  }
-  // failed, we revert to the assert state
-  d_smtMode = SMT_MODE_ASSERT;
-  return false;
+  bool success = d_abductSolver->getAbduct(conj, grammarType, abd);
+  // notify the state of whether the get-abduct call was successfuly, which
+  // impacts the SMT mode.
+  d_state->notifyGetAbduct(success);
+  return success;
 }
 
 bool SmtEngine::getAbduct(const Node& conj, Node& abd)
@@ -2469,10 +2437,11 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   }
 }
 
-vector<Expr> SmtEngine::getAssertions() {
+std::vector<Expr> SmtEngine::getAssertions()
+{
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << GetAssertionsCommand();
   }
@@ -2496,57 +2465,24 @@ vector<Expr> SmtEngine::getAssertions() {
 void SmtEngine::push()
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
-  doPendingPops();
+  finishInit();
+  d_state->doPendingPops();
   Trace("smt") << "SMT push()" << endl;
   processAssertionsInternal();
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PushCommand();
   }
-  if(!options::incrementalSolving()) {
-    throw ModalException("Cannot push when not solving incrementally (use --incremental)");
-  }
-
-
-  // The problem isn't really "extended" yet, but this disallows
-  // get-model after a push, simplifying our lives somewhat and
-  // staying symmetric with pop.
-  d_smtMode = SMT_MODE_ASSERT;
-
-  d_userLevels.push_back(d_userContext->getLevel());
-  internalPush();
-  Trace("userpushpop") << "SmtEngine: pushed to level "
-                       << d_userContext->getLevel() << endl;
+  d_state->userPush();
 }
 
 void SmtEngine::pop() {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   Trace("smt") << "SMT pop()" << endl;
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << PopCommand();
   }
-  if(!options::incrementalSolving()) {
-    throw ModalException("Cannot pop when not solving incrementally (use --incremental)");
-  }
-  if(d_userLevels.size() == 0) {
-    throw ModalException("Cannot pop beyond the first user frame");
-  }
-
-  // The problem isn't really "extended" yet, but this disallows
-  // get-model after a pop, simplifying our lives somewhat.  It might
-  // not be strictly necessary to do so, since the pops occur lazily,
-  // but also it would be weird to have a legally-executed (get-model)
-  // that only returns a subset of the assignment (because the rest
-  // is no longer in scope!).
-  d_smtMode = SMT_MODE_ASSERT;
-
-  AlwaysAssert(d_userContext->getLevel() > 0);
-  AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
-  while (d_userLevels.back() < d_userContext->getLevel()) {
-    internalPop(true);
-  }
-  d_userLevels.pop_back();
+  d_state->userPop();
 
   // Clear out assertion queues etc., in case anything is still in there
   d_asserts->clearCurrent();
@@ -2554,55 +2490,9 @@ void SmtEngine::pop() {
   d_pp->clearLearnedLiterals();
 
   Trace("userpushpop") << "SmtEngine: popped to level "
-                       << d_userContext->getLevel() << endl;
-  // FIXME: should we reset d_status here?
+                       << getUserContext()->getLevel() << endl;
+  // should we reset d_status here?
   // SMT-LIBv2 spec seems to imply no, but it would make sense to..
-}
-
-void SmtEngine::internalPush() {
-  Assert(d_fullyInited);
-  Trace("smt") << "SmtEngine::internalPush()" << endl;
-  doPendingPops();
-  if(options::incrementalSolving()) {
-    processAssertionsInternal();
-    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    d_userContext->push();
-    // the d_context push is done inside of the SAT solver
-    d_smtSolver->push();
-  }
-}
-
-void SmtEngine::internalPop(bool immediate) {
-  Assert(d_fullyInited);
-  Trace("smt") << "SmtEngine::internalPop()" << endl;
-  if(options::incrementalSolving()) {
-    ++d_pendingPops;
-  }
-  if(immediate) {
-    doPendingPops();
-  }
-}
-
-void SmtEngine::doPendingPops() {
-  Trace("smt") << "SmtEngine::doPendingPops()" << endl;
-  Assert(d_pendingPops == 0 || options::incrementalSolving());
-  // check to see if a postsolve() is pending
-  if (d_needPostsolve)
-  {
-    d_smtSolver->resetTrail();
-  }
-  while(d_pendingPops > 0) {
-    TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    d_smtSolver->pop();
-    // the d_context pop is done inside of the SAT solver
-    d_userContext->pop();
-    --d_pendingPops;
-  }
-  if (d_needPostsolve)
-  {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
 }
 
 void SmtEngine::reset()
@@ -2623,17 +2513,16 @@ void SmtEngine::resetAssertions()
 {
   SmtScope smts(this);
 
-  if (!d_fullyInited)
+  if (!d_state->isFullyInited())
   {
     // We're still in Start Mode, nothing asserted yet, do nothing.
     // (see solver execution modes in the SMT-LIB standard)
-    Assert(d_context->getLevel() == 0);
-    Assert(d_userContext->getLevel() == 0);
+    Assert(getContext()->getLevel() == 0);
+    Assert(getUserContext()->getLevel() == 0);
     d_dumpm->resetAssertions();
     return;
   }
 
-  doPendingPops();
 
   Trace("smt") << "SMT resetAssertions()" << endl;
   if (Dump.isOn("benchmark"))
@@ -2641,26 +2530,18 @@ void SmtEngine::resetAssertions()
     Dump("benchmark") << ResetAssertionsCommand();
   }
 
-  while (!d_userLevels.empty())
-  {
-    pop();
-  }
-
-  // Remember the global push/pop around everything when beyond Start mode
-  // (see solver execution modes in the SMT-LIB standard)
-  Assert(d_userLevels.size() == 0 && d_userContext->getLevel() == 1);
-  d_context->popto(0);
-  d_userContext->popto(0);
+  d_state->notifyResetAssertions();
   d_dumpm->resetAssertions();
-  d_userContext->push();
-  d_context->push();
+  // push the state to maintain global context around everything
+  d_state->setup();
 
   d_smtSolver->resetAssertions();
 }
 
 void SmtEngine::interrupt()
 {
-  if(!d_fullyInited) {
+  if (!d_state->isFullyInited())
+  {
     return;
   }
   d_smtSolver->interrupt();
@@ -2712,9 +2593,10 @@ void SmtEngine::setUserAttribute(const std::string& attr,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
-  finalOptionsAreSet();
+  finishInit();
   std::vector<Node> node_values;
-  for( unsigned i=0; i<expr_values.size(); i++ ){
+  for (std::size_t i = 0, n = expr_values.size(); i < n; i++)
+  {
     node_values.push_back( expr_values[i].getNode() );
   }
   d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
@@ -2725,7 +2607,8 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   // Always check whether the SmtEngine has been initialized (which is done
   // upon entering Assert mode the first time). No option can  be set after
   // initialized.
-  if(d_fullyInited) {
+  if (d_state->isFullyInited())
+  {
     throw ModalException("SmtEngine::setOption called after initialization.");
   }
   NodeManagerScope nms(d_nodeManager);
@@ -2848,10 +2731,7 @@ void SmtEngine::setSygusConjectureStale()
     return;
   }
   d_private->d_sygusConjectureStale = true;
-  if (options::incrementalSolving())
-  {
-    internalPop();
-  }
+  // TODO (project #7): if incremental, we should pop a context
 }
 
 }/* CVC4 namespace */

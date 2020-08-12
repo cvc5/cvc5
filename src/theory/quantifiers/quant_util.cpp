@@ -32,7 +32,7 @@ QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
 
 eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
 {
-  return d_quantEngine->getActiveEqualityEngine();
+  return d_quantEngine->getMasterEqualityEngine();
 }
 
 bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
