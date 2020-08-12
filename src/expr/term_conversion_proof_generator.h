@@ -35,7 +35,7 @@ enum class TConvPolicy : uint32_t
 /** Writes a term conversion policy name to a stream. */
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol);
 
-/** A policy for how proofs are cache in TConvProofGenerator */
+/** A policy for how proofs are cached in TConvProofGenerator */
 enum class TConvCachePolicy : uint32_t
 {
   // proofs are statically cached

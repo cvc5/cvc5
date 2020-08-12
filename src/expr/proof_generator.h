@@ -106,7 +106,7 @@ class ProofGenerator
 };
 
 /**
- * debug check closed on Trace c, context ctx is string for debugging
+ * Debug check closed with Trace c. Context ctx is string for debugging.
  *
  * @param reqGen Whether we consider a null generator to be a failure.
  */
@@ -117,7 +117,7 @@ void pfgEnsureClosed(Node proven,
                      bool reqGen = true);
 
 /**
- * debug check closed on Trace c, context ctx is string for debugging, where
+ * Debug check closed with Trace c. Context ctx is string for debugging and
  * assumps is the set of allowed open assertions.
  *
  * @param reqGen Whether we consider a null generator to be a failure.
