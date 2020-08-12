@@ -139,7 +139,7 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     d_theoryEngine = d_smt->getTheoryEngine();
 
     d_satSolver = new FakeSatSolver();

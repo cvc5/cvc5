@@ -415,6 +415,23 @@ private:
   /** Are we in propagate */
   bool d_inPropagate;
 
+  /** Proof-new specific construction of equality conclusions for EqProofs
+   *
+   * Given two equality node ids, build an equality between the nodes they
+   * correspond to and add it as a conclusion to the given EqProof.
+   *
+   * The equality is only built if the nodes the ids correspond to are not
+   * internal nodes in the equality engine, i.e., they correspond to full
+   * applications of the respective kinds. Since the equality engine also
+   * applies congruence over n-ary kinds, internal nodes, i.e., partial
+   * applications, may still correspond to "full applications" in the
+   * first-order sense. Therefore this method also checks, in the case of n-ary
+   * congruence kinds, if an equality between "full applications" can be built.
+   */
+  void buildEqConclusion(EqualityNodeId id1,
+                         EqualityNodeId id2,
+                         EqProof* eqp) const;
+
   /**
    * Given two equality node ids, build an equality between the nodes they
    * correspond to and add it as a conclusion to the given EqProof.
