@@ -54,6 +54,7 @@ class WitnessFormGenerator : public ProofGenerator
    * Does the rewrite require witness form conversion?
    * When calling this method, it should be the case that:
    *   Rewriter::rewrite(toWitness(t)) == Rewriter::rewrite(toWitness(s))
+   * The rule MACRO_SR_PRED_TRANSFORM concludes t == s if the above holds.
    * This method returns false if:
    *   Rewriter::rewrite(t) == Rewriter::rewrite(s)
    * which means that the proof of the above fact does not need to do
@@ -75,7 +76,9 @@ class WitnessFormGenerator : public ProofGenerator
 
  private:
   /**
-   * Convert to witness form.
+   * Convert to witness form. This internally constructs rewrite steps that
+   * suffice to show t = toWitness(t) using the term conversion proof generator
+   * of this class (d_tcpg).
    */
   Node convertToWitnessForm(Node t);
   /** The term conversion proof generator */
