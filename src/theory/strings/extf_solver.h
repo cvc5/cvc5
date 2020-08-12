@@ -83,16 +83,14 @@ class ExtfSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  ExtfSolver(context::Context* c,
-             context::UserContext* u,
-             SolverState& s,
-             InferenceManager& im,
-             TermRegistry& tr,
-             StringsRewriter& rewriter,
-             BaseSolver& bs,
-             CoreSolver& cs,
-             ExtTheory& et,
-             SequencesStatistics& statistics);
+  ExtfSolver(SolverState& s,
+                       InferenceManager& im,
+                       TermRegistry& tr,
+                       StringsRewriter& rewriter,
+                       BaseSolver& bs,
+                       CoreSolver& cs,
+                       ExtTheory& et,
+                       SequencesStatistics& statistics);
   ~ExtfSolver();
 
   /**
