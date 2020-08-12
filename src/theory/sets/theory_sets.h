@@ -72,8 +72,6 @@ class TheorySets : public Theory
   void presolve() override;
   void propagate(Effort) override;
   bool isEntailed(Node n, bool pol);
-  /* equality engine */
-  virtual eq::EqualityEngine* getEqualityEngine() override;
  private:
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify
