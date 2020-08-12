@@ -661,7 +661,6 @@ void SolverBlack::testMkReal()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("12/3"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal(".2"));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkReal("2."));
-  TS_ASSERT_THROWS(d_solver->mkReal(nullptr), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal(""), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal("asdf"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkReal("1.2/3"), CVC4ApiException&);
@@ -737,7 +736,6 @@ void SolverBlack::testMkChar()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver->mkChar(std::string("0123")));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkChar("aA"));
-  TS_ASSERT_THROWS(d_solver->mkChar(nullptr), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkChar(""), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkChar("0g0"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkChar("100000"), CVC4ApiException&);
