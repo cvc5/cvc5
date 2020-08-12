@@ -422,13 +422,19 @@ Node RemoveTermFormulas::getAxiomFor(Node n)
   return Node::null();
 }
 
-void RemoveTermFormulas::setProofChecker(ProofChecker* pc)
+void RemoveTermFormulas::setProofNodeManager(ProofNodeManager* pnm)
 {
   if (d_tpg == nullptr)
   {
-    d_pnm.reset(new ProofNodeManager(pc));
-    d_tpg.reset(new TConvProofGenerator(d_pnm.get()));
-    d_lp.reset(new LazyCDProof(d_pnm.get()));
+    d_pnm = pnm;
+    d_tpg.reset(
+        new TConvProofGenerator(d_pnm,
+                                nullptr,
+                                TConvPolicy::FIXPOINT,
+                                TConvCachePolicy::NEVER,
+                                "RemoveTermFormulas::TConvProofGenerator"));
+    d_lp.reset(new LazyCDProof(
+        d_pnm, nullptr, nullptr, "RemoveTermFormulas::LazyCDProof"));
   }
 }
 

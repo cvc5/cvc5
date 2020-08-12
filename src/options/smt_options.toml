@@ -183,6 +183,15 @@ header = "options/smt_options.h"
   help       = "check pedantic levels eagerly (during proof rule construction) instead of during final proof construction"
 
 [[option]]
+  name       = "proofNewEagerChecking"
+  category   = "regular"
+  long       = "proof-new-eager-checking"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "check proofs eagerly with proof-new for local debugging"
+
+[[option]]
   name       = "dumpInstantiations"
   category   = "regular"
   long       = "dump-instantiations"
