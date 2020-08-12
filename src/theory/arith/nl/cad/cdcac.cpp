@@ -327,6 +327,18 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
 
   while (sampleOutside(intervals, sample))
   {
+    if (!checkIntegrality(cur_variable, sample))
+    {
+      // the variable is integral, but the sample is not.
+      Trace("cdcac") << "Used " << sample << " for integer variable "
+                     << d_variableOrdering[cur_variable] << std::endl;
+      auto new_interval = buildIntegralityInterval(cur_variable, sample);
+      Trace("cdcac") << "Adding integrality interval "
+                     << new_interval.d_interval << std::endl;
+      intervals.emplace_back(new_interval);
+      cleanIntervals(intervals);
+      continue;
+    }
     d_assignment.set(d_variableOrdering[cur_variable], sample);
     Trace("cdcac") << "Sample: " << d_assignment << std::endl;
     if (cur_variable == d_variableOrdering.size() - 1)
@@ -379,6 +391,32 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
     }
   }
   return intervals;
+}
+
+bool CDCAC::checkIntegrality(std::size_t cur_variable, const poly::Value& value)
+{
+  Node var = d_constraints.varMapper()(d_variableOrdering[cur_variable]);
+  if (var.getType() != NodeManager::currentNM()->integerType())
+  {
+    // variable is not integral
+    return true;
+  }
+  return poly::represents_integer(value);
+}
+
+CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
+                                            const poly::Value& value)
+{
+  poly::Variable var = d_variableOrdering[cur_variable];
+  poly::Integer below = poly::floor(value);
+  poly::Integer above = poly::ceil(value);
+  // construct var \in (below, above)
+  return CACInterval{poly::Interval(below, above),
+                     {var - below},
+                     {var - above},
+                     {var - below, var - above},
+                     {},
+                     {}};
 }
 
 }  // namespace cad
