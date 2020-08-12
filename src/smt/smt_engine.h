@@ -1062,12 +1062,12 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* 
-   * Check satisfiability (used to check satisfiability and entailment). 
+  /*
+   * Check satisfiability (used to check satisfiability and entailment).
    */
   Result checkSatInternal(const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
+                          bool inUnsatCore,
+                          bool isEntailmentCheck);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is

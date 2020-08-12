@@ -79,7 +79,6 @@
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
-#include "smt/smt_solver.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
 #include "smt/assertions.h"
@@ -96,6 +95,7 @@
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
+#include "smt/smt_solver.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
@@ -253,8 +253,12 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*this, *d_state.get(), d_resourceManager.get(), *d_pp.get(), *d_stats.get()));
-  
+  d_smtSolver.reset(new SmtSolver(*this,
+                                  *d_state.get(),
+                                  d_resourceManager.get(),
+                                  *d_pp.get(),
+                                  *d_stats.get()));
+
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
   // initialized in TheoryEngine and PropEngine respectively.
@@ -348,12 +352,13 @@ void SmtEngine::finishInit()
 
   PROOF( ProofManager::currentPM()->setLogic(d_logic); );
   PROOF({
-      TheoryEngine * te = d_smtSolver->getTheoryEngine();
-      for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
-        ProofManager::currentPM()->getTheoryProofEngine()->
-          finishRegisterTheory(te->theoryOf(id));
-      }
-    });
+    TheoryEngine* te = d_smtSolver->getTheoryEngine();
+    for (TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
+    {
+      ProofManager::currentPM()->getTheoryProofEngine()->finishRegisterTheory(
+          te->theoryOf(id));
+    }
+  });
   d_pp->finishInit();
 
   AlwaysAssert(d_propEngine->getAssertionLevel() == 0)
@@ -1018,7 +1023,8 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
-    Result r = d_smtSolver->checkSatisfiability(*d_asserts.get(), assumptions, inUnsatCore, isEntailmentCheck);
+    Result r = d_smtSolver->checkSatisfiability(
+        *d_asserts.get(), assumptions, inUnsatCore, isEntailmentCheck);
 
     Trace("smt") << "SmtEngine::" << (isEntailmentCheck ? "query" : "checkSat")
                  << "(" << assumptions << ") => " << r << endl;

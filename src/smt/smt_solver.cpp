@@ -14,36 +14,47 @@
 
 #include "smt/smt_solver.h"
 
-#include "theory/theory_engine.h"
 #include "prop/prop_engine.h"
+#include "theory/theory_engine.h"
 
 namespace CVC4 {
 namespace smt {
 
-SmtSolver::SmtSolver(SmtEngine& smt, ResourceManager* rm, Preprocessor& pp, SmtEngineStatistics& stats) : d_smt(smt), d_state(state), d_rm(rm), d_pp(pp), d_stats(stats), d_theoryEngine(nullptr), d_propEngine(nullptr)
+SmtSolver::SmtSolver(SmtEngine& smt,
+                     ResourceManager* rm,
+                     Preprocessor& pp,
+                     SmtEngineStatistics& stats)
+    : d_smt(smt),
+      d_state(state),
+      d_rm(rm),
+      d_pp(pp),
+      d_stats(stats),
+      d_theoryEngine(nullptr),
+      d_propEngine(nullptr)
 {
 }
 
-SmtSolver::~SmtSolver()
-{
-}
+SmtSolver::~SmtSolver() {}
 
 void SmtSolver::finishInit()
 {
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
-  d_theoryEngine.reset(new TheoryEngine(d_smt.getContext(),
-                                        d_smt.getUserContext(),
-                                        d_rm,
-                                        d_smt.getTermFormulaRemover(),
-                                        const_cast<const LogicInfo&>(d_smt.getLogicInfo())));
+  d_theoryEngine.reset(
+      new TheoryEngine(d_smt.getContext(),
+                       d_smt.getUserContext(),
+                       d_rm,
+                       d_smt.getTermFormulaRemover(),
+                       const_cast<const LogicInfo&>(d_smt.getLogicInfo())));
 
   // Add the theories
-  for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
+  for (TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
+  {
     TheoryConstructor::addTheory(d_theoryEngine.get(), id);
-    //register with proof engine if applicable
+    // register with proof engine if applicable
 #ifdef CVC4_PROOF
-    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(d_theoryEngine->theoryOf(id));
+    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(
+        d_theoryEngine->theoryOf(id));
 #endif
   }
 
@@ -54,10 +65,8 @@ void SmtSolver::finishInit()
    * are unregistered by the obsolete PropEngine object before registered
    * again by the new PropEngine object */
   d_propEngine.reset(nullptr);
-  d_propEngine.reset(new PropEngine(d_theoryEngine.get(),
-                                    d_smt.getContext(),
-                                    d_smt.getUserContext(),
-                                    d_rm));
+  d_propEngine.reset(new PropEngine(
+      d_theoryEngine.get(), d_smt.getContext(), d_smt.getUserContext(), d_rm));
 
   Trace("smt-debug") << "Setting up theory engine..." << std::endl;
   d_theoryEngine->setPropEngine(getPropEngine());
@@ -83,9 +92,7 @@ void SmtSolver::interrupt()
   d_theoryEngine->interrupt();
 }
 
-void SmtSolver::cleanup()
-{
-}
+void SmtSolver::cleanup() {}
 
 void SmtSolver::shutdown()
 {
@@ -100,22 +107,22 @@ void SmtSolver::shutdown()
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
-                            const Node& assumption,
-                            bool inUnsatCore,
-                            bool isEntailmentCheck)
+                                      const Node& assumption,
+                                      bool inUnsatCore,
+                                      bool isEntailmentCheck)
 {
-  return checkSatisfiability(as,
+  return checkSatisfiability(
+      as,
       node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
       inUnsatCore,
       isEntailmentCheck);
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
-                            const std::vector<Node>& assumptions,
-                            bool inUnsatCore,
-                            bool isEntailmentCheck)
+                                      const std::vector<Node>& assumptions,
+                                      bool inUnsatCore,
+                                      bool isEntailmentCheck)
 {
-
   // update the state to indicate we are about to run a check-sat
   bool hasAssumptions = !assumptions.empty();
   d_state.notifyCheckSat(hasAssumptions);
@@ -160,8 +167,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
   return r;
 }
 
-
-Result SmtEngine::check(Assertions& as) 
+Result SmtEngine::check(Assertions& as)
 {
   Assert(d_smt.isFullyInited());
 
@@ -170,9 +176,8 @@ Result SmtEngine::check(Assertions& as)
   const std::string& filename = d_state.getFilename();
   if (d_rm->out())
   {
-    Result::UnknownExplanation why = d_rm->outOfResources()
-                                         ? Result::RESOURCEOUT
-                                         : Result::TIMEOUT;
+    Result::UnknownExplanation why =
+        d_rm->outOfResources() ? Result::RESOURCEOUT : Result::TIMEOUT;
     return Result(Result::ENTAILMENT_UNKNOWN, why, filename);
   }
   d_rm->beginCall();
@@ -196,7 +201,6 @@ Result SmtEngine::check(Assertions& as)
   return Result(result, d_state.getFilename());
 }
 
-
 void SmtEngine::processAssertionsInternal(Assertions& as)
 {
   TimerStat::CodeTimer paTimer(d_stats->d_processAssertionsTime);
@@ -214,7 +218,7 @@ void SmtEngine::processAssertionsInternal(Assertions& as)
   // process the assertions with the preprocessor
   bool noConflict = d_pp.process(*d_asserts);
 
-  //notify theory engine new preprocessed assertions
+  // notify theory engine new preprocessed assertions
   d_theoryEngine->notifyPreprocessedAssertions(ap.ref());
 
   // Push the formula to decision engine
@@ -250,4 +254,3 @@ prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
 
 }  // namespace smt
 }  // namespace CVC4
-

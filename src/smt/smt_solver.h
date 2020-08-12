@@ -28,19 +28,18 @@ class SmtEngine;
 class TheoryEngine;
 class ResourceManager;
 
-namespace prop
-{
-  class PropEngine;
+namespace prop {
+class PropEngine;
 }
 
 namespace smt {
-  
+
 class Preprocessor;
 class SmtEngineStatistics;
 
 /**
  * A solver for SMT queries.
- * 
+ *
  * This class manages the initialization of the theory engine and propositional
  * engines and implements the method for checking satisfiability of the current
  * set of assertions.
@@ -48,7 +47,11 @@ class SmtEngineStatistics;
 class SmtSolver
 {
  public:
-  SmtSolver(SmtEngine& smt, smt::SmtEngineState& state, ResourceManager* rm, Preprocessor& pp, SmtEngineStatistics& stats);
+  SmtSolver(SmtEngine& smt,
+            smt::SmtEngineState& state,
+            ResourceManager* rm,
+            Preprocessor& pp,
+            SmtEngineStatistics& stats);
   ~SmtSolver();
   /** Create theory engine, prop engine. */
   void finishInit();
@@ -75,7 +78,7 @@ class SmtSolver
   void shutdown();
   /**
    * Check satisfiability (used to check satisfiability and entailment).
-   * Returns the result of 
+   * Returns the result of
    */
   Result checkSatisfiability(Assertions& as,
                              const Node& assumption,
