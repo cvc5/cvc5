@@ -33,19 +33,19 @@ namespace strings {
 
 RegExpSolver::RegExpSolver(SolverState& s,
                            InferenceManager& im,
+                           SkolemCache* skc,
                            CoreSolver& cs,
                            ExtfSolver& es,
-                           SequencesStatistics& stats,
-                           context::Context* c,
-                           context::UserContext* u)
+                           SequencesStatistics& stats)
     : d_state(s),
       d_im(im),
       d_csolver(cs),
       d_esolver(es),
       d_statistics(stats),
-      d_regexp_ucached(u),
-      d_regexp_ccached(c),
-      d_processed_memberships(c)
+      d_regexp_ucached(s.getUserContext()),
+      d_regexp_ccached(s.getSatContext()),
+      d_processed_memberships(s.getSatContext()),
+      d_regexp_opr(skc)
 {
   d_emptyString = NodeManager::currentNM()->mkConst(::CVC4::String(""));
   std::vector<Node> nvec;
@@ -260,16 +260,14 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
               << "Unroll/simplify membership of atomic term " << rep
               << std::endl;
           // if so, do simple unrolling
-          std::vector<Node> nvec;
           Trace("strings-regexp") << "Simplify on " << atom << std::endl;
-          d_regexp_opr.simplify(atom, nvec, polarity);
+          Node conc = d_regexp_opr.simplify(atom, polarity);
           Trace("strings-regexp") << "...finished" << std::endl;
           // if simplifying successfully generated a lemma
-          if (!nvec.empty())
+          if (!conc.isNull())
           {
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
-            Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
             Assert(atom.getKind() == STRING_IN_REGEXP);
             if (polarity)
             {
@@ -468,11 +466,9 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       rcti = rct;
       continue;
     }
-    bool spflag = false;
-    Node resR = d_regexp_opr.intersect(mi[1], m[1], spflag);
+    Node resR = d_regexp_opr.intersect(mi[1], m[1]);
     // intersection should be computable
     Assert(!resR.isNull());
-    Assert(!spflag);
     if (resR == d_emptyRegexp)
     {
       // conflict, explain

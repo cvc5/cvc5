@@ -57,6 +57,7 @@ void NlModel::resetCheck()
   d_used_approx = false;
   d_check_model_solved.clear();
   d_check_model_bounds.clear();
+  d_check_model_witnesses.clear();
   d_check_model_vars.clear();
   d_check_model_subs.clear();
 }
@@ -362,6 +363,9 @@ bool NlModel::addCheckModelSubstitution(TNode v, TNode s)
       return false;
     }
   }
+  Assert(d_check_model_witnesses.find(v) == d_check_model_witnesses.end())
+      << "We tried to add a substitution where we already had a witness term."
+      << std::endl;
   std::vector<Node> varsTmp;
   varsTmp.push_back(v);
   std::vector<Node> subsTmp;
@@ -415,9 +419,31 @@ bool NlModel::addCheckModelBound(TNode v, TNode l, TNode u)
   return true;
 }
 
+bool NlModel::addCheckModelWitness(TNode v, TNode w)
+{
+  Trace("nl-ext-model") << "* check model witness : " << v << " -> " << w
+                        << std::endl;
+  // should not set a witness for a value that is already set
+  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
+      != d_check_model_vars.end())
+  {
+    Trace("nl-ext-model") << "...ERROR: setting witness for variable that "
+                             "already has a constant value."
+                          << std::endl;
+    Assert(false);
+    return false;
+  }
+  d_check_model_witnesses.emplace(v, w);
+  return true;
+}
+
 bool NlModel::hasCheckModelAssignment(Node v) const
 {
   if (d_check_model_bounds.find(v) != d_check_model_bounds.end())
+  {
+    return true;
+  }
+  if (d_check_model_witnesses.find(v) != d_check_model_witnesses.end())
   {
     return true;
   }
@@ -1087,6 +1113,11 @@ bool NlModel::simpleCheckModelMsum(const std::map<Node, Node>& msum, bool pol)
         }
         else
         {
+          Assert(d_check_model_witnesses.find(vc)
+                 == d_check_model_witnesses.end())
+              << "No variable should be assigned a witness term if we get "
+                 "here. "
+              << vc << " is, though." << std::endl;
           Trace("nl-ext-cms-debug") << std::endl;
           Trace("nl-ext-cms")
               << "  failed due to unknown bound for " << vc << std::endl;
@@ -1276,7 +1307,8 @@ void NlModel::printModelValue(const char* c, Node n, unsigned prec) const
 
 void NlModel::getModelValueRepair(
     std::map<Node, Node>& arithModel,
-    std::map<Node, std::pair<Node, Node>>& approximations)
+    std::map<Node, std::pair<Node, Node>>& approximations,
+    std::map<Node, Node>& witnesses)
 {
   Trace("nl-model") << "NlModel::getModelValueRepair:" << std::endl;
 
@@ -1313,6 +1345,11 @@ void NlModel::getModelValueRepair(
       arithModel[v] = l;
       Trace("nl-model") << v << " exact approximation is " << l << std::endl;
     }
+  }
+  for (const auto& vw : d_check_model_witnesses)
+  {
+    Trace("nl-model") << vw.first << " witness is " << vw.second << std::endl;
+    witnesses.emplace(vw.first, vw.second);
   }
   // Also record the exact values we used. An exact value can be seen as a
   // special kind approximation of the form (witness x. x = exact_value).

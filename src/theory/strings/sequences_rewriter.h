@@ -264,6 +264,13 @@ class SequencesRewriter : public TheoryRewriter
    */
   Node rewriteSeqUnit(Node node);
 
+  /** rewrite seq.nth
+   * This is the entry point for post-rewriting terms n of the form
+   *   seq.nth(s, i)
+   * Returns the rewritten form of node.
+   */
+  Node rewriteSeqNth(Node node);
+
   /** length preserving rewrite
    *
    * Given input n, this returns a string n' whose length is equivalent to n.

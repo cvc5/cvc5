@@ -435,11 +435,6 @@ class CVC4_PUBLIC ExprManager {
       std::set<Type>& unresolvedTypes,
       uint32_t flags = DATATYPE_FLAG_NONE);
 
-  /**
-   * Make a type representing a constructor with the given parameterization.
-   */
-  ConstructorType mkConstructorType(const DatatypeConstructor& constructor, Type range) const;
-
   /** Make a type representing a selector with the given parameterization. */
   SelectorType mkSelectorType(Type domain, Type range) const;
 

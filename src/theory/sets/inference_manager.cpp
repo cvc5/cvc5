@@ -27,12 +27,10 @@ namespace sets {
 
 InferenceManager::InferenceManager(TheorySetsPrivate& p,
                                    SolverState& s,
-                                   eq::EqualityEngine& e,
                                    context::Context* c,
                                    context::UserContext* u)
     : d_parent(p),
       d_state(s),
-      d_ee(e),
       d_sentLemma(false),
       d_addedFact(false),
       d_lemmas_produced(u),
@@ -212,7 +210,9 @@ void InferenceManager::flushLemma(Node lem, bool preprocess)
   }
   Trace("sets-lemma-debug") << "Send lemma : " << lem << std::endl;
   d_lemmas_produced.insert(lem);
-  d_parent.getOutputChannel()->lemma(lem, false, preprocess);
+  LemmaProperty p =
+      preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
+  d_parent.getOutputChannel()->lemma(lem, p);
   d_sentLemma = true;
 }
 
