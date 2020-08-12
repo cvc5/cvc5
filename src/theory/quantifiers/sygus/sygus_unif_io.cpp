@@ -47,18 +47,19 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
-  for (unsigned i = 0; i < vals.size(); i++)
+  for (const Node& v : vals)
   {
-    if (vals[i].isNull())
+    if (v.isNull())
     {
-      // nothing can be inferred if the evaluation is unknown
+      // nothing can be inferred if the evaluation is unknown, e.g. if using
+      // partial functions.
       continue;
     }
-    if (vals[i] != poln)
+    if (v!= poln)
     {
-      if (d_vals[i] == d_true)
+      if (v== d_true)
       {
-        d_vals[i] = d_false;
+        v = d_false;
         changed = true;
       }
     }
@@ -1430,7 +1431,7 @@ Node SygusUnifIo::constructSol(
           else
           {
             // if the child types are different, it could still make a
-            // difference to recurse
+            // difference to recurse, for instance see issue #4790.
             bool childTypesEqual = ce.getType() == etn;
             if (!childTypesEqual)
             {
