@@ -242,7 +242,8 @@ class SmtEngineState
   SmtMode d_smtMode;
 
   /**
-   * The input file name (if any) or the name set through setInfo (if any)
+   * The input file name or the name set through (set-info :filename ...), if
+   * any.
    */
   std::string d_filename;
 };
