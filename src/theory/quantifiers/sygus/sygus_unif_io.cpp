@@ -47,7 +47,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
-  for (size_t i=0, vsize=vals.size(); i<vsize; i++)
+  for (size_t i = 0, vsize = vals.size(); i < vsize; i++)
   {
     Node v = vals[i];
     if (v.isNull())
@@ -56,9 +56,9 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
       // partial functions.
       continue;
     }
-    if (v!= poln)
+    if (v != poln)
     {
-      if (v== d_true)
+      if (v == d_true)
       {
         vals[i] = d_false;
         changed = true;
