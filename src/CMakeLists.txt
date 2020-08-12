@@ -938,7 +938,6 @@ target_link_libraries(cvc4 ${RT_LIBRARIES})
 # Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
 
 if (NOT BUILD_LIB_ONLY)
-  message("Adding main")
   add_subdirectory(main)
 endif()
 

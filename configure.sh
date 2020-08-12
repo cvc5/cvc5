@@ -81,7 +81,8 @@ Optional Path to Optional Packages:
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
 Build limitations:
-  --lib-only               only build the library, but not the executable or the parser (default: off)
+  --lib-only               only build the library, but not the executable or
+                           the parser (default: off)
 
 EOF
   exit 0
@@ -463,7 +464,7 @@ cmake_opts=""
 [ "$symfpu_dir" != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
 [ "$lib_only" != default ] \
-    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=ON"
+    && cmake_opts="$cmake_opts -DBUILD_LIB_ONLY=$lib_only"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 [ -n "$program_prefix" ] \
