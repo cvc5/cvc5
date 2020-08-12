@@ -493,15 +493,6 @@ header = "options/quantifiers_options.h"
   help       = "allow theory combination to happen once initially, before quantifier strategies are run"
 
 [[option]]
-  name       = "quantModelEe"
-  category   = "regular"
-  long       = "quant-model-ee"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use equality engine of model for last call effort"
-
-[[option]]
   name       = "instMaxLevel"
   category   = "regular"
   long       = "inst-max-level=N"
@@ -822,14 +813,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   help       = "do not consider instances of quantified formulas that are currently entailed"
-
-[[option]]
-  name       = "instNoModelTrue"
-  category   = "regular"
-  long       = "inst-no-model-true"
-  type       = "bool"
-  default    = "false"
-  help       = "do not consider instances of quantified formulas that are currently true in model, if it is available"
 
 [[option]]
   name       = "qcfEagerTest"
