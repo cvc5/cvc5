@@ -2516,22 +2516,7 @@ class CVC4_PUBLIC Solver
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
    * @return a constant of sort Real or Integer (if 's' represents an integer)
    */
-  Term mkReal(const char* s) const;
-
-  /**
-   * Create a real constant from a string.
-   * @param s the string representation of the constant, may represent an
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
-   */
   Term mkReal(const std::string& s) const;
-
-  /**
-   * Create a real constant from an integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(int32_t val) const;
 
   /**
    * Create a real constant from an integer.
@@ -2541,50 +2526,12 @@ class CVC4_PUBLIC Solver
   Term mkReal(int64_t val) const;
 
   /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint32_t val) const;
-
-  /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint64_t val) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(int32_t num, int32_t den) const;
-
-  /**
    * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
    * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(int64_t num, int64_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint32_t num, uint32_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint64_t num, uint64_t den) const;
 
   /**
    * Create a regular expression empty term.
@@ -2619,15 +2566,6 @@ class CVC4_PUBLIC Solver
    * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const char* s, bool useEscSequences = false) const;
-
-  /**
-   * Create a String constant.
-   * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s should
-   * be converted to the corresponding character
-   * @return the String constant
-   */
   Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
@@ -2652,13 +2590,6 @@ class CVC4_PUBLIC Solver
   Term mkChar(const std::string& s) const;
 
   /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base 16)
-   * @return the character constant
-   */
-  Term mkChar(const char* s) const;
-
-  /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
    * @return the empty sequence with given element sort.
@@ -2681,14 +2612,6 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
   /**
-   * Create a bit-vector constant from a given string.
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(const char* s, uint32_t base = 2) const;
-
-  /**
    * Create a bit-vector constant from a given string of base 2, 10 or 16.
    *
    * The size of resulting bit-vector is
@@ -2706,23 +2629,12 @@ class CVC4_PUBLIC Solver
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
-   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
-  Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string of
-   * base 2, 10 or 16.
-   * @param size the bit-width of the constant
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+  Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
