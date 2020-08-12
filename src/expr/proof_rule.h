@@ -481,11 +481,14 @@ enum class PfRule : uint32_t
   // -----------------------
   // Conclusion: (= t1 tn)
   TRANS,
-  // ======== Congruence  (subsumed by Substitute?)
+  // ======== Congruence
   // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-  // Arguments: (f)
+  // Arguments: (<kind> f?)
   // ---------------------------------------------
-  // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
+  // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+  // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
+  // APPLY_UF. The actual node for <kind> is constructible via
+  // ProofRuleChecker::mkKindNode.
   CONG,
   // ======== True intro
   // Children: (P:F)
