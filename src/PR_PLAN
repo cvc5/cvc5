@@ -51,16 +51,17 @@ PR finished:
 (67) AssertionsPipeline update (req 66)
 (72) witness form proof generator
 (73) ProofNode print ast
+(74) extend interface to proof generator
 (75) extend interface to proof checker for trusted checkers
 
 PRs ready:
 
 (6) Equality engine updates [Haniel] (req 0)
 (42) Strings proof checker (req 5, 17, 22, 45, 65) *
+(52) theory preprocess proof producing (req 27, 48, 51, 50) *
 (63) SMT engine proof post-processor (req 37, 59, 66, 72)
 (70) rewriter unit test [Andres] (req 36, 37)
-(74) extend interface to proof generator *
-(76) further generalization of eq_proof conversion [Haniel]
+(76) further generalization of eq_proof conversion [Haniel] *
 (78) term context core utilities *
 (82) strings term registry proof preparation (req 75) *
 
@@ -75,7 +76,6 @@ PRs future:
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
 (46) strings term registry proof producing (req 32, 35, 65)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
-(52) theory preprocess proof producing (req 27, 48, 51, 50)
 (53) CNF proof producing [Haniel]
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
