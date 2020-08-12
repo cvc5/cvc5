@@ -60,7 +60,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
     {
       if (v == d_true)
       {
-        vals[i] = d_false;
+        d_vals[i] = d_false;
         changed = true;
       }
     }
