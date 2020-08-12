@@ -88,7 +88,9 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
 class TConvProofGenerator : public ProofGenerator
 {
  public:
-  /** Constructor
+  /**
+   * Constructor, which notice does fixpoint rewriting (since this is the
+   * most common use case) and never caches.
    *
    * @param pnm The proof node manager for constructing ProofNode objects.
    * @param c The context that this class depends on. If none is provided,
