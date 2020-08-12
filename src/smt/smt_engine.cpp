@@ -1324,9 +1324,36 @@ void SmtEngine::declareSynthFun(const std::string& id,
     setUserAttribute("sygus-synth-grammar", func, attr_value, "");
   }
   Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
-  // dumping SynthFunCommand from smt-engine is currently broken (please take at
-  // CVC4/cvc4-projects#211)
-  // Dump("raw-benchmark") << SynthFunCommand(id, func, sygusType, isInv, vars);
+
+  // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
+  // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
+  // must print the command using the Node-level utility method for now.
+
+  if (Dump.isOn("raw-benchmark"))
+  {
+    std::vector<Node> nodeVars;
+    nodeVars.reserve(vars.size());
+    for (const Expr& var : vars)
+    {
+      nodeVars.push_back(Node::fromExpr(var));
+    }
+
+    std::stringstream ss;
+
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamCmdSynthFun(
+            ss,
+            id,
+            nodeVars,
+            func.getType().isFunction()
+                ? TypeNode::fromType(func.getType()).getRangeType()
+                : TypeNode::fromType(func.getType()),
+            isInv,
+            TypeNode::fromType(sygusType));
+
+    Dump("raw-benchmark") << ss.str();
+  }
+
   // sygus conjecture is now stale
   setSygusConjectureStale();
 }
