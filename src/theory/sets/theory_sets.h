@@ -33,6 +33,8 @@ class TheorySetsScrutinize;
 
 class TheorySets : public Theory
 {
+  friend class TheorySetsPrivate;
+  friend class TheorySetsRels;
  public:
   /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
   TheorySets(context::Context* c,
@@ -70,18 +72,12 @@ class TheorySets : public Theory
   void presolve() override;
   void propagate(Effort) override;
   bool isEntailed(Node n, bool pol);
-
+  /* equality engine */
+  virtual eq::EqualityEngine* getEqualityEngine() override;
  private:
-  friend class TheorySetsPrivate;
-  friend class TheorySetsScrutinize;
-  friend class TheorySetsRels;
-
-  std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify
   {
-    TheorySetsPrivate& d_theory;
-
    public:
     NotifyClass(TheorySetsPrivate& theory) : d_theory(theory) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value) override;
@@ -95,7 +91,12 @@ class TheorySets : public Theory
     void eqNotifyPreMerge(TNode t1, TNode t2) override;
     void eqNotifyPostMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
+    
+   private:
+    TheorySetsPrivate& d_theory;
   };
+  /** The internal theory */
+  std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Instance of the above class */
   NotifyClass d_notify;
 }; /* class TheorySets */

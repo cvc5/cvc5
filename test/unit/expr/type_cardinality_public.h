@@ -23,6 +23,7 @@
 #include "api/cvc4cpp.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
+#include "expr/node_manager.h"
 #include "expr/type.h"
 #include "util/cardinality.h"
 
@@ -36,6 +37,7 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
   {
     d_slv = new api::Solver();
     d_em = d_slv->getExprManager();
+    d_nm = d_slv->getNodeManager();
   }
 
   void tearDown() override { delete d_slv; }
@@ -180,15 +182,20 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
   }
 
   void testTernaryFunctions() {
-    vector<Type> boolbool; boolbool.push_back(d_em->booleanType()); boolbool.push_back(d_em->booleanType());
-    vector<Type> boolboolbool = boolbool; boolboolbool.push_back(d_em->booleanType());
+    vector<TypeNode> boolbool;
+    boolbool.push_back(d_nm->booleanType());
+    boolbool.push_back(d_nm->booleanType());
+    vector<TypeNode> boolboolbool = boolbool;
+    boolboolbool.push_back(d_nm->booleanType());
 
-    Type boolboolTuple = d_em->mkTupleType(boolbool);
-    Type boolboolboolTuple = d_em->mkTupleType(boolboolbool);
+    TypeNode boolboolTuple = d_nm->mkTupleType(boolbool);
+    TypeNode boolboolboolTuple = d_nm->mkTupleType(boolboolbool);
 
-    Type boolboolboolToBool = d_em->mkFunctionType(boolboolbool, d_em->booleanType());
-    Type boolboolToBoolbool = d_em->mkFunctionType(boolbool, boolboolTuple);
-    Type boolToBoolboolbool = d_em->mkFunctionType(d_em->booleanType(), boolboolboolTuple);
+    TypeNode boolboolboolToBool =
+        d_nm->mkFunctionType(boolboolbool, d_nm->booleanType());
+    TypeNode boolboolToBoolbool = d_nm->mkFunctionType(boolbool, boolboolTuple);
+    TypeNode boolToBoolboolbool =
+        d_nm->mkFunctionType(d_nm->booleanType(), boolboolboolTuple);
 
     TS_ASSERT( boolboolboolToBool.getCardinality().compare(/* 2 ^ 8 */ 1 << 8) == Cardinality::EQUAL );
     TS_ASSERT( boolboolToBoolbool.getCardinality().compare(/* 4 ^ 4 */ 4 * 4 * 4 * 4) == Cardinality::EQUAL );
@@ -232,4 +239,5 @@ class TypeCardinalityPublic : public CxxTest::TestSuite {
  private:
   api::Solver* d_slv;
   ExprManager* d_em;
+  NodeManager* d_nm;
 };/* TypeCardinalityPublic */
