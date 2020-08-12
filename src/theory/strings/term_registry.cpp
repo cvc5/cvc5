@@ -460,7 +460,7 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     if (options::proofNewPedantic() > 0)
     {
       Unhandled() << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
-                          << len_geq_one << std::endl;
+                  << len_geq_one << std::endl;
     }
     return TrustNode::mkTrustLemma(len_geq_one, nullptr);
   }
@@ -473,8 +473,8 @@ TrustNode TermRegistry::getRegisterTermAtomicLemma(
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
     if (options::proofNewPedantic() > 0)
     {
-      Unhandled() << "Unhandled lemma Strings::Lemma SK-ONE : "
-                          << len_one << std::endl;
+      Unhandled() << "Unhandled lemma Strings::Lemma SK-ONE : " << len_one
+                  << std::endl;
     }
     return TrustNode::mkTrustLemma(len_one, nullptr);
   }
