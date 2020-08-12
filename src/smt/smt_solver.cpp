@@ -16,6 +16,8 @@
 
 #include "prop/prop_engine.h"
 #include "theory/theory_engine.h"
+#include "smt/smt_engine_state.h"
+#include "smt/assertions.h"
 
 namespace CVC4 {
 namespace smt {
@@ -104,18 +106,6 @@ void SmtSolver::shutdown()
   {
     d_theoryEngine->shutdown();
   }
-}
-
-Result SmtSolver::checkSatisfiability(Assertions& as,
-                                      const Node& assumption,
-                                      bool inUnsatCore,
-                                      bool isEntailmentCheck)
-{
-  return checkSatisfiability(
-      as,
-      node.isNull() ? std::vector<Node>() : std::vector<Node>{node},
-      inUnsatCore,
-      isEntailmentCheck);
 }
 
 Result SmtSolver::checkSatisfiability(Assertions& as,
@@ -248,9 +238,9 @@ void SmtEngine::processAssertionsInternal(Assertions& as)
   as.clearCurrent();
 }
 
-TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
+TheoryEngine* SmtSolver::getTheoryEngine() const { return d_theoryEngine.get(); }
 
-prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
+prop::PropEngine* SmtSolver::getPropEngine() const { return d_propEngine.get(); }
 
 }  // namespace smt
 }  // namespace CVC4

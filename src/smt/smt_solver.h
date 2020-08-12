@@ -34,6 +34,8 @@ class PropEngine;
 
 namespace smt {
 
+class Assertions;
+class SmtEngineState;
 class Preprocessor;
 class SmtEngineStatistics;
 
@@ -48,7 +50,7 @@ class SmtSolver
 {
  public:
   SmtSolver(SmtEngine& smt,
-            smt::SmtEngineState& state,
+            SmtEngineState& state,
             ResourceManager* rm,
             Preprocessor& pp,
             SmtEngineStatistics& stats);
@@ -77,23 +79,28 @@ class SmtSolver
    */
   void shutdown();
   /**
-   * Check satisfiability (used to check satisfiability and entailment).
-   * Returns the result of
+   * Check satisfiability (used to check satisfiability and entailment)
+   * in SmtEngine. 
+   * 
+   * @param as The object managing the assertions in SmtEngine. This class
+   * maintains a current set of (unprocessed) assertions which are pushed
+   * into the internal members of this class (TheoryEngine and PropEngine)
+   * during this call.
+   * @param assumptions The assumptions for this check-sat call, which are
+   * temporary assertions.
+   * @param inUnsatCore Whether assumptions are in the unsat core.
+   * @param isEntailmentCheck Whether this is an entailment check (assumptions
+   * are negated in this case).
    */
-  Result checkSatisfiability(Assertions& as,
-                             const Node& assumption,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
-  /** Same as above, for a vector of assumptions */
   Result checkSatisfiability(Assertions& as,
                              const std::vector<Node>& assumptions,
                              bool inUnsatCore,
                              bool isEntailmentCheck);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
-  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
+  TheoryEngine* getTheoryEngine() const;
   /** Get a pointer to the PropEngine owned by this solver. */
-  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+  prop::PropEngine* getPropEngine() const;
   //------------------------------------------ end access methods
  private:
   /**
