@@ -69,10 +69,15 @@ class LazyCDProof : public CDProof
    * @param forceOverwrite If this flag is true, then this call overwrites
    * an existing proof generator provided for expected, if one was provided
    * via a previous call to addLazyStep in the current context.
+   * @param trustId If a null proof generator is provided, we add a step to
+   * the proof that has trustId as the rule and expected as the sole argument.
+   * We do this only if trustId is not PfRule::ASSUME. This is primarily used
+   * for identifying the kind of hole when a proof generator is not given.
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
-                   bool forceOverwrite = false);
+                   bool forceOverwrite = false,
+                   PfRule trustId = PfRule::ASSUME);
   /**
    * Does this have any proof generators? This method always returns true
    * if the default is non-null.

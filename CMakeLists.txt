@@ -317,7 +317,12 @@ if(ENABLE_SHARED)
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  # When building statically, we *only* want static archives/libraries
+  if (WIN32)
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
+  else()
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+  endif()
   set(BUILD_SHARED_LIBS OFF)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
@@ -546,7 +551,11 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
+if(NOT ENABLE_SHARED)
+  set(CVC4_STATIC_BUILD ON)
+endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
+unset(CVC4_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#

@@ -242,17 +242,6 @@ bool Instantiate::addInstantiation(
   // construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
-  if (d_qe->usingModelEqualityEngine() && options::instNoModelTrue())
-  {
-    Node val_body = d_qe->getModel()->getValue(body);
-    if (val_body.isConst() && val_body.getConst<bool>())
-    {
-      Trace("inst-add-debug") << " --> True in model." << std::endl;
-      ++(d_statistics.d_inst_duplicate_model_true);
-      return false;
-    }
-  }
-
   Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
   lem = Rewriter::rewrite(lem);
 
@@ -845,14 +834,12 @@ Instantiate::Statistics::Statistics()
     : d_instantiations("Instantiate::Instantiations_Total", 0),
       d_inst_duplicate("Instantiate::Duplicate_Inst", 0),
       d_inst_duplicate_eq("Instantiate::Duplicate_Inst_Eq", 0),
-      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0),
-      d_inst_duplicate_model_true("Instantiate::Duplicate_Inst_Model_True", 0)
+      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_instantiations);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_model_true);
 }
 
 Instantiate::Statistics::~Statistics()
@@ -861,7 +848,6 @@ Instantiate::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_model_true);
 }
 
 } /* CVC4::theory::quantifiers namespace */
