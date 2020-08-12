@@ -520,7 +520,10 @@ void SmtEngine::notifyStartParsing(std::string filename)
   d_originalOptions.copyValues(d_options);
 }
 
-const std::string& SmtEngine::getFilename() const { return d_state->getFilename(); }
+const std::string& SmtEngine::getFilename() const
+{
+  return d_state->getFilename();
+}
 void SmtEngine::setLogicInternal()
 {
   Assert(!d_state->isFullyInited())
@@ -2504,7 +2507,8 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   }
 }
 
-std::vector<Expr> SmtEngine::getAssertions() {
+std::vector<Expr> SmtEngine::getAssertions()
+{
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
@@ -2669,7 +2673,8 @@ void SmtEngine::setUserAttribute(const std::string& attr,
   SmtScope smts(this);
   finishInit();
   std::vector<Node> node_values;
-  for( std::size_t i=0, n = expr_values.size(); i<n; i++ ){
+  for (std::size_t i = 0, n = expr_values.size(); i < n; i++)
+  {
     node_values.push_back( expr_values[i].getNode() );
   }
   d_theoryEngine->setUserAttribute(attr, expr.getNode(), node_values, str_value);
