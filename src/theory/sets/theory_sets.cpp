@@ -203,6 +203,11 @@ eq::EqualityEngine* TheorySets::getEqualityEngine()
   return &d_equalityEngine;
 }
 
+void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq)
+{
+  d_equalityEngine.setMasterEqualityEngine(eq);
+}
+
 /**************************** eq::NotifyClass *****************************/
 
 bool TheorySets::NotifyClass::eqNotifyTriggerEquality(TNode equality,
