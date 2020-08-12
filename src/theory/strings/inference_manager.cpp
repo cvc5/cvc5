@@ -117,7 +117,7 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
-                                     const std::vector<Node>& expn,
+                                     const std::vector<Node>& noExplain,
                                      Node eq,
                                      Inference infer,
                                      bool isRev,
@@ -144,8 +144,8 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool isRev,
                                      bool asLemma)
 {
-  std::vector<Node> expn;
-  sendInference(exp, expn, eq, infer, asLemma);
+  std::vector<Node> noExplain;
+  sendInference(exp, noExplain, eq, infer, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
