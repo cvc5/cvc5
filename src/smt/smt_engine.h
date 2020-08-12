@@ -925,12 +925,6 @@ class CVC4_PUBLIC SmtEngine
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
   prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
 
-  /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext() { return d_userContext.get(); };
-
-  /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext() { return d_context.get(); };
-
   /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
 

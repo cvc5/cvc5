@@ -1202,7 +1202,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
                  << "(" << assumptions << ") => " << r << endl;
 
     if (options::dumpProofs() && options::proofNew()
-        && d_smtMode == SMT_MODE_UNSAT)
+        && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       printProof();
     }
@@ -2368,7 +2368,7 @@ void SmtEngine::printProof()
   {
     throw RecoverableModalException("Cannot print proof, no proof manager.");
   }
-  if (d_smtMode != SMT_MODE_UNSAT)
+  if (getSmtMode() != SmtMode::UNSAT)
   {
     throw RecoverableModalException(
         "Cannot print proof unless immediately preceded by "
