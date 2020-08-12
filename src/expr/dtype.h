@@ -194,7 +194,7 @@ class DType
    *
    * This adds a sygus constructor to this datatype, where
    * this datatype should be currently unresolved. Note this method is
-   * syntax sugar for adding a normal constructor and setting it to be a
+   * syntactic sugar for adding a normal constructor and setting it to be a
    * sygus constructor, and following a naming convention that avoids
    * constructors with the same name.
    *
