@@ -267,8 +267,8 @@ class InferenceManager
    * that have been asserted to the equality engine.
    */
   Node mkExplain(const std::vector<Node>& a) const;
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
+  /** Same as above, but with a subset noExplain that should not be explained */
+  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& noExplain) const;
   /**
    * Explain literal l, add conjuncts to assumptions vector instead of making
    * the node corresponding to their conjunction.

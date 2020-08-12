@@ -120,6 +120,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      const std::vector<Node>& expn,
                                      Node eq,
                                      Inference infer,
+                                     bool isRev,
                                      bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
@@ -130,15 +131,17 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   // wrap in infer info and send below
   InferInfo ii;
   ii.d_id = infer;
+  ii.d_idRev = isRev;
   ii.d_conc = eq;
   ii.d_ant = exp;
-  ii.d_antn = expn;
+  ii.d_noExplain = noExplain;
   sendInference(ii, asLemma);
 }
 
 void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
                                      Inference infer,
+                                     bool isRev,
                                      bool asLemma)
 {
   std::vector<Node> expn;
@@ -277,7 +280,7 @@ void InferenceManager::doPendingFacts()
     InferInfo& ii = d_pending[i];
     // At this point, ii should be a "fact", i.e. something whose conclusion
     // should be added as a normal equality or predicate to the equality engine
-    // with no new external assumptions (ii.d_antn).
+    // with no new external assumptions (ii.d_noExplain).
     Assert(ii.isFact());
     Node facts = ii.d_conc;
     Node exp = utils::mkAnd(ii.d_ant);
@@ -336,13 +339,12 @@ void InferenceManager::doPendingLemmas()
     Node eqExp;
     if (options::stringRExplainLemmas())
     {
-      eqExp = mkExplain(ii.d_ant, ii.d_antn);
+      eqExp = mkExplain(ii.d_ant, ii.d_noExplain);
     }
     else
     {
       std::vector<Node> ev;
       ev.insert(ev.end(), ii.d_ant.begin(), ii.d_ant.end());
-      ev.insert(ev.end(), ii.d_antn.begin(), ii.d_antn.end());
       eqExp = utils::mkAnd(ev);
     }
     // make the lemma node
@@ -455,12 +457,12 @@ bool InferenceManager::hasProcessed() const
 
 Node InferenceManager::mkExplain(const std::vector<Node>& a) const
 {
-  std::vector<Node> an;
-  return mkExplain(a, an);
+  std::vector<Node> noExplain;
+  return mkExplain(a, noExplain);
 }
 
 Node InferenceManager::mkExplain(const std::vector<Node>& a,
-                                 const std::vector<Node>& an) const
+                                 const std::vector<Node>& noExplain) const
 {
   std::vector<TNode> antec_exp;
   // copy to processing vector
@@ -472,6 +474,16 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   for (const Node& apc : aconj)
   {
+    if (std::find(noExplain.begin(), noExplain.end(), apc)!=noExplain.end())
+    {
+      if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
+      {
+        Debug("strings-explain")
+            << "Add to explanation (new literal) " << anc << std::endl;
+        antec_exp.push_back(anc);
+      }
+      continue;
+    }
     Assert(apc.getKind() != AND);
     Debug("strings-explain") << "Add to explanation " << apc << std::endl;
     if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
@@ -484,15 +496,6 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
     Assert(apc.getKind() != EQUAL || ee->areEqual(apc[0], apc[1]));
     // now, explain
     explain(apc, antec_exp);
-  }
-  for (const Node& anc : an)
-  {
-    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
-    {
-      Debug("strings-explain")
-          << "Add to explanation (new literal) " << anc << std::endl;
-      antec_exp.push_back(anc);
-    }
   }
   Node ant;
   if (antec_exp.empty())
