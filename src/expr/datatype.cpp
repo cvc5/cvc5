@@ -21,6 +21,7 @@
 
 #include "base/check.h"
 #include "expr/attribute.h"
+#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -304,6 +305,7 @@ void Datatype::setRecord() {
   PrettyCheckArgument(
       !isResolved(), this, "cannot set record to a finalized Datatype");
   d_isRecord = true;
+  d_internal->setRecord();
 }
 
 Cardinality Datatype::getCardinality(Type t) const
@@ -849,12 +851,6 @@ void DatatypeConstructorArg::toStream(std::ostream& out) const
   }
   out << t;
 }
-
-DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}
-std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
-  return out << "index_" << dic.getIndex();
-}
-
 
 std::string Datatype::getName() const
 {

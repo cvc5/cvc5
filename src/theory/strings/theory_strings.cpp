@@ -61,32 +61,34 @@ TheoryStrings::TheoryStrings(context::Context* c,
                 d_csolver,
                 d_extTheory,
                 d_statistics),
-      d_rsolver(d_state, d_im, d_csolver, d_esolver, d_statistics, c, u),
+      d_rsolver(d_state, d_im, d_termReg.getSkolemCache(),
+                d_csolver, d_esolver, d_statistics),
       d_stringsFmf(c, u, valuation, d_termReg)
 {
+  bool eagerEval = options::stringEagerEval();
   // The kinds we are treating as function application in congruence
-  d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
-  d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
-  d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
-  d_equalityEngine.addFunctionKind(kind::STRING_TO_CODE);
-  d_equalityEngine.addFunctionKind(kind::SEQ_UNIT);
+  d_equalityEngine.addFunctionKind(kind::STRING_LENGTH, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_CONCAT, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_TO_CODE, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::SEQ_UNIT, eagerEval);
 
   // extended functions
-  d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-  d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
-  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
-  d_equalityEngine.addFunctionKind(kind::STRING_UPDATE);
-  d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
-  d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE);
-  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE_ALL);
-  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER);
-  d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER);
-  d_equalityEngine.addFunctionKind(kind::STRING_REV);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRCTN, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_LEQ, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_UPDATE, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_ITOS, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_STOI, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPL, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_REPLACE_RE_ALL, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER, eagerEval);
+  d_equalityEngine.addFunctionKind(kind::STRING_REV, eagerEval);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -112,9 +114,8 @@ eq::EqualityEngine* TheoryStrings::getEqualityEngine()
 }
 void TheoryStrings::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
   // witness is used to eliminate str.from_code
-  tm->setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(WITNESS);
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
@@ -917,8 +918,7 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_TO_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        Node cp = d_termReg.getProxyVariableFor(c);
-        AlwaysAssert(!cp.isNull());
+        Node cp = d_termReg.ensureProxyVariableFor(c);
         Node vc = nm->mkNode(STRING_TO_CODE, cp);
         if (!d_state.areEqual(cc, vc))
         {

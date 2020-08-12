@@ -223,6 +223,8 @@ libcvc4_add_sources(
   smt/abduction_solver.h
   smt/abstract_values.cpp
   smt/abstract_values.h
+  smt/assertions.cpp
+  smt/assertions.h
   smt/command.cpp
   smt/command.h
   smt/defined_function.h
@@ -247,6 +249,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/preprocessor.cpp
+  smt/preprocessor.h
   smt/preprocess_proof_generator.cpp
   smt/preprocess_proof_generator.h
   smt/process_assertions.cpp
@@ -807,6 +811,9 @@ libcvc4_add_sources(
   theory/uf/cardinality_extension.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
+  theory/uf/equality_engine_iterator.cpp
+  theory/uf/equality_engine_iterator.h
+  theory/uf/equality_engine_notify.h
   theory/uf/equality_engine_types.h
   theory/uf/eq_proof.cpp
   theory/uf/eq_proof.h
