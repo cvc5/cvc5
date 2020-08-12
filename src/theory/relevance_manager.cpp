@@ -154,7 +154,7 @@ bool RelevanceManager::updateJustifyLastChild(
           ret = 0;
           break;
         }
-        Assert (ret==((k==IMPLES && index==0) ? -cv : cv));
+        Assert (ret==((k==IMPLIES && index==0) ? -cv : cv));
       }
       cache[cur] = ret;
     }
