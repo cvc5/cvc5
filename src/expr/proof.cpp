@@ -18,8 +18,8 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-CDProof::CDProof(ProofNodeManager* pnm, context::Context* c)
-    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context)
+CDProof::CDProof(ProofNodeManager* pnm, context::Context* c, std::string name)
+    : d_manager(pnm), d_context(), d_nodes(c ? c : &d_context), d_name(name)
 {
 }
 
@@ -111,9 +111,13 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       CDPOverwrite opolicy)
 {
-  Trace("cdproof") << "CDProof::addStep: " << id << " " << expected
-                   << ", ensureChildren = " << ensureChildren
+  Trace("cdproof") << "CDProof::addStep: " << identify() << " : " << id << " "
+                   << expected << ", ensureChildren = " << ensureChildren
                    << ", overwrite policy = " << opolicy << std::endl;
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : children: " << children << "\n";
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : args: " << args << "\n";
   // We must always provide expected to this method
   Assert(!expected.isNull());
 
@@ -424,6 +428,6 @@ Node CDProof::getSymmFact(TNode f)
   return polarity ? symFact : symFact.notNode();
 }
 
-std::string CDProof::identify() const { return "CDProof"; }
+std::string CDProof::identify() const { return d_name; }
 
 }  // namespace CVC4

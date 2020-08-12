@@ -415,6 +415,23 @@ private:
   /** Are we in propagate */
   bool d_inPropagate;
 
+  /** Proof-new specific construction of equality conclusions for EqProofs
+   *
+   * Given two equality node ids, build an equality between the nodes they
+   * correspond to and add it as a conclusion to the given EqProof.
+   *
+   * The equality is only built if the nodes the ids correspond to are not
+   * internal nodes in the equality engine, i.e., they correspond to full
+   * applications of the respective kinds. Since the equality engine also
+   * applies congruence over n-ary kinds, internal nodes, i.e., partial
+   * applications, may still correspond to "full applications" in the
+   * first-order sense. Therefore this method also checks, in the case of n-ary
+   * congruence kinds, if an equality between "full applications" can be built.
+   */
+  void buildEqConclusion(EqualityNodeId id1,
+                         EqualityNodeId id2,
+                         EqProof* eqp) const;
+
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities
    * that imply t1 = t2. Returns TNodes as the assertion equalities should be
@@ -695,8 +712,12 @@ public:
    * @param polarity true if asserting the predicate, false if
    *                 asserting the negated predicate
    * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
    */
-  void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  bool assertPredicate(TNode p,
+                       bool polarity,
+                       TNode reason,
+                       unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds an equality eq with the given polarity to the database.
@@ -705,8 +726,12 @@ public:
    * @param polarity true if asserting the equality, false if
    *                 asserting the negated equality
    * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
    */
-  void assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  bool assertEquality(TNode eq,
+                      bool polarity,
+                      TNode reason,
+                      unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Returns the current representative of the term t.
@@ -807,6 +832,9 @@ public:
    * Returns a fresh merge reason type tag for the client to use.
    */
   unsigned getFreshMergeReasonType();
+
+  /** Identify this equality engine (for debugging, etc..) */
+  std::string identify() const;
 };
 
 } // Namespace eq
