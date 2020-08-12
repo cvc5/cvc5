@@ -21,7 +21,12 @@ namespace CVC4 {
 namespace smt {
 
 WitnessFormGenerator::WitnessFormGenerator(ProofNodeManager* pnm)
-    : d_tcpg(pnm), d_wintroPf(pnm)
+    : d_tcpg(pnm,
+             nullptr,
+             TConvPolicy::FIXPOINT,
+             TConvCachePolicy::NEVER,
+             "WfGenerator::TConvProofGenerator"),
+      d_wintroPf(pnm, nullptr, nullptr, "WfGenerator::LazyCDProof")
 {
 }
 
@@ -89,7 +94,13 @@ Node WitnessFormGenerator::convertToWitnessForm(Node t)
           // (exists ((x T)) (P x))
           // --------------------------- WITNESS_INTRO
           // k = (witness ((x T)) (P x))
-          d_wintroPf.addLazyStep(exists, pg, false, PfRule::WITNESS_AXIOM);
+          d_wintroPf.addLazyStep(
+              exists,
+              pg,
+              true,
+              "WitnessFormGenerator::convertToWitnessForm:witness_axiom",
+              false,
+              PfRule::WITNESS_AXIOM);
           d_wintroPf.addStep(eq, PfRule::WITNESS_INTRO, {exists}, {});
           d_tcpg.addRewriteStep(cur, curw, &d_wintroPf);
         }

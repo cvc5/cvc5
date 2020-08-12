@@ -45,7 +45,8 @@ class LazyCDProof : public CDProof
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
-              context::Context* c = nullptr);
+              context::Context* c = nullptr,
+              std::string name = "LazyCDProof");
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
@@ -66,6 +67,9 @@ class LazyCDProof : public CDProof
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
+   * @param isClosed Whether to expect that pg can provide a closed proof for
+   * this fact.
+   * @param ctx The context we are in (for debugging).
    * @param forceOverwrite If this flag is true, then this call overwrites
    * an existing proof generator provided for expected, if one was provided
    * via a previous call to addLazyStep in the current context.
@@ -76,6 +80,8 @@ class LazyCDProof : public CDProof
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
+                   bool isClosed = true,
+                   const char* ctx = "LazyCDProof::addLazyStep",
                    bool forceOverwrite = false,
                    PfRule trustId = PfRule::ASSUME);
   /**
@@ -85,8 +91,6 @@ class LazyCDProof : public CDProof
   bool hasGenerators() const;
   /** Does the given fact have an explicitly provided generator? */
   bool hasGenerator(Node fact) const;
-  /** identify */
-  std::string identify() const override;
 
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>
