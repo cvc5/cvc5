@@ -1011,7 +1011,7 @@ Result SmtEngine::checkSatisfiability(const Node& node,
       isEntailmentCheck);
 }
 
-Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
+Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
                                       bool inUnsatCore,
                                       bool isEntailmentCheck)
 {
@@ -1023,6 +1023,7 @@ Result SmtEngine::checkSatisfiability(const vector<Node>& assumptions,
     Trace("smt") << "SmtEngine::"
                  << (isEntailmentCheck ? "checkEntailed" : "checkSat") << "("
                  << assumptions << ")" << endl;
+    // check the satisfiability with the solver object
     Result r = d_smtSolver->checkSatisfiability(
         *d_asserts.get(), assumptions, inUnsatCore, isEntailmentCheck);
 
