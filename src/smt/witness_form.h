@@ -4,7 +4,11 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
+<<<<<<< HEAD
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+=======
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+>>>>>>> 27413a45e28001f6155d529a59d679556cdc011e
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -54,6 +58,7 @@ class WitnessFormGenerator : public ProofGenerator
    * Does the rewrite require witness form conversion?
    * When calling this method, it should be the case that:
    *   Rewriter::rewrite(toWitness(t)) == Rewriter::rewrite(toWitness(s))
+   * The rule MACRO_SR_PRED_TRANSFORM concludes t == s if the above holds.
    * This method returns false if:
    *   Rewriter::rewrite(t) == Rewriter::rewrite(s)
    * which means that the proof of the above fact does not need to do
@@ -71,11 +76,13 @@ class WitnessFormGenerator : public ProofGenerator
    * where k is a skolem, containing all rewrite steps used in calls to
    * getProofFor during the entire lifetime of this generator.
    */
-  std::unordered_set<Node, NodeHashFunction>& getWitnessFormEqs();
+  const std::unordered_set<Node, NodeHashFunction>& getWitnessFormEqs() const;
 
  private:
   /**
-   * Convert to witness form.
+   * Convert to witness form. This internally constructs rewrite steps that
+   * suffice to show t = toWitness(t) using the term conversion proof generator
+   * of this class (d_tcpg).
    */
   Node convertToWitnessForm(Node t);
   /** The term conversion proof generator */
