@@ -47,12 +47,12 @@ class SmtEngineStatistics;
  * engines and implements the method for checking satisfiability of the current
  * set of assertions.
  * 
- * Notice that this class is only conceptually responsible for allocation of
- * TheoryEngine/PropEngine and for running check-sat commands. It does not
- * implement any query techniques beyond getting the result (unsat/sat/unknown)
- * of check-sat calls. More detailed information (e.g. models) can be queried
- * using other classes that examine the state of the TheoryEngine directly,
- * which can be accessed via getTheoryEngine.
+ * Notice that this class is only conceptually responsible for running
+ * check-sat commands and an interface for sending formulas to the underlying
+ * classes. It does not implement any query techniques beyond getting the result
+ * (unsat/sat/unknown) of check-sat calls. More detailed information (e.g.
+ * models) can be queries using other classes that examine the state of the
+ * TheoryEngine directly, which can be accessed via getTheoryEngine.
  */
 class SmtSolver
 {
