@@ -95,6 +95,8 @@ class TConvProofGenerator : public ProofGenerator
    * this class is context-independent.
    * @param tpol The policy for applying rewrite steps of this class. For
    * details, see d_policy.
+   * @param cpol The caching policy for this generator.
+   * @param name The name of this generator (for debugging).
    */
   TConvProofGenerator(ProofNodeManager* pnm,
                       context::Context* c = nullptr,

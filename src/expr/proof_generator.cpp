@@ -112,7 +112,7 @@ void pfgEnsureClosedWrt(Node proven,
     // only failure if flag is true
     if (reqGen)
     {
-      AlwaysAssert(false) << "...pfgEnsureClosed: no generator in context "
+      Unreachable() << "...pfgEnsureClosed: no generator in context "
                           << ctx << sdiag.str();
     }
     Trace(c) << "...pfgEnsureClosed: no generator in context " << ctx

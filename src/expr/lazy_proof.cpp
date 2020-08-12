@@ -60,7 +60,11 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
       Node cfact = cur->getResult();
       if (getProof(cfact).get() != cur)
       {
-        // we don't own this proof, skip it
+        // We don't own this proof, skip it. This is to ensure that this method
+        // is idempotent, since it may be the case that a previous call to
+        // getProofFor connected a proof from a proof generator as a child of
+        // a ProofNode in the range of the map in CDProof. Thus, this ensures
+        // we don't touch such proofs.
         Trace("lazy-cdproof") << "...skip unowned proof" << std::endl;
       }
       else if (cur->getRule() == PfRule::ASSUME)
@@ -74,8 +78,10 @@ std::shared_ptr<ProofNode> LazyCDProof::getProofFor(Node fact)
               << " for assumption " << cfact << std::endl;
           Node cfactGen = isSym ? CDProof::getSymmFact(cfact) : cfact;
           Assert(!cfactGen.isNull());
-          // do not use the addProofTo interface
-          // instead use the update node interface
+          // Do not use the addProofTo interface, instead use the update node
+          // interface, since this ensures that we don't take ownership for
+          // the current proof. Instead, it is only linked, and ignored on
+          // future calls to getProofFor due to the check above.
           std::shared_ptr<ProofNode> pgc = pg->getProofFor(cfactGen);
           if (isSym)
           {
@@ -126,7 +132,7 @@ void LazyCDProof::addLazyStep(Node expected,
     // null generator, should have given a proof rule
     if (idNull == PfRule::ASSUME)
     {
-      AlwaysAssert(false) << "LazyCDProof::addLazyStep: " << identify()
+      Unreachable() << "LazyCDProof::addLazyStep: " << identify()
                           << ": failed to provide proof generator for "
                           << expected;
       return;

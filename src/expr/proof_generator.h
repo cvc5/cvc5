@@ -106,7 +106,10 @@ class ProofGenerator
 };
 
 /**
- * debug check closed on Trace c, context ctx is string for debugging
+ * Debug check closed on Trace c, context ctx is string for debugging.
+ * This method throws an assertion failure if pg cannot provide a closed
+ * proof for fact proven. This is checked only if --proof-new-eager-checking
+ * is enabled or the Trace c is enabled.
  *
  * @param reqGen Whether we consider a null generator to be a failure.
  */
@@ -117,7 +120,7 @@ void pfgEnsureClosed(Node proven,
                      bool reqGen = true);
 
 /**
- * debug check closed on Trace c, context ctx is string for debugging, where
+ * Debug check closed on Trace c, context ctx is string for debugging, where
  * assumps is the set of allowed open assertions.
  *
  * @param reqGen Whether we consider a null generator to be a failure.
