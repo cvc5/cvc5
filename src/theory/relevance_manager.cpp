@@ -154,7 +154,6 @@ bool RelevanceManager::updateJustifyLastChild(
           ret = 0;
           break;
         }
-        Assert (ret==((k==IMPLIES && index==0) ? -cv : cv));
       }
       cache[cur] = ret;
     }
@@ -262,6 +261,17 @@ int RelevanceManager::justify(
     {
       // this processes the impact of the current child on the value of cur,
       // and possibly requests that a new child is computed.
+      if (updateJustifyLastChild(cur, itc->second, cache))
+      {
+        Assert (itc->second.size()<cur.getNumChildren());
+        TNode nextChild = cur[itc->second.size()];
+        visit.push_back(nextChild);
+      }
+      else
+      {
+        visit.pop_back();
+      }
+      /*
       bool computeChild = false;
       while (updateJustifyLastChild(cur, itc->second, cache))
       {
@@ -289,6 +299,7 @@ int RelevanceManager::justify(
         // pop the original if we are not wanting to compute the next child
         visit.pop_back();
       }
+      */
     }
   } while (!visit.empty());
   Assert(cache.find(n) != cache.end());
