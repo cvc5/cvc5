@@ -191,21 +191,22 @@ class DType
   /** add sygus constructor
    *
    * This adds a sygus constructor to this datatype, where
-   * this datatype should be currently unresolved.
+   * this datatype should be currently unresolved. Note this method is
+   * syntactic sugar for adding a normal constructor and setting it to be a
+   * sygus constructor, and following a naming convention that avoids
+   * constructors with the same name.
    *
-   * op : the builtin operator, constant, or variable that
-   *      this constructor encodes
-   * cname : the name of the constructor (for printing only)
-   * cargs : the arguments of the constructor
-   *
+   * @param op : the builtin operator, constant, or variable that this
+   * constructor encodes
+   * @param cname the name of the constructor (for printing only)
+   * @param cargs the arguments of the constructor.
    * It should be the case that cargs are sygus datatypes that
    * encode the arguments of op. For example, a sygus constructor
    * with op = PLUS should be such that cargs.size()>=2 and
    * the sygus type of cargs[i] is Real/Int for each i.
-   *
-   * weight denotes the value added by the constructor when computing the size
-   * of datatype terms. Passing a value < 0 denotes the default weight for the
-   * constructor, which is 0 for nullary constructors and 1 for non-nullary
+   * @param weight denotes the value added by the constructor when computing the
+   * size of datatype terms. Passing a value < 0 denotes the default weight for
+   * the constructor, which is 0 for nullary constructors and 1 for non-nullary
    * constructors.
    */
   void addSygusConstructor(Node op,

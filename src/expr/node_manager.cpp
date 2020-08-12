@@ -606,7 +606,7 @@ std::vector<TypeNode> NodeManager::mkMutualDatatypeTypes(
             << "malformed selector in datatype post-resolution";
         // This next one's a "hard" check, performed in non-debug builds
         // as well; the other ones should all be guaranteed by the
-        // CVC4::Datatype class, but this actually needs to be checked.
+        // CVC4::DType class, but this actually needs to be checked.
         AlwaysAssert(!selectorType.getRangeType().isFunctionLike())
             << "cannot put function-like things in datatypes";
       }
