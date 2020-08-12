@@ -153,7 +153,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                  << d_rm->getTimeUsage() << ", resources "
                  << d_rm->getResourceUsage() << endl;
 
-  Result r = Result(result, d_state.getFilename());
+  Result r = Result(result, filename);
 
   if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
       && r.asSatisfiabilityResult().isSat() == Result::UNSAT)

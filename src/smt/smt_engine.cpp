@@ -983,7 +983,10 @@ Result SmtEngine::checkSat(const Expr& assumption, bool inUnsatCore)
 {
   Dump("benchmark") << CheckSatCommand(assumption);
   std::vector<Node> assump;
-  assump.push_back(Node::fromExpr(assumption));
+  if (!assumption.isNull())
+  {
+    assump.push_back(Node::fromExpr(assumption));
+  }
   return checkSatInternal(assump, inUnsatCore, false);
 }
 
