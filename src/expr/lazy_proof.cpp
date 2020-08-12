@@ -133,8 +133,7 @@ void LazyCDProof::addLazyStep(Node expected,
     if (idNull == PfRule::ASSUME)
     {
       Unreachable() << "LazyCDProof::addLazyStep: " << identify()
-                          << ": failed to provide proof generator for "
-                          << expected;
+                    << ": failed to provide proof generator for " << expected;
       return;
     }
     Trace("lazy-cdproof") << "LazyCDProof::addLazyStep: " << expected

@@ -126,11 +126,11 @@ void pfgEnsureClosed(Node proven,
  * @param reqGen Whether we consider a null generator to be a failure.
  */
 void pfgEnsureClosedWrt(Node proven,
-                     ProofGenerator* pg,
-                     const std::vector<Node>& assumps,
-                     const char* c,
-                     const char* ctx,
-                     bool reqGen = true);
+                        ProofGenerator* pg,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx,
+                        bool reqGen = true);
 
 }  // namespace CVC4
 

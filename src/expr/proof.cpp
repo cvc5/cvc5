@@ -111,12 +111,13 @@ bool CDProof::addStep(Node expected,
                       bool ensureChildren,
                       CDPOverwrite opolicy)
 {
-  Trace("cdproof") << "CDProof::addStep: " << identify() << " : " << id << " " << expected
-                   << ", ensureChildren = " << ensureChildren
+  Trace("cdproof") << "CDProof::addStep: " << identify() << " : " << id << " "
+                   << expected << ", ensureChildren = " << ensureChildren
                    << ", overwrite policy = " << opolicy << std::endl;
-  Trace("cdproof-debug") << "CDProof::addStep: " << identify() << " : children: " << children
-                         << "\n";
-  Trace("cdproof-debug") << "CDProof::addStep: " << identify() << " : args: " << args << "\n";
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : children: " << children << "\n";
+  Trace("cdproof-debug") << "CDProof::addStep: " << identify()
+                         << " : args: " << args << "\n";
   // We must always provide expected to this method
   Assert(!expected.isNull());
 
