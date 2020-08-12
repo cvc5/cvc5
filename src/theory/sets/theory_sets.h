@@ -75,8 +75,6 @@ class TheorySets : public Theory
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify
   {
-    TheorySetsPrivate& d_theory;
-
    public:
     NotifyClass(TheorySetsPrivate& theory) : d_theory(theory) {}
     bool eqNotifyTriggerEquality(TNode equality, bool value) override;
@@ -90,6 +88,9 @@ class TheorySets : public Theory
     void eqNotifyPreMerge(TNode t1, TNode t2) override;
     void eqNotifyPostMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
+    
+   private:
+    TheorySetsPrivate& d_theory;
   };
   /** Instance of the above class */
   NotifyClass d_notify;  
