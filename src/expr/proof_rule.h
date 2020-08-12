@@ -851,6 +851,12 @@ const char* toString(PfRule id);
  */
 std::ostream& operator<<(std::ostream& out, PfRule id);
 
+/** Hash function for proof rules */
+struct PfRuleHashFunction
+{
+  size_t operator()(PfRule id) const;
+}; /* struct PfRuleHashFunction */
+
 }  // namespace CVC4
 
 #endif /* CVC4__EXPR__PROOF_RULE_H */
