@@ -213,7 +213,7 @@ class EqProof
    * transitivity step
    * @param p a pointer to a CDProof to store the conversion of this EqProof
    * @return True if the EqProof transitivity step is the above case,
-   * symbolizing that the ProofNode justifying the conclusion has already been
+   * indicating that the ProofNode justifying the conclusion has already been
    * produced.
    */
   bool expandTransitivityForTheoryDisequalities(Node conclusion,
