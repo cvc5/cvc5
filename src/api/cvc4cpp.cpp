@@ -3451,27 +3451,10 @@ Term Solver::mkPi() const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkReal(const char* s) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
-
-  return mkRealFromStrHelper(std::string(s));
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Term Solver::mkReal(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkRealFromStrHelper(s);
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkReal(int32_t val) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(val));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -3482,42 +3465,7 @@ Term Solver::mkReal(int64_t val) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkReal(uint32_t val) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(val));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkReal(uint64_t val) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(val));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkReal(int32_t num, int32_t den) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Term Solver::mkReal(int64_t num, int64_t den) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkReal(uint32_t num, uint32_t den) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkReal(uint64_t num, uint64_t den) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkValHelper<CVC4::Rational>(CVC4::Rational(num, den));
@@ -3575,13 +3523,6 @@ Term Solver::mkSepNil(Sort sort) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkString(const char* s, bool useEscSequences) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  return mkValHelper<CVC4::String>(CVC4::String(s, useEscSequences));
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3607,14 +3548,6 @@ Term Solver::mkChar(const std::string& s) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkCharFromStrHelper(s);
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkChar(const char* s) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
-  return mkCharFromStrHelper(std::string(s));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
@@ -3654,16 +3587,6 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkBitVector(const char* s, uint32_t base) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
-
-  return mkBVFromStrHelper(std::string(s), base);
-
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
 Term Solver::mkBitVector(const std::string& s, uint32_t base) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3671,15 +3594,9 @@ Term Solver::mkBitVector(const std::string& s, uint32_t base) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const
-{
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
-  CVC4_API_ARG_CHECK_NOT_NULLPTR(s);
-  return mkBVFromStrHelper(size, s, base);
-  CVC4_API_SOLVER_TRY_CATCH_END;
-}
-
-Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
+Term Solver::mkBitVector(uint32_t size,
+                         const std::string& s,
+                         uint32_t base) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkBVFromStrHelper(size, s, base);

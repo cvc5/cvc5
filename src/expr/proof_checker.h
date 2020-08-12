@@ -69,6 +69,10 @@ class ProofRuleChecker
   static bool getUInt32(TNode n, uint32_t& i);
   /** get a Boolean from a node, return false if we fail */
   static bool getBool(TNode n, bool& b);
+  /** get a Kind from a node, return false if we fail */
+  static bool getKind(TNode n, Kind& k);
+  /** Make a Kind into a node */
+  static Node mkKindNode(Kind k);
 
   /** Register all rules owned by this rule checker into pc. */
   virtual void registerTo(ProofChecker* pc) {}
@@ -106,7 +110,7 @@ class ProofCheckerStatistics
 class ProofChecker
 {
  public:
-  ProofChecker() {}
+  ProofChecker(uint32_t pclevel = 0) : d_pclevel(pclevel) {}
   ~ProofChecker() {}
   /**
    * Return the formula that is proven by proof node pn, or null if pn is not
@@ -156,14 +160,39 @@ class ProofChecker
                   const char* traceTag);
   /** Indicate that psc is the checker for proof rule id */
   void registerChecker(PfRule id, ProofRuleChecker* psc);
+  /**
+   * Indicate that id is a trusted rule with the given pedantic level, e.g.:
+   *  0: (mandatory) always a failure to use the given id
+   *  1: (major) failure on all (non-zero) pedantic levels
+   * 10: (minor) failure only on pedantic levels >= 10.
+   */
+  void registerTrustedChecker(PfRule id,
+                              ProofRuleChecker* psc,
+                              uint32_t plevel = 10);
   /** get checker for */
   ProofRuleChecker* getCheckerFor(PfRule id);
+
+  /**
+   * Get the pedantic level for id if it has been assigned a pedantic
+   * level via registerTrustedChecker above, or zero otherwise.
+   */
+  uint32_t getPedanticLevel(PfRule id) const;
+
+  /**
+   * Is pedantic failure? If so, we return true and write a debug message on the
+   * output stream out.
+   */
+  bool isPedanticFailure(PfRule id, std::ostream& out) const;
 
  private:
   /** statistics class */
   ProofCheckerStatistics d_stats;
-  /** Maps proof steps to their checker */
+  /** Maps proof rules to their checker */
   std::map<PfRule, ProofRuleChecker*> d_checker;
+  /** Maps proof trusted rules to their pedantic level */
+  std::map<PfRule, uint32_t> d_plevel;
+  /** The pedantic level of this checker */
+  uint32_t d_pclevel;
   /**
    * Check internal. This is used by check and checkDebug above. It writes
    * checking errors on out. We treat trusted checkers (nullptr in the range
