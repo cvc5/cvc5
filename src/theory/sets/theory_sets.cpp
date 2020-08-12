@@ -203,7 +203,8 @@ eq::EqualityEngine* TheorySets::getEqualityEngine()
   return &d_equalityEngine;
 }
 
-void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq) {
+void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq)
+{
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
 
