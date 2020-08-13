@@ -84,13 +84,13 @@ class ExtfSolver
 
  public:
   ExtfSolver(SolverState& s,
-                       InferenceManager& im,
-                       TermRegistry& tr,
-                       StringsRewriter& rewriter,
-                       BaseSolver& bs,
-                       CoreSolver& cs,
-                       ExtTheory& et,
-                       SequencesStatistics& statistics);
+             InferenceManager& im,
+             TermRegistry& tr,
+             StringsRewriter& rewriter,
+             BaseSolver& bs,
+             CoreSolver& cs,
+             ExtTheory& et,
+             SequencesStatistics& statistics);
   ~ExtfSolver();
 
   /**

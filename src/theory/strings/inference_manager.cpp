@@ -474,7 +474,7 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   eq::EqualityEngine* ee = d_state.getEqualityEngine();
   for (const Node& apc : aconj)
   {
-    if (std::find(noExplain.begin(), noExplain.end(), apc)!=noExplain.end())
+    if (std::find(noExplain.begin(), noExplain.end(), apc) != noExplain.end())
     {
       if (std::find(antec_exp.begin(), antec_exp.end(), apc) == antec_exp.end())
       {
