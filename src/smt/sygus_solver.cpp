@@ -21,6 +21,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/smt_engine_subsolver.h"
 #include "smt/smt_solver.h"
+#include "expr/dtype.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -33,6 +34,128 @@ SygusSolver::SygusSolver(SmtEngine& smt, SmtSolver& sms, context::UserContext* u
 
 SygusSolver::~SygusSolver() {}
 
+void SygusSolver::declareSygusVar(const std::string& id,
+                                        Node var,
+                                        TypeNode type)
+{
+  Trace("smt") << "SygusSolver::declareSygusVar: " << id << " " << var << " " << type << "\n";
+  Assert(var.getType()==type);
+  d_sygusVars.push_back(var);
+  // don't need to set that the conjecture is stale
+}
+
+void SygusSolver::declareSynthFun(const std::string& id,
+                                Node fn,
+                                TypeNode sygusType,
+                                bool isInv,
+                                const std::vector<Node>& vars)
+{
+  Trace("smt") << "SygusSolver::declareSynthFun: " << id << "\n";
+  NodeManager * nm = NodeManager::currentNM();  
+  TheoryEngine* te = d_smtSolver.getTheoryEngine();
+  Assert(te != nullptr);
+  d_sygusFunSymbols.push_back(fn);
+  if (!vars.empty())
+  {
+    Node bvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    std::vector<Node> attr_val_bvl;
+    attr_val_bvl.push_back(bvl);
+    te->setUserAttribute("sygus-synth-fun-var-list", fn, attr_val_bvl, "");
+  }
+  // whether sygus type encodes syntax restrictions
+  if (sygusType.isDatatype() && sygusType.getDType().isSygus())
+  {
+    Node sym = nm->mkBoundVar("sfproxy", sygusType);
+    std::vector<Node> attr_value;
+    attr_value.push_back(sym);
+    te->setUserAttribute("sygus-synth-grammar", fn, attr_value, "");
+  }
+
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
+}
+
+void SygusSolver::assertSygusConstraint(Node constraint)
+{
+  Trace("smt") << "SygusSolver::assertSygusConstrant: " << constraint << "\n";
+  d_sygusConstraints.push_back(constraint);
+
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
+}
+
+void SygusSolver::assertSygusInvConstraint(Node inv,
+                                         Node pre,
+                                         Node trans,
+                                         Node post)
+{
+  Trace("smt") << "SygusSolver::assertSygusInvConstrant: " << inv << " " << pre << " " << trans << " " << post << "\n";
+  // build invariant constraint
+
+  // get variables (regular and their respective primed versions)
+  std::vector<Node> terms;
+  std::vector<Node> vars;
+  std::vector<Node> primed_vars;
+  terms.push_back(inv);
+  terms.push_back(pre);
+  terms.push_back(trans);
+  terms.push_back(post);
+  // variables are built based on the invariant type
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<TypeNode> argTypes = inv.getType().getArgTypes();
+  for (const TypeNode& tn : argTypes)
+  {
+    vars.push_back(nm->mkBoundVar(tn));
+    d_sygusVars.push_back(vars.back());
+    std::stringstream ss;
+    ss << vars.back() << "'";
+    primed_vars.push_back(nm->mkBoundVar(ss.str(), tn));
+    d_sygusVars.push_back(primed_vars.back());
+  }
+
+  // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
+  for (unsigned i = 0; i < 4; ++i)
+  {
+    Node op = terms[i];
+    Trace("smt-debug") << "Make inv-constraint term #" << i << " : " << op
+                       << " with type " << op.getType() << "...\n";
+    std::vector<Node> children;
+    children.push_back(op);
+    // transition relation applied over both variable lists
+    if (i == 2)
+    {
+      children.insert(children.end(), vars.begin(), vars.end());
+      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
+    }
+    else
+    {
+      children.insert(children.end(), vars.begin(), vars.end());
+    }
+    terms[i] = nm->mkNode(APPLY_UF, children);
+    // make application of Inv on primed variables
+    if (i == 0)
+    {
+      children.clear();
+      children.push_back(op);
+      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
+      terms.push_back(nm->mkNode(APPLY_UF, children));
+    }
+  }
+  // make constraints
+  std::vector<Node> conj;
+  conj.push_back(nm->mkNode(IMPLIES, terms[1], terms[0]));
+  Node term0_and_2 = nm->mkNode(AND, terms[0], terms[2]);
+  conj.push_back(nm->mkNode(IMPLIES, term0_and_2, terms[4]));
+  conj.push_back(nm->mkNode(IMPLIES, terms[0], terms[3]));
+  Node constraint = nm->mkNode(AND, conj);
+
+  d_sygusConstraints.push_back(constraint);
+
+  // sygus conjecture is now stale
+  setSygusConjectureStale();
+}
+
+
 Result SygusSolver::checkSynth(Assertions& as)
 {
   if (options::incrementalSolving())
@@ -41,6 +164,7 @@ Result SygusSolver::checkSynth(Assertions& as)
     throw ModalException(
         "Cannot make check-synth commands when incremental solving is enabled");
   }
+  Trace("smt") << "SygusSolver::checkSynth" << std::endl;
   std::vector<Node> query;
   if (d_sygusConjectureStale)
   {
@@ -103,6 +227,7 @@ Result SygusSolver::checkSynth(Assertions& as)
 
 bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
+  Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   std::map<Node, std::map<Node, Node>> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   // fail if the theory engine does not have synthesis solutions
@@ -173,14 +298,14 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
   // auxiliary assertions
   std::vector<Node> auxAssertions;
-  for (const Node& assertion : *alist)
+  for (Node assertion : *alist)
   {
-    Notice() << "SmtEngine::checkSynthSolution(): checking assertion "
+    Notice() << "SygusSolver::checkSynthSolution(): checking assertion "
              << assertion << std::endl;
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
     Node n = d_smt.expandDefinitions(assertion);
-    Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << std::endl;
+    Notice() << "SygusSolver::checkSynthSolution(): -- expands to " << n << std::endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
     {
@@ -193,7 +318,7 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     }
   }
   // check all conjectures
-  for (const Node& conj : conjs)
+  for (Node conj : conjs)
   {
     // Start new SMT engine to check solutions
     std::unique_ptr<SmtEngine> solChecker;
@@ -230,30 +355,30 @@ void SygusSolver::checkSynthSolution(Assertions& as)
       conjBody = conjBody.substitute(
           vars.begin(), vars.end(), skos.begin(), skos.end());
     }
-    Notice() << "SmtEngine::checkSynthSolution(): -- body substitutes to "
+    Notice() << "SygusSolver::checkSynthSolution(): -- body substitutes to "
              << conjBody << std::endl;
     Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
                              << "\n";
     solChecker->assertFormula(conjBody);
     // Assert all auxiliary assertions. This may include recursive function
     // definitions that were added as assertions to the sygus problem.
-    for (const Node& a : auxAssertions)
+    for (Node a : auxAssertions)
     {
       solChecker->assertFormula(a);
     }
     Result r = solChecker->checkSat();
-    Notice() << "SmtEngine::checkSynthSolution(): result is " << r << std::endl;
+    Notice() << "SygusSolver::checkSynthSolution(): result is " << r << std::endl;
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
     {
-      InternalError() << "SmtEngine::checkSynthSolution(): could not check "
+      InternalError() << "SygusSolver::checkSynthSolution(): could not check "
                          "solution, result "
                          "unknown.";
     }
     else if (r.asSatisfiabilityResult().isSat())
     {
       InternalError()
-          << "SmtEngine::checkSynthSolution(): produced solution leads to "
+          << "SygusSolver::checkSynthSolution(): produced solution leads to "
              "satisfiable negated conjecture.";
     }
   }
