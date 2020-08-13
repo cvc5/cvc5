@@ -1350,8 +1350,11 @@ void SmtEngine::declareSynthFun(const std::string& id,
                 : TypeNode::fromType(func.getType()),
             isInv,
             TypeNode::fromType(sygusType));
-
-    Dump("raw-benchmark") << ss.str();
+    
+    // must print it on the standard output channel since it is not possible
+    // to print anything except for commands with Dump.
+    std::ostream& out = *d_options.getOut();
+    out << ss.str() << std::endl;
   }
 
   // sygus conjecture is now stale
