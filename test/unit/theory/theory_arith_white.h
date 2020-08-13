@@ -114,10 +114,10 @@ public:
     // the following call, which constructs its underlying theory engine.
     d_smt->finishInit();
 
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH]->setOutputChannel(
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_ARITH]->setOutputChannel(
         d_outputChannel);
     d_arith = static_cast<TheoryArith*>(
-        d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH]);
+        d_smt->getTheoryEngine()->d_theoryTable[THEORY_ARITH]);
 
     preregistered = new std::set<Node>();
 
