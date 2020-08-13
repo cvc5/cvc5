@@ -115,7 +115,6 @@ class AbductionSolver;
 class DefinedFunction;
 
 struct SmtEngineStatistics;
-class SmtEnginePrivate;
 class SmtScope;
 class ProcessAssertions;
 
@@ -147,7 +146,6 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
-  friend class ::CVC4::smt::SmtEnginePrivate;
   friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
@@ -1158,11 +1156,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::map<std::string, Integer> d_commandVerbosity;
 
-  /**
-   * A private utility class to SmtEngine.
-   */
-  std::unique_ptr<smt::SmtEnginePrivate> d_private;
-
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
   std::unique_ptr<smt::SmtEngineStatistics> d_stats;
@@ -1189,23 +1182,6 @@ class CVC4_PUBLIC SmtEngine
    * or another SmtEngine is created.
    */
   std::unique_ptr<smt::SmtScope> d_scope;
-  /*---------------------------- sygus commands  ---------------------------*/
-
-  /**
-   * Set sygus conjecture is stale. The sygus conjecture is stale if either:
-   * (1) no sygus conjecture has been added as an assertion to this SMT engine,
-   * (2) there is a sygus conjecture that has been added as an assertion
-   * internally to this SMT engine, and there have been further calls such that
-   * the asserted conjecture is no longer up-to-date.
-   *
-   * This method should be called when new sygus constraints are asserted and
-   * when functions-to-synthesize are declared. This function pops a user
-   * context if we are in incremental mode and the sygus conjecture was
-   * previously not stale.
-   */
-  void setSygusConjectureStale();
-
-  /*------------------------- end of sygus commands ------------------------*/
 }; /* class SmtEngine */
 
 /* -------------------------------------------------------------------------- */

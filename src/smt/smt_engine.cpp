@@ -141,56 +141,6 @@ extern const char* const plf_signatures;
 
 namespace smt {
 
-/**
- * This is an inelegant solution, but for the present, it will work.
- * The point of this is to separate the public and private portions of
- * the SmtEngine class, so that smt_engine.h doesn't
- * include "expr/node.h", which is a private CVC4 header (and can lead
- * to linking errors due to the improper inlining of non-visible symbols
- * into user code!).
- *
- * The "real" solution (that which is usually implemented) is to move
- * ALL the implementation to SmtEnginePrivate and maintain a
- * heap-allocated instance of it in SmtEngine.  SmtEngine (the public
- * one) becomes an "interface shell" which simply acts as a forwarder
- * of method calls.
- */
-class SmtEnginePrivate
-{
- public:
-
-  /* Finishes the initialization of the private portion of SMTEngine. */
-  void finishInit();
-
-  /*------------------- sygus utils ------------------*/
-  /**
-   * sygus variables declared (from "declare-var" and "declare-fun" commands)
-   *
-   * The SyGuS semantics for declared variables is that they are implicitly
-   * universally quantified in the constraints.
-   */
-  std::vector<Node> d_sygusVars;
-  /** sygus constraints */
-  std::vector<Node> d_sygusConstraints;
-  /** functions-to-synthesize */
-  std::vector<Node> d_sygusFunSymbols;
-  /**
-   * Whether we need to reconstruct the sygus conjecture.
-   */
-  CDO<bool> d_sygusConjectureStale;
-  /*------------------- end of sygus utils ------------------*/
-
- public:
-  SmtEnginePrivate(SmtEngine& smt)
-      : d_sygusConjectureStale(smt.getUserContext(), true)
-  {
-  }
-
-  ~SmtEnginePrivate()
-  {
-  }
-};/* class SmtEnginePrivate */
-
 }/* namespace CVC4::smt */
 
 SmtEngine::SmtEngine(ExprManager* em, Options* optr)
@@ -214,7 +164,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_logic(),
       d_originalOptions(),
       d_isInternalSubsolver(false),
-      d_private(nullptr),
       d_statisticsRegistry(nullptr),
       d_stats(nullptr),
       d_resourceManager(nullptr),
@@ -247,7 +196,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_optm.reset(new smt::OptionsManager(&d_options, d_resourceManager.get()));
   d_pp.reset(
       new smt::Preprocessor(*this, getUserContext(), *d_absValues.get()));
-  d_private.reset(new smt::SmtEnginePrivate(*this));
   // listen to node manager events
   d_nodeManager->subscribeEvents(d_snmListener.get());
   // listen to resource out
