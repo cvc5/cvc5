@@ -24,24 +24,24 @@
 #include "smt/assertions.h"
 
 namespace CVC4 {
-
-class SmtEngine;
-class TheoryEngine;
-
 namespace smt {
 
+class Preprocessor;
 class SmtSolver;
 
 /**
  * A solver for sygus queries.
  *
  * This class is responsible for responding to check-synth commands. It calls
- * check satisfiability.
+ * check satisfiability using an underlying SmtSolver object.
+ * 
+ * It also maintains a reference to a preprocessor for implementing
+ * checkSynthSolution.
  */
 class SygusSolver
 {
  public:
-  SygusSolver(SmtEngine& smt, SmtSolver& sms, context::UserContext* u);
+  SygusSolver(SmtSolver& sms, Preprocessor& pp, context::UserContext* u);
   ~SygusSolver();
 
   /**
@@ -151,10 +151,10 @@ class SygusSolver
    * previously not stale.
    */
   bool setSygusConjectureStale();
-  /** The parent SMT engine */
-  SmtEngine& d_smt;
-  /** The SMT solver */
+  /** The SMT solver, which is used during checkSynth. */
   SmtSolver& d_smtSolver;
+  /** The preprocessor, used for checkSynthSolution. */
+  Preprocessor& d_pp;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
    *

@@ -156,7 +156,6 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::theory::TheoryModel;
   friend class ::CVC4::theory::Rewriter;
-  friend class ::CVC4::smt::SygusSolver;
 
   /* .......................................................................  */
  public:
@@ -1131,6 +1130,9 @@ class CVC4_PUBLIC SmtEngine
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 
+  /** The solver for sygus queries */
+  std::unique_ptr<smt::SygusSolver> d_sygusSolver;
+  
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
   /**

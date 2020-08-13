@@ -119,6 +119,7 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
+#include "smt/sygus_solver.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -206,6 +207,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_proofManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
+      d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
       d_assignments(nullptr),
       d_defineCommands(),
@@ -255,6 +257,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   // make the SMT solver
   d_smtSolver.reset(
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
+  // make the SyGuS solver
+  d_sygusSolver.reset(new SygusSolver(*d_smtSolver, *d_pp, getUserContext()));
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are

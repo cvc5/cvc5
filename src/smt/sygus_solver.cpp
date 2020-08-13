@@ -15,8 +15,7 @@
 #include "smt/sygus_solver.h"
 
 #include "options/smt_options.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
+#include "smt/preprocessor.h"
 #include "theory/theory_engine.h"
 #include "options/quantifiers_options.h"
 #include "theory/smt_engine_subsolver.h"
@@ -29,7 +28,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-SygusSolver::SygusSolver(SmtEngine& smt, SmtSolver& sms, context::UserContext* u) : d_smt(smt), d_smtSolver(sms),
+SygusSolver::SygusSolver(SmtSolver& sms, Preprocessor& pp, context::UserContext* u) : d_smtSolver(sms), d_pp(pp),
         d_sygusConjectureStale(u, true) {}
 
 SygusSolver::~SygusSolver() {}
@@ -298,13 +297,15 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
   // auxiliary assertions
   std::vector<Node> auxAssertions;
+  // expand definitions cache
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
   for (Node assertion : *alist)
   {
     Notice() << "SygusSolver::checkSynthSolution(): checking assertion "
              << assertion << std::endl;
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    Node n = d_smt.expandDefinitions(assertion);
+    Node n = d_pp.expandDefinitions(assertion, cache);
     Notice() << "SygusSolver::checkSynthSolution(): -- expands to " << n << std::endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
