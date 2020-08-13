@@ -18,6 +18,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_engine.h"
+#include "options/quantifiers_options.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -123,7 +124,7 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
 }
 
 
-void SygusSolver::checkSynthSolution()
+void SygusSolver::checkSynthSolution(Assertions& as)
 {
   NodeManager* nm = NodeManager::currentNM();
   Notice() << "SygusSolver::checkSynthSolution(): checking synthesis solution" << std::endl;
@@ -162,7 +163,7 @@ void SygusSolver::checkSynthSolution()
   }
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
   /* Start new SMT engine to check solutions */
-  SmtEngine solChecker(d_smt.getNodeManager(), &d_smt.getOptions());
+  SmtEngine solChecker(d_smt.getExprManager(), &d_smt.getOptions());
   solChecker.setIsInternalSubsolver();
   solChecker.setLogic(d_smt.getLogicInfo());
   solChecker.getOptions().set(options::checkSynthSol, false);

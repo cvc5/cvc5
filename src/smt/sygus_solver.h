@@ -21,6 +21,7 @@
 #include "expr/type_node.h"
 #include "context/cdo.h"
 #include "util/result.h"
+#include "smt/assertions.h"
 
 namespace CVC4 {
 
@@ -40,6 +41,68 @@ class SygusSolver
  public:
   SygusSolver(SmtEngine& smt, TheoryEngine& te, context::UserContext* u);
   ~SygusSolver();
+
+  /**
+   * Add variable declaration.
+   *
+   * Declared SyGuS variables may be used in SyGuS constraints, in which they
+   * are assumed to be universally quantified.
+   */
+  void declareSygusVar(const std::string& id, Node var, Type type);
+
+  /**
+   * Add a function variable declaration.
+   *
+   * Is SyGuS semantics declared functions are treated in the same manner as
+   * declared variables, i.e. as universally quantified (function) variables
+   * which can occur in the SyGuS constraints that compose the conjecture to
+   * which a function is being synthesized.
+   */
+  void declareSygusFunctionVar(const std::string& id, Node var, Type type);
+
+  /**
+   * Add a function-to-synthesize declaration.
+   *
+   * The given type may not correspond to the actual function type but to a
+   * datatype encoding the syntax restrictions for the
+   * function-to-synthesize. In this case this information is stored to be used
+   * during solving.
+   *
+   * vars contains the arguments of the function-to-synthesize. These variables
+   * are also stored to be used during solving.
+   *
+   * isInv determines whether the function-to-synthesize is actually an
+   * invariant. This information is necessary if we are dumping a command
+   * corresponding to this declaration, so that it can be properly printed.
+   */
+  void declareSynthFun(const std::string& id,
+                       Node func,
+                       Type type,
+                       bool isInv,
+                       const std::vector<Node>& vars);
+
+  /** Add a regular sygus constraint.*/
+  void assertSygusConstraint(Node constraint);
+
+  /**
+   * Add an invariant constraint.
+   *
+   * Invariant constraints are not explicitly declared: they are given in terms
+   * of the invariant-to-synthesize, the pre condition, transition relation and
+   * post condition. The actual constraint is built based on the inputs of these
+   * place holder predicates :
+   *
+   * PRE(x) -> INV(x)
+   * INV() ^ TRANS(x, x') -> INV(x')
+   * INV(x) -> POST(x)
+   *
+   * The regular and primed variables are retrieved from the declaration of the
+   * invariant-to-synthesize.
+   */
+  void assertSygusInvConstraint(Node inv,
+                                Node pre,
+                                Node trans,
+                                Node post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
@@ -84,7 +147,8 @@ class SygusSolver
    * synthesized solutions, which is a quantifier-free formula, is
    * unsatisfiable. If not, then the found solutions are wrong.
    */
-  void checkSynthSolution();
+  void checkSynthSolution(Assertions& as);
+ private:
   /**
    * Set sygus conjecture is stale. The sygus conjecture is stale if either:
    * (1) no sygus conjecture has been added as an assertion to this SMT engine,
@@ -98,7 +162,6 @@ class SygusSolver
    * previously not stale.
    */
   bool setSygusConjectureStale();
- private:
   /** The parent SMT engine */
   SmtEngine& d_smt;
   /** The theory engine */
