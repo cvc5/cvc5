@@ -92,7 +92,7 @@ namespace eq {
  * (B.2) Set the equality engine of the theory (Theory::setEqualityEngine),
  * which we refer to as the "official equality engine" of this Theory. The
  * equality engine passed to the theory must respect the contract(s) specified
- * by the equality engine setup informatio (EeSetupInfo) returned in the
+ * by the equality engine setup information (EeSetupInfo) returned in the
  * previous step.
  * (B.3) Set the other required utilities including setQuantifiersEngine and
  * setDecisionManager.
