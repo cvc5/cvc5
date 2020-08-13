@@ -254,10 +254,10 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   d_stats.reset(new SmtEngineStatistics());
   // make the SMT solver
   d_smtSolver.reset(new SmtSolver(*this,
-                                  *d_state.get(),
+                                  *d_state,
                                   d_resourceManager.get(),
-                                  *d_pp.get(),
-                                  *d_stats.get()));
+                                  *d_pp,
+                                  *d_stats));
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -962,9 +962,8 @@ void SmtEngine::notifyPushPre() { d_smtSolver->processAssertions(*d_asserts); }
 void SmtEngine::notifyPushPost()
 {
   TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-  PropEngine* pe = getPropEngine();
-  Assert(pe != nullptr);
-  pe->push();
+  Assert(getPropEngine() != nullptr);
+  getPropEngine()->push();
 }
 
 void SmtEngine::notifyPopPre()
@@ -2354,7 +2353,7 @@ void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   Assert(te != nullptr);
   std::vector<Node> qs_n;
   te->getInstantiatedQuantifiedFormulas(qs_n);
-  for (unsigned i = 0; i < qs_n.size(); i++)
+  for (std::size_t i = 0, n = qs_n.size(); i < n; i++)
   {
     qs.push_back(qs_n[i].toExpr());
   }
@@ -2366,7 +2365,7 @@ void SmtEngine::getInstantiations( Expr q, std::vector< Expr >& insts ) {
   Assert(te != nullptr);
   std::vector<Node> insts_n;
   te->getInstantiations(Node::fromExpr(q), insts_n);
-  for (unsigned i = 0; i < insts_n.size(); i++)
+  for (std::size_t i = 0, n = insts_n.size(); i < n; i++)
   {
     insts.push_back(insts_n[i].toExpr());
   }
@@ -2379,10 +2378,10 @@ void SmtEngine::getInstantiationTermVectors( Expr q, std::vector< std::vector< E
   Assert(te != nullptr);
   std::vector<std::vector<Node>> tvecs_n;
   te->getInstantiationTermVectors(Node::fromExpr(q), tvecs_n);
-  for (unsigned i = 0; i < tvecs_n.size(); i++)
+  for (std::size_t i = 0, n = tvecs_n.size(); i < n; i++)
   {
     std::vector<Expr> tvec;
-    for (unsigned j = 0; j < tvecs_n[i].size(); j++)
+    for (std::size_t j = 0, m = tvecs_n[i].size(); j < m; j++)
     {
       tvec.push_back(tvecs_n[i][j].toExpr());
     }

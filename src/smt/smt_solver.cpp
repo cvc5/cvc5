@@ -65,8 +65,6 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
 #endif
   }
 
-  Trace("smt-debug") << "Making decision engine..." << std::endl;
-
   Trace("smt-debug") << "Making prop engine..." << std::endl;
   /* force destruction of referenced PropEngine to enforce that statistics
    * are unregistered by the obsolete PropEngine object before registered
@@ -95,8 +93,14 @@ void SmtSolver::resetAssertions()
 
 void SmtSolver::interrupt()
 {
-  d_propEngine->interrupt();
-  d_theoryEngine->interrupt();
+  if (d_propEngine != nullptr)
+  {
+    d_propEngine->interrupt();
+  }
+  if (d_theoryEngine != nullptr)
+  {
+    d_theoryEngine->interrupt();
+  }
 }
 
 void SmtSolver::shutdown()
