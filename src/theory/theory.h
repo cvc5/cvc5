@@ -81,7 +81,7 @@ namespace eq {
  * NOTE: A Theory has a special way of being initialized. The owner of a Theory
  * is either:
  *
- * (A) Using Theory as a standalone object, not associate with a TheoryEngine.
+ * (A) Using Theory as a standalone object, not associated with a TheoryEngine.
  * In this case, simply call the public initialization method
  * (Theory::finishInitStandalone).
  *
@@ -94,7 +94,9 @@ namespace eq {
  * equality engine passed to the theory must respect the contract(s) specified
  * by the equality engine setup informatio (EeSetupInfo) returned in the
  * previous step.
- * (B.3) Call the private initialization method (Theory::finishInit).
+ * (B.3) Set the other required utilities including setQuantifiersEngine and
+ * setDecisionManager.
+ * (B.4) Call the private initialization method (Theory::finishInit).
  *
  * Initialization of the second form happens during TheoryEngine::finishInit,
  * after the quantifiers engine and model objects have been set up.
@@ -298,6 +300,10 @@ class Theory {
    * TheoryEngine only.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
+  /** Called to set the quantifiers engine. */
+  void setQuantifiersEngine(QuantifiersEngine* qe);
+  /** Called to set the decision manager. */
+  void setDecisionManager(DecisionManager* dm);
   /**
    * Finish theory initialization.  At this point, options and the logic
    * setting are final, the master equality engine and quantifiers
@@ -556,11 +562,6 @@ class Theory {
    * Get the official equality engine of this theory. 
    */
   eq::EqualityEngine* getEqualityEngine();
-
-  /** Called to set the quantifiers engine. */
-  void setQuantifiersEngine(QuantifiersEngine* qe);
-  /** Called to set the decision manager. */
-  void setDecisionManager(DecisionManager* dm);
 
   /** Setup an ExtTheory module for this Theory. Can only be called once. */
   void setupExtTheory();

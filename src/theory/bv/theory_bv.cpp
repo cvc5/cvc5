@@ -130,10 +130,8 @@ void TheoryBV::finishInit()
 {
   // these kinds are semi-evaluated in getModelValue (applications of this
   // kind are treated as variables)
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
-  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
+  d_valuation.setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  d_valuation.setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)

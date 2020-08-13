@@ -135,12 +135,6 @@ void TheoryEngine::finishInit() {
   {
     // initialize the quantifiers engine
     d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
-
-    for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-      if (d_theoryTable[theoryId]) {
-        d_theoryTable[theoryId]->setQuantifiersEngine(d_quantEngine);
-      }
-    }
   }
 
   // Initialize the equality engine architecture for all theories, which
@@ -148,20 +142,6 @@ void TheoryEngine::finishInit() {
   d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
   d_eeDistributed->finishInit();
   
-  for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-    Theory * t = d_theoryTable[theoryId];
-    if (t==nullptr)
-    {
-      // theory is inactive, skip
-      continue;
-    }
-    const EeTheoryInfo * eeti = d_eeDistributed->getEeTheoryInfo(theoryId);
-    Assert (eeti!=nullptr);
-    // the theory's official equality engine is the one specified by the manager
-    eq::EqualityEngine * ee = eeti->d_allocEe.get();
-    t->setEqualityEngine(ee);
-  }
-
   // Initialize the model and model builder.
   if (d_logicInfo.isQuantified())
   {
@@ -181,12 +161,22 @@ void TheoryEngine::finishInit() {
 
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-    if (d_theoryTable[theoryId]) {
-      // set the decision manager for the theory
-      d_theoryTable[theoryId]->setDecisionManager(d_decManager.get());
-      // finish initializing the theory
-      d_theoryTable[theoryId]->finishInit();
+    Theory * t = d_theoryTable[theoryId];
+    if (t==nullptr) {
+      continue;
     }
+    // setup the pointers to the utilities
+    const EeTheoryInfo * eeti = d_eeDistributed->getEeTheoryInfo(theoryId);
+    Assert (eeti!=nullptr);
+    // the theory's official equality engine is the one specified by the
+    // equality engine manager
+    t->setEqualityEngine(eeti->d_usedEe);
+    // set the quantifiers engine
+    t->setQuantifiersEngine(d_quantEngine);
+    // set the decision manager for the theory
+    t->setDecisionManager(d_decManager.get());
+    // finish initializing the theory
+    t->finishInit();
   }
 }
 

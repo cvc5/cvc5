@@ -61,6 +61,7 @@ void EqEngineManagerDistributed::finishInit()
     }
     // allocate the equality engine
     eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
+    eet.d_usedEe = eet.d_allocEe.get();
   }
 
   const LogicInfo& logicInfo = d_te.getLogicInfo();

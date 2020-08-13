@@ -1603,14 +1603,6 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
             bool cfinite = dt[ i ].isInterpretedFinite( tt );
             if( pcons[i] && (r==1)==cfinite ){
               neqc = utils::getInstCons(eqc, dt, i);
-              // for( unsigned j=0; j<neqc.getNumChildren(); j++ ){
-              //  //if( sels[i].find( j )==sels[i].end() &&
-              //  neqc[j].getType().isDatatype() ){ if(
-              //  !d_equalityEngine->hasTerm( neqc[j] ) &&
-              //  neqc[j].getType().isDatatype() ){
-              //    nodes.push_back( neqc[j] );
-              //  }
-              //}
               break;
             }
           }
