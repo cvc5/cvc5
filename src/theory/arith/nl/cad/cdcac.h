@@ -118,6 +118,19 @@ class CDCAC
 
  private:
   /**
+   * Check whether the current sample satisfies the integrality condition of the
+   * current variable. Returns true if the variable is not integral or the
+   * sample is integral.
+   */
+  bool checkIntegrality(std::size_t cur_variable, const poly::Value& value);
+  /**
+   * Constructs an interval that excludes the non-integral region around the
+   * current sample. Assumes !check_integrality(cur_variable, value).
+   */
+  CACInterval buildIntegralityInterval(std::size_t cur_variable,
+                                       const poly::Value& value);
+
+  /**
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.
    */

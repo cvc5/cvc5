@@ -58,6 +58,14 @@ class Smt2Printer : public CVC4::Printer {
    */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
+  /** Print synth fun command */
+  void toStreamCmdSynthFun(std::ostream& out,
+                           const std::string& sym,
+                           const std::vector<Node>& vars,
+                           TypeNode range,
+                           bool isInv,
+                           TypeNode sygusType) override;
+
  private:
   void toStream(
       std::ostream& out, TNode n, int toDepth, bool types, TypeNode nt) const;
