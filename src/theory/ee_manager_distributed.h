@@ -31,20 +31,29 @@ class TheoryEngine;
 
 namespace theory {
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e6f55a60a3a65c55c04cb8bd88d47d6207677a29
 /**
  * This is (theory-agnostic) information associated with the management of
  * an equality engine for a single theory. This information is maintained
  * by the manager class below.
  *
+<<<<<<< HEAD
  * Currently, this simply is the equality engine itself, for memory
  * management purposes.
+=======
+ * Currently, this simply is the equality engine itself, which is a unique_ptr
+ * for memory management purposes.
+>>>>>>> e6f55a60a3a65c55c04cb8bd88d47d6207677a29
  */
 struct EeTheoryInfo
 {
   /** The equality engine allocated by this theory (if it exists) */
   std::unique_ptr<eq::EqualityEngine> d_allocEe;
 };
+<<<<<<< HEAD
   
 /** Virtual base class for equality engine managers */
 class EqEngineManager
@@ -73,6 +82,38 @@ protected:
  * up the master equality engine, which is used as a special communication
  * channel to quantifiers engine (e.g. for ensuring quantifiers E-matching
  * is aware of terms from all theories).
+=======
+
+/** Virtual base class for equality engine managers */
+class EqEngineManager
+{
+ public:
+  virtual ~EqEngineManager() {}
+  /**
+   * Get the equality engine theory information for theory with the given id.
+   */
+  const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
+
+ protected:
+  /** Information related to the equality engine, per theory. */
+  std::map<TheoryId, EeTheoryInfo> d_einfo;
+};
+
+/**
+ * The (distributed) equality engine manager. This encapsulates an architecture
+ * in which all theories maintain their own copy of an equality engine.
+ *
+ * This class is not responsible for actually initializing equality engines in
+ * theories (since this class does not have access to the internals of Theory).
+ * Instead, it is only responsible for the construction of the equality
+ * engine objects themselves. TheoryEngine is responsible for querying this
+ * class during finishInit() to determine the equality engines to pass to each
+ * theories based on getEeTheoryInfo.
+ *
+ * This class is also responsible for setting up the master equality engine,
+ * which is used as a special communication channel to quantifiers engine (e.g.
+ * for ensuring quantifiers E-matching is aware of terms from all theories).
+>>>>>>> e6f55a60a3a65c55c04cb8bd88d47d6207677a29
  */
 class EqEngineManagerDistributed : public EqEngineManager
 {
@@ -92,8 +133,6 @@ class EqEngineManagerDistributed : public EqEngineManager
   eq::EqualityEngine* getMasterEqualityEngine();
 
  private:
-  /** Reference to the theory engine */
-  TheoryEngine& d_te;
   /** notify class for master equality engine */
   class MasterNotifyClass : public theory::eq::EqualityEngineNotify
   {
@@ -129,10 +168,14 @@ class EqEngineManagerDistributed : public EqEngineManager
     /** Pointer to quantifiers engine */
     QuantifiersEngine* d_quantEngine;
   };
+  /** Allocate equality engine that is context-dependent on c with info esi */
+  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
+                                             context::Context* c);
+  /** Reference to the theory engine */
+  TheoryEngine& d_te;
+  /** The master equality engine notify class */
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
-  /**
-   * The master equality engine.
-   */
+  /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
 };
 

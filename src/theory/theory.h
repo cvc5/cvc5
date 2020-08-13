@@ -324,7 +324,7 @@ class Theory {
    * TheoryEngine::finishInit, prior to calling finishInit for this theory.
    *
    * Additionally, if this method returns true, then this method is required to
-   * update the argument eni with instructions for initializing and setting up
+   * update the argument esi with instructions for initializing and setting up
    * notifications from its equality engine, which is commonly done with
    * a notifications class (eq::EqualityEngineNotify).
    */
@@ -337,7 +337,7 @@ class Theory {
    */
   void finishInitStandalone();
   //--------------------------------- end initialization
-  
+
   /**
    * Return the ID of the theory responsible for the given type.
    */

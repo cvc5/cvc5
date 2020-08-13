@@ -40,6 +40,17 @@ class CVC4_PUBLIC CVC4dumpstream
     return *this;
   }
 
+  // Note(abdoo8080): temporarily overloading operator<< for strings to allow us
+  // to print commands provided as strings
+  CVC4dumpstream& operator<<(const std::string& str)
+  {
+    if (d_os != nullptr)
+    {
+      (*d_os) << str << std::endl;
+    }
+    return *this;
+  }
+
  private:
   std::ostream* d_os;
 }; /* class CVC4dumpstream */

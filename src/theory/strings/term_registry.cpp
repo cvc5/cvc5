@@ -264,7 +264,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   registerType(tn);
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
-  Node regTermLem;
+  TrustNode regTermLem;
   if (tn.isStringLike())
   {
     // register length information:
@@ -275,15 +275,29 @@ void TermRegistry::registerTerm(Node n, int effort)
   else if (n.getKind() != STRING_STRCTN)
   {
     // we don't send out eager reduction lemma for str.contains currently
-    regTermLem = eagerReduce(n, &d_skCache);
+    Node eagerRedLemma = eagerReduce(n, &d_skCache);
+    if (!eagerRedLemma.isNull())
+    {
+      // if there was an eager reduction, we make the trust node for it
+      if (d_epg != nullptr)
+      {
+        regTermLem = d_epg->mkTrustNode(
+            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
+      }
+      else
+      {
+        regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+      }
+    }
   }
   if (!regTermLem.isNull())
   {
     Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
-    Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
+    Trace("strings-assert")
+        << "(assert " << regTermLem.getNode() << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.lemma(regTermLem);
+    d_out.trustedLemma(regTermLem);
   }
 }
 
@@ -305,7 +319,7 @@ void TermRegistry::registerType(TypeNode tn)
   }
 }
 
-Node TermRegistry::getRegisterTermLemma(Node n)
+TrustNode TermRegistry::getRegisterTermLemma(Node n)
 {
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -321,7 +335,7 @@ Node TermRegistry::getRegisterTermLemma(Node n)
     if (lsum == lsumb)
     {
       registerTermAtomic(n, LENGTH_SPLIT);
-      return Node::null();
+      return TrustNode::null();
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
@@ -367,7 +381,12 @@ Node TermRegistry::getRegisterTermLemma(Node n)
 
   Node ret = nm->mkNode(AND, eq, ceq);
 
-  return ret;
+  // it is a simple rewrite to justify this
+  if (d_epg != nullptr)
+  {
+    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
+  }
+  return TrustNode::mkTrustLemma(ret, nullptr);
 }
 
 void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
@@ -384,14 +403,15 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
     return;
   }
   std::map<Node, bool> reqPhase;
-  Node lenLem = getRegisterTermAtomicLemma(n, s, reqPhase);
+  TrustNode lenLem = getRegisterTermAtomicLemma(n, s, reqPhase);
   if (!lenLem.isNull())
   {
     Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
                            << std::endl;
-    Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
+    Trace("strings-assert")
+        << "(assert " << lenLem.getNode() << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.lemma(lenLem);
+    d_out.trustedLemma(lenLem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
@@ -414,16 +434,15 @@ const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
-Node TermRegistry::getRegisterTermAtomicLemma(Node n,
-                                              LengthStatus s,
-                                              std::map<Node, bool>& reqPhase)
+TrustNode TermRegistry::getRegisterTermAtomicLemma(
+    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
   if (n.isConst())
   {
     // No need to send length for constant terms. This case may be triggered
     // for cases where the skolem cache automatically replaces a skolem by
     // a constant.
-    return Node::null();
+    return TrustNode::null();
   }
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -437,7 +456,12 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    return len_geq_one;
+    if (options::proofNewPedantic() > 0)
+    {
+      Unhandled() << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
+                  << len_geq_one << std::endl;
+    }
+    return TrustNode::mkTrustLemma(len_geq_one, nullptr);
   }
 
   if (s == LENGTH_ONE)
@@ -446,7 +470,12 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    return len_one;
+    if (options::proofNewPedantic() > 0)
+    {
+      Unhandled() << "Unhandled lemma Strings::Lemma SK-ONE : " << len_one
+                  << std::endl;
+    }
+    return TrustNode::mkTrustLemma(len_one, nullptr);
   }
   Assert(s == LENGTH_SPLIT);
 
@@ -477,7 +506,11 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     Assert(!case_emptyr.getConst<bool>());
   }
 
-  return lenLemma;
+  if (d_epg != nullptr)
+  {
+    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
+  }
+  return TrustNode::mkTrustLemma(lenLemma, nullptr);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
