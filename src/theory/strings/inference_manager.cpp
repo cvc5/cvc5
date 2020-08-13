@@ -145,7 +145,7 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      bool asLemma)
 {
   std::vector<Node> noExplain;
-  sendInference(exp, noExplain, eq, infer, asLemma);
+  sendInference(exp, noExplain, eq, infer, isRev, asLemma);
 }
 
 void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
