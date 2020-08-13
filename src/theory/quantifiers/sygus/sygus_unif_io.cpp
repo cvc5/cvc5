@@ -58,7 +58,7 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
     }
     if (v != poln)
     {
-      if (v == d_true)
+      if (d_vals[i] == d_true)
       {
         d_vals[i] = d_false;
         changed = true;
