@@ -250,7 +250,7 @@ bool SygusRepairConst::repairSolution(Node sygusBody,
   {
     Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
     Node fov = d_sk_to_fo[v];
-    Node fov_m = Node::fromExpr(repcChecker->getValue(fov.toExpr()));
+    Node fov_m = repcChecker->getValue(fov);
     Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
     // convert to sygus
     Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);

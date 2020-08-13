@@ -621,13 +621,6 @@ class CVC4_PUBLIC DatatypeType : public Type {
 
   /** Is this datatype parametric? */
   bool isParametric() const;
-
-  /**
-   * Get the constructor operator associated to the given constructor
-   * name in this datatype.
-   */
-  Expr getConstructor(std::string name) const;
-
   /**
    * Has this datatype been fully instantiated ?
    *
@@ -653,9 +646,6 @@ class CVC4_PUBLIC DatatypeType : public Type {
 
   /** Get the constituent types of a tuple type */
   std::vector<Type> getTupleTypes() const;
-
-  /** Get the description of the record type */
-  const Record& getRecord() const;
 
 };/* class DatatypeType */
 

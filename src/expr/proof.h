@@ -134,7 +134,9 @@ namespace CVC4 {
 class CDProof : public ProofGenerator
 {
  public:
-  CDProof(ProofNodeManager* pnm, context::Context* c = nullptr);
+  CDProof(ProofNodeManager* pnm,
+          context::Context* c = nullptr,
+          std::string name = "CDProof");
   virtual ~CDProof();
   /**
    * Make proof for fact.
@@ -224,6 +226,8 @@ class CDProof : public ProofGenerator
    * f suffices as a proof for g according to this class.
    */
   static bool isSame(TNode f, TNode g);
+  /** Get proof for fact, or nullptr if it does not exist. */
+  std::shared_ptr<ProofNode> getProof(Node fact) const;
   /**
    * Get symmetric fact (a g such that isSame returns true for isSame(f,g)), or
    * null if none exist.
@@ -241,8 +245,8 @@ class CDProof : public ProofGenerator
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
-  /** Get proof for fact, or nullptr if it does not exist. */
-  std::shared_ptr<ProofNode> getProof(Node fact) const;
+  /** Name identifier */
+  std::string d_name;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);
   /**

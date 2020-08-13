@@ -1,4 +1,4 @@
-% EXPECT: The POW(^) operator can only be used with a natural number in the exponent.  Exception occurred in:
+% EXPECT: The exponent of the POW(^) operator can only be a positive integral constant below 67108864. Exception occurred in:
 % EXPECT:   2 ^ x
 % EXIT: 1
 x: INT;

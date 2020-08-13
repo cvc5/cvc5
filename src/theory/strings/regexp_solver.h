@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/strings/extf_solver.h"
 #include "theory/strings/inference_manager.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
@@ -46,11 +47,10 @@ class RegExpSolver
  public:
   RegExpSolver(SolverState& s,
                InferenceManager& im,
+               SkolemCache* skc,
                CoreSolver& cs,
                ExtfSolver& es,
-               SequencesStatistics& stats,
-               context::Context* c,
-               context::UserContext* u);
+               SequencesStatistics& stats);
   ~RegExpSolver() {}
 
   /** check regular expression memberships

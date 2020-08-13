@@ -69,8 +69,6 @@ class ArithIteUtils {
   typedef std::map<Node, std::set<Node> > ImpMap;
   ImpMap d_implies;
 
-  std::vector<Node> d_skolemsAdded;
-
   std::vector<Node> d_orBinEqs;
 
 public:

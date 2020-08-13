@@ -69,7 +69,6 @@ class CardinalityExtension
    */
   CardinalityExtension(SolverState& s,
                        InferenceManager& im,
-                       eq::EqualityEngine& e,
                        context::Context* c,
                        context::UserContext* u);
 
@@ -164,8 +163,6 @@ class CardinalityExtension
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
-  /** Reference to the equality engine of theory of sets */
-  eq::EqualityEngine& d_ee;
   /** register cardinality term
    *
    * This method add lemmas corresponding to the definition of

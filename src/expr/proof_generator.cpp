@@ -15,6 +15,8 @@
 #include "expr/proof_generator.h"
 
 #include "expr/proof.h"
+#include "expr/proof_node_algorithm.h"
+#include "options/smt_options.h"
 
 namespace CVC4 {
 
@@ -64,6 +66,95 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
     Assert(false) << "Failed to get proof from generator for fact " << f;
   }
   return false;
+}
+
+void pfgEnsureClosed(Node proven,
+                     ProofGenerator* pg,
+                     const char* c,
+                     const char* ctx,
+                     bool reqGen)
+{
+  std::vector<Node> assumps;
+  pfgEnsureClosedWrt(proven, pg, assumps, c, ctx, reqGen);
+}
+
+void pfgEnsureClosedWrt(Node proven,
+                        ProofGenerator* pg,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx,
+                        bool reqGen)
+{
+  if (!options::proofNew())
+  {
+    // proofs not enabled, do not do check
+    return;
+  }
+  bool isTraceDebug = Trace.isOn(c);
+  if (!options::proofNewEagerChecking() && !isTraceDebug)
+  {
+    // trace is off and proof new eager checking is off, do not do check
+    return;
+  }
+  std::stringstream ss;
+  ss << "ProofGenerator: " << (pg == nullptr ? "null" : pg->identify())
+     << " in context " << ctx;
+  std::stringstream sdiag;
+  bool isTraceOn = Trace.isOn(c);
+  if (!isTraceOn)
+  {
+    sdiag << ", use -t " << c << " for details";
+  }
+  Trace(c) << "=== pfgEnsureClosed: " << ss.str() << std::endl;
+  Trace(c) << "Proven: " << proven << std::endl;
+  if (pg == nullptr)
+  {
+    // only failure if flag is true
+    if (reqGen)
+    {
+      Unreachable() << "...pfgEnsureClosed: no generator in context " << ctx
+                    << sdiag.str();
+    }
+    Trace(c) << "...pfgEnsureClosed: no generator in context " << ctx
+             << std::endl;
+    return;
+  }
+  std::shared_ptr<ProofNode> pn = pg->getProofFor(proven);
+  Trace(c) << " Proof: " << *pn.get() << std::endl;
+  if (pn == nullptr)
+  {
+    AlwaysAssert(false) << "...pfgEnsureClosed: null proof from " << ss.str()
+                        << sdiag.str();
+  }
+  std::vector<Node> fassumps;
+  expr::getFreeAssumptions(pn.get(), fassumps);
+  bool isClosed = true;
+  std::stringstream ssf;
+  for (const Node& fa : fassumps)
+  {
+    if (std::find(assumps.begin(), assumps.end(), fa) == assumps.end())
+    {
+      isClosed = false;
+      ssf << "- " << fa << std::endl;
+    }
+  }
+  if (!isClosed)
+  {
+    Trace(c) << "Free assumptions:" << std::endl;
+    Trace(c) << ssf.str();
+    if (!assumps.empty())
+    {
+      Trace(c) << "Expected assumptions:" << std::endl;
+      for (const Node& a : assumps)
+      {
+        Trace(c) << "- " << a << std::endl;
+      }
+    }
+  }
+  AlwaysAssert(isClosed) << "...pfgEnsureClosed: open proof from " << ss.str()
+                         << sdiag.str();
+  Trace(c) << "...pfgEnsureClosed: success" << std::endl;
+  Trace(c) << "====" << std::endl;
 }
 
 }  // namespace CVC4

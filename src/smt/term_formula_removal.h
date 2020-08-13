@@ -106,10 +106,10 @@ class RemoveTermFormulas {
   void garbageCollect();
 
   /**
-   * Set proof checker, which signals this class to enable proofs using the
+   * Set proof node manager, which signals this class to enable proofs using the
    * given checker.
    */
-  void setProofChecker(ProofChecker* pc);
+  void setProofNodeManager(ProofNodeManager* pnm);
 
   /**
    * Get axiom for term n. This returns the axiom that this class uses to
@@ -166,7 +166,7 @@ class RemoveTermFormulas {
   static bool hasNestedTermChildren( TNode node );
 
   /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
+  ProofNodeManager* d_pnm;
   /**
    * A proof generator for the term conversion.
    */
