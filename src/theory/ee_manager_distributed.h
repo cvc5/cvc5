@@ -31,58 +31,19 @@ class TheoryEngine;
 
 namespace theory {
 
-<<<<<<< HEAD
-
-=======
->>>>>>> e6f55a60a3a65c55c04cb8bd88d47d6207677a29
 /**
  * This is (theory-agnostic) information associated with the management of
  * an equality engine for a single theory. This information is maintained
  * by the manager class below.
  *
-<<<<<<< HEAD
- * Currently, this simply is the equality engine itself, for memory
- * management purposes.
-=======
  * Currently, this simply is the equality engine itself, which is a unique_ptr
  * for memory management purposes.
->>>>>>> e6f55a60a3a65c55c04cb8bd88d47d6207677a29
  */
 struct EeTheoryInfo
 {
   /** The equality engine allocated by this theory (if it exists) */
   std::unique_ptr<eq::EqualityEngine> d_allocEe;
 };
-<<<<<<< HEAD
-  
-/** Virtual base class for equality engine managers */
-class EqEngineManager
-{
-public:
-  virtual ~EqEngineManager(){}
-  /** 
-   * Get the equality engine theory information.
-   */
-  const EeTheoryInfo * getEeTheoryInfo(TheoryId tid) const;
-protected:
-  /**
-   * Information related to the equality engine, per theory.
-   */
-  std::map<TheoryId, EeTheoryInfo> d_einfo;
-};
-
-
-/**
- * The (distributed) equality engine manager. This encapsulates the current
- * architecture for managing equalities in the TheoryEngine, in which all
- * theories maintain their own copy of an equality engine.
- *
- * This call is responsible for the memory management and initialization of
- * all "official" equality engine objects owned by theories, and for setting
- * up the master equality engine, which is used as a special communication
- * channel to quantifiers engine (e.g. for ensuring quantifiers E-matching
- * is aware of terms from all theories).
-=======
 
 /** Virtual base class for equality engine managers */
 class EqEngineManager
@@ -113,7 +74,6 @@ class EqEngineManager
  * This class is also responsible for setting up the master equality engine,
  * which is used as a special communication channel to quantifiers engine (e.g.
  * for ensuring quantifiers E-matching is aware of terms from all theories).
->>>>>>> e6f55a60a3a65c55c04cb8bd88d47d6207677a29
  */
 class EqEngineManagerDistributed : public EqEngineManager
 {
