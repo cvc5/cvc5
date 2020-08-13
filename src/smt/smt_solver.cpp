@@ -177,9 +177,13 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
     }
     else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
     {
-      // only if satisfaction complete
+      // Only can answer unsat if the theory is satisfaction complete. This
+      // includes linear arithmetic and bitvectors, which are the primary
+      // targets for the global negate option. Other logics are possible here
+      // but not considered.
       LogicInfo logic = d_smt.getLogicInfo();
-      if (logic.isPure(theory::THEORY_ARITH) || logic.isPure(theory::THEORY_BV))
+      if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear()) ||
+          logic.isPure(theory::THEORY_BV))
       {
         r = Result(Result::UNSAT);
       }
