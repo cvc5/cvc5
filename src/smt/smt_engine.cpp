@@ -373,10 +373,11 @@ SmtEngine::~SmtEngine()
     d_exprNames.reset(nullptr);
     d_dumpm.reset(nullptr);
 
+    d_sygusSolver.reset(nullptr);
+    
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
-    d_private.reset(nullptr);
     d_nodeManager->unsubscribeEvents(d_snmListener.get());
     d_snmListener.reset(nullptr);
     d_routListener.reset(nullptr);
@@ -2484,16 +2485,5 @@ ResourceManager* SmtEngine::getResourceManager()
 }
 
 DumpManager* SmtEngine::getDumpManager() { return d_dumpm.get(); }
-
-void SmtEngine::setSygusConjectureStale()
-{
-  if (d_private->d_sygusConjectureStale)
-  {
-    // already stale
-    return;
-  }
-  d_private->d_sygusConjectureStale = true;
-  // TODO (project #7): if incremental, we should pop a context
-}
 
 }/* CVC4 namespace */
