@@ -104,6 +104,18 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   // set the equality engine pointer
   d_equalityEngine = ee;
 }
+void Theory::setQuantifiersEngine(QuantifiersEngine* qe) 
+{
+  Assert(d_quantEngine == nullptr);
+  d_quantEngine = qe;
+}
+
+void Theory::setDecisionManager(DecisionManager* dm)
+{
+  Assert(d_decManager == nullptr);
+  Assert(dm != nullptr);
+  d_decManager = dm;
+}
 
 void Theory::finishInitStandalone()
 {
@@ -434,19 +446,6 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = careGraph;
   computeCareGraph();
   d_careGraph = NULL;
-}
-
-void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
-  Assert(d_quantEngine == NULL);
-  Assert(qe != NULL);
-  d_quantEngine = qe;
-}
-
-void Theory::setDecisionManager(DecisionManager* dm)
-{
-  Assert(d_decManager == nullptr);
-  Assert(dm != nullptr);
-  d_decManager = dm;
 }
 
 eq::EqualityEngine* Theory::getEqualityEngine()
