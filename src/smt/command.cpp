@@ -577,7 +577,8 @@ void DeclareSygusVarCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->declareSygusVar(d_symbol, Node::fromExpr(d_var), TypeNode::fromType(d_type));
+    smtEngine->declareSygusVar(
+        d_symbol, Node::fromExpr(d_var), TypeNode::fromType(d_type));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -622,7 +623,8 @@ void DeclareSygusFunctionCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->declareSygusVar(d_symbol, Node::fromExpr(d_func), TypeNode::fromType(d_type));
+    smtEngine->declareSygusVar(
+        d_symbol, Node::fromExpr(d_func), TypeNode::fromType(d_type));
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -692,13 +694,14 @@ void SynthFunCommand::invoke(SmtEngine* smtEngine)
     {
       vns.push_back(Node::fromExpr(t.getExpr()));
     }
-    smtEngine->declareSynthFun(d_symbol,
-                               Node::fromExpr(d_fun.getExpr()),
-                               TypeNode::fromType(d_grammar == nullptr
-                                   ? d_sort.getType()
-                                   : d_grammar->resolve().getType()),
-                               d_isInv,
-                               vns);
+    smtEngine->declareSynthFun(
+        d_symbol,
+        Node::fromExpr(d_fun.getExpr()),
+        TypeNode::fromType(d_grammar == nullptr
+                               ? d_sort.getType()
+                               : d_grammar->resolve().getType()),
+        d_isInv,
+        vns);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

@@ -341,8 +341,7 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   std::vector<Node> vars_empty;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
-  d_subSolver->declareSynthFun(
-      name, itp, grammarType, false, vars_empty);
+  d_subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "

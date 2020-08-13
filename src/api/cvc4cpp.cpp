@@ -5287,12 +5287,13 @@ Term Solver::synthFunHelper(const std::string& symbol,
   {
     bvns.push_back(*t.d_node);
   }
-  
-  d_smtEngine->declareSynthFun(symbol,
-                               fun,
-                               TypeNode::fromType(g == nullptr ? funType : *g->resolve().d_type),
-                               isInv,
-                               bvns);
+
+  d_smtEngine->declareSynthFun(
+      symbol,
+      fun,
+      TypeNode::fromType(g == nullptr ? funType : *g->resolve().d_type),
+      isInv,
+      bvns);
 
   return Term(this, fun);
 
