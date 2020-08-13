@@ -507,7 +507,7 @@ std::string parseErrorHelper(const char* lineStart,
 
 void AntlrInput::parseError(const std::string& message, bool eofException)
 {
-  auto lineLength = d_antlr3InputStream->size(d_antlr3InputStream)
+  auto lineLength = d_antlr3InputStream->sizeBuf
                     - (static_cast<char*>(d_antlr3InputStream->currentLine)
                        - static_cast<char*>(d_antlr3InputStream->data));
   string updatedMessage = parseErrorHelper(
