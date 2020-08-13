@@ -71,7 +71,6 @@ class TheorySets : public Theory
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
   void propagate(Effort) override;
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   bool isEntailed(Node n, bool pol);
  private:
   /** Functions to handle callbacks from equality engine */
