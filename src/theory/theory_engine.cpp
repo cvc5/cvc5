@@ -141,7 +141,7 @@ void TheoryEngine::finishInit() {
   // includes the master equality engine.
   d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
   d_eeDistributed->finishInit();
-  
+
   // Initialize the model and model builder.
   if (d_logicInfo.isQuantified())
   {
@@ -161,13 +161,14 @@ void TheoryEngine::finishInit() {
 
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
-    Theory * t = d_theoryTable[theoryId];
-    if (t==nullptr) {
+    Theory* t = d_theoryTable[theoryId];
+    if (t == nullptr)
+    {
       continue;
     }
     // setup the pointers to the utilities
-    const EeTheoryInfo * eeti = d_eeDistributed->getEeTheoryInfo(theoryId);
-    Assert (eeti!=nullptr);
+    const EeTheoryInfo* eeti = d_eeDistributed->getEeTheoryInfo(theoryId);
+    Assert(eeti != nullptr);
     // the theory's official equality engine is the one specified by the
     // equality engine manager
     t->setEqualityEngine(eeti->d_usedEe);
@@ -1808,7 +1809,7 @@ SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 
 theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
 {
-  Assert (d_eeDistributed != nullptr);
+  Assert(d_eeDistributed != nullptr);
   return d_eeDistributed->getMasterEqualityEngine();
 }
 

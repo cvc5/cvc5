@@ -104,7 +104,7 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   // set the equality engine pointer
   d_equalityEngine = ee;
 }
-void Theory::setQuantifiersEngine(QuantifiersEngine* qe) 
+void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 {
   Assert(d_quantEngine == nullptr);
   d_quantEngine = qe;

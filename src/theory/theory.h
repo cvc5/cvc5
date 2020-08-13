@@ -77,7 +77,7 @@ namespace eq {
  * RegisteredAttr works.  (If you need multiple instances of the same
  * theory, you'll have to write a multiplexed theory that dispatches
  * all calls to them.)
- * 
+ *
  * NOTE: A Theory has a special way of being initialized. The owner of a Theory
  * is either:
  *
@@ -103,8 +103,8 @@ namespace eq {
  */
 class Theory {
   friend class ::CVC4::TheoryEngine;
- private:
 
+ private:
   // Disallow default construction, copy, assignment.
   Theory() = delete;
   Theory(const Theory&) = delete;
@@ -222,7 +222,7 @@ class Theory {
          const LogicInfo& logicInfo,
          ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
-  
+
   /**
    * This is called at shutdown time by the TheoryEngine, just before
    * destruction.  It is important because there are destruction
@@ -311,11 +311,10 @@ class Theory {
    * theory has been assigned.  This base class implementation
    * does nothing. This should be done by TheoryEngine only.
    */
-  virtual void finishInit() { }
+  virtual void finishInit() {}
   //--------------------------------- end private initialization
-  
+
  public:
-   
   //--------------------------------- initialization
   /**
    * @return The theory rewriter associated with this theory.
@@ -503,7 +502,7 @@ class Theory {
 
   /** Get the decision manager associated to this theory. */
   DecisionManager* getDecisionManager() { return d_decManager; }
-  
+
   /**
    * Expand definitions in the term node. This returns a term that is
    * equivalent to node. It wraps this term in a TrustNode of kind
@@ -558,8 +557,8 @@ class Theory {
    */
   virtual void addSharedTerm(TNode n) { }
 
-  /** 
-   * Get the official equality engine of this theory. 
+  /**
+   * Get the official equality engine of this theory.
    */
   eq::EqualityEngine* getEqualityEngine();
 

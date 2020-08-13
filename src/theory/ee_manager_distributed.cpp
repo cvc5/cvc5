@@ -111,7 +111,6 @@ eq::EqualityEngine* EqEngineManagerDistributed::getMasterEqualityEngine()
   return d_masterEqualityEngine.get();
 }
 
-
 eq::EqualityEngine* EqEngineManagerDistributed::allocateEqualityEngine(
     EeSetupInfo& esi, context::Context* c)
 {
