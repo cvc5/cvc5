@@ -1431,9 +1431,12 @@ Node SygusUnifIo::constructSol(
           }
           else
           {
-            // if the child types are different, it could still make a
-            // difference to recurse, for instance see issue #4790.
-            bool childTypesEqual = ce.getType() == etn;
+            // if the branch types are different, it could still make a
+            // difference to recurse, for instance see issue #4790. We do this
+            // if either branch is a different type from the current type.
+            TypeNode branchType1 = etis->d_cenum[1].first.getType();
+            TypeNode branchType2 = etis->d_cenum[2].first.getType();
+            bool childTypesEqual = branchType1 == etn && branchType2 == etn;
             if (!childTypesEqual)
             {
               if (!ecache_child.d_enum_vals.empty())
