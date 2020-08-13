@@ -96,6 +96,7 @@
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
 #include "smt/smt_solver.h"
+#include "smt/sygus_solver.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
 #include "smt_util/boolean_simplification.h"
@@ -119,7 +120,6 @@
 #include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-#include "smt/sygus_solver.h"
 
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
 #include "lfscc.h"
@@ -1154,7 +1154,8 @@ void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->declareSygusVar(id, var, type);
-  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var.toExpr(), type.toType());
+  Dump("raw-benchmark") << DeclareSygusVarCommand(
+      id, var.toExpr(), type.toType());
   // don't need to set that the conjecture is stale
 }
 
@@ -1178,16 +1179,15 @@ void SmtEngine::declareSynthFun(const std::string& id,
     std::stringstream ss;
 
     Printer::getPrinter(options::outputLanguage())
-        ->toStreamCmdSynthFun(
-            ss,
-            id,
-            vars,
-            func.getType().isFunction()
-                ? func.getType().getRangeType()
-                : func.getType(),
-            isInv,
-            sygusType);
-    
+        ->toStreamCmdSynthFun(ss,
+                              id,
+                              vars,
+                              func.getType().isFunction()
+                                  ? func.getType().getRangeType()
+                                  : func.getType(),
+                              isInv,
+                              sygusType);
+
     // must print it on the standard output channel since it is not possible
     // to print anything except for commands with Dump.
     std::ostream& out = *d_options.getOut();
@@ -1211,7 +1211,8 @@ void SmtEngine::assertSygusInvConstraint(Node inv,
   SmtScope smts(this);
   finishInit();
   d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
-  Dump("raw-benchmark") << SygusInvConstraintCommand(inv.toExpr(), pre.toExpr(), trans.toExpr(), post.toExpr());
+  Dump("raw-benchmark") << SygusInvConstraintCommand(
+      inv.toExpr(), pre.toExpr(), trans.toExpr(), post.toExpr());
 }
 
 Result SmtEngine::checkSynth()

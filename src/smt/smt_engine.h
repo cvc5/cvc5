@@ -464,10 +464,7 @@ class CVC4_PUBLIC SmtEngine
    * The regular and primed variables are retrieved from the declaration of the
    * invariant-to-synthesize.
    */
-  void assertSygusInvConstraint(Node inv,
-                                Node pre,
-                                Node trans,
-                                Node post);
+  void assertSygusInvConstraint(Node inv, Node pre, Node trans, Node post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
@@ -1122,7 +1119,7 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for sygus queries */
   std::unique_ptr<smt::SygusSolver> d_sygusSolver;
-  
+
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
   /**

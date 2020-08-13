@@ -17,11 +17,11 @@
 #ifndef CVC4__SMT__SYGUS_SOLVER_H
 #define CVC4__SMT__SYGUS_SOLVER_H
 
+#include "context/cdo.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "context/cdo.h"
-#include "util/result.h"
 #include "smt/assertions.h"
+#include "util/result.h"
 
 namespace CVC4 {
 namespace smt {
@@ -34,7 +34,7 @@ class SmtSolver;
  *
  * This class is responsible for responding to check-synth commands. It calls
  * check satisfiability using an underlying SmtSolver object.
- * 
+ *
  * It also maintains a reference to a preprocessor for implementing
  * checkSynthSolution.
  */
@@ -57,7 +57,7 @@ class SygusSolver
    * this method as well.
    */
   void declareSygusVar(const std::string& id, Node var, TypeNode type);
-  
+
   /**
    * Add a function-to-synthesize declaration.
    *
@@ -97,10 +97,7 @@ class SygusSolver
    * The regular and primed variables are retrieved from the declaration of the
    * invariant-to-synthesize.
    */
-  void assertSygusInvConstraint(Node inv,
-                                Node pre,
-                                Node trans,
-                                Node post);
+  void assertSygusInvConstraint(Node inv, Node pre, Node trans, Node post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
@@ -134,6 +131,7 @@ class SygusSolver
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& sol_map);
+
  private:
   /**
    * Check that a solution to a synthesis conjecture is indeed a solution.
