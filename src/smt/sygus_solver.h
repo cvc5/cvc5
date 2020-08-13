@@ -30,6 +30,8 @@ class TheoryEngine;
 
 namespace smt {
 
+class SmtSolver;
+
 /**
  * A solver for sygus queries.
  *
@@ -39,7 +41,7 @@ namespace smt {
 class SygusSolver
 {
  public:
-  SygusSolver(SmtEngine& smt, TheoryEngine& te, context::UserContext* u);
+  SygusSolver(SmtEngine& smt, SmtSolver& sms, context::UserContext* u);
   ~SygusSolver();
 
   /**
@@ -119,7 +121,7 @@ class SygusSolver
    *
    * @throw Exception
    */
-  Result checkSynth();
+  Result checkSynth(Assertions& as);
   /**
    * Get synth solution.
    *
@@ -138,7 +140,7 @@ class SygusSolver
    * is a valid formula.
    */
   bool getSynthSolutions(std::map<Node, Node>& sol_map);
-
+ private:
   /**
    * Check that a solution to a synthesis conjecture is indeed a solution.
    *
@@ -148,7 +150,6 @@ class SygusSolver
    * unsatisfiable. If not, then the found solutions are wrong.
    */
   void checkSynthSolution(Assertions& as);
- private:
   /**
    * Set sygus conjecture is stale. The sygus conjecture is stale if either:
    * (1) no sygus conjecture has been added as an assertion to this SMT engine,
@@ -164,8 +165,8 @@ class SygusSolver
   bool setSygusConjectureStale();
   /** The parent SMT engine */
   SmtEngine& d_smt;
-  /** The theory engine */
-  TheoryEngine& d_te;
+  /** The SMT solver */
+  SmtSolver& d_smtSolver;
   /**
    * sygus variables declared (from "declare-var" and "declare-fun" commands)
    *

@@ -19,6 +19,8 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory_engine.h"
 #include "options/quantifiers_options.h"
+#include "theory/smt_engine_subsolver.h"
+#include "smt/smt_solver.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -26,12 +28,12 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-SygusSolver::SygusSolver(SmtEngine& smt, TheoryEngine& te, context::UserContext* u) : d_smt(smt), d_te(te),
+SygusSolver::SygusSolver(SmtEngine& smt, SmtSolver& sms, context::UserContext* u) : d_smt(smt), d_smtSolver(sms),
         d_sygusConjectureStale(u, true) {}
 
 SygusSolver::~SygusSolver() {}
 
-Result SygusSolver::checkSynth()
+Result SygusSolver::checkSynth(Assertions& as)
 {
   if (options::incrementalSolving())
   {
@@ -39,10 +41,10 @@ Result SygusSolver::checkSynth()
     throw ModalException(
         "Cannot make check-synth commands when incremental solving is enabled");
   }
-  NodeManager* nm = NodeManager::currentNM();
-  Node query;
+  std::vector<Node> query;
   if (d_sygusConjectureStale)
   {
+    NodeManager * nm = NodeManager::currentNM();
     // build synthesis conjecture from asserted constraints and declared
     // variables/functions
     Node sygusVar =
@@ -76,30 +78,25 @@ Result SygusSolver::checkSynth()
     Trace("smt") << "...constructed forall " << body << std::endl;
 
     // set attribute for synthesis conjecture
-    d_te.setUserAttribute("sygus", sygusVar, {}, "");
+    TheoryEngine * te = d_smtSolver.getTheoryEngine();
+    te->setUserAttribute("sygus", sygusVar, {}, "");
 
     Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
     Dump("raw-benchmark") << CheckSynthCommand();
 
     d_sygusConjectureStale = false;
 
-    if (options::incrementalSolving())
-    {
-      d_smt.assertFormula(body, true);
-    }
-    else
-    {
-      query = body;
-    }
+    // TODO (project #7): if incremental, we should push a context and assert
+    query.push_back(body);
   }
 
-  Result r = d_smt.checkSatisfiability(query.toExpr(), true, false);
-
+  Result r = d_smtSolver.checkSatisfiability(as, query, false, false);
+    
   // Check that synthesis solutions satisfy the conjecture
   if (options::checkSynthSol()
       && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    checkSynthSolution();
+    checkSynthSolution(as);
   }
   return r;
 }
@@ -109,7 +106,8 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
   std::map<Node, std::map<Node, Node>> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   // fail if the theory engine does not have synthesis solutions
-  if (!d_te.getSynthSolutions(sol_mapn))
+  TheoryEngine * te = d_smtSolver.getTheoryEngine();
+  if (!te->getSynthSolutions(sol_mapn))
   {
     return false;
   }
@@ -129,8 +127,9 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   NodeManager* nm = NodeManager::currentNM();
   Notice() << "SygusSolver::checkSynthSolution(): checking synthesis solution" << std::endl;
   std::map<Node, std::map<Node, Node>> sol_map;
-  /* Get solutions and build auxiliary vectors for substituting */
-  if (!d_te.getSynthSolutions(sol_map))
+  // Get solutions and build auxiliary vectors for substituting
+  TheoryEngine * te = d_smtSolver.getTheoryEngine();
+  if (!te->getSynthSolutions(sol_map))
   {
     InternalError() << "SygusSolver::checkSynthSolution(): No solution to check!";
     return;
@@ -162,32 +161,25 @@ void SygusSolver::checkSynthSolution(Assertions& as)
     }
   }
   Trace("check-synth-sol") << "Starting new SMT Engine\n";
-  /* Start new SMT engine to check solutions */
-  SmtEngine solChecker(d_smt.getExprManager(), &d_smt.getOptions());
-  solChecker.setIsInternalSubsolver();
-  solChecker.setLogic(d_smt.getLogicInfo());
-  solChecker.getOptions().set(options::checkSynthSol, false);
-  solChecker.getOptions().set(options::sygusRecFun, false);
+
 
   Trace("check-synth-sol") << "Retrieving assertions\n";
   // Build conjecture from original assertions
-  if (d_assertionList == NULL)
+  context::CDList<Node>* alist = as.getAssertionList();
+  if (alist == nullptr)
   {
     Trace("check-synth-sol") << "No assertions to check\n";
     return;
   }
   // auxiliary assertions
   std::vector<Node> auxAssertions;
-  // expand definitions cache
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (const Node& assertion : *d_assertionList)
+  for (const Node& assertion : *alist)
   {
     Notice() << "SmtEngine::checkSynthSolution(): checking assertion "
              << assertion << std::endl;
     Trace("check-synth-sol") << "Retrieving assertion " << assertion << "\n";
     // Apply any define-funs from the problem.
-    Node n =
-        d_smt.expandDefinitions(assertion, cache);
+    Node n = d_smt.expandDefinitions(assertion);
     Notice() << "SmtEngine::checkSynthSolution(): -- expands to " << n << std::endl;
     Trace("check-synth-sol") << "Expanded assertion " << n << "\n";
     if (conjs.find(n) == conjs.end())
@@ -203,6 +195,11 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   // check all conjectures
   for (const Node& conj : conjs)
   {
+    // Start new SMT engine to check solutions
+    std::unique_ptr<SmtEngine> solChecker;
+    initializeSubsolver(solChecker);
+    solChecker->getOptions().set(options::checkSynthSol, false);
+    solChecker->getOptions().set(options::sygusRecFun, false);
     // get the solution for this conjecture
     std::vector<Node>& fvars = fvarMap[conj];
     std::vector<Node>& fsols = fsolMap[conj];
@@ -237,14 +234,14 @@ void SygusSolver::checkSynthSolution(Assertions& as)
              << conjBody << std::endl;
     Trace("check-synth-sol") << "Substituted body of assertion to " << conjBody
                              << "\n";
-    solChecker.assertFormula(conjBody);
+    solChecker->assertFormula(conjBody);
     // Assert all auxiliary assertions. This may include recursive function
     // definitions that were added as assertions to the sygus problem.
     for (const Node& a : auxAssertions)
     {
-      solChecker.assertFormula(a);
+      solChecker->assertFormula(a);
     }
-    Result r = solChecker.checkSat();
+    Result r = solChecker->checkSat();
     Notice() << "SmtEngine::checkSynthSolution(): result is " << r << std::endl;
     Trace("check-synth-sol") << "Satsifiability check: " << r << "\n";
     if (r.asSatisfiabilityResult().isUnknown())
@@ -259,7 +256,6 @@ void SygusSolver::checkSynthSolution(Assertions& as)
           << "SmtEngine::checkSynthSolution(): produced solution leads to "
              "satisfiable negated conjecture.";
     }
-    solChecker.resetAssertions();
   }
 }
 
