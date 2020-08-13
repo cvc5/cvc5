@@ -904,16 +904,16 @@ class CVC4_PUBLIC SmtEngine
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
   /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext() const;
+  context::UserContext* getUserContext();
 
   /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext() const;
+  context::Context* getContext();
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine() const;
+  TheoryEngine* getTheoryEngine();
 
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine() const;
+  prop::PropEngine* getPropEngine();
 
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };

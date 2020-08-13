@@ -110,9 +110,9 @@ class SmtSolver
   void processAssertions(Assertions& as);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
-  TheoryEngine* getTheoryEngine() const;
+  TheoryEngine* getTheoryEngine();
   /** Get a pointer to the PropEngine owned by this solver. */
-  prop::PropEngine* getPropEngine() const;
+  prop::PropEngine* getPropEngine();
   //------------------------------------------ end access methods
  private:
   /** Reference to the parent SMT engine */

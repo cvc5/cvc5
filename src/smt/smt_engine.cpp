@@ -285,21 +285,21 @@ Result SmtEngine::getStatusOfLastCommand() const
 {
   return d_state->getStatus();
 }
-context::UserContext* SmtEngine::getUserContext() const
+context::UserContext* SmtEngine::getUserContext()
 {
   return d_state->getUserContext();
 }
-context::Context* SmtEngine::getContext() const
+context::Context* SmtEngine::getContext()
 {
   return d_state->getContext();
 }
 
-TheoryEngine* SmtEngine::getTheoryEngine() const
+TheoryEngine* SmtEngine::getTheoryEngine()
 {
   return d_smtSolver->getTheoryEngine();
 }
 
-prop::PropEngine* SmtEngine::getPropEngine() const
+prop::PropEngine* SmtEngine::getPropEngine()
 {
   return d_smtSolver->getPropEngine();
 }
@@ -941,7 +941,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw ModalException(ss.str().c_str());
   }
 
-  TheoryEngine* te = getTheoryEngine();
+  TheoryEngine* te = d_smtSolver->getTheoryEngine();
   Assert(te != nullptr);
   TheoryModel* m = te->getBuiltModel();
 

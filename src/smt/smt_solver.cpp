@@ -89,6 +89,9 @@ void SmtSolver::resetAssertions()
   d_propEngine.reset(new PropEngine(
       d_theoryEngine.get(), d_smt.getContext(), d_smt.getUserContext(), d_rm));
   d_theoryEngine->setPropEngine(getPropEngine());
+  // Notice that we do not reset TheoryEngine, nor does it require calling
+  // finishInit again. In particular, TheoryEngine::finishInit does not
+  // depend on knowing the associated PropEngine.
 }
 
 void SmtSolver::interrupt()
@@ -241,12 +244,12 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-TheoryEngine* SmtSolver::getTheoryEngine() const
+TheoryEngine* SmtSolver::getTheoryEngine()
 {
   return d_theoryEngine.get();
 }
 
-prop::PropEngine* SmtSolver::getPropEngine() const
+prop::PropEngine* SmtSolver::getPropEngine()
 {
   return d_propEngine.get();
 }
