@@ -244,15 +244,9 @@ void SmtSolver::processAssertions(Assertions& as)
   as.clearCurrent();
 }
 
-TheoryEngine* SmtSolver::getTheoryEngine()
-{
-  return d_theoryEngine.get();
-}
+TheoryEngine* SmtSolver::getTheoryEngine() { return d_theoryEngine.get(); }
 
-prop::PropEngine* SmtSolver::getPropEngine()
-{
-  return d_propEngine.get();
-}
+prop::PropEngine* SmtSolver::getPropEngine() { return d_propEngine.get(); }
 
 }  // namespace smt
 }  // namespace CVC4

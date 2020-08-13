@@ -253,11 +253,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
   // make statistics
   d_stats.reset(new SmtEngineStatistics());
   // make the SMT solver
-  d_smtSolver.reset(new SmtSolver(*this,
-                                  *d_state,
-                                  d_resourceManager.get(),
-                                  *d_pp,
-                                  *d_stats));
+  d_smtSolver.reset(
+      new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -289,10 +286,7 @@ context::UserContext* SmtEngine::getUserContext()
 {
   return d_state->getUserContext();
 }
-context::Context* SmtEngine::getContext()
-{
-  return d_state->getContext();
-}
+context::Context* SmtEngine::getContext() { return d_state->getContext(); }
 
 TheoryEngine* SmtEngine::getTheoryEngine()
 {
