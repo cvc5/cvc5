@@ -21,7 +21,9 @@ add_custom_target(check
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
-add_subdirectory(regress)
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(regress)
+endif()
 add_subdirectory(system EXCLUDE_FROM_ALL)
 
 if(ENABLE_UNIT_TESTING)
