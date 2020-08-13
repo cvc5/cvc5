@@ -478,6 +478,9 @@ libcvc4_add_sources(
   theory/decision_strategy.h
   theory/eager_proof_generator.cpp
   theory/eager_proof_generator.h
+  theory/ee_manager_distributed.cpp
+  theory/ee_manager_distributed.h
+  theory/ee_setup_info.h
   theory/engine_output_channel.cpp
   theory/engine_output_channel.h
   theory/evaluator.cpp
