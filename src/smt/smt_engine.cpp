@@ -1149,57 +1149,25 @@ Result SmtEngine::assertFormula(const Node& formula, bool inUnsatCore)
    --------------------------------------------------------------------------
 */
 
-void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
+void SmtEngine::declareSygusVar(const std::string& id, Node var, TypeNode type)
 {
   SmtScope smts(this);
   finishInit();
-  d_private->d_sygusVars.push_back(Node::fromExpr(var));
-  Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
-  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
-  // don't need to set that the conjecture is stale
-}
-
-void SmtEngine::declareSygusFunctionVar(const std::string& id,
-                                        Expr var,
-                                        Type type)
-{
-  SmtScope smts(this);
-  finishInit();
-  d_private->d_sygusVars.push_back(Node::fromExpr(var));
-  Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
-  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var, type);
-
+  d_sygusSolver->declareSygusVar(id, var, type);
+  Dump("raw-benchmark") << DeclareSygusVarCommand(id, var.toExpr(), type.toType());
   // don't need to set that the conjecture is stale
 }
 
 void SmtEngine::declareSynthFun(const std::string& id,
-                                Expr func,
-                                Type sygusType,
+                                Node func,
+                                TypeNode sygusType,
                                 bool isInv,
-                                const std::vector<Expr>& vars)
+                                const std::vector<Node>& vars)
 {
   SmtScope smts(this);
   finishInit();
   d_state->doPendingPops();
-  Node fn = Node::fromExpr(func);
-  d_private->d_sygusFunSymbols.push_back(fn);
-  if (!vars.empty())
-  {
-    Expr bvl = d_exprManager->mkExpr(kind::BOUND_VAR_LIST, vars);
-    std::vector<Expr> attr_val_bvl;
-    attr_val_bvl.push_back(bvl);
-    setUserAttribute("sygus-synth-fun-var-list", func, attr_val_bvl, "");
-  }
-  // whether sygus type encodes syntax restrictions
-  TypeNode stn = TypeNode::fromType(sygusType);
-  if (sygusType.isDatatype() && stn.getDType().isSygus())
-  {
-    Node sym = d_nodeManager->mkBoundVar("sfproxy", stn);
-    std::vector<Expr> attr_value;
-    attr_value.push_back(sym.toExpr());
-    setUserAttribute("sygus-synth-grammar", func, attr_value, "");
-  }
-  Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
+  d_sygusSolver->declareSynthFun(id, func, sygusType, isInv, vars);
 
   // !!! TEMPORARY: We cannot construct a SynthFunCommand since we cannot
   // construct a Term-level Grammar from a Node-level sygus TypeNode. Thus we
@@ -1207,187 +1175,50 @@ void SmtEngine::declareSynthFun(const std::string& id,
 
   if (Dump.isOn("raw-benchmark"))
   {
-    std::vector<Node> nodeVars;
-    nodeVars.reserve(vars.size());
-    for (const Expr& var : vars)
-    {
-      nodeVars.push_back(Node::fromExpr(var));
-    }
-
     std::stringstream ss;
 
     Printer::getPrinter(options::outputLanguage())
         ->toStreamCmdSynthFun(
             ss,
             id,
-            nodeVars,
+            vars,
             func.getType().isFunction()
-                ? TypeNode::fromType(func.getType()).getRangeType()
-                : TypeNode::fromType(func.getType()),
+                ? func.getType().getRangeType()
+                : func.getType(),
             isInv,
-            TypeNode::fromType(sygusType));
+            sygusType);
     
     // must print it on the standard output channel since it is not possible
     // to print anything except for commands with Dump.
     std::ostream& out = *d_options.getOut();
     out << ss.str() << std::endl;
   }
-
-  // sygus conjecture is now stale
-  setSygusConjectureStale();
 }
 
-void SmtEngine::assertSygusConstraint(const Node& constraint)
+void SmtEngine::assertSygusConstraint(Node constraint)
 {
   SmtScope smts(this);
   finishInit();
-  d_private->d_sygusConstraints.push_back(constraint);
-
-  Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
+  d_sygusSolver->assertSygusConstraint(constraint);
   Dump("raw-benchmark") << SygusConstraintCommand(constraint.toExpr());
-  // sygus conjecture is now stale
-  setSygusConjectureStale();
 }
 
-void SmtEngine::assertSygusInvConstraint(const Expr& inv,
-                                         const Expr& pre,
-                                         const Expr& trans,
-                                         const Expr& post)
+void SmtEngine::assertSygusInvConstraint(Node inv,
+                                         Node pre,
+                                         Node trans,
+                                         Node post)
 {
   SmtScope smts(this);
   finishInit();
-  // build invariant constraint
-
-  // get variables (regular and their respective primed versions)
-  std::vector<Node> terms, vars, primed_vars;
-  terms.push_back(Node::fromExpr(inv));
-  terms.push_back(Node::fromExpr(pre));
-  terms.push_back(Node::fromExpr(trans));
-  terms.push_back(Node::fromExpr(post));
-  // variables are built based on the invariant type
-  FunctionType t = static_cast<FunctionType>(inv.getType());
-  std::vector<Type> argTypes = t.getArgTypes();
-  for (const Type& ti : argTypes)
-  {
-    TypeNode tn = TypeNode::fromType(ti);
-    vars.push_back(d_nodeManager->mkBoundVar(tn));
-    d_private->d_sygusVars.push_back(vars.back());
-    std::stringstream ss;
-    ss << vars.back() << "'";
-    primed_vars.push_back(d_nodeManager->mkBoundVar(ss.str(), tn));
-    d_private->d_sygusVars.push_back(primed_vars.back());
-  }
-
-  // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
-  for (unsigned i = 0; i < 4; ++i)
-  {
-    Node op = terms[i];
-    Trace("smt-debug") << "Make inv-constraint term #" << i << " : " << op
-                       << " with type " << op.getType() << "...\n";
-    std::vector<Node> children;
-    children.push_back(op);
-    // transition relation applied over both variable lists
-    if (i == 2)
-    {
-      children.insert(children.end(), vars.begin(), vars.end());
-      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
-    }
-    else
-    {
-      children.insert(children.end(), vars.begin(), vars.end());
-    }
-    terms[i] = d_nodeManager->mkNode(kind::APPLY_UF, children);
-    // make application of Inv on primed variables
-    if (i == 0)
-    {
-      children.clear();
-      children.push_back(op);
-      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
-      terms.push_back(d_nodeManager->mkNode(kind::APPLY_UF, children));
-    }
-  }
-  // make constraints
-  std::vector<Node> conj;
-  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, terms[1], terms[0]));
-  Node term0_and_2 = d_nodeManager->mkNode(kind::AND, terms[0], terms[2]);
-  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, term0_and_2, terms[4]));
-  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, terms[0], terms[3]));
-  Node constraint = d_nodeManager->mkNode(kind::AND, conj);
-
-  d_private->d_sygusConstraints.push_back(constraint);
-
-  Trace("smt") << "SmtEngine::assertSygusInvConstrant: " << constraint << "\n";
-  Dump("raw-benchmark") << SygusInvConstraintCommand(inv, pre, trans, post);
-  // sygus conjecture is now stale
-  setSygusConjectureStale();
+  d_sygusSolver->assertSygusInvConstraint(inv, pre, trans, post);
+  Dump("raw-benchmark") << SygusInvConstraintCommand(inv.toExpr(), pre.toExpr(), trans.toExpr(), post.toExpr());
 }
 
 Result SmtEngine::checkSynth()
 {
   SmtScope smts(this);
-
-  if (options::incrementalSolving())
-  {
-    // TODO (project #7)
-    throw ModalException(
-        "Cannot make check-synth commands when incremental solving is enabled");
-  }
-  std::vector<Node> query;
-  if (d_private->d_sygusConjectureStale)
-  {
-    // build synthesis conjecture from asserted constraints and declared
-    // variables/functions
-    Node sygusVar =
-        d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
-    Node inst_attr = d_nodeManager->mkNode(kind::INST_ATTRIBUTE, sygusVar);
-    Node sygusAttr = d_nodeManager->mkNode(kind::INST_PATTERN_LIST, inst_attr);
-    std::vector<Node> bodyv;
-    Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    unsigned n_constraints = d_private->d_sygusConstraints.size();
-    Node body = n_constraints == 0
-                    ? d_nodeManager->mkConst(true)
-                    : (n_constraints == 1
-                           ? d_private->d_sygusConstraints[0]
-                           : d_nodeManager->mkNode(
-                               kind::AND, d_private->d_sygusConstraints));
-    body = body.notNode();
-    Trace("smt") << "...constructed sygus constraint " << body << std::endl;
-    if (!d_private->d_sygusVars.empty())
-    {
-      Node boundVars =
-          d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
-      body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
-      Trace("smt") << "...constructed exists " << body << std::endl;
-    }
-    if (!d_private->d_sygusFunSymbols.empty())
-    {
-      Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
-                                             d_private->d_sygusFunSymbols);
-      body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
-    }
-    Trace("smt") << "...constructed forall " << body << std::endl;
-
-    // set attribute for synthesis conjecture
-    setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
-
-    Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
-    Dump("raw-benchmark") << CheckSynthCommand();
-
-    d_private->d_sygusConjectureStale = false;
-
-    // TODO (project #7): if incremental, we should push a context and assert
-    query.push_back(body);
-  }
-
-  Result r = checkSatInternal(query, true, false);
-
-  // Check that synthesis solutions satisfy the conjecture
-  if (options::checkSynthSol()
-      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
-  {
-    checkSynthSolution();
-  }
-  return r;
+  finishInit();
+  return d_sygusSolver->checkSynth(*d_asserts);
 }
 
 /*

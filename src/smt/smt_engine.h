@@ -423,17 +423,7 @@ class CVC4_PUBLIC SmtEngine
    * Declared SyGuS variables may be used in SyGuS constraints, in which they
    * are assumed to be universally quantified.
    */
-  void declareSygusVar(const std::string& id, Expr var, Type type);
-
-  /**
-   * Add a function variable declaration.
-   *
-   * Is SyGuS semantics declared functions are treated in the same manner as
-   * declared variables, i.e. as universally quantified (function) variables
-   * which can occur in the SyGuS constraints that compose the conjecture to
-   * which a function is being synthesized.
-   */
-  void declareSygusFunctionVar(const std::string& id, Expr var, Type type);
+  void declareSygusVar(const std::string& id, Node var, TypeNode type);
 
   /**
    * Add a function-to-synthesize declaration.
@@ -451,13 +441,13 @@ class CVC4_PUBLIC SmtEngine
    * corresponding to this declaration, so that it can be properly printed.
    */
   void declareSynthFun(const std::string& id,
-                       Expr func,
-                       Type type,
+                       Node func,
+                       TypeNode type,
                        bool isInv,
-                       const std::vector<Expr>& vars);
+                       const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(const Node& constraint);
+  void assertSygusConstraint(Node constraint);
 
   /**
    * Add an invariant constraint.
@@ -474,10 +464,10 @@ class CVC4_PUBLIC SmtEngine
    * The regular and primed variables are retrieved from the declaration of the
    * invariant-to-synthesize.
    */
-  void assertSygusInvConstraint(const Expr& inv,
-                                const Expr& pre,
-                                const Expr& trans,
-                                const Expr& post);
+  void assertSygusInvConstraint(Node inv,
+                                Node pre,
+                                Node trans,
+                                Node post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.

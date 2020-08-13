@@ -336,18 +336,18 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   createVariables(itpGType.isNull());
   for (Node var : d_vars)
   {
-    d_subSolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
+    d_subSolver->declareSygusVar(name, var, var.getType());
   }
-  std::vector<Expr> vars_empty;
+  std::vector<Node> vars_empty;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
   d_subSolver->declareSynthFun(
-      name, itp.toExpr(), grammarType.toType(), false, vars_empty);
+      name, itp, grammarType, false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
-                          << d_sygusConj[0][0].toExpr() << std::endl;
-  d_subSolver->assertSygusConstraint(d_sygusConj.toExpr());
+                          << d_sygusConj[0][0] << std::endl;
+  d_subSolver->assertSygusConstraint(d_sygusConj);
 
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;

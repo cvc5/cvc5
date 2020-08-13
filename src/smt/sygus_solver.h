@@ -49,6 +49,12 @@ class SygusSolver
    *
    * Declared SyGuS variables may be used in SyGuS constraints, in which they
    * are assumed to be universally quantified.
+   *
+   * In SyGuS semantics, declared functions are treated in the same manner as
+   * declared variables, i.e. as universally quantified (function) variables
+   * which can occur in the SyGuS constraints that compose the conjecture to
+   * which a function is being synthesized. Thus declared functions should use
+   * this method as well.
    */
   void declareSygusVar(const std::string& id, Node var, TypeNode type);
   
