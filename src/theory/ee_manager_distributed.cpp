@@ -118,7 +118,7 @@ eq::EqualityEngine* EqEngineManagerDistributed::allocateEqualityEngine(
     return new eq::EqualityEngine(
         *esi.d_notify, c, esi.d_name, esi.d_constantsAreTriggers);
   }
-  // the theory don't care about explicit notifications
+  // the theory doesn't care about explicit notifications
   return new eq::EqualityEngine(c, esi.d_name, esi.d_constantsAreTriggers);
 }
 

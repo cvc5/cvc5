@@ -61,9 +61,8 @@ class EqEngineManager
 };
 
 /**
- * The (distributed) equality engine manager. This encapsulates the current
- * architecture for managing equalities in the TheoryEngine, in which all
- * theories maintain their own copy of an equality engine.
+ * The (distributed) equality engine manager. This encapsulates an architecture
+ * in which all theories maintain their own copy of an equality engine.
  *
  * This class is not responsible for actually initializing equality engines in
  * theories (since this class does not have access to the internals of Theory).
@@ -94,11 +93,6 @@ class EqEngineManagerDistributed : public EqEngineManager
   eq::EqualityEngine* getMasterEqualityEngine();
 
  private:
-  /** Allocate equality engine that is context-dependent on c with info esi */
-  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
-                                             context::Context* c);
-  /** Reference to the theory engine */
-  TheoryEngine& d_te;
   /** notify class for master equality engine */
   class MasterNotifyClass : public theory::eq::EqualityEngineNotify
   {
@@ -134,10 +128,14 @@ class EqEngineManagerDistributed : public EqEngineManager
     /** Pointer to quantifiers engine */
     QuantifiersEngine* d_quantEngine;
   };
+  /** Allocate equality engine that is context-dependent on c with info esi */
+  eq::EqualityEngine* allocateEqualityEngine(EeSetupInfo& esi,
+                                             context::Context* c);
+  /** Reference to the theory engine */
+  TheoryEngine& d_te;
+  /** The master equality engine notify class */
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
-  /**
-   * The master equality engine.
-   */
+  /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
 };
 
