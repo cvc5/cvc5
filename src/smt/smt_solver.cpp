@@ -160,22 +160,20 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
                  << d_rm->getTimeUsage() << ", resources "
                  << d_rm->getResourceUsage() << endl;
 
-  Result r = Result(result, filename);
-
   if ((options::solveRealAsInt() || options::solveIntAsBV() > 0)
-      && r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      && result.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
-    r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+    result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
   }
   // flipped if we did a global negation
   if (as.isGlobalNegated())
   {
-    Trace("smt") << "SmtSolver::process global negate " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    Trace("smt") << "SmtSolver::process global negate " << result << std::endl;
+    if (result.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
-      r = Result(Result::SAT);
+      result = Result(Result::SAT);
     }
-    else if (r.asSatisfiabilityResult().isSat() == Result::SAT)
+    else if (result.asSatisfiabilityResult().isSat() == Result::SAT)
     {
       // Only can answer unsat if the theory is satisfaction complete. This
       // includes linear arithmetic and bitvectors, which are the primary
@@ -185,16 +183,19 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
       if ((logic.isPure(theory::THEORY_ARITH) && logic.isLinear()) ||
           logic.isPure(theory::THEORY_BV))
       {
-        r = Result(Result::UNSAT);
+        result = Result(Result::UNSAT);
       }
       else
       {
-        r = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
+        result = Result(Result::SAT_UNKNOWN, Result::UNKNOWN_REASON);
       }
     }
-    Trace("smt") << "SmtSolver::global negate returned " << r << std::endl;
+    Trace("smt") << "SmtSolver::global negate returned " << result << std::endl;
   }
 
+  // set the filename on the result
+  Result r = Result(result, filename);
+  
   // notify our state of the check-sat result
   d_state.notifyCheckSatResult(hasAssumptions, r);
 
