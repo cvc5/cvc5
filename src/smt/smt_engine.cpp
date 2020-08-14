@@ -374,7 +374,7 @@ SmtEngine::~SmtEngine()
     d_dumpm.reset(nullptr);
 
     d_sygusSolver.reset(nullptr);
-    
+
     d_smtSolver.reset(nullptr);
 
     d_stats.reset(nullptr);
