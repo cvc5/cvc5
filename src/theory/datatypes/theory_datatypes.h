@@ -107,8 +107,6 @@ class TheoryDatatypes : public Theory {
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
-      d_dt.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryDatatypes::NotifyClass */
 private:
