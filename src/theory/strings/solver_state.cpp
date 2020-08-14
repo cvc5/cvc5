@@ -129,7 +129,7 @@ void SolverState::eqNotifyNewClass(TNode t)
   }
 }
 
-void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
+void SolverState::eqNotifyMerge(TNode t1, TNode t2)
 {
   EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
   if (e2)

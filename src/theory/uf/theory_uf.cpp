@@ -657,13 +657,7 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
   }
 }
 
-void TheoryUF::eqNotifyPreMerge(TNode t1, TNode t2) {
-  //if (getLogicInfo().isQuantified()) {
-    //getQuantifiersEngine()->getEfficientEMatcher()->merge( t1, t2 );
-  //}
-}
-
-void TheoryUF::eqNotifyPostMerge(TNode t1, TNode t2) {
+void TheoryUF::eqNotifyMerge(TNode t1, TNode t2) {
   if (d_thss != NULL) {
     d_thss->merge(t1, t2);
   }
