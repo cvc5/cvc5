@@ -32,7 +32,7 @@ class StringProofRuleChecker : public ProofRuleChecker
   StringProofRuleChecker() {}
   ~StringProofRuleChecker() {}
 
-  /** Register all rules owned by this rule checker into pc. */
+  /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;
 
  protected:
