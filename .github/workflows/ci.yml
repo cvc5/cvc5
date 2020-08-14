@@ -27,7 +27,7 @@ jobs:
             cache-key: production
             python-bindings: true
             check-examples: true
-            exclude_regress: 2-4
+            exclude_regress: 3-4
 
           - name: production-clang
             config: production
