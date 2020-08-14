@@ -413,13 +413,6 @@ class Theory {
   }
 
   /**
-   * Set the output channel associated to this theory.
-   */
-  void setOutputChannel(OutputChannel& out) {
-    d_out = &out;
-  }
-
-  /**
    * Get the output channel associated to this theory.
    */
   OutputChannel& getOutputChannel() {
@@ -521,9 +514,6 @@ class Theory {
   void setQuantifiersEngine(QuantifiersEngine* qe);
   /** Called to set the decision manager. */
   void setDecisionManager(DecisionManager* dm);
-
-  /** Setup an ExtTheory module for this Theory. Can only be called once. */
-  void setupExtTheory();
 
   /**
    * Return the current theory care graph. Theories should overload

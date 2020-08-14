@@ -102,6 +102,8 @@ void CoreSolver::preRegister(TNode node) {
       }
   } else {
     d_equalityEngine.addTerm(node);
+    // register with the extended theory
+    d_extTheory->registerTerm(t);
   }
 }
 
@@ -397,10 +399,6 @@ void CoreSolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
   d_solver.conflict(t1, t2);
 }
 
-void CoreSolver::NotifyClass::eqNotifyNewClass(TNode t) {
-  d_solver.eqNotifyNewClass( t );
-}
-
 bool CoreSolver::storePropagation(TNode literal) {
   return d_bv->storePropagation(literal, SUB_CORE);
 }
@@ -411,8 +409,6 @@ void CoreSolver::conflict(TNode a, TNode b) {
   Node conflict = flattenAnd(assumptions);
   d_bv->setConflict(conflict);
 }
-
-void CoreSolver::eqNotifyNewClass(TNode t) { d_extTheory->registerTerm(t); }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   if (d_useSlicer)
