@@ -121,9 +121,8 @@ eq::EqualityEngine* TheoryStrings::getEqualityEngine()
 }
 void TheoryStrings::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
   // witness is used to eliminate str.from_code
-  tm->setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(WITNESS);
 }
 
 bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
