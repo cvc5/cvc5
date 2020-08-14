@@ -273,35 +273,6 @@ int RelevanceManager::justify(
       {
         visit.pop_back();
       }
-      /*
-      bool computeChild = false;
-      while (updateJustifyLastChild(cur, itc->second, cache))
-      {
-        // cur has requested that the next child be computed.
-        // we should not request a new child out of bounds.
-        Assert (itc->second.size()<cur.getNumChildren());
-        TNode nextChild = cur[itc->second.size()];
-        // check if its already in the cache.
-        it = cache.find(nextChild);
-        if (it != cache.end())
-        {
-          // if so, we add to cur's justify children immediately.
-          itc->second.push_back(it->second);
-        }
-        else
-        {
-          // otherwise not computed yet, we exit and push the child to visit
-          visit.push_back(nextChild);
-          computeChild = true;
-          break;
-        }
-      }
-      if (!computeChild)
-      {
-        // pop the original if we are not wanting to compute the next child
-        visit.pop_back();
-      }
-      */
     }
   } while (!visit.empty());
   Assert(cache.find(n) != cache.end());
