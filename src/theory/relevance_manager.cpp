@@ -21,10 +21,7 @@ namespace theory {
 
 RelevanceManager::RelevanceManager(context::UserContext* userContext,
                                    Valuation val)
-    : d_val(val),
-      d_input(userContext),
-      d_computed(false),
-      d_success(false)
+    : d_val(val), d_input(userContext), d_computed(false), d_success(false)
 {
 }
 
@@ -108,22 +105,24 @@ void RelevanceManager::computeRelevance()
 bool RelevanceManager::isBooleanConnective(TNode cur)
 {
   Kind k = cur.getKind();
-  return k==NOT || k==IMPLIES || k==AND || k==OR || k==ITE || k==XOR || (k==EQUAL && cur[0].getType().isBoolean());
+  return k == NOT || k == IMPLIES || k == AND || k == OR || k == ITE || k == XOR
+         || (k == EQUAL && cur[0].getType().isBoolean());
 }
 
-
 bool RelevanceManager::updateJustifyLastChild(
-  TNode cur, std::vector<int>& childrenJustify, std::unordered_map<TNode, int, TNodeHashFunction>& cache)
+    TNode cur,
+    std::vector<int>& childrenJustify,
+    std::unordered_map<TNode, int, TNodeHashFunction>& cache)
 {
   // This method is run when we are informed that child index of cur
   // has justify status lastChildJustify. We return true if we would like to
   // compute the next child, in this case we push the status of the current
   // child to childrenJustify.
   size_t nchildren = cur.getNumChildren();
-  Assert (isBooleanConnective(cur));
+  Assert(isBooleanConnective(cur));
   size_t index = childrenJustify.size();
-  Assert (index<nchildren);
-  Assert (cache.find(cur[index])!=cache.end());
+  Assert(index < nchildren);
+  Assert(cache.find(cur[index]) != cache.end());
   Kind k = cur.getKind();
   // Lookup the last child's value in the overall cache, we may choose to
   // add this to childrenJustify if we return true.
@@ -134,22 +133,23 @@ bool RelevanceManager::updateJustifyLastChild(
   }
   else if (k == IMPLIES || k == AND || k == OR)
   {
-    if (lastChildJustify!=0)
+    if (lastChildJustify != 0)
     {
       // see if we short circuited?
-      if (lastChildJustify==( (k==AND || (k==IMPLIES && index==0)) ? -1 : 1))
+      if (lastChildJustify
+          == ((k == AND || (k == IMPLIES && index == 0)) ? -1 : 1))
       {
-        cache[cur] = k==AND ? -1 : 1;
+        cache[cur] = k == AND ? -1 : 1;
         return false;
       }
     }
-    if (index+1==nchildren)
+    if (index + 1 == nchildren)
     {
       // finished all children, compute the overall value
-      int ret = k==AND ? 1 : -1;
+      int ret = k == AND ? 1 : -1;
       for (int cv : childrenJustify)
       {
-        if (cv==0)
+        if (cv == 0)
         {
           ret = 0;
           break;
@@ -164,19 +164,19 @@ bool RelevanceManager::updateJustifyLastChild(
       return true;
     }
   }
-  else if (lastChildJustify==0)
+  else if (lastChildJustify == 0)
   {
     // all other cases, an unknown child implies we are unknown
     cache[cur] = 0;
   }
   else if (k == ITE)
   {
-    if (index==0)
+    if (index == 0)
     {
-      Assert (lastChildJustify!=0);
+      Assert(lastChildJustify != 0);
       // continue with branch
       childrenJustify.push_back(lastChildJustify);
-      if (lastChildJustify==-1)
+      if (lastChildJustify == -1)
       {
         // also mark first branch as don't care
         childrenJustify.push_back(0);
@@ -186,16 +186,16 @@ bool RelevanceManager::updateJustifyLastChild(
     else
     {
       // should be in proper branch
-      Assert (childrenJustify[0]==(index==1 ? 1 : -1));
+      Assert(childrenJustify[0] == (index == 1 ? 1 : -1));
       // we are the value of the branch
       cache[cur] = lastChildJustify;
     }
   }
   else
   {
-    Assert (k==XOR || k==EQUAL);
-    Assert (lastChildJustify!=0);
-    if (index==0)
+    Assert(k == XOR || k == EQUAL);
+    Assert(lastChildJustify != 0);
+    if (index == 0)
     {
       // must compute the other child
       childrenJustify.push_back(lastChildJustify);
@@ -204,8 +204,10 @@ bool RelevanceManager::updateJustifyLastChild(
     else
     {
       // both children known, compute value
-      Assert (childrenJustify.size()==1 && childrenJustify[0]!=0);
-      cache[cur] = (( k==XOR ? -1 : 1)*lastChildJustify==childrenJustify[0]) ? 1 : -1;
+      Assert(childrenJustify.size() == 1 && childrenJustify[0] != 0);
+      cache[cur] =
+          ((k == XOR ? -1 : 1) * lastChildJustify == childrenJustify[0]) ? 1
+                                                                         : -1;
     }
   }
   return false;
@@ -221,7 +223,7 @@ int RelevanceManager::justify(
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do 
+  do
   {
     cur = visit.back();
     if (it != cache.end())
@@ -232,7 +234,7 @@ int RelevanceManager::justify(
     }
     itc = childJustify.find(cur);
     // have we traversed to children yet?
-    if (itc == childJustify.end()) 
+    if (itc == childJustify.end())
     {
       // are we not a Boolean connective (including NOT)?
       if (isBooleanConnective(cur))
@@ -256,14 +258,14 @@ int RelevanceManager::justify(
         }
         cache[cur] = ret;
       }
-    } 
+    }
     else
     {
       // this processes the impact of the current child on the value of cur,
       // and possibly requests that a new child is computed.
       if (updateJustifyLastChild(cur, itc->second, cache))
       {
-        Assert (itc->second.size()<cur.getNumChildren());
+        Assert(itc->second.size() < cur.getNumChildren());
         TNode nextChild = cur[itc->second.size()];
         visit.push_back(nextChild);
       }
