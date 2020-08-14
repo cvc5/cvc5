@@ -154,7 +154,7 @@ class SygusSolver
    * context if we are in incremental mode and the sygus conjecture was
    * previously not stale.
    */
-  bool setSygusConjectureStale();
+  void setSygusConjectureStale();
   /** The SMT solver, which is used during checkSynth. */
   SmtSolver& d_smtSolver;
   /** The preprocessor, used for checkSynthSolution. */

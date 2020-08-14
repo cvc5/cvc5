@@ -388,15 +388,15 @@ void SygusSolver::checkSynthSolution(Assertions& as)
   }
 }
 
-bool SygusSolver::setSygusConjectureStale()
+void SygusSolver::setSygusConjectureStale()
 {
-  if (d_sygusConjectureStale)
+  if (d_private->d_sygusConjectureStale)
   {
     // already stale
-    return false;
+    return;
   }
-  d_sygusConjectureStale = true;
-  return true;
+  d_private->d_sygusConjectureStale = true;
+  // TODO (project #7): if incremental, we should pop a context
 }
 
 }  // namespace smt

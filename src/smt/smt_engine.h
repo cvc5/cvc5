@@ -416,10 +416,16 @@ class CVC4_PUBLIC SmtEngine
   /*---------------------------- sygus commands  ---------------------------*/
 
   /**
-   * Add variable declaration.
+   * Add sygus variable declaration.
    *
    * Declared SyGuS variables may be used in SyGuS constraints, in which they
    * are assumed to be universally quantified.
+   *
+   * In SyGuS semantics, declared functions are treated in the same manner as
+   * declared variables, i.e. as universally quantified (function) variables
+   * which can occur in the SyGuS constraints that compose the conjecture to
+   * which a function is being synthesized. Thus declared functions should use
+   * this method as well.
    */
   void declareSygusVar(const std::string& id, Node var, TypeNode type);
 
@@ -938,16 +944,6 @@ class CVC4_PUBLIC SmtEngine
   void checkModel(bool hardFailure = true);
 
   /**
-   * Check that a solution to a synthesis conjecture is indeed a solution.
-   *
-   * The check is made by determining if the negation of the synthesis
-   * conjecture in which the functions-to-synthesize have been replaced by the
-   * synthesized solutions, which is a quantifier-free formula, is
-   * unsatisfiable. If not, then the found solutions are wrong.
-   */
-  void checkSynthSolution();
-
-  /**
    * Check that a solution to an interpolation problem is indeed a solution.
    *
    * The check is made by determining that the assertions imply the solution of
@@ -957,16 +953,6 @@ class CVC4_PUBLIC SmtEngine
   void checkInterpol(Expr interpol,
                      const std::vector<Expr>& easserts,
                      const Node& conj);
-
-  /**
-   * Check that a solution to an abduction conjecture is indeed a solution.
-   *
-   * The check is made by determining that the assertions conjoined with the
-   * solution to the abduction problem (a) is SAT, and the assertions conjoined
-   * with the abduct and the goal is UNSAT. If these criteria are not met, an
-   * internal error is thrown.
-   */
-  void checkAbduct(Node a);
 
   /**
    * This is called by the destructor, just before destroying the
