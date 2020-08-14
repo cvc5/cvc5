@@ -229,9 +229,9 @@ bool SygusSolver::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
   Trace("smt") << "SygusSolver::getSynthSolutions" << std::endl;
   std::map<Node, std::map<Node, Node>> sol_mapn;
-  Assert(d_theoryEngine != nullptr);
   // fail if the theory engine does not have synthesis solutions
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
+  Assert(te != nullptr);
   if (!te->getSynthSolutions(sol_mapn))
   {
     return false;
