@@ -596,7 +596,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   // Determine if we should notify the owner of this class of this merge.
   // The second part of this check is needed due to the internal implementation
   // of this class. It ensures that we are merging terms and not operators.
-  if (d_performNotify && class1Id==cc1.getFind() && class2Id==cc2.getFind()) 
+  if (d_performNotify && class1Id == cc1.getFind() && class2Id == cc2.getFind())
   {
     doNotify = true;
   }

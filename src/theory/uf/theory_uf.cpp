@@ -657,7 +657,8 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
   }
 }
 
-void TheoryUF::eqNotifyMerge(TNode t1, TNode t2) {
+void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
+{
   if (d_thss != NULL) {
     d_thss->merge(t1, t2);
   }

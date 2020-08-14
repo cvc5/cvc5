@@ -122,7 +122,8 @@ void ConjectureGenerator::eqNotifyNewClass( TNode t ){
   d_upendingAdds.push_back( t );
 }
 
-void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2) {
+void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2)
+{
   //get maintained representatives
   TNode rt1 = t1;
   TNode rt2 = t2;

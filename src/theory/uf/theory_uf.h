@@ -93,7 +93,8 @@ public:
 
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+                         << ")" << std::endl;
       d_uf.eqNotifyMerge(t1, t2);
     }
 

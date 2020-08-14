@@ -101,7 +101,8 @@ class TheoryDatatypes : public Theory {
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")" << std::endl;
+      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+                  << std::endl;
       d_dt.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override

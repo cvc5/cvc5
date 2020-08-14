@@ -842,9 +842,11 @@ void TheoryDatatypes::eqNotifyNewClass(TNode t){
 }
 
 /** called when two equivalance classes have merged */
-void TheoryDatatypes::eqNotifyMerge(TNode t1, TNode t2){
+void TheoryDatatypes::eqNotifyMerge(TNode t1, TNode t2)
+{
   if( t1.getType().isDatatype() ){
-    Trace("datatypes-debug") << "NotifyMerge : " << t1 << " " << t2 << std::endl;
+    Trace("datatypes-debug")
+        << "NotifyMerge : " << t1 << " " << t2 << std::endl;
     d_pending_merge.push_back( t1.eqNode( t2 ) );
   }
 }

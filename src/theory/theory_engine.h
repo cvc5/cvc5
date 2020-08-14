@@ -174,9 +174,7 @@ class TheoryEngine {
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
-    void eqNotifyMerge(TNode t1, TNode t2) override
-    {
-    }
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
     }

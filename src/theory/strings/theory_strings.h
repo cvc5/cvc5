@@ -168,7 +168,8 @@ class TheoryStrings : public Theory {
     }
     void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+                       << std::endl;
       d_state.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
