@@ -60,6 +60,8 @@ class CDCAC
   /**
    * Extract an initial assignment from the given model.
    * This initial assignment is used to guide sampling if possible.
+   * The ran_variable should be the variable used to encode real algebraic
+   * numbers in the model and is simply passed on to node_to_value.
    */
   void retrieveInitialAssignment(NlModel& model, const Node& ran_variable);
 
@@ -90,6 +92,8 @@ class CDCAC
   /**
    * Sample outside of the set of intervals.
    * Uses a given initial value from mInitialAssignment if possible.
+   * Returns whether a sample was found (true) or the infeasible intervals cover
+   * the whole real line (false).
    */
   bool sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
                                 poly::Value& sample,
