@@ -390,12 +390,12 @@ void SygusSolver::checkSynthSolution(Assertions& as)
 
 void SygusSolver::setSygusConjectureStale()
 {
-  if (d_private->d_sygusConjectureStale)
+  if (d_sygusConjectureStale)
   {
     // already stale
     return;
   }
-  d_private->d_sygusConjectureStale = true;
+  d_sygusConjectureStale = true;
   // TODO (project #7): if incremental, we should pop a context
 }
 
