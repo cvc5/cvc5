@@ -62,7 +62,7 @@ class RewriterWhite : public CxxTest::TestSuite
     d_smt->setOption("dag-thresh", "0");
     d_smt->setOption("proof-new", "true");
     d_scope = new SmtScope(d_smt);
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     // make a rewriter with proof generation
     d_rewriter = new Rewriter;
     d_rewriter->setProofNodeManager(

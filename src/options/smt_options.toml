@@ -149,13 +149,6 @@ header = "options/smt_options.h"
   help       = "after UNSAT/VALID, machine-check the generated proof"
 
 [[option]]
-  name       = "checkProofsNew"
-  category   = "regular"
-  long       = "check-proofs-new"
-  type       = "bool"
-  help       = "after UNSAT/VALID, machine-check the generated proof (with proof-new)"
-
-[[option]]
   name       = "dumpProofs"
   category   = "regular"
   long       = "dump-proofs"
@@ -191,6 +184,14 @@ header = "options/smt_options.h"
   help       = "check proofs eagerly with proof-new for local debugging"
 
 [[option]]
+  name       = "proofNewPedanticEager"
+  category   = "regular"
+  long       = "proof-new-pedantic-eager"
+  type       = "bool"
+  default    = "false"
+  help       = "check pedantic levels eagerly (during proof rule construction) instead of during final proof construction"
+
+[[option]]
   name       = "proofGranularityMode"
   category   = "regular"
   long       = "proof-granularity=MODE"
@@ -210,6 +211,27 @@ header = "options/smt_options.h"
 [[option.mode.DSL_REWRITE]]
   name = "dsl-rewrite"
   help = "Expand all steps to the level of DSL rewrites and evaluation steps."
+
+[[option]]
+  name       = "checkProofsNew"
+  category   = "regular"
+  long       = "check-proofs-new"
+  type       = "bool"
+  help       = "after UNSAT/VALID, check the generated proof (with proof-new)"
+
+[[option]]
+  name       = "checkProofsNewFail"
+  category   = "regular"
+  long       = "check-proofs-new-fail"
+  type       = "bool"
+  help       = "always fail when the checkProof method is invoked (dummy option)"
+
+[[option]]
+  name       = "proofNewReq"
+  category   = "regular"
+  long       = "proof-new-req"
+  type       = "bool"
+  help       = "always fail during setDefaults if proof-new is not enabled (dummy option)"
 
 [[option]]
   name       = "dumpInstantiations"

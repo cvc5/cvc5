@@ -15,6 +15,7 @@
 #include "smt/proof_post_processor.h"
 
 #include "expr/skolem_manager.h"
+#include "options/smt_options.h"
 #include "preprocessing/assertion_pipeline.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_statistics_registry.h"
@@ -567,21 +568,30 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-ProofPostprocessStatsCallback::ProofPostprocessStatsCallback()
+ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
+    ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
-      d_totalRuleCount("finalProof::totalRuleCount", 0)
+      d_totalRuleCount("finalProof::totalRuleCount", 0),
+      d_pnm(pnm),
+      d_pedanticFailure(false)
 {
   smtStatisticsRegistry()->registerStat(&d_ruleCount);
   smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
 }
 
-ProofPostprocessStatsCallback::~ProofPostprocessStatsCallback()
+ProofPostprocessFinalCallback::~ProofPostprocessFinalCallback()
 {
   smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
   smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
 }
 
-bool ProofPostprocessStatsCallback::shouldUpdate(ProofNode* pn)
+void ProofPostprocessFinalCallback::initializeUpdate()
+{
+  d_pedanticFailure = false;
+  d_pedanticFailureOut.str("");
+}
+
+bool ProofPostprocessFinalCallback::shouldUpdate(ProofNode* pn)
 {
   PfRule r = pn->getRule();
   if (r == PfRule::THEORY_REWRITE)
@@ -589,16 +599,38 @@ bool ProofPostprocessStatsCallback::shouldUpdate(ProofNode* pn)
     Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult()
                            << std::endl;
   }
+  // if not doing eager pedantic checking, fail if below threshold
+  if (!options::proofNewPedanticEager())
+  {
+    if (!d_pedanticFailure)
+    {
+      Assert(d_pedanticFailureOut.str().empty());
+      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
+      {
+        d_pedanticFailure = true;
+      }
+    }
+  }
   // record stats for the rule
   d_ruleCount << r;
   ++d_totalRuleCount;
   return false;
 }
 
+bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
+{
+  if (d_pedanticFailure)
+  {
+    out << d_pedanticFailureOut.str();
+    return true;
+  }
+  return false;
+}
+
 ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
                                      SmtEngine* smte,
                                      ProofGenerator* pppg)
-    : d_cb(pnm, smte, pppg), d_statCb(), d_pnm(pnm)
+    : d_cb(pnm, smte, pppg), d_finalCb(pnm), d_pnm(pnm)
 {
 }
 
@@ -612,9 +644,19 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
   // now, process
   ProofNodeUpdater updater(d_pnm, d_cb);
   updater.process(pf);
-  // take stats
-  ProofNodeUpdater stats(d_pnm, d_statCb);
-  stats.process(pf);
+  // take stats and check pedantic
+  d_finalCb.initializeUpdate();
+  ProofNodeUpdater finalizer(d_pnm, d_finalCb);
+  finalizer.process(pf);
+
+  std::stringstream serr;
+  bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
+  if (wasPedanticFailure)
+  {
+    AlwaysAssert(!wasPedanticFailure)
+        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << serr.str();
+  }
 }
 
 void ProofPostproccess::setEliminateRule(PfRule rule)

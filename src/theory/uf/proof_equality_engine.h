@@ -43,9 +43,9 @@ namespace eq {
  * equality engine. A user of this class should still issue low-level calls
  * (getRepresentative, areEqual, areDisequal, etc.) on the underlying equality
  * engine directly. The methods that should *not* be called directly on the
- * underlying equality engine include:
- *   assertEquality/assertPredicate [*]
- *   explain
+ * underlying equality engine are:
+ * - assertEquality/assertPredicate [*]
+ * - explain
  * [*] the exception is that pure assumptions (those who are their own
  * explanation) should be sent directly to the underlying equality engine.
  * Instead, the user should use variants of the above methods provided by
@@ -53,12 +53,22 @@ namespace eq {
  *
  * This class tracks the reason for why all facts are added to an EqualityEngine
  * in a SAT-context dependent manner in a context-dependent (CDProof) object.
+ * It furthermore maintains an internal FactProofGenerator class for managing
+ * explicitly provided "simple" steps for facts.
  *
  * It is an eager proof generator (see theory/proof_generator.h), in that
  * it stores (copies) of proofs for lemmas at the moment they are sent out.
  *
  * A theory that is proof producing and uses the equality engine may use this
  * class to manage proofs that are justified by its underlying equality engine.
+ * In particular, the following interfaces are available for constructing
+ * a TrustNode:
+ * - assertConflict, when the user of the equality engine has discovered that
+ * false can be derived from the current state,
+ * - assertLemma, for lemmas/conflict that can be (partially) explained in the
+ * current state,
+ * - explain, for explaining why a literal is true in the current state.
+ * Details on these methods can be found below.
  */
 class ProofEqEngine : public EagerProofGenerator
 {
@@ -167,10 +177,12 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
   //-------------------------- assert lemma
   /**
-   * Called when we have concluded conc, which is either false or a
-   * disjunction.
+   * Called when we have concluded conc, typically via theory specific
+   * reasoning. The purpose of this method is to construct a TrustNode of
+   * kind TrustNodeKind::LEMMA or TrustNodeKind::CONFLICT corresponding to the
+   * lemma or conflict to be sent on the output channel of the Theory.
    *
-   * We provide the explanation in two parts:
+   * The user provides the explanation of conc in two parts:
    * (1) exp \ noExplain, which are literals that hold in the equality engine of
    * this class,
    * (2) noExplain, which do not necessarily hold in the equality engine of this
@@ -180,7 +192,7 @@ class ProofEqEngine : public EagerProofGenerator
    * The proof for conc follows from exp ^ expn by proof rule with the given
    * id and arguments.
    *
-   * This call corresponds to a lemma if conc is false and expn is empty.
+   * This call corresponds to a conflict if conc is false and expn is empty.
    *
    * This returns the TrustNode corresponding to the formula corresonding to
    * the call to this method [*], for which a proof can be provided by this
@@ -190,16 +202,15 @@ class ProofEqEngine : public EagerProofGenerator
    * a. If this call does not correspond to a conflict, then this formula is:
    *   ( ^_{e in exp} <explain>(e) ^ expn ) => conc
    * where <explain>(e) is a conjunction of literals L1 ^ ... ^ Ln such that
-   * L1 ^ ... ^ Ln entail e, and each Li was passed as an argument to
-   * assertAssume(...) in the current SAT context. This explanation method
+   * L1 ^ ... ^ Ln entail e, and each Li was passed as an explanation to a
+   * call to assertFact in the current SAT context. This explanation method
    * always succeeds, provided that e is a literal that currently holds in
    * the equality engine of this class. Notice that if the antecedant is empty,
    * the formula above is assumed to be conc itself. The above formula is
    * intended to be valid in Theory that owns this class.
    * b. If this call is a conflict, then this formula is:
    *   ^_{e in exp} <explain>(e)
-   * The above formula is intended to be equivalent to false according to the
-   * Theory that owns this class.
+   * The formula can be queried via TrustNode::getProven in the standard way.
    */
   TrustNode assertLemma(Node conc,
                         PfRule id,

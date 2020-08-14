@@ -45,6 +45,13 @@ namespace smt {
 
 void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 {
+  // TEMPORARY for testing
+  if (options::proofNewReq() && !options::proofNew())
+  {
+    AlwaysAssert(false) << "Fail due to --proof-new-req "
+                        << options::proofNew.wasSetByUser();
+  }
+
   // implied options
   if (options::debugCheckModels())
   {
@@ -72,9 +79,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting unsatCores" << std::endl;
     options::unsatCores.set(true);
   }
-  // if ((options::checkProofs() || options::dumpProofs()) &&
-  // !options::proofNew())
-  if ((options::checkProofs() || options::dumpProofs()) && !options::proofNew())
+  if (options::checkProofs() || (options::dumpProofs() && !options::proofNew()))
   {
     Notice() << "SmtEngine: setting proof" << std::endl;
     options::proof.set(true);
@@ -272,12 +277,16 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::proof())
   {
     options::proofNew.set(false);
+    // set proofNewReq to false, since we don't want CI failures
+    options::proofNewReq.set(false);
   }
   // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
   // with new proof system
   if (options::unsatCores())
   {
     options::proofNew.set(false);
+    // set proofNewReq to false, since we don't want CI failures
+    options::proofNewReq.set(false);
   }
   if (options::proofNew())
   {
@@ -915,6 +924,10 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                      "supported with --uf-ho)\n";
       }
       options::proofNew.set(false);
+      if (options::proofNewReq())
+      {
+        AlwaysAssert(false) << "Fail due to --proof-new-req with --uf-ho";
+      }
     }
     // if higher-order, then current variants of model-based instantiation
     // cannot be used
@@ -1156,6 +1169,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                  << std::endl;
       }
       options::proofNew.set(false);
+      // we set proofNewReq to false, as proofs are truly inapplicable
+      options::proofNewReq.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus

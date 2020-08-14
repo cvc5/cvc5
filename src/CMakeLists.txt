@@ -267,8 +267,12 @@ libcvc4_add_sources(
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
+  smt/smt_engine_state.cpp
+  smt/smt_engine_state.h
   smt/smt_engine_stats.cpp
   smt/smt_engine_stats.h
+  smt/smt_mode.cpp
+  smt/smt_mode.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
   smt/term_formula_removal.cpp
@@ -838,6 +842,9 @@ libcvc4_add_sources(
   theory/uf/cardinality_extension.h
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
+  theory/uf/equality_engine_iterator.cpp
+  theory/uf/equality_engine_iterator.h
+  theory/uf/equality_engine_notify.h
   theory/uf/equality_engine_types.h
   theory/uf/eq_proof.cpp
   theory/uf/eq_proof.h
@@ -887,7 +894,9 @@ set(KINDS_FILES
 add_subdirectory(base)
 add_subdirectory(expr)
 add_subdirectory(options)
-add_subdirectory(parser)
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(parser)
+endif()
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -979,7 +988,9 @@ target_link_libraries(cvc4 ${RT_LIBRARIES})
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
 # Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
 
-add_subdirectory(main)
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(main)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Note:

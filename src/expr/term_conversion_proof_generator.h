@@ -36,7 +36,7 @@ enum class TConvPolicy : uint32_t
 /** Writes a term conversion policy name to a stream. */
 std::ostream& operator<<(std::ostream& out, TConvPolicy tcpol);
 
-/** A policy for how proofs are cache in TConvProofGenerator */
+/** A policy for how proofs are cached in TConvProofGenerator */
 enum class TConvCachePolicy : uint32_t
 {
   // proofs are statically cached
@@ -89,13 +89,17 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
 class TConvProofGenerator : public ProofGenerator
 {
  public:
-  /** Constructor
+  /**
+   * Constructor, which notice does fixpoint rewriting (since this is the
+   * most common use case) and never caches.
    *
    * @param pnm The proof node manager for constructing ProofNode objects.
    * @param c The context that this class depends on. If none is provided,
    * this class is context-independent.
    * @param tpol The policy for applying rewrite steps of this class. For
    * details, see d_policy.
+   * @param cpol The caching policy for this generator.
+   * @param name The name of this generator (for debugging).
    */
   TConvProofGenerator(ProofNodeManager* pnm,
                       context::Context* c = nullptr,

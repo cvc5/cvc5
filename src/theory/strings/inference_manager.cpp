@@ -383,7 +383,7 @@ void InferenceManager::doPendingLemmas()
     if (!options::stringRExplainLemmas())
     {
       // if we aren't regressing the explanation, we add all literals to
-      // noExplain and ignore ii.d_antn.
+      // noExplain and ignore ii.d_ant.
       noExplain.insert(noExplain.end(), exp.begin(), exp.end());
     }
     else

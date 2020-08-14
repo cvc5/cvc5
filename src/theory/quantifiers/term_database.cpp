@@ -249,7 +249,7 @@ void TermDb::addTerm(Node n,
 void TermDb::computeArgReps( TNode n ) {
   if (d_arg_reps.find(n) == d_arg_reps.end())
   {
-    eq::EqualityEngine * ee = d_quantEngine->getActiveEqualityEngine();
+    eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
     for (const TNode& nc : n)
     {
       TNode r = ee->hasTerm(nc) ? ee->getRepresentative(nc) : nc;
@@ -272,7 +272,7 @@ void TermDb::computeUfEqcTerms( TNode f ) {
   {
     ops.insert(ops.end(), d_ho_op_slaves[f].begin(), d_ho_op_slaves[f].end());
   }
-  eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
   for (const Node& ff : ops)
   {
     for (const TNode& n : d_op_map[ff])
@@ -307,7 +307,7 @@ void TermDb::computeUfTerms( TNode f ) {
   unsigned nonCongruentCount = 0;
   unsigned alreadyCongruentCount = 0;
   unsigned relevantCount = 0;
-  eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& ff : ops)
   {
@@ -503,8 +503,8 @@ bool TermDb::inRelevantDomain( TNode f, unsigned i, TNode r ) {
     f = getOperatorRepresentative( f );
   }
   computeUfTerms( f );
-  Assert(!d_quantEngine->getActiveEqualityEngine()->hasTerm(r)
-         || d_quantEngine->getActiveEqualityEngine()->getRepresentative(r)
+  Assert(!d_quantEngine->getMasterEqualityEngine()->hasTerm(r)
+         || d_quantEngine->getMasterEqualityEngine()->getRepresentative(r)
                 == r);
   std::map< Node, std::map< unsigned, std::vector< Node > > >::iterator it = d_func_map_rel_dom.find( f );
   if( it != d_func_map_rel_dom.end() ){
@@ -905,22 +905,18 @@ void TermDb::setTermInactive( Node n ) {
 bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   if( !useMode ){
     return d_has_map.find( n )!=d_has_map.end();
-  }else{
-    //return d_quantEngine->getActiveEqualityEngine()->hasTerm( n ); //some assertions are not sent to EE
-    if (options::termDbMode() == options::TermDbMode::ALL)
-    {
-      return true;
-    }
-    else if (options::termDbMode() == options::TermDbMode::RELEVANT)
-    {
-      return d_has_map.find( n )!=d_has_map.end();
-    }
-    else
-    {
-      Assert(false);
-      return false;
-    }
   }
+  //some assertions are not sent to EE
+  if (options::termDbMode() == options::TermDbMode::ALL)
+  {
+    return true;
+  }
+  else if (options::termDbMode() == options::TermDbMode::RELEVANT)
+  {
+    return d_has_map.find( n )!=d_has_map.end();
+  }
+  Assert(false) << "TermDb::hasTermCurrent: Unknown termDbMode : " << options::termDbMode();
+  return false;
 }
 
 bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
@@ -966,7 +962,7 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
     std::map< Node, Node >::iterator it = d_term_elig_eqc.find( r );
     if( it==d_term_elig_eqc.end() ){
       Node h;
-      eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+      eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
       eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
       while (!eqc_i.isFinished())
       {
@@ -1021,7 +1017,7 @@ bool TermDb::reset( Theory::Effort effort ){
   d_func_map_rel_dom.clear();
   d_consistent_ee = true;
 
-  eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
+  eq::EqualityEngine* ee = d_quantEngine->getMasterEqualityEngine();
 
   Assert(ee->consistent());
   // if higher-order, add equalities for the purification terms now

@@ -32,7 +32,7 @@ namespace CVC4 {
 class SmtEngine;
 
 namespace smt {
-  
+
 class Assertions;
 
 /**
@@ -65,8 +65,7 @@ class PfManager
    * The argument pg is the module that can provide a proof for false in the
    * current context.
    */
-  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg,
-                                           Assertions& as);
+  std::shared_ptr<ProofNode> getFinalProof(ProofGenerator* pg, Assertions& as);
   //--------------------------- access to utilities
   /** Get a pointer to the ProofChecker owned by this. */
   ProofChecker* getProofChecker() const;

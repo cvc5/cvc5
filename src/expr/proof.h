@@ -245,7 +245,7 @@ class CDProof : public ProofGenerator
   context::Context d_context;
   /** The nodes of the proof */
   NodeProofNodeMap d_nodes;
-  /** Name dentifier */
+  /** Name identifier */
   std::string d_name;
   /** Ensure fact sym */
   std::shared_ptr<ProofNode> getProofSymm(Node fact);

@@ -570,7 +570,8 @@ enum class PfRule : uint32_t
   // ---------------------------------------------
   // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
   // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
-  // APPLY_UF.
+  // APPLY_UF. The actual node for <kind> is constructible via
+  // ProofRuleChecker::mkKindNode.
   CONG,
   // ======== True intro
   // Children: (P:F)

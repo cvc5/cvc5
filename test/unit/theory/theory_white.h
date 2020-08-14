@@ -180,7 +180,7 @@ class TheoryBlack : public CxxTest::TestSuite {
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     // guard against duplicate statistics assertion errors
     delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
     delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
