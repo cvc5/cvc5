@@ -289,7 +289,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node atom = children[0];
-    if (atom.getKind() != GEQ)
+    if (atom.getKind() != GEQ || atom[0].getKind()!=STRING_LENGTH)
     {
       return Node::null();
     }
