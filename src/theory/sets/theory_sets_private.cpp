@@ -79,9 +79,7 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t)
   }
 }
 
-void TheorySetsPrivate::eqNotifyPreMerge(TNode t1, TNode t2) {}
-
-void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2)
+void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
 {
   if (!d_state.isInConflict())
   {
