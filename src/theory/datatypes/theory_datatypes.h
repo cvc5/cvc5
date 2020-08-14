@@ -99,20 +99,14 @@ class TheoryDatatypes : public Theory {
       Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_dt.eqNotifyNewClass(t);
     }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.eqNotifyPostMerge(t1, t2);
+      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+                  << std::endl;
+      d_dt.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
-      d_dt.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryDatatypes::NotifyClass */
 private:
@@ -302,12 +296,8 @@ private:
   void conflict(TNode a, TNode b);
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   void check(Effort e) override;
   bool needsCheckLastEffort() override;

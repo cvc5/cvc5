@@ -847,15 +847,12 @@ void TheoryDatatypes::eqNotifyNewClass(TNode t){
   }
 }
 
-/** called when two equivalance classes will merge */
-void TheoryDatatypes::eqNotifyPreMerge(TNode t1, TNode t2){
-
-}
-
 /** called when two equivalance classes have merged */
-void TheoryDatatypes::eqNotifyPostMerge(TNode t1, TNode t2){
+void TheoryDatatypes::eqNotifyMerge(TNode t1, TNode t2)
+{
   if( t1.getType().isDatatype() ){
-    Trace("datatypes-debug") << "NotifyPostMerge : " << t1 << " " << t2 << std::endl;
+    Trace("datatypes-debug")
+        << "NotifyMerge : " << t1 << " " << t2 << std::endl;
     d_pending_merge.push_back( t1.eqNode( t2 ) );
   }
 }
@@ -982,11 +979,6 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
     }
     Trace("datatypes-debug") << "Finished Merge " << t1 << " " << t2 << std::endl;
   }
-}
-
-/** called when two equivalence classes are made disequal */
-void TheoryDatatypes::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
-
 }
 
 TheoryDatatypes::EqcInfo::EqcInfo( context::Context* c )

@@ -201,13 +201,9 @@ class TheorySep : public Theory {
     }
 
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      d_sep.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      d_sep.eqNotifyPostMerge(t1, t2);
+      d_sep.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
@@ -330,8 +326,7 @@ class TheorySep : public Theory {
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
   void doPendingFacts();

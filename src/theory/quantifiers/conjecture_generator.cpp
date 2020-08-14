@@ -122,7 +122,8 @@ void ConjectureGenerator::eqNotifyNewClass( TNode t ){
   d_upendingAdds.push_back( t );
 }
 
-void ConjectureGenerator::eqNotifyPreMerge(TNode t1, TNode t2) {
+void ConjectureGenerator::eqNotifyMerge(TNode t1, TNode t2)
+{
   //get maintained representatives
   TNode rt1 = t1;
   TNode rt2 = t2;
@@ -149,15 +150,6 @@ void ConjectureGenerator::eqNotifyPreMerge(TNode t1, TNode t2) {
     }
     ei->d_rep = t2;
   }
-}
-
-void ConjectureGenerator::eqNotifyPostMerge(TNode t1, TNode t2) {
-
-}
-
-void ConjectureGenerator::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
-  Trace("thm-ee-debug") << "UEE : disequality holds : " << t1 << " != " << t2 << std::endl;
-
 }
 
 
