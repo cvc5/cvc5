@@ -307,7 +307,8 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
 }
 
-std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
+std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable,
+                                              bool return_first_interval)
 {
   Trace("cdcac") << "Looking for unsat cover for "
                  << d_variableOrdering[cur_variable] << std::endl;
@@ -364,6 +365,12 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
     auto new_interval =
         intervalFromCharacterization(characterization, cur_variable, sample);
     new_interval.d_origins = collectConstraints(cov);
+
+    if (return_first_interval)
+    {
+      return {new_interval};
+    }
+
     intervals.emplace_back(new_interval);
 
     Trace("cdcac") << "Added " << intervals.back().d_interval << std::endl;
