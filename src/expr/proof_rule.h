@@ -766,6 +766,22 @@ enum class PfRule : uint32_t
   //                (not (= (str.code t) (str.code s)))
   //                (not (= t s)))
   STRING_CODE_INJ,
+  //======================== Sequence unit
+  // Children: (P:(= (seq.unit x) (seq.unit y)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(= x y)
+  // Also applies to the case where (seq.unit y) is a constant sequence
+  // of length one.
+  STRING_SEQ_UNIT_INJ,
+  // ======== String Trust
+  // Children: none
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  STRING_TRUST,
+
+  //================================================= Arithmetic rules
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where

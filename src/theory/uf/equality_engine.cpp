@@ -593,14 +593,12 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   EqualityNode cc1 = getEqualityNode(n1);
   EqualityNode cc2 = getEqualityNode(n2);
   bool doNotify = false;
-  // notify the theory
-  // the second part of this check is needed due to the internal implementation of this class.
-  // It ensures that we are merging terms and not operators.
-  if (d_performNotify && class1Id==cc1.getFind() && class2Id==cc2.getFind()) {
+  // Determine if we should notify the owner of this class of this merge.
+  // The second part of this check is needed due to the internal implementation
+  // of this class. It ensures that we are merging terms and not operators.
+  if (d_performNotify && class1Id == cc1.getFind() && class2Id == cc2.getFind())
+  {
     doNotify = true;
-  }
-  if (doNotify) {
-    d_notify.eqNotifyPreMerge(n1, n2);
   }
 
   // Check for constant merges
@@ -729,7 +727,7 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // notify the theory
   if (doNotify) {
-    d_notify.eqNotifyPostMerge(n1, n2);
+    d_notify.eqNotifyMerge(n1, n2);
   }
 
   // Go through the trigger term disequalities and propagate
