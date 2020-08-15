@@ -53,7 +53,7 @@ void StringProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::STRING_CODE_INJ, this);
   pc->registerChecker(PfRule::STRING_SEQ_UNIT_INJ, this);
   // trusted rules
-  pc->registerChecker(PfRule::STRING_TRUST, this);
+  pc->registerTrustedChecker(PfRule::STRING_TRUST, this, 1);
 }
 
 Node StringProofRuleChecker::checkInternal(PfRule id,
@@ -410,8 +410,9 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node conc;
     if (id == PfRule::RE_UNFOLD_POS)
     {
+      std::vector<Node> newSkolems;
       SkolemCache sc;
-      conc = RegExpOpr::reduceRegExpPos(skChild, &sc);
+      conc = RegExpOpr::reduceRegExpPos(skChild, &sc, newSkolems);
     }
     else if (id == PfRule::RE_UNFOLD_NEG)
     {
