@@ -78,7 +78,7 @@ public:
     d_smt->finishInit();
     EagerBitblaster* bb = new EagerBitblaster(
         dynamic_cast<TheoryBV*>(
-            d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]),
+            d_smt->getTheoryEngine()->d_theoryTable[THEORY_BV]),
         d_smt->getContext());
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));

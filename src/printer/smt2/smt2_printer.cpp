@@ -1304,7 +1304,6 @@ void Smt2Printer::toStream(std::ostream& out,
       || tryToStream<CommentCommand>(out, c, d_variant)
       || tryToStream<EmptyCommand>(out, c)
       || tryToStream<EchoCommand>(out, c, d_variant)
-      || tryToStream<SynthFunCommand>(out, c)
       || tryToStream<DeclareSygusFunctionCommand>(out, c)
       || tryToStream<DeclareSygusVarCommand>(out, c)
       || tryToStream<SygusConstraintCommand>(out, c)
@@ -2019,16 +2018,15 @@ static void toStream(std::ostream& out, const EchoCommand* c, Variant v)
    --------------------------------------------------------------------------
 */
 
-static void toStreamSygusGrammar(std::ostream& out, const Type& t)
+static void toStreamSygusGrammar(std::ostream& out, const TypeNode& t)
 {
-  if (!t.isNull() && t.isDatatype()
-      && TypeNode::fromType(t).getDType().isSygus())
+  if (!t.isNull() && t.isDatatype() && t.getDType().isSygus())
   {
     std::stringstream types_predecl, types_list;
     std::set<TypeNode> grammarTypes;
     std::list<TypeNode> typesToPrint;
-    grammarTypes.insert(TypeNode::fromType(t));
-    typesToPrint.push_back(TypeNode::fromType(t));
+    grammarTypes.insert(t);
+    typesToPrint.push_back(t);
     NodeManager* nm = NodeManager::currentNM();
     // for each datatype in grammar
     //   name
@@ -2067,7 +2065,8 @@ static void toStreamSygusGrammar(std::ostream& out, const Type& t)
         }
         Node consToPrint = nm->mkNode(kind::APPLY_CONSTRUCTOR, cchildren);
         // now, print it using the conversion to builtin with external
-        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint, true);
+        types_list << theory::datatypes::utils::sygusToBuiltin(consToPrint,
+                                                               true);
         types_list << ' ';
       }
       types_list << "))\n";
@@ -2077,35 +2076,39 @@ static void toStreamSygusGrammar(std::ostream& out, const Type& t)
   }
 }
 
-static void toStream(std::ostream& out, const SynthFunCommand* c)
+void Smt2Printer::toStreamCmdSynthFun(std::ostream& out,
+                                      const std::string& sym,
+                                      const std::vector<Node>& vars,
+                                      TypeNode range,
+                                      bool isInv,
+                                      TypeNode sygusType)
 {
-  out << '(' << c->getCommandName() << ' ' << CVC4::quoteSymbol(c->getSymbol())
+  out << '(' << (isInv ? "synth-inv " : "synth-fun ") << CVC4::quoteSymbol(sym)
       << ' ';
-  const std::vector<api::Term>& vars = c->getVars();
   out << '(';
   if (!vars.empty())
   {
     // print variable list
-    std::vector<api::Term>::const_iterator i = vars.begin(), i_end = vars.end();
-    out << '(' << *i << ' ' << i->getSort() << ')';
+    std::vector<Node>::const_iterator i = vars.cbegin(), i_end = vars.cend();
+    out << '(' << *i << ' ' << i->getType() << ')';
     ++i;
     while (i != i_end)
     {
-      out << " (" << *i << ' ' << i->getSort() << ')';
+      out << " (" << *i << ' ' << i->getType() << ')';
       ++i;
     }
   }
   out << ')';
   // if not invariant-to-synthesize, print return type
-  if (!c->isInv())
+  if (!isInv)
   {
-    out << ' ' << c->getSort();
+    out << ' ' << range;
   }
   out << '\n';
   // print grammar, if any
-  if (c->getGrammar() != nullptr)
+  if (sygusType != TypeNode::null())
   {
-    out << *c->getGrammar();
+    toStreamSygusGrammar(out, sygusType);
   }
   out << ')';
 }

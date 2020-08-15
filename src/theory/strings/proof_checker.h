@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Strings proof utility
+ ** \brief Strings proof checker utility
  **/
 
 #include "cvc4_private.h"
@@ -32,7 +32,7 @@ class StringProofRuleChecker : public ProofRuleChecker
   StringProofRuleChecker() {}
   ~StringProofRuleChecker() {}
 
-  /** Register all rules owned by this rule checker into pc. */
+  /** Register all rules owned by this rule checker in pc. */
   void registerTo(ProofChecker* pc) override;
 
  protected:

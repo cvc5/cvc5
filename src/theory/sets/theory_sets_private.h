@@ -44,8 +44,7 @@ class TheorySetsPrivate {
 
  public:
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** Assert fact holds in the current context with explanation exp.
    *

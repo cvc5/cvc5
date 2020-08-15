@@ -869,7 +869,7 @@ enum class PfRule : uint32_t
   // Arguments: none
   // ---------------------
   // Conclusion:(= x y)
-  // Also applies t to the case where (seq.unit y) is a constant sequence
+  // Also applies to the case where (seq.unit y) is a constant sequence
   // of length one.
   STRING_SEQ_UNIT_INJ,
   // ======== String Trust

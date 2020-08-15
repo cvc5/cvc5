@@ -107,6 +107,7 @@ class SmtNodeManagerListener;
 class OptionsManager;
 class Preprocessor;
 /** Subsolvers */
+class SmtSolver;
 class AbductionSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -155,6 +156,7 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
+  friend class ::CVC4::smt::SmtSolver;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::theory::TheoryModel;
@@ -920,10 +922,10 @@ class CVC4_PUBLIC SmtEngine
   context::Context* getContext();
 
   /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
+  TheoryEngine* getTheoryEngine();
 
   /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
+  prop::PropEngine* getPropEngine();
 
   /** Get a pointer to the (new) PfManager owned by this SmtEngine. */
   smt::PfManager* getPfManager() { return d_pfManager.get(); };
@@ -1002,12 +1004,6 @@ class CVC4_PUBLIC SmtEngine
   void shutdown();
 
   /**
-   * Full check of consistency in current context.  Returns true iff
-   * consistent.
-   */
-  Result check();
-
-  /**
    * Quick check of consistency in current context: calls
    * processAssertionList() then look for inconsistency (based only on
    * that).
@@ -1063,14 +1059,6 @@ class CVC4_PUBLIC SmtEngine
   void setLogicInternal();
 
   /**
-   * Process the assertions that have been asserted. This moves the set of
-   * assertions that have been buffered into the smt::Assertions object,
-   * preprocesses them, pushes them into the SMT solver, and clears the
-   * buffer.
-   */
-  void processAssertionsInternal();
-
-  /**
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */
@@ -1079,13 +1067,12 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Node& assumption,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
+  /*
+   * Check satisfiability (used to check satisfiability and entailment).
+   */
+  Result checkSatInternal(const std::vector<Node>& assumptions,
+                          bool inUnsatCore,
+                          bool isEntailmentCheck);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -1138,10 +1125,8 @@ class CVC4_PUBLIC SmtEngine
   /** Node manager listener */
   std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
-  /** The propositional engine */
-  std::unique_ptr<prop::PropEngine> d_propEngine;
+  /** The SMT solver */
+  std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;

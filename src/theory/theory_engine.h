@@ -193,12 +193,7 @@ class TheoryEngine {
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
-    {
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-    }
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
     }
@@ -209,9 +204,6 @@ class TheoryEngine {
    * notification methods
    */
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
   /**
    * The quantifiers engine
