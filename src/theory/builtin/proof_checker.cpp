@@ -336,7 +336,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::PREPROCESS || id == PfRule::PREPROCESS_LEMMA
            || id == PfRule::THEORY_PREPROCESS ||
-           || id == PfRule::THEORY_PREPROCESS_LEMMA id == PfRule::WITNESS_AXIOM)
+           id == PfRule::THEORY_PREPROCESS_LEMMA || id == PfRule::WITNESS_AXIOM)
   {
     Assert(children.empty());
     Assert(args.size() == 1);
