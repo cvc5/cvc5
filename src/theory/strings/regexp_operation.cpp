@@ -1021,7 +1021,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
     // proof here, since it is only being used as an intermediate formula in
     // this inference. Hence we do not pass a proof generator to mkSkolemize.
     sm->mkSkolemize(eform, newSkolems, "rc", "regexp concat skolem");
-    Assert(skolems.size() == r.getNumChildren());
+    Assert(newSkolems.size() == r.getNumChildren());
     // Look up skolems for each of the components. If sc has optimizations
     // enabled, this will return arguments of str.to_re.
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
@@ -1062,9 +1062,13 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
     // of doing this is that we use the same scheme for skolems above.
     std::vector<Node> newSkolemsC;
     sinRExp = reduceRegExpPos(sinRExp, sc, newSkolemsC);
-    Assert(newSkolemsConcat.size() == 3);
+    Assert(newSkolemsC.size() == 3);
     // make the return lemma
     // can also assume the component match the first and last R are non-empty.
+    // This means that the overall conclusion is:
+    //   (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^ 
+    //                          k1 in R ^ k2 in (re.* R) ^ k3 in R ^
+    //                          k1 != ""  ^ k3 != "")
     conc = nm->mkNode(OR,
                       se,
                       sinr,

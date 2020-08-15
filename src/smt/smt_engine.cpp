@@ -1740,8 +1740,10 @@ void SmtEngine::checkProof()
       AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
     }
     // internal check the proof
-    Assert(d_propEngine->getProof() != nullptr);
-    d_pfManager->checkProof(d_propEngine->getProof(), *d_asserts);
+    PropEngine * pe = getPropEngine();
+    Assert(pe != nullptr);
+    Assert(pe->getProof() != nullptr);
+    d_pfManager->checkProof(pe->getProof(), *d_asserts);
     return;
   }
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
@@ -2280,9 +2282,11 @@ void SmtEngine::printProof()
         "Cannot print proof unless immediately preceded by "
         "UNSAT/ENTAILED.");
   }
-  Assert(d_propEngine->getProof() != nullptr);
+  PropEngine * pe = getPropEngine();
+  Assert(pe != nullptr);
+  Assert(pe->getProof() != nullptr);
   // the prop engine has the proof of false
-  d_pfManager->printProof(d_propEngine->getProof(), *d_asserts);
+  d_pfManager->printProof(pe->getProof(), *d_asserts);
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

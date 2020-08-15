@@ -28,6 +28,7 @@ namespace CVC4 {
 class SmtEngine;
 class TheoryEngine;
 class ResourceManager;
+class ProofNodeManager;
 
 namespace prop {
 class PropEngine;
