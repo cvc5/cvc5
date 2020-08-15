@@ -32,9 +32,13 @@ const char* toString(PfRule id)
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
     case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
-    case PfRule::PREPROCESS: return "PREPROCESS";
-    case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
+    //================================================= Trusted rules
+    case PfRule::PREPROCESS: return "PREPROCESS";
+    case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
+    case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
+    case PfRule::THEORY_PREPROCESS_LEMMA: return "THEORY_PREPROCESS_LEMMA";
+    case PfRule::WITNESS_AXIOM: return "WITNESS_AXIOM";
     //================================================= Boolean rules
     case PfRule::SPLIT: return "SPLIT";
     case PfRule::EQ_RESOLVE: return "EQ_RESOLVE";
