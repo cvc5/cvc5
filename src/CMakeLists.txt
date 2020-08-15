@@ -744,6 +744,8 @@ libcvc4_add_sources(
   theory/strings/eqc_info.h
   theory/strings/infer_info.cpp
   theory/strings/infer_info.h
+  theory/strings/infer_proof_cons.cpp
+  theory/strings/infer_proof_cons.h
   theory/strings/inference_manager.cpp
   theory/strings/inference_manager.h
   theory/strings/normal_form.cpp
