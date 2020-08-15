@@ -410,8 +410,9 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node conc;
     if (id == PfRule::RE_UNFOLD_POS)
     {
+      std::vector<Node> newSkolems;
       SkolemCache sc;
-      conc = RegExpOpr::reduceRegExpPos(skChild, &sc);
+      conc = RegExpOpr::reduceRegExpPos(skChild, &sc, newSkolems);
     }
     else if (id == PfRule::RE_UNFOLD_NEG)
     {

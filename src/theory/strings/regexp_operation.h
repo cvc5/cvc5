@@ -138,7 +138,7 @@ class RegExpOpr {
   /**
    * Return the unfolded form of mem of the form (str.in_re s r).
    */
-  static Node reduceRegExpPos(Node mem, SkolemCache* sc);
+  static Node reduceRegExpPos(Node mem, SkolemCache* sc, std::vector<Node>& newSkolems);
   /**
    * Return the unfolded form of mem of the form (not (str.in_re s r)).
    */
