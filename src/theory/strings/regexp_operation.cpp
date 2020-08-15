@@ -1066,7 +1066,7 @@ Node RegExpOpr::reduceRegExpPos(Node mem,
     // make the return lemma
     // can also assume the component match the first and last R are non-empty.
     // This means that the overall conclusion is:
-    //   (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^ 
+    //   (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^
     //                          k1 in R ^ k2 in (re.* R) ^ k3 in R ^
     //                          k1 != ""  ^ k3 != "")
     conc = nm->mkNode(OR,

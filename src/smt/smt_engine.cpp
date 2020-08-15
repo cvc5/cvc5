@@ -1740,7 +1740,7 @@ void SmtEngine::checkProof()
       AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
     }
     // internal check the proof
-    PropEngine * pe = getPropEngine();
+    PropEngine* pe = getPropEngine();
     Assert(pe != nullptr);
     Assert(pe->getProof() != nullptr);
     d_pfManager->checkProof(pe->getProof(), *d_asserts);
@@ -2282,7 +2282,7 @@ void SmtEngine::printProof()
         "Cannot print proof unless immediately preceded by "
         "UNSAT/ENTAILED.");
   }
-  PropEngine * pe = getPropEngine();
+  PropEngine* pe = getPropEngine();
   Assert(pe != nullptr);
   Assert(pe->getProof() != nullptr);
   // the prop engine has the proof of false

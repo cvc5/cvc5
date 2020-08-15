@@ -113,7 +113,7 @@ class SmtSolver
    * Set proof node manager. Enables proofs in this SmtSolver. Should be
    * called before finishInit.
    */
-  void setProofNodeManager(ProofNodeManager * pnm);
+  void setProofNodeManager(ProofNodeManager* pnm);
   //------------------------------------------ access methods
   /** Get a pointer to the TheoryEngine owned by this solver. */
   TheoryEngine* getTheoryEngine();
@@ -131,11 +131,11 @@ class SmtSolver
   Preprocessor& d_pp;
   /** Reference to the statistics of SmtEngine */
   SmtEngineStatistics& d_stats;
-  /** 
+  /**
    * Pointer to the proof node manager used by this SmtSolver. A non-null
    * proof node manager indicates that proofs are enabled.
    */
-  ProofNodeManager * d_pnm;
+  ProofNodeManager* d_pnm;
   /** The theory engine */
   std::unique_ptr<TheoryEngine> d_theoryEngine;
   /** The propositional engine */
