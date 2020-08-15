@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "expr/proof_node_manager.h"
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
 #include "prop/bv_sat_solver_notify.h"
@@ -58,7 +59,7 @@ public:
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
   virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
-  
+
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -138,7 +139,9 @@ class DPLLSatSolverInterface : public SatSolver
   virtual ~DPLLSatSolverInterface(){};
 
   virtual void initialize(context::Context* context,
-                          prop::TheoryProxy* theoryProxy) = 0;
+                          prop::TheoryProxy* theoryProxy,
+                          CVC4::context::UserContext* userContext,
+                          ProofNodeManager* pnm) = 0;
 
   virtual void push() = 0;
 

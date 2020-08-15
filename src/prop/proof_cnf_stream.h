@@ -88,29 +88,6 @@ class ProofCnfStream : public ProofGenerator
    */
   SatLiteral toCNF(TNode node, bool negated = false);
 
-  /**
-   * Normalizes a clause (an OR node) according to factoring and reordering,
-   * i.e. removes duplicates and reorders literals (according to node
-   * ids). Moreover it eliminates double negations, which can be done also for
-   * unit clauses. All normalization steps are tracked via proof step added to
-   * the given proof.
-   *
-   * @param n the clause to be normalized
-   * @param p the proof to which steps corresponding to the normalization will
-   * be added
-   */
-  static Node factorReorderElimDoubleNeg(Node n, CDProof* p);
-
-  /**
-   * Eliminate double negation of a literal if it has the form (not (not t)). If
-   * the elimination happens, a step is added to the given proof.
-   *
-   * @param n the node to have the top-level double negation eliminated
-   * @param p the proof to which steps corresponding to the normalization will
-   * be added
-   */
-  static Node elimDoubleNegLit(Node n, CDProof* p);
-
  private:
   /**
    * Same as above, except that removable is remembered.

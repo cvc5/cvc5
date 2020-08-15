@@ -176,7 +176,7 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
 }
 
-PropEngine* TheoryProxy::getPropEngine() { return d_propEngine; }
+CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
 void TheoryProxy::dumpStatePop() {
   if(Dump.isOn("state")) {

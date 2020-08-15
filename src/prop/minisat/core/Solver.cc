@@ -147,11 +147,14 @@ class ScopedBool
 
 Solver::Solver(CVC4::prop::TheoryProxy* proxy,
                CVC4::context::Context* context,
-               bool enable_incremental)
+               CVC4::context::UserContext* userContext,
+               ProofNodeManager* pnm,
+               bool enableIncremental)
     : d_proxy(proxy),
       d_context(context),
       assertionLevel(0),
-      d_enable_incremental(enable_incremental),
+      d_pfManager(nullptr),
+      d_enable_incremental(enableIncremental),
       minisat_busy(false)
       // Parameters (user settable):
       //
@@ -208,7 +211,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       simpDB_props(0),
       order_heap(VarOrderLt(activity)),
       progress_estimate(0),
-      remove_satisfied(!enable_incremental)
+      remove_satisfied(!enableIncremental)
 
       // Resource constraints:
       //
@@ -217,6 +220,11 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       propagation_budget(-1),
       asynch_interrupt(false)
 {
+  if (pnm)
+  {
+    d_pfManager.reset(new SatProofManager(this, proxy, userContext, pnm));
+  }
+
   PROOF(ProofManager::currentPM()->initSatProof(this);)
 
   // Create the constant variables
@@ -510,9 +518,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           if(falseLiteralsCount == 1) {
             PROOF( id = ProofManager::getSatProof()->storeUnitConflict(ps[0], INPUT); )
             PROOF( ProofManager::getSatProof()->finalizeProof(CVC4::Minisat::CRef_Lazy); )
-            if (CVC4::options::proofNew())
+            if (d_pfManager)
             {
-              d_proxy->getPropEngine()->finalizeProof(ps[0]);
+              d_pfManager->finalizeProof(ps[0]);
             }
             return ok = false;
           }
@@ -540,9 +548,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 )
           if(ps.size() == falseLiteralsCount) {
             PROOF( ProofManager::getSatProof()->finalizeProof(cr); )
-            if (CVC4::options::proofNew())
+            if (d_pfManager)
             {
-              d_proxy->getPropEngine()->finalizeProof(ca[cr]);
+              d_pfManager->finalizeProof(ca[cr]);
             }
             return ok = false;
           }
@@ -585,16 +593,15 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                 ProofManager::getSatProof()->finalizeProof(confl);
               }
             }
-            if (CVC4::options::proofNew())
+            if (d_pfManager)
             {
-              PropEngine* pe = d_proxy->getPropEngine();
               if (ca[confl].size() == 1)
               {
-                pe->finalizeProof(ca[confl][0]);
+                d_pfManager->finalizeProof(ca[confl][0]);
               }
               else
               {
-                pe->finalizeProof(ca[confl]);
+                d_pfManager->finalizeProof(ca[confl]);
               }
             }
           }
@@ -672,13 +679,12 @@ void Solver::removeClause(CRef cr) {
       // Solver::reason, if it appears in a resolution chain built lazily we
       // will be unable to do so after the step below. Thus we eagerly justify
       // this propagation here.
-      if (CVC4::options::proofNew())
+      if (d_pfManager)
       {
         Debug("pf::sat")
             << "Solver::removeClause: eagerly compute propagation of " << c[0]
             << "\n";
-        d_proxy->getPropEngine()->tryJustifyingLit(
-            MinisatSatSolver::toSatLiteral(c[0]));
+        d_pfManager->tryJustifyingLit(MinisatSatSolver::toSatLiteral(c[0]));
       }
       vardata[var(c[0])].d_reason = CRef_Undef;
     }
@@ -911,9 +917,9 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
     int max_resolution_level = 0; // Maximal level of the resolved clauses
 
     PROOF( ProofManager::getSatProof()->startResChain(confl); )
-    if (CVC4::options::proofNew())
+    if (d_pfManager)
     {
-      d_proxy->getPropEngine()->startResChain(ca[confl]);
+      d_pfManager->startResChain(ca[confl]);
     }
     do{
         assert(confl != CRef_Undef); // (otherwise should be UIP)
@@ -958,9 +964,13 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
             if (level(var(q)) == 0)
             {
               PROOF(ProofManager::getSatProof()->resolveOutUnit(q);)
-              if (CVC4::options::proofNew())
+              if (d_pfManager)
               {
-                d_proxy->getPropEngine()->addResolutionStep(q);
+                // TODO HB the usage above in the old proof code indicates that
+                // this may be the only case in which it is necessary, as the
+                // resolution step is added, that this literal be *directly*
+                // justified
+                d_pfManager->addResolutionStep(q);
               }
             }
           }
@@ -975,9 +985,9 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
         if ( pathC > 0 && confl != CRef_Undef ) {
           PROOF( ProofManager::getSatProof()->addResolutionStep(p, confl, sign(p)); )
-          if (CVC4::options::proofNew())
+          if (d_pfManager)
           {
-            d_proxy->getPropEngine()->addResolutionStep(ca[confl], p);
+            d_pfManager->addResolutionStep(ca[confl], p);
           }
         }
 
@@ -1012,12 +1022,12 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 out_learnt[j++] = out_learnt[i];
               } else {
                 PROOF( ProofManager::getSatProof()->storeLitRedundant(out_learnt[i]); )
-                if (CVC4::options::proofNew())
+                if (d_pfManager)
                 {
                   Debug("newproof::sat")
                       << "Solver::analyze: redundant lit "
                       << toSatLiteral<Minisat::Solver>(out_learnt[i]) << "\n";
-                  d_proxy->getPropEngine()->addResolutionStep(out_learnt[i]);
+                  d_pfManager->addResolutionStep(out_learnt[i]);
                 }
                 // Literal is redundant, to be safe, mark the level as current assertion level
                 // TODO: maybe optimize
@@ -1548,15 +1558,15 @@ lbool Solver::search(int nof_conflicts)
 
             if (decisionLevel() == 0) {
                 PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
-                if (CVC4::options::proofNew())
+                if (d_pfManager)
                 {
                   if (confl == CRef_Lazy)
                   {
-                    d_proxy->getPropEngine()->finalizeProof();
+                    d_pfManager->finalizeProof();
                   }
                   else
                   {
-                    d_proxy->getPropEngine()->finalizeProof(ca[confl]);
+                    d_pfManager->finalizeProof(ca[confl]);
                   }
                 }
                 return l_False;
@@ -1572,9 +1582,9 @@ lbool Solver::search(int nof_conflicts)
                 uncheckedEnqueue(learnt_clause[0]);
 
                 PROOF( ProofManager::getSatProof()->endResChain(learnt_clause[0]); )
-                if (CVC4::options::proofNew())
+                if (d_pfManager)
                 {
-                  d_proxy->getPropEngine()->endResChain(learnt_clause[0]);
+                  d_pfManager->endResChain(learnt_clause[0]);
                 }
             } else {
               CRef cr =
@@ -1594,9 +1604,9 @@ lbool Solver::search(int nof_conflicts)
                                ->storeClauseGlue(id, cl_levels.size());)
                         ProofManager::getSatProof()
                             ->endResChain(id););
-              if (CVC4::options::proofNew())
+              if (d_pfManager)
               {
-                d_proxy->getPropEngine()->endResChain(ca[cr]);
+                d_pfManager->endResChain(ca[cr]);
               }
             }
 
@@ -2133,9 +2143,9 @@ CRef Solver::updateLemmas() {
             Debug("minisat::lemmas") << "Solver::updateLemmas(): unit conflict or empty clause" << std::endl;
             conflict = CRef_Lazy;
             PROOF( ProofManager::getSatProof()->storeUnitConflict(lemma[0], LEARNT); );
-            if (CVC4::options::proofNew())
+            if (d_pfManager)
             {
-              d_proxy->getPropEngine()->storeUnitConflict(lemma[0]);
+              d_pfManager->storeUnitConflict(lemma[0]);
             }
           }
         } else {
@@ -2199,6 +2209,11 @@ inline bool Solver::withinBudget(ResourceManager::Resource r) const
       && (propagation_budget < 0
           || propagations < (uint64_t)propagation_budget);
   return within_budget;
+}
+
+CDProof* Solver::getProof()
+{
+  return d_pfManager? d_pfManager->getProof() : nullptr;
 }
 
 } /* CVC4::Minisat namespace */
