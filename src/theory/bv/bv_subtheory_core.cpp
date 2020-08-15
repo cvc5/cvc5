@@ -103,7 +103,7 @@ void CoreSolver::preRegister(TNode node) {
   } else {
     d_equalityEngine.addTerm(node);
     // Register with the extended theory, for context-dependent simplification.
-    // Notice we do this for registered terms not internally generated
+    // Notice we do this for registered terms but not internally generated
     // equivalence classes. The two should roughly cooincide. Since ExtTheory is
     // being used as a heuristic, it is good enough to be registered here.
     d_extTheory->registerTerm(node);
