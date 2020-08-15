@@ -1584,12 +1584,8 @@ bool TheorySep::areDisequal( Node a, Node b ){
   return false;
 }
 
-
-void TheorySep::eqNotifyPreMerge(TNode t1, TNode t2) {
-
-}
-
-void TheorySep::eqNotifyPostMerge(TNode t1, TNode t2) {
+void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
+{
   HeapAssertInfo * e2 = getOrMakeEqcInfo( t2, false );
   if( e2 && ( !e2->d_pto.get().isNull() || e2->d_has_neg_pto.get() ) ){
     HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
