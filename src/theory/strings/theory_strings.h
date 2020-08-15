@@ -32,6 +32,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
@@ -279,6 +280,8 @@ class TheoryStrings : public Theory {
   InferenceManager d_im;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
+  /** The proof rule checker */
+  StringProofRuleChecker d_sProofChecker;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.

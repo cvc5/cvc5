@@ -102,7 +102,10 @@ PropEngine::PropEngine(TheoryEngine* te,
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+}
 
+void PropEngine::finishInit()
+{
   NodeManager* nm = NodeManager::currentNM();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
   d_cnfStream->convertAndAssert(
