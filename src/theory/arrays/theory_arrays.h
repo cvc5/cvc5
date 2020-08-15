@@ -341,8 +341,7 @@ class TheoryArrays : public Theory {
     }
 
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
       if (t1.getType().isArray()) {
         d_arrays.mergeArrays(t1, t2);
@@ -446,7 +445,6 @@ class TheoryArrays : public Theory {
   Node getSkolem(TNode ref, const std::string& name, const TypeNode& type, const std::string& comment, bool makeEqual = true);
   Node mkAnd(std::vector<TNode>& conjunctions, bool invert = false, unsigned startIndex = 0);
   void setNonLinear(TNode a);
-  void checkRIntro1(TNode a, TNode b);
   Node removeRepLoops(TNode a, TNode rep);
   Node expandStores(TNode s, std::vector<TNode>& assumptions, bool checkLoop = false, TNode a = TNode(), TNode b = TNode());
   void mergeArrays(TNode a, TNode b);

@@ -58,8 +58,10 @@ class TestOutputChannel : public OutputChannel {
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus lemma(TNode n,
+                    ProofRule rule,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
@@ -178,12 +180,12 @@ class TheoryBlack : public CxxTest::TestSuite {
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     // guard against duplicate statistics assertion errors
-    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
-    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
-    d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
+    delete d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
+    delete d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = NULL;
+    d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = NULL;
 
     d_dummy = new DummyTheory(d_ctxt,
                               d_uctxt,

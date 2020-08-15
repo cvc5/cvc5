@@ -80,9 +80,7 @@ void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheoryUF::finishInit() {
   // combined cardinality constraints are not evaluated in getModelValue
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
+  d_valuation.setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // options::ufssMode().
@@ -659,13 +657,8 @@ void TheoryUF::eqNotifyNewClass(TNode t) {
   }
 }
 
-void TheoryUF::eqNotifyPreMerge(TNode t1, TNode t2) {
-  //if (getLogicInfo().isQuantified()) {
-    //getQuantifiersEngine()->getEfficientEMatcher()->merge( t1, t2 );
-  //}
-}
-
-void TheoryUF::eqNotifyPostMerge(TNode t1, TNode t2) {
+void TheoryUF::eqNotifyMerge(TNode t1, TNode t2)
+{
   if (d_thss != NULL) {
     d_thss->merge(t1, t2);
   }

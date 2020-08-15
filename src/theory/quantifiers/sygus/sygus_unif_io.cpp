@@ -47,9 +47,16 @@ bool UnifContextIo::updateContext(SygusUnifIo* sui,
   Assert(d_vals.size() == vals.size());
   bool changed = false;
   Node poln = pol ? d_true : d_false;
-  for (unsigned i = 0; i < vals.size(); i++)
+  for (size_t i = 0, vsize = vals.size(); i < vsize; i++)
   {
-    if (vals[i] != poln)
+    Node v = vals[i];
+    if (v.isNull())
+    {
+      // nothing can be inferred if the evaluation is unknown, e.g. if using
+      // partial functions.
+      continue;
+    }
+    if (v != poln)
     {
       if (d_vals[i] == d_true)
       {
@@ -571,8 +578,6 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   eec->evaluateVec(bv, base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
-  Evaluator* ev = d_tds->getEvaluator();
-  bool tryEval = options::sygusEvalOpt();
   for (const Node& xs : ei.d_enum_slave)
   {
     Assert(srmap.find(xs) == srmap.end());
@@ -580,34 +585,15 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     Node templ = eiv.d_template;
     if (!templ.isNull())
     {
-      TNode templ_var = eiv.d_template_arg;
-      std::vector<Node> args;
-      args.push_back(templ_var);
+      // Substitute and evaluate, notice that the template skeleton may
+      // involve the sygus variables e.g. (>= x _) where x is a sygus
+      // variable, hence we must compute the substituted template before
+      // calling the evaluator.
+      TNode targ = eiv.d_template_arg;
+      TNode tbv = bv;
+      Node stempl = templ.substitute(targ, tbv);
       std::vector<Node> sresults;
-      for (const Node& res : base_results)
-      {
-        TNode tres = res;
-        Node sres;
-        // It may not be constant, e.g. if we involve a partial operator
-        // like datatype selectors. In this case, we avoid using the evaluator,
-        // which expects a constant substitution.
-        if (tres.isConst())
-        {
-          std::vector<Node> vals;
-          vals.push_back(tres);
-          if (tryEval)
-          {
-            sres = ev->eval(templ, args, vals);
-          }
-        }
-        if (sres.isNull())
-        {
-          // fall back on rewriter
-          sres = templ.substitute(templ_var, tres);
-          sres = Rewriter::rewrite(sres);
-        }
-        sresults.push_back(sres);
-      }
+      eec->evaluateVec(stempl, sresults);
       srmap[xs] = sresults;
     }
     else
@@ -658,6 +644,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       std::vector<Node> results;
       std::map<Node, bool> cond_vals;
       std::map<Node, std::vector<Node>>::iterator itsr = srmap.find(xs);
+      Trace("sygus-sui-debug") << " {" << itsr->second << "} ";
       Assert(itsr != srmap.end());
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
@@ -1003,6 +990,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
 
 void SygusUnifIo::EnumCache::addEnumValue(Node v, std::vector<Node>& results)
 {
+  Trace("sygus-sui-debug") << "Add enum value " << this << " " << v << " : "
+                           << results << std::endl;
   // should not have been enumerated before
   Assert(d_enum_val_to_index.find(v) == d_enum_val_to_index.end());
   d_enum_val_to_index[v] = d_enum_vals.size();
@@ -1080,7 +1069,7 @@ Node SygusUnifIo::constructSol(
         {
           ret_dt = constructBestSolvedTerm(e, subsumed_by);
           indent("sygus-sui-dt", ind);
-          Trace("sygus-sui-dt") << "return PBE: success : conditionally solved"
+          Trace("sygus-sui-dt") << "return PBE: success : conditionally solved "
                                 << d_tds->sygusToBuiltin(ret_dt) << std::endl;
         }
         else
@@ -1442,12 +1431,33 @@ Node SygusUnifIo::constructSol(
           }
           else
           {
-            // TODO (#1250) : degenerate case where children have different
-            // types?
-            indent("sygus-sui-dt", ind);
-            Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
-                                      "cannot find a distinguishable condition"
-                                  << std::endl;
+            // if the branch types are different, it could still make a
+            // difference to recurse, for instance see issue #4790. We do this
+            // if either branch is a different type from the current type.
+            TypeNode branchType1 = etis->d_cenum[1].first.getType();
+            TypeNode branchType2 = etis->d_cenum[2].first.getType();
+            bool childTypesEqual = branchType1 == etn && branchType2 == etn;
+            if (!childTypesEqual)
+            {
+              if (!ecache_child.d_enum_vals.empty())
+              {
+                // take arbitrary
+                rec_c = constructBestConditional(ce, ecache_child.d_enum_vals);
+                indent("sygus-sui-dt", ind);
+                Trace("sygus-sui-dt")
+                    << "PBE: ITE strategy : choose arbitrary conditional due "
+                       "to disequal child types "
+                    << d_tds->sygusToBuiltin(rec_c) << std::endl;
+              }
+            }
+            if (rec_c.isNull())
+            {
+              indent("sygus-sui-dt", ind);
+              Trace("sygus-sui-dt")
+                  << "return PBE: failed ITE strategy, "
+                     "cannot find a distinguishable condition, childTypesEqual="
+                  << childTypesEqual << std::endl;
+            }
           }
           if (!rec_c.isNull())
           {

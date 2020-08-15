@@ -174,12 +174,7 @@ class TheoryEngine {
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
     void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
-    {
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-    }
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
     }
@@ -190,9 +185,6 @@ class TheoryEngine {
    * notification methods
    */
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
   /**
    * The quantifiers engine
@@ -330,14 +322,12 @@ class TheoryEngine {
    * Adds a new lemma, returning its status.
    * @param node the lemma
    * @param negated should the lemma be asserted negated
-   * @param removable can the lemma be remove (restrictions apply)
-   * @param needAtoms if not THEORY_LAST, then
+   * @param p the properties of the lemma.
    */
   theory::LemmaStatus lemma(TNode node,
                             ProofRule rule,
                             bool negated,
-                            bool removable,
-                            bool preprocess,
+                            theory::LemmaProperty p,
                             theory::TheoryId atomsTo);
 
   /** Enusre that the given atoms are send to the given theory */

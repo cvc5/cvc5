@@ -119,6 +119,8 @@ const char* toString(PfRule id)
       return "RE_UNFOLD_NEG_CONCAT_FIXED";
     case PfRule::RE_ELIM: return "RE_ELIM";
     case PfRule::STRING_CODE_INJ: return "STRING_CODE_INJ";
+    case PfRule::STRING_SEQ_UNIT_INJ: return "STRING_SEQ_UNIT_INJ";
+    case PfRule::STRING_TRUST: return "STRING_TRUST";
     //================================================= Arith rules
     case PfRule::ARITH_SCALE_SUM_UPPER_BOUNDS: return "ARITH_SCALE_SUM_UPPER_BOUNDS";
     case PfRule::ARITH_TRICHOTOMY: return "ARITH_TRICHOTOMY";
@@ -136,6 +138,11 @@ std::ostream& operator<<(std::ostream& out, PfRule id)
 {
   out << toString(id);
   return out;
+}
+
+size_t PfRuleHashFunction::operator()(PfRule id) const
+{
+  return static_cast<size_t>(id);
 }
 
 }  // namespace CVC4

@@ -174,6 +174,9 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
+# Build limitations
+option(BUILD_LIB_ONLY         "Only build the library")
+
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
 
@@ -314,7 +317,12 @@ if(ENABLE_SHARED)
   # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
   set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  # When building statically, we *only* want static archives/libraries
+  if (WIN32)
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
+  else()
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+  endif()
   set(BUILD_SHARED_LIBS OFF)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
@@ -543,7 +551,11 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
+if(NOT ENABLE_SHARED)
+  set(CVC4_STATIC_BUILD ON)
+endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
+unset(CVC4_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -700,6 +712,8 @@ print_config("GLPK                      :" USE_GLPK)
 print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
 print_config("LibPoly                   :" USE_POLY)
+message("")
+print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")

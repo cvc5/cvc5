@@ -168,6 +168,15 @@ class TermRegistry
    */
   Node getProxyVariableFor(Node n) const;
 
+  /**
+   * Get the proxy variable for a term. If the proxy variable does not exist,
+   * this method registers the term and then returns its proxy variable.
+   *
+   * @param n The term
+   * @return Proxy variable for `n`
+   */
+  Node ensureProxyVariableFor(Node n);
+
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a
@@ -269,7 +278,7 @@ class TermRegistry
    * If n is an atomic term, the method registerTermAtomic is called for n
    * and s = LENGTH_SPLIT and no lemma is returned.
    */
-  Node getRegisterTermLemma(Node n);
+  TrustNode getRegisterTermLemma(Node n);
   /**
    * Get the lemma required for registering the length information for
    * atomic term n given length status s. For details, see registerTermAtomic.
@@ -278,9 +287,9 @@ class TermRegistry
    * argument reqPhase, which should be processed by a call to requiredPhase by
    * the caller of this method.
    */
-  Node getRegisterTermAtomicLemma(Node n,
-                                  LengthStatus s,
-                                  std::map<Node, bool>& reqPhase);
+  TrustNode getRegisterTermAtomicLemma(Node n,
+                                       LengthStatus s,
+                                       std::map<Node, bool>& reqPhase);
 };
 
 }  // namespace strings

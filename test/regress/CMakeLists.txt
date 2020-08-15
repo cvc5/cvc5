@@ -861,6 +861,8 @@ set(regress_0_tests
   regress0/sep/skolem_emp.smt2
   regress0/sep/trees-1.smt2
   regress0/sep/wand-crash.smt2
+  regress0/seq/intseq.smt2
+  regress0/seq/intseq_dt.smt2
   regress0/seq/seq-2var.smt2
   regress0/seq/seq-ex1.smt2
   regress0/seq/seq-ex2.smt2
@@ -869,6 +871,10 @@ set(regress_0_tests
   regress0/seq/seq-ex5-dd.smt2
   regress0/seq/seq-ex5.smt2
   regress0/seq/seq-nemp.smt2
+  regress0/seq/seq-nth.smt2
+  regress0/seq/seq-nth-uf.smt2
+  regress0/seq/seq-nth-uf-z.smt2
+  regress0/seq/seq-nth-undef.smt2        
   regress0/seq/seq-rewrites.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2
@@ -977,6 +983,7 @@ set(regress_0_tests
   regress0/strings/issue4376.smt2
   regress0/strings/issue4662-consume-nterm.smt2
   regress0/strings/issue4674-recomp-nf.smt2
+  regress0/strings/issue4820.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
@@ -1036,6 +1043,7 @@ set(regress_0_tests
   regress0/sygus/issue3624.sy
   regress0/sygus/issue3645-grammar-sets.smt2
   regress0/sygus/issue4383-cache-fv-id.sy
+  regress0/sygus/issue4790-dtd.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-logic.sy
@@ -1240,6 +1248,7 @@ set(regress_1_tests
   regress1/arith/bug547.1.smt2
   regress1/arith/bug716.0.smt2
   regress1/arith/bug716.1.cvc
+  regress1/arith/bug716.2.cvc
   regress1/arith/div.03.smt2
   regress1/arith/div.06.smt2
   regress1/arith/div.08.smt2
@@ -1802,8 +1811,10 @@ set(regress_1_tests
   regress1/strings/issue3657-unexpectedUnsatCVC4.smt2
   regress1/strings/issue4379.smt2
   regress1/strings/issue4608-re-derive.smt2
+  regress1/strings/issue4701_substr_splice.smt2
   regress1/strings/issue4735.smt2
   regress1/strings/issue4735_2.smt2
+  regress1/strings/issue4759-comp-delta.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
