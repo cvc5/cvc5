@@ -998,7 +998,9 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc, std::vector<Node>& newSkolems)
+Node RegExpOpr::reduceRegExpPos(Node mem,
+                                SkolemCache* sc,
+                                std::vector<Node>& newSkolems)
 {
   Assert(mem.getKind() == STRING_IN_REGEXP);
   Node s = mem[0];
@@ -1060,10 +1062,16 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc, std::vector<Node>& ne
     // of doing this is that we use the same scheme for skolems above.
     std::vector<Node> newSkolemsC;
     sinRExp = reduceRegExpPos(sinRExp, sc, newSkolemsC);
-    Assert (newSkolemsConcat.size()==3);
+    Assert(newSkolemsConcat.size() == 3);
     // make the return lemma
     // can also assume the component match the first and last R are non-empty.
-    conc = nm->mkNode(OR, se, sinr, nm->mkNode(AND, sinRExp, newSkolemsC[0].eqNode(emp).negate(), newSkolemsC[2].eqNode(emp).negate()));
+    conc = nm->mkNode(OR,
+                      se,
+                      sinr,
+                      nm->mkNode(AND,
+                                 sinRExp,
+                                 newSkolemsC[0].eqNode(emp).negate(),
+                                 newSkolemsC[2].eqNode(emp).negate()));
   }
   else
   {
