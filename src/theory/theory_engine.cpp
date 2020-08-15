@@ -965,6 +965,11 @@ void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
   TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  if (trn.isNull())
+  {
+    // no change
+    return assertion;
+  }
   return trn.getNode();
 }
 
