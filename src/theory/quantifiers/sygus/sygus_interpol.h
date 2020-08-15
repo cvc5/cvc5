@@ -34,7 +34,7 @@ namespace quantifiers {
  * F( x ) for free symbol x, and is partitioned into axioms Fa and conjecture Fc
  * then the sygus conjecture we construct is:
  *
- * exists A. forall x. ( (Fa( x ) => A( x )) ^ (A( x ) => Fc( x )) )
+ * (Fa( x ) => A( x )) ^ (A( x ) => Fc( x ))
  *
  * where A( x ) is a predicate over the free symbols of our input that are
  * shared between Fa and Fc. In other words, A( x ) must be implied by our
@@ -141,6 +141,8 @@ class SygusInterpol
 
   /**
    * Make the sygus conjecture to be synthesis.
+   * The conjecture body is Fa( x ) => A( x ) ^ A( x ) => Fc( x ) as described
+   * above.
    *
    * @param itp the interpolation predicate.
    * @param axioms the assertions (Fa above)

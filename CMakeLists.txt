@@ -174,6 +174,9 @@ set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
 
+# Build limitations
+option(BUILD_LIB_ONLY         "Only build the library")
+
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
 
@@ -548,7 +551,11 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
+if(NOT ENABLE_SHARED)
+  set(CVC4_STATIC_BUILD ON)
+endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
+unset(CVC4_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -705,6 +712,8 @@ print_config("GLPK                      :" USE_GLPK)
 print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
 print_config("LibPoly                   :" USE_POLY)
+message("")
+print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
   message("MP library                : cln")

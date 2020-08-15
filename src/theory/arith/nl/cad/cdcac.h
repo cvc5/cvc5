@@ -136,6 +136,30 @@ class CDCAC
 
  private:
   /**
+   * Check whether the current sample satisfies the integrality condition of the
+   * current variable. Returns true if the variable is not integral or the
+   * sample is integral.
+   */
+  bool checkIntegrality(std::size_t cur_variable, const poly::Value& value);
+  /**
+   * Constructs an interval that excludes the non-integral region around the
+   * current sample. Assumes !check_integrality(cur_variable, value).
+   */
+  CACInterval buildIntegralityInterval(std::size_t cur_variable,
+                                       const poly::Value& value);
+
+  /**
+   * Check whether the polynomial has a real root above the given value (when
+   * evaluated over the current assignment).
+   */
+  bool hasRootAbove(const poly::Polynomial& p, const poly::Value& val) const;
+  /**
+   * Check whether the polynomial has a real root below the given value (when
+   * evaluated over the current assignment).
+   */
+  bool hasRootBelow(const poly::Polynomial& p, const poly::Value& val) const;
+
+  /**
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.
    */

@@ -214,23 +214,26 @@ void CvcPrinter::toStream(
       const Datatype& dt =
           NodeManager::currentNM()->toExprManager()->getDatatypeForIndex(
               n.getConst<DatatypeIndexConstant>().getIndex());
+
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
           if (i > 0) {
             out << ", ";
           }
-          Type t = ((SelectorType)dt[0][i].getSelector().getType()).getRangeType();
+          Type t = dt[0][i].getRangeType();
           out << t;
         }
         out << ']';
-      }else if( dt.isRecord() ){
+      }
+      else if (dt.isRecord())
+      {
         out << "[# ";
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
           if (i > 0) {
             out << ", ";
           }
-          Type t = ((SelectorType)dt[0][i].getSelector().getType()).getRangeType();
+          Type t = dt[0][i].getRangeType();
           out << dt[0][i].getSelector() << ":" << t;
         }
         out << " #]";
@@ -414,18 +417,17 @@ void CvcPrinter::toStream(
         }
         else if (t.toType().isRecord())
         {
-          const Record& rec = static_cast<DatatypeType>(t.toType()).getRecord();
+          const DType& dt = t.getDType();
+          const DTypeConstructor& recCons = dt[0];
           out << "(# ";
-          TNode::iterator i = n.begin();
-          bool first = true;
-          const Record::FieldVector& fields = rec.getFields();
-          for(Record::FieldVector::const_iterator j = fields.begin(); j != fields.end(); ++i, ++j) {
-            if(!first) {
+          for (size_t i = 0, nargs = recCons.getNumArgs(); i < nargs; i++)
+          {
+            if (i != 0)
+            {
               out << ", ";
             }
-            out << (*j).first << " := ";
-            toStream(out, *i, depth, types, false);
-            first = false;
+            out << recCons[i].getName() << " := ";
+            toStream(out, n[i], depth, types, false);
           }
           out << " #)";
           return;
@@ -450,18 +452,17 @@ void CvcPrinter::toStream(
         {
           toStream(op, opn, depth, types, false);
         }
-        else if (t.isTuple()
-                 || DatatypeType(t.toType()).isRecord())
+        else if (t.isTuple() || t.isRecord())
         {
           toStream(out, n[0], depth, types, true);
           out << '.';
-          const Datatype& dt = ((DatatypeType)t.toType()).getDatatype();
+          const DType& dt = t.getDType();
           if (t.isTuple())
           {
             int sindex;
             if (n.getKind() == kind::APPLY_SELECTOR)
             {
-              sindex = Datatype::indexOf(opn.toExpr());
+              sindex = DType::indexOf(opn.toExpr());
             }
             else
             {
@@ -483,9 +484,9 @@ void CvcPrinter::toStream(
     case kind::APPLY_TESTER: {
       Assert(!n.getType().isTuple() && !n.getType().toType().isRecord());
       op << "is_";
-      unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
-      const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
-      toStream(op, Node::fromExpr(dt[cindex].getConstructor()), depth, types, false);
+      unsigned cindex = DType::indexOf(n.getOperator());
+      const DType& dt = DType::datatypeOf(n.getOperator());
+      toStream(op, dt[cindex].getConstructor(), depth, types, false);
     }
       break;
     case kind::CONSTRUCTOR_TYPE:
@@ -1185,7 +1186,7 @@ void DeclareFunctionCommandToStream(std::ostream& out,
   {
     out << tn;
   }
-  Node val = Node::fromExpr(model.getSmtEngine()->getValue(n.toExpr()));
+  Node val = model.getSmtEngine()->getValue(n);
   if (options::modelUninterpDtEnum() && val.getKind() == kind::STORE)
   {
     TypeNode type_node = val[1].getType();
@@ -1515,7 +1516,7 @@ static void toStream(std::ostream& out,
 {
   const vector<Type>& datatypes = c->getDatatypes();
   Assert(!datatypes.empty() && datatypes[0].isDatatype());
-  const Datatype& dt0 = DatatypeType(datatypes[0]).getDatatype();
+  const DType& dt0 = TypeNode::fromType(datatypes[0]).getDType();
   //do not print tuple/datatype internal declarations
   if (datatypes.size() != 1 || (!dt0.isTuple() && !dt0.isRecord()))
   {
@@ -1526,7 +1527,7 @@ static void toStream(std::ostream& out,
       if(! firstDatatype) {
         out << ',' << endl;
       }
-      const Datatype& dt = DatatypeType(t).getDatatype();
+      const DType& dt = TypeNode::fromType(t).getDType();
       out << "  " << dt.getName();
       if(dt.isParametric()) {
         out << '[';
@@ -1539,31 +1540,28 @@ static void toStream(std::ostream& out,
         out << ']';
       }
       out << " = ";
-      bool firstConstructor = true;
-      for(Datatype::const_iterator j = dt.begin(); j != dt.end(); ++j) {
-        if(! firstConstructor) {
+      for (size_t j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+      {
+        const DTypeConstructor& cons = dt[j];
+        if (j != 0)
+        {
           out << " | ";
         }
-        firstConstructor = false;
-        const DatatypeConstructor& cons = *j;
         out << cons.getName();
         if (cons.getNumArgs() > 0)
         {
           out << '(';
-          bool firstSelector = true;
-          for (DatatypeConstructor::const_iterator k = cons.begin();
-               k != cons.end();
-               ++k)
+          for (size_t k = 0, nargs = cons.getNumArgs(); k < nargs; k++)
           {
-            if(! firstSelector) {
+            if (k != 0)
+            {
               out << ", ";
             }
-            firstSelector = false;
-            const DatatypeConstructorArg& selector = *k;
-            Type tr = SelectorType(selector.getType()).getRangeType();
+            const DTypeSelector& selector = cons[k];
+            TypeNode tr = selector.getRangeType();
             if (tr.isDatatype())
             {
-              const Datatype& sdt = DatatypeType(tr).getDatatype();
+              const DType& sdt = tr.getDType();
               out << selector.getName() << ": " << sdt.getName();
             }
             else

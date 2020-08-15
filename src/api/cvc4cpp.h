@@ -46,6 +46,7 @@ class DatatypeConstructorArg;
 class ExprManager;
 class NodeManager;
 class SmtEngine;
+class SynthFunCommand;
 class Type;
 class Options;
 class Random;
@@ -1491,6 +1492,31 @@ class CVC4_PUBLIC DatatypeConstructor
   Term getConstructorTerm() const;
 
   /**
+   * Get the constructor operator of this datatype constructor whose return
+   * type is retSort. This method is intended to be used on constructors of
+   * parametric datatypes and can be seen as returning the constructor
+   * term that has been explicitly cast to the given sort.
+   *
+   * This method is required for constructors of parametric datatypes whose
+   * return type cannot be determined by type inference. For example, given:
+   *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
+   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * this is done via the syntax for qualified identifiers:
+   *   (as nil (List Int))
+   * This method is equivalent of applying the above, where this
+   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * (List Int).
+   *
+   * Furthermore note that the returned constructor term t is an operator,
+   * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
+   * (nullary) application of nil.
+   *
+   * @param retSort the desired return sort of the constructor
+   * @return the constructor term
+   */
+  Term getSpecializedConstructorTerm(Sort retSort) const;
+
+  /**
    * Get the tester operator of this datatype constructor.
    * @return the tester operator
    */
@@ -1925,6 +1951,7 @@ std::ostream& operator<<(std::ostream& out,
 class CVC4_PUBLIC Grammar
 {
   friend class Solver;
+  friend class CVC4::SynthFunCommand;
 
  public:
   /**
@@ -1933,6 +1960,13 @@ class CVC4_PUBLIC Grammar
    * @param rule the rule to add
    */
   void addRule(Term ntSymbol, Term rule);
+
+  /**
+   * Add <rules> to the set of rules corresponding to <ntSymbol>.
+   * @param ntSymbol the non-terminal to which the rules are added
+   * @param rule the rules to add
+   */
+  void addRules(Term ntSymbol, std::vector<Term> rules);
 
   /**
    * Allow <ntSymbol> to be an arbitrary constant.
@@ -1948,11 +1982,9 @@ class CVC4_PUBLIC Grammar
   void addAnyVariable(Term ntSymbol);
 
   /**
-   * Add <rules> to the set of rules corresponding to <ntSymbol>.
-   * @param ntSymbol the non-terminal to which the rules are added
-   * @param rule the rules to add
+   * @return a string representation of this grammar.
    */
-  void addRules(Term ntSymbol, std::vector<Term> rules);
+  std::string toString() const;
 
   /**
    * Nullary constructor. Needed for the Cython API.
@@ -2046,6 +2078,14 @@ class CVC4_PUBLIC Grammar
   /** Did we call resolve() before? */
   bool d_isResolved;
 };
+
+/**
+ * Serialize a grammar to given stream.
+ * @param out the output stream
+ * @param g the grammar to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
@@ -2476,22 +2516,7 @@ class CVC4_PUBLIC Solver
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
    * @return a constant of sort Real or Integer (if 's' represents an integer)
    */
-  Term mkReal(const char* s) const;
-
-  /**
-   * Create a real constant from a string.
-   * @param s the string representation of the constant, may represent an
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
-   */
   Term mkReal(const std::string& s) const;
-
-  /**
-   * Create a real constant from an integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(int32_t val) const;
 
   /**
    * Create a real constant from an integer.
@@ -2501,50 +2526,12 @@ class CVC4_PUBLIC Solver
   Term mkReal(int64_t val) const;
 
   /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint32_t val) const;
-
-  /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint64_t val) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(int32_t num, int32_t den) const;
-
-  /**
    * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
    * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(int64_t num, int64_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint32_t num, uint32_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint64_t num, uint64_t den) const;
 
   /**
    * Create a regular expression empty term.
@@ -2579,15 +2566,6 @@ class CVC4_PUBLIC Solver
    * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const char* s, bool useEscSequences = false) const;
-
-  /**
-   * Create a String constant.
-   * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s should
-   * be converted to the corresponding character
-   * @return the String constant
-   */
   Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
@@ -2612,13 +2590,6 @@ class CVC4_PUBLIC Solver
   Term mkChar(const std::string& s) const;
 
   /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base 16)
-   * @return the character constant
-   */
-  Term mkChar(const char* s) const;
-
-  /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
    * @return the empty sequence with given element sort.
@@ -2641,14 +2612,6 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
   /**
-   * Create a bit-vector constant from a given string.
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(const char* s, uint32_t base = 2) const;
-
-  /**
    * Create a bit-vector constant from a given string of base 2, 10 or 16.
    *
    * The size of resulting bit-vector is
@@ -2666,23 +2629,12 @@ class CVC4_PUBLIC Solver
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
-   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
-  Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string of
-   * base 2, 10 or 16.
-   * @param size the bit-width of the constant
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+  Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
@@ -2788,7 +2740,8 @@ class CVC4_PUBLIC Solver
   Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
-   * Create (bound) variable.
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable
@@ -3099,7 +3052,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <term> )
+   * SMT-LIB: ( get-interpol <conj> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -3110,15 +3063,40 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <term> )
+   * SMT-LIB: ( get-interpol <conj> <g> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param gtype the grammar for the interpolant I
+   * @param g the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
-  bool getInterpolant(Term conj, const Type& gtype, Term& output) const;
+  bool getInterpolant(Term conj, Grammar& g, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> <g> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param g the grammar for the abduct C
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Grammar& g, Term& output) const;
 
   /**
    * Print the model of a satisfiable query to the given output stream.

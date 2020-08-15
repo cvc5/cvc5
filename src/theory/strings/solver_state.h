@@ -82,8 +82,8 @@ class SolverState
   //-------------------------------------- notifications for equalities
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalence classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
+  /** called when two equivalence classes merge */
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   //-------------------------------------- end notifications for equalities
