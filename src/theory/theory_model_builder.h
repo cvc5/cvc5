@@ -145,11 +145,11 @@ class TheoryEngineModelBuilder : public ModelBuilder
   /** assign constant representative
    *
    * Called when equivalence class eqc is assigned a constant
-   * representative const_rep.
+   * representative constRep.
    *
    * eqc should be a representative of tm's equality engine.
    */
-  void assignConstantRep(TheoryModel* tm, Node eqc, Node const_rep);
+  void assignConstantRep(TheoryModel* tm, Node eqc, Node constRep);
   /** add to type list
    *
    * This adds to type_list the list of types that tn is built from.

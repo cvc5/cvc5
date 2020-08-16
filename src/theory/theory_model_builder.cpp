@@ -192,12 +192,12 @@ void TheoryEngineModelBuilder::addAssignableSubterms(TNode n,
 
 void TheoryEngineModelBuilder::assignConstantRep(TheoryModel* tm,
                                                  Node eqc,
-                                                 Node const_rep)
+                                                 Node constRep)
 {
-  d_constantReps[eqc] = const_rep;
+  d_constantReps[eqc] = constRep;
   Trace("model-builder") << "    Assign: Setting constant rep of " << eqc
-                         << " to " << const_rep << endl;
-  tm->d_rep_set.setTermForRepresentative(const_rep, eqc);
+                         << " to " << constRep << endl;
+  tm->d_rep_set.setTermForRepresentative(constRep, eqc);
 }
 
 bool TheoryEngineModelBuilder::isExcludedCdtValue(
@@ -376,7 +376,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 {
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
   TheoryModel* tm = (TheoryModel*)m;
-  eq::EqualityEngine* ee = tm->d_equalityEngine;
 
   // buildModel should only be called once per check
   Assert(!tm->isBuilt());
@@ -409,43 +408,116 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     return false;
   }
 
-  Trace("model-builder")
-      << "TheoryEngineModelBuilder: Add assignable subterms..." << std::endl;
-  // Loop through all terms and make sure that assignable sub-terms are in the
-  // equality engine
-  // Also, record #eqc per type (for finite model finding)
+  Trace("model-builder") << "TheoryEngineModelBuilder: Add assignable subterms "
+                            "and collect representatives..."
+                         << std::endl;
+
+  // In the first step of model building, we do a traversal of the
+  // equality engine and record the information in the following:
+
+  // The constant representatives, per equivalence class
+  d_constantReps.clear();
+  // The representatives that have been asserted by theories. This includes
+  // non-constant "skeletons" that have been specified by parametric theories.
+  std::map<Node, Node> assertedReps;
+  // A parition of the set of equivalence classes that have:
+  // (1) constant representatives,
+  // (2) an assigned representative specified by a theory in collectModelInfo,
+  // (3) no assigned representative.
+  TypeSet typeConstSet, typeRepSet, typeNoRepSet;
+  // An order list of types, such that T1 comes before T2 if T1 is a "component
+  // type" of T2, e.g. U comes before (Set U). This is only strictly necessary
+  // for finite model finding + parametric types instantiated with uninterpreted
+  // sorts, but is probably a good idea to do in general since it leads to
+  // models with smaller term sizes. -AJR
+  std::vector<TypeNode> type_list;
+  // The count of equivalence classes per sort (for finite model finding).
   std::map<TypeNode, unsigned> eqc_usort_count;
+
+  // Loop through equivalence classes of the equality engine of the model.
+  eq::EqualityEngine* ee = tm->d_equalityEngine;
+  NodeSet assignableCache;
+  std::map<Node, Node>::iterator itm;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
+  for (; !eqcs_i.isFinished(); ++eqcs_i)
   {
-    NodeSet cache;
-    for (; !eqcs_i.isFinished(); ++eqcs_i)
+    Node eqc = *eqcs_i;
+    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
+    TypeNode eqct = eqc.getType();
+    Assert(assertedReps.find(eqc) == assertedReps.end());
+    Assert(d_constantReps.find(eqc) == d_constantReps.end());
+    Node rep, constRep;
+    // Loop through terms in this EC
+    for (; !eqc_i.isFinished(); ++eqc_i)
     {
-      eq::EqClassIterator eqc_i = eq::EqClassIterator((*eqcs_i), ee);
-      for (; !eqc_i.isFinished(); ++eqc_i)
+      Node n = *eqc_i;
+      // Add assignable subterms, which ensures that e.g. models for
+      // uninterpreted functions take into account all subterms in the
+      // equality engine of the model
+      addAssignableSubterms(n, tm, assignableCache);
+      Trace("model-builder") << "  Processing Term: " << n << endl;
+      // Record constant representative or assign represenative, if applicable
+      if (n.isConst())
       {
-        addAssignableSubterms(*eqc_i, tm, cache);
+        Assert(constRep.isNull());
+        constRep = n;
+        Trace("model-builder")
+            << "  ConstRep( " << eqc << " ) = " << constRep << std::endl;
       }
-      TypeNode tn = (*eqcs_i).getType();
-      if (tn.isSort())
+      else if (constRep.isNull())
       {
-        if (eqc_usort_count.find(tn) == eqc_usort_count.end())
+        // if we don't have a constant rep, check if we have an assigned rep
+        itm = tm->d_reps.find(n);
+        if (itm != tm->d_reps.end())
         {
-          eqc_usort_count[tn] = 1;
-        }
-        else
-        {
-          eqc_usort_count[tn]++;
+          // Notice that this equivalence class may contain multiple terms that
+          // were specified as being a representative, since e.g. datatypes may
+          // assert representative for two constructor terms that are not in the
+          // care graph and are merged during collectModeInfo due to equality
+          // information from another theory. We overwrite the value of rep in
+          // these cases here.
+          rep = itm->second;
+          Trace("model-builder")
+              << "  Rep( " << eqc << " ) = " << rep << std::endl;
         }
       }
+      // model-specific processing of the term
+      tm->addTermInternal(n);
+    }
+    // count the number of equivalence classes of sorts in finite model finding
+    if (options::finiteModelFind())
+    {
+      if (eqct.isSort())
+      {
+        eqc_usort_count[eqct]++;
+      }
+    }
+    // Assign representative for this equivalence class
+    if (!constRep.isNull())
+    {
+      // Theories should not specify a rep if there is already a constant in the
+      // equivalence class. However, it may be the case that the representative
+      // specified by a theory may be merged with a constant based on equality
+      // information from another class. Thus, rep may be non-null here.
+      // Regardless, we assign constRep as the representative here.
+      assignConstantRep(tm, eqc, constRep);
+      typeConstSet.add(eqct.getBaseType(), constRep);
+    }
+    else if (!rep.isNull())
+    {
+      assertedReps[eqc] = rep;
+      typeRepSet.add(eqct.getBaseType(), eqc);
+      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
+      addToTypeList(eqct.getBaseType(), type_list, visiting);
+    }
+    else
+    {
+      typeNoRepSet.add(eqct, eqc);
+      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
+      addToTypeList(eqct, type_list, visiting);
     }
   }
 
-  Trace("model-builder") << "Collect representatives..." << std::endl;
-
-  // Process all terms in the equality engine, store representatives for each EC
-  d_constantReps.clear();
-  std::map<Node, Node> assertedReps;
-  TypeSet typeConstSet, typeRepSet, typeNoRepSet;
   // Compute type enumerator properties. This code ensures we do not
   // enumerate terms that have uninterpreted constants that violate the
   // bounds imposed by finite model finding. For example, if finite
@@ -466,82 +538,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       tep.d_fixed_card[it->first] = Integer(it->second);
     }
     typeConstSet.setTypeEnumeratorProperties(&tep);
-  }
-
-  // AJR: build ordered list of types that ensures that base types are
-  // enumerated first.
-  // (I think) this is only strictly necessary for finite model finding +
-  // parametric types instantiated with uninterpreted sorts, but is probably
-  // a good idea to do in general since it leads to models with smaller term
-  // sizes.
-  std::vector<TypeNode> type_list;
-  eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
-  for (; !eqcs_i.isFinished(); ++eqcs_i)
-  {
-    // eqc is the equivalence class representative
-    Node eqc = (*eqcs_i);
-    Trace("model-builder") << "Processing EC: " << eqc << endl;
-    Assert(tm->d_equalityEngine->getRepresentative(eqc) == eqc);
-    TypeNode eqct = eqc.getType();
-    Assert(assertedReps.find(eqc) == assertedReps.end());
-    Assert(d_constantReps.find(eqc) == d_constantReps.end());
-
-    // Loop through terms in this EC
-    Node rep, const_rep;
-    eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, tm->d_equalityEngine);
-    for (; !eqc_i.isFinished(); ++eqc_i)
-    {
-      Node n = *eqc_i;
-      Trace("model-builder") << "  Processing Term: " << n << endl;
-      // Record as rep if this node was specified as a representative
-      if (tm->d_reps.find(n) != tm->d_reps.end())
-      {
-        // AJR: I believe this assertion is too strict,
-        // e.g. datatypes may assert representative for two constructor terms
-        // that are not in the care graph and are merged during
-        // collectModelInfo.
-        // Assert(rep.isNull());
-        rep = tm->d_reps[n];
-        Assert(!rep.isNull());
-        Trace("model-builder") << "  Rep( " << eqc << " ) = " << rep
-                               << std::endl;
-      }
-      // Record as const_rep if this node is constant
-      if (n.isConst())
-      {
-        Assert(const_rep.isNull());
-        const_rep = n;
-        Trace("model-builder") << "  ConstRep( " << eqc << " ) = " << const_rep
-                               << std::endl;
-      }
-      // model-specific processing of the term
-      tm->addTermInternal(n);
-    }
-
-    // Assign representative for this EC
-    if (!const_rep.isNull())
-    {
-      // Theories should not specify a rep if there is already a constant in the
-      // EC
-      // AJR: I believe this assertion is too strict, eqc with asserted reps may
-      // merge with constant eqc
-      // Assert(rep.isNull() || rep == const_rep);
-      assignConstantRep(tm, eqc, const_rep);
-      typeConstSet.add(eqct.getBaseType(), const_rep);
-    }
-    else if (!rep.isNull())
-    {
-      assertedReps[eqc] = rep;
-      typeRepSet.add(eqct.getBaseType(), eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
-      addToTypeList(eqct.getBaseType(), type_list, visiting);
-    }
-    else
-    {
-      typeNoRepSet.add(eqct, eqc);
-      std::unordered_set<TypeNode, TypeNodeHashFunction> visiting;
-      addToTypeList(eqct, type_list, visiting);
-    }
   }
 
   Trace("model-builder") << "Compute assignable information..." << std::endl;
