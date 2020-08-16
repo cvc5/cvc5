@@ -417,8 +417,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
 
   // The constant representatives, per equivalence class
   d_constantReps.clear();
-  // The representatives that have been asserted by theories. This includes
-  // non-constant "skeletons" that have been specified by parametric theories.
+  // The representatives that have been asserted by theories. These are the
+  // (non-constant) "skeletons" that have been specified by theories in
+  // collectModelInfo.
   std::map<Node, Node> assertedReps;
   // A parition of the set of equivalence classes that have:
   // (1) constant representatives,
