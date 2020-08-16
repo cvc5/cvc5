@@ -327,15 +327,8 @@ void Theory::collectTerms(TNode n,
   }
 }
 
-
-void Theory::computeRelevantTerms(set<Node>& termSet, bool includeShared) const
-{
-  set<Kind> irrKinds;
-  computeRelevantTerms(termSet, irrKinds, includeShared);
-}
-
-void Theory::computeRelevantTerms(set<Node>& termSet,
-                                  set<Kind>& irrKinds,
+void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
+                                  std::set<Kind>& irrKinds,
                                   bool includeShared) const
 {
   // Collect all terms appearing in assertions
@@ -354,6 +347,12 @@ void Theory::computeRelevantTerms(set<Node>& termSet,
   for (; shared_it != shared_it_end; ++shared_it) {
     collectTerms(*shared_it, kempty, termSet);
   }
+}
+
+void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared) const
+{
+  std::set<Kind> irrKinds;
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 }
 
 Theory::PPAssertStatus Theory::ppAssert(TNode in,

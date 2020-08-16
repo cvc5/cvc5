@@ -493,6 +493,12 @@ class TheoryArrays : public Theory {
    */
   Node getNextDecisionRequest();
 
+  /**
+   * Compute relevant terms. This includes additional select nodes for the
+   * RIntro1 and RIntro2 rules.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet,
+                            bool includeShared = true) override;
  public:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
