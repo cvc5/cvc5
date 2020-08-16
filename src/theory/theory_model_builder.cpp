@@ -444,9 +444,9 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   {
     Node eqc = *eqcs_i;
     eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc, ee);
-    TypeNode eqct = eqc.getType();
     Assert(assertedReps.find(eqc) == assertedReps.end());
     Assert(d_constantReps.find(eqc) == d_constantReps.end());
+    // the assigned and constant representatives of the current class
     Node rep, constRep;
     // Loop through terms in this EC
     for (; !eqc_i.isFinished(); ++eqc_i)
@@ -485,6 +485,7 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
       // model-specific processing of the term
       tm->addTermInternal(n);
     }
+    TypeNode eqct = eqc.getType();
     // count the number of equivalence classes of sorts in finite model finding
     if (options::finiteModelFind())
     {
