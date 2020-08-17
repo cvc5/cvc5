@@ -30,13 +30,11 @@ namespace strings {
 
 InferProofCons::InferProofCons(context::Context* c,
                                ProofNodeManager* pnm,
-                               SequencesStatistics& statistics,
-                               bool pfEnabled)
+                               SequencesStatistics& statistics)
     : d_pnm(pnm),
       d_lazyFactMap(c),
       d_psb(pnm != nullptr ? pnm->getChecker() : nullptr),
-      d_statistics(statistics),
-      d_pfEnabled(pfEnabled)
+      d_statistics(statistics)
 {
 }
 
@@ -86,7 +84,7 @@ Node InferProofCons::convert(Inference infer,
   std::map<size_t, size_t> startExpIndex;
   for (const Node& ec : exp)
   {
-    if (d_pfEnabled)
+    if (isProofEnabled())
     {
       // store the index in the flattened vector
       startExpIndex[expIndex] = ps.d_children.size();
@@ -96,7 +94,7 @@ Node InferProofCons::convert(Inference infer,
   }
   // only keep stats if we process it here
   d_statistics.d_inferences << infer;
-  if (!d_pfEnabled)
+  if (!isProofEnabled())
   {
     // don't care about proofs, return now
     d_statistics.d_inferencesNoPf << infer;
@@ -313,7 +311,7 @@ Node InferProofCons::convert(Inference infer,
           || infer == Inference::F_ENDPOINT_EQ
           || infer == Inference::F_ENDPOINT_EMP)
       {
-        // should be equal to conclusion already, or rewrite to it.
+        // Should be equal to conclusion already, or rewrite to it.
         // Notice that this step is necessary to handle the "rproc"
         // optimization in processSimpleNEq. Alternatively, this could
         // possibly be done by CONCAT_EQ with !isRev.
@@ -330,12 +328,9 @@ Node InferProofCons::convert(Inference infer,
           useBuffer = true;
           Trace("strings-ipc-core") << "...success!" << std::endl;
         }
-        else
-        {
-          // TODO: EMP variants are ti = "" where t1 ++ ... ++ tn == "",
-          // however, these are very rare applied, let alone for
-          // 2+ children.
-        }
+        // Otherwise, note that EMP rules conclude ti = "" where 
+        // t1 ++ ... ++ tn == "". However, these are very rare applied, let
+        // alone for 2+ children. This case is intentionally unhandled here.
       }
       else if (infer == Inference::N_CONST || infer == Inference::F_CONST
                || infer == Inference::N_EQ_CONF)
@@ -461,7 +456,7 @@ Node InferProofCons::convert(Inference infer,
         {
           std::vector<Node> childrenSymm;
           childrenSymm.push_back(mainEqCeq);
-          // TODO: this explicit step may not be necessary
+          // note this explicit step may not be necessary
           mainEqCeq = d_psb.tryStep(PfRule::SYMM, childrenSymm, {});
           Trace("strings-ipc-core")
               << "Main equality after SYMM " << mainEqCeq << std::endl;
@@ -861,7 +856,7 @@ Node InferProofCons::convert(Inference infer,
     case Inference::FLOOP:
     case Inference::FLOOP_CONFLICT: break;
 
-    // FIXME
+    // inferences that are not yet supported
     case Inference::DEQ_NORM_EMP:
     case Inference::CTN_TRANS:
     case Inference::CTN_DECOMPOSE:
@@ -991,6 +986,11 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   return false;
 }
 
+bool InferProofCons::isProofEnabled() const
+{
+  return d_pnm!=nullptr;
+}
+
 Node InferProofCons::convertTrans(Node eqa, Node eqb)
 {
   if (eqa.getKind() != EQUAL || eqb.getKind() != EQUAL)
@@ -1008,8 +1008,7 @@ Node InferProofCons::convertTrans(Node eqa, Node eqb)
         std::vector<Node> children;
         children.push_back(eqaSym);
         children.push_back(eqbSym);
-        std::vector<Node> args;
-        return d_psb.tryStep(PfRule::TRANS, children, args);
+        return d_psb.tryStep(PfRule::TRANS, children, {});
       }
     }
   }
