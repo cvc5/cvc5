@@ -42,7 +42,7 @@ namespace theory {
  * are not critical to justify, since they are guaranteed to be satisfied in
  * all inputs. However, some theory lemmas that introduce skolems need
  * justification.
- * 
+ *
  * As an example of such a lemma, take the example input formula:
  *   (and (exists ((x Int)) (P x)) (not (P 0)))
  * A skolemization lemma like the following needs justification:
@@ -94,7 +94,7 @@ class RelevanceManager
   bool isRelevant(Node lit);
 
  private:
-  /** 
+  /**
    * Add the set of assertions to the formulas known to this class. This
    * method handles optimizations such as breaking apart top-level applications
    * of and.
@@ -105,7 +105,7 @@ class RelevanceManager
   /**
    * Justify formula n. To "justify" means we have added literals to our
    * relevant selection set (d_rset) whose current values ensure that n
-   * evaluates to true or false. 
+   * evaluates to true or false.
    *
    * This method returns 1 if we justified n to be true, -1 means
    * justified n to be false, 0 means n could not be justified.
@@ -114,11 +114,11 @@ class RelevanceManager
               std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** Is the top symbol of cur a Boolean connective? */
   bool isBooleanConnective(TNode cur);
-  /** 
+  /**
    * Update justify last child. This method is a helper function for justify,
    * which is called at the moment that Boolean connective formula cur
    * has a new child that has been computed in the justify cache.
-   * 
+   *
    * @param cur The Boolean connective formula
    * @param childrenJustify The values of the previous children (not including
    * the current one)
@@ -127,7 +127,9 @@ class RelevanceManager
    * the justify value of the current child is added to childrenJustify.
    */
   bool updateJustifyLastChild(
-    TNode cur, std::vector<int>& childrenJustify, std::unordered_map<TNode, int, TNodeHashFunction>& cache);
+      TNode cur,
+      std::vector<int>& childrenJustify,
+      std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
   /** The (non-unit) input assertions */
