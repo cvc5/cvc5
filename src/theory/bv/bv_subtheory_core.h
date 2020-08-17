@@ -61,7 +61,7 @@ class CoreSolver : public SubtheorySolver {
                                      TNode t2,
                                      bool value) override;
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
+    void eqNotifyNewClass(TNode t) override {}
     void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
@@ -78,9 +78,6 @@ class CoreSolver : public SubtheorySolver {
 
   /** Store a conflict from merging two constants */
   void conflict(TNode a, TNode b);
-
-  /** new equivalence class */
-  void eqNotifyNewClass(TNode t);
 
   std::unique_ptr<Slicer> d_slicer;
   context::CDO<bool> d_isComplete;
