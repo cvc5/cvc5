@@ -35,7 +35,7 @@ namespace strings {
  * Note: The order in this enum matters in certain cases (e.g. inferences
  * related to normal forms), inferences that come first are generally
  * preferred.
- * 
+ *
  * Notice that an inference is intentionally distinct from PfRule. An
  * inference captures *why* we performed a reasoning step, and a PfRule
  * rule captures *what* reasoning step was used. For instance, the inference
@@ -351,7 +351,7 @@ enum LengthStatus
  * An inference. This is a class to track an unprocessed call to either
  * send a fact, lemma, or conflict that is waiting to be asserted to the
  * equality engine or sent on the output channel.
- * 
+ *
  * For the sake of proofs, the antecedants in InferInfo have a particular
  * ordering for many of the core strings rules, which is expected by
  * InferProofCons for constructing proofs of F_CONST, F_UNIFY, N_CONST, etc.

@@ -328,7 +328,7 @@ Node InferProofCons::convert(Inference infer,
           useBuffer = true;
           Trace("strings-ipc-core") << "...success!" << std::endl;
         }
-        // Otherwise, note that EMP rules conclude ti = "" where 
+        // Otherwise, note that EMP rules conclude ti = "" where
         // t1 ++ ... ++ tn == "". However, these are very rare applied, let
         // alone for 2+ children. This case is intentionally unhandled here.
       }
@@ -986,10 +986,7 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   return false;
 }
 
-bool InferProofCons::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool InferProofCons::isProofEnabled() const { return d_pnm != nullptr; }
 
 Node InferProofCons::convertTrans(Node eqa, Node eqb)
 {

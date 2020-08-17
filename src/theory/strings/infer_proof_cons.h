@@ -36,7 +36,7 @@ namespace strings {
  * Converts between the strings-specific (untrustworthy) InferInfo class and
  * information about how to construct a trustworthy proof step, e.g.
  * (PfRule, children, args). It also acts as a (lazy) proof generator.]
- * 
+ *
  * In particular, the main method of this class is convert below, which is
  * called when we need to construct a proof node for a fact that was added to
  * the equality engine of strings using strings-specific reasoning.
@@ -97,7 +97,7 @@ class InferProofCons : public ProofGenerator
                const std::vector<Node>& exp,
                ProofStep& ps,
                bool& useBuffer);
-  /** 
+  /**
    * Get the proof step buffer, which should be called immediately after the
    * above convert method when useBuffer is set to true.
    */
