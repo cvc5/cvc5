@@ -113,13 +113,31 @@ TheoryBV::TheoryBV(context::Context* c,
 
 TheoryBV::~TheoryBV() {}
 
-void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
+
+bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
+{
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if (core)
   {
-    return;
+    return core->needsEqualityEngine(esi);
   }
-  if (options::bitvectorEqualitySolver()) {
-    dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
+  // otherwise we don't use an equality engine
+  return false;
+}
+
+void TheoryBV::finishInit()
+{
+  // these kinds are semi-evaluated in getModelValue (applications of this
+  // kind are treated as variables)
+  d_valuation.setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  d_valuation.setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
+
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if (core)
+  {
+    // must finish initialization in the core solver
+    core->finishInit();
   }
 }
 
@@ -183,16 +201,6 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   }
 
   Unreachable();
-}
-
-void TheoryBV::finishInit()
-{
-  // these kinds are semi-evaluated in getModelValue (applications of this
-  // kind are treated as variables)
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
-  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
 TrustNode TheoryBV::expandDefinition(Node node)
@@ -579,16 +587,6 @@ void TheoryBV::propagate(Effort e) {
   if (!ok) {
     Debug("bitvector::propagate") << indent() << "TheoryBV::propagate(): conflict from theory engine" << std::endl;
     setConflict();
-  }
-}
-
-
-eq::EqualityEngine * TheoryBV::getEqualityEngine() {
-  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-  if( core ){
-    return core->getEqualityEngine();
-  }else{
-    return NULL;
   }
 }
 
