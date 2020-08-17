@@ -74,9 +74,18 @@ class TheorySep : public Theory {
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   std::string identify() const override { return std::string("TheorySep"); }
 
@@ -192,22 +201,15 @@ class TheorySep : public Theory {
     }
 
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      d_sep.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      d_sep.eqNotifyPostMerge(t1, t2);
+      d_sep.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
-
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
 
   /** Are we in conflict? */
   context::CDO<bool> d_conflict;
@@ -324,14 +326,12 @@ class TheorySep : public Theory {
   bool hasTerm( Node a );
   bool areEqual( Node a, Node b );
   bool areDisequal( Node a, Node b );
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   void sendLemma( std::vector< Node >& ant, Node conc, const char * c, bool infer = false );
   void doPendingFacts();
 
  public:
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   void initializeBounds();
 };/* class TheorySep */

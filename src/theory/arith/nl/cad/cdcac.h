@@ -58,6 +58,14 @@ class CDCAC
   void computeVariableOrdering();
 
   /**
+   * Extract an initial assignment from the given model.
+   * This initial assignment is used to guide sampling if possible.
+   * The ran_variable should be the variable used to encode real algebraic
+   * numbers in the model and is simply passed on to node_to_value.
+   */
+  void retrieveInitialAssignment(NlModel& model, const Node& ran_variable);
+
+  /**
    * Returns the constraints as a non-const reference. Can be used to add new
    * constraints.
    */
@@ -80,6 +88,16 @@ class CDCAC
    * d_assignment. Implements Algorithm 2.
    */
   std::vector<CACInterval> getUnsatIntervals(std::size_t cur_variable) const;
+
+  /**
+   * Sample outside of the set of intervals.
+   * Uses a given initial value from mInitialAssignment if possible.
+   * Returns whether a sample was found (true) or the infeasible intervals cover
+   * the whole real line (false).
+   */
+  bool sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
+                                poly::Value& sample,
+                                std::size_t cur_variable);
 
   /**
    * Collects the coefficients required for projection from the given
@@ -132,6 +150,17 @@ class CDCAC
                                        const poly::Value& value);
 
   /**
+   * Check whether the polynomial has a real root above the given value (when
+   * evaluated over the current assignment).
+   */
+  bool hasRootAbove(const poly::Polynomial& p, const poly::Value& val) const;
+  /**
+   * Check whether the polynomial has a real root below the given value (when
+   * evaluated over the current assignment).
+   */
+  bool hasRootBelow(const poly::Polynomial& p, const poly::Value& val) const;
+
+  /**
    * The current assignment. When the method terminates with SAT, it contains a
    * model for the input constraints.
    */
@@ -145,6 +174,9 @@ class CDCAC
 
   /** The object computing the variable ordering. */
   VariableOrdering d_varOrder;
+
+  /** The linear assignment used as an initial guess. */
+  std::vector<poly::Value> d_initialAssignment;
 };
 
 }  // namespace cad
