@@ -49,8 +49,7 @@ class InferProofCons : public ProofGenerator
  public:
   InferProofCons(context::Context* c,
                  ProofNodeManager* pnm,
-                 SequencesStatistics& statistics,
-                 bool pfEnabled);
+                 SequencesStatistics& statistics);
   ~InferProofCons() {}
   /**
    * This is called to notify that ii is an inference that may need a proof
