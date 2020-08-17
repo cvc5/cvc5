@@ -1263,7 +1263,7 @@ QuantifiersEngine::Statistics::~Statistics(){
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 {
-  return d_te->getMasterEqualityEngine();
+  return d_masterEqualityEngine;
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
