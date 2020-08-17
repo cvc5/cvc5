@@ -65,6 +65,14 @@ class Printer
   /** Write an UnsatCore out to a stream with this Printer. */
   virtual void toStream(std::ostream& out, const UnsatCore& core) const;
 
+  /** Print synth-fun command */
+  virtual void toStreamCmdSynthFun(std::ostream& out,
+                                   const std::string& sym,
+                                   const std::vector<Node>& vars,
+                                   TypeNode range,
+                                   bool isInv,
+                                   TypeNode sygusType);
+
  protected:
   /** Derived classes can construct, but no one else. */
   Printer() {}

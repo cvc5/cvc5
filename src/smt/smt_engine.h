@@ -31,6 +31,7 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -92,6 +93,7 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
+class SmtEngineState;
 class AbstractValues;
 class Assertions;
 class ExprNames;
@@ -101,6 +103,7 @@ class SmtNodeManagerListener;
 class OptionsManager;
 class Preprocessor;
 /** Subsolvers */
+class SmtSolver;
 class AbductionSolver;
 /**
  * Representation of a defined function.  We keep these around in
@@ -144,8 +147,10 @@ class CVC4_PUBLIC SmtEngine
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
   friend class ::CVC4::smt::SmtEnginePrivate;
+  friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
+  friend class ::CVC4::smt::SmtSolver;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::theory::TheoryModel;
@@ -156,29 +161,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
 
   /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT,
-    // immediately after a successful call to get-interpol
-    SMT_MODE_INTERPOL
-  };
-
-  /**
    * Construct an SmtEngine with the given expression manager.
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
@@ -187,24 +169,43 @@ class CVC4_PUBLIC SmtEngine
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
+  //--------------------------------------------- concerning the state
+
   /**
-   * Return true if this SmtEngine is fully initialized (post-construction).
+   * This is the main initialization procedure of the SmtEngine.
+   *
+   * Should be called whenever the final options and logic for the problem are
+   * set (at least, those options that are not permitted to change after
+   * assertions and queries are made).
+   *
+   * Internally, this creates the theory engine, prop engine, decision engine,
+   * and other utilities whose initialization depends on the final set of
+   * options being set.
+   *
    * This post-construction initialization is automatically triggered by the
    * use of the SmtEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
    */
-  bool isFullyInited() { return d_fullyInited; }
-
+  void finishInit();
+  /**
+   * Return true if this SmtEngine is fully initialized (post-construction)
+   * by the above call.
+   */
+  bool isFullyInited() const;
   /**
    * Return true if a checkEntailed() or checkSatisfiability() has been made.
    */
-  bool isQueryMade() { return d_queryMade; }
-
+  bool isQueryMade() const;
   /** Return the user context level.  */
-  size_t getNumUserLevels() { return d_userLevels.size(); }
-
+  size_t getNumUserLevels() const;
   /** Return the current mode of the solver. */
-  SmtMode getSmtMode() { return d_smtMode; }
+  SmtMode getSmtMode() const;
+  /**
+   * Returns the most recent result of checkSat/checkEntailed or
+   * (set-info :status).
+   */
+  Result getStatusOfLastCommand() const;
+  //--------------------------------------------- end concerning the state
 
   /**
    * Set the logic of the script.
@@ -269,7 +270,7 @@ class CVC4_PUBLIC SmtEngine
    */
   void notifyStartParsing(std::string filename);
   /** return the input name (if any) */
-  std::string getFilename() const;
+  const std::string& getFilename() const;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
@@ -842,12 +843,6 @@ class CVC4_PUBLIC SmtEngine
   void safeFlushStatistics(int fd) const;
 
   /**
-   * Returns the most recent result of checkSat/checkEntailed or
-   * (set-info :status).
-   */
-  Result getStatusOfLastCommand() const { return d_status; }
-
-  /**
    * Set user attribute.
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
@@ -908,17 +903,17 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
-  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
-
-  /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
-
   /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext() { return d_userContext.get(); };
+  context::UserContext* getUserContext();
 
   /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext() { return d_context.get(); };
+  context::Context* getContext();
+
+  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  TheoryEngine* getTheoryEngine();
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine();
 
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };
@@ -988,32 +983,12 @@ class CVC4_PUBLIC SmtEngine
   void checkAbduct(Node a);
 
   /**
-   * This is something of an "init" procedure, but is idempotent; call
-   * as often as you like.  Should be called whenever the final options
-   * and logic for the problem are set (at least, those options that are
-   * not permitted to change after assertions and queries are made).
-   */
-  void finalOptionsAreSet();
-
-  /**
-   * Create theory engine, prop engine, decision engine. Called by
-   * finalOptionsAreSet()
-   */
-  void finishInit();
-
-  /**
    * This is called by the destructor, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues
    * between PropEngine and Theory.
    */
   void shutdown();
-
-  /**
-   * Full check of consistency in current context.  Returns true iff
-   * consistent.
-   */
-  Result check();
 
   /**
    * Quick check of consistency in current context: calls
@@ -1034,25 +1009,41 @@ class CVC4_PUBLIC SmtEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
-  void internalPush();
-
-  void internalPop(bool immediate = false);
-
-  void doPendingPops();
+  // --------------------------------------- callbacks from the state
+  /**
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
+   */
+  void notifyPushPre();
+  /**
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
+   */
+  void notifyPopPre();
+  /**
+   * Notify post solve pre, which is called once per check-sat query. It
+   * is triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This method is called before the contexts pop in the method
+   * doPendingPops.
+   */
+  void notifyPostSolvePre();
+  /**
+   * Same as above, but after contexts are popped. This calls the postsolve
+   * method of the underlying TheoryEngine.
+   */
+  void notifyPostSolvePost();
+  // --------------------------------------- end callbacks from the state
 
   /**
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
    */
   void setLogicInternal();
-
-  /**
-   * Process the assertions that have been asserted. This moves the set of
-   * assertions that have been buffered into the smt::Assertions object,
-   * preprocesses them, pushes them into the SMT solver, and clears the
-   * buffer.
-   */
-  void processAssertionsInternal();
 
   /**
    * Add to Model command.  This is used for recording a command
@@ -1063,13 +1054,12 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Node& assumption,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
+  /*
+   * Check satisfiability (used to check satisfiability and entailment).
+   */
+  Result checkSatInternal(const std::vector<Node>& assumptions,
+                          bool inUnsatCore,
+                          bool isEntailmentCheck);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -1099,12 +1089,11 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /** Expr manager context */
-  std::unique_ptr<context::Context> d_context;
-  /** User level context */
-  std::unique_ptr<context::UserContext> d_userContext;
-  /** The context levels of user pushes */
-  std::vector<int> d_userLevels;
+  /**
+   * The state of this SmtEngine, which is responsible for maintaining which
+   * SMT mode we are in, the contexts, the last result, etc.
+   */
+  std::unique_ptr<smt::SmtEngineState> d_state;
 
   /** Our expression manager */
   ExprManager* d_exprManager;
@@ -1123,10 +1112,8 @@ class CVC4_PUBLIC SmtEngine
   /** Node manager listener */
   std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
-  /** The propositional engine */
-  std::unique_ptr<prop::PropEngine> d_propEngine;
+  /** The SMT solver */
+  std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;
@@ -1171,51 +1158,6 @@ class CVC4_PUBLIC SmtEngine
 
   /** Whether this is an internal subsolver. */
   bool d_isInternalSubsolver;
-
-  /**
-   * Number of internal pops that have been deferred.
-   */
-  unsigned d_pendingPops;
-
-  /**
-   * Whether or not this SmtEngine is fully initialized (post-construction).
-   * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when the first formula is asserted, a call
-   * to simplify() is issued, a scope is pushed, etc.
-   */
-  bool d_fullyInited;
-
-  /**
-   * Whether or not a checkEntailed() or checkSatisfiability() has already been
-   * made through this SmtEngine.  If true, and incrementalSolving is false,
-   * then attempting an additional checkEntailed() or checkSat() will fail with
-   * a ModalException.
-   */
-  bool d_queryMade;
-
-  /**
-   * Internal status flag to indicate whether we've sent a theory
-   * presolve() notification and need to match it with a postsolve().
-   */
-  bool d_needPostsolve;
-
-  /**
-   * Most recent result of last checkSatisfiability/checkEntailed or
-   * (set-info :status).
-   */
-  Result d_status;
-
-  /**
-   * The expected status of the next satisfiability check.
-   */
-  Result d_expectedStatus;
-
-  SmtMode d_smtMode;
-
-  /**
-   * The input file name (if any) or the name set through setInfo (if any)
-   */
-  std::string d_filename;
 
   /**
    * Verbosity of various commands.

@@ -15,6 +15,7 @@
 #include "expr/proof_checker.h"
 
 #include "expr/skolem_manager.h"
+#include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
 
 using namespace CVC4::kind;
@@ -83,6 +84,27 @@ bool ProofRuleChecker::getBool(TNode n, bool& b)
     return true;
   }
   return false;
+}
+
+bool ProofRuleChecker::getKind(TNode n, Kind& k)
+{
+  uint32_t i;
+  if (!getUInt32(n, i))
+  {
+    return false;
+  }
+  k = static_cast<Kind>(i);
+  return true;
+}
+
+Node ProofRuleChecker::mkKindNode(Kind k)
+{
+  if (k == UNDEFINED_KIND)
+  {
+    // UNDEFINED_KIND is negative, hence return null to avoid cast
+    return Node::null();
+  }
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(k)));
 }
 
 ProofCheckerStatistics::ProofCheckerStatistics()
@@ -237,6 +259,16 @@ Node ProofChecker::checkInternal(PfRule id,
       return Node::null();
     }
   }
+  // fails if pedantic level is not met
+  if (options::proofNewPedanticEager())
+  {
+    std::stringstream serr;
+    if (isPedanticFailure(id, serr))
+    {
+      out << serr.str() << std::endl;
+      return Node::null();
+    }
+  }
   return res;
 }
 
@@ -253,6 +285,24 @@ void ProofChecker::registerChecker(PfRule id, ProofRuleChecker* psc)
   d_checker[id] = psc;
 }
 
+void ProofChecker::registerTrustedChecker(PfRule id,
+                                          ProofRuleChecker* psc,
+                                          uint32_t plevel)
+{
+  AlwaysAssert(plevel <= 10) << "ProofChecker::registerTrustedChecker: "
+                                "pedantic level must be 0-10, got "
+                             << plevel << " for " << id;
+  registerChecker(id, psc);
+  // overwrites if already there
+  if (d_plevel.find(id) != d_plevel.end())
+  {
+    Notice() << "ProofChecker::registerTrustedRule: already provided pedantic "
+                "level for "
+             << id << std::endl;
+  }
+  d_plevel[id] = plevel;
+}
+
 ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
 {
   std::map<PfRule, ProofRuleChecker*>::const_iterator it = d_checker.find(id);
@@ -261,6 +311,36 @@ ProofRuleChecker* ProofChecker::getCheckerFor(PfRule id)
     return nullptr;
   }
   return it->second;
+}
+
+uint32_t ProofChecker::getPedanticLevel(PfRule id) const
+{
+  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  if (itp != d_plevel.end())
+  {
+    return itp->second;
+  }
+  return 0;
+}
+
+bool ProofChecker::isPedanticFailure(PfRule id, std::ostream& out) const
+{
+  if (d_pclevel == 0)
+  {
+    return false;
+  }
+  std::map<PfRule, uint32_t>::const_iterator itp = d_plevel.find(id);
+  if (itp != d_plevel.end())
+  {
+    if (itp->second <= d_pclevel)
+    {
+      out << "pedantic level for " << id << " not met (rule level is "
+          << itp->second << " which is strictly below the required level "
+          << d_pclevel << ")";
+      return true;
+    }
+  }
+  return false;
 }
 
 }  // namespace CVC4

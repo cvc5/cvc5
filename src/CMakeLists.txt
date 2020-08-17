@@ -261,13 +261,21 @@ libcvc4_add_sources(
   smt/smt_engine.h
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
+  smt/smt_engine_state.cpp
+  smt/smt_engine_state.h
   smt/smt_engine_stats.cpp
   smt/smt_engine_stats.h
+  smt/smt_mode.cpp
+  smt/smt_mode.h
+  smt/smt_solver.cpp
+  smt/smt_solver.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
   smt/update_ostream.h
+  smt/witness_form.cpp
+  smt/witness_form.h
   smt_util/boolean_simplification.cpp
   smt_util/boolean_simplification.h
   smt_util/nary_builder.cpp
@@ -472,6 +480,9 @@ libcvc4_add_sources(
   theory/decision_strategy.h
   theory/eager_proof_generator.cpp
   theory/eager_proof_generator.h
+  theory/ee_manager_distributed.cpp
+  theory/ee_manager_distributed.h
+  theory/ee_setup_info.h
   theory/engine_output_channel.cpp
   theory/engine_output_channel.h
   theory/evaluator.cpp
@@ -737,6 +748,8 @@ libcvc4_add_sources(
   theory/strings/inference_manager.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
+  theory/strings/proof_checker.cpp
+  theory/strings/proof_checker.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp
@@ -861,7 +874,9 @@ set(KINDS_FILES
 add_subdirectory(base)
 add_subdirectory(expr)
 add_subdirectory(options)
-add_subdirectory(parser)
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(parser)
+endif()
 add_subdirectory(theory)
 add_subdirectory(util)
 
@@ -953,7 +968,9 @@ target_link_libraries(cvc4 ${RT_LIBRARIES})
 # target_link_libraries(...) with object libraries for cmake versions <= 3.12.
 # Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
 
-add_subdirectory(main)
+if (NOT BUILD_LIB_ONLY)
+  add_subdirectory(main)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Note:

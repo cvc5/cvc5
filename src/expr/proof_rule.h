@@ -174,7 +174,7 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
 
   //================================================= Processing rules
-  // ======== Preprocess
+  // ======== Preprocess (trusted)
   // Children: none
   // Arguments: (F)
   // ---------------------------------------------------------------
@@ -183,6 +183,14 @@ enum class PfRule : uint32_t
   // based on some preprocessing pass, or otherwise F was added as a new
   // assertion by some preprocessing pass.
   PREPROCESS,
+  // ======== Witness axiom (trusted)
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  // where F is an existential (exists ((x T)) (P x)) used for introducing
+  // a witness term (witness ((x T)) (P x)).
+  WITNESS_AXIOM,
   // ======== Remove Term Formulas Axiom
   // Children: none
   // Arguments: (t)
@@ -473,11 +481,14 @@ enum class PfRule : uint32_t
   // -----------------------
   // Conclusion: (= t1 tn)
   TRANS,
-  // ======== Congruence  (subsumed by Substitute?)
+  // ======== Congruence
   // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-  // Arguments: (f)
+  // Arguments: (<kind> f?)
   // ---------------------------------------------
-  // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
+  // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+  // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
+  // APPLY_UF. The actual node for <kind> is constructible via
+  // ProofRuleChecker::mkKindNode.
   CONG,
   // ======== True intro
   // Children: (P:F)
@@ -755,6 +766,22 @@ enum class PfRule : uint32_t
   //                (not (= (str.code t) (str.code s)))
   //                (not (= t s)))
   STRING_CODE_INJ,
+  //======================== Sequence unit
+  // Children: (P:(= (seq.unit x) (seq.unit y)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(= x y)
+  // Also applies to the case where (seq.unit y) is a constant sequence
+  // of length one.
+  STRING_SEQ_UNIT_INJ,
+  // ======== String Trust
+  // Children: none
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  STRING_TRUST,
+
+  //================================================= Arithmetic rules
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
@@ -842,6 +869,12 @@ const char* toString(PfRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, PfRule id);
+
+/** Hash function for proof rules */
+struct PfRuleHashFunction
+{
+  size_t operator()(PfRule id) const;
+}; /* struct PfRuleHashFunction */
 
 }  // namespace CVC4
 

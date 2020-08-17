@@ -117,5 +117,23 @@ Printer* Printer::getPrinter(OutputLanguage lang)
   return d_printers[lang].get();
 }
 
+/**
+ * Write an error to `out` stating that command `name` is not supported by this
+ * printer.
+ */
+void printUnknownCommand(std::ostream& out, const std::string& name)
+{
+  out << "ERROR: don't know how to print " << name << " command" << std::endl;
+}
+
+void Printer::toStreamCmdSynthFun(std::ostream& out,
+                                  const std::string& sym,
+                                  const std::vector<Node>& vars,
+                                  TypeNode range,
+                                  bool isInv,
+                                  TypeNode sygusType)
+{
+  printUnknownCommand(out, "synth-fun");
+}
 
 }/* CVC4 namespace */

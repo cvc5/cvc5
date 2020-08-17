@@ -220,6 +220,28 @@ void DType::addConstructor(std::shared_ptr<DTypeConstructor> c)
   d_constructors.push_back(c);
 }
 
+void DType::addSygusConstructor(Node op,
+                                const std::string& cname,
+                                const std::vector<TypeNode>& cargs,
+                                int weight)
+{
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
+  unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
+  std::shared_ptr<DTypeConstructor> c =
+      std::make_shared<DTypeConstructor>(name, cweight);
+  c->setSygus(op);
+  for (size_t j = 0, nargs = cargs.size(); j < nargs; j++)
+  {
+    std::stringstream sname;
+    sname << name << "_" << j;
+    c->addArg(sname.str(), cargs[j]);
+  }
+  addConstructor(c);
+}
+
 void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
 {
   Assert(!d_resolved);
