@@ -87,7 +87,8 @@ namespace eq {
  *
  * (B) TheoryEngine, which determines how the Theory acts in accordance with
  * its theory combination policy. We require the following steps in order:
- * (B.1) Get information about which equality engine notifications the Theory
+ * (B.1) Get information about whether the theory wishes to use an equality
+ * eninge, and more specifically which equality engine notifications the Theory
  * would like to be notified of (Theory::needsEqualityEngine).
  * (B.2) Set the equality engine of the theory (Theory::setEqualityEngine),
  * which we refer to as the "official equality engine" of this Theory. The

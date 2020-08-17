@@ -81,7 +81,7 @@ Theory::Theory(TheoryId id,
       d_out(&out),
       d_valuation(valuation),
       d_equalityEngine(nullptr),
-      d_alocEqualityEngine(nullptr),
+      d_allocEqualityEngine(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -123,10 +123,10 @@ void Theory::finishInitStandalone()
   if (needsEqualityEngine(esi))
   {
     // always associated with the same SAT context as the theory (d_satContext)
-    d_alocEqualityEngine.reset(new eq::EqualityEngine(
+    d_allocEqualityEngine.reset(new eq::EqualityEngine(
         *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
     // use it as the official equality engine
-    d_equalityEngine = d_alocEqualityEngine.get();
+    d_equalityEngine = d_allocEqualityEngine.get();
   }
   finishInit();
 }
