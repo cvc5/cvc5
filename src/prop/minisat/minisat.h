@@ -38,7 +38,10 @@ public:
 
   static void  toMinisatClause(SatClause& clause, Minisat::vec<Minisat::Lit>& minisat_clause);
   static void  toSatClause    (const Minisat::Clause& clause, SatClause& sat_clause);
-  void initialize(context::Context* context, TheoryProxy* theoryProxy) override;
+  void initialize(context::Context* context,
+                  TheoryProxy* theoryProxy,
+                  CVC4::context::UserContext* userContext,
+                  ProofNodeManager* pnm) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
@@ -80,6 +83,8 @@ public:
   bool isDecision(SatVariable decn) const override;
 
   Minisat::SimpSolver* getSolver() { return d_minisat; }
+
+  CDProof* getProof();
 
  private:
 

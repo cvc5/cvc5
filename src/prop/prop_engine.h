@@ -31,6 +31,7 @@
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/minisat.h"
 #include "prop/proof_cnf_stream.h"
+#include "prop/prop_proof_manager.h"
 #include "prop/sat_solver_types.h"
 #include "theory/trust_node.h"
 #include "util/resource_manager.h"
@@ -217,41 +218,10 @@ class PropEngine
    */
   bool properExplanation(TNode node, TNode expl) const;
 
-  /*------------------------------ BEGIN SAT proof interface */
-  void registerClause(Minisat::Solver::TLit lit);
-  void registerClause(SatLiteral satLit);
-  void registerClause(Minisat::Solver::TClause& clause);
+  ProofCnfStream* getProofCnfStream() { return d_pfCnfStream.get(); }
 
-  void registerPropagatedTheoryLiteral(Node lit);
-
-  void explainPropagation(theory::TrustNode trn);
-
-  void startResChain(Minisat::Solver::TClause& start);
-  // resolution with unit clause ~lit, to be justified
-  void addResolutionStep(Minisat::Solver::TLit lit);
-  // resolution with clause using lit as pivot. Sign determines whether it's
-  // being removed positively from the given clause or the implicit one it's
-  // being resolved against
-  void addResolutionStep(Minisat::Solver::TClause& clause,
-                         Minisat::Solver::TLit lit);
-  void endResChain(Minisat::Solver::TLit lit);
-  void endResChain(Minisat::Solver::TClause& clause);
-  void endResChain(Node conclusion);
-
-  /** If lit is not already justified, try to. Otherwise no-op. */
-  void tryJustifyingLit(prop::SatLiteral lit);
-
-  void finalizeProof(ClauseId conflict_id);
-  void finalizeProof(Node inConflictNode,
-                     const std::vector<SatLiteral>& inConflict);
-  void finalizeProof(Minisat::Solver::TClause& inConflict);
-  void finalizeProof(Minisat::Solver::TLit inConflict);
-  void finalizeProof();
-  void storeUnitConflict(Minisat::Solver::TLit inConflict);
-
-  LazyCDProof* getProof() { return &d_proof; }
-
-  /*------------------------------ END SAT proof interface */
+  /** pieces together the prop engine proof and produce it */
+  CDProof* getProof();
 
  private:
   /** Dump out the satisfying assignment (after SAT result) */
@@ -283,25 +253,17 @@ class PropEngine
   /** Theory registrar; kept around for destructor cleanup */
   theory::TheoryRegistrar* d_registrar;
 
+  ProofNodeManager* d_pnm;
+
   /** The CNF converter in use */
   CnfStream* d_cnfStream;
-
-  /** A proof node manager based on the above checker */
-  ProofNodeManager* d_pNodeManager;
-  /** The User-context-dependent proof object */
-  LazyCDProof d_proof;
   /** Proof-producing CNF converter */
   std::unique_ptr<ProofCnfStream> d_pfCnfStream;
 
-  /** resolution steps accumulator for chain resolution */
-  std::vector<std::pair<Node, Node>> d_resolution;
+  /** The proof manager for prop engine */
+  std::unique_ptr<PropPfManager> d_ppm;
 
-  Node getClauseNode(SatLiteral satLit);
-  Node getClauseNode(const Minisat::Solver::TClause& clause);
-  void printClause(const Minisat::Solver::TClause& clause);
-
-  std::unordered_set<Node, NodeHashFunction> d_clauseSet;
-  SatLiteral d_conflictLit;
+  CDProof d_proof;
 
   /** Whether we were just interrupted (or not) */
   bool d_interrupted;

@@ -85,7 +85,7 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
 
   if (CVC4::options::proofNew())
   {
-    d_propEngine->explainPropagation(tte);
+    d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
   PROOF({
       ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
@@ -129,7 +129,6 @@ void TheoryProxy::enqueueTheoryLiteral(const SatLiteral& l) {
   Debug("prop") << "enqueueing theory literal " << l << " " << literalNode << std::endl;
   Assert(!literalNode.isNull());
   d_queue.push(literalNode);
-  d_propEngine->registerPropagatedTheoryLiteral(literalNode);
 }
 
 SatLiteral TheoryProxy::getNextTheoryDecisionRequest() {
@@ -177,7 +176,7 @@ SatValue TheoryProxy::getDecisionPolarity(SatVariable var) {
   return d_decisionEngine->getPolarity(var);
 }
 
-PropEngine* TheoryProxy::getPropEngine() { return d_propEngine; }
+CnfStream* TheoryProxy::getCnfStream() { return d_cnfStream; }
 
 void TheoryProxy::dumpStatePop() {
   if(Dump.isOn("state")) {

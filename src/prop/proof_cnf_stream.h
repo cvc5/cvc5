@@ -67,6 +67,11 @@ class ProofCnfStream : public ProofGenerator
                         bool removable,
                         ProofGenerator* pg);
 
+  /** Does the CNF convertion of the propagation lemma *without* registering the
+   * resoluting clause in the SAT solver, as this is handled internally by the
+   * SAT solver */
+  void convertPropagation(theory::TrustNode ttn);
+
   /**
    * Ensure that the given node will have a designated SAT literal that is
    * definitionally equal to it. The result of this function is that the Node
@@ -82,29 +87,6 @@ class ProofCnfStream : public ProofGenerator
    * @return the literal representing the root of the formula
    */
   SatLiteral toCNF(TNode node, bool negated = false);
-
-  /**
-   * Normalizes a clause (an OR node) according to factoring and reordering,
-   * i.e. removes duplicates and reorders literals (according to node
-   * ids). Moreover it eliminates double negations, which can be done also for
-   * unit clauses. All normalization steps are tracked via proof step added to
-   * the given proof.
-   *
-   * @param n the clause to be normalized
-   * @param p the proof to which steps corresponding to the normalization will
-   * be added
-   */
-  static Node factorReorderElimDoubleNeg(Node n, CDProof* p);
-
-  /**
-   * Eliminate double negation of a literal if it has the form (not (not t)). If
-   * the elimination happens, a step is added to the given proof.
-   *
-   * @param n the node to have the top-level double negation eliminated
-   * @param p the proof to which steps corresponding to the normalization will
-   * be added
-   */
-  static Node elimDoubleNegLit(Node n, CDProof* p);
 
  private:
   /**
