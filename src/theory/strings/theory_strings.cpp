@@ -50,9 +50,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
-      d_esolver(c,
-                u,
-                d_state,
+      d_esolver(d_state,
                 d_im,
                 d_termReg,
                 d_rewriter,
@@ -76,6 +74,13 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_sProofChecker.registerTo(pc);
+  }
 }
 
 TheoryStrings::~TheoryStrings() {

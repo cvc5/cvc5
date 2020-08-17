@@ -563,9 +563,6 @@ class Theory {
    */
   eq::EqualityEngine* getEqualityEngine();
 
-  /** Setup an ExtTheory module for this Theory. Can only be called once. */
-  void setupExtTheory();
-
   /**
    * Return the current theory care graph. Theories should overload
    * computeCareGraph to do the actual computation, and use addCarePair to add
