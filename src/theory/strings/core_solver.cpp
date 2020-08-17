@@ -1311,7 +1311,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       if (x.isConst() && y.isConst())
       {
-        // if both are constant, its just a constant conflict
+        // if both are constant, it's just a constant conflict
         d_im.sendInference(ant, d_false, Inference::N_CONST, isRev, true);
         return;
       }
@@ -1645,13 +1645,20 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
                 << "  explanation was : " << et.second << std::endl;
             lentTestSuccess = e;
             lenConstraint = entLit;
-            // its not explained by the equality engine of this class
+            // Its not explained by the equality engine of this class, so its
+            // marked as not being explained. The length constraint is
+            // additionally being saved and added to the length constraint
+            // vector lcVec below, which is added to iinfo.d_ant below. Length
+            // constraints are being added as the last antecedant for the sake
+            // of proof reconstruction, which expect length constraints to come
+            // last.
             iinfo.d_noExplain.push_back(lenConstraint);
             break;
           }
         }
       }
     }
+    // lcVec stores the length constraint portion of the antecedant.
     std::vector<Node> lcVec;
     if (lenConstraint.isNull())
     {
@@ -1708,6 +1715,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       iinfo.d_conc =
           getConclusion(y, x, PfRule::CONCAT_LPROP, isRev, skc, newSkolems);
     }
+    // add the length constraint(s) as the last antecedant
     Node lc = utils::mkAnd(lcVec);
     iinfo.d_ant.push_back(lc);
     iinfo.d_idRev = isRev;

@@ -25,6 +25,7 @@ PR finished:
 (22) Strings base solver update (req 2)
 (23) Updates to proof node manager, including mkScope (req 19)
 (25) Arithmetic proof checker [Alex]
+(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65, 82)
 (27) split theory engine
 (28) ProofSkolemCache -> SkolemManager
 (30) Arithmetic operator elimination proof producing initial (req 25, 28, 33, 64)
@@ -37,6 +38,7 @@ PR finished:
 (38) quantifiers proof checker (req 8)
 (39) Theory interface update for TrustNode, ProofChecker (req 27, 51)
 (40) theory engine proof generator (req 11, 13, 18, 23)
+(42) Strings proof checker (req 5, 17, 22, 45, 65)
 (45) regexp operation refactor (req 3, 7, 8)
 (48) remove snorm option
 (49) re elim static
@@ -61,39 +63,38 @@ PR finished:
 PRs ready:
 
 (24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23) *
-(26) strings infer info update "noExplain", all calls to InferenceManager (req 22, 35, 45, 65, 82) *
-(42) Strings proof checker (req 5, 17, 22, 45, 65) *
 (52) theory preprocess proof producing (req 27, 48, 51, 50) *
 (63) SMT engine proof post-processor callback (req 37, 59, 66, 72) *
 (70) rewriter unit test [Andres] (req 36, 37)
+(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65)
 (46) term context core utilities *
+(53) CNF proof producing [Haniel]
 
 PRs future:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26)
 (41) SharedTermDatabase uses pfee (req 24)
-(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
-(53) CNF proof producing [Haniel]
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
 (68) PropEngine proof producing [Haniel]
-(69) Initial dumping infrastructure [Haniel]
 (71) quantifiers proof producing (req 38, 52)
 (79) term context extended utilities (req 46)
 (80) update term formula removal to use term context (req 79, 81)
-(81) generalize TConvProofGenerator for term contexts
+(81) generalize TConvProofGenerator for term contexts (req 79)
 (82) SmtEngine proof manager (req 84)
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (84) SMT engine proof post-processor (req 63)
 (85) SmtEngine check proofs (req 68, 82)
 
-PRs wish list:
+Wish list:
 
+(57) compilation of rewrite DSL into DSL rewrite rule database initialization [Andres] (req 56)
+(69) Initial dumping infrastructure [Haniel]
 - SEXPR simply typed
 - Proof kinds infrastructure?
 - arith op eliminate proof producing, defining axioms (req 30)

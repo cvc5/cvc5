@@ -94,11 +94,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   d_registrar = new theory::TheoryRegistrar(d_theoryEngine);
   d_cnfStream =
       new TseitinCnfStream(d_satSolver, d_registrar, userContext, rm, true);
-  d_theoryProxy = new TheoryProxy(this,
-                                  d_theoryEngine,
-                                  d_decisionEngine.get(),
-                                  d_context,
-                                  d_cnfStream);
+  d_theoryProxy = new TheoryProxy(
+      this, d_theoryEngine, d_decisionEngine.get(), d_context, d_cnfStream);
   d_satSolver->initialize(d_context, d_theoryProxy, userContext, pnm);
 
   d_decisionEngine->setSatSolver(d_satSolver);
@@ -115,7 +112,10 @@ PropEngine::PropEngine(TheoryEngine* te,
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+}
 
+void PropEngine::finishInit()
+{
   NodeManager* nm = NodeManager::currentNM();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
   d_cnfStream->convertAndAssert(

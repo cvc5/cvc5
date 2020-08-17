@@ -145,8 +145,6 @@ private:
 private:
   /** The notify class */
   NotifyClass d_notify;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
   /** map from nodes to their instantiated equivalent for each constructor type */
@@ -269,9 +267,18 @@ private:
                   ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /** propagate */
   void propagate(Effort effort) override;
@@ -295,7 +302,6 @@ private:
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
-  void finishInit() override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
   void presolve() override;
@@ -307,8 +313,6 @@ private:
   {
     return std::string("TheoryDatatypes");
   }
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,

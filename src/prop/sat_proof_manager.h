@@ -52,8 +52,7 @@ class SatProofManager
   // resolution with clause using lit as pivot. Sign determines whether it's
   // being removed positively from the given clause or the implicit one it's
   // being resolved against
-  void addResolutionStep(Minisat::Clause& clause,
-                         Minisat::Lit lit);
+  void addResolutionStep(Minisat::Clause& clause, Minisat::Lit lit);
   void endResChain(Minisat::Lit lit);
   void endResChain(Minisat::Clause& clause);
   void endResChain(Node conclusion);

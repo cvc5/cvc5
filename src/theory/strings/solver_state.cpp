@@ -27,11 +27,10 @@ namespace strings {
 
 SolverState::SolverState(context::Context* c,
                          context::UserContext* u,
-                         eq::EqualityEngine& ee,
                          Valuation& v)
     : d_context(c),
       d_ucontext(u),
-      d_ee(ee),
+      d_ee(nullptr),
       d_eeDisequalities(c),
       d_valuation(v),
       d_conflict(c, false),
@@ -48,19 +47,25 @@ SolverState::~SolverState()
   }
 }
 
+void SolverState::finishInit(eq::EqualityEngine* ee)
+{
+  Assert(ee != nullptr);
+  d_ee = ee;
+}
+
 context::Context* SolverState::getSatContext() const { return d_context; }
 context::UserContext* SolverState::getUserContext() const { return d_ucontext; }
 
 Node SolverState::getRepresentative(Node t) const
 {
-  if (d_ee.hasTerm(t))
+  if (d_ee->hasTerm(t))
   {
-    return d_ee.getRepresentative(t);
+    return d_ee->getRepresentative(t);
   }
   return t;
 }
 
-bool SolverState::hasTerm(Node a) const { return d_ee.hasTerm(a); }
+bool SolverState::hasTerm(Node a) const { return d_ee->hasTerm(a); }
 
 bool SolverState::areEqual(Node a, Node b) const
 {
@@ -70,7 +75,7 @@ bool SolverState::areEqual(Node a, Node b) const
   }
   else if (hasTerm(a) && hasTerm(b))
   {
-    return d_ee.areEqual(a, b);
+    return d_ee->areEqual(a, b);
   }
   return false;
 }
@@ -83,17 +88,17 @@ bool SolverState::areDisequal(Node a, Node b) const
   }
   else if (hasTerm(a) && hasTerm(b))
   {
-    Node ar = d_ee.getRepresentative(a);
-    Node br = d_ee.getRepresentative(b);
+    Node ar = d_ee->getRepresentative(a);
+    Node br = d_ee->getRepresentative(b);
     return (ar != br && ar.isConst() && br.isConst())
-           || d_ee.areDisequal(ar, br, false);
+           || d_ee->areDisequal(ar, br, false);
   }
   Node ar = getRepresentative(a);
   Node br = getRepresentative(b);
   return ar != br && ar.isConst() && br.isConst();
 }
 
-eq::EqualityEngine* SolverState::getEqualityEngine() const { return &d_ee; }
+eq::EqualityEngine* SolverState::getEqualityEngine() const { return d_ee; }
 
 const context::CDList<Node>& SolverState::getDisequalityList() const
 {
@@ -105,7 +110,7 @@ void SolverState::eqNotifyNewClass(TNode t)
   Kind k = t.getKind();
   if (k == STRING_LENGTH || k == STRING_TO_CODE)
   {
-    Node r = d_ee.getRepresentative(t[0]);
+    Node r = d_ee->getRepresentative(t[0]);
     EqcInfo* ei = getOrMakeEqcInfo(r);
     if (k == STRING_LENGTH)
     {
@@ -118,10 +123,12 @@ void SolverState::eqNotifyNewClass(TNode t)
   }
   else if (t.isConst())
   {
-    EqcInfo* ei = getOrMakeEqcInfo(t);
-    ei->d_prefixC = t;
-    ei->d_suffixC = t;
-    return;
+    if (t.getType().isStringLike())
+    {
+      EqcInfo* ei = getOrMakeEqcInfo(t);
+      ei->d_prefixC = t;
+      ei->d_suffixC = t;
+    }
   }
   else if (k == STRING_CONCAT)
   {
@@ -134,6 +141,7 @@ void SolverState::eqNotifyMerge(TNode t1, TNode t2)
   EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
   if (e2)
   {
+    Assert(t1.getType().isStringLike());
     EqcInfo* e1 = getOrMakeEqcInfo(t1);
     // add information from e2 to e1
     if (!e2->d_lengthTerm.get().isNull())
@@ -314,14 +322,14 @@ void SolverState::separateByLength(
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& eqc : n)
   {
-    Assert(d_ee.getRepresentative(eqc) == eqc);
+    Assert(d_ee->getRepresentative(eqc) == eqc);
     TypeNode tnEqc = eqc.getType();
     EqcInfo* ei = getOrMakeEqcInfo(eqc, false);
     Node lt = ei ? ei->d_lengthTerm : Node::null();
     if (!lt.isNull())
     {
       lt = nm->mkNode(STRING_LENGTH, lt);
-      Node r = d_ee.getRepresentative(lt);
+      Node r = d_ee->getRepresentative(lt);
       std::pair<Node, TypeNode> lkey(r, tnEqc);
       if (eqc_to_leqc.find(lkey) == eqc_to_leqc.end())
       {

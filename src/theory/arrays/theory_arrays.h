@@ -150,9 +150,18 @@ class TheoryArrays : public Theory {
                std::string name = "");
   ~TheoryArrays();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   std::string identify() const override { return std::string("TheoryArrays"); }
 
@@ -355,9 +364,6 @@ class TheoryArrays : public Theory {
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
 
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
-
   /** The proof checker */
   ArraysProofRuleChecker d_pchecker;
 
@@ -468,7 +474,7 @@ class TheoryArrays : public Theory {
   int d_topLevel;
 
   /** An equality-engine callback for proof reconstruction */
-  ArrayProofReconstruction d_proofReconstruction;
+  std::unique_ptr<ArrayProofReconstruction> d_proofReconstruction;
 
   /**
    * The decision strategy for the theory of arrays, which calls the
@@ -502,9 +508,6 @@ class TheoryArrays : public Theory {
   Node getNextDecisionRequest();
   /** Assert inference internal */
   bool assertInference(TNode eq, bool polarity, TNode reason, PfRule r);
-
- public:
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
 };/* class TheoryArrays */
 
