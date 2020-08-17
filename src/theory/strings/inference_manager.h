@@ -110,12 +110,13 @@ class InferenceManager
   bool sendInternalInference(std::vector<Node>& exp,
                              Node conc,
                              Inference infer);
+
   /** send inference
    *
    * This function should be called when exp => eq. The set exp
    * contains literals that are explainable, i.e. those that hold in the
    * equality engine of the theory of strings. On the other hand, the set
-   * noExplain contain nodes that are not explainable by the theory of strings.
+   * noExplain contains nodes that are not explainable by the theory of strings.
    * This method may call sendLemma or otherwise add a InferInfo to d_pending,
    * indicating a fact should be asserted to the equality engine. Overall, the
    * result of this method is one of the following:
@@ -140,11 +141,17 @@ class InferenceManager
    * noExplain is empty. In particular, lemmas must be used whenever noExplain
    * is non-empty, conflicts are used when noExplain is empty and eq is false.
    *
-   * The argument infer identifies the reason for inference, used for
+   * @param exp The explanation of eq.
+   * @param noExplain The subset of exp that cannot be explained by the
+   * equality engine. This may impact whether we are processing this call as a
+   * fact or as a lemma.
+   * @param eq The conclusion.
+   * @param infer Identifies the reason for inference, used for
    * debugging. This updates the statistics about the number of inferences made
    * of each type.
-   *
-   * If the flag asLemma is true, then this method will send a lemma instead
+   * @param isRev Whether this is the "reverse variant" of the inference, which
+   * is used as a hint for proof reconstruction.
+   * @param asLemma If true, then this method will send a lemma instead
    * of a fact whenever applicable.
    */
   void sendInference(const std::vector<Node>& exp,

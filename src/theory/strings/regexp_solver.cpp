@@ -492,7 +492,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     }
     // rewrite to ensure the equality checks below are precise
     Node mres = nm->mkNode(STRING_IN_REGEXP, mi[0], resR);
-    Node mresr = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, mi[0], resR));
+    Node mresr = Rewriter::rewrite(mres);
     if (mresr == mi)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent

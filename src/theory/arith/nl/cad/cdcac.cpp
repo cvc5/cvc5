@@ -78,6 +78,19 @@ void CDCAC::computeVariableOrdering()
   }
 }
 
+void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
+{
+  d_initialAssignment.clear();
+  Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
+  for (const auto& var : d_variableOrdering)
+  {
+    Node v = getConstraints().varMapper()(var);
+    Node val = model.computeConcreteModelValue(v);
+    poly::Value value = node_to_value(val, ran_variable);
+    Trace("cdcac") << "\t" << var << " = " << value << std::endl;
+    d_initialAssignment.emplace_back(value);
+  }
+}
 Constraints& CDCAC::getConstraints() { return d_constraints; }
 const Constraints& CDCAC::getConstraints() const { return d_constraints; }
 
@@ -119,6 +132,28 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
   }
   cleanIntervals(res);
   return res;
+}
+
+bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
+                                     poly::Value& sample,
+                                     std::size_t cur_variable)
+{
+  if (cur_variable < d_initialAssignment.size())
+  {
+    const poly::Value& suggested = d_initialAssignment[cur_variable];
+    for (const auto& i : infeasible)
+    {
+      if (poly::contains(i.d_interval, suggested))
+      {
+        d_initialAssignment.clear();
+        return sampleOutside(infeasible, sample);
+      }
+    }
+    Trace("cdcac") << "Using suggested initial value" << std::endl;
+    sample = suggested;
+    return true;
+  }
+  return sampleOutside(infeasible, sample);
 }
 
 std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
@@ -327,7 +362,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
   }
   poly::Value sample;
 
-  while (sampleOutside(intervals, sample))
+  while (sampleOutsideWithInitial(intervals, sample, cur_variable))
   {
     if (!checkIntegrality(cur_variable, sample))
     {
