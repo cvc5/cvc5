@@ -277,16 +277,18 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::proof())
   {
     options::proofNew.set(false);
-    // set proofNewReq to false, since we don't want CI failures
+    // set proofNewReq/checkProofsNew to false, since we don't want CI failures
     options::proofNewReq.set(false);
+    options::checkProofsNew.set(false);
   }
   // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
   // with new proof system
   if (options::unsatCores())
   {
     options::proofNew.set(false);
-    // set proofNewReq to false, since we don't want CI failures
+    // set proofNewReq/checkProofsNew to false, since we don't want CI failures
     options::proofNewReq.set(false);
+    options::checkProofsNew.set(false);
   }
   if (options::proofNew())
   {
@@ -1169,8 +1171,9 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                  << std::endl;
       }
       options::proofNew.set(false);
-      // we set proofNewReq to false, as proofs are truly inapplicable
+      // we set proofNewReq/checkProofsNew to false, as proofs are truly inapplicable
       options::proofNewReq.set(false);
+      options::checkProofsNew.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus
