@@ -60,15 +60,6 @@ class EqEngineManagerDistributed : public EqEngineManager
    * the lifetime of TheoryEngine (during finishInit).
    */
   void initializeTheories() override;
-  /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
-   * objects have been created but prior to their final initialization. This
-   * sets up equality engines for all theories.
-   *
-   * This method is context-independent, and is applied once during
-   * the lifetime of TheoryEngine (during finishInit).
-   */
-  void initializeModel(TheoryModel* m) override;
   /** get the model equality engine context */
   context::Context* getModelEqualityEngineContext();
   /** get the model equality engine */

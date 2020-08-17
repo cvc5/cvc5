@@ -140,7 +140,7 @@ void TheoryEngine::finishInit() {
   // Initialize the equality engine architecture for all theories, which
   // includes the master equality engine.
   d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
-  d_eeDistributed->finishInit();
+  d_eeDistributed->initializeTheories();
 
   // Initialize the model and model builder.
   if (d_logicInfo.isQuantified())

@@ -95,25 +95,6 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
-void EqEngineManagerDistributed::initializeModel(TheoryModel* m)
-{
-  Assert(m != nullptr);
-  // initialize the model equality engine
-  EeSetupInfo esim;
-  if (m->needsEqualityEngine(esim))
-  {
-    d_modelEqualityEngine.reset(
-        allocateEqualityEngine(esim, &d_modelEeContext));
-    m->setEqualityEngine(d_modelEqualityEngine.get());
-  }
-  else
-  {
-    AlwaysAssert(false) << "Expected model to use equality engine";
-  }
-  m->finishInit();
-  d_modelEeContext.push();
-}
-
 void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
 {
   // adds t to the quantifiers term database
