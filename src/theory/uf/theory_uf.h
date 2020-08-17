@@ -120,8 +120,6 @@ private:
   /** A proof node manager */
   std::unique_ptr<ProofNodeManager> d_pnm;
 
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** Proof-producing equaltity engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
 
@@ -192,10 +190,18 @@ private:
 
   ~TheoryUF();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
   void check(Effort) override;
   TrustNode expandDefinition(Node node) override;
@@ -215,8 +221,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
-
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   eq::ProofEqEngine* getProofEqualityEngine();
 

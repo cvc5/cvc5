@@ -81,6 +81,8 @@ class InferenceManager
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
 
+  /** finish init */
+  void finishInit();
   /** send assumption
    *
    * This is called when a fact is asserted to TheoryStrings. It adds lit
@@ -306,7 +308,9 @@ class InferenceManager
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** The proof-producing equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;
+  std::unique_ptr<eq::ProofEqEngine> d_pfee;  
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
   /** Conversion from inferences to proofs */
   std::unique_ptr<InferProofCons> d_ipc;
   /** Common constants */
