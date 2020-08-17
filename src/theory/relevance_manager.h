@@ -94,6 +94,12 @@ class RelevanceManager
   bool isRelevant(Node lit);
 
  private:
+  /** 
+   * Add the set of assertions to the formulas known to this class. This
+   * method handles optimizations such as breaking apart top-level applications
+   * of and.
+   */
+  void addAssertionsInternal(std::vector<Node>& toProcess);
   /** compute the relevant selection */
   void computeRelevance();
   /**

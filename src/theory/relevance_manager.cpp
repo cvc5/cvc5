@@ -48,6 +48,18 @@ void RelevanceManager::notifyPreprocessedAssertions(
       d_input.push_back(a);
     }
   }
+  addAssertionsInternal(toProcess);
+}
+
+void RelevanceManager::notifyPreprocessedAssertion(Node n)
+{
+  std::vector<Node> toProcess;
+  toProcess.push_back(n);
+  addAssertionsInternal(toProcess);
+}
+
+void RelevanceManager::addAssertionsInternal(std::vector<Node>& toProcess)
+{
   size_t i = 0;
   while (i < toProcess.size())
   {
@@ -68,11 +80,6 @@ void RelevanceManager::notifyPreprocessedAssertions(
     }
     i++;
   }
-}
-
-void RelevanceManager::notifyPreprocessedAssertion(Node n)
-{
-  d_input.push_back(n);
 }
 
 void RelevanceManager::resetRound()
@@ -136,7 +143,8 @@ bool RelevanceManager::updateJustifyLastChild(
   {
     if (lastChildJustify!=0)
     {
-      // see if we short circuited?
+      // See if we short circuited? The value for short circuiting is false if
+      // we are AND or the first child of IMPLIES.
       if (lastChildJustify==( (k==AND || (k==IMPLIES && index==0)) ? -1 : 1))
       {
         cache[cur] = k==AND ? -1 : 1;
@@ -194,6 +202,7 @@ bool RelevanceManager::updateJustifyLastChild(
   else
   {
     Assert (k==XOR || k==EQUAL);
+    Assert (nchildren==2);
     Assert (lastChildJustify!=0);
     if (index==0)
     {
@@ -224,6 +233,9 @@ int RelevanceManager::justify(
   do 
   {
     cur = visit.back();
+    // should always have Boolean type
+    Assert (cur.getType().isBoolean());
+    it = cache.find(cur);
     if (it != cache.end())
     {
       visit.pop_back();
@@ -237,6 +249,7 @@ int RelevanceManager::justify(
       // are we not a Boolean connective (including NOT)?
       if (isBooleanConnective(cur))
       {
+        // initialize its children justify vector as empty
         childJustify[cur].clear();
         // start with the first child
         visit.push_back(cur[0]);
@@ -271,35 +284,6 @@ int RelevanceManager::justify(
       {
         visit.pop_back();
       }
-      /*
-      bool computeChild = false;
-      while (updateJustifyLastChild(cur, itc->second, cache))
-      {
-        // cur has requested that the next child be computed.
-        // we should not request a new child out of bounds.
-        Assert (itc->second.size()<cur.getNumChildren());
-        TNode nextChild = cur[itc->second.size()];
-        // check if its already in the cache.
-        it = cache.find(nextChild);
-        if (it != cache.end())
-        {
-          // if so, we add to cur's justify children immediately.
-          itc->second.push_back(it->second);
-        }
-        else
-        {
-          // otherwise not computed yet, we exit and push the child to visit
-          visit.push_back(nextChild);
-          computeChild = true;
-          break;
-        }
-      }
-      if (!computeChild)
-      {
-        // pop the original if we are not wanting to compute the next child
-        visit.pop_back();
-      }
-      */
     }
   } while (!visit.empty());
   Assert(cache.find(n) != cache.end());
