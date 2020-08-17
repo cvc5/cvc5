@@ -409,8 +409,9 @@ void CoreSolver::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
   d_solver.conflict(t1, t2);
 }
 
-void CoreSolver::NotifyClass::eqNotifyNewClass(TNode t) {
-  d_solver.eqNotifyNewClass( t );
+void CoreSolver::NotifyClass::eqNotifyNewClass(TNode t)
+{
+  d_solver.eqNotifyNewClass(t);
 }
 
 bool CoreSolver::storePropagation(TNode literal) {
