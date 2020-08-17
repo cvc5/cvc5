@@ -159,6 +159,12 @@ void TheoryEngine::finishInit() {
     d_aloc_curr_model_builder = true;
   }
 
+  // set the core equality engine on quantifiers engine
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->setMasterEqualityEngine(d_eeDistributed->getCoreEqualityEngine());
+  }
+  
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     Theory* t = d_theoryTable[theoryId];
@@ -1805,12 +1811,6 @@ void TheoryEngine::staticInitializeBVOptions(
 SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 {
   return &d_sharedTerms;
-}
-
-theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
-{
-  Assert(d_eeDistributed != nullptr);
-  return d_eeDistributed->getMasterEqualityEngine();
 }
 
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
