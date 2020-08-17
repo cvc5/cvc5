@@ -46,7 +46,9 @@ class SatProofManager
 
   void startResChain(Minisat::Clause& start);
   // resolution with unit clause ~lit, to be justified
-  void addResolutionStep(Minisat::Lit lit);
+  //
+  // bool is on whether to justify the ~lit recursively
+  void addResolutionStep(Minisat::Lit lit, bool recJustify = false);
   // resolution with clause using lit as pivot. Sign determines whether it's
   // being removed positively from the given clause or the implicit one it's
   // being resolved against
@@ -56,7 +58,24 @@ class SatProofManager
   void endResChain(Minisat::Clause& clause);
   void endResChain(Node conclusion);
 
-  /** If lit is not already justified, try to. Otherwise no-op. */
+  /**
+   * The justification of a literal is built according to its *current*
+   * justification in the SAT solver. Thus the proof of the node corresponding
+   * to lit is *always* overwritten *unless* that'd result in a cyclic
+   * proof. The SAT solver can produce cyclic proofs in instances where literals
+   * and clauses coincide, for example
+   *
+   *  [proof]
+   *
+   * is cyclic at the node level but not at the SAT solver level. We avoid
+   * cyclic proofs by computing, for the justification of a given literal, the
+   * necessary assumptions. If the node is in the assumptions, we do not add the
+   * resolution step.
+   */
+  void tryJustifyingLit(
+      prop::SatLiteral lit,
+      std::unordered_set<TNode, TNodeHashFunction>& assumptions);
+
   void tryJustifyingLit(prop::SatLiteral lit);
 
   void finalizeProof(Node inConflictNode,
@@ -77,24 +96,32 @@ class SatProofManager
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 
-  /** The resolution proof */
+  /** resolution steps accumulator for chain resolution. Each pair has a clause
+   * and the pivot for the resolution step it is involved on. */
+  std::vector<std::pair<Node, Node>> d_resolution;
+
+  /**
+   * Associates clauses to their local proofs. These proofs are local and
+   * possibly updated during solving. When the final conclusion is reached, a
+   * final proof is built based on the proofs saved here.
+   */
+  std::map<Node, std::shared_ptr<ProofNode>> d_clauseProofs;
+
+  /** The resolution proof of false */
   CDProof d_proof;
 
   /** The false node */
   Node d_false;
 
-  /** resolution steps accumulator for chain resolution */
-  std::vector<std::pair<Node, Node>> d_resolution;
-
-  /** A placeholder that may be used to store the literal with the final conflict */
+  /**
+   * A placeholder that may be used to store the literal with the final
+   * conflict
+   */
   SatLiteral d_conflictLit;
 
   Node getClauseNode(SatLiteral satLit);
   Node getClauseNode(const Minisat::Clause& clause);
   void printClause(const Minisat::Clause& clause);
-
-
-
 }; /* class SatProofManager */
 
 }  // namespace prop

@@ -970,7 +970,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
                 // this may be the only case in which it is necessary, as the
                 // resolution step is added, that this literal be *directly*
                 // justified
-                d_pfManager->addResolutionStep(q);
+                d_pfManager->addResolutionStep(q, false);
               }
             }
           }

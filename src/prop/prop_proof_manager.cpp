@@ -14,6 +14,8 @@
 
 #include "prop/prop_proof_manager.h"
 
+#include "expr/proof_node_algorithm.h"
+
 namespace CVC4 {
 namespace prop {
 
@@ -29,11 +31,41 @@ PropPfManager::PropPfManager(ProofNodeManager* pnm,
 std::shared_ptr<ProofNode> PropPfManager::getProof()
 {
   // retrieve the propositional conflict proof
+  Trace("sat-proof")
+      << "PropPfManager::getProof: Getting resolution proof of false\n";
   std::shared_ptr<ProofNode> conflictProof =
       d_satProof->getProofFor(NodeManager::currentNM()->mkConst(false))
           ->clone();
+  if (Trace.isOn("sat-proof"))
+  {
+    std::vector<Node> fassumps;
+    expr::getFreeAssumptions(conflictProof.get(), fassumps);
+    Trace("sat-proof")
+        << "PropPfManager::getProof: initial free assumptions are:\n";
+    for (const Node& a : fassumps)
+    {
+      Trace("sat-proof") << "- " << a << "\n";
+    }
+    Trace("sat-proof") << "PropPfManager::getProof: proof is "
+                       << *conflictProof.get() << "\n";
+    Trace("sat-proof")
+        << "PropPfManager::getProof: Connecting with CNF proof\n";
+  }
   // connect it with CNF proof
   d_pfpp->process(conflictProof);
+  if (Trace.isOn("sat-proof"))
+  {
+    std::vector<Node> fassumps;
+    expr::getFreeAssumptions(conflictProof.get(), fassumps);
+    Trace("sat-proof")
+        << "PropPfManager::getProof: new free assumptions are:\n";
+    for (const Node& a : fassumps)
+    {
+      Trace("sat-proof") << "- " << a << "\n";
+    }
+    Trace("sat-proof") << "PropPfManager::getProof: proof is "
+                       << *conflictProof.get() << "\n";
+  }
   return conflictProof;
 }
 
