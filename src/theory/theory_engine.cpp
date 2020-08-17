@@ -131,7 +131,7 @@ std::string getTheoryString(theory::TheoryId id)
   }
 }
 
-void TheoryEngine::finishInit() 
+void TheoryEngine::finishInit()
 {
   // initialize the quantifiers engine
   if (d_logicInfo.isQuantified())

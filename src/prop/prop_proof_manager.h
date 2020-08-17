@@ -17,8 +17,8 @@
 #ifndef CVC4__PROP_PROOF_MANAGER_H
 #define CVC4__PROP_PROOF_MANAGER_H
 
-#include "expr/proof_node_manager.h"
 #include "expr/proof.h"
+#include "expr/proof_node_manager.h"
 #include "prop/proof_post_processor.h"
 
 namespace CVC4 {
@@ -47,7 +47,7 @@ class PropPfManager
   CDProof* d_satProof;
 }; /* class SmtEngine */
 
-}  // namespace smt
+}  // namespace prop
 }  // namespace CVC4
 
 #endif /* CVC4__PROP__PROOF_MANAGER_H */

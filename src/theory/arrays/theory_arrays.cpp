@@ -204,8 +204,9 @@ void TheoryArrays::finishInit()
                                                  d_proofReconstruction.get());
   d_equalityEngine->addPathReconstructionTrigger(d_reasonExt,
                                                  d_proofReconstruction.get());
-  
-  d_pfEqualityEngine.reset(new eq::ProofEqEngine(getSatContext(), getUserContext(), *d_equalityEngine, pnm));
+
+  d_pfEqualityEngine.reset(new eq::ProofEqEngine(
+      getSatContext(), getUserContext(), *d_equalityEngine, pnm));
 }
 
 /////////////////////////////////////////////////////////////////////////////

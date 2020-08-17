@@ -100,8 +100,9 @@ void TheoryUF::finishInit() {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
     d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
   }
-  
-  d_pfEqualityEngine.reset(new eq::ProofEqEngine(getSatContext(), getUserContext(), *d_equalityEngine, d_pnm));
+
+  d_pfEqualityEngine.reset(new eq::ProofEqEngine(
+      getSatContext(), getUserContext(), *d_equalityEngine, d_pnm));
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {

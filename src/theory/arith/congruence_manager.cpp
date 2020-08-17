@@ -52,8 +52,7 @@ ArithCongruenceManager::ArithCongruenceManager(
           new EagerProofGenerator(pnm, c, "ArithCongruenceManager::pfGenEe")),
       d_pfGenExplain(new EagerProofGenerator(
           pnm, u, "ArithCongruenceManager::pfGenExplain")),
-      d_pfee(nullptr)
-      d_ee(nullptr)
+      d_pfee(nullptr) d_ee(nullptr)
 {
 }
 
@@ -93,9 +92,10 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   d_ee->addFunctionKind(kind::EXPONENTIAL);
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
-  
+
   // initialize the proof equality engine
-  d_pfee.reset(new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+  d_pfee.reset(
+      new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
 }
 
 ArithCongruenceManager::Statistics::Statistics():

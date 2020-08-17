@@ -1171,7 +1171,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                  << std::endl;
       }
       options::proofNew.set(false);
-      // we set proofNewReq/checkProofsNew to false, as proofs are truly inapplicable
+      // we set proofNewReq/checkProofsNew to false, as proofs are truly
+      // inapplicable
       options::proofNewReq.set(false);
       options::checkProofsNew.set(false);
     }

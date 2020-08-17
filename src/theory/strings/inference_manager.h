@@ -308,7 +308,7 @@ class InferenceManager
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** The proof-producing equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;  
+  std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** Pointer to proof node manager */
   ProofNodeManager* d_pnm;
   /** Conversion from inferences to proofs */

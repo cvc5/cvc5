@@ -548,7 +548,7 @@ Node CDProof::factorReorderElimDoubleNeg(Node n, CDProof* p)
     n = factored;
   }
   Trace("proof-norm") << "factorReorderElimDoubleNeg: factored node: " << n
-                          << ", factored children " << children << "\n";
+                      << ", factored children " << children << "\n";
   // nothing to order
   if (children.size() < 2)
   {
@@ -557,7 +557,7 @@ Node CDProof::factorReorderElimDoubleNeg(Node n, CDProof* p)
   // order
   std::sort(children.begin(), children.end());
   Trace("proof-norm") << "factorReorderElimDoubleNeg: sorted children: "
-                          << children << "\n";
+                      << children << "\n";
   Node ordered = nm->mkNode(kind::OR, children);
   // if ordering changed
   if (p && ordered != n)
@@ -570,8 +570,8 @@ Node CDProof::factorReorderElimDoubleNeg(Node n, CDProof* p)
                false,
                CDPOverwrite::NEVER);
   }
-  Trace("proof-norm") << "factorReorderElimDoubleNeg: ordered node: "
-                          << ordered << "\n";
+  Trace("proof-norm") << "factorReorderElimDoubleNeg: ordered node: " << ordered
+                      << "\n";
   return ordered;
 }
 

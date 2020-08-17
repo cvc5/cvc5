@@ -41,8 +41,7 @@ InferenceManager::InferenceManager(SolverState& s,
       d_statistics(statistics),
       d_pfee(nullptr),
       d_pnm(pnm),
-      d_ipc(new InferProofCons(
-          d_state.getSatContext(), pnm, d_statistics))
+      d_ipc(new InferProofCons(d_state.getSatContext(), pnm, d_statistics))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -54,9 +53,9 @@ InferenceManager::InferenceManager(SolverState& s,
 void InferenceManager::finishInit()
 {
   d_pfee.reset(new eq::ProofEqEngine(d_state.getSatContext(),
-                                   d_state.getUserContext(),
-                                   *d_state.getEqualityEngine(),
-                                   d_pnm));
+                                     d_state.getUserContext(),
+                                     *d_state.getEqualityEngine(),
+                                     d_pnm));
 }
 
 void InferenceManager::sendAssumption(TNode lit)

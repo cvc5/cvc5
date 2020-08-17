@@ -421,10 +421,10 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   Assert(d_pfEnabled);
   Node proven = trn.getProven();
   Trace("cnf") << "ProofCnfStream::convertPropagation: proven explanation"
-                     << proven << "\n";
+               << proven << "\n";
   Assert(trn.getGenerator());
   Trace("cnf-steps") << proven << " by explainPropagation "
-                           << trn.identifyGenerator() << std::endl;
+                     << trn.identifyGenerator() << std::endl;
   // TODO: due to lifetime of explanations, need to cache this now?
   // Assert(trn.getGenerator()->getProofFor(proven)->isClosed());
   // std::shared_ptr<ProofNode> exp = trn.toProofNode();
@@ -439,8 +439,8 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   NodeManager* nm = NodeManager::currentNM();
   Node clauseImpliesElim = nm->mkNode(kind::OR, proven[0].notNode(), proven[1]);
   Trace("cnf") << "ProofCnfStream::convertPropagation: adding "
-                     << PfRule::IMPLIES_ELIM << " rule to conclude "
-                     << clauseImpliesElim << "\n";
+               << PfRule::IMPLIES_ELIM << " rule to conclude "
+               << clauseImpliesElim << "\n";
   d_proof.addStep(clauseImpliesElim, PfRule::IMPLIES_ELIM, {proven}, {});
   Node clauseExp;
   // need to eliminate AND
