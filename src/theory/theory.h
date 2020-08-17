@@ -77,11 +77,35 @@ namespace eq {
  * RegisteredAttr works.  (If you need multiple instances of the same
  * theory, you'll have to write a multiplexed theory that dispatches
  * all calls to them.)
+ *
+ * NOTE: A Theory has a special way of being initialized. The owner of a Theory
+ * is either:
+ *
+ * (A) Using Theory as a standalone object, not associated with a TheoryEngine.
+ * In this case, simply call the public initialization method
+ * (Theory::finishInitStandalone).
+ *
+ * (B) TheoryEngine, which determines how the Theory acts in accordance with
+ * its theory combination policy. We require the following steps in order:
+ * (B.1) Get information about whether the theory wishes to use an equality
+ * eninge, and more specifically which equality engine notifications the Theory
+ * would like to be notified of (Theory::needsEqualityEngine).
+ * (B.2) Set the equality engine of the theory (Theory::setEqualityEngine),
+ * which we refer to as the "official equality engine" of this Theory. The
+ * equality engine passed to the theory must respect the contract(s) specified
+ * by the equality engine setup information (EeSetupInfo) returned in the
+ * previous step.
+ * (B.3) Set the other required utilities including setQuantifiersEngine and
+ * setDecisionManager.
+ * (B.4) Call the private initialization method (Theory::finishInit).
+ *
+ * Initialization of the second form happens during TheoryEngine::finishInit,
+ * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
- private:
   friend class ::CVC4::TheoryEngine;
 
+ private:
   // Disallow default construction, copy, assignment.
   Theory() = delete;
   Theory(const Theory&) = delete;
@@ -89,11 +113,6 @@ class Theory {
 
   /** An integer identifying the type of the theory. */
   TheoryId d_id;
-
-  /** Name of this theory instance. Along with the TheoryId this should provide
-   * an unique string identifier for each instance of a Theory class. We need
-   * this to ensure unique statistics names over multiple theory instances. */
-  std::string d_instanceName;
 
   /** The SAT search context for the Theory. */
   context::Context* d_satContext;
@@ -137,6 +156,10 @@ class Theory {
   DecisionManager* d_decManager;
 
  protected:
+  /** Name of this theory instance. Along with the TheoryId this should provide
+   * an unique string identifier for each instance of a Theory class. We need
+   * this to ensure unique statistics names over multiple theory instances. */
+  std::string d_instanceName;
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -230,7 +253,15 @@ class Theory {
    * theory engine (and other theories).
    */
   Valuation d_valuation;
-
+  /**
+   * Pointer to the official equality engine of this theory, which is owned by
+   * the equality engine manager of TheoryEngine.
+   */
+  eq::EqualityEngine* d_equalityEngine;
+  /**
+   * The official equality engine, if we allocated it.
+   */
+  std::unique_ptr<eq::EqualityEngine> d_allocEqualityEngine;
   /**
    * Whether proofs are enabled
    *
@@ -272,17 +303,33 @@ class Theory {
    * its value must be computed (approximated) by the non-linear solver.
    */
   bool isLegalElimination(TNode x, TNode val);
+  //--------------------------------- private initialization
+  /**
+   * Called to set the official equality engine. This should be done by
+   * TheoryEngine only.
+   */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /** Called to set the quantifiers engine. */
+  void setQuantifiersEngine(QuantifiersEngine* qe);
+  /** Called to set the decision manager. */
+  void setDecisionManager(DecisionManager* dm);
+  /**
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, the master equality engine and quantifiers
+   * engine (if any) are initialized, and the official equality engine of this
+   * theory has been assigned.  This base class implementation
+   * does nothing. This should be called by TheoryEngine only.
+   */
+  virtual void finishInit() {}
+  //--------------------------------- end private initialization
 
  public:
   //--------------------------------- initialization
   /**
-   * @return The theory rewriter associated with this theory. This is primarily
-   * called for the purposes of initializing the rewriter.
+   * @return The theory rewriter associated with this theory.
    */
   virtual TheoryRewriter* getTheoryRewriter() = 0;
   /**
-   * !!!! TODO: use this method (https://github.com/orgs/CVC4/projects/39).
-   *
    * Returns true if this theory needs an equality engine for checking
    * satisfiability.
    *
@@ -296,6 +343,13 @@ class Theory {
    * a notifications class (eq::EqualityEngineNotify).
    */
   virtual bool needsEqualityEngine(EeSetupInfo& esi);
+  /**
+   * Finish theory initialization, standalone version. This is used to
+   * initialize this class if it is not associated with a theory engine.
+   * This allocates the official equality engine of this Theory and then
+   * calls the finishInit method above.
+   */
+  void finishInitStandalone();
   //--------------------------------- end initialization
 
   /**
@@ -459,14 +513,6 @@ class Theory {
   DecisionManager* getDecisionManager() { return d_decManager; }
 
   /**
-   * Finish theory initialization.  At this point, options and the logic
-   * setting are final, and the master equality engine and quantifiers
-   * engine (if any) are initialized.  This base class implementation
-   * does nothing.
-   */
-  virtual void finishInit() { }
-
-  /**
    * Expand definitions in the term node. This returns a term that is
    * equivalent to node. It wraps this term in a TrustNode of kind
    * TrustNodeKind::REWRITE. If node is unchanged by this method, the
@@ -521,14 +567,9 @@ class Theory {
   virtual void addSharedTerm(TNode n) { }
 
   /**
-   * Called to set the master equality engine.
+   * Get the official equality engine of this theory.
    */
-  virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
-
-  /** Called to set the quantifiers engine. */
-  void setQuantifiersEngine(QuantifiersEngine* qe);
-  /** Called to set the decision manager. */
-  void setDecisionManager(DecisionManager* dm);
+  eq::EqualityEngine* getEqualityEngine();
 
   /**
    * Return the current theory care graph. Theories should overload
@@ -862,9 +903,6 @@ class Theory {
    * E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
-
-  /* equality engine TODO: use? */
-  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
 
   /* get current substitution at an effort
    *   input : vars

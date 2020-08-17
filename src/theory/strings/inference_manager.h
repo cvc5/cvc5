@@ -109,26 +109,27 @@ class InferenceManager
   bool sendInternalInference(std::vector<Node>& exp,
                              Node conc,
                              Inference infer);
+
   /** send inference
    *
-   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
+   * This function should be called when exp => eq. The set exp
    * contains literals that are explainable, i.e. those that hold in the
    * equality engine of the theory of strings. On the other hand, the set
-   * exp_n ("explanations new") contain nodes that are not explainable by the
-   * theory of strings. This method may call sendLemma or otherwise add a
-   * InferInfo to d_pending, indicating a fact should be asserted to the
-   * equality engine. Overall, the result of this method is one of the
-   * following:
+   * noExplain contains nodes that are not explainable by the theory of strings.
+   * This method may call sendLemma or otherwise add a InferInfo to d_pending,
+   * indicating a fact should be asserted to the equality engine. Overall, the
+   * result of this method is one of the following:
    *
-   * [1] (No-op) Do nothing if eq is true,
+   * [1] (No-op) Do nothing if eq is equivalent to true,
    *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
    * class with explanation exp, where exp is a set of literals that currently
    * hold in the equality engine. We add this to the pending vector d_pending.
    *
-   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of the theory of strings, where EXPLAIN
-   * returns the explanation of the node in exp in terms of the literals
+   * [3] (Lemma) Indicate that the lemma
+   *   ( EXPLAIN(exp \ noExplain) ^ noExplain ) => eq
+   * should be sent on the output channel of the theory of strings, where
+   * EXPLAIN returns the explanation of the node in exp in terms of the literals
    * asserted to the theory of strings, as computed by the equality engine.
    * This is also added to a pending vector, d_pendingLem.
    *
@@ -136,25 +137,33 @@ class InferenceManager
    * channel of the theory of strings.
    *
    * Determining which case to apply depends on the form of eq and whether
-   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
-   * non-empty, conflicts are used when exp_n is empty and eq is false.
+   * noExplain is empty. In particular, lemmas must be used whenever noExplain
+   * is non-empty, conflicts are used when noExplain is empty and eq is false.
    *
-   * The argument infer identifies the reason for inference, used for
+   * @param exp The explanation of eq.
+   * @param noExplain The subset of exp that cannot be explained by the
+   * equality engine. This may impact whether we are processing this call as a
+   * fact or as a lemma.
+   * @param eq The conclusion.
+   * @param infer Identifies the reason for inference, used for
    * debugging. This updates the statistics about the number of inferences made
    * of each type.
-   *
-   * If the flag asLemma is true, then this method will send a lemma instead
+   * @param isRev Whether this is the "reverse variant" of the inference, which
+   * is used as a hint for proof reconstruction.
+   * @param asLemma If true, then this method will send a lemma instead
    * of a fact whenever applicable.
    */
   void sendInference(const std::vector<Node>& exp,
-                     const std::vector<Node>& exp_n,
+                     const std::vector<Node>& noExplain,
                      Node eq,
                      Inference infer,
+                     bool isRev = false,
                      bool asLemma = false);
-  /** same as above, but where exp_n is empty */
+  /** same as above, but where noExplain is empty */
   void sendInference(const std::vector<Node>& exp,
                      Node eq,
                      Inference infer,
+                     bool isRev = false,
                      bool asLemma = false);
 
   /** Send inference
@@ -258,8 +267,9 @@ class InferenceManager
    * that have been asserted to the equality engine.
    */
   Node mkExplain(const std::vector<Node>& a) const;
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
+  /** Same as above, but with a subset noExplain that should not be explained */
+  Node mkExplain(const std::vector<Node>& a,
+                 const std::vector<Node>& noExplain) const;
   /**
    * Explain literal l, add conjuncts to assumptions vector instead of making
    * the node corresponding to their conjunction.
