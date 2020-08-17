@@ -522,9 +522,6 @@ class Theory {
   /** Called to set the decision manager. */
   void setDecisionManager(DecisionManager* dm);
 
-  /** Setup an ExtTheory module for this Theory. Can only be called once. */
-  void setupExtTheory();
-
   /**
    * Return the current theory care graph. Theories should overload
    * computeCareGraph to do the actual computation, and use addCarePair to add
