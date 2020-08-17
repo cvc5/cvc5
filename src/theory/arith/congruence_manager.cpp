@@ -110,9 +110,9 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TN
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
 }
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPreMerge(TNode t1, TNode t2) {
-}
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, TNode t2) {
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyMerge(TNode t1,
+                                                                  TNode t2)
+{
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }

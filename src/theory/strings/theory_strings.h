@@ -32,6 +32,7 @@
 #include "theory/strings/infer_info.h"
 #include "theory/strings/inference_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/proof_checker.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
@@ -166,14 +167,11 @@ class TheoryStrings : public Theory {
       Debug("strings") << "NotifyClass::eqNotifyNewClass(" << t << std::endl;
       d_str.eqNotifyNewClass(t);
     }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("strings") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << std::endl;
-      d_state.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("strings") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << std::endl;
+      Debug("strings") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+                       << std::endl;
+      d_state.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
@@ -282,6 +280,8 @@ class TheoryStrings : public Theory {
   InferenceManager d_im;
   /** The theory rewriter for this theory. */
   StringsRewriter d_rewriter;
+  /** The proof rule checker */
+  StringProofRuleChecker d_sProofChecker;
   /**
    * The base solver, responsible for reasoning about congruent terms and
    * inferring constants for equivalence classes.

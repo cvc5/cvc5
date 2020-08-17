@@ -99,6 +99,13 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_false = NodeManager::currentNM()->mkConst( false );
 
   d_cardSize = utils::getAlphabetCardinality();
+
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_sProofChecker.registerTo(pc);
+  }
 }
 
 TheoryStrings::~TheoryStrings() {

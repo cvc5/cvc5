@@ -267,18 +267,11 @@ void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
   d_theory.eqNotifyNewClass(t);
 }
 
-void TheorySets::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
+void TheorySets::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:"
+  Debug("sets-eq") << "[sets-eq] eqNotifyMerge:"
                    << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyPreMerge(t1, t2);
-}
-
-void TheorySets::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:"
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyPostMerge(t1, t2);
+  d_theory.eqNotifyMerge(t1, t2);
 }
 
 void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
