@@ -52,7 +52,7 @@ ArithCongruenceManager::ArithCongruenceManager(
           new EagerProofGenerator(pnm, c, "ArithCongruenceManager::pfGenEe")),
       d_pfGenExplain(new EagerProofGenerator(
           pnm, u, "ArithCongruenceManager::pfGenExplain")),
-      d_pfee(nullptr) d_ee(nullptr)
+      d_pfee(nullptr)
 {
 }
 
@@ -552,7 +552,7 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
       // The equality engine doesn't ref-count for us...
       d_keepAlive.push_back(eq);
       d_keepAlive.push_back(reason);
-      d_ee.assertEquality(eq, isEquality, reason);
+      d_ee->assertEquality(eq, isEquality, reason);
     }
     else if (hasProofFor(lit))
     {

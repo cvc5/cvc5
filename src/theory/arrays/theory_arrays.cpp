@@ -206,7 +206,7 @@ void TheoryArrays::finishInit()
                                                  d_proofReconstruction.get());
 
   d_pfEqualityEngine.reset(new eq::ProofEqEngine(
-      getSatContext(), getUserContext(), *d_equalityEngine, pnm));
+      getSatContext(), getUserContext(), *d_equalityEngine, d_pnm));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1410,7 +1410,7 @@ void TheoryArrays::check(Effort e) {
         break;
       case kind::NOT:
         if (fact[0].getKind() == kind::SELECT) {
-          d_equalityEngine.assertPredicate(fact[0], false, fact);
+          d_equalityEngine->assertPredicate(fact[0], false, fact);
         }
         else
         {

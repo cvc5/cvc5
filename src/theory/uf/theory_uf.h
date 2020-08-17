@@ -117,9 +117,6 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** A proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
-
   /** Proof-producing equaltity engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
 
