@@ -1311,7 +1311,7 @@ void CoreSolver::processSimpleNEq(NormalForm& nfi,
       NormalForm::getExplanationForPrefixEq(nfi, nfj, index, index, ant);
       if (x.isConst() && y.isConst())
       {
-        // if both are constant, its just a constant conflict
+        // if both are constant, it's just a constant conflict
         d_im.sendInference(ant, d_false, Inference::N_CONST, isRev, true);
         return;
       }
