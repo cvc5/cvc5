@@ -5385,8 +5385,7 @@ Term Solver::getSynthSolution(Term term) const
       << "The solver is not in a state immediately preceeded by a "
          "successful call to checkSynth";
 
-  std::map<CVC4::Node, CVC4::Node>::const_iterator it =
-      map.find(*term.d_node);
+  std::map<CVC4::Node, CVC4::Node>::const_iterator it = map.find(*term.d_node);
 
   CVC4_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
 

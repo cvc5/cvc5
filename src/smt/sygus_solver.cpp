@@ -181,11 +181,10 @@ Result SygusSolver::checkSynth(Assertions& as)
     std::vector<Node> bodyv;
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
     size_t nconstraints = d_sygusConstraints.size();
-    Node body =
-        nconstraints == 0
-            ? nm->mkConst(true)
-            : (nconstraints == 1 ? d_sygusConstraints[0]
-                                  : nm->mkNode(AND, d_sygusConstraints));
+    Node body = nconstraints == 0
+                    ? nm->mkConst(true)
+                    : (nconstraints == 1 ? d_sygusConstraints[0]
+                                         : nm->mkNode(AND, d_sygusConstraints));
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;
     if (!d_sygusVars.empty())
