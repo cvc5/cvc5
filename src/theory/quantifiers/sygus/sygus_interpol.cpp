@@ -274,10 +274,10 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
 {
   // get the synthesis solution
-  std::map<Expr, Expr> sols;
+  std::map<Node, Node> sols;
   d_subSolver->getSynthSolutions(sols);
   Assert(sols.size() == 1);
-  std::map<Expr, Expr>::iterator its = sols.find(itp.toExpr());
+  std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
   {
     Trace("sygus-interpol")
@@ -288,7 +288,7 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: solution is "
                           << its->second << std::endl;
-  Node interpoln = Node::fromExpr(its->second);
+  Node interpoln = its->second;
   // replace back the created variables to original symbols.
   Node interpoln_reduced;
   if (interpoln.getKind() == kind::LAMBDA)

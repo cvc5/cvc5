@@ -180,11 +180,11 @@ Result SygusSolver::checkSynth(Assertions& as)
     Node sygusAttr = nm->mkNode(INST_PATTERN_LIST, inst_attr);
     std::vector<Node> bodyv;
     Trace("smt") << "Sygus : Constructing sygus constraint...\n";
-    unsigned n_constraints = d_sygusConstraints.size();
+    size_t nconstraints = d_sygusConstraints.size();
     Node body =
-        n_constraints == 0
+        nconstraints == 0
             ? nm->mkConst(true)
-            : (n_constraints == 1 ? d_sygusConstraints[0]
+            : (nconstraints == 1 ? d_sygusConstraints[0]
                                   : nm->mkNode(AND, d_sygusConstraints));
     body = body.notNode();
     Trace("smt") << "...constructed sygus constraint " << body << std::endl;

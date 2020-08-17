@@ -1885,26 +1885,11 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
   te->printSynthSolution(out);
 }
 
-bool SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
+bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
 {
   SmtScope smts(this);
   finishInit();
-  std::map<Node, std::map<Node, Node>> sol_mapn;
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  // fail if the theory engine does not have synthesis solutions
-  if (!te->getSynthSolutions(sol_mapn))
-  {
-    return false;
-  }
-  for (std::pair<const Node, std::map<Node, Node>>& cs : sol_mapn)
-  {
-    for (std::pair<const Node, Node>& s : cs.second)
-    {
-      sol_map[s.first.toExpr()] = s.second.toExpr();
-    }
-  }
-  return true;
+  return d_sygusSolver->getSynthSolutions(solMap);
 }
 
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)

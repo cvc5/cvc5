@@ -5380,13 +5380,13 @@ Term Solver::getSynthSolution(Term term) const
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
 
-  std::map<CVC4::Expr, CVC4::Expr> map;
+  std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
       << "The solver is not in a state immediately preceeded by a "
          "successful call to checkSynth";
 
-  std::map<CVC4::Expr, CVC4::Expr>::const_iterator it =
-      map.find(term.d_node->toExpr());
+  std::map<CVC4::Node, CVC4::Node>::const_iterator it =
+      map.find(*term.d_node);
 
   CVC4_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
 
@@ -5410,7 +5410,7 @@ std::vector<Term> Solver::getSynthSolutions(
         << "non-null term";
   }
 
-  std::map<CVC4::Expr, CVC4::Expr> map;
+  std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
       << "The solver is not in a state immediately preceeded by a "
          "successful call to checkSynth";
@@ -5420,8 +5420,8 @@ std::vector<Term> Solver::getSynthSolutions(
 
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
-    std::map<CVC4::Expr, CVC4::Expr>::const_iterator it =
-        map.find(terms[i].d_node->toExpr());
+    std::map<CVC4::Node, CVC4::Node>::const_iterator it =
+        map.find(*terms[i].d_node);
 
     CVC4_API_CHECK(it != map.cend())
         << "Synth solution not found for term at index " << i;

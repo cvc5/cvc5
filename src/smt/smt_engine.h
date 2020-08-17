@@ -568,18 +568,18 @@ class CVC4_PUBLIC SmtEngine
    * This method returns true if we are in a state immediately preceeded by
    * a successful call to checkSynth.
    *
-   * This method adds entries to sol_map that map functions-to-synthesize with
+   * This method adds entries to solMap that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
    * Specifically, given a sygus conjecture of the form
    *   exists x1...xn. forall y1...yn. P( x1...xn, y1...yn )
    * where x1...xn are second order bound variables, we map each xi to
-   * lambda term in sol_map such that
-   *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
+   * lambda term in solMap such that
+   *    forall y1...yn. P( solMap[x1]...solMap[xn], y1...yn )
    * is a valid formula.
    */
-  bool getSynthSolutions(std::map<Expr, Expr>& sol_map);
+  bool getSynthSolutions(std::map<Node, Node>& solMap);
 
   /**
    * Do quantifier elimination.
