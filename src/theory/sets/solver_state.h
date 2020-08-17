@@ -48,17 +48,21 @@ class SolverState
 
  public:
   SolverState(TheorySetsPrivate& p,
-              eq::EqualityEngine& e,
               context::Context* c,
               context::UserContext* u);
-  //-------------------------------- initialize
+  /**
+   * Finish initialize, there ee is a pointer to the official equality engine
+   * of theory of strings.
+   */
+  void finishInit(eq::EqualityEngine* ee);
+  //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
   /** register equivalence class whose type is tn */
   void registerEqc(TypeNode tn, Node r);
   /** register term n of type tnn in the equivalence class of r */
   void registerTerm(Node r, TypeNode tnn, Node n);
-  //-------------------------------- end initialize
+  //-------------------------------- end initialize per check
   /** Are we currently in conflict? */
   bool isInConflict() const { return d_conflict; }
   /**
@@ -68,10 +72,19 @@ class SolverState
   void setConflict();
   /** Set conf is a conflict node to be sent on the output channel.  */
   void setConflict(Node conf);
+  /**
+   * Get the representative of a in the equality engine of this class, or a
+   * itself if it is not registered as a term.
+   */
+  Node getRepresentative(Node a) const;
+  /** Is a registered as a term in the equality engine of this class? */
+  bool hasTerm(Node a) const;
   /** Is a=b according to equality reasoning in the current context? */
   bool areEqual(Node a, Node b) const;
   /** Is a!=b according to equality reasoning in the current context? */
   bool areDisequal(Node a, Node b) const;
+  /** get equality engine */
+  eq::EqualityEngine* getEqualityEngine() const;
   /** add equality to explanation
    *
    * This adds a = b to exp if a and b are syntactically disequal. The equality
@@ -220,8 +233,8 @@ class SolverState
   context::CDO<bool> d_conflict;
   /** Reference to the parent theory of sets */
   TheorySetsPrivate& d_parent;
-  /** Reference to the equality engine of theory of sets */
-  eq::EqualityEngine& d_ee;
+  /** Pointer to the official equality engine of theory of sets */
+  eq::EqualityEngine* d_ee;
   /** The list of all equivalence classes of type set in the current context */
   std::vector<Node> d_set_eqc;
   /** Maps types to the equivalence class containing empty set of that type */

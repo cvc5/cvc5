@@ -205,11 +205,12 @@ class CVC4_PUBLIC Command
   virtual void invoke(SmtEngine* smtEngine) = 0;
   virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
 
-  void toStream(std::ostream& out,
-                int toDepth = -1,
-                bool types = false,
-                size_t dag = 1,
-                OutputLanguage language = language::output::LANG_AUTO) const;
+  virtual void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const;
 
   std::string toString() const;
 
@@ -747,6 +748,14 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
+  /** prints the Synth-fun command */
+  void toStream(
+      std::ostream& out,
+      int toDepth = -1,
+      bool types = false,
+      size_t dag = 1,
+      OutputLanguage language = language::output::LANG_AUTO) const override;
 
  protected:
   /** the function-to-synthesize */

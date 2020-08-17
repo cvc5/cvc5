@@ -538,7 +538,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
   try {
     return language::toInputLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --language help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
   }
 
   Unreachable();

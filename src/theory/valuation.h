@@ -110,7 +110,20 @@ public:
    * Returns pointer to model.
    */
   TheoryModel* getModel();
-  
+
+  //-------------------------------------- static configuration of the model
+  /**
+   * Set that k is an unevaluated kind in the TheoryModel, if it exists.
+   * See TheoryModel::setUnevaluatedKind for details.
+   */
+  void setUnevaluatedKind(Kind k);
+  /**
+   * Set that k is an unevaluated kind in the TheoryModel, if it exists.
+   * See TheoryModel::setSemiEvaluatedKind for details.
+   */
+  void setSemiEvaluatedKind(Kind k);
+  //-------------------------------------- end static configuration of the model
+
   /**
    * Ensure that the given node will have a designated SAT literal
    * that is definitionally equal to it.  The result of this function

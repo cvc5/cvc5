@@ -118,10 +118,12 @@ void SolverState::eqNotifyNewClass(TNode t)
   }
   else if (t.isConst())
   {
-    EqcInfo* ei = getOrMakeEqcInfo(t);
-    ei->d_prefixC = t;
-    ei->d_suffixC = t;
-    return;
+    if (t.getType().isStringLike())
+    {
+      EqcInfo* ei = getOrMakeEqcInfo(t);
+      ei->d_prefixC = t;
+      ei->d_suffixC = t;
+    }
   }
   else if (k == STRING_CONCAT)
   {
@@ -129,11 +131,12 @@ void SolverState::eqNotifyNewClass(TNode t)
   }
 }
 
-void SolverState::eqNotifyPreMerge(TNode t1, TNode t2)
+void SolverState::eqNotifyMerge(TNode t1, TNode t2)
 {
   EqcInfo* e2 = getOrMakeEqcInfo(t2, false);
   if (e2)
   {
+    Assert(t1.getType().isStringLike());
     EqcInfo* e1 = getOrMakeEqcInfo(t1);
     // add information from e2 to e1
     if (!e2->d_lengthTerm.get().isNull())
