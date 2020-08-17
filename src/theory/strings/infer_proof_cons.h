@@ -35,9 +35,11 @@ namespace strings {
 /**
  * Converts between the strings-specific (untrustworthy) InferInfo class and
  * information about how to construct a trustworthy proof step, e.g.
- * (PfRule, children, args).
+ * (PfRule, children, args). It also acts as a (lazy) proof generator.]
  *
- * It also may act as a (lazy) proof generator.
+ * In particular, the main method of this class is convert below, which is
+ * called when we need to construct a proof node for a fact that was added to
+ * the equality engine of strings using strings-specific reasoning.
  */
 class InferProofCons : public ProofGenerator
 {
@@ -47,8 +49,7 @@ class InferProofCons : public ProofGenerator
  public:
   InferProofCons(context::Context* c,
                  ProofNodeManager* pnm,
-                 SequencesStatistics& statistics,
-                 bool pfEnabled);
+                 SequencesStatistics& statistics);
   ~InferProofCons() {}
   /**
    * This is called to notify that ii is an inference that may need a proof
@@ -76,7 +77,7 @@ class InferProofCons : public ProofGenerator
    * (2) The premises of the proof step (d_children).
    * (3) Arguments to the proof step (d_args).
    *
-   * NOTE: if the proof for the inference cannot be captured by a single
+   * If the proof for the inference cannot be captured by a single
    * step, then the d_rule field of ps is not set, and useBuffer is set to
    * true. In this case, the ProofStepBuffer of this class contains (multiple)
    * steps for how to construct a proof for the inference. This buffer can be
@@ -95,7 +96,10 @@ class InferProofCons : public ProofGenerator
                const std::vector<Node>& exp,
                ProofStep& ps,
                bool& useBuffer);
-  /** Get the proof step buffer */
+  /**
+   * Get the proof step buffer, which should be called immediately after the
+   * above convert method when useBuffer is set to true.
+   */
   ProofStepBuffer* getBuffer();
 
   /**
@@ -115,7 +119,12 @@ class InferProofCons : public ProofGenerator
    * to the buffer that conclude lenReq from premises lenExp.
    */
   bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
+  /** Are proofs enabled? */
+  bool isProofEnabled() const;
   /**
+   * Helper method, adds the proof of (TRANS eqa eqb) into the proof step
+   * buffer d_psb, where eqa and eqb are flipped as needed. Returns the
+   * conclusion, or null if we were not able to construct a TRANS step.
    */
   Node convertTrans(Node eqa, Node eqb);
   /** the proof node manager */
@@ -126,8 +135,6 @@ class InferProofCons : public ProofGenerator
   TheoryProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  /** Whether proofs are enabled */
-  bool d_pfEnabled;
 };
 
 }  // namespace strings

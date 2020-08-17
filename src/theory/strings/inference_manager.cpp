@@ -44,7 +44,7 @@ InferenceManager::InferenceManager(SolverState& s,
                                    *d_state.getEqualityEngine(),
                                    pnm)),
       d_ipc(new InferProofCons(
-          d_state.getSatContext(), pnm, d_statistics, options::proofNew()))
+          d_state.getSatContext(), pnm, d_statistics))
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
