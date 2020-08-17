@@ -36,6 +36,22 @@ class PropPfManager
                 CDProof* satProof,
                 ProofCnfStream* cnfProof);
 
+  /** saves assertion for later checking whether final proved is closed */
+  void registerAssertion(Node assertion);
+
+  /**
+   * Generates proof of false by connecting d_satProof the justification for its
+   * assumptions being retrieved from the CNF conversion proof, if any.
+   *
+   * The connection is done by running the proof post processor d_pfpp over the
+   * proof of false provided by d_satProof. For every assumption for which the
+   * CNF proof has a non-assumption proof, this proof will replace the
+   * assumption step.
+   *
+   * This method also optionally checks whether the remaining assumptions in the
+   * proof of false are exactly the assertions registered to this proof manager,
+   * which indicates whether a closed proof can be built.
+   */
   std::shared_ptr<ProofNode> getProof();
 
  private:
@@ -45,6 +61,9 @@ class PropPfManager
   std::unique_ptr<prop::ProofPostproccess> d_pfpp;
   /** The sat solver proof to be processed when the final proof is requested */
   CDProof* d_satProof;
+  /** The assertions that should be the only assumptions of the postprocessed
+   * proof */
+  std::vector<Node> d_assertions;
 }; /* class SmtEngine */
 
 }  // namespace smt

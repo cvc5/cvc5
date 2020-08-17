@@ -1085,10 +1085,12 @@ Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
       }
     }
     // Check that UNSAT results generate a proof correctly.
-    if (options::checkProofs() || options::checkProofsNew())
+    if (options::checkProofs() || options::checkProofsNew()
+        || options::proofNewEagerChecking())
     {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-        if (options::checkProofsNew() && !options::proofNew())
+        if ((options::checkProofsNew() || options::proofNewEagerChecking())
+            && !options::proofNew())
         {
           throw ModalException(
               "Cannot check-proofs-new because proof-new was disabled.");
@@ -1254,7 +1256,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
                 : TypeNode::fromType(func.getType()),
             isInv,
             TypeNode::fromType(sygusType));
-    
+
     // must print it on the standard output channel since it is not possible
     // to print anything except for commands with Dump.
     std::ostream& out = *d_options.getOut();
@@ -1733,17 +1735,21 @@ void SmtEngine::checkProof()
 {
   if (options::proofNew())
   {
+    // internal check the proof
+    PropEngine* pe = getPropEngine();
+    Assert(pe != nullptr);
+    Assert(pe->getProof() != nullptr);
+    CDProof* pfpe = pe->getProof();
     // TEMPORARY for testing, this can be used to count how often checkProofs is
     // called
     if (options::checkProofsNewFail())
     {
       AlwaysAssert(false) << "Fail due to --check-proofs-new-fail";
     }
-    // internal check the proof
-    PropEngine* pe = getPropEngine();
-    Assert(pe != nullptr);
-    Assert(pe->getProof() != nullptr);
-    d_pfManager->checkProof(pe->getProof(), *d_asserts);
+    if (options ::checkProofsNew())
+    {
+      d_pfManager->checkProof(pfpe, *d_asserts);
+    }
     return;
   }
 #if (IS_LFSC_BUILD && IS_PROOFS_BUILD)

@@ -180,7 +180,6 @@ header = "options/smt_options.h"
   long       = "proof-new-eager-checking"
   type       = "bool"
   default    = "false"
-  read_only  = true
   help       = "check proofs eagerly with proof-new for local debugging"
 
 [[option]]
@@ -432,7 +431,7 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-  
+
 [[option]]
   name       = "incrementalSolving"
   category   = "common"
@@ -702,7 +701,7 @@ header = "options/smt_options.h"
   [[option.mode.BITWISE]]
   name = "bitwise"
   help = "use bitwise comparisons on binary representation of integer for refinement (experimental)"
-  
+
 [[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"

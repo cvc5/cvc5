@@ -139,6 +139,8 @@ void PropEngine::assertFormula(TNode node) {
   if (d_pfCnfStream)
   {
     d_pfCnfStream->convertAndAssert(node, false, false, nullptr);
+    // register in proof manager
+    d_ppm->registerAssertion(node);
   }
   else
   {

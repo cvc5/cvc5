@@ -28,6 +28,11 @@ PropPfManager::PropPfManager(ProofNodeManager* pnm,
 {
 }
 
+void PropPfManager::registerAssertion(Node assertion)
+{
+  d_assertions.push_back(assertion);
+}
+
 std::shared_ptr<ProofNode> PropPfManager::getProof()
 {
   // retrieve the propositional conflict proof
@@ -63,8 +68,21 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     {
       Trace("sat-proof") << "- " << a << "\n";
     }
+    Trace("sat-proof") << "PropPfManager::getProof: assertions are:\n";
+    for (const Node& a : d_assertions)
+    {
+      Trace("sat-proof") << "- " << a << "\n";
+    }
     Trace("sat-proof") << "PropPfManager::getProof: proof is "
                        << *conflictProof.get() << "\n";
+    if (options::proofNewEagerChecking())
+    {
+      Trace("sat-proof") << "PropPfManager::getProof: checking if can make scope...\n";
+      std::shared_ptr<ProofNode> scopePfn =
+          d_pnm->mkScope(conflictProof, d_assertions);
+      Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "
+                            "closed w.r.t. preprocessed assertions\n";
+    }
   }
   return conflictProof;
 }
