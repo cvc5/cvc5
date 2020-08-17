@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file proof.cpp
+/*! \file proof_checker.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of strings proof
+ ** \brief Implementation of strings proof checker
  **/
 
 #include "theory/strings/proof_checker.h"
@@ -141,7 +141,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       Node srem = utils::mkConcat(sremVec, stringType);
       return trem.eqNode(srem);
     }
-    // all remaining rules do something with the first side of each side
+    // all remaining rules do something with the first child of each side
     Node t0 = tvec[isRev ? nchildt - 1 : 0];
     Node s0 = svec[isRev ? nchilds - 1 : 0];
     if (id == PfRule::CONCAT_UNIFY)
@@ -151,7 +151,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       {
         return Node::null();
       }
-      for (unsigned i = 0; i < 2; i++)
+      for (size_t i = 0; i < 2; i++)
       {
         Node l = children[1][i];
         if (l.getKind() != STRING_LENGTH)
@@ -289,7 +289,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node atom = children[0];
-    if (atom.getKind() != GEQ)
+    if (atom.getKind() != GEQ || atom[0].getKind() != STRING_LENGTH)
     {
       return Node::null();
     }
@@ -305,7 +305,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
   {
     Assert(children.empty());
     Assert(args.size() >= 1);
-    // These rules are based on called a C++ method for returning a valid
+    // These rules are based on calling a C++ method for returning a valid
     // lemma involving a single argument term.
     // Must convert to skolem form.
     Node t = args[0];
@@ -410,8 +410,9 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
     Node conc;
     if (id == PfRule::RE_UNFOLD_POS)
     {
+      std::vector<Node> newSkolems;
       SkolemCache sc;
-      conc = RegExpOpr::reduceRegExpPos(skChild, &sc);
+      conc = RegExpOpr::reduceRegExpPos(skChild, &sc, newSkolems);
     }
     else if (id == PfRule::RE_UNFOLD_NEG)
     {
@@ -463,7 +464,7 @@ Node StringProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node t[2];
-    for (unsigned i = 0; i < 2; i++)
+    for (size_t i = 0; i < 2; i++)
     {
       if (children[0][i].getKind() == SEQ_UNIT)
       {

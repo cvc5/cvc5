@@ -719,6 +719,22 @@ std::string SynthFunCommand::getCommandName() const
   return d_isInv ? "synth-inv" : "synth-fun";
 }
 
+void SynthFunCommand::toStream(std::ostream& out,
+                               int toDepth,
+                               bool types,
+                               size_t dag,
+                               OutputLanguage language) const
+{
+  std::vector<Node> nodeVars = termVectorToNodes(d_vars);
+  Printer::getPrinter(language)->toStreamCmdSynthFun(
+      out,
+      d_symbol,
+      nodeVars,
+      TypeNode::fromType(d_sort.getType()),
+      d_isInv,
+      TypeNode::fromType(d_grammar->resolve().getType()));
+}
+
 /* -------------------------------------------------------------------------- */
 /* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */

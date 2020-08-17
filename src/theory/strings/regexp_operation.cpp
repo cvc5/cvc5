@@ -837,7 +837,8 @@ Node RegExpOpr::simplify(Node t, bool polarity)
   }
   if (polarity)
   {
-    conc = reduceRegExpPos(tlit, d_sc);
+    std::vector<Node> newSkolems;
+    conc = reduceRegExpPos(tlit, d_sc, newSkolems);
   }
   else
   {
@@ -997,7 +998,9 @@ Node RegExpOpr::reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index)
   return conc;
 }
 
-Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
+Node RegExpOpr::reduceRegExpPos(Node mem,
+                                SkolemCache* sc,
+                                std::vector<Node>& newSkolems)
 {
   Assert(mem.getKind() == STRING_IN_REGEXP);
   Node s = mem[0];
@@ -1017,9 +1020,8 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
     // the existential eform does not need to be explicitly justified by a
     // proof here, since it is only being used as an intermediate formula in
     // this inference. Hence we do not pass a proof generator to mkSkolemize.
-    std::vector<Node> skolems;
-    sm->mkSkolemize(eform, skolems, "rc", "regexp concat skolem");
-    Assert(skolems.size() == r.getNumChildren());
+    sm->mkSkolemize(eform, newSkolems, "rc", "regexp concat skolem");
+    Assert(newSkolems.size() == r.getNumChildren());
     // Look up skolems for each of the components. If sc has optimizations
     // enabled, this will return arguments of str.to_re.
     for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; ++i)
@@ -1027,16 +1029,16 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
       if (r[i].getKind() == STRING_TO_REGEXP)
       {
         // optimization, just take the body
-        skolems[i] = r[i][0];
+        newSkolems[i] = r[i][0];
       }
       else
       {
-        nvec.push_back(nm->mkNode(STRING_IN_REGEXP, skolems[i], r[i]));
+        nvec.push_back(nm->mkNode(STRING_IN_REGEXP, newSkolems[i], r[i]));
       }
     }
     // (str.in_re x (re.++ R1 .... Rn)) =>
     // (and (str.in_re k1 R1) ... (str.in_re kn Rn) (= x (str.++ k1 ... kn)))
-    Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, skolems));
+    Node lem = s.eqNode(nm->mkNode(STRING_CONCAT, newSkolems));
     nvec.push_back(lem);
     conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
   }
@@ -1058,9 +1060,22 @@ Node RegExpOpr::reduceRegExpPos(Node mem, SkolemCache* sc)
 
     // We also immediately unfold the last disjunct for re.*. The advantage
     // of doing this is that we use the same scheme for skolems above.
-    sinRExp = reduceRegExpPos(sinRExp, sc);
+    std::vector<Node> newSkolemsC;
+    sinRExp = reduceRegExpPos(sinRExp, sc, newSkolemsC);
+    Assert(newSkolemsC.size() == 3);
     // make the return lemma
-    conc = nm->mkNode(OR, se, sinr, sinRExp);
+    // can also assume the component match the first and last R are non-empty.
+    // This means that the overall conclusion is:
+    //   (x = "") v (x in R) v (x = (str.++ k1 k2 k3) ^
+    //                          k1 in R ^ k2 in (re.* R) ^ k3 in R ^
+    //                          k1 != ""  ^ k3 != "")
+    conc = nm->mkNode(OR,
+                      se,
+                      sinr,
+                      nm->mkNode(AND,
+                                 sinRExp,
+                                 newSkolemsC[0].eqNode(emp).negate(),
+                                 newSkolemsC[2].eqNode(emp).negate()));
   }
   else
   {

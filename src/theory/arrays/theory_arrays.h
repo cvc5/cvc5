@@ -343,8 +343,7 @@ class TheoryArrays : public Theory {
     }
 
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
       if (t1.getType().isArray()) {
         d_arrays.mergeArrays(t1, t2);
