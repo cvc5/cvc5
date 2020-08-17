@@ -1302,20 +1302,17 @@ void CvcPrinter::toStreamCmdCommandSequence(
 void CvcPrinter::toStreamCmdDeclarationSequence(
     std::ostream& out, const std::vector<Command*>& sequence) const
 {
-  toStreamCmdCommandSequence(out, sequence);
-}
-
-static void toStream(std::ostream& out,
-                     const DeclarationSequence* c,
-                     bool cvc3Mode)
-{
-  DeclarationSequence::const_iterator i = c->begin();
-  for(;;) {
+  DeclarationSequence::const_iterator i = sequence.cbegin();
+  for (;;)
+  {
     DeclarationDefinitionCommand* dd =
-      static_cast<DeclarationDefinitionCommand*>(*i++);
-    if(i != c->end()) {
+        static_cast<DeclarationDefinitionCommand*>(*i++);
+    if (i != sequence.cend())
+    {
       out << dd->getSymbol() << ", ";
-    } else {
+    }
+    else
+    {
       out << *dd;
       break;
     }

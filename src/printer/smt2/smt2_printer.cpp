@@ -1510,19 +1510,31 @@ void Smt2Printer::toStreamCmdResetAssertions(std::ostream& out) const
 
 void Smt2Printer::toStreamCmdQuit(std::ostream& out) const { out << "(exit)"; }
 
-static void toStream(std::ostream& out, const CommandSequence* c)
+void Smt2Printer::toStreamCmdCommandSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
 {
-  CommandSequence::const_iterator i = c->begin();
-  if(i != c->end()) {
-    for(;;) {
+  CommandSequence::const_iterator i = sequence.cbegin();
+  if (i != sequence.cend())
+  {
+    for (;;)
+    {
       out << *i;
-      if(++i != c->end()) {
+      if (++i != sequence.cend())
+      {
         out << endl;
-      } else {
+      }
+      else
+      {
         break;
       }
     }
   }
+}
+
+void Smt2Printer::toStreamCmdDeclarationSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
+{
+  toStreamCmdCommandSequence(out, sequence);
 }
 
 void Smt2Printer::toStreamCmdDeclareFunction(std::ostream& out,
@@ -1964,18 +1976,6 @@ void Smt2Printer::toStreamCmdEcho(std::ostream& out,
     pos += 2;
   }
   out << "(echo \"" << s << "\")";
-}
-
-void Smt2Printer::toStreamCmdCommandSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
-{
-  printUnknownCommand(out, "sequence");
-}
-
-void Smt2Printer::toStreamCmdDeclarationSequence(
-    std::ostream& out, const std::vector<Command*>& sequence) const
-{
-  printUnknownCommand(out, "sequence");
 }
 
 /*
