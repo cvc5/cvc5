@@ -252,7 +252,7 @@ class Theory {
   /**
    * The official equality engine, if we allocated it.
    */
-  std::unique_ptr<eq::EqualityEngine> d_alocEqualityEngine;
+  std::unique_ptr<eq::EqualityEngine> d_allocEqualityEngine;
   /**
    * Whether proofs are enabled
    *
@@ -309,7 +309,7 @@ class Theory {
    * setting are final, the master equality engine and quantifiers
    * engine (if any) are initialized, and the official equality engine of this
    * theory has been assigned.  This base class implementation
-   * does nothing. This should be done by TheoryEngine only.
+   * does nothing. This should be called by TheoryEngine only.
    */
   virtual void finishInit() {}
   //--------------------------------- end private initialization

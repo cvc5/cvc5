@@ -49,7 +49,7 @@ class SolverState
               Valuation& v);
   ~SolverState();
   /**
-   * Finish initialize, there ee is a pointer to the official equality engine
+   * Finish initialize, ee is a pointer to the official equality engine
    * of theory of strings.
    */
   void finishInit(eq::EqualityEngine* ee);
