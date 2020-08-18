@@ -1001,9 +1001,8 @@ void CardinalityExtension::mkModelValueElementsFor(
       {
         std::stringstream ss;
         ss << "The model for " << eqc << " was computed to have cardinality "
-           << v << ". We only allow sets up to cardinality " << UINT32_MAX
-           << ".";
-        throw Exception(ss.str());
+           << v << ". We only allow sets up to cardinality " << UINT32_MAX;
+        throw LogicException(ss.str());
       }
       std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
