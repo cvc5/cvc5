@@ -47,7 +47,9 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   void initializeUpdate();
   /**
    * Set eliminate rule, which adds rule to the list of rules we will eliminate
-   * during update. This adds rule to d_elimRules.
+   * during update. This adds rule to d_elimRules. Supported rules for
+   * elimination include MACRO_*, SUBS and REWRITE. Otherwise, this method
+   * has no effect.
    */
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
