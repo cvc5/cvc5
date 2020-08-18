@@ -148,7 +148,8 @@ class SimpSolver : public Solver {
         {
           int c_x = cost(x);
           int c_y = cost(y);
-          return c_x < c_y || (c_x == c_y && x < y); }
+          return c_x < c_y || (c_x == c_y && x < y);
+        }
     };
 
     struct ClauseDeleted {
@@ -265,9 +266,10 @@ inline lbool SimpSolver::solve        (Lit p, Lit q, Lit r, bool do_simp, bool t
                                        bool turn_off_simp)
  {
    assumps.copyTo(assumptions);
-   return solve_(do_simp, turn_off_simp); }
+   return solve_(do_simp, turn_off_simp);
+ }
 
-//=================================================================================================
+ //=================================================================================================
 } /* CVC4::Minisat namespace */
 } /* CVC4 namespace */
 

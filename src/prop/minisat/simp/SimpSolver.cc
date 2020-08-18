@@ -651,7 +651,8 @@ bool SimpSolver::eliminate(bool turn_off_elim)
             && !backwardSubsumptionCheck(true))
         {
           ok = false;
-          goto cleanup; }
+          goto cleanup;
+        }
 
         // Empty elim_heap and return immediately on user-interrupt:
         if (asynch_interrupt){

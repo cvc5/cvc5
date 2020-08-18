@@ -546,8 +546,10 @@ Node ProofPostprocessCallback::addProofForTrans(
   return Node::null();
 }
 
-
-Node ProofPostprocessCallback::addProofForSubsStep(Node var, Node subs, Node assump, CDProof* cdp)
+Node ProofPostprocessCallback::addProofForSubsStep(Node var,
+                                                   Node subs,
+                                                   Node assump,
+                                                   CDProof* cdp)
 {
   // ensure we have a proof of var = subs
   Node veqs = var.eqNode(subs);
@@ -555,11 +557,11 @@ Node ProofPostprocessCallback::addProofForSubsStep(Node var, Node subs, Node ass
   {
     // should be true intro or false intro
     Assert(subs.isConst());
-    cdp->addStep(veqs,
-                subs.getConst<bool>() ? PfRule::TRUE_INTRO
-                                      : PfRule::FALSE_INTRO,
-                {assump},
-                {});
+    cdp->addStep(
+        veqs,
+        subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+        {assump},
+        {});
   }
   return veqs;
 }

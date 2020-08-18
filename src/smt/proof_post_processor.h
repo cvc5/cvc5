@@ -125,7 +125,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * example). This method ensures that the proof of var == subs exists
    * in cdp, where var, subs were derived from BuiltinProofRuleChecker's
    * getSubstitution method.
-   * 
+   *
    * @param var The variable of the substitution
    * @param subs The substituted term
    * @param assump The formula the substitution was derived from
