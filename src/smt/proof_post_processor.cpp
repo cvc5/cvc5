@@ -398,7 +398,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           Node seqss = subs.eqNode(ss);
           std::shared_ptr<ProofNode> pfn = tcg.getProofFor(seqss);
           Assert(pfn != nullptr);
-          Trace("ajr-temp") << "My proof is " << seqss << std::endl;
           // add the proof
           pf->addProof(pfn);
           // get proof for children[i] from cdp
