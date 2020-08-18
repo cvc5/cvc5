@@ -1522,11 +1522,11 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
-  
-  set<Node> termSet;
-  
+
+  std::set<Node> termSet;
+
   // Compute terms appearing in assertions and shared terms, and in inferred equalities
-  getRelevantTerms(termSet);
+  computeRelevantTerms(termSet);
 
   //combine the equality engine
   if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
@@ -2250,12 +2250,14 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
+void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet,
+                                           bool includeShared)
+{
   // Compute terms appearing in assertions and shared terms
-  std::set<Kind> irr_kinds;
+  std::set<Kind> irrKinds;
   // testers are not relevant for model construction
-  irr_kinds.insert(APPLY_TESTER);
-  computeRelevantTerms(termSet, irr_kinds);
+  irrKinds.insert(APPLY_TESTER);
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
