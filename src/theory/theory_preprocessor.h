@@ -91,9 +91,17 @@ class TheoryPreprocessor
   std::unique_ptr<LazyCDProof> d_lp;
   /** Helper for theoryPreprocess */
   Node ppTheoryRewrite(TNode term);
-  /** rewrite with proof, store REWRITE step in d_tpg. */
+  /**
+   * Rewrite with proof, which stores a REWRITE step in d_tpg if necessary
+   * and returns the rewritten form of term.
+   */
   Node rewriteWithProof(Node term);
-  /** preprocess with proof */
+  /**
+   * Preprocess with proof, which calls the appropriate ppRewrite method,
+   * stores the corresponding rewrite step in d_tpg if necessary and returns
+   * the preprocessed and rewritten form of term. It should be the case that
+   * term is already in rewritten form.
+   */
   Node preprocessWithProof(Node term);
   /** Proofs enabled */
   bool isProofEnabled() const;

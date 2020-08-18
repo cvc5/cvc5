@@ -95,18 +95,19 @@ TrustNode TheoryPreprocessor::preprocess(TNode node,
   TrustNode ttfr = d_tfr.run(ppNode, newLemmas, newSkolems, false);
   Trace("te-tform-rm") << "..done " << ttfr.getNode() << std::endl;
   Node retNode = ttfr.getNode();
-  if (d_tpg != nullptr)
+  if (isProofEnabled())
   {
+    // if we rewrote
     if (retNode != ppNode)
     {
-      if (ttfr.getGenerator() != nullptr)
-      {
-        Trace("tpp-proof-debug")
-            << "TheoryPreprocessor: addRewriteStep (term formula removal) "
-            << ppNode << " -> " << retNode << std::endl;
-        // store as a rewrite in d_tpg
-        d_tpg->addRewriteStep(ppNode, retNode, ttfr.getGenerator());
-      }
+      // should always have provided a proof generator, or else term formula
+      // removal and this class do not agree on whether proofs are enabled.
+      Assert(ttfr.getGenerator() != nullptr);
+      Trace("tpp-proof-debug")
+          << "TheoryPreprocessor: addRewriteStep (term formula removal) "
+          << ppNode << " -> " << retNode << std::endl;
+      // store as a rewrite in d_tpg
+      d_tpg->addRewriteStep(ppNode, retNode, ttfr.getGenerator());
     }
   }
 
@@ -356,8 +357,10 @@ Node TheoryPreprocessor::rewriteWithProof(Node term)
 
 Node TheoryPreprocessor::preprocessWithProof(Node term)
 {
-  // important that it is in rewritten form, to ensure that the rewrite steps
-  // recorded in d_tpg are functional.
+  // Important that it is in rewritten form, to ensure that the rewrite steps
+  // recorded in d_tpg are functional. In other words, there should not
+  // be steps from the same term to multiple rewritten forms, which would be
+  // the case if we registered a preprocessing step for a non-rewritten term.
   Assert(term == Rewriter::rewrite(term));
   // call ppRewrite for the given theory
   TrustNode trn = d_engine.theoryOf(term)->ppRewrite(term);
