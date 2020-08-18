@@ -1987,17 +1987,6 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
-{
-  return &d_sharedTerms;
-}
-
-theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
-{
-  Assert(d_eeDistributed != nullptr);
-  return d_eeDistributed->getMasterEqualityEngine();
-}
-
 theory::TrustNode TheoryEngine::getExplanation(
     std::vector<NodeTheoryPair>& explanationVector,
     LemmaProofRecipe* proofRecipe)

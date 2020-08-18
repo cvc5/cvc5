@@ -40,6 +40,7 @@ PR finished:
 (40) theory engine proof generator (req 11, 13, 18, 23)
 (42) Strings proof checker (req 5, 17, 22, 45, 65)
 (45) regexp operation refactor (req 3, 7, 8)
+(46) term context core utilities
 (48) remove snorm option
 (49) re elim static
 (50) term formula removal proof producing (req 36, 38, 51, 64)
@@ -48,6 +49,7 @@ PR finished:
 (60) proof node updater utility (req 23)
 (61) witness rewrite
 (62) update proof checker for Skolem forms
+(63) SMT engine proof post-processor callback (req 37, 59, 66, 72)
 (64) updates to SkolemManager
 (65) updates to strings core solver
 (66) preprocess proof generator
@@ -64,11 +66,13 @@ PRs ready:
 
 (24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23) *
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65) *
-(46) term context core utilities *
 (52) theory preprocess proof producing (req 27, 48, 51, 50) *
 (53) CNF proof producing [Haniel]
-(63) SMT engine proof post-processor callback (req 37, 59, 66, 72) *
 (70) rewriter unit test [Andres] (req 36, 37)
+(79) term context extended utilities (req 46) *
+(84) SMT engine proof post-processor (req 63)
+(86) theory rewrite is a trusted rule
+(88) fixes for smt preprocess proof generator
 
 PRs future:
 
@@ -83,13 +87,12 @@ PRs future:
 (58) DSL rewrite rule proof generator (req 57)
 (68) PropEngine proof producing [Haniel] (req 53)
 (71) quantifiers proof producing (req 38, 52)
-(79) term context extended utilities (req 46)
 (80) update term formula removal to use term context (req 79, 81)
 (81) generalize TConvProofGenerator for term contexts (req 79)
 (82) SmtEngine proof manager (req 84)
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
-(84) SMT engine proof post-processor (req 63)
 (85) SmtEngine check proofs (req 68, 82)
+(87) TheoryEngine::lemma takes trusted node (req 52)
 
 Wish list:
 
