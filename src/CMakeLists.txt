@@ -271,6 +271,8 @@ libcvc4_add_sources(
   smt/smt_solver.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
+  smt/sygus_solver.cpp
+  smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
   smt/update_ostream.h
@@ -695,6 +697,8 @@ libcvc4_add_sources(
   theory/quantifiers/theory_quantifiers_type_rules.h
   theory/quantifiers_engine.cpp
   theory/quantifiers_engine.h
+  theory/relevance_manager.cpp
+  theory/relevance_manager.h
   theory/rep_set.cpp
   theory/rep_set.h
   theory/rewriter.cpp
