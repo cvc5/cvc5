@@ -1631,7 +1631,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
   TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
-  
+
   // !!!!!!! temporary, until this method is fully updated from proof-new
   if (tlemma.isNull())
   {
