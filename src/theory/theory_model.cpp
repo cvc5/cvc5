@@ -29,20 +29,37 @@ namespace theory {
 TheoryModel::TheoryModel(context::Context* c,
                          std::string name,
                          bool enableFuncModels)
-    : d_substitutions(c, false),
-      d_modelBuilt(false),
-      d_modelBuiltSuccess(false),
+    : d_name(name),
+      d_substitutions(c, false),
+      d_equalityEngine(nullptr),
       d_using_model_core(false),
-      d_enableFuncModels(enableFuncModels)
+      d_enableFuncModels(enableFuncModels),
+      d_usingRelevantTerms(false)
 {
   // must use function models when ufHo is enabled
   Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+}
 
-  d_eeContext = new context::Context();
-  d_equalityEngine = new eq::EqualityEngine(d_eeContext, name, false);
+TheoryModel::~TheoryModel() {}
 
+void TheoryModel::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  d_equalityEngine = ee;
+}
+
+bool TheoryModel::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // no notifications
+  esi.d_name = d_name;
+  esi.d_constantsAreTriggers = false;
+  return true;
+}
+
+void TheoryModel::finishInit()
+{
+  Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
@@ -51,19 +68,11 @@ TheoryModel::TheoryModel(context::Context* c,
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
-  d_eeContext->push();
   // do not interpret APPLY_UF if we are not assigning function values
-  if (!enableFuncModels)
+  if (!d_enableFuncModels)
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
-}
-
-TheoryModel::~TheoryModel()
-{
-  d_eeContext->pop();
-  delete d_equalityEngine;
-  delete d_eeContext;
 }
 
 void TheoryModel::reset(){
@@ -83,8 +92,6 @@ void TheoryModel::reset(){
   d_uf_terms.clear();
   d_ho_uf_terms.clear();
   d_uf_models.clear();
-  d_eeContext->pop();
-  d_eeContext->push();
   d_using_model_core = false;
   d_model_core.clear();
 }

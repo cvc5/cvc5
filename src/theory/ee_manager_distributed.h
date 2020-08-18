@@ -49,7 +49,7 @@ namespace theory {
 class EqEngineManagerDistributed : public EqEngineManager
 {
  public:
-  EqEngineManagerDistributed(TheoryEngine& te, SharedTermsDatabase* sdb);
+  EqEngineManagerDistributed(TheoryEngine& te);
   ~EqEngineManagerDistributed();
   /**
    * Finish initialize, called by TheoryEngine::finishInit after theory
@@ -116,16 +116,10 @@ class EqEngineManagerDistributed : public EqEngineManager
   };
   /** Reference to the theory engine */
   TheoryEngine& d_te;
-  /** Pointer to shared terms database (if it exists) */
-  SharedTermsDatabase* d_sdb;
   /** The master equality engine notify class */
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
-  /**
-   * The equality engine of the shared terms database.
-   */
-  std::unique_ptr<eq::EqualityEngine> d_stbEqualityEngine;
   /**
    * A dummy context for the model equality engine, so we can clear it
    * independently of search context.
