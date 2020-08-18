@@ -22,45 +22,6 @@
 
 namespace CVC4 {
 
-/**
- * Kinds of term-context-sensitive nodes. This enumeration is based on the
- * set of information that the term is sensitive to.
- */
-enum class TCtxKind : uint32_t
-{
-  // Remove term formula (RtfTermContext): the term is sensitive to whether
-  // it appears in a term/formula context and/or beneath quantifiers.
-  RTF,
-  // Polarity (PolarityContext): the term is sensitive to what polarity it
-  // appears in with respect to some root, either true, false or none.
-  POLARITY,
-  // Extended polarity (ExtendedPolarityContext): the term is sensitive to what
-  // polarity it appears in with respect to some root (true, false or
-  // none), as well as "entailed polarity" (true, false, or none).
-  EXTENDED_POLARITY
-};
-
-/**
- * Converts a term context kind to a string. Note: This function is also used
- * in `safe_print()`. Changing this function name or signature will result in
- * `safe_print()` printing "<unsupported>" instead of the proper strings for
- * the enum values.
- *
- * @param id The term context kind
- * @return The name of the proof rule
- */
-const char* toString(TCtxKind id);
-
-/**
- * Writes a term context kind to a stream.
- *
- * @param out The stream to write to
- * @param id The term context kind  to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, TCtxKind id);
-
-class TermContext;
 class TCtxStack;
 
 /**
