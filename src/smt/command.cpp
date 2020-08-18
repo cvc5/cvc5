@@ -105,6 +105,7 @@ std::ostream& operator<<(std::ostream& out, BenchmarkStatus status)
   }
 }
 
+// !!! Temporary until commands are migrated to the new API !!!
 std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
 {
   std::vector<Node> nodes;
@@ -118,6 +119,7 @@ std::vector<Node> exprVectorToNodes(const std::vector<Expr>& exprs)
   return nodes;
 }
 
+// !!! Temporary until commands are migrated to the new API !!!
 std::vector<TypeNode> typeVectorToTypeNodes(const std::vector<Type>& types)
 {
   std::vector<TypeNode> typeNodes;
