@@ -44,6 +44,7 @@
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/theory_state.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
@@ -267,6 +268,11 @@ class Theory {
    * The official equality engine, if we allocated it.
    */
   std::unique_ptr<eq::EqualityEngine> d_allocEqualityEngine;
+  /**
+   * The theory state, which contains contexts, valuation, and equality engine.
+   * Notice the theory is responsible for memory management of this class.
+   */
+  TheoryState* d_theoryState;
   /**
    * Whether proofs are enabled
    *
