@@ -427,15 +427,23 @@ private:
                      ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter();
+  /**
+   * Returns true if we need an equality engine, see
+   * Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  /** finish initialize */
+  void finishInit();
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
   TrustNode expandDefinition(Node node);
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
   void check(Theory::Effort e);
   bool needsCheckLastEffort();

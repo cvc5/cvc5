@@ -1093,6 +1093,12 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     InternalError() << "can't generate theory-proof for "
                     << ProofManager::currentPM()->getLogic();
   }
+  // must perform initialization on the theory
+  if (th != nullptr)
+  {
+    // finish init, standalone version
+    th->finishInitStandalone();
+  }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;
   th->produceProofs();
