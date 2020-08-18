@@ -21,8 +21,9 @@
 namespace CVC4 {
 namespace theory {
 
-EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
-    : d_te(te), d_masterEENotify(nullptr)
+EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te,
+                                                       SharedTermsDatabase* sdb)
+    : d_te(te), d_sdb(sdb), d_masterEENotify(nullptr)
 {
 }
 
@@ -34,6 +35,21 @@ EqEngineManagerDistributed::~EqEngineManagerDistributed()
 void EqEngineManagerDistributed::initializeTheories()
 {
   context::Context* c = d_te.getSatContext();
+  // initialize the shared terms database
+  if (d_sdb != nullptr)
+  {
+    EeSetupInfo esis;
+    if (d_sdb->needsEqualityEngine(esis))
+    {
+      d_stbEqualityEngine.reset(allocateEqualityEngine(esis, c));
+      d_sdb->setEqualityEngine(d_stbEqualityEngine.get());
+    }
+    else
+    {
+      AlwaysAssert(false)
+          << "Expected shared terms database to use equality engine";
+    }
+  }
 
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;
@@ -93,6 +109,25 @@ void EqEngineManagerDistributed::initializeTheories()
       }
     }
   }
+}
+
+void EqEngineManagerDistributed::initializeModel(TheoryModel* m)
+{
+  Assert(m != nullptr);
+  // initialize the model equality engine
+  EeSetupInfo esim;
+  if (m->needsEqualityEngine(esim))
+  {
+    d_modelEqualityEngine.reset(
+        allocateEqualityEngine(esim, &d_modelEeContext));
+    m->setEqualityEngine(d_modelEqualityEngine.get());
+  }
+  else
+  {
+    AlwaysAssert(false) << "Expected model to use equality engine";
+  }
+  m->finishInit();
+  d_modelEeContext.push();
 }
 
 void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)

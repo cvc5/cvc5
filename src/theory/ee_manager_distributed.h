@@ -49,7 +49,7 @@ namespace theory {
 class EqEngineManagerDistributed : public EqEngineManager
 {
  public:
-  EqEngineManagerDistributed(TheoryEngine& te);
+  EqEngineManagerDistributed(TheoryEngine& te, SharedTermsDatabase* sdb);
   ~EqEngineManagerDistributed();
   /**
    * Finish initialize, called by TheoryEngine::finishInit after theory
@@ -60,6 +60,15 @@ class EqEngineManagerDistributed : public EqEngineManager
    * the lifetime of TheoryEngine (during finishInit).
    */
   void initializeTheories() override;
+  /**
+   * Finish initialize, called by TheoryEngine::finishInit after theory
+   * objects have been created but prior to their final initialization. This
+   * sets up equality engines for all theories.
+   *
+   * This method is context-independent, and is applied once during
+   * the lifetime of TheoryEngine (during finishInit).
+   */
+  void initializeModel(TheoryModel* m) override;
   /** get the model equality engine context */
   context::Context* getModelEqualityEngineContext();
   /** get the model equality engine */
@@ -107,10 +116,16 @@ class EqEngineManagerDistributed : public EqEngineManager
   };
   /** Reference to the theory engine */
   TheoryEngine& d_te;
+  /** Pointer to shared terms database (if it exists) */
+  SharedTermsDatabase* d_sdb;
   /** The master equality engine notify class */
   std::unique_ptr<MasterNotifyClass> d_masterEENotify;
   /** The master equality engine. */
   std::unique_ptr<eq::EqualityEngine> d_masterEqualityEngine;
+  /**
+   * The equality engine of the shared terms database.
+   */
+  std::unique_ptr<eq::EqualityEngine> d_stbEqualityEngine;
   /**
    * A dummy context for the model equality engine, so we can clear it
    * independently of search context.
