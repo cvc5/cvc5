@@ -980,7 +980,13 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
-  return d_tpp.theoryPreprocess(assertion);
+  TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  if (trn.isNull())
+  {
+    // no change
+    return assertion;
+  }
+  return trn.getNode();
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1632,6 +1638,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<TrustNode> newLemmas;
   std::vector<Node> newSkolems;
   TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
+
+  // !!!!!!! temporary, until this method is fully updated from proof-new
+  if (tlemma.isNull())
+  {
+    tlemma = TrustNode::mkTrustLemma(node);
+  }
 
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
