@@ -107,7 +107,6 @@ TheoryFp::TheoryFp(context::Context* c,
                    ProofNodeManager* pnm)
     : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
       d_notification(*this),
-      d_equalityEngine(d_notification, c, "theory::fp::ee", true),
       d_registeredTerms(u),
       d_conv(u),
       d_expansionRequested(false),
@@ -122,60 +121,74 @@ TheoryFp::TheoryFp(context::Context* c,
       floatToRealMap(u),
       abstractionMap(u)
 {
+} /* TheoryFp::TheoryFp() */
+
+TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
+
+bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notification;
+  esi.d_name = "theory::fp::ee";
+  return true;
+}
+
+void TheoryFp::finishInit()
+{
+  Assert(d_equalityEngine != nullptr);
   // Kinds that are to be handled in the congruence closure
 
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ABS);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_NEG);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_PLUS);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MULT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_DIV);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_FMA);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_SQRT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_REM);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_RTI);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MIN); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MAX); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MIN_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MAX_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ABS);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_NEG);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_PLUS);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MULT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_DIV);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_FMA);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SQRT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_REM);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_RTI);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MIN); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MAX); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MIN_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MAX_TOTAL);
 
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_EQ); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_LEQ);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_LT);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_GEQ); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_GT); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISSN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISZ);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISINF);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISNAN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISNEG);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISPOS);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_EQ); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LEQ);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LT);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GEQ); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GT); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISSN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISZ);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISINF);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISNAN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISNEG);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISPOS);
 
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_REAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
-  d_equalityEngine.addFunctionKind(
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_REAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+  d_equalityEngine->addFunctionKind(
       kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_GENERIC); //
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_GENERIC); //
   // Needed in parsing, should be rewritten away
 
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_UBV); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_SBV); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_REAL); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_UBV_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_REAL); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_NAN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_INF);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_ZERO);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
-  d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
-} /* TheoryFp::TheoryFp() */
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_NAN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_INF);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_ZERO);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
+  d_equalityEngine->addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
+}
 
 Node TheoryFp::minUF(Node node) {
   Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
@@ -803,11 +816,11 @@ void TheoryFp::registerTerm(TNode node) {
     // Add to the equality engine
     if (k == kind::EQUAL)
     {
-      d_equalityEngine.addTriggerEquality(node);
+      d_equalityEngine->addTriggerEquality(node);
     }
     else
     {
-      d_equalityEngine.addTerm(node);
+      d_equalityEngine->addTerm(node);
     }
 
     // Give the expansion of classifications in terms of equalities
@@ -961,22 +974,22 @@ void TheoryFp::check(Effort level) {
       if (negated) {
         Debug("fp-eq") << "TheoryFp::check(): adding dis-equality " << fact[0]
                        << std::endl;
-        d_equalityEngine.assertEquality(predicate, false, fact);
-
+        d_equalityEngine->assertEquality(predicate, false, fact);
       } else {
         Debug("fp-eq") << "TheoryFp::check(): adding equality " << fact
                        << std::endl;
-        d_equalityEngine.assertEquality(predicate, true, fact);
+        d_equalityEngine->assertEquality(predicate, true, fact);
       }
     } else {
       // A system-wide invariant; predicates are registered before they are
       // asserted
       Assert(isRegistered(predicate));
 
-      if (d_equalityEngine.isFunctionKind(predicate.getKind())) {
+      if (d_equalityEngine->isFunctionKind(predicate.getKind()))
+      {
         Debug("fp-eq") << "TheoryFp::check(): adding predicate " << predicate
                        << " is " << !negated << std::endl;
-        d_equalityEngine.assertPredicate(predicate, !negated, fact);
+        d_equalityEngine->assertPredicate(predicate, !negated, fact);
       }
     }
   }
@@ -1007,10 +1020,6 @@ void TheoryFp::check(Effort level) {
 
 } /* TheoryFp::check() */
 
-void TheoryFp::setMasterEqualityEngine(eq::EqualityEngine *eq) {
-  d_equalityEngine.setMasterEqualityEngine(eq);
-}
-
 TrustNode TheoryFp::explain(TNode n)
 {
   Trace("fp") << "TheoryFp::explain(): explain " << n << std::endl;
@@ -1022,9 +1031,9 @@ TrustNode TheoryFp::explain(TNode n)
   bool polarity = n.getKind() != kind::NOT;
   TNode atom = polarity ? n : n[0];
   if (atom.getKind() == kind::EQUAL) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions);
   }
 
   Node exp = helper::buildConjunct(assumptions);
@@ -1177,7 +1186,7 @@ void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
                  << " = " << t2 << std::endl;
 
   std::vector<TNode> assumptions;
-  d_theorySolver.d_equalityEngine.explainEquality(t1, t2, true, assumptions);
+  d_theorySolver.d_equalityEngine->explainEquality(t1, t2, true, assumptions);
 
   Node conflict = helper::buildConjunct(assumptions);
 

@@ -50,7 +50,6 @@ class TermRegistry
 
  public:
   TermRegistry(SolverState& s,
-               eq::EqualityEngine& ee,
                OutputChannel& out,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
@@ -220,8 +219,6 @@ class TermRegistry
   uint32_t d_cardSize;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
-  /** Reference to equality engine of the theory of strings. */
-  eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */

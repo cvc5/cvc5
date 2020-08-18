@@ -89,16 +89,15 @@ bool AbductionSolver::getAbductInternal(Node& abd)
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     // get the synthesis solution
-    std::map<Expr, Expr> sols;
+    std::map<Node, Node> sols;
     d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
-    Expr essf = d_sssf.toExpr();
-    std::map<Expr, Expr>::iterator its = sols.find(essf);
+    std::map<Node, Node>::iterator its = sols.find(d_sssf);
     if (its != sols.end())
     {
       Trace("sygus-abduct")
           << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
-      abd = Node::fromExpr(its->second);
+      abd = its->second;
       if (abd.getKind() == kind::LAMBDA)
       {
         abd = abd[1];

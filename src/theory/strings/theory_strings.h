@@ -70,20 +70,24 @@ class TheoryStrings : public Theory {
                 const LogicInfo& logicInfo,
                 ProofNodeManager* pnm);
   ~TheoryStrings();
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
   /** finish initialization */
   void finishInit() override;
-  /** Get the theory rewriter of this class */
-  TheoryRewriter* getTheoryRewriter() override;
-  /** Set the master equality engine */
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- end initialization
   /** Identify this theory */
   std::string identify() const override;
   /** Propagate */
   void propagate(Effort e) override;
   /** Explain */
   TrustNode explain(TNode literal) override;
-  /** Get the equality engine */
-  eq::EqualityEngine* getEqualityEngine() override;
   /** Get current substitution */
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
@@ -268,8 +272,6 @@ class TheoryStrings : public Theory {
    * theories is collected in this object.
    */
   SequencesStatistics d_statistics;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** The solver state object */
   SolverState d_state;
   /** The term registry for this theory */

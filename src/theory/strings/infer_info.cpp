@@ -14,6 +14,8 @@
 
 #include "theory/strings/infer_info.h"
 
+#include "theory/strings/theory_strings_utils.h"
+
 namespace CVC4 {
 namespace theory {
 namespace strings {
@@ -85,6 +87,7 @@ const char* toString(Inference i)
     case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
     case Inference::CTN_POS: return "CTN_POS";
     case Inference::REDUCTION: return "REDUCTION";
+    case Inference::PREFIX_CONFLICT: return "PREFIX_CONFLICT";
     default: return "?";
   }
 }
@@ -106,14 +109,20 @@ bool InferInfo::isTrivial() const
 bool InferInfo::isConflict() const
 {
   Assert(!d_conc.isNull());
-  return d_conc.isConst() && !d_conc.getConst<bool>() && d_antn.empty();
+  return d_conc.isConst() && !d_conc.getConst<bool>() && d_noExplain.empty();
 }
 
 bool InferInfo::isFact() const
 {
   Assert(!d_conc.isNull());
   TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
-  return !atom.isConst() && atom.getKind() != kind::OR && d_antn.empty();
+  return !atom.isConst() && atom.getKind() != kind::OR && d_noExplain.empty();
+}
+
+Node InferInfo::getAntecedant() const
+{
+  // d_noExplain is a subset of d_ant
+  return utils::mkAnd(d_ant);
 }
 
 std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
@@ -127,9 +136,9 @@ std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
   {
     out << " :ant (" << ii.d_ant << ")";
   }
-  if (!ii.d_antn.empty())
+  if (!ii.d_noExplain.empty())
   {
-    out << " :antn (" << ii.d_antn << ")";
+    out << " :no-explain (" << ii.d_noExplain << ")";
   }
   out << ")";
   return out;
