@@ -447,7 +447,7 @@ RewriteResponse Rewriter::processTrustRewriteResponse(
                            proven[1],
                            PfRule::THEORY_REWRITE,
                            {},
-                           {tidn, proven[0], nm->mkConst(isPre)});
+                           {proven, tidn, nm->mkConst(isPre)});
     }
     else
     {

@@ -186,15 +186,6 @@ enum class PfRule : uint32_t
   //  G1*sigma = F1, ..., Gn*sigma = Fn, G*sigma = F
   // for some substitution sigma.
   DSL_REWRITE,
-  // ======== Theory Rewrite
-  // Children: none
-  // Arguments: (t, preRewrite?)
-  // ----------------------------------------
-  // Conclusion: (= t t')
-  // where
-  //  t' is the result of applying either a pre-rewrite or a post-rewrite step
-  //  to t (depending on the second argument).
-  THEORY_REWRITE,
 
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
@@ -220,6 +211,19 @@ enum class PfRule : uint32_t
   // This is a "coarse-grained" rule that is used as a placeholder if a theory
   // did not provide a proof for a lemma or conflict.
   THEORY_LEMMA,
+  // ======== Theory Rewrite
+  // Children: none
+  // Arguments: (F, tid, preRewrite?)
+  // ----------------------------------------
+  // Conclusion: F
+  // where F is an equality of the form (= t t') where t' is obtained by
+  // applying the theory rewriter with identifier tid in either its prewrite
+  // (when preRewrite is true) or postrewrite method. Notice that the checker
+  // for this rule does not replay the rewrite to ensure correctness, since
+  // theory rewriter methods are not static. For example, the quantifiers
+  // rewriter involves constructing new bound variables that are not guaranteed
+  // to be consistent on each call.
+  THEORY_REWRITE,
   // The remaining rules in this section have the signature of a "trusted rule":
   //
   // Children: none

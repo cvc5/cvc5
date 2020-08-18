@@ -58,6 +58,7 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // make CDProof to construct the proof below
   CDProof cdp(d_pnm);
 
+  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: input " << f << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
   bool success;
@@ -67,20 +68,27 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
     if (it != d_src.end())
     {
       Assert(it->second.getNode() == curr);
-      bool proofStepProcessed = false;
-      std::shared_ptr<ProofNode> pfr = it->second.toProofNode();
-      if (pfr != nullptr)
-      {
-        Assert(pfr->getResult() == it->second.getProven());
-        cdp.addProof(pfr);
-        proofStepProcessed = true;
-      }
       // get the proven node
       Node proven = it->second.getProven();
       Assert (!proven.isNull());
+      Trace("smt-pppg") << "...process proven " << proven << std::endl;
+      bool proofStepProcessed = false;
+      
+      // if a generator for the step was provided, it is stored in the proof
+      Trace("smt-pppg") << "...get provided proof" << std::endl;
+      std::shared_ptr<ProofNode> pfr = it->second.toProofNode();
+      if (pfr != nullptr)
+      {
+        Trace("smt-pppg") << "...add provided" << std::endl;
+        Assert(pfr->getResult() == proven);
+        cdp.addProof(pfr);
+        proofStepProcessed = true;
+      }
 
+      Trace("smt-pppg") << "...update" << std::endl;
       if (it->second.getKind() == theory::TrustNodeKind::REWRITE)
       {
+        Trace("smt-pppg") << "...rewritten from " << proven[0] << std::endl;
         Assert(proven.getKind() == kind::EQUAL);
         if (!proofStepProcessed)
         {
@@ -100,11 +108,13 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       }
       else
       {
+        Trace("smt-pppg") << "...lemma" << std::endl;
         Assert(it->second.getKind() == theory::TrustNodeKind::LEMMA);
       }
 
       if (!proofStepProcessed)
       {
+        Trace("smt-pppg") << "...add missing step" << std::endl;
         // add trusted step
         cdp.addStep(proven, PfRule::PREPROCESS, {}, {proven});
       }
@@ -112,15 +122,22 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   } while (success);
 
   Assert(curr != f);
-  // prove ( curr == f )
-  Node fullRewrite = curr.eqNode(f);
-  if (transChildren.size() >= 2)
+  // prove ( curr == f ), which is not necessary if they are the same
+  // modulo symmetry.
+  if (!CDProof::isSame(f, curr))
   {
-    std::reverse(transChildren.begin(), transChildren.end());
-    cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
+    Node fullRewrite = curr.eqNode(f);
+    if (transChildren.size() >= 2)
+    {
+      Trace("smt-pppg") << "...apply trans to get " << fullRewrite << std::endl;
+      std::reverse(transChildren.begin(), transChildren.end());
+      cdp.addStep(fullRewrite, PfRule::TRANS, transChildren, {});
+    }
+    Trace("smt-pppg") << "...eq_resolve to prove" << std::endl;
+    // prove f
+    cdp.addStep(f, PfRule::EQ_RESOLVE, {curr, fullRewrite}, {});
+    Trace("smt-pppg") << "...finished" << std::endl;
   }
-  // prove f
-  cdp.addStep(f, PfRule::EQ_RESOLVE, {curr, fullRewrite}, {});
 
   // overall, proof is:
   //        --------- from proof generator       ---------- from proof generator

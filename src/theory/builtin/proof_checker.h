@@ -84,18 +84,6 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   Node applyRewrite(Node n, MethodId idr = MethodId::RW_REWRITE);
   /**
-   * Apply small-step rewrite on n in skolem form (either pre- or
-   * post-rewrite). This encapsulates the exact behavior of a THEORY_REWRITE
-   * step in a proof.
-   *
-   * @param tid The theory being used to rewrite.
-   * @param n The node to rewrite
-   * @param preRewrite If true, performs a pre-rewrite or a post-rewrite
-   * otherwise
-   * @return The rewritten form of n
-   */
-  static Node applyTheoryRewrite(TheoryId tid, Node n, bool preRewrite);
-  /**
    * Get substitution. Updates vars/subs to the substitution specified by
    * exp for the substitution method ids.
    */

@@ -77,17 +77,6 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
 }
 
-Node BuiltinProofRuleChecker::applyTheoryRewrite(TheoryId tid,
-                                                 Node n,
-                                                 bool preRewrite)
-{
-  Rewriter* rewriter = Rewriter::getInstance();
-  Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
-                        : rewriter->postRewrite(tid, n).d_node;
-  return nkr;
-}
-
-
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
 {
@@ -276,18 +265,6 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
     return args[0].eqNode(res);
   }
-  else if (id == PfRule::THEORY_REWRITE)
-  {
-    Assert(children.empty());
-    Assert(args.size() == 3);
-    TheoryId tid;
-    if (!getTheoryId(args[0], tid))
-    {
-      return Node::null();
-    }
-    Node res = applyTheoryRewrite(tid, args[1], args[2].getConst<bool>());
-    return args[1].eqNode(res);
-  }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
     Assert(1 <= args.size() && args.size() <= 3);
@@ -381,7 +358,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
            || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
-           || id == PfRule::PREPROCESS_LEMMA)
+           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE)
   {
     // "trusted" rules
     Assert(children.empty());
