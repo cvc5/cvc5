@@ -2213,7 +2213,7 @@ inline bool Solver::withinBudget(ResourceManager::Resource r) const
 
 CDProof* Solver::getProof()
 {
-  return d_pfManager? d_pfManager->getProof() : nullptr;
+  return d_pfManager ? d_pfManager->getProof() : nullptr;
 }
 
 } /* CVC4::Minisat namespace */

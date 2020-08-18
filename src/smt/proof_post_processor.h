@@ -181,7 +181,6 @@ class ProofPostproccess
   ProofNodeManager* d_pnm;
 };
 
-
 }  // namespace smt
 }  // namespace CVC4
 

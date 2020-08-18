@@ -152,8 +152,8 @@ public:
  Var trueVar() const { return varTrue; }
  Var falseVar() const { return varFalse; }
 
-  /** retrive resolution proof */
-  CDProof* getProof();
+ /** retrive resolution proof */
+ CDProof* getProof();
 
  // Less than for literals in a lemma
  struct lemma_lt
