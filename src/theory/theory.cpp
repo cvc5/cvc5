@@ -343,6 +343,23 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
   return currentlyShared;
 }
 
+bool Theory::collectModelInfo(TheoryModel* m)
+{
+  std::set<Node> termSet;
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+  // if we are using an equality engine, assert it to the model
+  if (d_equalityEngine != nullptr)
+  {
+    if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
+    {
+      return false;
+    }
+  }
+  // now, collect theory-specific value assigments
+  return collectModelValues(m, termSet);
+}
+
 void Theory::collectTerms(TNode n,
                           set<Kind>& irrKinds,
                           set<Node>& termSet) const
@@ -387,10 +404,15 @@ void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
   }
 }
 
-void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared) const
+void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
 {
   std::set<Kind> irrKinds;
   computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+}
+
+bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
+{
+  return true;
 }
 
 Theory::PPAssertStatus Theory::ppAssert(TNode in,

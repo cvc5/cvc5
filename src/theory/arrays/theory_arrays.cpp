@@ -1101,6 +1101,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
     return false;
   }
 
+  NodeManager * nm = NodeManager::currentNM();
   // Compute arrays that we need to produce representatives for
   std::vector<Node> arrays;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);

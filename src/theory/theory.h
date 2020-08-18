@@ -183,7 +183,7 @@ class Theory {
    */
   context::CDList<TNode> d_sharedTerms;
 
-  //---------------------------------- computing relevant terms
+  //---------------------------------- collect model info
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
@@ -206,7 +206,6 @@ class Theory {
   void collectTerms(TNode n,
                     std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
-
   /**
    * Same as above, but with empty irrKinds. This version can be overridden
    * by the theory, e.g. by restricting or extended the set of terms returned
@@ -215,7 +214,13 @@ class Theory {
    */
   virtual void computeRelevantTerms(std::set<Node>& termSet,
                                     bool includeShared = true);
-  //---------------------------------- end computing relevant terms
+  /**
+   * Collect model values, after equality information is added to the model.
+   * The argument termSet is the set of relevant terms returned by
+   * computeRelevantTerms.
+   */
+  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  //---------------------------------- end collect model info
 
   /**
    * Construct a Theory.
@@ -627,7 +632,7 @@ class Theory {
    * This method returns true if and only if the equality engine of m is
    * consistent as a result of this call.
    */
-  virtual bool collectModelInfo(TheoryModel* m) { return true; }
+  virtual bool collectModelInfo(TheoryModel* m);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   /**
