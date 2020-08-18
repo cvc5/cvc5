@@ -63,7 +63,6 @@ Theory::Theory(TheoryId id,
                ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
-      d_instanceName(name),
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
@@ -74,12 +73,15 @@ Theory::Theory(TheoryId id,
       d_careGraph(NULL),
       d_quantEngine(NULL),
       d_decManager(nullptr),
+      d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
                              + "::computeCareGraphTime"),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
+      d_equalityEngine(nullptr),
+      d_allocEqualityEngine(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -89,6 +91,44 @@ Theory::Theory(TheoryId id,
 Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_checkTime);
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
+}
+
+bool Theory::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // by default, this theory does not use an (official) equality engine
+  return false;
+}
+
+void Theory::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  // set the equality engine pointer
+  d_equalityEngine = ee;
+}
+void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
+{
+  Assert(d_quantEngine == nullptr);
+  d_quantEngine = qe;
+}
+
+void Theory::setDecisionManager(DecisionManager* dm)
+{
+  Assert(d_decManager == nullptr);
+  Assert(dm != nullptr);
+  d_decManager = dm;
+}
+
+void Theory::finishInitStandalone()
+{
+  EeSetupInfo esi;
+  if (needsEqualityEngine(esi))
+  {
+    // always associated with the same SAT context as the theory (d_satContext)
+    d_allocEqualityEngine.reset(new eq::EqualityEngine(
+        *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
+    // use it as the official equality engine
+    d_equalityEngine = d_allocEqualityEngine.get();
+  }
+  finishInit();
 }
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
@@ -408,17 +448,10 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = NULL;
 }
 
-void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
-  Assert(d_quantEngine == NULL);
-  Assert(qe != NULL);
-  d_quantEngine = qe;
-}
-
-void Theory::setDecisionManager(DecisionManager* dm)
+eq::EqualityEngine* Theory::getEqualityEngine()
 {
-  Assert(d_decManager == nullptr);
-  Assert(dm != nullptr);
-  d_decManager = dm;
+  // get the assigned equality engine, which is a pointer stored in this class
+  return d_equalityEngine;
 }
 
 }/* CVC4::theory namespace */

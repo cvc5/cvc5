@@ -267,6 +267,8 @@ libcvc4_add_sources(
   smt/smt_engine_stats.h
   smt/smt_mode.cpp
   smt/smt_mode.h
+  smt/smt_solver.cpp
+  smt/smt_solver.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
   smt/term_formula_removal.cpp
@@ -478,6 +480,9 @@ libcvc4_add_sources(
   theory/decision_strategy.h
   theory/eager_proof_generator.cpp
   theory/eager_proof_generator.h
+  theory/ee_manager_distributed.cpp
+  theory/ee_manager_distributed.h
+  theory/ee_setup_info.h
   theory/engine_output_channel.cpp
   theory/engine_output_channel.h
   theory/evaluator.cpp
@@ -743,6 +748,8 @@ libcvc4_add_sources(
   theory/strings/inference_manager.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
+  theory/strings/proof_checker.cpp
+  theory/strings/proof_checker.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_entail.cpp

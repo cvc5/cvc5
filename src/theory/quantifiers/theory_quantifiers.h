@@ -42,10 +42,13 @@ class TheoryQuantifiers : public Theory {
                     ProofNodeManager* pnm = nullptr);
   ~TheoryQuantifiers();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
   /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
+
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;

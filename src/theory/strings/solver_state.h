@@ -46,9 +46,13 @@ class SolverState
  public:
   SolverState(context::Context* c,
               context::UserContext* u,
-              eq::EqualityEngine& ee,
               Valuation& v);
   ~SolverState();
+  /**
+   * Finish initialize, ee is a pointer to the official equality engine
+   * of theory of strings.
+   */
+  void finishInit(eq::EqualityEngine* ee);
   /** Get the SAT context */
   context::Context* getSatContext() const;
   /** Get the user context */
@@ -82,8 +86,8 @@ class SolverState
   //-------------------------------------- notifications for equalities
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalence classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
+  /** called when two equivalence classes merge */
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   //-------------------------------------- end notifications for equalities
@@ -186,8 +190,8 @@ class SolverState
   context::Context* d_context;
   /** Pointer to the user context object used by the theory of strings. */
   context::UserContext* d_ucontext;
-  /** Reference to equality engine of the theory of strings. */
-  eq::EqualityEngine& d_ee;
+  /** Pointer to equality engine of the theory of strings. */
+  eq::EqualityEngine* d_ee;
   /**
    * The (SAT-context-dependent) list of disequalities that have been asserted
    * to the equality engine above.
