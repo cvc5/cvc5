@@ -139,7 +139,7 @@ void CvcPrinter::toStream(
   if(n.getMetaKind() == kind::metakind::CONSTANT) {
     switch(n.getKind()) {
     case kind::BITVECTOR_TYPE:
-      out << "BITVECTOR(" << n.getConst<BitVectorSize>().d_size << ')';
+      out << "BITVECTOR(" << n.getConst<BitVectorSize>().d_size << ")";
       break;
     case kind::CONST_BITVECTOR: {
       const BitVector& bv = n.getConst<BitVector>();
@@ -181,12 +181,12 @@ void CvcPrinter::toStream(
         {
           out << ", ";
         }
-        out << "SEQ_UNIT(" << snvc << ')';
+        out << "SEQ_UNIT(" << snvc << ")";
         first = false;
       }
       if (snvec.size() > 1)
       {
-        out << ')';
+        out << ")";
       }
       break;
     }
@@ -315,7 +315,7 @@ void CvcPrinter::toStream(
       toStream(out, n[0], depth, types, true);
       out << ": ";
       toStream(out, n[1], depth, types, true);
-      out << ')';
+      out << ")";
       return;
       break;
     case kind::DISTINCT:
@@ -652,7 +652,7 @@ void CvcPrinter::toStream(
     case kind::DIVISIBLE:
       out << "DIVISIBLE(";
       toStream(out, n[0], depth, types, false);
-      out << ", " << n.getOperator().getConst<Divisible>().k << ')';
+      out << ", " << n.getOperator().getConst<Divisible>().k << ")";
       return;
 
     // BITVECTORS
@@ -928,7 +928,7 @@ void CvcPrinter::toStream(
     case kind::CARD: {
       out << "CARD(";
       toStream(out, n[0], depth, types, false);
-      out << ')';
+      out << ")";
       return;
       break;
     }
@@ -1079,7 +1079,7 @@ void DeclareTypeCommandToStream(std::ostream& out,
       {
         out << "| ";
       }
-      out << (*type_reps)[i] << ' ';
+      out << (*type_reps)[i] << " ";
     }
     out << std::endl << "END;" << std::endl;
   }
@@ -1092,7 +1092,7 @@ void DeclareTypeCommandToStream(std::ostream& out,
     {
       if (type_rep.isVar())
       {
-        out << type_rep << " : " << type_node << ';' << std::endl;
+        out << type_rep << " : " << type_node << ";" << std::endl;
       }
       else
       {
@@ -1150,7 +1150,7 @@ void DeclareFunctionCommandToStream(std::ostream& out,
       }
     }
   }
-  out << " = " << val << ';' << std::endl;
+  out << " = " << val << ";" << std::endl;
 }
 
 }  // namespace
@@ -1203,38 +1203,28 @@ void CvcPrinter::toStreamCmdPush(std::ostream& out) const { out << "PUSH;"; }
 
 void CvcPrinter::toStreamCmdPop(std::ostream& out) const { out << "POP;"; }
 
-void CvcPrinter::toStreamCmdCheckSat(std::ostream& out) const
-{
-  if (d_cvc3Mode)
-  {
-    out << "PUSH; ";
-  }
-
-  out << "CHECKSAT;";
-
-  if (d_cvc3Mode)
-  {
-    out << " POP;";
-  }
-}
-
 void CvcPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
   if (d_cvc3Mode)
   {
     out << "PUSH; ";
   }
-
-  out << "CHECKSAT " << n << ';';
-
+  if (!n.isNull())
+  {
+    out << "CHECKSAT " << n << ';';
+  }
+  else
+  {
+    out << "CHECKSAT;";
+  }
   if (d_cvc3Mode)
   {
     out << " POP;";
   }
 }
 
-void CvcPrinter::toStreamCmdCheckSatAssuming(std::ostream& out,
-                                             std::vector<Node> nodes) const
+void CvcPrinter::toStreamCmdCheckSatAssuming(
+    std::ostream& out, const std::vector<Node>& nodes) const
 {
   if (d_cvc3Mode)
   {

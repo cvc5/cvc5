@@ -498,15 +498,8 @@ void CheckSatCommand::toStream(std::ostream& out,
                                size_t dag,
                                OutputLanguage language) const
 {
-  if (d_expr.isNull())
-  {
-    Printer::getPrinter(language)->toStreamCmdCheckSat(out);
-  }
-  else
-  {
-    Printer::getPrinter(language)->toStreamCmdCheckSat(out,
-                                                       Node::fromExpr(d_expr));
-  }
+  Printer::getPrinter(language)->toStreamCmdCheckSat(out,
+                                                     Node::fromExpr(d_expr));
 }
 
 /* -------------------------------------------------------------------------- */

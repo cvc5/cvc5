@@ -193,7 +193,7 @@ void Printer::toStreamCmdDefineFunctionRec(
     std::ostream& out,
     const std::vector<Node>& funcs,
     const std::vector<std::vector<Node>>& formals,
-    const std::vector<Node>& formulae) const
+    const std::vector<Node>& formulas) const
 {
   printUnknownCommand(out, "define-fun-rec");
 }
@@ -205,18 +205,13 @@ void Printer::toStreamCmdSetUserAttribute(std::ostream& out,
   printUnknownCommand(out, "set-user-attribute");
 }
 
-void Printer::toStreamCmdCheckSat(std::ostream& out) const
-{
-  printUnknownCommand(out, "check-sat");
-}
-
 void Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
   printUnknownCommand(out, "check-sat");
 }
 
 void Printer::toStreamCmdCheckSatAssuming(std::ostream& out,
-                                          std::vector<Node> nodes) const
+                                          const std::vector<Node>& nodes) const
 {
   printUnknownCommand(out, "check-sat-assuming");
 }

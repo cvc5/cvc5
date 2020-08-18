@@ -183,18 +183,20 @@ void AstPrinter::toStreamCmdPush(std::ostream& out) const { out << "Push()"; }
 
 void AstPrinter::toStreamCmdPop(std::ostream& out) const { out << "Pop()"; }
 
-void AstPrinter::toStreamCmdCheckSat(std::ostream& out) const
-{
-  out << "CheckSat()";
-}
-
 void AstPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
-  out << "CheckSat(" << n << ')';
+  if (n.isNull())
+  {
+    out << "CheckSat()";
+  }
+  else
+  {
+    out << "CheckSat(" << n << ')';
+  }
 }
 
-void AstPrinter::toStreamCmdCheckSatAssuming(std::ostream& out,
-                                             std::vector<Node> nodes) const
+void AstPrinter::toStreamCmdCheckSatAssuming(
+    std::ostream& out, const std::vector<Node>& nodes) const
 {
   out << "CheckSatAssuming( << ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, ", "));

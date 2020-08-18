@@ -88,14 +88,12 @@ class AstPrinter : public CVC4::Printer
                                       Node formula) const override;
 
   /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out) const override;
-
-  /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out, Node n) const override;
+  void toStreamCmdCheckSat(std::ostream& out,
+                           Node n = Node::null()) const override;
 
   /** Print check-sat-assuming command */
-  void toStreamCmdCheckSatAssuming(std::ostream& out,
-                                   std::vector<Node> nodes) const override;
+  void toStreamCmdCheckSatAssuming(
+      std::ostream& out, const std::vector<Node>& nodes) const override;
 
   /** Print query command */
   void toStreamCmdQuery(std::ostream& out, Node n) const override;

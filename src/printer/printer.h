@@ -111,7 +111,7 @@ class Printer
       std::ostream& out,
       const std::vector<Node>& funcs,
       const std::vector<std::vector<Node>>& formals,
-      const std::vector<Node>& formulae) const;
+      const std::vector<Node>& formulas) const;
 
   /** Print set-user-attribute command */
   void toStreamCmdSetUserAttribute(std::ostream& out,
@@ -119,14 +119,12 @@ class Printer
                                    Node n) const;
 
   /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out) const;
-
-  /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out, Node n) const;
+  virtual void toStreamCmdCheckSat(std::ostream& out,
+                                   Node n = Node::null()) const;
 
   /** Print check-sat-assuming command */
-  virtual void toStreamCmdCheckSatAssuming(std::ostream& out,
-                                           std::vector<Node> nodes) const;
+  virtual void toStreamCmdCheckSatAssuming(
+      std::ostream& out, const std::vector<Node>& nodes) const;
 
   /** Print query command */
   virtual void toStreamCmdQuery(std::ostream& out, Node n) const;

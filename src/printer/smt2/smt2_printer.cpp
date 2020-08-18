@@ -1455,24 +1455,26 @@ void Smt2Printer::toStreamCmdPush(std::ostream& out) const
 
 void Smt2Printer::toStreamCmdPop(std::ostream& out) const { out << "(pop 1)"; }
 
-void Smt2Printer::toStreamCmdCheckSat(std::ostream& out) const
-{
-  out << "(check-sat)";
-}
-
 void Smt2Printer::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
-  toStreamCmdPush(out);
-  out << std::endl;
-  toStreamCmdAssert(out, n);
-  out << std::endl;
-  toStreamCmdCheckSat(out);
-  out << std::endl;
-  toStreamCmdPop(out);
+  if (!n.isNull())
+  {
+    toStreamCmdPush(out);
+    out << std::endl;
+    toStreamCmdAssert(out, n);
+    out << std::endl;
+    toStreamCmdCheckSat(out);
+    out << std::endl;
+    toStreamCmdPop(out);
+  }
+  else
+  {
+    out << "(check-sat)";
+  }
 }
 
-void Smt2Printer::toStreamCmdCheckSatAssuming(std::ostream& out,
-                                              std::vector<Node> nodes) const
+void Smt2Printer::toStreamCmdCheckSatAssuming(
+    std::ostream& out, const std::vector<Node>& nodes) const
 {
   out << "(check-sat-assuming ( ";
   copy(nodes.begin(), nodes.end(), ostream_iterator<Node>(out, " "));
@@ -1589,7 +1591,7 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
     std::ostream& out,
     const std::vector<Node>& funcs,
     const std::vector<std::vector<Node>>& formals,
-    const std::vector<Node>& formulae) const
+    const std::vector<Node>& formulas) const
 {
   out << "(define-fun";
   if (funcs.size() > 1)
@@ -1639,13 +1641,13 @@ void Smt2Printer::toStreamCmdDefineFunctionRec(
   {
     out << ") (";
   }
-  for (unsigned i = 0, size = formulae.size(); i < size; i++)
+  for (unsigned i = 0, size = formulas.size(); i < size; i++)
   {
     if (i > 0)
     {
       out << " ";
     }
-    out << formulae[i];
+    out << formulas[i];
   }
   if (funcs.size() > 1)
   {

@@ -108,17 +108,15 @@ class Smt2Printer : public CVC4::Printer
       std::ostream& out,
       const std::vector<Node>& funcs,
       const std::vector<std::vector<Node>>& formals,
-      const std::vector<Node>& formulae) const override;
+      const std::vector<Node>& formulas) const override;
 
   /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out) const override;
-
-  /** Print check-sat command */
-  void toStreamCmdCheckSat(std::ostream& out, Node n) const override;
+  void toStreamCmdCheckSat(std::ostream& out,
+                           Node n = Node::null()) const override;
 
   /** Print check-sat-assuming command */
-  void toStreamCmdCheckSatAssuming(std::ostream& out,
-                                   std::vector<Node> nodes) const override;
+  void toStreamCmdCheckSatAssuming(
+      std::ostream& out, const std::vector<Node>& nodes) const override;
 
   /** Print query command */
   void toStreamCmdQuery(std::ostream& out, Node n) const override;
