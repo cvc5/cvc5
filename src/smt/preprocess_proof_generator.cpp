@@ -58,7 +58,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
   // make CDProof to construct the proof below
   CDProof cdp(d_pnm);
 
-  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: input " << f << std::endl;
+  Trace("smt-pppg") << "PreprocessProofGenerator::getProofFor: input " << f
+                    << std::endl;
   Node curr = f;
   std::vector<Node> transChildren;
   bool success;
@@ -70,10 +71,10 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       Assert(it->second.getNode() == curr);
       // get the proven node
       Node proven = it->second.getProven();
-      Assert (!proven.isNull());
+      Assert(!proven.isNull());
       Trace("smt-pppg") << "...process proven " << proven << std::endl;
       bool proofStepProcessed = false;
-      
+
       // if a generator for the step was provided, it is stored in the proof
       Trace("smt-pppg") << "...get provided proof" << std::endl;
       std::shared_ptr<ProofNode> pfr = it->second.toProofNode();
