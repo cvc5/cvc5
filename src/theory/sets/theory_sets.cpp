@@ -35,8 +35,7 @@ TheorySets::TheorySets(context::Context* c,
                        ProofNodeManager* pnm)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
       d_internal(new TheorySetsPrivate(*this, c, u)),
-      d_notify(*d_internal.get()),
-      d_equalityEngine(d_notify, c, "theory::sets::ee", true)
+      d_notify(*d_internal.get())
 {
   // Do not move me to the header.
   // The constructor + destructor are not in the header as d_internal is a
@@ -54,29 +53,38 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
+bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::sets::ee";
+  return true;
+}
+
 void TheorySets::finishInit()
 {
+  Assert(d_equalityEngine != nullptr);
+
   d_valuation.setUnevaluatedKind(COMPREHENSION);
   // choice is used to eliminate witness
   d_valuation.setUnevaluatedKind(WITNESS);
 
   // functions we are doing congruence over
-  d_equalityEngine.addFunctionKind(kind::SINGLETON);
-  d_equalityEngine.addFunctionKind(kind::UNION);
-  d_equalityEngine.addFunctionKind(kind::INTERSECTION);
-  d_equalityEngine.addFunctionKind(kind::SETMINUS);
-  d_equalityEngine.addFunctionKind(kind::MEMBER);
-  d_equalityEngine.addFunctionKind(kind::SUBSET);
+  d_equalityEngine->addFunctionKind(kind::SINGLETON);
+  d_equalityEngine->addFunctionKind(kind::UNION);
+  d_equalityEngine->addFunctionKind(kind::INTERSECTION);
+  d_equalityEngine->addFunctionKind(kind::SETMINUS);
+  d_equalityEngine->addFunctionKind(kind::MEMBER);
+  d_equalityEngine->addFunctionKind(kind::SUBSET);
   // relation operators
-  d_equalityEngine.addFunctionKind(PRODUCT);
-  d_equalityEngine.addFunctionKind(JOIN);
-  d_equalityEngine.addFunctionKind(TRANSPOSE);
-  d_equalityEngine.addFunctionKind(TCLOSURE);
-  d_equalityEngine.addFunctionKind(JOIN_IMAGE);
-  d_equalityEngine.addFunctionKind(IDEN);
-  d_equalityEngine.addFunctionKind(APPLY_CONSTRUCTOR);
+  d_equalityEngine->addFunctionKind(PRODUCT);
+  d_equalityEngine->addFunctionKind(JOIN);
+  d_equalityEngine->addFunctionKind(TRANSPOSE);
+  d_equalityEngine->addFunctionKind(TCLOSURE);
+  d_equalityEngine->addFunctionKind(JOIN_IMAGE);
+  d_equalityEngine->addFunctionKind(IDEN);
+  d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
   // we do congruence over cardinality
-  d_equalityEngine.addFunctionKind(CARD);
+  d_equalityEngine->addFunctionKind(CARD);
 
   // finish initialization internally
   d_internal->finishInit();
@@ -198,16 +206,6 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
 }
 
-eq::EqualityEngine* TheorySets::getEqualityEngine() 
-{
-  return &d_equalityEngine;
-}
-
-void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq)
-{
-  d_equalityEngine.setMasterEqualityEngine(eq);
-}
-
 /**************************** eq::NotifyClass *****************************/
 
 bool TheorySets::NotifyClass::eqNotifyTriggerEquality(TNode equality,
@@ -267,18 +265,11 @@ void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
   d_theory.eqNotifyNewClass(t);
 }
 
-void TheorySets::NotifyClass::eqNotifyPreMerge(TNode t1, TNode t2)
+void TheorySets::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
 {
-  Debug("sets-eq") << "[sets-eq] eqNotifyPreMerge:"
+  Debug("sets-eq") << "[sets-eq] eqNotifyMerge:"
                    << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyPreMerge(t1, t2);
-}
-
-void TheorySets::NotifyClass::eqNotifyPostMerge(TNode t1, TNode t2)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyPostMerge:"
-                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
-  d_theory.eqNotifyPostMerge(t1, t2);
+  d_theory.eqNotifyMerge(t1, t2);
 }
 
 void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)

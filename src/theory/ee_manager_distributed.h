@@ -41,6 +41,9 @@ namespace theory {
  */
 struct EeTheoryInfo
 {
+  EeTheoryInfo() : d_usedEe(nullptr) {}
+  /** The equality engine that the theory uses (if it exists) */
+  eq::EqualityEngine* d_usedEe;
   /** The equality engine allocated by this theory (if it exists) */
   std::unique_ptr<eq::EqualityEngine> d_allocEe;
 };
@@ -120,8 +123,7 @@ class EqEngineManagerDistributed : public EqEngineManager
       return true;
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
 
    private:
