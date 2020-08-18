@@ -34,7 +34,7 @@ class TheoryState
   TheoryState(context::Context* c, context::UserContext* u, Valuation val);
   virtual ~TheoryState() {}
   /**
-   * Finish initialize, there ee is a pointer to the official equality engine
+   * Finish initialize, ee is a pointer to the official equality engine
    * of theory.
    */
   virtual void finishInit(eq::EqualityEngine* ee);
