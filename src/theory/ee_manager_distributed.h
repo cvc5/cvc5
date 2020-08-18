@@ -51,21 +51,13 @@ class EqEngineManagerDistributed : public EqEngineManager
   EqEngineManagerDistributed(TheoryEngine& te);
   ~EqEngineManagerDistributed();
   /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
-   * objects have been created but prior to their final initialization. This
-   * sets up equality engines for all theories.
-   *
-   * This method is context-independent, and is applied once during
-   * the lifetime of TheoryEngine (during finishInit).
+   * Initialize theories. This method allocates unique equality engines
+   * per theories and connects them to a master equality engine.
    */
   void initializeTheories() override;
   /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
-   * objects have been created but prior to their final initialization. This
-   * sets up equality engines for all theories.
-   *
-   * This method is context-independent, and is applied once during
-   * the lifetime of TheoryEngine (during finishInit).
+   * Initialize model. This method allocates a new equality engine for the
+   * model.
    */
   void initializeModel(TheoryModel* m) override;
   /** get the model equality engine context */
