@@ -15,7 +15,6 @@
 #include "theory/ee_manager_distributed.h"
 
 #include "theory/quantifiers_engine.h"
-#include "theory/shared_terms_database.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {

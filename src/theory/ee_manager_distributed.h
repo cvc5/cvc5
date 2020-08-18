@@ -27,7 +27,6 @@
 namespace CVC4 {
 
 class TheoryEngine;
-class SharedTermsDatabase;
 
 namespace theory {
 
