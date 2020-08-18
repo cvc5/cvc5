@@ -33,8 +33,7 @@ TheoryModel::TheoryModel(context::Context* c,
       d_substitutions(c, false),
       d_equalityEngine(nullptr),
       d_using_model_core(false),
-      d_enableFuncModels(enableFuncModels),
-      d_usingRelevantTerms(false)
+      d_enableFuncModels(enableFuncModels)
 {
   // must use function models when ufHo is enabled
   Assert(d_enableFuncModels || !options::ufHo());

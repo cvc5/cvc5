@@ -159,6 +159,9 @@ void TheoryEngine::finishInit() {
     d_aloc_curr_model_builder = true;
   }
 
+  // Initialize the model
+  d_eeDistributed->initializeModel(d_curr_model);
+  
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     Theory* t = d_theoryTable[theoryId];
@@ -504,6 +507,10 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       //checks for theories requiring the model go at last call
       d_curr_model->reset();
+      // !!! temporary, will be part of distributed model manager
+      context::Context* meec = d_eeDistributed->getModelEqualityEngineContext();
+      meec->pop();
+      meec->push();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
@@ -1810,7 +1817,7 @@ SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
 {
   Assert(d_eeDistributed != nullptr);
-  return d_eeDistributed->getMasterEqualityEngine();
+  return d_eeDistributed->getCoreEqualityEngine();
 }
 
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
