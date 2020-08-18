@@ -63,17 +63,17 @@ PR finished:
 PRs ready:
 
 (24) ProofEqEngine (req 6, 10, 11, 12, 18, 20, 23) *
+(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65) *
+(46) term context core utilities *
 (52) theory preprocess proof producing (req 27, 48, 51, 50) *
+(53) CNF proof producing [Haniel]
 (63) SMT engine proof post-processor callback (req 37, 59, 66, 72) *
 (70) rewriter unit test [Andres] (req 36, 37)
-(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65)
-(46) term context core utilities *
-(53) CNF proof producing [Haniel]
 
 PRs future:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
-(31) update strings inference manager to use ProofEqEngine (req 24, 26)
+(31) update strings inference manager to use ProofEqEngine (req 24, 26, 43)
 (41) SharedTermDatabase uses pfee (req 24)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
@@ -81,7 +81,7 @@ PRs future:
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
-(68) PropEngine proof producing [Haniel]
+(68) PropEngine proof producing [Haniel] (req 53)
 (71) quantifiers proof producing (req 38, 52)
 (79) term context extended utilities (req 46)
 (80) update term formula removal to use term context (req 79, 81)

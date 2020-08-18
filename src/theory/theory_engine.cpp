@@ -434,8 +434,7 @@ void TheoryEngine::addTheoryLemmaToProof(CDProof* pf,
                                          const char* c)
 {
   Assert(pf != nullptr);
-  unsigned tidu = static_cast<unsigned>(tid);
-  Node tidn = NodeManager::currentNM()->mkConst(Rational(tidu));
+  Node tidn = builtin::BuiltinProofRuleChecker::mkTheoryIdNode(tid);
   pf->addStep(lemma, PfRule::THEORY_LEMMA, {}, {lemma, tidn});
 }
 

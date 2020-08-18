@@ -189,6 +189,7 @@ class Rewriter {
                               TConvProofGenerator* tcpg = nullptr);
   /** processes a trust rewrite response */
   RewriteResponse processTrustRewriteResponse(
+      theory::TheoryId theoryId,
       const TrustRewriteResponse& tresponse,
       bool isPre,
       TConvProofGenerator* tcpg);

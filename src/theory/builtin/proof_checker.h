@@ -88,12 +88,13 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    * post-rewrite). This encapsulates the exact behavior of a THEORY_REWRITE
    * step in a proof.
    *
+   * @param tid The theory being used to rewrite.
    * @param n The node to rewrite
    * @param preRewrite If true, performs a pre-rewrite or a post-rewrite
    * otherwise
    * @return The rewritten form of n
    */
-  static Node applyTheoryRewrite(Node n, bool preRewrite);
+  static Node applyTheoryRewrite(TheoryId tid, Node n, bool preRewrite);
   /**
    * Get substitution. Updates vars/subs to the substitution specified by
    * exp for the substitution method ids.
@@ -151,6 +152,11 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
    */
   static void addMethodIds(std::vector<Node>& args, MethodId ids, MethodId idr);
 
+  /** get a TheoryId from a node, return false if we fail */
+  static bool getTheoryId(TNode n, TheoryId& tid);
+  /** Make a TheoryId into a node */
+  static Node mkTheoryIdNode(TheoryId tid);
+  
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
  protected:

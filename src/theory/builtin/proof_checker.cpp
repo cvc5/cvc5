@@ -77,9 +77,8 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
 }
 
-Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
+Node BuiltinProofRuleChecker::applyTheoryRewrite(TheoryId tid, Node n, bool preRewrite)
 {
-  TheoryId tid = Theory::theoryOf(n);
   Rewriter* rewriter = Rewriter::getInstance();
   Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
                         : rewriter->postRewrite(tid, n).d_node;
@@ -278,9 +277,14 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
   else if (id == PfRule::THEORY_REWRITE)
   {
     Assert(children.empty());
-    Assert(args.size() == 2);
-    Node res = applyTheoryRewrite(args[0], args[1].getConst<bool>());
-    return args[0].eqNode(res);
+    Assert(args.size() == 3);
+    TheoryId tid;
+    if (!getTheoryId(args[0],tid))
+    {
+      return Node::null();
+    }
+    Node res = applyTheoryRewrite(tid, args[1], args[2].getConst<bool>());
+    return args[1].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
   {
@@ -429,6 +433,23 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
     args.push_back(mkMethodId(idr));
   }
 }
+
+bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
+{
+  uint32_t i;
+  if (!getUInt32(n, i))
+  {
+    return false;
+  }
+  tid = static_cast<TheoryId>(i);
+  return true;
+}
+
+Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
+{
+  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(tid)));
+}
+
 
 }  // namespace builtin
 }  // namespace theory
