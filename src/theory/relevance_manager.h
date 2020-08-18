@@ -132,7 +132,7 @@ class RelevanceManager
       std::unordered_map<TNode, int, TNodeHashFunction>& cache);
   /** The valuation object, used to query current value of theory literals */
   Valuation d_val;
-  /** The (non-unit) input assertions */
+  /** The input assertions */
   NodeList d_input;
   /** The current relevant selection. */
   std::unordered_set<TNode, TNodeHashFunction> d_rset;

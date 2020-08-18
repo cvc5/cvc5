@@ -90,9 +90,9 @@ void RelevanceManager::computeRelevance()
   d_computed = true;
   Trace("rel-manager") << "RelevanceManager::computeRelevance..." << std::endl;
   std::unordered_map<TNode, int, TNodeHashFunction> cache;
-  for (NodeList::const_iterator it = d_input.begin(); it != d_input.end(); ++it)
+  for (const Node& node: d_input)
   {
-    TNode n = *it;
+    TNode n = node;
     int val = justify(n, cache);
     if (val != 1)
     {
