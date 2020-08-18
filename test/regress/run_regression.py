@@ -347,14 +347,6 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
            '--no-check-models' not in all_args and \
            '--debug-check-models' not in all_args:
             extra_command_line_args = ['--debug-check-models']
-        if proofs and re.search(r'^(unsat|valid)$', expected_output):
-            if '--no-check-proofs' not in all_args and \
-               '--check-proofs' not in all_args and \
-               '--incremental' not in all_args and \
-               '--unconstrained-simp' not in all_args and \
-               logic_supported_with_proofs(logic) and \
-               not cvc4_binary.endswith('pcvc4'):
-                extra_command_line_args = ['--check-proofs']
         if unsat_cores and re.search(r'^(unsat|valid)$', expected_output):
             if '--no-check-unsat-cores' not in all_args and \
                '--check-unsat-cores' not in all_args and \
