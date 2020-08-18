@@ -77,7 +77,8 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
                        << *conflictProof.get() << "\n";
     if (options::proofNewEagerChecking())
     {
-      Trace("sat-proof") << "PropPfManager::getProof: checking if can make scope...\n";
+      Trace("sat-proof")
+          << "PropPfManager::getProof: checking if can make scope...\n";
       std::shared_ptr<ProofNode> scopePfn =
           d_pnm->mkScope(conflictProof, d_assertions);
       Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "

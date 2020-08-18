@@ -77,7 +77,9 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
 }
 
-Node BuiltinProofRuleChecker::applyTheoryRewrite(TheoryId tid, Node n, bool preRewrite)
+Node BuiltinProofRuleChecker::applyTheoryRewrite(TheoryId tid,
+                                                 Node n,
+                                                 bool preRewrite)
 {
   Rewriter* rewriter = Rewriter::getInstance();
   Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
@@ -279,7 +281,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(children.empty());
     Assert(args.size() == 3);
     TheoryId tid;
-    if (!getTheoryId(args[0],tid))
+    if (!getTheoryId(args[0], tid))
     {
       return Node::null();
     }
@@ -447,9 +449,9 @@ bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
 
 Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
 {
-  return NodeManager::currentNM()->mkConst(Rational(static_cast<uint32_t>(tid)));
+  return NodeManager::currentNM()->mkConst(
+      Rational(static_cast<uint32_t>(tid)));
 }
-
 
 }  // namespace builtin
 }  // namespace theory

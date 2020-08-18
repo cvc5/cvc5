@@ -156,7 +156,7 @@ class BuiltinProofRuleChecker : public ProofRuleChecker
   static bool getTheoryId(TNode n, TheoryId& tid);
   /** Make a TheoryId into a node */
   static Node mkTheoryIdNode(TheoryId tid);
-  
+
   /** Register all rules owned by this rule checker into pc. */
   void registerTo(ProofChecker* pc) override;
  protected:

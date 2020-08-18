@@ -21,9 +21,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/builtin/proof_checker.h"
 #include "theory/rewriter_tables.h"
 #include "theory/theory.h"
-#include "theory/builtin/proof_checker.h"
 #include "util/resource_manager.h"
 
 using namespace std;

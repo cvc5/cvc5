@@ -288,7 +288,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
   if (options::unsatCores())
   {
     options::proofNew.set(false);
-    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we don't want CI failures
+    // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
+    // don't want CI failures
     options::proofNewReq.set(false);
     options::checkProofsNew.set(false);
     options::proofNewEagerChecking.set(false);
