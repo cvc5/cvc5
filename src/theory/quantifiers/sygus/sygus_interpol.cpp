@@ -274,10 +274,10 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
 {
   // get the synthesis solution
-  std::map<Expr, Expr> sols;
+  std::map<Node, Node> sols;
   d_subSolver->getSynthSolutions(sols);
   Assert(sols.size() == 1);
-  std::map<Expr, Expr>::iterator its = sols.find(itp.toExpr());
+  std::map<Node, Node>::iterator its = sols.find(itp);
   if (its == sols.end())
   {
     Trace("sygus-interpol")
@@ -288,7 +288,7 @@ bool SygusInterpol::findInterpol(Expr& interpol, Node itp)
   }
   Trace("sygus-interpol") << "SmtEngine::getInterpol: solution is "
                           << its->second << std::endl;
-  Node interpoln = Node::fromExpr(its->second);
+  Node interpoln = its->second;
   // replace back the created variables to original symbols.
   Node interpoln_reduced;
   if (interpoln.getKind() == kind::LAMBDA)
@@ -336,18 +336,17 @@ bool SygusInterpol::SolveInterpolation(const std::string& name,
   createVariables(itpGType.isNull());
   for (Node var : d_vars)
   {
-    d_subSolver->declareSygusVar(name, var.toExpr(), var.getType().toType());
+    d_subSolver->declareSygusVar(name, var, var.getType());
   }
-  std::vector<Expr> vars_empty;
+  std::vector<Node> vars_empty;
   TypeNode grammarType = setSynthGrammar(itpGType, axioms, conj);
   Node itp = mkPredicate(name);
-  d_subSolver->declareSynthFun(
-      name, itp.toExpr(), grammarType.toType(), false, vars_empty);
+  d_subSolver->declareSynthFun(name, itp, grammarType, false, vars_empty);
   mkSygusConjecture(itp, axioms, conj);
   Trace("sygus-interpol") << "SmtEngine::getInterpol: made conjecture : "
                           << d_sygusConj << ", solving for "
-                          << d_sygusConj[0][0].toExpr() << std::endl;
-  d_subSolver->assertSygusConstraint(d_sygusConj.toExpr());
+                          << d_sygusConj[0][0] << std::endl;
+  d_subSolver->assertSygusConstraint(d_sygusConj);
 
   Trace("sygus-interpol") << "  SmtEngine::getInterpol check sat..."
                           << std::endl;
