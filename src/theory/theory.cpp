@@ -383,8 +383,8 @@ void Theory::collectTerms(TNode n,
 }
 
 void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
-                                  std::set<Kind>& irrKinds,
-                                  bool includeShared) const
+                                          std::set<Kind>& irrKinds,
+                                          bool includeShared) const
 {
   // Collect all terms appearing in assertions
   irrKinds.insert(kind::EQUAL);

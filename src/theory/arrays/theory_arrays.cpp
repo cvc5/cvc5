@@ -1101,7 +1101,7 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
     return false;
   }
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // Compute arrays that we need to produce representatives for
   std::vector<Node> arrays;
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
@@ -2260,7 +2260,6 @@ TrustNode TheoryArrays::expandDefinition(Node node)
   }
   return TrustNode::null();
 }
-
 
 void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet,
                                         bool includeShared)
