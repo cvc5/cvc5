@@ -162,6 +162,13 @@ void TheoryEngine::finishInit()
     d_aloc_curr_model_builder = true;
   }
 
+  // set the core equality engine on quantifiers engine
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->setMasterEqualityEngine(
+        d_eeDistributed->getMasterEqualityEngine());
+  }
+
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     Theory* t = d_theoryTable[theoryId];
@@ -571,7 +578,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
       // case where we are about to answer SAT, the master equality engine,
       // if it exists, must be consistent.
-      eq::EqualityEngine* mee = getMasterEqualityEngine();
+      eq::EqualityEngine* mee = d_eeDistributed->getMasterEqualityEngine();
       if (mee != NULL)
       {
         AlwaysAssert(mee->consistent());

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -45,7 +45,12 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  /** set eliminate rule */
+  /**
+   * Set eliminate rule, which adds rule to the list of rules we will eliminate
+   * during update. This adds rule to d_elimRules. Supported rules for
+   * elimination include MACRO_*, SUBS and REWRITE. Otherwise, this method
+   * has no effect.
+   */
   void setEliminateRule(PfRule rule);
   /** Should proof pn be updated? */
   bool shouldUpdate(ProofNode* pn) override;
@@ -76,7 +81,16 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   std::map<Node, std::shared_ptr<ProofNode> > d_assumpToProof;
   //---------------------------------end reset at the begining of each update
   /**
-   * Expand macros in the given application, add the expanded proof to cdp.
+   * Expand rules in the given application, add the expanded proof to cdp.
+   * The set of rules we expand is configured by calls to setEliminateRule
+   * above. This method calls update to perform possible post-processing in the
+   * rules it introduces as a result of the expansion.
+   *
+   * @param id The rule of the application
+   * @param children The children of the application
+   * @param args The arguments of the application
+   * @param cdp The proof to add to
+   * @return The conclusion of the rule, or null if this rule is not eliminated.
    */
   Node expandMacros(PfRule id,
                     const std::vector<Node>& children,
@@ -92,7 +106,18 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * the lifetime of this class.
    */
   Node addProofForWitnessForm(Node t, CDProof* cdp);
-  /** Apply transivity if necessary for the arguments */
+  /**
+   * Apply transivity if necessary for the arguments. The nodes in
+   * tchildren have been ordered such that they are legal arguments to TRANS.
+   *
+   * Returns the conclusion of the transitivity step, which is null if
+   * tchildren is empty. Also note if tchildren contains a single element,
+   * then no TRANS step is necessary to add to cdp.
+   *
+   * @param tchildren The children of a TRANS step
+   * @param cdp The proof to add the TRANS step to
+   * @return The conclusion of the TRANS step.
+   */
   Node addProofForTrans(const std::vector<Node>& tchildren, CDProof* cdp);
   /** Add eq (or its symmetry) to transivity children, if not reflexive */
   bool addToTransChildren(Node eq,
@@ -155,6 +180,7 @@ class ProofPostproccess
   /** The proof node manager */
   ProofNodeManager* d_pnm;
 };
+
 
 }  // namespace smt
 }  // namespace CVC4

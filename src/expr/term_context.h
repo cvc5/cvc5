@@ -62,7 +62,7 @@ class TermContext
  *   (P x) @ [1,1] -> false, true
  *    x @ [1,1,0] -> true, true
  * Notice that the hash of a child can be computed from the parent's hash only,
- * and hence this can be implemented without considering paths.
+ * and hence this can be implemented as an instance of the abstract class.
  */
 class RtfTermContext : public TermContext
 {
@@ -70,7 +70,7 @@ class RtfTermContext : public TermContext
   RtfTermContext() {}
   /** The initial value: not in a term context or beneath a quantifier. */
   uint32_t initialValue() const override;
-  /** Compute the value */
+  /** Compute the value of the index^th child of t whose hash is tval */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
   /** get hash value from the flags */
   static uint32_t getValue(bool inQuant, bool inTerm);
@@ -79,7 +79,10 @@ class RtfTermContext : public TermContext
 
  private:
   /**
-   * Returns true if the children of t should be considered in a "term" context.
+   * Returns true if the children of t should be considered in a "term" context,
+   * which is any context beneath a symbol that does not belong to the Boolean
+   * theory as well as other exceptions like equality, separation logic
+   * connectives and bit-vector eager atoms.
    */
   static bool hasNestedTermChildren(TNode t);
 };
@@ -91,8 +94,8 @@ class RtfTermContext : public TermContext
  * one of {true, false, none}. This corresponds to the value that can be
  * assigned to that term while preservering satisfiability of the overall
  * formula, or none if such a value does not exist. If not "none", this
- * typically corresponds to the number of NOT the formula is beneath, although
- * special cases exist (e.g. IMPLIES).
+ * typically corresponds to whether the number of NOT the formula is beneath is
+ * even, although special cases exist (e.g. the first child of IMPLIES).
  *
  * For example, given the formula:
  *   (and P (not (= (f x) 0)))
@@ -108,16 +111,15 @@ class RtfTermContext : public TermContext
  * We have that the P at path [0] has polarity true and the P at path [1,0] has
  * polarity false.
  *
- * Finally, notice that polarity does not correspond to an entailed value. Thus,
- * for the formula:
+ * Finally, notice that polarity does not correspond to a value that the
+ * formula entails. Thus, for the formula:
  *   (or P Q)
  * we have that
  *   P @ [0] -> true
  *   Q @ [1] -> true
  * although neither is entailed.
  *
- * Notice that the hash of a child can be computed from the parent's hash only,
- * and hence this can be implemented without considering paths.
+ * Notice that the hash of a child can be computed from the parent's hash only.
  */
 class PolarityTermContext : public TermContext
 {
@@ -125,7 +127,7 @@ class PolarityTermContext : public TermContext
   PolarityTermContext() {}
   /** The initial value: true polarity. */
   uint32_t initialValue() const override;
-  /** Compute the value */
+  /** Compute the value of the index^th child of t whose hash is tval */
   uint32_t computeValue(TNode t, uint32_t tval, size_t index) const override;
   /**
    * Get hash value from the flags, where hasPol false means no polarity.
