@@ -45,7 +45,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * static information to be used by successive calls to update.
    */
   void initializeUpdate();
-  /** 
+  /**
    * Set eliminate rule, which adds rule to the list of rules we will eliminate
    * during update. This adds rule to d_elimRules.
    */
@@ -83,7 +83,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * The set of rules we expand is configured by calls to setEliminateRule
    * above. This method calls update to perform possible post-processing in the
    * rules it introduces as a result of the expansion.
-   * 
+   *
    * @param id The rule of the application
    * @param children The children of the application
    * @param args The arguments of the application
@@ -104,14 +104,14 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * the lifetime of this class.
    */
   Node addProofForWitnessForm(Node t, CDProof* cdp);
-  /** 
+  /**
    * Apply transivity if necessary for the arguments. The nodes in
    * tchildren have been ordered such that they are legal arguments to TRANS.
    *
    * Returns the conclusion of the transitivity step, which is null if
    * tchildren is empty. Also note if tchildren contains a single element,
    * then no TRANS step is necessary to add to cdp.
-   * 
+   *
    * @param tchildren The children of a TRANS step
    * @param cdp The proof to add the TRANS step to
    * @return The conclusion of the TRANS step.
