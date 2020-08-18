@@ -82,6 +82,7 @@ Theory::Theory(TheoryId id,
       d_valuation(valuation),
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
+      d_theoryState(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
