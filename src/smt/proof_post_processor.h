@@ -119,6 +119,20 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
    * @return The conclusion of the TRANS step.
    */
   Node addProofForTrans(const std::vector<Node>& tchildren, CDProof* cdp);
+  /**
+   * Add proof for substitution step. Some substitutions are derived based
+   * on viewing a formula as a Boolean assigned (see MethodId::SB_LITERAL for
+   * example). This method ensures that the proof of var == subs exists
+   * in cdp, where var, subs were derived from BuiltinProofRuleChecker's
+   * getSubstitution method.
+   * 
+   * @param var The variable of the substitution
+   * @param subs The substituted term
+   * @param assump The formula the substitution was derived from
+   * @param cdp The proof to add to
+   * @return var == subs, the conclusion of the substitution step.
+   */
+  Node addProofForSubsStep(Node var, Node subs, Node assump, CDProof* cdp);
   /** Add eq (or its symmetry) to transivity children, if not reflexive */
   bool addToTransChildren(Node eq,
                           std::vector<Node>& tchildren,
