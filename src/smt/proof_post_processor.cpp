@@ -86,7 +86,11 @@ bool ProofPostprocessCallback::update(Node res,
       {
         Trace("smt-proof-pp-debug")
             << "...no proof, possibly an input assumption" << std::endl;
-        Assert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(), f)!=d_freeAssertions.end()) << "No preprocess proof for formula which is not an input assertion: " << f;
+        Assert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(), f)
+               != d_freeAssertions.end())
+            << "No preprocess proof for formula which is not an input "
+               "assertion: "
+            << f;
       }
       else
       {
@@ -98,7 +102,11 @@ bool ProofPostprocessCallback::update(Node res,
           Trace("smt-proof-pp") << *pfn.get() << std::endl;
         }
         // debug closed
-        pfgEnsureClosedWrt(f, d_pppg, d_freeAssertions, "smt-proof-pp-debug", "ProofPostprocess::connect_preprocess");
+        pfgEnsureClosedWrt(f,
+                           d_pppg,
+                           d_freeAssertions,
+                           "smt-proof-pp-debug",
+                           "ProofPostprocess::connect_preprocess");
       }
       d_assumpToProof[f] = pfn;
     }
@@ -479,7 +487,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       std::shared_ptr<ProofNode> pfn =
           trn.getGenerator()->getProofFor(trn.getProven());
       cdp->addProof(pfn);
-      Assert(trn.getNode() == ret) << "Unexpected rewrite " << trn.getNode() << " " << ret;
+      Assert(trn.getNode() == ret)
+          << "Unexpected rewrite " << trn.getNode() << " " << ret;
     }
     else if (idr == MethodId::RW_EVALUATE)
     {
@@ -586,10 +595,12 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
-void ProofPostprocessCallback::setAssertions(const std::vector<Node>& assertions)
+void ProofPostprocessCallback::setAssertions(
+    const std::vector<Node>& assertions)
 {
   d_freeAssertions.clear();
-  d_freeAssertions.insert(d_freeAssertions.end(), assertions.begin(), assertions.end());
+  d_freeAssertions.insert(
+      d_freeAssertions.end(), assertions.begin(), assertions.end());
 }
 
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(

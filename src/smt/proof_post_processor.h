@@ -63,7 +63,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
 
   /** Set assertions (for debugging whether the final proof is closed) */
   void setAssertions(const std::vector<Node>& assertions);
-  
+
  private:
   /** Common constants */
   Node d_true;
@@ -192,6 +192,7 @@ class ProofPostproccess
   void setEliminateRule(PfRule rule);
   /** Set assertions (for debugging whether the final proof is closed) */
   void setAssertions(const std::vector<Node>& assertions);
+
  private:
   /** The post process callback */
   ProofPostprocessCallback d_cb;
