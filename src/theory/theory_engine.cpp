@@ -161,7 +161,7 @@ void TheoryEngine::finishInit() {
 
   // Initialize the model
   d_eeDistributed->initializeModel(d_curr_model);
-  
+
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     Theory* t = d_theoryTable[theoryId];
