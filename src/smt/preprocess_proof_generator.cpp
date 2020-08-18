@@ -75,23 +75,25 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
         cdp.addProof(pfr);
         proofStepProcessed = true;
       }
+      // get the proven node
+      Node proven = it->second.getProven();
+      Assert (!proven.isNull());
 
       if (it->second.getKind() == theory::TrustNodeKind::REWRITE)
       {
-        Node eq = it->second.getProven();
-        Assert(eq.getKind() == kind::EQUAL);
+        Assert(proven.getKind() == kind::EQUAL);
         if (!proofStepProcessed)
         {
           // maybe its just a simple rewrite?
-          if (eq[1] == theory::Rewriter::rewrite(eq[0]))
+          if (proven[1] == theory::Rewriter::rewrite(proven[0]))
           {
-            cdp.addStep(eq, PfRule::REWRITE, {}, {eq[0]});
+            cdp.addStep(proven, PfRule::REWRITE, {}, {proven[0]});
             proofStepProcessed = true;
           }
         }
-        transChildren.push_back(eq);
+        transChildren.push_back(proven);
         // continue with source
-        curr = eq[0];
+        curr = proven[0];
         success = true;
         // find the next node
         it = d_src.find(curr);
@@ -104,7 +106,6 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       if (!proofStepProcessed)
       {
         // add trusted step
-        Node proven = it->second.getProven();
         cdp.addStep(proven, PfRule::PREPROCESS, {}, {proven});
       }
     }
