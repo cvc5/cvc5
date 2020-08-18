@@ -75,10 +75,10 @@ public:
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     EagerBitblaster* bb = new EagerBitblaster(
         dynamic_cast<TheoryBV*>(
-            d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]),
+            d_smt->getTheoryEngine()->d_theoryTable[THEORY_BV]),
         d_smt->getContext());
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));

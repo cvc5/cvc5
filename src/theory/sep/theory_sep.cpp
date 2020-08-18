@@ -48,7 +48,6 @@ TheorySep::TheorySep(context::Context* c,
     : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
       d_lemmas_produced_c(u),
       d_notify(*this),
-      d_equalityEngine(d_notify, c, "theory::sep::ee", true),
       d_conflict(c, false),
       d_reduce(u),
       d_infer(c),
@@ -58,10 +57,6 @@ TheorySep::TheorySep(context::Context* c,
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
   d_bounds_init = false;
-  
-  // The kinds we are treating as function application in congruence
-  d_equalityEngine.addFunctionKind(kind::SEP_PTO);
-  //d_equalityEngine.addFunctionKind(kind::SEP_STAR);
 }
 
 TheorySep::~TheorySep() {
@@ -70,8 +65,21 @@ TheorySep::~TheorySep() {
   }
 }
 
-void TheorySep::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_equalityEngine.setMasterEqualityEngine(eq);
+TheoryRewriter* TheorySep::getTheoryRewriter() { return &d_rewriter; }
+
+bool TheorySep::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::sep::ee";
+  return true;
+}
+
+void TheorySep::finishInit()
+{
+  Assert(d_equalityEngine != nullptr);
+  // The kinds we are treating as function application in congruence
+  d_equalityEngine->addFunctionKind(kind::SEP_PTO);
+  // we could but don't do congruence on SEP_STAR here.
 }
 
 Node TheorySep::mkAnd( std::vector< TNode >& assumptions ) {
@@ -126,9 +134,10 @@ void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
     bool polarity = literal.getKind() != kind::NOT;
     TNode atom = polarity ? literal : literal[0];
     if (atom.getKind() == kind::EQUAL) {
-      d_equalityEngine.explainEquality( atom[0], atom[1], polarity, assumptions, NULL );
+      d_equalityEngine->explainEquality(
+          atom[0], atom[1], polarity, assumptions, NULL);
     } else {
-      d_equalityEngine.explainPredicate( atom, polarity, assumptions );
+      d_equalityEngine->explainPredicate(atom, polarity, assumptions);
     }
   }
 }
@@ -155,17 +164,19 @@ TrustNode TheorySep::explain(TNode literal)
 
 void TheorySep::addSharedTerm(TNode t) {
   Debug("sep") << "TheorySep::addSharedTerm(" << t << ")" << std::endl;
-  d_equalityEngine.addTriggerTerm(t, THEORY_SEP);
+  d_equalityEngine->addTriggerTerm(t, THEORY_SEP);
 }
 
 
 EqualityStatus TheorySep::getEqualityStatus(TNode a, TNode b) {
-  Assert(d_equalityEngine.hasTerm(a) && d_equalityEngine.hasTerm(b));
-  if (d_equalityEngine.areEqual(a, b)) {
+  Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
+  if (d_equalityEngine->areEqual(a, b))
+  {
     // The terms are implied to be equal
     return EQUALITY_TRUE;
   }
-  else if (d_equalityEngine.areDisequal(a, b, false)) {
+  else if (d_equalityEngine->areDisequal(a, b, false))
+  {
     // The terms are implied to be dis-equal
     return EQUALITY_FALSE;
   }
@@ -211,7 +222,7 @@ bool TheorySep::collectModelInfo(TheoryModel* m)
   computeRelevantTerms(termSet);
 
   // Send the equality engine information to the model
-  return m->assertEqualityEngine(&d_equalityEngine, &termSet);
+  return m->assertEqualityEngine(d_equalityEngine, &termSet);
 }
 
 void TheorySep::postProcessModel( TheoryModel* m ){
@@ -490,16 +501,16 @@ void TheorySep::check(Effort e) {
       if( !is_spatial ){
         Trace("sep-assert") << "Asserting " << atom << ", pol = " << polarity << " to EE..." << std::endl;
         if( s_atom.getKind()==kind::EQUAL ){
-          d_equalityEngine.assertEquality(atom, polarity, fact);
+          d_equalityEngine->assertEquality(atom, polarity, fact);
         }else{
-          d_equalityEngine.assertPredicate(atom, polarity, fact);
+          d_equalityEngine->assertPredicate(atom, polarity, fact);
         }
         Trace("sep-assert") << "Done asserting " << atom << " to EE." << std::endl;
       }else if( s_atom.getKind()==kind::SEP_PTO ){
         Node pto_lbl = NodeManager::currentNM()->mkNode( kind::SINGLETON, s_atom[0] );
         Assert(s_lbl == pto_lbl);
         Trace("sep-assert") << "Asserting " << s_atom << std::endl;
-        d_equalityEngine.assertPredicate(s_atom, polarity, fact);
+        d_equalityEngine->assertPredicate(s_atom, polarity, fact);
         //associate the equivalence class of the lhs with this pto
         Node r = getRepresentative( s_lbl );
         HeapAssertInfo * ei = getOrMakeEqcInfo( r, true );
@@ -619,11 +630,11 @@ void TheorySep::check(Effort e) {
       Trace("sep-process") << "---" << std::endl;
     }
     if(Trace.isOn("sep-eqc")) {
-      eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator( &d_equalityEngine );
+      eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
       Trace("sep-eqc") << "EQC:" << std::endl;
       while( !eqcs2_i.isFinished() ){
         Node eqc = (*eqcs2_i);
-        eq::EqClassIterator eqc2_i = eq::EqClassIterator( eqc, &d_equalityEngine );
+        eq::EqClassIterator eqc2_i = eq::EqClassIterator(eqc, d_equalityEngine);
         Trace("sep-eqc") << "Eqc( " << eqc << " ) : { ";
         while( !eqc2_i.isFinished() ) {
           if( (*eqc2_i)!=eqc ){
@@ -1552,22 +1563,21 @@ void TheorySep::computeLabelModel( Node lbl ) {
 }
 
 Node TheorySep::getRepresentative( Node t ) {
-  if( d_equalityEngine.hasTerm( t ) ){
-    return d_equalityEngine.getRepresentative( t );
+  if (d_equalityEngine->hasTerm(t))
+  {
+    return d_equalityEngine->getRepresentative(t);
   }else{
     return t;
   }
 }
 
-bool TheorySep::hasTerm( Node a ){
-  return d_equalityEngine.hasTerm( a );
-}
+bool TheorySep::hasTerm(Node a) { return d_equalityEngine->hasTerm(a); }
 
 bool TheorySep::areEqual( Node a, Node b ){
   if( a==b ){
     return true;
   }else if( hasTerm( a ) && hasTerm( b ) ){
-    return d_equalityEngine.areEqual( a, b );
+    return d_equalityEngine->areEqual(a, b);
   }else{
     return false;
   }
@@ -1577,19 +1587,16 @@ bool TheorySep::areDisequal( Node a, Node b ){
   if( a==b ){
     return false;
   }else if( hasTerm( a ) && hasTerm( b ) ){
-    if( d_equalityEngine.areDisequal( a, b, false ) ){
+    if (d_equalityEngine->areDisequal(a, b, false))
+    {
       return true;
     }
   }
   return false;
 }
 
-
-void TheorySep::eqNotifyPreMerge(TNode t1, TNode t2) {
-
-}
-
-void TheorySep::eqNotifyPostMerge(TNode t1, TNode t2) {
+void TheorySep::eqNotifyMerge(TNode t1, TNode t2)
+{
   HeapAssertInfo * e2 = getOrMakeEqcInfo( t2, false );
   if( e2 && ( !e2->d_pto.get().isNull() || e2->d_has_neg_pto.get() ) ){
     HeapAssertInfo * e1 = getOrMakeEqcInfo( t1, true );
@@ -1747,9 +1754,9 @@ void TheorySep::doPendingFacts() {
       bool pol = d_pending[i].getKind()!=kind::NOT;
       Trace("sep-pending") << "Sep : Assert to EE : " << atom << ", pol = " << pol << std::endl;
       if( atom.getKind()==kind::EQUAL ){
-        d_equalityEngine.assertEquality(atom, pol, d_pending_exp[i]);
+        d_equalityEngine->assertEquality(atom, pol, d_pending_exp[i]);
       }else{
-        d_equalityEngine.assertPredicate(atom, pol, d_pending_exp[i]);
+        d_equalityEngine->assertPredicate(atom, pol, d_pending_exp[i]);
       }
     }
   }else{

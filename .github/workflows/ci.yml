@@ -2,14 +2,6 @@ on: [push, pull_request]
 name: CI
 
 jobs:
-  cancel:
-    runs-on: ubuntu-latest
-    steps:
-      - name: cancel-previous-runs
-        uses: styfle/cancel-workflow-action@0.4.1
-        with:
-          access_token: ${{ github.token }}
-
   build:
     strategy:
       matrix:
@@ -70,7 +62,9 @@ jobs:
           libcln-dev \
           libgmp-dev \
           libedit-dev \
-          swig3.0
+          flex \
+          libfl-dev \
+          flexc++
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
@@ -86,7 +80,7 @@ jobs:
           cln \
           gmp \
           pkgconfig \
-          swig
+          flex
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect

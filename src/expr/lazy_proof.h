@@ -45,7 +45,8 @@ class LazyCDProof : public CDProof
    */
   LazyCDProof(ProofNodeManager* pnm,
               ProofGenerator* dpg = nullptr,
-              context::Context* c = nullptr);
+              context::Context* c = nullptr,
+              std::string name = "LazyCDProof");
   ~LazyCDProof();
   /**
    * Get lazy proof for fact, or nullptr if it does not exist. This may
@@ -66,13 +67,23 @@ class LazyCDProof : public CDProof
    *
    * @param expected The fact that can be proven.
    * @param pg The generator that can proof expected.
+   * @param isClosed Whether to expect that pg can provide a closed proof for
+   * this fact.
+   * @param ctx The context we are in (for debugging).
    * @param forceOverwrite If this flag is true, then this call overwrites
    * an existing proof generator provided for expected, if one was provided
    * via a previous call to addLazyStep in the current context.
+   * @param trustId If a null proof generator is provided, we add a step to
+   * the proof that has trustId as the rule and expected as the sole argument.
+   * We do this only if trustId is not PfRule::ASSUME. This is primarily used
+   * for identifying the kind of hole when a proof generator is not given.
    */
   void addLazyStep(Node expected,
                    ProofGenerator* pg,
-                   bool forceOverwrite = false);
+                   bool isClosed = true,
+                   const char* ctx = "LazyCDProof::addLazyStep",
+                   bool forceOverwrite = false,
+                   PfRule trustId = PfRule::ASSUME);
   /**
    * Does this have any proof generators? This method always returns true
    * if the default is non-null.
@@ -80,8 +91,6 @@ class LazyCDProof : public CDProof
   bool hasGenerators() const;
   /** Does the given fact have an explicitly provided generator? */
   bool hasGenerator(Node fact) const;
-  /** identify */
-  std::string identify() const override;
 
  protected:
   typedef context::CDHashMap<Node, ProofGenerator*, NodeHashFunction>

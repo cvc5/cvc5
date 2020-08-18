@@ -99,20 +99,14 @@ class TheoryDatatypes : public Theory {
       Debug("dt") << "NotifyClass::eqNotifyNewClass(" << t << ")" << std::endl;
       d_dt.eqNotifyNewClass(t);
     }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_dt.eqNotifyPostMerge(t1, t2);
+      Debug("dt") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2 << ")"
+                  << std::endl;
+      d_dt.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      Debug("dt") << "NotifyClass::eqNotifyDisequal(" << t1 << ", " << t2 << ", " << reason << ")" << std::endl;
-      d_dt.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class TheoryDatatypes::NotifyClass */
 private:
@@ -151,8 +145,6 @@ private:
 private:
   /** The notify class */
   NotifyClass d_notify;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
   /** map from nodes to their instantiated equivalent for each constructor type */
@@ -275,9 +267,18 @@ private:
                   ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /** propagate */
   void propagate(Effort effort) override;
@@ -295,17 +296,12 @@ private:
   void conflict(TNode a, TNode b);
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
-  void finishInit() override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
   void presolve() override;
@@ -317,8 +313,6 @@ private:
   {
     return std::string("TheoryDatatypes");
   }
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,

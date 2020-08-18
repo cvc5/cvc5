@@ -91,16 +91,11 @@ public:
       d_uf.eqNotifyNewClass(t);
     }
 
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.eqNotifyPreMerge(t1, t2);
-    }
-
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("uf-notify") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.eqNotifyPostMerge(t1, t2);
+      Debug("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+                         << ")" << std::endl;
+      d_uf.eqNotifyMerge(t1, t2);
     }
 
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
@@ -120,9 +115,6 @@ private:
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
-
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
 
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
@@ -163,11 +155,8 @@ private:
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
 
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
@@ -194,10 +183,18 @@ private:
 
   ~TheoryUF();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
   void check(Effort) override;
   TrustNode expandDefinition(Node node) override;
@@ -217,8 +214,6 @@ private:
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
-
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
