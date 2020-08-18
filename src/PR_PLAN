@@ -79,7 +79,7 @@ PRs future:
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43)
 (41) SharedTermDatabase uses pfee (req 24)
-(44) TheoryEngine explanation proof producing (req 12, 40, 41)
+(44) TheoryEngine explanation proof producing (req 12, 40, 41, 87)
 (47) TheoryUF proof producing [Haniel] (req 24, 39)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor

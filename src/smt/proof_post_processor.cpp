@@ -86,6 +86,7 @@ bool ProofPostprocessCallback::update(Node res,
       {
         Trace("smt-proof-pp-debug")
             << "...no proof, possibly an input assumption" << std::endl;
+        Assert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(), f)!=d_freeAssertions.end()) << "No preprocess proof for formula which is not an input assertion: " << f;
       }
       else
       {
@@ -96,6 +97,8 @@ bool ProofPostprocessCallback::update(Node res,
               << "=== Connect proof for preprocessing: " << f << std::endl;
           Trace("smt-proof-pp") << *pfn.get() << std::endl;
         }
+        // debug closed
+        pfgEnsureClosedWrt(f, d_pppg, d_freeAssertions, "smt-proof-pp-debug", "ProofPostprocess::connect_preprocess");
       }
       d_assumpToProof[f] = pfn;
     }
@@ -398,7 +401,6 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           Node seqss = subs.eqNode(ss);
           std::shared_ptr<ProofNode> pfn = tcg.getProofFor(seqss);
           Assert(pfn != nullptr);
-          Trace("ajr-temp") << "My proof is " << seqss << std::endl;
           // add the proof
           pf->addProof(pfn);
           // get proof for children[i] from cdp
@@ -477,7 +479,7 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
       std::shared_ptr<ProofNode> pfn =
           trn.getGenerator()->getProofFor(trn.getProven());
       cdp->addProof(pfn);
-      Assert(trn.getNode() == ret);
+      Assert(trn.getNode() == ret) << "Unexpected rewrite " << trn.getNode() << " " << ret;
     }
     else if (idr == MethodId::RW_EVALUATE)
     {
@@ -584,6 +586,12 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
   return true;
 }
 
+void ProofPostprocessCallback::setAssertions(const std::vector<Node>& assertions)
+{
+  d_freeAssertions.clear();
+  d_freeAssertions.insert(d_freeAssertions.end(), assertions.begin(), assertions.end());
+}
+
 ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
     ProofNodeManager* pnm)
     : d_ruleCount("finalProof::ruleCount"),
@@ -678,6 +686,11 @@ void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
 void ProofPostproccess::setEliminateRule(PfRule rule)
 {
   d_cb.setEliminateRule(rule);
+}
+
+void ProofPostproccess::setAssertions(const std::vector<Node>& assertions)
+{
+  d_cb.setAssertions(assertions);
 }
 
 }  // namespace smt

@@ -157,4 +157,12 @@ void pfgEnsureClosedWrt(Node proven,
   Trace(c) << "====" << std::endl;
 }
 
+void pfnEnsureClosedWrt(ProofNode* pn,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx)
+{
+  // TODO
+}
+
 }  // namespace CVC4
