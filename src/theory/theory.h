@@ -44,6 +44,7 @@
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/theory_state.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
@@ -183,13 +184,7 @@ class Theory {
    */
   context::CDList<TNode> d_sharedTerms;
 
-  /**
-   * Helper function for computeRelevantTerms
-   */
-  void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
-                    std::set<Node>& termSet) const;
-
+  //---------------------------------- collect model info
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
@@ -203,11 +198,30 @@ class Theory {
    * includeShared: Whether to include shared terms in termSet. Notice that
    * shared terms are not influenced by irrKinds.
    */
-  void computeRelevantTerms(std::set<Node>& termSet,
-                            std::set<Kind>& irrKinds,
-                            bool includeShared = true) const;
-  /** same as above, but with empty irrKinds */
-  void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
+  void computeRelevantTermsInternal(std::set<Node>& termSet,
+                                    std::set<Kind>& irrKinds,
+                                    bool includeShared = true) const;
+  /**
+   * Helper function for computeRelevantTerms
+   */
+  void collectTerms(TNode n,
+                    std::set<Kind>& irrKinds,
+                    std::set<Node>& termSet) const;
+  /**
+   * Same as above, but with empty irrKinds. This version can be overridden
+   * by the theory, e.g. by restricting or extending the set of terms returned
+   * by computeRelevantTermsInternal, which is called by default with no
+   * irrKinds.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet,
+                                    bool includeShared = true);
+  /**
+   * Collect model values, after equality information is added to the model.
+   * The argument termSet is the set of relevant terms returned by
+   * computeRelevantTerms.
+   */
+  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  //---------------------------------- end collect model info
 
   /**
    * Construct a Theory.
@@ -254,6 +268,11 @@ class Theory {
    * The official equality engine, if we allocated it.
    */
   std::unique_ptr<eq::EqualityEngine> d_allocEqualityEngine;
+  /**
+   * The theory state, which contains contexts, valuation, and equality engine.
+   * Notice the theory is responsible for memory management of this class.
+   */
+  TheoryState* d_theoryState;
   /**
    * Whether proofs are enabled
    *
@@ -619,7 +638,7 @@ class Theory {
    * This method returns true if and only if the equality engine of m is
    * consistent as a result of this call.
    */
-  virtual bool collectModelInfo(TheoryModel* m) { return true; }
+  virtual bool collectModelInfo(TheoryModel* m);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   /**
