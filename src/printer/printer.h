@@ -60,51 +60,51 @@ class Printer
 
   /** Print empty command */
   virtual void toStreamCmdEmpty(std::ostream& out,
-                                const std::string& name) const = 0;
+                                const std::string& name) const;
 
   /** Print echo command */
   virtual void toStreamCmdEcho(std::ostream& out,
-                               const std::string& output) const = 0;
+                               const std::string& output) const;
 
   /** Print assert command */
-  virtual void toStreamCmdAssert(std::ostream& out, Node n) const = 0;
+  virtual void toStreamCmdAssert(std::ostream& out, Node n) const;
 
   /** Print push command */
-  virtual void toStreamCmdPush(std::ostream& out) const = 0;
+  virtual void toStreamCmdPush(std::ostream& out) const;
 
   /** Print pop command */
-  virtual void toStreamCmdPop(std::ostream& out) const = 0;
+  virtual void toStreamCmdPop(std::ostream& out) const;
 
   /** Print declare-fun command */
   virtual void toStreamCmdDeclareFunction(std::ostream& out,
                                           const std::string& id,
-                                          TypeNode type) const = 0;
+                                          TypeNode type) const;
 
   /** Print declare-sort command */
   virtual void toStreamCmdDeclareType(std::ostream& out,
                                       const std::string& id,
                                       size_t arity,
-                                      TypeNode type) const = 0;
+                                      TypeNode type) const;
 
   /** Print define-sort command */
   virtual void toStreamCmdDefineType(std::ostream& out,
                                      const std::string& id,
                                      const std::vector<TypeNode>& params,
-                                     TypeNode t) const = 0;
+                                     TypeNode t) const;
 
   /** Print define-fun command */
   virtual void toStreamCmdDefineFunction(std::ostream& out,
                                          const std::string& id,
                                          const std::vector<Node>& formals,
                                          TypeNode range,
-                                         Node formula) const = 0;
+                                         Node formula) const;
 
   /** Print define-named-fun command */
   virtual void toStreamCmdDefineNamedFunction(std::ostream& out,
                                               const std::string& id,
                                               const std::vector<Node>& formals,
                                               TypeNode range,
-                                              Node formula) const = 0;
+                                              Node formula) const;
 
   /** Print define-fun-rec command */
   virtual void toStreamCmdDefineFunctionRec(
@@ -119,17 +119,17 @@ class Printer
                                    Node n) const;
 
   /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out) const = 0;
+  virtual void toStreamCmdCheckSat(std::ostream& out) const;
 
   /** Print check-sat command */
-  virtual void toStreamCmdCheckSat(std::ostream& out, Node n) const = 0;
+  virtual void toStreamCmdCheckSat(std::ostream& out, Node n) const;
 
   /** Print check-sat-assuming command */
   virtual void toStreamCmdCheckSatAssuming(std::ostream& out,
-                                           std::vector<Node> nodes) const = 0;
+                                           std::vector<Node> nodes) const;
 
   /** Print query command */
-  virtual void toStreamCmdQuery(std::ostream& out, Node n) const = 0;
+  virtual void toStreamCmdQuery(std::ostream& out, Node n) const;
 
   /** Print declare-var command */
   virtual void toStreamCmdDeclareVar(std::ostream& out,
@@ -155,20 +155,20 @@ class Printer
   virtual void toStreamCmdCheckSynth(std::ostream& out) const;
 
   /** Print simplify command */
-  virtual void toStreamCmdSimplify(std::ostream& out, Node n) const = 0;
+  virtual void toStreamCmdSimplify(std::ostream& out, Node n) const;
 
   /** Print expand-definitions command */
   void toStreamCmdExpandDefinitions(std::ostream& out, Node n) const;
 
   /** Print get-value command */
   virtual void toStreamCmdGetValue(std::ostream& out,
-                                   const std::vector<Node>& nodes) const = 0;
+                                   const std::vector<Node>& nodes) const;
 
   /** Print get-assignment command */
-  virtual void toStreamCmdGetAssignment(std::ostream& out) const = 0;
+  virtual void toStreamCmdGetAssignment(std::ostream& out) const;
 
   /** Print get-model command */
-  virtual void toStreamCmdGetModel(std::ostream& out) const = 0;
+  virtual void toStreamCmdGetModel(std::ostream& out) const;
 
   /** Print block-model command */
   void toStreamCmdBlockModel(std::ostream& out) const;
@@ -178,7 +178,7 @@ class Printer
                                    const std::vector<Node>& nodes) const;
 
   /** Print get-proof command */
-  virtual void toStreamCmdGetProof(std::ostream& out) const = 0;
+  virtual void toStreamCmdGetProof(std::ostream& out) const;
 
   /** Print get-instantiations command */
   void toStreamCmdGetInstantiations(std::ostream& out) const;
@@ -205,36 +205,36 @@ class Printer
   virtual void toStreamCmdGetUnsatAssumptions(std::ostream& out) const;
 
   /** Print get-unsat-core command */
-  virtual void toStreamCmdGetUnsatCore(std::ostream& out) const = 0;
+  virtual void toStreamCmdGetUnsatCore(std::ostream& out) const;
 
   /** Print get-assertions command */
-  virtual void toStreamCmdGetAssertions(std::ostream& out) const = 0;
+  virtual void toStreamCmdGetAssertions(std::ostream& out) const;
 
   /** Print set-info :status command */
   virtual void toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                             BenchmarkStatus status) const = 0;
+                                             BenchmarkStatus status) const;
 
   /** Print set-logic command */
   virtual void toStreamCmdSetBenchmarkLogic(std::ostream& out,
-                                            const std::string& logic) const = 0;
+                                            const std::string& logic) const;
 
   /** Print set-info command */
   virtual void toStreamCmdSetInfo(std::ostream& out,
                                   const std::string& flag,
-                                  SExpr sexpr) const = 0;
+                                  SExpr sexpr) const;
 
   /** Print get-info command */
   virtual void toStreamCmdGetInfo(std::ostream& out,
-                                  const std::string& flag) const = 0;
+                                  const std::string& flag) const;
 
   /** Print set-option command */
   virtual void toStreamCmdSetOption(std::ostream& out,
                                     const std::string& flag,
-                                    SExpr sexpr) const = 0;
+                                    SExpr sexpr) const;
 
   /** Print get-option command */
   virtual void toStreamCmdGetOption(std::ostream& out,
-                                    const std::string& flag) const = 0;
+                                    const std::string& flag) const;
 
   /** Print set-expression-name command */
   void toStreamCmdSetExpressionName(std::ostream& out,
@@ -243,28 +243,28 @@ class Printer
 
   /** Print declare-datatype(s) command */
   virtual void toStreamCmdDatatypeDeclaration(
-      std::ostream& out, const std::vector<TypeNode>& datatypes) const = 0;
+      std::ostream& out, const std::vector<TypeNode>& datatypes) const;
 
   /** Print reset command */
-  virtual void toStreamCmdReset(std::ostream& out) const = 0;
+  virtual void toStreamCmdReset(std::ostream& out) const;
 
   /** Print reset-assertions command */
-  virtual void toStreamCmdResetAssertions(std::ostream& out) const = 0;
+  virtual void toStreamCmdResetAssertions(std::ostream& out) const;
 
   /** Print quit command */
-  virtual void toStreamCmdQuit(std::ostream& out) const = 0;
+  virtual void toStreamCmdQuit(std::ostream& out) const;
 
   /** Print comment command */
   virtual void toStreamCmdComment(std::ostream& out,
-                                  const std::string& comment) const = 0;
+                                  const std::string& comment) const;
 
   /** Print command sequence command */
   virtual void toStreamCmdCommandSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const = 0;
+      std::ostream& out, const std::vector<Command*>& sequence) const;
 
   /** Print declaration sequence command */
   virtual void toStreamCmdDeclarationSequence(
-      std::ostream& out, const std::vector<Command*>& sequence) const = 0;
+      std::ostream& out, const std::vector<Command*>& sequence) const;
 
  protected:
   /** Derived classes can construct, but no one else. */
