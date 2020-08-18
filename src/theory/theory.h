@@ -208,7 +208,7 @@ class Theory {
                     std::set<Node>& termSet) const;
   /**
    * Same as above, but with empty irrKinds. This version can be overridden
-   * by the theory, e.g. by restricting or extended the set of terms returned
+   * by the theory, e.g. by restricting or extending the set of terms returned
    * by computeRelevantTermsInternal, which is called by default with no
    * irrKinds.
    */
