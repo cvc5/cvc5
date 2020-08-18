@@ -162,9 +162,10 @@ void TheoryEngine::finishInit() {
   // set the core equality engine on quantifiers engine
   if (d_logicInfo.isQuantified())
   {
-    d_quantEngine->setMasterEqualityEngine(d_eeDistributed->getMasterEqualityEngine());
+    d_quantEngine->setMasterEqualityEngine(
+        d_eeDistributed->getMasterEqualityEngine());
   }
-  
+
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     Theory* t = d_theoryTable[theoryId];
