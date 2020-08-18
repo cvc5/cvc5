@@ -27,6 +27,7 @@ EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
 
 EqEngineManagerDistributed::~EqEngineManagerDistributed()
 {
+  // pop the model context which we pushed on initialization
   d_modelEeContext.pop();
 }
 
@@ -111,6 +112,8 @@ void EqEngineManagerDistributed::initializeModel(TheoryModel* m)
     AlwaysAssert(false) << "Expected model to use equality engine";
   }
   m->finishInit();
+  // We push a context during initialization since the model is cleared during
+  // collectModelInfo using pop/push.
   d_modelEeContext.push();
 }
 

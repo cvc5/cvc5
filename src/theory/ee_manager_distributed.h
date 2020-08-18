@@ -60,7 +60,11 @@ class EqEngineManagerDistributed : public EqEngineManager
    * model.
    */
   void initializeModel(TheoryModel* m) override;
-  /** get the model equality engine context */
+  /**
+   * Get the model equality engine context. This is a dummy context that is
+   * used for clearing the contents of the model's equality engine via
+   * pop/push.
+   */
   context::Context* getModelEqualityEngineContext();
   /** get the model equality engine */
   eq::EqualityEngine* getModelEqualityEngine();
