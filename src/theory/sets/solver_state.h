@@ -51,7 +51,7 @@ class SolverState : public TheoryState
   SolverState(TheorySetsPrivate& p,
               context::Context* c,
               context::UserContext* u,
-              Valuation& val);
+              Valuation val);
   //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
@@ -60,8 +60,6 @@ class SolverState : public TheoryState
   /** register term n of type tnn in the equivalence class of r */
   void registerTerm(Node r, TypeNode tnn, Node n);
   //-------------------------------- end initialize per check
-  /** Set conf is a conflict node to be sent on the output channel.  */
-  void notifyInConflict(Node conf);
   /** add equality to explanation
    *
    * This adds a = b to exp if a and b are syntactically disequal. The equality

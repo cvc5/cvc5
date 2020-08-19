@@ -36,14 +36,16 @@ namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::Context* c,
-                                     context::UserContext* u)
+                                     context::UserContext* u,
+                                     Valuation valuation
+                                    )
     : d_members(c),
       d_deq(c),
       d_termProcessed(u),
       d_keep(c),
       d_full_check_incomplete(false),
       d_external(external),
-      d_state(*this, c, u),
+      d_state(*this, c, u, valuation),
       d_im(*this, d_state, c, u),
       d_rels(new TheorySetsRels(d_state, d_im, u)),
       d_cardSolver(new CardinalityExtension(d_state, d_im, c, u)),
@@ -177,7 +179,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
               // conflict
               Trace("sets-prop")
                   << "Propagate eq-mem conflict : " << exp << std::endl;
-              d_state.notifyInConflict(exp);
+              d_im.conflict(exp);
               return;
             }
           }
@@ -315,7 +317,7 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
             {
               Trace("sets-prop")
                   << "Propagate mem-eq conflict : " << pexp << std::endl;
-              d_state.notifyInConflict(pexp);
+              d_im.conflict(pexp);
             }
           }
         }
@@ -1425,7 +1427,7 @@ Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
   Node conf = explain(a.eqNode(b));
-  d_state.notifyInConflict(conf);
+  d_im.conflict(conf);
   Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explanation "
                 << conf << std::endl;
   Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;

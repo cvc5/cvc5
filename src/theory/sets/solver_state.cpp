@@ -28,7 +28,7 @@ namespace sets {
 SolverState::SolverState(TheorySetsPrivate& p,
                          context::Context* c,
                          context::UserContext* u,
-                         Valuation& val)
+                         Valuation val)
     : TheoryState(c, u, val), d_parent(p), d_proxy(u), d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -162,13 +162,6 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   {
     Trace("sets-debug2") << "Unknown-set[" << r << "] : " << n << std::endl;
   }
-}
-
-void SolverState::notifyInConflict(Node conf)
-{
-  // note this should be done by inference manager
-  d_parent.getOutputChannel()->conflict(conf);
-  notifyInConflict();
 }
 
 void SolverState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const

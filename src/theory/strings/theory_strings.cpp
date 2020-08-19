@@ -81,6 +81,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
     // add checkers
     d_sProofChecker.registerTo(pc);
   }
+  // use the state object as the official theory state
+  d_theoryState = &d_state;
 }
 
 TheoryStrings::~TheoryStrings() {
