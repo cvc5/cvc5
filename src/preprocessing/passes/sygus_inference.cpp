@@ -313,25 +313,25 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
     return false;
   }
   // get the synthesis solutions
-  std::map<Expr, Expr> synth_sols;
+  std::map<Node, Node> synth_sols;
   rrSygus->getSynthSolutions(synth_sols);
 
   std::vector<Node> final_ff;
   std::vector<Node> final_ff_sol;
-  for (std::map<Expr, Expr>::iterator it = synth_sols.begin();
+  for (std::map<Node, Node>::iterator it = synth_sols.begin();
        it != synth_sols.end();
        ++it)
   {
     Trace("sygus-infer") << "  synth sol : " << it->first << " -> "
                          << it->second << std::endl;
-    Node ffv = Node::fromExpr(it->first);
+    Node ffv = it->first;
     std::map<Node, Node>::iterator itffv = ff_var_to_ff.find(ffv);
     // all synthesis solutions should correspond to a variable we introduced
     Assert(itffv != ff_var_to_ff.end());
     if (itffv != ff_var_to_ff.end())
     {
       Node ff = itffv->second;
-      Node body2 = Node::fromExpr(it->second);
+      Node body2 = it->second;
       Trace("sygus-infer") << "Define " << ff << " as " << body2 << std::endl;
       funs.push_back(ff);
       sols.push_back(body2);

@@ -19,15 +19,16 @@
 
 #include <unordered_map>
 
+#include "expr/lazy_proof.h"
 #include "expr/node.h"
-#include "preprocessing/assertion_pipeline.h"
+#include "expr/term_conversion_proof_generator.h"
+#include "theory/trust_node.h"
 
 namespace CVC4 {
 
 class LogicInfo;
 class TheoryEngine;
 class RemoveTermFormulas;
-class LazyCDProof;
 
 namespace theory {
 
@@ -40,7 +41,9 @@ class TheoryPreprocessor
 
  public:
   /** Constructs a theory preprocessor */
-  TheoryPreprocessor(TheoryEngine& engine, RemoveTermFormulas& tfr);
+  TheoryPreprocessor(TheoryEngine& engine,
+                     RemoveTermFormulas& tfr,
+                     ProofNodeManager* pnm = nullptr);
   /** Destroys a theory preprocessor */
   ~TheoryPreprocessor();
   /** Clear the cache of this class */
@@ -69,7 +72,7 @@ class TheoryPreprocessor
    * the formula.  This is only called on input assertions, after ITEs
    * have been removed.
    */
-  Node theoryPreprocess(TNode node);
+  TrustNode theoryPreprocess(TNode node);
 
  private:
   /** Reference to owning theory engine */
@@ -80,8 +83,28 @@ class TheoryPreprocessor
   NodeMap d_ppCache;
   /** The term formula remover */
   RemoveTermFormulas& d_tfr;
+  /** The context for the proof generator below */
+  context::Context d_pfContext;
+  /** A term conversion proof generator */
+  std::unique_ptr<TConvProofGenerator> d_tpg;
+  /** A lazy proof, for additional lemmas. */
+  std::unique_ptr<LazyCDProof> d_lp;
   /** Helper for theoryPreprocess */
   Node ppTheoryRewrite(TNode term);
+  /**
+   * Rewrite with proof, which stores a REWRITE step in d_tpg if necessary
+   * and returns the rewritten form of term.
+   */
+  Node rewriteWithProof(Node term);
+  /**
+   * Preprocess with proof, which calls the appropriate ppRewrite method,
+   * stores the corresponding rewrite step in d_tpg if necessary and returns
+   * the preprocessed and rewritten form of term. It should be the case that
+   * term is already in rewritten form.
+   */
+  Node preprocessWithProof(Node term);
+  /** Proofs enabled */
+  bool isProofEnabled() const;
 };
 
 }  // namespace theory
