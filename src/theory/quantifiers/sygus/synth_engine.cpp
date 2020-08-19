@@ -233,8 +233,8 @@ void SynthEngine::assignConjecture(Node q)
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
                          << conj_se_ngsi_subs << std::endl;
-      Node qeRes = smt_qe->getQuantifierElimination(
-          conj_se_ngsi_subs, true, false);
+      Node qeRes =
+          smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true, false);
       Trace("cegqi-qep") << "Result : " << qeRes << std::endl;
 
       // create single invocation conjecture, if QE was successful
@@ -244,8 +244,8 @@ void SynthEngine::assignConjecture(Node q)
             subs.begin(), subs.end(), orig.begin(), orig.end());
         if (!nqe_vars.empty())
         {
-          qeRes = nm->mkNode(
-              EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qeRes);
+          qeRes =
+              nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qeRes);
         }
         Assert(q.getNumChildren() == 3);
         qeRes = nm->mkNode(FORALL, q[0], qeRes, q[2]);
