@@ -37,8 +37,7 @@ namespace sets {
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::Context* c,
                                      context::UserContext* u,
-                                     Valuation valuation
-                                    )
+                                     Valuation valuation)
     : d_members(c),
       d_deq(c),
       d_termProcessed(u),

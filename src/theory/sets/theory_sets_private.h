@@ -157,14 +157,14 @@ class TheorySetsPrivate {
   TheorySetsPrivate(TheorySets& external,
                     context::Context* c,
                     context::UserContext* u,
-                                     Valuation valuation);
+                    Valuation valuation);
 
   ~TheorySetsPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
-  
+
   /** Get the solver state */
-  SolverState * getSolverState() { return &d_state; }
+  SolverState* getSolverState() { return &d_state; }
 
   /**
    * Finish initialize, called after the equality engine of theory sets has

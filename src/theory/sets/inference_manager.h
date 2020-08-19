@@ -111,6 +111,7 @@ class InferenceManager
 
   /** Set conf is a conflict node to be sent on the output channel.  */
   void conflict(Node conf);
+
  private:
   /** constants */
   Node d_true;
