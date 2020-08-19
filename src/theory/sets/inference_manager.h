@@ -109,7 +109,10 @@ class InferenceManager
   /** Have we sent lem as a lemma in the current user context? */
   bool hasLemmaCached(Node lem) const;
 
-  /** Set conf is a conflict node to be sent on the output channel.  */
+  /** 
+   * Send conflict.
+   * @param conf The conflict node to be sent on the output channel
+   */
   void conflict(Node conf);
 
  private:
