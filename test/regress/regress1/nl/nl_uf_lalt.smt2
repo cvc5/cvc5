@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores --no-proof-new
+; COMMAND-LINE: --no-check-unsat-cores --no-proof-new
 (set-logic QF_UFNIA)
 (set-info :status unsat)
 (declare-fun c (Int) Int)
