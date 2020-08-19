@@ -92,6 +92,7 @@
 #include "smt/model_core_builder.h"
 #include "smt/options_manager.h"
 #include "smt/preprocessor.h"
+#include "smt/quant_elim_solver.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_engine_state.h"
 #include "smt/smt_engine_stats.h"
@@ -104,11 +105,6 @@
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/logic_info.h"
-#include "theory/quantifiers/fun_def_process.h"
-#include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 #include "theory/strings/theory_strings.h"
@@ -1895,7 +1891,7 @@ bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
   return d_sygusSolver->getSynthSolutions(solMap);
 }
 
-Node SmtEngine::doQuantifierElimination(Node q, bool doFull, bool strict)
+Node SmtEngine::getQuantifierElimination(Node q, bool doFull, bool strict)
 {
   SmtScope smts(this);
   finishInit();

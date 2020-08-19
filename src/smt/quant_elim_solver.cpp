@@ -29,7 +29,7 @@ QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
 
 QuantElimSolver::~QuantElimSolver() {}
 
-Node QuantElimSolver::doQuantifierElimination(Assertions& as,
+Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                                               Node e,
                                               bool doFull)
 {

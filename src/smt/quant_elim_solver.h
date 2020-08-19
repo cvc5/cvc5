@@ -82,7 +82,7 @@ class QuantElimSolver
    * for incrementally computing the result of a
    * quantifier elimination.
    */
-  Node doQuantifierElimination(Assertions& as, Node q, bool doFull);
+  Node getQuantifierElimination(Assertions& as, Node q, bool doFull);
 
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */

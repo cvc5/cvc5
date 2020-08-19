@@ -106,6 +106,7 @@ class Preprocessor;
 class SmtSolver;
 class SygusSolver;
 class AbductionSolver;
+class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
  * SmtEngine to permit expanding definitions late (and lazily), to
@@ -629,7 +630,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * throw@ Exception
    */
-  Expr doQuantifierElimination(Node q, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
