@@ -80,7 +80,7 @@ private:
     EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Assert (predicate.getKind()==kind::EQUAL);
+      Assert(predicate.getKind() == kind::EQUAL);
       d_sharedTerms.propagateEquality(predicate, value);
       return true;
     }

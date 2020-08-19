@@ -667,7 +667,6 @@ private:
   void addTriggerEquality(TNode equality);
 
  public:
-
   /**
    * Adds a term to the term database.
    */
