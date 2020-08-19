@@ -33,7 +33,8 @@ class EqualityEngineNotify
   virtual ~EqualityEngineNotify(){};
 
   /**
-   * Notifies about a trigger predicate that became true or false.
+   * Notifies about a trigger predicate that became true or false. Notice that
+   * predicate can be an equality.
    *
    * @param predicate the trigger predicate that became true or false
    * @param value the value of the predicate
