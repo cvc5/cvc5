@@ -28,7 +28,7 @@ ArithState::ArithState(TheoryArithPrivate& parent,
 {
 }
 
-bool ArithState::isInConflict() const { return d_parent.anyConflict(); }
+bool ArithState::isInConflict() const { return d_parent.anyConflict() || d_conflict; }
 
 }  // namespace arith
 }  // namespace theory
