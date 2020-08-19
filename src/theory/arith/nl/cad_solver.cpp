@@ -106,6 +106,49 @@ std::vector<NlLemma> CadSolver::checkFull()
 #endif
 }
 
+std::vector<NlLemma> CadSolver::checkPartial()
+{
+#ifdef CVC4_POLY_IMP
+  std::vector<NlLemma> lems;
+  auto covering = d_CAC.getUnsatCover(0, true);
+  if (covering.empty())
+  {
+    d_foundSatisfiability = true;
+    Trace("nl-cad") << "SAT: " << d_CAC.getModel() << std::endl;
+  }
+  else
+  {
+    auto* nm = NodeManager::currentNM();
+    Node first_var =
+        d_CAC.getConstraints().varMapper()(d_CAC.getVariableOrdering()[0]);
+    for (const auto& interval : covering)
+    {
+      Node premise;
+      Assert(!interval.d_origins.empty());
+      if (interval.d_origins.size() == 1)
+      {
+        premise = interval.d_origins[0];
+      }
+      else
+      {
+        premise = nm->mkNode(Kind::AND, interval.d_origins);
+      }
+      Node conclusion =
+          excluding_interval_to_lemma(first_var, interval.d_interval);
+      Node lemma = nm->mkNode(Kind::IMPLIES, premise, conclusion);
+      Trace("nl-cad") << "Excluding " << first_var << " -> " << interval.d_interval << " using " << lemma << std::endl;
+      lems.emplace_back(lemma, Inference::CAD_EXCLUDED_INTERVAL);
+    }
+  }
+  return lems;
+#else
+  Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
+               "with --poly."
+            << std::endl;
+  return {};
+#endif
+}
+
 bool CadSolver::constructModelIfAvailable(std::vector<Node>& assertions)
 {
 #ifdef CVC4_POLY_IMP
