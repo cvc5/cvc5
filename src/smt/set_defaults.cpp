@@ -273,34 +273,28 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
                    << std::endl;
     }
   }
+  //!!!!!!!!!!!! temporary on proof-new, whether it is ok to disable proof-new
+  bool disableProofNewOk = false;
+  if (options::globalNegate())
+  {
+    // When global negate answers "unsat", it is not due to showing a set of
+    // formulas is unsat. Thus, proofs do not apply.
+    disableProofNewOk = true;
+  }
   // !!!!!!!!!!!!!!!! temporary, to support CI check for old proof system
   if (options::proof())
   {
-    options::proofNew.set(false);
     // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
     // don't want CI failures
-    options::proofNewReq.set(false);
-    options::checkProofsNew.set(false);
-    options::proofNewEagerChecking.set(false);
+    disableProofNewOk = true;
   }
   // !!!!!!!!!!!!!!!! temporary, to facilitate development of new prop engine
   // with new proof system
   if (options::unsatCores())
   {
-    options::proofNew.set(false);
     // set proofNewReq/proofNewEagerChecking/checkProofsNew to false, since we
     // don't want CI failures
-    options::proofNewReq.set(false);
-    options::checkProofsNew.set(false);
-    options::proofNewEagerChecking.set(false);
-  }
-  if (options::proofNew())
-  {
-    if (!options::stringLenConc.wasSetByUser())
-    {
-      options::stringLenConc.set(true);
-      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
-    }
+    disableProofNewOk = true;
   }
 
   if (options::arraysExp())
@@ -339,6 +333,27 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     logic = logic.getUnlockedCopy();
     logic.enableSygus();
     logic.lock();
+    // When sygus answers "unsat", it is not due to showing a set of
+    // formulas is unsat in the standard way. Thus, proofs do not apply.
+    disableProofNewOk = true;
+  }
+  
+  //!!!!!!!!!!!! temporary on proof-new
+  if (disableProofNewOk && options::proofNew())
+  {
+    options::proofNew.set(false);
+    options::proofNewReq.set(false);
+    options::checkProofsNew.set(false);
+    options::proofNewEagerChecking.set(false);
+  }
+  
+  if (options::proofNew())
+  {
+    if (!options::stringLenConc.wasSetByUser())
+    {
+      options::stringLenConc.set(true);
+      Trace("smt") << "turning on string-len-conc, for proof-new" << std::endl;
+    }
   }
 
   // sygus core connective requires unsat cores
@@ -1165,21 +1180,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     if (!options::cegqiPreRegInst.wasSetByUser())
     {
       options::cegqiPreRegInst.set(true);
-    }
-    // not compatible with proofs
-    if (options::proofNew())
-    {
-      if (options::proofNew.wasSetByUser())
-      {
-        Notice() << "SmtEngine: setting proof-new to false to support SyGuS"
-                 << std::endl;
-      }
-      options::proofNew.set(false);
-      // we set proofNewReq/proofNewEagerChecking/checkProofsNew to false, as
-      // proofs are truly inapplicable
-      options::proofNewReq.set(false);
-      options::checkProofsNew.set(false);
-      options::proofNewEagerChecking.set(false);
     }
   }
   // counterexample-guided instantiation for non-sygus

@@ -108,7 +108,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     }
     // All free assumptions should be arguments to SCOPE.
     std::stringstream ss;
-               
+
     bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
     if (dumpProofTraceOn)
     {
