@@ -110,7 +110,7 @@ TheoryBV::TheoryBV(context::Context* c,
   }
   d_subtheories.emplace_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
-  
+
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
 }

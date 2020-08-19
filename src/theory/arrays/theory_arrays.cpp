@@ -132,7 +132,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
   // The preprocessing congruence kinds
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
-  
+
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
 }
