@@ -44,6 +44,8 @@ class Datatype;
 class DatatypeConstructor;
 class DatatypeConstructorArg;
 class ExprManager;
+class GetAbductCommand;
+class GetInterpolCommand;
 class NodeManager;
 class SmtEngine;
 class SynthFunCommand;
@@ -1950,8 +1952,10 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_PUBLIC Grammar
 {
-  friend class Solver;
+  friend class CVC4::GetAbductCommand;
+  friend class CVC4::GetInterpolCommand;
   friend class CVC4::SynthFunCommand;
+  friend class Solver;
 
  public:
   /**

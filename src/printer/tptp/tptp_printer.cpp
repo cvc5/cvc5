@@ -39,15 +39,6 @@ void TptpPrinter::toStream(
   n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
-void TptpPrinter::toStream(std::ostream& out,
-                           const Command* c,
-                           int toDepth,
-                           bool types,
-                           size_t dag) const
-{
-  c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
-}/* TptpPrinter::toStream() */
-
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const
 {
   s->toStream(out, language::output::LANG_SMTLIB_V2_5);

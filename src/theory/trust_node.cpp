@@ -121,6 +121,22 @@ Node TrustNode::getPropExpProven(TNode lit, Node exp)
 
 Node TrustNode::getRewriteProven(TNode n, Node nr) { return n.eqNode(nr); }
 
+void TrustNode::debugCheckClosed(const char* c,
+                                 const char* ctx,
+                                 bool reqNullGen)
+{
+  pfgEnsureClosed(d_proven, d_gen, c, ctx, reqNullGen);
+}
+
+std::string TrustNode::identifyGenerator() const
+{
+  if (d_gen == nullptr)
+  {
+    return "null";
+  }
+  return d_gen->identify();
+}
+
 std::ostream& operator<<(std::ostream& out, TrustNode n)
 {
   out << "(" << n.getKind() << " " << n.getProven() << ")";
