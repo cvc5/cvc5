@@ -118,7 +118,12 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       {
         Trace("smt-pppg") << "...add missing step" << std::endl;
         // add trusted step, the rule depends on the kind of trust node
-        cdp.addStep(proven, tnk == theory::TrustNodeKind::LEMMA ? PfRule::PREPROCESS_LEMMA : PfRule::PREPROCESS, {}, {proven});
+        cdp.addStep(proven,
+                    tnk == theory::TrustNodeKind::LEMMA
+                        ? PfRule::PREPROCESS_LEMMA
+                        : PfRule::PREPROCESS,
+                    {},
+                    {proven});
       }
     }
   } while (success);

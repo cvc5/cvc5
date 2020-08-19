@@ -88,7 +88,8 @@ bool ProofPostprocessCallback::update(Node res,
             << "...no proof, possibly an input assumption" << std::endl;
         // this doesn't hold since it could be an ASSUME in a local scope.
         /*
-        AlwaysAssert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(), f)
+        AlwaysAssert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(),
+        f)
                != d_freeAssertions.end())
             << "No preprocess proof for formula which is not an input "
                "assertion: "
