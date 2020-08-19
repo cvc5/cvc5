@@ -39,42 +39,46 @@ Node SmtEngine::doQuantifierElimination(Assertions& as, Node e, bool doFull)
     throw ModalException(
         "Expecting a quantified formula as argument to get-qe.");
   }
-  NodeManager * nm = NodeManager::currentNM();
-  //tag the quantified formula with the quant-elim attribute
+  NodeManager* nm = NodeManager::currentNM();
+  // tag the quantified formula with the quant-elim attribute
   TypeNode t = nm->booleanType();
   Node n_attr = nm->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
-  std::vector< Node > node_values;
+  std::vector<Node> node_values;
   TheoryEngine* te = d_smtSolver.getTheoryEngine();
   Assert(te != nullptr);
   te->setUserAttribute(
       doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
   n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
-  std::vector< Node > e_children;
-  e_children.push_back( e[0] );
-  e_children.push_back(e.getKind() == EXISTS ? e[1]
-                                                     : e[1].negate());
-  e_children.push_back( n_attr );
-  Node ne = nm->mkNode( EXISTS, e_children );
-  Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne << std::endl;
+  std::vector<Node> e_children;
+  e_children.push_back(e[0]);
+  e_children.push_back(e.getKind() == EXISTS ? e[1] : e[1].negate());
+  e_children.push_back(n_attr);
+  Node ne = nm->mkNode(EXISTS, e_children);
+  Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
+                        << std::endl;
   Assert(ne.getNumChildren() == 3);
-  Result r = d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, false, false);
+  Result r =
+      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, false, false);
   Trace("smt-qe") << "Query returned " << r << std::endl;
-  if(r.asSatisfiabilityResult().isSat() != Result::UNSAT ) {
-    if( r.asSatisfiabilityResult().isSat() != Result::SAT && doFull ){
+  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  {
+    if (r.asSatisfiabilityResult().isSat() != Result::SAT && doFull)
+    {
       Notice()
           << "While performing quantifier elimination, unexpected result : "
           << r << " for query.";
       // failed, return original
       return e;
     }
-    std::vector< Node > inst_qs;
+    std::vector<Node> inst_qs;
     te->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
     Node ret_n;
-    if( inst_qs.size()==1 ){
+    if (inst_qs.size() == 1)
+    {
       Node top_q = inst_qs[0];
-      //Node top_q = Rewriter::rewrite( ne ).negate();
+      // Node top_q = Rewriter::rewrite( ne ).negate();
       Assert(top_q.getKind() == FORALL);
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
       ret_n = te->getInstantiatedConjunction(top_q);
@@ -83,7 +87,9 @@ Node SmtEngine::doQuantifierElimination(Assertions& as, Node e, bool doFull)
       {
         ret_n = Rewriter::rewrite(ret_n.negate());
       }
-    }else{
+    }
+    else
+    {
       ret_n = nm->mkConst(e.getKind() != EXISTS);
     }
     // do extended rewrite to minimize the size of the formula aggressively
@@ -92,8 +98,7 @@ Node SmtEngine::doQuantifierElimination(Assertions& as, Node e, bool doFull)
     return ret_n;
   }
   // otherwise, just true/false
-    return nm
-        ->mkConst(e.getKind() == EXISTS);
+  return nm->mkConst(e.getKind() == EXISTS);
 }
 
 }  // namespace smt

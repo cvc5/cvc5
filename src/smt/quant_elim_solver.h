@@ -22,7 +22,7 @@
 
 namespace CVC4 {
 namespace smt {
-  
+
 class SmtSolver;
 
 /**
@@ -36,7 +36,7 @@ class QuantElimSolver
  public:
   QuantElimSolver(SmtSolver& sms);
   ~QuantElimSolver();
- 
+
   /**
    * Do quantifier elimination.
    *
@@ -85,7 +85,6 @@ class QuantElimSolver
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */
   SmtSolver& d_smtSolver;
-   
 };
 
 }  // namespace smt
