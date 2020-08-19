@@ -9,17 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief The solver for abduction queries
+ ** \brief The solver for quantifier elimination queries
  **/
 
-#include "smt/abduction_solver.h"
+#include "smt/quant_elim_solver.h"
 
-#include "options/smt_options.h"
-#include "smt/smt_engine.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/sygus_abduct.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/smt_engine_subsolver.h"
+#include "smt/smt_solver.h"
+#include "theory/rewriter.h"
+#include "theory/quantifiers/extended_rewrite.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4::theory;
 using namespace CVC4::kind;
@@ -27,11 +25,11 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace smt {
 
-AbductionSolver::AbductionSolver(SmtEngine* parent) : d_parent(parent) {}
+QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
 
-AbductionSolver::~AbductionSolver() {}
+QuantElimSolver::~QuantElimSolver() {}
 
-Node SmtEngine::doQuantifierElimination(Assertions& as, Node e, bool doFull)
+Node QuantElimSolver::doQuantifierElimination(Assertions& as, Node e, bool doFull)
 {
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
   if (e.getKind() != EXISTS && e.getKind() != FORALL)
@@ -50,11 +48,11 @@ Node SmtEngine::doQuantifierElimination(Assertions& as, Node e, bool doFull)
       doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
   n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
-  std::vector<Node> e_children;
-  e_children.push_back(e[0]);
-  e_children.push_back(e.getKind() == EXISTS ? e[1] : e[1].negate());
-  e_children.push_back(n_attr);
-  Node ne = nm->mkNode(EXISTS, e_children);
+  std::vector<Node> children;
+  children.push_back(e[0]);
+  children.push_back(e.getKind() == EXISTS ? e[1] : e[1].negate());
+  children.push_back(n_attr);
+  Node ne = nm->mkNode(EXISTS, children);
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
@@ -74,28 +72,28 @@ Node SmtEngine::doQuantifierElimination(Assertions& as, Node e, bool doFull)
     std::vector<Node> inst_qs;
     te->getInstantiatedQuantifiedFormulas(inst_qs);
     Assert(inst_qs.size() <= 1);
-    Node ret_n;
+    Node ret;
     if (inst_qs.size() == 1)
     {
       Node top_q = inst_qs[0];
       // Node top_q = Rewriter::rewrite( ne ).negate();
       Assert(top_q.getKind() == FORALL);
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
-      ret_n = te->getInstantiatedConjunction(top_q);
-      Trace("smt-qe") << "Returned : " << ret_n << std::endl;
+      ret = te->getInstantiatedConjunction(top_q);
+      Trace("smt-qe") << "Returned : " << ret << std::endl;
       if (e.getKind() == EXISTS)
       {
-        ret_n = Rewriter::rewrite(ret_n.negate());
+        ret = Rewriter::rewrite(ret.negate());
       }
     }
     else
     {
-      ret_n = nm->mkConst(e.getKind() != EXISTS);
+      ret = nm->mkConst(e.getKind() != EXISTS);
     }
     // do extended rewrite to minimize the size of the formula aggressively
     theory::quantifiers::ExtendedRewriter extr(true);
-    ret_n = extr.extendedRewrite(ret_n);
-    return ret_n;
+    ret = extr.extendedRewrite(ret);
+    return ret;
   }
   // otherwise, just true/false
   return nm->mkConst(e.getKind() == EXISTS);
