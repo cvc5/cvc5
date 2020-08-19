@@ -205,9 +205,6 @@ set(regress_0_tests
   regress0/bv/bv-abstr-bug2.smt2
   regress0/bv/bv-int-collapse1.smt2
   regress0/bv/bv-int-collapse2.smt2
-  regress0/bv/bv-options1.smt2
-  regress0/bv/bv-options2.smt2
-  regress0/bv/bv-options3.smt2
   regress0/bv/bv-options4.smt2
   regress0/bv/bv-to-bool1.smtv1.smt2
   regress0/bv/bv-to-bool2.smt2
@@ -681,7 +678,6 @@ set(regress_0_tests
   regress0/printer/let_shadowing.smt2
   regress0/printer/symbol_starting_w_digit.smt2
   regress0/printer/tuples_and_records.cvc
-  regress0/proof_no_support.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -946,6 +942,7 @@ set(regress_0_tests
   regress0/smtlib/issue4077.smt2
   regress0/smtlib/issue4151.smt2
   regress0/smtlib/issue4552.smt2
+  regress0/smtlib/issue4866.smt2
   regress0/smtlib/reason-unknown.smt2
   regress0/smtlib/reset.smt2
   regress0/smtlib/reset-assertions1.smt2
@@ -984,6 +981,7 @@ set(regress_0_tests
   regress0/strings/issue4662-consume-nterm.smt2
   regress0/strings/issue4674-recomp-nf.smt2
   regress0/strings/issue4820.smt2
+  regress0/strings/issue4915.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/large-model.smt2
   regress0/strings/leadingzero001.smt2
