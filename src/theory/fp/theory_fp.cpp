@@ -816,7 +816,7 @@ void TheoryFp::registerTerm(TNode node) {
     // Add to the equality engine
     if (k == kind::EQUAL)
     {
-      d_equalityEngine->addTriggerEquality(node);
+      d_equalityEngine->addTriggerPredicate(node);
     }
     else
     {

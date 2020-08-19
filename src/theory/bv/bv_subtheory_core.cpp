@@ -105,7 +105,7 @@ void CoreSolver::enableSlicer() {
 void CoreSolver::preRegister(TNode node) {
   d_preregisterCalled = true;
   if (node.getKind() == kind::EQUAL) {
-    d_equalityEngine->addTriggerEquality(node);
+    d_equalityEngine->addTriggerPredicate(node);
     if (d_useSlicer)
     {
       d_slicer->processEquality(node);
