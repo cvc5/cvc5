@@ -27,7 +27,7 @@ class TheoryArithPrivate;
 
 /**
  * The arithmetic state.
- * 
+ *
  * Note this object is intended to use TheoryArithPrivate
  * as a black box, and moreover the internals of TheoryArithPrivate will not
  * be refactored to use this state. Instead, the main theory solver TheoryArith
