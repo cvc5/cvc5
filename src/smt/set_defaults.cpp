@@ -337,7 +337,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // formulas is unsat in the standard way. Thus, proofs do not apply.
     disableProofNewOk = true;
   }
-  
+
   //!!!!!!!!!!!! temporary on proof-new
   if (disableProofNewOk && options::proofNew())
   {
@@ -346,7 +346,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     options::checkProofsNew.set(false);
     options::proofNewEagerChecking.set(false);
   }
-  
+
   if (options::proofNew())
   {
     if (!options::stringLenConc.wasSetByUser())
