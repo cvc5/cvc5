@@ -494,15 +494,10 @@ void InferenceManager::postProcessFact(TNode fact)
     {
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-<<<<<<< HEAD
       InferInfo iiPrefixConf;
       iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
       iiPrefixConf.d_conc = d_false;
       utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
-=======
-      Node conflictNode = mkExplain(a);
-      d_state.notifyInConflict();
->>>>>>> 6710b082bc6fa8c7f67203a4013657e069479119
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << pc << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
