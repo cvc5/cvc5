@@ -69,7 +69,7 @@ TseitinCnfStream::TseitinCnfStream(SatSolver* satSolver,
 
 bool CnfStream::assertClause(TNode node, SatClause& c)
 {
-  Debug("cnf") << "Inserting into stream " << c << " node = " << node << endl;
+  Trace("cnf") << "Inserting into stream " << c << " node = " << node << endl;
   if(Dump.isOn("clauses")) {
     if(c.size() == 1) {
       Dump("clauses") << AssertCommand(Expr(getNode(c[0]).toExpr()));
@@ -138,7 +138,7 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
   // These are not removable and have no proof ID
   d_removable = false;
 
-  Debug("cnf") << "ensureLiteral(" << n << ")" << endl;
+  Trace("cnf") << "ensureLiteral(" << n << ")" << endl;
   if(hasLiteral(n)) {
     SatLiteral lit = getLiteral(n);
     if(!d_literalToNodeMap.contains(lit)){
@@ -198,7 +198,7 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
 }
 
 SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister, bool canEliminate) {
-  Debug("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom
+  Trace("cnf") << d_name << "::newLiteral(" << node << ", " << isTheoryAtom
                << ")\n"
                << push;
   Assert(node.getKind() != kind::NOT);
@@ -206,17 +206,17 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
   // Get the literal for this node
   SatLiteral lit;
   if (!hasLiteral(node)) {
-    Debug("cnf") << d_name << "::newLiteral: node already registered\n";
+    Trace("cnf") << d_name << "::newLiteral: node already registered\n";
     // If no literal, we'll make one
     if (node.getKind() == kind::CONST_BOOLEAN) {
-      Debug("cnf") << d_name << "::newLiteral: boolean const\n";
+      Trace("cnf") << d_name << "::newLiteral: boolean const\n";
       if (node.getConst<bool>()) {
         lit = SatLiteral(d_satSolver->trueVar());
       } else {
         lit = SatLiteral(d_satSolver->falseVar());
       }
     } else {
-      Debug("cnf") << d_name << "::newLiteral: new var\n";
+      Trace("cnf") << d_name << "::newLiteral: new var\n";
       lit = SatLiteral(d_satSolver->newVar(isTheoryAtom, preRegister, canEliminate));
     }
     d_nodeToLiteralMap.insert(node, lit);
@@ -240,13 +240,13 @@ SatLiteral CnfStream::newLiteral(TNode node, bool isTheoryAtom, bool preRegister
     d_removable = backupRemovable;
   }
   // Here, you can have it
-  Debug("cnf") << "newLiteral(" << node << ") => " << lit << "\n" << pop;
+  Trace("cnf") << "newLiteral(" << node << ") => " << lit << "\n" << pop;
   return lit;
 }
 
 TNode CnfStream::getNode(const SatLiteral& literal) {
-  Debug("cnf") << "getNode(" << literal << ")" << endl;
-  Debug("cnf") << "getNode(" << literal << ") => " << d_literalToNodeMap[literal] << endl;
+  Trace("cnf") << "getNode(" << literal << ")" << endl;
+  Trace("cnf") << "getNode(" << literal << ") => " << d_literalToNodeMap[literal] << endl;
   return d_literalToNodeMap[literal];
 }
 
@@ -263,7 +263,7 @@ void CnfStream::setProof(CnfProof* proof) {
 }
 
 SatLiteral CnfStream::convertAtom(TNode node, bool noPreregistration) {
-  Debug("cnf") << "convertAtom(" << node << ")" << endl;
+  Trace("cnf") << "convertAtom(" << node << ")" << endl;
 
   Assert(!hasLiteral(node)) << "atom already mapped!";
 
@@ -293,7 +293,7 @@ SatLiteral CnfStream::getLiteral(TNode node) {
       << "Literal not in the CNF Cache: " << node << "\n";
 
   SatLiteral literal = d_nodeToLiteralMap[node];
-  Debug("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
+  Trace("cnf") << "CnfStream::getLiteral(" << node << ") => " << literal << std::endl;
   return literal;
 }
 
@@ -422,7 +422,7 @@ SatLiteral TseitinCnfStream::handleIff(TNode iffNode) {
   Assert(iffNode.getKind() == EQUAL) << "Expecting an EQUAL expression!";
   Assert(iffNode.getNumChildren() == 2) << "Expecting exactly 2 children!";
 
-  Debug("cnf") << "handleIff(" << iffNode << ")" << endl;
+  Trace("cnf") << "handleIff(" << iffNode << ")" << endl;
 
   // Convert the children to CNF
   SatLiteral a = toCNF(iffNode[0]);
@@ -464,7 +464,7 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
   Assert(iteNode.getNumChildren() == 3);
   Assert(!d_removable) << "Removable clauses can not contain Boolean structure";
 
-  Debug("cnf") << "handleIte(" << iteNode[0] << " " << iteNode[1] << " " << iteNode[2] << ")" << endl;
+  Trace("cnf") << "handleIte(" << iteNode[0] << " " << iteNode[1] << " " << iteNode[2] << ")" << endl;
 
   SatLiteral condLit = toCNF(iteNode[0]);
   SatLiteral thenLit = toCNF(iteNode[1]);
@@ -497,14 +497,14 @@ SatLiteral TseitinCnfStream::handleIte(TNode iteNode) {
 
 
 SatLiteral TseitinCnfStream::toCNF(TNode node, bool negated) {
-  Debug("cnf") << "toCNF(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
+  Trace("cnf") << "toCNF(" << node << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   SatLiteral nodeLit;
   Node negatedNode = node.notNode();
 
   // If the non-negated node has already been translated, get the translation
   if(hasLiteral(node)) {
-    Debug("cnf") << "toCNF(): already translated" << endl;
+    Trace("cnf") << "toCNF(): already translated" << endl;
     nodeLit = getLiteral(node);
   } else {
     // Handle each Boolean operator case
@@ -704,7 +704,7 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool negated,
                                         ProofRule proof_id,
                                         TNode from) {
-  Debug("cnf") << "convertAndAssert(" << node
+  Trace("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
@@ -731,7 +731,7 @@ void TseitinCnfStream::convertAndAssert(TNode node,
 }
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {
-  Debug("cnf") << "convertAndAssert(" << node
+  Trace("cnf") << "convertAndAssert(" << node
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
 
   if (d_convertAndAssertCounter % ResourceManager::getFrequencyCount() == 0) {
