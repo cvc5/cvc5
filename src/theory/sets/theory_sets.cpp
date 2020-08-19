@@ -215,10 +215,7 @@ bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
   {
     return d_theory.propagate(predicate);
   }
-  else
-  {
-    return d_theory.propagate(predicate.notNode());
-  }
+  return d_theory.propagate(predicate.notNode());
 }
 
 bool TheorySets::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
