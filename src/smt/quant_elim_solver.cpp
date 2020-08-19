@@ -30,11 +30,11 @@ QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
 QuantElimSolver::~QuantElimSolver() {}
 
 Node QuantElimSolver::getQuantifierElimination(Assertions& as,
-                                               Node e,
+                                               Node q,
                                                bool doFull)
 {
-  Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
-  if (e.getKind() != EXISTS && e.getKind() != FORALL)
+  Trace("smt-qe") << "Do quantifier elimination " << q << std::endl;
+  if (q.getKind() != EXISTS && q.getKind() != FORALL)
   {
     throw ModalException(
         "Expecting a quantified formula as argument to get-qe.");
@@ -51,8 +51,8 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
   n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
   n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
   std::vector<Node> children;
-  children.push_back(e[0]);
-  children.push_back(e.getKind() == EXISTS ? e[1] : e[1].negate());
+  children.push_back(q[0]);
+  children.push_back(q.getKind() == EXISTS ? q[1] : q[1].negate());
   children.push_back(n_attr);
   Node ne = nm->mkNode(EXISTS, children);
   Trace("smt-qe-debug") << "Query for quantifier elimination : " << ne
@@ -71,7 +71,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
           << "While performing quantifier elimination, unexpected result : "
           << r << " for query.";
       // failed, return original
-      return e;
+      return q;
     }
     std::vector<Node> inst_qs;
     te->getInstantiatedQuantifiedFormulas(inst_qs);
@@ -79,19 +79,19 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     Node ret;
     if (inst_qs.size() == 1)
     {
-      Node top_q = inst_qs[0];
-      Assert(top_q.getKind() == FORALL);
-      Trace("smt-qe") << "Get qe for " << top_q << std::endl;
-      ret = te->getInstantiatedConjunction(top_q);
+      Node topq = inst_qs[0];
+      Assert(topq.getKind() == FORALL);
+      Trace("smt-qe") << "Get qe for " << topq << std::endl;
+      ret = te->getInstantiatedConjunction(topq);
       Trace("smt-qe") << "Returned : " << ret << std::endl;
-      if (e.getKind() == EXISTS)
+      if (q.getKind() == EXISTS)
       {
         ret = Rewriter::rewrite(ret.negate());
       }
     }
     else
     {
-      ret = nm->mkConst(e.getKind() != EXISTS);
+      ret = nm->mkConst(q.getKind() != EXISTS);
     }
     // do extended rewrite to minimize the size of the formula aggressively
     theory::quantifiers::ExtendedRewriter extr(true);
@@ -99,7 +99,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     return ret;
   }
   // otherwise, just true/false
-  return nm->mkConst(e.getKind() == EXISTS);
+  return nm->mkConst(q.getKind() == EXISTS);
 }
 
 }  // namespace smt
