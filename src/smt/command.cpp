@@ -2692,7 +2692,9 @@ void GetQuantifierEliminationCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->getQuantifierElimination(Node::fromExpr(d_expr), d_doFull).toExpr();
+    d_result =
+        smtEngine->getQuantifierElimination(Node::fromExpr(d_expr), d_doFull)
+            .toExpr();
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)

@@ -30,8 +30,8 @@ QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
 QuantElimSolver::~QuantElimSolver() {}
 
 Node QuantElimSolver::getQuantifierElimination(Assertions& as,
-                                              Node e,
-                                              bool doFull)
+                                               Node e,
+                                               bool doFull)
 {
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
   if (e.getKind() != EXISTS && e.getKind() != FORALL)
