@@ -75,15 +75,15 @@ std::shared_ptr<ProofNode> PropPfManager::getProof()
     }
     Trace("sat-proof") << "PropPfManager::getProof: proof is "
                        << *conflictProof.get() << "\n";
-    if (options::proofNewEagerChecking())
-    {
-      Trace("sat-proof")
-          << "PropPfManager::getProof: checking if can make scope...\n";
-      std::shared_ptr<ProofNode> scopePfn =
-          d_pnm->mkScope(conflictProof, d_assertions);
-      Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "
-                            "closed w.r.t. preprocessed assertions\n";
-    }
+  }
+  if (options::proofNewEagerChecking())
+  {
+    Trace("sat-proof")
+        << "PropPfManager::getProof: checking if can make scope...\n";
+    std::shared_ptr<ProofNode> scopePfn =
+        d_pnm->mkScope(conflictProof, d_assertions);
+    Trace("sat-proof") << "PropPfManager::getProof: prop engine prood is "
+                          "closed w.r.t. preprocessed assertions\n";
   }
   return conflictProof;
 }
