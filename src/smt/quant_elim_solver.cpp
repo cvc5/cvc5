@@ -15,8 +15,8 @@
 #include "smt/quant_elim_solver.h"
 
 #include "smt/smt_solver.h"
-#include "theory/rewriter.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::theory;
@@ -29,7 +29,9 @@ QuantElimSolver::QuantElimSolver(SmtSolver& sms) : d_smtSolver(sms) {}
 
 QuantElimSolver::~QuantElimSolver() {}
 
-Node QuantElimSolver::doQuantifierElimination(Assertions& as, Node e, bool doFull)
+Node QuantElimSolver::doQuantifierElimination(Assertions& as,
+                                              Node e,
+                                              bool doFull)
 {
   Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
   if (e.getKind() != EXISTS && e.getKind() != FORALL)
