@@ -34,10 +34,10 @@ class TheoryState
   TheoryState(context::Context* c, context::UserContext* u, Valuation val);
   virtual ~TheoryState() {}
   /**
-   * Finish initialize, ee is a pointer to the official equality engine
+   * Set equality engine, where ee is a pointer to the official equality engine
    * of theory.
    */
-  virtual void finishInit(eq::EqualityEngine* ee);
+  void setEqualityEngine(eq::EqualityEngine* ee);
   /** Get the SAT context */
   context::Context* getSatContext() const;
   /** Get the user context */
