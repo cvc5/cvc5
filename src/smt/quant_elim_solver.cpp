@@ -59,7 +59,7 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
                         << std::endl;
   Assert(ne.getNumChildren() == 3);
   Result r =
-      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, false, false);
+      d_smtSolver.checkSatisfiability(as, std::vector<Node>{ne}, false, true);
   Trace("smt-qe") << "Query returned " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
