@@ -27,8 +27,12 @@ class TheoryArithPrivate;
 
 /**
  * The arithmetic state.
- *
- * This is a wrapper for making a state object out of TheoryArithPrivate.
+ * 
+ * Note this object is intended to use TheoryArithPrivate
+ * as a black box, and moreover the internals of TheoryArithPrivate will not
+ * be refactored to use this state. Instead, the main theory solver TheoryArith
+ * will be refactored to be a standard layer on top of TheoryArithPrivate,
+ * which will include using this state in the standard way.
  */
 class ArithState : public TheoryState
 {

@@ -116,13 +116,7 @@ class TheoryArith : public Theory {
   }
 
  private:
-  /**
-   * The state object. Note this object is intended to use TheoryArithPrivate
-   * as a black box, and moreover the internals of TheoryArithPrivate will not
-   * be refactored to use this state. Instead, this class will be
-   * refactored to be a standard layer on top of TheoryArithPrivate, which
-   * will include using this state in the standard way.
-   */
+  /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
 };/* class TheoryArith */
 
