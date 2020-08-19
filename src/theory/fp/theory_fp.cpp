@@ -119,8 +119,11 @@ TheoryFp::TheoryFp(context::Context* c,
       d_toRealMap(u),
       realToFloatMap(u),
       floatToRealMap(u),
-      abstractionMap(u)
+      abstractionMap(u),
+      d_state(c, u, valuation)
 {
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 } /* TheoryFp::TheoryFp() */
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }

@@ -56,7 +56,8 @@ TheoryUF::TheoryUF(context::Context* c,
       d_ho(nullptr),
       d_conflict(c, false),
       d_functionsTerms(c),
-      d_symb(u, instanceName)
+      d_symb(u, instanceName),
+      d_state(c, u, valuation)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
 
@@ -65,6 +66,8 @@ TheoryUF::TheoryUF(context::Context* c,
   {
     d_ufProofChecker.registerTo(pc);
   }
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryUF::~TheoryUF() {

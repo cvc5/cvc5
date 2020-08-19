@@ -74,7 +74,8 @@ TheoryBV::TheoryBV(context::Context* c,
       d_calledPreregister(false),
       d_needsLastCallCheck(false),
       d_extf_range_infer(u),
-      d_extf_collapse_infer(u)
+      d_extf_collapse_infer(u),
+      d_state(c, u, valuation)
 {
   d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
   d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
@@ -109,6 +110,9 @@ TheoryBV::TheoryBV(context::Context* c,
   }
   d_subtheories.emplace_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+  
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryBV::~TheoryBV() {}

@@ -194,6 +194,8 @@ class TheoryArrays : public Theory {
 
   /** The theory rewriter for this theory. */
   TheoryArraysRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;

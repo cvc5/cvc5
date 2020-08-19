@@ -47,6 +47,8 @@ TheorySep::TheorySep(context::Context* c,
                      ProofNodeManager* pnm)
     : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
       d_lemmas_produced_c(u),
+      d_bounds_init(false),
+      d_state(c, u, valuation),
       d_notify(*this),
       d_conflict(c, false),
       d_reduce(u),
@@ -56,7 +58,9 @@ TheorySep::TheorySep(context::Context* c,
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-  d_bounds_init = false;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheorySep::~TheorySep() {
