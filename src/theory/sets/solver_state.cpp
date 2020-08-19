@@ -164,8 +164,9 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   }
 }
 
-void SolverState::setConflict(Node conf)
+void SolverState::notifyInConflict(Node conf)
 {
+  // note this should be done by inference manager
   d_parent.getOutputChannel()->conflict(conf);
   notifyInConflict();
 }

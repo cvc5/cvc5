@@ -61,7 +61,7 @@ class SolverState : public TheoryState
   void registerTerm(Node r, TypeNode tnn, Node n);
   //-------------------------------- end initialize per check
   /** Set conf is a conflict node to be sent on the output channel.  */
-  void setConflict(Node conf);
+  void notifyInConflict(Node conf);
   /** add equality to explanation
    *
    * This adds a = b to exp if a and b are syntactically disequal. The equality

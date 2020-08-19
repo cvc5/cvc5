@@ -67,7 +67,6 @@ void TheorySetsPrivate::finishInit()
 {
   d_equalityEngine = d_external.getEqualityEngine();
   Assert(d_equalityEngine != nullptr);
-  d_state.finishInit(d_equalityEngine);
 }
 
 void TheorySetsPrivate::eqNotifyNewClass(TNode t)
@@ -178,7 +177,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
               // conflict
               Trace("sets-prop")
                   << "Propagate eq-mem conflict : " << exp << std::endl;
-              d_state.setConflict(exp);
+              d_state.notifyInConflict(exp);
               return;
             }
           }
@@ -316,7 +315,7 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
             {
               Trace("sets-prop")
                   << "Propagate mem-eq conflict : " << pexp << std::endl;
-              d_state.setConflict(pexp);
+              d_state.notifyInConflict(pexp);
             }
           }
         }
@@ -1410,7 +1409,7 @@ bool TheorySetsPrivate::propagate(TNode literal)
   bool ok = d_external.d_out->propagate(literal);
   if (!ok)
   {
-    d_state.setConflict();
+    d_state.notifyInConflict();
   }
 
   return ok;
@@ -1426,7 +1425,7 @@ Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
   Node conf = explain(a.eqNode(b));
-  d_state.setConflict(conf);
+  d_state.notifyInConflict(conf);
   Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explanation "
                 << conf << std::endl;
   Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;
