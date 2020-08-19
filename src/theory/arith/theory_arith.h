@@ -17,11 +17,11 @@
 
 #pragma once
 
-#include "theory/theory.h"
 #include "expr/node.h"
 #include "proof/arith_proof_recorder.h"
-#include "theory/arith/theory_arith_private_forward.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/theory_arith_private_forward.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -114,8 +114,9 @@ class TheoryArith : public Theory {
   {
     d_proofRecorder = proofRecorder;
   }
+
  private:
-  /** 
+  /**
    * The state object. Note this object is intended to use TheoryArithPrivate
    * as a black box, and moreover the internals of TheoryArithPrivate will not
    * be refactored to use this state. Instead, this class will be
