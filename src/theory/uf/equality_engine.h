@@ -796,9 +796,10 @@ private:
    * Adds a notify trigger for the predicate p, where notice that p can be
    * an equality. When the predicate becomes true, eqNotifyTriggerPredicate will
    * be called with value = true, and when predicate becomes false
-   * eqNotifyTriggerPredicate will be called with value = false. If p is
-   * an equality, the internal implementation for when to recognize this is
-   * different.
+   * eqNotifyTriggerPredicate will be called with value = false. 
+   * 
+   * Notice that if p is an equality, then we use a separate method for
+   * determining when to call eqNotifyTriggerPredicate.
    */
   void addTriggerPredicate(TNode predicate);
 

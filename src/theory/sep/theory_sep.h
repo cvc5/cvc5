@@ -163,10 +163,7 @@ class TheorySep : public Theory {
       {
         return d_sep.propagate(predicate);
       }
-      else
-      {
-        return d_sep.propagate(predicate.notNode());
-      }
+      return d_sep.propagate(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,

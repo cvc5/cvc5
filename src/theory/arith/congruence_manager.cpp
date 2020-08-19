@@ -100,6 +100,7 @@ ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongru
 bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
     TNode predicate, bool value)
 {
+  Assert (predicate.getKind()==kind::EQUAL);
   Debug("arith::congruences")
       << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", "
       << (value ? "true" : "false") << ")" << std::endl;

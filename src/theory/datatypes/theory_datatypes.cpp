@@ -543,7 +543,7 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   switch (n.getKind()) {
   case kind::EQUAL:
   case kind::APPLY_TESTER:
-    // add trigger for testers and equalities
+    // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
     d_equalityEngine->addTriggerPredicate(n);
     break;

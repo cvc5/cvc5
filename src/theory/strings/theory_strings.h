@@ -131,9 +131,8 @@ class TheoryStrings : public Theory {
       Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         return d_str.propagate(predicate);
-      } else {
-        return d_str.propagate(predicate.notNode());
       }
+      return d_str.propagate(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
