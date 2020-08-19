@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file abduction_solver.cpp
+/*! \file quant_elim_solver.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -78,7 +78,6 @@ Node QuantElimSolver::getQuantifierElimination(Assertions& as,
     if (inst_qs.size() == 1)
     {
       Node top_q = inst_qs[0];
-      // Node top_q = Rewriter::rewrite( ne ).negate();
       Assert(top_q.getKind() == FORALL);
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
       ret = te->getInstantiatedConjunction(top_q);

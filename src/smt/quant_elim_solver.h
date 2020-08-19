@@ -40,8 +40,6 @@ class QuantElimSolver
   ~QuantElimSolver();
 
   /**
-   * Do quantifier elimination.
-   *
    * This function takes as input a quantified formula q
    * of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
