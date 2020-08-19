@@ -87,7 +87,8 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       }
 
       Trace("smt-pppg") << "...update" << std::endl;
-      if (it->second.getKind() == theory::TrustNodeKind::REWRITE)
+      theory::TrustNodeKind tnk = it->second.getKind();
+      if (tnk == theory::TrustNodeKind::REWRITE)
       {
         Trace("smt-pppg") << "...rewritten from " << proven[0] << std::endl;
         Assert(proven.getKind() == kind::EQUAL);
@@ -110,19 +111,18 @@ std::shared_ptr<ProofNode> PreprocessProofGenerator::getProofFor(Node f)
       else
       {
         Trace("smt-pppg") << "...lemma" << std::endl;
-        Assert(it->second.getKind() == theory::TrustNodeKind::LEMMA);
+        Assert(tnk == theory::TrustNodeKind::LEMMA);
       }
 
       if (!proofStepProcessed)
       {
         Trace("smt-pppg") << "...add missing step" << std::endl;
-        // add trusted step
-        cdp.addStep(proven, PfRule::PREPROCESS, {}, {proven});
+        // add trusted step, the rule depends on the kind of trust node
+        cdp.addStep(proven, tnk == theory::TrustNodeKind::LEMMA ? PfRule::PREPROCESS_LEMMA : PfRule::PREPROCESS, {}, {proven});
       }
     }
   } while (success);
 
-  Assert(curr != f);
   // prove ( curr == f ), which is not necessary if they are the same
   // modulo symmetry.
   if (!CDProof::isSame(f, curr))

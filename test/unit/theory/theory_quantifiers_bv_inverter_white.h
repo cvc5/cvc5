@@ -225,6 +225,8 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
     d_smt = new SmtEngine(d_em);
     d_smt->setOption("cegqi-full", CVC4::SExpr(true));
     d_smt->setOption("produce-models", CVC4::SExpr(true));
+    // don't insist on proofs here !!!! temporary not necessary on master, since proof-new is not default true
+    d_smt->setOption("proof-new", CVC4::SExpr(false));
     d_scope = new SmtScope(d_smt);
 
     d_s = d_nm->mkVar("s", d_nm->mkBitVectorType(4));

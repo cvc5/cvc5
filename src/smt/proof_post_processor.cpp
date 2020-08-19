@@ -86,11 +86,14 @@ bool ProofPostprocessCallback::update(Node res,
       {
         Trace("smt-proof-pp-debug")
             << "...no proof, possibly an input assumption" << std::endl;
-        Assert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(), f)
+        // this doesn't hold since it could be an ASSUME in a local scope.
+        /*
+        AlwaysAssert(std::find(d_freeAssertions.begin(), d_freeAssertions.end(), f)
                != d_freeAssertions.end())
             << "No preprocess proof for formula which is not an input "
                "assertion: "
             << f;
+            */
       }
       else
       {

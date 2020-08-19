@@ -72,7 +72,7 @@ void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
 {
   Assert(trn.getKind() == theory::TrustNodeKind::LEMMA);
   // push back what was proven
-  push_back(trn.getProven(), false, trn.getGenerator());
+  push_back(trn.getProven(), false, false, trn.getGenerator());
 }
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
