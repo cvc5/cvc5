@@ -21,7 +21,7 @@
 #include "expr/node.h"
 #include "proof/arith_proof_recorder.h"
 #include "theory/arith/theory_arith_private_forward.h"
-
+#include "theory/arith/arith_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -114,7 +114,15 @@ class TheoryArith : public Theory {
   {
     d_proofRecorder = proofRecorder;
   }
-
+ private:
+  /** 
+   * The state object. Note this object is intended to use TheoryArithPrivate
+   * as a black box, and moreover the internals of TheoryArithPrivate will not
+   * be refactored to use this state. Instead, this class will be
+   * refactored to be a standard layer on top of TheoryArithPrivate, which
+   * will include using this state in the standard way.
+   */
+  ArithState d_astate;
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

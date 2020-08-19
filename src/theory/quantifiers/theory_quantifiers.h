@@ -19,14 +19,11 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include "context/context.h"
 #include "expr/node.h"
-#include "theory/output_channel.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
-#include "theory/valuation.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -69,6 +66,8 @@ class TheoryQuantifiers : public Theory {
   QuantifiersRewriter d_rewriter;
   /** The proof rule checker */
   QuantifiersProofRuleChecker d_qChecker;
+  /** The quantifiers state */
+  QuantifiersState d_qstate;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

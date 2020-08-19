@@ -290,6 +290,8 @@ libcvc4_add_sources(
   theory/arith/arith_msum.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
+  theory/arith/arith_state.cpp
+  theory/arith/arith_state.h
   theory/arith/arith_static_learner.cpp
   theory/arith/arith_static_learner.h
   theory/arith/arith_utilities.cpp
@@ -602,6 +604,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
+  theory/quantifiers/quantifiers_state.cpp
+  theory/quantifiers/quantifiers_state.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
