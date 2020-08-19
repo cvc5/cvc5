@@ -659,12 +659,14 @@ private:
   /** The internal addTerm */
   void addTermInternal(TNode t, bool isOperator = false);
   /**
-   * Adds a notify trigger for equality. When equality becomes true eqNotifyTriggerPredicate
-   * will be called with value = true, and when equality becomes false eqNotifyTriggerPredicate
-   * will be called with value = false.
+   * Adds a notify trigger for equality. When equality becomes true
+   * eqNotifyTriggerPredicate will be called with value = true, and when
+   * equality becomes false eqNotifyTriggerPredicate will be called with value =
+   * false.
    */
   void addTriggerEquality(TNode equality);
-public:
+
+ public:
 
   /**
    * Adds a term to the term database.

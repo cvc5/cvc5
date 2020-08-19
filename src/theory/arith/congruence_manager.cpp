@@ -97,8 +97,12 @@ ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongru
   : d_acm(acm)
 {}
 
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(TNode predicate, bool value) {
-  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
+bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
+    TNode predicate, bool value)
+{
+  Debug("arith::congruences")
+      << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", "
+      << (value ? "true" : "false") << ")" << std::endl;
   if (value) {
     return d_acm.propagate(predicate);
   }

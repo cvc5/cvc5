@@ -1727,7 +1727,7 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 
 void EqualityEngine::addTriggerPredicate(TNode predicate) {
   Assert(predicate.getKind() != kind::NOT);
-  if (predicate.getKind()==kind::EQUAL)
+  if (predicate.getKind() == kind::EQUAL)
   {
     // equality is handled separately
     return addTriggerEquality(predicate);
@@ -2002,7 +2002,7 @@ void EqualityEngine::propagate() {
               }
               storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
               if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
-                                                    triggerInfo.d_polarity))
+                                                     triggerInfo.d_polarity))
               {
                 d_done = true;
               }
@@ -2012,7 +2012,7 @@ void EqualityEngine::propagate() {
           {
             // Equalities are simple
             if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
-                                                  triggerInfo.d_polarity))
+                                                   triggerInfo.d_polarity))
             {
               d_done = true;
             }
