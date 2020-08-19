@@ -81,6 +81,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
     // add checkers
     d_sProofChecker.registerTo(pc);
   }
+  // use the state object as the official theory state
+  d_theoryState = &d_state;
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -126,8 +128,6 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
-
-  d_state.finishInit(d_equalityEngine);
 }
 
 std::string TheoryStrings::identify() const
@@ -196,7 +196,7 @@ bool TheoryStrings::propagate(TNode literal) {
   // Propagate out
   bool ok = d_out->propagate(literal);
   if (!ok) {
-    d_state.setConflict();
+    d_state.notifyInConflict();
   }
   return ok;
 }
@@ -762,7 +762,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
   if (!d_state.isInConflict())
   {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
-    d_state.setConflict();
+    d_state.notifyInConflict();
     TrustNode conflictNode = explain(a.eqNode(b));
     Trace("strings-conflict")
         << "CONFLICT: Eq engine conflict : " << conflictNode.getNode()
