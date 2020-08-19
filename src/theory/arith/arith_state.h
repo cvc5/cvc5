@@ -44,6 +44,7 @@ class ArithState : public TheoryState
   ~ArithState() {}
   /** Are we currently in conflict? */
   bool isInConflict() const override;
+
  private:
   /** reference to parent */
   TheoryArithPrivate& d_parent;
