@@ -105,6 +105,11 @@ void pfgEnsureClosedWrt(Node proven,
   {
     sdiag << ", use -t " << c << " for details";
   }
+  bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+  if (!dumpProofTraceOn)
+  {
+    sdiag << ", use -t dump-proof-error for details on proof";
+  }
   Trace(c) << "=== pfgEnsureClosed: " << ss.str() << std::endl;
   Trace(c) << "Proven: " << proven << std::endl;
   if (pg == nullptr)
@@ -120,7 +125,10 @@ void pfgEnsureClosedWrt(Node proven,
     return;
   }
   std::shared_ptr<ProofNode> pn = pg->getProofFor(proven);
-  Trace(c) << " Proof: " << *pn.get() << std::endl;
+  if (dumpProofTraceOn)
+  {
+    Trace("dump-proof-error") << " Proof: " << *pn.get() << std::endl;
+  }
   if (pn == nullptr)
   {
     AlwaysAssert(false) << "...pfgEnsureClosed: null proof from " << ss.str()
