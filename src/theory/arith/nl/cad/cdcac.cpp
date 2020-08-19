@@ -344,15 +344,16 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
 }
 
-std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
+std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
+                                              bool returnFirstInterval)
 {
   Trace("cdcac") << "Looking for unsat cover for "
-                 << d_variableOrdering[cur_variable] << std::endl;
-  std::vector<CACInterval> intervals = getUnsatIntervals(cur_variable);
+                 << d_variableOrdering[curVariable] << std::endl;
+  std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
 
   if (Trace.isOn("cdcac"))
   {
-    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[cur_variable]
+    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[curVariable]
                    << ":" << std::endl;
     for (const auto& i : intervals)
     {
@@ -362,30 +363,30 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
   }
   poly::Value sample;
 
-  while (sampleOutsideWithInitial(intervals, sample, cur_variable))
+  while (sampleOutsideWithInitial(intervals, sample, curVariable))
   {
-    if (!checkIntegrality(cur_variable, sample))
+    if (!checkIntegrality(curVariable, sample))
     {
       // the variable is integral, but the sample is not.
       Trace("cdcac") << "Used " << sample << " for integer variable "
-                     << d_variableOrdering[cur_variable] << std::endl;
-      auto new_interval = buildIntegralityInterval(cur_variable, sample);
-      Trace("cdcac") << "Adding integrality interval "
-                     << new_interval.d_interval << std::endl;
-      intervals.emplace_back(new_interval);
+                     << d_variableOrdering[curVariable] << std::endl;
+      auto newInterval = buildIntegralityInterval(curVariable, sample);
+      Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
+                     << std::endl;
+      intervals.emplace_back(newInterval);
       cleanIntervals(intervals);
       continue;
     }
-    d_assignment.set(d_variableOrdering[cur_variable], sample);
+    d_assignment.set(d_variableOrdering[curVariable], sample);
     Trace("cdcac") << "Sample: " << d_assignment << std::endl;
-    if (cur_variable == d_variableOrdering.size() - 1)
+    if (curVariable == d_variableOrdering.size() - 1)
     {
       // We have a full assignment. SAT!
       Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
     }
     // Recurse to next variable
-    auto cov = getUnsatCover(cur_variable + 1);
+    auto cov = getUnsatCover(curVariable + 1);
     if (cov.empty())
     {
       // Found SAT!
@@ -396,12 +397,17 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
     auto characterization = constructCharacterization(cov);
     Trace("cdcac") << "Characterization: " << characterization << std::endl;
 
-    d_assignment.unset(d_variableOrdering[cur_variable]);
+    d_assignment.unset(d_variableOrdering[curVariable]);
 
-    auto new_interval =
-        intervalFromCharacterization(characterization, cur_variable, sample);
-    new_interval.d_origins = collectConstraints(cov);
-    intervals.emplace_back(new_interval);
+    auto newInterval =
+        intervalFromCharacterization(characterization, curVariable, sample);
+    newInterval.d_origins = collectConstraints(cov);
+    intervals.emplace_back(newInterval);
+
+    if (returnFirstInterval)
+    {
+      return intervals;
+    }
 
     Trace("cdcac") << "Added " << intervals.back().d_interval << std::endl;
     Trace("cdcac") << "\tlower:   " << intervals.back().d_lowerPolys
@@ -421,7 +427,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
   if (Trace.isOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
-                   << d_variableOrdering[cur_variable] << ":" << std::endl;
+                   << d_variableOrdering[curVariable] << ":" << std::endl;
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i.d_interval << std::endl;

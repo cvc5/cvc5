@@ -360,17 +360,18 @@ Node excluding_interval_to_lemma(const Node& variable,
     if (is_algebraic_number(lv))
     {
       return nm->mkNode(
-          Kind::AND,
+          Kind::OR,
           nm->mkNode(
-              Kind::GT, variable, nm->mkConst(poly_utils::toRationalBelow(lv))),
-          nm->mkNode(Kind::LT,
+              Kind::LT, variable, nm->mkConst(poly_utils::toRationalBelow(lv))),
+          nm->mkNode(Kind::GT,
                      variable,
                      nm->mkConst(poly_utils::toRationalAbove(lv))));
     }
     else
     {
-      return nm->mkNode(
-          Kind::EQUAL, variable, nm->mkConst(poly_utils::toRationalBelow(lv)));
+      return nm->mkNode(Kind::DISTINCT,
+                        variable,
+                        nm->mkConst(poly_utils::toRationalBelow(lv)));
     }
   }
   if (li)
@@ -384,7 +385,7 @@ Node excluding_interval_to_lemma(const Node& variable,
         Kind::LT, variable, nm->mkConst(poly_utils::toRationalBelow(lv)));
   }
   return nm->mkNode(
-      Kind::AND,
+      Kind::OR,
       nm->mkNode(
           Kind::GT, variable, nm->mkConst(poly_utils::toRationalAbove(uv))),
       nm->mkNode(
