@@ -29,7 +29,9 @@ class SmtSolver;
  * A solver for quantifier elimination queries.
  *
  * This class is responsible for responding to get-qe and get-qe-partial
- * commands.
+ * commands. It uses an underlying SmtSolver, which it queries for
+ * quantifier instantiations used for unsat which are in turn used for
+ * constructing the solution for the quantifier elimination query.
  */
 class QuantElimSolver
 {
@@ -40,7 +42,7 @@ class QuantElimSolver
   /**
    * Do quantifier elimination.
    *
-   * This function takes as input a quantified formula e
+   * This function takes as input a quantified formula q
    * of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free
@@ -52,20 +54,20 @@ class QuantElimSolver
    * the current set of formulas A asserted to this SmtEngine :
    *
    * If doFull = true, then
-   *   - ( A ^ e ) and ( A ^ ret ) are equivalent
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
    *   - ret is quantifier-free formula containing
    *     only free variables in y1...yn.
    *
    * If doFull = false, then
-   *   - (A ^ e) => (A ^ ret) if Q is forall or
-   *     (A ^ ret) => (A ^ e) if Q is exists,
+   *   - (A ^ q) => (A ^ ret) if Q is forall or
+   *     (A ^ ret) => (A ^ q) if Q is exists,
    *   - ret is quantifier-free formula containing
    *     only free variables in y1...yn,
    *   - If Q is exists, let A^Q_n be the formula
    *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
    *     where for each i=1,...n, formula ret^Q_i
    *     is the result of calling doQuantifierElimination
-   *     for e with the set of assertions A^Q_{i-1}.
+   *     for q with the set of assertions A^Q_{i-1}.
    *     Similarly, if Q is forall, then let A^Q_n be
    *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
    *     where ret^Q_i is the same as above.
@@ -80,7 +82,7 @@ class QuantElimSolver
    * for incrementally computing the result of a
    * quantifier elimination.
    */
-  Node doQuantifierElimination(Assertions& as, Node e, bool doFull);
+  Node doQuantifierElimination(Assertions& as, Node q, bool doFull);
 
  private:
   /** The SMT solver, which is used during doQuantifierElimination. */

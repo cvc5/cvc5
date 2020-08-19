@@ -159,6 +159,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
       d_abductSolver(nullptr),
+      d_quantElimSolver(nullptr),
       d_assignments(nullptr),
       d_defineCommands(),
       d_logic(),
@@ -207,6 +208,8 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       new SmtSolver(*this, *d_state, d_resourceManager.get(), *d_pp, *d_stats));
   // make the SyGuS solver
   d_sygusSolver.reset(new SygusSolver(*d_smtSolver, *d_pp, getUserContext()));
+  // make the quantifier elimination solver
+  d_quantElimSolver.reset(new QuantElimSolver(*d_smtSolver));
 
   // The ProofManager is constructed before any other proof objects such as
   // SatProof and TheoryProofs. The TheoryProofEngine and the SatProof are
@@ -1892,75 +1895,14 @@ bool SmtEngine::getSynthSolutions(std::map<Node, Node>& solMap)
   return d_sygusSolver->getSynthSolutions(solMap);
 }
 
-Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
+Node SmtEngine::doQuantifierElimination(Node q, bool doFull, bool strict)
 {
   SmtScope smts(this);
   finishInit();
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
-  Trace("smt-qe") << "Do quantifier elimination " << e << std::endl;
-  Node n_e = Node::fromExpr( e );
-  if (n_e.getKind() != kind::EXISTS && n_e.getKind() != kind::FORALL)
-  {
-    throw ModalException(
-        "Expecting a quantified formula as argument to get-qe.");
-  }
-  //tag the quantified formula with the quant-elim attribute
-  TypeNode t = NodeManager::currentNM()->booleanType();
-  Node n_attr = NodeManager::currentNM()->mkSkolem("qe", t, "Auxiliary variable for qe attr.");
-  std::vector< Node > node_values;
-  TheoryEngine* te = getTheoryEngine();
-  Assert(te != nullptr);
-  te->setUserAttribute(
-      doFull ? "quant-elim" : "quant-elim-partial", n_attr, node_values, "");
-  n_attr = NodeManager::currentNM()->mkNode(kind::INST_ATTRIBUTE, n_attr);
-  n_attr = NodeManager::currentNM()->mkNode(kind::INST_PATTERN_LIST, n_attr);
-  std::vector< Node > e_children;
-  e_children.push_back( n_e[0] );
-  e_children.push_back(n_e.getKind() == kind::EXISTS ? n_e[1]
-                                                     : n_e[1].negate());
-  e_children.push_back( n_attr );
-  Node nn_e = NodeManager::currentNM()->mkNode( kind::EXISTS, e_children );
-  Trace("smt-qe-debug") << "Query for quantifier elimination : " << nn_e << std::endl;
-  Assert(nn_e.getNumChildren() == 3);
-  Result r = checkSatInternal(std::vector<Node>{nn_e}, true, true);
-  Trace("smt-qe") << "Query returned " << r << std::endl;
-  if(r.asSatisfiabilityResult().isSat() != Result::UNSAT ) {
-    if( r.asSatisfiabilityResult().isSat() != Result::SAT && doFull ){
-      Notice()
-          << "While performing quantifier elimination, unexpected result : "
-          << r << " for query.";
-      // failed, return original
-      return e;
-    }
-    std::vector< Node > inst_qs;
-    te->getInstantiatedQuantifiedFormulas(inst_qs);
-    Assert(inst_qs.size() <= 1);
-    Node ret_n;
-    if( inst_qs.size()==1 ){
-      Node top_q = inst_qs[0];
-      //Node top_q = Rewriter::rewrite( nn_e ).negate();
-      Assert(top_q.getKind() == kind::FORALL);
-      Trace("smt-qe") << "Get qe for " << top_q << std::endl;
-      ret_n = te->getInstantiatedConjunction(top_q);
-      Trace("smt-qe") << "Returned : " << ret_n << std::endl;
-      if (n_e.getKind() == kind::EXISTS)
-      {
-        ret_n = Rewriter::rewrite(ret_n.negate());
-      }
-    }else{
-      ret_n = NodeManager::currentNM()->mkConst(n_e.getKind() != kind::EXISTS);
-    }
-    // do extended rewrite to minimize the size of the formula aggressively
-    theory::quantifiers::ExtendedRewriter extr(true);
-    ret_n = extr.extendedRewrite(ret_n);
-    return ret_n.toExpr();
-  }else {
-    return NodeManager::currentNM()
-        ->mkConst(n_e.getKind() == kind::EXISTS)
-        .toExpr();
-  }
+  return d_quantElimSolver->doQuantifierElimination(q, doFull);
 }
 
 bool SmtEngine::getInterpol(const Node& conj,
