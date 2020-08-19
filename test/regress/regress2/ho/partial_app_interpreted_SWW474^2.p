@@ -1,4 +1,4 @@
-% COMMAND-LINE: --uf-ho --full-saturate-quant --ho-elim --no-check-unsat-cores --no-check-proofs
+% COMMAND-LINE: --uf-ho --full-saturate-quant --ho-elim --no-check-unsat-cores
 % EXPECT: % SZS status Theorem for partial_app_interpreted_SWW474^2
 
 %------------------------------------------------------------------------------
