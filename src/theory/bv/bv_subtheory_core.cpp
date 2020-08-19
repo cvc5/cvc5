@@ -383,22 +383,12 @@ bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   return true;
 }
 
-bool CoreSolver::NotifyClass::eqNotifyTriggerEquality(TNode equality, bool value) {
-  Debug("bitvector::core") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-  if (value) {
-    return d_solver.storePropagation(equality);
-  } else {
-    return d_solver.storePropagation(equality.notNode());
-  }
-}
-
 bool CoreSolver::NotifyClass::eqNotifyTriggerPredicate(TNode predicate, bool value) {
   Debug("bitvector::core") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false" ) << ")" << std::endl;
   if (value) {
     return d_solver.storePropagation(predicate);
-  } else {
-    return d_solver.storePropagation(predicate.notNode());
   }
+  return d_solver.storePropagation(predicate.notNode());
 }
 
 bool CoreSolver::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {

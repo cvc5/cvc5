@@ -246,10 +246,6 @@ private:
     ConjectureGenerator& d_sg;
   public:
     NotifyClass(ConjectureGenerator& sg): d_sg(sg) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       return true;
