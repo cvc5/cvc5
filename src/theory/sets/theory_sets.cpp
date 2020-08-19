@@ -206,22 +206,6 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
 
 /**************************** eq::NotifyClass *****************************/
 
-bool TheorySets::NotifyClass::eqNotifyTriggerEquality(TNode equality,
-                                                      bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = "
-                   << equality << " value = " << value << std::endl;
-  if (value)
-  {
-    return d_theory.propagate(equality);
-  }
-  else
-  {
-    // We use only literal triggers so taking not is safe
-    return d_theory.propagate(equality.notNode());
-  }
-}
-
 bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
                                                        bool value)
 {

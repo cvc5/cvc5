@@ -296,26 +296,14 @@ class TheoryArrays : public Theory {
   public:
     NotifyClass(TheoryArrays& arrays): d_arrays(arrays) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
-      // Just forward to arrays
-      if (value) {
-        return d_arrays.propagate(equality);
-      } else {
-        return d_arrays.propagate(equality.notNode());
-      }
-    }
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
+      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
         return d_arrays.propagate(predicate);
-      } else {
-        return d_arrays.propagate(predicate.notNode());
       }
+      return d_arrays.propagate(predicate.notNode());
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
