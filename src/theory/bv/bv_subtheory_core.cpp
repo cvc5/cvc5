@@ -394,7 +394,6 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
-
   return utils::isEqualityTerm(term, seen); 
 }
 
