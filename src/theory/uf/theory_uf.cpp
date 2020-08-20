@@ -526,8 +526,8 @@ bool TheoryUF::areCareDisequal(TNode x, TNode y){
   return false;
 }
 
-void TheoryUF::addCarePairs(TNodeTrie* t1,
-                            TNodeTrie* t2,
+void TheoryUF::addCarePairs(const TNodeTrie* t1,
+                            const TNodeTrie* t2,
                             unsigned arity,
                             unsigned depth)
 {
@@ -570,17 +570,17 @@ void TheoryUF::addCarePairs(TNodeTrie* t1,
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for (std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
+        for (const std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
         {
           addCarePairs(&tt.second, NULL, arity, depth + 1);
         }
       }
       //add care pairs based on each pair of non-disequal arguments
-      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+      for (std::map<TNode, TNodeTrie>::const_iterator it = t1->d_data.begin();
            it != t1->d_data.end();
            ++it)
       {
-        std::map<TNode, TNodeTrie>::iterator it2 = it;
+        std::map<TNode, TNodeTrie>::const_iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if (!d_equalityEngine->areDisequal(it->first, it2->first, false))
@@ -593,9 +593,9 @@ void TheoryUF::addCarePairs(TNodeTrie* t1,
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
+      for (const std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
       {
-        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
+        for (const std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
           if (!d_equalityEngine->areDisequal(tt1.first, tt2.first, false))
           {

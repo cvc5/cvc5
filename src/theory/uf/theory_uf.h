@@ -202,8 +202,8 @@ private:
 
  private:
   bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
+  void addCarePairs(const TNodeTrie* t1,
+                    const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
 
