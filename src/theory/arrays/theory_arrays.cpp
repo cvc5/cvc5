@@ -700,7 +700,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   case kind::EQUAL:
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
-    d_equalityEngine->addTriggerEquality(node);
+    d_equalityEngine->addTriggerPredicate(node);
     break;
   case kind::SELECT: {
     // Invariant: array terms should be preregistered before being added to the equality engine

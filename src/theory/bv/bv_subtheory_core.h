@@ -54,7 +54,6 @@ class CoreSolver : public SubtheorySolver {
 
   public:
     NotifyClass(CoreSolver& solver): d_solver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
