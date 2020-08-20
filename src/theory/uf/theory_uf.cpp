@@ -629,6 +629,7 @@ void TheoryUF::computeCareGraph() {
       if( has_trigger_arg ){
         if (app.getKind()==kind::APPLY_UF)
         {
+          Node op = app.getOperator();
           index[op].addTerm(app, reps);
           arity[op] = reps.size();
         }
