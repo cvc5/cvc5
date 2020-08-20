@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models --no-proof-new
+; COMMAND-LINE: --no-check-models
 ; EXPECT: sat
 (set-logic NIRA)
 (declare-fun a () Real)

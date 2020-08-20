@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-proof-new
+; COMMAND-LINE:
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

@@ -1,4 +1,4 @@
-; COMMAND-LINE: --nl-ext-tf-tplanes --no-proof-new
+; COMMAND-LINE: --nl-ext-tf-tplanes
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (declare-fun time__AT0@0 () Real)

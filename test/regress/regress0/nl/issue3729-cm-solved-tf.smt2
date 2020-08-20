@@ -1,4 +1,4 @@
-; COMMAND-LINE: --quiet --no-check-models --no-proof-new
+; COMMAND-LINE: --quiet --no-check-models
 ; EXPECT: sat
 (set-logic QF_NRAT)
 (set-info :status sat)
