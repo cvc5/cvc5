@@ -19,8 +19,8 @@
 #ifndef CVC4__THEORY__BV__SLICER_BV_H
 #define CVC4__THEORY__BV__SLICER_BV_H
 
-#include <vector>
 #include <string>
+#include <vector>
 #include "util/index.h"
 
 namespace CVC4 {
@@ -40,8 +40,7 @@ public:
   bool isCutPoint(Index index) const;
   std::string debugPrint() const;
   bool operator==(const Base& other) const {
-    if (other.d_size != d_size)
-      return false;
+    if (other.d_size != d_size) return false;
     for (unsigned i = 0; i < d_repr.size(); ++i) {
       if (d_repr[i] != other.d_repr[i])
         return false;
