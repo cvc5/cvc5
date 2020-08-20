@@ -539,7 +539,7 @@ void TheoryUF::addCarePairs(TNodeTrie* t1,
       {
         Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
-        for (unsigned k = 0; k < f1.getNumChildren(); ++k)
+        for (size_t k = 0, nchildren=f1.getNumChildren(); k < nchildren; ++k)
         {
           TNode x = f1[k];
           TNode y = f2[k];
