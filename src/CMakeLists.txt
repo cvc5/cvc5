@@ -446,8 +446,6 @@ libcvc4_add_sources(
   theory/bv/bv_subtheory_core.h
   theory/bv/bv_subtheory_inequality.cpp
   theory/bv/bv_subtheory_inequality.h
-  theory/bv/slicer.cpp
-  theory/bv/slicer.h
   theory/bv/theory_bv.cpp
   theory/bv/theory_bv.h
   theory/bv/theory_bv_rewrite_rules.h

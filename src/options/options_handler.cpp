@@ -172,17 +172,6 @@ void OptionsHandler::checkBitblastMode(std::string option, BitblastMode m)
     {
       options::bitvectorEqualitySolver.set(true);
     }
-    if (!options::bitvectorEqualitySlicer.wasSetByUser())
-    {
-      if (options::incrementalSolving() || options::produceModels())
-      {
-        options::bitvectorEqualitySlicer.set(options::BvSlicerMode::OFF);
-      }
-      else
-      {
-        options::bitvectorEqualitySlicer.set(options::BvSlicerMode::AUTO);
-      }
-    }
 
     if (!options::bitvectorInequalitySolver.wasSetByUser())
     {

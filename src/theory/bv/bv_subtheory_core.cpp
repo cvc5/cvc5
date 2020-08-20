@@ -19,7 +19,6 @@
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
@@ -35,10 +34,8 @@ using namespace CVC4::theory::bv::utils;
 CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
     : SubtheorySolver(c, bv),
       d_notify(*this),
-      d_slicer(new Slicer()),
       d_isComplete(c, true),
       d_lemmaThreshold(16),
-      d_useSlicer(false),
       d_preregisterCalled(false),
       d_checkCalled(false),
       d_bv(bv),
@@ -96,21 +93,10 @@ void CoreSolver::finishInit()
   d_equalityEngine->addFunctionKind(kind::INT_TO_BITVECTOR);
 }
 
-void CoreSolver::enableSlicer() {
-  AlwaysAssert(!d_preregisterCalled);
-  d_useSlicer = true;
-  d_statistics.d_slicerEnabled.setData(true);
-}
-
 void CoreSolver::preRegister(TNode node) {
   d_preregisterCalled = true;
   if (node.getKind() == kind::EQUAL) {
     d_equalityEngine->addTriggerPredicate(node);
-    if (d_useSlicer)
-    {
-      d_slicer->processEquality(node);
-      AlwaysAssert(!d_checkCalled);
-      }
   } else {
     d_equalityEngine->addTerm(node);
     // Register with the extended theory, for context-dependent simplification.
@@ -196,10 +182,6 @@ bool CoreSolver::check(Theory::Effort e) {
   bool ok = true;
   std::vector<Node> core_eqs;
   TNodeBoolMap seen;
-  // slicer does not deal with cardinality constraints yet
-  if (d_useSlicer) {
-    d_isComplete = false; 
-  }
   while (! done()) {
     TNode fact = get();
     if (d_isComplete && !isCompleteForTerm(fact, seen)) {
@@ -208,11 +190,7 @@ bool CoreSolver::check(Theory::Effort e) {
     
     // only reason about equalities
     if (fact.getKind() == kind::EQUAL || (fact.getKind() == kind::NOT && fact[0].getKind() == kind::EQUAL)) {
-      if (d_useSlicer) {
-        ok = decomposeFact(fact);
-      } else {
-        ok = assertFactToEqualityEngine(fact, fact);
-      }
+      ok = assertFactToEqualityEngine(fact, fact);
     } else {
       ok = assertFactToEqualityEngine(fact, fact);
     }
@@ -416,17 +394,12 @@ void CoreSolver::conflict(TNode a, TNode b) {
 }
 
 bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
-  if (d_useSlicer)
-    return utils::isCoreTerm(term, seen);
-  
+
   return utils::isEqualityTerm(term, seen); 
 }
 
 bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 {
-  if (d_useSlicer) {
-    Unreachable(); 
-  }
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {
@@ -505,12 +478,9 @@ void CoreSolver::addTermToEqualityEngine(TNode node)
 
 CoreSolver::Statistics::Statistics()
   : d_numCallstoCheck("theory::bv::CoreSolver::NumCallsToCheck", 0)
-  , d_slicerEnabled("theory::bv::CoreSolver::SlicerEnabled", false)
 {
   smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->registerStat(&d_slicerEnabled);
 }
 CoreSolver::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
-  smtStatisticsRegistry()->unregisterStat(&d_slicerEnabled);
 }
