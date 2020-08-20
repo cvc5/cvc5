@@ -658,9 +658,15 @@ private:
 
   /** The internal addTerm */
   void addTermInternal(TNode t, bool isOperator = false);
+  /**
+   * Adds a notify trigger for equality. When equality becomes true
+   * eqNotifyTriggerPredicate will be called with value = true, and when
+   * equality becomes false eqNotifyTriggerPredicate will be called with value =
+   * false.
+   */
+  void addTriggerEquality(TNode equality);
 
-public:
-
+ public:
   /**
    * Adds a term to the term database.
    */
@@ -787,16 +793,13 @@ public:
   TNode getTriggerTermRepresentative(TNode t, TheoryId theoryTag) const;
 
   /**
-   * Adds a notify trigger for equality. When equality becomes true eqNotifyTriggerEquality
-   * will be called with value = true, and when equality becomes false eqNotifyTriggerEquality
-   * will be called with value = false.
-   */
-  void addTriggerEquality(TNode equality);
-
-  /**
-   * Adds a notify trigger for the predicate p. When the predicate becomes true
-   * eqNotifyTriggerPredicate will be called with value = true, and when equality becomes false
+   * Adds a notify trigger for the predicate p, where notice that p can be
+   * an equality. When the predicate becomes true, eqNotifyTriggerPredicate will
+   * be called with value = true, and when predicate becomes false
    * eqNotifyTriggerPredicate will be called with value = false.
+   *
+   * Notice that if p is an equality, then we use a separate method for
+   * determining when to call eqNotifyTriggerPredicate.
    */
   void addTriggerPredicate(TNode predicate);
 

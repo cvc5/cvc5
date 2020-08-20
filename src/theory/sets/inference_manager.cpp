@@ -72,7 +72,7 @@ bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
     if (fact == d_false)
     {
       Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-      d_state.setConflict(exp);
+      conflict(exp);
       return true;
     }
     return false;
@@ -232,6 +232,12 @@ bool InferenceManager::hasProcessed() const
 }
 bool InferenceManager::hasSentLemma() const { return d_sentLemma; }
 bool InferenceManager::hasAddedFact() const { return d_addedFact; }
+
+void InferenceManager::conflict(Node conf)
+{
+  d_parent.getOutputChannel()->conflict(conf);
+  d_state.notifyInConflict();
+}
 
 }  // namespace sets
 }  // namespace theory

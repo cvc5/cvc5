@@ -97,16 +97,17 @@ ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongru
   : d_acm(acm)
 {}
 
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerEquality(TNode equality, bool value) {
-  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
+bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
+    TNode predicate, bool value)
+{
+  Assert(predicate.getKind() == kind::EQUAL);
+  Debug("arith::congruences")
+      << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", "
+      << (value ? "true" : "false") << ")" << std::endl;
   if (value) {
-    return d_acm.propagate(equality);
-  } else {
-    return d_acm.propagate(equality.notNode());
+    return d_acm.propagate(predicate);
   }
-}
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(TNode predicate, bool value) {
-  Unreachable();
+  return d_acm.propagate(predicate.notNode());
 }
 
 bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {

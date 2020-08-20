@@ -152,27 +152,19 @@ class TheorySep : public Theory {
    public:
     NotifyClass(TheorySep& sep) : d_sep(sep) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("sep::propagate")
-          << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", "
+          << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
+      Assert(predicate.getKind() == kind::EQUAL);
       // Just forward to sep
       if (value)
       {
-        return d_sep.propagate(equality);
+        return d_sep.propagate(predicate);
       }
-      else
-      {
-        return d_sep.propagate(equality.notNode());
-      }
+      return d_sep.propagate(predicate.notNode());
     }
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Unreachable();
-    }
-
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,

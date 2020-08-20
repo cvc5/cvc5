@@ -30,7 +30,7 @@ TheoryState::TheoryState(context::Context* c,
 {
 }
 
-void TheoryState::finishInit(eq::EqualityEngine* ee) { d_ee = ee; }
+void TheoryState::setEqualityEngine(eq::EqualityEngine* ee) { d_ee = ee; }
 
 context::Context* TheoryState::getSatContext() const { return d_context; }
 

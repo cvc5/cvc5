@@ -542,10 +542,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerEquality(n);
-    break;
   case kind::APPLY_TESTER:
+    // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
     d_equalityEngine->addTriggerPredicate(n);
     break;

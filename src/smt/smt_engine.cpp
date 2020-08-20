@@ -2039,10 +2039,13 @@ void SmtEngine::reset()
   if(Dump.isOn("benchmark")) {
     Dump("benchmark") << ResetCommand();
   }
+  std::string filename = d_state->getFilename();
   Options opts;
   opts.copyValues(d_originalOptions);
   this->~SmtEngine();
   new (this) SmtEngine(em, &opts);
+  // Restore data set after creation
+  notifyStartParsing(filename);
 }
 
 void SmtEngine::resetAssertions()
