@@ -81,7 +81,6 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
-      d_inferManager(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -273,7 +272,8 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
 
 void Theory::notifySharedTerm(TNode n)
 {
-  // TODO (project #39): this will move to addSharedTerm
+  // TODO (project #39): this will move to addSharedTerm, as every theory with
+  // an equality does this in their notifySharedTerm method.
   // if we have an equality engine, add the trigger term
   if (d_equalityEngine != nullptr)
   {
@@ -596,7 +596,7 @@ void Theory::addSharedTerm(TNode n)
   Debug("theory::assertions")
       << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
   d_sharedTerms.push_back(n);
-  // now call theory-specific addSharedTerm
+  // now call theory-specific method notifySharedTerm
   notifySharedTerm(n);
 }
 
