@@ -998,7 +998,6 @@ void TheoryFp::check(Effort level) {
   }
 
   // Resolve the abstractions for the conversion lemmas
-  //  if (level == EFFORT_COMBINATION) {
   if (level == EFFORT_LAST_CALL)
   {
     Trace("fp") << "TheoryFp::check(): checking abstractions" << std::endl;
