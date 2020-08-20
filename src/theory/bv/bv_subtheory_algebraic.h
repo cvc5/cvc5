@@ -22,6 +22,7 @@
 #include <unordered_set>
 
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/slicer.h"
 #include "theory/substitutions.h"
 
 namespace CVC4 {

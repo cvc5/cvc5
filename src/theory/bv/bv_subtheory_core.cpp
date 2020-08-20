@@ -118,59 +118,6 @@ void CoreSolver::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
-Node CoreSolver::getBaseDecomposition(TNode a) {
-  std::vector<Node> a_decomp;
-  d_slicer->getBaseDecomposition(a, a_decomp);
-  Node new_a = utils::mkConcat(a_decomp);
-  Debug("bv-slicer") << "CoreSolver::getBaseDecomposition " << a <<" => " << new_a << "\n";
-  return new_a;
-}
-
-bool CoreSolver::decomposeFact(TNode fact) {
-  Debug("bv-slicer") << "CoreSolver::decomposeFact fact=" << fact << endl;
-  // FIXME: are this the right things to assert?
-  // assert decompositions since the equality engine does not know the semantics of
-  // concat:
-  //   a == a_1 concat ... concat a_k
-  //   b == b_1 concat ... concat b_k
-  TNode eq = fact.getKind() == kind::NOT? fact[0] : fact;
-
-  TNode a = eq[0];
-  TNode b = eq[1];
-  Node new_a = getBaseDecomposition(a);
-  Node new_b = getBaseDecomposition(b);
-
-  Assert(utils::getSize(new_a) == utils::getSize(new_b)
-         && utils::getSize(new_a) == utils::getSize(a));
-
-  NodeManager* nm = NodeManager::currentNM();
-  Node a_eq_new_a = nm->mkNode(kind::EQUAL, a, new_a);
-  Node b_eq_new_b = nm->mkNode(kind::EQUAL, b, new_b);
-
-  bool ok = true;
-  ok = assertFactToEqualityEngine(a_eq_new_a, utils::mkTrue());
-  if (!ok) return false;
-  ok = assertFactToEqualityEngine(b_eq_new_b, utils::mkTrue());
-  if (!ok) return false;
-  ok = assertFactToEqualityEngine(fact, fact);
-  if (!ok) return false;
-
-  if (fact.getKind() == kind::EQUAL) {
-    // assert the individual equalities as well
-    //    a_i == b_i
-    if (new_a.getKind() == kind::BITVECTOR_CONCAT &&
-        new_b.getKind() == kind::BITVECTOR_CONCAT) {
-      Assert(new_a.getNumChildren() == new_b.getNumChildren());
-      for (unsigned i = 0; i < new_a.getNumChildren(); ++i) {
-        Node eq_i = nm->mkNode(kind::EQUAL, new_a[i], new_b[i]);
-        ok = assertFactToEqualityEngine(eq_i, fact);
-        if (!ok) return false;
-      }
-    }
-  }
-  return true;
-}
-
 bool CoreSolver::check(Theory::Effort e) {
   Trace("bitvector::core") << "CoreSolver::check \n";
 
