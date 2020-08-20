@@ -106,10 +106,6 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   {
     d_theoryState->setEqualityEngine(ee);
   }
-  if (d_inferManager != nullptr)
-  {
-    d_inferManager->setEqualityEngine(ee);
-  }
 }
 
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
@@ -434,11 +430,6 @@ bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
   return true;
 }
 
-void Theory::notifyPreRegisterTerm(TNode node)
-{
-  // do nothing
-}
-
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
                                         SubstitutionMap& outSubstitutions)
 {
@@ -585,8 +576,6 @@ void Theory::notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal)
 
 void Theory::preRegisterTerm(TNode node)
 {
-  // do theory-specific preRegisterTerm
-  notifyPreRegisterTerm(node);
 }
 
 void Theory::addSharedTerm(TNode n)
