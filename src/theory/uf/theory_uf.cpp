@@ -652,7 +652,7 @@ void TheoryUF::computeCareGraph() {
       Assert(arity.find(tt.first) != arity.end());
       addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
     }
-    for (std::pair<const TypeNode, TNodeTrie>& tt : index)
+    for (std::pair<const TypeNode, TNodeTrie>& tt : hoIndex)
     {
       Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
                            << tt.first << "..." << std::endl;
