@@ -2,9 +2,9 @@
 /*! \file options_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Mathias Preiner
+ **   Morgan Deters, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -54,6 +54,7 @@ extern int optreset;
 #include "options/didyoumean.h"
 #include "options/language.h"
 #include "options/options_handler.h"
+#include "options/options_listener.h"
 
 ${headers_module}$
 
@@ -223,15 +224,10 @@ void runBoolPredicates(T, std::string option, bool b, options::OptionsHandler* h
   // that can throw exceptions.
 }
 
-
-Options::Options()
-    : d_holder(new options::OptionsHolder())
-    , d_handler(new options::OptionsHandler(this))
-    , d_beforeSearchListeners()
-    , d_tlimitListeners()
-    , d_tlimitPerListeners()
-    , d_rlimitListeners()
-    , d_rlimitPerListeners()
+Options::Options(OptionsListener* ol)
+    : d_holder(new options::OptionsHolder()),
+      d_handler(new options::OptionsHandler(this)),
+      d_olisten(ol)
 {}
 
 Options::~Options() {
@@ -254,131 +250,9 @@ std::string Options::formatThreadOptionException(const std::string& option) {
   return ss.str();
 }
 
-ListenerCollection::Registration* Options::registerAndNotify(
-    ListenerCollection& collection, Listener* listener, bool notify)
-{
-  ListenerCollection::Registration* registration =
-      collection.registerListener(listener);
-  if(notify) {
-    try
-    {
-      listener->notify();
-    }
-    catch (OptionException& e)
-    {
-      // It can happen that listener->notify() throws an OptionException. In
-      // that case, we have to make sure that we delete the registration of our
-      // listener before rethrowing the exception. Otherwise the
-      // ListenerCollection deconstructor will complain that not all
-      // registrations have been removed before invoking the deconstructor.
-      delete registration;
-      throw OptionException(e.getRawMessage());
-    }
-  }
-  return registration;
-}
-
-ListenerCollection::Registration* Options::registerBeforeSearchListener(
-   Listener* listener)
-{
-  return d_beforeSearchListeners.registerListener(listener);
-}
-
-ListenerCollection::Registration* Options::registerTlimitListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet &&
-      wasSetByUser(options::cumulativeMillisecondLimit);
-  return registerAndNotify(d_tlimitListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerTlimitPerListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::perCallMillisecondLimit);
-  return registerAndNotify(d_tlimitPerListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerRlimitListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::cumulativeResourceLimit);
-  return registerAndNotify(d_rlimitListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerRlimitPerListener(
-   Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::perCallResourceLimit);
-  return registerAndNotify(d_rlimitPerListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDefaultExprDepthListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::defaultExprDepth);
-  return registerAndNotify(d_setDefaultExprDepthListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDefaultExprDagListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::defaultDagThresh);
-  return registerAndNotify(d_setDefaultDagThreshListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetPrintExprTypesListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::printExprTypes);
-  return registerAndNotify(d_setPrintExprTypesListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetDumpModeListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::dumpModeString);
-  return registerAndNotify(d_setDumpModeListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerSetPrintSuccessListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::printSuccess);
-  return registerAndNotify(d_setPrintSuccessListeners, listener, notify);
-}
-
-ListenerCollection::Registration* Options::registerDumpToFileNameListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::dumpToFileName);
-  return registerAndNotify(d_dumpToFileListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetRegularOutputChannelListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::regularChannelName);
-  return registerAndNotify(d_setRegularChannelListeners, listener, notify);
-}
-
-ListenerCollection::Registration*
-Options::registerSetDiagnosticOutputChannelListener(
-    Listener* listener, bool notifyIfSet)
-{
-  bool notify = notifyIfSet && wasSetByUser(options::diagnosticChannelName);
-  return registerAndNotify(d_setDiagnosticChannelListeners, listener, notify);
-}
+void Options::setListener(OptionsListener* ol) { d_olisten = ol; }
 
 ${custom_handlers}$
-
-
-#ifdef CVC4_DEBUG
-#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT true
-#else /* CVC4_DEBUG */
-#  define USE_EARLY_TYPE_CHECKING_BY_DEFAULT false
-#endif /* CVC4_DEBUG */
 
 #if defined(CVC4_MUZZLED) || defined(CVC4_COMPETITION_MODE)
 #  define DO_SEMANTIC_CHECKS_BY_DEFAULT false
@@ -416,10 +290,9 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt | smtlib | smt2 |\n\
   smt2.0 | smtlib2 | smtlib2.0   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
-  smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
-  smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
+  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format (cnf, fof and tff)\n\
-  sygus | sygus2                 SyGuS version 1.0 and 2.0 formats\n\
+  sygus | sygus2                 SyGuS version 2.0\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\
   auto                           match output language to input language\n\
@@ -428,10 +301,8 @@ Languages currently supported as arguments to the --output-lang option:\n\
   smt | smtlib | smt2 |\n\
   smt2.0 | smtlib2.0 | smtlib2   SMT-LIB format 2.0\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
-  smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
-  smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
+  smt2.6 | smtlib2.6             SMT-LIB format 2.6 with support for the strings standard\n\
   tptp                           TPTP format\n\
-  z3str                          SMT-LIB 2.0 with Z3-str string constraints\n\
   ast                            internal format (simple syntax trees)\n\
 ";
 
@@ -536,7 +407,6 @@ std::vector<std::string> Options::parseOptions(Options* options,
   }
   options->d_holder->binary_name = std::string(progName);
 
-
   std::vector<std::string> nonoptions;
   parseOptionsRecursive(options, argc, argv, &nonoptions);
   if(Debug.isOn("options")){
@@ -574,8 +444,9 @@ void Options::parseOptionsRecursive(Options* options,
   optreset = 1; // on BSD getopt() (e.g. Mac OS), might need this
 #endif /* HAVE_DECL_OPTRESET */
 
-  // start with position after the binary name
-  int main_optind = 1;
+  // We must parse the binary name, which is manually ignored below. Setting
+  // this to 1 leads to incorrect behavior on some platforms.
+  int main_optind = 0;
   int old_optind;
 
 
@@ -618,19 +489,6 @@ void Options::parseOptionsRecursive(Options* options,
     // The initial getopt_long call should always determine that argv[0]
     // is not an option and returns -1. We always manually advance beyond
     // this element.
-    //
-    // We have to reinitialize optind to 0 instead of 1 as we need to support
-    // changing the argv array passed to getopt.
-    // This is needed as are using GNU extensions.
-    // From: http://man7.org/linux/man-pages/man3/getopt.3.html
-    // A program that scans multiple argument vectors, or rescans the same
-    // vector more than once, and wants to make use of GNU extensions such
-    // as '+' and '-' at the start of optstring, or changes the value of
-    //  POSIXLY_CORRECT between scans, must reinitialize getopt() by
-    //  resetting optind to 0, rather than the traditional value of 1.
-    //  (Resetting to 0 forces the invocation of an internal initialization
-    //  routine that rechecks POSIXLY_CORRECT and checks for GNU extensions
-    //  in optstring.)
     if ( old_optind == 0  && c == -1 ) {
       Assert(main_optind > 0);
       continue;
@@ -717,23 +575,30 @@ std::vector<std::vector<std::string> > Options::getOptions() const
 
 void Options::setOption(const std::string& key, const std::string& optionarg)
 {
-  options::OptionsHandler* handler = d_handler;
-  Options *options = Options::current();
-  Trace("options") << "SMT setOption(" << key << ", " << optionarg << ")"
+  Trace("options") << "setOption(" << key << ", " << optionarg << ")"
                    << std::endl;
+  // first update this object
+  setOptionInternal(key, optionarg);
+  // then, notify the provided listener
+  if (d_olisten != nullptr)
+  {
+    d_olisten->notifySetOption(key);
+  }
+}
 
+void Options::setOptionInternal(const std::string& key,
+                                const std::string& optionarg)
+{
+  options::OptionsHandler* handler = d_handler;
+  Options* options = this;
   ${setoption_handlers}$
-
-
   throw UnrecognizedOptionException(key);
 }
 
 std::string Options::getOption(const std::string& key) const
 {
-  Trace("options") << "SMT getOption(" << key << ")" << std::endl;
-
+  Trace("options") << "Options::getOption(" << key << ")" << std::endl;
   ${getoption_handlers}$
-
 
   throw UnrecognizedOptionException(key);
 }

@@ -2,9 +2,9 @@
 /*! \file smt_engine_subsolver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,49 +31,16 @@ namespace CVC4 {
 namespace theory {
 
 /**
- * This function initializes the smt engine smte as a subsolver, e.g. it
- * creates a new SMT engine and sets the options of the current SMT engine.
- */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte);
-
-/**
- * Initialize Smt subsolver with exporting
- *
  * This function initializes the smt engine smte to check the satisfiability
  * of the argument "query".
  *
- * The arguments em and varMap are used for supporting cases where we
- * want smte to use a different expression manager instead of the current
- * expression manager. The motivation for this so that different options can
- * be set for the subcall.
- *
- * Notice that subsequent expressions extracted from smte (for instance, model
- * values) must be exported to the current expression
- * manager.
- *
  * @param smte The smt engine pointer to initialize
- * @param em Reference to the expression manager to use
- * @param varMap Map used for exporting expressions
- * @param query The query to check
  * @param needsTimeout Whether we would like to set a timeout
  * @param timeout The timeout (in milliseconds)
  */
-void initializeSubsolverWithExport(std::unique_ptr<SmtEngine>& smte,
-                                   ExprManager& em,
-                                   ExprManagerMapCollection& varMap,
-                                   Node query,
-                                   bool needsTimeout = false,
-                                   unsigned long timeout = 0);
-
-/**
- * This function initializes the smt engine smte to check the satisfiability
- * of the argument "query", without exporting expressions.
- *
- * Notice that is not possible to set a timeout value currently without
- * exporting since the Options and ExprManager are tied together.
- * TODO: eliminate this dependency (cvc4-projects #120).
- */
-void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
+void initializeSubsolver(std::unique_ptr<SmtEngine>& smte,
+                         bool needsTimeout = false,
+                         unsigned long timeout = 0);
 
 /**
  * This returns the result of checking the satisfiability of formula query.
@@ -81,7 +48,10 @@ void initializeSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
  * If necessary, smte is initialized to the SMT engine that checked its
  * satisfiability.
  */
-Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte, Node query);
+Result checkWithSubsolver(std::unique_ptr<SmtEngine>& smte,
+                          Node query,
+                          bool needsTimeout = false,
+                          unsigned long timeout = 0);
 
 /**
  * This returns the result of checking the satisfiability of formula query.

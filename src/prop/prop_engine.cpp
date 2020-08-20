@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -102,7 +102,10 @@ PropEngine::PropEngine(TheoryEngine* te,
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+}
 
+void PropEngine::finishInit()
+{
   NodeManager* nm = NodeManager::currentNM();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
   d_cnfStream->convertAndAssert(
@@ -242,7 +245,7 @@ bool PropEngine::isSatLiteral(TNode node) const {
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
   Assert(node.getType().isBoolean());
-  Assert(d_cnfStream->hasLiteral(node));
+  Assert(d_cnfStream->hasLiteral(node)) << node;
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 

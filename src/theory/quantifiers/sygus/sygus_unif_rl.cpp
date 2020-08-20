@@ -2,9 +2,9 @@
 /*! \file sygus_unif_rl.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa, Andrew Reynolds
+ **   Haniel Barbosa, Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -713,8 +713,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
       if (Trace.isOn("sygus-unif-sol"))
       {
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, hd_mv[e]);
+        TermDbSygus::toStreamSygus(ss, hd_mv[e]);
         Trace("sygus-unif-sol")
             << "  add evaluation head (" << hd_counter << "/" << d_hds.size()
             << "): " << e << " -> " << ss.str() << std::endl;
@@ -766,7 +765,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
     if (Trace.isOn("sygus-unif-sol"))
     {
       std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, cv);
+      TermDbSygus::toStreamSygus(ss, cv);
       Trace("sygus-unif-sol")
           << "  add condition (" << c_counter << "/" << d_conds.size()
           << "): " << ce << " -> " << ss.str() << std::endl;

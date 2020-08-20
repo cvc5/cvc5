@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager_scope.h"
 #include "expr/type.h"
@@ -212,11 +213,10 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(
           Trace("parser-overloading")
               << "Parametric overloaded datatype selector " << name << " "
               << tna << std::endl;
-          DatatypeType tnd = static_cast<DatatypeType>(argTypes[i]);
-          const Datatype& dt = tnd.getDatatype();
+          const DType& dt = TypeNode::fromType(argTypes[i]).getDType();
           // tng is the "generalized" version of the instantiated parametric
           // type tna
-          Type tng = dt.getDatatypeType();
+          Type tng = dt.getTypeNode().toType();
           itc = tat->d_children.find(tng);
           if (itc != tat->d_children.end())
           {

@@ -1,22 +1,17 @@
 set(CVC4_EXAMPLES_API
   bitvectors
-  bitvectors-new
   bitvectors_and_arrays
-  bitvectors_and_arrays-new
   combination
-  combination-new
   datatypes
-  datatypes-new
   extract
-  extract-new
   helloworld
-  helloworld-new
   linear_arith
-  linear_arith-new
   sets
-  sets-new
+  sequences
   strings
-  strings-new
+  sygus-fun
+  sygus-grammar
+  sygus-inv
 )
 
 foreach(example ${CVC4_EXAMPLES_API})

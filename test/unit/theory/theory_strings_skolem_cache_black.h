@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,28 +69,6 @@ class TheoryStringsSkolemCacheBlack : public CxxTest::TestSuite
     // SK_FIRST_CTN(a, b)
     {
       Node s1 = sk.mkSkolemCached(a, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      Node s2 = sk.mkSkolemCached(a, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      TS_ASSERT_EQUALS(s1, s2);
-    }
-
-    // Check that skolems are shared between:
-    //
-    // SK_FIRST_CTN(c, b)
-    //
-    // SK_FIRST_CTN((str.substr c), b)
-    {
-      Node s1 = sk.mkSkolemCached(c, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      Node s2 = sk.mkSkolemCached(sc, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      TS_ASSERT_EQUALS(s1, s2);
-    }
-
-    // Check that skolems are shared between:
-    //
-    // SK_PURIFY((str.substr a 0 (str.indexof a b 0)))
-    //
-    // SK_FIRST_CTN(a, b)
-    {
-      Node s1 = sk.mkSkolemCached(sa, b, SkolemCache::SK_PURIFY, "foo");
       Node s2 = sk.mkSkolemCached(a, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
       TS_ASSERT_EQUALS(s1, s2);
     }

@@ -2,9 +2,9 @@
 /*! \file process_assertions.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "expr/type_node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "smt/assertions.h"
 #include "smt/smt_engine_stats.h"
 #include "util/resource_manager.h"
 
@@ -69,16 +70,18 @@ class ProcessAssertions
    */
   void cleanup();
   /**
-   * Process the formulas in assertions. Returns true if there
-   * was no conflict when processing the assertions.
+   * Process the formulas in as. Returns true if there was no conflict when
+   * processing the assertions.
    */
-  bool apply(preprocessing::AssertionPipeline& assertions);
+  bool apply(Assertions& as);
   /**
    * Expand definitions in term n. Return the expanded form of n.
    *
-   * If expandOnly is true, then the expandDefinitions function of TheoryEngine
-   * of the SmtEngine this calls is associated with is not called on subterms of
-   * n.
+   * @param n The node to expand
+   * @param cache Cache of previous results
+   * @param expandOnly if true, then the expandDefinitions function of
+   * TheoryEngine is not called on subterms of n.
+   * @return The expanded term.
    */
   Node expandDefinitions(TNode n,
                          NodeToNodeHashMap& cache,

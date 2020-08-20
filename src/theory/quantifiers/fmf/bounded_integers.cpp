@@ -2,9 +2,9 @@
 /*! \file bounded_integers.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Andres Noetzli, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -670,7 +670,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
       choices.pop_back();
       Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
       Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConst(Rational(i)));
-      choice_i = nm->mkNode(CHOICE, bvl, nm->mkNode(OR, cMinCard, cBody));
+      choice_i = nm->mkNode(WITNESS, bvl, nm->mkNode(OR, cMinCard, cBody));
       d_setm_choice[sro].push_back(choice_i);
     }
     Assert(i < d_setm_choice[sro].size());
@@ -690,8 +690,8 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   //   e.g.
   // singleton(0) union singleton(1)
   //   becomes
-  // C1 union ( choice y. card(S)<=1 OR ( y in S AND distinct( y, C1 ) ) )
-  // where C1 = ( choice x. card(S)<=0 OR x in S ).
+  // C1 union ( witness y. card(S)<=1 OR ( y in S AND distinct( y, C1 ) ) )
+  // where C1 = ( witness x. card(S)<=0 OR x in S ).
   Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
   return nsr;
 }
@@ -723,7 +723,7 @@ bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& va
       nn = nn.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
       Node lem = NodeManager::currentNM()->mkNode( LEQ, nn, d_range[q][v] );
       Trace("bound-int-lemma") << "*** Add lemma to minimize instantiated non-ground term " << lem << std::endl;
-      d_quantEngine->getOutputChannel().lemma(lem, false, true);
+      d_quantEngine->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
     return false;
   }else{

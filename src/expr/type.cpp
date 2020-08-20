@@ -2,9 +2,9 @@
 /*! \file type.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -331,8 +331,7 @@ bool Type::isTuple() const {
 /** Is this a record type? */
 bool Type::isRecord() const {
   NodeManagerScope nms(d_nodeManager);
-  return d_typeNode->getKind() == kind::DATATYPE_TYPE
-         && DatatypeType(*this).getDatatype().isRecord();
+  return d_typeNode->isRecord();
 }
 
 /** Is this a symbolic expression type? */
@@ -351,6 +350,12 @@ bool Type::isArray() const {
 bool Type::isSet() const {
   NodeManagerScope nms(d_nodeManager);
   return d_typeNode->isSet();
+}
+
+bool Type::isSequence() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isSequence();
 }
 
 /** Is this a sort kind */
@@ -516,6 +521,11 @@ SetType::SetType(const Type& t) : Type(t)
   PrettyCheckArgument(isNull() || isSet(), this);
 }
 
+SequenceType::SequenceType(const Type& t) : Type(t)
+{
+  PrettyCheckArgument(isNull() || isSequence(), this);
+}
+
 SortType::SortType(const Type& t) : Type(t)
 {
   PrettyCheckArgument(isNull() || isSort(), this);
@@ -550,6 +560,11 @@ Type SetType::getElementType() const {
   return makeType(d_typeNode->getSetElementType());
 }
 
+Type SequenceType::getElementType() const
+{
+  return makeType(d_typeNode->getSequenceElementType());
+}
+
 DatatypeType ConstructorType::getRangeType() const {
   return DatatypeType(makeType(d_typeNode->getConstructorRangeType()));
 }
@@ -570,7 +585,8 @@ std::vector<Type> ConstructorType::getArgTypes() const {
   return args;
 }
 
-const Datatype& DatatypeType::getDatatype() const {
+const Datatype& DatatypeType::getDatatype() const
+{
   NodeManagerScope nms(d_nodeManager);
   Assert(isDatatype());
   if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
@@ -584,10 +600,6 @@ const Datatype& DatatypeType::getDatatype() const {
 
 bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
-}
-
-Expr DatatypeType::getConstructor(std::string name) const {
-  return getDatatype().getConstructor(name);
 }
 
 bool DatatypeType::isInstantiated() const {
@@ -644,14 +656,6 @@ std::vector<Type> DatatypeType::getTupleTypes() const {
     vect.push_back( vec[i].toType() );
   }
   return vect;
-}
-
-/** Get the description of the record type */
-const Record& DatatypeType::getRecord() const {
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isRecord());
-  const Datatype& dt = getDatatype();
-  return *(dt.getRecord());
 }
 
 DatatypeType SelectorType::getDomain() const {

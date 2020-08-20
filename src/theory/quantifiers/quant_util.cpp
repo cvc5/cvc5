@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,7 @@ QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
 
 eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
 {
-  return d_quantEngine->getActiveEqualityEngine();
+  return d_quantEngine->getMasterEqualityEngine();
 }
 
 bool QuantifiersModule::areEqual(TNode n1, TNode n2) const

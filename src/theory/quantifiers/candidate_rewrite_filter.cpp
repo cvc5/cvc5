@@ -2,9 +2,9 @@
 /*! \file candidate_rewrite_filter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -163,12 +163,11 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   }
   if (Trace.isOn("sygus-rr-filter"))
   {
-    Printer* p = Printer::getPrinter(options::outputLanguage());
     std::stringstream ss;
     ss << "(redundant-rewrite ";
-    p->toStreamSygus(ss, n);
+    TermDbSygus::toStreamSygus(ss, n);
     ss << " ";
-    p->toStreamSygus(ss, eq_n);
+    TermDbSygus::toStreamSygus(ss, eq_n);
     ss << ")";
     Trace("sygus-rr-filter") << ss.str() << std::endl;
   }

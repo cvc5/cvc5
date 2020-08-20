@@ -2,9 +2,9 @@
 /*! \file infer_info.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,6 +38,7 @@ namespace strings {
  */
 enum class Inference : uint32_t
 {
+  BEGIN,
   //-------------------------------------- base solver
   // initial normalize singular
   //   x1 = "" ^ ... ^ x_{i-1} = "" ^ x_{i+1} = "" ^ ... ^ xn = "" =>
@@ -59,6 +60,10 @@ enum class Inference : uint32_t
   // equal after e.g. removing strings that are currently empty. For example:
   //   y = "" ^ z = "" => x ++ y = z ++ x
   I_NORM,
+  // injectivity of seq.unit
+  UNIT_INJ,
+  // unit constant conflict
+  UNIT_CONST_CONFLICT,
   // A split due to cardinality
   CARD_SP,
   // The cardinality inference for strings, see Liang et al CAV 2014.
@@ -92,6 +97,10 @@ enum class Inference : uint32_t
   // Flat form not contained
   // x = c ^ x = y => false when rewrite( contains( y, c ) ) = false
   F_NCTN,
+  // Normal form equality conflict
+  //   x = N[x] ^ y = N[y] ^ x=y => false
+  // where Rewriter::rewrite(N[x]=N[y]) = false.
+  N_EQ_CONF,
   // Given two normal forms, infers that the remainder one of them has to be
   // empty. For example:
   //    If x1 ++ x2 = y1 and x1 = y1, then x2 = ""
@@ -287,6 +296,10 @@ enum class Inference : uint32_t
   // (see theory_strings_preprocess).
   REDUCTION,
   //-------------------------------------- end extended function solver
+  //-------------------------------------- prefix conflict
+  // prefix conflict (coarse-grained)
+  PREFIX_CONFLICT,
+  //-------------------------------------- end prefix conflict
   NONE,
 };
 
@@ -328,19 +341,20 @@ enum LengthStatus
 };
 
 /**
- * This data structure encapsulates an inference for strings. This includes
- * the form of the inference, as well as the side effects it generates.
+ * An inference. This is a class to track an unprocessed call to either
+ * send a fact, lemma, or conflict that is waiting to be asserted to the
+ * equality engine or sent on the output channel.
  */
 class InferInfo
 {
  public:
   InferInfo();
-  /**
-   * The identifier for the inference, indicating the kind of reasoning used
-   * for this conclusion.
-   */
+  ~InferInfo() {}
+  /** The inference identifier */
   Inference d_id;
-  /** The conclusion of the inference */
+  /** Whether it is the reverse form of the above id */
+  bool d_idRev;
+  /** The conclusion */
   Node d_conc;
   /**
    * The antecedant(s) of the inference, interpreted conjunctively. These are
@@ -350,40 +364,42 @@ class InferInfo
   /**
    * The "new literal" antecedant(s) of the inference, interpreted
    * conjunctively. These are literals that were needed to show the conclusion
-   * but do not currently hold in the equality engine.
+   * but do not currently hold in the equality engine. These should be a subset
+   * of d_ant. In other words, antecedants that are not explained are stored
+   * in *both* d_ant and d_noExplain.
    */
-  std::vector<Node> d_antn;
+  std::vector<Node> d_noExplain;
   /**
    * A list of new skolems introduced as a result of this inference. They
    * are mapped to by a length status, indicating the length constraint that
    * can be assumed for them.
    */
   std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+  /**  Is this infer info trivial? True if d_conc is true. */
+  bool isTrivial() const;
   /**
-   * The pending phase requirements, see InferenceManager::sendPhaseRequirement.
+   * Does this infer info correspond to a conflict? True if d_conc is false
+   * and it has no new antecedants (d_noExplain).
    */
-  std::map<Node, bool> d_pending_phase;
+  bool isConflict() const;
   /**
-   * The index in the normal forms under which this inference is addressing.
-   * For example, if the inference is inferring x = y from |x|=|y| and
-   *   w ++ x ++ ... = w ++ y ++ ...
-   * then d_index is 1, since x and y are at index 1 in these concat terms.
+   * Does this infer info correspond to a "fact". A fact is an inference whose
+   * conclusion should be added as an equality or predicate to the equality
+   * engine with no new external antecedants (d_noExplain).
    */
-  unsigned d_index;
-  /**
-   * The normal form pair that is cached as a result of this inference.
-   */
-  Node d_nf_pair[2];
-  /** for debugging
-   *
-   * The base pair of strings d_i/d_j that led to the inference, and whether
-   * (d_rev) we were processing the normal forms of these strings in reverse
-   * direction.
-   */
-  Node d_i;
-  Node d_j;
-  bool d_rev;
+  bool isFact() const;
+  /** Get antecedant */
+  Node getAntecedant() const;
 };
+
+/**
+ * Writes an inference info to a stream.
+ *
+ * @param out The stream to write to
+ * @param ii The inference info to write to the stream
+ * @return The stream
+ */
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii);
 
 }  // namespace strings
 }  // namespace theory

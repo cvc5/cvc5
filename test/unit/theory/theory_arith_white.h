@@ -2,9 +2,9 @@
 /*! \file theory_arith_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Dejan Jovanovic
+ **   Tim King, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -112,12 +112,12 @@ public:
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
 
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH]->setOutputChannel(
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_ARITH]->setOutputChannel(
         d_outputChannel);
     d_arith = static_cast<TheoryArith*>(
-        d_smt->d_theoryEngine->d_theoryTable[THEORY_ARITH]);
+        d_smt->getTheoryEngine()->d_theoryTable[THEORY_ARITH]);
 
     preregistered = new std::set<Node>();
 

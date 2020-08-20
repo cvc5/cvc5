@@ -4,10 +4,10 @@
 (declare-const actionName String)
 
 (assert
-(str.in.re actionName (re.++ (str.to.re "wiz") (re.* re.allchar) (str.to.re "foobar") (re.* re.allchar) (str.to.re "baz/") (re.* re.allchar))))
+(str.in_re actionName (re.++ (str.to_re "wiz") (re.* re.allchar) (str.to_re "foobar") (re.* re.allchar) (str.to_re "baz/") (re.* re.allchar))))
 
 (assert (not
-(str.in.re actionName (re.++ (str.to.re "wiz") (re.* re.allchar) (re.++ (str.to.re "foo") re.allchar (str.to.re "ar")) (re.* re.allchar) (str.to.re "baz/") (re.* re.allchar)))
+(str.in_re actionName (re.++ (str.to_re "wiz") (re.* re.allchar) (re.++ (str.to_re "foo") re.allchar (str.to_re "ar")) (re.* re.allchar) (str.to_re "baz/") (re.* re.allchar)))
 ))
 
 (check-sat)

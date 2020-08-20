@@ -2,9 +2,9 @@
 /*! \file instantiate.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@ Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
     : d_qe(qe),
       d_term_db(nullptr),
       d_term_util(nullptr),
-      d_total_inst_count_debug(0),
+      d_total_inst_debug(u),
       d_c_inst_match_trie_dom(u)
 {
 }
@@ -146,7 +146,7 @@ bool Instantiate::addInstantiation(
                     << std::endl;
       bad_inst = true;
     }
-    else if (options::cbqi())
+    else if (options::cegqi())
     {
       Node icf = quantifiers::TermUtil::getInstConstAttr(terms[i]);
       if (!icf.isNull())
@@ -242,17 +242,6 @@ bool Instantiate::addInstantiation(
   // construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
-  if (d_qe->usingModelEqualityEngine() && options::instNoModelTrue())
-  {
-    Node val_body = d_qe->getModel()->getValue(body);
-    if (val_body.isConst() && val_body.getConst<bool>())
-    {
-      Trace("inst-add-debug") << " --> True in model." << std::endl;
-      ++(d_statistics.d_inst_duplicate_model_true);
-      return false;
-    }
-  }
-
   Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
   lem = Rewriter::rewrite(lem);
 
@@ -264,9 +253,8 @@ bool Instantiate::addInstantiation(
     return false;
   }
 
-  d_total_inst_debug[q]++;
+  d_total_inst_debug[q] = d_total_inst_debug[q] + 1;
   d_temp_inst_debug[q]++;
-  d_total_inst_count_debug++;
   if (Trace.isOn("inst"))
   {
     Trace("inst") << "*** Instantiate " << q << " with " << std::endl;
@@ -466,6 +454,16 @@ Node Instantiate::getTermForType(TypeNode tn)
 
 bool Instantiate::printInstantiations(std::ostream& out)
 {
+  if (options::printInstMode() == options::PrintInstMode::NUM)
+  {
+    return printInstantiationsNum(out);
+  }
+  Assert(options::printInstMode() == options::PrintInstMode::LIST);
+  return printInstantiationsList(out);
+}
+
+bool Instantiate::printInstantiationsList(std::ostream& out)
+{
   bool useUnsatCore = false;
   std::vector<Node> active_lemmas;
   if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
@@ -473,33 +471,86 @@ bool Instantiate::printInstantiations(std::ostream& out)
     useUnsatCore = true;
   }
   bool printed = false;
+  bool isFull = options::printInstFull();
   if (options::incrementalSolving())
   {
     for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second->print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second->print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiations " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   else
   {
     for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
     {
-      bool firstTime = true;
-      t.second.print(out, t.first, firstTime, useUnsatCore, active_lemmas);
-      if (!firstTime)
+      std::stringstream qout;
+      if (!printQuant(t.first, qout, isFull))
       {
-        out << ")" << std::endl;
+        continue;
       }
-      printed = printed || !firstTime;
+      std::stringstream sout;
+      t.second.print(sout, t.first, useUnsatCore, active_lemmas);
+      if (!sout.str().empty())
+      {
+        out << "(instantiations " << qout.str() << std::endl;
+        out << sout.str();
+        out << ")" << std::endl;
+        printed = true;
+      }
     }
   }
   return printed;
+}
+
+bool Instantiate::printInstantiationsNum(std::ostream& out)
+{
+  if (d_total_inst_debug.empty())
+  {
+    return false;
+  }
+  bool isFull = options::printInstFull();
+  for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+       it != d_total_inst_debug.end();
+       ++it)
+  {
+    std::stringstream ss;
+    if (printQuant((*it).first, ss, isFull))
+    {
+      out << "(num-instantiations " << ss.str() << " " << (*it).second << ")"
+          << std::endl;
+    }
+  }
+  return true;
+}
+
+bool Instantiate::printQuant(Node q, std::ostream& out, bool isFull)
+{
+  if (isFull)
+  {
+    out << q;
+    return true;
+  }
+  quantifiers::QuantAttributes* qa = d_qe->getQuantAttributes();
+  Node name = qa->getQuantName(q);
+  if (name.isNull())
+  {
+    return false;
+  }
+  out << name;
+  return true;
 }
 
 void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
@@ -721,16 +772,30 @@ Node Instantiate::getInstantiatedConjunction(Node q)
   return ret;
 }
 
-void Instantiate::debugPrint()
+void Instantiate::debugPrint(std::ostream& out)
 {
   // debug information
   if (Trace.isOn("inst-per-quant-round"))
   {
-    for (std::pair<const Node, int>& i : d_temp_inst_debug)
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
     {
       Trace("inst-per-quant-round") << " * " << i.second << " for " << i.first
                                     << std::endl;
       d_temp_inst_debug[i.first] = 0;
+    }
+  }
+  if (options::debugInst())
+  {
+    bool isFull = options::printInstFull();
+    for (std::pair<const Node, uint32_t>& i : d_temp_inst_debug)
+    {
+      std::stringstream ss;
+      if (!printQuant(i.first, ss, isFull))
+      {
+        continue;
+      }
+      out << "(num-instantiations " << ss.str() << " " << i.second << ")"
+          << std::endl;
     }
   }
 }
@@ -739,10 +804,12 @@ void Instantiate::debugPrintModel()
 {
   if (Trace.isOn("inst-per-quant"))
   {
-    for (std::pair<const Node, int>& i : d_total_inst_debug)
+    for (NodeUIntMap::iterator it = d_total_inst_debug.begin();
+         it != d_total_inst_debug.end();
+         ++it)
     {
-      Trace("inst-per-quant") << " * " << i.second << " for " << i.first
-                              << std::endl;
+      Trace("inst-per-quant")
+          << " * " << (*it).second << " for " << (*it).first << std::endl;
     }
   }
 }
@@ -767,14 +834,12 @@ Instantiate::Statistics::Statistics()
     : d_instantiations("Instantiate::Instantiations_Total", 0),
       d_inst_duplicate("Instantiate::Duplicate_Inst", 0),
       d_inst_duplicate_eq("Instantiate::Duplicate_Inst_Eq", 0),
-      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0),
-      d_inst_duplicate_model_true("Instantiate::Duplicate_Inst_Model_True", 0)
+      d_inst_duplicate_ent("Instantiate::Duplicate_Inst_Entailed", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_instantiations);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_eq);
   smtStatisticsRegistry()->registerStat(&d_inst_duplicate_ent);
-  smtStatisticsRegistry()->registerStat(&d_inst_duplicate_model_true);
 }
 
 Instantiate::Statistics::~Statistics()
@@ -783,7 +848,6 @@ Instantiate::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_eq);
   smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_ent);
-  smtStatisticsRegistry()->unregisterStat(&d_inst_duplicate_model_true);
 }
 
 } /* CVC4::theory::quantifiers namespace */

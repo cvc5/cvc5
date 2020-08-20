@@ -151,6 +151,5 @@ header = "options/base_options.h"
   category   = "regular"
   long       = "print-success"
   type       = "bool"
-  notifies   = ["notifyPrintSuccess"]
   read_only  = true
   help       = "print the \"success\" output required of SMT-LIBv2"

@@ -2,9 +2,9 @@
 /*! \file theory_fp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Andres Noetzli, Andrew Reynolds
+ **   Martin Brain, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -99,14 +99,14 @@ Node buildConjunct(const std::vector<TNode> &assumptions) {
 }  // namespace helper
 
 /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-TheoryFp::TheoryFp(context::Context *c,
-                   context::UserContext *u,
-                   OutputChannel &out,
+TheoryFp::TheoryFp(context::Context* c,
+                   context::UserContext* u,
+                   OutputChannel& out,
                    Valuation valuation,
-                   const LogicInfo &logicInfo)
-    : Theory(THEORY_FP, c, u, out, valuation, logicInfo),
+                   const LogicInfo& logicInfo,
+                   ProofNodeManager* pnm)
+    : Theory(THEORY_FP, c, u, out, valuation, logicInfo, pnm),
       d_notification(*this),
-      d_equalityEngine(d_notification, c, "theory::fp::ee", true),
       d_registeredTerms(u),
       d_conv(u),
       d_expansionRequested(false),
@@ -121,60 +121,74 @@ TheoryFp::TheoryFp(context::Context *c,
       floatToRealMap(u),
       abstractionMap(u)
 {
+} /* TheoryFp::TheoryFp() */
+
+TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
+
+bool TheoryFp::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notification;
+  esi.d_name = "theory::fp::ee";
+  return true;
+}
+
+void TheoryFp::finishInit()
+{
+  Assert(d_equalityEngine != nullptr);
   // Kinds that are to be handled in the congruence closure
 
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ABS);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_NEG);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_PLUS);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MULT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_DIV);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_FMA);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_SQRT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_REM);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_RTI);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MIN); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MAX); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MIN_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_MAX_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ABS);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_NEG);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_PLUS);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SUB); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MULT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_DIV);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_FMA);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_SQRT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_REM);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_RTI);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MIN); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MAX); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MIN_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_MAX_TOTAL);
 
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_EQ); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_LEQ);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_LT);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_GEQ); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_GT); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISSN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISZ);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISINF);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISNAN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISNEG);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_ISPOS);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_EQ); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LEQ);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_LT);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GEQ); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_GT); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISSN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISZ);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISINF);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISNAN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISNEG);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_ISPOS);
 
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_REAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
-  d_equalityEngine.addFunctionKind(
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_REAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
+  d_equalityEngine->addFunctionKind(
       kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_FP_GENERIC); //
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_FP_GENERIC); //
   // Needed in parsing, should be rewritten away
 
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_UBV); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_SBV); // Removed
-  // d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_REAL); // Removed
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_UBV_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV); // Removed
+  // d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_REAL); // Removed
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_UBV_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_SBV_TOTAL);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_TO_REAL_TOTAL);
 
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_NAN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_INF);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_ZERO);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGN);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
-  d_equalityEngine.addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
-  d_equalityEngine.addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
-} /* TheoryFp::TheoryFp() */
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_NAN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_INF);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_ZERO);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGN);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_EXPONENT);
+  d_equalityEngine->addFunctionKind(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND);
+  d_equalityEngine->addFunctionKind(kind::ROUNDINGMODE_BITBLAST);
+}
 
 Node TheoryFp::minUF(Node node) {
   Assert(node.getKind() == kind::FLOATINGPOINT_MIN);
@@ -382,7 +396,7 @@ Node TheoryFp::abstractFloatToReal(Node node)
   return uf;
 }
 
-Node TheoryFp::expandDefinition(Node node)
+TrustNode TheoryFp::expandDefinition(Node node)
 {
   Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                << std::endl;
@@ -429,12 +443,12 @@ Node TheoryFp::expandDefinition(Node node)
   if (res != node) {
     Trace("fp-expandDefinition") << "TheoryFp::expandDefinition(): " << node
                                  << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
-
-  return res;
+  return TrustNode::null();
 }
 
-Node TheoryFp::ppRewrite(TNode node)
+TrustNode TheoryFp::ppRewrite(TNode node)
 {
   Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): " << node << std::endl;
 
@@ -492,9 +506,10 @@ Node TheoryFp::ppRewrite(TNode node)
   {
     Trace("fp-ppRewrite") << "TheoryFp::ppRewrite(): node " << node
                           << " rewritten to " << res << std::endl;
+    return TrustNode::mkTrustRewrite(node, res, nullptr);
   }
 
-  return res;
+  return TrustNode::null();
 }
 
 bool TheoryFp::refineAbstraction(TheoryModel *m, TNode abstract, TNode concrete)
@@ -801,11 +816,11 @@ void TheoryFp::registerTerm(TNode node) {
     // Add to the equality engine
     if (k == kind::EQUAL)
     {
-      d_equalityEngine.addTriggerEquality(node);
+      d_equalityEngine->addTriggerPredicate(node);
     }
     else
     {
-      d_equalityEngine.addTerm(node);
+      d_equalityEngine->addTerm(node);
     }
 
     // Give the expansion of classifications in terms of equalities
@@ -900,9 +915,8 @@ void TheoryFp::addSharedTerm(TNode node) {
 
 void TheoryFp::handleLemma(Node node) {
   Trace("fp") << "TheoryFp::handleLemma(): asserting " << node << std::endl;
-
-  d_out->lemma(node, false,
-               true);  // Has to be true because it contains embedded ITEs
+  // Preprocess has to be true because it contains embedded ITEs
+  d_out->lemma(node, LemmaProperty::PREPROCESS);
   // Ignore the LemmaStatus structure for now...
 
   return;
@@ -960,22 +974,22 @@ void TheoryFp::check(Effort level) {
       if (negated) {
         Debug("fp-eq") << "TheoryFp::check(): adding dis-equality " << fact[0]
                        << std::endl;
-        d_equalityEngine.assertEquality(predicate, false, fact);
-
+        d_equalityEngine->assertEquality(predicate, false, fact);
       } else {
         Debug("fp-eq") << "TheoryFp::check(): adding equality " << fact
                        << std::endl;
-        d_equalityEngine.assertEquality(predicate, true, fact);
+        d_equalityEngine->assertEquality(predicate, true, fact);
       }
     } else {
       // A system-wide invariant; predicates are registered before they are
       // asserted
       Assert(isRegistered(predicate));
 
-      if (d_equalityEngine.isFunctionKind(predicate.getKind())) {
+      if (d_equalityEngine->isFunctionKind(predicate.getKind()))
+      {
         Debug("fp-eq") << "TheoryFp::check(): adding predicate " << predicate
                        << " is " << !negated << std::endl;
-        d_equalityEngine.assertPredicate(predicate, !negated, fact);
+        d_equalityEngine->assertPredicate(predicate, !negated, fact);
       }
     }
   }
@@ -1006,11 +1020,8 @@ void TheoryFp::check(Effort level) {
 
 } /* TheoryFp::check() */
 
-void TheoryFp::setMasterEqualityEngine(eq::EqualityEngine *eq) {
-  d_equalityEngine.setMasterEqualityEngine(eq);
-}
-
-Node TheoryFp::explain(TNode n) {
+TrustNode TheoryFp::explain(TNode n)
+{
   Trace("fp") << "TheoryFp::explain(): explain " << n << std::endl;
 
   // All things we assert directly (and not via bit-vector) should
@@ -1020,12 +1031,13 @@ Node TheoryFp::explain(TNode n) {
   bool polarity = n.getKind() != kind::NOT;
   TNode atom = polarity ? n : n[0];
   if (atom.getKind() == kind::EQUAL) {
-    d_equalityEngine.explainEquality(atom[0], atom[1], polarity, assumptions);
+    d_equalityEngine->explainEquality(atom[0], atom[1], polarity, assumptions);
   } else {
-    d_equalityEngine.explainPredicate(atom, polarity, assumptions);
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions);
   }
 
-  return helper::buildConjunct(assumptions);
+  Node exp = helper::buildConjunct(assumptions);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 Node TheoryFp::getModelValue(TNode var) {
@@ -1131,19 +1143,6 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
   return true;
 }
 
-bool TheoryFp::NotifyClass::eqNotifyTriggerEquality(TNode equality,
-                                                    bool value) {
-  Debug("fp-eq")
-      << "TheoryFp::eqNotifyTriggerEquality(): call back as equality "
-      << equality << " is " << value << std::endl;
-
-  if (value) {
-    return d_theorySolver.handlePropagation(equality);
-  } else {
-    return d_theorySolver.handlePropagation(equality.notNode());
-  }
-}
-
 bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
                                                      bool value) {
   Debug("fp-eq")
@@ -1152,9 +1151,8 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
 
   if (value) {
     return d_theorySolver.handlePropagation(predicate);
-  } else {
-    return d_theorySolver.handlePropagation(predicate.notNode());
   }
+  return d_theorySolver.handlePropagation(predicate.notNode());
 }
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
@@ -1174,7 +1172,7 @@ void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
                  << " = " << t2 << std::endl;
 
   std::vector<TNode> assumptions;
-  d_theorySolver.d_equalityEngine.explainEquality(t1, t2, true, assumptions);
+  d_theorySolver.d_equalityEngine->explainEquality(t1, t2, true, assumptions);
 
   Node conflict = helper::buildConjunct(assumptions);
 

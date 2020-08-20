@@ -2,9 +2,9 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,29 +34,6 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
-/**
- * A pending inference. This is a helper class to track an unprocessed call to
- * InferenceManager::sendInference that is waiting to be asserted as a fact to
- * the equality engine.
- */
-struct PendingInfer
-{
-  PendingInfer(Inference i, Node fact, Node exp)
-      : d_infer(i), d_fact(fact), d_exp(exp)
-  {
-  }
-  ~PendingInfer() {}
-  /** The inference identifier */
-  Inference d_infer;
-  /** The conclusion */
-  Node d_fact;
-  /**
-   * Its explanation. This is a conjunction of literals that hold in the
-   * equality engine in the current context.
-   */
-  Node d_exp;
-};
 
 /** Inference Manager
  *
@@ -132,26 +109,27 @@ class InferenceManager
   bool sendInternalInference(std::vector<Node>& exp,
                              Node conc,
                              Inference infer);
+
   /** send inference
    *
-   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
+   * This function should be called when exp => eq. The set exp
    * contains literals that are explainable, i.e. those that hold in the
    * equality engine of the theory of strings. On the other hand, the set
-   * exp_n ("explanations new") contain nodes that are not explainable by the
-   * theory of strings. This method may call sendLemma or otherwise add a
-   * PendingInfer to d_pending, indicating a fact should be asserted to the
-   * equality engine. Overall, the result of this method is one of the
-   * following:
+   * noExplain contains nodes that are not explainable by the theory of strings.
+   * This method may call sendLemma or otherwise add a InferInfo to d_pending,
+   * indicating a fact should be asserted to the equality engine. Overall, the
+   * result of this method is one of the following:
    *
-   * [1] (No-op) Do nothing if eq is true,
+   * [1] (No-op) Do nothing if eq is equivalent to true,
    *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
    * class with explanation exp, where exp is a set of literals that currently
    * hold in the equality engine. We add this to the pending vector d_pending.
    *
-   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of the theory of strings, where EXPLAIN
-   * returns the explanation of the node in exp in terms of the literals
+   * [3] (Lemma) Indicate that the lemma
+   *   ( EXPLAIN(exp \ noExplain) ^ noExplain ) => eq
+   * should be sent on the output channel of the theory of strings, where
+   * EXPLAIN returns the explanation of the node in exp in terms of the literals
    * asserted to the theory of strings, as computed by the equality engine.
    * This is also added to a pending vector, d_pendingLem.
    *
@@ -159,33 +137,48 @@ class InferenceManager
    * channel of the theory of strings.
    *
    * Determining which case to apply depends on the form of eq and whether
-   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
-   * non-empty, conflicts are used when exp_n is empty and eq is false.
+   * noExplain is empty. In particular, lemmas must be used whenever noExplain
+   * is non-empty, conflicts are used when noExplain is empty and eq is false.
    *
-   * The argument infer identifies the reason for inference, used for
+   * @param exp The explanation of eq.
+   * @param noExplain The subset of exp that cannot be explained by the
+   * equality engine. This may impact whether we are processing this call as a
+   * fact or as a lemma.
+   * @param eq The conclusion.
+   * @param infer Identifies the reason for inference, used for
    * debugging. This updates the statistics about the number of inferences made
    * of each type.
-   *
-   * If the flag asLemma is true, then this method will send a lemma instead
-   * of an inference whenever applicable.
+   * @param isRev Whether this is the "reverse variant" of the inference, which
+   * is used as a hint for proof reconstruction.
+   * @param asLemma If true, then this method will send a lemma instead
+   * of a fact whenever applicable.
    */
   void sendInference(const std::vector<Node>& exp,
-                     const std::vector<Node>& exp_n,
+                     const std::vector<Node>& noExplain,
                      Node eq,
                      Inference infer,
+                     bool isRev = false,
                      bool asLemma = false);
-  /** same as above, but where exp_n is empty */
+  /** same as above, but where noExplain is empty */
   void sendInference(const std::vector<Node>& exp,
                      Node eq,
                      Inference infer,
+                     bool isRev = false,
                      bool asLemma = false);
 
   /** Send inference
    *
-   * Makes the appropriate call to send inference based on the infer info
-   * data structure (see sendInference documentation above).
+   * This implements the above methods for the InferInfo object. It is called
+   * by the methods above.
+   *
+   * The inference info ii should have a rewritten conclusion and should not be
+   * trivial (InferInfo::isTrivial). It is the responsibility of the caller to
+   * ensure this.
+   *
+   * If the flag asLemma is true, then this method will send a lemma instead
+   * of a fact whenever applicable.
    */
-  void sendInference(const InferInfo& i);
+  void sendInference(const InferInfo& ii, bool asLemma = false);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
@@ -205,7 +198,10 @@ class InferenceManager
    *
    * This method is called to indicate this class should send a phase
    * requirement request to the output channel for literal lit to be
-   * decided with polarity pol.
+   * decided with polarity pol. This requirement is processed at the same time
+   * lemmas are sent on the output channel of this class during this call to
+   * check. This means if the current lemmas of this class are abandoned (due
+   * to a conflict), the phase requirement is not processed.
    */
   void sendPhaseRequirement(Node lit, bool pol);
   /**
@@ -271,8 +267,9 @@ class InferenceManager
    * that have been asserted to the equality engine.
    */
   Node mkExplain(const std::vector<Node>& a) const;
-  /** Same as above, but the new literals an are append to the result */
-  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an) const;
+  /** Same as above, but with a subset noExplain that should not be explained */
+  Node mkExplain(const std::vector<Node>& a,
+                 const std::vector<Node>& noExplain) const;
   /**
    * Explain literal l, add conjuncts to assumptions vector instead of making
    * the node corresponding to their conjunction.
@@ -304,17 +301,6 @@ class InferenceManager
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  /**
-   * Indicates that ant => conc should be sent on the output channel of this
-   * class. This will either trigger an immediate call to the conflict
-   * method of the output channel of this class of conc is false, or adds the
-   * above lemma to the lemma cache d_pending_lem, which may be flushed
-   * later within the current call to TheoryStrings::check.
-   *
-   * The argument infer identifies the reason for inference, used for
-   * debugging.
-   */
-  void sendLemma(Node ant, Node conc, Inference infer);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -335,11 +321,11 @@ class InferenceManager
    * The list of pending literals to assert to the equality engine along with
    * their explanation.
    */
-  std::vector<PendingInfer> d_pending;
+  std::vector<InferInfo> d_pending;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<Node> d_pendingLem;
+  std::vector<InferInfo> d_pendingLem;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their

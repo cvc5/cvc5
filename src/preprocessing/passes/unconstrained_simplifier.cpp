@@ -2,9 +2,9 @@
 /*! \file unconstrained_simplifier.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andres Noetzli, Tim King
+ **   Clark Barrett, Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,6 +18,7 @@
 
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
+#include "expr/dtype.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -75,6 +76,16 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
         {
           d_unconstrained.erase(current);
         }
+        else
+        {
+          // Also erase the children from the visited-once set when we visit a
+          // node a second time, otherwise variables in this node are not
+          // erased from the set of unconstrained variables.
+          for (TNode childNode : current)
+          {
+            toVisit.push_back(unc_preprocess_stack_element(childNode, current));
+          }
+        }
       }
       ++find->second;
       continue;
@@ -90,6 +101,15 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
       {
         d_unconstrained.insert(current);
       }
+    }
+    else if (current.isClosure())
+    {
+      // Throw an exception. This should never happen in practice unless the
+      // user specifically enabled unconstrained simplification in an illegal
+      // logic.
+      throw LogicException(
+          "Cannot use unconstrained simplification in this logic, due to "
+          "(possibly internally introduced) quantified formula.");
     }
     else
     {
@@ -236,11 +256,15 @@ void UnconstrainedSimplifier::processUnconstrained()
               break;
             }
           }
+          if (parent[0].getType().getCardinality().isOne())
+          {
+            break;
+          }
           if (parent[0].getType().isDatatype())
           {
             TypeNode tn = parent[0].getType();
-            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            if (dt.isRecursiveSingleton(tn.toType()))
+            const DType& dt = tn.getDType();
+            if (dt.isRecursiveSingleton(tn))
             {
               // domain size may be 1
               break;
@@ -577,10 +601,9 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               currentSub = current;
             }
-            if (parent.getType() != current.getType())
-            {
-              currentSub = newUnconstrainedVar(parent.getType(), currentSub);
-            }
+            // always introduce a new variable; it is unsound to try to reuse
+            // currentSub as the variable, see issue #4469.
+            currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
           }
           else
@@ -779,6 +802,10 @@ void UnconstrainedSimplifier::processUnconstrained()
     }
     if (!currentSub.isNull())
     {
+      Trace("unc-simp")
+          << "UnconstrainedSimplifier::processUnconstrained: introduce "
+          << currentSub << " for " << current << ", parent " << parent
+          << std::endl;
       Assert(currentSub.isVar());
       d_substitutions.addSubstitution(current, currentSub, false);
     }

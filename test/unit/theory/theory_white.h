@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -58,8 +58,10 @@ class TestOutputChannel : public OutputChannel {
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable = false,
-                    bool preprocess = false, bool sendAtoms = false) override {
+  LemmaStatus lemma(TNode n,
+                    ProofRule rule,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);
   }
@@ -97,9 +99,14 @@ class DummyTheory : public Theory {
   set<Node> d_registered;
   vector<Node> d_getSequence;
 
-  DummyTheory(Context* ctxt, UserContext* uctxt, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo)
-      : Theory(theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo)
+  DummyTheory(Context* ctxt,
+              UserContext* uctxt,
+              OutputChannel& out,
+              Valuation valuation,
+              const LogicInfo& logicInfo,
+              ProofNodeManager* pnm)
+      : Theory(
+            theory::THEORY_BUILTIN, ctxt, uctxt, out, valuation, logicInfo, pnm)
   {}
 
   TheoryRewriter* getTheoryRewriter() { return nullptr; }
@@ -136,7 +143,7 @@ class DummyTheory : public Theory {
   void presolve() override { Unimplemented(); }
   void preRegisterTerm(TNode n) override {}
   void propagate(Effort level) override {}
-  Node explain(TNode n) override { return Node::null(); }
+  TrustNode explain(TNode n) override { return TrustNode::null(); }
   Node getValue(TNode n) { return Node::null(); }
   string identify() const override { return "DummyTheory"; }
 };/* class DummyTheory */
@@ -173,15 +180,19 @@ class TheoryBlack : public CxxTest::TestSuite {
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     // guard against duplicate statistics assertion errors
-    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
-    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
-    d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
+    delete d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
+    delete d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = NULL;
+    d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = NULL;
 
-    d_dummy = new DummyTheory(
-        d_ctxt, d_uctxt, d_outputChannel, Valuation(NULL), *d_logicInfo);
+    d_dummy = new DummyTheory(d_ctxt,
+                              d_uctxt,
+                              d_outputChannel,
+                              Valuation(NULL),
+                              *d_logicInfo,
+                              nullptr);
     d_outputChannel.clear();
     atom0 = d_nm->mkConst(true);
     atom1 = d_nm->mkConst(false);

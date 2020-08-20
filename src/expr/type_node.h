@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -409,7 +409,7 @@ public:
    * Convert this TypeNode into a Type using the currently-in-scope
    * manager.
    */
-  inline Type toType();
+  inline Type toType() const;
 
   /**
    * Convert a Type into a TypeNode.
@@ -518,6 +518,9 @@ public:
   /** Is this a Set type? */
   bool isSet() const;
 
+  /** Is this a Sequence type? */
+  bool isSequence() const;
+
   /** Get the index type (for array types) */
   TypeNode getArrayIndexType() const;
 
@@ -536,6 +539,8 @@ public:
   /** Get the element type (for set types) */
   TypeNode getSetElementType() const;
 
+  /** Get the element type (for sequence types) */
+  TypeNode getSequenceElementType() const;
   /**
    * Is this a function type?  Function-like things (e.g. datatype
    * selectors) that aren't actually functions are NOT considered
@@ -594,6 +599,9 @@ public:
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Is this a record type? */
+  bool isRecord() const;
+
   /** Get the length of a tuple type */
   size_t getTupleLength() const;
 
@@ -634,6 +642,9 @@ public:
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
 
+  /** Is this a sygus datatype type */
+  bool isSygusDatatype() const;
+
   /**
    * Get instantiated datatype type. The type on which this method is called
    * should be a parametric datatype whose parameter list is the same size as
@@ -673,6 +684,9 @@ public:
 
   /** Is this a sort constructor kind */
   bool isSortConstructor() const;
+
+  /** Get sort constructor arity */
+  uint64_t getSortConstructorArity() const;
 
   /**
    * Instantiate a sort constructor type. The type on which this method is
@@ -746,11 +760,13 @@ typedef TypeNode::HashFunction TypeNodeHashFunction;
 
 namespace CVC4 {
 
-inline Type TypeNode::toType() {
+inline Type TypeNode::toType() const
+{
   return NodeManager::currentNM()->toType(*this);
 }
 
 inline TypeNode TypeNode::fromType(const Type& t) {
+  NodeManagerScope scope(t.d_nodeManager);
   return NodeManager::fromType(t);
 }
 
@@ -959,6 +975,11 @@ inline TypeNode TypeNode::getSelectorRangeType() const
 
 inline bool TypeNode::isSet() const {
   return getKind() == kind::SET_TYPE;
+}
+
+inline bool TypeNode::isSequence() const
+{
+  return getKind() == kind::SEQUENCE_TYPE;
 }
 
 inline TypeNode TypeNode::getSetElementType() const {

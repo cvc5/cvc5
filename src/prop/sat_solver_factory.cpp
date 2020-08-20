@@ -2,9 +2,9 @@
 /*! \file sat_solver_factory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Liana Hadarean, Dejan Jovanovic
+ **   Mathias Preiner, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "prop/bvminisat/bvminisat.h"
 #include "prop/cadical.h"
 #include "prop/cryptominisat.h"
+#include "prop/kissat.h"
 #include "prop/minisat/minisat.h"
 
 namespace CVC4 {
@@ -42,7 +43,9 @@ SatSolver* SatSolverFactory::createCryptoMinisat(StatisticsRegistry* registry,
                                                  const std::string& name)
 {
 #ifdef CVC4_USE_CRYPTOMINISAT
-  return new CryptoMinisatSolver(registry, name);
+  CryptoMinisatSolver* res = new CryptoMinisatSolver(registry, name);
+  res->init();
+  return res;
 #else
   Unreachable() << "CVC4 was not compiled with Cryptominisat support.";
 #endif
@@ -52,9 +55,23 @@ SatSolver* SatSolverFactory::createCadical(StatisticsRegistry* registry,
                                            const std::string& name)
 {
 #ifdef CVC4_USE_CADICAL
-  return new CadicalSolver(registry, name);
+  CadicalSolver* res = new CadicalSolver(registry, name);
+  res->init();
+  return res;
 #else
   Unreachable() << "CVC4 was not compiled with CaDiCaL support.";
+#endif
+}
+
+SatSolver* SatSolverFactory::createKissat(StatisticsRegistry* registry,
+                                          const std::string& name)
+{
+#ifdef CVC4_USE_KISSAT
+  KissatSolver* res = new KissatSolver(registry, name);
+  res->init();
+  return res;
+#else
+  Unreachable() << "CVC4 was not compiled with Kissat support.";
 #endif
 }
 

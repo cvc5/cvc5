@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Alex Ozdemir, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,7 +34,7 @@ namespace arith {
  * http://research.microsoft.com/en-us/um/people/leonardo/cav06.pdf
  */
 class TheoryArith : public Theory {
-private:
+ private:
   friend class TheoryArithPrivate;
 
   TheoryArithPrivate* d_internal;
@@ -46,26 +46,41 @@ private:
    */
   proof::ArithProofRecorder * d_proofRecorder;
 
-public:
-  TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out,
-              Valuation valuation, const LogicInfo& logicInfo);
+ public:
+  TheoryArith(context::Context* c,
+              context::UserContext* u,
+              OutputChannel& out,
+              Valuation valuation,
+              const LogicInfo& logicInfo,
+              ProofNodeManager* pnm = nullptr);
   virtual ~TheoryArith();
 
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if this theory needs an equality engine, which is assigned
+   * to it (d_equalityEngine) by the equality engine manager during
+   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
+   * If this method returns true, it stores instructions for the notifications
+   * this Theory wishes to receive from its equality engine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n) override;
 
-  Node expandDefinition(Node node) override;
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  TrustNode expandDefinition(Node node) override;
 
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
@@ -82,7 +97,7 @@ public:
   void presolve() override;
   void notifyRestart() override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-  Node ppRewrite(TNode atom) override;
+  TrustNode ppRewrite(TNode atom) override;
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
 
   std::string identify() const override { return std::string("TheoryArith"); }
@@ -93,12 +108,9 @@ public:
 
   Node getModelValue(TNode var) override;
 
-  std::pair<bool, Node> entailmentCheck(
-      TNode lit,
-      const EntailmentCheckParameters* params,
-      EntailmentCheckSideEffects* out) override;
+  std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
-  void setProofRecorder(proof::ArithProofRecorder * proofRecorder)
+  void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
   {
     d_proofRecorder = proofRecorder;
   }

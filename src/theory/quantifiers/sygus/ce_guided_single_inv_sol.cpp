@@ -2,9 +2,9 @@
 /*! \file ce_guided_single_inv_sol.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Andres Noetzli
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,6 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
@@ -873,7 +872,7 @@ bool CegSingleInvSol::getMatch(Node p,
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   if (tds->isFreeVar(p))
   {
-    unsigned vnum = tds->getVarNum(p);
+    size_t vnum = tds->getFreeVarId(p);
     Node prev = s[vnum];
     s[vnum] = n;
     if (prev.isNull())

@@ -2,9 +2,9 @@
 /*! \file theory_uf.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
+ **   Dejan Jovanovic, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_checker.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -43,17 +44,6 @@ public:
     TheoryUF& d_uf;
   public:
     NotifyClass(TheoryUF& uf): d_uf(uf) {}
-
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_uf.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_uf.propagate(equality.notNode());
-      }
-    }
 
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
@@ -90,16 +80,11 @@ public:
       d_uf.eqNotifyNewClass(t);
     }
 
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      Debug("uf-notify") << "NotifyClass::eqNotifyPreMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.eqNotifyPreMerge(t1, t2);
-    }
-
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      Debug("uf-notify") << "NotifyClass::eqNotifyPostMerge(" << t1 << ", " << t2 << ")" << std::endl;
-      d_uf.eqNotifyPostMerge(t1, t2);
+      Debug("uf-notify") << "NotifyClass::eqNotifyMerge(" << t1 << ", " << t2
+                         << ")" << std::endl;
+      d_uf.eqNotifyMerge(t1, t2);
     }
 
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
@@ -119,9 +104,6 @@ private:
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
-
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
 
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
@@ -162,11 +144,8 @@ private:
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
 
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
 
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
@@ -183,21 +162,33 @@ private:
  public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
-  TheoryUF(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo,
+  TheoryUF(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr,
            std::string instanceName = "");
 
   ~TheoryUF();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
   void check(Effort) override;
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -213,8 +204,6 @@ private:
 
   std::string identify() const override { return "THEORY_UF"; }
 
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
-
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
   /** are we in conflict? */
@@ -228,6 +217,8 @@ private:
                     unsigned depth);
 
   TheoryUfRewriter d_rewriter;
+  /** Proof rule checker */
+  UfProofRuleChecker d_ufProofChecker;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

@@ -2,9 +2,9 @@
 /*! \file theory_arith.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,22 +31,19 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
-                         OutputChannel& out, Valuation valuation,
-                         const LogicInfo& logicInfo)
-    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
-    , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
-    , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
-    , d_proofRecorder(nullptr)
+TheoryArith::TheoryArith(context::Context* c,
+                         context::UserContext* u,
+                         OutputChannel& out,
+                         Valuation valuation,
+                         const LogicInfo& logicInfo,
+                         ProofNodeManager* pnm)
+    : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
+      d_internal(
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
+      d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
+      d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  if (options::nlExt()) {
-    setupExtTheory();
-    getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
-    getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
-    getExtTheory()->addFunctionKind(kind::SINE);
-    getExtTheory()->addFunctionKind(kind::PI);
-  }
 }
 
 TheoryArith::~TheoryArith(){
@@ -59,24 +56,39 @@ TheoryRewriter* TheoryArith::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-void TheoryArith::preRegisterTerm(TNode n){
-  d_internal->preRegisterTerm(n);
+bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
+{
+  return d_internal->needsEqualityEngine(esi);
+}
+void TheoryArith::finishInit()
+{
+  if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
+      && getLogicInfo().areTranscendentalsUsed())
+  {
+    // witness is used to eliminate square root
+    d_valuation.setUnevaluatedKind(kind::WITNESS);
+    // we only need to add the operators that are not syntax sugar
+    d_valuation.setUnevaluatedKind(kind::EXPONENTIAL);
+    d_valuation.setUnevaluatedKind(kind::SINE);
+    d_valuation.setUnevaluatedKind(kind::PI);
+  }
+  // finish initialize internally
+  d_internal->finishInit();
 }
 
-Node TheoryArith::expandDefinition(Node node)
+void TheoryArith::preRegisterTerm(TNode n) { d_internal->preRegisterTerm(n); }
+
+TrustNode TheoryArith::expandDefinition(Node node)
 {
   return d_internal->expandDefinition(node);
-}
-
-void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_internal->setMasterEqualityEngine(eq);
 }
 
 void TheoryArith::addSharedTerm(TNode n){
   d_internal->addSharedTerm(n);
 }
 
-Node TheoryArith::ppRewrite(TNode atom) {
+TrustNode TheoryArith::ppRewrite(TNode atom)
+{
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
   return d_internal->ppRewrite(atom);
 }
@@ -98,8 +110,10 @@ bool TheoryArith::needsCheckLastEffort() {
   return d_internal->needsCheckLastEffort();
 }
 
-Node TheoryArith::explain(TNode n) {
-  return d_internal->explain(n);
+TrustNode TheoryArith::explain(TNode n)
+{
+  Node exp = d_internal->explain(n);
+  return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
 bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
@@ -134,40 +148,12 @@ Node TheoryArith::getModelValue(TNode var) {
   return d_internal->getModelValue( var );
 }
 
-
-std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit,
-                                                    const EntailmentCheckParameters* params,
-                                                    EntailmentCheckSideEffects* out)
+std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
-  const ArithEntailmentCheckParameters* aparams = NULL;
-  if(params == NULL){
-    ArithEntailmentCheckParameters* def = new ArithEntailmentCheckParameters();
-    def->addLookupRowSumAlgorithms();
-    aparams = def;
-  }else{
-    AlwaysAssert(params->getTheoryId() == getId());
-    aparams = dynamic_cast<const ArithEntailmentCheckParameters*>(params);
-  }
-  Assert(aparams != NULL);
-
-  ArithEntailmentCheckSideEffects* ase = NULL;
-  if(out == NULL){
-    ase = new ArithEntailmentCheckSideEffects();
-  }else{
-    AlwaysAssert(out->getTheoryId() == getId());
-    ase = dynamic_cast<ArithEntailmentCheckSideEffects*>(out);
-  }
-  Assert(ase != NULL);
-
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, *aparams, *ase);
-
-  if(params == NULL){
-    delete aparams;
-  }
-  if(out == NULL){
-    delete ase;
-  }
-
+  ArithEntailmentCheckParameters def;
+  def.addLookupRowSumAlgorithms();
+  ArithEntailmentCheckSideEffects ase;
+  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
 }
 

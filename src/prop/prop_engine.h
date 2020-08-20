@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -68,6 +68,13 @@ class PropEngine
    * Destructor.
    */
   CVC4_PUBLIC ~PropEngine();
+
+  /**
+   * Finish initialize. Call this after construction just before we are
+   * ready to use this class. Should be called after TheoryEngine::finishInit.
+   * This method converts and asserts true and false into the CNF stream.
+   */
+  void finishInit();
 
   /**
    * This is called by SmtEngine, at shutdown time, just before

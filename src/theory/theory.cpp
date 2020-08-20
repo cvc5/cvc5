@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Dejan Jovanovic, Andrew Reynolds
+ **   Tim King, Mathias Preiner, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,25 +60,29 @@ Theory::Theory(TheoryId id,
                OutputChannel& out,
                Valuation valuation,
                const LogicInfo& logicInfo,
+               ProofNodeManager* pnm,
                std::string name)
     : d_id(id),
-      d_instanceName(name),
       d_satContext(satContext),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
+      d_pnm(pnm),
       d_facts(satContext),
       d_factsHead(satContext, 0),
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(NULL),
       d_quantEngine(NULL),
       d_decManager(nullptr),
-      d_extTheory(NULL),
+      d_instanceName(name),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
                              + "::computeCareGraphTime"),
       d_sharedTerms(satContext),
       d_out(&out),
       d_valuation(valuation),
+      d_equalityEngine(nullptr),
+      d_allocEqualityEngine(nullptr),
+      d_theoryState(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -88,8 +92,48 @@ Theory::Theory(TheoryId id,
 Theory::~Theory() {
   smtStatisticsRegistry()->unregisterStat(&d_checkTime);
   smtStatisticsRegistry()->unregisterStat(&d_computeCareGraphTime);
+}
 
-  delete d_extTheory;
+bool Theory::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // by default, this theory does not use an (official) equality engine
+  return false;
+}
+
+void Theory::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  // set the equality engine pointer
+  d_equalityEngine = ee;
+  if (d_theoryState != nullptr)
+  {
+    d_theoryState->setEqualityEngine(ee);
+  }
+}
+void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
+{
+  Assert(d_quantEngine == nullptr);
+  d_quantEngine = qe;
+}
+
+void Theory::setDecisionManager(DecisionManager* dm)
+{
+  Assert(d_decManager == nullptr);
+  Assert(dm != nullptr);
+  d_decManager = dm;
+}
+
+void Theory::finishInitStandalone()
+{
+  EeSetupInfo esi;
+  if (needsEqualityEngine(esi))
+  {
+    // always associated with the same SAT context as the theory (d_satContext)
+    d_allocEqualityEngine.reset(new eq::EqualityEngine(
+        *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
+    // use it as the official equality engine
+    setEqualityEngine(d_allocEqualityEngine.get());
+  }
+  finishInit();
 }
 
 TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
@@ -268,6 +312,33 @@ void Theory::debugPrintFacts() const{
   printFacts(DebugChannel.getStream());
 }
 
+bool Theory::isLegalElimination(TNode x, TNode val)
+{
+  Assert(x.isVar());
+  if (x.getKind() == kind::BOOLEAN_TERM_VARIABLE
+      || val.getKind() == kind::BOOLEAN_TERM_VARIABLE)
+  {
+    return false;
+  }
+  if (expr::hasSubterm(val, x))
+  {
+    return false;
+  }
+  if (!val.getType().isSubtypeOf(x.getType()))
+  {
+    return false;
+  }
+  if (!options::produceModels())
+  {
+    // don't care about the model, we are fine
+    return true;
+  }
+  // if there is a model object
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  return tm->isLegalElimination(x, val);
+}
+
 std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() const{
   std::unordered_set<TNode, TNodeHashFunction> currentlyShared;
   for (shared_terms_iterator i = shared_terms_begin(),
@@ -275,6 +346,23 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
     currentlyShared.insert (*i);
   }
   return currentlyShared;
+}
+
+bool Theory::collectModelInfo(TheoryModel* m)
+{
+  std::set<Node> termSet;
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+  // if we are using an equality engine, assert it to the model
+  if (d_equalityEngine != nullptr)
+  {
+    if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
+    {
+      return false;
+    }
+  }
+  // now, collect theory-specific value assigments
+  return collectModelValues(m, termSet);
 }
 
 void Theory::collectTerms(TNode n,
@@ -299,16 +387,9 @@ void Theory::collectTerms(TNode n,
   }
 }
 
-
-void Theory::computeRelevantTerms(set<Node>& termSet, bool includeShared) const
-{
-  set<Kind> irrKinds;
-  computeRelevantTerms(termSet, irrKinds, includeShared);
-}
-
-void Theory::computeRelevantTerms(set<Node>& termSet,
-                                  set<Kind>& irrKinds,
-                                  bool includeShared) const
+void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
+                                          std::set<Kind>& irrKinds,
+                                          bool includeShared) const
 {
   // Collect all terms appearing in assertions
   irrKinds.insert(kind::EQUAL);
@@ -328,6 +409,17 @@ void Theory::computeRelevantTerms(set<Node>& termSet,
   }
 }
 
+void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
+{
+  std::set<Kind> irrKinds;
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+}
+
+bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
+{
+  return true;
+}
+
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
                                         SubstitutionMap& outSubstitutions)
 {
@@ -337,15 +429,13 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType())
+    if (in[0].isVar() && isLegalElimination(in[0], in[1])
         && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-        && (in[0].getType()).isSubtypeOf(in[1].getType())
+    if (in[1].isVar() && isLegalElimination(in[1], in[0])
         && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[1], in[0]);
@@ -363,16 +453,9 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
   return PP_ASSERT_STATUS_UNSOLVED;
 }
 
-std::pair<bool, Node> Theory::entailmentCheck(
-    TNode lit,
-    const EntailmentCheckParameters* params,
-    EntailmentCheckSideEffects* out) {
+std::pair<bool, Node> Theory::entailmentCheck(TNode lit)
+{
   return make_pair(false, Node::null());
-}
-
-ExtTheory* Theory::getExtTheory() {
-  Assert(d_extTheory != NULL);
-  return d_extTheory;
 }
 
 void Theory::addCarePair(TNode t1, TNode t2) {
@@ -391,44 +474,10 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = NULL;
 }
 
-void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
-  Assert(d_quantEngine == NULL);
-  Assert(qe != NULL);
-  d_quantEngine = qe;
-}
-
-void Theory::setDecisionManager(DecisionManager* dm)
+eq::EqualityEngine* Theory::getEqualityEngine()
 {
-  Assert(d_decManager == nullptr);
-  Assert(dm != nullptr);
-  d_decManager = dm;
-}
-
-void Theory::setupExtTheory() {
-  Assert(d_extTheory == NULL);
-  d_extTheory = new ExtTheory(this);
-}
-
-
-EntailmentCheckParameters::EntailmentCheckParameters(TheoryId tid)
-  : d_tid(tid) {
-}
-
-EntailmentCheckParameters::~EntailmentCheckParameters(){}
-
-TheoryId EntailmentCheckParameters::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::EntailmentCheckSideEffects(TheoryId tid)
-  : d_tid(tid)
-{}
-
-TheoryId EntailmentCheckSideEffects::getTheoryId() const {
-  return d_tid;
-}
-
-EntailmentCheckSideEffects::~EntailmentCheckSideEffects() {
+  // get the assigned equality engine, which is a pointer stored in this class
+  return d_equalityEngine;
 }
 
 }/* CVC4::theory namespace */

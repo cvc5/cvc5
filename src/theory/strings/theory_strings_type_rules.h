@@ -2,9 +2,9 @@
 /*! \file theory_strings_type_rules.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tianyi Liang, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,8 @@
 
 #ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 #define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+
+#include "expr/sequence.h"
 
 namespace CVC4 {
 namespace theory {
@@ -87,6 +89,38 @@ class StringSubstrTypeRule
       {
         throw TypeCheckingExceptionPrivate(
             n, "expecting an integer length term in substr");
+      }
+    }
+    return t;
+  }
+};
+
+class StringUpdateTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    if (check)
+    {
+      if (!t.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting a string-like term in update");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in update");
+      }
+      t2 = n[2].getType(check);
+      if (!t2.isStringLike())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an string-like replace term in update");
       }
     }
     return t;
@@ -288,7 +322,8 @@ public:
 
       for(int i=0; i<2; ++i) {
         TypeNode t = (*it).getType(check);
-        if (!t.isString()) {
+        if (!t.isString())  // string-only
+        {
           throw TypeCheckingExceptionPrivate(n, "expecting a string term in regexp range");
         }
         if (!(*it).isConst())
@@ -317,6 +352,77 @@ public:
     return nodeManager->regExpType();
   }
 };
+
+class ConstSequenceTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::CONST_SEQUENCE);
+    return nodeManager->mkSequenceType(n.getConst<Sequence>().getType());
+  }
+};
+
+class SeqUnitTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    return nodeManager->mkSequenceType(n[0].getType(check));
+  }
+};
+
+class SeqNthTypeRule
+{
+ public:
+  static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+  {
+    TypeNode t = n[0].getType(check);
+    TypeNode t1 = t.getSequenceElementType();
+    if (check)
+    {
+      if (!t.isSequence())
+      {
+        throw TypeCheckingExceptionPrivate(n, "expecting a sequence in nth");
+      }
+      TypeNode t2 = n[1].getType(check);
+      if (!t2.isInteger())
+      {
+        throw TypeCheckingExceptionPrivate(
+            n, "expecting an integer start term in nth");
+      }
+    }
+    return t1;
+  }
+};
+
+/** Properties of the sequence type */
+struct SequenceProperties
+{
+  static Cardinality computeCardinality(TypeNode type)
+  {
+    Assert(type.getKind() == kind::SEQUENCE_TYPE);
+    return Cardinality::INTEGERS;
+  }
+  /** A sequence is well-founded if its element type is */
+  static bool isWellFounded(TypeNode type)
+  {
+    return type[0].isWellFounded();
+  }
+  /** Make ground term for sequence type (return the empty sequence) */
+  static Node mkGroundTerm(TypeNode type)
+  {
+    Assert(type.isSequence());
+    // empty sequence
+    std::vector<Node> seq;
+    return NodeManager::currentNM()->mkConst(
+        Sequence(type.getSequenceElementType(), seq));
+  }
+}; /* struct SequenceProperties */
 
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */

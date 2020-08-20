@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 
 #include "base/check.h"
 #include "expr/attribute.h"
+#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -266,7 +267,6 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 void Datatype::addSygusConstructor(Expr op,
                                    const std::string& cname,
                                    const std::vector<Type>& cargs,
-                                   std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   // avoid name clashes
@@ -275,7 +275,7 @@ void Datatype::addSygusConstructor(Expr op,
   std::string name = ss.str();
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
   DatatypeConstructor c(name, cweight);
-  c.setSygus(op, spc);
+  c.setSygus(op);
   for( unsigned j=0; j<cargs.size(); j++ ){
     Debug("parser-sygus-debug") << "  arg " << j << " : " << cargs[j] << std::endl;
     std::stringstream sname;
@@ -288,12 +288,11 @@ void Datatype::addSygusConstructor(Expr op,
 void Datatype::addSygusConstructor(Kind k,
                                    const std::string& cname,
                                    const std::vector<Type>& cargs,
-                                   std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
   ExprManagerScope ems(*d_em);
   Expr op = d_em->operatorOf(k);
-  addSygusConstructor(op, cname, cargs, spc, weight);
+  addSygusConstructor(op, cname, cargs, weight);
 }
 
 void Datatype::setTuple() {
@@ -306,6 +305,7 @@ void Datatype::setRecord() {
   PrettyCheckArgument(
       !isResolved(), this, "cannot set record to a finalized Datatype");
   d_isRecord = true;
+  d_internal->setRecord();
 }
 
 Cardinality Datatype::getCardinality(Type t) const
@@ -404,6 +404,12 @@ bool Datatype::isWellFounded() const
 {
   ExprManagerScope ems(d_self);
   return d_internal->isWellFounded();
+}
+
+bool Datatype::hasNestedRecursion() const
+{
+  ExprManagerScope ems(d_self);
+  return d_internal->hasNestedRecursion();
 }
 
 Expr Datatype::mkGroundTerm(Type t) const
@@ -520,15 +526,12 @@ DatatypeConstructor::DatatypeConstructor(std::string name, unsigned weight)
   d_internal = std::make_shared<DTypeConstructor>(name, weight);
 }
 
-void DatatypeConstructor::setSygus(Expr op,
-                                   std::shared_ptr<SygusPrintCallback> spc)
+void DatatypeConstructor::setSygus(Expr op)
 {
   PrettyCheckArgument(
       !isResolved(), this, "cannot modify a finalized Datatype constructor");
   Node opn = Node::fromExpr(op);
   d_internal->setSygus(op);
-  // print callback lives at the expression level currently
-  d_sygus_pc = spc;
 }
 
 const std::vector<DatatypeConstructorArg>* DatatypeConstructor::getArgs()
@@ -618,13 +621,6 @@ unsigned DatatypeConstructor::getWeight() const
       isResolved(), this, "this datatype constructor is not yet resolved");
   ExprManagerScope ems(d_constructor);
   return d_internal->getWeight();
-}
-
-std::shared_ptr<SygusPrintCallback> DatatypeConstructor::getSygusPrintCallback() const
-{
-  PrettyCheckArgument(
-      isResolved(), this, "this datatype constructor is not yet resolved");
-  return d_sygus_pc;
 }
 
 Cardinality DatatypeConstructor::getCardinality(Type t) const
@@ -855,12 +851,6 @@ void DatatypeConstructorArg::toStream(std::ostream& out) const
   }
   out << t;
 }
-
-DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}
-std::ostream& operator<<(std::ostream& out, const DatatypeIndexConstant& dic) {
-  return out << "index_" << dic.getIndex();
-}
-
 
 std::string Datatype::getName() const
 {

@@ -2,5 +2,5 @@
 (set-info :status unsat)
 (declare-fun x () String)
 (assert (= (str.len x) 1))
-(assert (or (< (str.code x) 0) (> (str.code x) 10000000000000000000000000000)))
+(assert (or (< (str.to_code x) 0) (> (str.to_code x) 10000000000000000000000000000)))
 (check-sat)

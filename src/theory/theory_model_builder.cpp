@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1115,7 +1115,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   TheoryModel* tm = static_cast<TheoryModel*>(m);
   Assert(tm != nullptr);
   // debug-check the model if the checkModels() is enabled.
-  if (options::checkModels())
+  if (options::debugCheckModels())
   {
     debugCheckModel(tm);
   }

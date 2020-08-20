@@ -2,9 +2,9 @@
 /*! \file normal_form.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -239,6 +239,7 @@ public:
      case kind::INTS_DIVISION_TOTAL:
      case kind::INTS_MODULUS_TOTAL:
      case kind::DIVISION_TOTAL: return isDivMember(n);
+     case kind::IAND: return isIAndMember(n);
      case kind::EXPONENTIAL:
      case kind::SINE:
      case kind::COSINE:
@@ -264,6 +265,7 @@ public:
  }
 
   static bool isLeafMember(Node n);
+  static bool isIAndMember(Node n);
   static bool isDivMember(Node n);
   bool isDivLike() const{
     return isDivMember(getNode());

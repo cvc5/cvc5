@@ -2,9 +2,9 @@
 /*! \file model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,7 @@
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "smt/command.h"
-#include "smt/command_list.h"
+#include "smt/dump_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
@@ -37,18 +37,14 @@ std::ostream& operator<<(std::ostream& out, const Model& m) {
 
 Model::Model() : d_smt(*smt::currentSmtEngine()), d_isKnownSat(false) {}
 
-size_t Model::getNumCommands() const {
-  return d_smt.d_modelCommands->size() + d_smt.d_modelGlobalCommands.size();
+size_t Model::getNumCommands() const
+{
+  return d_smt.getDumpManager()->getNumModelCommands();
 }
 
-const Command* Model::getCommand(size_t i) const {
-  Assert(i < getNumCommands());
-  // index the global commands first, then the locals
-  if(i < d_smt.d_modelGlobalCommands.size()) {
-    return d_smt.d_modelGlobalCommands[i];
-  } else {
-    return (*d_smt.d_modelCommands)[i - d_smt.d_modelGlobalCommands.size()];
-  }
+const Command* Model::getCommand(size_t i) const
+{
+  return d_smt.getDumpManager()->getModelCommand(i);
 }
 
 }/* CVC4 namespace */

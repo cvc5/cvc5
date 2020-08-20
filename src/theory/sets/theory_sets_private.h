@@ -2,9 +2,9 @@
 /*! \file theory_sets_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds, Kshitij Bansal, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -44,8 +44,7 @@ class TheorySetsPrivate {
 
  public:
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** Assert fact holds in the current context with explanation exp.
    *
@@ -124,7 +123,6 @@ class TheorySetsPrivate {
    */
   NodeSet d_termProcessed;
   NodeSet d_keep;
-  std::vector< Node > d_emp_exp;
   
   //propagation
   class EqcInfo
@@ -158,13 +156,21 @@ class TheorySetsPrivate {
    */
   TheorySetsPrivate(TheorySets& external,
                     context::Context* c,
-                    context::UserContext* u);
+                    context::UserContext* u,
+                    Valuation valuation);
 
   ~TheorySetsPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  /** Get the solver state */
+  SolverState* getSolverState() { return &d_state; }
+
+  /**
+   * Finish initialize, called after the equality engine of theory sets has
+   * been determined.
+   */
+  void finishInit();
 
   void addSharedTerm(TNode);
 
@@ -209,10 +215,8 @@ class TheorySetsPrivate {
    * Another option to fix this is to make TheoryModel::getValue more general
    * so that it makes theory-specific calls to evaluate interpreted symbols.
    */
-  Node expandDefinition(Node n);
+  TrustNode expandDefinition(Node n);
 
-  Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  
   void presolve();
 
   void propagate(Theory::Effort);
@@ -222,37 +226,18 @@ class TheorySetsPrivate {
   /** get the valuation */
   Valuation& getValuation();
 
- private:
-  TheorySets& d_external;
-
-  /** Functions to handle callbacks from equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify {
-    TheorySetsPrivate& d_theory;
-
-  public:
-    NotifyClass(TheorySetsPrivate& theory): d_theory(theory) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyPreMerge(TNode t1, TNode t2) override;
-    void eqNotifyPostMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-  } d_notify;
-
-  /** Equality engine */
-  eq::EqualityEngine d_equalityEngine;
-
   /** Proagate out to output channel */
   bool propagate(TNode);
 
   /** generate and send out conflict node */
   void conflict(TNode, TNode);
-  
+
+ private:
+  TheorySets& d_external;
+
+  /** Pointer to the equality engine of theory of sets */
+  eq::EqualityEngine* d_equalityEngine;
+
   bool isCareArg( Node n, unsigned a );
 
  public:

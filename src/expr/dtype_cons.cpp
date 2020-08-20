@@ -2,9 +2,9 @@
 /*! \file dtype_cons.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -51,7 +51,7 @@ void DTypeConstructor::addArg(std::string selectorName, TypeNode selectorType)
       selectorType,
       "is an unresolved selector type placeholder",
       NodeManager::SKOLEM_EXACT_NAME | NodeManager::SKOLEM_NO_NOTIFY);
-  Trace("datatypes") << type << std::endl;
+  Trace("datatypes") << "DTypeConstructor::addArg: " << type << std::endl;
   std::shared_ptr<DTypeSelector> a =
       std::make_shared<DTypeSelector>(selectorName, type);
   addArg(a);
@@ -62,7 +62,15 @@ void DTypeConstructor::addArg(std::shared_ptr<DTypeSelector> a)
   d_args.push_back(a);
 }
 
-std::string DTypeConstructor::getName() const { return d_name; }
+void DTypeConstructor::addArgSelf(std::string selectorName)
+{
+  Trace("datatypes") << "DTypeConstructor::addArgSelf" << std::endl;
+  std::shared_ptr<DTypeSelector> a =
+      std::make_shared<DTypeSelector>(selectorName + '\0', Node::null());
+  addArg(a);
+}
+
+const std::string& DTypeConstructor::getName() const { return d_name; }
 
 Node DTypeConstructor::getConstructor() const
 {
@@ -107,7 +115,10 @@ TypeNode DTypeConstructor::getSpecializedConstructorType(
     TypeNode returnType) const
 {
   Assert(isResolved());
-  Assert(returnType.isDatatype());
+  Assert(returnType.isDatatype())
+      << "DTypeConstructor::getSpecializedConstructorType: expected datatype, "
+         "got "
+      << returnType;
   const DType& dt = DType::datatypeOf(d_constructor);
   Assert(dt.isParametric());
   TypeNode dtt = dt.getTypeNode();
@@ -271,6 +282,18 @@ int DTypeConstructor::getSelectorIndexInternal(Node sel) const
     if (getNumArgs() > sindex && d_args[sindex]->getSelector() == sel)
     {
       return static_cast<int>(sindex);
+    }
+  }
+  return -1;
+}
+
+int DTypeConstructor::getSelectorIndexForName(const std::string& name) const
+{
+  for (size_t i = 0, nargs = getNumArgs(); i < nargs; i++)
+  {
+    if (d_args[i]->getName() == name)
+    {
+      return i;
     }
   }
   return -1;
@@ -480,6 +503,7 @@ bool DTypeConstructor::resolve(
   NodeManager* nm = NodeManager::currentNM();
   size_t index = 0;
   std::vector<TypeNode> argTypes;
+  Trace("datatypes-init") << "Initialize constructor " << d_name << std::endl;
   for (std::shared_ptr<DTypeSelector> arg : d_args)
   {
     std::string argName = arg->d_name;
@@ -488,9 +512,12 @@ bool DTypeConstructor::resolve(
     {
       // the unresolved type wasn't created here; do name resolution
       std::string typeName = argName.substr(argName.find('\0') + 1);
+      Trace("datatypes-init")
+          << "  - selector, typeName is " << typeName << std::endl;
       argName.resize(argName.find('\0'));
       if (typeName == "")
       {
+        Trace("datatypes-init") << "  ...self selector" << std::endl;
         range = self;
         arg->d_selector = nm->mkSkolem(
             argName,
@@ -504,11 +531,14 @@ bool DTypeConstructor::resolve(
             resolutions.find(typeName);
         if (j == resolutions.end())
         {
+          Trace("datatypes-init")
+              << "  ...failed to resolve selector" << std::endl;
           // failed to resolve selector
           return false;
         }
         else
         {
+          Trace("datatypes-init") << "  ...resolved selector" << std::endl;
           range = (*j).second;
           arg->d_selector = nm->mkSkolem(
               argName,
@@ -523,6 +553,8 @@ bool DTypeConstructor::resolve(
       // the type for the selector already exists; may need
       // complex-type substitution
       range = arg->d_selector.getType();
+      Trace("datatypes-init")
+          << "  - null selector, range = " << range << std::endl;
       if (!placeholders.empty())
       {
         range = range.substitute(placeholders.begin(),
@@ -530,10 +562,14 @@ bool DTypeConstructor::resolve(
                                  replacements.begin(),
                                  replacements.end());
       }
+      Trace("datatypes-init")
+          << "  ...range after placeholder replacement " << range << std::endl;
       if (!paramTypes.empty())
       {
         range = doParametricSubstitution(range, paramTypes, paramReplacements);
       }
+      Trace("datatypes-init")
+          << "  ...range after parametric substitution " << range << std::endl;
       arg->d_selector = nm->mkSkolem(
           argName,
           nm->mkSelectorType(self, range),
@@ -544,6 +580,13 @@ bool DTypeConstructor::resolve(
     arg->d_selector.setAttribute(DTypeIndexAttr(), index++);
     arg->d_resolved = true;
     argTypes.push_back(range);
+    // We use \0 as a distinguished marker for unresolved selectors for doing
+    // name resolutions. We now can remove \0 from name if necessary.
+    const size_t nul = arg->d_name.find('\0');
+    if (nul != std::string::npos)
+    {
+      arg->d_name.resize(nul);
+    }
   }
 
   Assert(index == getNumArgs());
@@ -597,7 +640,7 @@ TypeNode DTypeConstructor::doParametricSubstitution(
   }
   for (size_t i = 0, psize = paramTypes.size(); i < psize; ++i)
   {
-    if (paramTypes[i].getNumChildren() + 1 == origChildren.size())
+    if (paramTypes[i].getSortConstructorArity() == origChildren.size())
     {
       TypeNode tn = paramTypes[i].instantiateSortConstructor(origChildren);
       if (range == tn)

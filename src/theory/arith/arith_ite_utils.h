@@ -2,9 +2,9 @@
 /*! \file arith_ite_utils.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Aina Niemetz
+ **   Tim King, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -68,8 +68,6 @@ class ArithIteUtils {
 
   typedef std::map<Node, std::set<Node> > ImpMap;
   ImpMap d_implies;
-
-  std::vector<Node> d_skolemsAdded;
 
   std::vector<Node> d_orBinEqs;
 

@@ -2,9 +2,9 @@
 /*! \file theory_fp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Tim King, Mathias Preiner
+ **   Martin Brain, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,17 +36,31 @@ namespace fp {
 class TheoryFp : public Theory {
  public:
   /** Constructs a new instance of TheoryFp w.r.t. the provided contexts. */
-  TheoryFp(context::Context* c, context::UserContext* u, OutputChannel& out,
-           Valuation valuation, const LogicInfo& logicInfo);
+  TheoryFp(context::Context* c,
+           context::UserContext* u,
+           OutputChannel& out,
+           Valuation valuation,
+           const LogicInfo& logicInfo,
+           ProofNodeManager* pnm = nullptr);
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  Node expandDefinition(Node node) override;
+  TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
   void addSharedTerm(TNode node) override;
 
-  Node ppRewrite(TNode node) override;
+  TrustNode ppRewrite(TNode node) override;
 
   void check(Effort) override;
 
@@ -56,9 +70,7 @@ class TheoryFp : public Theory {
 
   std::string identify() const override { return "THEORY_FP"; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
-  Node explain(TNode n) override;
+  TrustNode explain(TNode n) override;
 
  protected:
   /** Equality engine */
@@ -68,7 +80,6 @@ class TheoryFp : public Theory {
 
    public:
     NotifyClass(TheoryFp& solver) : d_theorySolver(solver) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -76,14 +87,12 @@ class TheoryFp : public Theory {
                                      bool value) override;
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
     void eqNotifyNewClass(TNode t) override {}
-    void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-    void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+    void eqNotifyMerge(TNode t1, TNode t2) override {}
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
   };
   friend NotifyClass;
 
   NotifyClass d_notification;
-  eq::EqualityEngine d_equalityEngine;
 
   /** General utility **/
   void registerTerm(TNode node);

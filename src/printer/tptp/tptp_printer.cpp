@@ -2,9 +2,9 @@
 /*! \file tptp_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,15 +37,6 @@ void TptpPrinter::toStream(
     std::ostream& out, TNode n, int toDepth, bool types, size_t dag) const
 {
   n.toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
-}/* TptpPrinter::toStream() */
-
-void TptpPrinter::toStream(std::ostream& out,
-                           const Command* c,
-                           int toDepth,
-                           bool types,
-                           size_t dag) const
-{
-  c->toStream(out, toDepth, types, dag, language::output::LANG_SMTLIB_V2_5);
 }/* TptpPrinter::toStream() */
 
 void TptpPrinter::toStream(std::ostream& out, const CommandStatus* s) const

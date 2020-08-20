@@ -2,9 +2,9 @@
 /*! \file theory_sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Kshitij Bansal, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,14 +31,14 @@ TheorySets::TheorySets(context::Context* c,
                        context::UserContext* u,
                        OutputChannel& out,
                        Valuation valuation,
-                       const LogicInfo& logicInfo)
-    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo),
-      d_internal(new TheorySetsPrivate(*this, c, u))
+                       const LogicInfo& logicInfo,
+                       ProofNodeManager* pnm)
+    : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
+      d_internal(new TheorySetsPrivate(*this, c, u, valuation)),
+      d_notify(*d_internal.get())
 {
-  // Do not move me to the header.
-  // The constructor + destructor are not in the header as d_internal is a
-  // unique_ptr<TheorySetsPrivate> and TheorySetsPrivate is an opaque type in
-  // the header (Pimpl). See https://herbsutter.com/gotw/_100/ .
+  // use the state object as the official theory state
+  d_theoryState = d_internal->getSolverState();
 }
 
 TheorySets::~TheorySets()
@@ -51,11 +51,41 @@ TheoryRewriter* TheorySets::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
+bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::sets::ee";
+  return true;
+}
+
 void TheorySets::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setUnevaluatedKind(COMPREHENSION);
+  Assert(d_equalityEngine != nullptr);
+
+  d_valuation.setUnevaluatedKind(COMPREHENSION);
+  // choice is used to eliminate witness
+  d_valuation.setUnevaluatedKind(WITNESS);
+
+  // functions we are doing congruence over
+  d_equalityEngine->addFunctionKind(kind::SINGLETON);
+  d_equalityEngine->addFunctionKind(kind::UNION);
+  d_equalityEngine->addFunctionKind(kind::INTERSECTION);
+  d_equalityEngine->addFunctionKind(kind::SETMINUS);
+  d_equalityEngine->addFunctionKind(kind::MEMBER);
+  d_equalityEngine->addFunctionKind(kind::SUBSET);
+  // relation operators
+  d_equalityEngine->addFunctionKind(PRODUCT);
+  d_equalityEngine->addFunctionKind(JOIN);
+  d_equalityEngine->addFunctionKind(TRANSPOSE);
+  d_equalityEngine->addFunctionKind(TCLOSURE);
+  d_equalityEngine->addFunctionKind(JOIN_IMAGE);
+  d_equalityEngine->addFunctionKind(IDEN);
+  d_equalityEngine->addFunctionKind(APPLY_CONSTRUCTOR);
+  // we do congruence over cardinality
+  d_equalityEngine->addFunctionKind(CARD);
+
+  // finish initialization internally
+  d_internal->finishInit();
 }
 
 void TheorySets::addSharedTerm(TNode n) {
@@ -79,8 +109,10 @@ void TheorySets::computeCareGraph() {
   d_internal->computeCareGraph();
 }
 
-Node TheorySets::explain(TNode node) {
-  return d_internal->explain(node);
+TrustNode TheorySets::explain(TNode node)
+{
+  Node exp = d_internal->explain(node);
+  return TrustNode::mkTrustPropExp(node, exp, nullptr);
 }
 
 EqualityStatus TheorySets::getEqualityStatus(TNode a, TNode b) {
@@ -95,7 +127,7 @@ void TheorySets::preRegisterTerm(TNode node) {
   d_internal->preRegisterTerm(node);
 }
 
-Node TheorySets::expandDefinition(Node n)
+TrustNode TheorySets::expandDefinition(Node n)
 {
   Kind nk = n.getKind();
   if (nk == UNIVERSE_SET || nk == COMPLEMENT || nk == JOIN_IMAGE
@@ -123,7 +155,41 @@ Node TheorySets::expandDefinition(Node n)
 }
 
 Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
-  return d_internal->ppAssert( in, outSubstitutions );
+  Debug("sets-proc") << "ppAssert : " << in << std::endl;
+  Theory::PPAssertStatus status = Theory::PP_ASSERT_STATUS_UNSOLVED;
+
+  // this is based off of Theory::ppAssert
+  if (in.getKind() == kind::EQUAL)
+  {
+    if (in[0].isVar() && isLegalElimination(in[0], in[1]))
+    {
+      // We cannot solve for sets if setsExt is enabled, since universe set
+      // may appear when this option is enabled, and solving for such a set
+      // impacts the semantics of universe set, see
+      // regress0/sets/pre-proc-univ.smt2
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
+        outSubstitutions.addSubstitution(in[0], in[1]);
+        status = Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }
+    else if (in[1].isVar() && isLegalElimination(in[1], in[0]))
+    {
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
+        outSubstitutions.addSubstitution(in[1], in[0]);
+        status = Theory::PP_ASSERT_STATUS_SOLVED;
+      }
+    }
+    else if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
+        status = Theory::PP_ASSERT_STATUS_CONFLICT;
+      }
+    }
+  }
+  return status;
 }
 
 void TheorySets::presolve() {
@@ -134,12 +200,63 @@ void TheorySets::propagate(Effort e) {
   d_internal->propagate(e);
 }
 
-void TheorySets::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_internal->setMasterEqualityEngine(eq);
-}
-
 bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
+}
+
+/**************************** eq::NotifyClass *****************************/
+
+bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
+                                                       bool value)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerPredicate: predicate = "
+                   << predicate << " value = " << value << std::endl;
+  if (value)
+  {
+    return d_theory.propagate(predicate);
+  }
+  return d_theory.propagate(predicate.notNode());
+}
+
+bool TheorySets::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,
+                                                          TNode t1,
+                                                          TNode t2,
+                                                          bool value)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerTermEquality: tag = " << tag
+                   << " t1 = " << t1 << "  t2 = " << t2 << "  value = " << value
+                   << std::endl;
+  d_theory.propagate(value ? t1.eqNode(t2) : t1.eqNode(t2).negate());
+  return true;
+}
+
+void TheorySets::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyConstantTermMerge "
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  d_theory.conflict(t1, t2);
+}
+
+void TheorySets::NotifyClass::eqNotifyNewClass(TNode t)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyNewClass:"
+                   << " t = " << t << std::endl;
+  d_theory.eqNotifyNewClass(t);
+}
+
+void TheorySets::NotifyClass::eqNotifyMerge(TNode t1, TNode t2)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyMerge:"
+                   << " t1 = " << t1 << " t2 = " << t2 << std::endl;
+  d_theory.eqNotifyMerge(t1, t2);
+}
+
+void TheorySets::NotifyClass::eqNotifyDisequal(TNode t1, TNode t2, TNode reason)
+{
+  Debug("sets-eq") << "[sets-eq] eqNotifyDisequal:"
+                   << " t1 = " << t1 << " t2 = " << t2 << " reason = " << reason
+                   << std::endl;
+  d_theory.eqNotifyDisequal(t1, t2, reason);
 }
 
 }/* CVC4::theory::sets namespace */

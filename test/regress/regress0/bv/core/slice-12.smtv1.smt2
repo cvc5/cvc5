@@ -1,8 +1,8 @@
 ; REQUIRES: cryptominisat
 ; REQUIRES: drat2er
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=lrat --check-proofs --no-check-unsat-cores
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=drat --check-proofs --no-check-unsat-cores
-; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=er --check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=lrat --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=drat --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=er --no-check-unsat-cores
 ; EXPECT: unsat
 (set-option :incremental false)
 (set-info :status unsat)

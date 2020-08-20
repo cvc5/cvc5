@@ -1,5 +1,3 @@
-; COMMAND-LINE: --rewrite-divk
-; EXPECT: unsat
 (set-logic QF_LIA)
 (set-info :status unsat)
 

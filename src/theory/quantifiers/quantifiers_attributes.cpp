@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Paul Meng, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -50,8 +50,9 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     SygusAttribute ca;
     n.setAttribute( ca, true );
   }
-  else if (attr == "quant-name")
+  else if (attr == "qid")
   {
+    // using z3 syntax "qid"
     Trace("quant-attr-debug") << "Set quant-name " << n << std::endl;
     QuantNameAttribute qna;
     n.setAttribute(qna, true);
@@ -301,6 +302,16 @@ bool QuantAttributes::isQuantElimPartial( Node q ) {
   }else{
     return it->second.d_quant_elim_partial;
   }
+}
+
+Node QuantAttributes::getQuantName(Node q) const
+{
+  std::map<Node, QAttributes>::const_iterator it = d_qattr.find(q);
+  if (it != d_qattr.end())
+  {
+    return it->second.d_name;
+  }
+  return Node::null();
 }
 
 int QuantAttributes::getQuantIdNum( Node q ) {

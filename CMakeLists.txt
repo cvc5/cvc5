@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.4)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -6,14 +6,14 @@ cmake_minimum_required(VERSION 3.2)
 project(cvc4)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   8) # Minor component of the version of CVC4.
+set(CVC4_MINOR   9) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
 set(CVC4_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 6)
+set(CVC4_SOVERSION 7)
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)
@@ -67,8 +67,14 @@ endif()
 if(GMP_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${GMP_DIR}")
 endif()
+if(KISSAT_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${KISSAT_DIR}")
+endif()
 if(LFSC_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${LFSC_DIR}")
+endif()
+if(POLY_DIR)
+  list(APPEND CMAKE_PREFIX_PATH "${POLY_DIR}")
 endif()
 if(SYMFPU_DIR)
   list(APPEND CMAKE_PREFIX_PATH "${SYMFPU_DIR}")
@@ -82,19 +88,6 @@ list(APPEND CMAKE_PREFIX_PATH "${PROJECT_SOURCE_DIR}/deps/install")
 set(INCLUDE_INSTALL_DIR include)
 set(LIBRARY_INSTALL_DIR lib)
 set(RUNTIME_INSTALL_DIR bin)
-
-#-----------------------------------------------------------------------------#
-
-# Embed the installation prefix as an RPATH in the executable such that the
-# linker can find our libraries (such as libcvc4parser) when executing the cvc4
-# binary. This is for example useful when installing CVC4 with a custom prefix
-# on macOS (e.g. when using homebrew in a non-standard directory). If we do not
-# set this option, then the linker will not be able to find the required
-# libraries when trying to run CVC4.
-#
-# More information on RPATH in CMake:
-# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
-set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR}")
 
 #-----------------------------------------------------------------------------#
 
@@ -143,13 +136,15 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 cvc4_option(USE_ABC           "Use ABC for AIG bit-blasting")
 cvc4_option(USE_CADICAL       "Use CaDiCaL SAT solver")
 cvc4_option(USE_CLN           "Use CLN instead of GMP")
-cvc4_option(USE_GLPK          "Use GLPK simplex solver")
 cvc4_option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
-cvc4_option(USE_READLINE      "Use readline for better interactive support")
+cvc4_option(USE_GLPK          "Use GLPK simplex solver")
+cvc4_option(USE_KISSAT        "Use Kissat SAT solver")
+cvc4_option(USE_EDITLINE      "Use Editline for better interactive support")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_DRAT2ER            "Include drat2er for making eager BV proofs")
 option(USE_LFSC               "Use LFSC proof checker")
+option(USE_POLY               "Use LibPoly for polynomial arithmetic")
 option(USE_SYMFPU             "Use SymFPU for floating point support")
 option(USE_PYTHON2            "Prefer using Python 2 (for Python bindings)")
 option(USE_PYTHON3            "Prefer using Python 3 (for Python bindings)")
@@ -167,18 +162,20 @@ set(CXXTEST_DIR       "" CACHE STRING "Set CxxTest install directory")
 set(DRAT2ER_DIR       "" CACHE STRING "Set drat2er install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
+set(KISSAT_DIR        "" CACHE STRING "Set Kissat install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
+set(POLY_DIR          "" CACHE STRING "Set LibPoly install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supported SWIG language bindings
-option(BUILD_SWIG_BINDINGS_JAVA   "Build Java bindings with SWIG")
-option(BUILD_SWIG_BINDINGS_PYTHON "Build Python bindings with SWIG")
-
 # Supprted language bindings based on new C++ API
 option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
+option(BUILD_BINDINGS_JAVA "Build Java bindings based on new C++ API ")
+
+# Build limitations
+option(BUILD_LIB_ONLY         "Only build the library")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -280,7 +277,7 @@ if(ENABLE_BEST)
   cvc4_set_option(USE_CLN ON)
   cvc4_set_option(USE_CRYPTOMINISAT ON)
   cvc4_set_option(USE_GLPK ON)
-  cvc4_set_option(USE_READLINE ON)
+  cvc4_set_option(USE_EDITLINE ON)
 endif()
 
 # Only enable unit testing if assertions are enabled. Otherwise, unit tests
@@ -301,8 +298,31 @@ if(ENABLE_SHARED)
     set(ENABLE_STATIC_BINARY OFF)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
+
+  # Embed the installation prefix as an RPATH in the executable such that the
+  # linker can find our libraries (such as libcvc4parser) when executing the
+  # cvc4 binary. This is for example useful when installing CVC4 with a custom
+  # prefix on macOS (e.g. when using homebrew in a non-standard directory). If
+  # we do not set this option, then the linker will not be able to find the
+  # required libraries when trying to run CVC4.
+  #
+  # Also embed the installation prefix of the installed contrib libraries as an
+  # RPATH. This allows to install a dynamically linked binary that depends on
+  # dynamically linked libraries. This is dangerous, as the installed binary
+  # breaks if the contrib library is removed or changes in other ways, we thus
+  # print a big warning and only allow if installing to a custom installation
+  # prefix.
+  #
+  # More information on RPATH in CMake:
+  # https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${LIBRARY_INSTALL_DIR};${PROJECT_SOURCE_DIR}/deps/install/lib")
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+  # When building statically, we *only* want static archives/libraries
+  if (WIN32)
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .lib .a)
+  else()
+      set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
+  endif()
   set(BUILD_SHARED_LIBS OFF)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
 
@@ -483,18 +503,30 @@ if(USE_GLPK)
   add_definitions(-DCVC4_USE_GLPK)
 endif()
 
+if(USE_KISSAT)
+  find_package(Kissat REQUIRED)
+  add_definitions(-DCVC4_USE_KISSAT)
+endif()
+
 if(USE_LFSC)
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
   find_package(LFSC REQUIRED)
   add_definitions(-DCVC4_USE_LFSC)
 endif()
 
-if(USE_READLINE)
-  set(GPL_LIBS "${GPL_LIBS} readline")
-  find_package(Readline REQUIRED)
-  set(HAVE_LIBREADLINE 1)
-  if(Readline_COMPENTRY_FUNC_RETURNS_CHARPTR)
-    set(READLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
+if(USE_POLY)
+  find_package(Poly REQUIRED)
+  add_definitions(-DCVC4_USE_POLY)
+  set(CVC4_USE_POLY_IMP 1)
+else()
+  set(CVC4_USE_POLY_IMP 0)
+endif()
+
+if(USE_EDITLINE)
+  find_package(Editline REQUIRED)
+  set(HAVE_LIBEDITLINE 1)
+  if(Editline_COMPENTRY_FUNC_RETURNS_CHARPTR)
+    set(EDITLINE_COMPENTRY_FUNC_RETURNS_CHARP 1)
   endif()
 endif()
 
@@ -519,7 +551,11 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
+if(NOT ENABLE_SHARED)
+  set(CVC4_STATIC_BUILD ON)
+endif()
 configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
+unset(CVC4_STATIC_BUILD)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -534,12 +570,13 @@ add_subdirectory(doc)
 add_subdirectory(src)
 add_subdirectory(test)
 
-if(BUILD_SWIG_BINDINGS_JAVA OR BUILD_SWIG_BINDINGS_PYTHON)
-  add_subdirectory(src/bindings)
-endif()
-
 if(BUILD_BINDINGS_PYTHON)
   add_subdirectory(src/api/python)
+endif()
+
+if(BUILD_BINDINGS_JAVA)
+  message(FATAL_ERROR
+    "Java bindings for the new API are not implemented yet.")
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -548,6 +585,52 @@ endif()
 # Export CVC4 targets to support find_package(CVC4) in other cmake projects.
 
 include(CMakePackageConfigHelpers)
+
+# If we install a dynamically linked binary that also uses dynamically used
+# libraries from deps/install/lib, we need to be cautious. Changing these
+# shared libraries from deps/install/lib most probably breaks the binary.
+# We only allow such an installation for custom installation prefixes
+# (in the assumption that only reasonably experienced users use this and 
+# also that custom installation prefixes are not used for longer periods of
+# time anyway). Also, we print a big warning with further instructions.
+if(NOT ENABLE_STATIC_BINARY)
+  # Get the libraries that cvc4 links against
+  get_target_property(libs cvc4 INTERFACE_LINK_LIBRARIES)
+  set(LIBS_SHARED_FROM_DEPS "")
+  foreach(lib ${libs})
+    # Filter out those that are linked dynamically and come from deps/install
+    if(lib MATCHES ".*/deps/install/lib/.*\.so")
+      list(APPEND LIBS_SHARED_FROM_DEPS ${lib})
+    endif()
+  endforeach()
+  list(LENGTH LIBS_SHARED_FROM_DEPS list_len)
+  # Check if we actually use such "dangerous" libraries
+  if(list_len GREATER 0)
+    # Print a generic warning
+    install(CODE "message(WARNING \"You are installing a dynamically linked \
+    binary of CVC4 which may be a problem if you are using any dynamically \
+    linked third-party library that you obtained through one of the \
+    contrib/get-xxx scripts. The binary uses the rpath mechanism to find these \
+    locally, hence executing such a contrib script removing the \
+    \\\"deps/install\\\" folder most probably breaks the installed binary! \
+    Consider installing the dynamically linked dependencies on your system \
+    manually or link cvc4 statically.\")")
+    # Print the libraries in question
+    foreach(lib ${LIBS_SHARED_FROM_DEPS})
+      install(CODE "message(WARNING \"The following library is used by the cvc4 binary: ${lib}\")")
+    endforeach()
+    # Check if we use a custom installation prefix
+    if(CMAKE_INSTALL_PREFIX STREQUAL "/usr/local")
+      install(CODE "message(FATAL_ERROR \"To avoid installing a \
+      soon-to-be-broken binary, system-wide installation is disabled if the \
+      binary depends on locally-built shared libraries.\")")
+    else()
+      install(CODE "message(WARNING \"You have selected a custom install \
+      directory ${CMAKE_INSTALL_PREFIX}, so we expect you understood the \
+      previous warning and know what you are doing.\")")
+    endif()
+  endif()
+endif()
 
 install(EXPORT cvc4-targets
   FILE CVC4Targets.cmake
@@ -587,9 +670,9 @@ string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
 message("CVC4 ${CVC4_RELEASE_STRING}")
 message("")
 if(ENABLE_COMP_INC_TRACK)
-  message("Build profile        : ${CVC4_BUILD_PROFILE_STRING} (incremental)")
+  message("Build profile             : ${CVC4_BUILD_PROFILE_STRING} (incremental)")
 else()
-  message("Build profile        : ${CVC4_BUILD_PROFILE_STRING}")
+  message("Build profile             : ${CVC4_BUILD_PROFILE_STRING}")
 endif()
 message("")
 print_config("GPL                       :" ENABLE_GPL)
@@ -616,9 +699,8 @@ print_config("Valgrind                  :" ENABLE_VALGRIND)
 message("")
 print_config("Shared libs               :" ENABLE_SHARED)
 print_config("Static binary             :" ENABLE_STATIC_BINARY)
-print_config("Java SWIG bindings        :" BUILD_SWIG_BINDINGS_JAVA)
-print_config("Python SWIG bindings      :" BUILD_SWIG_BINDINGS_PYTHON)
 print_config("Python bindings           :" BUILD_BINDINGS_PYTHON)
+print_config("Java bindings             :" BUILD_BINDINGS_JAVA)
 print_config("Python2                   :" USE_PYTHON2)
 print_config("Python3                   :" USE_PYTHON3)
 message("")
@@ -627,55 +709,65 @@ print_config("CaDiCaL                   :" USE_CADICAL)
 print_config("CryptoMiniSat             :" USE_CRYPTOMINISAT)
 print_config("drat2er                   :" USE_DRAT2ER)
 print_config("GLPK                      :" USE_GLPK)
+print_config("Kissat                    :" USE_KISSAT)
 print_config("LFSC                      :" USE_LFSC)
+print_config("LibPoly                   :" USE_POLY)
+message("")
+print_config("BUILD_LIB_ONLY            :" BUILD_LIB_ONLY)
 
 if(CVC4_USE_CLN_IMP)
-  message("MP library                   : cln")
+  message("MP library                : cln")
 else()
-  message("MP library                   : gmp")
+  message("MP library                : gmp")
 endif()
-print_config("Readline                  :" ${USE_READLINE})
+print_config("Editline                  :" ${USE_EDITLINE})
 print_config("SymFPU                    :" ${USE_SYMFPU})
 message("")
 if(ABC_DIR)
-  message("ABC dir                      : ${ABC_DIR}")
+  message("ABC dir                   : ${ABC_DIR}")
 endif()
 if(ANTLR_DIR)
-  message("ANTLR dir                    : ${ANTLR_DIR}")
+  message("ANTLR dir                 : ${ANTLR_DIR}")
 endif()
 if(CADICAL_DIR)
-  message("CADICAL dir                  : ${CADICAL_DIR}")
+  message("CADICAL dir               : ${CADICAL_DIR}")
 endif()
 if(CRYPTOMINISAT_DIR)
-  message("CRYPTOMINISAT dir            : ${CRYPTOMINISAT_DIR}")
+  message("CRYPTOMINISAT dir         : ${CRYPTOMINISAT_DIR}")
 endif()
 if(DRAT2ER_DIR)
-  message("DRAT2ER dir                  : ${DRAT2ER_DIR}")
+  message("DRAT2ER dir               : ${DRAT2ER_DIR}")
 endif()
 if(GLPK_DIR)
-  message("GLPK dir                     : ${GLPK_DIR}")
+  message("GLPK dir                  : ${GLPK_DIR}")
 endif()
 if(GMP_DIR)
-  message("GMP dir                      : ${GMP_DIR}")
+  message("GMP dir                   : ${GMP_DIR}")
+endif()
+if(KISSAT_DIR)
+  message("KISSAT dir                : ${KISSAT_DIR}")
 endif()
 if(LFSC_DIR)
-  message("LFSC dir                     : ${LFSC_DIR}")
+  message("LFSC dir                  : ${LFSC_DIR}")
+endif()
+if(POLY_DIR)
+  message("LibPoly dir               : ${POLY_DIR}")
 endif()
 if(SYMFPU_DIR)
-  message("SYMFPU dir                   : ${SYMFPU_DIR}")
+  message("SYMFPU dir                : ${SYMFPU_DIR}")
 endif()
 message("")
-message("CPPLAGS (-D...)                : ${CVC4_DEFINITIONS}")
-message("CXXFLAGS                       : ${CMAKE_CXX_FLAGS}")
-message("CFLAGS                         : ${CMAKE_C_FLAGS}")
-message("Linker flags                   : ${CMAKE_EXE_LINKER_FLAGS}")
+message("CPPLAGS (-D...)           : ${CVC4_DEFINITIONS}")
+message("CXXFLAGS                  : ${CMAKE_CXX_FLAGS}")
+message("CFLAGS                    : ${CMAKE_C_FLAGS}")
+message("Linker flags              : ${CMAKE_EXE_LINKER_FLAGS}")
 message("")
-message("Install prefix                 : ${CMAKE_INSTALL_PREFIX}")
+message("Install prefix            : ${CMAKE_INSTALL_PREFIX}")
 message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license                         : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"
@@ -692,7 +784,7 @@ if(GPL_LIBS)
   )
 else()
   message(
-  "CVC4 license                         : modified BSD"
+  "CVC4 license              : modified BSD"
   "\n"
   "\n"
   "Note that this configuration is NOT built against any GPL'ed libraries, so"
@@ -705,6 +797,14 @@ else()
   )
 endif()
 
+if("${CMAKE_GENERATOR}" STREQUAL "Ninja")
+  set(BUILD_COMMAND_NAME "ninja")
+else()
+  set(BUILD_COMMAND_NAME "make")
+endif()
+
 message("")
-message("Now just type make, followed by make check or make install.")
+message("Now just type '${BUILD_COMMAND_NAME}', "
+        "followed by '${BUILD_COMMAND_NAME} check' "
+        "or '${BUILD_COMMAND_NAME} install'.")
 message("")

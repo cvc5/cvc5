@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -246,10 +246,6 @@ private:
     ConjectureGenerator& d_sg;
   public:
     NotifyClass(ConjectureGenerator& sg): d_sg(sg) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       return true;
@@ -263,17 +259,12 @@ private:
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
     void eqNotifyNewClass(TNode t) override { d_sg.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
+    void eqNotifyMerge(TNode t1, TNode t2) override
     {
-      d_sg.eqNotifyPreMerge(t1, t2);
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-      d_sg.eqNotifyPostMerge(t1, t2);
+      d_sg.eqNotifyMerge(t1, t2);
     }
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
     {
-      d_sg.eqNotifyDisequal(t1, t2, reason);
     }
   };/* class ConjectureGenerator::NotifyClass */
   /** The notify class */
@@ -299,12 +290,8 @@ private:
   std::map< Node, EqcInfo* > d_eqc_info;
   /** called when a new equivalance class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalance classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
   /** called when two equivalance classes have merged */
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  /** called when two equivalence classes are made disequal */
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** are universal equal */
   bool areUniversalEqual( TNode n1, TNode n2 );
   /** are universal disequal */

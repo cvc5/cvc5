@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,34 +20,31 @@
 #include <iostream>
 #include <sstream>
 
-#include "expr/expr.h"
-#include "smt/smt_engine.h"
+#include "api/cvc4cpp.h"
 
-using namespace CVC4;
+using namespace CVC4::api;
 
 int main()
 {
-  ExprManager em;
-  SmtEngine smt(&em);
+  Solver slv;
+  slv.setOption("incremental", "true");
 
-  smt.setOption("incremental", SExpr(true));
+  Sort real = slv.getRealSort();
+  Term x = slv.mkConst(real, "x");
+  Term four = slv.mkReal(4);
+  Term xEqFour = slv.mkTerm(Kind::EQUAL, x, four);
+  slv.assertFormula(xEqFour);
+  std::cout << slv.checkSat() << std::endl;
 
-  Type real = em.realType();
-  Expr x = em.mkVar("x", real);
-  Expr four = em.mkConst(Rational(4));
-  Expr xEqFour = em.mkExpr(Kind::EQUAL, x, four);
-  smt.assertFormula(xEqFour);
-  std::cout << smt.checkSat() << std::endl;
+  slv.resetAssertions();
 
-  smt.resetAssertions();
-
-  Type elementType = em.integerType();
-  Type indexType = em.integerType();
-  Type arrayType = em.mkArrayType(indexType, elementType);
-  Expr array = em.mkVar("array", arrayType);
-  Expr arrayAtFour = em.mkExpr(Kind::SELECT, array, four);
-  Expr ten = em.mkConst(Rational(10));
-  Expr arrayAtFour_eq_ten = em.mkExpr(Kind::EQUAL, arrayAtFour, ten);
-  smt.assertFormula(arrayAtFour_eq_ten);
-  std::cout << smt.checkSat() << std::endl;
+  Sort elementType = slv.getIntegerSort();
+  Sort indexType = slv.getIntegerSort();
+  Sort arrayType = slv.mkArraySort(indexType, elementType);
+  Term array = slv.mkConst(arrayType, "array");
+  Term arrayAtFour = slv.mkTerm(Kind::SELECT, array, four);
+  Term ten = slv.mkReal(10);
+  Term arrayAtFour_eq_ten = slv.mkTerm(Kind::EQUAL, arrayAtFour, ten);
+  slv.assertFormula(arrayAtFour_eq_ten);
+  std::cout << slv.checkSat() << std::endl;
 }

@@ -2,7 +2,7 @@
 /*! \file smt_engine_stats.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Tim King, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -32,8 +32,7 @@ SmtEngineStatistics::SmtEngineStatistics()
       d_solveTime("smt::SmtEngine::solveTime"),
       d_pushPopTime("smt::SmtEngine::pushPopTime"),
       d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
-      d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
-      d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
+      d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
   smtStatisticsRegistry()->registerStat(&d_numConstantProps);
@@ -48,7 +47,6 @@ SmtEngineStatistics::SmtEngineStatistics()
   smtStatisticsRegistry()->registerStat(&d_pushPopTime);
   smtStatisticsRegistry()->registerStat(&d_processAssertionsTime);
   smtStatisticsRegistry()->registerStat(&d_simplifiedToFalse);
-  smtStatisticsRegistry()->registerStat(&d_resourceUnitsUsed);
 }
 
 SmtEngineStatistics::~SmtEngineStatistics()
@@ -66,7 +64,6 @@ SmtEngineStatistics::~SmtEngineStatistics()
   smtStatisticsRegistry()->unregisterStat(&d_pushPopTime);
   smtStatisticsRegistry()->unregisterStat(&d_processAssertionsTime);
   smtStatisticsRegistry()->unregisterStat(&d_simplifiedToFalse);
-  smtStatisticsRegistry()->unregisterStat(&d_resourceUnitsUsed);
 }
 
 }  // namespace smt

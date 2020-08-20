@@ -2,9 +2,9 @@
 /*! \file cardinality_extension.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mudathir Mohamed
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,7 +69,6 @@ class CardinalityExtension
    */
   CardinalityExtension(SolverState& s,
                        InferenceManager& im,
-                       eq::EqualityEngine& e,
                        context::Context* c,
                        context::UserContext* u);
 
@@ -164,8 +163,6 @@ class CardinalityExtension
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
-  /** Reference to the equality engine of theory of sets */
-  eq::EqualityEngine& d_ee;
   /** register cardinality term
    *
    * This method add lemmas corresponding to the definition of

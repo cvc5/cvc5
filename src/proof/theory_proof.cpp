@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1069,13 +1069,22 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   Trace("pf::tp") << ";; Print theory lemma proof, theory id = " << d_theory->getId() << std::endl;
 
   if (d_theory->getId()==theory::THEORY_UF) {
-    th = new theory::uf::TheoryUF(&fakeContext, &fakeContext, oc, v,
+    th = new theory::uf::TheoryUF(&fakeContext,
+                                  &fakeContext,
+                                  oc,
+                                  v,
                                   ProofManager::currentPM()->getLogicInfo(),
+                                  nullptr,
                                   "replay::");
   } else if (d_theory->getId()==theory::THEORY_ARRAYS) {
-    th = new theory::arrays::TheoryArrays(&fakeContext, &fakeContext, oc, v,
-                                          ProofManager::currentPM()->getLogicInfo(),
-                                          "replay::");
+    th = new theory::arrays::TheoryArrays(
+        &fakeContext,
+        &fakeContext,
+        oc,
+        v,
+        ProofManager::currentPM()->getLogicInfo(),
+        nullptr,
+        "replay::");
   } else if (d_theory->getId() == theory::THEORY_ARITH) {
     Trace("theory-proof-debug") << "Arith proofs currently not supported. Use 'trust'" << std::endl;
     os << " (clausify_false trust)";
@@ -1083,6 +1092,12 @@ void TheoryProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   } else {
     InternalError() << "can't generate theory-proof for "
                     << ProofManager::currentPM()->getLogic();
+  }
+  // must perform initialization on the theory
+  if (th != nullptr)
+  {
+    // finish init, standalone version
+    th->finishInitStandalone();
   }
 
   Debug("pf::tp") << "TheoryProof::printTheoryLemmaProof - calling th->ProduceProofs()" << std::endl;

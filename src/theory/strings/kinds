@@ -16,6 +16,7 @@ operator STRING_CONCAT 2: "string concat (N-ary)"
 operator STRING_IN_REGEXP 2 "membership"
 operator STRING_LENGTH 1 "string length"
 operator STRING_SUBSTR 3 "string substr"
+operator STRING_UPDATE 3 "string update"
 operator STRING_CHARAT 2 "string charat"
 operator STRING_STRCTN 2 "string contains"
 operator STRING_LT 2 "string less than"
@@ -23,6 +24,10 @@ operator STRING_LEQ 2 "string less than or equal"
 operator STRING_STRIDOF 3 "string indexof"
 operator STRING_STRREPL 3 "string replace"
 operator STRING_STRREPLALL 3 "string replace all"
+operator STRING_REPLACE_RE 3 "string replace regular expression match"
+operator STRING_REPLACE_RE_ALL 3 "string replace all regular expression matches"
+typerule STRING_REPLACE_RE "SimpleTypeRule<RString, AString, ARegExp, AString>"
+typerule STRING_REPLACE_RE_ALL "SimpleTypeRule<RString, AString, ARegExp, AString>"
 operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_IS_DIGIT 1 "string isdigit, returns true if argument is a string of length one that represents a digit"
@@ -57,6 +62,28 @@ constant CONST_STRING \
     ::CVC4::strings::StringHashFunction \
     "util/string.h" \
     "a string of characters"
+
+# the type
+operator SEQUENCE_TYPE 1 "seuence type, takes as parameter the type of the elements"
+cardinality SEQUENCE_TYPE \
+    "::CVC4::theory::strings::SequenceProperties::computeCardinality(%TYPE%)" \
+    "theory/strings/theory_strings_type_rules.h"
+well-founded SEQUENCE_TYPE \
+    "::CVC4::theory::strings::SequenceProperties::isWellFounded(%TYPE%)" \
+    "::CVC4::theory::strings::SequenceProperties::mkGroundTerm(%TYPE%)" \
+    "theory/strings/theory_strings_type_rules.h"
+enumerator SEQUENCE_TYPE \
+    "::CVC4::theory::strings::SequenceEnumerator" \
+    "theory/strings/type_enumerator.h"
+
+constant CONST_SEQUENCE \
+    ::CVC4::Sequence \
+    ::CVC4::SequenceHashFunction \
+    "expr/sequence.h" \
+    "a sequence of characters"
+
+operator SEQ_UNIT 1 "a sequence of length one"
+operator SEQ_NTH 2 "The nth element of a sequence"
 
 # equal equal / less than / output
 operator STRING_TO_REGEXP 1 "convert string to regexp"
@@ -116,6 +143,7 @@ typerule REGEXP_SIGMA "SimpleTypeRule<RRegExp>"
 typerule STRING_CONCAT ::CVC4::theory::strings::StringConcatTypeRule
 typerule STRING_LENGTH ::CVC4::theory::strings::StringStrToIntTypeRule
 typerule STRING_SUBSTR ::CVC4::theory::strings::StringSubstrTypeRule
+typerule STRING_UPDATE ::CVC4::theory::strings::StringUpdateTypeRule
 typerule STRING_CHARAT ::CVC4::theory::strings::StringAtTypeRule
 typerule STRING_STRCTN ::CVC4::theory::strings::StringRelationTypeRule
 typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
@@ -137,5 +165,11 @@ typerule STRING_TO_CODE "SimpleTypeRule<RInteger, AString>"
 typerule STRING_FROM_CODE "SimpleTypeRule<RString, AInteger>"
 typerule STRING_TOUPPER "SimpleTypeRule<RString, AString>"
 typerule STRING_TOLOWER "SimpleTypeRule<RString, AString>"
+
+### sequence specific operators
+
+typerule CONST_SEQUENCE ::CVC4::theory::strings::ConstSequenceTypeRule
+typerule SEQ_UNIT ::CVC4::theory::strings::SeqUnitTypeRule
+typerule SEQ_NTH ::CVC4::theory::strings::SeqNthTypeRule
 
 endtheory

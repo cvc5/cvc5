@@ -2,9 +2,9 @@
 /*! \file theory_strings_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -36,8 +36,9 @@ uint32_t getAlphabetCardinality()
     Assert(128 <= String::num_codes());
     return 128;
   }
-  Assert(256 <= String::num_codes());
-  return 256;
+  // 3*16^4 = 196608 values in the SMT-LIB standard for Unicode strings
+  Assert(196608 <= String::num_codes());
+  return 196608;
 }
 
 Node mkAnd(const std::vector<Node>& a)
@@ -89,10 +90,12 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
       visited.insert(cur);
       if (cur.getKind() == k)
       {
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        // Add in reverse order, so that we traverse left to right.
+        // This is important so that explantaions aren't reversed when they
+        // are flattened, which is important for proofs involving substitutions.
+        std::vector<Node> newChildren;
+        newChildren.insert(newChildren.end(), cur.begin(), cur.end());
+        visit.insert(visit.end(), newChildren.rbegin(), newChildren.rend());
       }
       else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
       {
@@ -154,6 +157,19 @@ Node mkNConcat(const std::vector<Node>& c, TypeNode tn)
 Node mkNLength(Node t)
 {
   return Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_LENGTH, t));
+}
+
+Node mkPrefix(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(STRING_SUBSTR, t, nm->mkConst(Rational(0)), n);
+}
+
+Node mkSuffix(Node t, Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(
+      STRING_SUBSTR, t, n, nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, t), n));
 }
 
 Node getConstantComponent(Node t)
@@ -257,6 +273,8 @@ std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x)
   return std::make_pair(
       allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
+
+bool isConstantLike(Node n) { return n.isConst() || n.getKind() == SEQ_UNIT; }
 
 bool isUnboundedWildcard(const std::vector<Node>& rs, size_t start)
 {

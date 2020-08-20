@@ -3,7 +3,6 @@ name: CI
 
 jobs:
   build:
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
@@ -14,9 +13,17 @@ jobs:
           debug-cln
         ]
 
+        exclude:
+          - name: production-clang
+            os: macos-latest
+          - name: debug
+            os: macos-latest
+          - name: debug-cln
+            os: macos-latest
+
         include:
           - name: production
-            config: production --language-bindings=java --lfsc --python-bindings
+            config: production --all-bindings --lfsc --editline
             cache-key: production
             python-bindings: true
             check-examples: true
@@ -26,14 +33,17 @@ jobs:
             cache-key: production-clang
             check-examples: true
             env: CC=clang CXX=clang++
+            os: ubuntu-latest
 
           - name: debug
-            config: debug --symfpu --lfsc --no-debug-symbols
+            config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
+            os: ubuntu-latest
 
           - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug-cln
+            os: ubuntu-latest
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -51,11 +61,16 @@ jobs:
           cxxtest \
           libcln-dev \
           libgmp-dev \
-          swig3.0
+          libedit-dev \
+          flex \
+          libfl-dev \
+          flexc++
         python3 -m pip install toml
         python3 -m pip install setuptools
+        python3 -m pip install pexpect
         echo "::add-path::/usr/lib/ccache"
 
+    # Note: macOS comes with a libedit; it does not need to brew-installed
     - name: Install Packages (macOS)
       if: runner.os == 'macOS'
       run: |
@@ -64,9 +79,11 @@ jobs:
           cxxtest \
           cln \
           gmp \
-          swig
+          pkgconfig \
+          flex
         python3 -m pip install toml
         python3 -m pip install setuptools
+        python3 -m pip install pexpect
         echo "::add-path::/usr/local/opt/ccache/libexec"
 
     # Note: We install Cython with sudo since cmake can't find Cython otherwise.
@@ -82,6 +99,12 @@ jobs:
         python3 -m pip install \
           Cython==0.29 --install-option="--no-cython-compile"
 
+    - name: Install Pytest
+      if: matrix.python-bindings
+      run: |
+        python3 -m pip install pytest
+        python3 -m pytest --version
+
     - name: Restore Dependencies
       id: restore-deps
       uses: actions/cache@v1
@@ -93,6 +116,7 @@ jobs:
       if: steps.restore-deps.outputs.cache-hit != 'true'
       run: |
         ./contrib/get-antlr-3.4
+        ./contrib/get-poly
         ./contrib/get-symfpu
         ./contrib/get-cadical
         ./contrib/get-cryptominisat
@@ -130,6 +154,7 @@ jobs:
       run: |
         ${{ matrix.env }} ./configure.sh ${{ matrix.config }} \
           --python3 \
+          --poly \
           --prefix=$(pwd)/build/install \
           --unit-testing
 
@@ -159,6 +184,12 @@ jobs:
       run: |
        export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
        python3 -c "import pycvc4"
+
+    - name: Run Pytest
+      if: matrix.python-bindings
+      run: |
+       export PYTHONPATH="$PYTHONPATH:$(dirname $(find build/install/ -name "pycvc4" -type d))"
+       python3 -m pytest ./test/unit/api/python
 
       # Examples are built for non-symfpu builds
     - name: Check Examples

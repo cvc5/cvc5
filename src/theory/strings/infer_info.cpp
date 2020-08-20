@@ -2,9 +2,9 @@
 /*! \file infer_info.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,8 @@
  **/
 
 #include "theory/strings/infer_info.h"
+
+#include "theory/strings/theory_strings_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,6 +28,8 @@ const char* toString(Inference i)
     case Inference::I_CONST_MERGE: return "I_CONST_MERGE";
     case Inference::I_CONST_CONFLICT: return "I_CONST_CONFLICT";
     case Inference::I_NORM: return "I_NORM";
+    case Inference::UNIT_INJ: return "UNIT_INJ";
+    case Inference::UNIT_CONST_CONFLICT: return "UNIT_CONST_CONFLICT";
     case Inference::CARD_SP: return "CARD_SP";
     case Inference::CARDINALITY: return "CARDINALITY";
     case Inference::I_CYCLE_E: return "I_CYCLE_E";
@@ -35,6 +39,7 @@ const char* toString(Inference i)
     case Inference::F_ENDPOINT_EMP: return "F_ENDPOINT_EMP";
     case Inference::F_ENDPOINT_EQ: return "F_ENDPOINT_EQ";
     case Inference::F_NCTN: return "F_NCTN";
+    case Inference::N_EQ_CONF: return "N_EQ_CONF";
     case Inference::N_ENDPOINT_EMP: return "N_ENDPOINT_EMP";
     case Inference::N_UNIFY: return "N_UNIFY";
     case Inference::N_ENDPOINT_EQ: return "N_ENDPOINT_EQ";
@@ -82,6 +87,7 @@ const char* toString(Inference i)
     case Inference::CTN_NEG_EQUAL: return "CTN_NEG_EQUAL";
     case Inference::CTN_POS: return "CTN_POS";
     case Inference::REDUCTION: return "REDUCTION";
+    case Inference::PREFIX_CONFLICT: return "PREFIX_CONFLICT";
     default: return "?";
   }
 }
@@ -92,7 +98,51 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_id(Inference::NONE), d_index(0), d_rev(false) {}
+InferInfo::InferInfo() : d_id(Inference::NONE), d_idRev(false) {}
+
+bool InferInfo::isTrivial() const
+{
+  Assert(!d_conc.isNull());
+  return d_conc.isConst() && d_conc.getConst<bool>();
+}
+
+bool InferInfo::isConflict() const
+{
+  Assert(!d_conc.isNull());
+  return d_conc.isConst() && !d_conc.getConst<bool>() && d_noExplain.empty();
+}
+
+bool InferInfo::isFact() const
+{
+  Assert(!d_conc.isNull());
+  TNode atom = d_conc.getKind() == kind::NOT ? d_conc[0] : d_conc;
+  return !atom.isConst() && atom.getKind() != kind::OR && d_noExplain.empty();
+}
+
+Node InferInfo::getAntecedant() const
+{
+  // d_noExplain is a subset of d_ant
+  return utils::mkAnd(d_ant);
+}
+
+std::ostream& operator<<(std::ostream& out, const InferInfo& ii)
+{
+  out << "(infer " << ii.d_id << " " << ii.d_conc;
+  if (ii.d_idRev)
+  {
+    out << " :rev";
+  }
+  if (!ii.d_ant.empty())
+  {
+    out << " :ant (" << ii.d_ant << ")";
+  }
+  if (!ii.d_noExplain.empty())
+  {
+    out << " :no-explain (" << ii.d_noExplain << ")";
+  }
+  out << ")";
+  return out;
+}
 
 }  // namespace strings
 }  // namespace theory

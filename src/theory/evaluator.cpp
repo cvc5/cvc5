@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andres Noetzli, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,6 +43,10 @@ EvalResult::EvalResult(const EvalResult& other)
       new (&d_str) String;
       d_str = other.d_str;
       break;
+    case UCONST:
+      new (&d_uc)
+          UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
+      break;
     case INVALID: break;
   }
 }
@@ -66,6 +70,10 @@ EvalResult& EvalResult::operator=(const EvalResult& other)
       case STRING:
         new (&d_str) String;
         d_str = other.d_str;
+        break;
+      case UCONST:
+        new (&d_uc)
+            UninterpretedConstant(other.d_uc.getType(), other.d_uc.getIndex());
         break;
       case INVALID: break;
     }
@@ -91,9 +99,13 @@ EvalResult::~EvalResult()
     {
       d_str.~String();
       break;
-
-      default: break;
     }
+    case UCONST:
+    {
+      d_uc.~UninterpretedConstant();
+      break;
+    }
+    default: break;
   }
 }
 
@@ -106,6 +118,7 @@ Node EvalResult::toNode() const
     case EvalResult::BITVECTOR: return nm->mkConst(d_bv);
     case EvalResult::RATIONAL: return nm->mkConst(d_rat);
     case EvalResult::STRING: return nm->mkConst(d_str);
+    case EvalResult::UCONST: return nm->mkConst(d_uc);
     default:
     {
       Trace("evaluator") << "Missing conversion from " << d_tag << " to node"
@@ -117,16 +130,18 @@ Node EvalResult::toNode() const
 
 Node Evaluator::eval(TNode n,
                      const std::vector<Node>& args,
-                     const std::vector<Node>& vals) const
+                     const std::vector<Node>& vals,
+                     bool useRewriter) const
 {
   std::unordered_map<Node, Node, NodeHashFunction> visited;
-  return eval(n, args, vals, visited);
+  return eval(n, args, vals, visited, useRewriter);
 }
 Node Evaluator::eval(
     TNode n,
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
-    const std::unordered_map<Node, Node, NodeHashFunction>& visited) const
+    const std::unordered_map<Node, Node, NodeHashFunction>& visited,
+    bool useRewriter) const
 {
   Trace("evaluator") << "Evaluating " << n << " under substitution " << args
                      << " " << vals << " with visited size = " << visited.size()
@@ -137,28 +152,38 @@ Node Evaluator::eval(
   for (const std::pair<const Node, Node>& p : visited)
   {
     Trace("evaluator") << "Add " << p.first << " == " << p.second << std::endl;
-    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results);
+    results[p.first] = evalInternal(p.second, args, vals, evalAsNode, results, useRewriter);
     if (results[p.first].d_tag == EvalResult::INVALID)
     {
       // could not evaluate, use the evalAsNode map
-      evalAsNode[p.first] = evalAsNode[p.second];
+      std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
+          evalAsNode.find(p.second);
+      Assert(itn != evalAsNode.end());
+      Node val = itn->second;
+      if (useRewriter)
+      {
+        val = Rewriter::rewrite(val);
+      }
+      evalAsNode[p.first] = val;
     }
   }
   Trace("evaluator") << "Run eval internal..." << std::endl;
-  Node ret = evalInternal(n, args, vals, evalAsNode, results).toNode();
+  Node ret = evalInternal(n, args, vals, evalAsNode, results, useRewriter).toNode();
   // if we failed to evaluate
-  if (ret.isNull())
+  if (ret.isNull() && useRewriter)
   {
     // should be stored in the evaluation-as-node map
     std::unordered_map<TNode, Node, NodeHashFunction>::iterator itn =
         evalAsNode.find(n);
     Assert(itn != evalAsNode.end());
-    ret = itn->second;
+    ret = Rewriter::rewrite(itn->second);
   }
-  // should be the same as substitution + rewriting
-  Assert(ret
-         == Rewriter::rewrite(
-             n.substitute(args.begin(), args.end(), vals.begin(), vals.end())));
+  // should be the same as substitution + rewriting, or possibly null if
+  // useRewriter is false
+  Assert((ret.isNull() && !useRewriter)
+         || ret
+                == Rewriter::rewrite(n.substitute(
+                       args.begin(), args.end(), vals.begin(), vals.end())));
   return ret;
 }
 
@@ -167,7 +192,8 @@ EvalResult Evaluator::evalInternal(
     const std::vector<Node>& args,
     const std::vector<Node>& vals,
     std::unordered_map<TNode, Node, NodeHashFunction>& evalAsNode,
-    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results) const
+    std::unordered_map<TNode, EvalResult, TNodeHashFunction>& results,
+    bool useRewriter) const
 {
   std::vector<TNode> queue;
   queue.emplace_back(n);
@@ -243,6 +269,12 @@ EvalResult Evaluator::evalInternal(
         // successfully evaluated, and the children that did not.
         Trace("evaluator") << "Evaluator: collect arguments" << std::endl;
         currNodeVal = reconstruct(currNodeVal, results, evalAsNode);
+        if (useRewriter)
+        {
+          // Rewrite the result now, if we use the rewriter. We will see below
+          // if we are able to turn it into a valid EvalResult.
+          currNodeVal = Rewriter::rewrite(currNodeVal);
+        }
         needsReconstruct = false;
         Trace("evaluator") << "Evaluator: now after substitution + rewriting: "
                            << currNodeVal << std::endl;
@@ -274,7 +306,6 @@ EvalResult Evaluator::evalInternal(
         currNodeVal = vals[pos];
         // Don't need to reconstruct since range of substitution should already
         // be normalized.
-        Assert(vals[pos] == Rewriter::rewrite(vals[pos]));
         needsReconstruct = false;
       }
       else if (currNode.getKind() == kind::APPLY_UF)
@@ -318,7 +349,7 @@ EvalResult Evaluator::evalInternal(
         std::unordered_map<TNode, Node, NodeHashFunction> evalAsNodeC;
         std::unordered_map<TNode, EvalResult, TNodeHashFunction> resultsC;
         results[currNode] =
-            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC);
+            evalInternal(op[1], lambdaArgs, lambdaVals, evalAsNodeC, resultsC, useRewriter);
         Trace("evaluator") << "Evaluated via arguments to "
                            << results[currNode].d_tag << std::endl;
         if (results[currNode].d_tag == EvalResult::INVALID)
@@ -371,7 +402,13 @@ EvalResult Evaluator::evalInternal(
           results[currNode] = EvalResult(r);
           break;
         }
-
+        case kind::UNINTERPRETED_CONSTANT:
+        {
+          const UninterpretedConstant& uc =
+              currNodeVal.getConst<UninterpretedConstant>();
+          results[currNode] = EvalResult(uc);
+          break;
+        }
         case kind::PLUS:
         {
           Rational res = results[currNode[0]].d_rat;
@@ -489,6 +526,23 @@ EvalResult Evaluator::evalInternal(
           break;
         }
 
+        case kind::STRING_UPDATE:
+        {
+          const String& s = results[currNode[0]].d_str;
+          Integer s_len(s.size());
+          Integer i = results[currNode[1]].d_rat.getNumerator();
+          const String& t = results[currNode[2]].d_str;
+
+          if (i.strictlyNegative() || i >= s_len)
+          {
+            results[currNode] = EvalResult(s);
+          }
+          else
+          {
+            results[currNode] = EvalResult(s.update(i.toUnsignedInt(), t));
+          }
+          break;
+        }
         case kind::STRING_CHARAT:
         {
           const String& s = results[currNode[0]].d_str;
@@ -789,6 +843,11 @@ EvalResult Evaluator::evalInternal(
               results[currNode] = EvalResult(lhs.d_str == rhs.d_str);
               break;
             }
+            case EvalResult::UCONST:
+            {
+              results[currNode] = EvalResult(lhs.d_uc == rhs.d_uc);
+              break;
+            }
 
             default:
             {
@@ -894,9 +953,9 @@ Node Evaluator::reconstruct(
   // of the children.
   Node nn = nm->mkNode(n.getKind(), echildren);
   Trace("evaluator") << "Evaluator: reconstructed " << nn << std::endl;
-  // Use rewriting. Notice we do not need to substitute here since
-  // all substitutions should already have been applied recursively.
-  return Rewriter::rewrite(nn);
+  // Return node, without rewriting. Notice we do not need to substitute here
+  // since all substitutions should already have been applied recursively.
+  return nn;
 }
 
 }  // namespace theory

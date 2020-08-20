@@ -2,9 +2,9 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Tim King, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -51,6 +51,10 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
   {
     sat_solver = "CaDiCaL";
   }
+  else if (m == options::SatSolverMode::KISSAT)
+  {
+    sat_solver = "Kissat";
+  }
   else
   {
     Assert(m == options::SatSolverMode::CRYPTOMINISAT);
@@ -65,34 +69,6 @@ void throwLazyBBUnsupported(options::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::notifyBeforeSearch(const std::string& option)
-{
-  try{
-    d_options->d_beforeSearchListeners.notify();
-  } catch (ModalException&){
-    std::stringstream ss;
-    ss << "cannot change option `" << option << "' after final initialization";
-    throw ModalException(ss.str());
-  }
-}
-
-
-void OptionsHandler::notifyTlimit(const std::string& option) {
-  d_options->d_tlimitListeners.notify();
-}
-
-void OptionsHandler::notifyTlimitPer(const std::string& option) {
-  d_options->d_tlimitPerListeners.notify();
-}
-
-void OptionsHandler::notifyRlimit(const std::string& option) {
-  d_options->d_rlimitListeners.notify();
-}
-
-void OptionsHandler::notifyRlimitPer(const std::string& option) {
-  d_options->d_rlimitPerListeners.notify();
-}
-
 unsigned long OptionsHandler::limitHandler(std::string option,
                                            std::string optarg)
 {
@@ -105,12 +81,6 @@ unsigned long OptionsHandler::limitHandler(std::string option,
   }
   return ms;
 }
-
-/* options/base_options_handlers.h */
-void OptionsHandler::notifyPrintSuccess(std::string option) {
-  d_options->d_setPrintSuccessListeners.notify();
-}
-
 // theory/quantifiers/options_handlers.h
 
 void OptionsHandler::checkInstWhenMode(std::string option, InstWhenMode mode)
@@ -166,7 +136,17 @@ void OptionsHandler::checkBvSatSolver(std::string option, SatSolverMode m)
     throw OptionException(ss.str());
   }
 
-  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL)
+  if (m == SatSolverMode::KISSAT && !Configuration::isBuiltWithKissat())
+  {
+    std::stringstream ss;
+    ss << "option `" << option
+       << "' requires a Kissat build of CVC4; this binary was not built with "
+          "Kissat support";
+    throw OptionException(ss.str());
+  }
+
+  if (m == SatSolverMode::CRYPTOMINISAT || m == SatSolverMode::CADICAL
+      || m == SatSolverMode::KISSAT)
   {
     if (options::bitblastMode() == options::BitblastMode::LAZY
         && options::bitblastMode.wasSetByUser())
@@ -313,19 +293,6 @@ void OptionsHandler::LFSCEnabledBuild(std::string option, bool value) {
 #endif /* CVC4_USE_LFSC */
 }
 
-void OptionsHandler::notifyDumpToFile(std::string option) {
-  d_options->d_dumpToFileListeners.notify();
-}
-
-
-void OptionsHandler::notifySetRegularOutputChannel(std::string option) {
-  d_options->d_setRegularChannelListeners.notify();
-}
-
-void OptionsHandler::notifySetDiagnosticOutputChannel(std::string option) {
-  d_options->d_setDiagnosticChannelListeners.notify();
-}
-
 void OptionsHandler::statsEnabledBuild(std::string option, bool value)
 {
 #ifndef CVC4_STATISTICS_ON
@@ -341,12 +308,6 @@ void OptionsHandler::threadN(std::string option) {
   throw OptionException(option + " is not a real option by itself.  Use e.g. --thread0=\"--random-seed=10 --random-freq=0.02\" --thread1=\"--random-seed=20 --random-freq=0.05\"");
 }
 
-void OptionsHandler::notifyDumpMode(std::string option)
-{
-  d_options->d_setDumpModeListeners.notify();
-}
-
-
 // expr/options_handlers.h
 void OptionsHandler::setDefaultExprDepthPredicate(std::string option, int depth) {
   if(depth < -1) {
@@ -359,19 +320,6 @@ void OptionsHandler::setDefaultDagThreshPredicate(std::string option, int dag) {
     throw OptionException("--dag-thresh requires a nonnegative argument.");
   }
 }
-
-void OptionsHandler::notifySetDefaultExprDepth(std::string option) {
-  d_options->d_setDefaultExprDepthListeners.notify();
-}
-
-void OptionsHandler::notifySetDefaultDagThresh(std::string option) {
-  d_options->d_setDefaultDagThreshListeners.notify();
-}
-
-void OptionsHandler::notifySetPrintExprTypes(std::string option) {
-  d_options->d_setPrintExprTypesListeners.notify();
-}
-
 
 // main/options_handlers.h
 
@@ -443,8 +391,10 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
   print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
+  print_config_cond("kissat", Configuration::isBuiltWithKissat());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
-  print_config_cond("readline", Configuration::isBuiltWithReadline());
+  print_config_cond("poly", Configuration::isBuiltWithPoly());
+  print_config_cond("editline", Configuration::isBuiltWithEditline());
   print_config_cond("symfpu", Configuration::isBuiltWithSymFPU());
   
   exit(0);
@@ -588,7 +538,7 @@ InputLanguage OptionsHandler::stringToInputLanguage(std::string option,
   try {
     return language::toInputLanguage(optarg);
   } catch(OptionException& oe) {
-    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --language help");
+    throw OptionException("Error in " + option + ": " + oe.getMessage() + "\nTry --lang help");
   }
 
   Unreachable();

@@ -2,9 +2,9 @@
 /*! \file quantifiers_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,6 +16,7 @@
 
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
@@ -118,7 +119,7 @@ class QuantifiersEnginePrivate
       d_inst_engine.reset(new quantifiers::InstantiationEngine(qe));
       modules.push_back(d_inst_engine.get());
     }
-    if (options::cbqi())
+    if (options::cegqi())
     {
       d_i_cbqi.reset(new quantifiers::InstStrategyCegqi(qe));
       modules.push_back(d_i_cbqi.get());
@@ -175,6 +176,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
                                      TheoryEngine* te)
     : d_te(te),
+      d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
@@ -222,7 +224,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
   d_conflict = false;
   d_hasAddedLemma = false;
-  d_useModelEe = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_util->d_true] = true;
 
@@ -273,6 +274,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
+
+void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
+{
+  d_masterEqualityEngine = mee;
+}
 
 context::Context* QuantifiersEngine::getSatContext()
 {
@@ -512,22 +518,9 @@ void QuantifiersEngine::ppNotifyAssertions(
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-  d_useModelEe = options::quantModelEe() && ( e>=Theory::EFFORT_LAST_CALL );
-  // if we want to use the model's equality engine, build the model now
-  if( d_useModelEe && !d_model->isBuilt() ){
-    Trace("quant-engine-debug") << "Build the model." << std::endl;
-    if (!d_te->getModelBuilder()->buildModel(d_model.get()))
-    {
-      //we are done if model building was unsuccessful
-      flushLemmas();
-      if( d_hasAddedLemma ){
-        Trace("quant-engine-debug") << "...failed." << std::endl;
-        return;
-      }
-    }
-  }
-  
-  if( !getActiveEqualityEngine()->consistent() ){
+
+  if (!getMasterEqualityEngine()->consistent())
+  {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
@@ -803,8 +796,16 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
     d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
     Trace("quant-engine-debug") << "Done check modules that needed check." << std::endl;
-    if( d_hasAddedLemma ){
-      d_instantiate->debugPrint();
+    // debug print
+    if (d_hasAddedLemma)
+    {
+      bool debugInstTrace = Trace.isOn("inst-per-quant-round");
+      if (options::debugInst() || debugInstTrace)
+      {
+        Options& sopts = smt::currentSmtEngine()->getOptions();
+        std::ostream& out = *sopts.getOut();
+        d_instantiate->debugPrint(out);
+      }
     }
     if( Trace.isOn("quant-engine") ){
       double clSet2 = double(clock())/double(CLOCKS_PER_SEC);
@@ -961,7 +962,7 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, false, true);
+      getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
     }
     return;
   }
@@ -1012,7 +1013,6 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
     Trace("inst-add-debug") << "Adding lemma : " << lem << std::endl;
     BoolMap::const_iterator itp = d_lemmas_produced_c.find( lem );
     if( itp==d_lemmas_produced_c.end() || !(*itp).second ){
-      //d_curr_out->lemma( lem, false, true );
       d_lemmas_produced_c[ lem ] = true;
       d_lemmas_waiting.push_back( lem );
       Trace("inst-add-debug") << "Added lemma" << std::endl;
@@ -1091,13 +1091,6 @@ bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
   {
     performCheck = true;
   }
-  if( e==Theory::EFFORT_LAST_CALL ){
-    //with bounded integers, skip every other last call,
-    // since matching loops may occur with infinite quantification
-    if( d_ierCounter_lc%2==0 && options::fmfBound() ){
-      performCheck = false;
-    }
-  }
   return performCheck;
 }
 
@@ -1120,7 +1113,7 @@ void QuantifiersEngine::flushLemmas(){
     d_hasAddedLemma = true;
     for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
       Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma( d_lemmas_waiting[i], false, true );
+      getOutputChannel().lemma(d_lemmas_waiting[i], LemmaProperty::PREPROCESS);
     }
     d_lemmas_waiting.clear();
   }
@@ -1160,9 +1153,12 @@ void QuantifiersEngine::getExplanationForInstLemmas(
 void QuantifiersEngine::printInstantiations( std::ostream& out ) {
   bool printed = false;
   // print the skolemizations
-  if (d_skolemize->printSkolemization(out))
+  if (options::printInstMode() == options::PrintInstMode::LIST)
   {
-    printed = true;
+    if (d_skolemize->printSkolemization(out))
+    {
+      printed = true;
+    }
   }
   // print the instantiations
   if (d_instantiate->printInstantiations(out))
@@ -1268,23 +1264,11 @@ QuantifiersEngine::Statistics::~Statistics(){
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 {
-  return d_te->getMasterEqualityEngine();
-}
-
-eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() const
-{
-  if( d_useModelEe ){
-    return d_model->getEqualityEngine();
-  }
-  return d_te->getMasterEqualityEngine();
+  return d_masterEqualityEngine;
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
-  bool prevModelEe = d_useModelEe;
-  d_useModelEe = false;
-  Node ret = d_eq_query->getInternalRepresentative( a, q, index );
-  d_useModelEe = prevModelEe;
-  return ret;
+  return d_eq_query->getInternalRepresentative(a, q, index);
 }
 
 bool QuantifiersEngine::getSynthSolutions(
@@ -1294,7 +1278,7 @@ bool QuantifiersEngine::getSynthSolutions(
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = getActiveEqualityEngine();
+  eq::EqualityEngine* ee = getMasterEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){

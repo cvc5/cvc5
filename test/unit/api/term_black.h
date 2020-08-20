@@ -2,9 +2,9 @@
 /*! \file term_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Andres Noetzli
+ **   Aina Niemetz, Andrew Reynolds, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,6 +43,8 @@ class TermBlack : public CxxTest::TestSuite
   void testTermChildren();
   void testSubstitute();
   void testIsConst();
+  void testConstArray();
+  void testConstSequenceElements();
 
  private:
   Solver d_solver;
@@ -109,6 +111,13 @@ void TermBlack::testGetKind()
   TS_ASSERT_THROWS_NOTHING(p_0.getKind());
   Term p_f_y = d_solver.mkTerm(APPLY_UF, p, f_y);
   TS_ASSERT_THROWS_NOTHING(p_f_y.getKind());
+
+  // Sequence kinds do not exist internally, test that the API properly
+  // converts them back.
+  Sort seqSort = d_solver.mkSequenceSort(intSort);
+  Term s = d_solver.mkConst(seqSort, "s");
+  Term ss = d_solver.mkTerm(SEQ_CONCAT, s, s);
+  TS_ASSERT(ss.getKind() == SEQ_CONCAT);
 }
 
 void TermBlack::testGetSort()
@@ -175,10 +184,10 @@ void TermBlack::testGetOp()
   Term extb = d_solver.mkTerm(ext, b);
 
   TS_ASSERT(ab.hasOp());
-  TS_ASSERT_EQUALS(ab.getOp(), Op(SELECT));
+  TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
   TS_ASSERT(!ab.getOp().isIndexed());
   // can compare directly to a Kind (will invoke Op constructor)
-  TS_ASSERT_EQUALS(ab.getOp(), SELECT);
+  TS_ASSERT_EQUALS(ab.getOp(), Op(&d_solver, SELECT));
   TS_ASSERT(extb.hasOp());
   TS_ASSERT(extb.getOp().isIndexed());
   TS_ASSERT_EQUALS(extb.getOp(), ext);
@@ -189,7 +198,7 @@ void TermBlack::testGetOp()
   TS_ASSERT(!f.hasOp());
   TS_ASSERT_THROWS(f.getOp(), CVC4ApiException&);
   TS_ASSERT(fx.hasOp());
-  TS_ASSERT_EQUALS(fx.getOp(), APPLY_UF);
+  TS_ASSERT_EQUALS(fx.getOp(), Op(&d_solver, APPLY_UF));
   std::vector<Term> children(fx.begin(), fx.end());
   // testing rebuild from op and children
   TS_ASSERT_EQUALS(fx, d_solver.mkTerm(fx.getOp(), children));
@@ -197,8 +206,8 @@ void TermBlack::testGetOp()
   // Test Datatypes Ops
   Sort sort = d_solver.mkParamSort("T");
   DatatypeDecl listDecl = d_solver.mkDatatypeDecl("paramlist", sort);
-  DatatypeConstructorDecl cons("cons");
-  DatatypeConstructorDecl nil("nil");
+  DatatypeConstructorDecl cons = d_solver.mkDatatypeConstructorDecl("cons");
+  DatatypeConstructorDecl nil = d_solver.mkDatatypeConstructorDecl("nil");
   cons.addSelector("head", sort);
   cons.addSelectorSelf("tail");
   listDecl.addConstructor(cons);
@@ -225,10 +234,10 @@ void TermBlack::testGetOp()
   TS_ASSERT(headTerm.hasOp());
   TS_ASSERT(tailTerm.hasOp());
 
-  TS_ASSERT_EQUALS(nilTerm.getOp(), APPLY_CONSTRUCTOR);
-  TS_ASSERT_EQUALS(consTerm.getOp(), APPLY_CONSTRUCTOR);
-  TS_ASSERT_EQUALS(headTerm.getOp(), APPLY_SELECTOR);
-  TS_ASSERT_EQUALS(tailTerm.getOp(), APPLY_SELECTOR);
+  TS_ASSERT_EQUALS(nilTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  TS_ASSERT_EQUALS(consTerm.getOp(), Op(&d_solver, APPLY_CONSTRUCTOR));
+  TS_ASSERT_EQUALS(headTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
+  TS_ASSERT_EQUALS(tailTerm.getOp(), Op(&d_solver, APPLY_SELECTOR));
 
   // Test rebuilding
   children.clear();
@@ -751,4 +760,39 @@ void TermBlack::testIsConst()
   TS_ASSERT(!onepone.isConst());
   Term tnull;
   TS_ASSERT_THROWS(tnull.isConst(), CVC4ApiException&);
+}
+
+void TermBlack::testConstArray()
+{
+  Sort intsort = d_solver.getIntegerSort();
+  Sort arrsort = d_solver.mkArraySort(intsort, intsort);
+  Term a = d_solver.mkConst(arrsort, "a");
+  Term one = d_solver.mkReal(1);
+  Term constarr = d_solver.mkConstArray(arrsort, one);
+
+  TS_ASSERT(!a.isConst());
+  TS_ASSERT(constarr.isConst());
+
+  TS_ASSERT_EQUALS(constarr.getKind(), CONST_ARRAY);
+  TS_ASSERT_EQUALS(constarr.getConstArrayBase(), one);
+  TS_ASSERT_THROWS(a.getConstArrayBase(), CVC4ApiException&);
+}
+
+void TermBlack::testConstSequenceElements()
+{
+  Sort realsort = d_solver.getRealSort();
+  Sort seqsort = d_solver.mkSequenceSort(realsort);
+  Term s = d_solver.mkEmptySequence(seqsort);
+
+  TS_ASSERT(s.isConst());
+
+  TS_ASSERT_EQUALS(s.getKind(), CONST_SEQUENCE);
+  // empty sequence has zero elements
+  std::vector<Term> cs = s.getConstSequenceElements();
+  TS_ASSERT(cs.empty());
+
+  // A seq.unit app is not a constant sequence (regardless of whether it is
+  // applied to a constant).
+  Term su = d_solver.mkTerm(SEQ_UNIT, d_solver.mkReal(1));
+  TS_ASSERT_THROWS(su.getConstSequenceElements(), CVC4ApiException&);
 }

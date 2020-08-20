@@ -2,9 +2,9 @@
 /*! \file synth_conjecture.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,8 +20,9 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "prop/prop_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/datatypes/theory_datatypes_utils.h"
+#include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -280,12 +281,12 @@ bool SynthConjecture::needsCheck()
   {
     if (!value)
     {
-      Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
+      Trace("sygus-engine-debug") << "Conjecture is infeasible." << std::endl;
       return false;
     }
     else
     {
-      Trace("cegqi-engine-debug") << "Feasible guard " << d_feasible_guard
+      Trace("sygus-engine-debug") << "Feasible guard " << d_feasible_guard
                                   << " assigned true." << std::endl;
     }
   }
@@ -366,16 +367,16 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         Assert(d_repair_index < d_cinfo[cprog].d_inst.size());
         fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
       }
-      if (Trace.isOn("cegqi-engine"))
+      if (Trace.isOn("sygus-engine"))
       {
-        Trace("cegqi-engine") << "CegConjuncture : repair previous solution ";
+        Trace("sygus-engine") << "CegConjuncture : repair previous solution ";
         for (const Node& fc : fail_cvs)
         {
           std::stringstream ss;
-          Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, fc);
-          Trace("cegqi-engine") << ss.str() << " ";
+          TermDbSygus::toStreamSygus(ss, fc);
+          Trace("sygus-engine") << ss.str() << " ";
         }
-        Trace("cegqi-engine") << std::endl;
+        Trace("sygus-engine") << std::endl;
       }
       d_repair_index++;
       if (d_sygus_rconst->repairSolution(
@@ -386,6 +387,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
   }
 
+  bool printDebug = options::debugSygus();
   if (!constructed_cand)
   {
     // get the model value of the relevant terms from the master module
@@ -397,7 +399,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     if (!d_master->allowPartialModel() && !fullModel)
     {
       // we retain the values in d_ev_active_gen_waiting
-      Trace("cegqi-engine-debug") << "...partial model, fail." << std::endl;
+      Trace("sygus-engine-debug") << "...partial model, fail." << std::endl;
       // if we are partial due to an active enumerator, we may still succeed
       // on the next call
       return !activeIncomplete;
@@ -416,37 +418,50 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     if (emptyModel)
     {
-      Trace("cegqi-engine-debug") << "...empty model, fail." << std::endl;
+      Trace("sygus-engine-debug") << "...empty model, fail." << std::endl;
       return !activeIncomplete;
     }
-    // debug print
-    if (Trace.isOn("cegqi-engine"))
+    // Must separately compute whether trace is on due to compilation of
+    // Trace.isOn.
+    bool traceIsOn = Trace.isOn("sygus-engine");
+    if (printDebug || traceIsOn)
     {
-      Trace("cegqi-engine") << "  * Value is : ";
+      Trace("sygus-engine") << "  * Value is : ";
+      std::stringstream sygusEnumOut;
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         Node nv = enum_values[i];
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
-        Trace("cegqi-engine") << terms[i] << " -> ";
+        TermDbSygus::toStreamSygus(ss, onv);
+        if (printDebug)
+        {
+          sygusEnumOut << " " << ss.str();
+        }
+        Trace("sygus-engine") << terms[i] << " -> ";
         if (nv.isNull())
         {
-          Trace("cegqi-engine") << "[EXC: " << ss.str() << "] ";
+          Trace("sygus-engine") << "[EXC: " << ss.str() << "] ";
         }
         else
         {
-          Trace("cegqi-engine") << ss.str() << " ";
-          if (Trace.isOn("cegqi-engine-rr"))
+          Trace("sygus-engine") << ss.str() << " ";
+          if (Trace.isOn("sygus-engine-rr"))
           {
             Node bv = d_tds->sygusToBuiltin(nv, tn);
             bv = Rewriter::rewrite(bv);
-            Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+            Trace("sygus-engine-rr") << " -> " << bv << std::endl;
           }
         }
       }
-      Trace("cegqi-engine") << std::endl;
+      Trace("sygus-engine") << std::endl;
+      if (printDebug)
+      {
+        Options& sopts = smt::currentSmtEngine()->getOptions();
+        std::ostream& out = *sopts.getOut();
+        out << "(sygus-enum" << sygusEnumOut.str() << ")" << std::endl;
+      }
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -471,7 +486,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     if (!checkSideCondition(candidate_values))
     {
       excludeCurrentSolution(terms, candidate_values);
-      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      Trace("sygus-engine") << "...failed side condition" << std::endl;
       return false;
     }
   }
@@ -534,6 +549,21 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   std::vector<Node> vars;
   if (constructed_cand)
   {
+    if (printDebug)
+    {
+      Options& sopts = smt::currentSmtEngine()->getOptions();
+      std::ostream& out = *sopts.getOut();
+      out << "(sygus-candidate ";
+      Assert(d_quant[0].getNumChildren() == candidate_values.size());
+      for (unsigned i = 0, ncands = candidate_values.size(); i < ncands; i++)
+      {
+        Node v = candidate_values[i];
+        std::stringstream ss;
+        TermDbSygus::toStreamSygus(ss, v);
+        out << "(" << d_quant[0][i] << " " << ss.str() << ")";
+      }
+      out << ")" << std::endl;
+    }
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
       for (const Node& v : inst[0][0])
@@ -590,22 +620,22 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     lem = nm->mkNode(OR, d_quant.negate(), query);
     if (options::sygusVerifySubcall())
     {
-      Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
+      Trace("sygus-engine") << "  *** Verify with subcall..." << std::endl;
 
       Result r =
           checkWithSubsolver(query.toExpr(), d_ce_sk_vars, d_ce_sk_var_mvs);
-      Trace("cegqi-engine") << "  ...got " << r << std::endl;
+      Trace("sygus-engine") << "  ...got " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
       {
-        if (Trace.isOn("cegqi-engine"))
+        if (Trace.isOn("sygus-engine"))
         {
-          Trace("cegqi-engine") << "  * Verification lemma failed for:\n   ";
+          Trace("sygus-engine") << "  * Verification lemma failed for:\n   ";
           for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
           {
-            Trace("cegqi-engine")
+            Trace("sygus-engine")
                 << d_ce_sk_vars[i] << " -> " << d_ce_sk_var_mvs[i] << " ";
           }
-          Trace("cegqi-engine") << std::endl;
+          Trace("sygus-engine") << std::endl;
         }
 #ifdef CVC4_ASSERTIONS
         // the values for the query should be a complete model
@@ -658,7 +688,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
   {
     Node sc = d_embedSideCondition.substitute(
         d_candidates.begin(), d_candidates.end(), cvals.begin(), cvals.end());
-    Trace("cegqi-engine") << "Check side condition..." << std::endl;
+    Trace("sygus-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     Result r = checkWithSubsolver(sc);
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
@@ -666,7 +696,7 @@ bool SynthConjecture::checkSideCondition(const std::vector<Node>& cvals) const
     {
       return false;
     }
-    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+    Trace("sygus-engine") << "...passed side condition" << std::endl;
   }
   return true;
 }
@@ -763,7 +793,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
       Node gstatus = d_qe->getValuation().getSatValue(g);
       if (gstatus.isNull() || !gstatus.getConst<bool>())
       {
-        Trace("cegqi-engine-debug")
+        Trace("sygus-engine-debug")
             << "Enumerator " << e << " is inactive." << std::endl;
         continue;
       }
@@ -785,7 +815,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
     // if the current model value of e was not registered by the datatypes
     // sygus solver, or was excluded by symmetry breaking, then it does not
     // have a proper model value that we should consider, thus we return null.
-    Trace("cegqi-engine-debug")
+    Trace("sygus-engine-debug")
         << "Enumerator " << e << " does not have proper model value."
         << std::endl;
     return Node::null();
@@ -1003,8 +1033,8 @@ void SynthConjecture::printAndContinueStream(const std::vector<Node>& enums,
   // we have generated a solution, print it
   // get the current output stream
   // this output stream should coincide with wherever --dump-synth is output on
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  printSynthSolution(*nodeManagerOptions.getOut());
+  Options& sopts = smt::currentSmtEngine()->getOptions();
+  printSynthSolution(*sopts.getOut());
   excludeCurrentSolution(enums, values);
 }
 
@@ -1163,8 +1193,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         else
         {
-          Printer::getPrinter(options::outputLanguage())
-              ->toStreamSygus(out, sol);
+          Node bsol = datatypes::utils::sygusToBuiltin(sol, true);
+          out << bsol;
         }
         out << ")" << std::endl;
       }

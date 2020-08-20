@@ -2,9 +2,9 @@
 /*! \file inst_match_trie.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -164,12 +164,11 @@ class InstMatchTrie
   /** print this class */
   void print(std::ostream& out,
              Node q,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const
   {
     std::vector<TNode> terms;
-    print(out, q, terms, firstTime, useActive, active);
+    print(out, q, terms, useActive, active);
   }
   /** the data */
   std::map<Node, InstMatchTrie> d_data;
@@ -181,7 +180,6 @@ class InstMatchTrie
   void print(std::ostream& out,
              Node q,
              std::vector<TNode>& terms,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const;
   /** helper for get instantiations
@@ -332,12 +330,11 @@ class CDInstMatchTrie
   /** print this class */
   void print(std::ostream& out,
              Node q,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const
   {
     std::vector<TNode> terms;
-    print(out, q, terms, firstTime, useActive, active);
+    print(out, q, terms, useActive, active);
   }
 
  private:
@@ -351,7 +348,6 @@ class CDInstMatchTrie
   void print(std::ostream& out,
              Node q,
              std::vector<TNode>& terms,
-             bool& firstTime,
              bool useActive,
              std::vector<Node>& active) const;
   /** helper for get instantiations

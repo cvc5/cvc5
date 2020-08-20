@@ -2,9 +2,9 @@
 /*! \file process_assertions.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -91,8 +91,9 @@ void ProcessAssertions::spendResource(ResourceManager::Resource r)
   d_resourceManager.spendResource(r);
 }
 
-bool ProcessAssertions::apply(AssertionPipeline& assertions)
+bool ProcessAssertions::apply(Assertions& as)
 {
+  AssertionPipeline& assertions = as.getAssertionPipeline();
   Assert(d_preprocessingPassContext != nullptr);
   // Dump the assertions
   dumpAssertions("pre-everything", assertions);
@@ -158,7 +159,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
   {
     // global negation of the formula
     d_passes["global-negate"]->apply(&assertions);
-    d_smt.d_globalNegation = !d_smt.d_globalNegation;
+    as.flipGlobalNegated();
   }
 
   if (options::nlExtPurify())
@@ -222,7 +223,7 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
   {
     d_passes["bv-to-bool"]->apply(&assertions);
   }
-  if (options::solveBVAsInt() > 0)
+  if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
     d_passes["bv-to-int"]->apply(&assertions);
   }
@@ -461,7 +462,6 @@ bool ProcessAssertions::apply(AssertionPipeline& assertions)
 bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
   spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_smt.d_pendingPops == 0);
   try
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -504,7 +504,9 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
     Debug("smt") << " assertions     : " << assertions.size() << endl;
 
     // before ppRewrite check if only core theory for BV theory
-    d_smt.d_theoryEngine->staticInitializeBVOptions(assertions.ref());
+    TheoryEngine* te = d_smt.getTheoryEngine();
+    Assert(te != nullptr);
+    te->staticInitializeBVOptions(assertions.ref());
 
     // Theory preprocessing
     bool doEarlyTheoryPp = !options::arithRewriteEq();
@@ -735,10 +737,11 @@ Node ProcessAssertions::expandDefinitions(
       {
         // do not do any theory stuff if expandOnly is true
 
-        theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
+        theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
 
         Assert(t != NULL);
-        node = t->expandDefinition(n);
+        TrustNode trn = t->expandDefinition(n);
+        node = trn.isNull() ? Node(n) : trn.getNode();
       }
 
       // the partial functions can fall through, in which case we still

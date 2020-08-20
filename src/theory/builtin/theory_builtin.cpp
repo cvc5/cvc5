@@ -2,9 +2,9 @@
 /*! \file theory_builtin.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters
+ **   Mudathir Mohamed, Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 #include "theory/builtin/theory_builtin.h"
 
 #include "expr/kind.h"
+#include "expr/proof_node_manager.h"
 #include "theory/builtin/theory_builtin_rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -31,9 +32,16 @@ TheoryBuiltin::TheoryBuiltin(context::Context* c,
                              context::UserContext* u,
                              OutputChannel& out,
                              Valuation valuation,
-                             const LogicInfo& logicInfo)
-    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo)
+                             const LogicInfo& logicInfo,
+                             ProofNodeManager* pnm)
+    : Theory(THEORY_BUILTIN, c, u, out, valuation, logicInfo, pnm)
 {
+  ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
+  if (pc != nullptr)
+  {
+    // add checkers
+    d_bProofChecker.registerTo(pc);
+  }
 }
 
 std::string TheoryBuiltin::identify() const
@@ -43,10 +51,13 @@ std::string TheoryBuiltin::identify() const
 
 void TheoryBuiltin::finishInit()
 {
-  // choice nodes are not evaluated in getModelValue
-  TheoryModel* theoryModel = d_valuation.getModel();
-  Assert(theoryModel != nullptr);
-  theoryModel->setUnevaluatedKind(kind::CHOICE);
+  // Notice that choice is an unevaluated kind belonging to this theory.
+  // However, it should be set as an unevaluated kind where it is used, e.g.
+  // in the quantifiers theory. This ensures that a logic like QF_LIA, which
+  // includes the builtin theory, does not mark any kinds as unevaluated and
+  // hence it is easy to check for illegal eliminations via TheoryModel
+  // (see TheoryModel::isLegalElimination) since there are no unevaluated kinds
+  // present.
 }
 
 }  // namespace builtin

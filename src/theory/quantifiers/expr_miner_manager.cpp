@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -27,7 +27,8 @@ ExpressionMinerManager::ExpressionMinerManager()
       d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
-      d_tds(nullptr)
+      d_tds(nullptr),
+      d_crd(options::sygusRewSynthCheck(), options::sygusRewSynthAccel(), false)
 {
 }
 
@@ -142,7 +143,8 @@ bool ExpressionMinerManager::addTerm(Node sol,
   bool ret = true;
   if (d_doRewSynth)
   {
-    ret = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
+    Node rsol = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
+    ret = (sol == rsol);
   }
 
   // a unique term, let's try the query generator

@@ -2,9 +2,9 @@
 /*! \file theory.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Tim King
+ **   Dejan Jovanovic, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,27 +39,27 @@
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
 #include "theory/theory_rewriter.h"
+#include "theory/theory_state.h"
+#include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 
 class TheoryEngine;
+class ProofNodeManager;
 
 namespace theory {
 
 class QuantifiersEngine;
 class TheoryModel;
 class SubstitutionMap;
-class ExtTheory;
 class TheoryRewriter;
-
-class EntailmentCheckParameters;
-class EntailmentCheckSideEffects;
 
 namespace rrinst {
   class CandidateGenerator;
@@ -78,11 +78,35 @@ namespace eq {
  * RegisteredAttr works.  (If you need multiple instances of the same
  * theory, you'll have to write a multiplexed theory that dispatches
  * all calls to them.)
+ *
+ * NOTE: A Theory has a special way of being initialized. The owner of a Theory
+ * is either:
+ *
+ * (A) Using Theory as a standalone object, not associated with a TheoryEngine.
+ * In this case, simply call the public initialization method
+ * (Theory::finishInitStandalone).
+ *
+ * (B) TheoryEngine, which determines how the Theory acts in accordance with
+ * its theory combination policy. We require the following steps in order:
+ * (B.1) Get information about whether the theory wishes to use an equality
+ * eninge, and more specifically which equality engine notifications the Theory
+ * would like to be notified of (Theory::needsEqualityEngine).
+ * (B.2) Set the equality engine of the theory (Theory::setEqualityEngine),
+ * which we refer to as the "official equality engine" of this Theory. The
+ * equality engine passed to the theory must respect the contract(s) specified
+ * by the equality engine setup information (EeSetupInfo) returned in the
+ * previous step.
+ * (B.3) Set the other required utilities including setQuantifiersEngine and
+ * setDecisionManager.
+ * (B.4) Call the private initialization method (Theory::finishInit).
+ *
+ * Initialization of the second form happens during TheoryEngine::finishInit,
+ * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
- private:
   friend class ::CVC4::TheoryEngine;
 
+ private:
   // Disallow default construction, copy, assignment.
   Theory() = delete;
   Theory(const Theory&) = delete;
@@ -90,11 +114,6 @@ class Theory {
 
   /** An integer identifying the type of the theory. */
   TheoryId d_id;
-
-  /** Name of this theory instance. Along with the TheoryId this should provide
-   * an unique string identifier for each instance of a Theory class. We need
-   * this to ensure unique statistics names over multiple theory instances. */
-  std::string d_instanceName;
 
   /** The SAT search context for the Theory. */
   context::Context* d_satContext;
@@ -104,6 +123,9 @@ class Theory {
 
   /** Information about the logic we're operating within. */
   const LogicInfo& d_logicInfo;
+
+  /** Pointer to proof node manager */
+  ProofNodeManager* d_pnm;
 
   /**
    * The assertFact() queue.
@@ -134,10 +156,11 @@ class Theory {
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
 
-  /** Extended theory module or NULL. Owned by the theory. */
-  ExtTheory* d_extTheory;
-
  protected:
+  /** Name of this theory instance. Along with the TheoryId this should provide
+   * an unique string identifier for each instance of a Theory class. We need
+   * this to ensure unique statistics names over multiple theory instances. */
+  std::string d_instanceName;
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -161,13 +184,7 @@ class Theory {
    */
   context::CDList<TNode> d_sharedTerms;
 
-  /**
-   * Helper function for computeRelevantTerms
-   */
-  void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
-                    std::set<Node>& termSet) const;
-
+  //---------------------------------- collect model info
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
@@ -181,11 +198,30 @@ class Theory {
    * includeShared: Whether to include shared terms in termSet. Notice that
    * shared terms are not influenced by irrKinds.
    */
-  void computeRelevantTerms(std::set<Node>& termSet,
-                            std::set<Kind>& irrKinds,
-                            bool includeShared = true) const;
-  /** same as above, but with empty irrKinds */
-  void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
+  void computeRelevantTermsInternal(std::set<Node>& termSet,
+                                    std::set<Kind>& irrKinds,
+                                    bool includeShared = true) const;
+  /**
+   * Helper function for computeRelevantTerms
+   */
+  void collectTerms(TNode n,
+                    std::set<Kind>& irrKinds,
+                    std::set<Node>& termSet) const;
+  /**
+   * Same as above, but with empty irrKinds. This version can be overridden
+   * by the theory, e.g. by restricting or extending the set of terms returned
+   * by computeRelevantTermsInternal, which is called by default with no
+   * irrKinds.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet,
+                                    bool includeShared = true);
+  /**
+   * Collect model values, after equality information is added to the model.
+   * The argument termSet is the set of relevant terms returned by
+   * computeRelevantTerms.
+   */
+  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  //---------------------------------- end collect model info
 
   /**
    * Construct a Theory.
@@ -199,6 +235,7 @@ class Theory {
          OutputChannel& out,
          Valuation valuation,
          const LogicInfo& logicInfo,
+         ProofNodeManager* pnm,
          std::string instance = "");  // taking : No default.
 
   /**
@@ -222,7 +259,20 @@ class Theory {
    * theory engine (and other theories).
    */
   Valuation d_valuation;
-
+  /**
+   * Pointer to the official equality engine of this theory, which is owned by
+   * the equality engine manager of TheoryEngine.
+   */
+  eq::EqualityEngine* d_equalityEngine;
+  /**
+   * The official equality engine, if we allocated it.
+   */
+  std::unique_ptr<eq::EqualityEngine> d_allocEqualityEngine;
+  /**
+   * The theory state, which contains contexts, valuation, and equality engine.
+   * Notice the theory is responsible for memory management of this class.
+   */
+  TheoryState* d_theoryState;
   /**
    * Whether proofs are enabled
    *
@@ -248,7 +298,70 @@ class Theory {
   void printFacts(std::ostream& os) const;
   void debugPrintFacts() const;
 
-public:
+  /** is legal elimination
+   *
+   * Returns true if x -> val is a legal elimination of variable x. This is
+   * useful for ppAssert, when x = val is an entailed equality. This function
+   * determines whether indeed x can be eliminated from the problem via the
+   * substituion x -> val.
+   *
+   * The following criteria imply that x -> val is *not* a legal elimination:
+   * (1) If x is contained in val,
+   * (2) If the type of val is not a subtype of the type of x,
+   * (3) If val contains an operator that cannot be evaluated, and produceModels
+   * is true. For example, x -> sqrt(2) is not a legal elimination if we
+   * are producing models. This is because we care about the value of x, and
+   * its value must be computed (approximated) by the non-linear solver.
+   */
+  bool isLegalElimination(TNode x, TNode val);
+  //--------------------------------- private initialization
+  /**
+   * Called to set the official equality engine. This should be done by
+   * TheoryEngine only.
+   */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /** Called to set the quantifiers engine. */
+  void setQuantifiersEngine(QuantifiersEngine* qe);
+  /** Called to set the decision manager. */
+  void setDecisionManager(DecisionManager* dm);
+  /**
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, the master equality engine and quantifiers
+   * engine (if any) are initialized, and the official equality engine of this
+   * theory has been assigned.  This base class implementation
+   * does nothing. This should be called by TheoryEngine only.
+   */
+  virtual void finishInit() {}
+  //--------------------------------- end private initialization
+
+ public:
+  //--------------------------------- initialization
+  /**
+   * @return The theory rewriter associated with this theory.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * Returns true if this theory needs an equality engine for checking
+   * satisfiability.
+   *
+   * If this method returns true, then the equality engine manager will
+   * initialize its equality engine field via setEqualityEngine above during
+   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
+   *
+   * Additionally, if this method returns true, then this method is required to
+   * update the argument esi with instructions for initializing and setting up
+   * notifications from its equality engine, which is commonly done with
+   * a notifications class (eq::EqualityEngineNotify).
+   */
+  virtual bool needsEqualityEngine(EeSetupInfo& esi);
+  /**
+   * Finish theory initialization, standalone version. This is used to
+   * initialize this class if it is not associated with a theory engine.
+   * This allocates the official equality engine of this Theory and then
+   * calls the finishInit method above.
+   */
+  void finishInitStandalone();
+  //--------------------------------- end initialization
 
   /**
    * Return the ID of the theory responsible for the given type.
@@ -314,11 +427,6 @@ public:
    * Destructs a Theory.
    */
   virtual ~Theory();
-
-  /**
-   * @return The theory rewriter associated with this theory.
-   */
-  virtual TheoryRewriter* getTheoryRewriter() = 0;
 
   /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
@@ -416,14 +524,19 @@ public:
   DecisionManager* getDecisionManager() { return d_decManager; }
 
   /**
-   * Finish theory initialization.  At this point, options and the logic
-   * setting are final, and the master equality engine and quantifiers
-   * engine (if any) are initialized.  This base class implementation
-   * does nothing.
-   */
-  virtual void finishInit() { }
-
-  /**
+   * Expand definitions in the term node. This returns a term that is
+   * equivalent to node. It wraps this term in a TrustNode of kind
+   * TrustNodeKind::REWRITE. If node is unchanged by this method, the
+   * null TrustNode may be returned. This is an optimization to avoid
+   * constructing the trivial equality (= node node) internally within
+   * TrustNode.
+   *
+   * The purpose of this method is typically to eliminate the operators in node
+   * that are syntax sugar that cannot otherwise be eliminated during rewriting.
+   * For example, division relies on the introduction of an uninterpreted
+   * function for the divide-by-zero case, which we do not introduce with
+   * the rewriter, since this function may be cached in a non-global fashion.
+   *
    * Some theories have kinds that are effectively definitions and should be
    * expanded before they are handled.  Definitions allow a much wider range of
    * actions than the normal forms given by the rewriter. However no
@@ -437,10 +550,10 @@ public:
    * a theory wants to be notified about a term before preprocessing
    * and simplification but doesn't necessarily want to rewrite it.
    */
-  virtual Node expandDefinition(Node node)
+  virtual TrustNode expandDefinition(Node node)
   {
     // by default, do nothing
-    return node;
+    return TrustNode::null();
   }
 
   /**
@@ -465,17 +578,9 @@ public:
   virtual void addSharedTerm(TNode n) { }
 
   /**
-   * Called to set the master equality engine.
+   * Get the official equality engine of this theory.
    */
-  virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
-
-  /** Called to set the quantifiers engine. */
-  void setQuantifiersEngine(QuantifiersEngine* qe);
-  /** Called to set the decision manager. */
-  void setDecisionManager(DecisionManager* dm);
-
-  /** Setup an ExtTheory module for this Theory. Can only be called once. */
-  void setupExtTheory();
+  eq::EqualityEngine* getEqualityEngine();
 
   /**
    * Return the current theory care graph. Theories should overload
@@ -518,7 +623,8 @@ public:
    * Return an explanation for the literal represented by parameter n
    * (which was previously propagated by this theory).
    */
-  virtual Node explain(TNode n) {
+  virtual TrustNode explain(TNode n)
+  {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
@@ -532,7 +638,7 @@ public:
    * This method returns true if and only if the equality engine of m is
    * consistent as a result of this call.
    */
-  virtual bool collectModelInfo(TheoryModel* m) { return true; }
+  virtual bool collectModelInfo(TheoryModel* m);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   /**
@@ -563,9 +669,12 @@ public:
    * Given an atom of the theory coming from the input formula, this
    * method can be overridden in a theory implementation to rewrite
    * the atom into an equivalent form.  This is only called just
-   * before an input atom to the engine.
+   * before an input atom to the engine. This method returns a TrustNode of
+   * kind TrustNodeKind::REWRITE, which carries information about the proof
+   * generator for the rewrite. Similarly to expandDefinition, this method may
+   * return the null TrustNode if atom is unchanged.
    */
-  virtual Node ppRewrite(TNode atom) { return atom; }
+  virtual TrustNode ppRewrite(TNode atom) { return TrustNode::null(); }
 
   /**
    * Notify preprocessed assertions. Called on new assertions after
@@ -798,35 +907,13 @@ public:
    *
    * The theory may always return false!
    *
-   * The search is controlled by the parameter params.  For default behavior,
-   * this may be left NULL.
-   *
-   * Theories that want parameters extend the virtual EntailmentCheckParameters
-   * class.  Users ask the theory for an appropriate subclass from the theory
-   * and configure that.  How this is implemented is on a per theory basis.
-   *
-   * The search may provide additional output to guide the user of
-   * this function.  This output is stored in a EntailmentCheckSideEffects*
-   * output parameter.  The implementation of this is theory specific.  For
-   * no output, this is NULL.
-   *
    * Theories may not touch their output stream during an entailment check.
    *
    * @param  lit     a literal belonging to the theory.
-   * @param  params  the control parameters for the entailment check.
-   * @param  out     a theory specific output object of the entailment search.
    * @return         a pair <b,E> s.t. if b is true, then a formula E such that
    * E |= lit in the theory.
    */
-  virtual std::pair<bool, Node> entailmentCheck(
-      TNode lit, const EntailmentCheckParameters* params = NULL,
-      EntailmentCheckSideEffects* out = NULL);
-
-  /* equality engine TODO: use? */
-  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-
-  /* Get extended theory if one has been installed. */
-  ExtTheory* getExtTheory();
+  virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
   /* get current substitution at an effort
    *   input : vars
@@ -894,26 +981,6 @@ inline std::ostream& operator << (std::ostream& out, theory::Theory::PPAssertSta
   }
   return out;
 }
-
-class EntailmentCheckParameters {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckParameters(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckParameters();
-};/* class EntailmentCheckParameters */
-
-class EntailmentCheckSideEffects {
-private:
-  TheoryId d_tid;
-protected:
-  EntailmentCheckSideEffects(TheoryId tid);
-public:
-  TheoryId getTheoryId() const;
-  virtual ~EntailmentCheckSideEffects();
-};/* class EntailmentCheckSideEffects */
 
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
