@@ -44,8 +44,6 @@ std::ostream& operator<<(std::ostream& os, Theory::Effort level){
     os << "EFFORT_STANDARD"; break;
   case Theory::EFFORT_FULL:
     os << "EFFORT_FULL"; break;
-  case Theory::EFFORT_COMBINATION:
-    os << "EFFORT_COMBINATION"; break;
   case Theory::EFFORT_LAST_CALL:
     os << "EFFORT_LAST_CALL"; break;
   default:
@@ -83,6 +81,7 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
+      d_inferManager(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -108,10 +107,16 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   {
     d_theoryState->setEqualityEngine(ee);
   }
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setEqualityEngine(ee);
+  }
 }
+
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 {
   Assert(d_quantEngine == nullptr);
+  // quantifiers engine may be null if not in quantified logic
   d_quantEngine = qe;
 }
 
@@ -266,11 +271,9 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
   return tid;
 }
 
-void Theory::addSharedTermInternal(TNode n) {
-  Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << endl;
-  Debug("theory::assertions") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << endl;
-  d_sharedTerms.push_back(n);
-  addSharedTerm(n);
+void Theory::notifySharedTerm(TNode n)
+{
+  // do nothing
 }
 
 void Theory::computeCareGraph() {
@@ -394,17 +397,23 @@ void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
   // Collect all terms appearing in assertions
   irrKinds.insert(kind::EQUAL);
   irrKinds.insert(kind::NOT);
-  context::CDList<Assertion>::const_iterator assert_it = facts_begin(), assert_it_end = facts_end();
-  for (; assert_it != assert_it_end; ++assert_it) {
+  context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
+                                             assert_it_end = facts_end();
+  for (; assert_it != assert_it_end; ++assert_it)
+  {
     collectTerms(*assert_it, irrKinds, termSet);
   }
 
-  if (!includeShared) return;
-
+  if (!includeShared)
+  {
+    return;
+  }
   // Add terms that are shared terms
-  set<Kind> kempty;
-  context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(), shared_it_end = shared_terms_end();
-  for (; shared_it != shared_it_end; ++shared_it) {
+  std::set<Kind> kempty;
+  context::CDList<TNode>::const_iterator shared_it = shared_terms_begin(),
+                                         shared_it_end = shared_terms_end();
+  for (; shared_it != shared_it_end; ++shared_it)
+  {
     collectTerms(*shared_it, kempty, termSet);
   }
 }
@@ -418,6 +427,11 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
 bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
 {
   return true;
+}
+
+void Theory::notifyPreRegisterTerm(TNode node)
+{
+  // do nothing
 }
 
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
@@ -472,6 +486,118 @@ void Theory::getCareGraph(CareGraph* careGraph) {
   d_careGraph = careGraph;
   computeCareGraph();
   d_careGraph = NULL;
+}
+
+EqualityStatus Theory::getEqualityStatus(TNode a, TNode b)
+{
+  // if not using an equality engine, then by default we don't know the status
+  if (d_equalityEngine == nullptr)
+  {
+    return EQUALITY_UNKNOWN;
+  }
+  Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
+
+  // Check for equality (simplest)
+  if (d_equalityEngine->areEqual(a, b))
+  {
+    // The terms are implied to be equal
+    return EQUALITY_TRUE;
+  }
+
+  // Check for disequality
+  if (d_equalityEngine->areDisequal(a, b, false))
+  {
+    // The terms are implied to be dis-equal
+    return EQUALITY_FALSE;
+  }
+
+  // All other terms are unknown, which is conservative. A theory may override
+  // this method if it knows more information.
+  return EQUALITY_UNKNOWN;
+}
+
+void Theory::check(Effort level)
+{
+  // see if we are already done (as an optimization)
+  if (done() && level < EFFORT_FULL)
+  {
+    return;
+  }
+  // standard calls for resource, stats
+  d_out->spendResource(ResourceManager::Resource::TheoryCheckStep);
+  TimerStat::CodeTimer checkTimer(d_checkTime);
+  // pre-check at level
+  if (preCheck(level))
+  {
+    // check aborted for a theory-specific reason
+    return;
+  }
+  // process the pending fact queue
+  while (!done() && !d_theoryState->isInConflict())
+  {
+    // Get the next assertion from the fact queue
+    Assertion assertion = get();
+    TNode fact = assertion.d_assertion;
+    bool polarity = fact.getKind() != kind::NOT;
+    TNode atom = polarity ? fact : fact[0];
+    // call the pre-notify method
+    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered))
+    {
+      // handled in theory-specific way that doesn't involve equality engine
+      continue;
+    }
+    // Theories that don't have an equality engine should always return true
+    // for preNotifyFact
+    Assert(d_equalityEngine != nullptr);
+    // assert to the equality engine
+    if (atom.getKind() == kind::EQUAL)
+    {
+      d_equalityEngine->assertEquality(atom, polarity, fact);
+    }
+    else
+    {
+      d_equalityEngine->assertPredicate(atom, polarity, fact);
+    }
+    // notify the theory of the new fact, which is not internal
+    notifyFact(atom, polarity, fact, false);
+  }
+  // post-check at level
+  postCheck(level);
+}
+
+bool Theory::preCheck(Effort level) { return false; }
+
+void Theory::postCheck(Effort level) {}
+
+bool Theory::preNotifyFact(TNode atom, bool polarity, TNode fact, bool isPrereg)
+{
+  return false;
+}
+
+void Theory::notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal)
+{
+}
+
+void Theory::preRegisterTerm(TNode node)
+{
+  // do theory-specific preRegisterTerm
+  notifyPreRegisterTerm(node);
+}
+
+void Theory::addSharedTerm(TNode n)
+{
+  Debug("sharing") << "Theory::addSharedTerm<" << getId() << ">(" << n << ")"
+                   << std::endl;
+  Debug("theory::assertions")
+      << "Theory::addSharedTerm<" << getId() << ">(" << n << ")" << std::endl;
+  d_sharedTerms.push_back(n);
+  // now call theory-specific addSharedTerm
+  notifySharedTerm(n);
+  // if we have an equality engine, add the trigger term
+  if (d_equalityEngine != nullptr)
+  {
+    d_equalityEngine->addTriggerTerm(n, d_id);
+  }
 }
 
 eq::EqualityEngine* Theory::getEqualityEngine()
