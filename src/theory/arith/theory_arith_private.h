@@ -328,7 +328,7 @@ public:
    * Returns true iff a conflict has been raised. This method is public since
    * it is needed by the ArithState class to know whether we are in conflict.
    */
-  inline bool anyConflict() const
+  bool anyConflict() const
   {
     return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
   }
