@@ -1,4 +1,4 @@
-; COMMAND-LINE: --unconstrained-simp --no-proof-new
+; COMMAND-LINE: --unconstrained-simp
 (set-logic ALL)
 (declare-fun a () Bool)
 (declare-fun b () Bool)

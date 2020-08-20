@@ -470,8 +470,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
-      if (!options::unsatCores() && !options::fewerPreprocessingHoles()
-          && !options::proofNew())
+      if (!options::unsatCores() && !options::fewerPreprocessingHoles())
       {
         // Perform non-clausal simplification
         PreprocessingPassResult res =
