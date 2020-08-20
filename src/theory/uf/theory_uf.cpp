@@ -616,6 +616,7 @@ void TheoryUF::computeCareGraph() {
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..." << std::endl;
     std::map<Node, TNodeTrie> index;
     std::map<TypeNode, TNodeTrie> hoIndex;
+    std::map<Node, size_t> arity;
     for (TNode app : d_functionsTerms){
       std::vector< TNode > reps;
       bool has_trigger_arg = false;
@@ -645,6 +646,7 @@ void TheoryUF::computeCareGraph() {
     {
       Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
                            << tt.first << "..." << std::endl;
+                           Assert(arity.find(tt.first)!=arity.end());
       addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
     }
     for (std::pair<const TypeNode, TNodeTrie>& tt : index)
