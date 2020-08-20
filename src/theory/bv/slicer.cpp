@@ -46,13 +46,6 @@ void Base::sliceAt(Index index)
   d_repr[vector_index] = d_repr[vector_index] | bit_mask;
 }
 
-void Base::sliceWith(const Base& other) {
-  Assert(d_size == other.d_size);
-  for (unsigned i = 0; i < d_repr.size(); ++i) {
-    d_repr[i] = d_repr[i] | other.d_repr[i]; 
-  }
-}
-
 bool Base::isCutPoint (Index index) const
 {
   // there is an implicit cut point at the end and begining of the bv
@@ -65,22 +58,6 @@ bool Base::isCutPoint (Index index) const
   uint32_t bit_mask = 1u << int_index;
 
   return (bit_mask & d_repr[vector_index]) != 0;
-}
-
-void Base::diffCutPoints(const Base& other, Base& res) const {
-  Assert(d_size == other.d_size && res.d_size == d_size);
-  for (unsigned i = 0; i < d_repr.size(); ++i) {
-    Assert(res.d_repr[i] == 0);
-    res.d_repr[i] = d_repr[i] ^ other.d_repr[i]; 
-  }
-}
-
-bool Base::isEmpty() const {
-  for (unsigned i = 0; i< d_repr.size(); ++i) {
-    if (d_repr[i] != 0)
-      return false;
-  }
-  return true;
 }
 
 std::string Base::debugPrint() const {

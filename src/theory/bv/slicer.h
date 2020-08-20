@@ -16,32 +16,16 @@
 
 #include "cvc4_private.h"
 
-#include <math.h>
-
-#include <vector>
-#include <list>
-#include <unordered_map>
-
-#include "expr/node.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "util/bitvector.h"
-#include "util/index.h"
-#include "util/statistics_registry.h"
-
 #ifndef CVC4__THEORY__BV__SLICER_BV_H
 #define CVC4__THEORY__BV__SLICER_BV_H
 
+#include <vector>
+#include <string>
+#include "util/index.h"
 
 namespace CVC4 {
-
 namespace theory {
 namespace bv {
-
-
-
-typedef Index TermId;
-extern const TermId UndefinedId;
-
 
 /** 
  * Base
@@ -53,19 +37,10 @@ class Base {
 public:
   Base(Index size);
   void sliceAt(Index index); 
-  void sliceWith(const Base& other);
   bool isCutPoint(Index index) const;
-  void diffCutPoints(const Base& other, Base& res) const;
-  bool isEmpty() const;
   std::string debugPrint() const;
-  Index getBitwidth() const { return d_size; }
-  void clear() {
-    for (unsigned i = 0; i < d_repr.size(); ++i) {
-      d_repr[i] = 0; 
-    }
-  }
   bool operator==(const Base& other) const {
-    if (other.getBitwidth() != getBitwidth())
+    if (other.d_size != d_size)
       return false;
     for (unsigned i = 0; i < d_repr.size(); ++i) {
       if (d_repr[i] != other.d_repr[i])
@@ -74,8 +49,6 @@ public:
     return true; 
   }
 }; 
-
-
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
