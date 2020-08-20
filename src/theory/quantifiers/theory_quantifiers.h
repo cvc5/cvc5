@@ -19,14 +19,14 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
+#include "context/context.h"
 #include "expr/node.h"
+#include "theory/output_channel.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
-#include "context/context.h"
 #include "theory/valuation.h"
-#include "theory/output_channel.h"
 
 namespace CVC4 {
 namespace theory {
