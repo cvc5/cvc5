@@ -908,7 +908,8 @@ void TheoryFp::preRegisterTerm(TNode node)
   return;
 }
 
-void TheoryFp::notifySharedTerm(TNode node) {
+void TheoryFp::notifySharedTerm(TNode node)
+{
   Trace("fp-addSharedTerm")
       << "TheoryFp::notifySharedTerm(): " << node << std::endl;
   // A system-wide invariant; terms must be registered before they are shared
