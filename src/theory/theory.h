@@ -40,7 +40,6 @@
 #include "theory/care_graph.h"
 #include "theory/decision_manager.h"
 #include "theory/ee_setup_info.h"
-#include "theory/inference_manager.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
@@ -106,7 +105,6 @@ namespace eq {
  */
 class Theory {
   friend class ::CVC4::TheoryEngine;
-  friend class InferManager;
 
  private:
   // Disallow default construction, copy, assignment.
@@ -258,10 +256,6 @@ class Theory {
    * Notice the theory is responsible for memory management of this class.
    */
   TheoryState* d_theoryState;
-  /**
-   * The inference manager.
-   */
-  InferManager* d_inferManager;
   /**
    * Whether proofs are enabled
    *
