@@ -574,9 +574,7 @@ void Theory::notifyFact(TNode atom, bool polarity, TNode fact, bool isInternal)
 {
 }
 
-void Theory::preRegisterTerm(TNode node)
-{
-}
+void Theory::preRegisterTerm(TNode node) {}
 
 void Theory::addSharedTerm(TNode n)
 {
