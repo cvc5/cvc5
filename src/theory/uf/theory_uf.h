@@ -150,15 +150,6 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
- private:
-  /** get the operator for this node (node should be either APPLY_UF or
-   * HO_APPLY)
-   */
-  Node getOperatorForApplyTerm(TNode node);
-  /** get the starting index of the arguments for node (node should be either
-   * APPLY_UF or HO_APPLY) */
-  unsigned getArgumentStartIndexForApplyTerm(TNode node);
-
  public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/

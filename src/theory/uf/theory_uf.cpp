@@ -197,20 +197,6 @@ void TheoryUF::check(Effort level) {
   }
 }/* TheoryUF::check() */
 
-Node TheoryUF::getOperatorForApplyTerm( TNode node ) {
-  Assert(node.getKind() == kind::APPLY_UF || node.getKind() == kind::HO_APPLY);
-  if( node.getKind()==kind::APPLY_UF ){
-    return node.getOperator();
-  }else{
-    return d_equalityEngine->getRepresentative(node[0]);
-  }
-}
-
-unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
-  Assert(node.getKind() == kind::APPLY_UF || node.getKind() == kind::HO_APPLY);
-  return node.getKind()==kind::APPLY_UF ? 0 : 1;
-}
-
 TrustNode TheoryUF::expandDefinition(Node node)
 {
   Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
@@ -553,8 +539,7 @@ void TheoryUF::addCarePairs(TNodeTrie* t1,
       {
         Debug("uf::sharing") << "TheoryUf::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
-        unsigned arg_start_index = getArgumentStartIndexForApplyTerm( f1 );
-        for (unsigned k = arg_start_index; k < f1.getNumChildren(); ++ k) {
+        for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
           TNode x = f1[k];
           TNode y = f2[k];
           Assert(d_equalityEngine->hasTerm(x));
@@ -630,24 +615,28 @@ void TheoryUF::computeCareGraph() {
     //use term indexing
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Build term indices..." << std::endl;
     std::map<Node, TNodeTrie> index;
-    std::map< Node, unsigned > arity;
-    unsigned functionTerms = d_functionsTerms.size();
-    for (unsigned i = 0; i < functionTerms; ++ i) {
-      TNode f1 = d_functionsTerms[i];
-      Node op = getOperatorForApplyTerm( f1 );
-      unsigned arg_start_index = getArgumentStartIndexForApplyTerm( f1 );
+    std::map<TypeNode, TNodeTrie> hoIndex;
+    for (TNode app : d_functionsTerms){
       std::vector< TNode > reps;
       bool has_trigger_arg = false;
-      for( unsigned j=arg_start_index; j<f1.getNumChildren(); j++ ){
-        reps.push_back(d_equalityEngine->getRepresentative(f1[j]));
-        if (d_equalityEngine->isTriggerTerm(f1[j], THEORY_UF))
+      for (const Node& j : app){
+        reps.push_back(d_equalityEngine->getRepresentative(j));
+        if (d_equalityEngine->isTriggerTerm(j, THEORY_UF))
         {
           has_trigger_arg = true;
         }
       }
       if( has_trigger_arg ){
-        index[op].addTerm(f1, reps);
-        arity[op] = reps.size();
+        if (app.getKind()==kind::APPLY_UF)
+        {
+          index[op].addTerm(app, reps);
+          arity[op] = reps.size();
+        }
+        else
+        {
+          Assert (app.getKind()==kind::HO_APPLY);
+          hoIndex[app[0].getType()].addTerm(app, reps);
+        }
       }
     }
     //for each index
@@ -656,6 +645,12 @@ void TheoryUF::computeCareGraph() {
       Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index "
                            << tt.first << "..." << std::endl;
       addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
+    }
+    for (std::pair<const TypeNode, TNodeTrie>& tt : index)
+    {
+      Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process ho index "
+                           << tt.first << "..." << std::endl;
+      addCarePairs(&tt.second, nullptr, 2, 0);
     }
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished." << std::endl;
   }
