@@ -249,6 +249,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/quant_elim_solver.cpp
+  smt/quant_elim_solver.h
   smt/preprocessor.cpp
   smt/preprocessor.h
   smt/preprocess_proof_generator.cpp
