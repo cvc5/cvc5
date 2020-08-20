@@ -607,8 +607,12 @@ class Theory {
    * - be interrupted,
    * - throw an exception
    * - or call get() until done() is true.
-   * The standard method for check consists of implementing four callbacks,
-   * (preCheck, postCheck, preNotifyFact, notifyFact) as desribed below.
+   *
+   * The standard method for check consists of a loop that processes the entire
+   * fact queue when preCheck returns false. It makes four theory-specific
+   * callbacks, (preCheck, postCheck, preNotifyFact, notifyFact) as desribed
+   * below. It asserts each fact to the official equality engine when
+   * preNotifyFact returns false.
    *
    * TODO (project #39): this method should be non-virtual, once all theories
    * conform to the new standard
@@ -616,8 +620,9 @@ class Theory {
   virtual void check(Effort level = EFFORT_FULL);
   /**
    * Pre-check, called before the fact queue of the theory is processed.
-   * If this method returns true, then the check is complete and the check()
-   * method should not do any further work.
+   * If this method returns false, then the theory will process its fact
+   * queue. If this method returns true, then the theory has indicated
+   * its check method should finish immediately.
    */
   virtual bool preCheck(Effort level = EFFORT_FULL);
   /**
