@@ -58,7 +58,7 @@ class TheorySets : public Theory
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void addSharedTerm(TNode) override;
+  void notifySharedTerm(TNode) override;
   void check(Effort) override;
   bool collectModelInfo(TheoryModel* m) override;
   void computeCareGraph() override;

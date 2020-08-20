@@ -273,7 +273,12 @@ TheoryId Theory::theoryOf(options::TheoryOfMode mode, TNode node)
 
 void Theory::notifySharedTerm(TNode n)
 {
-  // do nothing
+  // TODO (project #39): this will move to addSharedTerm
+  // if we have an equality engine, add the trigger term
+  if (d_equalityEngine != nullptr)
+  {
+    d_equalityEngine->addTriggerTerm(n, d_id);
+  }
 }
 
 void Theory::computeCareGraph() {
@@ -593,11 +598,6 @@ void Theory::addSharedTerm(TNode n)
   d_sharedTerms.push_back(n);
   // now call theory-specific addSharedTerm
   notifySharedTerm(n);
-  // if we have an equality engine, add the trigger term
-  if (d_equalityEngine != nullptr)
-  {
-    d_equalityEngine->addTriggerTerm(n, d_id);
-  }
 }
 
 eq::EqualityEngine* Theory::getEqualityEngine()

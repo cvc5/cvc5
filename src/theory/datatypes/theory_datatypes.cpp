@@ -732,11 +732,11 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::addSharedTerm(TNode t) {
-  Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
+void TheoryDatatypes::notifySharedTerm(TNode t) {
+  Debug("datatypes") << "TheoryDatatypes::notifySharedTerm(): "
                      << t << " " << t.getType().isBoolean() << endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_DATATYPES);
-  Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
+  Debug("datatypes") << "TheoryDatatypes::notifySharedTerm() finished" << std::endl;
 }
 
 /** propagate */

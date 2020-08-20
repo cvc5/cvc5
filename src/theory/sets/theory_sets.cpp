@@ -88,7 +88,7 @@ void TheorySets::finishInit()
   d_internal->finishInit();
 }
 
-void TheorySets::addSharedTerm(TNode n) {
+void TheorySets::notifySharedTerm(TNode n) {
   d_internal->addSharedTerm(n);
 }
 

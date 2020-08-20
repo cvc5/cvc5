@@ -520,7 +520,7 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-void TheoryUF::addSharedTerm(TNode t) {
+void TheoryUF::notifySharedTerm(TNode t) {
   Debug("uf::sharing") << "TheoryUF::addSharedTerm(" << t << ")" << std::endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_UF);
 }

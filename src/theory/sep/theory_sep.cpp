@@ -166,8 +166,8 @@ TrustNode TheorySep::explain(TNode literal)
 /////////////////////////////////////////////////////////////////////////////
 
 
-void TheorySep::addSharedTerm(TNode t) {
-  Debug("sep") << "TheorySep::addSharedTerm(" << t << ")" << std::endl;
+void TheorySep::notifySharedTerm(TNode t) {
+  Debug("sep") << "TheorySep::notifySharedTerm(" << t << ")" << std::endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_SEP);
 }
 
