@@ -73,12 +73,12 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
  * generalizes the check for a proof generator or a proof node.
  */
 void ensureClosedWrtInternal(Node proven,
-                        ProofGenerator* pg,
-                        ProofNode * pnp,
-                        const std::vector<Node>& assumps,
-                        const char* c,
-                        const char* ctx,
-                        bool reqGen)
+                             ProofGenerator* pg,
+                             ProofNode* pnp,
+                             const std::vector<Node>& assumps,
+                             const char* c,
+                             const char* ctx,
+                             bool reqGen)
 {
   if (!options::proofNew())
   {
@@ -102,18 +102,19 @@ void ensureClosedWrtInternal(Node proven,
   {
     sdiag << ", use -t dump-proof-error for details on proof";
   }
-  // get the proof node in question, which is either provided or built by the proof generator
+  // get the proof node in question, which is either provided or built by the
+  // proof generator
   std::shared_ptr<ProofNode> pn;
   std::stringstream ss;
-  if (pnp!=nullptr)
+  if (pnp != nullptr)
   {
-    Assert( pg == nullptr);
+    Assert(pg == nullptr);
     ss << "ProofNode in context " << ctx;
   }
   else
   {
     ss << "ProofGenerator: " << (pg == nullptr ? "null" : pg->identify())
-      << " in context " << ctx;
+       << " in context " << ctx;
     if (pg == nullptr)
     {
       // only failure if flag is true
@@ -132,21 +133,21 @@ void ensureClosedWrtInternal(Node proven,
   }
   Trace(c) << "=== ensureClosed: " << ss.str() << std::endl;
   Trace(c) << "Proven: " << proven << std::endl;
-  if (pnp==nullptr)
+  if (pnp == nullptr)
   {
-    if (pg==nullptr)
+    if (pg == nullptr)
     {
       // did not require generator
-      Assert (!reqGen);
+      Assert(!reqGen);
       Trace(c) << "...ensureClosed: no generator in context " << ctx
-              << std::endl;
+               << std::endl;
       return;
     }
   }
   // if we don't have a proof node, a generator failed
   if (pnp == nullptr)
   {
-    Assert (pg!=nullptr);
+    Assert(pg != nullptr);
     AlwaysAssert(false) << "...ensureClosed: null proof from " << ss.str()
                         << sdiag.str();
   }
@@ -185,14 +186,13 @@ void ensureClosedWrtInternal(Node proven,
   Trace(c) << "====" << std::endl;
 }
 
-
 void pfgEnsureClosed(Node proven,
                      ProofGenerator* pg,
                      const char* c,
                      const char* ctx,
                      bool reqGen)
 {
-  Assert (!proven.isNull());
+  Assert(!proven.isNull());
   // proof generator may be null
   std::vector<Node> assumps;
   ensureClosedWrtInternal(proven, pg, nullptr, assumps, c, ctx, reqGen);
@@ -205,14 +205,12 @@ void pfgEnsureClosedWrt(Node proven,
                         const char* ctx,
                         bool reqGen)
 {
-  Assert (!proven.isNull());
+  Assert(!proven.isNull());
   // proof generator may be null
   ensureClosedWrtInternal(proven, pg, nullptr, assumps, c, ctx, reqGen);
 }
 
-void pfnEnsureClosed(ProofNode* pn,
-                        const char* c,
-                        const char* ctx)
+void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx)
 {
   std::vector<Node> assumps;
   ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
