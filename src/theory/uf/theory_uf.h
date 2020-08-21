@@ -49,10 +49,9 @@ public:
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_uf.propagate(predicate);
-      } else {
-       return d_uf.propagate(predicate.notNode());
+        return d_uf.propagateLit(predicate);
       }
+      return d_uf.propagateLit(predicate.notNode());
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -62,10 +61,9 @@ public:
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_uf.propagate(t1.eqNode(t2));
-      } else {
-        return d_uf.propagate(t1.eqNode(t2).notNode());
+        return d_uf.propagateLit(t1.eqNode(t2));
       }
+      return d_uf.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -119,7 +117,7 @@ private:
    * Should be called to propagate the literal. We use a node here
    * since some of the propagated literals are not kept anywhere.
    */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /**
    * Explain why this literal is true by adding assumptions

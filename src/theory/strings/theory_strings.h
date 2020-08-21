@@ -128,9 +128,9 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_str.propagate(predicate);
+        return d_str.propagateLit(predicate);
       }
-      return d_str.propagate(predicate.notNode());
+      return d_str.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -139,9 +139,9 @@ class TheoryStrings : public Theory {
     {
       Debug("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_str.propagate(t1.eqNode(t2));
+        return d_str.propagateLit(t1.eqNode(t2));
       } else {
-        return d_str.propagate(t1.eqNode(t2).notNode());
+        return d_str.propagateLit(t1.eqNode(t2).notNode());
       }
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -173,7 +173,7 @@ class TheoryStrings : public Theory {
     SolverState& d_state;
   };/* class TheoryStrings::NotifyClass */
   /** propagate method */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
   /** compute care graph */
   void computeCareGraph() override;
   /**

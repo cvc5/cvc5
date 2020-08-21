@@ -112,12 +112,12 @@ Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstit
 /////////////////////////////////////////////////////////////////////////////
 
 
-bool TheorySep::propagate(TNode literal)
+bool TheorySep::propagateLit(TNode literal)
 {
-  Debug("sep") << "TheorySep::propagate(" << literal  << ")" << std::endl;
+  Debug("sep") << "TheorySep::propagateLit(" << literal  << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("sep") << "TheorySep::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("sep") << "TheorySep::propagateLit(" << literal << "): already in conflict" << std::endl;
     return false;
   }
   bool ok = d_out->propagate(literal);
