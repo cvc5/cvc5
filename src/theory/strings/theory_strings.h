@@ -140,9 +140,8 @@ class TheoryStrings : public Theory {
       Debug("strings") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
         return d_str.propagateLit(t1.eqNode(t2));
-      } else {
-        return d_str.propagateLit(t1.eqNode(t2).notNode());
       }
+      return d_str.propagateLit(t1.eqNode(t2).notNode());
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
