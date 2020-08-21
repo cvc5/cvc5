@@ -614,6 +614,9 @@ class Theory {
    * below. It asserts each fact to the official equality engine when
    * preNotifyFact returns false.
    *
+   * Theories that use this check method must use an official theory
+   * state object (d_theoryState).
+   *
    * TODO (project #39): this method should be non-virtual, once all theories
    * conform to the new standard
    */
@@ -633,6 +636,9 @@ class Theory {
    * Prenotify fact, return true if the theory processed it. If this
    * method returns false, then the atom will be added to the equality engine
    * of the theory and notifyFact will be called with isInternal=false.
+   *
+   * Theories that implement check but do not use official equality
+   * engines should always return true for this method.
    *
    * @param atom The atom
    * @param polarity Its polarity
