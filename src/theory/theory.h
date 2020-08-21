@@ -610,7 +610,7 @@ class Theory {
    *
    * The standard method for check consists of a loop that processes the entire
    * fact queue when preCheck returns false. It makes four theory-specific
-   * callbacks, (preCheck, postCheck, preNotifyFact, notifyFact) as desribed
+   * callbacks, (preCheck, postCheck, preNotifyFact, notifyFact) as described
    * below. It asserts each fact to the official equality engine when
    * preNotifyFact returns false.
    *
@@ -633,7 +633,7 @@ class Theory {
    */
   virtual void postCheck(Effort level = EFFORT_FULL);
   /**
-   * Prenotify fact, return true if the theory processed it. If this
+   * Pre-notify fact, return true if the theory processed it. If this
    * method returns false, then the atom will be added to the equality engine
    * of the theory and notifyFact will be called with isInternal=false.
    *
