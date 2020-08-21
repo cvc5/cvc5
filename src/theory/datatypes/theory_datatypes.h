@@ -366,6 +366,8 @@ private:
 
   /** The theory rewriter for this theory. */
   DatatypesRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

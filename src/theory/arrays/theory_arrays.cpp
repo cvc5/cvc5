@@ -82,7 +82,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
           name + "theory::arrays::number of setModelVal conflicts", 0),
       d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
-      //      d_ppCache(u),
+      d_state(c, u, valuation),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
@@ -132,6 +132,9 @@ TheoryArrays::TheoryArrays(context::Context* c,
   // The preprocessing congruence kinds
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryArrays::~TheoryArrays() {
