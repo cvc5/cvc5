@@ -31,6 +31,8 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::TRUE_ELIM, this);
   pc->registerChecker(PfRule::FALSE_INTRO, this);
   pc->registerChecker(PfRule::FALSE_ELIM, this);
+  // trusted rules
+  pc->registerTrustedChecker(PfRule::HO_TRUST, this, 1);
 }
 
 Node UfProofRuleChecker::checkInternal(PfRule id,
@@ -170,6 +172,13 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return children[0][0].notNode();
+  }
+  else if (id == PfRule::HO_TRUST)
+  {
+    // "trusted" rules
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
+    return args[0];
   }
   // no rule
   return Node::null();

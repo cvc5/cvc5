@@ -601,6 +601,13 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: (not F)
   FALSE_ELIM,
+  // ======== HO trust
+  // Children: none
+  // Arguments: (F)
+  // ---------------------
+  // Conclusion: (F)
+  HO_TRUST,
+  
   //================================================= Array rules
   // ======== Read over write
   // Children: (P:(not (= i1 i2)))

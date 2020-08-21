@@ -277,6 +277,7 @@ unsigned HoExtension::applyAppCompletion(TNode n)
   Assert(n.getKind() == APPLY_UF);
 
   eq::EqualityEngine* ee = d_parent.getEqualityEngine();
+  eq::ProofEqEngine* pfee = d_parent.getProofEqualityEngine();
   // must expand into APPLY_HO version if not there already
   Node ret = TheoryUfRewriter::getHoApplyForApplyUf(n);
   if (!ee->hasTerm(ret) || !ee->areEqual(ret, n))
@@ -284,7 +285,9 @@ unsigned HoExtension::applyAppCompletion(TNode n)
     Node eq = ret.eqNode(n);
     Trace("uf-ho-lemma") << "uf-ho-lemma : infer, by apply-expand : " << eq
                          << std::endl;
-    ee->assertEquality(eq, true, d_true);
+    Assert (pfee!=nullptr);
+    std::vector<Node> children;
+    pfee->assertFact(eq, PfRule::HO_TRUST, children, {eq});
     return 1;
   }
   Trace("uf-ho-debug") << "    ...already have " << ret << " == " << n << "."
