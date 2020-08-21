@@ -1307,6 +1307,22 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     }
   }
 
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+      && options::nlRlvMode() != options::NlRlvMode::NONE)
+  {
+    if (!options::relevanceFilter())
+    {
+      if (options::relevanceFilter.wasSetByUser())
+      {
+        Warning() << "SmtEngine: turning on relevance filtering to support "
+                     "--nl-ext-rlv="
+                  << options::nlRlvMode() << std::endl;
+      }
+      // must use relevance filtering techniques
+      options::relevanceFilter.set(true);
+    }
+  }
+
   // For now, these array theory optimizations do not support model-building
   if (options::produceModels() || options::produceAssignments()
       || options::checkModels())
