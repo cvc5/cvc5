@@ -210,6 +210,8 @@ private:
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
   UfProofRuleChecker d_ufProofChecker;
+  /** A (default) theory state object */
+  TheoryState d_state;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

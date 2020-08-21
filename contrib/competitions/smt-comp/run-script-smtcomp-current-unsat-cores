@@ -51,7 +51,7 @@ QF_UFBV)
   finishwith
   ;;
 QF_BV)
-  finishwith --bv-div-zero-const --bv-eq-slicer=auto --no-bv-abstraction
+  finishwith --bv-div-zero-const --no-bv-abstraction
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification

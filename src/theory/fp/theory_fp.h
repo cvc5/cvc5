@@ -153,6 +153,8 @@ class TheoryFp : public Theory {
 
   /** The theory rewriter for this theory. */
   TheoryFpRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 }; /* class TheoryFp */
 
 }  // namespace fp

@@ -82,11 +82,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
     options::bitvectorAig.set(true);
   }
-  if (options::bitvectorEqualitySlicer.wasSetByUser())
-  {
-    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
-    options::bitvectorEqualitySolver.set(true);
-  }
   if (options::bitvectorAlgebraicBudget.wasSetByUser())
   {
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;

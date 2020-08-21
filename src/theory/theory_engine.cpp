@@ -1777,50 +1777,6 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     });
 }
 
-void TheoryEngine::staticInitializeBVOptions(
-    const std::vector<Node>& assertions)
-{
-  bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::ON)
-  {
-    if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
-      throw ModalException(
-          "Slicer currently only supports pure QF_BV formulas. Use "
-          "--bv-eq-slicer=off");
-    if (options::incrementalSolving())
-      throw ModalException(
-          "Slicer does not currently support incremental mode. Use "
-          "--bv-eq-slicer=off");
-    if (options::produceModels())
-      throw ModalException(
-          "Slicer does not currently support model generation. Use "
-          "--bv-eq-slicer=off");
-  }
-  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::OFF)
-  {
-    return;
-  }
-  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::AUTO)
-  {
-    if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
-        || options::incrementalSolving()
-        || options::produceModels())
-      return;
-
-    bv::utils::TNodeBoolMap cache;
-    for (unsigned i = 0; i < assertions.size(); ++i)
-    {
-      useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
-    }
-  }
-
-  if (useSlicer)
-  {
-    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-    bv_theory->enableCoreTheorySlicer();
-  }
-}
-
 SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 {
   return &d_sharedTerms;
