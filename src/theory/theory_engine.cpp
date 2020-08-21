@@ -173,7 +173,7 @@ void TheoryEngine::finishInit() {
   if (d_logicInfo.isQuantified())
   {
     d_quantEngine->setMasterEqualityEngine(
-        d_eeDistributed->getMasterEqualityEngine());
+        d_eeDistributed->getCoreEqualityEngine());
   }
 
   // finish initializing the theories
