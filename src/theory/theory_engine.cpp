@@ -573,7 +573,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
       // case where we are about to answer SAT, the master equality engine,
       // if it exists, must be consistent.
-      eq::EqualityEngine* mee = d_eeDistributed->getMasterEqualityEngine();
+      eq::EqualityEngine* mee = d_eeDistributed->getCoreEqualityEngine();
       if (mee != NULL)
       {
         AlwaysAssert(mee->consistent());
