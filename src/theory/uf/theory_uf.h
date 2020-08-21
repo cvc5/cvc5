@@ -45,17 +45,6 @@ public:
   public:
     NotifyClass(TheoryUF& uf): d_uf(uf) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_uf.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_uf.propagate(equality.notNode());
-      }
-    }
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
@@ -230,6 +219,8 @@ private:
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
   UfProofRuleChecker d_ufProofChecker;
+  /** A (default) theory state object */
+  TheoryState d_state;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: (not (>= (+ a (* (- 1) b)) 1))
 (set-logic LIA)
 (declare-fun a () Int)

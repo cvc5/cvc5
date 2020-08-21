@@ -107,10 +107,6 @@ class EqEngineManagerDistributed : public EqEngineManager
      */
     void eqNotifyNewClass(TNode t) override;
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       return true;

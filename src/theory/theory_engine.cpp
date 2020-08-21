@@ -166,6 +166,13 @@ void TheoryEngine::finishInit() {
     d_aloc_curr_model_builder = true;
   }
 
+  // set the core equality engine on quantifiers engine
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->setMasterEqualityEngine(
+        d_eeDistributed->getMasterEqualityEngine());
+  }
+
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     Theory* t = d_theoryTable[theoryId];
@@ -559,7 +566,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
       // case where we are about to answer SAT, the master equality engine,
       // if it exists, must be consistent.
-      eq::EqualityEngine* mee = getMasterEqualityEngine();
+      eq::EqualityEngine* mee = d_eeDistributed->getMasterEqualityEngine();
       if (mee != NULL)
       {
         AlwaysAssert(mee->consistent());
@@ -997,7 +1004,13 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
-  return d_tpp.theoryPreprocess(assertion);
+  TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  if (trn.isNull())
+  {
+    // no change
+    return assertion;
+  }
+  return trn.getNode();
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -1654,6 +1667,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<Node> newSkolems;
   TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
 
+  // !!!!!!! temporary, until this method is fully updated from proof-new
+  if (tlemma.isNull())
+  {
+    tlemma = TrustNode::mkTrustLemma(node);
+  }
+
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline
@@ -1841,12 +1860,6 @@ void TheoryEngine::staticInitializeBVOptions(
 SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 {
   return &d_sharedTerms;
-}
-
-theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
-{
-  Assert(d_eeDistributed != nullptr);
-  return d_eeDistributed->getMasterEqualityEngine();
 }
 
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {

@@ -61,12 +61,16 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_functionTerms(c),
       d_singleton_eq(u),
       d_lemmas_produced_c(u),
-      d_sygusExtension(nullptr)
+      d_sygusExtension(nullptr),
+      d_state(c, u, valuation)
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -542,10 +546,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerEquality(n);
-    break;
   case kind::APPLY_TESTER:
+    // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
     d_equalityEngine->addTriggerPredicate(n);
     break;
@@ -1522,11 +1524,11 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
-  
-  set<Node> termSet;
-  
+
+  std::set<Node> termSet;
+
   // Compute terms appearing in assertions and shared terms, and in inferred equalities
-  getRelevantTerms(termSet);
+  computeRelevantTerms(termSet);
 
   //combine the equality engine
   if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
@@ -2250,12 +2252,14 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
+void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet,
+                                           bool includeShared)
+{
   // Compute terms appearing in assertions and shared terms
-  std::set<Kind> irr_kinds;
+  std::set<Kind> irrKinds;
   // testers are not relevant for model construction
-  irr_kinds.insert(APPLY_TESTER);
-  computeRelevantTerms(termSet, irr_kinds);
+  irrKinds.insert(APPLY_TESTER);
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;

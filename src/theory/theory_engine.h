@@ -748,8 +748,6 @@ public:
 
   SharedTermsDatabase* getSharedTermsDatabase();
 
-  theory::eq::EqualityEngine* getMasterEqualityEngine();
-
   SortInference* getSortInference() { return &d_sortInfer; }
 
   /** Prints the assertions to the debug stream */

@@ -1038,57 +1038,6 @@ void CvcPrinter::toStream(
 template <class T>
 static bool tryToStream(std::ostream& out, const Command* c, bool cvc3Mode);
 
-void CvcPrinter::toStream(std::ostream& out,
-                          const Command* c,
-                          int toDepth,
-                          bool types,
-                          size_t dag) const
-{
-  expr::ExprSetDepth::Scope sdScope(out, toDepth);
-  expr::ExprPrintTypes::Scope ptScope(out, types);
-  expr::ExprDag::Scope dagScope(out, dag);
-
-  if(tryToStream<AssertCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<PushCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<PopCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<CheckSatCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<CheckSatAssumingCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<QueryCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<ResetCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<ResetAssertionsCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<QuitCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<DeclarationSequence>(out, c, d_cvc3Mode) ||
-     tryToStream<CommandSequence>(out, c, d_cvc3Mode) ||
-     tryToStream<DeclareFunctionCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<DeclareTypeCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<DefineTypeCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<DefineNamedFunctionCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<DefineFunctionCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<SimplifyCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetValueCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetModelCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetAssignmentCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetAssertionsCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetProofCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetUnsatCoreCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<SetBenchmarkStatusCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<SetBenchmarkLogicCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<SetInfoCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetInfoCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<SetOptionCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<GetOptionCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<DatatypeDeclarationCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<CommentCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<EmptyCommand>(out, c, d_cvc3Mode) ||
-     tryToStream<EchoCommand>(out, c, d_cvc3Mode)) {
-    return;
-  }
-
-  out << "ERROR: don't know how to print a Command of class: "
-      << typeid(*c).name() << endl;
-
-}/* CvcPrinter::toStream(Command*) */
-
 template <class T>
 static bool tryToStream(std::ostream& out,
                         const CommandStatus* s,
@@ -1245,294 +1194,316 @@ void CvcPrinter::toStream(std::ostream& out,
   }
 }
 
-static void toStream(std::ostream& out, const AssertCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdAssert(std::ostream& out, Node n) const
 {
-  out << "ASSERT " << c->getExpr() << ";";
+  out << "ASSERT " << n << ';';
 }
 
-static void toStream(std::ostream& out, const PushCommand* c, bool cvc3Mode)
-{
-  out << "PUSH;";
-}
+void CvcPrinter::toStreamCmdPush(std::ostream& out) const { out << "PUSH;"; }
 
-static void toStream(std::ostream& out, const PopCommand* c, bool cvc3Mode)
-{
-  out << "POP;";
-}
+void CvcPrinter::toStreamCmdPop(std::ostream& out) const { out << "POP;"; }
 
-static void toStream(std::ostream& out, const CheckSatCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdCheckSat(std::ostream& out, Node n) const
 {
-  Expr e = c->getExpr();
-  if(cvc3Mode) {
+  if (d_cvc3Mode)
+  {
     out << "PUSH; ";
   }
-  if(!e.isNull()) {
-    out << "CHECKSAT " << e << ";";
-  } else {
+  if (!n.isNull())
+  {
+    out << "CHECKSAT " << n << ';';
+  }
+  else
+  {
     out << "CHECKSAT;";
   }
-  if(cvc3Mode) {
+  if (d_cvc3Mode)
+  {
     out << " POP;";
   }
 }
 
-static void toStream(std::ostream& out,
-                     const CheckSatAssumingCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdCheckSatAssuming(
+    std::ostream& out, const std::vector<Node>& nodes) const
 {
-  const vector<Expr>& exprs = c->getTerms();
-  if (cvc3Mode)
+  if (d_cvc3Mode)
   {
     out << "PUSH; ";
   }
   out << "CHECKSAT";
-  if (exprs.size() > 0)
+  if (nodes.size() > 0)
   {
-    out << " " << exprs[0];
-    for (size_t i = 1, n = exprs.size(); i < n; ++i)
+    out << ' ' << nodes[0];
+    for (size_t i = 1, n = nodes.size(); i < n; ++i)
     {
-      out << " AND " << exprs[i];
+      out << " AND " << nodes[i];
     }
   }
-  out << ";";
-  if (cvc3Mode)
+  out << ';';
+  if (d_cvc3Mode)
   {
     out << " POP;";
   }
 }
 
-static void toStream(std::ostream& out, const QueryCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdQuery(std::ostream& out, Node n) const
 {
-  Expr e = c->getExpr();
-  if(cvc3Mode) {
+  if (d_cvc3Mode)
+  {
     out << "PUSH; ";
   }
-  if(!e.isNull()) {
-    out << "QUERY " << e << ";";
-  } else {
+  if (!n.isNull())
+  {
+    out << "QUERY " << n << ';';
+  }
+  else
+  {
     out << "QUERY TRUE;";
   }
-  if(cvc3Mode) {
+  if (d_cvc3Mode)
+  {
     out << " POP;";
   }
 }
 
-static void toStream(std::ostream& out, const ResetCommand* c, bool cvc3Mode)
-{
-  out << "RESET;";
-}
+void CvcPrinter::toStreamCmdReset(std::ostream& out) const { out << "RESET;"; }
 
-static void toStream(std::ostream& out,
-                     const ResetAssertionsCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdResetAssertions(std::ostream& out) const
 {
   out << "RESET ASSERTIONS;";
 }
 
-static void toStream(std::ostream& out, const QuitCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdQuit(std::ostream& out) const
 {
-  //out << "EXIT;";
+  // out << "EXIT;";
 }
 
-static void toStream(std::ostream& out, const CommandSequence* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdCommandSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
 {
-  for(CommandSequence::const_iterator i = c->begin();
-      i != c->end();
-      ++i) {
+  for (CommandSequence::const_iterator i = sequence.cbegin();
+       i != sequence.cend();
+       ++i)
+  {
     out << *i << endl;
   }
 }
 
-static void toStream(std::ostream& out,
-                     const DeclarationSequence* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDeclarationSequence(
+    std::ostream& out, const std::vector<Command*>& sequence) const
 {
-  DeclarationSequence::const_iterator i = c->begin();
-  for(;;) {
+  DeclarationSequence::const_iterator i = sequence.cbegin();
+  for (;;)
+  {
     DeclarationDefinitionCommand* dd =
-      static_cast<DeclarationDefinitionCommand*>(*i++);
-    if(i != c->end()) {
+        static_cast<DeclarationDefinitionCommand*>(*i++);
+    if (i != sequence.cend())
+    {
       out << dd->getSymbol() << ", ";
-    } else {
+    }
+    else
+    {
       out << *dd;
       break;
     }
   }
 }
 
-static void toStream(std::ostream& out,
-                     const DeclareFunctionCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDeclareFunction(std::ostream& out,
+                                            const std::string& id,
+                                            TypeNode type) const
 {
-  out << c->getSymbol() << " : " << c->getType() << ";";
+  out << id << " : " << type << ';';
 }
 
-static void toStream(std::ostream& out,
-                     const DefineFunctionCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDefineFunction(std::ostream& out,
+                                           const std::string& id,
+                                           const std::vector<Node>& formals,
+                                           TypeNode range,
+                                           Node formula) const
 {
-  Expr func = c->getFunction();
-  const vector<Expr>& formals = c->getFormals();
-  Expr formula = c->getFormula();
-  out << func << " : " << func.getType() << " = ";
-  if(formals.size() > 0) {
+  std::vector<TypeNode> sorts;
+  sorts.reserve(formals.size() + 1);
+  for (const Node& n : formals)
+  {
+    sorts.push_back(n.getType());
+  }
+  sorts.push_back(range);
+
+  out << id << " : " << NodeManager::currentNM()->mkFunctionType(sorts)
+      << " = ";
+  if (formals.size() > 0)
+  {
     out << "LAMBDA(";
-    vector<Expr>::const_iterator i = formals.begin();
-    while(i != formals.end()) {
+    vector<Node>::const_iterator i = formals.cbegin();
+    while (i != formals.end())
+    {
       out << (*i) << ":" << (*i).getType();
-      if(++i != formals.end()) {
+      if (++i != formals.end())
+      {
         out << ", ";
       }
     }
     out << "): ";
   }
-  out << formula << ";";
+  out << formula << ';';
 }
 
-static void toStream(std::ostream& out,
-                     const DeclareTypeCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDeclareType(std::ostream& out,
+                                        const std::string& id,
+                                        size_t arity,
+                                        TypeNode type) const
 {
-  if(c->getArity() > 0) {
-    //TODO?
+  if (arity > 0)
+  {
+    // TODO?
     out << "ERROR: Don't know how to print parameterized type declaration "
-           "in CVC language." << endl;
-  } else {
-    out << c->getSymbol() << " : TYPE;";
+           "in CVC language."
+        << std::endl;
+  }
+  else
+  {
+    out << id << " : TYPE;";
   }
 }
 
-static void toStream(std::ostream& out,
-                     const DefineTypeCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDefineType(std::ostream& out,
+                                       const std::string& id,
+                                       const std::vector<TypeNode>& params,
+                                       TypeNode t) const
 {
-  if(c->getParameters().size() > 0) {
+  if (params.size() > 0)
+  {
     out << "ERROR: Don't know how to print parameterized type definition "
-           "in CVC language:" << endl << c->toString() << endl;
-  } else {
-    out << c->getSymbol() << " : TYPE = " << c->getType() << ";";
+           "in CVC language:"
+        << std::endl;
+  }
+  else
+  {
+    out << id << " : TYPE = " << t << ';';
   }
 }
 
-static void toStream(std::ostream& out,
-                     const DefineNamedFunctionCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDefineNamedFunction(
+    std::ostream& out,
+    const std::string& id,
+    const std::vector<Node>& formals,
+    TypeNode range,
+    Node formula) const
 {
-  toStream(out, static_cast<const DefineFunctionCommand*>(c), cvc3Mode);
+  toStreamCmdDefineFunction(out, id, formals, range, formula);
 }
 
-static void toStream(std::ostream& out, const SimplifyCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdSimplify(std::ostream& out, Node n) const
 {
-  out << "TRANSFORM " << c->getTerm() << ";";
+  out << "TRANSFORM " << n << ';';
 }
 
-static void toStream(std::ostream& out, const GetValueCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetValue(std::ostream& out,
+                                     const std::vector<Node>& nodes) const
 {
-  const vector<Expr>& terms = c->getTerms();
-  Assert(!terms.empty());
+  Assert(!nodes.empty());
   out << "GET_VALUE ";
-  copy(terms.begin(), terms.end() - 1, ostream_iterator<Expr>(out, ";\nGET_VALUE "));
-  out << terms.back() << ";";
+  copy(nodes.begin(),
+       nodes.end() - 1,
+       ostream_iterator<Node>(out, ";\nGET_VALUE "));
+  out << nodes.back() << ';';
 }
 
-static void toStream(std::ostream& out, const GetModelCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetModel(std::ostream& out) const
 {
   out << "COUNTERMODEL;";
 }
 
-static void toStream(std::ostream& out,
-                     const GetAssignmentCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetAssignment(std::ostream& out) const
 {
   out << "% (get-assignment)";
 }
 
-static void toStream(std::ostream& out,
-                     const GetAssertionsCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetAssertions(std::ostream& out) const
 {
   out << "WHERE;";
 }
 
-static void toStream(std::ostream& out, const GetProofCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetProof(std::ostream& out) const
 {
   out << "DUMP_PROOF;";
 }
 
-static void toStream(std::ostream& out,
-                     const GetUnsatCoreCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 {
   out << "DUMP_UNSAT_CORE;";
 }
 
-static void toStream(std::ostream& out,
-                     const SetBenchmarkStatusCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
+                                               BenchmarkStatus status) const
 {
-  out << "% (set-info :status " << c->getStatus() << ")";
+  out << "% (set-info :status " << status << ')';
 }
 
-static void toStream(std::ostream& out,
-                     const SetBenchmarkLogicCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdSetBenchmarkLogic(std::ostream& out,
+                                              const std::string& logic) const
 {
-  out << "OPTION \"logic\" \"" << c->getLogic() << "\";";
+  out << "OPTION \"logic\" \"" << logic << "\";";
 }
 
-static void toStream(std::ostream& out, const SetInfoCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdSetInfo(std::ostream& out,
+                                    const std::string& flag,
+                                    SExpr sexpr) const
 {
-  out << "% (set-info " << c->getFlag() << " ";
+  out << "% (set-info " << flag << ' ';
   OutputLanguage language =
-      cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
-  SExpr::toStream(out, c->getSExpr(), language);
-  out << ")";
+      d_cvc3Mode ? language::output::LANG_CVC3 : language::output::LANG_CVC4;
+  SExpr::toStream(out, sexpr, language);
+  out << ')';
 }
 
-static void toStream(std::ostream& out, const GetInfoCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetInfo(std::ostream& out,
+                                    const std::string& flag) const
 {
-  out << "% (get-info " << c->getFlag() << ")";
+  out << "% (get-info " << flag << ')';
 }
 
-static void toStream(std::ostream& out,
-                     const SetOptionCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdSetOption(std::ostream& out,
+                                      const std::string& flag,
+                                      SExpr sexpr) const
 {
-  out << "OPTION \"" << c->getFlag() << "\" ";
-  SExpr::toStream(out, c->getSExpr(), language::output::LANG_CVC4);
-  out << ";";
+  out << "OPTION \"" << flag << "\" ";
+  SExpr::toStream(out, sexpr, language::output::LANG_CVC4);
+  out << ';';
 }
 
-static void toStream(std::ostream& out,
-                     const GetOptionCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdGetOption(std::ostream& out,
+                                      const std::string& flag) const
 {
-  out << "% (get-option " << c->getFlag() << ")";
+  out << "% (get-option " << flag << ')';
 }
 
-static void toStream(std::ostream& out,
-                     const DatatypeDeclarationCommand* c,
-                     bool cvc3Mode)
+void CvcPrinter::toStreamCmdDatatypeDeclaration(
+    std::ostream& out, const std::vector<TypeNode>& datatypes) const
 {
-  const vector<Type>& datatypes = c->getDatatypes();
   Assert(!datatypes.empty() && datatypes[0].isDatatype());
-  const DType& dt0 = TypeNode::fromType(datatypes[0]).getDType();
-  //do not print tuple/datatype internal declarations
+  const DType& dt0 = datatypes[0].getDType();
+  // do not print tuple/datatype internal declarations
   if (datatypes.size() != 1 || (!dt0.isTuple() && !dt0.isRecord()))
   {
     out << "DATATYPE" << endl;
     bool firstDatatype = true;
-    for (const Type& t : datatypes)
+    for (const TypeNode& t : datatypes)
     {
-      if(! firstDatatype) {
+      if (!firstDatatype)
+      {
         out << ',' << endl;
       }
-      const DType& dt = TypeNode::fromType(t).getDType();
+      const DType& dt = t.getDType();
       out << "  " << dt.getName();
-      if(dt.isParametric()) {
+      if (dt.isParametric())
+      {
         out << '[';
-        for(size_t j = 0; j < dt.getNumParameters(); ++j) {
-          if(j > 0) {
+        for (size_t j = 0; j < dt.getNumParameters(); ++j)
+        {
+          if (j > 0)
+          {
             out << ',';
           }
           out << dt.getParameter(j);
@@ -1578,16 +1549,21 @@ static void toStream(std::ostream& out,
   }
 }
 
-static void toStream(std::ostream& out, const CommentCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdComment(std::ostream& out,
+                                    const std::string& comment) const
 {
-  out << "% " << c->getComment();
+  out << "% " << comment;
 }
 
-static void toStream(std::ostream& out, const EmptyCommand* c, bool cvc3Mode) {}
-
-static void toStream(std::ostream& out, const EchoCommand* c, bool cvc3Mode)
+void CvcPrinter::toStreamCmdEmpty(std::ostream& out,
+                                  const std::string& name) const
 {
-  out << "ECHO \"" << c->getOutput() << "\";";
+}
+
+void CvcPrinter::toStreamCmdEcho(std::ostream& out,
+                                 const std::string& output) const
+{
+  out << "ECHO \"" << output << "\";";
 }
 
 template <class T>

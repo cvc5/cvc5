@@ -27,17 +27,12 @@ namespace sets {
 
 SolverState::SolverState(TheorySetsPrivate& p,
                          context::Context* c,
-                         context::UserContext* u)
-    : d_conflict(c), d_parent(p), d_ee(nullptr), d_proxy(u), d_proxy_to_term(u)
+                         context::UserContext* u,
+                         Valuation val)
+    : TheoryState(c, u, val), d_parent(p), d_proxy(u), d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
-}
-
-void SolverState::finishInit(eq::EqualityEngine* ee)
-{
-  Assert(ee != nullptr);
-  d_ee = ee;
 }
 
 void SolverState::reset()
@@ -167,52 +162,6 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   {
     Trace("sets-debug2") << "Unknown-set[" << r << "] : " << n << std::endl;
   }
-}
-
-Node SolverState::getRepresentative(Node a) const
-{
-  if (d_ee->hasTerm(a))
-  {
-    return d_ee->getRepresentative(a);
-  }
-  return a;
-}
-
-bool SolverState::hasTerm(Node a) const { return d_ee->hasTerm(a); }
-
-bool SolverState::areEqual(Node a, Node b) const
-{
-  if (a == b)
-  {
-    return true;
-  }
-  if (d_ee->hasTerm(a) && d_ee->hasTerm(b))
-  {
-    return d_ee->areEqual(a, b);
-  }
-  return false;
-}
-
-bool SolverState::areDisequal(Node a, Node b) const
-{
-  if (a == b)
-  {
-    return false;
-  }
-  else if (d_ee->hasTerm(a) && d_ee->hasTerm(b))
-  {
-    return d_ee->areDisequal(a, b, false);
-  }
-  return a.isConst() && b.isConst();
-}
-
-eq::EqualityEngine* SolverState::getEqualityEngine() const { return d_ee; }
-
-void SolverState::setConflict() { d_conflict = true; }
-void SolverState::setConflict(Node conf)
-{
-  d_parent.getOutputChannel()->conflict(conf);
-  d_conflict = true;
 }
 
 void SolverState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const

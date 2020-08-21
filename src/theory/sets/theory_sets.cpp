@@ -34,13 +34,11 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo,
                        ProofNodeManager* pnm)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo, pnm),
-      d_internal(new TheorySetsPrivate(*this, c, u)),
+      d_internal(new TheorySetsPrivate(*this, c, u, valuation)),
       d_notify(*d_internal.get())
 {
-  // Do not move me to the header.
-  // The constructor + destructor are not in the header as d_internal is a
-  // unique_ptr<TheorySetsPrivate> and TheorySetsPrivate is an opaque type in
-  // the header (Pimpl). See https://herbsutter.com/gotw/_100/ .
+  // use the state object as the official theory state
+  d_theoryState = d_internal->getSolverState();
 }
 
 TheorySets::~TheorySets()
@@ -208,22 +206,6 @@ bool TheorySets::isEntailed( Node n, bool pol ) {
 
 /**************************** eq::NotifyClass *****************************/
 
-bool TheorySets::NotifyClass::eqNotifyTriggerEquality(TNode equality,
-                                                      bool value)
-{
-  Debug("sets-eq") << "[sets-eq] eqNotifyTriggerEquality: equality = "
-                   << equality << " value = " << value << std::endl;
-  if (value)
-  {
-    return d_theory.propagate(equality);
-  }
-  else
-  {
-    // We use only literal triggers so taking not is safe
-    return d_theory.propagate(equality.notNode());
-  }
-}
-
 bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
                                                        bool value)
 {
@@ -233,10 +215,7 @@ bool TheorySets::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
   {
     return d_theory.propagate(predicate);
   }
-  else
-  {
-    return d_theory.propagate(predicate.notNode());
-  }
+  return d_theory.propagate(predicate.notNode());
 }
 
 bool TheorySets::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag,

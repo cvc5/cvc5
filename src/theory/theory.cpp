@@ -82,6 +82,7 @@ Theory::Theory(TheoryId id,
       d_valuation(valuation),
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
+      d_theoryState(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -103,6 +104,10 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
 {
   // set the equality engine pointer
   d_equalityEngine = ee;
+  if (d_theoryState != nullptr)
+  {
+    d_theoryState->setEqualityEngine(ee);
+  }
 }
 void Theory::setQuantifiersEngine(QuantifiersEngine* qe)
 {
@@ -126,7 +131,7 @@ void Theory::finishInitStandalone()
     d_allocEqualityEngine.reset(new eq::EqualityEngine(
         *esi.d_notify, d_satContext, esi.d_name, esi.d_constantsAreTriggers));
     // use it as the official equality engine
-    d_equalityEngine = d_allocEqualityEngine.get();
+    setEqualityEngine(d_allocEqualityEngine.get());
   }
   finishInit();
 }
@@ -343,6 +348,23 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
   return currentlyShared;
 }
 
+bool Theory::collectModelInfo(TheoryModel* m)
+{
+  std::set<Node> termSet;
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+  // if we are using an equality engine, assert it to the model
+  if (d_equalityEngine != nullptr)
+  {
+    if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
+    {
+      return false;
+    }
+  }
+  // now, collect theory-specific value assigments
+  return collectModelValues(m, termSet);
+}
+
 void Theory::collectTerms(TNode n,
                           set<Kind>& irrKinds,
                           set<Node>& termSet) const
@@ -365,16 +387,9 @@ void Theory::collectTerms(TNode n,
   }
 }
 
-
-void Theory::computeRelevantTerms(set<Node>& termSet, bool includeShared) const
-{
-  set<Kind> irrKinds;
-  computeRelevantTerms(termSet, irrKinds, includeShared);
-}
-
-void Theory::computeRelevantTerms(set<Node>& termSet,
-                                  set<Kind>& irrKinds,
-                                  bool includeShared) const
+void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
+                                          std::set<Kind>& irrKinds,
+                                          bool includeShared) const
 {
   // Collect all terms appearing in assertions
   irrKinds.insert(kind::EQUAL);
@@ -392,6 +407,17 @@ void Theory::computeRelevantTerms(set<Node>& termSet,
   for (; shared_it != shared_it_end; ++shared_it) {
     collectTerms(*shared_it, kempty, termSet);
   }
+}
+
+void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
+{
+  std::set<Kind> irrKinds;
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+}
+
+bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
+{
+  return true;
 }
 
 Theory::PPAssertStatus Theory::ppAssert(TNode in,

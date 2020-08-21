@@ -119,8 +119,11 @@ TheoryFp::TheoryFp(context::Context* c,
       d_toRealMap(u),
       realToFloatMap(u),
       floatToRealMap(u),
-      abstractionMap(u)
+      abstractionMap(u),
+      d_state(c, u, valuation)
 {
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 } /* TheoryFp::TheoryFp() */
 
 TheoryRewriter* TheoryFp::getTheoryRewriter() { return &d_rewriter; }
@@ -816,7 +819,7 @@ void TheoryFp::registerTerm(TNode node) {
     // Add to the equality engine
     if (k == kind::EQUAL)
     {
-      d_equalityEngine->addTriggerEquality(node);
+      d_equalityEngine->addTriggerPredicate(node);
     }
     else
     {
@@ -1143,19 +1146,6 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
   return true;
 }
 
-bool TheoryFp::NotifyClass::eqNotifyTriggerEquality(TNode equality,
-                                                    bool value) {
-  Debug("fp-eq")
-      << "TheoryFp::eqNotifyTriggerEquality(): call back as equality "
-      << equality << " is " << value << std::endl;
-
-  if (value) {
-    return d_theorySolver.handlePropagation(equality);
-  } else {
-    return d_theorySolver.handlePropagation(equality.notNode());
-  }
-}
-
 bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
                                                      bool value) {
   Debug("fp-eq")
@@ -1164,9 +1154,8 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
 
   if (value) {
     return d_theorySolver.handlePropagation(predicate);
-  } else {
-    return d_theorySolver.handlePropagation(predicate.notNode());
   }
+  return d_theorySolver.handlePropagation(predicate.notNode());
 }
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
