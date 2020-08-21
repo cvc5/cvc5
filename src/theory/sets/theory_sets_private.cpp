@@ -1392,8 +1392,6 @@ Node mkAnd(const std::vector<TNode>& conjunctions)
   return conjunction;
 } /* mkAnd() */
 
-void TheorySetsPrivate::propagate(Theory::Effort effort) {}
-
 bool TheorySetsPrivate::propagate(TNode literal)
 {
   Debug("sets-prop") << " propagate(" << literal << ")" << std::endl;
@@ -1464,8 +1462,13 @@ void TheorySetsPrivate::preRegisterTerm(TNode node)
                 << std::endl;
   switch (node.getKind())
   {
-    case kind::EQUAL: d_equalityEngine->addTriggerEquality(node); break;
-    case kind::MEMBER: d_equalityEngine->addTriggerPredicate(node); break;
+    case kind::EQUAL:
+    case kind::MEMBER:
+    {
+      // add trigger predicate for equality and membership
+      d_equalityEngine->addTriggerPredicate(node);
+    }
+    break;
     case kind::CARD: d_equalityEngine->addTriggerTerm(node, THEORY_SETS); break;
     default: d_equalityEngine->addTerm(node); break;
   }

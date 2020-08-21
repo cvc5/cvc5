@@ -196,6 +196,8 @@ class TheoryArrays : public Theory {
 
   /** The theory rewriter for this theory. */
   TheoryArraysRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
@@ -213,7 +215,7 @@ class TheoryArrays : public Theory {
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
   /** Should be called to propagate the literal.  */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions,
@@ -227,7 +229,6 @@ class TheoryArrays : public Theory {
 
  public:
   void preRegisterTerm(TNode n) override;
-  void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
   TrustNode explain(TNode n) override;
 
@@ -298,26 +299,17 @@ class TheoryArrays : public Theory {
   public:
     NotifyClass(TheoryArrays& arrays): d_arrays(arrays) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
-      // Just forward to arrays
-      if (value) {
-        return d_arrays.propagate(equality);
-      } else {
-        return d_arrays.propagate(equality.notNode());
-      }
-    }
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerEquality(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
+      Debug("arrays::propagate")
+          << spaces(d_arrays.getSatContext()->getLevel())
+          << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
+          << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
-        return d_arrays.propagate(predicate);
-      } else {
-        return d_arrays.propagate(predicate.notNode());
+        return d_arrays.propagateLit(predicate);
       }
+      return d_arrays.propagateLit(predicate.notNode());
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -333,14 +325,14 @@ class TheoryArrays : public Theory {
           }
         }
         // Propagate equality between shared terms
-        return d_arrays.propagate(t1.eqNode(t2));
+        return d_arrays.propagateLit(t1.eqNode(t2));
       } else {
         if (t1.getType().isArray()) {
           if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {
             return true;
           }
         }
-        return d_arrays.propagate(t1.eqNode(t2).notNode());
+        return d_arrays.propagateLit(t1.eqNode(t2).notNode());
       }
       return true;
     }

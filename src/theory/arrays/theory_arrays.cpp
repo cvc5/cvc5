@@ -83,7 +83,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
           name + "theory::arrays::number of setModelVal conflicts", 0),
       d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
-      //      d_ppCache(u),
+      d_state(c, u, valuation),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
@@ -140,6 +140,8 @@ TheoryArrays::TheoryArrays(context::Context* c,
   {
     d_pchecker.registerTo(pc);
   }
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -422,14 +424,17 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheoryArrays::propagate(TNode literal)
+bool TheoryArrays::propagateLit(TNode literal)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal  << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::propagateLit(" << literal << ")"
+                  << std::endl;
 
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("arrays") << spaces(getSatContext()->getLevel())
+                    << "TheoryArrays::propagateLit(" << literal
+                    << "): already in conflict" << std::endl;
     return false;
   }
 
@@ -708,7 +713,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   case kind::EQUAL:
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
-    d_equalityEngine->addTriggerEquality(node);
+    d_equalityEngine->addTriggerPredicate(node);
     break;
   case kind::SELECT: {
     // Invariant: array terms should be preregistered before being added to the equality engine
@@ -868,12 +873,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
   if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
     d_equalityEngine->addTriggerPredicate(node);
   }
-}
-
-
-void TheoryArrays::propagate(Effort e)
-{
-  // direct propagation now
 }
 
 TrustNode TheoryArrays::explain(TNode literal)

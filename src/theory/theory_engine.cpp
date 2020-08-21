@@ -48,6 +48,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_engine_proof_generator.h"
@@ -155,6 +156,12 @@ void TheoryEngine::finishInit()
         d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
+  // create the relevance filter if any option requires it
+  if (options::relevanceFilter())
+  {
+    d_relManager.reset(
+        new RelevanceManager(d_userContext, theory::Valuation(this)));
+  }
 
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
   if( d_curr_model_builder==NULL ){
@@ -217,6 +224,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_eeDistributed(nullptr),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
+      d_relManager(nullptr),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -482,6 +490,12 @@ void TheoryEngine::check(Theory::Effort effort) {
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
+      // Reset round for the relevance manager, which notice only sets a flag
+      // to indicate that its information must be recomputed.
+      if (d_relManager != nullptr)
+      {
+        d_relManager->resetRound();
+      }
     }
 
     // Check until done
@@ -970,6 +984,16 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   CVC4_FOR_EACH_THEORY;
 }
 
+bool TheoryEngine::isRelevant(Node lit) const
+{
+  if (d_relManager != nullptr)
+  {
+    return d_relManager->isRelevant(lit);
+  }
+  // otherwise must assume its relevant
+  return true;
+}
+
 void TheoryEngine::shutdown() {
   // Set this first; if a Theory shutdown() throws an exception,
   // at least the destruction of the TheoryEngine won't confound
@@ -1031,6 +1055,10 @@ void TheoryEngine::notifyPreprocessedAssertions(
     if (d_theoryTable[theoryId]) {
       theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
+  }
+  if (d_relManager != nullptr)
+  {
+    d_relManager->notifyPreprocessedAssertions(assertions);
   }
 }
 
@@ -1742,6 +1770,14 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
     lemmas.push_back(newLemmas[i].getNode());
   }
 
+  // If specified, we must add this lemma to the set of those that need to be
+  // justified, where note we pass all auxiliary lemmas in lemmas, since these
+  // by extension must be justified as well.
+  if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
+  {
+    d_relManager->notifyPreprocessedAssertions(lemmas.ref());
+  }
+
   // assert lemmas to prop engine
   Assert(!options::proofNew() || tlemma.getGenerator() != nullptr);
   // ensure closed, make the proof node eagerly here to debug
@@ -1943,48 +1979,9 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
     });
 }
 
-void TheoryEngine::staticInitializeBVOptions(
-    const std::vector<Node>& assertions)
+SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 {
-  bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::ON)
-  {
-    if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
-      throw ModalException(
-          "Slicer currently only supports pure QF_BV formulas. Use "
-          "--bv-eq-slicer=off");
-    if (options::incrementalSolving())
-      throw ModalException(
-          "Slicer does not currently support incremental mode. Use "
-          "--bv-eq-slicer=off");
-    if (options::produceModels())
-      throw ModalException(
-          "Slicer does not currently support model generation. Use "
-          "--bv-eq-slicer=off");
-  }
-  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::OFF)
-  {
-    return;
-  }
-  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::AUTO)
-  {
-    if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
-        || options::incrementalSolving()
-        || options::produceModels())
-      return;
-
-    bv::utils::TNodeBoolMap cache;
-    for (unsigned i = 0; i < assertions.size(); ++i)
-    {
-      useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
-    }
-  }
-
-  if (useSlicer)
-  {
-    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-    bv_theory->enableCoreTheorySlicer();
-  }
+  return &d_sharedTerms;
 }
 
 theory::TrustNode TheoryEngine::getExplanation(
@@ -2415,6 +2412,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
+        if (!isRelevant(assertion))
+        {
+          // not relevant, skip
+          continue;
+        }
         Node val = getModel()->getValue(assertion);
         if (val != d_true)
         {

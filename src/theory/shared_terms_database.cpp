@@ -50,7 +50,7 @@ SharedTermsDatabase::~SharedTermsDatabase()
 
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   d_registeredEqualities.insert(equality);
-  d_equalityEngine.addTriggerEquality(equality);
+  d_equalityEngine.addTriggerPredicate(equality);
   checkForConflict();
 }
 

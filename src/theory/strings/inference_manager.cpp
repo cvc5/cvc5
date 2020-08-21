@@ -435,13 +435,17 @@ void InferenceManager::doPendingLemmas()
         d_termReg.registerTermAtomic(n, sks.first);
       }
     }
-
+    LemmaProperty p = LemmaProperty::NONE;
+    if (ii.d_id == Inference::REDUCTION)
+    {
+      p |= LemmaProperty::NEEDS_JUSTIFY;
+    }
     Trace("strings-assert")
         << "(assert " << lem << ") ; lemma " << ii.d_id << std::endl;
     Trace("strings-lemma") << "Strings::Lemma: " << lem << " by " << ii.d_id
                            << std::endl;
     ++(d_statistics.d_lemmasInfer);
-    d_out.trustedLemma(tlem);
+    d_out.trustedLemma(tlem, p);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)

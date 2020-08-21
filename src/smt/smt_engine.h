@@ -110,6 +110,7 @@ class Preprocessor;
 class SmtSolver;
 class SygusSolver;
 class AbductionSolver;
+class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
  * SmtEngine to permit expanding definitions late (and lazily), to
@@ -593,7 +594,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Do quantifier elimination.
    *
-   * This function takes as input a quantified formula e
+   * This function takes as input a quantified formula q
    * of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free
@@ -605,20 +606,20 @@ class CVC4_PUBLIC SmtEngine
    * the current set of formulas A asserted to this SmtEngine :
    *
    * If doFull = true, then
-   *   - ( A ^ e ) and ( A ^ ret ) are equivalent
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
    *   - ret is quantifier-free formula containing
    *     only free variables in y1...yn.
    *
    * If doFull = false, then
-   *   - (A ^ e) => (A ^ ret) if Q is forall or
-   *     (A ^ ret) => (A ^ e) if Q is exists,
+   *   - (A ^ q) => (A ^ ret) if Q is forall or
+   *     (A ^ ret) => (A ^ q) if Q is exists,
    *   - ret is quantifier-free formula containing
    *     only free variables in y1...yn,
    *   - If Q is exists, let A^Q_n be the formula
    *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
    *     where for each i=1,...n, formula ret^Q_i
    *     is the result of calling doQuantifierElimination
-   *     for e with the set of assertions A^Q_{i-1}.
+   *     for q with the set of assertions A^Q_{i-1}.
    *     Similarly, if Q is forall, then let A^Q_n be
    *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
    *     where ret^Q_i is the same as above.
@@ -638,7 +639,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * throw@ Exception
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
@@ -1125,6 +1126,8 @@ class CVC4_PUBLIC SmtEngine
 
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
+  /** The solver for quantifier elimination queries */
+  std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**
    * List of items for which to retrieve values using getAssignment().
    */

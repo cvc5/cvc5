@@ -61,12 +61,16 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_functionTerms(c),
       d_singleton_eq(u),
       d_lemmas_produced_c(u),
-      d_sygusExtension(nullptr)
+      d_sygusExtension(nullptr),
+      d_state(c, u, valuation)
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -542,10 +546,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerEquality(n);
-    break;
   case kind::APPLY_TESTER:
+    // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
     d_equalityEngine->addTriggerPredicate(n);
     break;
@@ -699,11 +701,6 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::presolve()
-{
-  Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
-}
-
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
@@ -737,17 +734,14 @@ void TheoryDatatypes::addSharedTerm(TNode t) {
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
 }
 
-/** propagate */
-void TheoryDatatypes::propagate(Effort effort){
-
-}
-
-/** propagate */
-bool TheoryDatatypes::propagate(TNode literal){
-  Debug("dt::propagate") << "TheoryDatatypes::propagate(" << literal  << ")" << std::endl;
+bool TheoryDatatypes::propagateLit(TNode literal)
+{
+  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << ")"
+                         << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("dt::propagate") << "TheoryDatatypes::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal
+                           << "): already in conflict" << std::endl;
     return false;
   }
   Trace("dt-prop") << "dtPropagate " << literal << std::endl;

@@ -65,8 +65,6 @@ private:
   public:
     ArithCongruenceNotify(ArithCongruenceManager& acm);
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
