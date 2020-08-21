@@ -718,7 +718,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray())
     {
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+      d_equalityEngine->addTerm(node);
     }
     else
     {
@@ -762,7 +762,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     {
       break;
     }
-    d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+    d_equalityEngine->addTerm(node);
 
     TNode a = d_equalityEngine->getRepresentative(node[0]);
 
@@ -825,7 +825,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     d_infoMap.setConstArr(node, node);
     d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+    d_equalityEngine->addTerm(node);
     d_defValues[node] = defaultValue;
     break;
   }
@@ -834,7 +834,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray()) {
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+      d_equalityEngine->addTerm(node);
       Assert(d_equalityEngine->getSize(node) == 1);
     }
     else {
