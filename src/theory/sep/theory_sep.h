@@ -111,7 +111,6 @@ class TheorySep : public Theory {
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
  public:
-  void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
  public:

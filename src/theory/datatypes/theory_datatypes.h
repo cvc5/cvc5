@@ -270,8 +270,6 @@ private:
   //--------------------------------- end initialization
 
   /** propagate */
-  void propagate(Effort effort) override;
-  /** propagate */
   bool propagate(TNode literal);
   /** explain */
   void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
@@ -293,7 +291,6 @@ private:
   void preRegisterTerm(TNode n) override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
-  void presolve() override;
   void addSharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool collectModelInfo(TheoryModel* m) override;

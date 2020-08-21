@@ -84,8 +84,6 @@ class TheoryStrings : public Theory {
   //--------------------------------- end initialization
   /** Identify this theory */
   std::string identify() const override;
-  /** Propagate */
-  void propagate(Effort e) override;
   /** Explain */
   TrustNode explain(TNode literal) override;
   /** Get current substitution */

@@ -276,12 +276,6 @@ bool TheoryUF::propagate(TNode literal) {
   return ok;
 }/* TheoryUF::propagate(TNode) */
 
-void TheoryUF::propagate(Effort effort) {
-  //if (d_thss != NULL) {
-  //  return d_thss->propagate(effort);
-  //}
-}
-
 void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;

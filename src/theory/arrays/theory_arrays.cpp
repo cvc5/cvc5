@@ -861,12 +861,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
   }
 }
 
-
-void TheoryArrays::propagate(Effort e)
-{
-  // direct propagation now
-}
-
 TrustNode TheoryArrays::explain(TNode literal)
 {
   Node explanation = explain(literal, NULL);

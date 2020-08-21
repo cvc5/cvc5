@@ -146,11 +146,6 @@ void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
-
-void TheorySep::propagate(Effort e){
-
-}
-
 TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;

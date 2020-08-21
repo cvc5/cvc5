@@ -189,8 +189,6 @@ private:
   void addSharedTerm(TNode n) override;
   void computeCareGraph() override;
 
-  void propagate(Effort effort) override;
-
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }

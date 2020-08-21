@@ -70,7 +70,6 @@ class TheorySets : public Theory
   TrustNode expandDefinition(Node n) override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
-  void propagate(Effort) override;
   bool isEntailed(Node n, bool pol);
  private:
   /** Functions to handle callbacks from equality engine */

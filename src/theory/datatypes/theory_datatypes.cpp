@@ -701,11 +701,6 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::presolve()
-{
-  Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
-}
-
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
@@ -737,11 +732,6 @@ void TheoryDatatypes::addSharedTerm(TNode t) {
                      << t << " " << t.getType().isBoolean() << endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_DATATYPES);
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
-}
-
-/** propagate */
-void TheoryDatatypes::propagate(Effort effort){
-
 }
 
 /** propagate */
