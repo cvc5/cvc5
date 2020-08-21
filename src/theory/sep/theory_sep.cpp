@@ -111,13 +111,13 @@ Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstit
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheorySep::propagate(TNode literal)
+bool TheorySep::propagateLit(TNode literal)
 {
-  Debug("sep") << "TheorySep::propagate(" << literal  << ")" << std::endl;
+  Debug("sep") << "TheorySep::propagateLit(" << literal << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("sep") << "TheorySep::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("sep") << "TheorySep::propagateLit(" << literal
+                 << "): already in conflict" << std::endl;
     return false;
   }
   bool ok = d_out->propagate(literal);
@@ -144,11 +144,6 @@ void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
       d_equalityEngine->explainPredicate(atom, polarity, assumptions);
     }
   }
-}
-
-
-void TheorySep::propagate(Effort e){
-
 }
 
 TrustNode TheorySep::explain(TNode literal)
