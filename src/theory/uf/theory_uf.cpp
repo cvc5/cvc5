@@ -261,11 +261,14 @@ void TheoryUF::preRegisterTerm(TNode node) {
   }
 }/* TheoryUF::preRegisterTerm() */
 
-bool TheoryUF::propagateLit(TNode literal) {
-  Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal  << ")" << std::endl;
+bool TheoryUF::propagateLit(TNode literal)
+{
+  Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal << ")"
+                         << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal << "): already in conflict" << std::endl;
+    Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal
+                           << "): already in conflict" << std::endl;
     return false;
   }
   // Propagate out

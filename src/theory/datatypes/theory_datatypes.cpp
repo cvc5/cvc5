@@ -734,11 +734,14 @@ void TheoryDatatypes::addSharedTerm(TNode t) {
   Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
 }
 
-bool TheoryDatatypes::propagateLit(TNode literal){
-  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal  << ")" << std::endl;
+bool TheoryDatatypes::propagateLit(TNode literal)
+{
+  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << ")"
+                         << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << "): already in conflict" << std::endl;
+    Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal
+                           << "): already in conflict" << std::endl;
     return false;
   }
   Trace("dt-prop") << "dtPropagate " << literal << std::endl;

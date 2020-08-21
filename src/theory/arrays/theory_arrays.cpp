@@ -414,14 +414,17 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
 bool TheoryArrays::propagateLit(TNode literal)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagateLit(" << literal  << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::propagateLit(" << literal << ")"
+                  << std::endl;
 
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagateLit(" << literal << "): already in conflict" << std::endl;
+    Debug("arrays") << spaces(getSatContext()->getLevel())
+                    << "TheoryArrays::propagateLit(" << literal
+                    << "): already in conflict" << std::endl;
     return false;
   }
 

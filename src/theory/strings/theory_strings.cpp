@@ -181,12 +181,15 @@ EqualityStatus TheoryStrings::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 
-bool TheoryStrings::propagateLit(TNode literal) {
-  Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal  << ")" << std::endl;
+bool TheoryStrings::propagateLit(TNode literal)
+{
+  Debug("strings-propagate")
+      << "TheoryStrings::propagateLit(" << literal << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_state.isInConflict())
   {
-    Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal << "): already in conflict" << std::endl;
+    Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal
+                               << "): already in conflict" << std::endl;
     return false;
   }
   // Propagate out
