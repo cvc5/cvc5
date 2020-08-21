@@ -62,9 +62,9 @@ class TheoryDatatypes : public Theory {
     {
       Debug("dt") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_dt.propagate(predicate);
+        return d_dt.propagateLit(predicate);
       }
-      return d_dt.propagate(predicate.notNode());
+      return d_dt.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -73,10 +73,9 @@ class TheoryDatatypes : public Theory {
     {
       Debug("dt") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_dt.propagate(t1.eqNode(t2));
-      } else {
-        return d_dt.propagate(t1.eqNode(t2).notNode());
+        return d_dt.propagateLit(t1.eqNode(t2));
       }
+      return d_dt.propagateLit(t1.eqNode(t2).notNode());
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
@@ -270,9 +269,7 @@ private:
   //--------------------------------- end initialization
 
   /** propagate */
-  void propagate(Effort effort) override;
-  /** propagate */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
   /** explain */
   void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
@@ -293,7 +290,6 @@ private:
   void preRegisterTerm(TNode n) override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
-  void presolve() override;
   void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool collectModelInfo(TheoryModel* m) override;
