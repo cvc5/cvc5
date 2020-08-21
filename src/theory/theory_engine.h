@@ -35,7 +35,6 @@
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "theory/atom_requests.h"
-#include "theory/decision_manager.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
@@ -91,6 +90,9 @@ namespace theory {
   class TheoryModel;
   class TheoryEngineModelBuilder;
   class EqEngineManagerDistributed;
+
+  class DecisionManager;
+  class RelevanceManager;
 
   namespace eq {
     class EqualityEngine;
@@ -165,6 +167,8 @@ class TheoryEngine {
    * The decision manager
    */
   std::unique_ptr<theory::DecisionManager> d_decManager;
+  /** The relevance manager */
+  std::unique_ptr<theory::RelevanceManager> d_relManager;
 
   /**
    * Default model object
@@ -498,6 +502,12 @@ public:
   inline bool needCheck() const {
     return d_outputChannelUsed || d_lemmasAdded;
   }
+  /**
+   * Is the literal lit (possibly) critical for satisfying the input formula in
+   * the current context? This call is applicable only during collectModelInfo
+   * or during LAST_CALL effort.
+   */
+  bool isRelevant(Node lit) const;
 
   /**
    * This is called at shutdown time by the SmtEngine, just before
@@ -734,7 +744,6 @@ public:
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
-  void staticInitializeBVOptions(const std::vector<Node>& assertions);
 
   SharedTermsDatabase* getSharedTermsDatabase();
 

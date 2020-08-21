@@ -49,6 +49,10 @@ bool isLemmaPropertySendAtoms(LemmaProperty p)
 {
   return (p & LemmaProperty::SEND_ATOMS) != LemmaProperty::NONE;
 }
+bool isLemmaPropertyNeedsJustify(LemmaProperty p)
+{
+  return (p & LemmaProperty::NEEDS_JUSTIFY) != LemmaProperty::NONE;
+}
 
 std::ostream& operator<<(std::ostream& out, LemmaProperty p)
 {
@@ -70,6 +74,10 @@ std::ostream& operator<<(std::ostream& out, LemmaProperty p)
     if (isLemmaPropertySendAtoms(p))
     {
       out << " SEND_ATOMS";
+    }
+    if (isLemmaPropertyNeedsJustify(p))
+    {
+      out << " NEEDS_JUSTIFY";
     }
     out << " }";
   }

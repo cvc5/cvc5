@@ -213,7 +213,7 @@ class TheoryArrays : public Theory {
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
   /** Should be called to propagate the literal.  */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions,
@@ -227,7 +227,6 @@ class TheoryArrays : public Theory {
 
  public:
   void preRegisterTerm(TNode n) override;
-  void propagate(Effort e) override;
   Node explain(TNode n, eq::EqProof* proof);
   TrustNode explain(TNode n) override;
 
@@ -306,9 +305,9 @@ class TheoryArrays : public Theory {
           << (value ? "true" : "false") << ")" << std::endl;
       // Just forward to arrays
       if (value) {
-        return d_arrays.propagate(predicate);
+        return d_arrays.propagateLit(predicate);
       }
-      return d_arrays.propagate(predicate.notNode());
+      return d_arrays.propagateLit(predicate.notNode());
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -319,11 +318,9 @@ class TheoryArrays : public Theory {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
         // Propagate equality between shared terms
-        return d_arrays.propagate(t1.eqNode(t2));
-      } else {
-        return d_arrays.propagate(t1.eqNode(t2).notNode());
+        return d_arrays.propagateLit(t1.eqNode(t2));
       }
-      return true;
+      return d_arrays.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override

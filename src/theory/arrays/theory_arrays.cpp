@@ -414,14 +414,17 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheoryArrays::propagate(TNode literal)
+bool TheoryArrays::propagateLit(TNode literal)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal  << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::propagateLit(" << literal << ")"
+                  << std::endl;
 
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("arrays") << spaces(getSatContext()->getLevel())
+                    << "TheoryArrays::propagateLit(" << literal
+                    << "): already in conflict" << std::endl;
     return false;
   }
 
@@ -859,12 +862,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
   if (node.getKind() == kind::SELECT && node.getType().isBoolean()) {
     d_equalityEngine->addTriggerPredicate(node);
   }
-}
-
-
-void TheoryArrays::propagate(Effort e)
-{
-  // direct propagation now
 }
 
 TrustNode TheoryArrays::explain(TNode literal)

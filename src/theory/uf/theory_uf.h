@@ -49,10 +49,9 @@ public:
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_uf.propagate(predicate);
-      } else {
-       return d_uf.propagate(predicate.notNode());
+        return d_uf.propagateLit(predicate);
       }
+      return d_uf.propagateLit(predicate.notNode());
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -62,10 +61,9 @@ public:
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_uf.propagate(t1.eqNode(t2));
-      } else {
-        return d_uf.propagate(t1.eqNode(t2).notNode());
+        return d_uf.propagateLit(t1.eqNode(t2));
       }
+      return d_uf.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -119,7 +117,7 @@ private:
    * Should be called to propagate the literal. We use a node here
    * since some of the propagated literals are not kept anywhere.
    */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /**
    * Explain why this literal is true by adding assumptions
@@ -149,15 +147,6 @@ private:
 
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-
- private:
-  /** get the operator for this node (node should be either APPLY_UF or
-   * HO_APPLY)
-   */
-  Node getOperatorForApplyTerm(TNode node);
-  /** get the starting index of the arguments for node (node should be either
-   * APPLY_UF or HO_APPLY) */
-  unsigned getArgumentStartIndexForApplyTerm(TNode node);
 
  public:
 
@@ -198,8 +187,6 @@ private:
   void addSharedTerm(TNode n) override;
   void computeCareGraph() override;
 
-  void propagate(Effort effort) override;
-
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
   std::string identify() const override { return "THEORY_UF"; }
@@ -211,8 +198,8 @@ private:
 
  private:
   bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
+  void addCarePairs(const TNodeTrie* t1,
+                    const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
 

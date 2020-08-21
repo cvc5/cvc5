@@ -196,10 +196,6 @@ void TheorySets::presolve() {
   d_internal->presolve();
 }
 
-void TheorySets::propagate(Effort e) {
-  d_internal->propagate(e);
-}
-
 bool TheorySets::isEntailed( Node n, bool pol ) {
   return d_internal->isEntailed( n, pol );
 }
