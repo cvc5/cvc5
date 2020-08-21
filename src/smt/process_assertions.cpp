@@ -503,11 +503,6 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     Debug("smt") << " assertions     : " << assertions.size() << endl;
 
-    // before ppRewrite check if only core theory for BV theory
-    TheoryEngine* te = d_smt.getTheoryEngine();
-    Assert(te != nullptr);
-    te->staticInitializeBVOptions(assertions.ref());
-
     // Theory preprocessing
     bool doEarlyTheoryPp = !options::arithRewriteEq();
     if (doEarlyTheoryPp)
