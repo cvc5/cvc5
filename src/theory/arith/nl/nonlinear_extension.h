@@ -294,7 +294,10 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
-  /** check counter */
+  /** 
+   * The number of times we have the called main check method
+   * (modelBasedRefinement). This counter is used for interleaving strategies.
+   */
   unsigned d_checkCounter;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;

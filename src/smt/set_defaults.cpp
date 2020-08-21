@@ -1311,8 +1311,8 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
       options::minisatUseElim.set(false);
     }
   }
-
-  if (options::nlRlvMode() != options::NlRlvMode::NONE)
+  
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear() && options::nlRlvMode() != options::NlRlvMode::NONE)
   {
     if (!options::relevanceFilter())
     {

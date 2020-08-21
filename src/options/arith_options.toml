@@ -538,7 +538,7 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "nl-rlv=MODE"
   type       = "NlRlvMode"
-  default    = "INTERLEAVE"
+  default    = "NONE"
   help       = "choose mode for using relevance of assertoins in non-linear arithmetic"
   help_mode  = "Modes for using relevance of assertoins in non-linear arithmetic."
 [[option.mode.NONE]]

@@ -269,7 +269,6 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   bool useRelevance = false;
   if (options::nlRlvMode() == options::NlRlvMode::INTERLEAVE)
   {
-    d_checkCounter++;
     useRelevance = (d_checkCounter % 2);
   }
   else if (options::nlRlvMode() == options::NlRlvMode::ALWAYS)
@@ -721,6 +720,7 @@ void NonlinearExtension::check(Theory::Effort e)
 bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
 {
   ++(d_stats.d_mbrRuns);
+  d_checkCounter++;
 
   // get the assertions
   std::vector<Node> assertions;
