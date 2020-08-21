@@ -40,16 +40,6 @@ class ArithProofRuleChecker : public ProofRuleChecker
   Node checkInternal(PfRule id,
                      const std::vector<Node>& children,
                      const std::vector<Node>& args) override;
-
- private:
-  // Returns the rational and the kinds of the bound of the varaible part in
-  // relation to it. See normal_form.h for a desription of the kinds and their
-  // meaning.
-  Rational extractBound(Node n);
-  // Returns the rational and the kinds of the bound of the varaible part in
-  // relation to it. See normal_form.h for a desription of the kinds and their
-  // meaning.
-  Kind extractComparisonKind(Node n);
 };
 
 }  // namespace arith
