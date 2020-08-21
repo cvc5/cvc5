@@ -47,6 +47,7 @@
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/theory_model.h"
@@ -152,6 +153,12 @@ void TheoryEngine::finishInit() {
         d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
+  // create the relevance filter if any option requires it
+  if (options::relevanceFilter())
+  {
+    d_relManager.reset(
+        new RelevanceManager(d_userContext, theory::Valuation(this)));
+  }
 
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
   if( d_curr_model_builder==NULL ){
@@ -161,6 +168,13 @@ void TheoryEngine::finishInit() {
 
   // Initialize the model
   d_eeDistributed->initializeModel(d_curr_model);
+
+  // set the core equality engine on quantifiers engine
+  if (d_logicInfo.isQuantified())
+  {
+    d_quantEngine->setMasterEqualityEngine(
+        d_eeDistributed->getMasterEqualityEngine());
+  }
 
   // finish initializing the theories
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
@@ -197,6 +211,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_eeDistributed(nullptr),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
+      d_relManager(nullptr),
       d_curr_model(nullptr),
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
@@ -452,6 +467,12 @@ void TheoryEngine::check(Theory::Effort effort) {
     // If in full effort, we have a fake new assertion just to jumpstart the checking
     if (Theory::fullEffort(effort)) {
       d_factsAsserted = true;
+      // Reset round for the relevance manager, which notice only sets a flag
+      // to indicate that its information must be recomputed.
+      if (d_relManager != nullptr)
+      {
+        d_relManager->resetRound();
+      }
     }
 
     // Check until done
@@ -552,7 +573,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
       // case where we are about to answer SAT, the master equality engine,
       // if it exists, must be consistent.
-      eq::EqualityEngine* mee = getMasterEqualityEngine();
+      eq::EqualityEngine* mee = d_eeDistributed->getMasterEqualityEngine();
       if (mee != NULL)
       {
         AlwaysAssert(mee->consistent());
@@ -938,6 +959,16 @@ void TheoryEngine::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   CVC4_FOR_EACH_THEORY;
 }
 
+bool TheoryEngine::isRelevant(Node lit) const
+{
+  if (d_relManager != nullptr)
+  {
+    return d_relManager->isRelevant(lit);
+  }
+  // otherwise must assume its relevant
+  return true;
+}
+
 void TheoryEngine::shutdown() {
   // Set this first; if a Theory shutdown() throws an exception,
   // at least the destruction of the TheoryEngine won't confound
@@ -980,7 +1011,13 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 void TheoryEngine::preprocessStart() { d_tpp.clearCache(); }
 
 Node TheoryEngine::preprocess(TNode assertion) {
-  return d_tpp.theoryPreprocess(assertion);
+  TrustNode trn = d_tpp.theoryPreprocess(assertion);
+  if (trn.isNull())
+  {
+    // no change
+    return assertion;
+  }
+  return trn.getNode();
 }
 
 void TheoryEngine::notifyPreprocessedAssertions(
@@ -991,6 +1028,10 @@ void TheoryEngine::notifyPreprocessedAssertions(
     if (d_theoryTable[theoryId]) {
       theoryOf(theoryId)->ppNotifyAssertions(assertions);
     }
+  }
+  if (d_relManager != nullptr)
+  {
+    d_relManager->notifyPreprocessedAssertions(assertions);
   }
 }
 
@@ -1633,6 +1674,12 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   std::vector<Node> newSkolems;
   TrustNode tlemma = d_tpp.preprocess(node, newLemmas, newSkolems, preprocess);
 
+  // !!!!!!! temporary, until this method is fully updated from proof-new
+  if (tlemma.isNull())
+  {
+    tlemma = TrustNode::mkTrustLemma(node);
+  }
+
   // must use an assertion pipeline due to decision engine below
   AssertionPipeline lemmas;
   // make the assertion pipeline
@@ -1645,6 +1692,14 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     IteSkolemMap& imap = lemmas.getIteSkolemMap();
     imap[newSkolems[i]] = lemmas.size();
     lemmas.push_back(newLemmas[i].getNode());
+  }
+
+  // If specified, we must add this lemma to the set of those that need to be
+  // justified, where note we pass all auxiliary lemmas in lemmas, since these
+  // by extension must be justified as well.
+  if (d_relManager != nullptr && isLemmaPropertyNeedsJustify(p))
+  {
+    d_relManager->notifyPreprocessedAssertions(lemmas.ref());
   }
 
   // assert lemmas to prop engine
@@ -1765,59 +1820,9 @@ void TheoryEngine::conflict(TNode conflict, TheoryId theoryId) {
     });
 }
 
-void TheoryEngine::staticInitializeBVOptions(
-    const std::vector<Node>& assertions)
-{
-  bool useSlicer = true;
-  if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::ON)
-  {
-    if (!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
-      throw ModalException(
-          "Slicer currently only supports pure QF_BV formulas. Use "
-          "--bv-eq-slicer=off");
-    if (options::incrementalSolving())
-      throw ModalException(
-          "Slicer does not currently support incremental mode. Use "
-          "--bv-eq-slicer=off");
-    if (options::produceModels())
-      throw ModalException(
-          "Slicer does not currently support model generation. Use "
-          "--bv-eq-slicer=off");
-  }
-  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::OFF)
-  {
-    return;
-  }
-  else if (options::bitvectorEqualitySlicer() == options::BvSlicerMode::AUTO)
-  {
-    if ((!d_logicInfo.isPure(theory::THEORY_BV) || d_logicInfo.isQuantified())
-        || options::incrementalSolving()
-        || options::produceModels())
-      return;
-
-    bv::utils::TNodeBoolMap cache;
-    for (unsigned i = 0; i < assertions.size(); ++i)
-    {
-      useSlicer = useSlicer && bv::utils::isCoreTerm(assertions[i], cache);
-    }
-  }
-
-  if (useSlicer)
-  {
-    bv::TheoryBV* bv_theory = (bv::TheoryBV*)d_theoryTable[THEORY_BV];
-    bv_theory->enableCoreTheorySlicer();
-  }
-}
-
 SharedTermsDatabase* TheoryEngine::getSharedTermsDatabase()
 {
   return &d_sharedTerms;
-}
-
-theory::eq::EqualityEngine* TheoryEngine::getMasterEqualityEngine()
-{
-  Assert(d_eeDistributed != nullptr);
-  return d_eeDistributed->getCoreEqualityEngine();
 }
 
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
@@ -2037,6 +2042,11 @@ void TheoryEngine::checkTheoryAssertionsWithModel(bool hardFailure) {
           it != it_end;
           ++it) {
         Node assertion = (*it).d_assertion;
+        if (!isRelevant(assertion))
+        {
+          // not relevant, skip
+          continue;
+        }
         Node val = getModel()->getValue(assertion);
         if (val != d_true)
         {

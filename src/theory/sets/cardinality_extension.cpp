@@ -997,9 +997,14 @@ void CardinalityExtension::mkModelValueElementsFor(
       Node v = val.getModelValue(it->second);
       Trace("sets-model") << "Cardinality of " << eqc << " is " << v
                           << std::endl;
-      Assert(v.getConst<Rational>() <= LONG_MAX)
-          << "Exceeded LONG_MAX in sets model";
-      unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
+      if (v.getConst<Rational>() > UINT32_MAX)
+      {
+        std::stringstream ss;
+        ss << "The model for " << eqc << " was computed to have cardinality "
+           << v << ". We only allow sets up to cardinality " << UINT32_MAX;
+        throw LogicException(ss.str());
+      }
+      std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
       if (elementType.isInterpretedFinite())

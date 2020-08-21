@@ -62,7 +62,9 @@ jobs:
           libcln-dev \
           libgmp-dev \
           libedit-dev \
-          swig3.0
+          flex \
+          libfl-dev \
+          flexc++
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect
@@ -78,7 +80,7 @@ jobs:
           cln \
           gmp \
           pkgconfig \
-          swig
+          flex
         python3 -m pip install toml
         python3 -m pip install setuptools
         python3 -m pip install pexpect

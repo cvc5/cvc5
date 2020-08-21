@@ -1,4 +1,4 @@
-;COMMAND-LINE: --dt-nested-rec
+;COMMAND-LINE: --dt-nested-rec --strings-exp
 ;EXPECT: unsat
 (set-logic ALL)
 (declare-fun tickleBool (Bool) Bool)

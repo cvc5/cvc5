@@ -249,6 +249,8 @@ libcvc4_add_sources(
   smt/model_blocker.h
   smt/options_manager.cpp
   smt/options_manager.h
+  smt/quant_elim_solver.cpp
+  smt/quant_elim_solver.h
   smt/preprocessor.cpp
   smt/preprocessor.h
   smt/preprocess_proof_generator.cpp
@@ -271,6 +273,8 @@ libcvc4_add_sources(
   smt/smt_solver.h
   smt/smt_statistics_registry.cpp
   smt/smt_statistics_registry.h
+  smt/sygus_solver.cpp
+  smt/sygus_solver.h
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
   smt/update_ostream.h
@@ -288,6 +292,8 @@ libcvc4_add_sources(
   theory/arith/arith_msum.h
   theory/arith/arith_rewriter.cpp
   theory/arith/arith_rewriter.h
+  theory/arith/arith_state.cpp
+  theory/arith/arith_state.h
   theory/arith/arith_static_learner.cpp
   theory/arith/arith_static_learner.h
   theory/arith/arith_utilities.cpp
@@ -602,6 +608,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
+  theory/quantifiers/quantifiers_state.cpp
+  theory/quantifiers/quantifiers_state.h
   theory/quantifiers/query_generator.cpp
   theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
@@ -697,6 +705,8 @@ libcvc4_add_sources(
   theory/quantifiers/theory_quantifiers_type_rules.h
   theory/quantifiers_engine.cpp
   theory/quantifiers_engine.h
+  theory/relevance_manager.cpp
+  theory/relevance_manager.h
   theory/rep_set.cpp
   theory/rep_set.h
   theory/rewriter.cpp
@@ -816,6 +826,8 @@ libcvc4_add_sources(
   theory/theory_rewriter.cpp
   theory/theory_rewriter.h
   theory/theory_registrar.h
+  theory/theory_state.cpp
+  theory/theory_state.h
   theory/theory_test_utils.h
   theory/trust_node.cpp
   theory/trust_node.h
