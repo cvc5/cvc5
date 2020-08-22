@@ -30,7 +30,13 @@ class TheoryEngine;
 namespace theory {
 
 /**
- * Manager for building models in a distributed architecture.
+ * Manager for building models in a distributed architecture. Its build
+ * model internal method uses collectModelInfo from each theory of the
+ * theory engine to assert all equalities from the equality engine of the
+ * various theories into the equality engine of the model. It additionally
+ * uses the model equality engine context to clear the information from
+ * the model's equality engine, as maintained by the distributed equality
+ * engine manager.
  */
 class ModelManagerDistributed : public ModelManager
 {
@@ -39,7 +45,7 @@ class ModelManagerDistributed : public ModelManager
   ~ModelManagerDistributed();
 
  protected:
-  /** Build model */
+  /** Build model internal method */
   bool buildModelInternal() override;
   /**
    * Distributed equality engine manager, which as a special interaction
