@@ -27,7 +27,6 @@
 namespace CVC4 {
 
 class TheoryEngine;
-class SharedTermsDatabase;
 
 namespace theory {
 
@@ -52,15 +51,20 @@ class EqEngineManagerDistributed : public EqEngineManager
   EqEngineManagerDistributed(TheoryEngine& te);
   ~EqEngineManagerDistributed();
   /**
-   * Finish initialize, called by TheoryEngine::finishInit after theory
-   * objects have been created but prior to their final initialization. This
-   * sets up equality engines for all theories.
-   *
-   * This method is context-independent, and is applied once during
-   * the lifetime of TheoryEngine (during finishInit).
+   * Initialize theories. This method allocates unique equality engines
+   * per theories and connects them to a master equality engine.
    */
   void initializeTheories() override;
-  /** get the model equality engine context */
+  /**
+   * Initialize model. This method allocates a new equality engine for the
+   * model.
+   */
+  void initializeModel(TheoryModel* m) override;
+  /**
+   * Get the model equality engine context. This is a dummy context that is
+   * used for clearing the contents of the model's equality engine via
+   * pop/push.
+   */
   context::Context* getModelEqualityEngineContext();
   /** get the model equality engine */
   eq::EqualityEngine* getModelEqualityEngine();
@@ -82,10 +86,6 @@ class EqEngineManagerDistributed : public EqEngineManager
      */
     void eqNotifyNewClass(TNode t) override;
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       return true;

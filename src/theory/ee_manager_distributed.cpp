@@ -15,7 +15,6 @@
 #include "theory/ee_manager_distributed.h"
 
 #include "theory/quantifiers_engine.h"
-#include "theory/shared_terms_database.h"
 #include "theory/theory_engine.h"
 
 namespace CVC4 {
@@ -28,6 +27,7 @@ EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
 
 EqEngineManagerDistributed::~EqEngineManagerDistributed()
 {
+  // pop the model context which we pushed on initialization
   d_modelEeContext.pop();
 }
 
@@ -54,6 +54,7 @@ void EqEngineManagerDistributed::initializeTheories()
       // theory said it doesn't need an equality engine, skip
       continue;
     }
+    // allocate the equality engine
     eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
     // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();
@@ -93,6 +94,27 @@ void EqEngineManagerDistributed::initializeTheories()
       }
     }
   }
+}
+
+void EqEngineManagerDistributed::initializeModel(TheoryModel* m)
+{
+  Assert(m != nullptr);
+  // initialize the model equality engine
+  EeSetupInfo esim;
+  if (m->needsEqualityEngine(esim))
+  {
+    d_modelEqualityEngine.reset(
+        allocateEqualityEngine(esim, &d_modelEeContext));
+    m->setEqualityEngine(d_modelEqualityEngine.get());
+  }
+  else
+  {
+    AlwaysAssert(false) << "Expected model to use equality engine";
+  }
+  m->finishInit();
+  // We push a context during initialization since the model is cleared during
+  // collectModelInfo using pop/push.
+  d_modelEeContext.push();
 }
 
 void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
