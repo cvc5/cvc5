@@ -78,15 +78,10 @@ private:
     SharedTermsDatabase& d_sharedTerms;
   public:
     EENotifyClass(SharedTermsDatabase& shared): d_sharedTerms(shared) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      d_sharedTerms.propagateEquality(equality, value);
-      return true;
-    }
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
-      Unreachable();
+      Assert(predicate.getKind() == kind::EQUAL);
+      d_sharedTerms.propagateEquality(predicate, value);
       return true;
     }
 

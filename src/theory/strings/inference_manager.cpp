@@ -171,7 +171,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       // only keep stats if we process it here
       d_statistics.d_inferences << ii.d_id;
       d_out.conflict(conf);
-      d_state.setConflict();
+      d_state.notifyInConflict();
       return;
     }
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
@@ -374,8 +374,12 @@ void InferenceManager::doPendingLemmas()
         d_termReg.registerTermAtomic(n, sks.first);
       }
     }
-
-    d_out.lemma(lem);
+    LemmaProperty p = LemmaProperty::NONE;
+    if (ii.d_id == Inference::REDUCTION)
+    {
+      p |= LemmaProperty::NEEDS_JUSTIFY;
+    }
+    d_out.lemma(lem, p);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
@@ -435,7 +439,7 @@ void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
       Node conflictNode = mkExplain(a);
-      d_state.setConflict();
+      d_state.notifyInConflict();
       Trace("strings-conflict")
           << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);

@@ -233,27 +233,26 @@ void SynthEngine::assignConjecture(Node q)
 
       Trace("cegqi-qep") << "Run quantifier elimination on "
                          << conj_se_ngsi_subs << std::endl;
-      Expr qe_res = smt_qe->doQuantifierElimination(
-          conj_se_ngsi_subs.toExpr(), true, false);
-      Trace("cegqi-qep") << "Result : " << qe_res << std::endl;
+      Node qeRes =
+          smt_qe->getQuantifierElimination(conj_se_ngsi_subs, true, false);
+      Trace("cegqi-qep") << "Result : " << qeRes << std::endl;
 
       // create single invocation conjecture, if QE was successful
-      Node qe_res_n = Node::fromExpr(qe_res);
-      if (!expr::hasBoundVar(qe_res_n))
+      if (!expr::hasBoundVar(qeRes))
       {
-        qe_res_n = qe_res_n.substitute(
+        qeRes = qeRes.substitute(
             subs.begin(), subs.end(), orig.begin(), orig.end());
         if (!nqe_vars.empty())
         {
-          qe_res_n = nm->mkNode(
-              EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qe_res_n);
+          qeRes =
+              nm->mkNode(EXISTS, nm->mkNode(BOUND_VAR_LIST, nqe_vars), qeRes);
         }
         Assert(q.getNumChildren() == 3);
-        qe_res_n = nm->mkNode(FORALL, q[0], qe_res_n, q[2]);
-        Trace("cegqi-qep") << "Converted conjecture after QE : " << qe_res_n
+        qeRes = nm->mkNode(FORALL, q[0], qeRes, q[2]);
+        Trace("cegqi-qep") << "Converted conjecture after QE : " << qeRes
                            << std::endl;
-        qe_res_n = Rewriter::rewrite(qe_res_n);
-        Node nq = qe_res_n;
+        qeRes = Rewriter::rewrite(qeRes);
+        Node nq = qeRes;
         // must assert it is equivalent to the original
         Node lem = q.eqNode(nq);
         Trace("cegqi-lemma")

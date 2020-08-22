@@ -176,6 +176,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
                                      TheoryEngine* te)
     : d_te(te),
+      d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
@@ -961,7 +962,8 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+      getOutputChannel().lemma(
+          lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }

@@ -174,29 +174,35 @@ enum class PfRule : uint32_t
   THEORY_REWRITE,
 
   //================================================= Processing rules
-  // ======== Preprocess (trusted)
-  // Children: none
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  // where F is an equality of the form t = t' where t was replaced by t'
-  // based on some preprocessing pass, or otherwise F was added as a new
-  // assertion by some preprocessing pass.
-  PREPROCESS,
-  // ======== Witness axiom (trusted)
-  // Children: none
-  // Arguments: (F)
-  // ---------------------------------------------------------------
-  // Conclusion: F
-  // where F is an existential (exists ((x T)) (P x)) used for introducing
-  // a witness term (witness ((x T)) (P x)).
-  WITNESS_AXIOM,
   // ======== Remove Term Formulas Axiom
   // Children: none
   // Arguments: (t)
   // ---------------------------------------------------------------
   // Conclusion: RemoveTermFormulas::getAxiomFor(t).
   REMOVE_TERM_FORMULA_AXIOM,
+
+  //================================================= Trusted rules
+  // The rules in this section have the signature of a "trusted rule":
+  //
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  //
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on some preprocessing pass, or otherwise F was added as a new
+  // assertion by some preprocessing pass.
+  PREPROCESS,
+  // where F was added as a new assertion by some preprocessing pass.
+  PREPROCESS_LEMMA,
+  // where F is an equality of the form t = Theory::ppRewrite(t) for some
+  // theory. Notice this is a "trusted" rule.
+  THEORY_PREPROCESS,
+  // where F was added as a new assertion by theory preprocessing.
+  THEORY_PREPROCESS_LEMMA,
+  // where F is an existential (exists ((x T)) (P x)) used for introducing
+  // a witness term (witness ((x T)) (P x)).
+  WITNESS_AXIOM,
 
   //================================================= Boolean rules
   // ======== Split
