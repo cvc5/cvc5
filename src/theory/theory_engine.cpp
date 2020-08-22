@@ -141,7 +141,7 @@ void TheoryEngine::finishInit() {
   // Initialize the equality engine architecture for all theories, which
   // includes the master equality engine.
   d_eeDistributed.reset(new EqEngineManagerDistributed(*this));
-  d_eeDistributed->finishInit();
+  d_eeDistributed->initializeTheories();
 
   // Initialize the model and model builder.
   if (d_logicInfo.isQuantified())
@@ -166,11 +166,14 @@ void TheoryEngine::finishInit() {
     d_aloc_curr_model_builder = true;
   }
 
+  // Initialize the model
+  d_eeDistributed->initializeModel(d_curr_model);
+
   // set the core equality engine on quantifiers engine
   if (d_logicInfo.isQuantified())
   {
     d_quantEngine->setMasterEqualityEngine(
-        d_eeDistributed->getMasterEqualityEngine());
+        d_eeDistributed->getCoreEqualityEngine());
   }
 
   // finish initializing the theories
@@ -525,6 +528,10 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       //checks for theories requiring the model go at last call
       d_curr_model->reset();
+      // !!! temporary, will be part of distributed model manager
+      context::Context* meec = d_eeDistributed->getModelEqualityEngineContext();
+      meec->pop();
+      meec->push();
       for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) {
         if( theoryId!=THEORY_QUANTIFIERS ){
           Theory* theory = d_theoryTable[theoryId];
@@ -566,7 +573,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
       // case where we are about to answer SAT, the master equality engine,
       // if it exists, must be consistent.
-      eq::EqualityEngine* mee = d_eeDistributed->getMasterEqualityEngine();
+      eq::EqualityEngine* mee = d_eeDistributed->getCoreEqualityEngine();
       if (mee != NULL)
       {
         AlwaysAssert(mee->consistent());
