@@ -72,7 +72,8 @@ bool ModelManagerDistributed::buildModelInternal()
   }
 
   // success is determined by the model builder
-  if (!d_modelBuilder->buildModel(d_model))
+  std::set<Node> emptyset;
+  if (!d_modelBuilder->buildModel(d_model, false, emptyset))
   {
     Trace("model-builder") << "ModelManagerDistributed: fail build model"
                            << std::endl;
