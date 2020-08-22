@@ -20,26 +20,21 @@
 namespace CVC4 {
 namespace theory {
 
-const EeTheoryInfo* EqEngineManager::getEeTheoryInfo(TheoryId tid) const
-{
-  std::map<TheoryId, EeTheoryInfo>::const_iterator it = d_einfo.find(tid);
-  if (it != d_einfo.end())
-  {
-    return &it->second;
-  }
-  return nullptr;
-}
-
 EqEngineManagerDistributed::EqEngineManagerDistributed(TheoryEngine& te)
     : d_te(te), d_masterEENotify(nullptr)
 {
 }
 
-EqEngineManagerDistributed::~EqEngineManagerDistributed() {}
+EqEngineManagerDistributed::~EqEngineManagerDistributed()
+{
+  // pop the model context which we pushed on initialization
+  d_modelEeContext.pop();
+}
 
-void EqEngineManagerDistributed::finishInit()
+void EqEngineManagerDistributed::initializeTheories()
 {
   context::Context* c = d_te.getSatContext();
+
   // allocate equality engines per theory
   for (TheoryId theoryId = theory::THEORY_FIRST;
        theoryId != theory::THEORY_LAST;
@@ -61,6 +56,7 @@ void EqEngineManagerDistributed::finishInit()
     }
     // allocate the equality engine
     eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
+    // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();
   }
 
@@ -100,13 +96,44 @@ void EqEngineManagerDistributed::finishInit()
   }
 }
 
+void EqEngineManagerDistributed::initializeModel(TheoryModel* m)
+{
+  Assert(m != nullptr);
+  // initialize the model equality engine
+  EeSetupInfo esim;
+  if (m->needsEqualityEngine(esim))
+  {
+    d_modelEqualityEngine.reset(
+        allocateEqualityEngine(esim, &d_modelEeContext));
+    m->setEqualityEngine(d_modelEqualityEngine.get());
+  }
+  else
+  {
+    AlwaysAssert(false) << "Expected model to use equality engine";
+  }
+  m->finishInit();
+  // We push a context during initialization since the model is cleared during
+  // collectModelInfo using pop/push.
+  d_modelEeContext.push();
+}
+
 void EqEngineManagerDistributed::MasterNotifyClass::eqNotifyNewClass(TNode t)
 {
   // adds t to the quantifiers term database
   d_quantEngine->eqNotifyNewClass(t);
 }
 
-eq::EqualityEngine* EqEngineManagerDistributed::getMasterEqualityEngine()
+context::Context* EqEngineManagerDistributed::getModelEqualityEngineContext()
+{
+  return &d_modelEeContext;
+}
+
+eq::EqualityEngine* EqEngineManagerDistributed::getModelEqualityEngine()
+{
+  return d_modelEqualityEngine.get();
+}
+
+eq::EqualityEngine* EqEngineManagerDistributed::getCoreEqualityEngine()
 {
   return d_masterEqualityEngine.get();
 }

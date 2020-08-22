@@ -319,22 +319,10 @@ class TheoryArrays : public Theory {
     {
       Debug("arrays::propagate") << spaces(d_arrays.getSatContext()->getLevel()) << "NotifyClass::eqNotifyTriggerTermEquality(" << t1 << ", " << t2 << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        if (t1.getType().isArray()) {
-          if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {
-            return true;
-          }
-        }
         // Propagate equality between shared terms
         return d_arrays.propagateLit(t1.eqNode(t2));
-      } else {
-        if (t1.getType().isArray()) {
-          if (!d_arrays.isShared(t1) || !d_arrays.isShared(t2)) {
-            return true;
-          }
-        }
-        return d_arrays.propagateLit(t1.eqNode(t2).notNode());
       }
-      return true;
+      return d_arrays.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
