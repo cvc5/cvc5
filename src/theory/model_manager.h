@@ -43,31 +43,32 @@ class ModelManager
   void finishInit();
   /** Reset model, called during full effort check before the model is built */
   void resetModel();
-  /** 
+  /**
    * Build the model, which calls the manager-specific buildModelInternal if
    * we have yet to build the model on this round.
-   * 
+   *
    * @return true if model building was successful.
    */
   bool buildModel();
-  /** 
+  /**
    * Have we called buildModel this round? Note this returns true whether or
    * not the model building was successful.
    */
   bool isModelBuilt() const;
-  /** 
+  /**
    * Post process model, which is used as a way of each theory adding additional
    * information to the model after successfully building a model.
    */
   void postProcessModel(bool incomplete);
   /** Get a pointer to model object maintained by this class. */
   theory::TheoryModel* getModel();
+
  protected:
-  /** 
+  /**
    * Collect model Boolean variables.
    * This asserts the values of all boolean variables to the equality engine of
    * the model, based on their value in the prop engine.
-   * 
+   *
    * @return true if we are in conflict.
    */
   bool collectModelBooleanVariables();
