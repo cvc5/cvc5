@@ -44,8 +44,9 @@ class ModelManager
   /** Reset model, called during full effort check before the model is built */
   void resetModel();
   /**
-   * Build the model, which calls the manager-specific buildModelInternal if
-   * we have yet to build the model on this round.
+   * Build the model. If we have yet to build the model on this round, this
+   * method calls the (manager-specific) prepareModel method and then calls
+   * finishBuildModel.
    *
    * @return true if model building was successful.
    */
@@ -62,7 +63,24 @@ class ModelManager
   void postProcessModel(bool incomplete);
   /** Get a pointer to model object maintained by this class. */
   theory::TheoryModel* getModel();
-
+  //------------------------ finer grained control over model building
+  /**
+   * Prepare model, which the manager-specific method for setting up the
+   * equality engine of the model. This should assert all relevant information
+   * about the model into the equality engine of d_model.
+   *
+   * @return true if we are in conflict (i.e. the equality engine of the model
+   * equality engine is inconsistent).
+   */
+  virtual bool prepareModel() = 0;
+  /**
+   * Finish build model, which calls the theory model builder to assign values
+   * to all equivalence classes. This should be run after prepareModel.
+   *
+   * @return true if model building was successful.
+   */
+  bool finishBuildModel() const;
+  //------------------------ end finer grained control over model building
  protected:
   /**
    * Collect model Boolean variables.
@@ -72,14 +90,6 @@ class ModelManager
    * @return true if we are in conflict.
    */
   bool collectModelBooleanVariables();
-  /**
-   * Build model internal, which the manager-specific method for building
-   * models. This should assert all relevant information about the model into
-   * the equality engine of d_model.
-   *
-   * @return true if we are in conflict.
-   */
-  virtual bool buildModelInternal() = 0;
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** Logic info of theory engine (cached) */

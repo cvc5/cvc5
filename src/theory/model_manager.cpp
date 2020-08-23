@@ -34,12 +34,6 @@ ModelManager::ModelManager(TheoryEngine& te)
 
 ModelManager::~ModelManager() {}
 
-void ModelManager::resetModel()
-{
-  d_modelBuilt = false;
-  d_modelBuiltSuccess = false;
-}
-
 void ModelManager::finishInit()
 {
   // construct the model
@@ -70,6 +64,14 @@ void ModelManager::finishInit()
   // notice that the equality engine of the model has yet to be assigned.
 }
 
+void ModelManager::resetModel()
+{
+  d_modelBuilt = false;
+  d_modelBuiltSuccess = false;
+  // Reset basic information on the model object
+  d_model->reset();
+}
+
 bool ModelManager::buildModel()
 {
   if (d_modelBuilt)
@@ -81,8 +83,15 @@ bool ModelManager::buildModel()
   d_modelBuilt = true;
   d_modelBuiltSuccess = false;
 
-  // call the internal (manager-specific) building method
-  d_modelBuiltSuccess = buildModelInternal();
+  // prepare the model, which is specific to the manager
+  if (!prepareModel())
+  {
+    Trace("model-builder") << "ModelManager: fail prepare model" << std::endl;
+    return false;
+  }
+
+  // now, finish building the model
+  d_modelBuiltSuccess = finishBuildModel();
   return d_modelBuiltSuccess;
 }
 
@@ -122,6 +131,16 @@ void ModelManager::postProcessModel(bool incomplete)
 }
 
 theory::TheoryModel* ModelManager::getModel() { return d_model; }
+
+bool ModelManager::finishBuildModel() const
+{
+  if (!d_modelBuilder->buildModel(d_model))
+  {
+    Trace("model-builder") << "ModelManager: fail build model" << std::endl;
+    return false;
+  }
+  return true;
+}
 
 bool ModelManager::collectModelBooleanVariables()
 {
