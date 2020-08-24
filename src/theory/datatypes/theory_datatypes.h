@@ -290,7 +290,7 @@ private:
   void preRegisterTerm(TNode n) override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool collectModelInfo(TheoryModel* m) override;
   void shutdown() override {}

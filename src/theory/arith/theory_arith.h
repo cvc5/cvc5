@@ -104,7 +104,7 @@ class TheoryArith : public Theory {
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
-  void addSharedTerm(TNode n) override;
+  void notifySharedTerm(TNode n) override;
 
   Node getModelValue(TNode var) override;
 

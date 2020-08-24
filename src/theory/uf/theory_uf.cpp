@@ -521,7 +521,8 @@ eq::ProofEqEngine* TheoryUF::getProofEqualityEngine()
   return d_pfEqualityEngine.get();
 }
 
-void TheoryUF::addSharedTerm(TNode t) {
+void TheoryUF::notifySharedTerm(TNode t)
+{
   Debug("uf::sharing") << "TheoryUF::addSharedTerm(" << t << ")" << std::endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_UF);
 }

@@ -880,9 +880,10 @@ TrustNode TheoryBV::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
-
-void TheoryBV::addSharedTerm(TNode t) {
-  Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
+void TheoryBV::notifySharedTerm(TNode t)
+{
+  Debug("bitvector::sharing")
+      << indent() << "TheoryBV::notifySharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
   if (options::bitvectorEqualitySolver()) {
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
