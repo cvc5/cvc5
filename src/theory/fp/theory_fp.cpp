@@ -908,9 +908,10 @@ void TheoryFp::preRegisterTerm(TNode node)
   return;
 }
 
-void TheoryFp::addSharedTerm(TNode node) {
+void TheoryFp::notifySharedTerm(TNode node)
+{
   Trace("fp-addSharedTerm")
-      << "TheoryFp::addSharedTerm(): " << node << std::endl;
+      << "TheoryFp::notifySharedTerm(): " << node << std::endl;
   // A system-wide invariant; terms must be registered before they are shared
   Assert(isRegistered(node));
   return;
@@ -998,7 +999,6 @@ void TheoryFp::check(Effort level) {
   }
 
   // Resolve the abstractions for the conversion lemmas
-  //  if (level == EFFORT_COMBINATION) {
   if (level == EFFORT_LAST_CALL)
   {
     Trace("fp") << "TheoryFp::check(): checking abstractions" << std::endl;

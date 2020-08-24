@@ -153,15 +153,16 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
   return false;
 }
 
-void TheoryStrings::addSharedTerm(TNode t) {
-  Debug("strings") << "TheoryStrings::addSharedTerm(): "
-                     << t << " " << t.getType().isBoolean() << endl;
+void TheoryStrings::notifySharedTerm(TNode t)
+{
+  Debug("strings") << "TheoryStrings::notifySharedTerm(): " << t << " "
+                   << t.getType().isBoolean() << endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_STRINGS);
   if (options::stringExp())
   {
     d_esolver.addSharedTerm(t);
   }
-  Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
+  Debug("strings") << "TheoryStrings::notifySharedTerm() finished" << std::endl;
 }
 
 EqualityStatus TheoryStrings::getEqualityStatus(TNode a, TNode b) {

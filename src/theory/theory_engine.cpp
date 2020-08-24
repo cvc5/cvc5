@@ -1219,7 +1219,7 @@ void TheoryEngine::assertFact(TNode literal)
         Theory::Set theories = d_sharedTerms.getTheoriesToNotify(atom, term);
         for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++ id) {
           if (Theory::setContains(id, theories)) {
-            theoryOf(id)->addSharedTermInternal(term);
+            theoryOf(id)->addSharedTerm(term);
           }
         }
         d_sharedTerms.markNotified(term, theories);

@@ -251,7 +251,7 @@ class TheoryArrays : public Theory {
   void checkPair(TNode r1, TNode r2);
 
  public:
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
   bool isShared(TNode t)
