@@ -87,6 +87,7 @@ struct NodeTheoryPairHashFunction {
 
 /* Forward declarations */
 namespace theory {
+  class CombinationEngine;
   class TheoryModel;
   class TheoryEngineModelBuilder;
   class EqEngineManagerDistributed;
@@ -118,6 +119,7 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
+  friend class theory::CombinationEngine;
   friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
 

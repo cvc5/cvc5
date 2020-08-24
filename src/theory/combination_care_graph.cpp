@@ -59,9 +59,6 @@ void CombinationCareGraph::combineTheories()
         << "TheoryEngine::combineTheories(): checking " << carePair.d_a << " = "
         << carePair.d_b << " from " << carePair.d_theory << std::endl;
 
-    Assert(d_sharedSolver->isShared(carePair.d_a) || carePair.d_a.isConst());
-    Assert(d_sharedSolver->isShared(carePair.d_b) || carePair.d_b.isConst());
-
     // The equality in question (order for no repetition)
     Node equality = carePair.d_a.eqNode(carePair.d_b);
 
