@@ -68,7 +68,7 @@ void CombinationEngine::finishInit()
 
   // initialize equality engines in all theories, including quantifiers engine
   // and the (provided) shared solver
-  d_eemanager->initializeTheories(d_sharedSolver.get());
+  d_eemanager->initializeTheories();
 
   Assert(d_mmanager != nullptr);
   // initialize the model manager
