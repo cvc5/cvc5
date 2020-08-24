@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file combination_care_graph.cpp
+/*! \file combination_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,13 +12,11 @@
  ** \brief Management of a care graph based approach for theory combination.
  **/
 
-#include "theory/combination_care_graph.h"
+#include "theory/combination_engine.h"
 
 #include "expr/node_visitor.h"
 #include "theory/care_graph.h"
-#include "theory/ee_manager_central.h"
 #include "theory/ee_manager_distributed.h"
-#include "theory/model_manager_central.h"
 #include "theory/model_manager_distributed.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
@@ -52,11 +50,6 @@ void CombinationEngine::finishInit()
     // make the distributed model manager
     d_mmanager.reset(new ModelManagerDistributed(d_te, *eeDistributed.get()));
     d_eemanager = std::move(eeDistributed);
-  }
-  else if (options::eeMode() == options::EqEngineMode::CENTRAL)
-  {
-    d_eemanager.reset(new EqEngineManagerCentral(d_te));
-    d_mmanager.reset(new ModelManagerCentral(d_te));
   }
   else
   {
