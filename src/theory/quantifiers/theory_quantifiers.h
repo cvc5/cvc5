@@ -24,9 +24,9 @@
 #include "theory/output_channel.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/quantifiers_state.h"
 #include "theory/theory.h"
 #include "theory/valuation.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,10 +42,13 @@ class TheoryQuantifiers : public Theory {
                     ProofNodeManager* pnm = nullptr);
   ~TheoryQuantifiers();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
   /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
+
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
@@ -66,6 +69,8 @@ class TheoryQuantifiers : public Theory {
   QuantifiersRewriter d_rewriter;
   /** The proof rule checker */
   QuantifiersProofRuleChecker d_qChecker;
+  /** The quantifiers state */
+  QuantifiersState d_qstate;
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */

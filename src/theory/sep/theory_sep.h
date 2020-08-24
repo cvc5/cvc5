@@ -58,6 +58,8 @@ class TheorySep : public Theory {
   bool d_bounds_init;
 
   TheorySepRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -74,9 +76,18 @@ class TheorySep : public Theory {
             ProofNodeManager* pnm = nullptr);
   ~TheorySep();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   std::string identify() const override { return std::string("TheorySep"); }
 
@@ -94,17 +105,16 @@ class TheorySep : public Theory {
 
  private:
   /** Should be called to propagate the literal.  */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
  public:
-  void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
  public:
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
 
@@ -143,27 +153,19 @@ class TheorySep : public Theory {
    public:
     NotifyClass(TheorySep& sep) : d_sep(sep) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("sep::propagate")
-          << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", "
+          << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
+      Assert(predicate.getKind() == kind::EQUAL);
       // Just forward to sep
       if (value)
       {
-        return d_sep.propagate(equality);
+        return d_sep.propagateLit(predicate);
       }
-      else
-      {
-        return d_sep.propagate(equality.notNode());
-      }
+      return d_sep.propagateLit(predicate.notNode());
     }
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Unreachable();
-    }
-
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,
@@ -175,13 +177,9 @@ class TheorySep : public Theory {
       if (value)
       {
         // Propagate equality between shared terms
-        return d_sep.propagate(t1.eqNode(t2));
+        return d_sep.propagateLit(t1.eqNode(t2));
       }
-      else
-      {
-        return d_sep.propagate(t1.eqNode(t2).notNode());
-      }
-      return true;
+      return d_sep.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -201,9 +199,6 @@ class TheorySep : public Theory {
 
   /** The notify class for d_equalityEngine */
   NotifyClass d_notify;
-
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
 
   /** Are we in conflict? */
   context::CDO<bool> d_conflict;
@@ -326,7 +321,6 @@ class TheorySep : public Theory {
   void doPendingFacts();
 
  public:
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   void initializeBounds();
 };/* class TheorySep */

@@ -41,9 +41,13 @@ TheoryArith::TheoryArith(context::Context* c,
       d_internal(
           new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
-      d_proofRecorder(nullptr)
+      d_proofRecorder(nullptr),
+      d_astate(*d_internal, c, u, valuation)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
+
+  // indicate we are using the theory state object
+  d_theoryState = &d_astate;
 }
 
 TheoryArith::~TheoryArith(){
@@ -56,10 +60,10 @@ TheoryRewriter* TheoryArith::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-void TheoryArith::preRegisterTerm(TNode n){
-  d_internal->preRegisterTerm(n);
+bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
+{
+  return d_internal->needsEqualityEngine(esi);
 }
-
 void TheoryArith::finishInit()
 {
   if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
@@ -72,20 +76,18 @@ void TheoryArith::finishInit()
     d_valuation.setUnevaluatedKind(kind::SINE);
     d_valuation.setUnevaluatedKind(kind::PI);
   }
+  // finish initialize internally
+  d_internal->finishInit();
 }
+
+void TheoryArith::preRegisterTerm(TNode n) { d_internal->preRegisterTerm(n); }
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
   return d_internal->expandDefinition(node);
 }
 
-void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_internal->setMasterEqualityEngine(eq);
-}
-
-void TheoryArith::addSharedTerm(TNode n){
-  d_internal->addSharedTerm(n);
-}
+void TheoryArith::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {

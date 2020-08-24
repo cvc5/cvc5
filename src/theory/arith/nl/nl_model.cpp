@@ -16,6 +16,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
+#include "options/theory_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/rewriter.h"
@@ -279,11 +280,6 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
   std::vector<Node> check_assertions;
   for (const Node& a : assertions)
   {
-    // don't have to check tautological literals
-    if (d_tautology.find(a) != d_tautology.end())
-    {
-      continue;
-    }
     if (d_check_model_solved.find(a) == d_check_model_solved.end())
     {
       Node av = a;
@@ -454,52 +450,6 @@ bool NlModel::hasCheckModelAssignment(Node v) const
 void NlModel::setUsedApproximate() { d_used_approx = true; }
 
 bool NlModel::usedApproximate() const { return d_used_approx; }
-
-void NlModel::addTautology(Node n)
-{
-  // ensure rewritten
-  n = Rewriter::rewrite(n);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(n);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.getKind() == AND)
-      {
-        // children of AND are also implied
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-      else
-      {
-        // is this an arithmetic literal?
-        Node atom = cur.getKind() == NOT ? cur[0] : cur;
-        if ((atom.getKind() == EQUAL && atom[0].getType().isReal())
-            || atom.getKind() == LEQ)
-        {
-          // Add to tautological literals if it does not contain
-          // non-linear multiplication. We cannot consider literals
-          // with non-linear multiplication to be tautological since this
-          // model object is responsible for checking whether they hold.
-          // (TODO, cvc4-projects #113: revisit this).
-          if (!expr::hasSubtermKind(NONLINEAR_MULT, atom))
-          {
-            Trace("nl-taut") << "Tautological literal: " << atom << std::endl;
-            d_tautology.insert(cur);
-          }
-        }
-      }
-    }
-  } while (!visit.empty());
-}
 
 bool NlModel::solveEqualitySimple(Node eq,
                                   unsigned d,

@@ -1704,11 +1704,11 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 
   // If they are equal or disequal already, no need for the trigger
   if (areEqual(eq[0], eq[1])) {
-    d_notify.eqNotifyTriggerEquality(eq, true);
+    d_notify.eqNotifyTriggerPredicate(eq, true);
     skipTrigger = true;
   }
   if (areDisequal(eq[0], eq[1], true)) {
-    d_notify.eqNotifyTriggerEquality(eq, false);
+    d_notify.eqNotifyTriggerPredicate(eq, false);
     skipTrigger = true;
   }
 
@@ -1726,8 +1726,12 @@ void EqualityEngine::addTriggerEquality(TNode eq) {
 }
 
 void EqualityEngine::addTriggerPredicate(TNode predicate) {
-  Assert(predicate.getKind() != kind::NOT
-         && predicate.getKind() != kind::EQUAL);
+  Assert(predicate.getKind() != kind::NOT);
+  if (predicate.getKind() == kind::EQUAL)
+  {
+    // equality is handled separately
+    return addTriggerEquality(predicate);
+  }
   Assert(d_congruenceKinds.tst(predicate.getKind()))
       << "No point in adding non-congruence predicates";
 
@@ -1997,8 +2001,8 @@ void EqualityEngine::propagate() {
                 d_deducedDisequalityReasons.push_back(EqualityPair(original, d_falseId));
               }
               storePropagatedDisequality(THEORY_LAST, lhsId, rhsId);
-              if (!d_notify.eqNotifyTriggerEquality(triggerInfo.d_trigger,
-                                                    triggerInfo.d_polarity))
+              if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+                                                     triggerInfo.d_polarity))
               {
                 d_done = true;
               }
@@ -2007,8 +2011,8 @@ void EqualityEngine::propagate() {
           else
           {
             // Equalities are simple
-            if (!d_notify.eqNotifyTriggerEquality(triggerInfo.d_trigger,
-                                                  triggerInfo.d_polarity))
+            if (!d_notify.eqNotifyTriggerPredicate(triggerInfo.d_trigger,
+                                                   triggerInfo.d_polarity))
             {
               d_done = true;
             }

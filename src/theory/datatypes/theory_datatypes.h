@@ -58,24 +58,13 @@ class TheoryDatatypes : public Theory {
     TheoryDatatypes& d_dt;
   public:
     NotifyClass(TheoryDatatypes& dt): d_dt(dt) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("dt") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_dt.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_dt.propagate(equality.notNode());
-      }
-    }
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("dt") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_dt.propagate(predicate);
-      } else {
-       return d_dt.propagate(predicate.notNode());
+        return d_dt.propagateLit(predicate);
       }
+      return d_dt.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -84,10 +73,9 @@ class TheoryDatatypes : public Theory {
     {
       Debug("dt") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_dt.propagate(t1.eqNode(t2));
-      } else {
-        return d_dt.propagate(t1.eqNode(t2).notNode());
+        return d_dt.propagateLit(t1.eqNode(t2));
       }
+      return d_dt.propagateLit(t1.eqNode(t2).notNode());
     }
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
     {
@@ -145,8 +133,6 @@ private:
 private:
   /** The notify class */
   NotifyClass d_notify;
-  /** Equaltity engine */
-  eq::EqualityEngine d_equalityEngine;
   /** information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
   /** map from nodes to their instantiated equivalent for each constructor type */
@@ -269,14 +255,21 @@ private:
                   ProofNodeManager* pnm = nullptr);
   ~TheoryDatatypes();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
+  void finishInit() override;
+  //--------------------------------- end initialization
 
   /** propagate */
-  void propagate(Effort effort) override;
-  /** propagate */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
   /** explain */
   void addAssumptions( std::vector<TNode>& assumptions, std::vector<TNode>& tassumptions );
   void explainEquality( TNode a, TNode b, bool polarity, std::vector<TNode>& assumptions );
@@ -295,11 +288,9 @@ private:
   void check(Effort e) override;
   bool needsCheckLastEffort() override;
   void preRegisterTerm(TNode n) override;
-  void finishInit() override;
   TrustNode expandDefinition(Node n) override;
   TrustNode ppRewrite(TNode n) override;
-  void presolve() override;
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool collectModelInfo(TheoryModel* m) override;
   void shutdown() override {}
@@ -307,8 +298,6 @@ private:
   {
     return std::string("TheoryDatatypes");
   }
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
@@ -353,8 +342,6 @@ private:
   void instantiate( EqcInfo* eqc, Node n );
   /** must communicate fact */
   bool mustCommunicateFact( Node n, Node exp );
-  /** get relevant terms */
-  void getRelevantTerms( std::set<Node>& termSet );
 private:
   //equality queries
   bool hasTerm( TNode a );
@@ -363,12 +350,20 @@ private:
   bool areCareDisequal( TNode x, TNode y );
   TNode getRepresentative( TNode a );
 
- private:
+  /**
+   * Compute relevant terms. In addition to all terms in assertions and shared
+   * terms, this includes datatypes in non-singleton equivalence classes.
+   */
+  void computeRelevantTerms(std::set<Node>& termSet,
+                            bool includeShared = true) override;
+
   /** sygus symmetry breaking utility */
   std::unique_ptr<SygusExtension> d_sygusExtension;
 
   /** The theory rewriter for this theory. */
   DatatypesRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */
