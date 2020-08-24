@@ -27,8 +27,6 @@
 namespace CVC4 {
 
 class TheoryEngine;
-class SharedTermsDatabase;
-class SharedTermsVisitor;
 
 namespace theory {
 
@@ -64,12 +62,6 @@ class CombinationEngine
   /** Get model */
   TheoryModel* getModel();
   //-------------------------- end model
-
-  /**
-   * Get the shared solver, which is the active component of theory combination
-   * that TheoryEngine interacts with prior to calling combineTheories.
-   */
-  SharedSolver* getSharedSolver();
   /**
    * Called at the beginning of full effort
    */
@@ -80,33 +72,21 @@ class CombinationEngine
    * theory combination (e.g. splitting lemmas) to the parent TheoryEngine.
    */
   virtual void combineTheories() = 0;
-  /**
-   * Get representatives, available at full effort only.
-   */
-  const std::unordered_set<Node, NodeHashFunction>& getEqcRepresentatives()
-      const;
-  /**
-   * Get representatives for type, available at full effort only.
-   */
-  const std::vector<Node>& getEqcRepresentativesForType(TypeNode t) const;
 
  protected:
-  /**
-   * Get model equality engine notify.
+  /** 
+   * Get model equality engine notify. Return the notification object for
+   * who listens to the model's equality engine (if any).
    */
   virtual eq::EqualityEngineNotify* getModelEqualityEngineNotify();
-  /** Send lemma */
+  /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
   void sendLemma(TNode node, TheoryId atomsTo);
-  /** Is theory tid parametric? */
-  bool isParametric(TheoryId tid) const;
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** Logic info of theory engine (cached) */
   const LogicInfo& d_logicInfo;
   /** List of parametric theories of theory engine */
   const std::vector<Theory*> d_paraTheories;
-  /** The set of TheoryId that are parametric */
-  Theory::Set d_paraSet;
   /**
    * The equality engine manager we are using. This class is responsible for
    * configuring equality engines for each theory.
@@ -117,11 +97,6 @@ class CombinationEngine
    * model.
    */
   std::unique_ptr<ModelManager> d_mmanager;
-  /**
-   * The shared solver. This class is responsible for performing combination
-   * tasks (e.g. preregistration) during solving.
-   */
-  std::unique_ptr<SharedSolver> d_sharedSolver;
 };
 
 }  // namespace theory

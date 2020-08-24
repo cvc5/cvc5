@@ -20,8 +20,6 @@
 #include "theory/ee_manager_distributed.h"
 #include "theory/model_manager_central.h"
 #include "theory/model_manager_distributed.h"
-#include "theory/shared_solver_central.h"
-#include "theory/shared_solver_distributed.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/theory_engine.h"
@@ -54,14 +52,11 @@ void CombinationEngine::finishInit()
     // make the distributed model manager
     d_mmanager.reset(new ModelManagerDistributed(d_te, *eeDistributed.get()));
     d_eemanager = std::move(eeDistributed);
-    // use the distributed shared solver
-    d_sharedSolver.reset(new SharedSolverDistributed(d_te));
   }
   else if (options::eeMode() == options::EqEngineMode::CENTRAL)
   {
     d_eemanager.reset(new EqEngineManagerCentral(d_te));
     d_mmanager.reset(new ModelManagerCentral(d_te));
-    d_sharedSolver.reset(new SharedSolverCentral(d_te));
   }
   else
   {
@@ -114,13 +109,9 @@ theory::TheoryModel* CombinationEngine::getModel()
   return d_mmanager->getModel();
 }
 
-SharedSolver* CombinationEngine::getSharedSolver()
-{
-  return d_sharedSolver.get();
-}
-
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 {
+  // by default, no notifications from model's equality engine
   return nullptr;
 }
 
@@ -129,27 +120,9 @@ void CombinationEngine::sendLemma(TNode node, TheoryId atomsTo)
   d_te.lemma(node, RULE_INVALID, false, LemmaProperty::NONE, atomsTo);
 }
 
-bool CombinationEngine::isParametric(TheoryId tid) const
-{
-  // FIXME: necessary?
-  return true;
-}
-
 void CombinationEngine::resetRound()
 {
-  // compute the relevant terms?
-}
-
-const std::unordered_set<Node, NodeHashFunction>&
-CombinationEngine::getEqcRepresentatives() const
-{
-  return d_eemanager->getEqcRepresentatives();
-}
-
-const std::vector<Node>& CombinationEngine::getEqcRepresentativesForType(
-    TypeNode t) const
-{
-  return d_eemanager->getEqcRepresentativesForType(t);
+  // do nothing
 }
 
 }  // namespace theory
