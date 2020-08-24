@@ -74,7 +74,7 @@ bool ModelManagerDistributed::prepareModel()
   return true;
 }
 
-bool ModelManagerDistributed::finishBuildModel() const 
+bool ModelManagerDistributed::finishBuildModel() const
 {
   if (!d_modelBuilder->buildModel(d_model))
   {
