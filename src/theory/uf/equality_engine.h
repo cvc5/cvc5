@@ -518,7 +518,7 @@ private:
   bool d_constantsAreTriggers;
   /**
    * Are any terms triggers? If this is false, then all trigger terms are
-   * ignored (e.g. this means that addTriggerTerm is ignored).
+   * ignored (e.g. this means that addTriggerTerm is equivalent to addTerm).
    */
   bool d_anyTermsAreTriggers;
 
