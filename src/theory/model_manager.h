@@ -80,7 +80,7 @@ class ModelManager
    *
    * @return true if model building was successful.
    */
-  bool finishBuildModel() const;
+  virtual bool finishBuildModel() const = 0;
   //------------------------ end finer grained control over model building
  protected:
   /**

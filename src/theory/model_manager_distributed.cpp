@@ -15,6 +15,7 @@
 #include "theory/model_manager_distributed.h"
 
 #include "theory/theory_engine.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
@@ -70,6 +71,16 @@ bool ModelManagerDistributed::prepareModel()
     return false;
   }
 
+  return true;
+}
+
+bool ModelManagerDistributed::finishBuildModel() const 
+{
+  if (!d_modelBuilder->buildModel(d_model))
+  {
+    Trace("model-builder") << "ModelManager: fail build model" << std::endl;
+    return false;
+  }
   return true;
 }
 

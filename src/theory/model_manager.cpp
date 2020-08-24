@@ -131,16 +131,6 @@ void ModelManager::postProcessModel(bool incomplete)
 
 theory::TheoryModel* ModelManager::getModel() { return d_model; }
 
-bool ModelManager::finishBuildModel() const
-{
-  if (!d_modelBuilder->buildModel(d_model))
-  {
-    Trace("model-builder") << "ModelManager: fail build model" << std::endl;
-    return false;
-  }
-  return true;
-}
-
 bool ModelManager::collectModelBooleanVariables()
 {
   Trace("model-builder") << "  CollectModelInfo boolean variables" << std::endl;

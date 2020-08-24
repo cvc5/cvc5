@@ -44,7 +44,11 @@ class ModelManagerDistributed : public ModelManager
 
   /** Prepare the model, as described above. */
   bool prepareModel() override;
-
+  /** 
+   * Assign values to all equivalence classes in the equality engine of the
+   * model, return true if successful.
+   */
+  bool finishBuildModel() const override;
  protected:
   /**
    * Distributed equality engine manager, which maintains the context of the
