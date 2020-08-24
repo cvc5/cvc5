@@ -31,6 +31,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::TRUE_ELIM, this);
   pc->registerChecker(PfRule::FALSE_INTRO, this);
   pc->registerChecker(PfRule::FALSE_ELIM, this);
+  pc->registerChecker(PfRule::HO_CONG, this);
   // trusted rules
   pc->registerTrustedChecker(PfRule::HO_TRUST, this, 1);
 }
@@ -172,6 +173,26 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     return children[0][0].notNode();
+  }
+  if (id == PfRule::HO_CONG)
+  {
+    Assert(children.size() > 0);
+    std::vector<Node> lchildren;
+    std::vector<Node> rchildren;
+    for (size_t i = 0, nchild = children.size(); i < nchild; ++i)
+    {
+      Node eqp = children[i];
+      if (eqp.getKind() != EQUAL)
+      {
+        return Node::null();
+      }
+      lchildren.push_back(eqp[0]);
+      rchildren.push_back(eqp[1]);
+    }
+    NodeManager* nm = NodeManager::currentNM();
+    Node l = nm->mkNode(kind::APPLY_UF, lchildren);
+    Node r = nm->mkNode(kind::APPLY_UF, rchildren);
+    return l.eqNode(r);
   }
   else if (id == PfRule::HO_TRUST)
   {

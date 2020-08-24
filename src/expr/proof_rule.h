@@ -607,7 +607,14 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (F)
   HO_TRUST,
-  
+  // ======== Congruence
+  // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
+  // Arguments: ()
+  // ---------------------------------------------
+  // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
+  // Notice that this rule is only used when the application kinds are APPLY_UF.
+  HO_CONG,
+
   //================================================= Array rules
   // ======== Read over write
   // Children: (P:(not (= i1 i2)))
