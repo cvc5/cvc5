@@ -510,7 +510,7 @@ void AntlrInput::parseError(const std::string& message, bool eofException)
   auto lineLength = d_antlr3InputStream->sizeBuf
                     - (static_cast<char*>(d_antlr3InputStream->currentLine)
                        - static_cast<char*>(d_antlr3InputStream->data));
-  string updatedMessage = parseErrorHelper(
+  std::string updatedMessage = parseErrorHelper(
       (const char*)d_antlr3InputStream->getLineBuf(d_antlr3InputStream),
       lineLength,
       d_lexer->getCharPositionInLine(d_lexer),
