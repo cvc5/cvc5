@@ -49,33 +49,33 @@ class CombinationEngine
   //-------------------------- equality engine
   /** Get equality engine theory information for theory with identifier tid. */
   const EeTheoryInfo* getEeTheoryInfo(TheoryId tid) const;
-  /** 
+  /**
    * Get the "core" equality engine. This is the equality engine that
    * quantifiers should use.
    */
   eq::EqualityEngine* getCoreEqualityEngine();
   //-------------------------- end equality engine
   //-------------------------- model
-  /** 
+  /**
    * Reset the model maintained by this class. This resets all local information
    * that is unique to each check.
    */
   void resetModel();
-  /** 
+  /**
    * Build the model maintained by this class.
-   * 
+   *
    * @return true if model building was successful.
    */
   virtual bool buildModel() = 0;
-  /** 
+  /**
    * Post process the model maintained by this class. This is called after
    * a successful call to buildModel. This does any theory-specific
    * postprocessing of the model.
-   * 
+   *
    * @param incomplete Whether we are answering "unknown" instead of "sat".
    */
   void postProcessModel(bool incomplete);
-  /** 
+  /**
    * Get the model object maintained by this class.
    */
   TheoryModel* getModel();
