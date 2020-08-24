@@ -785,8 +785,8 @@ private:
   //--------------------------- standard safe explanation methods
   /**
    * Explain literal, add its explanation to assumptions. This method does not
-   * add duplicates to assumptions. It additionally contains assertions for
-   * whether literal does hold in this class. If lit is a disequality, it
+   * add duplicates to assumptions. It requires that the literal
+   * holds in this class. If lit is a disequality, it
    * moreover ensures this class is ready to explain it via areDisequal with
    * ensureProof = true.
    */
