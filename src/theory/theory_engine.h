@@ -97,10 +97,10 @@ class RelevanceManager;
 
 namespace eq {
 class EqualityEngine;
-}/* CVC4::theory::eq namespace */
+}  // namespace eq
 
 namespace quantifiers {
-  class TermDb;
+class TermDb;
 }
 
 class EntailmentCheckParameters;
