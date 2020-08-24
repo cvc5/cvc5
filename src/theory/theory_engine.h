@@ -87,24 +87,24 @@ struct NodeTheoryPairHashFunction {
 
 /* Forward declarations */
 namespace theory {
-  class CombinationEngine;
-  class TheoryModel;
-  class TheoryEngineModelBuilder;
-  class EqEngineManagerDistributed;
+class CombinationEngine;
+class TheoryModel;
+class TheoryEngineModelBuilder;
+class EqEngineManagerDistributed;
 
-  class DecisionManager;
-  class RelevanceManager;
+class DecisionManager;
+class RelevanceManager;
 
-  namespace eq {
-    class EqualityEngine;
-  }/* CVC4::theory::eq namespace */
+namespace eq {
+class EqualityEngine;
+}/* CVC4::theory::eq namespace */
 
-  namespace quantifiers {
-    class TermDb;
-  }
+namespace quantifiers {
+  class TermDb;
+}
 
-  class EntailmentCheckParameters;
-  class EntailmentCheckSideEffects;
+class EntailmentCheckParameters;
+class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
 class RemoveTermFormulas;
