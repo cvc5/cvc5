@@ -30,8 +30,10 @@ namespace theory {
 
 /**
  * A base class for managing models. Its main feature is to implement a
- * buildModel command, which can be specific e.g. to the kind of equality
- * engine management mode we are using.
+ * buildModel command. Overall, its behavior is specific to the kind of equality
+ * engine management mode we are using. In particular, the prepare model
+ * method is a manager-specific way for setting up the equality engine of the
+ * model in preparation for model building.
  */
 class ModelManager
 {
