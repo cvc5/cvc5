@@ -22,7 +22,6 @@
 
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
-#include "theory/shared_solver.h"
 
 namespace CVC4 {
 

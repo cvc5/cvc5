@@ -30,10 +30,8 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
     : d_te(te),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
-      d_paraSet(0),
       d_eemanager(nullptr),
-      d_mmanager(nullptr),
-      d_sharedSolver(nullptr)
+      d_mmanager(nullptr)
 {
 }
 
