@@ -96,8 +96,8 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
-void EqEngineManagerDistributed::initializeModel(TheoryModel* m,
-                       eq::EqualityEngineNotify* notify)
+void EqEngineManagerDistributed::initializeModel(
+    TheoryModel* m, eq::EqualityEngineNotify* notify)
 {
   Assert(m != nullptr);
   // initialize the model equality engine

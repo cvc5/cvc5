@@ -67,7 +67,7 @@ class EqEngineManager
    * the lifetime of TheoryEngine (during finishInit).
    */
   virtual void initializeModel(TheoryModel* m,
-                       eq::EqualityEngineNotify* notify) = 0;
+                               eq::EqualityEngineNotify* notify) = 0;
   /**
    * Get the equality engine theory information for theory with the given id.
    */

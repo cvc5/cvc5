@@ -74,7 +74,7 @@ class CombinationEngine
   virtual void combineTheories() = 0;
 
  protected:
-  /** 
+  /**
    * Get model equality engine notify. Return the notification object for
    * who listens to the model's equality engine (if any).
    */
