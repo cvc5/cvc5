@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__MODEL_MANAGER__H
 #define CVC4__THEORY__MODEL_MANAGER__H
 
-#include <map>
 #include <memory>
 
 #include "theory/theory_model.h"
@@ -65,7 +64,7 @@ class ModelManager
   theory::TheoryModel* getModel();
   //------------------------ finer grained control over model building
   /**
-   * Prepare model, which the manager-specific method for setting up the
+   * Prepare model, which is the manager-specific method for setting up the
    * equality engine of the model. This should assert all relevant information
    * about the model into the equality engine of d_model.
    *

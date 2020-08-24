@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ee_manager_distributed.h
+/*! \file model_manager_distributed.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 #define CVC4__THEORY__MODEL_MANAGER_DISTRIBUTED__H
 
-#include <map>
 #include <memory>
 
 #include "theory/ee_manager_distributed.h"
