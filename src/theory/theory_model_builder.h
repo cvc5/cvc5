@@ -38,7 +38,7 @@ namespace theory {
  * this will set up the data structures in TheoryModel to represent
  * a model for the current set of assertions.
  */
-class TheoryEngineModelBuilder : public ModelBuilder
+class TheoryEngineModelBuilder
 {
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
@@ -67,7 +67,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.
    */
-  bool buildModel(Model* m) override;
+  bool buildModel(Model* m);
 
   /** postprocess model
    *
