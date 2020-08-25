@@ -136,8 +136,6 @@ class TheoryEngine {
    * directly, use theoryOf() instead.
    */
   theory::Theory* d_theoryTable[theory::THEORY_LAST];
-  /** The theory that is actively running check */
-  theory::Theory* d_activeTheory;
 
   /**
    * A collection of theories that are "active" for the current run.
@@ -486,15 +484,6 @@ class TheoryEngine {
    */
   bool isRelevant(Node lit) const;
   /**
-   * Get representatives, available at full effort only.
-   */
-  const std::unordered_set<Node, NodeHashFunction>& getEqcRepresentatives()
-      const;
-  /**
-   * Get representatives for type, available at full effort only.
-   */
-  const std::vector<Node>& getEqcRepresentativesForType(TypeNode t) const;
-  /**
    * This is called at shutdown time by the SmtEngine, just before
    * destruction.  It is important because there are destruction
    * ordering issues between PropEngine and Theory.
@@ -631,10 +620,6 @@ class TheoryEngine {
   inline theory::Theory* theoryOf(TNode node) const {
     return d_theoryTable[theory::Theory::theoryOf(node)];
   }
-  /**
-   * Get the active theory (i.e. the one that is currently running check).
-   */
-  theory::Theory* getActiveTheory() const { return d_activeTheory; }
 
   /**
    * Get the theory associated to a the given theory id.

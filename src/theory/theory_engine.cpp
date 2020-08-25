@@ -339,7 +339,11 @@ void TheoryEngine::preRegister(TNode preprocessed) {
           }
         }
       }
-#endif
+#endif      
+      if (multipleTheories) {
+        // Collect the shared terms if there are multiple theories	
+        NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, preprocessed);	
+      }
     }
 
     // Leaving pre-register
@@ -448,8 +452,7 @@ void TheoryEngine::check(Theory::Effort effort) {
   if (theory::TheoryTraits<THEORY>::hasCheck                        \
       && d_logicInfo.isTheoryEnabled(THEORY))                       \
   {                                                                 \
-    d_activeTheory = theoryOf(THEORY);                              \
-    d_activeTheory->check(effort);                                  \
+    theoryOf(THEORY)->check(effort);                                \
     if (d_inConflict)                                               \
     {                                                               \
       Debug("conflict") << THEORY << " in conflict. " << std::endl; \
@@ -503,8 +506,6 @@ void TheoryEngine::check(Theory::Effort effort) {
 
       // Do the checking
       CVC4_FOR_EACH_THEORY;
-      // clear the active theory
-      d_activeTheory = nullptr;
 
       if(Dump.isOn("missed-t-conflicts")) {
         Dump("missed-t-conflicts")
@@ -824,18 +825,6 @@ bool TheoryEngine::isRelevant(Node lit) const
   return true;
 }
 
-const std::unordered_set<Node, NodeHashFunction>&
-TheoryEngine::getEqcRepresentatives() const
-{
-  return d_tc->getEqcRepresentatives();
-}
-
-const std::vector<Node>& TheoryEngine::getEqcRepresentativesForType(
-    TypeNode t) const
-{
-  return d_tc->getEqcRepresentativesForType(t);
-}
-
 void TheoryEngine::shutdown() {
   // Set this first; if a Theory shutdown() throws an exception,
   // at least the destruction of the TheoryEngine won't confound
@@ -1099,7 +1088,6 @@ void TheoryEngine::assertFact(TNode literal)
     if (atom.getKind() == kind::EQUAL) {
       // Assert it to the the owning theory
       assertToTheory(literal, literal, /* to */ Theory::theoryOf(atom), /* from */ THEORY_SAT_SOLVER);
-      // NOTE (centralEe): fact from SAT_SOLVER
       // Shared terms manager will assert to interested theories directly, as
       // the terms become shared
       assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ THEORY_SAT_SOLVER);
@@ -1152,8 +1140,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
       assertToTheory(literal, literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
     }
     if (theory != THEORY_BUILTIN) {
-      // NOTE (centralEe): should not be necessary if literal is a fact that
-      // holds in central ee Assert to the shared terms database
+      // Assert to the shared terms database
       assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ theory);
     }
   } else {
