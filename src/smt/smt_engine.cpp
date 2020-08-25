@@ -157,7 +157,6 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_abductSolver(nullptr),
       d_quantElimSolver(nullptr),
       d_assignments(nullptr),
-      d_defineCommands(),
       d_logic(),
       d_originalOptions(),
       d_isInternalSubsolver(false),
@@ -713,10 +712,6 @@ void SmtEngine::defineFunction(Expr func,
   DefineFunctionCommand c(ss.str(), func, formals, formula, global);
   d_dumpm->addToModelCommandAndDump(
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
-
-  PROOF(if (options::checkUnsatCores()) {
-    d_defineCommands.push_back(c.clone());
-  });
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);
@@ -1555,17 +1550,12 @@ void SmtEngine::checkUnsatCore() {
   coreChecker.getOptions().set(options::checkUnsatCores, false);
   coreChecker.getOptions().set(options::checkProofs, false);
 
-  PROOF(
-  std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
-  for (; itg != d_defineCommands.end();  ++itg) {
-    (*itg)->invoke(&coreChecker);
-  }
-  );
-
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
-    Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i << endl;
-    coreChecker.assertFormula(Node::fromExpr(*i));
+    Node assertionAfterExpansion = expandDefinitions(Node::fromExpr(*i));
+    Notice() << "SmtEngine::checkUnsatCore(): pushing core member " << *i
+             << ", expanded to " << assertionAfterExpansion << "\n";
+    coreChecker.assertFormula(assertionAfterExpansion);
   }
   Result r;
   try {
@@ -1618,7 +1608,7 @@ void SmtEngine::checkModel(bool hardFailure) {
     Assert(te != nullptr);
     te->checkTheoryAssertionsWithModel(hardFailure);
   }
-  
+
   // Output the model
   Notice() << *m;
 
