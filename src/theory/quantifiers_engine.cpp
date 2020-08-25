@@ -676,6 +676,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
         Trace("quant-engine-debug") << "Build model..." << std::endl;
         if (!d_te->buildModel())
         {
+          // If we failed to build the model, flush all pending lemmas and
+          // finish.
           flushLemmas();
           break;
         }
