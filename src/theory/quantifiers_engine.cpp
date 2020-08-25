@@ -673,21 +673,11 @@ void QuantifiersEngine::check( Theory::Effort e ){
       //build the model if any module requested it
       if (needsModelE == quant_e)
       {
-        if (!d_model->isBuilt())
-        {
-          // theory engine's model builder is quantifier engine's builder if it
-          // has one
-          Assert(!getModelBuilder()
-                 || getModelBuilder() == d_te->getModelBuilder());
           Trace("quant-engine-debug") << "Build model..." << std::endl;
-          if (!d_te->getModelBuilder()->buildModel(d_model.get()))
+          if (!d_te->buildModel())
           {
             flushLemmas();
-          }
-        }
-        if (!d_model->isBuiltSuccess())
-        {
-          break;
+            break;
         }
       }
       if( !d_hasAddedLemma ){
