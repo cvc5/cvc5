@@ -339,10 +339,11 @@ void TheoryEngine::preRegister(TNode preprocessed) {
           }
         }
       }
-#endif      
+#endif
       if (multipleTheories) {
-        // Collect the shared terms if there are multiple theories	
-        NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor, preprocessed);	
+        // Collect the shared terms if there are multiple theories
+        NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor,
+                                             preprocessed);
       }
     }
 
