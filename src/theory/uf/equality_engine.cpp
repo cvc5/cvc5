@@ -109,53 +109,61 @@ EqualityEngine::~EqualityEngine() {
   free(d_triggerDatabase);
 }
 
-
-EqualityEngine::EqualityEngine(context::Context* context, std::string name, bool constantsAreTriggers)
-: ContextNotifyObj(context)
-, d_masterEqualityEngine(0)
-, d_context(context)
-, d_done(context, false)
-, d_performNotify(true)
-, d_notify(s_notifyNone)
-, d_applicationLookupsCount(context, 0)
-, d_nodesCount(context, 0)
-, d_assertedEqualitiesCount(context, 0)
-, d_equalityTriggersCount(context, 0)
-, d_subtermEvaluatesSize(context, 0)
-, d_stats(name)
-, d_inPropagate(false)
-, d_constantsAreTriggers(constantsAreTriggers)
-, d_triggerDatabaseSize(context, 0)
-, d_triggerTermSetUpdatesSize(context, 0)
-, d_deducedDisequalitiesSize(context, 0)
-, d_deducedDisequalityReasonsSize(context, 0)
-, d_propagatedDisequalities(context)
-, d_name(name)
+EqualityEngine::EqualityEngine(context::Context* context,
+                               std::string name,
+                               bool constantsAreTriggers,
+                               bool anyTermTriggers)
+    : ContextNotifyObj(context),
+      d_masterEqualityEngine(0),
+      d_context(context),
+      d_done(context, false),
+      d_performNotify(true),
+      d_notify(s_notifyNone),
+      d_applicationLookupsCount(context, 0),
+      d_nodesCount(context, 0),
+      d_assertedEqualitiesCount(context, 0),
+      d_equalityTriggersCount(context, 0),
+      d_subtermEvaluatesSize(context, 0),
+      d_stats(name),
+      d_inPropagate(false),
+      d_constantsAreTriggers(constantsAreTriggers),
+      d_anyTermsAreTriggers(anyTermTriggers),
+      d_triggerDatabaseSize(context, 0),
+      d_triggerTermSetUpdatesSize(context, 0),
+      d_deducedDisequalitiesSize(context, 0),
+      d_deducedDisequalityReasonsSize(context, 0),
+      d_propagatedDisequalities(context),
+      d_name(name)
 {
   init();
 }
 
-EqualityEngine::EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name, bool constantsAreTriggers)
-: ContextNotifyObj(context)
-, d_masterEqualityEngine(0)
-, d_context(context)
-, d_done(context, false)
-, d_performNotify(true)
-, d_notify(notify)
-, d_applicationLookupsCount(context, 0)
-, d_nodesCount(context, 0)
-, d_assertedEqualitiesCount(context, 0)
-, d_equalityTriggersCount(context, 0)
-, d_subtermEvaluatesSize(context, 0)
-, d_stats(name)
-, d_inPropagate(false)
-, d_constantsAreTriggers(constantsAreTriggers)
-, d_triggerDatabaseSize(context, 0)
-, d_triggerTermSetUpdatesSize(context, 0)
-, d_deducedDisequalitiesSize(context, 0)
-, d_deducedDisequalityReasonsSize(context, 0)
-, d_propagatedDisequalities(context)
-, d_name(name)
+EqualityEngine::EqualityEngine(EqualityEngineNotify& notify,
+                               context::Context* context,
+                               std::string name,
+                               bool constantsAreTriggers,
+                               bool anyTermTriggers)
+    : ContextNotifyObj(context),
+      d_masterEqualityEngine(0),
+      d_context(context),
+      d_done(context, false),
+      d_performNotify(true),
+      d_notify(notify),
+      d_applicationLookupsCount(context, 0),
+      d_nodesCount(context, 0),
+      d_assertedEqualitiesCount(context, 0),
+      d_equalityTriggersCount(context, 0),
+      d_subtermEvaluatesSize(context, 0),
+      d_stats(name),
+      d_inPropagate(false),
+      d_constantsAreTriggers(constantsAreTriggers),
+      d_anyTermsAreTriggers(anyTermTriggers),
+      d_triggerDatabaseSize(context, 0),
+      d_triggerTermSetUpdatesSize(context, 0),
+      d_deducedDisequalitiesSize(context, 0),
+      d_deducedDisequalityReasonsSize(context, 0),
+      d_propagatedDisequalities(context),
+      d_name(name)
 {
   init();
 }
@@ -1073,7 +1081,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));
-  ;
+
   if (Debug.isOn("equality::internal"))
   {
     debugPrintGraph();
@@ -1240,6 +1248,63 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
   // Get the explanation
   getExplanation(
       getNodeId(p), polarity ? d_trueId : d_falseId, assertions, cache, eqp);
+}
+
+void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
+{
+  bool polarity = lit.getKind() != kind::NOT;
+  TNode atom = polarity ? lit : lit[0];
+  std::vector<TNode> tassumptions;
+  if (atom.getKind() == kind::EQUAL)
+  {
+    Assert(hasTerm(atom[0]));
+    Assert(hasTerm(atom[1]));
+    if (!polarity)
+    {
+      // ensure that we are ready to explain the disequality
+      AlwaysAssert(areDisequal(atom[0], atom[1], true));
+    }
+    else if (atom[0] == atom[1])
+    {
+      // no need to explain reflexivity
+      return;
+    }
+    explainEquality(atom[0], atom[1], polarity, tassumptions);
+  }
+  else
+  {
+    explainPredicate(atom, polarity, tassumptions);
+  }
+  // ensure that duplicates are removed
+  for (const TNode a : tassumptions)
+  {
+    if (std::find(assumptions.begin(), assumptions.end(), a)
+        == assumptions.end())
+    {
+      assumptions.push_back(a);
+    }
+  }
+}
+
+Node EqualityEngine::mkExplainLit(TNode lit)
+{
+  std::vector<TNode> assumptions;
+  explainLit(lit, assumptions);
+  Node ret;
+  NodeManager* nm = NodeManager::currentNM();
+  if (assumptions.empty())
+  {
+    ret = nm->mkConst(true);
+  }
+  else if (assumptions.size() == 1)
+  {
+    ret = assumptions[0];
+  }
+  else
+  {
+    ret = nm->mkNode(kind::AND, assumptions);
+  }
+  return ret;
 }
 
 void EqualityEngine::getExplanation(
@@ -2173,6 +2238,12 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
 
   // Add the term if it's not already there
   addTermInternal(t);
+
+  if (!d_anyTermsAreTriggers)
+  {
+    // if we are not using triggers, we only add the term, but not as a trigger
+    return;
+  }
 
   // Get the node id
   EqualityNodeId eqNodeId = getNodeId(t);
