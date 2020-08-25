@@ -259,7 +259,7 @@ void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
   // passing a flag. This would make the block of code unnecessary.
   if (allowConst && !allowAll)
   {
-    // if i don't already have a constant (0-ary constructor)
+    // if I don't already have a constant (0-ary constructor)
     bool hasConstant = false;
     for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
     {
