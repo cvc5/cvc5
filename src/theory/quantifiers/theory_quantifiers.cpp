@@ -42,7 +42,8 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
                                      Valuation valuation,
                                      const LogicInfo& logicInfo,
                                      ProofNodeManager* pnm)
-    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm)
+    : Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo, pnm),
+      d_qstate(c, u, valuation)
 {
   out.handleUserAttribute( "fun-def", this );
   out.handleUserAttribute( "sygus", this );
@@ -59,20 +60,21 @@ TheoryQuantifiers::TheoryQuantifiers(Context* c,
     // add the proof rules
     d_qChecker.registerTo(pc);
   }
+  // indicate we are using the quantifiers theory state object
+  d_theoryState = &d_qstate;
 }
 
 TheoryQuantifiers::~TheoryQuantifiers() {
 }
 
+TheoryRewriter* TheoryQuantifiers::getTheoryRewriter() { return &d_rewriter; }
 void TheoryQuantifiers::finishInit()
 {
   // quantifiers are not evaluated in getModelValue
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setUnevaluatedKind(EXISTS);
-  tm->setUnevaluatedKind(FORALL);
+  d_valuation.setUnevaluatedKind(EXISTS);
+  d_valuation.setUnevaluatedKind(FORALL);
   // witness is used in several instantiation strategies
-  tm->setUnevaluatedKind(WITNESS);
+  d_valuation.setUnevaluatedKind(WITNESS);
 }
 
 void TheoryQuantifiers::preRegisterTerm(TNode n) {

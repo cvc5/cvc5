@@ -35,7 +35,6 @@
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "theory/atom_requests.h"
-#include "theory/decision_manager.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
@@ -88,19 +87,24 @@ struct NodeTheoryPairHashFunction {
 
 /* Forward declarations */
 namespace theory {
-  class TheoryModel;
-  class TheoryEngineModelBuilder;
+class CombinationEngine;
+class TheoryModel;
+class TheoryEngineModelBuilder;
+class EqEngineManagerDistributed;
 
-  namespace eq {
-    class EqualityEngine;
-  }/* CVC4::theory::eq namespace */
+class DecisionManager;
+class RelevanceManager;
 
-  namespace quantifiers {
-    class TermDb;
-  }
+namespace eq {
+class EqualityEngine;
+}  // namespace eq
 
-  class EntailmentCheckParameters;
-  class EntailmentCheckSideEffects;
+namespace quantifiers {
+class TermDb;
+}
+
+class EntailmentCheckParameters;
+class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
 class RemoveTermFormulas;
@@ -115,6 +119,7 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
+  friend class theory::CombinationEngine;
   friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
 
@@ -148,51 +153,13 @@ class TheoryEngine {
   SharedTermsDatabase d_sharedTerms;
 
   /**
-   * Master equality engine, to share with theories.
+   * The distributed equality manager. This class is responsible for
+   * configuring the theories of this class for handling equalties
+   * in a "distributed" fashion, i.e. each theory maintains a unique
+   * instance of an equality engine. These equality engines are memory
+   * managed by this class.
    */
-  theory::eq::EqualityEngine* d_masterEqualityEngine;
-
-  /** notify class for master equality engine */
-  class NotifyClass : public theory::eq::EqualityEngineNotify {
-    TheoryEngine& d_te;
-  public:
-    NotifyClass(TheoryEngine& te): d_te(te) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      return true;
-    }
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      return true;
-    }
-    bool eqNotifyTriggerTermEquality(theory::TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override
-    {
-      return true;
-    }
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
-    void eqNotifyNewClass(TNode t) override { d_te.eqNotifyNewClass(t); }
-    void eqNotifyPreMerge(TNode t1, TNode t2) override
-    {
-    }
-    void eqNotifyPostMerge(TNode t1, TNode t2) override
-    {
-    }
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override
-    {
-    }
-  };/* class TheoryEngine::NotifyClass */
-  NotifyClass d_masterEENotify;
-
-  /**
-   * notification methods
-   */
-  void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
-  void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+  std::unique_ptr<theory::EqEngineManagerDistributed> d_eeDistributed;
 
   /**
    * The quantifiers engine
@@ -202,6 +169,8 @@ class TheoryEngine {
    * The decision manager
    */
   std::unique_ptr<theory::DecisionManager> d_decManager;
+  /** The relevance manager */
+  std::unique_ptr<theory::RelevanceManager> d_relManager;
 
   /**
    * Default model object
@@ -397,7 +366,13 @@ class TheoryEngine {
     d_propEngine = propEngine;
   }
 
-  /** Called when all initialization of options/logic is done */
+  /**
+   * Called when all initialization of options/logic is done, after theory
+   * objects have been created.
+   *
+   * This initializes the quantifiers engine, the "official" equality engines
+   * of each theory as required, and the model and model builder utilities.
+   */
   void finishInit();
 
   /**
@@ -529,6 +504,12 @@ public:
   inline bool needCheck() const {
     return d_outputChannelUsed || d_lemmasAdded;
   }
+  /**
+   * Is the literal lit (possibly) critical for satisfying the input formula in
+   * the current context? This call is applicable only during collectModelInfo
+   * or during LAST_CALL effort.
+   */
+  bool isRelevant(Node lit) const;
 
   /**
    * This is called at shutdown time by the SmtEngine, just before
@@ -765,15 +746,8 @@ public:
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
-  void staticInitializeBVOptions(const std::vector<Node>& assertions);
 
-  Node ppSimpITE(TNode assertion);
-  /** Returns false if an assertion simplified to false. */
-  bool donePPSimpITE(std::vector<Node>& assertions);
-
-  SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
-
-  theory::eq::EqualityEngine* getMasterEqualityEngine() { return d_masterEqualityEngine; }
+  SharedTermsDatabase* getSharedTermsDatabase();
 
   SortInference* getSortInference() { return &d_sortInfer; }
 

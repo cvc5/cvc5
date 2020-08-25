@@ -176,6 +176,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
                                      TheoryEngine* te)
     : d_te(te),
+      d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
@@ -223,7 +224,6 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
   d_conflict = false;
   d_hasAddedLemma = false;
-  d_useModelEe = false;
   //don't add true lemma
   d_lemmas_produced_c[d_term_util->d_true] = true;
 
@@ -274,6 +274,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
 }
 
 QuantifiersEngine::~QuantifiersEngine() {}
+
+void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
+{
+  d_masterEqualityEngine = mee;
+}
 
 context::Context* QuantifiersEngine::getSatContext()
 {
@@ -513,22 +518,9 @@ void QuantifiersEngine::ppNotifyAssertions(
 
 void QuantifiersEngine::check( Theory::Effort e ){
   CodeTimer codeTimer(d_statistics.d_time);
-  d_useModelEe = options::quantModelEe() && ( e>=Theory::EFFORT_LAST_CALL );
-  // if we want to use the model's equality engine, build the model now
-  if( d_useModelEe && !d_model->isBuilt() ){
-    Trace("quant-engine-debug") << "Build the model." << std::endl;
-    if (!d_te->getModelBuilder()->buildModel(d_model.get()))
-    {
-      //we are done if model building was unsuccessful
-      flushLemmas();
-      if( d_hasAddedLemma ){
-        Trace("quant-engine-debug") << "...failed." << std::endl;
-        return;
-      }
-    }
-  }
-  
-  if( !getActiveEqualityEngine()->consistent() ){
+
+  if (!getMasterEqualityEngine()->consistent())
+  {
     Trace("quant-engine-debug") << "Master equality engine not consistent, return." << std::endl;
     return;
   }
@@ -970,7 +962,8 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+      getOutputChannel().lemma(
+          lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }
@@ -1272,23 +1265,11 @@ QuantifiersEngine::Statistics::~Statistics(){
 
 eq::EqualityEngine* QuantifiersEngine::getMasterEqualityEngine() const
 {
-  return d_te->getMasterEqualityEngine();
-}
-
-eq::EqualityEngine* QuantifiersEngine::getActiveEqualityEngine() const
-{
-  if( d_useModelEe ){
-    return d_model->getEqualityEngine();
-  }
-  return d_te->getMasterEqualityEngine();
+  return d_masterEqualityEngine;
 }
 
 Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
-  bool prevModelEe = d_useModelEe;
-  d_useModelEe = false;
-  Node ret = d_eq_query->getInternalRepresentative( a, q, index );
-  d_useModelEe = prevModelEe;
-  return ret;
+  return d_eq_query->getInternalRepresentative(a, q, index);
 }
 
 bool QuantifiersEngine::getSynthSolutions(
@@ -1298,7 +1279,7 @@ bool QuantifiersEngine::getSynthSolutions(
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {
-  eq::EqualityEngine* ee = getActiveEqualityEngine();
+  eq::EqualityEngine* ee = getMasterEqualityEngine();
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( ee );
   std::map< TypeNode, int > typ_num;
   while( !eqcs_i.isFinished() ){

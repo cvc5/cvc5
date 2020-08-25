@@ -49,6 +49,7 @@ class QuantifiersEnginePrivate;
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
+  friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDList<Node> NodeList;
   typedef context::CDList<bool> BoolList;
@@ -74,8 +75,6 @@ public:
   //---------------------- utilities
   /** get the master equality engine */
   eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get the active equality engine */
-  eq::EqualityEngine* getActiveEqualityEngine() const;
   /** get equality query */
   EqualityQuery* getEqualityQuery() const;
   /** get the model builder */
@@ -104,6 +103,10 @@ public:
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
+  //---------------------- private initialization
+  /** Set the master equality engine */
+  void setMasterEqualityEngine(eq::EqualityEngine* mee);
+  //---------------------- end private initialization
   /**
    * Maps quantified formulas to the module that owns them, if any module has
    * specifically taken ownership of it.
@@ -228,8 +231,6 @@ public:
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */
   void eqNotifyNewClass(TNode t);
-  /** use model equality engine */
-  bool usingModelEqualityEngine() const { return d_useModelEe; }
   /** debug print equality engine */
   void debugPrintEqualityEngine( const char * c );
   /** get internal representative
@@ -320,6 +321,8 @@ public:
  private:
   /** reference to theory engine object */
   TheoryEngine* d_te;
+  /** Pointer to the master equality engine */
+  eq::EqualityEngine* d_masterEqualityEngine;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
@@ -364,8 +367,6 @@ public:
   context::CDO<bool> d_conflict_c;
   /** has added lemma this round */
   bool d_hasAddedLemma;
-  /** whether to use model equality engine */
-  bool d_useModelEe;
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */

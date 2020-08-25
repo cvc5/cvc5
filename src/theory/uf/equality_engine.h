@@ -17,7 +17,8 @@
 
 #include "cvc4_private.h"
 
-#pragma once
+#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_H
+#define CVC4__THEORY__UF__EQUALITY_ENGINE_H
 
 #include <deque>
 #include <queue>
@@ -33,6 +34,8 @@
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 #include "theory/uf/eq_proof.h"
+#include "theory/uf/equality_engine_iterator.h"
+#include "theory/uf/equality_engine_notify.h"
 #include "theory/uf/equality_engine_types.h"
 #include "util/statistics_registry.h"
 
@@ -44,115 +47,6 @@ namespace eq {
 class EqProof;
 class EqClassesIterator;
 class EqClassIterator;
-
-/**
- * Interface for equality engine notifications. All the notifications
- * are safe as TNodes, but not necessarily for negations.
- */
-class EqualityEngineNotify {
-
-  friend class EqualityEngine;
-
-public:
-
-  virtual ~EqualityEngineNotify() {};
-
-  /**
-   * Notifies about a trigger equality that became true or false.
-   *
-   * @param equality the equality that became true or false
-   * @param value the value of the equality
-   */
-  virtual bool eqNotifyTriggerEquality(TNode equality, bool value) = 0;
-
-  /**
-   * Notifies about a trigger predicate that became true or false.
-   *
-   * @param predicate the trigger predicate that became true or false
-   * @param value the value of the predicate
-   */
-  virtual bool eqNotifyTriggerPredicate(TNode predicate, bool value) = 0;
-
-  /**
-   * Notifies about the merge of two trigger terms.
-   *
-   * @param tag the theory that both triggers were tagged with
-   * @param t1 a term marked as trigger
-   * @param t2 a term marked as trigger
-   * @param value true if equal, false if dis-equal
-   */
-  virtual bool eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) = 0;
-
-  /**
-   * Notifies about the merge of two constant terms. After this, all work is suspended and all you
-   * can do is ask for explanations.
-   *
-   * @param t1 a constant term
-   * @param t2 a constant term
-   */
-  virtual void eqNotifyConstantTermMerge(TNode t1, TNode t2) = 0;
-
-  /**
-   * Notifies about the creation of a new equality class.
-   *
-   * @param t the term forming the new class
-   */
-  virtual void eqNotifyNewClass(TNode t) = 0;
-
-  /**
-   * Notifies about the merge of two classes (just before the merge).
-   *
-   * @param t1 a term
-   * @param t2 a term
-   */
-  virtual void eqNotifyPreMerge(TNode t1, TNode t2) = 0;
-
-  /**
-   * Notifies about the merge of two classes (just after the merge).
-   *
-   * @param t1 a term
-   * @param t2 a term
-   */
-  virtual void eqNotifyPostMerge(TNode t1, TNode t2) = 0;
-
-  /**
-   * Notifies about the disequality of two terms.
-   *
-   * @param t1 a term
-   * @param t2 a term
-   * @param reason the reason
-   */
-  virtual void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) = 0;
-
-};/* class EqualityEngineNotify */
-
-/**
- * Implementation of the notification interface that ignores all the
- * notifications.
- */
-class EqualityEngineNotifyNone : public EqualityEngineNotify {
-public:
- bool eqNotifyTriggerEquality(TNode equality, bool value) override
- {
-   return true;
- }
- bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
- {
-   return true;
- }
- bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                  TNode t1,
-                                  TNode t2,
-                                  bool value) override
- {
-   return true;
- }
- void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
- void eqNotifyNewClass(TNode t) override {}
- void eqNotifyPreMerge(TNode t1, TNode t2) override {}
- void eqNotifyPostMerge(TNode t1, TNode t2) override {}
- void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
-};/* class EqualityEngineNotifyNone */
 
 /**
  * An interface for equality engine notifications during equality path reconstruction.
@@ -186,17 +80,26 @@ class EqualityEngine : public context::ContextNotifyObj {
    */
   EqualityEngine* d_masterEqualityEngine;
 
-public:
-
+ public:
   /**
    * Initialize the equality engine, given the notification class.
+   *
+   * @param constantTriggers Whether we treat constants as trigger terms
+   * @param anyTermTriggers Whether we use any terms as triggers
    */
-  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name, bool constantsAreTriggers);
+  EqualityEngine(EqualityEngineNotify& notify,
+                 context::Context* context,
+                 std::string name,
+                 bool constantTriggers,
+                 bool anyTermTriggers = true);
 
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context, std::string name, bool constantsAreTriggers);
+  EqualityEngine(context::Context* context,
+                 std::string name,
+                 bool constantsAreTriggers,
+                 bool anyTermTriggers = true);
 
   /**
    * Just a destructor.
@@ -204,13 +107,14 @@ public:
   virtual ~EqualityEngine();
 
   /**
-   * Set the master equality engine for this one. Master engine will get copies of all
-   * the terms and equalities from this engine.
+   * Set the master equality engine for this one. Master engine will get copies
+   * of all the terms and equalities from this engine.
    */
   void setMasterEqualityEngine(EqualityEngine* master);
 
   /** Statistics about the equality engine instance */
-  struct Statistics {
+  struct Statistics
+  {
     /** Total number of merges */
     IntStat d_mergesCount;
     /** Number of terms managed by the system */
@@ -521,6 +425,23 @@ private:
   /** Are we in propagate */
   bool d_inPropagate;
 
+  /** Proof-new specific construction of equality conclusions for EqProofs
+   *
+   * Given two equality node ids, build an equality between the nodes they
+   * correspond to and add it as a conclusion to the given EqProof.
+   *
+   * The equality is only built if the nodes the ids correspond to are not
+   * internal nodes in the equality engine, i.e., they correspond to full
+   * applications of the respective kinds. Since the equality engine also
+   * applies congruence over n-ary kinds, internal nodes, i.e., partial
+   * applications, may still correspond to "full applications" in the
+   * first-order sense. Therefore this method also checks, in the case of n-ary
+   * congruence kinds, if an equality between "full applications" can be built.
+   */
+  void buildEqConclusion(EqualityNodeId id1,
+                         EqualityNodeId id2,
+                         EqProof* eqp) const;
+
   /**
    * Get an explanation of the equality t1 = t2. Returns the asserted equalities
    * that imply t1 = t2. Returns TNodes as the assertion equalities should be
@@ -595,6 +516,11 @@ private:
 
   /** Are the constants triggers */
   bool d_constantsAreTriggers;
+  /**
+   * Are any terms triggers? If this is false, then all trigger terms are
+   * ignored (e.g. this means that addTriggerTerm is equivalent to addTerm).
+   */
+  bool d_anyTermsAreTriggers;
 
   /** The information about trigger terms is stored in this easily maintained memory. */
   char* d_triggerDatabase;
@@ -747,9 +673,15 @@ private:
 
   /** The internal addTerm */
   void addTermInternal(TNode t, bool isOperator = false);
+  /**
+   * Adds a notify trigger for equality. When equality becomes true
+   * eqNotifyTriggerPredicate will be called with value = true, and when
+   * equality becomes false eqNotifyTriggerPredicate will be called with value =
+   * false.
+   */
+  void addTriggerEquality(TNode equality);
 
-public:
-
+ public:
   /**
    * Adds a term to the term database.
    */
@@ -801,8 +733,12 @@ public:
    * @param polarity true if asserting the predicate, false if
    *                 asserting the negated predicate
    * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
    */
-  void assertPredicate(TNode p, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  bool assertPredicate(TNode p,
+                       bool polarity,
+                       TNode reason,
+                       unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Adds an equality eq with the given polarity to the database.
@@ -811,8 +747,12 @@ public:
    * @param polarity true if asserting the equality, false if
    *                 asserting the negated equality
    * @param reason the reason to keep for building explanations
+   * @return true if a new fact was asserted, false if this call was a no-op.
    */
-  void assertEquality(TNode eq, bool polarity, TNode reason, unsigned pid = MERGED_THROUGH_EQUALITY);
+  bool assertEquality(TNode eq,
+                      bool polarity,
+                      TNode reason,
+                      unsigned pid = MERGED_THROUGH_EQUALITY);
 
   /**
    * Returns the current representative of the term t.
@@ -842,6 +782,22 @@ public:
   void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions,
                         EqProof* eqp = nullptr) const;
 
+  //--------------------------- standard safe explanation methods
+  /**
+   * Explain literal, add its explanation to assumptions. This method does not
+   * add duplicates to assumptions. It requires that the literal
+   * holds in this class. If lit is a disequality, it
+   * moreover ensures this class is ready to explain it via areDisequal with
+   * ensureProof = true.
+   */
+  void explainLit(TNode lit, std::vector<TNode>& assumptions);
+  /**
+   * Explain literal, return the conjunction. This method relies on the above
+   * method.
+   */
+  Node mkExplainLit(TNode lit);
+  //--------------------------- end standard safe explanation methods
+
   /**
    * Add term to the set of trigger terms with a corresponding tag. The notify class will get
    * notified when two trigger terms with the same tag become equal or dis-equal. The notification
@@ -868,16 +824,13 @@ public:
   TNode getTriggerTermRepresentative(TNode t, TheoryId theoryTag) const;
 
   /**
-   * Adds a notify trigger for equality. When equality becomes true eqNotifyTriggerEquality
-   * will be called with value = true, and when equality becomes false eqNotifyTriggerEquality
-   * will be called with value = false.
-   */
-  void addTriggerEquality(TNode equality);
-
-  /**
-   * Adds a notify trigger for the predicate p. When the predicate becomes true
-   * eqNotifyTriggerPredicate will be called with value = true, and when equality becomes false
+   * Adds a notify trigger for the predicate p, where notice that p can be
+   * an equality. When the predicate becomes true, eqNotifyTriggerPredicate will
+   * be called with value = true, and when predicate becomes false
    * eqNotifyTriggerPredicate will be called with value = false.
+   *
+   * Notice that if p is an equality, then we use a separate method for
+   * determining when to call eqNotifyTriggerPredicate.
    */
   void addTriggerPredicate(TNode predicate);
 
@@ -913,45 +866,13 @@ public:
    * Returns a fresh merge reason type tag for the client to use.
    */
   unsigned getFreshMergeReasonType();
+
+  /** Identify this equality engine (for debugging, etc..) */
+  std::string identify() const;
 };
-
-/**
- * Iterator to iterate over the equivalence classes.
- */
-class EqClassesIterator {
-  const eq::EqualityEngine* d_ee;
-  size_t d_it;
-public:
-  EqClassesIterator();
-  EqClassesIterator(const eq::EqualityEngine* ee);
-  Node operator*() const;
-  bool operator==(const EqClassesIterator& i) const;
-  bool operator!=(const EqClassesIterator& i) const;
-  EqClassesIterator& operator++();
-  EqClassesIterator operator++(int);
-  bool isFinished() const;
-};/* class EqClassesIterator */
-
-/**
- * Iterator to iterate over the equivalence class members.
- */
-class EqClassIterator {
-  const eq::EqualityEngine* d_ee;
-  /** Starting node */
-  EqualityNodeId d_start;
-  /** Current node */
-  EqualityNodeId d_current;
-public:
-  EqClassIterator();
-  EqClassIterator(Node eqc, const eq::EqualityEngine* ee);
-  Node operator*() const;
-  bool operator==(const EqClassIterator& i) const;
-  bool operator!=(const EqClassIterator& i) const;
-  EqClassIterator& operator++();
-  EqClassIterator operator++(int);
-  bool isFinished() const;
-};/* class EqClassIterator */
 
 } // Namespace eq
 } // Namespace theory
 } // Namespace CVC4
+
+#endif

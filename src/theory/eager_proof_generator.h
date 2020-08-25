@@ -86,7 +86,9 @@ class EagerProofGenerator : public ProofGenerator
       NodeProofNodeMap;
 
  public:
-  EagerProofGenerator(ProofNodeManager* pnm, context::Context* c = nullptr);
+  EagerProofGenerator(ProofNodeManager* pnm,
+                      context::Context* c = nullptr,
+                      std::string name = "EagerProofGenerator");
   ~EagerProofGenerator() {}
   /** Get the proof for formula f. */
   std::shared_ptr<ProofNode> getProofFor(Node f) override;
@@ -152,7 +154,7 @@ class EagerProofGenerator : public ProofGenerator
   TrustNode mkTrustNodeSplit(Node f);
   //--------------------------------------- end common proofs
   /** identify */
-  std::string identify() const override { return "EagerProofGenerator"; }
+  std::string identify() const override;
 
  protected:
   /** Set that pf is the proof for conflict conf */
@@ -163,6 +165,8 @@ class EagerProofGenerator : public ProofGenerator
   void setProofForPropExp(TNode lit, Node exp, std::shared_ptr<ProofNode> pf);
   /** The proof node manager */
   ProofNodeManager* d_pnm;
+  /** Name identifier */
+  std::string d_name;
   /** A dummy context used by this class if none is provided */
   context::Context d_context;
   /**

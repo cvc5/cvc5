@@ -168,11 +168,28 @@ header = "options/smt_options.h"
 [[option]]
   name       = "proofNewPedantic"
   category   = "regular"
-  long       = "proof-new-pedantic"
+  long       = "proof-new-pedantic=N"
+  type       = "uint32_t"
+  default    = "0"
+  read_only  = true
+  help       = "assertion failure for any incorrect rule application or untrusted lemma having pedantic level <=N with proof-new"
+
+[[option]]
+  name       = "proofNewPedanticEager"
+  category   = "regular"
+  long       = "proof-new-pedantic-eager"
+  type       = "bool"
+  default    = "false"
+  help       = "check pedantic levels eagerly (during proof rule construction) instead of during final proof construction"
+
+[[option]]
+  name       = "proofNewEagerChecking"
+  category   = "regular"
+  long       = "proof-new-eager-checking"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "assertion failure for any incorrect rule application or untrusted lemma for fully supported portions with proof-new"
+  help       = "check proofs eagerly with proof-new for local debugging"
 
 [[option]]
   name       = "dumpInstantiations"

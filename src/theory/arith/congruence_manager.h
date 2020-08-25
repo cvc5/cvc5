@@ -61,8 +61,6 @@ private:
   public:
     ArithCongruenceNotify(ArithCongruenceManager& acm);
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -72,8 +70,7 @@ private:
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
     void eqNotifyNewClass(TNode t) override;
-    void eqNotifyPreMerge(TNode t1, TNode t2) override;
-    void eqNotifyPostMerge(TNode t1, TNode t2) override;
+    void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
   };
   ArithCongruenceNotify d_notify;
@@ -96,7 +93,8 @@ private:
 
   const ArithVariables& d_avariables;
 
-  eq::EqualityEngine d_ee;
+  /** The equality engine being used by this class */
+  eq::EqualityEngine* d_ee;
 
   void raiseConflict(Node conflict);
 public:
@@ -108,8 +106,6 @@ public:
   const Node getNextPropagation();
 
   bool canExplain(TNode n) const;
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
 
 private:
   Node externalToInternal(TNode n) const;
@@ -139,6 +135,19 @@ public:
   ArithCongruenceManager(context::Context* satContext, ConstraintDatabase&, SetupLiteralCallBack, const ArithVariables&, RaiseEqualityEngineConflict raiseConflict);
   ~ArithCongruenceManager();
 
+  //--------------------------------- initialization
+  /**
+   * Returns true if we need an equality engine, see
+   * Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  /**
+   * Finish initialize. This class is instructed by TheoryArithPrivate to use
+   * the equality engine ee.
+   */
+  void finishInit(eq::EqualityEngine* ee);
+  //--------------------------------- end initialization
+
   Node explain(TNode literal);
   void explain(TNode lit, NodeBuilder<>& out);
 
@@ -167,10 +176,8 @@ public:
 
 
   void addSharedTerm(Node x);
-  
-  eq::EqualityEngine * getEqualityEngine() { return &d_ee; }
 
-private:
+ private:
   class Statistics {
   public:
     IntStat d_watchedVariables;

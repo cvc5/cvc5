@@ -77,11 +77,18 @@ class TheoryBV : public Theory {
 
   ~TheoryBV();
 
-  TheoryRewriter* getTheoryRewriter() override { return &d_rewriter; }
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
+  /** finish initialization */
   void finishInit() override;
+  //--------------------------------- end initialization
 
   TrustNode expandDefinition(Node node) override;
 
@@ -99,8 +106,6 @@ class TheoryBV : public Theory {
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  /** equality engine */
-  eq::EqualityEngine* getEqualityEngine() override;
   bool getCurrentSubstitution(int effort,
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
@@ -108,8 +113,6 @@ class TheoryBV : public Theory {
   int getReduction(int effort, Node n, Node& nr) override;
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
-  void enableCoreTheorySlicer();
 
   TrustNode ppRewrite(TNode t) override;
 
@@ -193,7 +196,6 @@ class TheoryBV : public Theory {
 
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
   std::unique_ptr<AbstractionModule> d_abstractionModule;
-  bool d_isCoreTheory;
   bool d_calledPreregister;
   
   //for extended functions
@@ -242,7 +244,7 @@ class TheoryBV : public Theory {
    */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
 
   bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
 
@@ -270,6 +272,8 @@ class TheoryBV : public Theory {
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;

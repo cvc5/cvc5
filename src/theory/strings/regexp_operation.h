@@ -19,14 +19,14 @@
 #ifndef CVC4__THEORY__STRINGS__REGEXP__OPERATION_H
 #define CVC4__THEORY__STRINGS__REGEXP__OPERATION_H
 
-#include <vector>
+#include <map>
 #include <set>
-#include <algorithm>
-#include <climits>
-#include "util/hash.h"
+#include <unordered_map>
+#include <vector>
+
+#include "expr/node.h"
+#include "theory/strings/skolem_cache.h"
 #include "util/string.h"
-#include "theory/theory.h"
-#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -73,23 +73,17 @@ class RegExpOpr {
   Node d_sigma;
   Node d_sigma_star;
 
-  std::map<PairNodes, Node> d_simpl_cache;
-  std::map<PairNodes, Node> d_simpl_neg_cache;
+  /** A cache for simplify */
+  std::map<Node, Node> d_simpCache;
   std::map<Node, std::pair<int, Node> > d_delta_cache;
   std::map<PairNodeStr, Node> d_dv_cache;
   std::map<PairNodeStr, std::pair<Node, int> > d_deriv_cache;
-  std::map<Node, std::pair<Node, int> > d_compl_cache;
   /** cache mapping regular expressions to whether they contain constants */
   std::unordered_map<Node, RegExpConstType, NodeHashFunction> d_constCache;
-  std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_cset_cache;
   std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_fset_cache;
   std::map<PairNodes, Node> d_inter_cache;
-  std::map<Node, Node> d_rm_inter_cache;
-  std::map<Node, bool> d_norv_cache;
   std::map<Node, std::vector<PairNodes> > d_split_cache;
   std::map<PairNodes, bool> d_inclusionCache;
-  void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
-  void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   /**
    * Helper function for mkString, pretty prints constant or variable regular
    * expression r.
@@ -101,16 +95,19 @@ class RegExpOpr {
   bool containC2(unsigned cnt, Node n);
   Node convert1(unsigned cnt, Node n);
   void convert2(unsigned cnt, Node n, Node &r1, Node &r2);
-  bool testNoRV(Node r);
   Node intersectInternal(Node r1,
                          Node r2,
                          std::map<PairNodes, Node> cache,
                          unsigned cnt);
+  /**
+   * Given a regular expression r, this returns an equivalent regular expression
+   * that contains no applications of intersection.
+   */
   Node removeIntersection(Node r);
   void firstChars(Node r, std::set<unsigned> &pcset, SetNodes &pvset);
 
  public:
-  RegExpOpr();
+  RegExpOpr(SkolemCache* sc);
   ~RegExpOpr();
 
   /**
@@ -121,7 +118,44 @@ class RegExpOpr {
   bool checkConstRegExp( Node r );
   /** get the constant type for regular expression r */
   RegExpConstType getRegExpConstType(Node r);
-  void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
+  /** Simplify
+   *
+   * This is the main method to simplify (unfold) a regular expression
+   * membership. It is called where t is of the form (str.in_re s r),
+   * and t (or (not t), when polarity=false) holds in the current context.
+   * It returns the unfolded form of t.
+   */
+  Node simplify(Node t, bool polarity);
+  /**
+   * Given regular expression of the form
+   *   (re.++ r_0 ... r_{n-1})
+   * This returns a non-null node reLen and updates index such that
+   *   RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
+   * where index is set to either 0 or n-1.
+   */
+  static Node getRegExpConcatFixed(Node r, size_t& index);
+  //------------------------ trusted reductions
+  /**
+   * Return the unfolded form of mem of the form (str.in_re s r).
+   */
+  static Node reduceRegExpPos(Node mem,
+                              SkolemCache* sc,
+                              std::vector<Node>& newSkolems);
+  /**
+   * Return the unfolded form of mem of the form (not (str.in_re s r)).
+   */
+  static Node reduceRegExpNeg(Node mem);
+  /**
+   * Return the unfolded form of mem of the form
+   *   (not (str.in_re s (re.++ r_0 ... r_{n-1})))
+   * Called when RegExpEntail::getFixedLengthForRegexp(r_index) = reLen
+   * where index is either 0 or n-1.
+   *
+   * This uses reLen as an optimization to improve the reduction. If reLen
+   * is null, then this optimization is not applied.
+   */
+  static Node reduceRegExpNegConcatFixed(Node mem, Node reLen, size_t index);
+  //------------------------ end trusted reductions
   /**
    * This method returns 1 if the empty string is in r, 2 if the empty string
    * is not in r, or 0 if it is unknown whether the empty string is in r.
@@ -141,9 +175,9 @@ class RegExpOpr {
   Node derivativeSingle( Node r, CVC4::String c );
   /**
    * Returns the regular expression intersection of r1 and r2. If r1 or r2 is
-   * not constant, then this method returns null and sets spflag to true.
+   * not constant, then this method returns null.
    */
-  Node intersect(Node r1, Node r2, bool &spflag);
+  Node intersect(Node r1, Node r2);
   /** Get the pretty printed version of the regular expression r */
   static std::string mkString(Node r);
 
@@ -155,6 +189,22 @@ class RegExpOpr {
    * for performance reasons.
    */
   bool regExpIncludes(Node r1, Node r2);
+
+ private:
+  /**
+   * Given a regular expression membership of the form:
+   *   (str.in_re x (re.++ R1 ... Rn))
+   * This returns the valid existentially quantified formula:
+   *   (exists ((x1 String) ... (xn String))
+   *      (=> (str.in_re x (re.++ R1 ... Rn))
+   *      (and (= x (str.++ x1 ... xn))
+   *           (str.in_re x1 R1) ... (str.in_re xn Rn))))
+   * Moreover, this formula is cached per regular expression membership via
+   * an attribute, meaning it is always the same for a given membership mem.
+   */
+  static Node getExistsForRegExpConcatMem(Node mem);
+  /** pointer to the skolem cache used by this class */
+  SkolemCache* d_sc;
 };
 
 }/* CVC4::theory::strings namespace */

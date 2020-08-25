@@ -172,7 +172,7 @@ Node CandidateRewriteDatabase::addTerm(Node sol,
             if (val.isNull())
             {
               Assert(!refv.isNull() && refv.getKind() != BOUND_VARIABLE);
-              val = Node::fromExpr(rrChecker->getValue(refv.toExpr()));
+              val = rrChecker->getValue(refv);
             }
             Trace("rr-check") << "  " << v << " -> " << val << std::endl;
             pt.push_back(val);
