@@ -670,14 +670,14 @@ void QuantifiersEngine::check( Theory::Effort e ){
       QuantifiersModule::QEffort quant_e =
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
-      //build the model if any module requested it
+      // Force the theory engine to build the model if any module requested it.
       if (needsModelE == quant_e)
       {
-          Trace("quant-engine-debug") << "Build model..." << std::endl;
-          if (!d_te->buildModel())
-          {
-            flushLemmas();
-            break;
+        Trace("quant-engine-debug") << "Build model..." << std::endl;
+        if (!d_te->buildModel())
+        {
+          flushLemmas();
+          break;
         }
       }
       if( !d_hasAddedLemma ){

@@ -581,7 +581,9 @@ class TheoryEngine {
    */
   theory::TheoryModel* getBuiltModel();
   /**
-   * Build the model
+   * This forces the model maintained by the combination engine to be built
+   * if it has not been done so already. This should be called only during a
+   * last call effort check after theory combination is run.
    */
   bool buildModel();
   /** set eager model building

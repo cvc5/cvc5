@@ -49,7 +49,6 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
-#include "theory/shared_solver.h"
 #include "theory/theory.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
