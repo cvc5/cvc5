@@ -219,6 +219,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_decManager(new DecisionManager(userContext)),
       d_relManager(nullptr),
       d_preRegistrationVisitor(this, context),
+      d_sharedTermsVisitor(d_sharedTerms),
       d_eager_model_building(false),
       d_possiblePropagations(context),
       d_hasPropagated(context),
@@ -975,8 +976,7 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
     Assert(atom.getKind() == kind::EQUAL)
         << "atom should be an EQUALity, not `" << atom << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
-      // assert to the shared solver
-      d_sharedTerms.assertLiteral(assertion);
+      d_sharedTerms.assertEquality(atom, polarity, assertion);
     }
     return;
   }

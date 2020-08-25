@@ -166,6 +166,9 @@ class TheoryEngine {
 
   /** Default visitor for pre-registration */
   PreRegisterVisitor d_preRegistrationVisitor;
+  
+  /** Visitor for collecting shared terms */
+  SharedTermsVisitor d_sharedTermsVisitor;
 
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;

@@ -923,7 +923,6 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
     return false;
   }
   Trace("model-builder") << "TheoryEngineModelBuilder: success" << std::endl;
-  tm->d_modelBuiltSuccess = true;
   return true;
 }
 void TheoryEngineModelBuilder::computeAssignableInfo(
