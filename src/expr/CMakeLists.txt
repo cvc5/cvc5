@@ -61,6 +61,8 @@ libcvc4_add_sources(
   symbol_table.h
   term_canonize.cpp
   term_canonize.h
+  term_context.cpp
+  term_context.h
   term_conversion_proof_generator.cpp
   term_conversion_proof_generator.h
   type.cpp

@@ -53,6 +53,7 @@
 #include "options/smt_options.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "util/random.h"
@@ -4935,8 +4936,7 @@ std::vector<Term> Solver::getUnsatAssumptions(void) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatAssumptions])
       << "Cannot get unsat assumptions unless explicitly enabled "
          "(try --produce-unsat-assumptions)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 == SmtEngine::SmtMode::SMT_MODE_UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get unsat assumptions unless in unsat mode.";
 
   std::vector<Node> uassumptions = d_smtEngine->getUnsatAssumptions();
@@ -4962,8 +4962,7 @@ std::vector<Term> Solver::getUnsatCore(void) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::unsatCores])
       << "Cannot get unsat core unless explicitly enabled "
          "(try --produce-unsat-cores)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 == SmtEngine::SmtMode::SMT_MODE_UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() == SmtMode::UNSAT)
       << "Cannot get unsat core unless in unsat mode.";
   UnsatCore core = d_smtEngine->getUnsatCore();
   /* Can not use
@@ -4999,8 +4998,7 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtEngine::SmtMode::SMT_MODE_UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get value when in unsat mode.";
   std::vector<Term> res;
   for (size_t i = 0, n = terms.size(); i < n; ++i)
@@ -5026,8 +5024,7 @@ Term Solver::getSeparationHeap() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation heap term unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtEngine::SmtMode::SMT_MODE_UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get separtion heap term when in unsat mode.";
 
   theory::TheoryModel* m =
@@ -5051,8 +5048,7 @@ Term Solver::getSeparationNilTerm() const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get separation nil term unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtEngine::SmtMode::SMT_MODE_UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get separtion nil term when in unsat mode.";
 
   theory::TheoryModel* m =
@@ -5150,8 +5146,7 @@ void Solver::printModel(std::ostream& out) const
   CVC4_API_CHECK(d_smtEngine->getOptions()[options::produceModels])
       << "Cannot get value unless model generation is enabled "
          "(try --produce-models)";
-  CVC4_API_CHECK(d_smtEngine->getSmtMode()
-                 != SmtEngine::SmtMode::SMT_MODE_UNSAT)
+  CVC4_API_CHECK(d_smtEngine->getSmtMode() != SmtMode::UNSAT)
       << "Cannot get value when in unsat mode.";
   out << *d_smtEngine->getModel();
   CVC4_API_SOLVER_TRY_CATCH_END;
@@ -5278,7 +5273,7 @@ Term Solver::mkSygusVar(Sort sort, const std::string& symbol) const
   Expr res = d_exprMgr->mkBoundVar(symbol, *sort.d_type);
   (void)res.getType(true); /* kick off type checking */
 
-  d_smtEngine->declareSygusVar(symbol, res, *sort.d_type);
+  d_smtEngine->declareSygusVar(symbol, res, TypeNode::fromType(*sort.d_type));
 
   return Term(this, res);
 
@@ -5400,14 +5395,21 @@ Term Solver::synthFunHelper(const std::string& symbol,
                      ? *sort.d_type
                      : d_exprMgr->mkFunctionType(varTypes, *sort.d_type);
 
-  Expr fun = d_exprMgr->mkBoundVar(symbol, funType);
+  Node fun = getNodeManager()->mkBoundVar(symbol, TypeNode::fromType(funType));
   (void)fun.getType(true); /* kick off type checking */
 
-  d_smtEngine->declareSynthFun(symbol,
-                               fun,
-                               g == nullptr ? funType : *g->resolve().d_type,
-                               isInv,
-                               termVectorToExprs(boundVars));
+  std::vector<Node> bvns;
+  for (const Term& t : boundVars)
+  {
+    bvns.push_back(*t.d_node);
+  }
+
+  d_smtEngine->declareSynthFun(
+      symbol,
+      fun,
+      TypeNode::fromType(g == nullptr ? funType : *g->resolve().d_type),
+      isInv,
+      bvns);
 
   return Term(this, fun);
 
@@ -5494,13 +5496,12 @@ Term Solver::getSynthSolution(Term term) const
   CVC4_API_ARG_CHECK_NOT_NULL(term);
   CVC4_API_SOLVER_CHECK_TERM(term);
 
-  std::map<CVC4::Expr, CVC4::Expr> map;
+  std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
       << "The solver is not in a state immediately preceeded by a "
          "successful call to checkSynth";
 
-  std::map<CVC4::Expr, CVC4::Expr>::const_iterator it =
-      map.find(term.d_node->toExpr());
+  std::map<CVC4::Node, CVC4::Node>::const_iterator it = map.find(*term.d_node);
 
   CVC4_API_CHECK(it != map.cend()) << "Synth solution not found for given term";
 
@@ -5524,7 +5525,7 @@ std::vector<Term> Solver::getSynthSolutions(
         << "non-null term";
   }
 
-  std::map<CVC4::Expr, CVC4::Expr> map;
+  std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
       << "The solver is not in a state immediately preceeded by a "
          "successful call to checkSynth";
@@ -5534,8 +5535,8 @@ std::vector<Term> Solver::getSynthSolutions(
 
   for (size_t i = 0, n = terms.size(); i < n; ++i)
   {
-    std::map<CVC4::Expr, CVC4::Expr>::const_iterator it =
-        map.find(terms[i].d_node->toExpr());
+    std::map<CVC4::Node, CVC4::Node>::const_iterator it =
+        map.find(*terms[i].d_node);
 
     CVC4_API_CHECK(it != map.cend())
         << "Synth solution not found for term at index " << i;

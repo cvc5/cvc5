@@ -81,6 +81,17 @@ class TheoryModel : public Model
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   ~TheoryModel() override;
+  //---------------------------- initialization
+  /** Called to set the equality engine. */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /**
+   * Returns true if we need an equality engine, this has the same contract
+   * as Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  /** Finish init */
+  void finishInit();
+  //---------------------------- end initialization
 
   /** reset the model */
   virtual void reset();
@@ -348,15 +359,14 @@ public:
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
  protected:
+  /** Unique name of this model */
+  std::string d_name;
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
   /** whether we have tried to build this model in the current context */
   bool d_modelBuilt;
   /** whether this model has been built successfully */
   bool d_modelBuiltSuccess;
-  /** special local context for our equalityEngine so we can clear it
-   * independently of search context */
-  context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
   /** approximations (see recordApproximation) */

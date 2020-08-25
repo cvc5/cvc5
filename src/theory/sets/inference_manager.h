@@ -40,7 +40,6 @@ class InferenceManager
  public:
   InferenceManager(TheorySetsPrivate& p,
                    SolverState& s,
-                   eq::EqualityEngine& e,
                    context::Context* c,
                    context::UserContext* u);
   /** reset
@@ -110,6 +109,12 @@ class InferenceManager
   /** Have we sent lem as a lemma in the current user context? */
   bool hasLemmaCached(Node lem) const;
 
+  /** 
+   * Send conflict.
+   * @param conf The conflict node to be sent on the output channel
+   */
+  void conflict(Node conf);
+
  private:
   /** constants */
   Node d_true;
@@ -118,8 +123,6 @@ class InferenceManager
   TheorySetsPrivate& d_parent;
   /** Reference to the state object for the theory of sets */
   SolverState& d_state;
-  /** Reference to the equality engine of theory of sets */
-  eq::EqualityEngine& d_ee;
   /** pending lemmas */
   std::vector<Node> d_pendingLemmas;
   /** sent lemma

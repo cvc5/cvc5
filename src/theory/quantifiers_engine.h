@@ -49,6 +49,7 @@ class QuantifiersEnginePrivate;
 
 // TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
+  friend class ::CVC4::TheoryEngine;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDList<Node> NodeList;
   typedef context::CDList<bool> BoolList;
@@ -102,6 +103,10 @@ public:
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
  private:
+  //---------------------- private initialization
+  /** Set the master equality engine */
+  void setMasterEqualityEngine(eq::EqualityEngine* mee);
+  //---------------------- end private initialization
   /**
    * Maps quantified formulas to the module that owns them, if any module has
    * specifically taken ownership of it.
@@ -316,6 +321,8 @@ public:
  private:
   /** reference to theory engine object */
   TheoryEngine* d_te;
+  /** Pointer to the master equality engine */
+  eq::EqualityEngine* d_masterEqualityEngine;
   /** vector of utilities for quantifiers */
   std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */

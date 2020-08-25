@@ -82,11 +82,6 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     Notice() << "SmtEngine: setting bitvectorAig" << std::endl;
     options::bitvectorAig.set(true);
   }
-  if (options::bitvectorEqualitySlicer.wasSetByUser())
-  {
-    Notice() << "SmtEngine: setting bitvectorEqualitySolver" << std::endl;
-    options::bitvectorEqualitySolver.set(true);
-  }
   if (options::bitvectorAlgebraicBudget.wasSetByUser())
   {
     Notice() << "SmtEngine: setting bitvectorAlgebraicSolver" << std::endl;
@@ -1309,6 +1304,22 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
         || (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()))
     {
       options::minisatUseElim.set(false);
+    }
+  }
+
+  if (logic.isTheoryEnabled(THEORY_ARITH) && !logic.isLinear()
+      && options::nlRlvMode() != options::NlRlvMode::NONE)
+  {
+    if (!options::relevanceFilter())
+    {
+      if (options::relevanceFilter.wasSetByUser())
+      {
+        Warning() << "SmtEngine: turning on relevance filtering to support "
+                     "--nl-ext-rlv="
+                  << options::nlRlvMode() << std::endl;
+      }
+      // must use relevance filtering techniques
+      options::relevanceFilter.set(true);
     }
   }
 

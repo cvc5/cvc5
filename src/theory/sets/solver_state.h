@@ -22,6 +22,7 @@
 
 #include "context/cdhashset.h"
 #include "theory/sets/skolem_cache.h"
+#include "theory/theory_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -42,36 +43,23 @@ class TheorySetsPrivate;
  * to initialize the information in this class regarding full effort checks.
  * Other query calls are then valid for the remainder of the full effort check.
  */
-class SolverState
+class SolverState : public TheoryState
 {
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
   SolverState(TheorySetsPrivate& p,
-              eq::EqualityEngine& e,
               context::Context* c,
-              context::UserContext* u);
-  //-------------------------------- initialize
+              context::UserContext* u,
+              Valuation val);
+  //-------------------------------- initialize per check
   /** reset, clears the data structures maintained by this class. */
   void reset();
   /** register equivalence class whose type is tn */
   void registerEqc(TypeNode tn, Node r);
   /** register term n of type tnn in the equivalence class of r */
   void registerTerm(Node r, TypeNode tnn, Node n);
-  //-------------------------------- end initialize
-  /** Are we currently in conflict? */
-  bool isInConflict() const { return d_conflict; }
-  /**
-   * Indicate that we are in conflict, without a conflict clause. This is
-   * called, for instance, when we have propagated a conflicting literal.
-   */
-  void setConflict();
-  /** Set conf is a conflict node to be sent on the output channel.  */
-  void setConflict(Node conf);
-  /** Is a=b according to equality reasoning in the current context? */
-  bool areEqual(Node a, Node b) const;
-  /** Is a!=b according to equality reasoning in the current context? */
-  bool areDisequal(Node a, Node b) const;
+  //-------------------------------- end initialize per check
   /** add equality to explanation
    *
    * This adds a = b to exp if a and b are syntactically disequal. The equality
@@ -216,12 +204,8 @@ class SolverState
   /** the empty vector and map */
   std::vector<Node> d_emptyVec;
   std::map<Node, Node> d_emptyMap;
-  /** Whether or not we are in conflict. This flag is SAT context dependent. */
-  context::CDO<bool> d_conflict;
   /** Reference to the parent theory of sets */
   TheorySetsPrivate& d_parent;
-  /** Reference to the equality engine of theory of sets */
-  eq::EqualityEngine& d_ee;
   /** The list of all equivalence classes of type set in the current context */
   std::vector<Node> d_set_eqc;
   /** Maps types to the equivalence class containing empty set of that type */
