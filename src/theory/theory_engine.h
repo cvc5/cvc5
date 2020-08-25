@@ -146,6 +146,11 @@ class TheoryEngine {
    */
   const LogicInfo& d_logicInfo;
 
+  /**
+   * The database of shared terms.
+   */
+  SharedTermsDatabase d_sharedTerms;
+
   /** The combination manager we are using */
   std::unique_ptr<theory::CombinationEngine> d_tc;
   /**

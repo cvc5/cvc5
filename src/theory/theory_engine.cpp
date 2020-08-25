@@ -212,8 +212,8 @@ TheoryEngine::TheoryEngine(context::Context* context,
     : d_propEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
-      d_activeTheory(nullptr),
       d_logicInfo(logicInfo),
+      d_sharedTerms(this, context),
       d_tc(nullptr),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
@@ -1189,6 +1189,7 @@ Node TheoryEngine::getModelValue(TNode var) {
     // the model value of a constant must be itself
     return var;
   }
+  Assert(d_sharedTerms.isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
 
