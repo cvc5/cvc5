@@ -584,6 +584,9 @@ class TheoryEngine {
    * This forces the model maintained by the combination engine to be built
    * if it has not been done so already. This should be called only during a
    * last call effort check after theory combination is run.
+   *
+   * @return true if the model was successfully built (possibly prior to this
+   * call).
    */
   bool buildModel();
   /** set eager model building
