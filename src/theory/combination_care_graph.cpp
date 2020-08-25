@@ -47,14 +47,9 @@ void CombinationCareGraph::combineTheories()
       << careGraph.size() << std::endl;
 
   // Now add splitters for the ones we are interested in
-  CareGraph::const_iterator care_it = careGraph.begin();
-  CareGraph::const_iterator care_it_end = careGraph.end();
-
   prop::PropEngine* propEngine = d_te.getPropEngine();
-  for (; care_it != care_it_end; ++care_it)
+  for (const CarePair& carePair : careGraph)
   {
-    const CarePair& carePair = *care_it;
-
     Debug("combineTheories")
         << "TheoryEngine::combineTheories(): checking " << carePair.d_a << " = "
         << carePair.d_b << " from " << carePair.d_theory << std::endl;

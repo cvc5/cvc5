@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__COMBINATION_ENGINE__H
 #define CVC4__THEORY__COMBINATION_ENGINE__H
 
-#include <map>
+#include <vector>
 #include <memory>
 
 #include "theory/ee_manager.h"

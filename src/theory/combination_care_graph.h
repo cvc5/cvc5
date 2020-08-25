@@ -17,8 +17,7 @@
 #ifndef CVC4__THEORY__COMBINATION_CARE_GRAPH__H
 #define CVC4__THEORY__COMBINATION_CARE_GRAPH__H
 
-#include <map>
-#include <memory>
+#include <vector>
 
 #include "theory/combination_engine.h"
 
@@ -30,7 +29,7 @@ namespace theory {
 
 /**
  * Manager for doing theory combination using care graphs. This is typically
- * done via a distributed equalty engine architecture.
+ * done via a distributed equality engine architecture.
  */
 class CombinationCareGraph : public CombinationEngine
 {
@@ -39,7 +38,6 @@ class CombinationCareGraph : public CombinationEngine
                        const std::vector<Theory*>& paraTheories);
   ~CombinationCareGraph();
 
-  /** Build model */
   bool buildModel() override;
   /**
    * Combine theories using a care graph.
