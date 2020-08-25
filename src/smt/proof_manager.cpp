@@ -112,6 +112,9 @@ void PfManager::printProof(ProofGenerator* pg, Assertions& as)
 {
   Trace("smt-proof") << "PfManager::printProof: start" << std::endl;
   std::shared_ptr<ProofNode> fp = getFinalProof(pg, as);
+  // TODO according to the proof format, post process the proof node
+  // TODO according to the proof format, print the proof node
+  // leanPrinter(out, fp.get());
   std::ostream& out = *options::out();
   out << "(proof\n";
   out << *fp;

@@ -957,6 +957,14 @@ enum class PfRule : uint32_t
   // Conclusion: (Q)
   INT_TRUST,
 
+  //================================================ Place holder for Lean rules
+  // ======== Lean rule
+  // Children: (P1 ... Pn)
+  // Arguments: (id, Q, A1, ..., Am)
+  // ---------------------
+  // Conclusion: (Q)
+  LEAN_RULE,
+
   //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
   //================================================= Unknown rule
