@@ -46,14 +46,14 @@ class TheoryEngineModelBuilder
  public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder() {}
-  /** 
+  /**
    * Should be called only on models m after they have been prepared
    * (e.g. using ModelManager). In other words, the equality engine of model
    * m contains all relevant information from each theory that is needed
    * for building a model. This class is responsible simply for ensuring
    * that all equivalence classes of the equality engine of m are assigned
    * constants.
-   * 
+   *
    * This constructs the model m, via the following steps:
    * (1) builder-specified pre-processing,
    * (2) find the equivalence classes of m's
