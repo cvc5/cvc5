@@ -167,7 +167,8 @@ void TheoryEngine::finishInit() {
   }
 
   // Initialize the model
-  d_eeDistributed->initializeModel(d_curr_model);
+  // !!!! temporary, will be part of combination engine initialization
+  d_eeDistributed->initializeModel(d_curr_model, nullptr);
 
   // set the core equality engine on quantifiers engine
   if (d_logicInfo.isQuantified())

@@ -59,7 +59,8 @@ class EqEngineManagerDistributed : public EqEngineManager
    * Initialize model. This method allocates a new equality engine for the
    * model.
    */
-  void initializeModel(TheoryModel* m) override;
+  void initializeModel(TheoryModel* m,
+                       eq::EqualityEngineNotify* notify) override;
   /**
    * Get the model equality engine context. This is a dummy context that is
    * used for clearing the contents of the model's equality engine via

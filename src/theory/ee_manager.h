@@ -66,7 +66,8 @@ class EqEngineManager
    * This method is context-independent, and is applied once during
    * the lifetime of TheoryEngine (during finishInit).
    */
-  virtual void initializeModel(TheoryModel* m) = 0;
+  virtual void initializeModel(TheoryModel* m,
+                               eq::EqualityEngineNotify* notify) = 0;
   /**
    * Get the equality engine theory information for theory with the given id.
    */
