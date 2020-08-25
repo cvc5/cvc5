@@ -88,8 +88,6 @@ struct NodeTheoryPairHashFunction {
 namespace theory {
 class TheoryModel;
 class CombinationEngine;
-class CombinationCareGraph;
-
 class DecisionManager;
 class RelevanceManager;
 
