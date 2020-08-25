@@ -3142,6 +3142,7 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     std::set<Sort>& unresolvedSorts) const
 {
   NodeManagerScope scope(getNodeManager());
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
   std::vector<CVC4::DType> datatypes;
   for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
@@ -3156,15 +3157,12 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
                                          dtypedecls[i],
                                          i)
         << "a datatype declaration with at least one constructor";
-    CVC4_API_SOLVER_TRY_CATCH_BEGIN;
     datatypes.push_back(dtypedecls[i].getDatatype());
-    CVC4_API_SOLVER_TRY_CATCH_END;
   }
   for (auto& sort : unresolvedSorts)
   {
     CVC4_API_SOLVER_CHECK_SORT(sort);
   }
-  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   
   std::set<TypeNode> utypes;
   for (const Sort& s : unresolvedSorts)

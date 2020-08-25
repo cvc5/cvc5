@@ -186,7 +186,6 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     colors.addConstructor(std::make_shared<DTypeConstructor>("blue"));
     colors.addConstructor(std::make_shared<DTypeConstructor>("violet"));
     TypeNode colorsType = d_nm->mkDatatypeType(colors);
-    // TODO
     const std::vector<std::shared_ptr<DTypeConstructor> >& ctCons =
         colorsType.getDType().getConstructors();
     DType listColors("ListColors");
@@ -197,7 +196,6 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     listColors.addConstructor(consC);
     listColors.addConstructor(std::make_shared<DTypeConstructor>("nil"));
     TypeNode listColorsType = d_nm->mkDatatypeType(listColors);
-    // TODO
     const std::vector<std::shared_ptr<DTypeConstructor> >& lctCons =
         listColorsType.getDType().getConstructors();
 
