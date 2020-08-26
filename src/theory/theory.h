@@ -690,7 +690,7 @@ class Theory {
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
    */
-  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  virtual bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   //--------------------------------- end collect model info

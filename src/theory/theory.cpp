@@ -425,7 +425,7 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
   computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 }
 
-bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
+bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   return true;
 }
