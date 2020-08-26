@@ -571,9 +571,9 @@ void TheorySep::postCheck(Effort level)
       //check whether assertion is active : either polarity=true, or guard is not asserted false
       assert_active[fact] = true;
       bool use_polarity =
-          satom.getKind() == kind::SEP_WAND ? !polarity : polarity;
+          satom.getKind() == SEP_WAND ? !polarity : polarity;
       if( use_polarity ){
-        if (satom.getKind() == kind::SEP_PTO)
+        if (satom.getKind() == SEP_PTO)
         {
           Node vv = d_valuation.getModel()->getRepresentative(satom[0]);
           if( d_pto_model.find( vv )==d_pto_model.end() ){
@@ -667,7 +667,7 @@ void TheorySep::postCheck(Effort level)
           TNode atom = polarity ? fact : fact[0];
           TNode satom = atom[0];
           bool use_polarity =
-              satom.getKind() == kind::SEP_WAND ? !polarity : polarity;
+              satom.getKind() == SEP_WAND ? !polarity : polarity;
           if( !use_polarity ){
             Assert(assert_active.find(fact) != assert_active.end());
             if( assert_active[fact] ){
@@ -693,7 +693,7 @@ void TheorySep::postCheck(Effort level)
         TNode satom = atom[0];
 
         bool use_polarity =
-            satom.getKind() == kind::SEP_WAND ? !polarity : polarity;
+            satom.getKind() == SEP_WAND ? !polarity : polarity;
         Trace("sep-process-debug")
             << "  check atom : " << satom << " use polarity " << use_polarity
             << std::endl;
@@ -760,10 +760,6 @@ void TheorySep::postCheck(Effort level)
                   pol_atom = atom.negate();
                 }
                 lemc.push_back( pol_atom );
-
-                // lemc.push_back( slbl.eqNode( o_b_lbl_mval ).negate() );
-                // lemc.push_back( NodeManager::currentNM()->mkNode(
-                // kind::SUBSET, o_b_lbl_mval, slbl ).negate() );
                 lemc.insert( lemc.end(), conc.begin(), conc.end() );
                 Node lem = NodeManager::currentNM()->mkNode( kind::OR, lemc );
                 if (std::find(d_refinement_lem[satom][slbl].begin(),
@@ -788,8 +784,8 @@ void TheorySep::postCheck(Effort level)
             else
             {
               Trace("sep-process-debug") << "  no children." << std::endl;
-              Assert(satom.getKind() == kind::SEP_PTO
-                     || satom.getKind() == kind::SEP_EMP);
+              Assert(satom.getKind() == SEP_PTO
+                     || satom.getKind() == SEP_EMP);
             }
           }else{
             Trace("sep-process-debug")
@@ -1520,7 +1516,7 @@ void TheorySep::setInactiveAssertionRec( Node fact, std::map< Node, std::vector<
   TNode slbl = atom[1];
   if (satom.getKind() == kind::SEP_WAND || satom.getKind() == kind::SEP_STAR)
   {
-    for (unsigned j = 0; j < satom.getNumChildren(); j++)
+    for (size_t j = 0, nchild = satom.getNumChildren(); j < nchild; j++)
     {
       Node lblc = getLabel(satom, j, slbl);
       for( unsigned k=0; k<lbl_to_assertions[lblc].size(); k++ ){
@@ -1535,7 +1531,7 @@ void TheorySep::getLabelChildren(Node satom,
                                  std::vector<Node>& children,
                                  std::vector<Node>& labels)
 {
-  for (unsigned i = 0; i < satom.getNumChildren(); i++)
+  for (unsigned i = 0, nchild = satom.getNumChildren(); i < nchild; i++)
   {
     Node lblc = getLabel(satom, i, lbl);
     Assert(!lblc.isNull());
@@ -1660,7 +1656,7 @@ void TheorySep::validatePto( HeapAssertInfo * ei, Node ei_n ) {
         TNode atom = fact[0];
         Assert(atom.getKind() == kind::SEP_LABEL);
         TNode satom = atom[0];
-        if (satom.getKind() == kind::SEP_PTO)
+        if (satom.getKind() == SEP_PTO)
         {
           if( areEqual( atom[1], ei_n ) ){
             addPto( ei, ei_n, atom, false );
