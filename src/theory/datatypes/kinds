@@ -41,7 +41,7 @@ parameterized APPLY_TESTER TESTER_TYPE 1 "tester application; first parameter is
 constant DATATYPE_TYPE \
     ::CVC4::DatatypeIndexConstant \
     "::CVC4::DatatypeIndexConstantHashFunction" \
-    "expr/datatype.h" \
+    "expr/datatype_index.h" \
     "a datatype type index"
 cardinality DATATYPE_TYPE \
     "%TYPE%.getDType().getCardinality(%TYPE%)" \

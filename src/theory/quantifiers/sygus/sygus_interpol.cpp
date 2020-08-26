@@ -16,16 +16,12 @@
 
 #include "theory/quantifiers/sygus/sygus_interpol.h"
 
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
-#include "expr/sygus_datatype.h"
 #include "options/smt_options.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -188,15 +184,14 @@ TypeNode SygusInterpol::setSynthGrammar(const TypeNode& itpGType,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
     getIncludeCons(axioms, conj, include_cons);
     std::unordered_set<Node, NodeHashFunction> terms_irrelevant;
-    itpGTypeS =
-        CVC4::theory::quantifiers::CegGrammarConstructor::mkSygusDefaultType(
-            NodeManager::currentNM()->booleanType(),
-            d_ibvlShared,
-            "interpolation_grammar",
-            extra_cons,
-            exclude_cons,
-            include_cons,
-            terms_irrelevant);
+    itpGTypeS = CegGrammarConstructor::mkSygusDefaultType(
+        NodeManager::currentNM()->booleanType(),
+        d_ibvlShared,
+        "interpolation_grammar",
+        extra_cons,
+        exclude_cons,
+        include_cons,
+        terms_irrelevant);
   }
   Trace("sygus-interpol-debug") << "...finish setting up grammar" << std::endl;
   return itpGTypeS;
@@ -235,10 +230,10 @@ void SygusInterpol::mkSygusConjecture(Node itp,
 
   // set the sygus bound variable list
   Trace("sygus-interpol-debug") << "Set attributes..." << std::endl;
-  itp.setAttribute(theory::SygusSynthFunVarListAttribute(), d_ibvlShared);
+  itp.setAttribute(SygusSynthFunVarListAttribute(), d_ibvlShared);
   // sygus attribute
   Node sygusVar = nm->mkSkolem("sygus", nm->booleanType());
-  theory::SygusAttribute ca;
+  SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
   Node instAttr = nm->mkNode(kind::INST_ATTRIBUTE, sygusVar);
   std::vector<Node> iplc;
@@ -265,7 +260,7 @@ void SygusInterpol::mkSygusConjecture(Node itp,
   constraint = constraint.substitute(
       d_syms.begin(), d_syms.end(), d_vars.begin(), d_vars.end());
   Trace("sygus-interpol-debug") << constraint << "...finish" << std::endl;
-  constraint = theory::Rewriter::rewrite(constraint);
+  constraint = Rewriter::rewrite(constraint);
 
   d_sygusConj = constraint;
   Trace("sygus-interpol") << "Generate: " << d_sygusConj << std::endl;

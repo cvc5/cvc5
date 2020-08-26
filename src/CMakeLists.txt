@@ -1032,7 +1032,6 @@ install(FILES
           expr/array.h
           expr/array_store_all.h
           expr/ascription_type.h
-          expr/datatype.h
           expr/emptyset.h
           expr/expr_iomanip.h
           expr/record.h
