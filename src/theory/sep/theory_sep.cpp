@@ -61,7 +61,6 @@ TheorySep::TheorySep(context::Context* c,
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
-  d_needsSharedTermEqFacts = false;
 }
 
 TheorySep::~TheorySep() {
