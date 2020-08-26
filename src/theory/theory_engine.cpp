@@ -313,33 +313,34 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // Remove the top theory, if any more that means multiple theories were
       // involved
       bool multipleTheories = Theory::setRemove(Theory::theoryOf(preprocessed), theories);
-#ifdef CVC4_ASSERTIONS
-      TheoryId i;
-      // This should never throw an exception, since theories should be
-      // guaranteed to be initialized.
-      // These checks don't work with finite model finding, because it
-      // uses Rational constants to represent cardinality constraints,
-      // even though arithmetic isn't actually involved.
-      if (!options::finiteModelFind())
+      if (Configuration::isAssertionBuild())
       {
-        while ((i = Theory::setPop(theories)) != THEORY_LAST)
+        TheoryId i;
+        // This should never throw an exception, since theories should be
+        // guaranteed to be initialized.
+        // These checks don't work with finite model finding, because it
+        // uses Rational constants to represent cardinality constraints,
+        // even though arithmetic isn't actually involved.
+        if (!options::finiteModelFind())
         {
-          if (!d_logicInfo.isTheoryEnabled(i))
+          while ((i = Theory::setPop(theories)) != THEORY_LAST)
           {
-            LogicInfo newLogicInfo = d_logicInfo.getUnlockedCopy();
-            newLogicInfo.enableTheory(i);
-            newLogicInfo.lock();
-            std::stringstream ss;
-            ss << "The logic was specified as " << d_logicInfo.getLogicString()
-               << ", which doesn't include " << i
-               << ", but found a term in that theory." << std::endl
-               << "You might want to extend your logic to "
-               << newLogicInfo.getLogicString() << std::endl;
-            throw LogicException(ss.str());
+            if (!d_logicInfo.isTheoryEnabled(i))
+            {
+              LogicInfo newLogicInfo = d_logicInfo.getUnlockedCopy();
+              newLogicInfo.enableTheory(i);
+              newLogicInfo.lock();
+              std::stringstream ss;
+              ss << "The logic was specified as " << d_logicInfo.getLogicString()
+                << ", which doesn't include " << i
+                << ", but found a term in that theory." << std::endl
+                << "You might want to extend your logic to "
+                << newLogicInfo.getLogicString() << std::endl;
+              throw LogicException(ss.str());
+            }
           }
         }
       }
-#endif
       if (multipleTheories) {
         // Collect the shared terms if there are multiple theories
         NodeVisitor<SharedTermsVisitor>::run(d_sharedTermsVisitor,
