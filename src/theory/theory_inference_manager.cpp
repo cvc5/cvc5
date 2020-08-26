@@ -52,6 +52,7 @@ void TheoryInferenceManager::conflict(TNode conf)
 {
   if (!d_theoryState.isInConflict())
   {
+    d_theoryState.notifyInConflict();
     d_out.conflict(conf);
   }
 }
