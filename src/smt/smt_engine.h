@@ -1115,12 +1115,6 @@ class CVC4_PUBLIC SmtEngine
   AssignmentSet* d_assignments;
 
   /**
-   * A vector of command definitions to be imported in the new
-   * SmtEngine when checking unsat-cores.
-   */
-  std::vector<Command*> d_defineCommands;
-
-  /**
    * The logic we're in. This logic may be an extension of the logic set by the
    * user.
    */
