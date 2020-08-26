@@ -88,7 +88,7 @@ cdef class Datatype:
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
         elif isinstance(index, str):
-            dc.cdc = self.cd[(<const string &> name.encode())]
+            dc.cdc = self.cd[(<const string &> index.encode())]
         else:
             raise ValueError("Expecting a non-negative integer or string")
         return dc
@@ -395,6 +395,9 @@ cdef class Solver:
     def __dealloc__(self):
         del self.csolver
 
+    def supportsFloatingPoint(self):
+        return self.csolver.supportsFloatingPoint()
+
     def getBooleanSort(self):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getBooleanSort()
@@ -415,9 +418,9 @@ cdef class Solver:
         sort.csort = self.csolver.getRegExpSort()
         return sort
 
-    def getRoundingmodeSort(self):
+    def getRoundingModeSort(self):
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.getRoundingmodeSort()
+        sort.csort = self.csolver.getRoundingModeSort()
         return sort
 
     def getStringSort(self):

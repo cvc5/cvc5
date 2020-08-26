@@ -27,6 +27,8 @@ class SolverBlack : public CxxTest::TestSuite
   void setUp() override;
   void tearDown() override;
 
+  void testSupportsFloatingPoint();
+
   void testGetBooleanSort();
   void testGetIntegerSort();
   void testGetNullSort();
@@ -169,6 +171,20 @@ void SolverBlack::setUp() { d_solver.reset(new Solver()); }
 
 void SolverBlack::tearDown() { d_solver.reset(nullptr); }
 
+void SolverBlack::testSupportsFloatingPoint()
+{
+  if (d_solver->supportsFloatingPoint())
+  {
+    TS_ASSERT_THROWS_NOTHING(
+        d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver->mkRoundingMode(ROUND_NEAREST_TIES_TO_EVEN),
+                     CVC4ApiException&);
+  }
+}
+
 void SolverBlack::testGetBooleanSort()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver->getBooleanSort());
@@ -201,7 +217,7 @@ void SolverBlack::testGetStringSort()
 
 void SolverBlack::testGetRoundingmodeSort()
 {
-  TS_ASSERT_THROWS_NOTHING(d_solver->getRoundingmodeSort());
+  TS_ASSERT_THROWS_NOTHING(d_solver->getRoundingModeSort());
 }
 
 void SolverBlack::testMkArraySort()
@@ -480,8 +496,16 @@ void SolverBlack::testMkBoolean()
 
 void SolverBlack::testMkRoundingMode()
 {
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(
+        d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver->mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO),
+                     CVC4ApiException&);
+  }
 }
 
 void SolverBlack::testMkUninterpretedConst()
