@@ -58,15 +58,25 @@ class TheoryFp : public Theory {
   TrustNode expandDefinition(Node node) override;
 
   void preRegisterTerm(TNode node) override;
-  void notifySharedTerm(TNode node) override;
 
   TrustNode ppRewrite(TNode node) override;
 
-  void check(Effort) override;
-
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override { return true; }
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom, bool pol, TNode fact, bool isPrereg) override;
+  //--------------------------------- end standard check
+
   Node getModelValue(TNode var) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelInfo(TheoryModel* m,
+                        const std::set<Node>& relevantTerms) override;
+  /** Collect model values in m based on the relevant terms given by
+   * relevantTerms */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& relevantTerms) override;
 
   std::string identify() const override { return "THEORY_FP"; }
 
@@ -108,10 +118,9 @@ class TheoryFp : public Theory {
 
   /** Interaction with the rest of the solver **/
   void handleLemma(Node node);
-  bool handlePropagation(TNode node);
-  void handleConflict(TNode node);
+  bool propagate(TNode node);
+  void conflict(TNode t1, TNode t2);
 
-  context::CDO<bool> d_conflict;
   context::CDO<Node> d_conflictNode;
 
   typedef context::CDHashMap<TypeNode, Node, TypeNodeHashFunction>
