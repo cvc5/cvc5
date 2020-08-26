@@ -152,7 +152,8 @@ void TheoryUF::postCheck(Effort level)
   }
 }
 
-bool TheoryUF::preNotifyFact(TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+bool TheoryUF::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   if (d_thss != nullptr)
   {

@@ -649,7 +649,8 @@ class Theory {
    * @return true if the theory completely processed this fact, i.e. it does
    * not need to assert the fact to its equality engine.
    */
-  virtual bool preNotifyFact(TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
+  virtual bool preNotifyFact(
+      TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
   /**
    * Notify fact, called immediately after the fact was pushed into the
    * equality engine.
@@ -693,7 +694,8 @@ class Theory {
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
    */
-  virtual bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   //--------------------------------- end collect model info
