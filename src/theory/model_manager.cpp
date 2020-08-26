@@ -162,7 +162,6 @@ bool ModelManager::collectModelBooleanVariables()
   return true;
 }
 
-
 void ModelManager::collectAssertedTerms(TheoryId tid,
                                         std::set<Node>& termSet,
                                         bool includeShared) const

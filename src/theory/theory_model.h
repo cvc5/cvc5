@@ -263,12 +263,12 @@ public:
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
   /**
-   * Set irrelevant kind. These kinds do not impact model generation, that is, 
+   * Set irrelevant kind. These kinds do not impact model generation, that is,
    * registered terms in theories of this kind do not need to be sent to
    * the model. An example is APPLY_TESTER.
    */
   void setIrrelevantKind(Kind k);
-  /** 
+  /**
    * Get the set of irrelevant kinds that have been registered by the above
    * method.
    */
