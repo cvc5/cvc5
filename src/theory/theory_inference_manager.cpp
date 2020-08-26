@@ -12,7 +12,7 @@
  ** \brief An inference manager for Theory
  **/
 
-#include "theory/inference_manager.h"
+#include "theory/theory_inference_manager.h"
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"

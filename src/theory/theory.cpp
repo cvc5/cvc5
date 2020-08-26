@@ -542,8 +542,8 @@ void Theory::check(Effort level)
     TNode fact = assertion.d_assertion;
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
-    // call the pre-notify method
-    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered))
+    // call the pre-notify method, which is not internal
+    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered, false))
     {
       // handled in theory-specific way that doesn't involve equality engine
       continue;
