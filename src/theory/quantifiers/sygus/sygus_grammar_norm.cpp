@@ -15,7 +15,6 @@
 
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 
-#include "expr/datatype.h"
 #include "expr/node_manager_attributes.h"  // for VarNameAttr
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
@@ -122,7 +121,7 @@ void SygusGrammarNorm::TypeObject::initializeDatatype(
       << "...built datatype " << d_sdt.getDatatype() << " ";
   /* Add to global accumulators */
   sygus_norm->d_dt_all.push_back(d_sdt.getDatatype());
-  sygus_norm->d_unres_t_all.insert(d_unres_tn.toType());
+  sygus_norm->d_unres_t_all.insert(d_unres_tn);
   Trace("sygus-grammar-normalize") << "---------------------------------\n";
 }
 
@@ -463,7 +462,6 @@ TypeNode SygusGrammarNorm::normalizeSygusRec(TypeNode tn,
   // Remaining operators are rebuilt as they are.
   // Notice that we must extract the Datatype here to get the (Expr-layer)
   // sygus print callback.
-  const Datatype& dtt = DatatypeType(tn.toType()).getDatatype();
   for (unsigned i = 0, size = op_pos.size(); i < size; ++i)
   {
     unsigned oi = op_pos[i];
@@ -520,22 +518,21 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
       Trace("sygus-grammar-normalize-build") << d_dt_all[i];
     }
     Trace("sygus-grammar-normalize-build") << " and unresolved types\n";
-    for (const Type& unres_t : d_unres_t_all)
+    for (const TypeNode& unres_t : d_unres_t_all)
     {
       Trace("sygus-grammar-normalize-build") << unres_t << " ";
     }
     Trace("sygus-grammar-normalize-build") << "\n";
   }
   Assert(d_dt_all.size() == d_unres_t_all.size());
-  std::vector<DatatypeType> types =
-      NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-          d_dt_all, d_unres_t_all, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
+      d_dt_all, d_unres_t_all, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();
   d_unres_t_all.clear();
   /* By construction the normalized type node will be the last one considered */
-  return TypeNode::fromType(types.back());
+  return types.back();
 }
 
 }  // namespace quantifiers
