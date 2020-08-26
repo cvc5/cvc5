@@ -466,7 +466,8 @@ bool TheoryDatatypes::doSendLemmas( std::vector< Node >& lemmas ){
   return ret;
 }
         
-void TheoryDatatypes::assertFact( Node fact, Node exp 
+void TheoryDatatypes::assertFact( Node fact, Node exp)
+{
   Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact << std::endl;
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
