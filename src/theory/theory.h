@@ -645,7 +645,7 @@ class Theory {
    * @param fact The original literal that was asserted
    * @param isPrereg Whether the assertion is preregistered
    * @param isInternal Whether the origin of the fact was internal. If this
-   * is fact, the fact was asserted via the fact queue of the theory.
+   * is false, the fact was asserted via the fact queue of the theory.
    * @return true if the theory completely processed this fact, i.e. it does
    * not need to assert the fact to its equality engine.
    */
@@ -657,9 +657,9 @@ class Theory {
    *
    * @param atom The atom
    * @param polarity Its polarity
-   * @param fact The original literal that was asserted. If this
-   * is fact, the fact was asserted via the fact queue of the theory.
-   * @param isInternal Whether the origin of the fact was internal
+   * @param fact The original literal that was asserted.
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
    */
   virtual void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal);
   //--------------------------------- end check
