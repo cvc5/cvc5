@@ -81,6 +81,7 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
+      d_inferManager(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -105,6 +106,10 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   if (d_theoryState != nullptr)
   {
     d_theoryState->setEqualityEngine(ee);
+  }
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setEqualityEngine(ee);
   }
 }
 
@@ -566,7 +571,7 @@ bool Theory::preCheck(Effort level) { return false; }
 
 void Theory::postCheck(Effort level) {}
 
-bool Theory::preNotifyFact(TNode atom, bool polarity, TNode fact, bool isPrereg)
+bool Theory::preNotifyFact(TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
 {
   return false;
 }
