@@ -155,8 +155,8 @@ void TheoryEngine::finishInit() {
   }
   else
   {
-    AlwaysAssert(false) << "TheoryEngine::finishInit: theory combination mode "
-                        << options::tcMode() << " not supported";
+    Unimplemented() << "TheoryEngine::finishInit: theory combination mode "
+                    << options::tcMode() << " not supported";
   }
   // create the relevance filter if any option requires it
   if (options::relevanceFilter())
@@ -580,7 +580,7 @@ void TheoryEngine::check(Theory::Effort effort) {
     Debug("theory") << ", need check = " << (needCheck() ? "YES" : "NO") << endl;
 
     if( Theory::fullEffort(effort) && !d_inConflict && !needCheck()) {
-      // Do post-processing of model from the theories (used for THEORY_SEP
+      // Do post-processing of model from the theories (e.g. used for THEORY_SEP
       // to construct heap model)
       d_tc->postProcessModel(d_incomplete.get());
     }
