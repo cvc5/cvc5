@@ -21,7 +21,8 @@ from cvc4 cimport Grammar as c_Grammar
 from cvc4 cimport Sort as c_Sort
 from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
-from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
+from cvc4 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
+from cvc4 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
 from cvc4 cimport TermHashFunction as c_TermHashFunction
 
@@ -1460,6 +1461,7 @@ cdef class Term:
 cdef __rounding_modes = {
     <int> ROUND_NEAREST_TIES_TO_EVEN: "RoundNearestTiesToEven",
     <int> ROUND_TOWARD_POSITIVE: "RoundTowardPositive",
+    <int> ROUND_TOWARD_NEGATIVE: "RoundTowardNegative",
     <int> ROUND_TOWARD_ZERO: "RoundTowardZero",
     <int> ROUND_NEAREST_TIES_TO_AWAY: "RoundNearestTiesToAway"
 }
