@@ -78,10 +78,6 @@ class TheorySets : public Theory
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
   bool isEntailed(Node n, bool pol);
-  /** Proagate out to output channel */
-  bool propagate(TNode lit);
-  /** generate and send out conflict node */
-  void conflict(TNode a, TNode b);
 
  private:
   /** Functions to handle callbacks from equality engine */
