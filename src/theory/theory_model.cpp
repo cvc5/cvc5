@@ -72,7 +72,10 @@ void TheoryModel::finishInit()
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
-  // equal and not terms are not relevant terms
+  // Equal and not terms are not relevant terms. In other words, asserted
+  // equalities and negations of predicates (as terms) do not need to be sent
+  // to the model. Regardless, theories should send information to the model
+  // that ensures that all assertions are satisfied.
   setIrrelevantKind(EQUAL);
   setIrrelevantKind(NOT);
 }
