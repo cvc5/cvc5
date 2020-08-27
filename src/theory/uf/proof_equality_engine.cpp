@@ -29,9 +29,9 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              ProofNodeManager* pnm)
     : EagerProofGenerator(pnm, u, "pfee::" + ee.identify()),
       d_ee(ee),
+      d_factPg(c, pnm),
       d_pnm(pnm),
       d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
-      d_factPg(c, pnm),
       d_keep(c),
       d_pfEnabled(pnm != nullptr)
 {
@@ -692,25 +692,6 @@ Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
     return a[0];
   }
   return NodeManager::currentNM()->mkNode(AND, a);
-}
-
-void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
-{
-  if (an == d_true)
-  {
-    return;
-  }
-  if (an.getKind() != AND)
-  {
-    a.push_back(an);
-    return;
-  }
-  for (const Node& anc : an)
-  {
-    // should not have doubly nested AND
-    Assert(anc.getKind() != AND);
-    a.push_back(anc);
-  }
 }
 
 ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c,

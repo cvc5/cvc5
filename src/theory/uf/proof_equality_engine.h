@@ -307,10 +307,10 @@ class ProofEqEngine : public EagerProofGenerator
    */
   Node mkAnd(const std::vector<Node>& a);
   Node mkAnd(const std::vector<TNode>& a);
-  /** The default proof generator (for simple facts) */
-  FactProofGenerator d_factPg;
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
+  /** The default proof generator (for simple facts) */
+  FactProofGenerator d_factPg;
   /** common nodes */
   Node d_true;
   Node d_false;
