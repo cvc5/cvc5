@@ -51,7 +51,7 @@ void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
 }
 
 
-void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, Theory::Set theories) {
+void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, TheoryIdSet theories) {
   Debug("register") << "SharedTermsDatabase::addSharedTerm(" << atom << ", " << term << ", " << Theory::setToString(theories) << ")" << std::endl;
 
   std::pair<TNode, TNode> search_pair(atom, term);
@@ -94,14 +94,14 @@ void SharedTermsDatabase::backtrack() {
   d_addedSharedTerms.resize(d_addedSharedTermsSize);
 }
 
-Theory::Set SharedTermsDatabase::getTheoriesToNotify(TNode atom, TNode term) const {
+TheoryIdSet SharedTermsDatabase::getTheoriesToNotify(TNode atom, TNode term) const {
   // Get the theories that share this term from this atom
   std::pair<TNode, TNode> search_pair(atom, term);
   SharedTermsTheoriesMap::iterator find = d_termsToTheories.find(search_pair);
   Assert(find != d_termsToTheories.end());
 
   // Get the theories that were already notified
-  Theory::Set alreadyNotified = 0;
+  TheoryIdSet alreadyNotified = 0;
   AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
   if (theoriesFind != d_alreadyNotifiedMap.end()) {
     alreadyNotified = (*theoriesFind).second;
@@ -112,7 +112,7 @@ Theory::Set SharedTermsDatabase::getTheoriesToNotify(TNode atom, TNode term) con
 }
 
 
-Theory::Set SharedTermsDatabase::getNotifiedTheories(TNode term) const {
+TheoryIdSet SharedTermsDatabase::getNotifiedTheories(TNode term) const {
   // Get the theories that were already notified
   AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
   if (theoriesFind != d_alreadyNotifiedMap.end()) {
@@ -142,15 +142,15 @@ bool SharedTermsDatabase::propagateSharedEquality(TheoryId theory, TNode a, TNod
   return true;
 }
 
-void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
+void SharedTermsDatabase::markNotified(TNode term, TheoryIdSet theories) {
 
   // Find out if there are any new theories that were notified about this term
-  Theory::Set alreadyNotified = 0;
+  TheoryIdSet alreadyNotified = 0;
   AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
   if (theoriesFind != d_alreadyNotifiedMap.end()) {
     alreadyNotified = (*theoriesFind).second;
   }
-  Theory::Set newlyNotified = Theory::setDifference(theories, alreadyNotified);
+  TheoryIdSet newlyNotified = Theory::setDifference(theories, alreadyNotified);
 
   // If no new theories were notified, we are done
   if (newlyNotified == 0) {
