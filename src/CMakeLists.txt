@@ -856,6 +856,8 @@ libcvc4_add_sources(
   theory/uf/eq_proof.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
+  theory/uf/proof_equality_engine.cpp
+  theory/uf/proof_equality_engine.h
   theory/uf/ho_extension.cpp
   theory/uf/ho_extension.h
   theory/uf/symmetry_breaker.cpp
