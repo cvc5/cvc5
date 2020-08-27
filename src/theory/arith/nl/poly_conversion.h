@@ -119,6 +119,13 @@ RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable);
  */
 poly::Value node_to_value(const Node& n, const Node& ran_variable);
 
+/**
+ * Give a rough estimate of the bitsize of the representation of `v`.
+ * It can be used as a rough measure of the size of complexity of a value, for
+ * example to avoid divergence or disallow huge lemmas.
+ */
+std::size_t bitsize(const poly::Value& v);
+
 }  // namespace nl
 }  // namespace arith
 }  // namespace theory
