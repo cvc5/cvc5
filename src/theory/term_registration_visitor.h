@@ -67,27 +67,30 @@ public:
 
  PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
      : d_engine(engine), d_visited(context), d_theories(0)
- {}
+ {
+ }
 
-  /**
-   * Returns true is current has already been pre-registered with both current and parent theories.
-   */
-  bool alreadyVisited(TNode current, TNode parent);
-  
-  /**
-   * Pre-registeres current with any of the current and parent theories that haven't seen the term yet.
-   */
-  void visit(TNode current, TNode parent);
-  
-  /**
-   * Marks the node as the starting literal.
-   */
-  void start(TNode node) { }
+ /**
+  * Returns true is current has already been pre-registered with both current
+  * and parent theories.
+  */
+ bool alreadyVisited(TNode current, TNode parent);
 
-  /**
-   * Notifies the engine of all the theories used.
-   */
-  theory::TheoryIdSet done(TNode node) { return d_theories; }
+ /**
+  * Pre-registeres current with any of the current and parent theories that
+  * haven't seen the term yet.
+  */
+ void visit(TNode current, TNode parent);
+
+ /**
+  * Marks the node as the starting literal.
+  */
+ void start(TNode node) {}
+
+ /**
+  * Notifies the engine of all the theories used.
+  */
+ theory::TheoryIdSet done(TNode node) { return d_theories; }
 };
 
 

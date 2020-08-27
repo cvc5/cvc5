@@ -27,10 +27,10 @@
 #include "theory/arith/arithvar.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/partial_model.h"
+#include "theory/ee_setup_info.h"
 #include "theory/uf/equality_engine.h"
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
-#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 namespace theory {
