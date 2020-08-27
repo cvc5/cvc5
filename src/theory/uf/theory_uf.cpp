@@ -185,11 +185,8 @@ bool TheoryUF::preNotifyFact(
         d_out->setIncomplete();
       }
     }
-    // don't need to assert if not producing models
-    if (!options::produceModels())
-    {
-      return true;
-    }
+    // don't need to assert cardinality constraints if not producing models
+    return !options::produceModels();
   }
   return false;
 }
