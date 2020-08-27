@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,7 +69,7 @@ namespace eq {
  * a TrustNode:
  * - assertConflict, when the user of the equality engine has discovered that
  * false can be derived from the current state,
- * - assertLemma, for lemmas/conflict that can be (partially) explained in the
+ * - assertLemma, for lemmas/conflicts that can be (partially) explained in the
  * current state,
  * - explain, for explaining why a literal is true in the current state.
  * Details on these methods can be found below.
