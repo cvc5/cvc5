@@ -83,7 +83,7 @@ bool PreRegisterVisitor::alreadyVisited(TNode current, TNode parent) {
     return false;
   }
 
-  Theory::Set visitedTheories = (*find).second;
+  TheoryIdSet visitedTheories = (*find).second;
   if (Theory::setContains(currentTheoryId, visitedTheories)) {
     // The current theory has already visited it, so now it depends on the parent and the type
     if (Theory::setContains(parentTheoryId, visitedTheories)) {
@@ -134,7 +134,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
     }
   }
   
-  Theory::Set visitedTheories = d_visited[current];
+  TheoryIdSet visitedTheories = d_visited[current];
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(currentTheoryId, visitedTheories);
@@ -197,7 +197,7 @@ bool SharedTermsVisitor::alreadyVisited(TNode current, TNode parent) const {
     return false;
   }
 
-  Theory::Set theories = (*find).second;
+  TheoryIdSet theories = (*find).second;
 
   TheoryId currentTheoryId = Theory::theoryOf(current);
   TheoryId parentTheoryId  = Theory::theoryOf(parent);
@@ -286,7 +286,7 @@ void SharedTermsVisitor::visit(TNode current, TNode parent) {
     }
   }
 
-  Theory::Set visitedTheories = d_visited[current];
+  TheoryIdSet visitedTheories = d_visited[current];
   Debug("register::internal") << "SharedTermsVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {
     visitedTheories = Theory::setInsert(currentTheoryId, visitedTheories);

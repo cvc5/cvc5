@@ -799,9 +799,6 @@ class Theory {
                     << " doesn't support Theory::setUserAttribute interface";
   }
 
-  /** A set of theories */
-  typedef uint32_t Set;
-
   /** A set of all theories */
   static const Set AllTheories = (1 << theory::THEORY_LAST) - 1;
 

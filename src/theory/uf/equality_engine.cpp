@@ -18,6 +18,7 @@
 #include "theory/uf/equality_engine.h"
 
 #include "smt/smt_statistics_registry.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {
@@ -386,7 +387,7 @@ void EqualityEngine::addTermInternal(TNode t, bool isOperator) {
       // Non-Boolean constants are trigger terms for all tags
       EqualityNodeId tId = getNodeId(t);
       // Setup the new set
-      Theory::Set newSetTags = 0;
+      TheoryIdSet newSetTags = 0;
       EqualityNodeId newSetTriggers[THEORY_LAST];
       unsigned newSetTriggersSize = THEORY_LAST;
       for (TheoryId currentTheory = THEORY_FIRST; currentTheory != THEORY_LAST;
@@ -534,8 +535,8 @@ bool EqualityEngine::assertEquality(TNode eq,
       TriggerTermSet& aTriggerTerms = getTriggerTermSet(aTriggerRef);
       TriggerTermSet& bTriggerTerms = getTriggerTermSet(bTriggerRef);
       // Go through and notify the shared dis-equalities
-      Theory::Set aTags = aTriggerTerms.d_tags;
-      Theory::Set bTags = bTriggerTerms.d_tags;
+      TheoryIdSet aTags = aTriggerTerms.d_tags;
+      TheoryIdSet bTags = bTriggerTerms.d_tags;
       TheoryId aTag = Theory::setPop(aTags);
       TheoryId bTag = Theory::setPop(bTags);
       int a_i = 0, b_i = 0;
@@ -618,12 +619,12 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
 
   // Trigger set of class 1
   TriggerTermSetRef class1triggerRef = d_nodeIndividualTrigger[class1Id];
-  Theory::Set class1Tags = class1triggerRef == null_set_id
+  TheoryIdSet class1Tags = class1triggerRef == null_set_id
                                ? 0
                                : getTriggerTermSet(class1triggerRef).d_tags;
   // Trigger set of class 2
   TriggerTermSetRef class2triggerRef = d_nodeIndividualTrigger[class2Id];
-  Theory::Set class2Tags = class2triggerRef == null_set_id
+  TheoryIdSet class2Tags = class2triggerRef == null_set_id
                                ? 0
                                : getTriggerTermSet(class2triggerRef).d_tags;
 
@@ -633,8 +634,8 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   TaggedEqualitiesSet class1disequalitiesToNotify;
 
   // Individual tags
-  Theory::Set class1OnlyTags = Theory::setDifference(class1Tags, class2Tags);
-  Theory::Set class2OnlyTags = Theory::setDifference(class2Tags, class1Tags);
+  TheoryIdSet class1OnlyTags = Theory::setDifference(class1Tags, class2Tags);
+  TheoryIdSet class2OnlyTags = Theory::setDifference(class2Tags, class1Tags);
 
   // Only get disequalities if they are not both constant
   if (!class1isConstant || !class2isConstant) {
@@ -760,15 +761,15 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       TriggerTermSet& class2triggers = getTriggerTermSet(class2triggerRef);
 
       // Initialize the merged set
-      Theory::Set newSetTags =
+      TheoryIdSet newSetTags =
           Theory::setUnion(class1triggers.d_tags, class2triggers.d_tags);
       EqualityNodeId newSetTriggers[THEORY_LAST];
       unsigned newSetTriggersSize = 0;
 
       int i1 = 0;
       int i2 = 0;
-      Theory::Set tags1 = class1triggers.d_tags;
-      Theory::Set tags2 = class2triggers.d_tags;
+      TheoryIdSet tags1 = class1triggers.d_tags;
+      TheoryIdSet tags2 = class2triggers.d_tags;
       TheoryId tag1 = Theory::setPop(tags1);
       TheoryId tag2 = Theory::setPop(tags2);
 
@@ -1252,6 +1253,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
 
 void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
 {
+  Assert(lit.getKind() != kind::AND);
   bool polarity = lit.getKind() != kind::NOT;
   TNode atom = polarity ? lit : lit[0];
   std::vector<TNode> tassumptions;
@@ -1281,6 +1283,7 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
     if (std::find(assumptions.begin(), assumptions.end(), a)
         == assumptions.end())
     {
+      Assert(!a.isNull());
       assumptions.push_back(a);
     }
   }
@@ -1288,13 +1291,13 @@ void EqualityEngine::explainLit(TNode lit, std::vector<TNode>& assumptions)
 
 Node EqualityEngine::mkExplainLit(TNode lit)
 {
+  Assert(lit.getKind() != kind::AND);
   std::vector<TNode> assumptions;
   explainLit(lit, assumptions);
   Node ret;
-  NodeManager* nm = NodeManager::currentNM();
   if (assumptions.empty())
   {
-    ret = nm->mkConst(true);
+    ret = NodeManager::currentNM()->mkConst(true);
   }
   else if (assumptions.size() == 1)
   {
@@ -1302,7 +1305,37 @@ Node EqualityEngine::mkExplainLit(TNode lit)
   }
   else
   {
-    ret = nm->mkNode(kind::AND, assumptions);
+    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
+  }
+  return ret;
+}
+
+Node EqualityEngine::mkExplain(TNode n)
+{
+  std::vector<TNode> assumptions;
+  if (n.getKind() == kind::AND)
+  {
+    for (const Node& nc : n)
+    {
+      explainLit(nc, assumptions);
+    }
+  }
+  else
+  {
+    explainLit(n, assumptions);
+  }
+  Node ret;
+  if (assumptions.empty())
+  {
+    ret = NodeManager::currentNM()->mkConst(true);
+  }
+  else if (assumptions.size() == 1)
+  {
+    ret = assumptions[0];
+  }
+  else
+  {
+    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
   }
   return ret;
 }
@@ -2267,11 +2300,11 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
     // uselists that have been asserted to false. All the representatives appearing on the other
     // side of such disequalities, that have the tag on, are put in a set.
     TaggedEqualitiesSet disequalitiesToNotify;
-    Theory::Set tags = Theory::setInsert(tag);
+    TheoryIdSet tags = Theory::setInsert(tag);
     getDisequalities(!d_isConstant[classId], classId, tags, disequalitiesToNotify);
 
     // Trigger data
-    Theory::Set newSetTags;
+    TheoryIdSet newSetTags;
     EqualityNodeId newSetTriggers[THEORY_LAST];
     unsigned newSetTriggersSize;
 
@@ -2284,7 +2317,7 @@ void EqualityEngine::addTriggerTerm(TNode t, TheoryId tag)
       newSetTriggersSize = 0;
       // Copy into to new one, and insert the new tag/id
       unsigned i = 0;
-      Theory::Set tags2 = newSetTags;
+      TheoryIdSet tags2 = newSetTags;
       TheoryId current;
       while ((current = Theory::setPop(tags2)) != THEORY_LAST)
       {
@@ -2326,7 +2359,7 @@ TNode EqualityEngine::getTriggerTermRepresentative(TNode t, TheoryId tag) const 
   EqualityNodeId classId = getEqualityNode(t).getFind();
   const TriggerTermSet& triggerSet = getTriggerTermSet(d_nodeIndividualTrigger[classId]);
   unsigned i = 0;
-  Theory::Set tags = triggerSet.d_tags;
+  TheoryIdSet tags = triggerSet.d_tags;
   while (Theory::setPop(tags) != tag) {
     ++ i;
   }
@@ -2381,7 +2414,7 @@ void EqualityEngine::getUseListTerms(TNode t, std::set<TNode>& output) {
   }
 }
 
-EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(Theory::Set newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize) {
+EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(TheoryIdSet newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize) {
   // Size of the required set
   size_t size = sizeof(TriggerTermSet) + newSetTriggersSize*sizeof(EqualityNodeId);
   // Align the size
@@ -2446,7 +2479,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
   EqualityPair pair2(rhsId, lhsId);
 
   // Store the fact that we've propagated this already
-  Theory::Set notified = 0;
+  TheoryIdSet notified = 0;
   PropagatedDisequalitiesMap::const_iterator find = d_propagatedDisequalities.find(pair1);
   if (find == d_propagatedDisequalities.end()) {
     notified = Theory::setInsert(tag);
@@ -2493,7 +2526,7 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
   }
 }
 
-void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classId, Theory::Set inputTags, TaggedEqualitiesSet& out) {
+void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classId, TheoryIdSet inputTags, TaggedEqualitiesSet& out) {
   // Must be empty on input
   Assert(out.size() == 0);
   // The class we are looking for, shouldn't have any of the tags we are looking for already set
@@ -2556,7 +2589,7 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
             // Tags of the other gey
             TriggerTermSet& toCompareTriggerSet = getTriggerTermSet(toCompareTriggerSetRef);
             // We only care if there are things in inputTags that is also in toCompareTags
-            Theory::Set commonTags =
+            TheoryIdSet commonTags =
                 Theory::setIntersection(inputTags, toCompareTriggerSet.d_tags);
             if (commonTags) {
               out.push_back(TaggedEquality(funId, toCompareTriggerSetRef, lhs));
@@ -2573,7 +2606,7 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
 
 }
 
-bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify) {
+bool EqualityEngine::propagateTriggerTermDisequalities(TheoryIdSet tags, TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify) {
 
   // No tags, no food
   if (!tags) {
@@ -2592,7 +2625,7 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
     const TaggedEquality& disequalityInfo = *it;
     const TriggerTermSet& disequalityTriggerSet =
         getTriggerTermSet(disequalityInfo.d_triggerSetRef);
-    Theory::Set commonTags =
+    TheoryIdSet commonTags =
         Theory::setIntersection(disequalityTriggerSet.d_tags, tags);
     Assert(commonTags);
     // This is the actual function
@@ -2636,6 +2669,16 @@ bool EqualityEngine::propagateTriggerTermDisequalities(Theory::Set tags, Trigger
   return !d_done;
 }
 
+TheoryIdSet EqualityEngine::TriggerTermSet::hasTrigger(TheoryId tag) const
+{
+  return Theory::setContains(tag, d_tags);
+}
+
+EqualityNodeId EqualityEngine::TriggerTermSet::getTrigger(TheoryId tag) const
+{
+  return d_triggers[Theory::setIndex(tag, d_tags)];
+}
+    
 } // Namespace uf
 } // Namespace theory
 } // Namespace CVC4
