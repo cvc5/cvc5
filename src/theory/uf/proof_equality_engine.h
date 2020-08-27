@@ -296,7 +296,12 @@ class ProofEqEngine : public EagerProofGenerator
                                 const std::vector<Node>& exp,
                                 const std::vector<Node>& noExplain,
                                 LazyCDProof* curr);
-  /** ensure proof for fact */
+  /**
+   * Ensure proof for fact. This is called by the above method after we have
+   * determined the final set of assumptions used for showing conc. This
+   * method is used for lemmas, conflicts, and explanations for propagations.
+   * The argument tnk is the kind of trust node to return.
+   */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
                                TrustNodeKind tnk,
