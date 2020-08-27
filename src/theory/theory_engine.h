@@ -119,14 +119,9 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
-<<<<<<< HEAD
-  friend class theory::EngineOutputChannel;
-=======
   friend class theory::CombinationEngine;
->>>>>>> 63905da0f55f99dfc1f4ab40a1ce61d3e7d58ce1
   friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
-  friend class theory::CombinationEngine;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
@@ -153,8 +148,6 @@ class TheoryEngine {
   const LogicInfo& d_logicInfo;
 
   //--------------------------------- new proofs
-  /** Proof checker used by this theory engine, if proofs are enabled */
-  ProofChecker* d_pchecker;
   /** Proof node manager used by this theory engine, if proofs are enabled */
   ProofNodeManager* d_pnm;
   /** The lazy proof object

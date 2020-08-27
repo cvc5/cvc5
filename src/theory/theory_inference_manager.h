@@ -17,6 +17,8 @@
 #ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
 #define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
 
+#include <memory>
+
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/output_channel.h"
@@ -30,8 +32,10 @@ class ProofNodeManager;
 namespace theory {
 
 class Theory;
+
 namespace eq {
 class EqualityEngine;
+class ProofEqEngine;
 }
 
 /**
@@ -140,6 +144,13 @@ class TheoryInferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
+  /** 
+   * The proof-producing equality engine. This is a (partial) wrapper around
+   * equality engine that manages proofs in a general way, when proofs are
+   * enabled, i.e. when the ProofNodeManager provided to this class is non-null.
+   */
+  //std::unique_ptr<eq::ProofEqEngine> d_pfee;
+
 };
 
 }  // namespace theory

@@ -16,6 +16,7 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/uf/proof_equality_engine.h"
 
 using namespace CVC4::kind;
 
@@ -31,12 +32,20 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_ee(nullptr),
       d_pnm(pnm),
       d_keep(t.getSatContext())
+      //d_pfee(nullptr)
 {
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
   d_ee = ee;
+  // if proofs are enabled, we construct the proof equality engine as a wrapper
+  // around ee.
+  if (d_pnm!=nullptr)
+  {
+    //d_pfee.reset(new eq::ProofEqEngine(
+    //  d_theoryState.getSatContext(), d_theoryState.getUserContext(), *d_ee, d_pnm));
+  }
 }
 
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)

@@ -154,7 +154,7 @@ void TheoryEngine::finishInit()
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, paraTheories));
+    d_tc.reset(new CombinationCareGraph(*this, paraTheories, d_pnm));
   }
   else
   {
@@ -207,7 +207,7 @@ void TheoryEngine::finishInit()
   }
 }
 
-ProofChecker* TheoryEngine::getProofChecker() const { return d_pchecker; }
+ProofChecker* TheoryEngine::getProofChecker() const { return d_pnm ? d_pnm->getChecker() : nullptr; }
 
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 
@@ -221,7 +221,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
-      d_pchecker(pnm ? pnm->getChecker() : nullptr),
       d_pnm(pnm),
       d_lazyProof(
           d_pnm != nullptr
@@ -229,6 +228,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
                     d_pnm, nullptr, d_userContext, "TheoryEngine::LazyCDProof")
               : nullptr),
       d_tepg(new TheoryEngineProofGenerator(d_pnm, d_userContext)),
+      d_sharedTerms(this, context, userContext, d_pnm),
       d_tc(nullptr),
       d_quantEngine(nullptr),
       d_decManager(new DecisionManager(userContext)),
