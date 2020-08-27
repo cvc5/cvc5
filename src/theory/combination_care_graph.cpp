@@ -22,7 +22,9 @@ namespace CVC4 {
 namespace theory {
 
 CombinationCareGraph::CombinationCareGraph(
-    TheoryEngine& te, const std::vector<Theory*>& paraTheories, ProofNodeManager * pnm)
+    TheoryEngine& te,
+    const std::vector<Theory*>& paraTheories,
+    ProofNodeManager* pnm)
     : CombinationEngine(te, paraTheories, pnm)
 {
 }

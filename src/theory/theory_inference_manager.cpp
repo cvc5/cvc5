@@ -32,7 +32,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_ee(nullptr),
       d_pnm(pnm),
       d_keep(t.getSatContext())
-      //d_pfee(nullptr)
+// d_pfee(nullptr)
 {
 }
 
@@ -41,10 +41,11 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   d_ee = ee;
   // if proofs are enabled, we construct the proof equality engine as a wrapper
   // around ee.
-  if (d_pnm!=nullptr)
+  if (d_pnm != nullptr)
   {
-    //d_pfee.reset(new eq::ProofEqEngine(
-    //  d_theoryState.getSatContext(), d_theoryState.getUserContext(), *d_ee, d_pnm));
+    // d_pfee.reset(new eq::ProofEqEngine(
+    //  d_theoryState.getSatContext(), d_theoryState.getUserContext(), *d_ee,
+    //  d_pnm));
   }
 }
 

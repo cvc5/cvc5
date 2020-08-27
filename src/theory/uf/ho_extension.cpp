@@ -286,7 +286,7 @@ unsigned HoExtension::applyAppCompletion(TNode n)
     Node eq = ret.eqNode(n);
     Trace("uf-ho-lemma") << "uf-ho-lemma : infer, by apply-expand : " << eq
                          << std::endl;
-    Assert (pfee!=nullptr);
+    Assert(pfee != nullptr);
     std::vector<Node> children;
     pfee->assertFact(eq, PfRule::HO_TRUST, children, {eq});
     return 1;

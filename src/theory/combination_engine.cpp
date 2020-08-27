@@ -26,13 +26,15 @@ namespace CVC4 {
 namespace theory {
 
 CombinationEngine::CombinationEngine(TheoryEngine& te,
-                                     const std::vector<Theory*>& paraTheories, ProofNodeManager * pnm)
+                                     const std::vector<Theory*>& paraTheories,
+                                     ProofNodeManager* pnm)
     : d_te(te),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
       d_mmanager(nullptr),
-      d_cmbsPg(pnm ? new EagerProofGenerator(pnm,te.getUserContext()) : nullptr)
+      d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
+                   : nullptr)
 {
 }
 
@@ -101,10 +103,7 @@ theory::TheoryModel* CombinationEngine::getModel()
   return d_mmanager->getModel();
 }
 
-bool CombinationEngine::isProofEnabled() const
-{
-  return d_cmbsPg != nullptr;
-}
+bool CombinationEngine::isProofEnabled() const { return d_cmbsPg != nullptr; }
 
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 {

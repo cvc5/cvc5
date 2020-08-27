@@ -207,7 +207,10 @@ void TheoryEngine::finishInit()
   }
 }
 
-ProofChecker* TheoryEngine::getProofChecker() const { return d_pnm ? d_pnm->getChecker() : nullptr; }
+ProofChecker* TheoryEngine::getProofChecker() const
+{
+  return d_pnm ? d_pnm->getChecker() : nullptr;
+}
 
 ProofNodeManager* TheoryEngine::getProofNodeManager() const { return d_pnm; }
 

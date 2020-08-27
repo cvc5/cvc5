@@ -714,7 +714,8 @@ void EqProof::reduceNestedCongruence(
         << transitivityMatrix[i].back() << "\n";
     // if i == 0, first child must be REFL step, standing for (= f f), which can
     // be ignored in a first-order calculus
-    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY || options::ufHo());
+    Assert(i > 0 || d_children[0]->d_id == MERGED_THROUGH_REFLEXIVITY
+           || options::ufHo());
     // recurse
     if (i > 1)
     {
@@ -733,8 +734,8 @@ void EqProof::reduceNestedCongruence(
     // higher-order case
     else if (d_children[0]->d_id != MERGED_THROUGH_REFLEXIVITY)
     {
-      Trace("eqproof-conv")
-        << "EqProof::reduceNestedCongruence: HO case. Processing first child\n";
+      Trace("eqproof-conv") << "EqProof::reduceNestedCongruence: HO case. "
+                               "Processing first child\n";
       // we only handle these cases
       Assert(d_children[0]->d_id == MERGED_THROUGH_EQUALITY
              || d_children[0]->d_id == MERGED_THROUGH_TRANS);
@@ -1276,7 +1277,8 @@ Node EqProof::addToProof(
       // beginning are eliminated, as the new arity is the maximal arity among
       // the applications minus the number of empty rows.
       std::vector<std::vector<Node>> newTransitivityChildren{
-          transitivityChildren.begin() + 1 + emptyRows, transitivityChildren.end()};
+          transitivityChildren.begin() + 1 + emptyRows,
+          transitivityChildren.end()};
       transitivityChildren.clear();
       transitivityChildren.push_back(std::vector<Node>());
       transitivityChildren.insert(transitivityChildren.end(),

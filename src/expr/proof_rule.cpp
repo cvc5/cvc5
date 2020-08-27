@@ -143,11 +143,13 @@ const char* toString(PfRule id)
     case PfRule::INT_TIGHT_LB: return "INT_TIGHT_LB";
     case PfRule::INT_TIGHT_UB: return "INT_TIGHT_UB";
     case PfRule::ARITH_OP_ELIM_AXIOM: return "ARITH_OP_ELIM_AXIOM";
-    case PfRule::INT_TRUST: return "INT_TRUST";
+    case PfRule::INT_TRUST:
+      return "INT_TRUST";
 
-    //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
+      //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
-    //================================================= Place holder for Lean rules
+      //================================================= Place holder for Lean
+      //rules
 
     case PfRule::LEAN_RULE: return "LEAN_RULE";
 

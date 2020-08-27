@@ -20,9 +20,9 @@
 #include <vector>
 #include <memory>
 
+#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
-#include "theory/eager_proof_generator.h"
 
 namespace CVC4 {
 
@@ -40,7 +40,9 @@ namespace theory {
 class CombinationEngine
 {
  public:
-  CombinationEngine(TheoryEngine& te, const std::vector<Theory*>& paraTheories, ProofNodeManager * pnm);
+  CombinationEngine(TheoryEngine& te,
+                    const std::vector<Theory*>& paraTheories,
+                    ProofNodeManager* pnm);
   virtual ~CombinationEngine();
 
   /** Finish initialization */
@@ -117,7 +119,7 @@ class CombinationEngine
    * model.
    */
   std::unique_ptr<ModelManager> d_mmanager;
-  /** 
+  /**
    * An eager proof generator, if proofs are enabled. This proof generator is
    * responsible for proofs of splitting lemmas generated in combineTheories.
    */
