@@ -664,7 +664,7 @@ class Theory {
    *
    * @param atom The atom
    * @param polarity Its polarity
-   * @param fact The original literal that was asserted
+   * @param fact The original literal that was asserted.
    * @param isInternal Whether the origin of the fact was internal. If this
    * is false, the fact was asserted via the fact queue of the theory.
    */
@@ -701,7 +701,8 @@ class Theory {
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
    */
-  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   //--------------------------------- end collect model info
