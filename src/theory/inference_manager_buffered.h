@@ -113,7 +113,10 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    *
    * This method is called to indicate this class should send a phase
    * requirement request to the output channel for literal lit to be
-   * decided with polarity pol.
+   * decided with polarity pol. The literal lit should be a SAT literal
+   * by the time that doPendingPhaseRequirements is called. Typically,
+   * lit is a literal that is a subformula of a pending lemma that is processed
+   * prior to sending the phase requirement.
    */
   void addPendingPhaseRequirement(Node lit, bool pol);
   /** Do pending facts
@@ -139,7 +142,10 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * cleared after this call.
    */
   void doPendingLemmas();
-  /** Do pending phase requirements */
+  /**
+   * Do pending phase requirements. Calls the output channel for all pending
+   * phase requirements and clears d_pendingReqPhase.
+   */
   void doPendingPhaseRequirements();
 
  protected:
