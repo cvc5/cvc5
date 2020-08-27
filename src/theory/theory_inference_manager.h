@@ -35,7 +35,6 @@ class Theory;
 
 namespace eq {
 class EqualityEngine;
-class ProofEqEngine;
 }
 
 /**
@@ -144,12 +143,6 @@ class TheoryInferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
-  /**
-   * The proof-producing equality engine. This is a (partial) wrapper around
-   * equality engine that manages proofs in a general way, when proofs are
-   * enabled, i.e. when the ProofNodeManager provided to this class is non-null.
-   */
-  // std::unique_ptr<eq::ProofEqEngine> d_pfee;
 };
 
 }  // namespace theory
