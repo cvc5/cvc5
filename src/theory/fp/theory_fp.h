@@ -121,7 +121,15 @@ class TheoryFp : public Theory {
 
   /** Interaction with the rest of the solver **/
   void handleLemma(Node node);
+  /**
+   * Called when literal node is inferred by the equality engine. This
+   * propagates node on the output channel.
+   */
   bool propagateLit(TNode node);
+  /**
+   * Called when two constants t1 and t2 merge in the equality engine. This
+   * sends a conflict on the output channel.
+   */
   void conflictEqConstantMerge(TNode t1, TNode t2);
 
   context::CDO<Node> d_conflictNode;
