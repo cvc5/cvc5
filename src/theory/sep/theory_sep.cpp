@@ -281,7 +281,8 @@ void TheorySep::presolve() {
 bool TheorySep::preNotifyFact(TNode atom,
                               bool polarity,
                               TNode fact,
-                              bool isPrereg)
+                              bool isPrereg,
+                              bool isInternal)
 {
   TNode satom = atom.getKind() == SEP_LABEL ? atom[0] : atom;
   TNode slbl = atom.getKind() == SEP_LABEL ? atom[1] : TNode::null();
