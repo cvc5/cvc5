@@ -143,7 +143,12 @@ class TheoryEngine {
    * the cost of walking the DAG on registration, etc.
    */
   const LogicInfo& d_logicInfo;
-
+  
+  //--------------------------------- new proofs
+  /** Proof node manager used by this theory engine, if proofs are enabled */
+  ProofNodeManager* d_pnm;
+  //--------------------------------- end new proofs
+  
   /**
    * The database of shared terms.
    */
