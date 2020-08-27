@@ -81,6 +81,7 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
+      d_inferManager(nullptr),
       d_proofsEnabled(false)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
@@ -105,6 +106,10 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   if (d_theoryState != nullptr)
   {
     d_theoryState->setEqualityEngine(ee);
+  }
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setEqualityEngine(ee);
   }
 }
 
@@ -425,7 +430,7 @@ void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
   computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 }
 
-bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
+bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   return true;
 }
@@ -538,7 +543,7 @@ void Theory::check(Effort level)
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
     // call the pre-notify method
-    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered))
+    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered, false))
     {
       // handled in theory-specific way that doesn't involve equality engine
       continue;
@@ -566,7 +571,8 @@ bool Theory::preCheck(Effort level) { return false; }
 
 void Theory::postCheck(Effort level) {}
 
-bool Theory::preNotifyFact(TNode atom, bool polarity, TNode fact, bool isPrereg)
+bool Theory::preNotifyFact(
+    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
 {
   return false;
 }

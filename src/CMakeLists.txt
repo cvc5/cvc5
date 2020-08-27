@@ -823,6 +823,8 @@ libcvc4_add_sources(
   theory/theory_engine_proof_generator.h
   theory/theory_id.cpp
   theory/theory_id.h
+  theory/theory_inference_manager.cpp
+  theory/theory_inference_manager.h
   theory/theory_model.cpp
   theory/theory_model.h
   theory/theory_model_builder.cpp
