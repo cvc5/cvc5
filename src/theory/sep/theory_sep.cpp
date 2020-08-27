@@ -429,7 +429,6 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
         Trace("sep-lemma") << "Sep::Lemma : definition : " << clem << std::endl;
         d_out->lemma(clem);
       }
-      // children.insert( children.end(), c_lems.begin(), c_lems.end() );
       conc = nm->mkNode(AND, children);
     }
     else if (satom.getKind() == SEP_PTO)
@@ -443,8 +442,6 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     }
     else if (satom.getKind() == SEP_EMP)
     {
-      // conc = slbl.eqNode(
-      // nm->mkConst(EmptySet(slbl.getType())) );
       Node lem;
       Node emp_s = nm->mkConst(EmptySet(slbl.getType()));
       if (polarity)
@@ -468,7 +465,7 @@ void TheorySep::reduceFact(TNode atom, bool polarity, TNode fact)
     else
     {
       // labeled emp should be rewritten
-      Assert(false);
+      Unreachable();
     }
     d_red_conc[slbl][satom] = conc;
   }
@@ -1509,7 +1506,7 @@ void TheorySep::setInactiveAssertionRec( Node fact, std::map< Node, std::vector<
   TNode atom = polarity ? fact : fact[0];
   TNode satom = atom[0];
   TNode slbl = atom[1];
-  if (satom.getKind() == kind::SEP_WAND || satom.getKind() == kind::SEP_STAR)
+  if (satom.getKind() == SEP_WAND || satom.getKind() == SEP_STAR)
   {
     for (size_t j = 0, nchild = satom.getNumChildren(); j < nchild; j++)
     {
@@ -1526,14 +1523,14 @@ void TheorySep::getLabelChildren(Node satom,
                                  std::vector<Node>& children,
                                  std::vector<Node>& labels)
 {
-  for (unsigned i = 0, nchild = satom.getNumChildren(); i < nchild; i++)
+  for (size_t i = 0, nchild = satom.getNumChildren(); i < nchild; i++)
   {
     Node lblc = getLabel(satom, i, lbl);
     Assert(!lblc.isNull());
     std::map< Node, Node > visited;
     Node lc = applyLabel(satom[i], lblc, visited);
     Assert(!lc.isNull());
-    if (i == 1 && satom.getKind() == kind::SEP_WAND)
+    if (i == 1 && satom.getKind() == SEP_WAND)
     {
       lc = lc.negate();
     }
