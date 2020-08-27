@@ -43,6 +43,7 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_rewriter.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
@@ -256,6 +257,12 @@ class Theory {
    * Notice the theory is responsible for memory management of this class.
    */
   TheoryState* d_theoryState;
+  /**
+   * The theory inference manager. This is a wrapper around the equality
+   * engine and the output channel. It ensures that the output channel and
+   * the equality engine are used properly.
+   */
+  TheoryInferenceManager* d_inferManager;
   /**
    * Whether proofs are enabled
    *
