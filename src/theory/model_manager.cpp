@@ -209,7 +209,7 @@ void ModelManager::collectTerms(TheoryId tid,
     // only add to term set if a relevant kind
     if (irrKinds.find(k) == irrKinds.end())
     {
-      Assert (Theory::theoryOf(cur) == tid);
+      Assert(Theory::theoryOf(cur) == tid);
       termSet.insert(cur);
     }
     // traverse owned terms, don't go under quantifiers
