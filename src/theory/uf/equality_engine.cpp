@@ -1310,36 +1310,6 @@ Node EqualityEngine::mkExplainLit(TNode lit)
   return ret;
 }
 
-Node EqualityEngine::mkExplain(TNode n)
-{
-  std::vector<TNode> assumptions;
-  if (n.getKind() == kind::AND)
-  {
-    for (const Node& nc : n)
-    {
-      explainLit(nc, assumptions);
-    }
-  }
-  else
-  {
-    explainLit(n, assumptions);
-  }
-  Node ret;
-  if (assumptions.empty())
-  {
-    ret = NodeManager::currentNM()->mkConst(true);
-  }
-  else if (assumptions.size() == 1)
-  {
-    ret = assumptions[0];
-  }
-  else
-  {
-    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
-  }
-  return ret;
-}
-
 void EqualityEngine::getExplanation(
     EqualityNodeId t1Id,
     EqualityNodeId t2Id,
