@@ -30,6 +30,7 @@
 #include "theory/uf/equality_engine.h"
 #include "util/dense_map.h"
 #include "util/statistics_registry.h"
+#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 namespace theory {

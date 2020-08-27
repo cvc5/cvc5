@@ -20,6 +20,7 @@
 #include "expr/attribute.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
+#include "context/cdlist.h"
 
 namespace CVC4 {
 namespace theory {

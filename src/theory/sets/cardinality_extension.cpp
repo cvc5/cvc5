@@ -21,6 +21,7 @@
 #include "theory/sets/normal_form.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
+#include "smt/logic_exception.h"
 
 using namespace std;
 using namespace CVC4::kind;

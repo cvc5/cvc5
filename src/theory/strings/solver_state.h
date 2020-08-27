@@ -20,11 +20,13 @@
 #include <map>
 
 #include "context/context.h"
+#include "context/cdlist.h"
 #include "expr/node.h"
 #include "theory/theory_model.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/valuation.h"
 #include "theory/strings/eqc_info.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {

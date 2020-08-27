@@ -54,6 +54,7 @@
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
 #include "util/resource_manager.h"
+#include "theory/theory_id.h"
 
 using namespace std;
 
@@ -307,7 +308,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       Assert(!expr::hasFreeVar(preprocessed));
 
       // Pre-register the terms in the atom
-      Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(
+      theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
           d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);
       // Remove the top theory, if any more that means multiple theories were
@@ -1073,7 +1074,7 @@ void TheoryEngine::assertFact(TNode literal)
       SharedTermsDatabase::shared_terms_iterator it_end = d_sharedTerms.end(atom);
       for (; it != it_end; ++ it) {
         TNode term = *it;
-        Theory::Set theories = d_sharedTerms.getTheoriesToNotify(atom, term);
+        theory::TheoryIdSet theories = d_sharedTerms.getTheoriesToNotify(atom, term);
         for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++ id) {
           if (Theory::setContains(id, theories)) {
             theoryOf(id)->addSharedTerm(term);
