@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 ;EXPECT: unsat
 (set-logic ALL)
 (declare-fun a () (Seq Int))

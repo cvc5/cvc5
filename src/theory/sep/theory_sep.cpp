@@ -47,6 +47,8 @@ TheorySep::TheorySep(context::Context* c,
                      ProofNodeManager* pnm)
     : Theory(THEORY_SEP, c, u, out, valuation, logicInfo, pnm),
       d_lemmas_produced_c(u),
+      d_bounds_init(false),
+      d_state(c, u, valuation),
       d_notify(*this),
       d_conflict(c, false),
       d_reduce(u),
@@ -56,7 +58,9 @@ TheorySep::TheorySep(context::Context* c,
 {
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-  d_bounds_init = false;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheorySep::~TheorySep() {
@@ -107,13 +111,13 @@ Theory::PPAssertStatus TheorySep::ppAssert(TNode in, SubstitutionMap& outSubstit
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheorySep::propagate(TNode literal)
+bool TheorySep::propagateLit(TNode literal)
 {
-  Debug("sep") << "TheorySep::propagate(" << literal  << ")" << std::endl;
+  Debug("sep") << "TheorySep::propagateLit(" << literal << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("sep") << "TheorySep::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("sep") << "TheorySep::propagateLit(" << literal
+                 << "): already in conflict" << std::endl;
     return false;
   }
   bool ok = d_out->propagate(literal);
@@ -142,11 +146,6 @@ void TheorySep::explain(TNode literal, std::vector<TNode>& assumptions) {
   }
 }
 
-
-void TheorySep::propagate(Effort e){
-
-}
-
 TrustNode TheorySep::explain(TNode literal)
 {
   Debug("sep") << "TheorySep::explain(" << literal << ")" << std::endl;
@@ -161,9 +160,9 @@ TrustNode TheorySep::explain(TNode literal)
 // SHARING
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheorySep::addSharedTerm(TNode t) {
-  Debug("sep") << "TheorySep::addSharedTerm(" << t << ")" << std::endl;
+void TheorySep::notifySharedTerm(TNode t)
+{
+  Debug("sep") << "TheorySep::notifySharedTerm(" << t << ")" << std::endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_SEP);
 }
 

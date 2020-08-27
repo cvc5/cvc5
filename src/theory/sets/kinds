@@ -12,7 +12,7 @@ rewriter ::CVC4::theory::sets::TheorySetsRewriter \
     "theory/sets/theory_sets_rewriter.h"
 
 properties parametric
-properties check propagate presolve
+properties check presolve
 
 # constants
 constant EMPTYSET \
