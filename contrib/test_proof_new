@@ -31,7 +31,7 @@ function testwith {
 # simply check that make regress passes
 testwith regress
 # fail for cases where proof-new is disabled when it shouldn't be
-testwith default --proof-new-req
+testwith check_enabled --proof-new-req
 # eager checking, fail if any intermediate proof went wrong
 testwith eager_checking --proof-new-req --proof-new-eager-checking
 # check proofs, non-pedantic
