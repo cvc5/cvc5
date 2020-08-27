@@ -327,30 +327,6 @@ class ProofEqEngine : public EagerProofGenerator
   ProofNodeManager* d_pnm;
   /** The SAT-context-dependent proof object */
   LazyCDProof d_proof;
-  /** The default proof generator (for simple facts) */
-  class FactProofGenerator : public ProofGenerator
-  {
-    typedef context::
-        CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
-            NodeProofStepMap;
-
-   public:
-    FactProofGenerator(context::Context* c, ProofNodeManager* pnm);
-    ~FactProofGenerator() {}
-    /** add step */
-    bool addStep(Node fact, ProofStep ps);
-    /** Get proof for */
-    std::shared_ptr<ProofNode> getProofFor(Node f) override;
-    /** identify */
-    std::string identify() const override { return "FactProofGenerator"; }
-
-   private:
-    /** maps expected to ProofStep */
-    NodeProofStepMap d_facts;
-    /** the proof node manager */
-    ProofNodeManager* d_pnm;
-  };
-  FactProofGenerator d_factPg;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are reference counted. Since facts and their
