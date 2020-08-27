@@ -50,7 +50,6 @@ class TermRegistry
 
  public:
   TermRegistry(SolverState& s,
-               eq::EqualityEngine& ee,
                OutputChannel& out,
                SequencesStatistics& statistics,
                ProofNodeManager* pnm);
@@ -220,8 +219,6 @@ class TermRegistry
   uint32_t d_cardSize;
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
-  /** Reference to equality engine of the theory of strings. */
-  eq::EqualityEngine& d_ee;
   /** Reference to the output channel of the theory of strings. */
   OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
@@ -278,7 +275,7 @@ class TermRegistry
    * If n is an atomic term, the method registerTermAtomic is called for n
    * and s = LENGTH_SPLIT and no lemma is returned.
    */
-  Node getRegisterTermLemma(Node n);
+  TrustNode getRegisterTermLemma(Node n);
   /**
    * Get the lemma required for registering the length information for
    * atomic term n given length status s. For details, see registerTermAtomic.
@@ -287,9 +284,9 @@ class TermRegistry
    * argument reqPhase, which should be processed by a call to requiredPhase by
    * the caller of this method.
    */
-  Node getRegisterTermAtomicLemma(Node n,
-                                  LengthStatus s,
-                                  std::map<Node, bool>& reqPhase);
+  TrustNode getRegisterTermAtomicLemma(Node n,
+                                       LengthStatus s,
+                                       std::map<Node, bool>& reqPhase);
 };
 
 }  // namespace strings

@@ -48,11 +48,17 @@ class TheorySets : public Theory
   //--------------------------------- initialization
   /** get the official theory rewriter of this theory */
   TheoryRewriter* getTheoryRewriter() override;
+  /**
+   * Returns true if we need an equality engine. If so, we initialize the
+   * information regarding how it should be setup. For details, see the
+   * documentation in Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi) override;
   /** finish initialization */
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void addSharedTerm(TNode) override;
+  void notifySharedTerm(TNode) override;
   void check(Effort) override;
   bool collectModelInfo(TheoryModel* m) override;
   void computeCareGraph() override;
@@ -64,18 +70,13 @@ class TheorySets : public Theory
   TrustNode expandDefinition(Node n) override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
-  void propagate(Effort) override;
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
   bool isEntailed(Node n, bool pol);
-  /* equality engine */
-  virtual eq::EqualityEngine* getEqualityEngine() override;
  private:
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify
   {
    public:
     NotifyClass(TheorySetsPrivate& theory) : d_theory(theory) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -83,8 +84,7 @@ class TheorySets : public Theory
                                      bool value) override;
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
     void eqNotifyNewClass(TNode t) override;
-    void eqNotifyPreMerge(TNode t1, TNode t2) override;
-    void eqNotifyPostMerge(TNode t1, TNode t2) override;
+    void eqNotifyMerge(TNode t1, TNode t2) override;
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
     
    private:
@@ -93,9 +93,7 @@ class TheorySets : public Theory
   /** The internal theory */
   std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Instance of the above class */
-  NotifyClass d_notify;  
-  /** Equality engine */
-  eq::EqualityEngine d_equalityEngine;
+  NotifyClass d_notify;
 }; /* class TheorySets */
 
 }/* CVC4::theory::sets namespace */

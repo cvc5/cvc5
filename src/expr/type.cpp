@@ -585,19 +585,6 @@ std::vector<Type> ConstructorType::getArgTypes() const {
   return args;
 }
 
-const Datatype& DatatypeType::getDatatype() const
-{
-  NodeManagerScope nms(d_nodeManager);
-  Assert(isDatatype());
-  if (d_typeNode->getKind() == kind::DATATYPE_TYPE)
-  {
-    DatatypeIndexConstant dic = d_typeNode->getConst<DatatypeIndexConstant>();
-    return d_nodeManager->toExprManager()->getDatatypeForIndex(dic.getIndex());
-  }
-  Assert(d_typeNode->getKind() == kind::PARAMETRIC_DATATYPE);
-  return DatatypeType((*d_typeNode)[0].toType()).getDatatype();
-}
-
 bool DatatypeType::isParametric() const {
   return d_typeNode->isParametricDatatype();
 }

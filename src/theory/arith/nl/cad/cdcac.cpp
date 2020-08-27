@@ -78,6 +78,19 @@ void CDCAC::computeVariableOrdering()
   }
 }
 
+void CDCAC::retrieveInitialAssignment(NlModel& model, const Node& ran_variable)
+{
+  d_initialAssignment.clear();
+  Trace("cdcac") << "Retrieving initial assignment:" << std::endl;
+  for (const auto& var : d_variableOrdering)
+  {
+    Node v = getConstraints().varMapper()(var);
+    Node val = model.computeConcreteModelValue(v);
+    poly::Value value = node_to_value(val, ran_variable);
+    Trace("cdcac") << "\t" << var << " = " << value << std::endl;
+    d_initialAssignment.emplace_back(value);
+  }
+}
 Constraints& CDCAC::getConstraints() { return d_constraints; }
 const Constraints& CDCAC::getConstraints() const { return d_constraints; }
 
@@ -119,6 +132,28 @@ std::vector<CACInterval> CDCAC::getUnsatIntervals(
   }
   cleanIntervals(res);
   return res;
+}
+
+bool CDCAC::sampleOutsideWithInitial(const std::vector<CACInterval>& infeasible,
+                                     poly::Value& sample,
+                                     std::size_t cur_variable)
+{
+  if (cur_variable < d_initialAssignment.size())
+  {
+    const poly::Value& suggested = d_initialAssignment[cur_variable];
+    for (const auto& i : infeasible)
+    {
+      if (poly::contains(i.d_interval, suggested))
+      {
+        d_initialAssignment.clear();
+        return sampleOutside(infeasible, sample);
+      }
+    }
+    Trace("cdcac") << "Using suggested initial value" << std::endl;
+    sample = suggested;
+    return true;
+  }
+  return sampleOutside(infeasible, sample);
 }
 
 std::vector<poly::Polynomial> CDCAC::requiredCoefficients(
@@ -170,18 +205,20 @@ std::vector<poly::Polynomial> CDCAC::constructCharacterization(
         Trace("cdcac") << "Coeff of " << p << " -> " << q << std::endl;
         addPolynomial(res, q);
       }
-      // TODO(cvc4-projects #210): Only add if p(s \times a) = 0 for some a <= l
       for (const auto& q : i.d_lowerPolys)
       {
         if (p == q) continue;
+        // Check whether p(s \times a) = 0 for some a <= l
+        if (!hasRootBelow(q, get_lower(i.d_interval))) continue;
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
         addPolynomial(res, resultant(p, q));
       }
-      // TODO(cvc4-projects #210): Only add if p(s \times a) = 0 for some a >= u
       for (const auto& q : i.d_upperPolys)
       {
         if (p == q) continue;
+        // Check whether p(s \times a) = 0 for some a >= u
+        if (!hasRootAbove(q, get_upper(i.d_interval))) continue;
         Trace("cdcac") << "Resultant of " << p << " and " << q << " -> "
                        << resultant(p, q) << std::endl;
         addPolynomial(res, resultant(p, q));
@@ -307,15 +344,16 @@ CACInterval CDCAC::intervalFromCharacterization(
   }
 }
 
-std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
+std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t curVariable,
+                                              bool returnFirstInterval)
 {
   Trace("cdcac") << "Looking for unsat cover for "
-                 << d_variableOrdering[cur_variable] << std::endl;
-  std::vector<CACInterval> intervals = getUnsatIntervals(cur_variable);
+                 << d_variableOrdering[curVariable] << std::endl;
+  std::vector<CACInterval> intervals = getUnsatIntervals(curVariable);
 
   if (Trace.isOn("cdcac"))
   {
-    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[cur_variable]
+    Trace("cdcac") << "Unsat intervals for " << d_variableOrdering[curVariable]
                    << ":" << std::endl;
     for (const auto& i : intervals)
     {
@@ -325,30 +363,30 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
   }
   poly::Value sample;
 
-  while (sampleOutside(intervals, sample))
+  while (sampleOutsideWithInitial(intervals, sample, curVariable))
   {
-    if (!checkIntegrality(cur_variable, sample))
+    if (!checkIntegrality(curVariable, sample))
     {
       // the variable is integral, but the sample is not.
       Trace("cdcac") << "Used " << sample << " for integer variable "
-                     << d_variableOrdering[cur_variable] << std::endl;
-      auto new_interval = buildIntegralityInterval(cur_variable, sample);
-      Trace("cdcac") << "Adding integrality interval "
-                     << new_interval.d_interval << std::endl;
-      intervals.emplace_back(new_interval);
+                     << d_variableOrdering[curVariable] << std::endl;
+      auto newInterval = buildIntegralityInterval(curVariable, sample);
+      Trace("cdcac") << "Adding integrality interval " << newInterval.d_interval
+                     << std::endl;
+      intervals.emplace_back(newInterval);
       cleanIntervals(intervals);
       continue;
     }
-    d_assignment.set(d_variableOrdering[cur_variable], sample);
+    d_assignment.set(d_variableOrdering[curVariable], sample);
     Trace("cdcac") << "Sample: " << d_assignment << std::endl;
-    if (cur_variable == d_variableOrdering.size() - 1)
+    if (curVariable == d_variableOrdering.size() - 1)
     {
       // We have a full assignment. SAT!
       Trace("cdcac") << "Found full assignment: " << d_assignment << std::endl;
       return {};
     }
     // Recurse to next variable
-    auto cov = getUnsatCover(cur_variable + 1);
+    auto cov = getUnsatCover(curVariable + 1);
     if (cov.empty())
     {
       // Found SAT!
@@ -359,12 +397,17 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
     auto characterization = constructCharacterization(cov);
     Trace("cdcac") << "Characterization: " << characterization << std::endl;
 
-    d_assignment.unset(d_variableOrdering[cur_variable]);
+    d_assignment.unset(d_variableOrdering[curVariable]);
 
-    auto new_interval =
-        intervalFromCharacterization(characterization, cur_variable, sample);
-    new_interval.d_origins = collectConstraints(cov);
-    intervals.emplace_back(new_interval);
+    auto newInterval =
+        intervalFromCharacterization(characterization, curVariable, sample);
+    newInterval.d_origins = collectConstraints(cov);
+    intervals.emplace_back(newInterval);
+
+    if (returnFirstInterval)
+    {
+      return intervals;
+    }
 
     Trace("cdcac") << "Added " << intervals.back().d_interval << std::endl;
     Trace("cdcac") << "\tlower:   " << intervals.back().d_lowerPolys
@@ -384,7 +427,7 @@ std::vector<CACInterval> CDCAC::getUnsatCover(std::size_t cur_variable)
   if (Trace.isOn("cdcac"))
   {
     Trace("cdcac") << "Returning intervals for "
-                   << d_variableOrdering[cur_variable] << ":" << std::endl;
+                   << d_variableOrdering[curVariable] << ":" << std::endl;
     for (const auto& i : intervals)
     {
       Trace("cdcac") << "-> " << i.d_interval << std::endl;
@@ -417,6 +460,24 @@ CACInterval CDCAC::buildIntegralityInterval(std::size_t cur_variable,
                      {var - below, var - above},
                      {},
                      {}};
+}
+
+bool CDCAC::hasRootAbove(const poly::Polynomial& p,
+                         const poly::Value& val) const
+{
+  auto roots = poly::isolate_real_roots(p, d_assignment);
+  return std::any_of(roots.begin(), roots.end(), [&val](const poly::Value& r) {
+    return r >= val;
+  });
+}
+
+bool CDCAC::hasRootBelow(const poly::Polynomial& p,
+                         const poly::Value& val) const
+{
+  auto roots = poly::isolate_real_roots(p, d_assignment);
+  return std::any_of(roots.begin(), roots.end(), [&val](const poly::Value& r) {
+    return r <= val;
+  });
 }
 
 }  // namespace cad

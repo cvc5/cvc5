@@ -33,15 +33,8 @@ class EqualityEngineNotify
   virtual ~EqualityEngineNotify(){};
 
   /**
-   * Notifies about a trigger equality that became true or false.
-   *
-   * @param equality the equality that became true or false
-   * @param value the value of the equality
-   */
-  virtual bool eqNotifyTriggerEquality(TNode equality, bool value) = 0;
-
-  /**
-   * Notifies about a trigger predicate that became true or false.
+   * Notifies about a trigger predicate that became true or false. Notice that
+   * predicate can be an equality.
    *
    * @param predicate the trigger predicate that became true or false
    * @param value the value of the predicate
@@ -78,20 +71,12 @@ class EqualityEngineNotify
   virtual void eqNotifyNewClass(TNode t) = 0;
 
   /**
-   * Notifies about the merge of two classes (just before the merge).
-   *
-   * @param t1 a term
-   * @param t2 a term
-   */
-  virtual void eqNotifyPreMerge(TNode t1, TNode t2) = 0;
-
-  /**
    * Notifies about the merge of two classes (just after the merge).
    *
    * @param t1 a term
    * @param t2 a term
    */
-  virtual void eqNotifyPostMerge(TNode t1, TNode t2) = 0;
+  virtual void eqNotifyMerge(TNode t1, TNode t2) = 0;
 
   /**
    * Notifies about the disequality of two terms.
@@ -111,10 +96,6 @@ class EqualityEngineNotify
 class EqualityEngineNotifyNone : public EqualityEngineNotify
 {
  public:
-  bool eqNotifyTriggerEquality(TNode equality, bool value) override
-  {
-    return true;
-  }
   bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
   {
     return true;
@@ -128,8 +109,7 @@ class EqualityEngineNotifyNone : public EqualityEngineNotify
   }
   void eqNotifyConstantTermMerge(TNode t1, TNode t2) override {}
   void eqNotifyNewClass(TNode t) override {}
-  void eqNotifyPreMerge(TNode t1, TNode t2) override {}
-  void eqNotifyPostMerge(TNode t1, TNode t2) override {}
+  void eqNotifyMerge(TNode t1, TNode t2) override {}
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override {}
 }; /* class EqualityEngineNotifyNone */
 

@@ -39,10 +39,13 @@
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
 #include "theory/decision_manager.h"
+#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_rewriter.h"
+#include "theory/theory_state.h"
 #include "theory/trust_node.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
@@ -76,11 +79,35 @@ namespace eq {
  * RegisteredAttr works.  (If you need multiple instances of the same
  * theory, you'll have to write a multiplexed theory that dispatches
  * all calls to them.)
+ *
+ * NOTE: A Theory has a special way of being initialized. The owner of a Theory
+ * is either:
+ *
+ * (A) Using Theory as a standalone object, not associated with a TheoryEngine.
+ * In this case, simply call the public initialization method
+ * (Theory::finishInitStandalone).
+ *
+ * (B) TheoryEngine, which determines how the Theory acts in accordance with
+ * its theory combination policy. We require the following steps in order:
+ * (B.1) Get information about whether the theory wishes to use an equality
+ * eninge, and more specifically which equality engine notifications the Theory
+ * would like to be notified of (Theory::needsEqualityEngine).
+ * (B.2) Set the equality engine of the theory (Theory::setEqualityEngine),
+ * which we refer to as the "official equality engine" of this Theory. The
+ * equality engine passed to the theory must respect the contract(s) specified
+ * by the equality engine setup information (EeSetupInfo) returned in the
+ * previous step.
+ * (B.3) Set the other required utilities including setQuantifiersEngine and
+ * setDecisionManager.
+ * (B.4) Call the private initialization method (Theory::finishInit).
+ *
+ * Initialization of the second form happens during TheoryEngine::finishInit,
+ * after the quantifiers engine and model objects have been set up.
  */
 class Theory {
- private:
   friend class ::CVC4::TheoryEngine;
 
+ private:
   // Disallow default construction, copy, assignment.
   Theory() = delete;
   Theory(const Theory&) = delete;
@@ -88,11 +115,6 @@ class Theory {
 
   /** An integer identifying the type of the theory. */
   TheoryId d_id;
-
-  /** Name of this theory instance. Along with the TheoryId this should provide
-   * an unique string identifier for each instance of a Theory class. We need
-   * this to ensure unique statistics names over multiple theory instances. */
-  std::string d_instanceName;
 
   /** The SAT search context for the Theory. */
   context::Context* d_satContext;
@@ -117,9 +139,6 @@ class Theory {
   /** Index into the head of the facts list */
   context::CDO<unsigned> d_factsHead;
 
-  /** Add shared term to the theory. */
-  void addSharedTermInternal(TNode node);
-
   /** Indices for splitting on the shared terms. */
   context::CDO<unsigned> d_sharedTermsIndex;
 
@@ -136,6 +155,10 @@ class Theory {
   DecisionManager* d_decManager;
 
  protected:
+  /** Name of this theory instance. Along with the TheoryId this should provide
+   * an unique string identifier for each instance of a Theory class. We need
+   * this to ensure unique statistics names over multiple theory instances. */
+  std::string d_instanceName;
 
   // === STATISTICS ===
   /** time spent in check calls */
@@ -159,13 +182,7 @@ class Theory {
    */
   context::CDList<TNode> d_sharedTerms;
 
-  /**
-   * Helper function for computeRelevantTerms
-   */
-  void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
-                    std::set<Node>& termSet) const;
-
+  //---------------------------------- private collect model info
   /**
    * Scans the current set of assertions and shared terms top-down
    * until a theory-leaf is reached, and adds all terms found to
@@ -179,11 +196,16 @@ class Theory {
    * includeShared: Whether to include shared terms in termSet. Notice that
    * shared terms are not influenced by irrKinds.
    */
-  void computeRelevantTerms(std::set<Node>& termSet,
-                            std::set<Kind>& irrKinds,
-                            bool includeShared = true) const;
-  /** same as above, but with empty irrKinds */
-  void computeRelevantTerms(std::set<Node>& termSet, bool includeShared = true) const;
+  void computeRelevantTermsInternal(std::set<Node>& termSet,
+                                    std::set<Kind>& irrKinds,
+                                    bool includeShared = true) const;
+  /**
+   * Helper function for computeRelevantTerms
+   */
+  void collectTerms(TNode n,
+                    std::set<Kind>& irrKinds,
+                    std::set<Node>& termSet) const;
+  //---------------------------------- end private collect model info
 
   /**
    * Construct a Theory.
@@ -221,7 +243,26 @@ class Theory {
    * theory engine (and other theories).
    */
   Valuation d_valuation;
-
+  /**
+   * Pointer to the official equality engine of this theory, which is owned by
+   * the equality engine manager of TheoryEngine.
+   */
+  eq::EqualityEngine* d_equalityEngine;
+  /**
+   * The official equality engine, if we allocated it.
+   */
+  std::unique_ptr<eq::EqualityEngine> d_allocEqualityEngine;
+  /**
+   * The theory state, which contains contexts, valuation, and equality engine.
+   * Notice the theory is responsible for memory management of this class.
+   */
+  TheoryState* d_theoryState;
+  /**
+   * The theory inference manager. This is a wrapper around the equality
+   * engine and the output channel. It ensures that the output channel and
+   * the equality engine are used properly.
+   */
+  TheoryInferenceManager* d_inferManager;
   /**
    * Whether proofs are enabled
    *
@@ -263,8 +304,65 @@ class Theory {
    * its value must be computed (approximated) by the non-linear solver.
    */
   bool isLegalElimination(TNode x, TNode val);
+  //--------------------------------- private initialization
+  /**
+   * Called to set the official equality engine. This should be done by
+   * TheoryEngine only.
+   */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /** Called to set the quantifiers engine. */
+  void setQuantifiersEngine(QuantifiersEngine* qe);
+  /** Called to set the decision manager. */
+  void setDecisionManager(DecisionManager* dm);
+  /**
+   * Finish theory initialization.  At this point, options and the logic
+   * setting are final, the master equality engine and quantifiers
+   * engine (if any) are initialized, and the official equality engine of this
+   * theory has been assigned.  This base class implementation
+   * does nothing. This should be called by TheoryEngine only.
+   */
+  virtual void finishInit() {}
+  //--------------------------------- end private initialization
+
+  /**
+   * This method is called to notify a theory that the node n should
+   * be considered a "shared term" by this theory. This does anything
+   * theory-specific concerning the fact that n is now marked as a shared
+   * term, which is done in addition to explicitly storing n as a shared
+   * term and adding it as a trigger term in the equality engine of this
+   * class (see addSharedTerm).
+   */
+  virtual void notifySharedTerm(TNode n);
 
  public:
+  //--------------------------------- initialization
+  /**
+   * @return The theory rewriter associated with this theory.
+   */
+  virtual TheoryRewriter* getTheoryRewriter() = 0;
+  /**
+   * Returns true if this theory needs an equality engine for checking
+   * satisfiability.
+   *
+   * If this method returns true, then the equality engine manager will
+   * initialize its equality engine field via setEqualityEngine above during
+   * TheoryEngine::finishInit, prior to calling finishInit for this theory.
+   *
+   * Additionally, if this method returns true, then this method is required to
+   * update the argument esi with instructions for initializing and setting up
+   * notifications from its equality engine, which is commonly done with
+   * a notifications class (eq::EqualityEngineNotify).
+   */
+  virtual bool needsEqualityEngine(EeSetupInfo& esi);
+  /**
+   * Finish theory initialization, standalone version. This is used to
+   * initialize this class if it is not associated with a theory engine.
+   * This allocates the official equality engine of this Theory and then
+   * calls the finishInit method above.
+   */
+  void finishInitStandalone();
+  //--------------------------------- end initialization
+
   /**
    * Return the ID of the theory responsible for the given type.
    */
@@ -331,36 +429,29 @@ class Theory {
   virtual ~Theory();
 
   /**
-   * @return The theory rewriter associated with this theory.
-   */
-  virtual TheoryRewriter* getTheoryRewriter() = 0;
-
-  /**
    * Subclasses of Theory may add additional efforts.  DO NOT CHECK
    * equality with one of these values (e.g. if STANDARD xxx) but
    * rather use range checks (or use the helper functions below).
    * Normally we call QUICK_CHECK or STANDARD; at the leaves we call
    * with FULL_EFFORT.
    */
-  enum Effort {
+  enum Effort
+  {
     /**
      * Standard effort where theory need not do anything
      */
     EFFORT_STANDARD = 50,
     /**
-     * Full effort requires the theory make sure its assertions are satisfiable or not
+     * Full effort requires the theory make sure its assertions are satisfiable
+     * or not
      */
     EFFORT_FULL = 100,
     /**
-     * Combination effort means that the individual theories are already satisfied, and
-     * it is time to put some effort into propagation of shared term equalities
-     */
-    EFFORT_COMBINATION = 150,
-    /**
-     * Last call effort, reserved for quantifiers.
+     * Last call effort, called after theory combination has completed with
+     * no lemmas and a model is available.
      */
     EFFORT_LAST_CALL = 200
-  };/* enum Effort */
+  }; /* enum Effort */
 
   static inline bool standardEffortOrMore(Effort e) CVC4_CONST_FUNCTION
     { return e >= EFFORT_STANDARD; }
@@ -368,8 +459,6 @@ class Theory {
     { return e >= EFFORT_STANDARD && e <  EFFORT_FULL; }
   static inline bool fullEffort(Effort e) CVC4_CONST_FUNCTION
     { return e == EFFORT_FULL; }
-  static inline bool combination(Effort e) CVC4_CONST_FUNCTION
-    { return e == EFFORT_COMBINATION; }
 
   /**
    * Get the id for this Theory.
@@ -413,6 +502,9 @@ class Theory {
     return d_valuation;
   }
 
+  /** Get the equality engine being used by this theory. */
+  eq::EqualityEngine* getEqualityEngine();
+
   /**
    * Get the quantifiers engine associated to this theory.
    */
@@ -420,23 +512,8 @@ class Theory {
     return d_quantEngine;
   }
 
-  /**
-   * Get the quantifiers engine associated to this theory (const version).
-   */
-  const QuantifiersEngine* getQuantifiersEngine() const {
-    return d_quantEngine;
-  }
-
   /** Get the decision manager associated to this theory. */
   DecisionManager* getDecisionManager() { return d_decManager; }
-
-  /**
-   * Finish theory initialization.  At this point, options and the logic
-   * setting are final, and the master equality engine and quantifiers
-   * engine (if any) are initialized.  This base class implementation
-   * does nothing.
-   */
-  virtual void finishInit() { }
 
   /**
    * Expand definitions in the term node. This returns a term that is
@@ -474,7 +551,7 @@ class Theory {
   /**
    * Pre-register a term.  Done one time for a Node per SAT context level.
    */
-  virtual void preRegisterTerm(TNode) { }
+  virtual void preRegisterTerm(TNode);
 
   /**
    * Assert a fact in the current context.
@@ -486,24 +563,8 @@ class Theory {
     d_facts.push_back(Assertion(assertion, isPreregistered));
   }
 
-  /**
-   * This method is called to notify a theory that the node n should
-   * be considered a "shared term" by this theory
-   */
-  virtual void addSharedTerm(TNode n) { }
-
-  /**
-   * Called to set the master equality engine.
-   */
-  virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
-
-  /** Called to set the quantifiers engine. */
-  void setQuantifiersEngine(QuantifiersEngine* qe);
-  /** Called to set the decision manager. */
-  void setDecisionManager(DecisionManager* dm);
-
-  /** Setup an ExtTheory module for this Theory. Can only be called once. */
-  void setupExtTheory();
+  /** Add shared term to the theory. */
+  void addSharedTerm(TNode node);
 
   /**
    * Return the current theory care graph. Theories should overload
@@ -516,31 +577,17 @@ class Theory {
    * Return the status of two terms in the current context. Should be
    * implemented in sub-theories to enable more efficient theory-combination.
    */
-  virtual EqualityStatus getEqualityStatus(TNode a, TNode b) {
-    return EQUALITY_UNKNOWN;
-  }
+  virtual EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   /**
    * Return the model value of the give shared term (or null if not available).
+   *
+   * TODO (project #39): this method is likely to become deprecated.
    */
   virtual Node getModelValue(TNode var) { return Node::null(); }
 
-  /**
-   * Check the current assignment's consistency.
-   *
-   * An implementation of check() is required to either:
-   * - return a conflict on the output channel,
-   * - be interrupted,
-   * - throw an exception
-   * - or call get() until done() is true.
-   */
-  virtual void check(Effort level = EFFORT_FULL) { }
-
-  /** Needs last effort check? */
-  virtual bool needsCheckLastEffort() { return false; }
-
   /** T-propagate new literal assignments in the current context. */
-  virtual void propagate(Effort level = EFFORT_FULL) { }
+  virtual void propagate(Effort level = EFFORT_FULL) {}
 
   /**
    * Return an explanation for the literal represented by parameter n
@@ -553,6 +600,78 @@ class Theory {
                        "Theory::explain() interface!";
   }
 
+  //--------------------------------- check
+  /**
+   * Does this theory wish to be called to check at last call effort? This is
+   * the case for any theory that wishes to run when a model is available.
+   */
+  virtual bool needsCheckLastEffort() { return false; }
+  /**
+   * Check the current assignment's consistency.
+   *
+   * An implementation of check() is required to either:
+   * - return a conflict on the output channel,
+   * - be interrupted,
+   * - throw an exception
+   * - or call get() until done() is true.
+   *
+   * The standard method for check consists of a loop that processes the entire
+   * fact queue when preCheck returns false. It makes four theory-specific
+   * callbacks, (preCheck, postCheck, preNotifyFact, notifyFact) as described
+   * below. It asserts each fact to the official equality engine when
+   * preNotifyFact returns false.
+   *
+   * Theories that use this check method must use an official theory
+   * state object (d_theoryState).
+   *
+   * TODO (project #39): this method should be non-virtual, once all theories
+   * conform to the new standard
+   */
+  virtual void check(Effort level = EFFORT_FULL);
+  /**
+   * Pre-check, called before the fact queue of the theory is processed.
+   * If this method returns false, then the theory will process its fact
+   * queue. If this method returns true, then the theory has indicated
+   * its check method should finish immediately.
+   */
+  virtual bool preCheck(Effort level = EFFORT_FULL);
+  /**
+   * Post-check, called after the fact queue of the theory is processed.
+   */
+  virtual void postCheck(Effort level = EFFORT_FULL);
+  /**
+   * Pre-notify fact, return true if the theory processed it. If this
+   * method returns false, then the atom will be added to the equality engine
+   * of the theory and notifyFact will be called with isInternal=false.
+   *
+   * Theories that implement check but do not use official equality
+   * engines should always return true for this method.
+   *
+   * @param atom The atom
+   * @param polarity Its polarity
+   * @param fact The original literal that was asserted
+   * @param isPrereg Whether the assertion is preregistered
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
+   * @return true if the theory completely processed this fact, i.e. it does
+   * not need to assert the fact to its equality engine.
+   */
+  virtual bool preNotifyFact(
+      TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
+  /**
+   * Notify fact, called immediately after the fact was pushed into the
+   * equality engine.
+   *
+   * @param atom The atom
+   * @param polarity Its polarity
+   * @param fact The original literal that was asserted.
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
+   */
+  virtual void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal);
+  //--------------------------------- end check
+
+  //--------------------------------- collect model info
   /**
    * Get all relevant information in this theory regarding the current
    * model.  This should be called after a call to check( FULL_EFFORT )
@@ -560,10 +679,35 @@ class Theory {
    *
    * This method returns true if and only if the equality engine of m is
    * consistent as a result of this call.
+   *
+   * The standard method for collectModelInfo computes the relevant terms,
+   * asserts the theory's equality engine to the model (if necessary) and
+   * then calls computeModelValues.
+   *
+   * TODO (project #39): this method should be non-virtual, once all theories
+   * conform to the new standard
    */
-  virtual bool collectModelInfo(TheoryModel* m) { return true; }
+  virtual bool collectModelInfo(TheoryModel* m);
+  /**
+   * Same as above, but with empty irrKinds. This version can be overridden
+   * by the theory, e.g. by restricting or extending the set of terms returned
+   * by computeRelevantTermsInternal, which is called by default with no
+   * irrKinds.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet,
+                                    bool includeShared = true);
+  /**
+   * Collect model values, after equality information is added to the model.
+   * The argument termSet is the set of relevant terms returned by
+   * computeRelevantTerms.
+   */
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
+  //--------------------------------- end collect model info
+
+  //--------------------------------- preprocessing
   /**
    * Statically learn from assertion "in," which has been asserted
    * true at the top level.  The theory should only add (via
@@ -604,6 +748,7 @@ class Theory {
    * preprocessing before they are asserted to theory engine.
    */
   virtual void ppNotifyAssertions(const std::vector<Node>& assertions) {}
+  //--------------------------------- end preprocessing
 
   /**
    * A Theory is called with presolve exactly one time per user
@@ -838,9 +983,6 @@ class Theory {
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
 
-  /* equality engine TODO: use? */
-  virtual eq::EqualityEngine* getEqualityEngine() { return NULL; }
-
   /* get current substitution at an effort
    *   input : vars
    *   output : subs, exp
@@ -867,7 +1009,6 @@ class Theory {
 
   /** Turn on proof-production mode. */
   void produceProofs() { d_proofsEnabled = true; }
-
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

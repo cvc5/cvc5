@@ -1,4 +1,4 @@
-; COMMAND-LINE: --no-check-models --produce-models --decision=internal
+; COMMAND-LINE: --no-check-models --produce-models --decision=internal --nl-rlv=always
 ; EXPECT: sat
 (set-logic ALL)
 (set-info :status sat)

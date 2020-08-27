@@ -182,10 +182,10 @@ class TheoryBlack : public CxxTest::TestSuite {
     // the following call, which constructs its underlying theory engine.
     d_smt->finishInit();
     // guard against duplicate statistics assertion errors
-    delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
-    delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
-    d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN] = NULL;
-    d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN] = NULL;
+    delete d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN];
+    delete d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN];
+    d_smt->getTheoryEngine()->d_theoryTable[THEORY_BUILTIN] = NULL;
+    d_smt->getTheoryEngine()->d_theoryOut[THEORY_BUILTIN] = NULL;
 
     d_dummy = new DummyTheory(d_ctxt,
                               d_uctxt,

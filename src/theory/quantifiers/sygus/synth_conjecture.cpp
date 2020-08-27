@@ -14,7 +14,6 @@
  **/
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
-#include "expr/datatype.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
