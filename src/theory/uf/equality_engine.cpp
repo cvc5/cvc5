@@ -2414,7 +2414,11 @@ void EqualityEngine::getUseListTerms(TNode t, std::set<TNode>& output) {
   }
 }
 
-EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(TheoryIdSet newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize) {
+EqualityEngine::TriggerTermSetRef EqualityEngine::newTriggerTermSet(
+    TheoryIdSet newSetTags,
+    EqualityNodeId* newSetTriggers,
+    unsigned newSetTriggersSize)
+{
   // Size of the required set
   size_t size = sizeof(TriggerTermSet) + newSetTriggersSize*sizeof(EqualityNodeId);
   // Align the size
@@ -2526,7 +2530,11 @@ void EqualityEngine::storePropagatedDisequality(TheoryId tag, EqualityNodeId lhs
   }
 }
 
-void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classId, TheoryIdSet inputTags, TaggedEqualitiesSet& out) {
+void EqualityEngine::getDisequalities(bool allowConstants,
+                                      EqualityNodeId classId,
+                                      TheoryIdSet inputTags,
+                                      TaggedEqualitiesSet& out)
+{
   // Must be empty on input
   Assert(out.size() == 0);
   // The class we are looking for, shouldn't have any of the tags we are looking for already set
@@ -2606,8 +2614,11 @@ void EqualityEngine::getDisequalities(bool allowConstants, EqualityNodeId classI
 
 }
 
-bool EqualityEngine::propagateTriggerTermDisequalities(TheoryIdSet tags, TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify) {
-
+bool EqualityEngine::propagateTriggerTermDisequalities(
+    TheoryIdSet tags,
+    TriggerTermSetRef triggerSetRef,
+    const TaggedEqualitiesSet& disequalitiesToNotify)
+{
   // No tags, no food
   if (!tags) {
     return !d_done;
@@ -2678,7 +2689,7 @@ EqualityNodeId EqualityEngine::TriggerTermSet::getTrigger(TheoryId tag) const
 {
   return d_triggers[Theory::setIndex(tag, d_tags)];
 }
-    
+
 } // Namespace uf
 } // Namespace theory
 } // Namespace CVC4

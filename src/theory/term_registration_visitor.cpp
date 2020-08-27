@@ -133,7 +133,7 @@ void PreRegisterVisitor::visit(TNode current, TNode parent) {
       }
     }
   }
-  
+
   TheoryIdSet visitedTheories = d_visited[current];
   Debug("register::internal") << "PreRegisterVisitor::visit(" << current << "," << parent << "): previously registered with " << Theory::setToString(visitedTheories) << std::endl;
   if (!Theory::setContains(currentTheoryId, visitedTheories)) {

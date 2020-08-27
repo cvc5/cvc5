@@ -803,7 +803,8 @@ class Theory {
   static const TheoryIdSet AllTheories = (1 << theory::THEORY_LAST) - 1;
 
   /** Pops a first theory off the set */
-  static TheoryId setPop(TheoryIdSet& set) {
+  static TheoryId setPop(TheoryIdSet& set)
+  {
     uint32_t i = ffs(set); // Find First Set (bit)
     if (i == 0) { return THEORY_LAST; }
     TheoryId id = (TheoryId)(i-1);
@@ -812,7 +813,8 @@ class Theory {
   }
 
   /** Returns the size of a set of theories */
-  static size_t setSize(TheoryIdSet set) {
+  static size_t setSize(TheoryIdSet set)
+  {
     size_t count = 0;
     while (setPop(set) != THEORY_LAST) {
       ++ count;
@@ -821,7 +823,8 @@ class Theory {
   }
 
   /** Returns the index size of a set of theories */
-  static size_t setIndex(TheoryId id, TheoryIdSet set) {
+  static size_t setIndex(TheoryId id, TheoryIdSet set)
+  {
     Assert(setContains(id, set));
     size_t count = 0;
     while (setPop(set) != id) {
@@ -831,38 +834,40 @@ class Theory {
   }
 
   /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static TheoryIdSet setInsert(TheoryId theory, TheoryIdSet set = 0) {
+  static TheoryIdSet setInsert(TheoryId theory, TheoryIdSet set = 0)
+  {
     return set | (1 << theory);
   }
 
   /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static TheoryIdSet setRemove(TheoryId theory, TheoryIdSet set = 0) {
+  static TheoryIdSet setRemove(TheoryId theory, TheoryIdSet set = 0)
+  {
     return setDifference(set, setInsert(theory));
   }
 
   /** Check if the set contains the theory */
-  static bool setContains(TheoryId theory, TheoryIdSet set) {
+  static bool setContains(TheoryId theory, TheoryIdSet set)
+  {
     return set & (1 << theory);
   }
 
-  static TheoryIdSet setComplement(TheoryIdSet a) {
-    return (~a) & AllTheories;
-  }
+  static TheoryIdSet setComplement(TheoryIdSet a) { return (~a) & AllTheories; }
 
-  static TheoryIdSet setIntersection(TheoryIdSet a, TheoryIdSet b) {
+  static TheoryIdSet setIntersection(TheoryIdSet a, TheoryIdSet b)
+  {
     return a & b;
   }
 
-  static TheoryIdSet setUnion(TheoryIdSet a, TheoryIdSet b) {
-    return a | b;
-  }
+  static TheoryIdSet setUnion(TheoryIdSet a, TheoryIdSet b) { return a | b; }
 
   /** a - b  */
-  static TheoryIdSet setDifference(TheoryIdSet a, TheoryIdSet b) {
+  static TheoryIdSet setDifference(TheoryIdSet a, TheoryIdSet b)
+  {
     return (~b) & a;
   }
 
-  static std::string setToString(theory::TheoryIdSet theorySet) {
+  static std::string setToString(theory::TheoryIdSet theorySet)
+  {
     std::stringstream ss;
     ss << "[";
     for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {

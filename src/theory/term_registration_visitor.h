@@ -42,7 +42,8 @@ class PreRegisterVisitor {
   /** The engine */
   TheoryEngine* d_engine;
 
-  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction> TNodeToTheorySetMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      TNodeToTheorySetMap;
 
   /**
    * Map from terms to the theories that have already had this term pre-registered.
@@ -62,13 +63,11 @@ class PreRegisterVisitor {
 public:
 
   /** Returned set tells us which theories there are */
-  typedef theory::TheoryIdSet return_type;
-  
-  PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
-  : d_engine(engine)
-  , d_visited(context)
-  , d_theories(0)
-  {}
+ typedef theory::TheoryIdSet return_type;
+
+ PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
+     : d_engine(engine), d_visited(context), d_theories(0)
+ {}
 
   /**
    * Returns true is current has already been pre-registered with both current and parent theories.
@@ -105,7 +104,8 @@ class SharedTermsVisitor {
   /**
    * Cache from preprocessing of atoms.
    */
-  typedef std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction> TNodeVisitedMap;
+  typedef std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      TNodeVisitedMap;
   TNodeVisitedMap d_visited;
 
   /**

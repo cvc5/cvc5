@@ -57,11 +57,15 @@ private:
   context::CDO<unsigned> d_addedSharedTermsSize;
 
   /** A map from atoms and subterms to the theories that use it */
-  typedef context::CDHashMap<std::pair<Node, TNode>, theory::TheoryIdSet, TNodePairHashFunction> SharedTermsTheoriesMap;
+  typedef context::CDHashMap<std::pair<Node, TNode>,
+                             theory::TheoryIdSet,
+                             TNodePairHashFunction>
+      SharedTermsTheoriesMap;
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction> AlreadyNotifiedMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */

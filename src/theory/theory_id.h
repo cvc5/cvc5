@@ -58,11 +58,11 @@ std::ostream& operator<<(std::ostream& out, TheoryId theoryId);
 
 std::string getStatsPrefix(TheoryId theoryId) CVC4_PUBLIC;
 
-/** 
+/**
  * A set of theories. Utilities for TheoryIdSet can be found in theory.h.
  */
 typedef uint32_t TheoryIdSet;
-  
+
 }  // namespace theory
 }  // namespace CVC4
 #endif

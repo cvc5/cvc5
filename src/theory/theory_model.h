@@ -21,12 +21,12 @@
 #include <unordered_set>
 
 #include "smt/model.h"
+#include "theory/ee_setup_info.h"
 #include "theory/rep_set.h"
 #include "theory/substitutions.h"
 #include "theory/type_enumerator.h"
 #include "theory/type_set.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 namespace theory {

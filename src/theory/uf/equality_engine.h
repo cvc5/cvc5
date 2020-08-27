@@ -530,7 +530,9 @@ private:
   static const TriggerTermSetRef null_set_id = (TriggerTermSetRef)(-1);
 
   /** Create new trigger term set based on the internally set information */
-  TriggerTermSetRef newTriggerTermSet(TheoryIdSet newSetTags, EqualityNodeId* newSetTriggers, unsigned newSetTriggersSize);
+  TriggerTermSetRef newTriggerTermSet(TheoryIdSet newSetTags,
+                                      EqualityNodeId* newSetTriggers,
+                                      unsigned newSetTriggersSize);
 
   /** Get the trigger set give a reference */
   TriggerTermSet& getTriggerTermSet(TriggerTermSetRef ref) {
@@ -602,7 +604,9 @@ private:
   /**
    * Map from equalities to the tags that have received the notification.
    */
-  typedef context::CDHashMap<EqualityPair, TheoryIdSet, EqualityPairHashFunction> PropagatedDisequalitiesMap;
+  typedef context::
+      CDHashMap<EqualityPair, TheoryIdSet, EqualityPairHashFunction>
+          PropagatedDisequalitiesMap;
   PropagatedDisequalitiesMap d_propagatedDisequalities;
 
   /**
@@ -654,14 +658,19 @@ private:
    * @param inputTags the tags to filter the equalities
    * @param out the output equalities, as described above
    */
-  void getDisequalities(bool allowConstants, EqualityNodeId classId, TheoryIdSet inputTags, TaggedEqualitiesSet& out);
+  void getDisequalities(bool allowConstants,
+                        EqualityNodeId classId,
+                        TheoryIdSet inputTags,
+                        TaggedEqualitiesSet& out);
 
   /**
    * Propagates the remembered disequalities with given tags the original triggers for those tags,
    * and the set of disequalities produced by above.
    */
-  bool propagateTriggerTermDisequalities(TheoryIdSet tags,
-    TriggerTermSetRef triggerSetRef, const TaggedEqualitiesSet& disequalitiesToNotify);
+  bool propagateTriggerTermDisequalities(
+      TheoryIdSet tags,
+      TriggerTermSetRef triggerSetRef,
+      const TaggedEqualitiesSet& disequalitiesToNotify);
 
   /** Name of the equality engine */
   std::string d_name;
