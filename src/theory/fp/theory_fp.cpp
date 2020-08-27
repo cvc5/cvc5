@@ -916,7 +916,7 @@ void TheoryFp::handleLemma(Node node) {
   return;
 }
 
-bool TheoryFp::propagate(TNode node)
+bool TheoryFp::propagateLit(TNode node)
 {
   Trace("fp") << "TheoryFp::propagate(): propagate " << node << std::endl;
 
@@ -965,6 +965,7 @@ void TheoryFp::postCheck(Effort level)
   }
 
   Trace("fp") << "TheoryFp::check(): completed" << std::endl;
+  /* Checking should be handled by the bit-vector engine */
 }
 
 bool TheoryFp::preNotifyFact(
@@ -1128,9 +1129,9 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerPredicate(TNode predicate,
       << predicate << " is " << value << std::endl;
 
   if (value) {
-    return d_theorySolver.propagate(predicate);
+    return d_theorySolver.propagateLit(predicate);
   }
-  return d_theorySolver.propagate(predicate.notNode());
+  return d_theorySolver.propagateLit(predicate.notNode());
 }
 
 bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
@@ -1139,10 +1140,9 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
                  << t1 << (value ? " = " : " != ") << t2 << std::endl;
 
   if (value) {
-    return d_theorySolver.propagate(t1.eqNode(t2));
-  } else {
-    return d_theorySolver.propagate(t1.eqNode(t2).notNode());
+    return d_theorySolver.propagateLit(t1.eqNode(t2));
   }
+  return d_theorySolver.propagateLit(t1.eqNode(t2).notNode());
 }
 
 void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
