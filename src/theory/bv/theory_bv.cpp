@@ -25,7 +25,6 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_inequality.h"
-#include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_rewriter.h"
@@ -68,11 +67,11 @@ TheoryBV::TheoryBV(context::Context* c,
       d_propagatedBy(c),
       d_eagerSolver(),
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
-      d_isCoreTheory(false),
       d_calledPreregister(false),
       d_needsLastCallCheck(false),
       d_extf_range_infer(u),
-      d_extf_collapse_infer(u)
+      d_extf_collapse_infer(u),
+      d_state(c, u, valuation)
 {
   d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
   d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
@@ -107,6 +106,9 @@ TheoryBV::TheoryBV(context::Context* c,
   }
   d_subtheories.emplace_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryBV::~TheoryBV() {}
@@ -719,10 +721,6 @@ TrustNode TheoryBV::ppRewrite(TNode t)
   if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
-    std::vector<Node> equalities;
-    Slicer::splitEqualities(t, equalities);
-    res = utils::mkAnd(equalities);
   } else if (RewriteRule<UltPlusOne>::applies(t)) {
     Node result = RewriteRule<UltPlusOne>::run<false>(t);
     res = Rewriter::rewrite(result);
@@ -880,9 +878,10 @@ TrustNode TheoryBV::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
-
-void TheoryBV::addSharedTerm(TNode t) {
-  Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
+void TheoryBV::notifySharedTerm(TNode t)
+{
+  Debug("bitvector::sharing")
+      << indent() << "TheoryBV::notifySharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
   if (options::bitvectorEqualitySolver()) {
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
@@ -905,17 +904,6 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   }
   return EQUALITY_UNKNOWN; ;
 }
-
-
-void TheoryBV::enableCoreTheorySlicer() {
-  Assert(!d_calledPreregister);
-  d_isCoreTheory = true;
-  if (d_subtheoryMap.find(SUB_CORE) != d_subtheoryMap.end()) {
-    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-    core->enableSlicer();
-  }
-}
-
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   if(d_staticLearnCache.find(in) != d_staticLearnCache.end()){

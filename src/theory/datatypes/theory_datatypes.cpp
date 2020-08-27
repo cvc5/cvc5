@@ -61,12 +61,16 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_functionTerms(c),
       d_singleton_eq(u),
       d_lemmas_produced_c(u),
-      d_sygusExtension(nullptr)
+      d_sygusExtension(nullptr),
+      d_state(c, u, valuation)
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -104,6 +108,8 @@ void TheoryDatatypes::finishInit()
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
+  // testers are not relevant for model building
+  d_valuation.setIrrelevantKind(APPLY_TESTER);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){
@@ -542,10 +548,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerEquality(n);
-    break;
   case kind::APPLY_TESTER:
+    // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
     d_equalityEngine->addTriggerPredicate(n);
     break;
@@ -699,11 +703,6 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::presolve()
-{
-  Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
-}
-
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
@@ -730,24 +729,23 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::addSharedTerm(TNode t) {
-  Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
-                     << t << " " << t.getType().isBoolean() << endl;
+void TheoryDatatypes::notifySharedTerm(TNode t)
+{
+  Debug("datatypes") << "TheoryDatatypes::notifySharedTerm(): " << t << " "
+                     << t.getType().isBoolean() << endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_DATATYPES);
-  Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
+  Debug("datatypes") << "TheoryDatatypes::notifySharedTerm() finished"
+                     << std::endl;
 }
 
-/** propagate */
-void TheoryDatatypes::propagate(Effort effort){
-
-}
-
-/** propagate */
-bool TheoryDatatypes::propagate(TNode literal){
-  Debug("dt::propagate") << "TheoryDatatypes::propagate(" << literal  << ")" << std::endl;
+bool TheoryDatatypes::propagateLit(TNode literal)
+{
+  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << ")"
+                         << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("dt::propagate") << "TheoryDatatypes::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal
+                           << "): already in conflict" << std::endl;
     return false;
   }
   Trace("dt-prop") << "dtPropagate " << literal << std::endl;
@@ -1522,11 +1520,11 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
-  
-  set<Node> termSet;
-  
+
+  std::set<Node> termSet;
+
   // Compute terms appearing in assertions and shared terms, and in inferred equalities
-  getRelevantTerms(termSet);
+  computeRelevantTerms(termSet);
 
   //combine the equality engine
   if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
@@ -2250,12 +2248,14 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
+void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet,
+                                           bool includeShared)
+{
   // Compute terms appearing in assertions and shared terms
-  std::set<Kind> irr_kinds;
+  std::set<Kind> irrKinds;
   // testers are not relevant for model construction
-  irr_kinds.insert(APPLY_TESTER);
-  computeRelevantTerms(termSet, irr_kinds);
+  irrKinds.insert(APPLY_TESTER);
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;

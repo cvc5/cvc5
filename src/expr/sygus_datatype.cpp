@@ -18,10 +18,7 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 
-SygusDatatype::SygusDatatype(const std::string& name)
-    : d_dt(Datatype(NodeManager::currentNM()->toExprManager(), name))
-{
-}
+SygusDatatype::SygusDatatype(const std::string& name) : d_dt(DType(name)) {}
 
 std::string SygusDatatype::getName() const { return d_dt.getName(); }
 
@@ -79,25 +76,19 @@ void SygusDatatype::initializeDatatype(TypeNode sygusType,
   Assert(!d_cons.empty());
   /* Use the sygus type to not lose reference to the original types (Bool,
    * Int, etc) */
-  d_dt.setSygus(sygusType.toType(), sygusVars.toExpr(), allowConst, allowAll);
+  d_dt.setSygus(sygusType, sygusVars, allowConst, allowAll);
   for (unsigned i = 0, ncons = d_cons.size(); i < ncons; ++i)
   {
-    // must convert to type now
-    std::vector<Type> cargs;
-    for (TypeNode& ct : d_cons[i].d_argTypes)
-    {
-      cargs.push_back(ct.toType());
-    }
     // add (sygus) constructor
-    d_dt.addSygusConstructor(d_cons[i].d_op.toExpr(),
+    d_dt.addSygusConstructor(d_cons[i].d_op,
                              d_cons[i].d_name,
-                             cargs,
+                             d_cons[i].d_argTypes,
                              d_cons[i].d_weight);
   }
   Trace("sygus-type-cons") << "...built datatype " << d_dt << " ";
 }
 
-const Datatype& SygusDatatype::getDatatype() const
+const DType& SygusDatatype::getDatatype() const
 {
   // should have initialized by this point
   Assert(isInitialized());

@@ -15,7 +15,6 @@
  **/
 
 #include "theory/sets/theory_sets_rels.h"
-#include "expr/datatype.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
 

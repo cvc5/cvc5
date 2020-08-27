@@ -109,8 +109,6 @@ class TheoryBV : public Theory {
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
-  void enableCoreTheorySlicer();
-
   TrustNode ppRewrite(TNode t) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
@@ -191,7 +189,6 @@ class TheoryBV : public Theory {
 
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
   std::unique_ptr<AbstractionModule> d_abstractionModule;
-  bool d_isCoreTheory;
   bool d_calledPreregister;
 
   //for extended functions
@@ -240,7 +237,7 @@ class TheoryBV : public Theory {
    */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
 
   bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
 
@@ -268,6 +265,8 @@ class TheoryBV : public Theory {
 
   /** The theory rewriter for this theory. */
   TheoryBVRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
   friend class LazyBitblaster;
   friend class TLazyBitblaster;

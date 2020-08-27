@@ -21,6 +21,7 @@
 #include "context/context.h"
 #include "expr/node_visitor.h"
 #include "options/bv_options.h"
+#include "options/smt_options.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/sat_proof_implementation.h"

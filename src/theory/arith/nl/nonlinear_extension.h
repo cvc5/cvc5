@@ -254,11 +254,12 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
-
+  /** compute relevant assertions */
+  void computeRelevantAssertions(const std::vector<Node>& assertions,
+                                 std::vector<Node>& keep);
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
@@ -293,6 +294,11 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /**
+   * The number of times we have the called main check method
+   * (modelBasedRefinement). This counter is used for interleaving strategies.
+   */
+  unsigned d_checkCounter;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** The non-linear model object

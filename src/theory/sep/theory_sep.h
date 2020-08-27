@@ -58,6 +58,8 @@ class TheorySep : public Theory {
   bool d_bounds_init;
 
   TheorySepRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -103,17 +105,16 @@ class TheorySep : public Theory {
 
  private:
   /** Should be called to propagate the literal.  */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
  public:
-  void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
  public:
-  void addSharedTerm(TNode t) override;
+  void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
 
@@ -152,27 +153,19 @@ class TheorySep : public Theory {
    public:
     NotifyClass(TheorySep& sep) : d_sep(sep) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
+    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("sep::propagate")
-          << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", "
+          << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", "
           << (value ? "true" : "false") << ")" << std::endl;
+      Assert(predicate.getKind() == kind::EQUAL);
       // Just forward to sep
       if (value)
       {
-        return d_sep.propagate(equality);
+        return d_sep.propagateLit(predicate);
       }
-      else
-      {
-        return d_sep.propagate(equality.notNode());
-      }
+      return d_sep.propagateLit(predicate.notNode());
     }
-
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
-    {
-      Unreachable();
-    }
-
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
                                      TNode t2,
@@ -184,13 +177,9 @@ class TheorySep : public Theory {
       if (value)
       {
         // Propagate equality between shared terms
-        return d_sep.propagate(t1.eqNode(t2));
+        return d_sep.propagateLit(t1.eqNode(t2));
       }
-      else
-      {
-        return d_sep.propagate(t1.eqNode(t2).notNode());
-      }
-      return true;
+      return d_sep.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
