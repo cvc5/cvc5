@@ -4,7 +4,11 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
+<<<<<<< HEAD
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+=======
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
+>>>>>>> 4adff162770a841d136ec44146928c2296eaf1b2
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,18 +50,22 @@ namespace eq {
  * underlying equality engine are:
  * - assertEquality/assertPredicate [*]
  * - explain
- * [*] the exception is that pure assumptions (those who are their own
- * explanation) should be sent directly to the underlying equality engine.
  * Instead, the user should use variants of the above methods provided by
  * the public interface of this class.
+ *
+ * [*] the exception is that assertions from the fact queue (who are their own
+ * explanation) should be sent directly to the underlying equality engine. This
+ * is for the sake of efficiency.
  *
  * This class tracks the reason for why all facts are added to an EqualityEngine
  * in a SAT-context dependent manner in a context-dependent (CDProof) object.
  * It furthermore maintains an internal FactProofGenerator class for managing
- * explicitly provided "simple" steps for facts.
+ * proofs of facts whose steps are explicitly provided (those that are given
+ * concrete PfRule, children, and args). Call these "simple facts".
  *
- * It is an eager proof generator (see theory/proof_generator.h), in that
- * it stores (copies) of proofs for lemmas at the moment they are sent out.
+ * Overall, this class is an eager proof generator (theory/proof_generator.h),
+ * in that it stores (copies) of proofs for lemmas at the moment they are sent
+ * out.
  *
  * A theory that is proof producing and uses the equality engine may use this
  * class to manage proofs that are justified by its underlying equality engine.
@@ -65,7 +73,7 @@ namespace eq {
  * a TrustNode:
  * - assertConflict, when the user of the equality engine has discovered that
  * false can be derived from the current state,
- * - assertLemma, for lemmas/conflict that can be (partially) explained in the
+ * - assertLemma, for lemmas/conflicts that can be (partially) explained in the
  * current state,
  * - explain, for explaining why a literal is true in the current state.
  * Details on these methods can be found below.
@@ -136,8 +144,8 @@ class ProofEqEngine : public EagerProofGenerator
    * Assert fact via generator pg. This method asserts lit with explanation exp
    * to the equality engine of this class. It must be the case that pg can
    * provide a proof for lit in terms of exp. More precisely, pg should be
-   * prepared in the remainder of the SAT context to respond to a call to a
-   * call to ProofGenerator::getProofFor(lit), and return a proof whose free
+   * prepared in the remainder of the SAT context to respond to a call to
+   * ProofGenerator::getProofFor(lit), and return a proof whose free
    * assumptions are a subset of the conjuncts of exp.
    *
    * @param lit The literal to assert to the equality engine.
@@ -183,16 +191,17 @@ class ProofEqEngine : public EagerProofGenerator
    * lemma or conflict to be sent on the output channel of the Theory.
    *
    * The user provides the explanation of conc in two parts:
-   * (1) exp \ noExplain, which are literals that hold in the equality engine of
-   * this class,
+   * (1) (exp \ noExplain), which are literals that hold in the equality engine
+   * of this class,
    * (2) noExplain, which do not necessarily hold in the equality engine of this
    * class.
    * Notice that noExplain is a subset of exp.
    *
-   * The proof for conc follows from exp ^ expn by proof rule with the given
+   * The proof for conc follows from exp by proof rule with the given
    * id and arguments.
    *
-   * This call corresponds to a conflict if conc is false and expn is empty.
+   * This call corresponds to a conflict if conc is false and noExplain is
+   * empty.
    *
    * This returns the TrustNode corresponding to the formula corresonding to
    * the call to this method [*], for which a proof can be provided by this
@@ -200,7 +209,7 @@ class ProofEqEngine : public EagerProofGenerator
    *
    * [*]
    * a. If this call does not correspond to a conflict, then this formula is:
-   *   ( ^_{e in exp} <explain>(e) ^ expn ) => conc
+   *   ( ^_{e in exp \ noExplain} <explain>(e) ^ noExplain ) => conc
    * where <explain>(e) is a conjunction of literals L1 ^ ... ^ Ln such that
    * L1 ^ ... ^ Ln entail e, and each Li was passed as an explanation to a
    * call to assertFact in the current SAT context. This explanation method
@@ -244,22 +253,59 @@ class ProofEqEngine : public EagerProofGenerator
    */
   TrustNode explain(Node conc);
 
- protected:
-  /** Add proof step */
-  bool addProofStep(Node lit,
-                    PfRule id,
-                    const std::vector<Node>& exp,
-                    const std::vector<Node>& args);
+ private:
+  /**
+   * The default proof generator (for simple facts). This class is a context
+   * dependent mapping from formulas to proof steps. It does not generate
+   * ProofNode until it is asked to provide a proof for a given fact.
+   */
+  class FactProofGenerator : public ProofGenerator
+  {
+    typedef context::
+        CDHashMap<Node, std::shared_ptr<ProofStep>, NodeHashFunction>
+            NodeProofStepMap;
+
+   public:
+    FactProofGenerator(context::Context* c, ProofNodeManager* pnm);
+    ~FactProofGenerator() {}
+    /** add step */
+    bool addStep(Node fact, ProofStep ps);
+    /** Get proof for */
+    std::shared_ptr<ProofNode> getProofFor(Node f) override;
+    /** identify */
+    std::string identify() const override { return "FactProofGenerator"; }
+
+   private:
+    /** maps expected to ProofStep */
+    NodeProofStepMap d_facts;
+    /** the proof node manager */
+    ProofNodeManager* d_pnm;
+  };
   /** Assert internal */
   bool assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** holds */
   bool holds(TNode pred, bool polarity);
-  /** assert lemma internal */
+  /**
+   * Assert lemma internal. This method is called for ensuring the proof of
+   * conc exists in curr, where exp / noExplain are the its explanation (see
+   * assertLemma). This method is used for conflicts as well, where noExplain
+   * must be empty and conc = d_false.
+   *
+   * If curr is null, no proof is constructed.
+   *
+   * This method returns the trust node of the lemma or conflict with this
+   * class as the proof generator.
+   */
   TrustNode assertLemmaInternal(Node conc,
                                 const std::vector<Node>& exp,
                                 const std::vector<Node>& noExplain,
                                 LazyCDProof* curr);
-  /** ensure proof for fact */
+  /**
+   * Ensure proof for fact. This is called by the above method after we have
+   * determined the final set of assumptions used for showing conc. This
+   * method is used for lemmas, conflicts, and explanations for propagations.
+   * The argument tnk is the kind of trust node to return.
+   */
   TrustNode ensureProofForFact(Node conc,
                                const std::vector<TNode>& assumps,
                                TrustNodeKind tnk,
@@ -270,12 +316,10 @@ class ProofEqEngine : public EagerProofGenerator
    */
   Node mkAnd(const std::vector<Node>& a);
   Node mkAnd(const std::vector<TNode>& a);
-  /** flatten and, returns the conjuncts to a */
-  void flattenAnd(TNode an, std::vector<Node>& a);
-
- private:
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
+  /** The default proof generator (for simple facts) */
+  FactProofGenerator d_factPg;
   /** common nodes */
   Node d_true;
   Node d_false;

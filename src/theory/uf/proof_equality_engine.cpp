@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,9 +29,9 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
                              ProofNodeManager* pnm)
     : EagerProofGenerator(pnm, u, "pfee::" + ee.identify()),
       d_ee(ee),
+      d_factPg(c, pnm),
       d_pnm(pnm),
       d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
-      d_factPg(c, pnm),
       d_keep(c),
       d_pfEnabled(pnm != nullptr)
 {
@@ -52,7 +52,7 @@ bool ProofEqEngine::assertAssume(TNode lit)
   // explanation. Notice we do not reference count atom/lit.
   if (atom.getKind() == EQUAL)
   {
-    if (options::proofNew())
+    if (d_pfEnabled)
     {
       // If proofs are enabled, we check if lit is an assertion of the form
       //   (= P true), (= P false), (= false P) or (= true P).
@@ -112,7 +112,11 @@ bool ProofEqEngine::assertFact(Node lit,
       // we do not process this fact if it already holds
       return false;
     }
-    // buffer the step in the fact proof generator
+    // Buffer the step in the fact proof generator. We do this instead of
+    // adding explict steps to the lazy proof d_proof since CDProof has
+    // (at most) one proof for each formula. Thus, we "claim" only the
+    // formula that is proved by this fact. Otherwise, aliasing may occur,
+    // which leads to cyclic or bogus proofs.
     ProofStep ps;
     ps.d_rule = id;
     ps.d_children = exp;
@@ -145,7 +149,24 @@ bool ProofEqEngine::assertFact(Node lit,
     }
     // must extract the explanation as a vector
     std::vector<Node> expv;
-    flattenAnd(exp, expv);
+    // Flatten (single occurrences) of AND. We do not allow nested AND, it is
+    // the responsibilty of the caller to ensure these do not occur.
+    if (exp != d_true)
+    {
+      if (exp.getKind() == AND)
+      {
+        for (const Node& expc : exp)
+        {
+          // should not have doubly nested AND
+          Assert(expc.getKind() != AND);
+          expv.push_back(expc);
+        }
+      }
+      else
+      {
+        expv.push_back(exp);
+      }
+    }
     // buffer the step in the fact proof generator
     ProofStep ps;
     ps.d_rule = id;
@@ -276,10 +297,13 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     LazyCDProof* curr;
     if (conc == d_false)
     {
+      // optimization: we can use the main lazy proof directly, because we
+      // know we will backtrack immediately after this call.
       curr = &d_proof;
     }
     else
     {
+      // use a lazy proof that always links to d_proof
       curr = &tmpProof;
     }
     // Register the proof step.
@@ -289,8 +313,11 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
       Assert(false) << "pfee::assertConflict: register proof step";
       return TrustNode::null();
     }
+    // We've now decided which lazy proof to use (curr), now get the proof
+    // for conc.
     return assertLemmaInternal(conc, exp, noExplain, curr);
   }
+  // not using a proof
   return assertLemmaInternal(conc, exp, noExplain, nullptr);
 }
 
@@ -306,6 +333,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     LazyCDProof tmpProof(d_pnm, &d_proof);
     LazyCDProof* curr;
+    // same policy as above: for conflicts, use existing lazy proof
     if (conc == d_false)
     {
       curr = &d_proof;
@@ -340,6 +368,7 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
   {
     LazyCDProof tmpProof(d_pnm, &d_proof);
     LazyCDProof* curr;
+    // same policy as above: for conflicts, use existing lazy proof
     if (conc == d_false)
     {
       curr = &d_proof;
@@ -574,24 +603,6 @@ bool ProofEqEngine::holds(TNode atom, bool polarity)
   return d_ee.areEqual(atom, b);
 }
 
-bool ProofEqEngine::addProofStep(Node lit,
-                                 PfRule id,
-                                 const std::vector<Node>& exp,
-                                 const std::vector<Node>& args)
-{
-  if (id == PfRule::UNKNOWN)
-  {
-    // should only provide unknown step if already set up the proof step
-    Assert(d_proof.hasStep(lit));
-  }
-  else if (!d_proof.addStep(lit, id, exp, args))
-  {
-    // failed to register step
-    return false;
-  }
-  return true;
-}
-
 void ProofEqEngine::explainWithProof(Node lit,
                                      std::vector<TNode>& assumps,
                                      LazyCDProof* curr)
@@ -681,25 +692,6 @@ Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
     return a[0];
   }
   return NodeManager::currentNM()->mkNode(AND, a);
-}
-
-void ProofEqEngine::flattenAnd(TNode an, std::vector<Node>& a)
-{
-  if (an == d_true)
-  {
-    return;
-  }
-  if (an.getKind() != AND)
-  {
-    a.push_back(an);
-    return;
-  }
-  for (const Node& anc : an)
-  {
-    // should not have doubly nested AND
-    Assert(anc.getKind() != AND);
-    a.push_back(anc);
-  }
 }
 
 ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c,
