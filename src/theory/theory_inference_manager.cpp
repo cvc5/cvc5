@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inference_manager.cpp
+/*! \file theory_inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds

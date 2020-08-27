@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inference_manager.h
+/*! \file theory_inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__INFERENCE_MANAGER_H
-#define CVC4__THEORY__INFERENCE_MANAGER_H
+#ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
+#define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
@@ -79,7 +79,7 @@ class TheoryInferenceManager
    */
   bool propagateLit(TNode lit);
   /**
-   * Return an explanation for the literal represented by parameter n
+   * Return an explanation for the literal represented by parameter lit
    * (which was previously propagated by this theory). By default, this
    * returns the explanation given by the official equality engine of the
    * Theory, if it exists.
@@ -145,4 +145,4 @@ class TheoryInferenceManager
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__INFERENCE_MANAGER_H */
+#endif /* CVC4__THEORY__THEORY_INFERENCE_MANAGER_H */
