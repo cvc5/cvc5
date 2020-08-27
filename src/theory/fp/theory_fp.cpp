@@ -935,8 +935,8 @@ void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
   d_equalityEngine->explainEquality(t1, t2, true, assumptions);
 
   Node conflict = helper::buildConjunct(assumptions);
-  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected " << conflict
-              << std::endl;
+  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected "
+              << conflict << std::endl;
 
   d_conflictNode = conflict;
   d_state.notifyInConflict();
