@@ -918,7 +918,7 @@ void TheoryFp::handleLemma(Node node) {
 
 bool TheoryFp::propagateLit(TNode node)
 {
-  Trace("fp") << "TheoryFp::propagate(): propagate " << node << std::endl;
+  Trace("fp") << "TheoryFp::propagateLit(): propagate " << node << std::endl;
 
   bool stat = d_out->propagate(node);
 
@@ -929,13 +929,13 @@ bool TheoryFp::propagateLit(TNode node)
   return stat;
 }
 
-void TheoryFp::conflict(TNode t1, TNode t2)
+void TheoryFp::conflictEqConstantMerge(TNode t1, TNode t2)
 {
   std::vector<TNode> assumptions;
   d_equalityEngine->explainEquality(t1, t2, true, assumptions);
 
   Node conflict = helper::buildConjunct(assumptions);
-  Trace("fp") << "TheoryFp::handleConflict(): conflict detected " << conflict
+  Trace("fp") << "TheoryFp::conflictEqConstantMerge(): conflict detected " << conflict
               << std::endl;
 
   d_conflictNode = conflict;
@@ -1148,7 +1148,7 @@ bool TheoryFp::NotifyClass::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1,
 void TheoryFp::NotifyClass::eqNotifyConstantTermMerge(TNode t1, TNode t2) {
   Debug("fp-eq") << "TheoryFp::eqNotifyConstantTermMerge(): call back as " << t1
                  << " = " << t2 << std::endl;
-  d_theorySolver.conflict(t1, t2);
+  d_theorySolver.conflictEqConstantMerge(t1, t2);
 }
 
 }  // namespace fp

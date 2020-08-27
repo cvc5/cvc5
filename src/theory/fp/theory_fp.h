@@ -122,7 +122,7 @@ class TheoryFp : public Theory {
   /** Interaction with the rest of the solver **/
   void handleLemma(Node node);
   bool propagateLit(TNode node);
-  void conflict(TNode t1, TNode t2);
+  void conflictEqConstantMerge(TNode t1, TNode t2);
 
   context::CDO<Node> d_conflictNode;
 
