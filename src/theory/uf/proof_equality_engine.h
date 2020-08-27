@@ -48,7 +48,7 @@ namespace eq {
  * - explain
  * Instead, the user should use variants of the above methods provided by
  * the public interface of this class.
- * 
+ *
  * [*] the exception is that assertions from the fact queue (who are their own
  * explanation) should be sent directly to the underlying equality engine. This
  * is for the sake of efficiency.
@@ -250,7 +250,7 @@ class ProofEqEngine : public EagerProofGenerator
   TrustNode explain(Node conc);
 
  private:
-  /** 
+  /**
    * The default proof generator (for simple facts). This class is a context
    * dependent mapping from formulas to proof steps. It does not generate
    * ProofNode until it is asked to provide a proof for a given fact.
@@ -281,14 +281,14 @@ class ProofEqEngine : public EagerProofGenerator
   bool assertFactInternal(TNode pred, bool polarity, TNode reason);
   /** holds */
   bool holds(TNode pred, bool polarity);
-  /** 
+  /**
    * Assert lemma internal. This method is called for ensuring the proof of
    * conc exists in curr, where exp / noExplain are the its explanation (see
    * assertLemma). This method is used for conflicts as well, where noExplain
    * must be empty and conc = d_false.
    *
    * If curr is null, no proof is constructed.
-   * 
+   *
    * This method returns the trust node of the lemma or conflict with this
    * class as the proof generator.
    */
