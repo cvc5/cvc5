@@ -121,11 +121,8 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
-  proof/proof.h
   proof/proof_manager.cpp
   proof/proof_manager.h
-  proof/proof_utils.cpp
-  proof/proof_utils.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/unsat_core.cpp
@@ -349,8 +346,6 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
-  theory/arrays/array_proof_reconstruction.cpp
-  theory/arrays/array_proof_reconstruction.h
   theory/arrays/static_fact_manager.cpp
   theory/arrays/static_fact_manager.h
   theory/arrays/theory_arrays.cpp
@@ -1041,7 +1036,6 @@ install(FILES
           util/integer_gmp_imp.h
           util/maybe.h
           util/poly_util.h
-          util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
           util/real_algebraic_number_poly_imp.h

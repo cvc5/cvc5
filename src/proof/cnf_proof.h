@@ -27,10 +27,8 @@
 
 #include "context/cdhashmap.h"
 #include "proof/clause_id.h"
-#include "proof/lemma_proof.h"
 #include "proof/sat_proof.h"
 #include "util/maybe.h"
-#include "util/proof.h"
 
 namespace CVC4 {
 namespace prop {
@@ -44,10 +42,10 @@ typedef std::unordered_map<Node, Node, NodeHashFunction> NodeToNode;
 typedef std::unordered_set<ClauseId> ClauseIdSet;
 
 typedef context::CDHashMap<ClauseId, Node> ClauseIdToNode;
-typedef context::CDHashMap<Node, ProofRule, NodeHashFunction> NodeToProofRule;
-typedef std::map<std::set<Node>, LemmaProofRecipe> LemmaToRecipe;
 typedef std::pair<Node, Node> NodePair;
 typedef std::set<NodePair> NodePairSet;
+
+typedef std::unordered_set<Node, NodeHashFunction> NodeSet;
 
 class CnfProof {
 protected:
@@ -55,12 +53,6 @@ protected:
 
   /** Map from ClauseId to the assertion that lead to adding this clause **/
   ClauseIdToNode d_clauseToAssertion;
-
-  /** Map from assertion to reason for adding assertion  **/
-  NodeToProofRule d_assertionToProofRule;
-
-  /** Map from lemma to the recipe for proving it **/
-  LemmaToRecipe d_lemmaToProofRecipe;
 
   /** Top of stack is assertion currently being converted to CNF **/
   std::vector<Node> d_currentAssertionStack;
@@ -84,8 +76,6 @@ protected:
   // The clause ID of the unit clause defining the false SAT literal.
   ClauseId d_falseUnitClause;
 
-  bool isDefinition(Node node);
-
   Node getDefinitionForClause(ClauseId clause);
 
   std::string d_name;
@@ -93,7 +83,7 @@ public:
   CnfProof(CVC4::prop::CnfStream* cnfStream,
            context::Context* ctx,
            const std::string& name);
-
+  ~CnfProof();
 
   Node getAtom(prop::SatVariable var);
   prop::SatLiteral getLiteral(TNode node);
@@ -104,9 +94,6 @@ public:
                     std::set<Node>& atoms);
   void collectAtomsForClauses(const IdToSatClause& clauses,
                               std::set<Node>& atoms);
-  void collectAtomsAndRewritesForLemmas(const IdToSatClause& lemmaClauses,
-                                        std::set<Node>& atoms,
-                                        NodePairSet& rewrites);
   void collectAssertionsForClauses(const IdToSatClause& clauses,
                                    NodeSet& assertions);
 
@@ -130,7 +117,6 @@ public:
   /** Clause is one of the clauses defining top-level assertion node*/
   void setClauseAssertion(ClauseId clause, Node node);
 
-  void registerAssertion(Node assertion, ProofRule reason);
   void setCnfDependence(Node from, Node to);
 
   void pushCurrentAssertion(Node assertion); // the current assertion being converted
@@ -146,69 +132,10 @@ public:
    */
   bool isAssertionStackEmpty() const { return d_currentAssertionStack.empty(); }
 
-  void setProofRecipe(LemmaProofRecipe* proofRecipe);
-  LemmaProofRecipe getProofRecipe(const std::set<Node> &lemma);
-  bool haveProofRecipe(const std::set<Node> &lemma);
-
   // accessors for the leaf assertions that are being converted to CNF
   bool isAssertion(Node node);
-  ProofRule getProofRule(Node assertion);
-  ProofRule getProofRule(ClauseId clause);
   Node getAssertionForClause(ClauseId clause);
-
-  /** Virtual methods for printing things **/
-  virtual void printAtomMapping(const std::set<Node>& atoms,
-                                std::ostream& os,
-                                std::ostream& paren) = 0;
-  virtual void printAtomMapping(const std::set<Node>& atoms,
-                           std::ostream& os,
-                           std::ostream& paren,
-                           ProofLetMap &letMap) = 0;
-
-  // Detects whether a clause has x v ~x for some x
-  // If so, returns the positive occurence's idx first, then the negative's
-  static Maybe<std::pair<size_t, size_t>> detectTrivialTautology(
-      const prop::SatClause& clause);
-  virtual void printClause(const prop::SatClause& clause,
-                           std::ostream& os,
-                           std::ostream& paren) = 0;
-  virtual void printCnfProofForClause(ClauseId id,
-                                      const prop::SatClause* clause,
-                                      std::ostream& os,
-                                      std::ostream& paren) = 0;
-  virtual ~CnfProof();
 };/* class CnfProof */
-
-class LFSCCnfProof : public CnfProof {
-  Node clauseToNode( const prop::SatClause& clause,
-                     std::map<Node, unsigned>& childIndex,
-                     std::map<Node, bool>& childPol );
-  bool printProofTopLevel(Node e, std::ostream& out);
-public:
-  LFSCCnfProof(CVC4::prop::CnfStream* cnfStream,
-               context::Context* ctx,
-               const std::string& name)
-    : CnfProof(cnfStream, ctx, name)
-  {}
-  ~LFSCCnfProof() {}
-
-  void printAtomMapping(const std::set<Node>& atoms,
-                        std::ostream& os,
-                        std::ostream& paren) override;
-
-  void printAtomMapping(const std::set<Node>& atoms,
-                        std::ostream& os,
-                        std::ostream& paren,
-                        ProofLetMap& letMap) override;
-
-  void printClause(const prop::SatClause& clause,
-                   std::ostream& os,
-                   std::ostream& paren) override;
-  void printCnfProofForClause(ClauseId id,
-                              const prop::SatClause* clause,
-                              std::ostream& os,
-                              std::ostream& paren) override;
-};/* class LFSCCnfProof */
 
 } /* CVC4 namespace */
 

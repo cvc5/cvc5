@@ -34,7 +34,6 @@
 #include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
-#include "util/proof.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 #include "util/statistics.h"
@@ -543,16 +542,6 @@ class CVC4_PUBLIC SmtEngine
    */
   std::vector<std::pair<Expr, Expr> > getAssignment();
 
-  /**
-   * Get the last proof (only if immediately preceded by an UNSAT or ENTAILED
-   * query).  Only permitted if CVC4 was built with proof support and
-   * produce-proofs is on.
-   *
-   * The Proof object is owned by this SmtEngine until the SmtEngine is
-   * destroyed.
-   */
-  const Proof& getProof();
-
   /** Print all instantiations made by the quantifiers module.  */
   void printInstantiations(std::ostream& out);
 
@@ -920,11 +909,6 @@ class CVC4_PUBLIC SmtEngine
   };
 
   /**
-   * Check that a generated proof (via getProof()) checks.
-   */
-  void checkProof();
-
-  /**
    * Internal method to get an unsatisfiable core (only if immediately preceded
    * by an UNSAT or ENTAILED query). Only permitted if CVC4 was built with
    * unsat-core support and produce-unsat-cores is on. Does not dump the
@@ -1110,12 +1094,6 @@ class CVC4_PUBLIC SmtEngine
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
-
-  /**
-   * A vector of command definitions to be imported in the new
-   * SmtEngine when checking unsat-cores.
-   */
-  std::vector<Command*> d_defineCommands;
 
   /**
    * The logic we're in. This logic may be an extension of the logic set by the

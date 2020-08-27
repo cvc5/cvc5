@@ -21,7 +21,6 @@
 #include <unordered_set>
 
 #include "base/output.h"
-#include "proof/proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
@@ -648,8 +647,10 @@ ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
 
 
 void ConstraintRule::print(std::ostream& out) const {
-  
-  RationalVectorCP coeffs = NULLPROOF(d_farkasCoefficients);
+#if 0
+  RationalVectorCP coeffs = d_farkasCoefficients;
+#endif
+  RationalVectorCP coeffs = nullptr;
   out << "{ConstraintRule, ";
   out << d_constraint << std::endl;
   out << "d_proofType= " << d_proofType << ", " << std::endl;
@@ -658,7 +659,7 @@ void ConstraintRule::print(std::ostream& out) const {
   if (d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel)
   {
     const ConstraintDatabase& database = d_constraint->getDatabase();
-    
+
     size_t coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffs->size()-1 : 0;
     AntecedentId p = d_antecedentEnd;
     // must have at least one antecedent
@@ -700,110 +701,155 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-#if IS_PROOFS_BUILD
-  if(!PROOF_ON()){ return cr.d_farkasCoefficients == RationalVectorCPSentinel; }
-  Assert(PROOF_ON());
-
-  if(cr.d_farkasCoefficients == RationalVectorCPSentinel){ return false; }
-  if(cr.d_farkasCoefficients->size() < 2){ return false; }
-
-  const ArithVariables& vars = d_database->getArithVariables();
-
-  DeltaRational rhs(0);
-  Node lhs = Polynomial::mkZero().getNode();
-
-  RationalVector::const_iterator coeffIterator = cr.d_farkasCoefficients->end()-1;
-  RationalVector::const_iterator coeffBegin = cr.d_farkasCoefficients->begin();
-
-  while(antecedent != NullConstraint){
-    Assert(lhs.isNull() || Polynomial::isMember(lhs));
-
-    const Rational& coeff = *coeffIterator;
-    int coeffSgn = coeff.sgn();
-
-    rhs += antecedent->getValue() * coeff;
-
-    ArithVar antVar = antecedent->getVariable();
-    if(!lhs.isNull() && vars.hasNode(antVar)){
-      Node antAsNode = vars.asNode(antVar);
-      if(Polynomial::isMember(antAsNode)){
-        Polynomial lhsPoly = Polynomial::parsePolynomial(lhs);
-        Polynomial antPoly = Polynomial::parsePolynomial(antAsNode);
-        Polynomial sum = lhsPoly + (antPoly * coeff);
-        lhs = sum.getNode();
-      }else{
-        lhs = Node::null();
-      }
-    } else {
-      lhs = Node::null();
-    }
-    Debug("constraints::wffp") << "running sum: " << lhs << " <= " << rhs << endl;
-
-    switch( antecedent->getType() ){
-    case LowerBound:
-      // fc[l] < 0, therefore return false if coeffSgn >= 0
-      if(coeffSgn >= 0){ return false; }
-      break;
-    case UpperBound:
-      // fc[u] > 0, therefore return false if coeffSgn <= 0
-      if(coeffSgn <= 0){ return false; }
-      break;
-    case Equality:
-      if(coeffSgn == 0) { return false; }
-      break;
-    case Disequality:
-    default:
+  if (Configuration::isProofBuild())
+  {
+    return cr.d_farkasCoefficients == RationalVectorCPSentinel;
+#if 0
+    if (cr.d_farkasCoefficients == RationalVectorCPSentinel)
+    {
       return false;
     }
-    
-    if(coeffIterator == coeffBegin){ return false; }
-    --coeffIterator;
-    --p;
-    antecedent = d_database->d_antecedents[p];
-  }
-  if(coeffIterator != coeffBegin){ return false; }
+    if (cr.d_farkasCoefficients->size() < 2)
+    {
+      return false;
+    }
 
-  const Rational& firstCoeff = (*coeffBegin);
-  int firstCoeffSgn = firstCoeff.sgn();
-  rhs += (getNegation()->getValue()) * firstCoeff;
-  if(!lhs.isNull() && vars.hasNode(getVariable())){
-    Node firstAsNode = vars.asNode(getVariable());
-    if(Polynomial::isMember(firstAsNode)){
-      Polynomial lhsPoly = Polynomial::parsePolynomial(lhs);
-      Polynomial firstPoly = Polynomial::parsePolynomial(firstAsNode);
-      Polynomial sum = lhsPoly + (firstPoly * firstCoeff);
-      lhs = sum.getNode();
-    }else{
+    const ArithVariables& vars = d_database->getArithVariables();
+
+    DeltaRational rhs(0);
+    Node lhs = Polynomial::mkZero().getNode();
+
+    RationalVector::const_iterator coeffIterator =
+        cr.d_farkasCoefficients->end() - 1;
+    RationalVector::const_iterator coeffBegin =
+        cr.d_farkasCoefficients->begin();
+
+    while (antecedent != NullConstraint)
+    {
+      Assert(lhs.isNull() || Polynomial::isMember(lhs));
+
+      const Rational& coeff = *coeffIterator;
+      int coeffSgn = coeff.sgn();
+
+      rhs += antecedent->getValue() * coeff;
+
+      ArithVar antVar = antecedent->getVariable();
+      if (!lhs.isNull() && vars.hasNode(antVar))
+      {
+        Node antAsNode = vars.asNode(antVar);
+        if (Polynomial::isMember(antAsNode))
+        {
+          Polynomial lhsPoly = Polynomial::parsePolynomial(lhs);
+          Polynomial antPoly = Polynomial::parsePolynomial(antAsNode);
+          Polynomial sum = lhsPoly + (antPoly * coeff);
+          lhs = sum.getNode();
+        }
+        else
+        {
+          lhs = Node::null();
+        }
+      }
+      else
+      {
+        lhs = Node::null();
+      }
+      Debug("constraints::wffp")
+          << "running sum: " << lhs << " <= " << rhs << endl;
+
+      switch (antecedent->getType())
+      {
+        case LowerBound:
+          // fc[l] < 0, therefore return false if coeffSgn >= 0
+          if (coeffSgn >= 0)
+          {
+            return false;
+          }
+          break;
+        case UpperBound:
+          // fc[u] > 0, therefore return false if coeffSgn <= 0
+          if (coeffSgn <= 0)
+          {
+            return false;
+          }
+          break;
+        case Equality:
+          if (coeffSgn == 0)
+          {
+            return false;
+          }
+          break;
+        case Disequality:
+        default: return false;
+      }
+
+      if (coeffIterator == coeffBegin)
+      {
+        return false;
+      }
+      --coeffIterator;
+      --p;
+      antecedent = d_database->d_antecedents[p];
+    }
+    if (coeffIterator != coeffBegin)
+    {
+      return false;
+    }
+
+    const Rational& firstCoeff = (*coeffBegin);
+    int firstCoeffSgn = firstCoeff.sgn();
+    rhs += (getNegation()->getValue()) * firstCoeff;
+    if (!lhs.isNull() && vars.hasNode(getVariable()))
+    {
+      Node firstAsNode = vars.asNode(getVariable());
+      if (Polynomial::isMember(firstAsNode))
+      {
+        Polynomial lhsPoly = Polynomial::parsePolynomial(lhs);
+        Polynomial firstPoly = Polynomial::parsePolynomial(firstAsNode);
+        Polynomial sum = lhsPoly + (firstPoly * firstCoeff);
+        lhs = sum.getNode();
+      }
+      else
+      {
+        lhs = Node::null();
+      }
+    }
+    else
+    {
       lhs = Node::null();
     }
-  }else{
-    lhs = Node::null();
-  }
 
-  switch( getNegation()->getType() ){
-  case LowerBound:
-    // fc[l] < 0, therefore return false if coeffSgn >= 0
-    if(firstCoeffSgn >= 0){ return false; }
-    break;
-  case UpperBound:
-    // fc[u] > 0, therefore return false if coeffSgn <= 0
-    if(firstCoeffSgn <= 0){ return false; }
-    break;
-  case Equality:
-    if(firstCoeffSgn == 0) { return false; }
-    break;
-  case Disequality:
-  default:
-    return false;
+    switch (getNegation()->getType())
+    {
+      case LowerBound:
+        // fc[l] < 0, therefore return false if coeffSgn >= 0
+        if (firstCoeffSgn >= 0)
+        {
+          return false;
+        }
+        break;
+      case UpperBound:
+        // fc[u] > 0, therefore return false if coeffSgn <= 0
+        if (firstCoeffSgn <= 0)
+        {
+          return false;
+        }
+        break;
+      case Equality:
+        if (firstCoeffSgn == 0)
+        {
+          return false;
+        }
+        break;
+      case Disequality:
+      default: return false;
+    }
+    Debug("constraints::wffp") << "final sum: " << lhs << " <= " << rhs << endl;
+    // 0 = lhs <= rhs < 0
+    return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
+           && rhs.sgn() < 0;
+#endif
   }
-  Debug("constraints::wffp") << "final sum: " << lhs << " <= " << rhs << endl;
-  // 0 = lhs <= rhs < 0
-  return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
-         && rhs.sgn() < 0;
-
-#else  /* IS_PROOFS_BUILD */
   return true;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
@@ -860,7 +906,7 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Co
   , d_one(1)
   , d_negOne(-1)
 {
-  
+
 }
 
 SortedConstraintMap& ConstraintDatabase::getVariableSCM(ArithVar v) const{
@@ -1109,7 +1155,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
     return isNot ? hit->getNegation(): hit;
   }else{
     Comparison negCmp = Comparison::parseNormalForm(negationNode);
-    
+
     ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
@@ -1213,7 +1259,7 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorP coeffs;
-  if(PROOF_ON()){
+#if 0
     std::pair<int, int> sgns = unateFarkasSigns(getNegation(), imp);
 
     Rational first(sgns.first);
@@ -1222,9 +1268,8 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
     coeffs = new RationalVector();
     coeffs->push_back(first);
     coeffs->push_back(second);
-  } else {
-    coeffs = RationalVectorPSentinel;
-  }
+#endif
+  coeffs = RationalVectorPSentinel;
 
   // no need to delete coeffs the memory is owned by ConstraintRule
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
@@ -1233,7 +1278,7 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
-  
+
   if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Debug("constraints::wffp"));
   }
@@ -1343,7 +1388,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   coeffs != RationalVectorSentinal,
  *   coeffs->size() = a.size() + 1,
  *   for i in [0,a.size) : coeff[i] corresponds to a[i], and
- *   coeff.back() corresponds to the current constraint. 
+ *   coeff.back() corresponds to the current constraint.
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
   Debug("constraints::pf") << "impliedByFarkas(" << this;
@@ -1359,10 +1404,11 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
 
-  Assert(PROOF_ON() == (coeffs != RationalVectorCPSentinel));
-  // !PROOF_ON() => coeffs == RationalVectorCPSentinel
-  //  PROOF_ON() => coeffs->size() == a.size() + 1
-  Assert(!PROOF_ON() || coeffs->size() == a.size() + 1);
+#if 0
+  Assert(coeffs != RationalVectorCPSentinel);
+  Assert(coeffs->size() == a.size() + 1);
+#endif
+  Assert(coeffs == RationalVectorCPSentinel);
   Assert(a.size() >= 1);
 
   d_database->d_antecedents.push_back(NullConstraint);
@@ -1374,12 +1420,11 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorCP coeffsCopy;
-  if(PROOF_ON()){
-    Assert(coeffs != RationalVectorCPSentinel);
-    coeffsCopy = new RationalVector(*coeffs);
-  } else {
-    coeffsCopy = RationalVectorCPSentinel;
-  }
+#if 0
+  Assert(coeffs != RationalVectorCPSentinel);
+  coeffsCopy = new RationalVector(*coeffs);
+#endif
+  coeffsCopy = RationalVectorCPSentinel;
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));
 
   Assert(inConflict() == nowInConflict);

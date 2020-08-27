@@ -16,6 +16,8 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -577,7 +579,7 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 {
   // only if unsat core available
-  if (options::proof())
+  if (options::unsatCores())
   {
     if (!ProofManager::currentPM()->unsatCoreAvailable())
     {
@@ -587,8 +589,7 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 
   Trace("inst-unsat-core") << "Get instantiations in unsat core..."
                            << std::endl;
-  ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS,
-                                                  active_lemmas);
+  ProofManager::currentPM()->getLemmasInUnsatCore(active_lemmas);
   if (Trace.isOn("inst-unsat-core"))
   {
     Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "

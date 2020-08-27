@@ -13,7 +13,7 @@
  ** time so they can later be used during proof-production time.
  **/
 
-#include "proof/arith_proof_recorder.h"
+#include "theory/arith/arith_proof_recorder.h"
 
 #include <algorithm>
 #include <vector>
@@ -21,14 +21,15 @@
 #include "base/map_util.h"
 
 namespace CVC4 {
-namespace proof {
+namespace theory {
+namespace arith {
 
 ArithProofRecorder::ArithProofRecorder() : d_lemmasToFarkasCoefficients()
 {
   // Nothing else
 }
 void ArithProofRecorder::saveFarkasCoefficients(
-    Node conflict, theory::arith::RationalVectorCP farkasCoefficients)
+    Node conflict, RationalVectorCP farkasCoefficients)
 {
   // Verify that the conflict is a conjuction of (possibly negated) real bounds
   // Verify that the conflict is a conjunciton ...
@@ -72,18 +73,19 @@ bool ArithProofRecorder::hasFarkasCoefficients(
          != d_lemmasToFarkasCoefficients.end();
 }
 
-std::pair<Node, theory::arith::RationalVectorCP>
-ArithProofRecorder::getFarkasCoefficients(const std::set<Node>& conflict) const
+std::pair<Node, RationalVectorCP> ArithProofRecorder::getFarkasCoefficients(
+    const std::set<Node>& conflict) const
 {
-  if (auto *p = FindOrNull(d_lemmasToFarkasCoefficients, conflict))
+  if (auto* p = FindOrNull(d_lemmasToFarkasCoefficients, conflict))
   {
     return std::make_pair(p->first, &p->second);
   }
   else
   {
-    return std::make_pair(Node(), theory::arith::RationalVectorCPSentinel);
+    return std::make_pair(Node(), RationalVectorCPSentinel);
   }
 }
 
-}  // namespace proof
+}  // namespace arith
+}  // namespace theory
 }  // namespace CVC4

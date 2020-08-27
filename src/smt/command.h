@@ -34,7 +34,6 @@
 #include "expr/type.h"
 #include "expr/variable_type_map.h"
 #include "proof/unsat_core.h"
-#include "util/proof.h"
 #include "util/result.h"
 #include "util/sexpr.h"
 
@@ -1004,18 +1003,11 @@ class CVC4_PUBLIC GetProofCommand : public Command
  public:
   GetProofCommand();
 
-  const Proof& getResult() const;
   void invoke(SmtEngine* smtEngine) override;
-  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
-
- protected:
-  SmtEngine* d_smtEngine;
-  // d_result is owned by d_smtEngine.
-  const Proof* d_result;
 }; /* class GetProofCommand */
 
 class CVC4_PUBLIC GetInstantiationsCommand : public Command

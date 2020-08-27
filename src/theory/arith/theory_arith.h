@@ -19,7 +19,7 @@
 
 #include "theory/theory.h"
 #include "expr/node.h"
-#include "proof/arith_proof_recorder.h"
+#include "theory/arith/arith_proof_recorder.h"
 #include "theory/arith/theory_arith_private_forward.h"
 
 
@@ -44,7 +44,7 @@ class TheoryArith : public Theory {
   /**
    * @brief Where to store Farkas proofs of lemmas
    */
-  proof::ArithProofRecorder * d_proofRecorder;
+  ArithProofRecorder * d_proofRecorder;
 
  public:
   TheoryArith(context::Context* c,
@@ -110,7 +110,7 @@ class TheoryArith : public Theory {
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
-  void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
+  void setProofRecorder(ArithProofRecorder* proofRecorder)
   {
     d_proofRecorder = proofRecorder;
   }

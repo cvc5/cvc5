@@ -19,7 +19,6 @@
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
 #include "options/bv_options.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
@@ -84,7 +83,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
                                                d_nullRegistrar.get(),
                                                d_nullContext.get(),
                                                rm,
-                                               options::proof(),
+                                               false,
                                                "LazyBitblaster"));
 
   d_satSolverNotify.reset(
@@ -161,8 +160,7 @@ void TLazyBitblaster::bbAtom(TNode node)
     Assert(!atom_bb.isNull());
     Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(
-        atom_definition, false, false, RULE_INVALID, TNode::null());
+    d_cnfStream->convertAndAssert(atom_definition, false, false);
     return;
   }
 
@@ -173,28 +171,19 @@ void TLazyBitblaster::bbAtom(TNode node)
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  if (!options::proof())
-  {
-    atom_bb = Rewriter::rewrite(atom_bb);
-  }
+  atom_bb = Rewriter::rewrite(atom_bb);
 
   // asserting that the atom is true iff the definition holds
   Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(
-      atom_definition, false, false, RULE_INVALID, TNode::null());
+  d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // No need to store the definition for the lazy bit-blaster (unless proofs are enabled).
-  if( d_bvp != NULL ){
-    d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
-  }
   d_bbAtoms.insert(atom);
 }
 
 void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
-  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
   d_termCache.insert(std::make_pair(node, bits));
 }
 

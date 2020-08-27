@@ -21,8 +21,6 @@
 #include <memory>
 
 #include "context/cdo.h"
-#include "proof/clause_id.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
@@ -57,8 +55,8 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
     }
   };
 
-	std::unique_ptr<BVMinisat::SimpSolver> d_minisat;
-	std::unique_ptr<MinisatNotify> d_minisatNotify;
+  std::unique_ptr<BVMinisat::SimpSolver> d_minisat;
+  std::unique_ptr<MinisatNotify> d_minisatNotify;
 
   unsigned d_assertionsCount;
   context::CDO<unsigned> d_assertionsRealCount;
@@ -79,6 +77,7 @@ public:
   ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
   {
     Unreachable() << "Minisat does not support native XOR reasoning";
+    return ClauseIdError;
   }
 
   SatValue propagate() override;
@@ -122,8 +121,6 @@ public:
   SatValue assertAssumption(SatLiteral lit, bool propagate) override;
 
   void popAssumption() override;
-
-  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp) override;
 
  private:
   /* Disable the default constructor. */

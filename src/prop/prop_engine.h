@@ -105,9 +105,7 @@ class PropEngine
    */
   void assertLemma(TNode node,
                    bool negated,
-                   bool removable,
-                   ProofRule rule,
-                   TNode from = TNode::null());
+                   bool removable);
 
   /**
    * Pass a list of assertions from an AssertionPipeline to the decision engine.

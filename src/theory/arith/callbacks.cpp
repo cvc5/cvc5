@@ -87,17 +87,20 @@ void FarkasConflictBuilder::reset(){
   d_consequent = NullConstraint;
   d_constraints.clear();
   d_consequentSet = false;
-  PROOF(d_farkas.clear());
+#if 0
+  d_farkas.clear();
+#endif
   Assert(!underConstruction());
 }
 
 /* Adds a constraint to the constraint under construction. */
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
+#if 0
   Assert(
-      !PROOF_ON()
-      || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
+      (!underConstruction() && d_constraints.empty() && d_farkas.empty())
       || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-  Assert(PROOF_ON() || d_farkas.empty());
+#endif
+  Assert(d_farkas.empty());
   Assert(c->isTrue());
 
   if(d_consequent == NullConstraint){
@@ -105,19 +108,22 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   } else {
     d_constraints.push_back(c);
   }
-  PROOF(d_farkas.push_back(fc););
-  Assert(!PROOF_ON() || d_constraints.size() + 1 == d_farkas.size());
-  Assert(PROOF_ON() || d_farkas.empty());
+#if 0
+  d_farkas.push_back(fc);
+  Assert(d_constraints.size() + 1 == d_farkas.size());
+#endif
+  Assert(d_farkas.empty());
 }
 
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult){
   Assert(!mult.isZero());
-  if(PROOF_ON() && !mult.isOne()){
+#if 0
+  if(!mult.isOne()){
     Rational prod = fc * mult;
     addConstraint(c, prod);
-  }else{
-    addConstraint(c, fc);
   }
+#endif
+    addConstraint(c, fc);
 }
 
 void FarkasConflictBuilder::makeLastConsequent(){
@@ -132,7 +138,9 @@ void FarkasConflictBuilder::makeLastConsequent(){
     ConstraintCP last = d_constraints.back();
     d_constraints.back() = d_consequent;
     d_consequent = last;
-    PROOF( std::swap( d_farkas.front(), d_farkas.back() ) );
+#if 0
+    std::swap(d_farkas.front(), d_farkas.back());
+#endif
     d_consequentSet = true;
   }
 
@@ -144,15 +152,19 @@ void FarkasConflictBuilder::makeLastConsequent(){
 ConstraintCP FarkasConflictBuilder::commitConflict(){
   Assert(underConstruction());
   Assert(!d_constraints.empty());
+#if 0
   Assert(
-      !PROOF_ON()
-      || (!underConstruction() && d_constraints.empty() && d_farkas.empty())
+      (!underConstruction() && d_constraints.empty() && d_farkas.empty())
       || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-  Assert(PROOF_ON() || d_farkas.empty());
+#endif
+  Assert(d_farkas.empty());
   Assert(d_consequentSet);
 
   ConstraintP not_c = d_consequent->getNegation();
-  RationalVectorCP coeffs = NULLPROOF(&d_farkas);
+#if 0
+  RationalVectorCP coeffs = &d_farkas;
+#endif
+  RationalVectorCP coeffs = nullptr;
   not_c->impliedByFarkas(d_constraints, coeffs, true );
 
   reset();

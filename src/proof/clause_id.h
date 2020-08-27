@@ -28,6 +28,10 @@ namespace CVC4 {
  */
 typedef unsigned ClauseId;
 
+const ClauseId ClauseIdEmpty(-1);
+const ClauseId ClauseIdUndef(-2);
+const ClauseId ClauseIdError(-3);
+
 }/* CVC4 namespace */
 
 #endif /* CVC4__PROOF__CLAUSE_ID_H */

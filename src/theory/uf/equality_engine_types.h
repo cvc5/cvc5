@@ -64,19 +64,22 @@ static const EqualityEdgeId null_edge = (EqualityEdgeId)(-1);
  * (different) constants.
  */
 enum MergeReasonType {
-  /** Terms were merged due to application of congruence closure */
+  /** Terms were merged due to congruence */
   MERGED_THROUGH_CONGRUENCE,
-  /** Terms were merged due to application of pure equality */
+  /** Terms were merged due to an assumption */
   MERGED_THROUGH_EQUALITY,
-  /** Equality was merged to true, due to both sides of equality being in the same class */
+  /** Terms were merged due to reflexivity */
   MERGED_THROUGH_REFLEXIVITY,
-  /** Equality was merged to false, due to both sides of equality being a constant */
+  /** Terms were merged due to theory reasoning */
   MERGED_THROUGH_CONSTANTS,
-  /** (for proofs only) Equality was merged due to transitivity */
+  /** Terms were merged due to transitivity */
   MERGED_THROUGH_TRANS,
-
-  /** Reason types beyond this constant are theory specific reasons */
-  NUMBER_OF_MERGE_REASONS
+  /** Terms were merged due to arrays read-over-write */
+  MERGED_THROUGH_ROW,
+  /** Terms were merged due to arrays read-over-write (1) */
+  MERGED_THROUGH_ROW1,
+  /** Terms were merged due to extensionality */
+  MERGED_THROUGH_EXT,
 };
 
 inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
@@ -91,12 +94,20 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
     out << "reflexivity";
     break;
   case MERGED_THROUGH_CONSTANTS:
-    out << "constants disequal";
+    out << "theory constants";
     break;
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-
+  case MERGED_THROUGH_ROW:
+    out << "read-over-write";
+    break;
+  case MERGED_THROUGH_ROW1:
+    out << "read-over-write (1)";
+    break;
+  case MERGED_THROUGH_EXT:
+    out << "extensionality";
+    break;
   default:
     out << "[theory]";
     break;

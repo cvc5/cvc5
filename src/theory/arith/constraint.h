@@ -85,7 +85,6 @@
 #include "context/cdqueue.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "proof/proof.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
@@ -256,7 +255,7 @@ struct PerVariableDatabase{
 /**
  * If proofs are on, there is a vector of rationals for farkas coefficients.
  * This is the owner of the memory for the vector, and calls delete upon cleanup.
- * 
+ *
  */
 struct ConstraintRule {
   ConstraintP d_constraint;
@@ -310,9 +309,10 @@ struct ConstraintRule {
     , d_proofType(NoAP)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
+    if (Configuration::isProofBuild())
+    {
+      d_farkasCoefficients = RationalVectorCPSentinel;
+    }
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt)
@@ -320,18 +320,21 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
+    if (Configuration::isProofBuild())
+    {
+      d_farkasCoefficients = RationalVectorCPSentinel;
+    }
   }
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
     : d_constraint(con)
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = RationalVectorCPSentinel;
-#endif /* IS_PROOFS_BUILD */
+    if (Configuration::isProofBuild())
+
+    {
+      d_farkasCoefficients = RationalVectorCPSentinel;
+    }
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
@@ -339,10 +342,11 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = coeffs;
-#endif /* IS_PROOFS_BUILD */
+    Assert(coeffs == RationalVectorCPSentinel);
+    if (Configuration::isProofBuild())
+    {
+      d_farkasCoefficients = coeffs;
+    }
   }
 
   void print(std::ostream& out) const;
@@ -750,7 +754,7 @@ class Constraint {
 
   /**
    * If the constraint
-   *   canBePropagated() and 
+   *   canBePropagated() and
    *   !assertedToTheTheory(),
    * the constraint is added to the database's propagation queue.
    *
@@ -789,10 +793,6 @@ class Constraint {
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
-
-      PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
-        delete crp->d_farkasCoefficients;
-      });
     }
   };
 
@@ -877,9 +877,12 @@ class Constraint {
   }
 
   inline RationalVectorCP getFarkasCoefficients() const {
-    return NULLPROOF(getConstraintRule().d_farkasCoefficients);
+#if 0
+    return getConstraintRule().d_farkasCoefficients;
+#endif
+    return nullptr;
   }
-  
+
   void debugPrint() const;
 
   /**
@@ -1051,8 +1054,8 @@ private:
      * The index in this list is the proper ordering of the proofs.
      */
     ConstraintRuleList d_constraintProofs;
-    
-    
+
+
     /**
      * Contains the exact list of constraints that can be used for propagation.
      */
@@ -1100,9 +1103,9 @@ private:
 
   const Rational d_one;
   const Rational d_negOne;
-  
+
   friend class Constraint;
-  
+
 public:
 
   ConstraintDatabase( context::Context* satContext,
@@ -1209,7 +1212,7 @@ public:
 
   /** AntecendentID must be in range. */
   ConstraintCP getAntecedent(AntecedentId p) const;
-  
+
 private:
   /** returns true if cons is now in conflict. */
   bool handleUnateProp(ConstraintP ant, ConstraintP cons);

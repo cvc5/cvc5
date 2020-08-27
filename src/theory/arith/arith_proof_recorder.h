@@ -52,7 +52,8 @@
 #include "theory/arith/constraint_forward.h"
 
 namespace CVC4 {
-namespace proof {
+namespace theory {
+namespace arith {
 
 class ArithProofRecorder
 {
@@ -64,8 +65,8 @@ class ArithProofRecorder
    * demonstrating their incompatibility
    *
    * @param conflict a conjunction of conflicting literals
-   * @param farkasCoefficients a list of rational coefficients which the literals
-   *       should be multiplied by (pairwise) to produce a contradiction.
+   * @param farkasCoefficients a list of rational coefficients which the
+   * literals should be multiplied by (pairwise) to produce a contradiction.
    *
    * The orders of the two vectors must agree!
    */
@@ -101,7 +102,8 @@ class ArithProofRecorder
       d_lemmasToFarkasCoefficients;
 };
 
-}  // namespace proof
+}  // namespace arith
+}  // namespace theory
 }  // namespace CVC4
 
 #endif
