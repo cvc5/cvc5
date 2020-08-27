@@ -46,18 +46,22 @@ namespace eq {
  * underlying equality engine are:
  * - assertEquality/assertPredicate [*]
  * - explain
- * [*] the exception is that pure assumptions (those who are their own
- * explanation) should be sent directly to the underlying equality engine.
  * Instead, the user should use variants of the above methods provided by
  * the public interface of this class.
+ * 
+ * [*] the exception is that assertions from the fact queue (who are their own
+ * explanation) should be sent directly to the underlying equality engine. This
+ * is for the sake of efficiency.
  *
  * This class tracks the reason for why all facts are added to an EqualityEngine
  * in a SAT-context dependent manner in a context-dependent (CDProof) object.
  * It furthermore maintains an internal FactProofGenerator class for managing
- * explicitly provided "simple" steps for facts.
+ * proofs of facts whose steps are explicitly provided (those that are given
+ * concrete PfRule, children, and args). Call these "simple facts".
  *
- * It is an eager proof generator (see theory/proof_generator.h), in that
- * it stores (copies) of proofs for lemmas at the moment they are sent out.
+ * Overall, this class is an eager proof generator (theory/proof_generator.h),
+ * in that it stores (copies) of proofs for lemmas at the moment they are sent
+ * out.
  *
  * A theory that is proof producing and uses the equality engine may use this
  * class to manage proofs that are justified by its underlying equality engine.
@@ -136,8 +140,8 @@ class ProofEqEngine : public EagerProofGenerator
    * Assert fact via generator pg. This method asserts lit with explanation exp
    * to the equality engine of this class. It must be the case that pg can
    * provide a proof for lit in terms of exp. More precisely, pg should be
-   * prepared in the remainder of the SAT context to respond to a call to a
-   * call to ProofGenerator::getProofFor(lit), and return a proof whose free
+   * prepared in the remainder of the SAT context to respond to a call to
+   * ProofGenerator::getProofFor(lit), and return a proof whose free
    * assumptions are a subset of the conjuncts of exp.
    *
    * @param lit The literal to assert to the equality engine.
@@ -183,16 +187,17 @@ class ProofEqEngine : public EagerProofGenerator
    * lemma or conflict to be sent on the output channel of the Theory.
    *
    * The user provides the explanation of conc in two parts:
-   * (1) exp \ noExplain, which are literals that hold in the equality engine of
-   * this class,
+   * (1) (exp \ noExplain), which are literals that hold in the equality engine
+   * of this class,
    * (2) noExplain, which do not necessarily hold in the equality engine of this
    * class.
    * Notice that noExplain is a subset of exp.
    *
-   * The proof for conc follows from exp ^ expn by proof rule with the given
+   * The proof for conc follows from exp by proof rule with the given
    * id and arguments.
    *
-   * This call corresponds to a conflict if conc is false and expn is empty.
+   * This call corresponds to a conflict if conc is false and noExplain is
+   * empty.
    *
    * This returns the TrustNode corresponding to the formula corresonding to
    * the call to this method [*], for which a proof can be provided by this
@@ -200,7 +205,7 @@ class ProofEqEngine : public EagerProofGenerator
    *
    * [*]
    * a. If this call does not correspond to a conflict, then this formula is:
-   *   ( ^_{e in exp} <explain>(e) ^ expn ) => conc
+   *   ( ^_{e in exp \ noExplain} <explain>(e) ^ noExplain ) => conc
    * where <explain>(e) is a conjunction of literals L1 ^ ... ^ Ln such that
    * L1 ^ ... ^ Ln entail e, and each Li was passed as an explanation to a
    * call to assertFact in the current SAT context. This explanation method
@@ -244,46 +249,12 @@ class ProofEqEngine : public EagerProofGenerator
    */
   TrustNode explain(Node conc);
 
- protected:
-  /** Add proof step */
-  bool addProofStep(Node lit,
-                    PfRule id,
-                    const std::vector<Node>& exp,
-                    const std::vector<Node>& args);
-  /** Assert internal */
-  bool assertFactInternal(TNode pred, bool polarity, TNode reason);
-  /** holds */
-  bool holds(TNode pred, bool polarity);
-  /** assert lemma internal */
-  TrustNode assertLemmaInternal(Node conc,
-                                const std::vector<Node>& exp,
-                                const std::vector<Node>& noExplain,
-                                LazyCDProof* curr);
-  /** ensure proof for fact */
-  TrustNode ensureProofForFact(Node conc,
-                               const std::vector<TNode>& assumps,
-                               TrustNodeKind tnk,
-                               LazyCDProof* curr);
-  /**
-   * Make the conjunction of nodes in a. Returns true if a is empty, and a
-   * single literal if a has size 1.
-   */
-  Node mkAnd(const std::vector<Node>& a);
-  Node mkAnd(const std::vector<TNode>& a);
-  /** flatten and, returns the conjuncts to a */
-  void flattenAnd(TNode an, std::vector<Node>& a);
-
  private:
-  /** Reference to the equality engine */
-  eq::EqualityEngine& d_ee;
-  /** common nodes */
-  Node d_true;
-  Node d_false;
-  /** the proof node manager */
-  ProofNodeManager* d_pnm;
-  /** The SAT-context-dependent proof object */
-  LazyCDProof d_proof;
-  /** The default proof generator (for simple facts) */
+  /** 
+   * The default proof generator (for simple facts). This class is a context
+   * dependent mapping from formulas to proof steps. It does not generate
+   * ProofNode until it is asked to provide a proof for a given fact.
+   */
   class FactProofGenerator : public ProofGenerator
   {
     typedef context::
@@ -306,7 +277,47 @@ class ProofEqEngine : public EagerProofGenerator
     /** the proof node manager */
     ProofNodeManager* d_pnm;
   };
+  /** Assert internal */
+  bool assertFactInternal(TNode pred, bool polarity, TNode reason);
+  /** holds */
+  bool holds(TNode pred, bool polarity);
+  /** 
+   * Assert lemma internal. This method is called for ensuring the proof of
+   * conc exists in curr, where exp / noExplain are the its explanation (see
+   * assertLemma). This method is used for conflicts as well, where noExplain
+   * must be empty and conc = d_false.
+   *
+   * If curr is null, no proof is constructed.
+   * 
+   * This method returns the trust node of the lemma or conflict with this
+   * class as the proof generator.
+   */
+  TrustNode assertLemmaInternal(Node conc,
+                                const std::vector<Node>& exp,
+                                const std::vector<Node>& noExplain,
+                                LazyCDProof* curr);
+  /** ensure proof for fact */
+  TrustNode ensureProofForFact(Node conc,
+                               const std::vector<TNode>& assumps,
+                               TrustNodeKind tnk,
+                               LazyCDProof* curr);
+  /**
+   * Make the conjunction of nodes in a. Returns true if a is empty, and a
+   * single literal if a has size 1.
+   */
+  Node mkAnd(const std::vector<Node>& a);
+  Node mkAnd(const std::vector<TNode>& a);
+  /** The default proof generator (for simple facts) */
   FactProofGenerator d_factPg;
+  /** Reference to the equality engine */
+  eq::EqualityEngine& d_ee;
+  /** common nodes */
+  Node d_true;
+  Node d_false;
+  /** the proof node manager */
+  ProofNodeManager* d_pnm;
+  /** The SAT-context-dependent proof object */
+  LazyCDProof d_proof;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are reference counted. Since facts and their
