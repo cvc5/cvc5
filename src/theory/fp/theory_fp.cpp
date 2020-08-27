@@ -1018,10 +1018,12 @@ Node TheoryFp::getModelValue(TNode var) {
   return d_conv.getValue(d_valuation, var);
 }
 
-bool TheoryFp::collectModelInfo(TheoryModel* m,
-                                const std::set<Node>& relevantTerms)
+bool TheoryFp::collectModelInfo(TheoryModel* m)
 {
-  // override behavior to not assert equality engine
+  std::set<Node> relevantTerms;
+  // Work out which variables are needed	
+  computeRelevantTerms(relevantTerms);
+  // this override behavior to not assert equality engine
   return collectModelValues(m, relevantTerms);
 }
 
