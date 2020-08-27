@@ -29,7 +29,6 @@
 #include <vector>
 
 #include "api/cvc4cpp.h"
-#include "expr/datatype.h"
 #include "expr/expr.h"
 #include "expr/type.h"
 #include "expr/variable_type_map.h"

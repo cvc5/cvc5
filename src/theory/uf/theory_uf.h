@@ -107,12 +107,8 @@ private:
   /** Proof-producing equaltity engine */
   std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
 
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-
   /** The conflict node */
   Node d_conflictNode;
-
 
   /** node for true */
   Node d_true;
@@ -178,17 +174,31 @@ private:
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void check(Effort) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
+
   TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
   void presolve() override;
 
-  void notifySharedTerm(TNode n) override;
   void computeCareGraph() override;
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
@@ -199,8 +209,6 @@ private:
 
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
-  /** are we in conflict? */
-  bool inConflict() const { return d_conflict; }
 
  private:
   bool areCareDisequal(TNode x, TNode y);

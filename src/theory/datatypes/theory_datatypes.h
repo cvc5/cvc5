@@ -24,7 +24,6 @@
 
 #include "context/cdlist.h"
 #include "expr/attribute.h"
-#include "expr/datatype.h"
 #include "expr/node_trie.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/sygus_extension.h"

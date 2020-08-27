@@ -1011,7 +1011,8 @@ inline TypeNode TypeNode::getRangeType() const {
   if(isTester()) {
     return NodeManager::currentNM()->booleanType();
   }
-  Assert(isFunction() || isConstructor() || isSelector());
+  Assert(isFunction() || isConstructor() || isSelector())
+      << "Cannot get range type of " << *this;
   return (*this)[getNumChildren() - 1];
 }
 

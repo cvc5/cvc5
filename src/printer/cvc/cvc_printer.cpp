@@ -211,17 +211,15 @@ void CvcPrinter::toStream(
       break;
 
     case kind::DATATYPE_TYPE: {
-      const Datatype& dt =
-          NodeManager::currentNM()->toExprManager()->getDatatypeForIndex(
-              n.getConst<DatatypeIndexConstant>().getIndex());
-
+      const DType& dt = NodeManager::currentNM()->getDTypeForIndex(
+          n.getConst<DatatypeIndexConstant>().getIndex());
       if( dt.isTuple() ){
         out << '[';
         for (unsigned i = 0; i < dt[0].getNumArgs(); ++ i) {
           if (i > 0) {
             out << ", ";
           }
-          Type t = dt[0][i].getRangeType();
+          TypeNode t = dt[0][i].getRangeType();
           out << t;
         }
         out << ']';
@@ -233,7 +231,7 @@ void CvcPrinter::toStream(
           if (i > 0) {
             out << ", ";
           }
-          Type t = dt[0][i].getRangeType();
+          TypeNode t = dt[0][i].getRangeType();
           out << dt[0][i].getSelector() << ":" << t;
         }
         out << " #]";

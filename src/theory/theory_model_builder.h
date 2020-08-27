@@ -46,19 +46,22 @@ class TheoryEngineModelBuilder
  public:
   TheoryEngineModelBuilder(TheoryEngine* te);
   virtual ~TheoryEngineModelBuilder() {}
-  /** Build model function.
-   *
-   * Should be called only on TheoryModels m.
+  /**
+   * Should be called only on models m after they have been prepared
+   * (e.g. using ModelManager). In other words, the equality engine of model
+   * m contains all relevant information from each theory that is needed
+   * for building a model. This class is responsible simply for ensuring
+   * that all equivalence classes of the equality engine of m are assigned
+   * constants.
    *
    * This constructs the model m, via the following steps:
-   * (1) call TheoryEngine::collectModelInfo,
-   * (2) builder-specified pre-processing,
-   * (3) find the equivalence classes of m's
+   * (1) builder-specified pre-processing,
+   * (2) find the equivalence classes of m's
    *     equality engine that initially contain constants,
-   * (4) assign constants to all equivalence classes
+   * (3) assign constants to all equivalence classes
    *     of m's equality engine, through alternating
    *     iterations of evaluation and enumeration,
-   * (5) builder-specific processing, which includes assigning total
+   * (4) builder-specific processing, which includes assigning total
    *     interpretations to uninterpreted functions.
    *
    * This function returns false if any of the above
@@ -67,7 +70,7 @@ class TheoryEngineModelBuilder
    * builder in steps (2) or (5), for instance, if the model we
    * are building fails to satisfy a quantified formula.
    */
-  bool buildModel(Model* m);
+  bool buildModel(TheoryModel* m);
 
   /** postprocess model
    *

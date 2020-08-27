@@ -96,13 +96,16 @@ void EqEngineManagerDistributed::initializeTheories()
   }
 }
 
-void EqEngineManagerDistributed::initializeModel(TheoryModel* m)
+void EqEngineManagerDistributed::initializeModel(
+    TheoryModel* m, eq::EqualityEngineNotify* notify)
 {
   Assert(m != nullptr);
   // initialize the model equality engine
   EeSetupInfo esim;
   if (m->needsEqualityEngine(esim))
   {
+    // use the provided notification object
+    esim.d_notify = notify;
     d_modelEqualityEngine.reset(
         allocateEqualityEngine(esim, &d_modelEeContext));
     m->setEqualityEngine(d_modelEqualityEngine.get());

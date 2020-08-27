@@ -72,11 +72,15 @@ void TheoryModel::finishInit()
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
+  // Equal and not terms are not relevant terms. In other words, asserted
+  // equalities and negations of predicates (as terms) do not need to be sent
+  // to the model. Regardless, theories should send information to the model
+  // that ensures that all assertions are satisfied.
+  setIrrelevantKind(EQUAL);
+  setIrrelevantKind(NOT);
 }
 
 void TheoryModel::reset(){
-  d_modelBuilt = false;
-  d_modelBuiltSuccess = false;
   d_modelCache.clear();
   d_comment_str.clear();
   d_sep_heap = Node::null();
@@ -627,6 +631,13 @@ void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
   d_semi_evaluated_kinds.insert(k);
+}
+
+void TheoryModel::setIrrelevantKind(Kind k) { d_irrKinds.insert(k); }
+
+const std::set<Kind>& TheoryModel::getIrrelevantKinds() const
+{
+  return d_irrKinds;
 }
 
 bool TheoryModel::isLegalElimination(TNode x, TNode val)

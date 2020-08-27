@@ -1149,11 +1149,9 @@ api::Term Smt2::applyParseOp(ParseOp& p, std::vector<api::Term>& args)
       ss << "tuple is of length " << length << "; cannot access index " << n;
       parseError(ss.str());
     }
-    const Datatype& dt = ((DatatypeType)t.getType()).getDatatype();
-    api::Term ret =
-        d_solver->mkTerm(api::APPLY_SELECTOR,
-                         api::Term(d_solver, dt[0][n].getSelector()),
-                         args[0]);
+    const api::Datatype& dt = t.getDatatype();
+    api::Term ret = d_solver->mkTerm(
+        api::APPLY_SELECTOR, dt[0][n].getSelectorTerm(), args[0]);
     Debug("parser") << "applyParseOp: return selector " << ret << std::endl;
     return ret;
   }

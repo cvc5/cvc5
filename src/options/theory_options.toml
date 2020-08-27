@@ -42,3 +42,27 @@ header = "options/theory_options.h"
   type       = "bool"
   default    = "false"
   help       = "enable analysis of relevance of asserted literals with respect to the input formula"
+
+[[option]]
+  name       = "eeMode"
+  category   = "expert"
+  long       = "ee-mode=MODE"
+  type       = "EqEngineMode"
+  default    = "DISTRIBUTED"
+  help       = "mode for managing equalities across theory solvers"
+  help_mode  = "Defines mode for managing equalities across theory solvers."
+[[option.mode.DISTRIBUTED]]
+  name = "distributed"
+  help = "Each theory maintains its own equality engine."
+
+[[option]]
+  name       = "tcMode"
+  category   = "expert"
+  long       = "tc-mode=MODE"
+  type       = "TcMode"
+  default    = "CARE_GRAPH"
+  help       = "mode for theory combination"
+  help_mode  = "Defines mode for theory combination."
+[[option.mode.CARE_GRAPH]]
+  name = "care-graph"
+  help = "Use care graphs for theory combination."

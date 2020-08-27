@@ -16,7 +16,6 @@
 
 #include <stack>
 
-#include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
@@ -378,10 +377,11 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   return visited[n];
 }
 
-
-TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name, std::set<Type>& unres) {
+TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
+                                                 std::set<TypeNode>& unres)
+{
   TypeNode unresolved = NodeManager::currentNM()->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert( unresolved.toType() );
+  unres.insert(unresolved);
   return unresolved;
 }
 
@@ -529,7 +529,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         include_cons,
     std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
     std::vector<SygusDatatypeGenerator>& sdts,
-    std::set<Type>& unres)
+    std::set<TypeNode>& unres)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
@@ -1389,7 +1389,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   {
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
   }
-  std::set<Type> unres;
+  std::set<TypeNode> unres;
   std::vector<SygusDatatypeGenerator> sdts;
   mkSygusDefaultGrammar(range,
                         bvl,
@@ -1401,19 +1401,18 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         sdts,
                         unres);
   // extract the datatypes from the sygus datatype generator objects
-  std::vector<Datatype> datatypes;
+  std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].d_sdt.getDatatype());
   }
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
-  std::vector<DatatypeType> types =
-      NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
-  return TypeNode::fromType( types[0] );
+  return types[0];
 }
 
 TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
@@ -1423,7 +1422,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     return templ_arg_sygus_type;
   }else{
     tcount++;
-    std::set<Type> unres;
+    std::set<TypeNode> unres;
     std::vector<SygusDatatype> sdts;
     std::stringstream ssd;
     ssd << fun << "_templ_" << tcount;
@@ -1450,16 +1449,16 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     sdts.back().addConstructor(op, ssdc.str(), argTypes);
     sdts.back().initializeDatatype(templ.getType(), bvl, true, true);
     // extract the datatypes from the sygus datatype objects
-    std::vector<Datatype> datatypes;
+    std::vector<DType> datatypes;
     for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
     {
       datatypes.push_back(sdts[i].getDatatype());
     }
-    std::vector<DatatypeType> types =
-        NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-            datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+    std::vector<TypeNode> types =
+        NodeManager::currentNM()->mkMutualDatatypeTypes(
+            datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
     Assert(types.size() == 1);
-    return TypeNode::fromType( types[0] );
+    return types[0];
   }
 }
 
