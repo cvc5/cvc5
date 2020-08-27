@@ -63,8 +63,6 @@ class Lemma
  */
 class InferenceManagerBuffered : public TheoryInferenceManager
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-
  public:
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,

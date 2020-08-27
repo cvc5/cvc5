@@ -108,7 +108,7 @@ class TheoryInferenceManager
   /** Send lemma lem with property p on the output channel. */
   LemmaStatus lemma(TNode lem, LemmaProperty p = LemmaProperty::NONE);
   /** Send (trusted) lemma lem with property p on the output channel. */
-  LemmaStatus trustedLemma(TrustNode tlem,
+  LemmaStatus trustedLemma(const TrustNode& tlem,
                            LemmaProperty p = LemmaProperty::NONE);
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
