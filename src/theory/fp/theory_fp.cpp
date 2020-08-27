@@ -967,7 +967,8 @@ void TheoryFp::postCheck(Effort level)
   Trace("fp") << "TheoryFp::check(): completed" << std::endl;
 }
 
-bool TheoryFp::preNotifyFact(TNode atom, bool pol, TNode fact, bool isPrereg)
+bool TheoryFp::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
   if (atom.getKind() == kind::EQUAL)
   {
