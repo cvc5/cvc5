@@ -98,7 +98,8 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable);
  * )
  */
 Node excluding_interval_to_lemma(const Node& variable,
-                                 const poly::Interval& interval);
+                                 const poly::Interval& interval,
+                                 bool allowNonlinearLemma);
 
 /**
  * Transforms a node to a poly::AlgebraicNumber.
