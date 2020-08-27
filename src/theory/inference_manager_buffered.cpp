@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inference_manager_buffered.h
+/*! \file inference_manager_buffered.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
