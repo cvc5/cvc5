@@ -96,7 +96,7 @@ class ModelManager
    * termSet.
    *
    * @param tid The theory whose assertions we are collecting
-   * @param termSet The set to add terms
+   * @param termSet The set to add terms to
    * @param includeShared Whether to include the shared terms of the theory
    */
   void collectAssertedTerms(TheoryId tid,
