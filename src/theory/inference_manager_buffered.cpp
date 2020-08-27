@@ -54,7 +54,7 @@ void InferenceManagerBuffered::addPendingLemma(Node lem,
 
 void InferenceManagerBuffered::addPendingLemma(std::shared_ptr<Lemma> lemma)
 {
-  d_pendingLemma.emplace_back(std::move(lemma));
+  d_pendingLem.emplace_back(std::move(lemma));
 }
 
 void InferenceManagerBuffered::addPendingFact(Node fact, Node exp)
