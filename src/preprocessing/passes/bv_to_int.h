@@ -62,6 +62,9 @@
 #ifndef __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
 #define __CVC4__PREPROCESSING__PASSES__BV_TO_INT_H
 
+#include "context/cdhashmap.h"
+#include "context/cdo.h"
+#include "context/context.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
@@ -69,7 +72,7 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using CDNodeMap = context::CDHashMap<Node, Node, NodeHashFunction>;
 
 class BVToInt : public PreprocessingPass
 {
@@ -245,10 +248,10 @@ class BVToInt : public PreprocessingPass
   /**
    * Caches for the different functions
    */
-  NodeMap d_binarizeCache;
-  NodeMap d_eliminationCache;
-  NodeMap d_rebuildCache;
-  NodeMap d_bvToIntCache;
+  CDNodeMap d_binarizeCache;
+  CDNodeMap d_eliminationCache;
+  CDNodeMap d_rebuildCache;
+  CDNodeMap d_bvToIntCache;
 
   /**
    * Node manager that is used throughout the pass
@@ -259,7 +262,7 @@ class BVToInt : public PreprocessingPass
    * A set of constraints of the form 0 <= x < 2^k
    * These are added for every new integer variable that we introduce.
    */
-  unordered_set<Node, NodeHashFunction> d_rangeAssertions;
+  context::CDHashSet<Node, NodeHashFunction> d_rangeAssertions;
 
   /**
    * Useful constants
