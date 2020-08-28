@@ -121,7 +121,7 @@ class ProofPostprocessCallback : public ProofNodeUpdaterCallback
   Node addProofForTrans(const std::vector<Node>& tchildren, CDProof* cdp);
   /**
    * Add proof for substitution step. Some substitutions are derived based
-   * on viewing a formula as a Boolean assigned (see MethodId::SB_LITERAL for
+   * on viewing a formula as a Boolean assignment (see MethodId::SB_LITERAL for
    * example). This method ensures that the proof of var == subs exists
    * in cdp, where var, subs were derived from BuiltinProofRuleChecker's
    * getSubstitution method.
