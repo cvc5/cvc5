@@ -67,7 +67,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
                            ProofNodeManager* pnm);
-  ~InferenceManagerBuffered() {}
+  virtual ~InferenceManagerBuffered() {}
   /**
    * Have we processed an inference during this call to check? In particular,
    * this returns true if we have a pending fact or lemma, or have encountered
