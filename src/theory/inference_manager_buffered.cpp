@@ -117,6 +117,17 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   }
   d_pendingReqPhase.clear();
 }
+void InferenceManagerBuffered::clearPendingFacts() { 
+  d_pendingFact.clear();
+}
+void InferenceManagerBuffered::clearPendingLemmas() {
+  d_pendingLem.clear();
+}
+void InferenceManagerBuffered::clearPendingPhaseRequirements()
+{
+  
+  d_pendingReqPhase.clear();
+}
 
 }  // namespace theory
 }  // namespace CVC4
