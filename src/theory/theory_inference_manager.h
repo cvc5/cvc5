@@ -128,6 +128,16 @@ class TheoryInferenceManager
    * exists.
    */
   virtual TrustNode explainConflictEqConstantMerge(TNode a, TNode b);
+  /**
+   * Explain formula n (which is possibly a conjunction with no nested
+   * conjunctions), add its explanation to assumptions.
+   */
+  void explain(TNode n, std::vector<TNode>& assumptions);
+  /**
+   * Explain formula n (which is possibly a conjunction with no nested
+   * conjunctions), return the explanation as a conjunction.
+   */
+  Node mkExplain(TNode n);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
