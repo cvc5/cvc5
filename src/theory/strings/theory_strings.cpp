@@ -85,7 +85,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_theoryState = &d_state;
   // use the inference manager as the official inference manager
   d_inferManager = &d_im;
-  d_needsSharedTermEqFacts = false;
 }
 
 TheoryStrings::~TheoryStrings() {
