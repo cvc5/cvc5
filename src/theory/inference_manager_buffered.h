@@ -146,6 +146,11 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    */
   void doPendingPhaseRequirements();
 
+  /** Returns the number of pending lemmas. */
+  std::size_t countPendingLemmas() const;
+  /** Returns the number of pending facts. */
+  std::size_t countPendingFacts() const;
+
  protected:
   /** A set of pending lemmas */
   std::vector<std::shared_ptr<Lemma>> d_pendingLem;

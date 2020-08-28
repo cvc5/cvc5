@@ -67,6 +67,8 @@ class InferenceManager : public InferenceManagerBuffered
   /** Add a conflict to the underlying inference manager. */
   void addConflict(const Node& conf, nl::Inference inftype);
 
+  /** Returns the number of pending lemmas. */
+  std::size_t countWaitingLemmas() const;
  private:
   /** Checks whether the lemma is not yet in the cache. */
   bool isNewLemma(ArithLemma& lem);

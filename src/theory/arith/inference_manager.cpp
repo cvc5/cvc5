@@ -90,6 +90,11 @@ void InferenceManager::addConflict(const Node& conf, nl::Inference inftype)
   conflict(conf);
 }
 
+std::size_t InferenceManager::countWaitingLemmas() const
+{
+  return d_waitingLem.size();
+}
+
 bool InferenceManager::isNewLemma(ArithLemma& lem)
 {
   Trace("arith-inf-manager")

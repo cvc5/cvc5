@@ -118,5 +118,13 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   d_pendingReqPhase.clear();
 }
 
+
+  std::size_t InferenceManagerBuffered::countPendingLemmas() const {
+    return d_pendingLem.size();
+  }
+  std::size_t InferenceManagerBuffered::countPendingFacts() const {
+    return d_pendingFact.size();
+  }
+
 }  // namespace theory
 }  // namespace CVC4
