@@ -63,6 +63,7 @@ PR finished:
 (76) further generalization of eq_proof conversion [Haniel]
 (77) update rule for CONG (req 76)
 (82) strings term registry proof preparation (req 75)
+(84) SMT engine proof post-processor (req 63)
 
 PRs ready:
 
@@ -70,8 +71,7 @@ PRs ready:
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
 (79) term context extended utilities (req 46) *
-(84) SMT engine proof post-processor (req 63) *
-(86) theory rewrite is a trusted rule
+(86) theory rewrite is a trusted rule *
 (88) fixes for smt preprocess proof generator
 (89) combination engine proof producing *
 (90) inference manager uses pfee
