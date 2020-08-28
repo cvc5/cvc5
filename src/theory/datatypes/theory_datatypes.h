@@ -199,7 +199,6 @@ private:
   std::vector< Node > d_pending_lem;
   std::vector< Node > d_pending;
   std::map< Node, Node > d_pending_exp;
-  std::vector< Node > d_pending_merge;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionTerms;
   /** counter for forcing assignments (ensures fairness) */
@@ -222,8 +221,6 @@ private:
   /** flush pending facts */
   void flushPendingFacts();
 
-  /** do pending merged */
-  void doPendingMerges();
   /** do send lemma */
   bool doSendLemma( Node lem );
   bool doSendLemmas( std::vector< Node >& lem );
