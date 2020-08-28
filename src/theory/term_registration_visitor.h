@@ -60,7 +60,7 @@ class PreRegisterVisitor {
    */
   std::string toString() const;
 
-public:
+ public:
 
   /** Returned set tells us which theories there are */
  typedef theory::TheoryIdSet return_type;

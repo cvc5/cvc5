@@ -30,7 +30,6 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -797,86 +796,6 @@ class Theory {
   virtual void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
     Unimplemented() << "Theory " << identify()
                     << " doesn't support Theory::setUserAttribute interface";
-  }
-
-  /** A set of all theories */
-  static const TheoryIdSet AllTheories = (1 << theory::THEORY_LAST) - 1;
-
-  /** Pops a first theory off the set */
-  static TheoryId setPop(TheoryIdSet& set)
-  {
-    uint32_t i = ffs(set); // Find First Set (bit)
-    if (i == 0) { return THEORY_LAST; }
-    TheoryId id = (TheoryId)(i-1);
-    set = setRemove(id, set);
-    return id;
-  }
-
-  /** Returns the size of a set of theories */
-  static size_t setSize(TheoryIdSet set)
-  {
-    size_t count = 0;
-    while (setPop(set) != THEORY_LAST) {
-      ++ count;
-    }
-    return count;
-  }
-
-  /** Returns the index size of a set of theories */
-  static size_t setIndex(TheoryId id, TheoryIdSet set)
-  {
-    Assert(setContains(id, set));
-    size_t count = 0;
-    while (setPop(set) != id) {
-      ++ count;
-    }
-    return count;
-  }
-
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static TheoryIdSet setInsert(TheoryId theory, TheoryIdSet set = 0)
-  {
-    return set | (1 << theory);
-  }
-
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static TheoryIdSet setRemove(TheoryId theory, TheoryIdSet set = 0)
-  {
-    return setDifference(set, setInsert(theory));
-  }
-
-  /** Check if the set contains the theory */
-  static bool setContains(TheoryId theory, TheoryIdSet set)
-  {
-    return set & (1 << theory);
-  }
-
-  static TheoryIdSet setComplement(TheoryIdSet a) { return (~a) & AllTheories; }
-
-  static TheoryIdSet setIntersection(TheoryIdSet a, TheoryIdSet b)
-  {
-    return a & b;
-  }
-
-  static TheoryIdSet setUnion(TheoryIdSet a, TheoryIdSet b) { return a | b; }
-
-  /** a - b  */
-  static TheoryIdSet setDifference(TheoryIdSet a, TheoryIdSet b)
-  {
-    return (~b) & a;
-  }
-
-  static std::string setToString(theory::TheoryIdSet theorySet)
-  {
-    std::stringstream ss;
-    ss << "[";
-    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
-      if (theory::Theory::setContains((theory::TheoryId)theoryId, theorySet)) {
-        ss << (theory::TheoryId) theoryId << " ";
-      }
-    }
-    ss << "]";
-    return ss.str();
   }
 
   typedef context::CDList<Assertion>::const_iterator assertions_iterator;

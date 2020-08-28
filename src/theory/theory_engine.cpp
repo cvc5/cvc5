@@ -310,10 +310,10 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // Pre-register the terms in the atom
       theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
           d_preRegistrationVisitor, preprocessed);
-      theories = Theory::setRemove(THEORY_BOOL, theories);
+      theories = TheoryIdSetUtil::setRemove(THEORY_BOOL, theories);
       // Remove the top theory, if any more that means multiple theories were
       // involved
-      bool multipleTheories = Theory::setRemove(Theory::theoryOf(preprocessed), theories);
+      bool multipleTheories = TheoryIdSetUtil::setRemove(Theory::theoryOf(preprocessed), theories);
       if (Configuration::isAssertionBuild())
       {
         TheoryId i;
@@ -324,7 +324,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         // even though arithmetic isn't actually involved.
         if (!options::finiteModelFind())
         {
-          while ((i = Theory::setPop(theories)) != THEORY_LAST)
+          while ((i = TheoryIdSetUtil::setPop(theories)) != THEORY_LAST)
           {
             if (!d_logicInfo.isTheoryEnabled(i))
             {
@@ -1077,7 +1077,7 @@ void TheoryEngine::assertFact(TNode literal)
         theory::TheoryIdSet theories =
             d_sharedTerms.getTheoriesToNotify(atom, term);
         for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++ id) {
-          if (Theory::setContains(id, theories)) {
+          if (TheoryIdSetUtil::setContains(id, theories)) {
             theoryOf(id)->addSharedTerm(term);
           }
         }
