@@ -91,14 +91,24 @@ Node value_to_node(const poly::Value& v, const Node& ran_variable);
 
 /**
  * Constructs a lemma that excludes a given interval from the feasible values of
- * a variable. The resulting lemma has the form
+ * a variable. Conceptually, the resulting lemma has the form
  * (OR
  *    (<= var interval.lower)
  *    (<= interval.upper var)
  * )
+ * This method honors the interval bound types (open or closed), but also deals
+ * with real algebraic endpoints. If allowNonlinearLemma is false, real
+ * algebraic endpoints are reflected by coarse (numeric) approximations and thus
+ * may lead to lemmas that are weaker than they could be. Also, lemma creation
+ * may fail altogether.
+ * If allowNonlinearLemma is true, it tries to construct better lemmas (based on
+ * the sign of the defining polynomial of the real algebraic number). These
+ * lemmas are nonlinear, though, and may thus be expensive to use in the
+ * subsequent solving process.
  */
 Node excluding_interval_to_lemma(const Node& variable,
-                                 const poly::Interval& interval);
+                                 const poly::Interval& interval,
+                                 bool allowNonlinearLemma);
 
 /**
  * Transforms a node to a poly::AlgebraicNumber.
@@ -118,6 +128,13 @@ RealAlgebraicNumber node_to_ran(const Node& n, const Node& ran_variable);
  * Transforms a node to a poly::Value.
  */
 poly::Value node_to_value(const Node& n, const Node& ran_variable);
+
+/**
+ * Give a rough estimate of the bitsize of the representation of `v`.
+ * It can be used as a rough measure of the size of complexity of a value, for
+ * example to avoid divergence or disallow huge lemmas.
+ */
+std::size_t bitsize(const poly::Value& v);
 
 }  // namespace nl
 }  // namespace arith

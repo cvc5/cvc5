@@ -81,24 +81,20 @@ class TheoryModel : public Model
 public:
   TheoryModel(context::Context* c, std::string name, bool enableFuncModels);
   ~TheoryModel() override;
+  //---------------------------- initialization
+  /** Called to set the equality engine. */
+  void setEqualityEngine(eq::EqualityEngine* ee);
+  /**
+   * Returns true if we need an equality engine, this has the same contract
+   * as Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  /** Finish init */
+  void finishInit();
+  //---------------------------- end initialization
 
   /** reset the model */
   virtual void reset();
-  /** is built
-   *
-   * Have we attempted to build this model since the last
-   * call to reset? Notice for model building techniques
-   * that are not guaranteed to succeed (such as
-   * when quantified formulas are enabled), a true return
-   * value does not imply that this is a model of the
-   * current assertions.
-   */
-  bool isBuilt() { return d_modelBuilt; }
-  /** is built success
-   *
-   * Was this model successfully built since the last call to reset?
-   */
-  bool isBuiltSuccess() { return d_modelBuiltSuccess; }
   //---------------------------- for building the model
   /** Adds a substitution from x to t. */
   void addSubstitution(TNode x, TNode t, bool invalidateCache = true);
@@ -266,6 +262,17 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
+  /**
+   * Set irrelevant kind. These kinds do not impact model generation, that is,
+   * registered terms in theories of this kind do not need to be sent to
+   * the model. An example is APPLY_TESTER.
+   */
+  void setIrrelevantKind(Kind k);
+  /**
+   * Get the set of irrelevant kinds that have been registered by the above
+   * method.
+   */
+  const std::set<Kind>& getIrrelevantKinds() const;
   /** is legal elimination
    *
    * Returns true if x -> val is a legal elimination of variable x.
@@ -348,15 +355,10 @@ public:
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
  protected:
+  /** Unique name of this model */
+  std::string d_name;
   /** substitution map for this model */
   SubstitutionMap d_substitutions;
-  /** whether we have tried to build this model in the current context */
-  bool d_modelBuilt;
-  /** whether this model has been built successfully */
-  bool d_modelBuiltSuccess;
-  /** special local context for our equalityEngine so we can clear it
-   * independently of search context */
-  context::Context* d_eeContext;
   /** equality engine containing all known equalities/disequalities */
   eq::EqualityEngine* d_equalityEngine;
   /** approximations (see recordApproximation) */
@@ -367,6 +369,8 @@ public:
   std::unordered_set<Kind, kind::KindHashFunction> d_unevaluated_kinds;
   /** a set of kinds that are semi-evaluated */
   std::unordered_set<Kind, kind::KindHashFunction> d_semi_evaluated_kinds;
+  /** The set of irrelevant kinds */
+  std::set<Kind> d_irrKinds;
   /**
    * Map of representatives of equality engine to used representatives in
    * representative set

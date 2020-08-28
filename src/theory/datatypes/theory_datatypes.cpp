@@ -61,12 +61,16 @@ TheoryDatatypes::TheoryDatatypes(Context* c,
       d_functionTerms(c),
       d_singleton_eq(u),
       d_lemmas_produced_c(u),
-      d_sygusExtension(nullptr)
+      d_sygusExtension(nullptr),
+      d_state(c, u, valuation)
 {
 
   d_true = NodeManager::currentNM()->mkConst( true );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
   d_dtfCounter = 0;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryDatatypes::~TheoryDatatypes() {
@@ -104,6 +108,8 @@ void TheoryDatatypes::finishInit()
     // do congruence on evaluation functions
     d_equalityEngine->addFunctionKind(kind::DT_SYGUS_EVAL);
   }
+  // testers are not relevant for model building
+  d_valuation.setIrrelevantKind(APPLY_TESTER);
 }
 
 TheoryDatatypes::EqcInfo* TheoryDatatypes::getOrMakeEqcInfo( TNode n, bool doMake ){
@@ -154,7 +160,7 @@ void TheoryDatatypes::check(Effort e) {
   if (done() && e<EFFORT_FULL) {
     return;
   }
-  Assert(d_pending.empty() && d_pending_merge.empty());
+  Assert(d_pending.empty());
   d_addedLemma = false;
   
   if( e == EFFORT_LAST_CALL ){
@@ -192,7 +198,7 @@ void TheoryDatatypes::check(Effort e) {
 
   if( e == EFFORT_FULL && !d_conflict && !d_addedLemma && !d_valuation.needCheck() ) {
     //check for cycles
-    Assert(d_pending.empty() && d_pending_merge.empty());
+    Assert(d_pending.empty());
     do {
       d_addedFact = false;
       Trace("datatypes-proc") << "Check cycles..." << std::endl;
@@ -366,18 +372,6 @@ void TheoryDatatypes::check(Effort e) {
         Trace("datatypes-debug") << "Flush pending facts..." << std::endl;
         flushPendingFacts();
       }
-      /*
-      if( !d_conflict ){
-        if( options::dtRewriteErrorSel() ){
-          bool innerAddedFact = false;
-          do {
-            collapseSelectors();
-            innerAddedFact = !d_pending.empty() || !d_pending_merge.empty();
-            flushPendingFacts();
-          }while( !d_conflict && innerAddedFact );
-        }
-      }
-      */
     }while( !d_conflict && !d_addedLemma && d_addedFact );
     Trace("datatypes-debug") << "Finished, conflict=" << d_conflict << ", lemmas=" << d_addedLemma << std::endl;
     if( !d_conflict ){
@@ -397,7 +391,6 @@ bool TheoryDatatypes::needsCheckLastEffort() {
 }
 
 void TheoryDatatypes::flushPendingFacts(){
-  doPendingMerges();
   //pending lemmas: used infrequently, only for definitional lemmas
   if( !d_pending_lem.empty() ){
     int i = 0;
@@ -406,7 +399,6 @@ void TheoryDatatypes::flushPendingFacts(){
       i++;
     }
     d_pending_lem.clear();
-    doPendingMerges();
   }
   int i = 0;
   while( !d_conflict && i<(int)d_pending.size() ){
@@ -452,19 +444,6 @@ void TheoryDatatypes::flushPendingFacts(){
   d_pending_exp.clear();
 }
 
-void TheoryDatatypes::doPendingMerges(){
-  if( !d_conflict ){
-    //do all pending merges
-    int i=0;
-    while( i<(int)d_pending_merge.size() ){
-      Assert(d_pending_merge[i].getKind() == EQUAL);
-      merge( d_pending_merge[i][0], d_pending_merge[i][1] );
-      i++;
-    }
-  }
-  d_pending_merge.clear();
-}
-
 bool TheoryDatatypes::doSendLemma( Node lem ) {
   if( d_lemmas_produced_c.find( lem )==d_lemmas_produced_c.end() ){
     Trace("dt-lemma-send") << "TheoryDatatypes::doSendLemma : " << lem << std::endl;
@@ -489,8 +468,8 @@ bool TheoryDatatypes::doSendLemmas( std::vector< Node >& lemmas ){
   return ret;
 }
         
-void TheoryDatatypes::assertFact( Node fact, Node exp ){
-  Assert(d_pending_merge.empty());
+void TheoryDatatypes::assertFact( Node fact, Node exp)
+{
   Trace("datatypes-debug") << "TheoryDatatypes::assertFact : " << fact << std::endl;
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
@@ -499,7 +478,6 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
   }else{
     d_equalityEngine->assertPredicate(atom, polarity, exp);
   }
-  doPendingMerges();
   // could be sygus-specific
   if (d_sygusExtension)
   {
@@ -517,8 +495,6 @@ void TheoryDatatypes::assertFact( Node fact, Node exp ){
     EqcInfo* eqc = getOrMakeEqcInfo( rep, true );
     addTester( tindex, fact, eqc, rep, t_arg );
     Trace("dt-tester") << "Done assert tester." << std::endl;
-    //do pending merges
-    doPendingMerges();
     Trace("dt-tester") << "Done pending merges." << std::endl;
     if( !d_conflict && polarity ){
       if (d_sygusExtension)
@@ -542,10 +518,8 @@ void TheoryDatatypes::preRegisterTerm(TNode n) {
   collectTerms( n );
   switch (n.getKind()) {
   case kind::EQUAL:
-    // Add the trigger for equality
-    d_equalityEngine->addTriggerEquality(n);
-    break;
   case kind::APPLY_TESTER:
+    // add predicate trigger for testers and equalities
     // Get triggered for both equal and dis-equal
     d_equalityEngine->addTriggerPredicate(n);
     break;
@@ -699,11 +673,6 @@ TrustNode TheoryDatatypes::expandDefinition(Node n)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::presolve()
-{
-  Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
-}
-
 TrustNode TheoryDatatypes::ppRewrite(TNode in)
 {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
@@ -730,24 +699,23 @@ TrustNode TheoryDatatypes::ppRewrite(TNode in)
   return TrustNode::null();
 }
 
-void TheoryDatatypes::addSharedTerm(TNode t) {
-  Debug("datatypes") << "TheoryDatatypes::addSharedTerm(): "
-                     << t << " " << t.getType().isBoolean() << endl;
+void TheoryDatatypes::notifySharedTerm(TNode t)
+{
+  Debug("datatypes") << "TheoryDatatypes::notifySharedTerm(): " << t << " "
+                     << t.getType().isBoolean() << endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_DATATYPES);
-  Debug("datatypes") << "TheoryDatatypes::addSharedTerm() finished" << std::endl;
+  Debug("datatypes") << "TheoryDatatypes::notifySharedTerm() finished"
+                     << std::endl;
 }
 
-/** propagate */
-void TheoryDatatypes::propagate(Effort effort){
-
-}
-
-/** propagate */
-bool TheoryDatatypes::propagate(TNode literal){
-  Debug("dt::propagate") << "TheoryDatatypes::propagate(" << literal  << ")" << std::endl;
+bool TheoryDatatypes::propagateLit(TNode literal)
+{
+  Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal << ")"
+                         << std::endl;
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("dt::propagate") << "TheoryDatatypes::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("dt::propagate") << "TheoryDatatypes::propagateLit(" << literal
+                           << "): already in conflict" << std::endl;
     return false;
   }
   Trace("dt-prop") << "dtPropagate " << literal << std::endl;
@@ -853,7 +821,7 @@ void TheoryDatatypes::eqNotifyMerge(TNode t1, TNode t2)
   if( t1.getType().isDatatype() ){
     Trace("datatypes-debug")
         << "NotifyMerge : " << t1 << " " << t2 << std::endl;
-    d_pending_merge.push_back( t1.eqNode( t2 ) );
+    merge(t1,t2);
   }
 }
 
@@ -1522,11 +1490,11 @@ bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
-  
-  set<Node> termSet;
-  
+
+  std::set<Node> termSet;
+
   // Compute terms appearing in assertions and shared terms, and in inferred equalities
-  getRelevantTerms(termSet);
+  computeRelevantTerms(termSet);
 
   //combine the equality engine
   if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
@@ -2250,12 +2218,14 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-void TheoryDatatypes::getRelevantTerms( std::set<Node>& termSet ) {
+void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet,
+                                           bool includeShared)
+{
   // Compute terms appearing in assertions and shared terms
-  std::set<Kind> irr_kinds;
+  std::set<Kind> irrKinds;
   // testers are not relevant for model construction
-  irr_kinds.insert(APPLY_TESTER);
-  computeRelevantTerms(termSet, irr_kinds);
+  irrKinds.insert(APPLY_TESTER);
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
 
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;

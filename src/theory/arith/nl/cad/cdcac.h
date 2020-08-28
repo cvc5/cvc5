@@ -131,8 +131,15 @@ class CDCAC
    * be obtained from d_assignment. If the covering is not empty, the result is
    * UNSAT and an infeasible subset can be extracted from the returned covering.
    * Implements Algorithm 2.
+   * @param curVariable The id of the variable (within d_variableOrdering) to
+   * be considered. This argument is used to manage the recursion internally and
+   * should always be zero if called externally.
+   * @param returnFirstInterval If true, the function returns after the first
+   * interval obtained from a recursive call. The result is not (necessarily) an
+   * unsat cover, but merely a list of infeasible intervals.
    */
-  std::vector<CACInterval> getUnsatCover(std::size_t cur_variable = 0);
+  std::vector<CACInterval> getUnsatCover(std::size_t curVariable = 0,
+                                         bool returnFirstInterval = false);
 
  private:
   /**

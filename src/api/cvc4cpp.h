@@ -40,10 +40,12 @@ template <bool ref_count>
 class NodeTemplate;
 typedef NodeTemplate<true> Node;
 class Expr;
-class Datatype;
-class DatatypeConstructor;
-class DatatypeConstructorArg;
+class DType;
+class DTypeConstructor;
+class DTypeSelector;
 class ExprManager;
+class GetAbductCommand;
+class GetInterpolCommand;
 class NodeManager;
 class SmtEngine;
 class SynthFunCommand;
@@ -1240,6 +1242,11 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   DatatypeConstructorDecl();
 
   /**
+   * Destructor.
+   */
+  ~DatatypeConstructorDecl();
+
+  /**
    * Add datatype selector declaration.
    * @param name the name of the datatype selector declaration to add
    * @param sort the range sort of the datatype selector declaration to add
@@ -1258,7 +1265,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1278,9 +1285,9 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * This is a shared_ptr rather than a unique_ptr since
-   * CVC4::DatatypeConstructor is not ref counted.
+   * CVC4::DTypeConstructor is not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 class Solver;
@@ -1331,7 +1338,7 @@ class CVC4_PUBLIC DatatypeDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype& getDatatype(void) const;
+  CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1384,10 +1391,10 @@ class CVC4_PUBLIC DatatypeDecl
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1412,7 +1419,7 @@ class CVC4_PUBLIC DatatypeSelector
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const Solver* slv, const CVC4::DatatypeConstructorArg& stor);
+  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
 
   /**
    * Destructor.
@@ -1438,7 +1445,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructorArg getDatatypeConstructorArg(void) const;
+  CVC4::DTypeSelector getDatatypeConstructorArg(void) const;
 
  private:
   /**
@@ -1448,10 +1455,10 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructorArg> d_stor;
+  std::shared_ptr<CVC4::DTypeSelector> d_stor;
 };
 
 /**
@@ -1475,7 +1482,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const Solver* slv, const CVC4::DatatypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1618,7 +1625,7 @@ class CVC4_PUBLIC DatatypeConstructor
      * @param true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
-                   const CVC4::DatatypeConstructor& ctor,
+                   const CVC4::DTypeConstructor& ctor,
                    bool begin);
 
     /**
@@ -1650,7 +1657,7 @@ class CVC4_PUBLIC DatatypeConstructor
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1667,10 +1674,10 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 /*
@@ -1689,7 +1696,7 @@ class CVC4_PUBLIC Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const Solver* slv, const CVC4::Datatype& dtype);
+  Datatype(const Solver* slv, const CVC4::DType& dtype);
 
   // Nullary constructor for Cython
   Datatype();
@@ -1833,7 +1840,7 @@ class CVC4_PUBLIC Datatype
      * @param dtype the internal datatype to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const Solver* slv, const CVC4::Datatype& dtype, bool begin);
+    const_iterator(const Solver* slv, const CVC4::DType& dtype, bool begin);
 
     /**
      * The associated solver object.
@@ -1864,7 +1871,7 @@ class CVC4_PUBLIC Datatype
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  const CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1881,10 +1888,10 @@ class CVC4_PUBLIC Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1950,8 +1957,10 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_PUBLIC Grammar
 {
-  friend class Solver;
+  friend class CVC4::GetAbductCommand;
+  friend class CVC4::GetInterpolCommand;
   friend class CVC4::SynthFunCommand;
+  friend class Solver;
 
  public:
   /**

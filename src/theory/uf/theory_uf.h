@@ -45,25 +45,13 @@ public:
   public:
     NotifyClass(TheoryUF& uf): d_uf(uf) {}
 
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override
-    {
-      Debug("uf") << "NotifyClass::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false" )<< ")" << std::endl;
-      if (value) {
-        return d_uf.propagate(equality);
-      } else {
-        // We use only literal triggers so taking not is safe
-        return d_uf.propagate(equality.notNode());
-      }
-    }
-
     bool eqNotifyTriggerPredicate(TNode predicate, bool value) override
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerPredicate(" << predicate << ", " << (value ? "true" : "false") << ")" << std::endl;
       if (value) {
-        return d_uf.propagate(predicate);
-      } else {
-       return d_uf.propagate(predicate.notNode());
+        return d_uf.propagateLit(predicate);
       }
+      return d_uf.propagateLit(predicate.notNode());
     }
 
     bool eqNotifyTriggerTermEquality(TheoryId tag,
@@ -73,10 +61,9 @@ public:
     {
       Debug("uf") << "NotifyClass::eqNotifyTriggerTermMerge(" << tag << ", " << t1 << ", " << t2 << ")" << std::endl;
       if (value) {
-        return d_uf.propagate(t1.eqNode(t2));
-      } else {
-        return d_uf.propagate(t1.eqNode(t2).notNode());
+        return d_uf.propagateLit(t1.eqNode(t2));
       }
+      return d_uf.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -116,13 +103,6 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-
-  /** The conflict node */
-  Node d_conflictNode;
-
-
   /** node for true */
   Node d_true;
 
@@ -130,7 +110,7 @@ private:
    * Should be called to propagate the literal. We use a node here
    * since some of the propagated literals are not kept anywhere.
    */
-  bool propagate(TNode literal);
+  bool propagateLit(TNode literal);
 
   /**
    * Explain why this literal is true by adding assumptions
@@ -161,15 +141,6 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
- private:
-  /** get the operator for this node (node should be either APPLY_UF or
-   * HO_APPLY)
-   */
-  Node getOperatorForApplyTerm(TNode node);
-  /** get the starting index of the arguments for node (node should be either
-   * APPLY_UF or HO_APPLY) */
-  unsigned getArgumentStartIndexForApplyTerm(TNode node);
-
  public:
 
   /** Constructs a new instance of TheoryUF w.r.t. the provided context.*/
@@ -196,20 +167,32 @@ private:
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void check(Effort) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
+
   TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
   void presolve() override;
 
-  void addSharedTerm(TNode n) override;
   void computeCareGraph() override;
-
-  void propagate(Effort effort) override;
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 
@@ -217,19 +200,19 @@ private:
 
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
-  /** are we in conflict? */
-  bool inConflict() const { return d_conflict; }
 
  private:
   bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs(TNodeTrie* t1,
-                    TNodeTrie* t2,
+  void addCarePairs(const TNodeTrie* t1,
+                    const TNodeTrie* t2,
                     unsigned arity,
                     unsigned depth);
 
   TheoryUfRewriter d_rewriter;
   /** Proof rule checker */
   UfProofRuleChecker d_ufProofChecker;
+  /** A (default) theory state object */
+  TheoryState d_state;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

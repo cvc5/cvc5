@@ -81,6 +81,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
     // add checkers
     d_sProofChecker.registerTo(pc);
   }
+  // use the state object as the official theory state
+  d_theoryState = &d_state;
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -126,8 +128,6 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
-
-  d_state.finishInit(d_equalityEngine);
 }
 
 std::string TheoryStrings::identify() const
@@ -153,15 +153,16 @@ bool TheoryStrings::areCareDisequal( TNode x, TNode y ) {
   return false;
 }
 
-void TheoryStrings::addSharedTerm(TNode t) {
-  Debug("strings") << "TheoryStrings::addSharedTerm(): "
-                     << t << " " << t.getType().isBoolean() << endl;
+void TheoryStrings::notifySharedTerm(TNode t)
+{
+  Debug("strings") << "TheoryStrings::notifySharedTerm(): " << t << " "
+                   << t.getType().isBoolean() << endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_STRINGS);
   if (options::stringExp())
   {
     d_esolver.addSharedTerm(t);
   }
-  Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
+  Debug("strings") << "TheoryStrings::notifySharedTerm() finished" << std::endl;
 }
 
 EqualityStatus TheoryStrings::getEqualityStatus(TNode a, TNode b) {
@@ -181,22 +182,21 @@ EqualityStatus TheoryStrings::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 
-void TheoryStrings::propagate(Effort e) {
-  // direct propagation now
-}
-
-bool TheoryStrings::propagate(TNode literal) {
-  Debug("strings-propagate") << "TheoryStrings::propagate(" << literal  << ")" << std::endl;
+bool TheoryStrings::propagateLit(TNode literal)
+{
+  Debug("strings-propagate")
+      << "TheoryStrings::propagateLit(" << literal << ")" << std::endl;
   // If already in conflict, no more propagation
   if (d_state.isInConflict())
   {
-    Debug("strings-propagate") << "TheoryStrings::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("strings-propagate") << "TheoryStrings::propagateLit(" << literal
+                               << "): already in conflict" << std::endl;
     return false;
   }
   // Propagate out
   bool ok = d_out->propagate(literal);
   if (!ok) {
-    d_state.setConflict();
+    d_state.notifyInConflict();
   }
   return ok;
 }
@@ -312,7 +312,7 @@ bool TheoryStrings::collectModelInfoType(
   std::map< Node, Node > processed;
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
-  std::map<unsigned, Node> values_used;
+  std::map<std::size_t, Node> values_used;
   std::vector<Node> len_splits;
   for( unsigned i=0; i<col.size(); i++ ) {
     Trace("strings-model") << "Checking length for {";
@@ -339,15 +339,16 @@ bool TheoryStrings::collectModelInfoType(
     else
     {
       // must throw logic exception if we cannot construct the string
-      if (len_value.getConst<Rational>() > Rational(String::maxSize()))
+      if (len_value.getConst<Rational>() > String::maxSize())
       {
         std::stringstream ss;
-        ss << "Cannot generate model with string whose length exceeds UINT32_MAX";
+        ss << "The model was computed to have strings of length " << len_value
+           << ". We only allow strings up to length " << String::maxSize();
         throw LogicException(ss.str());
       }
-      unsigned lvalue =
+      std::size_t lvalue =
           len_value.getConst<Rational>().getNumerator().toUnsignedInt();
-      std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
+      auto itvu = values_used.find(lvalue);
       if (itvu == values_used.end())
       {
         values_used[lvalue] = lts[i];
@@ -417,7 +418,7 @@ bool TheoryStrings::collectModelInfoType(
     if( !pure_eq.empty() ){
       if( lts_values[i].isNull() ){
         // start with length two (other lengths have special precendence)
-        unsigned lvalue = 2;
+        std::size_t lvalue = 2;
         while( values_used.find( lvalue )!=values_used.end() ){
           lvalue++;
         }
@@ -761,7 +762,7 @@ void TheoryStrings::conflict(TNode a, TNode b){
   if (!d_state.isInConflict())
   {
     Debug("strings-conflict") << "Making conflict..." << std::endl;
-    d_state.setConflict();
+    d_state.notifyInConflict();
     TrustNode conflictNode = explain(a.eqNode(b));
     Trace("strings-conflict")
         << "CONFLICT: Eq engine conflict : " << conflictNode.getNode()

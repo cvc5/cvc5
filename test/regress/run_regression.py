@@ -327,10 +327,9 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
                 '# Skipped command line options ({}): unsat cores not supported without proof support'
                 .format(all_args))
             continue
-        if not proofs and ('--check-proofs' in all_args
-                           or '--dump-proofs' in all_args):
+        if not proofs and '--dump-proofs' in all_args:
             print(
-                '# Skipped command line options ({}): checking proofs not supported without LFSC support'
+                '# Skipped command line options ({}): proof production not supported without LFSC support'
                 .format(all_args))
             continue
 
@@ -347,24 +346,14 @@ def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
            '--no-check-models' not in all_args and \
            '--debug-check-models' not in all_args:
             extra_command_line_args = ['--debug-check-models']
-        if proofs and re.search(r'^(unsat|valid)$', expected_output):
-            if '--no-check-proofs' not in all_args and \
-               '--check-proofs' not in all_args and \
-               '--incremental' not in all_args and \
-               '--unconstrained-simp' not in all_args and \
-               logic_supported_with_proofs(logic) and \
-               not cvc4_binary.endswith('pcvc4'):
-                extra_command_line_args = ['--check-proofs']
         if unsat_cores and re.search(r'^(unsat|valid)$', expected_output):
             if '--no-check-unsat-cores' not in all_args and \
                '--check-unsat-cores' not in all_args and \
                '--incremental' not in all_args and \
-               '--unconstrained-simp' not in all_args and \
-               not cvc4_binary.endswith('pcvc4'):
+               '--unconstrained-simp' not in all_args:
                 extra_command_line_args += ['--check-unsat-cores']
         if '--no-check-abducts' not in all_args and \
-            '--check-abducts' not in all_args and \
-            not cvc4_binary.endswith('pcvc4'):
+            '--check-abducts' not in all_args:
             extra_command_line_args += ['--check-abducts']
         if extra_command_line_args:
             command_line_args_configs.append(all_args +
