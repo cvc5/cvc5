@@ -111,6 +111,17 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                   << " mkTrustedConflictEqConstantMerge";
 }
 
+LemmaStatus TheoryInferenceManager::lemma(TNode lem, LemmaProperty p)
+{
+  return d_out.lemma(lem, p);
+}
+
+LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
+                                                 LemmaProperty p)
+{
+  return d_out.trustedLemma(tlem, p);
+}
+
 void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
                                                 TNode fact)
