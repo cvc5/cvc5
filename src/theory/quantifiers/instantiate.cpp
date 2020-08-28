@@ -586,6 +586,10 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
       return false;
     }
   }
+  else
+  {
+    return false;
+  }
 
   Trace("inst-unsat-core") << "Get instantiations in unsat core..."
                            << std::endl;
