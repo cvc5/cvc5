@@ -37,7 +37,7 @@ class TheoryArith;
  * arithmetic theory.
  *
  * It adds some convenience methods to send ArithLemma and adds a mechanism for
- * waiting lemmas that can be flushed into the pending lemmas of the underlying
+ * waiting lemmas that can be flushed into the pending lemmas of the this
  * buffered inference manager.
  */
 class InferenceManager : public InferenceManagerBuffered
@@ -47,11 +47,11 @@ class InferenceManager : public InferenceManagerBuffered
  public:
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
 
-  /** Add a lemma (as pending lemma) to the underlying inference manager. */
+  /** Add a lemma (as pending lemma) to the this inference manager. */
   void addLemma(std::shared_ptr<ArithLemma> lemma);
-  /** Add a lemma (as pending lemma) to the underlying inference manager. */
+  /** Add a lemma (as pending lemma) to the this inference manager. */
   void addLemma(const ArithLemma& lemma);
-  /** Add a lemma (as pending lemma) to the underlying inference manager. */
+  /** Add a lemma (as pending lemma) to the this inference manager. */
   void addLemma(const Node& lemma, nl::Inference inftype);
 
   /** Add a lemma (as waiting lemma). */
@@ -61,14 +61,14 @@ class InferenceManager : public InferenceManagerBuffered
   /** Add a lemma (as waiting lemma). */
   void addWaitingLemma(const Node& lemma, nl::Inference inftype);
 
-  /** Flush all waiting lemmas to the underlying inference manager (as pending lemmas). */
+  /** Flush all waiting lemmas to the this inference manager (as pending lemmas). */
   void flushWaitingLemmas();
 
-  /** Add a conflict to the underlying inference manager. */
+  /** Add a conflict to the this inference manager. */
   void addConflict(const Node& conf, nl::Inference inftype);
 
   /** Returns the number of pending lemmas. */
-  std::size_t countWaitingLemmas() const;
+  std::size_t numWaitingLemmas() const;
  private:
   /** Checks whether the lemma is not yet in the cache. */
   bool isNewLemma(ArithLemma& lem);

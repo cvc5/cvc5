@@ -119,10 +119,10 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
 }
 
 
-  std::size_t InferenceManagerBuffered::countPendingLemmas() const {
+  std::size_t InferenceManagerBuffered::numPendingLemmas() const {
     return d_pendingLem.size();
   }
-  std::size_t InferenceManagerBuffered::countPendingFacts() const {
+  std::size_t InferenceManagerBuffered::numPendingFacts() const {
     return d_pendingFact.size();
   }
 

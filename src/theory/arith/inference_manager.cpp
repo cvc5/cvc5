@@ -90,7 +90,7 @@ void InferenceManager::addConflict(const Node& conf, nl::Inference inftype)
   conflict(Rewriter::rewrite(conf));
 }
 
-std::size_t InferenceManager::countWaitingLemmas() const
+std::size_t InferenceManager::numWaitingLemmas() const
 {
   return d_waitingLem.size();
 }
