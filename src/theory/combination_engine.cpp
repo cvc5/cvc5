@@ -26,12 +26,15 @@ namespace CVC4 {
 namespace theory {
 
 CombinationEngine::CombinationEngine(TheoryEngine& te,
-                                     const std::vector<Theory*>& paraTheories)
+                                     const std::vector<Theory*>& paraTheories,
+                                     ProofNodeManager* pnm)
     : d_te(te),
       d_logicInfo(te.getLogicInfo()),
       d_paraTheories(paraTheories),
       d_eemanager(nullptr),
-      d_mmanager(nullptr)
+      d_mmanager(nullptr),
+      d_cmbsPg(pnm ? new EagerProofGenerator(pnm, te.getUserContext())
+                   : nullptr)
 {
 }
 
@@ -100,15 +103,17 @@ theory::TheoryModel* CombinationEngine::getModel()
   return d_mmanager->getModel();
 }
 
+bool CombinationEngine::isProofEnabled() const { return d_cmbsPg != nullptr; }
+
 eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
 {
   // by default, no notifications from model's equality engine
   return nullptr;
 }
 
-void CombinationEngine::sendLemma(TNode node, TheoryId atomsTo)
+void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
 {
-  d_te.lemma(node, RULE_INVALID, false, LemmaProperty::NONE, atomsTo);
+  d_te.lemma(trn.getNode(), RULE_INVALID, false, LemmaProperty::NONE, atomsTo);
 }
 
 void CombinationEngine::resetRound()
