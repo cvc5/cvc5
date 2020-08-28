@@ -75,6 +75,8 @@ enum MergeReasonType
   MERGED_THROUGH_CONSTANTS,
   /** Terms were merged due to transitivity */
   MERGED_THROUGH_TRANS,
+  // TEMPORARY RULES WHILE WE DON'T MIGRATE TO PROOF_NEW
+
   /** Terms were merged due to arrays read-over-write */
   MERGED_THROUGH_ROW,
   /** Terms were merged due to arrays read-over-write (1) */
