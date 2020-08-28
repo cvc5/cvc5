@@ -27,7 +27,7 @@ class TCtxStack;
 /**
  * A (term-context) sensitive term. This is a wrapper around a Node that
  * additionally has a term context identifier, see getTermContext(). It depends
- * on a pointer to a TermContext callback class from above.
+ * on a pointer to a TermContext callback class (see term_context.h).
  */
 class TCtxNode
 {
