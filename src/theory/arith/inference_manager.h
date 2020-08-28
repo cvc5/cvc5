@@ -42,6 +42,8 @@ class TheoryArith;
  */
 class InferenceManager : public InferenceManagerBuffered
 {
+  using NodeSet = context::CDHashSet<Node, NodeHashFunction>;
+
  public:
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
 
@@ -66,8 +68,21 @@ class InferenceManager : public InferenceManagerBuffered
   void addConflict(const Node& conf, nl::Inference inftype);
 
  private:
+  /** Checks whether the lemma is not yet in the cache. */
+  bool isNewLemma(ArithLemma& lem);
+  /**
+   * Checks whether the lemma is entailed to be false. In this case, it is a
+   * conflict.
+   */
+  bool isEntailedFalse(const ArithLemma& lem);
+
   /** The waiting lemmas. */
   std::vector<std::shared_ptr<ArithLemma>> d_waitingLem;
+
+  /** cache of all lemmas sent on the output channel (user-context-dependent) */
+  NodeSet d_lemmas;
+  /** Same as above, for preprocessed lemmas */
+  NodeSet d_lemmasPp;
 };
 
 }  // namespace arith
