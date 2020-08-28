@@ -37,7 +37,8 @@ void InferenceManager::addLemma(std::shared_ptr<ArithLemma> lemma)
   {
     return;
   }
-  if (isEntailedFalse(*lemma)) {
+  if (isEntailedFalse(*lemma))
+  {
       addConflict(lemma->d_node, lemma->d_inference);
       return;
   }
@@ -59,7 +60,8 @@ void InferenceManager::addWaitingLemma(std::shared_ptr<ArithLemma> lemma)
   {
     return;
   }
-  if (isEntailedFalse(*lemma)) {
+  if (isEntailedFalse(*lemma))
+  {
       d_waitingLem.clear();
   }
   d_waitingLem.emplace_back(std::move(lemma));
