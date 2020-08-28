@@ -871,9 +871,7 @@ class Constraint {
     return getConstraintRule().d_antecedentEnd;
   }
 
-  inline RationalVectorCP getFarkasCoefficients() const {
-    return nullptr;
-  }
+  inline RationalVectorCP getFarkasCoefficients() const { return nullptr; }
 
   void debugPrint() const;
 
