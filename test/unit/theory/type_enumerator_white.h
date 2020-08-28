@@ -20,6 +20,7 @@
 #include <unordered_set>
 
 #include "expr/array_store_all.h"
+#include "expr/dtype.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
 #include "expr/node_manager.h"
@@ -145,51 +146,66 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
   }
 
-  void testDatatypesFinite() {
-    Datatype dt(d_em, "Colors");
-    dt.addConstructor(DatatypeConstructor("red"));
-    dt.addConstructor(DatatypeConstructor("orange"));
-    dt.addConstructor(DatatypeConstructor("yellow"));
-    dt.addConstructor(DatatypeConstructor("green"));
-    dt.addConstructor(DatatypeConstructor("blue"));
-    dt.addConstructor(DatatypeConstructor("violet"));
-    TypeNode datatype = TypeNode::fromType(d_em->mkDatatypeType(dt));
+  void testDTypesFinite()
+  {
+    DType dt("Colors");
+    dt.addConstructor(std::make_shared<DTypeConstructor>("red"));
+    dt.addConstructor(std::make_shared<DTypeConstructor>("orange"));
+    dt.addConstructor(std::make_shared<DTypeConstructor>("yellow"));
+    dt.addConstructor(std::make_shared<DTypeConstructor>("green"));
+    dt.addConstructor(std::make_shared<DTypeConstructor>("blue"));
+    dt.addConstructor(std::make_shared<DTypeConstructor>("violet"));
+    TypeNode datatype = d_nm->mkDatatypeType(dt);
+    const std::vector<std::shared_ptr<DTypeConstructor> >& dtcons =
+        datatype.getDType().getConstructors();
     TypeEnumerator te(datatype);
-    TS_ASSERT_EQUALS(*te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("red")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("orange")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("yellow")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("green")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("blue")));
-    TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("violet")));
+    TS_ASSERT_EQUALS(
+        *te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[0]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[1]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[2]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[3]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[4]->getConstructor()));
+    TS_ASSERT_EQUALS(
+        *++te, d_nm->mkNode(APPLY_CONSTRUCTOR, dtcons[5]->getConstructor()));
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
-  void testDatatypesInfinite1() {
-    Datatype colors(d_em, "Colors");
-    colors.addConstructor(DatatypeConstructor("red"));
-    colors.addConstructor(DatatypeConstructor("orange"));
-    colors.addConstructor(DatatypeConstructor("yellow"));
-    colors.addConstructor(DatatypeConstructor("green"));
-    colors.addConstructor(DatatypeConstructor("blue"));
-    colors.addConstructor(DatatypeConstructor("violet"));
-    TypeNode colorsType = TypeNode::fromType(d_em->mkDatatypeType(colors));
-    Datatype listColors(d_em, "ListColors");
-    DatatypeConstructor consC("cons");
-    consC.addArg("car", colorsType.toType());
-    consC.addArg("cdr", DatatypeSelfType());
+  void testDTypesInfinite1()
+  {
+    DType colors("Colors");
+    colors.addConstructor(std::make_shared<DTypeConstructor>("red"));
+    colors.addConstructor(std::make_shared<DTypeConstructor>("orange"));
+    colors.addConstructor(std::make_shared<DTypeConstructor>("yellow"));
+    colors.addConstructor(std::make_shared<DTypeConstructor>("green"));
+    colors.addConstructor(std::make_shared<DTypeConstructor>("blue"));
+    colors.addConstructor(std::make_shared<DTypeConstructor>("violet"));
+    TypeNode colorsType = d_nm->mkDatatypeType(colors);
+    const std::vector<std::shared_ptr<DTypeConstructor> >& ctCons =
+        colorsType.getDType().getConstructors();
+    DType listColors("ListColors");
+    std::shared_ptr<DTypeConstructor> consC =
+        std::make_shared<DTypeConstructor>("cons");
+    consC->addArg("car", colorsType);
+    consC->addArgSelf("cdr");
     listColors.addConstructor(consC);
-    listColors.addConstructor(DatatypeConstructor("nil"));
-    TypeNode listColorsType = TypeNode::fromType(d_em->mkDatatypeType(listColors));
+    listColors.addConstructor(std::make_shared<DTypeConstructor>("nil"));
+    TypeNode listColorsType = d_nm->mkDatatypeType(listColors);
+    const std::vector<std::shared_ptr<DTypeConstructor> >& lctCons =
+        listColorsType.getDType().getConstructors();
 
     TypeEnumerator te(listColorsType);
     TS_ASSERT( ! te.isFinished() );
-    Node cons = Node::fromExpr(DatatypeType(listColorsType.toType()).getDatatype().getConstructor("cons"));
-    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(listColorsType.toType()).getDatatype().getConstructor("nil"));
-    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("red"));
-    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("orange"));
-    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(colorsType.toType()).getDatatype().getConstructor("yellow"));
+    Node cons = lctCons[0]->getConstructor();
+    Node nil = d_nm->mkNode(APPLY_CONSTRUCTOR, lctCons[1]->getConstructor());
+    Node red = d_nm->mkNode(APPLY_CONSTRUCTOR, ctCons[0]->getConstructor());
+    Node orange = d_nm->mkNode(APPLY_CONSTRUCTOR, ctCons[1]->getConstructor());
+    Node yellow = d_nm->mkNode(APPLY_CONSTRUCTOR, ctCons[2]->getConstructor());
     TS_ASSERT_EQUALS(*te, nil);
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, cons, red, nil));
     TS_ASSERT( ! te.isFinished() );
@@ -212,7 +228,8 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
   }
 
-  void NOTYETtestDatatypesInfinite2() {
+  void NOTYETtestDTypesInfinite2()
+  {
     //TypeNode datatype;
     //TypeEnumerator te(datatype);
     //TS_ASSERT( ! te.isFinished() );

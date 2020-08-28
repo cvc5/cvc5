@@ -35,11 +35,9 @@
 #include "prop/prop_engine.h"
 #include "smt/command.h"
 #include "theory/atom_requests.h"
-#include "theory/decision_manager.h"
 #include "theory/engine_output_channel.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
-#include "theory/shared_terms_database.h"
 #include "theory/sort_inference.h"
 #include "theory/substitutions.h"
 #include "theory/term_registration_visitor.h"
@@ -88,20 +86,21 @@ struct NodeTheoryPairHashFunction {
 
 /* Forward declarations */
 namespace theory {
-  class TheoryModel;
-  class TheoryEngineModelBuilder;
-  class EqEngineManagerDistributed;
+class TheoryModel;
+class CombinationEngine;
+class DecisionManager;
+class RelevanceManager;
 
-  namespace eq {
-    class EqualityEngine;
-  }/* CVC4::theory::eq namespace */
+namespace eq {
+class EqualityEngine;
+}  // namespace eq
 
-  namespace quantifiers {
-    class TermDb;
-  }
+namespace quantifiers {
+class TermDb;
+}
 
-  class EntailmentCheckParameters;
-  class EntailmentCheckSideEffects;
+class EntailmentCheckParameters;
+class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
 
 class RemoveTermFormulas;
@@ -116,8 +115,10 @@ class TheoryEngine {
 
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
+  friend class theory::CombinationEngine;
   friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
+  friend class theory::CombinationEngine;
 
   /** Associated PropEngine engine */
   prop::PropEngine* d_propEngine;
@@ -148,15 +149,8 @@ class TheoryEngine {
    */
   SharedTermsDatabase d_sharedTerms;
 
-  /**
-   * The distributed equality manager. This class is responsible for
-   * configuring the theories of this class for handling equalties
-   * in a "distributed" fashion, i.e. each theory maintains a unique
-   * instance of an equality engine. These equality engines are memory
-   * managed by this class.
-   */
-  std::unique_ptr<theory::EqEngineManagerDistributed> d_eeDistributed;
-
+  /** The combination manager we are using */
+  std::unique_ptr<theory::CombinationEngine> d_tc;
   /**
    * The quantifiers engine
    */
@@ -165,17 +159,15 @@ class TheoryEngine {
    * The decision manager
    */
   std::unique_ptr<theory::DecisionManager> d_decManager;
+  /** The relevance manager */
+  std::unique_ptr<theory::RelevanceManager> d_relManager;
 
-  /**
-   * Default model object
-   */
-  theory::TheoryModel* d_curr_model;
-  bool d_aloc_curr_model;
-  /**
-   * Model builder object
-   */
-  theory::TheoryEngineModelBuilder* d_curr_model_builder;
-  bool d_aloc_curr_model_builder;
+  /** Default visitor for pre-registration */
+  PreRegisterVisitor d_preRegistrationVisitor;
+
+  /** Visitor for collecting shared terms */
+  SharedTermsVisitor d_sharedTermsVisitor;
+
   /** are we in eager model building mode? (see setEagerModelBuilding). */
   bool d_eager_model_building;
 
@@ -235,7 +227,6 @@ class TheoryEngine {
   void setIncomplete(theory::TheoryId theory) {
     d_incomplete = true;
   }
-
 
   /**
    * Mapping of propagations from recievers to senders.
@@ -422,11 +413,6 @@ class TheoryEngine {
   context::CDO<bool> d_factsAsserted;
 
   /**
-   * Map from equality atoms to theories that would like to be notified about them.
-   */
-
-
-  /**
    * Assert the formula to the given theory.
    * @param assertion the assertion to send (not necesserily normalized)
    * @param original the assertion as it was sent in from the propagating theory
@@ -460,8 +446,7 @@ class TheoryEngine {
    */
   void getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
 
-public:
-
+ public:
   /**
    * Signal the start of a new round of assertion preprocessing
    */
@@ -498,7 +483,12 @@ public:
   inline bool needCheck() const {
     return d_outputChannelUsed || d_lemmasAdded;
   }
-
+  /**
+   * Is the literal lit (possibly) critical for satisfying the input formula in
+   * the current context? This call is applicable only during collectModelInfo
+   * or during LAST_CALL effort.
+   */
+  bool isRelevant(Node lit) const;
   /**
    * This is called at shutdown time by the SmtEngine, just before
    * destruction.  It is important because there are destruction
@@ -529,11 +519,6 @@ public:
    * @param effort the effort level to use
    */
   void check(theory::Theory::Effort effort);
-
-  /**
-   * Run the combination framework.
-   */
-  void combineTheories();
 
   /**
    * Calls ppStaticLearn() on all theories, accumulating their
@@ -573,8 +558,6 @@ public:
   Node getNextDecisionRequest();
 
   bool properConflict(TNode conflict) const;
-  bool properPropagation(TNode lit) const;
-  bool properExplanation(TNode node, TNode expl) const;
 
   /**
    * Returns an explanation of the node propagated to the SAT solver.
@@ -586,13 +569,6 @@ public:
    * that propagated it.
    */
   Node getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
-
-  /**
-   * collect model info
-   */
-  bool collectModelInfo(theory::TheoryModel* m);
-  /** post process model */
-  void postProcessModel( theory::TheoryModel* m );
 
   /**
    * Get the pointer to the model object used by this theory engine.
@@ -610,6 +586,15 @@ public:
    * was interrupted), then this returns the null pointer.
    */
   theory::TheoryModel* getBuiltModel();
+  /**
+   * This forces the model maintained by the combination engine to be built
+   * if it has not been done so already. This should be called only during a
+   * last call effort check after theory combination is run.
+   *
+   * @return true if the model was successfully built (possibly prior to this
+   * call).
+   */
+  bool buildModel();
   /** set eager model building
    *
    * If this method is called, then this TheoryEngine will henceforth build
@@ -636,11 +621,6 @@ public:
    * SynthConjecture::getSynthSolutions.
    */
   bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
-
-  /**
-   * Get the model builder
-   */
-  theory::TheoryEngineModelBuilder* getModelBuilder() { return d_curr_model_builder; }
 
   /**
    * Get the theory associated to a given Node.
@@ -723,20 +703,12 @@ public:
   std::pair<bool, Node> entailmentCheck(options::TheoryOfMode mode, TNode lit);
 
  private:
-  /** Default visitor for pre-registration */
-  PreRegisterVisitor d_preRegistrationVisitor;
-
-  /** Visitor for collecting shared terms */
-  SharedTermsVisitor d_sharedTermsVisitor;
 
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
-  void staticInitializeBVOptions(const std::vector<Node>& assertions);
-
-  SharedTermsDatabase* getSharedTermsDatabase();
 
   SortInference* getSortInference() { return &d_sortInfer; }
 

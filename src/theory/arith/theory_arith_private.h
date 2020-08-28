@@ -324,15 +324,18 @@ public:
   /** This is a conflict that is magically known to hold. */
   void raiseBlackBoxConflict(Node bb);
 
-private:
-
-  inline bool conflictQueueEmpty() const {
-    return d_conflicts.empty();
+  /**
+   * Returns true iff a conflict has been raised. This method is public since
+   * it is needed by the ArithState class to know whether we are in conflict.
+   */
+  bool anyConflict() const
+  {
+    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
   }
 
-  /** Returns true iff a conflict has been raised. */
-  inline bool anyConflict() const {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
+ private:
+  inline bool conflictQueueEmpty() const {
+    return d_conflicts.empty();
   }
 
   /**

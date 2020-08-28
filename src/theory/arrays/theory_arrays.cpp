@@ -82,7 +82,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
           name + "theory::arrays::number of setModelVal conflicts", 0),
       d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
-      //      d_ppCache(u),
+      d_state(c, u, valuation),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
@@ -132,6 +132,9 @@ TheoryArrays::TheoryArrays(context::Context* c,
   // The preprocessing congruence kinds
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -411,14 +414,17 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheoryArrays::propagate(TNode literal)
+bool TheoryArrays::propagateLit(TNode literal)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal  << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::propagateLit(" << literal << ")"
+                  << std::endl;
 
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("arrays") << spaces(getSatContext()->getLevel())
+                    << "TheoryArrays::propagateLit(" << literal
+                    << "): already in conflict" << std::endl;
     return false;
   }
 
@@ -697,7 +703,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
   case kind::EQUAL:
     // Add the trigger for equality
     // NOTE: note that if the equality is true or false already, it might not be added
-    d_equalityEngine->addTriggerEquality(node);
+    d_equalityEngine->addTriggerPredicate(node);
     break;
   case kind::SELECT: {
     // Invariant: array terms should be preregistered before being added to the equality engine
@@ -715,7 +721,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray())
     {
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+      d_equalityEngine->addTerm(node);
     }
     else
     {
@@ -759,7 +765,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     {
       break;
     }
-    d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+    d_equalityEngine->addTerm(node);
 
     TNode a = d_equalityEngine->getRepresentative(node[0]);
 
@@ -822,7 +828,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     d_infoMap.setConstArr(node, node);
     d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+    d_equalityEngine->addTerm(node);
     d_defValues[node] = defaultValue;
     break;
   }
@@ -831,7 +837,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray()) {
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+      d_equalityEngine->addTerm(node);
       Assert(d_equalityEngine->getSize(node) == 1);
     }
     else {
@@ -858,12 +864,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
   }
 }
 
-
-void TheoryArrays::propagate(Effort e)
-{
-  // direct propagation now
-}
-
 TrustNode TheoryArrays::explain(TNode literal)
 {
   Node explanation = explain(literal, NULL);
@@ -883,9 +883,11 @@ Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
 // SHARING
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheoryArrays::addSharedTerm(TNode t) {
-  Debug("arrays::sharing") << spaces(getSatContext()->getLevel()) << "TheoryArrays::addSharedTerm(" << t << ")" << std::endl;
+void TheoryArrays::notifySharedTerm(TNode t)
+{
+  Debug("arrays::sharing") << spaces(getSatContext()->getLevel())
+                           << "TheoryArrays::notifySharedTerm(" << t << ")"
+                           << std::endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_ARRAYS);
   if (t.getType().isArray()) {
     d_sharedArrays.insert(t);

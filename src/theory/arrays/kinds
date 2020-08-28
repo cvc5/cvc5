@@ -8,7 +8,7 @@ theory THEORY_ARRAYS ::CVC4::theory::arrays::TheoryArrays "theory/arrays/theory_
 typechecker "theory/arrays/theory_arrays_type_rules.h"
 
 properties polite stable-infinite parametric
-properties check propagate presolve
+properties check presolve
 
 rewriter ::CVC4::theory::arrays::TheoryArraysRewriter "theory/arrays/theory_arrays_rewriter.h"
 

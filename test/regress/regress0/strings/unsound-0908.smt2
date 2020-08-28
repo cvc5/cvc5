@@ -1,3 +1,5 @@
+; COMMAND-LINE: --strings-exp
+; EXPECT: sat
 (set-logic QF_SLIA)
 (set-info :status sat)
 (declare-const x String)

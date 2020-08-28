@@ -38,6 +38,7 @@
 
 #include "base/check.h"
 #include "base/configuration.h"
+#include "expr/dtype.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/expr_manager_scope.h"
@@ -927,7 +928,7 @@ bool Sort::isDatatype() const { return d_type->isDatatype(); }
 bool Sort::isParametricDatatype() const
 {
   if (!d_type->isDatatype()) return false;
-  return DatatypeType(*d_type).isParametric();
+  return TypeNode::fromType(*d_type).isParametricDatatype();
 }
 
 bool Sort::isConstructor() const { return d_type->isConstructor(); }
@@ -965,25 +966,33 @@ bool Sort::isComparableTo(Sort s) const
 
 Datatype Sort::getDatatype() const
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
-  return Datatype(d_solver, DatatypeType(*d_type).getDatatype());
+  return Datatype(d_solver, TypeNode::fromType(*d_type).getDType());
 }
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
       << "Expected parametric datatype or sort constructor sort.";
-  std::vector<Type> tparams;
+  std::vector<TypeNode> tparams;
   for (const Sort& s : params)
   {
-    tparams.push_back(*s.d_type.get());
+    tparams.push_back(TypeNode::fromType(*s.d_type.get()));
   }
   if (d_type->isDatatype())
   {
-    return Sort(d_solver, DatatypeType(*d_type).instantiate(tparams));
+    return Sort(d_solver,
+                TypeNode::fromType(*d_type)
+                    .instantiateParametricDatatype(tparams)
+                    .toType());
   }
   Assert(d_type->isSortConstructor());
-  return Sort(d_solver, SortConstructorType(*d_type).instantiate(tparams));
+  return Sort(d_solver,
+              d_solver->getNodeManager()
+                  ->mkSort(TypeNode::fromType(*d_type), tparams)
+                  .toType());
 }
 
 std::string Sort::toString() const { return d_type->toString(); }
@@ -996,20 +1005,20 @@ CVC4::Type Sort::getType(void) const { return *d_type; }
 
 size_t Sort::getConstructorArity() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
+  CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   return ConstructorType(*d_type).getArity();
 }
 
 std::vector<Sort> Sort::getConstructorDomainSorts() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
+  CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   std::vector<CVC4::Type> types = ConstructorType(*d_type).getArgTypes();
   return typeVectorToSorts(d_solver, types);
 }
 
 Sort Sort::getConstructorCodomainSort() const
 {
-  CVC4_API_CHECK(isConstructor()) << "Not a function sort: " << (*this);
+  CVC4_API_CHECK(isConstructor()) << "Not a constructor sort: " << (*this);
   return Sort(d_solver, ConstructorType(*d_type).getRangeType());
 }
 
@@ -1126,14 +1135,20 @@ uint32_t Sort::getFPSignificandSize() const
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
   CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
-  std::vector<CVC4::Type> types = DatatypeType(*d_type).getParamTypes();
-  return typeVectorToSorts(d_solver, types);
+  std::vector<CVC4::TypeNode> typeNodes =
+      TypeNode::fromType(*d_type).getParamTypes();
+  std::vector<Sort> sorts;
+  for (size_t i = 0, tsize = typeNodes.size(); i < tsize; i++)
+  {
+    sorts.push_back(Sort(d_solver, typeNodes[i].toType()));
+  }
+  return sorts;
 }
 
 size_t Sort::getDatatypeArity() const
 {
   CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
-  return DatatypeType(*d_type).getArity();
+  return TypeNode::fromType(*d_type).getNumChildren() - 1;
 }
 
 /* Tuple sort ---------------------------------------------------------- */
@@ -1141,14 +1156,20 @@ size_t Sort::getDatatypeArity() const
 size_t Sort::getTupleLength() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  return DatatypeType(*d_type).getTupleLength();
+  return TypeNode::fromType(*d_type).getTupleLength();
 }
 
 std::vector<Sort> Sort::getTupleSorts() const
 {
   CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
-  std::vector<CVC4::Type> types = DatatypeType(*d_type).getTupleTypes();
-  return typeVectorToSorts(d_solver, types);
+  std::vector<CVC4::TypeNode> typeNodes =
+      TypeNode::fromType(*d_type).getTupleTypes();
+  std::vector<Sort> sorts;
+  for (size_t i = 0, tsize = typeNodes.size(); i < tsize; i++)
+  {
+    sorts.push_back(Sort(d_solver, typeNodes[i].toType()));
+  }
+  return sorts;
 }
 
 /* --------------------------------------------------------------------- */
@@ -1472,7 +1493,8 @@ Kind Term::getKindHelper() const
         break;
     }
   }
-
+  // Notice that kinds like APPLY_TYPE_ASCRIPTION will be converted to
+  // INTERNAL_KIND.
   return intToExtKind(d_node->getKind());
 }
 
@@ -1604,7 +1626,7 @@ Op Term::getOp() const
     return Op(d_solver, intToExtKind(d_node->getKind()), op);
   }
   // Notice this is the only case where getKindHelper is used, since the
-  // cases above do have special cases for intToExtKind.
+  // cases above do not have special cases for intToExtKind.
   return Op(d_solver, getKindHelper());
 }
 
@@ -1938,20 +1960,31 @@ DatatypeConstructorDecl::DatatypeConstructorDecl()
 
 DatatypeConstructorDecl::DatatypeConstructorDecl(const Solver* slv,
                                                  const std::string& name)
-    : d_solver(slv), d_ctor(new CVC4::DatatypeConstructor(name))
+    : d_solver(slv), d_ctor(new CVC4::DTypeConstructor(name))
 {
+}
+DatatypeConstructorDecl::~DatatypeConstructorDecl()
+{
+  if (d_ctor != nullptr)
+  {
+    // ensure proper node manager is in scope
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_ctor.reset();
+  }
 }
 
 void DatatypeConstructorDecl::addSelector(const std::string& name, Sort sort)
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort)
       << "non-null range sort for selector";
-  d_ctor->addArg(name, *sort.d_type);
+  d_ctor->addArg(name, TypeNode::fromType(*sort.d_type));
 }
 
 void DatatypeConstructorDecl::addSelectorSelf(const std::string& name)
 {
-  d_ctor->addArg(name, DatatypeSelfType());
+  NodeManagerScope scope(d_solver->getNodeManager());
+  d_ctor->addArgSelf(name);
 }
 
 std::string DatatypeConstructorDecl::toString() const
@@ -1963,8 +1996,8 @@ std::string DatatypeConstructorDecl::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::DatatypeConstructor&
-DatatypeConstructorDecl::getDatatypeConstructor(void) const
+const CVC4::DTypeConstructor& DatatypeConstructorDecl::getDatatypeConstructor(
+    void) const
 {
   return *d_ctor;
 }
@@ -1990,8 +2023,7 @@ DatatypeDecl::DatatypeDecl() : d_solver(nullptr), d_dtype(nullptr) {}
 DatatypeDecl::DatatypeDecl(const Solver* slv,
                            const std::string& name,
                            bool isCoDatatype)
-    : d_solver(slv),
-      d_dtype(new CVC4::Datatype(slv->getExprManager(), name, isCoDatatype))
+    : d_solver(slv), d_dtype(new CVC4::DType(name, isCoDatatype))
 {
 }
 
@@ -2000,10 +2032,10 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            Sort param,
                            bool isCoDatatype)
     : d_solver(slv),
-      d_dtype(new CVC4::Datatype(slv->getExprManager(),
-                                 name,
-                                 std::vector<Type>{*param.d_type},
-                                 isCoDatatype))
+      d_dtype(new CVC4::DType(
+          name,
+          std::vector<TypeNode>{TypeNode::fromType(*param.d_type)},
+          isCoDatatype))
 {
 }
 
@@ -2013,23 +2045,32 @@ DatatypeDecl::DatatypeDecl(const Solver* slv,
                            bool isCoDatatype)
     : d_solver(slv)
 {
-  std::vector<Type> tparams;
+  std::vector<TypeNode> tparams;
   for (const Sort& p : params)
   {
-    tparams.push_back(*p.d_type);
+    tparams.push_back(TypeNode::fromType(*p.d_type));
   }
-  d_dtype = std::shared_ptr<CVC4::Datatype>(
-      new CVC4::Datatype(slv->getExprManager(), name, tparams, isCoDatatype));
+  d_dtype = std::shared_ptr<CVC4::DType>(
+      new CVC4::DType(name, tparams, isCoDatatype));
 }
 
 bool DatatypeDecl::isNullHelper() const { return !d_dtype; }
 
-DatatypeDecl::~DatatypeDecl() {}
+DatatypeDecl::~DatatypeDecl()
+{
+  if (d_dtype != nullptr)
+  {
+    // ensure proper node manager is in scope
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_dtype.reset();
+  }
+}
 
 void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
   CVC4_API_CHECK_NOT_NULL;
-  d_dtype->addConstructor(*ctor.d_ctor);
+  d_dtype->addConstructor(ctor.d_ctor);
 }
 
 size_t DatatypeDecl::getNumConstructors() const
@@ -2062,7 +2103,7 @@ bool DatatypeDecl::isNull() const { return isNullHelper(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::Datatype& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
+CVC4::DType& DatatypeDecl::getDatatype(void) const { return *d_dtype; }
 
 std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 {
@@ -2075,13 +2116,21 @@ std::ostream& operator<<(std::ostream& out, const DatatypeDecl& dtdecl)
 DatatypeSelector::DatatypeSelector() : d_solver(nullptr), d_stor(nullptr) {}
 
 DatatypeSelector::DatatypeSelector(const Solver* slv,
-                                   const CVC4::DatatypeConstructorArg& stor)
-    : d_solver(slv), d_stor(new CVC4::DatatypeConstructorArg(stor))
+                                   const CVC4::DTypeSelector& stor)
+    : d_solver(slv), d_stor(new CVC4::DTypeSelector(stor))
 {
   CVC4_API_CHECK(d_stor->isResolved()) << "Expected resolved datatype selector";
 }
 
-DatatypeSelector::~DatatypeSelector() {}
+DatatypeSelector::~DatatypeSelector()
+{
+  if (d_stor != nullptr)
+  {
+    // ensure proper node manager is in scope
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_stor.reset();
+  }
+}
 
 std::string DatatypeSelector::getName() const { return d_stor->getName(); }
 
@@ -2093,7 +2142,7 @@ Term DatatypeSelector::getSelectorTerm() const
 
 Sort DatatypeSelector::getRangeSort() const
 {
-  return Sort(d_solver, d_stor->getRangeType());
+  return Sort(d_solver, d_stor->getRangeType().toType());
 }
 
 std::string DatatypeSelector::toString() const
@@ -2105,8 +2154,7 @@ std::string DatatypeSelector::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-CVC4::DatatypeConstructorArg DatatypeSelector::getDatatypeConstructorArg(
-    void) const
+CVC4::DTypeSelector DatatypeSelector::getDatatypeConstructorArg(void) const
 {
   return *d_stor;
 }
@@ -2124,14 +2172,22 @@ DatatypeConstructor::DatatypeConstructor() : d_solver(nullptr), d_ctor(nullptr)
 }
 
 DatatypeConstructor::DatatypeConstructor(const Solver* slv,
-                                         const CVC4::DatatypeConstructor& ctor)
-    : d_solver(slv), d_ctor(new CVC4::DatatypeConstructor(ctor))
+                                         const CVC4::DTypeConstructor& ctor)
+    : d_solver(slv), d_ctor(new CVC4::DTypeConstructor(ctor))
 {
   CVC4_API_CHECK(d_ctor->isResolved())
       << "Expected resolved datatype constructor";
 }
 
-DatatypeConstructor::~DatatypeConstructor() {}
+DatatypeConstructor::~DatatypeConstructor()
+{
+  if (d_ctor != nullptr)
+  {
+    // ensure proper node manager is in scope
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_ctor.reset();
+  }
+}
 
 std::string DatatypeConstructor::getName() const { return d_ctor->getName(); }
 
@@ -2143,15 +2199,22 @@ Term DatatypeConstructor::getConstructorTerm() const
 
 Term DatatypeConstructor::getSpecializedConstructorTerm(Sort retSort) const
 {
+  NodeManagerScope scope(d_solver->getNodeManager());
+  CVC4_API_CHECK(d_ctor->isResolved())
+      << "Expected resolved datatype constructor";
+  CVC4_API_CHECK(retSort.isDatatype())
+      << "Cannot get specialized constructor type for non-datatype type "
+      << retSort;
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   
   NodeManager* nm = d_solver->getNodeManager();
-  Node ret = nm->mkNode(kind::APPLY_TYPE_ASCRIPTION,
-                           nm->mkConst(AscriptionType(
-                               d_ctor
-                                   ->getSpecializedConstructorType(
-                                       retSort.getType()))),
-                           d_ctor->getConstructor());
+  Node ret = nm->mkNode(
+      kind::APPLY_TYPE_ASCRIPTION,
+      nm->mkConst(AscriptionType(d_ctor
+                                     ->getSpecializedConstructorType(
+                                         TypeNode::fromType(retSort.getType()))
+                                     .toType())),
+      d_ctor->getConstructor());
   (void)ret.getType(true); /* kick off type checking */
   // apply type ascription to the operator
   Term sctor =
@@ -2205,20 +2268,19 @@ DatatypeConstructor::const_iterator DatatypeConstructor::end() const
 }
 
 DatatypeConstructor::const_iterator::const_iterator(
-    const Solver* slv, const CVC4::DatatypeConstructor& ctor, bool begin)
+    const Solver* slv, const CVC4::DTypeConstructor& ctor, bool begin)
 {
   d_solver = slv;
-  d_int_stors = ctor.getArgs();
+  d_int_stors = &ctor.getArgs();
 
-  const std::vector<CVC4::DatatypeConstructorArg>* sels =
-      static_cast<const std::vector<CVC4::DatatypeConstructorArg>*>(
-          d_int_stors);
-  for (const auto& s : *sels)
+  const std::vector<std::shared_ptr<CVC4::DTypeSelector>>& sels =
+      ctor.getArgs();
+  for (const std::shared_ptr<CVC4::DTypeSelector>& s : sels)
   {
     /* Can not use emplace_back here since constructor is private. */
-    d_stors.push_back(DatatypeSelector(d_solver, s));
+    d_stors.push_back(DatatypeSelector(d_solver, *s.get()));
   }
-  d_idx = begin ? 0 : sels->size();
+  d_idx = begin ? 0 : sels.size();
 }
 
 DatatypeConstructor::const_iterator::const_iterator()
@@ -2283,7 +2345,7 @@ std::string DatatypeConstructor::toString() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::DatatypeConstructor& DatatypeConstructor::getDatatypeConstructor(
+const CVC4::DTypeConstructor& DatatypeConstructor::getDatatypeConstructor(
     void) const
 {
   return *d_ctor;
@@ -2303,8 +2365,18 @@ DatatypeSelector DatatypeConstructor::getSelectorForName(
       break;
     }
   }
-  CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
-                           << getName() << " exists";
+  if (!foundSel)
+  {
+    std::stringstream snames;
+    snames << "{ ";
+    for (size_t i = 0, ncons = getNumSelectors(); i < ncons; i++)
+    {
+      snames << (*d_ctor)[i].getName() << " ";
+    }
+    snames << "} ";
+    CVC4_API_CHECK(foundSel) << "No selector " << name << " for constructor "
+                             << getName() << " exists among " << snames.str();
+  }
   return DatatypeSelector(d_solver, (*d_ctor)[index]);
 }
 
@@ -2316,15 +2388,23 @@ std::ostream& operator<<(std::ostream& out, const DatatypeConstructor& ctor)
 
 /* Datatype ----------------------------------------------------------------- */
 
-Datatype::Datatype(const Solver* slv, const CVC4::Datatype& dtype)
-    : d_solver(slv), d_dtype(new CVC4::Datatype(dtype))
+Datatype::Datatype(const Solver* slv, const CVC4::DType& dtype)
+    : d_solver(slv), d_dtype(new CVC4::DType(dtype))
 {
   CVC4_API_CHECK(d_dtype->isResolved()) << "Expected resolved datatype";
 }
 
 Datatype::Datatype() : d_solver(nullptr), d_dtype(nullptr) {}
 
-Datatype::~Datatype() {}
+Datatype::~Datatype()
+{
+  if (d_dtype != nullptr)
+  {
+    // ensure proper node manager is in scope
+    NodeManagerScope scope(d_solver->getNodeManager());
+    d_dtype.reset();
+  }
+}
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
 {
@@ -2383,7 +2463,7 @@ Datatype::const_iterator Datatype::end() const
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
-const CVC4::Datatype& Datatype::getDatatype(void) const { return *d_dtype; }
+const CVC4::DType& Datatype::getDatatype(void) const { return *d_dtype; }
 
 DatatypeConstructor Datatype::getConstructorForName(
     const std::string& name) const
@@ -2399,24 +2479,34 @@ DatatypeConstructor Datatype::getConstructorForName(
       break;
     }
   }
-  CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
-                            << getName() << " exists";
+  if (!foundCons)
+  {
+    std::stringstream snames;
+    snames << "{ ";
+    for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+    {
+      snames << (*d_dtype)[i].getName() << " ";
+    }
+    snames << "}";
+    CVC4_API_CHECK(foundCons) << "No constructor " << name << " for datatype "
+                              << getName() << " exists, among " << snames.str();
+  }
   return DatatypeConstructor(d_solver, (*d_dtype)[index]);
 }
 
 Datatype::const_iterator::const_iterator(const Solver* slv,
-                                         const CVC4::Datatype& dtype,
+                                         const CVC4::DType& dtype,
                                          bool begin)
-    : d_solver(slv), d_int_ctors(dtype.getConstructors())
+    : d_solver(slv), d_int_ctors(&dtype.getConstructors())
 {
-  const std::vector<CVC4::DatatypeConstructor>* cons =
-      static_cast<const std::vector<CVC4::DatatypeConstructor>*>(d_int_ctors);
-  for (const auto& c : *cons)
+  const std::vector<std::shared_ptr<DTypeConstructor>>& cons =
+      dtype.getConstructors();
+  for (const std::shared_ptr<DTypeConstructor>& c : cons)
   {
     /* Can not use emplace_back here since constructor is private. */
-    d_ctors.push_back(DatatypeConstructor(d_solver, c));
+    d_ctors.push_back(DatatypeConstructor(d_solver, *c.get()));
   }
-  d_idx = begin ? 0 : cons->size();
+  d_idx = begin ? 0 : cons.size();
 }
 
 Datatype::const_iterator::const_iterator()
@@ -2662,8 +2752,8 @@ Sort Grammar::resolve()
         Sort(d_solver, d_solver->getExprManager()->mkSort(ntsymbol.toString()));
   }
 
-  std::vector<CVC4::Datatype> datatypes;
-  std::set<Type> unresTypes;
+  std::vector<CVC4::DType> datatypes;
+  std::set<TypeNode> unresTypes;
 
   datatypes.reserve(d_ntSyms.size());
 
@@ -2684,8 +2774,8 @@ Sort Grammar::resolve()
     }
 
     bool aci = d_allowConst.find(ntSym) != d_allowConst.end();
-    Type btt = ntSym.d_node->getType().toType();
-    dtDecl.d_dtype->setSygus(btt, bvl.d_node->toExpr(), aci, false);
+    TypeNode btt = ntSym.d_node->getType();
+    dtDecl.d_dtype->setSygus(btt, *bvl.d_node, aci, false);
 
     // We can be in a case where the only rule specified was (Variable T)
     // and there are no variables of type T, in which case this is a bogus
@@ -2695,15 +2785,15 @@ Sort Grammar::resolve()
         << " produced an empty rule list";
 
     datatypes.push_back(*dtDecl.d_dtype);
-    unresTypes.insert(*ntsToUnres[ntSym].d_type);
+    unresTypes.insert(TypeNode::fromType(*ntsToUnres[ntSym].d_type));
   }
 
-  std::vector<DatatypeType> datatypeTypes =
-      d_solver->getExprManager()->mkMutualDatatypeTypes(
-          datatypes, unresTypes, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> datatypeTypes =
+      d_solver->getNodeManager()->mkMutualDatatypeTypes(
+          datatypes, unresTypes, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
 
   // return is the first datatype
-  return Sort(d_solver, datatypeTypes[0]);
+  return Sort(d_solver, datatypeTypes[0].toType());
 }
 
 void Grammar::addSygusConstructorTerm(
@@ -2735,8 +2825,12 @@ void Grammar::addSygusConstructorTerm(
         d_solver->getExprManager()->mkExpr(
             CVC4::kind::LAMBDA, {lbvl.d_node->toExpr(), op.d_node->toExpr()}));
   }
-  dt.d_dtype->addSygusConstructor(
-      op.d_node->toExpr(), ssCName.str(), sortVectorToTypes(cargs));
+  std::vector<TypeNode> cargst;
+  for (const Sort& s : cargs)
+  {
+    cargst.push_back(TypeNode::fromType(s.getType()));
+  }
+  dt.d_dtype->addSygusConstructor(*op.d_node, ssCName.str(), cargst);
 }
 
 Term Grammar::purifySygusGTerm(
@@ -2801,9 +2895,8 @@ void Grammar::addSygusConstructorVariables(DatatypeDecl& dt, Sort sort) const
     {
       std::stringstream ss;
       ss << v;
-      std::vector<Sort> cargs;
-      dt.d_dtype->addSygusConstructor(
-          v.d_node->toExpr(), ss.str(), sortVectorToTypes(cargs));
+      std::vector<TypeNode> cargs;
+      dt.d_dtype->addSygusConstructor(*v.d_node, ss.str(), cargs);
     }
   }
 }
@@ -3048,9 +3141,10 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
     std::vector<DatatypeDecl>& dtypedecls,
     std::set<Sort>& unresolvedSorts) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
 
-  std::vector<CVC4::Datatype> datatypes;
+  std::vector<CVC4::DType> datatypes;
   for (size_t i = 0, ndts = dtypedecls.size(); i < ndts; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(this == dtypedecls[i].d_solver,
@@ -3069,13 +3163,18 @@ std::vector<Sort> Solver::mkDatatypeSortsInternal(
   {
     CVC4_API_SOLVER_CHECK_SORT(sort);
   }
-  std::set<Type> utypes = sortSetToTypes(unresolvedSorts);
-  std::vector<CVC4::DatatypeType> dtypes =
-      d_exprMgr->mkMutualDatatypeTypes(datatypes, utypes);
-  std::vector<Sort> retTypes;
-  for (CVC4::DatatypeType t : dtypes)
+  
+  std::set<TypeNode> utypes;
+  for (const Sort& s : unresolvedSorts)
   {
-    retTypes.push_back(Sort(this, t));
+    utypes.insert(TypeNode::fromType(s.getType()));
+  }
+  std::vector<CVC4::TypeNode> dtypes =
+      getNodeManager()->mkMutualDatatypeTypes(datatypes, utypes);
+  std::vector<Sort> retTypes;
+  for (CVC4::TypeNode t : dtypes)
+  {
+    retTypes.push_back(Sort(this, t.toType()));
   }
   return retTypes;
 
@@ -3224,13 +3323,15 @@ Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 
 Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(this == dtypedecl.d_solver)
       << "Given datatype declaration is not associated with this solver";
   CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
       << "a datatype declaration with at least one constructor";
 
-  return Sort(this, d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype));
+  return Sort(this,
+              getNodeManager()->mkDatatypeType(*dtypedecl.d_dtype).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3238,14 +3339,18 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 std::vector<Sort> Solver::mkDatatypeSorts(
     std::vector<DatatypeDecl>& dtypedecls) const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   std::set<Sort> unresolvedSorts;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
                                           std::set<Sort>& unresolvedSorts) const
 {
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
@@ -3332,6 +3437,7 @@ Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 Sort Solver::mkRecordSort(
     const std::vector<std::pair<std::string, Sort>>& fields) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   std::vector<std::pair<std::string, Type>> f;
   size_t i = 0;
@@ -3347,7 +3453,7 @@ Sort Solver::mkRecordSort(
     f.emplace_back(p.first, *p.second.d_type);
   }
 
-  return Sort(this, d_exprMgr->mkRecordType(Record(f)));
+  return Sort(this, getNodeManager()->mkRecordType(Record(f)).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3409,9 +3515,12 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
         !sorts[i].isFunctionLike(), "parameter sort", sorts[i], i)
         << "non-function-like sort as parameter sort for tuple sort";
   }
-  std::vector<Type> types = sortVectorToTypes(sorts);
-
-  return Sort(this, d_exprMgr->mkTupleType(types));
+  std::vector<TypeNode> typeNodes;
+  for (const Sort& s : sorts)
+  {
+    typeNodes.push_back(TypeNode::fromType(*s.d_type));
+  }
+  return Sort(this, getNodeManager()->mkTupleType(typeNodes).toType());
 
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3789,6 +3898,7 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
 DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
     const std::string& name)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeConstructorDecl(this, name);
 }
 
@@ -3797,6 +3907,7 @@ DatatypeConstructorDecl Solver::mkDatatypeConstructorDecl(
 
 DatatypeDecl Solver::mkDatatypeDecl(const std::string& name, bool isCoDatatype)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeDecl(this, name, isCoDatatype);
 }
 
@@ -3804,6 +3915,7 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     Sort param,
                                     bool isCoDatatype)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeDecl(this, name, param, isCoDatatype);
 }
 
@@ -3811,6 +3923,7 @@ DatatypeDecl Solver::mkDatatypeDecl(const std::string& name,
                                     const std::vector<Sort>& params,
                                     bool isCoDatatype)
 {
+  NodeManagerScope scope(getNodeManager());
   return DatatypeDecl(this, name, params, isCoDatatype);
 }
 
@@ -4018,6 +4131,7 @@ Term Solver::mkTerm(Op op, const std::vector<Term>& children) const
 Term Solver::mkTuple(const std::vector<Sort>& sorts,
                      const std::vector<Term>& terms) const
 {
+  NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   CVC4_API_CHECK(sorts.size() == terms.size())
       << "Expected the same number of sorts and elements";
@@ -4395,7 +4509,7 @@ Sort Solver::declareDatatype(
         << "datatype constructor declaration associated to this solver object";
     dtdecl.addConstructor(ctors[i]);
   }
-  return Sort(this, d_exprMgr->mkDatatypeType(*dtdecl.d_dtype));
+  return Sort(this, getNodeManager()->mkDatatypeType(*dtdecl.d_dtype).toType());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 

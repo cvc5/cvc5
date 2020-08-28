@@ -80,17 +80,26 @@ class EqualityEngine : public context::ContextNotifyObj {
    */
   EqualityEngine* d_masterEqualityEngine;
 
-public:
-
+ public:
   /**
    * Initialize the equality engine, given the notification class.
+   *
+   * @param constantTriggers Whether we treat constants as trigger terms
+   * @param anyTermTriggers Whether we use any terms as triggers
    */
-  EqualityEngine(EqualityEngineNotify& notify, context::Context* context, std::string name, bool constantsAreTriggers);
+  EqualityEngine(EqualityEngineNotify& notify,
+                 context::Context* context,
+                 std::string name,
+                 bool constantTriggers,
+                 bool anyTermTriggers = true);
 
   /**
    * Initialize the equality engine with no notification class.
    */
-  EqualityEngine(context::Context* context, std::string name, bool constantsAreTriggers);
+  EqualityEngine(context::Context* context,
+                 std::string name,
+                 bool constantsAreTriggers,
+                 bool anyTermTriggers = true);
 
   /**
    * Just a destructor.
@@ -98,13 +107,14 @@ public:
   virtual ~EqualityEngine();
 
   /**
-   * Set the master equality engine for this one. Master engine will get copies of all
-   * the terms and equalities from this engine.
+   * Set the master equality engine for this one. Master engine will get copies
+   * of all the terms and equalities from this engine.
    */
   void setMasterEqualityEngine(EqualityEngine* master);
 
   /** Statistics about the equality engine instance */
-  struct Statistics {
+  struct Statistics
+  {
     /** Total number of merges */
     IntStat d_mergesCount;
     /** Number of terms managed by the system */
@@ -506,6 +516,11 @@ private:
 
   /** Are the constants triggers */
   bool d_constantsAreTriggers;
+  /**
+   * Are any terms triggers? If this is false, then all trigger terms are
+   * ignored (e.g. this means that addTriggerTerm is equivalent to addTerm).
+   */
+  bool d_anyTermsAreTriggers;
 
   /** The information about trigger terms is stored in this easily maintained memory. */
   char* d_triggerDatabase;
@@ -658,9 +673,15 @@ private:
 
   /** The internal addTerm */
   void addTermInternal(TNode t, bool isOperator = false);
+  /**
+   * Adds a notify trigger for equality. When equality becomes true
+   * eqNotifyTriggerPredicate will be called with value = true, and when
+   * equality becomes false eqNotifyTriggerPredicate will be called with value =
+   * false.
+   */
+  void addTriggerEquality(TNode equality);
 
-public:
-
+ public:
   /**
    * Adds a term to the term database.
    */
@@ -761,6 +782,22 @@ public:
   void explainPredicate(TNode p, bool polarity, std::vector<TNode>& assertions,
                         EqProof* eqp = nullptr) const;
 
+  //--------------------------- standard safe explanation methods
+  /**
+   * Explain literal, add its explanation to assumptions. This method does not
+   * add duplicates to assumptions. It requires that the literal
+   * holds in this class. If lit is a disequality, it
+   * moreover ensures this class is ready to explain it via areDisequal with
+   * ensureProof = true.
+   */
+  void explainLit(TNode lit, std::vector<TNode>& assumptions);
+  /**
+   * Explain literal, return the conjunction. This method relies on the above
+   * method.
+   */
+  Node mkExplainLit(TNode lit);
+  //--------------------------- end standard safe explanation methods
+
   /**
    * Add term to the set of trigger terms with a corresponding tag. The notify class will get
    * notified when two trigger terms with the same tag become equal or dis-equal. The notification
@@ -787,16 +824,13 @@ public:
   TNode getTriggerTermRepresentative(TNode t, TheoryId theoryTag) const;
 
   /**
-   * Adds a notify trigger for equality. When equality becomes true eqNotifyTriggerEquality
-   * will be called with value = true, and when equality becomes false eqNotifyTriggerEquality
-   * will be called with value = false.
-   */
-  void addTriggerEquality(TNode equality);
-
-  /**
-   * Adds a notify trigger for the predicate p. When the predicate becomes true
-   * eqNotifyTriggerPredicate will be called with value = true, and when equality becomes false
+   * Adds a notify trigger for the predicate p, where notice that p can be
+   * an equality. When the predicate becomes true, eqNotifyTriggerPredicate will
+   * be called with value = true, and when predicate becomes false
    * eqNotifyTriggerPredicate will be called with value = false.
+   *
+   * Notice that if p is an equality, then we use a separate method for
+   * determining when to call eqNotifyTriggerPredicate.
    */
   void addTriggerPredicate(TNode predicate);
 
