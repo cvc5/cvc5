@@ -28,11 +28,12 @@ namespace CVC4 {
  */
 typedef unsigned ClauseId;
 
+/** Reserved clauseId values used in the resolution proof. The represent,
+ * respectively, the empty clause, that adding the clause to the SAT solver was
+ * a no-op, and that an error occurred when trying to add. */
 const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
-const ClauseId ClauseIdInput(-4);
-const ClauseId ClauseIdLemma(-5);
 
 }/* CVC4 namespace */
 
