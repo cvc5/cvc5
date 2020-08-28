@@ -105,6 +105,11 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
+  /** Send lemma lem with property p on the output channel. */
+  LemmaStatus lemma(TNode lem, LemmaProperty p = LemmaProperty::NONE);
+  /** Send (trusted) lemma lem with property p on the output channel. */
+  LemmaStatus trustedLemma(const TrustNode& tlem,
+                           LemmaProperty p = LemmaProperty::NONE);
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
    * facts into the equality engine of the theory. In particular, this method

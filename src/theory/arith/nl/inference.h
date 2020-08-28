@@ -67,6 +67,11 @@ enum class Inference : uint32_t
   T_TANGENT,
   // secant refinement, the dual of the above inference
   T_SECANT,
+  //-------------------- iand solver
+  // initial refinements (IAndSolver::checkInitialRefine)
+  IAND_INIT_REFINE,
+  // value refinements (IAndSolver::checkFullRefine)
+  IAND_VALUE_REFINE,
   //-------------------- cad solver
   // conflict / infeasible subset obtained from cad
   CAD_CONFLICT,
