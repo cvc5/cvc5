@@ -43,6 +43,7 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_rewriter.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
@@ -256,6 +257,12 @@ class Theory {
    * Notice the theory is responsible for memory management of this class.
    */
   TheoryState* d_theoryState;
+  /**
+   * The theory inference manager. This is a wrapper around the equality
+   * engine and the output channel. It ensures that the output channel and
+   * the equality engine are used properly.
+   */
+  TheoryInferenceManager* d_inferManager;
   /**
    * Whether proofs are enabled
    *
@@ -644,18 +651,22 @@ class Theory {
    * @param polarity Its polarity
    * @param fact The original literal that was asserted
    * @param isPrereg Whether the assertion is preregistered
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
    * @return true if the theory completely processed this fact, i.e. it does
    * not need to assert the fact to its equality engine.
    */
-  virtual bool preNotifyFact(TNode atom, bool pol, TNode fact, bool isPrereg);
+  virtual bool preNotifyFact(
+      TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
   /**
    * Notify fact, called immediately after the fact was pushed into the
    * equality engine.
    *
    * @param atom The atom
    * @param polarity Its polarity
-   * @param fact The original literal that was asserted
-   * @param isInternal Whether the origin of the fact was internal
+   * @param fact The original literal that was asserted.
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
    */
   virtual void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal);
   //--------------------------------- end check
@@ -690,7 +701,8 @@ class Theory {
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
    */
-  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   //--------------------------------- end collect model info
