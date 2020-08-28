@@ -363,8 +363,8 @@ bool Theory::collectModelInfo(TheoryModel* m)
   // and passed as an argument to collectModelInfo.
   std::set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
+  TheoryModel * tm = d_valuation.getModel();
+  Assert (tm!=nullptr);
   const std::set<Kind>& irrKinds = tm->getIrrelevantKinds();
   computeRelevantTermsInternal(termSet, irrKinds, true);
   // Compute additional relevant terms (theory-specific)
@@ -382,7 +382,7 @@ bool Theory::collectModelInfo(TheoryModel* m)
 }
 
 void Theory::collectTerms(TNode n,
-                          set<Kind>& irrKinds,
+                          const std::set<Kind>& irrKinds,
                           set<Node>& termSet) const
 {
   if (termSet.find(n) != termSet.end()) {
@@ -404,7 +404,7 @@ void Theory::collectTerms(TNode n,
 }
 
 void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
-                                          std::set<Kind>& irrKinds,
+                                          const std::set<Kind>& irrKinds,
                                           bool includeShared) const
 {
   // Collect all terms appearing in assertions

@@ -197,13 +197,13 @@ class Theory {
    * shared terms are not influenced by irrKinds.
    */
   void computeRelevantTermsInternal(std::set<Node>& termSet,
-                                    std::set<Kind>& irrKinds,
+                                    const std::set<Kind>& irrKinds,
                                     bool includeShared = true) const;
   /**
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
+                    const std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
   //---------------------------------- end private collect model info
 
