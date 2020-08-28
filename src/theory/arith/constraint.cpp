@@ -701,9 +701,8 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-  if (Configuration::isProofBuild())
-  {
-    return cr.d_farkasCoefficients == RationalVectorCPSentinel;
+#if IS_PROOFS_BUILD
+  return cr.d_farkasCoefficients == RationalVectorCPSentinel;
 #if 0
     if (cr.d_farkasCoefficients == RationalVectorCPSentinel)
     {
@@ -848,7 +847,7 @@ bool Constraint::wellFormedFarkasProof() const {
     return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
            && rhs.sgn() < 0;
 #endif
-  }
+#endif /* IS_PROOFS_BUILD */
   return true;
 }
 
