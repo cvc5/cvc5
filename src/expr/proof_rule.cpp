@@ -27,13 +27,15 @@ const char* toString(PfRule id)
     case PfRule::SCOPE: return "SCOPE";
     case PfRule::SUBS: return "SUBS";
     case PfRule::REWRITE: return "REWRITE";
+    case PfRule::EVALUATE: return "EVALUATE";
     case PfRule::MACRO_SR_EQ_INTRO: return "MACRO_SR_EQ_INTRO";
     case PfRule::MACRO_SR_PRED_INTRO: return "MACRO_SR_PRED_INTRO";
     case PfRule::MACRO_SR_PRED_ELIM: return "MACRO_SR_PRED_ELIM";
     case PfRule::MACRO_SR_PRED_TRANSFORM: return "MACRO_SR_PRED_TRANSFORM";
-    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::REMOVE_TERM_FORMULA_AXIOM: return "REMOVE_TERM_FORMULA_AXIOM";
     //================================================= Trusted rules
+    case PfRule::THEORY_LEMMA: return "THEORY_LEMMA";
+    case PfRule::THEORY_REWRITE: return "THEORY_REWRITE";
     case PfRule::PREPROCESS: return "PREPROCESS";
     case PfRule::PREPROCESS_LEMMA: return "PREPROCESS_LEMMA";
     case PfRule::THEORY_PREPROCESS: return "THEORY_PREPROCESS";
