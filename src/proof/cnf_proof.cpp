@@ -58,26 +58,6 @@ void CnfProof::registerConvertedClause(ClauseId clause)
   setClauseAssertion(clause, current_assertion);
 }
 
-void CnfProof::registerTrueUnitClause(ClauseId clauseId)
-{
-  Node trueNode = NodeManager::currentNM()->mkConst<bool>(true);
-  pushCurrentAssertion(trueNode);
-  registerConvertedClause(clauseId);
-  popCurrentAssertion();
-  d_cnfStream->ensureLiteral(trueNode);
-  d_trueUnitClause = clauseId;
-}
-
-void CnfProof::registerFalseUnitClause(ClauseId clauseId)
-{
-  Node falseNode = NodeManager::currentNM()->mkConst<bool>(false).notNode();
-  pushCurrentAssertion(falseNode);
-  registerConvertedClause(clauseId);
-  popCurrentAssertion();
-  d_cnfStream->ensureLiteral(falseNode);
-  d_falseUnitClause = clauseId;
-}
-
 void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
   Debug("proof:cnf") << "CnfProof::setClauseAssertion "
                      << clause << " assertion " << expr << std::endl;
@@ -96,15 +76,6 @@ void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
   }
 
   d_clauseToAssertion.insert(clause, expr);
-}
-
-void CnfProof::setCnfDependence(Node from, Node to) {
-  Debug("proof:cnf") << "CnfProof::setCnfDependence "
-                     << "from " << from  << std::endl
-                     << "     to " << to << std::endl;
-
-  Assert(from != to);
-  d_cnfDeps.insert(std::make_pair(from, to));
 }
 
 void CnfProof::pushCurrentAssertion(Node assertion, bool isInput)
@@ -140,24 +111,6 @@ Node CnfProof::getCurrentAssertion() {
 bool CnfProof::getCurrentAssertionKind()
 {
   return d_currentAssertionStack.back().second;
-}
-
-Node CnfProof::getAtom(prop::SatVariable var) {
-  prop::SatLiteral lit (var);
-  Node node = d_cnfStream->getNode(lit);
-  return node;
-}
-
-prop::SatLiteral CnfProof::getLiteral(TNode atom) {
-  return d_cnfStream->getLiteral(atom);
-}
-
-bool CnfProof::hasLiteral(TNode atom) {
-  return d_cnfStream->hasLiteral(atom);
-}
-
-void CnfProof::ensureLiteral(TNode atom, bool noPreregistration) {
-  d_cnfStream->ensureLiteral(atom, noPreregistration);
 }
 
 } /* CVC4 namespace */

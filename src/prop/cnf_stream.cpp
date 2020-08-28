@@ -544,10 +544,6 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      if (d_cnfProof)
-      {
-        d_cnfProof->setCnfDependence(*conjunct, node);
-      }
       convertAndAssert(*conjunct, false);
     }
   } else {
@@ -581,10 +577,6 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      if (d_cnfProof)
-      {
-        d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate());
-      }
       convertAndAssert(*conjunct, true);
     }
   }
@@ -661,11 +653,6 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
     clause[1] = q;
     assertClause(node, clause);
   } else {// Construct the
-    if (d_cnfProof)
-    {
-      d_cnfProof->setCnfDependence(node[0], node.negate());
-      d_cnfProof->setCnfDependence(node[1].negate(), node.negate());
-    }
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], false);
     convertAndAssert(node[1], true);

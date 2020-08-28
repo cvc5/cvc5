@@ -209,14 +209,15 @@ void SimpSolver::removeClause(CRef cr)
   const Clause& clause = ca[cr];
 
   if (use_simplification)
+  {
     for (int i = 0; i < clause.size(); i++)
     {
       n_occ[toInt(clause[i])]--;
       updateElimHeap(var(clause[i]));
       occurs.smudge(var(clause[i]));
     }
-
-    Solver::removeClause(cr);
+  }
+  Solver::removeClause(cr);
 }
 
 

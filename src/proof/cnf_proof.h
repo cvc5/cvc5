@@ -75,37 +75,12 @@ public:
            const std::string& name);
   ~CnfProof();
 
-  Node getAtom(prop::SatVariable var);
-  prop::SatLiteral getLiteral(TNode node);
-  bool hasLiteral(TNode node);
-  void ensureLiteral(TNode node, bool noPreregistration = false);
-
-  void collectAtoms(const prop::SatClause* clause,
-                    std::set<Node>& atoms);
-  void collectAtomsForClauses(const IdToSatClause& clauses,
-                              std::set<Node>& atoms);
-  void collectAssertionsForClauses(const IdToSatClause& clauses,
-                                   NodeSet& assertions);
-
   /** Methods for logging what the CnfStream does **/
   // map the clause back to the current assertion where it came from
   void registerConvertedClause(ClauseId clause);
 
-  // The CNF proof has a special relationship to true and false.
-  // In particular, it need to know the identity of clauses defining
-  // canonical true and false literals in the underlying SAT solver.
-  void registerTrueUnitClause(ClauseId clauseId);
-  void registerFalseUnitClause(ClauseId clauseId);
-  inline ClauseId getTrueUnitClause() { return d_trueUnitClause; };
-  inline ClauseId getFalseUnitClause() { return d_falseUnitClause; };
-
-  /** Clause is one of the clauses defining the node expression*/
-  void setClauseDefinition(ClauseId clause, Node node);
-
   /** Clause is one of the clauses defining top-level assertion node*/
   void setClauseAssertion(ClauseId clause, Node node);
-
-  void setCnfDependence(Node from, Node to);
 
   /** Current assertion being converted and whether it is an input (rather than
    * a lemma) */
@@ -120,7 +95,6 @@ public:
   bool isAssertionStackEmpty() const { return d_currentAssertionStack.empty(); }
 
   // accessors for the leaf assertions that are being converted to CNF
-  bool isAssertion(Node node);
   Node getAssertionForClause(ClauseId clause);
 };/* class CnfProof */
 

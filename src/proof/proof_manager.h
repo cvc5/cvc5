@@ -58,7 +58,6 @@ namespace prop {
 
 typedef std::unordered_map<ClauseId, prop::SatClause*> IdToSatClause;
 typedef context::CDHashSet<Expr, ExprHashFunction> CDExprSet;
-typedef std::unordered_map<Node, std::vector<Node>, NodeHashFunction> NodeToNodes;
 typedef context::CDHashMap<Node, std::vector<Node>, NodeHashFunction> CDNodeToNodes;
 typedef std::unordered_set<ClauseId> IdHashSet;
 
