@@ -609,10 +609,13 @@ void ProofPostprocessFinalCallback::initializeUpdate()
 bool ProofPostprocessFinalCallback::shouldUpdate(ProofNode* pn)
 {
   PfRule r = pn->getRule();
-  if (r == PfRule::THEORY_REWRITE)
+  if (Trace.isOn("final-pf-hole"))
   {
-    Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult()
-                           << std::endl;
+    if (r == PfRule::THEORY_REWRITE)
+    {
+      Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult()
+                            << std::endl;
+    }
   }
   // if not doing eager pedantic checking, fail if below threshold
   if (!options::proofNewPedanticEager())
