@@ -26,7 +26,6 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/theory.h"
 #include "theory/theory_engine.h"
-#include "util/proof.h"
 #include "util/resource_manager.h"
 
 using namespace CVC4;
@@ -48,7 +47,7 @@ class TestOutputChannel : public OutputChannel {
   ~TestOutputChannel() override {}
 
   void safePoint(ResourceManager::Resource r) override {}
-  void conflict(TNode n, std::unique_ptr<Proof> pf) override
+  void conflict(TNode n) override
   {
     push(CONFLICT, n);
   }
@@ -59,7 +58,6 @@ class TestOutputChannel : public OutputChannel {
   }
 
   LemmaStatus lemma(TNode n,
-                    ProofRule rule,
                     LemmaProperty p = LemmaProperty::NONE) override
   {
     push(LEMMA, n);
@@ -298,7 +296,7 @@ class TheoryBlack : public CxxTest::TestSuite {
 
   void testOutputChannel() {
     Node n = atom0.orNode(atom1);
-    d_outputChannel.lemma(n, RULE_INVALID);
+    d_outputChannel.lemma(n);
     d_outputChannel.split(atom0);
     Node s = atom0.orNode(atom0.notNode());
     TS_ASSERT_EQUALS(d_outputChannel.d_callHistory.size(), 2u);
