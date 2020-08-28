@@ -431,10 +431,9 @@ void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
   }
 }
 
-void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
+void Theory::computeRelevantTerms(std::set<Node>& termSet)
 {
-  std::set<Kind> irrKinds;
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+  // by default, there are no additional relevant terms
 }
 
 bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
