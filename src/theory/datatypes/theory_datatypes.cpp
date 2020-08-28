@@ -2046,8 +2046,18 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
+void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet,
+                                           bool includeShared)
 {
+  // Compute terms appearing in assertions and shared terms
+  std::set<Kind> irrKinds;
+  // testers are not relevant for model construction
+  irrKinds.insert(APPLY_TESTER);
+  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+
+  Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
+                  << std::endl;
+
   //also include non-singleton equivalence classes  TODO : revisit this
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
   while( !eqcs_i.isFinished() ){
@@ -2085,6 +2095,8 @@ void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
     }
     ++eqcs_i;
   }
+  Trace("dt-cmi") << "After adding non-singletons, has " << termSet.size()
+                  << " relevant terms..." << std::endl;
 }
 
 std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit)

@@ -330,7 +330,8 @@ private:
    * Compute relevant terms. In addition to all terms in assertions and shared
    * terms, this includes datatypes in non-singleton equivalence classes.
    */
-  void computeRelevantTerms(std::set<Node>& termSet) override;
+  void computeRelevantTerms(std::set<Node>& termSet,
+                            bool includeShared = true) override;
 
   /** sygus symmetry breaking utility */
   std::unique_ptr<SygusExtension> d_sygusExtension;
