@@ -137,8 +137,7 @@ Node BVToInt::makeBinary(Node n)
       {
         // current has children, but we do not binarize it
         NodeBuilder<> builder(k);
-        if (current.getKind() == kind::BITVECTOR_EXTRACT
-            || current.getKind() == kind::APPLY_UF)
+        if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           builder << current.getOperator();
         }
@@ -186,6 +185,7 @@ Node BVToInt::eliminationPass(Node n)
         (d_rebuildCache.find(current) != d_rebuildCache.end());
     if (!inEliminationCache)
     {
+      // current is not the elimination of any previously-visited node
       // current hasn't been eliminated yet.
       // eliminate operators from it
       Node currentEliminated =
@@ -235,8 +235,7 @@ Node BVToInt::eliminationPass(Node n)
           // The main operator is replaced, and the children
           // are replaced with their eliminated counterparts.
           NodeBuilder<> builder(current.getKind());
-          if (current.getKind() == kind::BITVECTOR_EXTRACT
-              || current.getKind() == kind::APPLY_UF)
+          if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
           {
             builder << current.getOperator();
           }
@@ -270,6 +269,7 @@ Node BVToInt::bvToInt(Node n)
   vector<Node> toVisit;
   toVisit.push_back(n);
   uint64_t granularity = options::BVAndIntegerGranularity();
+  Assert(0 <= granularity && granularity <= 8);
 
   while (!toVisit.empty())
   {
