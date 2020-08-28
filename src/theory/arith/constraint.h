@@ -309,10 +309,9 @@ struct ConstraintRule {
     , d_proofType(NoAP)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-    if (Configuration::isProofBuild())
-    {
+#if IS_PROOFS_BUILD
       d_farkasCoefficients = RationalVectorCPSentinel;
-    }
+#endif /* IS_PROOFS_BUILD */
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt)
@@ -320,21 +319,18 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(AntecedentIdSentinel)
   {
-    if (Configuration::isProofBuild())
-    {
+#if IS_PROOFS_BUILD
       d_farkasCoefficients = RationalVectorCPSentinel;
-    }
+#endif /* IS_PROOFS_BUILD */
   }
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd)
     : d_constraint(con)
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-    if (Configuration::isProofBuild())
-
-    {
+#if IS_PROOFS_BUILD
       d_farkasCoefficients = RationalVectorCPSentinel;
-    }
+#endif /* IS_PROOFS_BUILD */
   }
 
   ConstraintRule(ConstraintP con, ArithProofType pt, AntecedentId antecedentEnd, RationalVectorCP coeffs)
@@ -343,10 +339,9 @@ struct ConstraintRule {
     , d_antecedentEnd(antecedentEnd)
   {
     Assert(coeffs == RationalVectorCPSentinel);
-    if (Configuration::isProofBuild())
-    {
+#if IS_PROOFS_BUILD
       d_farkasCoefficients = coeffs;
-    }
+#endif /* IS_PROOFS_BUILD */
   }
 
   void print(std::ostream& out) const;
