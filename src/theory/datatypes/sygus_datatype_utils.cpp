@@ -648,7 +648,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
 
   // must convert all constructors to version with variables in "vars"
   std::vector<SygusDatatype> sdts;
-  std::set<Type> unres;
+  std::set<TypeNode> unres;
 
   Trace("dtsygus-gen-debug") << "Process sygus type:" << std::endl;
   Trace("dtsygus-gen-debug") << sdtd.getName() << std::endl;
@@ -662,7 +662,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   ssutn0 << sdtd.getName() << "_s";
   TypeNode abdTNew =
       nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert(abdTNew.toType());
+  unres.insert(abdTNew);
   dtProcessed[sdt] = abdTNew;
 
   // We must convert all symbols in the sygus datatype type sdt to
@@ -706,7 +706,7 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
                 nm->mkSort(ssutn.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
             Trace("dtsygus-gen-debug") << "    ...unresolved type " << argtNew
                                        << " for " << argt << std::endl;
-            unres.insert(argtNew.toType());
+            unres.insert(argtNew);
             dtProcessed[argt] = argtNew;
             dtNextToProcess.push_back(argt);
           }
@@ -736,22 +736,21 @@ TypeNode substituteAndGeneralizeSygusType(TypeNode sdt,
   Trace("dtsygus-gen-debug")
       << "Make " << sdts.size() << " datatype types..." << std::endl;
   // extract the datatypes
-  std::vector<Datatype> datatypes;
+  std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
   // make the datatype types
-  std::vector<DatatypeType> datatypeTypes =
-      nm->toExprManager()->mkMutualDatatypeTypes(
-          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  TypeNode sdtS = TypeNode::fromType(datatypeTypes[0]);
+  std::vector<TypeNode> datatypeTypes = nm->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+  TypeNode sdtS = datatypeTypes[0];
   if (Trace.isOn("dtsygus-gen-debug"))
   {
     Trace("dtsygus-gen-debug") << "Made datatype types:" << std::endl;
     for (unsigned j = 0, ndts = datatypeTypes.size(); j < ndts; j++)
     {
-      const DType& dtj = TypeNode::fromType(datatypeTypes[j]).getDType();
+      const DType& dtj = datatypeTypes[j].getDType();
       Trace("dtsygus-gen-debug") << "#" << j << ": " << dtj << std::endl;
       for (unsigned k = 0, ncons = dtj.getNumConstructors(); k < ncons; k++)
       {

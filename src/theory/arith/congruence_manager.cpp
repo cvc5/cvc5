@@ -42,15 +42,28 @@ ArithCongruenceManager::ArithCongruenceManager(
       d_constraintDatabase(cd),
       d_setupLiteral(setup),
       d_avariables(avars),
-      d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
+      d_ee(nullptr)
 {
-  d_ee.addFunctionKind(kind::NONLINEAR_MULT);
-  d_ee.addFunctionKind(kind::EXPONENTIAL);
-  d_ee.addFunctionKind(kind::SINE);
-  d_ee.addFunctionKind(kind::IAND);
 }
 
 ArithCongruenceManager::~ArithCongruenceManager() {}
+
+bool ArithCongruenceManager::needsEqualityEngine(EeSetupInfo& esi)
+{
+  esi.d_notify = &d_notify;
+  esi.d_name = "theory::arith::ArithCongruenceManager";
+  return true;
+}
+
+void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
+{
+  Assert(ee != nullptr);
+  d_ee = ee;
+  d_ee->addFunctionKind(kind::NONLINEAR_MULT);
+  d_ee->addFunctionKind(kind::EXPONENTIAL);
+  d_ee->addFunctionKind(kind::SINE);
+  d_ee->addFunctionKind(kind::IAND);
+}
 
 ArithCongruenceManager::Statistics::Statistics():
   d_watchedVariables("theory::arith::congruence::watchedVariables", 0),
@@ -84,16 +97,17 @@ ArithCongruenceManager::ArithCongruenceNotify::ArithCongruenceNotify(ArithCongru
   : d_acm(acm)
 {}
 
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerEquality(TNode equality, bool value) {
-  Debug("arith::congruences") << "ArithCongruenceNotify::eqNotifyTriggerEquality(" << equality << ", " << (value ? "true" : "false") << ")" << std::endl;
+bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(
+    TNode predicate, bool value)
+{
+  Assert(predicate.getKind() == kind::EQUAL);
+  Debug("arith::congruences")
+      << "ArithCongruenceNotify::eqNotifyTriggerPredicate(" << predicate << ", "
+      << (value ? "true" : "false") << ")" << std::endl;
   if (value) {
-    return d_acm.propagate(equality);
-  } else {
-    return d_acm.propagate(equality.notNode());
+    return d_acm.propagate(predicate);
   }
-}
-bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerPredicate(TNode predicate, bool value) {
-  Unreachable();
+  return d_acm.propagate(predicate.notNode());
 }
 
 bool ArithCongruenceManager::ArithCongruenceNotify::eqNotifyTriggerTermEquality(TheoryId tag, TNode t1, TNode t2, bool value) {
@@ -110,9 +124,9 @@ void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyConstantTermMerge(TN
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyNewClass(TNode t) {
 }
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPreMerge(TNode t1, TNode t2) {
-}
-void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyPostMerge(TNode t1, TNode t2) {
+void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyMerge(TNode t1,
+                                                                  TNode t2)
+{
 }
 void ArithCongruenceManager::ArithCongruenceNotify::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 }
@@ -139,10 +153,6 @@ const Node ArithCongruenceManager::getNextPropagation() {
 
 bool ArithCongruenceManager::canExplain(TNode n) const {
   return d_explanationMap.find(n) != d_explanationMap.end();
-}
-
-void ArithCongruenceManager::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_ee.setMasterEqualityEngine(eq);
 }
 
 Node ArithCongruenceManager::externalToInternal(TNode n) const{
@@ -320,9 +330,9 @@ bool ArithCongruenceManager::propagate(TNode x){
 
 void ArithCongruenceManager::explain(TNode literal, std::vector<TNode>& assumptions) {
   if (literal.getKind() != kind::NOT) {
-    d_ee.explainEquality(literal[0], literal[1], true, assumptions);
+    d_ee->explainEquality(literal[0], literal[1], true, assumptions);
   } else {
-    d_ee.explainEquality(literal[0][0], literal[0][1], false, assumptions);
+    d_ee->explainEquality(literal[0][0], literal[0][1], false, assumptions);
   }
 }
 
@@ -392,9 +402,9 @@ void ArithCongruenceManager::assertionToEqualityEngine(bool isEquality, ArithVar
 
   Trace("arith-ee") << "Assert " << eq << ", pol " << isEquality << ", reason " << reason << std::endl;
   if(isEquality){
-    d_ee.assertEquality(eq, true, reason);
+    d_ee->assertEquality(eq, true, reason);
   }else{
-    d_ee.assertEquality(eq, false, reason);
+    d_ee->assertEquality(eq, false, reason);
   }
 }
 
@@ -417,7 +427,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP c){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant " << eq << ", reason " << reason << std::endl;
-  d_ee.assertEquality(eq, true, reason);
+  d_ee->assertEquality(eq, true, reason);
 }
 
 void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
@@ -441,11 +451,11 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   d_keepAlive.push_back(reason);
 
   Trace("arith-ee") << "Assert equalsConstant2 " << eq << ", reason " << reason << std::endl;
-  d_ee.assertEquality(eq, true, reason);
+  d_ee->assertEquality(eq, true, reason);
 }
 
 void ArithCongruenceManager::addSharedTerm(Node x){
-  d_ee.addTriggerTerm(x, THEORY_ARITH);
+  d_ee->addTriggerTerm(x, THEORY_ARITH);
 }
 
 }/* CVC4::theory::arith namespace */

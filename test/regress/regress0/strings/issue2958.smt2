@@ -1,3 +1,4 @@
+; COMMAND-LINE: --strings-exp
 (set-info :smt-lib-version 2.6)
 (set-logic QF_SLIA)
 (set-info :status unsat)

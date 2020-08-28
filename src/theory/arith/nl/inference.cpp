@@ -39,6 +39,10 @@ const char* toString(Inference i)
     case Inference::T_MONOTONICITY: return "T_MONOTONICITY";
     case Inference::T_SECANT: return "T_SECANT";
     case Inference::T_TANGENT: return "T_TANGENT";
+    case Inference::IAND_INIT_REFINE: return "IAND_INIT_REFINE";
+    case Inference::IAND_VALUE_REFINE: return "IAND_VALUE_REFINE";
+    case Inference::CAD_CONFLICT: return "CAD_CONFLICT";
+    case Inference::CAD_EXCLUDED_INTERVAL: return "CAD_EXCLUDED_INTERVAL";
     default: return "?";
   }
 }

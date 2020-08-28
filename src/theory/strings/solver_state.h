@@ -39,40 +39,16 @@ namespace strings {
  * (2) Whether the set of assertions is in conflict.
  * (3) Equivalence class information as in the class above.
  */
-class SolverState
+class SolverState : public TheoryState
 {
   typedef context::CDList<Node> NodeList;
 
  public:
   SolverState(context::Context* c,
               context::UserContext* u,
-              eq::EqualityEngine& ee,
               Valuation& v);
   ~SolverState();
-  /** Get the SAT context */
-  context::Context* getSatContext() const;
-  /** Get the user context */
-  context::UserContext* getUserContext() const;
   //-------------------------------------- equality information
-  /**
-   * Get the representative of t in the equality engine of this class, or t
-   * itself if it is not registered as a term.
-   */
-  Node getRepresentative(Node t) const;
-  /** Is t registered as a term in the equality engine of this class? */
-  bool hasTerm(Node a) const;
-  /**
-   * Are a and b equal according to the equality engine of this class? Also
-   * returns true if a and b are identical.
-   */
-  bool areEqual(Node a, Node b) const;
-  /**
-   * Are a and b disequal according to the equality engine of this class? Also
-   * returns true if the representative of a and b are distinct constants.
-   */
-  bool areDisequal(Node a, Node b) const;
-  /** get equality engine */
-  eq::EqualityEngine* getEqualityEngine() const;
   /**
    * Get the list of disequalities that are currently asserted to the equality
    * engine.
@@ -82,20 +58,12 @@ class SolverState
   //-------------------------------------- notifications for equalities
   /** called when a new equivalence class is created */
   void eqNotifyNewClass(TNode t);
-  /** called when two equivalence classes will merge */
-  void eqNotifyPreMerge(TNode t1, TNode t2);
+  /** called when two equivalence classes merge */
+  void eqNotifyMerge(TNode t1, TNode t2);
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   //-------------------------------------- end notifications for equalities
   //------------------------------------------ conflicts
-  /**
-   * Set that the current state of the solver is in conflict. This should be
-   * called immediately after a call to conflict(...) on the output channel of
-   * the theory of strings.
-   */
-  void setConflict();
-  /** Are we currently in conflict? */
-  bool isInConflict() const;
   /** set pending conflict
    *
    * If conf is non-null, this is called when conf is a conjunction of literals
@@ -149,7 +117,7 @@ class SolverState
    */
   EqcInfo* getOrMakeEqcInfo(Node eqc, bool doMake = true);
   /** Get pointer to the model object of the Valuation object */
-  TheoryModel* getModel() const;
+  TheoryModel* getModel();
 
   /** add endpoints to eqc info
    *
@@ -182,21 +150,11 @@ class SolverState
  private:
   /** Common constants */
   Node d_zero;
-  /** Pointer to the SAT context object used by the theory of strings. */
-  context::Context* d_context;
-  /** Pointer to the user context object used by the theory of strings. */
-  context::UserContext* d_ucontext;
-  /** Reference to equality engine of the theory of strings. */
-  eq::EqualityEngine& d_ee;
   /**
    * The (SAT-context-dependent) list of disequalities that have been asserted
    * to the equality engine above.
    */
   NodeList d_eeDisequalities;
-  /** Reference to the valuation of the theory of strings */
-  Valuation& d_valuation;
-  /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
   /** The pending conflict if one exists */
   context::CDO<Node> d_pendingConflict;
   /** Map from representatives to their equivalence class information */

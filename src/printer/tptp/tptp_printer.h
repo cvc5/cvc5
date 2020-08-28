@@ -27,7 +27,8 @@ namespace CVC4 {
 namespace printer {
 namespace tptp {
 
-class TptpPrinter : public CVC4::Printer {
+class TptpPrinter : public CVC4::Printer
+{
  public:
   using CVC4::Printer::toStream;
   void toStream(std::ostream& out,
@@ -35,27 +36,23 @@ class TptpPrinter : public CVC4::Printer {
                 int toDepth,
                 bool types,
                 size_t dag) const override;
-  void toStream(std::ostream& out,
-                const Command* c,
-                int toDepth,
-                bool types,
-                size_t dag) const override;
   void toStream(std::ostream& out, const CommandStatus* s) const override;
   void toStream(std::ostream& out, const Model& m) const override;
   /** print unsat core to stream
-  * We use the expression names stored in the SMT engine associated with the unsat core
-  * with UnsatCore::getSmtEngine.
-  */
+   * We use the expression names stored in the SMT engine associated with the
+   * unsat core with UnsatCore::getSmtEngine.
+   */
   void toStream(std::ostream& out, const UnsatCore& core) const override;
 
  private:
   void toStream(std::ostream& out,
                 const Model& m,
                 const Command* c) const override;
-};/* class TptpPrinter */
 
-}/* CVC4::printer::tptp namespace */
-}/* CVC4::printer namespace */
-}/* CVC4 namespace */
+}; /* class TptpPrinter */
+
+}  // namespace tptp
+}  // namespace printer
+}  // namespace CVC4
 
 #endif /* CVC4__PRINTER__TPTP_PRINTER_H */

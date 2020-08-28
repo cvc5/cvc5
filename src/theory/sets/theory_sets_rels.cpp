@@ -15,7 +15,6 @@
  **/
 
 #include "theory/sets/theory_sets_rels.h"
-#include "expr/datatype.h"
 #include "theory/sets/theory_sets_private.h"
 #include "theory/sets/theory_sets.h"
 
@@ -34,19 +33,11 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 TheorySetsRels::TheorySetsRels(SolverState& s,
                                InferenceManager& im,
-                               eq::EqualityEngine& e,
                                context::UserContext* u)
-    : d_state(s), d_im(im), d_ee(e), d_shared_terms(u)
+    : d_state(s), d_im(im), d_shared_terms(u)
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);
-  d_ee.addFunctionKind(PRODUCT);
-  d_ee.addFunctionKind(JOIN);
-  d_ee.addFunctionKind(TRANSPOSE);
-  d_ee.addFunctionKind(TCLOSURE);
-  d_ee.addFunctionKind(JOIN_IMAGE);
-  d_ee.addFunctionKind(IDEN);
-  d_ee.addFunctionKind(APPLY_CONSTRUCTOR);
 }
 
 TheorySetsRels::~TheorySetsRels() {}
@@ -185,10 +176,11 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::collectRelsInfo() {
     Trace("rels") << "[sets-rels] Start collecting relational terms..." << std::endl;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_ee);
+    eq::EqualityEngine* ee = d_state.getEqualityEngine();
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(ee);
     while( !eqcs_i.isFinished() ){
       Node                      eqc_rep  = (*eqcs_i);
-      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc_rep, &d_ee);
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc_rep, ee);
 
       TypeNode erType = eqc_rep.getType();
       Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << " with type " << eqc_rep.getType() << std::endl;
@@ -1139,24 +1131,17 @@ void TheorySetsRels::check(Theory::Effort level)
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
-    if (d_ee.hasTerm(t))
-    {
-      return d_ee.getRepresentative(t);
-    }
-    else
-    {
-      return t;
-    }
+    return d_state.getRepresentative(t);
   }
 
-  bool TheorySetsRels::hasTerm(Node a) { return d_ee.hasTerm(a); }
+  bool TheorySetsRels::hasTerm(Node a) { return d_state.hasTerm(a); }
   bool TheorySetsRels::areEqual( Node a, Node b ){
     Assert(a.getType() == b.getType());
     Trace("rels-eq") << "[sets-rels]**** checking equality between " << a << " and " << b << std::endl;
     if(a == b) {
       return true;
     } else if( hasTerm( a ) && hasTerm( b ) ){
-      return d_ee.areEqual(a, b);
+      return d_state.areEqual(a, b);
     } else if(a.getType().isTuple()) {
       bool equal = true;
       for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {

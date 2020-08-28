@@ -1,4 +1,3 @@
-; COMMAND-LINE:
 ; EXPECT: sat
 ; EXPECT: ((x #b0001))
 (set-option :produce-models true)

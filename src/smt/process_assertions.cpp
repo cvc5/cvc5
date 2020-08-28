@@ -462,7 +462,6 @@ bool ProcessAssertions::apply(Assertions& as)
 bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 {
   spendResource(ResourceManager::Resource::PreprocessStep);
-  Assert(d_smt.d_pendingPops == 0);
   try
   {
     ScopeCounter depth(d_simplifyAssertionsDepth);
@@ -503,9 +502,6 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
     }
 
     Debug("smt") << " assertions     : " << assertions.size() << endl;
-
-    // before ppRewrite check if only core theory for BV theory
-    d_smt.d_theoryEngine->staticInitializeBVOptions(assertions.ref());
 
     // Theory preprocessing
     bool doEarlyTheoryPp = !options::arithRewriteEq();
@@ -736,7 +732,7 @@ Node ProcessAssertions::expandDefinitions(
       {
         // do not do any theory stuff if expandOnly is true
 
-        theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
+        theory::Theory* t = d_smt.getTheoryEngine()->theoryOf(node);
 
         Assert(t != NULL);
         TrustNode trn = t->expandDefinition(n);

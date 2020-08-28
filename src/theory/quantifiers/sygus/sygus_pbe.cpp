@@ -14,7 +14,6 @@
  **/
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 
-#include "expr/datatype.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/example_infer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"

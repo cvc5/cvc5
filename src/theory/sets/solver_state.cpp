@@ -26,10 +26,10 @@ namespace theory {
 namespace sets {
 
 SolverState::SolverState(TheorySetsPrivate& p,
-                         eq::EqualityEngine& e,
                          context::Context* c,
-                         context::UserContext* u)
-    : d_conflict(c), d_parent(p), d_ee(e), d_proxy(u), d_proxy_to_term(u)
+                         context::UserContext* u,
+                         Valuation val)
+    : TheoryState(c, u, val), d_parent(p), d_proxy(u), d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -69,8 +69,8 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   {
     if (r.isConst())
     {
-      Node s = d_ee.getRepresentative(n[1]);
-      Node x = d_ee.getRepresentative(n[0]);
+      Node s = d_ee->getRepresentative(n[1]);
+      Node x = d_ee->getRepresentative(n[0]);
       int pindex = r == d_true ? 0 : (r == d_false ? 1 : -1);
       if (pindex != -1)
       {
@@ -99,7 +99,7 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     {
       // singleton lemma
       getProxy(n);
-      Node re = d_ee.getRepresentative(n[0]);
+      Node re = d_ee->getRepresentative(n[0]);
       if (d_singleton_index.find(re) == d_singleton_index.end())
       {
         d_singleton_index[re] = n;
@@ -122,8 +122,8 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
     }
     else
     {
-      Node r1 = d_ee.getRepresentative(n[0]);
-      Node r2 = d_ee.getRepresentative(n[1]);
+      Node r1 = d_ee->getRepresentative(n[0]);
+      Node r2 = d_ee->getRepresentative(n[1]);
       std::map<Node, Node>& binr1 = d_bop_index[nk][r1];
       std::map<Node, Node>::iterator itb = binr1.find(r2);
       if (itb == binr1.end())
@@ -162,39 +162,6 @@ void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
   {
     Trace("sets-debug2") << "Unknown-set[" << r << "] : " << n << std::endl;
   }
-}
-
-bool SolverState::areEqual(Node a, Node b) const
-{
-  if (a == b)
-  {
-    return true;
-  }
-  if (d_ee.hasTerm(a) && d_ee.hasTerm(b))
-  {
-    return d_ee.areEqual(a, b);
-  }
-  return false;
-}
-
-bool SolverState::areDisequal(Node a, Node b) const
-{
-  if (a == b)
-  {
-    return false;
-  }
-  else if (d_ee.hasTerm(a) && d_ee.hasTerm(b))
-  {
-    return d_ee.areDisequal(a, b, false);
-  }
-  return a.isConst() && b.isConst();
-}
-
-void SolverState::setConflict() { d_conflict = true; }
-void SolverState::setConflict(Node conf)
-{
-  d_parent.getOutputChannel()->conflict(conf);
-  d_conflict = true;
 }
 
 void SolverState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
@@ -279,9 +246,9 @@ bool SolverState::isEntailed(Node n, bool polarity) const
       return true;
     }
     // check members cache
-    if (polarity && d_ee.hasTerm(n[1]))
+    if (polarity && d_ee->hasTerm(n[1]))
     {
-      Node r = d_ee.getRepresentative(n[1]);
+      Node r = d_ee->getRepresentative(n[1]);
       if (d_parent.isMember(n[0], r))
       {
         return true;
@@ -310,8 +277,8 @@ bool SolverState::isEntailed(Node n, bool polarity) const
 
 bool SolverState::isSetDisequalityEntailed(Node r1, Node r2) const
 {
-  Assert(d_ee.hasTerm(r1) && d_ee.getRepresentative(r1) == r1);
-  Assert(d_ee.hasTerm(r2) && d_ee.getRepresentative(r2) == r2);
+  Assert(d_ee->hasTerm(r1) && d_ee->getRepresentative(r1) == r1);
+  Assert(d_ee->hasTerm(r2) && d_ee->getRepresentative(r2) == r2);
   TypeNode tn = r1.getType();
   Node re = getEmptySetEqClass(tn);
   for (unsigned e = 0; e < 2; e++)
@@ -433,7 +400,7 @@ Node SolverState::getProxy(Node n)
 
 Node SolverState::getCongruent(Node n) const
 {
-  Assert(d_ee.hasTerm(n));
+  Assert(d_ee->hasTerm(n));
   std::map<Node, Node>::const_iterator it = d_congruent.find(n);
   if (it == d_congruent.end())
   {

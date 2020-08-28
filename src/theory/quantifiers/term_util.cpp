@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/term_util.h"
 
-#include "expr/datatype.h"
 #include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"

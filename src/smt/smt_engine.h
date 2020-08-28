@@ -31,6 +31,7 @@
 #include "options/options.h"
 #include "proof/unsat_core.h"
 #include "smt/logic_exception.h"
+#include "smt/smt_mode.h"
 #include "theory/logic_info.h"
 #include "util/hash.h"
 #include "util/proof.h"
@@ -92,6 +93,7 @@ namespace prop {
 
 namespace smt {
 /** Utilities */
+class SmtEngineState;
 class AbstractValues;
 class Assertions;
 class ExprNames;
@@ -101,7 +103,10 @@ class SmtNodeManagerListener;
 class OptionsManager;
 class Preprocessor;
 /** Subsolvers */
+class SmtSolver;
+class SygusSolver;
 class AbductionSolver;
+class QuantElimSolver;
 /**
  * Representation of a defined function.  We keep these around in
  * SmtEngine to permit expanding definitions late (and lazily), to
@@ -111,7 +116,6 @@ class AbductionSolver;
 class DefinedFunction;
 
 struct SmtEngineStatistics;
-class SmtEnginePrivate;
 class SmtScope;
 class ProcessAssertions;
 
@@ -143,9 +147,10 @@ class CVC4_PUBLIC SmtEngine
   friend class ::CVC4::api::Solver;
   // TODO (Issue #1096): Remove this friend relationship.
   friend class ::CVC4::preprocessing::PreprocessingPassContext;
-  friend class ::CVC4::smt::SmtEnginePrivate;
+  friend class ::CVC4::smt::SmtEngineState;
   friend class ::CVC4::smt::SmtScope;
   friend class ::CVC4::smt::ProcessAssertions;
+  friend class ::CVC4::smt::SmtSolver;
   friend ProofManager* ::CVC4::smt::currentProofManager();
   friend class ::CVC4::LogicRequest;
   friend class ::CVC4::theory::TheoryModel;
@@ -156,29 +161,6 @@ class CVC4_PUBLIC SmtEngine
   /* .......................................................................  */
 
   /**
-   * The current mode of the solver, which is an extension of Figure 4.1 on
-   * page 52 of the SMT-LIB version 2.6 standard
-   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
-   */
-  enum SmtMode
-  {
-    // the initial state of the solver
-    SMT_MODE_START,
-    // normal state of the solver, after assert/push/pop/declare/define
-    SMT_MODE_ASSERT,
-    // immediately after a check-sat returning "sat"
-    SMT_MODE_SAT,
-    // immediately after a check-sat returning "unknown"
-    SMT_MODE_SAT_UNKNOWN,
-    // immediately after a check-sat returning "unsat"
-    SMT_MODE_UNSAT,
-    // immediately after a successful call to get-abduct
-    SMT_MODE_ABDUCT,
-    // immediately after a successful call to get-interpol
-    SMT_MODE_INTERPOL
-  };
-
-  /**
    * Construct an SmtEngine with the given expression manager.
    * If provided, optr is a pointer to a set of options that should initialize the values
    * of the options object owned by this class.
@@ -187,24 +169,43 @@ class CVC4_PUBLIC SmtEngine
   /** Destruct the SMT engine.  */
   ~SmtEngine();
 
+  //--------------------------------------------- concerning the state
+
   /**
-   * Return true if this SmtEngine is fully initialized (post-construction).
+   * This is the main initialization procedure of the SmtEngine.
+   *
+   * Should be called whenever the final options and logic for the problem are
+   * set (at least, those options that are not permitted to change after
+   * assertions and queries are made).
+   *
+   * Internally, this creates the theory engine, prop engine, decision engine,
+   * and other utilities whose initialization depends on the final set of
+   * options being set.
+   *
    * This post-construction initialization is automatically triggered by the
    * use of the SmtEngine; e.g. when the first formula is asserted, a call
    * to simplify() is issued, a scope is pushed, etc.
    */
-  bool isFullyInited() { return d_fullyInited; }
-
+  void finishInit();
+  /**
+   * Return true if this SmtEngine is fully initialized (post-construction)
+   * by the above call.
+   */
+  bool isFullyInited() const;
   /**
    * Return true if a checkEntailed() or checkSatisfiability() has been made.
    */
-  bool isQueryMade() { return d_queryMade; }
-
+  bool isQueryMade() const;
   /** Return the user context level.  */
-  size_t getNumUserLevels() { return d_userLevels.size(); }
-
+  size_t getNumUserLevels() const;
   /** Return the current mode of the solver. */
-  SmtMode getSmtMode() { return d_smtMode; }
+  SmtMode getSmtMode() const;
+  /**
+   * Returns the most recent result of checkSat/checkEntailed or
+   * (set-info :status).
+   */
+  Result getStatusOfLastCommand() const;
+  //--------------------------------------------- end concerning the state
 
   /**
    * Set the logic of the script.
@@ -269,7 +270,7 @@ class CVC4_PUBLIC SmtEngine
    */
   void notifyStartParsing(std::string filename);
   /** return the input name (if any) */
-  std::string getFilename() const;
+  const std::string& getFilename() const;
 
   /**
    * Get the model (only if immediately preceded by a SAT or NOT_ENTAILED
@@ -416,22 +417,18 @@ class CVC4_PUBLIC SmtEngine
   /*---------------------------- sygus commands  ---------------------------*/
 
   /**
-   * Add variable declaration.
+   * Add sygus variable declaration.
    *
    * Declared SyGuS variables may be used in SyGuS constraints, in which they
    * are assumed to be universally quantified.
-   */
-  void declareSygusVar(const std::string& id, Expr var, Type type);
-
-  /**
-   * Add a function variable declaration.
    *
-   * Is SyGuS semantics declared functions are treated in the same manner as
+   * In SyGuS semantics, declared functions are treated in the same manner as
    * declared variables, i.e. as universally quantified (function) variables
    * which can occur in the SyGuS constraints that compose the conjecture to
-   * which a function is being synthesized.
+   * which a function is being synthesized. Thus declared functions should use
+   * this method as well.
    */
-  void declareSygusFunctionVar(const std::string& id, Expr var, Type type);
+  void declareSygusVar(const std::string& id, Node var, TypeNode type);
 
   /**
    * Add a function-to-synthesize declaration.
@@ -449,13 +446,13 @@ class CVC4_PUBLIC SmtEngine
    * corresponding to this declaration, so that it can be properly printed.
    */
   void declareSynthFun(const std::string& id,
-                       Expr func,
-                       Type type,
+                       Node func,
+                       TypeNode type,
                        bool isInv,
-                       const std::vector<Expr>& vars);
+                       const std::vector<Node>& vars);
 
   /** Add a regular sygus constraint.*/
-  void assertSygusConstraint(const Node& constraint);
+  void assertSygusConstraint(Node constraint);
 
   /**
    * Add an invariant constraint.
@@ -472,10 +469,7 @@ class CVC4_PUBLIC SmtEngine
    * The regular and primed variables are retrieved from the declaration of the
    * invariant-to-synthesize.
    */
-  void assertSygusInvConstraint(const Expr& inv,
-                                const Expr& pre,
-                                const Expr& trans,
-                                const Expr& post);
+  void assertSygusInvConstraint(Node inv, Node pre, Node trans, Node post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
@@ -575,23 +569,23 @@ class CVC4_PUBLIC SmtEngine
    * This method returns true if we are in a state immediately preceeded by
    * a successful call to checkSynth.
    *
-   * This method adds entries to sol_map that map functions-to-synthesize with
+   * This method adds entries to solMap that map functions-to-synthesize with
    * their solutions, for all active conjectures. This should be called
    * immediately after the solver answers unsat for sygus input.
    *
    * Specifically, given a sygus conjecture of the form
    *   exists x1...xn. forall y1...yn. P( x1...xn, y1...yn )
    * where x1...xn are second order bound variables, we map each xi to
-   * lambda term in sol_map such that
-   *    forall y1...yn. P( sol_map[x1]...sol_map[xn], y1...yn )
+   * lambda term in solMap such that
+   *    forall y1...yn. P( solMap[x1]...solMap[xn], y1...yn )
    * is a valid formula.
    */
-  bool getSynthSolutions(std::map<Expr, Expr>& sol_map);
+  bool getSynthSolutions(std::map<Node, Node>& solMap);
 
   /**
    * Do quantifier elimination.
    *
-   * This function takes as input a quantified formula e
+   * This function takes as input a quantified formula q
    * of the form:
    *   Q x1...xn. P( x1...xn, y1...yn )
    * where P( x1...xn, y1...yn ) is a quantifier-free
@@ -603,20 +597,20 @@ class CVC4_PUBLIC SmtEngine
    * the current set of formulas A asserted to this SmtEngine :
    *
    * If doFull = true, then
-   *   - ( A ^ e ) and ( A ^ ret ) are equivalent
+   *   - ( A ^ q ) and ( A ^ ret ) are equivalent
    *   - ret is quantifier-free formula containing
    *     only free variables in y1...yn.
    *
    * If doFull = false, then
-   *   - (A ^ e) => (A ^ ret) if Q is forall or
-   *     (A ^ ret) => (A ^ e) if Q is exists,
+   *   - (A ^ q) => (A ^ ret) if Q is forall or
+   *     (A ^ ret) => (A ^ q) if Q is exists,
    *   - ret is quantifier-free formula containing
    *     only free variables in y1...yn,
    *   - If Q is exists, let A^Q_n be the formula
    *       A ^ ~ret^Q_1 ^ ... ^ ~ret^Q_n
    *     where for each i=1,...n, formula ret^Q_i
    *     is the result of calling doQuantifierElimination
-   *     for e with the set of assertions A^Q_{i-1}.
+   *     for q with the set of assertions A^Q_{i-1}.
    *     Similarly, if Q is forall, then let A^Q_n be
    *       A ^ ret^Q_1 ^ ... ^ ret^Q_n
    *     where ret^Q_i is the same as above.
@@ -636,7 +630,7 @@ class CVC4_PUBLIC SmtEngine
    *
    * throw@ Exception
    */
-  Expr doQuantifierElimination(const Expr& e, bool doFull, bool strict = true);
+  Node getQuantifierElimination(Node q, bool doFull, bool strict = true);
 
   /**
    * This method asks this SMT engine to find an interpolant with respect to
@@ -842,12 +836,6 @@ class CVC4_PUBLIC SmtEngine
   void safeFlushStatistics(int fd) const;
 
   /**
-   * Returns the most recent result of checkSat/checkEntailed or
-   * (set-info :status).
-   */
-  Result getStatusOfLastCommand() const { return d_status; }
-
-  /**
    * Set user attribute.
    * This function is called when an attribute is set by a user.
    * In SMT-LIBv2 this is done via the syntax (! expr :attr)
@@ -908,17 +896,17 @@ class CVC4_PUBLIC SmtEngine
   /** Set solver instance that owns this SmtEngine. */
   void setSolver(api::Solver* solver) { d_solver = solver; }
 
-  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
-  TheoryEngine* getTheoryEngine() { return d_theoryEngine.get(); }
-
-  /** Get a pointer to the PropEngine owned by this SmtEngine. */
-  prop::PropEngine* getPropEngine() { return d_propEngine.get(); }
-
   /** Get a pointer to the UserContext owned by this SmtEngine. */
-  context::UserContext* getUserContext() { return d_userContext.get(); };
+  context::UserContext* getUserContext();
 
   /** Get a pointer to the Context owned by this SmtEngine. */
-  context::Context* getContext() { return d_context.get(); };
+  context::Context* getContext();
+
+  /** Get a pointer to the TheoryEngine owned by this SmtEngine. */
+  TheoryEngine* getTheoryEngine();
+
+  /** Get a pointer to the PropEngine owned by this SmtEngine. */
+  prop::PropEngine* getPropEngine();
 
   /** Get a pointer to the ProofManager owned by this SmtEngine. */
   ProofManager* getProofManager() { return d_proofManager.get(); };
@@ -957,16 +945,6 @@ class CVC4_PUBLIC SmtEngine
   void checkModel(bool hardFailure = true);
 
   /**
-   * Check that a solution to a synthesis conjecture is indeed a solution.
-   *
-   * The check is made by determining if the negation of the synthesis
-   * conjecture in which the functions-to-synthesize have been replaced by the
-   * synthesized solutions, which is a quantifier-free formula, is
-   * unsatisfiable. If not, then the found solutions are wrong.
-   */
-  void checkSynthSolution();
-
-  /**
    * Check that a solution to an interpolation problem is indeed a solution.
    *
    * The check is made by determining that the assertions imply the solution of
@@ -978,42 +956,12 @@ class CVC4_PUBLIC SmtEngine
                      const Node& conj);
 
   /**
-   * Check that a solution to an abduction conjecture is indeed a solution.
-   *
-   * The check is made by determining that the assertions conjoined with the
-   * solution to the abduction problem (a) is SAT, and the assertions conjoined
-   * with the abduct and the goal is UNSAT. If these criteria are not met, an
-   * internal error is thrown.
-   */
-  void checkAbduct(Node a);
-
-  /**
-   * This is something of an "init" procedure, but is idempotent; call
-   * as often as you like.  Should be called whenever the final options
-   * and logic for the problem are set (at least, those options that are
-   * not permitted to change after assertions and queries are made).
-   */
-  void finalOptionsAreSet();
-
-  /**
-   * Create theory engine, prop engine, decision engine. Called by
-   * finalOptionsAreSet()
-   */
-  void finishInit();
-
-  /**
    * This is called by the destructor, just before destroying the
    * PropEngine, TheoryEngine, and DecisionEngine (in that order).  It
    * is important because there are destruction ordering issues
    * between PropEngine and Theory.
    */
   void shutdown();
-
-  /**
-   * Full check of consistency in current context.  Returns true iff
-   * consistent.
-   */
-  Result check();
 
   /**
    * Quick check of consistency in current context: calls
@@ -1034,25 +982,41 @@ class CVC4_PUBLIC SmtEngine
    */
   theory::TheoryModel* getAvailableModel(const char* c) const;
 
-  void internalPush();
-
-  void internalPop(bool immediate = false);
-
-  void doPendingPops();
+  // --------------------------------------- callbacks from the state
+  /**
+   * Notify push pre, which is called just before the user context of the state
+   * pushes. This processes all pending assertions.
+   */
+  void notifyPushPre();
+  /**
+   * Notify push post, which is called just after the user context of the state
+   * pushes. This performs a push on the underlying prop engine.
+   */
+  void notifyPushPost();
+  /**
+   * Notify pop pre, which is called just before the user context of the state
+   * pops. This performs a pop on the underlying prop engine.
+   */
+  void notifyPopPre();
+  /**
+   * Notify post solve pre, which is called once per check-sat query. It
+   * is triggered when the first d_state.doPendingPops() is issued after the
+   * check-sat. This method is called before the contexts pop in the method
+   * doPendingPops.
+   */
+  void notifyPostSolvePre();
+  /**
+   * Same as above, but after contexts are popped. This calls the postsolve
+   * method of the underlying TheoryEngine.
+   */
+  void notifyPostSolvePost();
+  // --------------------------------------- end callbacks from the state
 
   /**
    * Internally handle the setting of a logic.  This function should always
    * be called when d_logic is updated.
    */
   void setLogicInternal();
-
-  /**
-   * Process the assertions that have been asserted. This moves the set of
-   * assertions that have been buffered into the smt::Assertions object,
-   * preprocesses them, pushes them into the SMT solver, and clears the
-   * buffer.
-   */
-  void processAssertionsInternal();
 
   /**
    * Add to Model command.  This is used for recording a command
@@ -1063,13 +1027,12 @@ class CVC4_PUBLIC SmtEngine
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
 
-  /* Check satisfiability (used to check satisfiability and entailment). */
-  Result checkSatisfiability(const Node& assumption,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
-  Result checkSatisfiability(const std::vector<Node>& assumptions,
-                             bool inUnsatCore,
-                             bool isEntailmentCheck);
+  /*
+   * Check satisfiability (used to check satisfiability and entailment).
+   */
+  Result checkSatInternal(const std::vector<Node>& assumptions,
+                          bool inUnsatCore,
+                          bool isEntailmentCheck);
 
   /**
    * Check that all Expr in formals are of BOUND_VARIABLE kind, where func is
@@ -1099,12 +1062,11 @@ class CVC4_PUBLIC SmtEngine
   /** Solver instance that owns this SmtEngine instance. */
   api::Solver* d_solver = nullptr;
 
-  /** Expr manager context */
-  std::unique_ptr<context::Context> d_context;
-  /** User level context */
-  std::unique_ptr<context::UserContext> d_userContext;
-  /** The context levels of user pushes */
-  std::vector<int> d_userLevels;
+  /**
+   * The state of this SmtEngine, which is responsible for maintaining which
+   * SMT mode we are in, the contexts, the last result, etc.
+   */
+  std::unique_ptr<smt::SmtEngineState> d_state;
 
   /** Our expression manager */
   ExprManager* d_exprManager;
@@ -1123,10 +1085,8 @@ class CVC4_PUBLIC SmtEngine
   /** Node manager listener */
   std::unique_ptr<smt::SmtNodeManagerListener> d_snmListener;
 
-  /** The theory engine */
-  std::unique_ptr<TheoryEngine> d_theoryEngine;
-  /** The propositional engine */
-  std::unique_ptr<prop::PropEngine> d_propEngine;
+  /** The SMT solver */
+  std::unique_ptr<smt::SmtSolver> d_smtSolver;
 
   /** The proof manager */
   std::unique_ptr<ProofManager> d_proofManager;
@@ -1142,18 +1102,17 @@ class CVC4_PUBLIC SmtEngine
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
 
+  /** The solver for sygus queries */
+  std::unique_ptr<smt::SygusSolver> d_sygusSolver;
+
   /** The solver for abduction queries */
   std::unique_ptr<smt::AbductionSolver> d_abductSolver;
+  /** The solver for quantifier elimination queries */
+  std::unique_ptr<smt::QuantElimSolver> d_quantElimSolver;
   /**
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
-
-  /**
-   * A vector of command definitions to be imported in the new
-   * SmtEngine when checking unsat-cores.
-   */
-  std::vector<Command*> d_defineCommands;
 
   /**
    * The logic we're in. This logic may be an extension of the logic set by the
@@ -1173,59 +1132,9 @@ class CVC4_PUBLIC SmtEngine
   bool d_isInternalSubsolver;
 
   /**
-   * Number of internal pops that have been deferred.
-   */
-  unsigned d_pendingPops;
-
-  /**
-   * Whether or not this SmtEngine is fully initialized (post-construction).
-   * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when the first formula is asserted, a call
-   * to simplify() is issued, a scope is pushed, etc.
-   */
-  bool d_fullyInited;
-
-  /**
-   * Whether or not a checkEntailed() or checkSatisfiability() has already been
-   * made through this SmtEngine.  If true, and incrementalSolving is false,
-   * then attempting an additional checkEntailed() or checkSat() will fail with
-   * a ModalException.
-   */
-  bool d_queryMade;
-
-  /**
-   * Internal status flag to indicate whether we've sent a theory
-   * presolve() notification and need to match it with a postsolve().
-   */
-  bool d_needPostsolve;
-
-  /**
-   * Most recent result of last checkSatisfiability/checkEntailed or
-   * (set-info :status).
-   */
-  Result d_status;
-
-  /**
-   * The expected status of the next satisfiability check.
-   */
-  Result d_expectedStatus;
-
-  SmtMode d_smtMode;
-
-  /**
-   * The input file name (if any) or the name set through setInfo (if any)
-   */
-  std::string d_filename;
-
-  /**
    * Verbosity of various commands.
    */
   std::map<std::string, Integer> d_commandVerbosity;
-
-  /**
-   * A private utility class to SmtEngine.
-   */
-  std::unique_ptr<smt::SmtEnginePrivate> d_private;
 
   std::unique_ptr<StatisticsRegistry> d_statisticsRegistry;
 
@@ -1253,23 +1162,6 @@ class CVC4_PUBLIC SmtEngine
    * or another SmtEngine is created.
    */
   std::unique_ptr<smt::SmtScope> d_scope;
-  /*---------------------------- sygus commands  ---------------------------*/
-
-  /**
-   * Set sygus conjecture is stale. The sygus conjecture is stale if either:
-   * (1) no sygus conjecture has been added as an assertion to this SMT engine,
-   * (2) there is a sygus conjecture that has been added as an assertion
-   * internally to this SMT engine, and there have been further calls such that
-   * the asserted conjecture is no longer up-to-date.
-   *
-   * This method should be called when new sygus constraints are asserted and
-   * when functions-to-synthesize are declared. This function pops a user
-   * context if we are in incremental mode and the sygus conjecture was
-   * previously not stale.
-   */
-  void setSygusConjectureStale();
-
-  /*------------------------- end of sygus commands ------------------------*/
 }; /* class SmtEngine */
 
 /* -------------------------------------------------------------------------- */
