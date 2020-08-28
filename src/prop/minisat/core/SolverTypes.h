@@ -220,7 +220,8 @@ class Clause {
             if (header.removable)
               data[header.size].act = 0;
             else
-              calcAbstraction(); }
+              calcAbstraction();
+        }
     }
 
 public:

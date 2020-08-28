@@ -46,7 +46,8 @@ Node CnfProof::getAssertionForClause(ClauseId clause) {
   return (*it).second;
 }
 
-void CnfProof::registerConvertedClause(ClauseId clause) {
+void CnfProof::registerConvertedClause(ClauseId clause)
+{
   Assert(clause != ClauseIdUndef && clause != ClauseIdError
          && clause != ClauseIdEmpty);
   Node current_assertion = getCurrentAssertion();

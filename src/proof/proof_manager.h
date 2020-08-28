@@ -104,18 +104,22 @@ public:
 
  output_core_iterator begin_unsat_core() const
  {
-   return d_outputCoreFormulas.begin(); }
-  output_core_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
-  size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
-  std::vector<Expr> extractUnsatCore();
+   return d_outputCoreFormulas.begin();
+ }
+ output_core_iterator end_unsat_core() const
+ {
+   return d_outputCoreFormulas.end();
+ }
+ size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
+ std::vector<Expr> extractUnsatCore();
 
-  bool unsatCoreAvailable() const;
-  void getLemmasInUnsatCore(std::vector<Node>& lemmas);
+ bool unsatCoreAvailable() const;
+ void getLemmasInUnsatCore(std::vector<Node>& lemmas);
 
-  int nextId() { return d_nextId++; }
+ int nextId() { return d_nextId++; }
 
- private:
-  void constructSatProof();
+private:
+ void constructSatProof();
 
 };/* class ProofManager */
 

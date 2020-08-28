@@ -30,8 +30,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "options/prop_options.h"
 #include "options/smt_options.h"
 #include "proof/clause_id.h"
-#include "proof/proof_manager.h"
 #include "proof/cnf_proof.h"
+#include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/minisat/minisat.h"
@@ -565,17 +565,17 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                          << std::endl;
           if (options::unsatCores() && ps.size() == 1)
           {
-              ClauseKind ck =
-                  ProofManager::getCnfProof()->getCurrentAssertionKind()
-                      ? INPUT
-                      : THEORY_LEMMA;
-              id = ProofManager::getSatProof()->registerUnitClause(ps[0], ck);
-              // map id to assertion, which may be required if looking for
-              // lemmas in unsat core
-              if (ck == THEORY_LEMMA)
-              {
-                ProofManager::getCnfProof()->registerConvertedClause(id);
-              }
+            ClauseKind ck =
+                ProofManager::getCnfProof()->getCurrentAssertionKind()
+                    ? INPUT
+                    : THEORY_LEMMA;
+            id = ProofManager::getSatProof()->registerUnitClause(ps[0], ck);
+            // map id to assertion, which may be required if looking for
+            // lemmas in unsat core
+            if (ck == THEORY_LEMMA)
+            {
+              ProofManager::getCnfProof()->registerConvertedClause(id);
+            }
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
@@ -1554,9 +1554,11 @@ lbool Solver::search(int nof_conflicts)
               // Yes, we're truly satisfiable
               return l_True;
             }
-            } else if (check_type == CHECK_FINAL_FAKE) {
-              check_type = CHECK_WITH_THEORY;
-            }
+          }
+          else if (check_type == CHECK_FINAL_FAKE)
+          {
+            check_type = CHECK_WITH_THEORY;
+          }
 
             if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
                 || !withinBudget(ResourceManager::Resource::SatConflictStep))

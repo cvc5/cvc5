@@ -1048,7 +1048,8 @@ bool QuantifiersEngine::theoryEngineNeedsCheck() const
   return d_te->needCheck();
 }
 
-void QuantifiersEngine::setConflict() {
+void QuantifiersEngine::setConflict()
+{
   d_conflict = true;
   d_conflict_c = true;
 }

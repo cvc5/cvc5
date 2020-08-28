@@ -101,9 +101,9 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
           // for now, it is dependent upon all assertions involving macros, this
-          // is an over-approximation. a more fine-grained unsat core computation
-          // would require caching dependencies for each subterm of the formula,
-          // which is expensive.
+          // is an over-approximation. a more fine-grained unsat core
+          // computation would require caching dependencies for each subterm of
+          // the formula, which is expensive.
           if (options::unsatCores())
           {
             ProofManager::currentPM()->addDependence(curr, assertions[i]);

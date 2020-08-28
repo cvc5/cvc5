@@ -170,7 +170,8 @@ class Clause {
             if (header.learnt)
               data[header.size].act = 0;
             else
-              calcAbstraction(); }
+              calcAbstraction();
+        }
     }
 
 public:
