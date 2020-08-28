@@ -722,7 +722,7 @@ Node BVToInt::bvToInt(Node n)
               TypeNode bvRange = tn.getRangeType();
               if (d_bvToIntCache.find(bvUF) != d_bvToIntCache.end())
               {
-                intUF = d_bvToIntCache[bvUF].get();
+                intUF = d_bvToIntCache[bvUF];
               }
               else
               {
@@ -807,7 +807,7 @@ Node BVToInt::bvToInt(Node n)
       }
     }
   }
-  return d_bvToIntCache[n].get();
+  return d_bvToIntCache[n];
 }
 
 bool BVToInt::childrenTypesChanged(Node n) {
