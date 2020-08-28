@@ -408,8 +408,6 @@ void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
                                           bool includeShared) const
 {
   // Collect all terms appearing in assertions
-  irrKinds.insert(kind::EQUAL);
-  irrKinds.insert(kind::NOT);
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
