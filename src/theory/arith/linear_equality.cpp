@@ -510,9 +510,6 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   ConstraintCPVec bounds;
-#if 0
-  RationalVectorP coeffs = new RationalVector();
-#endif
   RationalVectorP coeffs = nullptr;
   propagateRow(bounds, ridx, upperBound, c, coeffs);
   c->impliedByFarkas(bounds, coeffs, false);

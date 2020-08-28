@@ -872,9 +872,6 @@ class Constraint {
   }
 
   inline RationalVectorCP getFarkasCoefficients() const {
-#if 0
-    return getConstraintRule().d_farkasCoefficients;
-#endif
     return nullptr;
   }
 

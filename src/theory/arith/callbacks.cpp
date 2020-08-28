@@ -87,19 +87,11 @@ void FarkasConflictBuilder::reset(){
   d_consequent = NullConstraint;
   d_constraints.clear();
   d_consequentSet = false;
-#if 0
-  d_farkas.clear();
-#endif
   Assert(!underConstruction());
 }
 
 /* Adds a constraint to the constraint under construction. */
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
-#if 0
-  Assert(
-      (!underConstruction() && d_constraints.empty() && d_farkas.empty())
-      || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-#endif
   Assert(d_farkas.empty());
   Assert(c->isTrue());
 
@@ -108,21 +100,11 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   } else {
     d_constraints.push_back(c);
   }
-#if 0
-  d_farkas.push_back(fc);
-  Assert(d_constraints.size() + 1 == d_farkas.size());
-#endif
   Assert(d_farkas.empty());
 }
 
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult){
   Assert(!mult.isZero());
-#if 0
-  if(!mult.isOne()){
-    Rational prod = fc * mult;
-    addConstraint(c, prod);
-  }
-#endif
   addConstraint(c, fc);
 }
 
@@ -138,9 +120,6 @@ void FarkasConflictBuilder::makeLastConsequent(){
     ConstraintCP last = d_constraints.back();
     d_constraints.back() = d_consequent;
     d_consequent = last;
-#if 0
-    std::swap(d_farkas.front(), d_farkas.back());
-#endif
     d_consequentSet = true;
   }
 
@@ -152,18 +131,10 @@ void FarkasConflictBuilder::makeLastConsequent(){
 ConstraintCP FarkasConflictBuilder::commitConflict(){
   Assert(underConstruction());
   Assert(!d_constraints.empty());
-#if 0
-  Assert(
-      (!underConstruction() && d_constraints.empty() && d_farkas.empty())
-      || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
-#endif
   Assert(d_farkas.empty());
   Assert(d_consequentSet);
 
   ConstraintP not_c = d_consequent->getNegation();
-#if 0
-  RationalVectorCP coeffs = &d_farkas;
-#endif
   RationalVectorCP coeffs = nullptr;
   not_c->impliedByFarkas(d_constraints, coeffs, true );
 
