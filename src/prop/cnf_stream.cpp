@@ -83,22 +83,13 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
     }
   }
 
-  if (d_cnfProof)
-  {
-    d_cnfProof->pushCurrentDefinition(node);
-  }
-
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
   if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
 
-  if (d_cnfProof)
+  if (d_cnfProof && clause_id != ClauseIdError)
   {
-    if (clause_id != ClauseIdError)
-    {
-      d_cnfProof->registerConvertedClause(clause_id);
-    }
-    d_cnfProof->popCurrentDefinition();
-  };
+    d_cnfProof->registerConvertedClause(clause_id);
+  }
 }
 
 void CnfStream::assertClause(TNode node, SatLiteral a) {
@@ -707,17 +698,24 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
 // clauses later when they are not needed anymore (lemmas for example).
 void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool removable,
-                                        bool negated)
+                                        bool negated,
+                                        bool input)
 {
   Debug("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
+
   if (d_cnfProof)
   {
-    d_cnfProof->pushCurrentAssertion(negated ? node.notNode() : (Node)node);
+    d_cnfProof->pushCurrentAssertion(negated ? node.notNode() : (Node)node,
+                                     input);
   }
   convertAndAssert(node, negated);
+  if (d_cnfProof)
+  {
+    d_cnfProof->popCurrentAssertion();
+  }
 }
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {

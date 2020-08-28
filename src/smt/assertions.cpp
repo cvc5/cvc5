@@ -178,13 +178,21 @@ void Assertions::addFormula(
   }
 
   // Give it to proof manager
-  if (options::unsatCores() && inInput)
+  if (options::unsatCores())
   {
-    // n is an input assertion
-    if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
-        || options::checkUnsatCores())
+    if (inInput)
+    {  // n is an input assertion
+      if (inUnsatCore || options::unsatCores() || options::dumpUnsatCores()
+          || options::checkUnsatCores())
+      {
+        ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      }
+    }
+    else
     {
-      ProofManager::currentPM()->addCoreAssertion(n.toExpr());
+      // n is the result of an unknown preprocessing step, add it to dependency
+      // map to null
+      ProofManager::currentPM()->addDependence(n, Node::null());
     }
   }
 

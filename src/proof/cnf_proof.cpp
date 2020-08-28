@@ -31,9 +31,6 @@ CnfProof::CnfProof(prop::CnfStream* stream,
   : d_cnfStream(stream)
   , d_clauseToAssertion(ctx)
   , d_currentAssertionStack()
-  , d_currentDefinitionStack()
-  , d_clauseToDefinition(ctx)
-  , d_definitions()
   , d_cnfDeps()
   , d_name(name)
 {
@@ -46,12 +43,6 @@ CnfProof::~CnfProof() {}
 Node CnfProof::getAssertionForClause(ClauseId clause) {
   ClauseIdToNode::const_iterator it = d_clauseToAssertion.find(clause);
   Assert(it != d_clauseToAssertion.end() && !(*it).second.isNull());
-  return (*it).second;
-}
-
-Node CnfProof::getDefinitionForClause(ClauseId clause) {
-  ClauseIdToNode::const_iterator it = d_clauseToDefinition.find(clause);
-  Assert(it != d_clauseToDefinition.end());
   return (*it).second;
 }
 
@@ -70,24 +61,19 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
   }
 
   Node current_assertion = getCurrentAssertion();
-  Node current_expr = getCurrentDefinition();
 
-  Debug("proof:cnf") << "CnfProof::registerConvertedClause "
-                     << clause << " assertion = " << current_assertion
-                     << clause << " definition = " << current_expr << std::endl;
+  Debug("proof:cnf") << "CnfProof::registerConvertedClause " << clause
+                     << " assertion = " << current_assertion << std::endl;
 
   setClauseAssertion(clause, current_assertion);
-  setClauseDefinition(clause, current_expr);
 }
 
 void CnfProof::registerTrueUnitClause(ClauseId clauseId)
 {
   Node trueNode = NodeManager::currentNM()->mkConst<bool>(true);
   pushCurrentAssertion(trueNode);
-  pushCurrentDefinition(trueNode);
   registerConvertedClause(clauseId);
   popCurrentAssertion();
-  popCurrentDefinition();
   d_cnfStream->ensureLiteral(trueNode);
   d_trueUnitClause = clauseId;
 }
@@ -96,10 +82,8 @@ void CnfProof::registerFalseUnitClause(ClauseId clauseId)
 {
   Node falseNode = NodeManager::currentNM()->mkConst<bool>(false).notNode();
   pushCurrentAssertion(falseNode);
-  pushCurrentDefinition(falseNode);
   registerConvertedClause(clauseId);
   popCurrentAssertion();
-  popCurrentDefinition();
   d_cnfStream->ensureLiteral(falseNode);
   d_falseUnitClause = clauseId;
 }
@@ -121,18 +105,7 @@ void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
     return;
   }
 
-  d_clauseToAssertion.insert (clause, expr);
-}
-
-void CnfProof::setClauseDefinition(ClauseId clause, Node definition) {
-  Debug("proof:cnf") << "CnfProof::setClauseDefinition "
-                     << clause << " definition " << definition << std::endl;
-  // We keep the first definition
-  if (d_clauseToDefinition.find(clause) != d_clauseToDefinition.end())
-    return;
-
-  d_clauseToDefinition.insert(clause, definition);
-  d_definitions.insert(definition);
+  d_clauseToAssertion.insert(clause, expr);
 }
 
 void CnfProof::setCnfDependence(Node from, Node to) {
@@ -144,11 +117,12 @@ void CnfProof::setCnfDependence(Node from, Node to) {
   d_cnfDeps.insert(std::make_pair(from, to));
 }
 
-void CnfProof::pushCurrentAssertion(Node assertion) {
+void CnfProof::pushCurrentAssertion(Node assertion, bool isInput)
+{
   Debug("proof:cnf") << "CnfProof::pushCurrentAssertion " << assertion
                      << std::endl;
 
-  d_currentAssertionStack.push_back(assertion);
+  d_currentAssertionStack.push_back(std::pair<Node, bool>(assertion, isInput));
 
   Debug("proof:cnf") << "CnfProof::pushCurrentAssertion "
                      << "new stack size = " << d_currentAssertionStack.size()
@@ -159,7 +133,7 @@ void CnfProof::popCurrentAssertion() {
   Assert(d_currentAssertionStack.size());
 
   Debug("proof:cnf") << "CnfProof::popCurrentAssertion "
-                     << d_currentAssertionStack.back() << std::endl;
+                     << d_currentAssertionStack.back().first << std::endl;
 
   d_currentAssertionStack.pop_back();
 
@@ -170,28 +144,12 @@ void CnfProof::popCurrentAssertion() {
 
 Node CnfProof::getCurrentAssertion() {
   Assert(d_currentAssertionStack.size());
-  return d_currentAssertionStack.back();
+  return d_currentAssertionStack.back().first;
 }
 
-void CnfProof::pushCurrentDefinition(Node definition) {
-  Debug("proof:cnf") << "CnfProof::pushCurrentDefinition "
-                     << definition  << std::endl;
-
-  d_currentDefinitionStack.push_back(definition);
-}
-
-void CnfProof::popCurrentDefinition() {
-  Assert(d_currentDefinitionStack.size());
-
-  Debug("proof:cnf") << "CnfProof::popCurrentDefinition "
-                     << d_currentDefinitionStack.back() << std::endl;
-
-  d_currentDefinitionStack.pop_back();
-}
-
-Node CnfProof::getCurrentDefinition() {
-  Assert(d_currentDefinitionStack.size());
-  return d_currentDefinitionStack.back();
+bool CnfProof::getCurrentAssertionKind()
+{
+  return d_currentAssertionStack.back().second;
 }
 
 Node CnfProof::getAtom(prop::SatVariable var) {

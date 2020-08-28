@@ -88,16 +88,12 @@ void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
   Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
 
   d_cnfProof->pushCurrentAssertion(true_node);
-  d_cnfProof->pushCurrentDefinition(true_node);
   d_cnfProof->registerConvertedClause(d_satProof->getTrueUnit());
   d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();
 
   d_cnfProof->pushCurrentAssertion(false_node);
-  d_cnfProof->pushCurrentDefinition(false_node);
   d_cnfProof->registerConvertedClause(d_satProof->getFalseUnit());
   d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();
 }
 
 

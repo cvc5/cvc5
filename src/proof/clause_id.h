@@ -31,6 +31,8 @@ typedef unsigned ClauseId;
 const ClauseId ClauseIdEmpty(-1);
 const ClauseId ClauseIdUndef(-2);
 const ClauseId ClauseIdError(-3);
+const ClauseId ClauseIdInput(-4);
+const ClauseId ClauseIdLemma(-5);
 
 }/* CVC4 namespace */
 

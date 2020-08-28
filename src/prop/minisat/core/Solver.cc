@@ -477,9 +477,7 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       {
         // Store the expression being converted to CNF until
         // the clause is actually created
-        Node assertion = ProofManager::getCnfProof()->getCurrentAssertion();
-        Node def = ProofManager::getCnfProof()->getCurrentDefinition();
-        lemmas_cnf_assertion.push_back(std::make_pair(assertion, def));
+        lemmas_cnf_assertion.push_back(ProofManager::getCnfProof()->getCurrentAssertion());
         id = ClauseIdUndef;
       }
     } else {
@@ -494,7 +492,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           if(falseLiteralsCount == 1) {
             if (options::unsatCores())
             {
-              id = ProofManager::getSatProof()->storeUnitConflict(ps[0], INPUT);
+              id = ProofManager::getSatProof()->storeUnitConflict(
+                  ps[0],
+                  ProofManager::getCnfProof()->getCurrentAssertionKind()
+                      ? INPUT
+                      : THEORY_LEMMA);
               ProofManager::getSatProof()->finalizeProof(
                   CVC4::Minisat::CRef_Lazy);
             }
@@ -519,7 +521,11 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
         if (options::unsatCores())
         {
-          id = ProofManager::getSatProof()->registerClause(cr, INPUT);
+          id = ProofManager::getSatProof()->registerClause(
+              cr,
+              ProofManager::getCnfProof()->getCurrentAssertionKind()
+                  ? INPUT
+                  : THEORY_LEMMA);
 
           if (ps.size() == falseLiteralsCount)
           {
@@ -534,10 +540,14 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         if(assigns[var(ps[0])] == l_Undef) {
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          Debug("cores") << "i'm registering a unit clause, input" << std::endl;
+          Debug("cores") << "i'm registering a unit clause, maybe input" << std::endl;
           if (options::unsatCores() && ps.size() == 1)
           {
-            id = ProofManager::getSatProof()->registerUnitClause(ps[0], INPUT);
+            id = ProofManager::getSatProof()->registerUnitClause(
+                ps[0],
+                ProofManager::getCnfProof()->getCurrentAssertionKind()
+                    ? INPUT
+                    : THEORY_LEMMA);
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
@@ -1968,15 +1978,13 @@ CRef Solver::updateLemmas() {
       lemma_ref = ca.alloc(clauseLevel, lemma, removable);
       if (options::unsatCores())
       {
-        TNode cnf_assertion = lemmas_cnf_assertion[j].first;
-        TNode cnf_def = lemmas_cnf_assertion[j].second;
+        TNode cnf_assertion = lemmas_cnf_assertion[j];
 
         Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (2)"
                          << std::endl;
         ClauseId id = ProofManager::getSatProof()->registerClause(lemma_ref,
                                                                   THEORY_LEMMA);
         ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
-        ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
       }
       if (removable) {
         clauses_removable.push(lemma_ref);
@@ -1991,15 +1999,13 @@ CRef Solver::updateLemmas() {
       if (lemma.size() == 1 || (value(lemma[1]) == l_False && trail_index(var(lemma[1])) < backtrack_index)) {
         if (options::unsatCores() && lemma.size() == 1)
         {
-          Node cnf_assertion = lemmas_cnf_assertion[j].first;
-          Node cnf_def = lemmas_cnf_assertion[j].second;
+          Node cnf_assertion = lemmas_cnf_assertion[j];
 
           Debug("pf::sat") << "Minisat::Solver registering a THEORY_LEMMA (3) "
                            << cnf_assertion << value(lemma[0]) << std::endl;
           ClauseId id = ProofManager::getSatProof()->registerUnitClause(
               lemma[0], THEORY_LEMMA);
           ProofManager::getCnfProof()->setClauseAssertion(id, cnf_assertion);
-          ProofManager::getCnfProof()->setClauseDefinition(id, cnf_def);
         }
 
         if (value(lemma[0]) == l_False) {

@@ -54,17 +54,9 @@ protected:
   /** Map from ClauseId to the assertion that lead to adding this clause **/
   ClauseIdToNode d_clauseToAssertion;
 
-  /** Top of stack is assertion currently being converted to CNF **/
-  std::vector<Node> d_currentAssertionStack;
-
-  /** Top of stack is top-level fact currently being converted to CNF **/
-  std::vector<Node> d_currentDefinitionStack;
-
-  /** Map from ClauseId to the top-level fact that lead to adding this clause **/
-  ClauseIdToNode d_clauseToDefinition;
-
-  /** Top-level facts that follow from assertions during convertAndAssert **/
-  NodeSet d_definitions;
+  /** Top of stack is assertion currently being converted to CNF. Also saves
+   * whether it is input (rather than a lemma). **/
+  std::vector<std::pair<Node, bool>> d_currentAssertionStack;
 
   /** Map from top-level fact to facts/assertion that it follows from **/
   NodeToNode d_cnfDeps;
@@ -75,8 +67,6 @@ protected:
   ClauseId d_trueUnitClause;
   // The clause ID of the unit clause defining the false SAT literal.
   ClauseId d_falseUnitClause;
-
-  Node getDefinitionForClause(ClauseId clause);
 
   std::string d_name;
 public:
@@ -119,13 +109,14 @@ public:
 
   void setCnfDependence(Node from, Node to);
 
-  void pushCurrentAssertion(Node assertion); // the current assertion being converted
+  /** Current assertion being converted and whether it is an input (rather than
+   * a lemma) */
+  void pushCurrentAssertion(
+      Node assertion,
+      bool isInput = false);
   void popCurrentAssertion();
   Node getCurrentAssertion();
-
-  void pushCurrentDefinition(Node assertion); // the current Tseitin definition being converted
-  void popCurrentDefinition();
-  Node getCurrentDefinition();
+  bool getCurrentAssertionKind();
 
   /**
    * Checks whether the assertion stack is empty.

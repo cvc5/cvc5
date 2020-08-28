@@ -126,7 +126,7 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false);
+  d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
 void PropEngine::assertLemma(TNode node, bool negated, bool removable)

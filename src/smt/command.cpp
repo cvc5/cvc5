@@ -2276,7 +2276,10 @@ void BlockModelValuesCommand::toStream(std::ostream& out,
 /* -------------------------------------------------------------------------- */
 
 GetProofCommand::GetProofCommand() {}
-void GetProofCommand::invoke(SmtEngine* smtEngine) {}
+void GetProofCommand::invoke(SmtEngine* smtEngine)
+{
+  Unimplemented() << "Unimplemented get-proof\n";
+}
 
 Command* GetProofCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
