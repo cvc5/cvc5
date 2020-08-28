@@ -203,7 +203,7 @@ public:
     lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
 
-    void    toDimacs     ();
+    void toDimacs();
     void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
     void    toDimacs     (const char *file, const vec<Lit>& assumps);
     void    toDimacs     (FILE* f, Clause& c, vec<Var>& map, Var& max);

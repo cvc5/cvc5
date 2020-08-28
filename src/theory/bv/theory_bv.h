@@ -259,7 +259,11 @@ class TheoryBV : public Theory {
 
   void sendConflict();
 
-  void lemma(TNode node) { d_out->lemma(node); d_lemmasAdded = true; }
+  void lemma(TNode node)
+  {
+    d_out->lemma(node);
+    d_lemmasAdded = true;
+  }
 
   void checkForLemma(TNode node);
 

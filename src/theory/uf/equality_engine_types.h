@@ -63,7 +63,8 @@ static const EqualityEdgeId null_edge = (EqualityEdgeId)(-1);
  * or a merge of an equality to false due to both sides being
  * (different) constants.
  */
-enum MergeReasonType {
+enum MergeReasonType
+{
   /** Terms were merged due to congruence */
   MERGED_THROUGH_CONGRUENCE,
   /** Terms were merged due to an assumption */
@@ -93,21 +94,13 @@ inline std::ostream& operator << (std::ostream& out, MergeReasonType reason) {
   case MERGED_THROUGH_REFLEXIVITY:
     out << "reflexivity";
     break;
-  case MERGED_THROUGH_CONSTANTS:
-    out << "theory constants";
-    break;
+  case MERGED_THROUGH_CONSTANTS: out << "theory constants"; break;
   case MERGED_THROUGH_TRANS:
     out << "transitivity";
     break;
-  case MERGED_THROUGH_ROW:
-    out << "read-over-write";
-    break;
-  case MERGED_THROUGH_ROW1:
-    out << "read-over-write (1)";
-    break;
-  case MERGED_THROUGH_EXT:
-    out << "extensionality";
-    break;
+  case MERGED_THROUGH_ROW: out << "read-over-write"; break;
+  case MERGED_THROUGH_ROW1: out << "read-over-write (1)"; break;
+  case MERGED_THROUGH_EXT: out << "extensionality"; break;
   default:
     out << "[theory]";
     break;

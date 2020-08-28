@@ -674,7 +674,8 @@ class TheoryEngine {
    * Get instantiation methods
    *   first inputs forall x.q[x] and returns ( q[a], ..., q[z] )
    *   second inputs forall x.q[x] and returns ( a, ..., z )
-   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] ) , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
+   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
+   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
    */
   void getInstantiations( Node q, std::vector< Node >& insts );
   void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );

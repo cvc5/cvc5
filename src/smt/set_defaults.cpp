@@ -382,8 +382,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::simplificationMode.wasSetByUser())
       {
-        throw OptionException(
-            "simplification not supported with unsat cores");
+        throw OptionException("simplification not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off simplification to support unsat "
                   "cores"
@@ -408,8 +407,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::sortInference.wasSetByUser())
       {
-        throw OptionException(
-            "sort inference not supported with unsat cores");
+        throw OptionException("sort inference not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off sort inference to support unsat "
                   "cores"
@@ -435,8 +433,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::bitvectorToBool.wasSetByUser())
       {
-        throw OptionException(
-            "bv-to-bool not supported with unsat cores");
+        throw OptionException("bv-to-bool not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off bitvector-to-bool to support unsat "
                   "cores"
@@ -461,8 +458,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::bvIntroducePow2.wasSetByUser())
       {
-        throw OptionException(
-            "bv-intro-pow2 not supported with unsat cores");
+        throw OptionException("bv-intro-pow2 not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off bv-intro-pow2 to support "
                   "unsat-cores"
@@ -474,8 +470,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::repeatSimp.wasSetByUser())
       {
-        throw OptionException(
-            "repeat-simp not supported with unsat cores");
+        throw OptionException("repeat-simp not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off repeat-simp to support unsat "
                   "cores"
@@ -487,8 +482,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     {
       if (options::globalNegate.wasSetByUser())
       {
-        throw OptionException(
-            "global-negate not supported with unsat cores");
+        throw OptionException("global-negate not supported with unsat cores");
       }
       Notice() << "SmtEngine: turning off global-negate to support unsat "
                   "cores"
@@ -498,8 +492,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
     if (options::bitvectorAig())
     {
-      throw OptionException(
-          "bitblast-aig not supported with unsat cores");
+      throw OptionException("bitblast-aig not supported with unsat cores");
     }
   }
   else

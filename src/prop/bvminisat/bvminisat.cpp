@@ -140,9 +140,7 @@ SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   return result;
 }
 
-bool BVMinisatSatSolver::ok() const {
-  return d_minisat->okay();
-}
+bool BVMinisatSatSolver::ok() const { return d_minisat->okay(); }
 
 void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
   // TODO add assertion to check the call was after an unsat call

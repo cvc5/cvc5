@@ -598,7 +598,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
       if(farkas != RationalVectorPSentinel){
         Assert(farkas->front().isZero());
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "("<<multAij<<") ";
+        Debug("arith::propagateRow") << "(" << multAij << ") ";
         farkas->front() = multAij;
       }
 
@@ -611,7 +611,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
 
       if(farkas != RationalVectorPSentinel){
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "("<<multAij<<") ";
+        Debug("arith::propagateRow") << "(" << multAij << ") ";
         farkas->push_back(multAij);
       }
       Assert(bound != NullConstraint);

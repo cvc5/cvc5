@@ -86,15 +86,14 @@ struct LitHashFunction {
 const Lit lit_Undef = { -2 };  // }- Useful special constants.
 const Lit lit_Error = { -1 };  // }
 
-
 //=================================================================================================
 // Lifted booleans:
 //
-// NOTE: this implementation is optimized for the case when comparisons between values are mostly
-//       between one variable and one constant. Some care had to be taken to make sure that gcc
-//       does enough constant propagation to produce sensible code, and this appears to be somewhat
-//       fragile unfortunately.
-
+// NOTE: this implementation is optimized for the case when comparisons between
+// values are mostly
+//       between one variable and one constant. Some care had to be taken to
+//       make sure that gcc does enough constant propagation to produce sensible
+//       code, and this appears to be somewhat fragile unfortunately.
 
 #ifndef l_True
 #define l_True  (lbool((uint8_t)0)) // gcc does not do constant propagation if these are real constants.
@@ -121,10 +120,12 @@ public:
     bool  operator != (lbool b) const { return !(*this == b); }
     lbool operator ^  (bool  b) const { return lbool((uint8_t)(value^(uint8_t)b)); }
 
-    lbool operator && (lbool b) const {
-        uint8_t sel = (this->value << 1) | (b.value << 3);
-        uint8_t v   = (0xF7F755F4 >> sel) & 3;
-        return lbool(v); }
+    lbool operator&&(lbool b) const
+    {
+      uint8_t sel = (this->value << 1) | (b.value << 3);
+      uint8_t v = (0xF7F755F4 >> sel) & 3;
+      return lbool(v);
+    }
 
     lbool operator || (lbool b) const {
         uint8_t sel = (this->value << 1) | (b.value << 3);
@@ -163,14 +164,13 @@ class Clause {
         header.reloced   = 0;
         header.size      = ps.size();
 
-        for (int i = 0; i < ps.size(); i++)
-            data[i].lit = ps[i];
+        for (int i = 0; i < ps.size(); i++) data[i].lit = ps[i];
 
         if (header.has_extra){
             if (header.learnt)
-                data[header.size].act = 0;
+              data[header.size].act = 0;
             else
-                calcAbstraction(); }
+              calcAbstraction(); }
     }
 
 public:
@@ -338,7 +338,6 @@ class CMap
     void     clear       ()                           { map.clear(); }
     int      size        ()                const      { return map.elems(); }
 
-
     // Insert/Remove/Test mapping:
     void     insert      (CRef cr, const T& t){ map.insert(cr, t); }
     void     growTo      (CRef cr, const T& t){ map.insert(cr, t); } // NOTE: for compatibility
@@ -361,14 +360,13 @@ class CMap
         printf(" --- size = %d, bucket_count = %d\n", size(), map.bucket_count()); }
 };
 
-
 /*_________________________________________________________________________________________________
 |
 |  subsumes : (other : const Clause&)  ->  Lit
 |
 |  Description:
-|       Checks if clause subsumes 'other', and at the same time, if it can be used to simplify 'other'
-|       by subsumption resolution.
+|       Checks if clause subsumes 'other', and at the same time, if it can be
+used to simplify 'other' |       by subsumption resolution.
 |
 |    Result:
 |       lit_Error  - No subsumption or simplification

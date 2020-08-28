@@ -1131,7 +1131,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           Debug("pf::ee") << "Child proof is:" << std::endl;
           eqpc->debug_print("pf::ee", 1);
         }
-        if (eqpc->d_id == MERGED_THROUGH_TRANS) {
+        if (eqpc->d_id == MERGED_THROUGH_TRANS)
+        {
           std::vector<std::shared_ptr<EqProof>> orderedChildren;
           bool nullCongruenceFound = false;
           for (const auto& child : eqpc->d_children)

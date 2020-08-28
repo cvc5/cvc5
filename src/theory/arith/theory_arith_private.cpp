@@ -1291,8 +1291,10 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
   }else{
     if (d_nonlinearExtension == nullptr)
     {
-      if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE ||
-          vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
+      if (vlNode.getKind() == kind::EXPONENTIAL
+          || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+          || vlNode.getKind() == kind::TANGENT)
+      {
         d_nlIncomplete = true;
       }
     }
@@ -1737,7 +1739,6 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
   } else {
     Debug("arith::constraint") << "already has proof: " << constraint->externalExplainByAssertions() << endl;
   }
-
 
   if(Debug.isOn("arith::negatedassumption") && inConflict){
     ConstraintP negation = constraint->getNegation();
@@ -2193,7 +2194,6 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
     }
   }
 
-
   ConstraintP newc = d_constraintDatabase.getConstraint(v, t, dr);
   d_replayConstraints.push_back(newc);
   return make_pair(newc, added);
@@ -2384,7 +2384,8 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
       assertionCases(c);
     }
   }else{
-    Debug("approx::replayAssert") << "replayAssert " << c << " already asserted" << endl;
+    Debug("approx::replayAssert")
+        << "replayAssert " << c << " already asserted" << endl;
   }
 }
 
@@ -2553,7 +2554,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
         SimplexDecisionProcedure& simplex = selectSimplex(true);
         simplex.findModel(false);
-  // can change d_qflraStatus
+        // can change d_qflraStatus
 
         d_linEq.stopTrackingBoundCounts();
         d_partialModel.startQueueingBoundCounts();
@@ -3277,7 +3278,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //   if(!useFancyFinal){
 //     d_qflraStatus = simplex.findModel(noPivotLimit);
 //   }else{
-
 
 //     if(d_qflraStatus == Result::SAT_UNKNOWN){
 //       //Message() << "got sat unknown" << endl;
@@ -4144,7 +4144,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   std::set<Node> termSet;
   d_containing.computeRelevantTerms(termSet);
 
-
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
   std::unordered_set<TNode, TNodeHashFunction> shared = d_containing.currentlySharedTerms();
@@ -4653,7 +4652,6 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
     ConstraintP implied = d_constraintDatabase.getBestImpliedBound(v, t, bound);
     if(implied != NullConstraint){
-
       return rowImplicationCanBeApplied(ridx, rowUp, implied);
     }
   }

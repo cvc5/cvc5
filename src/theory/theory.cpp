@@ -296,12 +296,12 @@ void Theory::computeCareGraph() {
       switch (d_valuation.getEqualityStatus(a, b)) {
       case EQUALITY_TRUE_AND_PROPAGATED:
       case EQUALITY_FALSE_AND_PROPAGATED:
-    // If we know about it, we should have propagated it, so we can skip
-    break;
+        // If we know about it, we should have propagated it, so we can skip
+        break;
       default:
-    // Let's split on it
-    addCarePair(a, b);
-    break;
+        // Let's split on it
+        addCarePair(a, b);
+        break;
       }
     }
   }

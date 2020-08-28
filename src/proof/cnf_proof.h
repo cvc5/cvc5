@@ -111,9 +111,7 @@ public:
 
   /** Current assertion being converted and whether it is an input (rather than
    * a lemma) */
-  void pushCurrentAssertion(
-      Node assertion,
-      bool isInput = false);
+  void pushCurrentAssertion(Node assertion, bool isInput = false);
   void popCurrentAssertion();
   Node getCurrentAssertion();
   bool getCurrentAssertionKind();

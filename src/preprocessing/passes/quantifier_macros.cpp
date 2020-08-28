@@ -100,8 +100,9 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
-          //for now, it is dependent upon all assertions involving macros, this is an over-approximation.
-          //a more fine-grained unsat core computation would require caching dependencies for each subterm of the formula,
+          // for now, it is dependent upon all assertions involving macros, this
+          // is an over-approximation. a more fine-grained unsat core computation
+          // would require caching dependencies for each subterm of the formula,
           // which is expensive.
           if (options::unsatCores())
           {
@@ -438,9 +439,10 @@ Node QuantifierMacros::simplify( Node n ){
           for( unsigned i=0; i<children.size(); i++ ){
             Node etc = TypeNode::getEnsureTypeCondition( children[i], tno[i] );
             if( etc.isNull() ){
-              //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op,
+              // if this does fail, we are incomplete, since we are eliminating
+              // quantified formula corresponding to op,
               //  and not ensuring it applies to n when its types are correct.
-              //Assert( false );
+              // Assert( false );
               success = false;
               break;
             }else if( !etc.isConst() ){

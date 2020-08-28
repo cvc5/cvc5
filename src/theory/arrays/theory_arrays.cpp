@@ -1914,7 +1914,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       && !d_equalityEngine->areDisequal(i, j, false))
   {
     Node i_eq_j;
-    i_eq_j = d_valuation.ensureLiteral(i.eqNode(j)); // TODO: think about this
+    i_eq_j = d_valuation.ensureLiteral(i.eqNode(j));  // TODO: think about this
 #if 0
     i_eq_j = i.eqNode(j);
 #endif
@@ -1924,7 +1924,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
 
   // TODO: maybe add triggers here
 
-  if (options::arraysEagerLemmas() || bothExist) {
+  if (options::arraysEagerLemmas() || bothExist)
+  {
     // Make sure that any terms introduced by rewriting are appropriately stored in the equality database
     Node aj2 = Rewriter::rewrite(aj);
     if (aj != aj2) {

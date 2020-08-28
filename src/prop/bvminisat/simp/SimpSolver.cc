@@ -545,9 +545,10 @@ bool SimpSolver::eliminateVar(Var v)
 
     for (int i = 0; i < pos.size(); i++)
         for (int j = 0; j < neg.size(); j++)
-            if (merge(ca[pos[i]], ca[neg[j]], v, clause_size) &&
-                (++cnt > cls.size() + grow || (clause_lim != -1 && clause_size > clause_lim)))
-                return true;
+          if (merge(ca[pos[i]], ca[neg[j]], v, clause_size)
+              && (++cnt > cls.size() + grow
+                  || (clause_lim != -1 && clause_size > clause_lim)))
+            return true;
 
     // Delete and store old clauses:
     eliminated[v] = true;
@@ -564,8 +565,7 @@ bool SimpSolver::eliminateVar(Var v)
         mkElimClause(elimclauses, ~mkLit(v));
     }
 
-    for (int i = 0; i < cls.size(); i++)
-        removeClause(cls[i]);
+    for (int i = 0; i < cls.size(); i++) removeClause(cls[i]);
 
     // Produce clauses in cross product:
     vec<Lit>& resolvent = add_tmp;
@@ -654,9 +654,12 @@ bool SimpSolver::eliminate(bool turn_off_elim)
 
         gatherTouchedClauses();
         // printf("  ## (time = %6.2f s) BWD-SUB: queue = %d, trail = %d\n", cpuTime(), subsumption_queue.size(), trail.size() - bwdsub_assigns);
-        if ((subsumption_queue.size() > 0 || bwdsub_assigns < trail.size()) &&
-            !backwardSubsumptionCheck(true)){
-            ok = false; goto cleanup; }
+        if ((subsumption_queue.size() > 0 || bwdsub_assigns < trail.size())
+            && !backwardSubsumptionCheck(true))
+        {
+          ok = false;
+          goto cleanup;
+        }
 
         // Empty elim_heap and return immediately on user-interrupt:
         if (asynch_interrupt){
@@ -719,8 +722,10 @@ bool SimpSolver::eliminate(bool turn_off_elim)
     }
 
     if (verbosity >= 1 && elimclauses.size() > 0)
-        printf("|  Eliminated clauses:     %10.2f Mb                                      |\n",
-               double(elimclauses.size() * sizeof(uint32_t)) / (1024*1024));
+      printf(
+          "|  Eliminated clauses:     %10.2f Mb                                "
+          "      |\n",
+          double(elimclauses.size() * sizeof(uint32_t)) / (1024 * 1024));
 
     return ok;
 
@@ -778,8 +783,10 @@ void SimpSolver::garbageCollect()
     relocAll(to);
     Solver::relocAll(to);
     if (verbosity >= 2)
-        printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n",
-               ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
+      printf(
+          "|  Garbage collection:   %12d bytes => %12d bytes             |\n",
+          ca.size() * ClauseAllocator::Unit_Size,
+          to.size() * ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
 

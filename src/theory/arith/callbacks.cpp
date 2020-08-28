@@ -123,7 +123,7 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, co
     addConstraint(c, prod);
   }
 #endif
-    addConstraint(c, fc);
+  addConstraint(c, fc);
 }
 
 void FarkasConflictBuilder::makeLastConsequent(){

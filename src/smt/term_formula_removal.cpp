@@ -409,11 +409,12 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
 
 // returns true if the children of node should be considered nested terms
 bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
-  return theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL &&
-         node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR &&
-         node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL &&
-         node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
-         // dont' worry about FORALL or EXISTS (handled separately)
+  return theory::kindToTheoryId(node.getKind()) != theory::THEORY_BOOL
+         && node.getKind() != kind::EQUAL && node.getKind() != kind::SEP_STAR
+         && node.getKind() != kind::SEP_WAND
+         && node.getKind() != kind::SEP_LABEL
+         && node.getKind() != kind::BITVECTOR_EAGER_ATOM;
+  // dont' worry about FORALL or EXISTS (handled separately)
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)

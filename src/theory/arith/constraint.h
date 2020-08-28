@@ -251,10 +251,10 @@ struct PerVariableDatabase{
   }
 };
 
-
 /**
  * If proofs are on, there is a vector of rationals for farkas coefficients.
- * This is the owner of the memory for the vector, and calls delete upon cleanup.
+ * This is the owner of the memory for the vector, and calls delete upon
+ * cleanup.
  *
  */
 struct ConstraintRule {
@@ -1054,7 +1054,6 @@ private:
      * The index in this list is the proper ordering of the proofs.
      */
     ConstraintRuleList d_constraintProofs;
-
 
     /**
      * Contains the exact list of constraints that can be used for propagation.

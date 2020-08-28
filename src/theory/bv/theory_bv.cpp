@@ -228,8 +228,11 @@ TrustNode TheoryBV::expandDefinition(Node node)
 
     TNode num = node[0], den = node[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
-    Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
-             kind::BITVECTOR_UREM_TOTAL, num, den);
+    Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV
+                                         ? kind::BITVECTOR_UDIV_TOTAL
+                                         : kind::BITVECTOR_UREM_TOTAL,
+                                     num,
+                                     den);
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
     ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
@@ -429,7 +432,9 @@ void TheoryBV::check(Effort e)
         if( doExtfReductions( nred ) ){
           return;
         }
-      }else{
+      }
+      else
+      {
         d_needsLastCallCheck = true;
       }
     }
@@ -724,11 +729,13 @@ TrustNode TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<UltPlusOne>::applies(t)) {
     Node result = RewriteRule<UltPlusOne>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if( res.getKind() == kind::EQUAL &&
-      ((res[0].getKind() == kind::BITVECTOR_PLUS &&
-        RewriteRule<ConcatToMult>::applies(res[1])) ||
-       (res[1].getKind() == kind::BITVECTOR_PLUS &&
-  RewriteRule<ConcatToMult>::applies(res[0])))) {
+  }
+  else if (res.getKind() == kind::EQUAL
+           && ((res[0].getKind() == kind::BITVECTOR_PLUS
+                && RewriteRule<ConcatToMult>::applies(res[1]))
+               || (res[1].getKind() == kind::BITVECTOR_PLUS
+                   && RewriteRule<ConcatToMult>::applies(res[0]))))
+  {
     Node mult = RewriteRule<ConcatToMult>::applies(res[0])?
       RewriteRule<ConcatToMult>::run<false>(res[0]) :
       RewriteRule<ConcatToMult>::run<true>(res[1]);
@@ -741,9 +748,13 @@ TrustNode TheoryBV::ppRewrite(TNode t)
     } else {
       res = t;
     }
-  } else if (RewriteRule<SignExtendEqConst>::applies(t)) {
+  }
+  else if (RewriteRule<SignExtendEqConst>::applies(t))
+  {
     res = RewriteRule<SignExtendEqConst>::run<false>(t);
-  } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
+  }
+  else if (RewriteRule<ZeroExtendEqConst>::applies(t))
+  {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
   else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))

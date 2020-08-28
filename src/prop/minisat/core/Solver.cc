@@ -447,9 +447,13 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       }
       // If a literal is false at 0 level (both sat and user level) we also ignore it
       if (value(ps[i]) == l_False) {
-        if (!options::unsatCores() && level(var(ps[i])) == 0 && user_level(var(ps[i])) == 0) {
+        if (!options::unsatCores() && level(var(ps[i])) == 0
+            && user_level(var(ps[i])) == 0)
+        {
           continue;
-        } else {
+        }
+        else
+        {
           // If we decide to keep it, we count it into the false literals
           falseLiteralsCount ++;
         }
@@ -477,7 +481,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
       {
         // Store the expression being converted to CNF until
         // the clause is actually created
-        lemmas_cnf_assertion.push_back(ProofManager::getCnfProof()->getCurrentAssertion());
+        lemmas_cnf_assertion.push_back(
+            ProofManager::getCnfProof()->getCurrentAssertion());
         id = ClauseIdUndef;
       }
     } else {
@@ -485,7 +490,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
       // If all false, we're in conflict
       if (ps.size() == falseLiteralsCount) {
-        if(options::unsatCores()) {
+        if (options::unsatCores())
+        {
           // Take care of false units here; otherwise, we need to
           // construct the clause below to give to the proof manager
           // as the final conflict.
@@ -502,7 +508,9 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
             }
             return ok = false;
           }
-        } else {
+        }
+        else
+        {
           return ok = false;
         }
       }
@@ -540,7 +548,8 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
         if(assigns[var(ps[0])] == l_Undef) {
           assert(assigns[var(ps[0])] != l_False);
           uncheckedEnqueue(ps[0], cr);
-          Debug("cores") << "i'm registering a unit clause, maybe input" << std::endl;
+          Debug("cores") << "i'm registering a unit clause, maybe input"
+                         << std::endl;
           if (options::unsatCores() && ps.size() == 1)
           {
             id = ProofManager::getSatProof()->registerUnitClause(
@@ -1504,22 +1513,28 @@ lbool Solver::search(int nof_conflicts)
             }
 
         } else {
-
-      // If this was a final check, we are satisfiable
-            if (check_type == CHECK_FINAL) {
-              bool decisionEngineDone = d_proxy->isDecisionEngineDone();
-              // Unless a lemma has added more stuff to the queues
-              if (!decisionEngineDone  &&
-      (!order_heap.empty() || qhead < trail.size()) ) {
-                check_type = CHECK_WITH_THEORY;
-                continue;
-              } else if (recheck) {
-                // There some additional stuff added, so we go for another full-check
-                continue;
-              } else {
-                // Yes, we're truly satisfiable
-                return l_True;
-              }
+          // If this was a final check, we are satisfiable
+          if (check_type == CHECK_FINAL)
+          {
+            bool decisionEngineDone = d_proxy->isDecisionEngineDone();
+            // Unless a lemma has added more stuff to the queues
+            if (!decisionEngineDone
+                && (!order_heap.empty() || qhead < trail.size()))
+            {
+              check_type = CHECK_WITH_THEORY;
+              continue;
+            }
+            else if (recheck)
+            {
+              // There some additional stuff added, so we go for another
+              // full-check
+              continue;
+            }
+            else
+            {
+              // Yes, we're truly satisfiable
+              return l_True;
+            }
             } else if (check_type == CHECK_FINAL_FAKE) {
               check_type = CHECK_WITH_THEORY;
             }

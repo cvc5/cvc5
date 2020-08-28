@@ -906,7 +906,6 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Co
   , d_one(1)
   , d_negOne(-1)
 {
-
 }
 
 SortedConstraintMap& ConstraintDatabase::getVariableSCM(ArithVar v) const{

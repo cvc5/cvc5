@@ -102,12 +102,17 @@ public:
     Var     trueVar() const { return varTrue; }
     Var     falseVar() const { return varFalse; }
 
-
-    bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver.
+    bool addClause(const vec<Lit>& ps,
+                   ClauseId& id);  // Add a clause to the solver.
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p, ClauseId& id);                                  // Add a unit clause to the solver.
-    bool    addClause (Lit p, Lit q, ClauseId& id);                           // Add a binary clause to the solver.
-    bool    addClause (Lit p, Lit q, Lit r, ClauseId& id);                    // Add a ternary clause to the solver.
+    bool addClause(Lit p, ClauseId& id);  // Add a unit clause to the solver.
+    bool addClause(Lit p,
+                   Lit q,
+                   ClauseId& id);  // Add a binary clause to the solver.
+    bool addClause(Lit p,
+                   Lit q,
+                   Lit r,
+                   ClauseId& id);  // Add a ternary clause to the solver.
     bool    addClause_(      vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver without making superflous internal copy. Will
                                                                 // change the passed vector 'ps'.
 
@@ -204,7 +209,8 @@ public:
 
     void addMarkerLiteral(Var var);
 
-    bool need_to_propagate;             // true if we added new clauses, set to true in propagation
+    bool need_to_propagate;  // true if we added new clauses, set to true in
+                             // propagation
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
     void setOnlyBCP (bool val) { only_bcp = val;}
     void explain(Lit l, std::vector<Lit>& explanation);
@@ -446,13 +452,15 @@ inline int      Solver::nLearnts      ()      const   { return learnts.size(); }
 inline int      Solver::nVars         ()      const   { return vardata.size(); }
 inline int      Solver::nFreeVars     ()      const   { return (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
 inline void     Solver::setPolarity   (Var v, bool b) { polarity[v] = b; }
-inline void     Solver::setDecisionVar(Var v, bool b)
+inline void Solver::setDecisionVar(Var v, bool b)
 {
-    if      ( b && !decision[v]) dec_vars++;
-    else if (!b &&  decision[v]) dec_vars--;
+  if (b && !decision[v])
+    dec_vars++;
+  else if (!b && decision[v])
+    dec_vars--;
 
-    decision[v] = b;
-    insertVarOrder(v);
+  decision[v] = b;
+  insertVarOrder(v);
 }
 inline void     Solver::setConfBudget(int64_t x){ conflict_budget    = conflicts    + x; }
 inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagations + x; }

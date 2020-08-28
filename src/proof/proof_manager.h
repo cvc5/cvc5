@@ -77,44 +77,46 @@ class ProofManager {
   CDNodeToNodes d_deps;
 
 public:
-  ProofManager(context::Context* context);
-  ~ProofManager();
+ ProofManager(context::Context* context);
+ ~ProofManager();
 
-  static ProofManager* currentPM();
+ static ProofManager* currentPM();
 
-  // initialization
-  void initSatProof(Minisat::Solver* solver);
-  void initCnfProof(CVC4::prop::CnfStream* cnfStream, context::Context* ctx);
+ // initialization
+ void initSatProof(Minisat::Solver* solver);
+ void initCnfProof(CVC4::prop::CnfStream* cnfStream, context::Context* ctx);
 
-  // getting various proofs
-  static CoreSatProof*  getSatProof();
-  static CnfProof*      getCnfProof();
+ // getting various proofs
+ static CoreSatProof* getSatProof();
+ static CnfProof* getCnfProof();
 
-  /** Public unsat core methods **/
-  void addCoreAssertion(Expr formula);
+ /** Public unsat core methods **/
+ void addCoreAssertion(Expr formula);
 
-  void addDependence(TNode n, TNode dep);
-  void addUnsatCore(Expr formula);
+ void addDependence(TNode n, TNode dep);
+ void addUnsatCore(Expr formula);
 
-  // trace dependences back to unsat core
-  void traceDeps(TNode n, CDExprSet* coreAssertions);
-  void traceUnsatCore();
+ // trace dependences back to unsat core
+ void traceDeps(TNode n, CDExprSet* coreAssertions);
+ void traceUnsatCore();
 
-  typedef CDExprSet::const_iterator output_core_iterator;
+ typedef CDExprSet::const_iterator output_core_iterator;
 
-  output_core_iterator begin_unsat_core() const { return d_outputCoreFormulas.begin(); }
+ output_core_iterator begin_unsat_core() const
+ {
+   return d_outputCoreFormulas.begin(); }
   output_core_iterator end_unsat_core() const { return d_outputCoreFormulas.end(); }
   size_t size_unsat_core() const { return d_outputCoreFormulas.size(); }
   std::vector<Expr> extractUnsatCore();
 
   bool unsatCoreAvailable() const;
-  void getLemmasInUnsatCore(std::vector<Node> &lemmas);
+  void getLemmasInUnsatCore(std::vector<Node>& lemmas);
   Node getWeakestImplicantInUnsatCore(Node lemma);
 
   int nextId() { return d_nextId++; }
 
-private:
- void constructSatProof();
+ private:
+  void constructSatProof();
 
 };/* class ProofManager */
 

@@ -44,7 +44,7 @@ class TheoryArith : public Theory {
   /**
    * @brief Where to store Farkas proofs of lemmas
    */
-  ArithProofRecorder * d_proofRecorder;
+  ArithProofRecorder* d_proofRecorder;
 
  public:
   TheoryArith(context::Context* c,

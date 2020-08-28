@@ -38,7 +38,6 @@
 
 namespace CVC4 {
 
-
 ProofManager::ProofManager(context::Context* context)
     : d_context(context),
       d_satProof(nullptr),

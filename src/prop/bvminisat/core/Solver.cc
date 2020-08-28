@@ -364,10 +364,10 @@ Lit Solver::pickBranchLit()
     return next == var_Undef ? lit_Undef : mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : polarity[next]);
 }
 
-
 /*_________________________________________________________________________________________________
 |
-|  analyze : (confl : Clause*) (out_learnt : vec<Lit>&) (out_btlevel : int&)  ->  [void]
+|  analyze : (confl : Clause*) (out_learnt : vec<Lit>&) (out_btlevel : int&)  ->
+[void]
 |
 |  Description:
 |    Analyze conflict and produce a reason clause.
@@ -378,8 +378,9 @@ Lit Solver::pickBranchLit()
 |
 |    Post-conditions:
 |      * 'out_learnt[0]' is the asserting literal at level 'out_btlevel'.
-|      * If out_learnt.size() > 1 then 'out_learnt[1]' has the greatest decision level of the
-|        rest of literals. There may be others from the same level though.
+|      * If out_learnt.size() > 1 then 'out_learnt[1]' has the greatest decision
+level of the |        rest of literals. There may be others from the same level
+though.
 |
 |________________________________________________________________________________________________@*/
 void Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel, UIP uip)
@@ -601,9 +602,9 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
       }
       seen[x] = 0;
     }
-    assert (seen[x] == 0);
+    assert(seen[x] == 0);
   }
-  assert (out_conflict.size());
+  assert(out_conflict.size());
 }
 
 /*_________________________________________________________________________________________________
@@ -611,9 +612,9 @@ void Solver::analyzeFinal2(Lit p, CRef confl_clause, vec<Lit>& out_conflict) {
 |  analyzeFinal : (p : Lit)  ->  [void]
 |
 |  Description:
-|    Specialized analysis procedure to express the final conflict in terms of assumptions.
-|    Calculates the (possibly empty) set of assumptions that led to the assignment of 'p', and
-|    stores the result in 'out_conflict'.
+|    Specialized analysis procedure to express the final conflict in terms of
+assumptions. |    Calculates the (possibly empty) set of assumptions that led to
+the assignment of 'p', and |    stores the result in 'out_conflict'.
 |________________________________________________________________________________________________@*/
 void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
 {
@@ -622,7 +623,8 @@ void Solver::analyzeFinal(Lit p, vec<Lit>& out_conflict)
       out_conflict.push(p);
     }
 
-    if (decisionLevel() == 0) {
+    if (decisionLevel() == 0)
+    {
       return;
     }
 
@@ -691,7 +693,6 @@ lbool Solver::assertAssumption(Lit p, bool propagate) {
 
   // assert(marker[var(p)] == 1);
 
-
   if (decisionLevel() > assumptions.size()) {
     cancelUntil(assumptions.size());
   }
@@ -726,14 +727,13 @@ void Solver::addMarkerLiteral(Var var) {
   marker[var] = 1;
 }
 
-
 /*_________________________________________________________________________________________________
 |
 |  propagate : [void]  ->  [Clause*]
 |
 |  Description:
-|    Propagates all enqueued facts. If a conflict arises, the conflicting clause is returned,
-|    otherwise CRef_Undef.
+|    Propagates all enqueued facts. If a conflict arises, the conflicting clause
+is returned, |    otherwise CRef_Undef.
 |
 |    Post-conditions:
 |      * the propagation queue is empty, even if there was a conflict.
@@ -802,20 +802,24 @@ CRef Solver::propagate()
     return confl;
 }
 
-
 /*_________________________________________________________________________________________________
 |
 |  reduceDB : ()  ->  [void]
 |
 |  Description:
-|    Remove half of the learnt clauses, minus the clauses locked by the current assignment. Locked
-|    clauses are clauses that are reason to some assignment. Binary clauses are never removed.
+|    Remove half of the learnt clauses, minus the clauses locked by the current
+assignment. Locked |    clauses are clauses that are reason to some assignment.
+Binary clauses are never removed.
 |________________________________________________________________________________________________@*/
-struct reduceDB_lt {
-    ClauseAllocator& ca;
-    reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
-    bool operator () (CRef x, CRef y) {
-        return ca[x].size() > 2 && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); }
+struct reduceDB_lt
+{
+  ClauseAllocator& ca;
+  reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
+  bool operator()(CRef x, CRef y)
+  {
+    return ca[x].size() > 2
+           && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity());
+  }
 };
 void Solver::reduceDB()
 {
@@ -863,14 +867,14 @@ void Solver::rebuildOrderHeap()
     order_heap.build(vs);
 }
 
-
 /*_________________________________________________________________________________________________
 |
 |  simplify : [void]  ->  [bool]
 |
 |  Description:
-|    Simplify the clause database according to the current top-level assigment. Currently, the only
-|    thing done here is the removal of satisfied clauses, but more things can be put here.
+|    Simplify the clause database according to the current top-level assigment.
+Currently, the only |    thing done here is the removal of satisfied clauses,
+but more things can be put here.
 |________________________________________________________________________________________________@*/
 bool Solver::simplify()
 {
@@ -895,7 +899,6 @@ bool Solver::simplify()
     return true;
 }
 
-
 /*_________________________________________________________________________________________________
 |
 |  search : (nof_conflicts : int) (params : const SearchParams&)  ->  [lbool]
@@ -905,9 +908,10 @@ bool Solver::simplify()
 |    NOTE! Use negative value for 'nof_conflicts' indicate infinity.
 |
 |  Output:
-|    'l_True' if a partial assigment that is consistent with respect to the clauseset is found. If
-|    all variables are decision variables, this means that the clause set is satisfiable. 'l_False'
-|    if the clause set is unsatisfiable. 'l_Undef' if the bound on number of conflicts is reached.
+|    'l_True' if a partial assigment that is consistent with respect to the
+clauseset is found. If |    all variables are decision variables, this means
+that the clause set is satisfiable. 'l_False' |    if the clause set is
+unsatisfiable. 'l_Undef' if the bound on number of conflicts is reached.
 |________________________________________________________________________________________________@*/
 lbool Solver::search(int nof_conflicts, UIP uip)
 {
@@ -949,7 +953,7 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             //  if the uip was an assumption we are unsat
             if (level(var(p)) <= assumptions.size()) {
               for (int i = 0; i < learnt_clause.size(); ++i) {
-                assert (level(var(learnt_clause[i])) <= decisionLevel());
+                assert(level(var(learnt_clause[i])) <= decisionLevel());
                 seen[var(learnt_clause[i])] = 1;
               }
 
@@ -976,7 +980,6 @@ lbool Solver::search(int nof_conflicts, UIP uip)
             cancelUntil(backtrack_level);
             uncheckedEnqueue(p, cr);
 
-
             varDecayActivity();
             claDecayActivity();
 
@@ -986,10 +989,17 @@ lbool Solver::search(int nof_conflicts, UIP uip)
                 max_learnts             *= learntsize_inc;
 
                 if (verbosity >= 1)
-                    printf("| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
-                           (int)conflicts,
-                           (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]), nClauses(), (int)clauses_literals,
-                           (int)max_learnts, nLearnts(), (double)learnts_literals/nLearnts(), progressEstimate()*100);
+                  printf("| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
+                         (int)conflicts,
+                         (int)dec_vars
+                             - (trail_lim.size() == 0 ? trail.size()
+                                                      : trail_lim[0]),
+                         nClauses(),
+                         (int)clauses_literals,
+                         (int)max_learnts,
+                         nLearnts(),
+                         (double)learnts_literals / nLearnts(),
+                         progressEstimate() * 100);
             }
 
         }else{
@@ -1194,7 +1204,6 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
         } else {
           Assert(level(x) == 0);
          }
-
       } else {
         Clause& clause = ca[reason(x)];
         for (int j = 1; j < clause.size(); j++)
@@ -1304,8 +1313,7 @@ void Solver::relocAll(ClauseAllocator& to)
             Lit p = mkLit(v, s);
             // printf(" >>> RELOCING: %s%d\n", sign(p)?"-":"", var(p)+1);
             vec<Watcher>& ws = watches[p];
-            for (int j = 0; j < ws.size(); j++)
-              ca.reloc(ws[j].cref, to);
+            for (int j = 0; j < ws.size(); j++) ca.reloc(ws[j].cref, to);
         }
 
     // All reasons:
@@ -1319,13 +1327,11 @@ void Solver::relocAll(ClauseAllocator& to)
 
     // All learnt:
     //
-    for (int i = 0; i < learnts.size(); i++)
-      ca.reloc(learnts[i], to);
+    for (int i = 0; i < learnts.size(); i++) ca.reloc(learnts[i], to);
 
     // All original:
     //
-    for (int i = 0; i < clauses.size(); i++)
-      ca.reloc(clauses[i], to);
+    for (int i = 0; i < clauses.size(); i++) ca.reloc(clauses[i], to);
 }
 
 
@@ -1337,13 +1343,14 @@ void Solver::garbageCollect()
     Debug("bvminisat") << " BVMinisat::Garbage collection \n";
     relocAll(to);
     if (verbosity >= 2)
-        printf("|  Garbage collection:   %12d bytes => %12d bytes             |\n",
-               ca.size()*ClauseAllocator::Unit_Size, to.size()*ClauseAllocator::Unit_Size);
+      printf(
+          "|  Garbage collection:   %12d bytes => %12d bytes             |\n",
+          ca.size() * ClauseAllocator::Unit_Size,
+          to.size() * ClauseAllocator::Unit_Size);
     to.moveTo(ca);
 }
 
-void ClauseAllocator::reloc(CRef& cr,
-                            ClauseAllocator& to)
+void ClauseAllocator::reloc(CRef& cr, ClauseAllocator& to)
 {
   Clause& c = operator[](cr);
   if (c.reloced()) { cr = c.relocation(); return; }
@@ -1352,7 +1359,8 @@ void ClauseAllocator::reloc(CRef& cr,
   c.relocate(cr);
 
   // Copy extra data-fields:
-  // (This could be cleaned-up. Generalize Clause-constructor to be applicable here instead?)
+  // (This could be cleaned-up. Generalize Clause-constructor to be applicable
+  // here instead?)
   to[cr].mark(c.mark());
   if (to[cr].learnt())         to[cr].activity() = c.activity();
   else if (to[cr].has_extra()) to[cr].calcAbstraction();

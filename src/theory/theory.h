@@ -899,9 +899,7 @@ class Theory {
    *
    * @return true iff facts have been asserted to this theory.
    */
-  bool hasFacts() {
-    return !d_facts.empty();
-  }
+  bool hasFacts() { return !d_facts.empty(); }
 
   /** Return total number of facts asserted to this theory */
   size_t numAssertions() {

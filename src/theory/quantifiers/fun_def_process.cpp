@@ -183,8 +183,12 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
             c = simplifyFormula( n[i], newPol, newHasPol, cconstraints, hd, false, visited, visited_cons );
             if( branch_pos ){
               // if at a branching position, the other constraints don't matter if this is satisfied
-              Node bcons = cconstraints.empty() ? NodeManager::currentNM()->mkConst( true ) :
-                           ( cconstraints.size()==1 ? cconstraints[0] : NodeManager::currentNM()->mkNode( AND, cconstraints ) );
+              Node bcons = cconstraints.empty()
+                               ? NodeManager::currentNM()->mkConst(true)
+                               : (cconstraints.size() == 1
+                                      ? cconstraints[0]
+                                      : NodeManager::currentNM()->mkNode(
+                                          AND, cconstraints));
               branch_constraints.push_back( bcons );
               Trace("fmf-fun-def-debug2") << "Branching constraint at arg " << i << " is " << bcons << std::endl;
             }
@@ -209,10 +213,14 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
             // in the default case, we care about all conditions
             branch_cond = constraints.size()==1 ? constraints[0] : NodeManager::currentNM()->mkNode( AND, constraints );
             for( unsigned i=0; i<n.getNumChildren(); i++ ){
-              // if this child holds with forcing polarity (true child of OR or false child of AND),
-              // then we only care about its associated recursive conditions
-              branch_cond = NodeManager::currentNM()->mkNode( kind::ITE,
-                              ( n.getKind()==OR ? n[i] : n[i].negate() ), branch_constraints[i], branch_cond );
+              // if this child holds with forcing polarity (true child of OR or
+              // false child of AND), then we only care about its associated
+              // recursive conditions
+              branch_cond = NodeManager::currentNM()->mkNode(
+                  kind::ITE,
+                  (n.getKind() == OR ? n[i] : n[i].negate()),
+                  branch_constraints[i],
+                  branch_cond);
             }
           }
           Trace("fmf-fun-def-debug2") << "Made branching condition " << branch_cond << std::endl;
