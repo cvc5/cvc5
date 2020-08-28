@@ -689,13 +689,10 @@ class Theory {
    */
   virtual bool collectModelInfo(TheoryModel* m);
   /**
-   * Same as above, but with empty irrKinds. This version can be overridden
-   * by the theory, e.g. by restricting or extending the set of terms returned
-   * by computeRelevantTermsInternal, which is called by default with no
-   * irrKinds.
+   * Compute terms that are not necessarily part of the assertions or
+   * shared terms that should be considered relevant, add them to termSet.
    */
-  virtual void computeRelevantTerms(std::set<Node>& termSet,
-                                    bool includeShared = true);
+  virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by

@@ -359,8 +359,15 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
 
 bool Theory::collectModelInfo(TheoryModel* m)
 {
+  // NOTE: the computation of termSet will be moved to model manager
+  // and passed as an argument to collectModelInfo.
   std::set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
+  TheoryModel * tm = d_valuation.getModel();
+  Assert (tm!=nullptr);
+  const std::set<Kind>& irrKinds = tm->getIrrelevantKinds();
+  computeRelevantTermsInternal(termSet, irrKinds, true);
+  // Compute additional relevant terms (theory-specific)
   computeRelevantTerms(termSet);
   // if we are using an equality engine, assert it to the model
   if (d_equalityEngine != nullptr)

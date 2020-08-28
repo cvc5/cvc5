@@ -2263,13 +2263,8 @@ TrustNode TheoryArrays::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet,
-                                        bool includeShared)
+void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
 {
-  // include all standard terms
-  std::set<Kind> irrKinds;
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
-
   NodeManager* nm = NodeManager::currentNM();
   // make sure RIntro1 reads are included in the relevant set of reads
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);
