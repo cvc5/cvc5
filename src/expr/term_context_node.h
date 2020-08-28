@@ -57,7 +57,9 @@ class TCtxNode
    */
   static Node computeNodeHash(Node n, uint32_t val);
   /**
-   * Decompose node hash, which is an inverse of the above operation.
+   * Decompose node hash, which is an inverse of the above operation. In
+   * particular, given input h, this returns a node n and sets val to a value
+   * such that computeNodeHash(n, val) returns h.
    */
   static Node decomposeNodeHash(Node h, uint32_t& val);
   //---------------------- end utility methods
