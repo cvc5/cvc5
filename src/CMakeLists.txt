@@ -510,6 +510,8 @@ libcvc4_add_sources(
   theory/fp/theory_fp_type_rules.h
   theory/fp/type_enumerator.h
   theory/interrupted.h
+  theory/inference_manager_buffered.cpp
+  theory/inference_manager_buffered.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/model_manager.cpp
@@ -856,6 +858,8 @@ libcvc4_add_sources(
   theory/uf/eq_proof.h
   theory/uf/proof_checker.cpp
   theory/uf/proof_checker.h
+  theory/uf/proof_equality_engine.cpp
+  theory/uf/proof_equality_engine.h
   theory/uf/ho_extension.cpp
   theory/uf/ho_extension.h
   theory/uf/symmetry_breaker.cpp
