@@ -47,16 +47,6 @@ Rational intpow2(uint64_t b)
  */
 bool oneBitAnd(bool a, bool b) { return (a && b); }
 
-bool oneBitOr(bool a, bool b) { return (a || b); }
-
-bool oneBitXor(bool a, bool b) { return a != b; }
-
-bool oneBitXnor(bool a, bool b) { return a == b; }
-
-bool oneBitNand(bool a, bool b) { return !(a && b); }
-
-bool oneBitNor(bool a, bool b) { return !(a || b); }
-
 } //end empty namespace
 
 Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k)
@@ -190,25 +180,26 @@ Node BVToInt::eliminationPass(Node n)
       // eliminate operators from it
       Node currentEliminated =
           FixpointRewriteStrategy<RewriteRule<UdivZero>,
-                                  RewriteRule<SdivEliminate>,
-                                  RewriteRule<SremEliminate>,
-                                  RewriteRule<SmodEliminate>,
+                                  RewriteRule<SdivEliminateFewerBitwiseOps>,
+                                  RewriteRule<SremEliminateFewerBitwiseOps>,
+                                  RewriteRule<SmodEliminateFewerBitwiseOps>,
+                                  RewriteRule<XnorEliminate>,
+                                  RewriteRule<NandEliminate>,
+                                  RewriteRule<NorEliminate>,
+                                  RewriteRule<NegEliminate>,
+                                  RewriteRule<XorEliminate>,
+                                  RewriteRule<OrEliminate>,
+                                  RewriteRule<SubEliminate>,
                                   RewriteRule<RepeatEliminate>,
-                                  RewriteRule<ZeroExtendEliminate>,
-                                  RewriteRule<SignExtendEliminate>,
                                   RewriteRule<RotateRightEliminate>,
                                   RewriteRule<RotateLeftEliminate>,
                                   RewriteRule<CompEliminate>,
                                   RewriteRule<SleEliminate>,
                                   RewriteRule<SltEliminate>,
                                   RewriteRule<SgtEliminate>,
-                                  RewriteRule<SgeEliminate>,
-                                  RewriteRule<ShlByConst>,
-                                  RewriteRule<LshrByConst> >::apply(current);
+                                  RewriteRule<SgeEliminate>>::apply(current);
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
-      // also assign the eliminated now to itself to avoid revisiting.
-      d_eliminationCache[currentEliminated] = currentEliminated;
       // put the eliminated node in the rebuild cache, but mark that it hasn't
       // yet been rebuilt by assigning null.
       d_rebuildCache[currentEliminated] = Node();
@@ -451,23 +442,6 @@ Node BVToInt::bvToInt(Node n)
               d_bvToIntCache[current] = ite;
               break;
             }
-            case kind::BITVECTOR_NEG:
-            {
-              // (bvneg x) is 2^k-x, unless x is 0, 
-              // in which case the result should be 0.
-              // This can be expressed by (2^k-x) mod 2^k
-              // However, since mod is an expensive arithmetic operation,
-              // we represent `bvneg` using an ITE.
-              uint64_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2BvSize = pow2(bvsize);
-              Node neg =
-                  d_nm->mkNode(kind::MINUS, pow2BvSize, translated_children[0]);
-              Node isZero =
-                  d_nm->mkNode(kind::EQUAL, translated_children[0], d_zero);
-              d_bvToIntCache[current] =
-                  d_nm->mkNode(kind::ITE, isZero, d_zero, neg);
-              break;
-            }
             case kind::BITVECTOR_NOT:
             {
               uint64_t bvsize = current[0].getType().getBitVectorSize();
@@ -493,66 +467,6 @@ Node BVToInt::bvToInt(Node n)
                                                bvsize,
                                                granularity,
                                                &oneBitAnd);
-              d_bvToIntCache[current] = newNode;
-              break;
-            }
-            case kind::BITVECTOR_OR:
-            {
-              // Construct an ite, based on granularity.
-              uint64_t bvsize = current[0].getType().getBitVectorSize();
-              Node newNode = createBitwiseNode(translated_children[0],
-                                               translated_children[1],
-                                               bvsize,
-                                               granularity,
-                                               &oneBitOr);
-              d_bvToIntCache[current] = newNode;
-              break;
-            }
-            case kind::BITVECTOR_XOR:
-            {
-              // Construct an ite, based on granularity.
-              uint64_t bvsize = current[0].getType().getBitVectorSize();
-              Node newNode = createBitwiseNode(translated_children[0],
-                                               translated_children[1],
-                                               bvsize,
-                                               granularity,
-                                               &oneBitXor);
-              d_bvToIntCache[current] = newNode;
-              break;
-            }
-            case kind::BITVECTOR_XNOR:
-            {
-              // Construct an ite, based on granularity.
-              uint64_t bvsize = current[0].getType().getBitVectorSize();
-              Node newNode = createBitwiseNode(translated_children[0],
-                                               translated_children[1],
-                                               bvsize,
-                                               granularity,
-                                               &oneBitXnor);
-              d_bvToIntCache[current] = newNode;
-              break;
-            }
-            case kind::BITVECTOR_NAND:
-            {
-              // Construct an ite, based on granularity.
-              uint64_t bvsize = current[0].getType().getBitVectorSize();
-              Node newNode = createBitwiseNode(translated_children[0],
-                                               translated_children[1],
-                                               bvsize,
-                                               granularity,
-                                               &oneBitNand);
-              d_bvToIntCache[current] = newNode;
-              break;
-            }
-            case kind::BITVECTOR_NOR:
-            {
-              // Construct an ite, based on granularity.
-              uint64_t bvsize = current[0].getType().getBitVectorSize();
-              Node newNode = createBitwiseNode(translated_children[0],
-                                               translated_children[1],
-                                               bvsize,
-                                               granularity,
-                                               &oneBitNor);
               d_bvToIntCache[current] = newNode;
               break;
             }
@@ -619,6 +533,57 @@ Node BVToInt::bvToInt(Node n)
               Node ite = d_nm->mkNode(
                   kind::ITE, cond, translated_children[1], translated_children[2]);
               d_bvToIntCache[current] = ite;
+              break;
+            }
+            case kind::BITVECTOR_ZERO_EXTEND:
+            {
+              d_bvToIntCache[current] = translated_children[0];
+              break;
+            }
+            case kind::BITVECTOR_SIGN_EXTEND:
+            {
+              uint64_t bvsize = current[0].getType().getBitVectorSize();
+              Node arg = translated_children[0];
+              if (arg.isConst())
+              {
+                Rational c(arg.getConst<Rational>());
+                Rational twoToKMinusOne(intpow2(bvsize - 1));
+                uint64_t amount = bv::utils::getSignExtendAmount(current);
+                if (c < twoToKMinusOne || amount == 0)
+                {
+                  d_bvToIntCache[current] = arg;
+                }
+                else
+                {
+                  Rational max_of_amount = intpow2(amount) - 1;
+                  Rational mul = max_of_amount * intpow2(bvsize);
+                  Rational sum = mul + c;
+                  Node result = d_nm->mkConst(sum);
+                  d_bvToIntCache[current] = result;
+                }
+              }
+              else
+              {
+                uint64_t amount = bv::utils::getSignExtendAmount(current);
+                if (amount == 0)
+                {
+                  d_bvToIntCache[current] = translated_children[0];
+                }
+                else
+                {
+                  Rational twoToKMinusOne(intpow2(bvsize - 1));
+                  Node minSigned = d_nm->mkConst(twoToKMinusOne);
+                  Node condition = d_nm->mkNode(kind::LT, arg, minSigned);
+                  Node thenResult = arg;
+                  Node left = maxInt(amount);
+                  Node mul = d_nm->mkNode(kind::MULT, left, pow2(bvsize));
+                  Node sum = d_nm->mkNode(kind::PLUS, mul, arg);
+                  Node elseResult = sum;
+                  Node ite = d_nm->mkNode(
+                      kind::ITE, condition, thenResult, elseResult);
+                  d_bvToIntCache[current] = ite;
+                }
+              }
               break;
             }
             case kind::BITVECTOR_CONCAT:
