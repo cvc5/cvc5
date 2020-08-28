@@ -17,6 +17,7 @@
 #ifndef CVC4__FIRST_ORDER_MODEL_H
 #define CVC4__FIRST_ORDER_MODEL_H
 
+#include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
