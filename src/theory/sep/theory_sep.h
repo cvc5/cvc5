@@ -106,7 +106,8 @@ class TheorySep : public Theory {
  private:
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
-
+  /** Conflict when merging constants */
+  void conflict(TNode a, TNode b);
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
@@ -114,8 +115,6 @@ class TheorySep : public Theory {
   TrustNode explain(TNode n) override;
 
  public:
-  void notifySharedTerm(TNode t) override;
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -123,7 +122,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  bool collectModelInfo(TheoryModel* m) override;
   void postProcessModel(TheoryModel* m) override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -138,12 +136,27 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
- public:
-  void check(Effort e) override;
 
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
 
  private:
+  /** Ensures that the reduction has been added for the given fact */
+  void reduceFact(TNode atom, bool polarity, TNode fact);
+  /** Is spatial kind? */
+  bool isSpatialKind(Kind k) const;
   // NotifyClass: template helper class for d_equalityEngine - handles
   // call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify
@@ -201,16 +214,12 @@ class TheorySep : public Theory {
   NotifyClass d_notify;
 
   /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
   std::vector< Node > d_pending_exp;
   std::vector< Node > d_pending;
   std::vector< int > d_pending_lem;
 
   /** list of all refinement lemms */
   std::map< Node, std::map< Node, std::vector< Node > > > d_refinement_lem;
-
-  /** Conflict when merging constants */
-  void conflict(TNode a, TNode b);
 
   //cache for positive polarity start reduction
   NodeSet d_reduce;
