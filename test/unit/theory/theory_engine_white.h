@@ -54,10 +54,7 @@ using namespace CVC4::theory::bv;
 using namespace std;
 
 class FakeOutputChannel : public OutputChannel {
-  void conflict(TNode n) override
-  {
-    Unimplemented();
-  }
+  void conflict(TNode n) override { Unimplemented(); }
   bool propagate(TNode n) override { Unimplemented(); }
   LemmaStatus lemma(TNode n,
                     LemmaProperty p = LemmaProperty::NONE) override

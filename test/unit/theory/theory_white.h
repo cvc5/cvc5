@@ -47,10 +47,7 @@ class TestOutputChannel : public OutputChannel {
   ~TestOutputChannel() override {}
 
   void safePoint(ResourceManager::Resource r) override {}
-  void conflict(TNode n) override
-  {
-    push(CONFLICT, n);
-  }
+  void conflict(TNode n) override { push(CONFLICT, n); }
 
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
