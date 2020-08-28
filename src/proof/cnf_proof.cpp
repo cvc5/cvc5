@@ -46,20 +46,9 @@ Node CnfProof::getAssertionForClause(ClauseId clause) {
   return (*it).second;
 }
 
-void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
+void CnfProof::registerConvertedClause(ClauseId clause) {
   Assert(clause != ClauseIdUndef && clause != ClauseIdError
          && clause != ClauseIdEmpty);
-
-  // Explanations do not need a CNF conversion proof since they are in CNF
-  // (they will only need a theory proof as they are theory valid)
-  if (explanation) {
-    Debug("proof:cnf") << "CnfProof::registerConvertedClause "
-                       << clause << " explanation? " << explanation << std::endl;
-    Assert(d_explanations.find(clause) == d_explanations.end());
-    d_explanations.insert(clause);
-    return;
-  }
-
   Node current_assertion = getCurrentAssertion();
 
   Debug("proof:cnf") << "CnfProof::registerConvertedClause " << clause

@@ -89,9 +89,7 @@ public:
 
   /** Methods for logging what the CnfStream does **/
   // map the clause back to the current assertion where it came from
-  // if it is an explanation, it does not have a CNF proof since it is
-  // already in CNF
-  void registerConvertedClause(ClauseId clause, bool explanation=false);
+  void registerConvertedClause(ClauseId clause);
 
   // The CNF proof has a special relationship to true and false.
   // In particular, it need to know the identity of clauses defining

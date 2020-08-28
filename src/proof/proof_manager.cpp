@@ -176,47 +176,18 @@ void ProofManager::getLemmasInUnsatCore(std::vector<Node>& lemmas)
       << "Cannot compute unsat core when proofs are off";
   Assert(unsatCoreAvailable())
       << "Cannot get unsat core at this time. Mabye the input is SAT?";
-
   constructSatProof();
-
   IdToSatClause used_lemmas;
   IdToSatClause used_inputs;
   d_satProof->collectClausesUsed(used_inputs, used_lemmas);
-
-  IdToSatClause::const_iterator it;
-  std::set<Node> seen;
-
-  NodeManager* nm = NodeManager::currentNM();
-
   Debug("pf::lemmasUnsatCore") << "Retrieving all lemmas in unsat core\n";
+  IdToSatClause::const_iterator it;
   for (it = used_lemmas.begin(); it != used_lemmas.end(); ++it)
   {
-    std::vector<Node> nodeLits;
-    for (unsigned i = 0, size = it->second->size(); i < size; ++i)
-    {
-      prop::SatLiteral lit = (*it->second)[i];
-      Node atom = getCnfProof()->getAtom(lit.getSatVariable());
-      if (atom != nm->mkConst(true))
-      {
-        nodeLits.push_back(lit.isNegated() ? atom.notNode() : atom);
-      }
-    }
-    Assert(nodeLits.size() > 1);
-    Node lemma = nm->mkNode(kind::AND, nodeLits);
+    Node lemma = d_cnfProof->getAssertionForClause(it->first);
     Debug("pf::lemmasUnsatCore") << "Retrieved lemma " << lemma << "\n";
-    seen.insert(lemma);
+    lemmas.push_back(lemma);
   }
-  lemmas.insert(lemmas.end(), seen.begin(), seen.end());
-}
-
-Node ProofManager::getWeakestImplicantInUnsatCore(Node lemma)
-{
-  Assert(options::unsatCores())
-      << "Cannot compute unsat core when proofs are off";
-  Assert(unsatCoreAvailable())
-      << "Cannot get unsat core at this time. Mabye the input is SAT?";
-
-  return lemma;
 }
 
 void ProofManager::addCoreAssertion(Expr formula) {

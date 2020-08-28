@@ -111,7 +111,6 @@ public:
 
   bool unsatCoreAvailable() const;
   void getLemmasInUnsatCore(std::vector<Node>& lemmas);
-  Node getWeakestImplicantInUnsatCore(Node lemma);
 
   int nextId() { return d_nextId++; }
 

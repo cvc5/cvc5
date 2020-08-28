@@ -20,7 +20,6 @@
 #define CVC4__SAT__PROOF_IMPLEMENTATION_H
 
 #include "proof/clause_id.h"
-#include "proof/cnf_proof.h"
 #include "proof/sat_proof.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/minisat.h"

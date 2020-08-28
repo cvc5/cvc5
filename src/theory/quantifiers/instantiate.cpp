@@ -607,27 +607,6 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
   return true;
 }
 
-bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
-                                     std::map<Node, Node>& weak_imp)
-{
-  if (getUnsatCoreLemmas(active_lemmas))
-  {
-    for (unsigned i = 0, size = active_lemmas.size(); i < size; ++i)
-    {
-      Node n = ProofManager::currentPM()->getWeakestImplicantInUnsatCore(
-          active_lemmas[i]);
-      if (n != active_lemmas[i])
-      {
-        Trace("inst-unsat-core") << "  weaken : " << active_lemmas[i] << " -> "
-                                 << n << std::endl;
-      }
-      weak_imp[active_lemmas[i]] = n;
-    }
-    return true;
-  }
-  return false;
-}
-
 void Instantiate::getInstantiationTermVectors(
     Node q, std::vector<std::vector<Node> >& tvecs)
 {

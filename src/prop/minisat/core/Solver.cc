@@ -31,6 +31,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "options/smt_options.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
+#include "proof/cnf_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/minisat/minisat.h"
@@ -397,7 +398,9 @@ CRef Solver::reason(Var x) {
     {
       ClauseId id = ProofManager::getSatProof()->registerClause(real_reason,
                                                                 THEORY_LEMMA);
-      ProofManager::getCnfProof()->registerConvertedClause(id, true);
+      // map id to assertion, which may be required if looking for
+      // lemmas in unsat core
+      ProofManager::getCnfProof()->registerConvertedClause(id);
       // explainPropagation() pushes the explanation on the assertion stack
       // in CnfProof, so we need to pop it here. This is important because
       // reason() may be called indirectly while adding a clause, which can
@@ -498,11 +501,17 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
           if(falseLiteralsCount == 1) {
             if (options::unsatCores())
             {
-              id = ProofManager::getSatProof()->storeUnitConflict(
-                  ps[0],
+              ClauseKind ck =
                   ProofManager::getCnfProof()->getCurrentAssertionKind()
                       ? INPUT
-                      : THEORY_LEMMA);
+                      : THEORY_LEMMA;
+              id = ProofManager::getSatProof()->storeUnitConflict(ps[0], ck);
+              // map id to assertion, which may be required if looking for
+              // lemmas in unsat core
+              if (ck == THEORY_LEMMA)
+              {
+                ProofManager::getCnfProof()->registerConvertedClause(id);
+              }
               ProofManager::getSatProof()->finalizeProof(
                   CVC4::Minisat::CRef_Lazy);
             }
@@ -529,12 +538,16 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
 
         if (options::unsatCores())
         {
-          id = ProofManager::getSatProof()->registerClause(
-              cr,
-              ProofManager::getCnfProof()->getCurrentAssertionKind()
-                  ? INPUT
-                  : THEORY_LEMMA);
-
+          ClauseKind ck = ProofManager::getCnfProof()->getCurrentAssertionKind()
+                              ? INPUT
+                              : THEORY_LEMMA;
+          id = ProofManager::getSatProof()->registerClause(cr, ck);
+          // map id to assertion, which may be required if looking for
+          // lemmas in unsat core
+          if (ck == THEORY_LEMMA)
+          {
+            ProofManager::getCnfProof()->registerConvertedClause(id);
+          }
           if (ps.size() == falseLiteralsCount)
           {
             ProofManager::getSatProof()->finalizeProof(cr);
@@ -552,11 +565,17 @@ bool Solver::addClause_(vec<Lit>& ps, bool removable, ClauseId& id)
                          << std::endl;
           if (options::unsatCores() && ps.size() == 1)
           {
-            id = ProofManager::getSatProof()->registerUnitClause(
-                ps[0],
-                ProofManager::getCnfProof()->getCurrentAssertionKind()
-                    ? INPUT
-                    : THEORY_LEMMA);
+              ClauseKind ck =
+                  ProofManager::getCnfProof()->getCurrentAssertionKind()
+                      ? INPUT
+                      : THEORY_LEMMA;
+              id = ProofManager::getSatProof()->registerUnitClause(ps[0], ck);
+              // map id to assertion, which may be required if looking for
+              // lemmas in unsat core
+              if (ck == THEORY_LEMMA)
+              {
+                ProofManager::getCnfProof()->registerConvertedClause(id);
+              }
           }
           CRef confl = propagate(CHECK_WITHOUT_THEORY);
           if(! (ok = (confl == CRef_Undef)) ) {
