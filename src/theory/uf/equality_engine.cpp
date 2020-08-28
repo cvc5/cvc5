@@ -17,9 +17,9 @@
 
 #include "theory/uf/equality_engine.h"
 
-#include "smt/smt_statistics_registry.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
+#include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
@@ -635,8 +635,10 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
   TaggedEqualitiesSet class1disequalitiesToNotify;
 
   // Individual tags
-  TheoryIdSet class1OnlyTags = TheoryIdSetUtil::setDifference(class1Tags, class2Tags);
-  TheoryIdSet class2OnlyTags = TheoryIdSetUtil::setDifference(class2Tags, class1Tags);
+  TheoryIdSet class1OnlyTags =
+      TheoryIdSetUtil::setDifference(class1Tags, class2Tags);
+  TheoryIdSet class2OnlyTags =
+      TheoryIdSetUtil::setDifference(class2Tags, class1Tags);
 
   // Only get disequalities if they are not both constant
   if (!class1isConstant || !class2isConstant) {
@@ -762,8 +764,8 @@ bool EqualityEngine::merge(EqualityNode& class1, EqualityNode& class2, std::vect
       TriggerTermSet& class2triggers = getTriggerTermSet(class2triggerRef);
 
       // Initialize the merged set
-      TheoryIdSet newSetTags =
-          TheoryIdSetUtil::setUnion(class1triggers.d_tags, class2triggers.d_tags);
+      TheoryIdSet newSetTags = TheoryIdSetUtil::setUnion(class1triggers.d_tags,
+                                                         class2triggers.d_tags);
       EqualityNodeId newSetTriggers[THEORY_LAST];
       unsigned newSetTriggersSize = 0;
 
@@ -2331,7 +2333,8 @@ TNode EqualityEngine::getTriggerTermRepresentative(TNode t, TheoryId tag) const 
   const TriggerTermSet& triggerSet = getTriggerTermSet(d_nodeIndividualTrigger[classId]);
   unsigned i = 0;
   TheoryIdSet tags = triggerSet.d_tags;
-  while (TheoryIdSetUtil::setPop(tags) != tag) {
+  while (TheoryIdSetUtil::setPop(tags) != tag)
+  {
     ++ i;
   }
   return d_nodes[triggerSet.d_triggers[i]];
@@ -2568,8 +2571,8 @@ void EqualityEngine::getDisequalities(bool allowConstants,
             // Tags of the other gey
             TriggerTermSet& toCompareTriggerSet = getTriggerTermSet(toCompareTriggerSetRef);
             // We only care if there are things in inputTags that is also in toCompareTags
-            TheoryIdSet commonTags =
-                TheoryIdSetUtil::setIntersection(inputTags, toCompareTriggerSet.d_tags);
+            TheoryIdSet commonTags = TheoryIdSetUtil::setIntersection(
+                inputTags, toCompareTriggerSet.d_tags);
             if (commonTags) {
               out.push_back(TaggedEquality(funId, toCompareTriggerSetRef, lhs));
             }
@@ -2623,7 +2626,10 @@ bool EqualityEngine::propagateTriggerTermDisequalities(
     }
     // Go through the tags, and add the disequalities
     TheoryId currentTag;
-    while (!d_done && ((currentTag = TheoryIdSetUtil::setPop(commonTags)) != THEORY_LAST)) {
+    while (
+        !d_done
+        && ((currentTag = TheoryIdSetUtil::setPop(commonTags)) != THEORY_LAST))
+    {
       // Get the tag representative
       EqualityNodeId tagRep = disequalityTriggerSet.getTrigger(currentTag);
       EqualityNodeId myRep = triggerSet.getTrigger(currentTag);

@@ -77,10 +77,12 @@ class TheoryIdSetUtil
   /** Returns the index size of a set of theories */
   static size_t setIndex(TheoryId id, TheoryIdSet set);
 
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
+  /** Add the theory to the set. If no set specified, just returns a singleton
+   * set */
   static TheoryIdSet setInsert(TheoryId theory, TheoryIdSet set = 0);
 
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
+  /** Add the theory to the set. If no set specified, just returns a singleton
+   * set */
   static TheoryIdSet setRemove(TheoryId theory, TheoryIdSet set = 0);
 
   /** Check if the set contains the theory */

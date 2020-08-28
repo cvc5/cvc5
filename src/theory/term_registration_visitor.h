@@ -61,36 +61,35 @@ class PreRegisterVisitor {
   std::string toString() const;
 
  public:
-
   /** Returned set tells us which theories there are */
- typedef theory::TheoryIdSet return_type;
+  typedef theory::TheoryIdSet return_type;
 
- PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
-     : d_engine(engine), d_visited(context), d_theories(0)
- {
- }
+  PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
+      : d_engine(engine), d_visited(context), d_theories(0)
+  {
+  }
 
- /**
-  * Returns true is current has already been pre-registered with both current
-  * and parent theories.
-  */
- bool alreadyVisited(TNode current, TNode parent);
+  /**
+   * Returns true is current has already been pre-registered with both current
+   * and parent theories.
+   */
+  bool alreadyVisited(TNode current, TNode parent);
 
- /**
-  * Pre-registeres current with any of the current and parent theories that
-  * haven't seen the term yet.
-  */
- void visit(TNode current, TNode parent);
+  /**
+   * Pre-registeres current with any of the current and parent theories that
+   * haven't seen the term yet.
+   */
+  void visit(TNode current, TNode parent);
 
- /**
-  * Marks the node as the starting literal.
-  */
- void start(TNode node) {}
+  /**
+   * Marks the node as the starting literal.
+   */
+  void start(TNode node) {}
 
- /**
-  * Notifies the engine of all the theories used.
-  */
- theory::TheoryIdSet done(TNode node) { return d_theories; }
+  /**
+   * Notifies the engine of all the theories used.
+   */
+  theory::TheoryIdSet done(TNode node) { return d_theories; }
 };
 
 

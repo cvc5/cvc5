@@ -73,12 +73,14 @@ std::string getStatsPrefix(TheoryId theoryId)
   return "unknown";
 }
 
-
 TheoryId TheoryIdSetUtil::setPop(TheoryIdSet& set)
 {
-  uint32_t i = ffs(set); // Find First Set (bit)
-  if (i == 0) { return THEORY_LAST; }
-  TheoryId id = static_cast<TheoryId>(i-1);
+  uint32_t i = ffs(set);  // Find First Set (bit)
+  if (i == 0)
+  {
+    return THEORY_LAST;
+  }
+  TheoryId id = static_cast<TheoryId>(i - 1);
   set = setRemove(id, set);
   return id;
 }
@@ -86,8 +88,9 @@ TheoryId TheoryIdSetUtil::setPop(TheoryIdSet& set)
 size_t TheoryIdSetUtil::setSize(TheoryIdSet set)
 {
   size_t count = 0;
-  while (setPop(set) != THEORY_LAST) {
-    ++ count;
+  while (setPop(set) != THEORY_LAST)
+  {
+    ++count;
   }
   return count;
 }
@@ -96,8 +99,9 @@ size_t TheoryIdSetUtil::setIndex(TheoryId id, TheoryIdSet set)
 {
   Assert(setContains(id, set));
   size_t count = 0;
-  while (setPop(set) != id) {
-    ++ count;
+  while (setPop(set) != id)
+  {
+    ++count;
   }
   return count;
 }
@@ -117,14 +121,20 @@ bool TheoryIdSetUtil::setContains(TheoryId theory, TheoryIdSet set)
   return set & (1 << theory);
 }
 
-TheoryIdSet TheoryIdSetUtil::setComplement(TheoryIdSet a) { return (~a) & AllTheories; }
+TheoryIdSet TheoryIdSetUtil::setComplement(TheoryIdSet a)
+{
+  return (~a) & AllTheories;
+}
 
 TheoryIdSet TheoryIdSetUtil::setIntersection(TheoryIdSet a, TheoryIdSet b)
 {
   return a & b;
 }
 
-TheoryIdSet TheoryIdSetUtil::setUnion(TheoryIdSet a, TheoryIdSet b) { return a | b; }
+TheoryIdSet TheoryIdSetUtil::setUnion(TheoryIdSet a, TheoryIdSet b)
+{
+  return a | b;
+}
 
 TheoryIdSet TheoryIdSetUtil::setDifference(TheoryIdSet a, TheoryIdSet b)
 {
@@ -135,15 +145,17 @@ std::string TheoryIdSetUtil::setToString(TheoryIdSet theorySet)
 {
   std::stringstream ss;
   ss << "[";
-  for(unsigned theoryId = 0; theoryId < THEORY_LAST; ++theoryId) {
+  for (unsigned theoryId = 0; theoryId < THEORY_LAST; ++theoryId)
+  {
     TheoryId tid = static_cast<TheoryId>(theoryId);
-    if (setContains(tid, theorySet)) {
+    if (setContains(tid, theorySet))
+    {
       ss << tid << " ";
     }
   }
   ss << "]";
   return ss.str();
-}  
+}
 
 }  // namespace theory
 }  // namespace CVC4

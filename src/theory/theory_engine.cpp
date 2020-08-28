@@ -313,7 +313,8 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       theories = TheoryIdSetUtil::setRemove(THEORY_BOOL, theories);
       // Remove the top theory, if any more that means multiple theories were
       // involved
-      bool multipleTheories = TheoryIdSetUtil::setRemove(Theory::theoryOf(preprocessed), theories);
+      bool multipleTheories =
+          TheoryIdSetUtil::setRemove(Theory::theoryOf(preprocessed), theories);
       if (Configuration::isAssertionBuild())
       {
         TheoryId i;
@@ -1077,7 +1078,8 @@ void TheoryEngine::assertFact(TNode literal)
         theory::TheoryIdSet theories =
             d_sharedTerms.getTheoriesToNotify(atom, term);
         for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++ id) {
-          if (TheoryIdSetUtil::setContains(id, theories)) {
+          if (TheoryIdSetUtil::setContains(id, theories))
+          {
             theoryOf(id)->addSharedTerm(term);
           }
         }
