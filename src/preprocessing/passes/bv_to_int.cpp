@@ -200,6 +200,8 @@ Node BVToInt::eliminationPass(Node n)
                                   RewriteRule<SgeEliminate>>::apply(current);
       // save in the cache
       d_eliminationCache[current] = currentEliminated;
+      // also assign the eliminated now to itself to avoid revisiting.	
+      d_eliminationCache[currentEliminated] = currentEliminated;
       // put the eliminated node in the rebuild cache, but mark that it hasn't
       // yet been rebuilt by assigning null.
       d_rebuildCache[currentEliminated] = Node();
