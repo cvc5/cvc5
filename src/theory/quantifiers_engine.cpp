@@ -174,7 +174,7 @@ class QuantifiersEnginePrivate
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
-                                     TheoryEngine* te, 
+                                     TheoryEngine* te,
                                      ProofNodeManager* pnm)
     : d_te(te),
       d_masterEqualityEngine(nullptr),
@@ -188,8 +188,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(
-          new quantifiers::Instantiate(this, u, pnm)),
+      d_instantiate(new quantifiers::Instantiate(this, u, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, u)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
