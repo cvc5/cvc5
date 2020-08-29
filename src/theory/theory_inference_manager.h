@@ -54,6 +54,12 @@ class EqualityEngine;
  * (with isInternal = true) whenever we assert internal facts using
  * assertFactInernal below, mirroring what is done for facts from the fact
  * queue (where isInternal = false).
+ *
+ * (3) The proof equality engine is used whenever proofs are enabled (when
+ * the proof node manager provided to this class is non-null). Notice this
+ * class automatically will construct a proof equality engine during
+ * setEqualityEngine, and use it for handling variants of assertInternalFact
+ * below that involve proofs.
  */
 class TheoryInferenceManager
 {
