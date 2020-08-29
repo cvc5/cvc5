@@ -18,8 +18,8 @@
 #define CVC4__THEORY__ARRAYS__INFERENCE_MANAGER_H
 
 #include "expr/node.h"
-#include "theory/theory_inference_manager.h"
 #include "expr/proof_rule.h"
+#include "theory/theory_inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -33,12 +33,12 @@ class InferenceManager : public TheoryInferenceManager
  public:
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   ~InferenceManager() {}
-  
+
   /** Assert inference internal */
   bool assertInference(TNode eq, bool polarity, TNode reason, PfRule r);
 };
 
-}  // namespace datatypes
+}  // namespace arrays
 }  // namespace theory
 }  // namespace CVC4
 

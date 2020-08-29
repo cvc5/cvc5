@@ -482,10 +482,7 @@ Node Instantiate::getInstantiation(Node q,
                         "Instantiate::getInstantiation:rewrite_inst",
                         false,
                         PfRule::THEORY_PREPROCESS);
-        pf->addStep(newBody,
-                    PfRule::EQ_RESOLVE,
-                    {body, proven},
-                    {});
+        pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
       }
       body = newBody;
     }

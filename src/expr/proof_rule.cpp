@@ -149,7 +149,7 @@ const char* toString(PfRule id)
       //%%%%%%%%%%%%%  END SHOULD BE AUTO GENERATED
 
       //================================================= Place holder for Lean
-      //rules
+      // rules
 
     case PfRule::LEAN_RULE: return "LEAN_RULE";
 

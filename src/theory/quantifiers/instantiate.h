@@ -54,7 +54,7 @@ class InstantiationRewriter
    *
    * The flag doVts is whether we must apply virtual term substitution to the
    * instantiation.
-   * 
+   *
    * Returns a TrustNode of kind REWRITE, corresponding to the rewrite of inst
    * and its proof generator.
    */
@@ -180,7 +180,7 @@ class Instantiate : public QuantifiersUtil
    *
    * Returns the instantiation lemma for q under substitution { vars -> terms }.
    * doVts is whether to apply virtual term substitution to its body.
-   * 
+   *
    * If provided, pf is a lazy proof for which we store a proof of the
    * returned formula with free assumption q. This typically stores a
    * single INSTANTIATE step concluding the instantiated body of q from q.

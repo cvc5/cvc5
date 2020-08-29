@@ -31,9 +31,9 @@ InferenceManager::InferenceManager(Theory& t,
 }
 
 bool InferenceManager::assertInference(TNode eq,
-                                   bool polarity,
-                                   TNode reason,
-                                   PfRule r)
+                                       bool polarity,
+                                       TNode reason,
+                                       PfRule r)
 {
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
                         << (polarity ? Node(eq) : eq.notNode()) << " by "
@@ -58,7 +58,7 @@ bool InferenceManager::assertInference(TNode eq,
         break;
     }
     // FIXME
-    //return d_pfee->assertFact(fact, r, reason, args);
+    // return d_pfee->assertFact(fact, r, reason, args);
   }
   // FIXME
   return d_ee->assertEquality(eq, polarity, reason);
