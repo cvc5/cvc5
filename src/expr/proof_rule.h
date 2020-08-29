@@ -163,6 +163,46 @@ enum class PfRule : uint32_t
   // Notice that we apply rewriting on the witness form of F and G, similar to
   // MACRO_SR_PRED_INTRO.
   MACRO_SR_PRED_TRANSFORM,
+  // ======== Theory Rewrite
+  // Children: none
+  // Arguments: (t, preRewrite?)
+  // ----------------------------------------
+  // Conclusion: (= t t')
+  // where
+  //  t' is the result of applying either a pre-rewrite or a post-rewrite step
+  //  to t (depending on the second argument).
+  THEORY_REWRITE,
+
+  //================================================= Processing rules
+  // ======== Remove Term Formulas Axiom
+  // Children: none
+  // Arguments: (t)
+  // ---------------------------------------------------------------
+  // Conclusion: RemoveTermFormulas::getAxiomFor(t).
+  REMOVE_TERM_FORMULA_AXIOM,
+
+  //================================================= Trusted rules
+  // The rules in this section have the signature of a "trusted rule":
+  //
+  // Children: none
+  // Arguments: (F)
+  // ---------------------------------------------------------------
+  // Conclusion: F
+  //
+  // where F is an equality of the form t = t' where t was replaced by t'
+  // based on some preprocessing pass, or otherwise F was added as a new
+  // assertion by some preprocessing pass.
+  PREPROCESS,
+  // where F was added as a new assertion by some preprocessing pass.
+  PREPROCESS_LEMMA,
+  // where F is an equality of the form t = Theory::ppRewrite(t) for some
+  // theory. Notice this is a "trusted" rule.
+  THEORY_PREPROCESS,
+  // where F was added as a new assertion by theory preprocessing.
+  THEORY_PREPROCESS_LEMMA,
+  // where F is an existential (exists ((x T)) (P x)) used for introducing
+  // a witness term (witness ((x T)) (P x)).
+  WITNESS_AXIOM,
 
   //================================================= Boolean rules
   // ======== Split
@@ -171,6 +211,13 @@ enum class PfRule : uint32_t
   // ---------------------
   // Conclusion: (or F (not F))
   SPLIT,
+  // ======== Equality resolution
+  // Children: (P1:F1, P2:(= F1 F2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (F2)
+  // Note this can optionally be seen as a macro for EQUIV_ELIM1+RESOLUTION.
+  EQ_RESOLVE,
   // ======== And elimination
   // Children: (P:(and F1 ... Fn))
   // Arguments: (i)
@@ -440,11 +487,14 @@ enum class PfRule : uint32_t
   // -----------------------
   // Conclusion: (= t1 tn)
   TRANS,
-  // ======== Congruence  (subsumed by Substitute?)
+  // ======== Congruence
   // Children: (P1:(= t1 s1), ..., Pn:(= tn sn))
-  // Arguments: (f)
+  // Arguments: (<kind> f?)
   // ---------------------------------------------
-  // Conclusion: (= (f t1 ... tn) (f s1 ... sn))
+  // Conclusion: (= (<kind> f? t1 ... tn) (<kind> f? s1 ... sn))
+  // Notice that f must be provided iff <kind> is a parameterized kind, e.g.
+  // APPLY_UF. The actual node for <kind> is constructible via
+  // ProofRuleChecker::mkKindNode.
   CONG,
   // ======== True intro
   // Children: (P:F)
@@ -503,6 +553,241 @@ enum class PfRule : uint32_t
   // sigma maps x1 ... xn to t1 ... tn.
   INSTANTIATE,
 
+  //================================================= String rules
+  //======================== Core solver
+  // ======== Concat eq
+  // Children: (P1:(= (str.++ t1 ... tn t) (str.++ t1 ... tn s)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t s)
+  //
+  // Notice that t or s may be empty, in which case they are implicit in the
+  // concatenation above. For example, if
+  // P1 concludes (= x (str.++ x z)), then
+  // (CONCAT_EQ P1 :args false) concludes (= "" z)
+  //
+  // Also note that constants are split, such that if
+  // P1 concludes (= (str.++ "abc" x) (str.++ "a" y)), then
+  // (CONCAT_EQ P1 :args false) concludes (= (str.++ "bc" x) y)
+  // This splitting is done only for constants such that Word::splitConstant
+  // returns non-null.
+  CONCAT_EQ,
+  // ======== Concat unify
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(= (str.len t1) (str.len s1)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: (= t1 s1)
+  CONCAT_UNIFY,
+  // ======== Concat conflict
+  // Children: (P1:(= (str.++ c1 t) (str.++ c2 s)))
+  // Arguments: (b), indicating if reverse direction
+  // ---------------------
+  // Conclusion: false
+  // Where c1, c2 are constants such that Word::splitConstant(c1,c2,index,b)
+  // is null, in other words, neither is a prefix of the other.
+  CONCAT_CONFLICT,
+  // ======== Concat split
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(not (= (str.len t1) (str.len s1))))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (or (= t1 (str.++ s1 r_t)) (= s1 (str.++ t1 r_s)))
+  // where
+  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1)))),
+  //   r_s = (witness ((z String)) (= z (suf s1 (str.len t1)))).
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(not (= (str.len t2) (str.len s2))))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (or (= t2 (str.++ r_t s2)) (= s2 (str.++ r_s t2)))
+  // where
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
+  //   s2))))), r_s = (witness ((z String)) (= z (pre s2 (- (str.len s2)
+  //   (str.len t2))))).
+  //
+  // Above, (suf x n) is shorthand for (str.substr x n (- (str.len x) n)) and
+  // (pre x n) is shorthand for (str.substr x 0 n).
+  CONCAT_SPLIT,
+  // ======== Concat constant split
+  // Children: (P1:(= (str.++ t1 t2) (str.++ c s2)),
+  //            P2:(not (= (str.len t1) 0)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ c r))
+  // where
+  //   r = (witness ((z String)) (= z (suf t1 1))).
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 c)),
+  //            P2:(not (= (str.len t2) 0)))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r c))
+  // where
+  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) 1)))).
+  CONCAT_CSPLIT,
+  // ======== Concat length propagate
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(> (str.len t1) (str.len s1)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ s1 r_t))
+  // where
+  //   r_t = (witness ((z String)) (= z (suf t1 (str.len s1))))
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 t2) (str.++ s1 s2)),
+  //            P2:(> (str.len t2) (str.len s2)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r_t s2))
+  // where
+  //   r_t = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len
+  //   s2))))).
+  CONCAT_LPROP,
+  // ======== Concat constant propagate
+  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ w2 s)),
+  //            P2:(not (= (str.len t1) 0)))
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (= t1 (str.++ w3 r))
+  // where
+  //   w1, w2, w3, w4 are words,
+  //   w3 is (pre w2 p),
+  //   w4 is (suf w2 p),
+  //   p = Word::overlap((suf w2 1), w1),
+  //   r = (witness ((z String)) (= z (suf t1 (str.len w3)))).
+  // In other words, w4 is the largest suffix of (suf w2 1) that can contain a
+  // prefix of w1; since t1 is non-empty, w3 must therefore be contained in t1.
+  //
+  // or the reverse form of the above:
+  //
+  // Children: (P1:(= (str.++ t1 w1 t2) (str.++ s w2)),
+  //            P2:(not (= (str.len t2) 0)))
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (= t2 (str.++ r w3))
+  // where
+  //   w1, w2, w3, w4 are words,
+  //   w3 is (suf w2 (- (str.len w2) p)),
+  //   w4 is (pre w2 (- (str.len w2) p)),
+  //   p = Word::roverlap((pre w2 (- (str.len w2) 1)), w1),
+  //   r = (witness ((z String)) (= z (pre t2 (- (str.len t2) (str.len w3))))).
+  // In other words, w4 is the largest prefix of (pre w2 (- (str.len w2) 1))
+  // that can contain a suffix of w1; since t2 is non-empty, w3 must therefore
+  // be contained in t2.
+  CONCAT_CPROP,
+  // ======== String decompose
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (false)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w1) n))
+  // or
+  // Children: (P1: (>= (str.len t) n)
+  // Arguments: (true)
+  // ---------------------
+  // Conclusion: (and (= t (str.++ w1 w2)) (= (str.len w2) n))
+  // where
+  //   w1 is (witness ((z String)) (= z (pre t n)))
+  //   w2 is (witness ((z String)) (= z (suf t n)))
+  STRING_DECOMPOSE,
+  // ======== Length positive
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (or (and (= (str.len t) 0) (= t "")) (> (str.len t 0)))
+  STRING_LENGTH_POS,
+  // ======== Length non-empty
+  // Children: (P1:(not (= t "")))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (not (= (str.len t) 0))
+  STRING_LENGTH_NON_EMPTY,
+  //======================== Extended functions
+  // ======== Reduction
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (and R (= t w))
+  // where w = strings::StringsPreprocess::reduce(t, R, ...).
+  // In other words, R is the reduction predicate for extended term t, and w is
+  //   (witness ((z T)) (= z t))
+  // Notice that the free variables of R are w and the free variables of t.
+  STRING_REDUCTION,
+  // ======== Eager Reduction
+  // Children: none
+  // Arguments: (t, id?)
+  // ---------------------
+  // Conclusion: R
+  // where R = strings::TermRegistry::eagerReduce(t, id).
+  STRING_EAGER_REDUCTION,
+  //======================== Regular expressions
+  // ======== Regular expression intersection
+  // Children: (P:(str.in.re t R1), P:(str.in.re t R2))
+  // Arguments: none
+  // ---------------------
+  // Conclusion: (str.in.re t (re.inter R1 R2)).
+  RE_INTER,
+  // ======== Regular expression unfold positive
+  // Children: (P:(str.in.re t R))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpPos((str.in.re t R))),
+  // corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD_POS,
+  // ======== Regular expression unfold negative
+  // Children: (P:(not (str.in.re t R)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpNeg((not (str.in.re t R)))),
+  // corresponding to the one-step unfolding of the premise.
+  RE_UNFOLD_NEG,
+  // ======== Regular expression unfold negative concat fixed
+  // Children: (P:(not (str.in.re t R)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(RegExpOpr::reduceRegExpNegConcatFixed((not (str.in.re t
+  // R)),L,i)) where RegExpOpr::getRegExpConcatFixed((not (str.in.re t R)), i) =
+  // L. corresponding to the one-step unfolding of the premise, optimized for
+  // fixed length of component i of the regular expression concatenation R.
+  RE_UNFOLD_NEG_CONCAT_FIXED,
+  // ======== Regular expression elimination
+  // Children: (P:F)
+  // Arguments: none
+  // ---------------------
+  // Conclusion: R
+  // where R = strings::RegExpElimination::eliminate(F).
+  RE_ELIM,
+  //======================== Code points
+  // Children: none
+  // Arguments: (t, s)
+  // ---------------------
+  // Conclusion:(or (= (str.code t) (- 1))
+  //                (not (= (str.code t) (str.code s)))
+  //                (not (= t s)))
+  STRING_CODE_INJ,
+  //======================== Sequence unit
+  // Children: (P:(= (seq.unit x) (seq.unit y)))
+  // Arguments: none
+  // ---------------------
+  // Conclusion:(= x y)
+  // Also applies to the case where (seq.unit y) is a constant sequence
+  // of length one.
+  STRING_SEQ_UNIT_INJ,
+  // ======== String Trust
+  // Children: none
+  // Arguments: (Q)
+  // ---------------------
+  // Conclusion: (Q)
+  STRING_TRUST,
+
+  //================================================= Arithmetic rules
   // ======== Adding Inequalities
   // Note: an ArithLiteral is a term of the form (>< poly const)
   // where
@@ -590,6 +875,12 @@ const char* toString(PfRule id);
  * @return The stream
  */
 std::ostream& operator<<(std::ostream& out, PfRule id);
+
+/** Hash function for proof rules */
+struct PfRuleHashFunction
+{
+  size_t operator()(PfRule id) const;
+}; /* struct PfRuleHashFunction */
 
 }  // namespace CVC4
 

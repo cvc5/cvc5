@@ -36,12 +36,19 @@
 
 namespace CVC4 {
 
+template <bool ref_count>
+class NodeTemplate;
+typedef NodeTemplate<true> Node;
 class Expr;
-class Datatype;
-class DatatypeConstructor;
-class DatatypeConstructorArg;
+class DType;
+class DTypeConstructor;
+class DTypeSelector;
 class ExprManager;
+class GetAbductCommand;
+class GetInterpolCommand;
+class NodeManager;
 class SmtEngine;
+class SynthFunCommand;
 class Type;
 class Options;
 class Random;
@@ -674,6 +681,17 @@ class CVC4_PUBLIC Op
    */
   Op(const Solver* slv, const Kind k, const CVC4::Expr& e);
 
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param k the kind of this Op
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Op(const Solver* slv, const Kind k, const CVC4::Node& n);
+
   /**
    * Destructor.
    */
@@ -763,7 +781,7 @@ class CVC4_PUBLIC Op
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /* -------------------------------------------------------------------------- */
@@ -791,6 +809,16 @@ class CVC4_PUBLIC Term
    * @return the Term
    */
   Term(const Solver* slv, const CVC4::Expr& e);
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param slv the associated solver object
+   * @param n the internal node that is to be wrapped by this term
+   * @return the Term
+   */
+  Term(const Solver* slv, const CVC4::Node& n);
 
   /**
    * Constructor.
@@ -1003,7 +1031,7 @@ class CVC4_PUBLIC Term
      * @param p the position of the iterator (e.g. which child it's on)
      */
     const_iterator(const Solver* slv,
-                   const std::shared_ptr<CVC4::Expr>& e,
+                   const std::shared_ptr<CVC4::Node>& e,
                    uint32_t p);
 
     /**
@@ -1055,8 +1083,8 @@ class CVC4_PUBLIC Term
      * The associated solver object.
      */
     const Solver* d_solver;
-    /* The original expression to be iterated over */
-    std::shared_ptr<CVC4::Expr> d_orig_expr;
+    /* The original node to be iterated over */
+    std::shared_ptr<CVC4::Node> d_origNode;
     /* Keeps track of the iteration position */
     uint32_t d_pos;
   };
@@ -1074,6 +1102,10 @@ class CVC4_PUBLIC Term
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   CVC4::Expr getExpr(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  const CVC4::Node& getNode(void) const;
 
  protected:
   /**
@@ -1101,7 +1133,7 @@ class CVC4_PUBLIC Term
    * memory allocation (CVC4::Expr is already ref counted, so this could be
    * a unique_ptr instead).
    */
-  std::shared_ptr<CVC4::Expr> d_expr;
+  std::shared_ptr<CVC4::Node> d_node;
 };
 
 /**
@@ -1210,6 +1242,11 @@ class CVC4_PUBLIC DatatypeConstructorDecl
   DatatypeConstructorDecl();
 
   /**
+   * Destructor.
+   */
+  ~DatatypeConstructorDecl();
+
+  /**
    * Add datatype selector declaration.
    * @param name the name of the datatype selector declaration to add
    * @param sort the range sort of the datatype selector declaration to add
@@ -1228,7 +1265,7 @@ class CVC4_PUBLIC DatatypeConstructorDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1248,9 +1285,9 @@ class CVC4_PUBLIC DatatypeConstructorDecl
    * The internal (intermediate) datatype constructor wrapped by this
    * datatype constructor declaration.
    * This is a shared_ptr rather than a unique_ptr since
-   * CVC4::DatatypeConstructor is not ref counted.
+   * CVC4::DTypeConstructor is not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 class Solver;
@@ -1301,7 +1338,7 @@ class CVC4_PUBLIC DatatypeDecl
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::Datatype& getDatatype(void) const;
+  CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1354,10 +1391,10 @@ class CVC4_PUBLIC DatatypeDecl
 
   /* The internal (intermediate) datatype wrapped by this datatype
    * declaration
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1382,7 +1419,7 @@ class CVC4_PUBLIC DatatypeSelector
    * @param stor the internal datatype selector to be wrapped
    * @return the DatatypeSelector
    */
-  DatatypeSelector(const Solver* slv, const CVC4::DatatypeConstructorArg& stor);
+  DatatypeSelector(const Solver* slv, const CVC4::DTypeSelector& stor);
 
   /**
    * Destructor.
@@ -1408,7 +1445,7 @@ class CVC4_PUBLIC DatatypeSelector
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  CVC4::DatatypeConstructorArg getDatatypeConstructorArg(void) const;
+  CVC4::DTypeSelector getDatatypeConstructorArg(void) const;
 
  private:
   /**
@@ -1418,10 +1455,10 @@ class CVC4_PUBLIC DatatypeSelector
 
   /**
    * The internal datatype selector wrapped by this datatype selector.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructorArg> d_stor;
+  std::shared_ptr<CVC4::DTypeSelector> d_stor;
 };
 
 /**
@@ -1445,7 +1482,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param ctor the internal datatype constructor to be wrapped
    * @return the DatatypeConstructor
    */
-  DatatypeConstructor(const Solver* slv, const CVC4::DatatypeConstructor& ctor);
+  DatatypeConstructor(const Solver* slv, const CVC4::DTypeConstructor& ctor);
 
   /**
    * Destructor.
@@ -1460,6 +1497,31 @@ class CVC4_PUBLIC DatatypeConstructor
    * @return the constructor term
    */
   Term getConstructorTerm() const;
+
+  /**
+   * Get the constructor operator of this datatype constructor whose return
+   * type is retSort. This method is intended to be used on constructors of
+   * parametric datatypes and can be seen as returning the constructor
+   * term that has been explicitly cast to the given sort.
+   *
+   * This method is required for constructors of parametric datatypes whose
+   * return type cannot be determined by type inference. For example, given:
+   *   (declare-datatype List (par (T) ((nil) (cons (head T) (tail (List T))))))
+   * The type of nil terms need to be provided by the user. In SMT version 2.6,
+   * this is done via the syntax for qualified identifiers:
+   *   (as nil (List Int))
+   * This method is equivalent of applying the above, where this
+   * DatatypeConstructor is the one corresponding to nil, and retSort is
+   * (List Int).
+   *
+   * Furthermore note that the returned constructor term t is an operator,
+   * while Solver::mkTerm(APPLY_CONSTRUCTOR, t) is used to construct the above
+   * (nullary) application of nil.
+   *
+   * @param retSort the desired return sort of the constructor
+   * @return the constructor term
+   */
+  Term getSpecializedConstructorTerm(Sort retSort) const;
 
   /**
    * Get the tester operator of this datatype constructor.
@@ -1563,7 +1625,7 @@ class CVC4_PUBLIC DatatypeConstructor
      * @param true if this is a begin() iterator
      */
     const_iterator(const Solver* slv,
-                   const CVC4::DatatypeConstructor& ctor,
+                   const CVC4::DTypeConstructor& ctor,
                    bool begin);
 
     /**
@@ -1595,7 +1657,7 @@ class CVC4_PUBLIC DatatypeConstructor
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::DatatypeConstructor& getDatatypeConstructor(void) const;
+  const CVC4::DTypeConstructor& getDatatypeConstructor(void) const;
 
  private:
   /**
@@ -1612,10 +1674,10 @@ class CVC4_PUBLIC DatatypeConstructor
 
   /**
    * The internal datatype constructor wrapped by this datatype constructor.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::DatatypeConstructor> d_ctor;
+  std::shared_ptr<CVC4::DTypeConstructor> d_ctor;
 };
 
 /*
@@ -1634,7 +1696,7 @@ class CVC4_PUBLIC Datatype
    * @param dtype the internal datatype to be wrapped
    * @return the Datatype
    */
-  Datatype(const Solver* slv, const CVC4::Datatype& dtype);
+  Datatype(const Solver* slv, const CVC4::DType& dtype);
 
   // Nullary constructor for Cython
   Datatype();
@@ -1778,7 +1840,7 @@ class CVC4_PUBLIC Datatype
      * @param dtype the internal datatype to iterate over
      * @param true if this is a begin() iterator
      */
-    const_iterator(const Solver* slv, const CVC4::Datatype& dtype, bool begin);
+    const_iterator(const Solver* slv, const CVC4::DType& dtype, bool begin);
 
     /**
      * The associated solver object.
@@ -1809,7 +1871,7 @@ class CVC4_PUBLIC Datatype
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
-  const CVC4::Datatype& getDatatype(void) const;
+  const CVC4::DType& getDatatype(void) const;
 
  private:
   /**
@@ -1826,10 +1888,10 @@ class CVC4_PUBLIC Datatype
 
   /**
    * The internal datatype wrapped by this datatype.
-   * This is a shared_ptr rather than a unique_ptr since CVC4::Datatype is
+   * This is a shared_ptr rather than a unique_ptr since CVC4::DType is
    * not ref counted.
    */
-  std::shared_ptr<CVC4::Datatype> d_dtype;
+  std::shared_ptr<CVC4::DType> d_dtype;
 };
 
 /**
@@ -1895,6 +1957,9 @@ std::ostream& operator<<(std::ostream& out,
  */
 class CVC4_PUBLIC Grammar
 {
+  friend class CVC4::GetAbductCommand;
+  friend class CVC4::GetInterpolCommand;
+  friend class CVC4::SynthFunCommand;
   friend class Solver;
 
  public:
@@ -1904,6 +1969,13 @@ class CVC4_PUBLIC Grammar
    * @param rule the rule to add
    */
   void addRule(Term ntSymbol, Term rule);
+
+  /**
+   * Add <rules> to the set of rules corresponding to <ntSymbol>.
+   * @param ntSymbol the non-terminal to which the rules are added
+   * @param rule the rules to add
+   */
+  void addRules(Term ntSymbol, std::vector<Term> rules);
 
   /**
    * Allow <ntSymbol> to be an arbitrary constant.
@@ -1919,11 +1991,14 @@ class CVC4_PUBLIC Grammar
   void addAnyVariable(Term ntSymbol);
 
   /**
-   * Add <rules> to the set of rules corresponding to <ntSymbol>.
-   * @param ntSymbol the non-terminal to which the rules are added
-   * @param rule the rules to add
+   * @return a string representation of this grammar.
    */
-  void addRules(Term ntSymbol, std::vector<Term> rules);
+  std::string toString() const;
+
+  /**
+   * Nullary constructor. Needed for the Cython API.
+   */
+  Grammar();
 
  private:
   /**
@@ -2012,6 +2087,14 @@ class CVC4_PUBLIC Grammar
   /** Did we call resolve() before? */
   bool d_isResolved;
 };
+
+/**
+ * Serialize a grammar to given stream.
+ * @param out the output stream
+ * @param g the grammar to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const Grammar& g) CVC4_PUBLIC;
 
 /* -------------------------------------------------------------------------- */
 /* Rounding Mode for Floating Points                                          */
@@ -2442,22 +2525,7 @@ class CVC4_PUBLIC Solver
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
    * @return a constant of sort Real or Integer (if 's' represents an integer)
    */
-  Term mkReal(const char* s) const;
-
-  /**
-   * Create a real constant from a string.
-   * @param s the string representation of the constant, may represent an
-   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
-   * @return a constant of sort Real or Integer (if 's' represents an integer)
-   */
   Term mkReal(const std::string& s) const;
-
-  /**
-   * Create a real constant from an integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(int32_t val) const;
 
   /**
    * Create a real constant from an integer.
@@ -2467,50 +2535,12 @@ class CVC4_PUBLIC Solver
   Term mkReal(int64_t val) const;
 
   /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint32_t val) const;
-
-  /**
-   * Create a real constant from an unsigned integer.
-   * @param val the value of the constant
-   * @return a constant of sort Integer
-   */
-  Term mkReal(uint64_t val) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(int32_t num, int32_t den) const;
-
-  /**
    * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
    * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(int64_t num, int64_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint32_t num, uint32_t den) const;
-
-  /**
-   * Create a real constant from a rational.
-   * @param num the value of the numerator
-   * @param den the value of the denominator
-   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
-   */
-  Term mkReal(uint64_t num, uint64_t den) const;
 
   /**
    * Create a regular expression empty term.
@@ -2545,15 +2575,6 @@ class CVC4_PUBLIC Solver
    * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const char* s, bool useEscSequences = false) const;
-
-  /**
-   * Create a String constant.
-   * @param s the string this constant represents
-   * @param useEscSequences determines whether escape sequences in \p s should
-   * be converted to the corresponding character
-   * @return the String constant
-   */
   Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
@@ -2578,13 +2599,6 @@ class CVC4_PUBLIC Solver
   Term mkChar(const std::string& s) const;
 
   /**
-   * Create a character constant from a given string.
-   * @param s the string denoting the code point of the character (in base 16)
-   * @return the character constant
-   */
-  Term mkChar(const char* s) const;
-
-  /**
    * Create an empty sequence of the given element sort.
    * @param sort The element sort of the sequence.
    * @return the empty sequence with given element sort.
@@ -2607,14 +2621,6 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
   /**
-   * Create a bit-vector constant from a given string.
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(const char* s, uint32_t base = 2) const;
-
-  /**
    * Create a bit-vector constant from a given string of base 2, 10 or 16.
    *
    * The size of resulting bit-vector is
@@ -2632,23 +2638,12 @@ class CVC4_PUBLIC Solver
   /**
    * Create a bit-vector constant of a given bit-width from a given string of
    * base 2, 10 or 16.
-   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
-  Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
-
-  /**
-   * Create a bit-vector constant of a given bit-width from a given string of
-   * base 2, 10 or 16.
-   * @param size the bit-width of the constant
-   * @param s the string representation of the constant
-   * @param base the base of the string representation (2, 10, or 16)
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+  Term mkBitVector(uint32_t size, const std::string& s, uint32_t base) const;
 
   /**
    * Create a constant array with the provided constant value stored at every
@@ -2754,7 +2749,8 @@ class CVC4_PUBLIC Solver
   Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
-   * Create (bound) variable.
+   * Create a bound variable to be used in a binder (i.e. a quantifier, a
+   * lambda, or a witness binder).
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable
@@ -3065,7 +3061,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <term> )
+   * SMT-LIB: ( get-interpol <conj> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
    * @param output a Term I such that A->I and I->B are valid, where A is the
@@ -3076,15 +3072,40 @@ class CVC4_PUBLIC Solver
 
   /**
    * Get an interpolant
-   * SMT-LIB: ( get-interpol <term> )
+   * SMT-LIB: ( get-interpol <conj> <g> )
    * Requires to enable option 'produce-interpols'.
    * @param conj the conjecture term
-   * @param gtype the grammar for the interpolant I
+   * @param g the grammar for the interpolant I
    * @param output a Term I such that A->I and I->B are valid, where A is the
    *        current set of assertions and B is given in the input by conj.
    * @return true if it gets I successfully, false otherwise.
    */
-  bool getInterpolant(Term conj, const Type& gtype, Term& output) const;
+  bool getInterpolant(Term conj, Grammar& g, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Term& output) const;
+
+  /**
+   * Get an abduct.
+   * SMT-LIB: ( get-abduct <conj> <g> )
+   * Requires enabling option 'produce-abducts'
+   * @param conj the conjecture term
+   * @param g the grammar for the abduct C
+   * @param output a term C such that A^C is satisfiable, and A^~B^C is
+   *        unsatisfiable, where A is the current set of assertions and B is
+   *        given in the input by conj
+   * @return true if it gets C successfully, false otherwise
+   */
+  bool getAbduct(Term conj, Grammar& g, Term& output) const;
 
   /**
    * Print the model of a satisfiable query to the given output stream.
@@ -3261,6 +3282,10 @@ class CVC4_PUBLIC Solver
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
+  NodeManager* getNodeManager(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
 
   // !!! This is only temporarily available until options are refactored at
@@ -3350,6 +3375,7 @@ class CVC4_PUBLIC Solver
 // !!! Only temporarily public until the parser is fully migrated to the
 // new API. !!!
 std::vector<Expr> termVectorToExprs(const std::vector<Term>& terms);
+std::vector<Node> termVectorToNodes(const std::vector<Term>& terms);
 std::vector<Type> sortVectorToTypes(const std::vector<Sort>& sorts);
 std::set<Type> sortSetToTypes(const std::set<Sort>& sorts);
 std::vector<Term> exprVectorToTerms(const Solver* slv,

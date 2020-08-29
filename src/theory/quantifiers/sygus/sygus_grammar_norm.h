@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/sygus_datatype.h"
 #include "expr/type.h"
@@ -198,8 +197,7 @@ class SygusGrammarNorm
      * The types of the arguments of "cons" are recursively normalized
      */
     void addConsInfo(SygusGrammarNorm* sygus_norm,
-                     const DTypeConstructor& cons,
-                     std::shared_ptr<SygusPrintCallback> spc);
+                     const DTypeConstructor& cons);
 
     /** initializes a datatype with the information in the type object
      *
@@ -377,9 +375,9 @@ class SygusGrammarNorm
    */
   TNode d_sygus_vars;
   /* Datatypes to be resolved */
-  std::vector<Datatype> d_dt_all;
+  std::vector<DType> d_dt_all;
   /* Types to be resolved */
-  std::set<Type> d_unres_t_all;
+  std::set<TypeNode> d_unres_t_all;
   /* Associates type nodes with OpPosTries */
   std::map<TypeNode, OpPosTrie> d_tries;
   /* Map of type nodes into their identity operators (\lambda x. x) */

@@ -12,8 +12,6 @@ libcvc4_add_sources(
   expr_iomanip.cpp
   expr_iomanip.h
   expr_manager_scope.h
-  expr_sequence.cpp
-  expr_sequence.h
   kind_map.h
   lazy_proof.cpp
   lazy_proof.h
@@ -63,6 +61,8 @@ libcvc4_add_sources(
   symbol_table.h
   term_canonize.cpp
   term_canonize.h
+  term_context.cpp
+  term_context.h
   term_conversion_proof_generator.cpp
   term_conversion_proof_generator.h
   type.cpp
@@ -73,8 +73,8 @@ libcvc4_add_sources(
   type_node.cpp
   type_node.h
   variable_type_map.h
-  datatype.h
-  datatype.cpp
+  datatype_index.h
+  datatype_index.cpp
   dtype.h
   dtype.cpp
   dtype_cons.h

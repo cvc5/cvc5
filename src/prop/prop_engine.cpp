@@ -102,7 +102,10 @@ PropEngine::PropEngine(TheoryEngine* te,
   PROOF (
          ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
          );
+}
 
+void PropEngine::finishInit()
+{
   NodeManager* nm = NodeManager::currentNM();
   d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
   d_cnfStream->convertAndAssert(
@@ -242,7 +245,7 @@ bool PropEngine::isSatLiteral(TNode node) const {
 
 bool PropEngine::hasValue(TNode node, bool& value) const {
   Assert(node.getType().isBoolean());
-  Assert(d_cnfStream->hasLiteral(node));
+  Assert(d_cnfStream->hasLiteral(node)) << node;
 
   SatLiteral lit = d_cnfStream->getLiteral(node);
 

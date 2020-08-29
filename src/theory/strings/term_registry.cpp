@@ -37,12 +37,10 @@ typedef expr::Attribute<StringsProxyVarAttributeId, bool>
     StringsProxyVarAttribute;
 
 TermRegistry::TermRegistry(SolverState& s,
-                           eq::EqualityEngine& ee,
                            OutputChannel& out,
                            SequencesStatistics& statistics,
                            ProofNodeManager* pnm)
     : d_state(s),
-      d_ee(ee),
       d_out(out),
       d_statistics(statistics),
       d_hasStrCode(false),
@@ -129,6 +127,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   {
     return;
   }
+  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   d_preregisteredTerms.insert(n);
   Trace("strings-preregister")
       << "TheoryString::preregister : " << n << std::endl;
@@ -137,10 +136,10 @@ void TermRegistry::preRegisterTerm(TNode n)
   if (!options::stringExp())
   {
     if (k == STRING_STRIDOF || k == STRING_ITOS || k == STRING_STOI
-        || k == STRING_STRREPL || k == STRING_STRREPLALL
+        || k == STRING_STRREPL || k == STRING_SUBSTR || k == STRING_STRREPLALL
         || k == STRING_REPLACE_RE || k == STRING_REPLACE_RE_ALL
         || k == STRING_STRCTN || k == STRING_LEQ || k == STRING_TOLOWER
-        || k == STRING_TOUPPER || k == STRING_REV)
+        || k == STRING_TOUPPER || k == STRING_REV || k == STRING_UPDATE)
     {
       std::stringstream ss;
       ss << "Term of kind " << k
@@ -156,15 +155,15 @@ void TermRegistry::preRegisterTerm(TNode n)
       ss << "Equality between regular expressions is not supported";
       throw LogicException(ss.str());
     }
-    d_ee.addTriggerEquality(n);
+    ee->addTriggerPredicate(n);
     return;
   }
   else if (k == STRING_IN_REGEXP)
   {
     d_out.requirePhase(n, true);
-    d_ee.addTriggerPredicate(n);
-    d_ee.addTerm(n[0]);
-    d_ee.addTerm(n[1]);
+    ee->addTriggerPredicate(n);
+    ee->addTerm(n[0]);
+    ee->addTerm(n[1]);
     return;
   }
   else if (k == STRING_TO_CODE)
@@ -196,17 +195,17 @@ void TermRegistry::preRegisterTerm(TNode n)
         }
       }
     }
-    d_ee.addTerm(n);
+    ee->addTerm(n);
   }
   else if (tn.isBoolean())
   {
     // Get triggered for both equal and dis-equal
-    d_ee.addTriggerPredicate(n);
+    ee->addTriggerPredicate(n);
   }
   else
   {
     // Function applications/predicates
-    d_ee.addTerm(n);
+    ee->addTerm(n);
   }
   // Set d_functionsTerms stores all function applications that are
   // relevant to theory combination. Notice that this is a subset of
@@ -216,7 +215,7 @@ void TermRegistry::preRegisterTerm(TNode n)
   // Concatenation terms do not need to be considered here because
   // their arguments have string type and do not introduce any shared
   // terms.
-  if (n.hasOperator() && d_ee.isFunctionKind(k) && k != STRING_CONCAT)
+  if (n.hasOperator() && ee->isFunctionKind(k) && k != STRING_CONCAT)
   {
     d_functionsTerms.push_back(n);
   }
@@ -265,7 +264,7 @@ void TermRegistry::registerTerm(Node n, int effort)
   registerType(tn);
   Debug("strings-register") << "TheoryStrings::registerTerm() " << n
                             << ", effort = " << effort << std::endl;
-  Node regTermLem;
+  TrustNode regTermLem;
   if (tn.isStringLike())
   {
     // register length information:
@@ -276,15 +275,29 @@ void TermRegistry::registerTerm(Node n, int effort)
   else if (n.getKind() != STRING_STRCTN)
   {
     // we don't send out eager reduction lemma for str.contains currently
-    regTermLem = eagerReduce(n, &d_skCache);
+    Node eagerRedLemma = eagerReduce(n, &d_skCache);
+    if (!eagerRedLemma.isNull())
+    {
+      // if there was an eager reduction, we make the trust node for it
+      if (d_epg != nullptr)
+      {
+        regTermLem = d_epg->mkTrustNode(
+            eagerRedLemma, PfRule::STRING_EAGER_REDUCTION, {n});
+      }
+      else
+      {
+        regTermLem = TrustNode::mkTrustLemma(eagerRedLemma, nullptr);
+      }
+    }
   }
   if (!regTermLem.isNull())
   {
     Trace("strings-lemma") << "Strings::Lemma REG-TERM : " << regTermLem
                            << std::endl;
-    Trace("strings-assert") << "(assert " << regTermLem << ")" << std::endl;
+    Trace("strings-assert")
+        << "(assert " << regTermLem.getNode() << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTerm);
-    d_out.lemma(regTermLem);
+    d_out.trustedLemma(regTermLem);
   }
 }
 
@@ -299,14 +312,14 @@ void TermRegistry::registerType(TypeNode tn)
   {
     // preregister the empty word for the type
     Node emp = Word::mkEmptyWord(tn);
-    if (!d_ee.hasTerm(emp))
+    if (!d_state.hasTerm(emp))
     {
       preRegisterTerm(emp);
     }
   }
 }
 
-Node TermRegistry::getRegisterTermLemma(Node n)
+TrustNode TermRegistry::getRegisterTermLemma(Node n)
 {
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -322,7 +335,7 @@ Node TermRegistry::getRegisterTermLemma(Node n)
     if (lsum == lsumb)
     {
       registerTermAtomic(n, LENGTH_SPLIT);
-      return Node::null();
+      return TrustNode::null();
     }
   }
   Node sk = d_skCache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
@@ -368,7 +381,12 @@ Node TermRegistry::getRegisterTermLemma(Node n)
 
   Node ret = nm->mkNode(AND, eq, ceq);
 
-  return ret;
+  // it is a simple rewrite to justify this
+  if (d_epg != nullptr)
+  {
+    return d_epg->mkTrustNode(ret, PfRule::MACRO_SR_PRED_INTRO, {ret});
+  }
+  return TrustNode::mkTrustLemma(ret, nullptr);
 }
 
 void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
@@ -385,14 +403,15 @@ void TermRegistry::registerTermAtomic(Node n, LengthStatus s)
     return;
   }
   std::map<Node, bool> reqPhase;
-  Node lenLem = getRegisterTermAtomicLemma(n, s, reqPhase);
+  TrustNode lenLem = getRegisterTermAtomicLemma(n, s, reqPhase);
   if (!lenLem.isNull())
   {
     Trace("strings-lemma") << "Strings::Lemma REGISTER-TERM-ATOMIC : " << lenLem
                            << std::endl;
-    Trace("strings-assert") << "(assert " << lenLem << ")" << std::endl;
+    Trace("strings-assert")
+        << "(assert " << lenLem.getNode() << ")" << std::endl;
     ++(d_statistics.d_lemmasRegisterTermAtomic);
-    d_out.lemma(lenLem);
+    d_out.trustedLemma(lenLem);
   }
   for (const std::pair<const Node, bool>& rp : reqPhase)
   {
@@ -415,16 +434,15 @@ const context::CDHashSet<Node, NodeHashFunction>& TermRegistry::getInputVars()
 
 bool TermRegistry::hasStringCode() const { return d_hasStrCode; }
 
-Node TermRegistry::getRegisterTermAtomicLemma(Node n,
-                                              LengthStatus s,
-                                              std::map<Node, bool>& reqPhase)
+TrustNode TermRegistry::getRegisterTermAtomicLemma(
+    Node n, LengthStatus s, std::map<Node, bool>& reqPhase)
 {
   if (n.isConst())
   {
     // No need to send length for constant terms. This case may be triggered
     // for cases where the skolem cache automatically replaces a skolem by
     // a constant.
-    return Node::null();
+    return TrustNode::null();
   }
   Assert(n.getType().isStringLike());
   NodeManager* nm = NodeManager::currentNM();
@@ -438,7 +456,12 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     Trace("strings-lemma") << "Strings::Lemma SK-GEQ-ONE : " << len_geq_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_geq_one << ")" << std::endl;
-    return len_geq_one;
+    if (options::proofNewPedantic() > 0)
+    {
+      Unhandled() << "Unhandled lemma Strings::Lemma SK-GEQ-ONE : "
+                  << len_geq_one << std::endl;
+    }
+    return TrustNode::mkTrustLemma(len_geq_one, nullptr);
   }
 
   if (s == LENGTH_ONE)
@@ -447,7 +470,12 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     Trace("strings-lemma") << "Strings::Lemma SK-ONE : " << len_one
                            << std::endl;
     Trace("strings-assert") << "(assert " << len_one << ")" << std::endl;
-    return len_one;
+    if (options::proofNewPedantic() > 0)
+    {
+      Unhandled() << "Unhandled lemma Strings::Lemma SK-ONE : " << len_one
+                  << std::endl;
+    }
+    return TrustNode::mkTrustLemma(len_one, nullptr);
   }
   Assert(s == LENGTH_SPLIT);
 
@@ -478,7 +506,11 @@ Node TermRegistry::getRegisterTermAtomicLemma(Node n,
     Assert(!case_emptyr.getConst<bool>());
   }
 
-  return lenLemma;
+  if (d_epg != nullptr)
+  {
+    return d_epg->mkTrustNode(lenLemma, PfRule::STRING_LENGTH_POS, {n});
+  }
+  return TrustNode::mkTrustLemma(lenLemma, nullptr);
 }
 
 Node TermRegistry::getSymbolicDefinition(Node n, std::vector<Node>& exp) const
@@ -533,6 +565,18 @@ Node TermRegistry::getProxyVariableFor(Node n) const
     return (*it).second;
   }
   return Node::null();
+}
+
+Node TermRegistry::ensureProxyVariableFor(Node n)
+{
+  Node proxy = getProxyVariableFor(n);
+  if (proxy.isNull())
+  {
+    registerTerm(n, 0);
+    proxy = getProxyVariableFor(n);
+  }
+  Assert(!proxy.isNull());
+  return proxy;
 }
 
 void TermRegistry::inferSubstitutionProxyVars(Node n,

@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "expr/attribute.h"
-#include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 
@@ -45,8 +45,6 @@ class SygusDatatypeConstructor
   std::string d_name;
   /** List of argument types. */
   std::vector<TypeNode> d_argTypes;
-  /** Print callback of the constructor. */
-  std::shared_ptr<SygusPrintCallback> d_pc;
   /** Weight of the constructor. */
   int d_weight;
 };
@@ -89,7 +87,6 @@ class SygusDatatype
   void addConstructor(Node op,
                       const std::string& name,
                       const std::vector<TypeNode>& argTypes,
-                      std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
   /**
    * Add constructor that encodes an application of builtin kind k. Like above,
@@ -98,7 +95,6 @@ class SygusDatatype
    */
   void addConstructor(Kind k,
                       const std::vector<TypeNode>& argTypes,
-                      std::shared_ptr<SygusPrintCallback> spc = nullptr,
                       int weight = -1);
   /**
    * This adds a constructor that corresponds to the any constant constructor
@@ -126,7 +122,7 @@ class SygusDatatype
                           bool allowConst,
                           bool allowAll);
   /** Get the sygus datatype initialized by this class */
-  const Datatype& getDatatype() const;
+  const DType& getDatatype() const;
 
   /** is initialized */
   bool isInitialized() const;
@@ -135,7 +131,7 @@ class SygusDatatype
   /** Information for each constructor. */
   std::vector<SygusDatatypeConstructor> d_cons;
   /** Datatype to represent type's structure */
-  Datatype d_dt;
+  DType d_dt;
 };
 
 }  // namespace CVC4

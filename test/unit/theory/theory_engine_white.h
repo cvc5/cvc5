@@ -60,8 +60,10 @@ class FakeOutputChannel : public OutputChannel {
     Unimplemented();
   }
   bool propagate(TNode n) override { Unimplemented(); }
-  LemmaStatus lemma(TNode n, ProofRule rule, bool removable, bool preprocess,
-                    bool sendAtoms) override {
+  LemmaStatus lemma(TNode n,
+                    ProofRule rule,
+                    LemmaProperty p = LemmaProperty::NONE) override
+  {
     Unimplemented();
   }
   void requirePhase(TNode, bool) override { Unimplemented(); }
@@ -208,7 +210,7 @@ public:
     // Notice that this unit test uses the theory engine of a created SMT
     // engine d_smt. We must ensure that d_smt is properly initialized via
     // the following call, which constructs its underlying theory engine.
-    d_smt->finalOptionsAreSet();
+    d_smt->finishInit();
     d_theoryEngine = d_smt->getTheoryEngine();
     for(TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id) {
       delete d_theoryEngine->d_theoryOut[id];

@@ -25,6 +25,7 @@ DType::DType(std::string name, bool isCo)
       d_params(),
       d_isCo(isCo),
       d_isTuple(false),
+      d_isRecord(false),
       d_constructors(),
       d_resolved(false),
       d_self(),
@@ -43,6 +44,7 @@ DType::DType(std::string name, const std::vector<TypeNode>& params, bool isCo)
       d_params(params),
       d_isCo(isCo),
       d_isTuple(false),
+      d_isRecord(false),
       d_constructors(),
       d_resolved(false),
       d_self(),
@@ -81,6 +83,8 @@ bool DType::isCodatatype() const { return d_isCo; }
 bool DType::isSygus() const { return !d_sygusType.isNull(); }
 
 bool DType::isTuple() const { return d_isTuple; }
+
+bool DType::isRecord() const { return d_isRecord; }
 
 bool DType::isResolved() const { return d_resolved; }
 
@@ -216,9 +220,70 @@ void DType::addConstructor(std::shared_ptr<DTypeConstructor> c)
   d_constructors.push_back(c);
 }
 
+void DType::addSygusConstructor(Node op,
+                                const std::string& cname,
+                                const std::vector<TypeNode>& cargs,
+                                int weight)
+{
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
+  unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);
+  std::shared_ptr<DTypeConstructor> c =
+      std::make_shared<DTypeConstructor>(name, cweight);
+  c->setSygus(op);
+  for (size_t j = 0, nargs = cargs.size(); j < nargs; j++)
+  {
+    std::stringstream sname;
+    sname << name << "_" << j;
+    c->addArg(sname.str(), cargs[j]);
+  }
+  addConstructor(c);
+}
+
 void DType::setSygus(TypeNode st, Node bvl, bool allowConst, bool allowAll)
 {
   Assert(!d_resolved);
+  // We can be in a case where the only rule specified was
+  // (Constant T), in which case we have not yet added a constructor. We
+  // ensure an arbitrary constant is added in this case. We additionally
+  // add a constant if the grammar has only non-nullary constructors, since this
+  // ensures the datatype is well-founded (see 3423).
+  // Notice we only want to do this for sygus datatypes that are user-provided.
+  // At the moment, the condition !allow_all implies the grammar is
+  // user-provided and hence may require a default constant.
+  // TODO (https://github.com/CVC4/cvc4-projects/issues/38):
+  // In an API for SyGuS, it probably makes more sense for the user to
+  // explicitly add the "any constant" constructor with a call instead of
+  // passing a flag. This would make the block of code unnecessary.
+  if (allowConst && !allowAll)
+  {
+    // if I don't already have a constant (0-ary constructor)
+    bool hasConstant = false;
+    for (size_t i = 0, ncons = getNumConstructors(); i < ncons; i++)
+    {
+      if ((*this)[i].getNumArgs() == 0)
+      {
+        hasConstant = true;
+        break;
+      }
+    }
+    if (!hasConstant)
+    {
+      // add an arbitrary one
+      Node op = st.mkGroundTerm();
+      // use same naming convention as SygusDatatype
+      std::stringstream ss;
+      ss << getName() << "_" << getNumConstructors() << "_" << op;
+      // it has zero weight
+      std::shared_ptr<DTypeConstructor> c =
+          std::make_shared<DTypeConstructor>(ss.str(), 0);
+      c->setSygus(op);
+      addConstructor(c);
+    }
+  }
+
   d_sygusType = st;
   d_sygusBvl = bvl;
   d_sygusAllowConst = allowConst || allowAll;
@@ -229,6 +294,12 @@ void DType::setTuple()
 {
   Assert(!d_resolved);
   d_isTuple = true;
+}
+
+void DType::setRecord()
+{
+  Assert(!d_resolved);
+  d_isRecord = true;
 }
 
 Cardinality DType::getCardinality(TypeNode t) const

@@ -6,9 +6,10 @@ set(libmain_src_files
   interactive_shell.cpp
   interactive_shell.h
   main.h
+  signal_handlers.cpp
+  signal_handlers.h
   time_limit.cpp
   time_limit.h
-  util.cpp
 )
 
 #-----------------------------------------------------------------------------#
@@ -67,10 +68,10 @@ if(ENABLE_STATIC_BINARY)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
 endif()
 
-if(USE_READLINE)
-  target_link_libraries(cvc4-bin ${Readline_LIBRARIES})
-  target_link_libraries(main-test ${Readline_LIBRARIES})
-  target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
+if(USE_EDITLINE)
+  target_link_libraries(cvc4-bin ${Editline_LIBRARIES})
+  target_link_libraries(main-test ${Editline_LIBRARIES})
+  target_include_directories(main PRIVATE ${Editline_INCLUDE_DIRS})
 endif()
 
 #-----------------------------------------------------------------------------#

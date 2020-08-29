@@ -39,21 +39,15 @@ TheoryArith::TheoryArith(context::Context* c,
                          ProofNodeManager* pnm)
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo, pnm),
       d_internal(
-          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo)),
+          new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo, pnm)),
       d_ppRewriteTimer("theory::arith::ppRewriteTimer"),
-      d_proofRecorder(nullptr)
+      d_proofRecorder(nullptr),
+      d_astate(*d_internal, c, u, valuation)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
-  // if logic is non-linear
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    setupExtTheory();
-    getExtTheory()->addFunctionKind(kind::NONLINEAR_MULT);
-    getExtTheory()->addFunctionKind(kind::EXPONENTIAL);
-    getExtTheory()->addFunctionKind(kind::SINE);
-    getExtTheory()->addFunctionKind(kind::PI);
-    getExtTheory()->addFunctionKind(kind::IAND);
-  }
+
+  // indicate we are using the theory state object
+  d_theoryState = &d_astate;
 }
 
 TheoryArith::~TheoryArith(){
@@ -66,49 +60,39 @@ TheoryRewriter* TheoryArith::getTheoryRewriter()
   return d_internal->getTheoryRewriter();
 }
 
-void TheoryArith::preRegisterTerm(TNode n){
-  d_internal->preRegisterTerm(n);
+bool TheoryArith::needsEqualityEngine(EeSetupInfo& esi)
+{
+  return d_internal->needsEqualityEngine(esi);
 }
-
 void TheoryArith::finishInit()
 {
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
   if (getLogicInfo().isTheoryEnabled(THEORY_ARITH)
       && getLogicInfo().areTranscendentalsUsed())
   {
     // witness is used to eliminate square root
-    tm->setUnevaluatedKind(kind::WITNESS);
+    d_valuation.setUnevaluatedKind(kind::WITNESS);
     // we only need to add the operators that are not syntax sugar
-    tm->setUnevaluatedKind(kind::EXPONENTIAL);
-    tm->setUnevaluatedKind(kind::SINE);
-    tm->setUnevaluatedKind(kind::PI);
+    d_valuation.setUnevaluatedKind(kind::EXPONENTIAL);
+    d_valuation.setUnevaluatedKind(kind::SINE);
+    d_valuation.setUnevaluatedKind(kind::PI);
   }
+  // finish initialize internally
+  d_internal->finishInit();
 }
+
+void TheoryArith::preRegisterTerm(TNode n) { d_internal->preRegisterTerm(n); }
 
 TrustNode TheoryArith::expandDefinition(Node node)
 {
-  Node expNode = d_internal->expandDefinition(node);
-  return TrustNode::mkTrustRewrite(node, expNode, nullptr);
+  return d_internal->expandDefinition(node);
 }
 
-void TheoryArith::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_internal->setMasterEqualityEngine(eq);
-}
-
-void TheoryArith::addSharedTerm(TNode n){
-  d_internal->addSharedTerm(n);
-}
+void TheoryArith::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
 
 TrustNode TheoryArith::ppRewrite(TNode atom)
 {
   CodeTimer timer(d_ppRewriteTimer, /* allow_reentrant = */ true);
-  Node ret = d_internal->ppRewrite(atom);
-  if (ret != atom)
-  {
-    return TrustNode::mkTrustRewrite(atom, ret, nullptr);
-  }
-  return TrustNode::null();
+  return d_internal->ppRewrite(atom);
 }
 
 Theory::PPAssertStatus TheoryArith::ppAssert(TNode in, SubstitutionMap& outSubstitutions) {
@@ -166,40 +150,12 @@ Node TheoryArith::getModelValue(TNode var) {
   return d_internal->getModelValue( var );
 }
 
-
-std::pair<bool, Node> TheoryArith::entailmentCheck (TNode lit,
-                                                    const EntailmentCheckParameters* params,
-                                                    EntailmentCheckSideEffects* out)
+std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
 {
-  const ArithEntailmentCheckParameters* aparams = NULL;
-  if(params == NULL){
-    ArithEntailmentCheckParameters* def = new ArithEntailmentCheckParameters();
-    def->addLookupRowSumAlgorithms();
-    aparams = def;
-  }else{
-    AlwaysAssert(params->getTheoryId() == getId());
-    aparams = dynamic_cast<const ArithEntailmentCheckParameters*>(params);
-  }
-  Assert(aparams != NULL);
-
-  ArithEntailmentCheckSideEffects* ase = NULL;
-  if(out == NULL){
-    ase = new ArithEntailmentCheckSideEffects();
-  }else{
-    AlwaysAssert(out->getTheoryId() == getId());
-    ase = dynamic_cast<ArithEntailmentCheckSideEffects*>(out);
-  }
-  Assert(ase != NULL);
-
-  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, *aparams, *ase);
-
-  if(params == NULL){
-    delete aparams;
-  }
-  if(out == NULL){
-    delete ase;
-  }
-
+  ArithEntailmentCheckParameters def;
+  def.addLookupRowSumAlgorithms();
+  ArithEntailmentCheckSideEffects ase;
+  std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
 }
 

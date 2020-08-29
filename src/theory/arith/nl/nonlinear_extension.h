@@ -19,12 +19,14 @@
 #define CVC4__THEORY__ARITH__NL__NONLINEAR_EXTENSION_H
 
 #include <stdint.h>
+
 #include <map>
 #include <vector>
 
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
 #include "theory/arith/nl/nl_model.h"
@@ -32,6 +34,7 @@
 #include "theory/arith/nl/stats.h"
 #include "theory/arith/nl/transcendental_solver.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/ext_theory.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -70,6 +73,10 @@ class NonlinearExtension
  public:
   NonlinearExtension(TheoryArith& containing, eq::EqualityEngine* ee);
   ~NonlinearExtension();
+  /**
+   * Does non-context dependent setup for a node connected to a theory.
+   */
+  void preRegisterTerm(TNode n);
   /** Get current substitution
    *
    * This function and the one below are
@@ -247,14 +254,12 @@ class NonlinearExtension
    * ensureLiteral respectively.
    */
   bool checkModel(const std::vector<Node>& assertions,
-                  const std::vector<Node>& false_asserts,
                   std::vector<NlLemma>& lemmas,
                   std::vector<Node>& gs);
   //---------------------------end check model
-
-  /** Is n entailed with polarity pol in the current context? */
-  bool isEntailed(Node n, bool pol);
-
+  /** compute relevant assertions */
+  void computeRelevantAssertions(const std::vector<Node>& assertions,
+                                 std::vector<Node>& keep);
   /**
    * Potentially adds lemmas to the set out and clears lemmas. Returns
    * the number of lemmas added to out. We do not add lemmas that have already
@@ -289,6 +294,13 @@ class NonlinearExtension
   NlStats d_stats;
   // needs last call effort
   bool d_needsLastCall;
+  /**
+   * The number of times we have the called main check method
+   * (modelBasedRefinement). This counter is used for interleaving strategies.
+   */
+  unsigned d_checkCounter;
+  /** Extended theory, responsible for context-dependent simplification. */
+  ExtTheory d_extTheory;
   /** The non-linear model object
    *
    * This class is responsible for computing model values for arithmetic terms
@@ -307,6 +319,8 @@ class NonlinearExtension
    * constraints involving nonlinear mulitplication, Cimatti et al., TACAS 2017.
    */
   NlSolver d_nlSlv;
+  /** The CAD-based solver */
+  CadSolver d_cadSlv;
   /** The integer and solver
    *
    * This is the subsolver responsible for running the procedure for
@@ -323,6 +337,11 @@ class NonlinearExtension
    * NlModel::getModelValueRepair.
    */
   std::map<Node, std::pair<Node, Node>> d_approximations;
+  /**
+   * The witnesses computed during collectModelInfo. For details, see
+   * NlModel::getModelValueRepair.
+   */
+  std::map<Node, Node> d_witnesses;
   /** have we successfully built the model in this SAT context? */
   context::CDO<bool> d_builtModel;
 }; /* class NonlinearExtension */

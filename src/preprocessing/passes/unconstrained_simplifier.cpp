@@ -18,6 +18,7 @@
 
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
+#include "expr/dtype.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -262,8 +263,8 @@ void UnconstrainedSimplifier::processUnconstrained()
           if (parent[0].getType().isDatatype())
           {
             TypeNode tn = parent[0].getType();
-            const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-            if (dt.isRecursiveSingleton(tn.toType()))
+            const DType& dt = tn.getDType();
+            if (dt.isRecursiveSingleton(tn))
             {
               // domain size may be 1
               break;

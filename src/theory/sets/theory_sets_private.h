@@ -44,8 +44,7 @@ class TheorySetsPrivate {
 
  public:
   void eqNotifyNewClass(TNode t);
-  void eqNotifyPreMerge(TNode t1, TNode t2);
-  void eqNotifyPostMerge(TNode t1, TNode t2);
+  void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** Assert fact holds in the current context with explanation exp.
    *
@@ -157,13 +156,21 @@ class TheorySetsPrivate {
    */
   TheorySetsPrivate(TheorySets& external,
                     context::Context* c,
-                    context::UserContext* u);
+                    context::UserContext* u,
+                    Valuation valuation);
 
   ~TheorySetsPrivate();
 
   TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
 
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  /** Get the solver state */
+  SolverState* getSolverState() { return &d_state; }
+
+  /**
+   * Finish initialize, called after the equality engine of theory sets has
+   * been determined.
+   */
+  void finishInit();
 
   void addSharedTerm(TNode);
 
@@ -212,44 +219,23 @@ class TheorySetsPrivate {
 
   void presolve();
 
-  void propagate(Theory::Effort);
-
   /** get default output channel */
   OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-
- private:
-  TheorySets& d_external;
-
-  /** Functions to handle callbacks from equality engine */
-  class NotifyClass : public eq::EqualityEngineNotify {
-    TheorySetsPrivate& d_theory;
-
-  public:
-    NotifyClass(TheorySetsPrivate& theory): d_theory(theory) {}
-    bool eqNotifyTriggerEquality(TNode equality, bool value) override;
-    bool eqNotifyTriggerPredicate(TNode predicate, bool value) override;
-    bool eqNotifyTriggerTermEquality(TheoryId tag,
-                                     TNode t1,
-                                     TNode t2,
-                                     bool value) override;
-    void eqNotifyConstantTermMerge(TNode t1, TNode t2) override;
-    void eqNotifyNewClass(TNode t) override;
-    void eqNotifyPreMerge(TNode t1, TNode t2) override;
-    void eqNotifyPostMerge(TNode t1, TNode t2) override;
-    void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
-  } d_notify;
-
-  /** Equality engine */
-  eq::EqualityEngine d_equalityEngine;
 
   /** Proagate out to output channel */
   bool propagate(TNode);
 
   /** generate and send out conflict node */
   void conflict(TNode, TNode);
-  
+
+ private:
+  TheorySets& d_external;
+
+  /** Pointer to the equality engine of theory of sets */
+  eq::EqualityEngine* d_equalityEngine;
+
   bool isCareArg( Node n, unsigned a );
 
  public:

@@ -87,7 +87,8 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
                                        context::UserContext* u,
                                        OutputChannel& out,
                                        Valuation valuation,
-                                       const LogicInfo& logicInfo)
+                                       const LogicInfo& logicInfo,
+                                       ProofNodeManager* pnm)
     : d_containing(containing),
       d_nlIncomplete(false),
       d_rowTracking(),
@@ -133,7 +134,7 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
       d_attemptSolSimplex(
           d_linEq, d_errorSet, RaiseConflict(*this), TempVarMalloc(*this)),
-      d_nonlinearExtension(NULL),
+      d_nonlinearExtension(nullptr),
       d_pass1SDP(NULL),
       d_otherSDP(NULL),
       d_lastContextIntegerAttempted(c, -1),
@@ -156,20 +157,32 @@ TheoryArithPrivate::TheoryArithPrivate(TheoryArith& containing,
       d_solveIntMaybeHelp(0u),
       d_solveIntAttempts(0u),
       d_statistics(),
-      d_opElim(logicInfo)
+      d_opElim(pnm, logicInfo)
 {
-  // only need to create if non-linear logic
-  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
-  {
-    d_nonlinearExtension = new nl::NonlinearExtension(
-        containing, d_congruenceManager.getEqualityEngine());
-  }
 }
 
 TheoryArithPrivate::~TheoryArithPrivate(){
   if(d_treeLog != NULL){ delete d_treeLog; }
   if(d_approxStats != NULL) { delete d_approxStats; }
   if(d_nonlinearExtension != NULL) { delete d_nonlinearExtension; }
+}
+
+TheoryRewriter* TheoryArithPrivate::getTheoryRewriter() { return &d_rewriter; }
+bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
+{
+  return d_congruenceManager.needsEqualityEngine(esi);
+}
+void TheoryArithPrivate::finishInit()
+{
+  eq::EqualityEngine* ee = d_containing.getEqualityEngine();
+  Assert(ee != nullptr);
+  d_congruenceManager.finishInit(ee);
+  const LogicInfo& logicInfo = getLogicInfo();
+  // only need to create nonlinear extension if non-linear logic
+  if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
+  {
+    d_nonlinearExtension = new nl::NonlinearExtension(d_containing, ee);
+  }
 }
 
 static bool contains(const ConstraintCPVec& v, ConstraintP con){
@@ -224,10 +237,6 @@ static void resolve(ConstraintCPVec& buf, ConstraintP c, const ConstraintCPVec& 
   // dropPosition(nb, dnconf, dnpos);
   // dropPosition(nb, upconf, uppos);
   // return safeConstructNary(nb);
-}
-
-void TheoryArithPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  d_congruenceManager.setMasterEqualityEngine(eq);
 }
 
 TheoryArithPrivate::ModelException::ModelException(TNode n, const char* msg)
@@ -1078,26 +1087,21 @@ Node TheoryArithPrivate::getModelValue(TNode term) {
   }
 }
 
-Node TheoryArithPrivate::ppRewriteTerms(TNode n) {
+TrustNode TheoryArithPrivate::ppRewriteTerms(TNode n)
+{
   if(Theory::theoryOf(n) != THEORY_ARITH) {
-    return n;
+    return TrustNode::null();
   }
   // Eliminate operators recursively. Notice we must do this here since other
   // theories may generate lemmas that involve non-standard operators. For
   // example, quantifier instantiation may use TO_INTEGER terms; SyGuS may
   // introduce non-standard arithmetic terms appearing in grammars.
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(n);
-  if (nn != n)
-  {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
-  }
-  return n;
+  return d_opElim.eliminate(n);
 }
 
-Node TheoryArithPrivate::ppRewrite(TNode atom) {
+TrustNode TheoryArithPrivate::ppRewrite(TNode atom)
+{
   Debug("arith::preprocess") << "arith::preprocess() : " << atom << endl;
 
   if (options::arithRewriteEq())
@@ -1106,13 +1110,21 @@ Node TheoryArithPrivate::ppRewrite(TNode atom) {
     {
       Node leq = NodeBuilder<2>(kind::LEQ) << atom[0] << atom[1];
       Node geq = NodeBuilder<2>(kind::GEQ) << atom[0] << atom[1];
-      leq = ppRewriteTerms(leq);
-      geq = ppRewriteTerms(geq);
+      TrustNode tleq = ppRewriteTerms(leq);
+      TrustNode tgeq = ppRewriteTerms(geq);
+      if (!tleq.isNull())
+      {
+        leq = tleq.getNode();
+      }
+      if (!tgeq.isNull())
+      {
+        geq = tgeq.getNode();
+      }
       Node rewritten = Rewriter::rewrite(leq.andNode(geq));
       Debug("arith::preprocess")
           << "arith::preprocess() : returning " << rewritten << endl;
       // don't need to rewrite terms since rewritten is not a non-standard op
-      return rewritten;
+      return TrustNode::mkTrustRewrite(atom, rewritten, nullptr);
     }
   }
   return ppRewriteTerms(atom);
@@ -1447,7 +1459,7 @@ void TheoryArithPrivate::preRegisterTerm(TNode n) {
 
   if (d_nonlinearExtension != nullptr)
   {
-    d_containing.getExtTheory()->registerTermRec( n );
+    d_nonlinearExtension->preRegisterTerm(n);
   }
 
   try {
@@ -1933,7 +1945,8 @@ void TheoryArithPrivate::outputConflicts(){
         }
 
         Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof())
+        if (confConstraint->hasSimpleFarkasProof()
+            && confConstraint->getNegation()->isPossiblyTightenedAssumption())
         {
           d_containing.d_proofRecorder->saveFarkasCoefficients(
               conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
@@ -4811,17 +4824,10 @@ const BoundsInfo& TheoryArithPrivate::boundsInfo(ArithVar basic) const{
   return d_rowTracking[ridx];
 }
 
-Node TheoryArithPrivate::expandDefinition(Node node)
+TrustNode TheoryArithPrivate::expandDefinition(Node node)
 {
   // call eliminate operators
-  Node nn = d_opElim.eliminateOperators(node);
-  if (nn != node)
-  {
-    // since elimination may introduce new operators to eliminate, we must
-    // recursively eliminate result
-    return d_opElim.eliminateOperatorsRec(nn);
-  }
-  return node;
+  return d_opElim.eliminate(node);
 }
 
 std::pair<bool, Node> TheoryArithPrivate::entailmentCheck(TNode lit, const ArithEntailmentCheckParameters& params, ArithEntailmentCheckSideEffects& out){

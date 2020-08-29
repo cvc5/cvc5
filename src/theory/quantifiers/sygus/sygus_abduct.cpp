@@ -15,11 +15,9 @@
 
 #include "theory/quantifiers/sygus/sygus_abduct.h"
 
-#include "expr/datatype.h"
 #include "expr/dtype.h"
 #include "expr/node_algorithm.h"
 #include "expr/sygus_datatype.h"
-#include "printer/sygus_print_callback.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"

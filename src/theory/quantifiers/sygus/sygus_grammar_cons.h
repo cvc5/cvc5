@@ -200,7 +200,6 @@ public:
     void addConstructor(Node op,
                         const std::string& name,
                         const std::vector<TypeNode>& consTypes,
-                        std::shared_ptr<SygusPrintCallback> spc = nullptr,
                         int weight = -1);
     /**
      * Possibly add a constructor to d_sdt, based on the criteria mentioned
@@ -208,7 +207,6 @@ public:
      */
     void addConstructor(Kind k,
                         const std::vector<TypeNode>& consTypes,
-                        std::shared_ptr<SygusPrintCallback> spc = nullptr,
                         int weight = -1);
     /** Should we include constructor with operator op? */
     bool shouldInclude(Node op) const;
@@ -224,7 +222,8 @@ public:
   };
 
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
-  static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
+  static TypeNode mkUnresolvedType(const std::string& name,
+                                   std::set<TypeNode>& unres);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor(TypeNode range,
                                           std::vector<TypeNode>& types);
@@ -245,7 +244,7 @@ public:
           include_cons,
       std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
       std::vector<SygusDatatypeGenerator>& sdts,
-      std::set<Type>& unres);
+      std::set<TypeNode>& unres);
 
   // helper function for mkSygusTemplateType
   static TypeNode mkSygusTemplateTypeRec(Node templ,
@@ -260,13 +259,9 @@ public:
    * and an extra zero argument of that same type.  For example, for k = LEQ and
    * bArgType = Int, the operator will be lambda x : Int. x + 0.  Currently the
    * supported input types are Real (thus also Int) and BitVector.
-   *
-   * This method also creates a print callback for the operator, saved via the
-   * argument spc, if the caller wishes to not print the lambda.
    */
   static Node createLambdaWithZeroArg(Kind k,
-                                      TypeNode bArgType,
-                                      std::shared_ptr<SygusPrintCallback> spc);
+                                      TypeNode bArgType);
   //---------------- end grammar construction
 };
 

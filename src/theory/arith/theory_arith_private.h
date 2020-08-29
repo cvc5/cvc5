@@ -324,15 +324,18 @@ public:
   /** This is a conflict that is magically known to hold. */
   void raiseBlackBoxConflict(Node bb);
 
-private:
-
-  inline bool conflictQueueEmpty() const {
-    return d_conflicts.empty();
+  /**
+   * Returns true iff a conflict has been raised. This method is public since
+   * it is needed by the ArithState class to know whether we are in conflict.
+   */
+  bool anyConflict() const
+  {
+    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
   }
 
-  /** Returns true iff a conflict has been raised. */
-  inline bool anyConflict() const {
-    return !conflictQueueEmpty() || !d_blackBoxConflict.get().isNull();
+ private:
+  inline bool conflictQueueEmpty() const {
+    return d_conflicts.empty();
   }
 
   /**
@@ -415,7 +418,7 @@ private:
   Node axiomIteForTotalIntDivision(Node int_div_like);
 
   // handle linear /, div, mod, and also is_int, to_int
-  Node ppRewriteTerms(TNode atom);
+  TrustNode ppRewriteTerms(TNode atom);
 
  public:
   TheoryArithPrivate(TheoryArith& containing,
@@ -423,18 +426,27 @@ private:
                      context::UserContext* u,
                      OutputChannel& out,
                      Valuation valuation,
-                     const LogicInfo& logicInfo);
+                     const LogicInfo& logicInfo,
+                     ProofNodeManager* pnm);
   ~TheoryArithPrivate();
 
-  TheoryRewriter* getTheoryRewriter() { return &d_rewriter; }
+  //--------------------------------- initialization
+  /** get the official theory rewriter of this theory */
+  TheoryRewriter* getTheoryRewriter();
+  /**
+   * Returns true if we need an equality engine, see
+   * Theory::needsEqualityEngine.
+   */
+  bool needsEqualityEngine(EeSetupInfo& esi);
+  /** finish initialize */
+  void finishInit();
+  //--------------------------------- end initialization
 
   /**
    * Does non-context dependent setup for a node connected to a theory.
    */
   void preRegisterTerm(TNode n);
-  Node expandDefinition(Node node);
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq);
+  TrustNode expandDefinition(Node node);
 
   void check(Theory::Effort e);
   bool needsCheckLastEffort();
@@ -452,7 +464,7 @@ private:
   void presolve();
   void notifyRestart();
   Theory::PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions);
-  Node ppRewrite(TNode atom);
+  TrustNode ppRewrite(TNode atom);
   void ppStaticLearn(TNode in, NodeBuilder<>& learned);
 
   std::string identify() const { return std::string("TheoryArith"); }

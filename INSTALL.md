@@ -129,6 +129,12 @@ dependency.
 with --check-proofs. It can be installed using the `contrib/get-lfsc` script.  
 Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 
+### LibPoly (Optional polynomial library)
+
+[LibPoly](https://github.com/SRI-CSL/libpoly) is required for CAD-based nonlinear reasoning.
+It can be installed using the `contrib/get-poly` script.
+Configure CVC4 with `configure.sh --poly` to build with this dependency.
+
 ### CLN >= v1.3 (Class Library for Numbers)
 
 [CLN](http://www.ginac.de/CLN)
@@ -170,18 +176,12 @@ and-inverter-graphs (AIG) and ABC is used to simplify these AIGs.
 ABC can be installed using the `contrib/get-abc` script.  
 Configure CVC4 with `configure.sh --abc` to build with this dependency.
 
-### GNU Readline library (Improved Interactive Experience)
+### Editline library (Improved Interactive Experience)
 
-The [GNU Readline](http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html)
-library is optionally used to provide command editing, tab completion, and
-history functionality at the CVC4 prompt (when running in interactive mode).
-Check your distribution for a package named "libreadline-dev" or
-"readline-devel" or similar.
-
-Note that GNU Readline is covered by the [GNU General Public License, version 3](https://www.gnu.org/licenses/gpl-3.0.en.html).
-If you choose to use CVC4 with GNU Readline support, you are licensing CVC4
-under that same license.
-(Usually CVC4's license is more permissive; see above discussion.)
+The [Editline Library](https://thrysoee.dk/editline/) library is optionally
+used to provide command editing, tab completion, and history functionality at
+the CVC4 prompt (when running in interactive mode).  Check your distribution
+for a package named "libedit-dev" or "libedit-devel" or similar.
 
 ### Boost C++ base libraries (Examples)
 
@@ -319,3 +319,34 @@ available on the system. Override with `ARGS=-jN`.
 Use `-jN` for parallel **building** with `N` threads.
 
 
+## Recompiling a specific CVC4 version with different LGPL library versions
+
+To recompile a specific static binary of CVC4 with different versions of the
+linked LGPL libraries perform the following steps:
+
+1. Make sure that you have installed the desired LGPL library versions.
+   You can check the versions found by CVC4's build system during the configure
+   phase.
+
+2. Determine the commit sha and configuration of the CVC4 binary
+```
+cvc4 --show-config
+```
+3. Download the specific source code version:
+```
+wget https://github.com/CVC4/CVC4/archive/<commit-sha>.tar.gz
+```
+4. Extract the source code
+```
+tar xf <commit-sha>.tar.gz
+```
+5. Change into source code directory
+```
+cd CVC4-<commit-sha>
+```
+6. Configure CVC4 with options listed by `cvc4 --show-config`
+```
+./configure.sh --static <options>
+```
+
+7. Follow remaining steps from [build instructions](#building-cvc4)

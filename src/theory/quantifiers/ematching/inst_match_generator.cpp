@@ -14,7 +14,6 @@
  **/
 #include "theory/quantifiers/ematching/inst_match_generator.h"
 
-#include "expr/datatype.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "theory/datatypes/theory_datatypes_utils.h"

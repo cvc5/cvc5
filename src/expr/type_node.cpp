@@ -396,10 +396,14 @@ std::vector<TypeNode> TypeNode::getParamTypes() const {
   return params;
 }
 
-
-/** Is this a tuple type? */
-bool TypeNode::isTuple() const {
+bool TypeNode::isTuple() const
+{
   return (getKind() == kind::DATATYPE_TYPE && getDType().isTuple());
+}
+
+bool TypeNode::isRecord() const
+{
+  return (getKind() == kind::DATATYPE_TYPE && getDType().isRecord());
 }
 
 size_t TypeNode::getTupleLength() const {
@@ -657,6 +661,15 @@ bool TypeNode::isCodatatype() const
   if (isDatatype())
   {
     return getDType().isCodatatype();
+  }
+  return false;
+}
+
+bool TypeNode::isSygusDatatype() const
+{
+  if (isDatatype())
+  {
+    return getDType().isSygus();
   }
   return false;
 }

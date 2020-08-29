@@ -16,9 +16,7 @@
 
 #include <stack>
 
-#include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "printer/sygus_print_callback.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -379,10 +377,11 @@ Node CegGrammarConstructor::convertToEmbedding(Node n)
   return visited[n];
 }
 
-
-TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name, std::set<Type>& unres) {
+TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name,
+                                                 std::set<TypeNode>& unres)
+{
   TypeNode unresolved = NodeManager::currentNM()->mkSort(name, ExprManager::SORT_FLAG_PLACEHOLDER);
-  unres.insert( unresolved.toType() );
+  unres.insert(unresolved);
   return unresolved;
 }
 
@@ -492,7 +491,7 @@ bool CegGrammarConstructor::isHandledType(TypeNode t)
 }
 
 Node CegGrammarConstructor::createLambdaWithZeroArg(
-    Kind k, TypeNode bArgType, std::shared_ptr<SygusPrintCallback> spc)
+    Kind k, TypeNode bArgType)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> opLArgs;
@@ -513,9 +512,6 @@ Node CegGrammarConstructor::createLambdaWithZeroArg(
     zarg = bv::utils::mkZero(size);
   }
   Node body = nm->mkNode(k, zarg, opLArgs.back());
-  // use a print callback since we do not want to print the lambda
-  spc = std::make_shared<printer::SygusExprPrintCallback>(body.toExpr(),
-                                                          opLArgsExpr);
   // create operator
   Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), body);
   Trace("sygus-grammar-def") << "\t...building lambda op " << op << "\n";
@@ -533,7 +529,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         include_cons,
     std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
     std::vector<SygusDatatypeGenerator>& sdts,
-    std::set<Type>& unres)
+    std::set<TypeNode>& unres)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
@@ -1137,15 +1133,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Node op =
             nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, opLArgs), monomial);
-        // use a print callback since we do not want to print the lambda
-        std::shared_ptr<SygusPrintCallback> spc;
-        std::vector<Expr> opLArgsExpr;
-        for (unsigned j = 0, nvars = opLArgs.size(); j < nvars; j++)
-        {
-          opLArgsExpr.push_back(opLArgs[j].toExpr());
-        }
-        spc = std::make_shared<printer::SygusExprPrintCallback>(
-            monomial.toExpr(), opLArgsExpr);
         // add it as a constructor
         std::stringstream ssop;
         ssop << "monomial_" << sdc.d_name;
@@ -1153,7 +1140,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         // a generalization of a non-Boolean variable (which has weight 0).
         // This ensures that e.g. ( c1*x >= 0 ) has the same weight as
         // ( x >= 0 ).
-        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, spc, 0);
+        sdts[iat].d_sdt.addConstructor(op, ssop.str(), opCArgs, 0);
       }
     }
     if (polynomialGrammar)
@@ -1167,14 +1154,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Assert(sumChildren.size() > 1);
       Node ops = nm->mkNode(PLUS, sumChildren);
       Node op = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, lambdaVars), ops);
-      std::shared_ptr<SygusPrintCallback> spc;
-      std::vector<Expr> lambdaVarsExpr;
-      for (unsigned j = 0, nvars = lambdaVars.size(); j < nvars; j++)
-      {
-        lambdaVarsExpr.push_back(lambdaVars[j].toExpr());
-      }
-      spc = std::make_shared<printer::SygusExprPrintCallback>(ops.toExpr(),
-                                                              lambdaVarsExpr);
       Trace("sygus-grammar-def") << "any term operator is " << op << std::endl;
       // make the any term datatype, add to back
       // do not consider the exclusion criteria of the generator
@@ -1182,7 +1161,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       // a simultaneous generalization of set of non-Boolean variables.
       // This ensures that ( c1*x + c2*y >= 0 ) has the same weight as
       // e.g. ( x >= 0 ) or ( y >= 0 ).
-      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, spc, 0);
+      sdts[iat].d_sdt.addConstructor(op, "polynomial", cargsAnyTerm, 0);
       // mark that predicates should be of the form (= pol 0) and (<= pol 0)
       itgat->second.second = true;
     }
@@ -1223,7 +1202,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for variable " << ss.str() << std::endl;
       std::vector<TypeNode> cargsEmpty;
       // make boolean variables weight as non-nullary constructors
-      sdtBool.addConstructor(sygus_vars[i], ss.str(), cargsEmpty, nullptr, 1);
+      sdtBool.addConstructor(sygus_vars[i], ss.str(), cargsEmpty, 1);
     }
   }
   // add constants
@@ -1270,8 +1249,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     // predicates
     if (zarg)
     {
-      std::shared_ptr<SygusPrintCallback> spc;
-      Node op = createLambdaWithZeroArg(k, types[i], spc);
+      Node op = createLambdaWithZeroArg(k, types[i]);
       ss << "eq_" << types[i];
       sdtBool.addConstructor(op, ss.str(), cargs);
     }
@@ -1283,7 +1261,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       cargs.pop_back();
     }
     // type specific predicates
-    std::shared_ptr<SygusPrintCallback> spc;
     std::stringstream ssop;
     if (types[i].isReal())
     {
@@ -1291,7 +1268,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       if (zarg)
       {
-        Node op = createLambdaWithZeroArg(kind, types[i], spc);
+        Node op = createLambdaWithZeroArg(kind, types[i]);
         ssop << "leq_" << types[i];
         sdtBool.addConstructor(op, ssop.str(), cargs);
       }
@@ -1307,7 +1284,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
       if (zarg)
       {
-        Node op = createLambdaWithZeroArg(kind, types[i], spc);
+        Node op = createLambdaWithZeroArg(kind, types[i]);
         ssop << "leq_" << types[i];
         sdtBool.addConstructor(op, ssop.str(), cargs);
       }
@@ -1412,7 +1389,7 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
   {
     Trace("sygus-grammar-def") << "    ...using " << it->second.size() << " extra constants for " << it->first << std::endl;
   }
-  std::set<Type> unres;
+  std::set<TypeNode> unres;
   std::vector<SygusDatatypeGenerator> sdts;
   mkSygusDefaultGrammar(range,
                         bvl,
@@ -1424,19 +1401,18 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         sdts,
                         unres);
   // extract the datatypes from the sygus datatype generator objects
-  std::vector<Datatype> datatypes;
+  std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].d_sdt.getDatatype());
   }
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert(!datatypes.empty());
-  std::vector<DatatypeType> types =
-      NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = NodeManager::currentNM()->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("sygus-grammar-def") << "...finished" << std::endl;
   Assert(types.size() == datatypes.size());
-  return TypeNode::fromType( types[0] );
+  return types[0];
 }
 
 TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_arg, TypeNode templ_arg_sygus_type, Node bvl,
@@ -1446,7 +1422,7 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     return templ_arg_sygus_type;
   }else{
     tcount++;
-    std::set<Type> unres;
+    std::set<TypeNode> unres;
     std::vector<SygusDatatype> sdts;
     std::stringstream ssd;
     ssd << fun << "_templ_" << tcount;
@@ -1473,16 +1449,16 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     sdts.back().addConstructor(op, ssdc.str(), argTypes);
     sdts.back().initializeDatatype(templ.getType(), bvl, true, true);
     // extract the datatypes from the sygus datatype objects
-    std::vector<Datatype> datatypes;
+    std::vector<DType> datatypes;
     for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
     {
       datatypes.push_back(sdts[i].getDatatype());
     }
-    std::vector<DatatypeType> types =
-        NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-            datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+    std::vector<TypeNode> types =
+        NodeManager::currentNM()->mkMutualDatatypeTypes(
+            datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
     Assert(types.size() == 1);
-    return TypeNode::fromType( types[0] );
+    return types[0];
   }
 }
 
@@ -1522,22 +1498,20 @@ void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(
     Node op,
     const std::string& name,
     const std::vector<TypeNode>& consTypes,
-    std::shared_ptr<SygusPrintCallback> spc,
     int weight)
 {
   if (shouldInclude(op))
   {
-    d_sdt.addConstructor(op, name, consTypes, spc, weight);
+    d_sdt.addConstructor(op, name, consTypes, weight);
   }
 }
 void CegGrammarConstructor::SygusDatatypeGenerator::addConstructor(
     Kind k,
     const std::vector<TypeNode>& consTypes,
-    std::shared_ptr<SygusPrintCallback> spc,
     int weight)
 {
   NodeManager* nm = NodeManager::currentNM();
-  addConstructor(nm->operatorOf(k), kindToString(k), consTypes, spc, weight);
+  addConstructor(nm->operatorOf(k), kindToString(k), consTypes, weight);
 }
 bool CegGrammarConstructor::SygusDatatypeGenerator::shouldInclude(Node op) const
 {

@@ -27,7 +27,6 @@
 #include "theory/bv/bv_subtheory_bitblast.h"
 #include "theory/bv/bv_subtheory_core.h"
 #include "theory/bv/bv_subtheory_inequality.h"
-#include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_rewriter.h"
@@ -66,18 +65,18 @@ TheoryBV::TheoryBV(context::Context* c,
       d_invalidateModelCache(c, true),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
+      d_extTheory(new ExtTheory(this)),
       d_propagatedBy(c),
       d_eagerSolver(),
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
-      d_isCoreTheory(false),
       d_calledPreregister(false),
       d_needsLastCallCheck(false),
       d_extf_range_infer(u),
-      d_extf_collapse_infer(u)
+      d_extf_collapse_infer(u),
+      d_state(c, u, valuation)
 {
-  setupExtTheory();
-  getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
-  getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
+  d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
+  d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     d_eagerSolver.reset(new EagerBitblastSolver(c, this));
@@ -86,7 +85,7 @@ TheoryBV::TheoryBV(context::Context* c,
 
   if (options::bitvectorEqualitySolver() && !options::proof())
   {
-    d_subtheories.emplace_back(new CoreSolver(c, this));
+    d_subtheories.emplace_back(new CoreSolver(c, this, d_extTheory.get()));
     d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
@@ -109,17 +108,38 @@ TheoryBV::TheoryBV(context::Context* c,
   }
   d_subtheories.emplace_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryBV::~TheoryBV() {}
 
-void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
+TheoryRewriter* TheoryBV::getTheoryRewriter() { return &d_rewriter; }
+
+bool TheoryBV::needsEqualityEngine(EeSetupInfo& esi)
+{
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if (core)
   {
-    return;
+    return core->needsEqualityEngine(esi);
   }
-  if (options::bitvectorEqualitySolver()) {
-    dynamic_cast<CoreSolver*>(d_subtheoryMap[SUB_CORE])->setMasterEqualityEngine(eq);
+  // otherwise we don't use an equality engine
+  return false;
+}
+
+void TheoryBV::finishInit()
+{
+  // these kinds are semi-evaluated in getModelValue (applications of this
+  // kind are treated as variables)
+  d_valuation.setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  d_valuation.setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
+
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if (core)
+  {
+    // must finish initialization in the core solver
+    core->finishInit();
   }
 }
 
@@ -183,16 +203,6 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   }
 
   Unreachable();
-}
-
-void TheoryBV::finishInit()
-{
-  // these kinds are semi-evaluated in getModelValue (applications of this
-  // kind are treated as variables)
-  TheoryModel* tm = d_valuation.getModel();
-  Assert(tm != nullptr);
-  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
-  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
 }
 
 TrustNode TheoryBV::expandDefinition(Node node)
@@ -262,9 +272,10 @@ void TheoryBV::preRegisterTerm(TNode node) {
   for (unsigned i = 0; i < d_subtheories.size(); ++i) {
     d_subtheories[i]->preRegister(node);
   }
-  
-  // AJR : equality solver currently registers all terms to ExtTheory, if we want a lazy reduction without the bv equality solver, need to call this
-  //getExtTheory()->registerTermRec( node );
+
+  // AJR : equality solver currently registers all terms to ExtTheory, if we
+  // want a lazy reduction without the bv equality solver, need to call this
+  // d_extTheory->registerTermRec( node );
 }
 
 void TheoryBV::sendConflict() {
@@ -319,7 +330,7 @@ void TheoryBV::check(Effort e)
   
   //last call : do reductions on extended bitvector functions
   if (e == Theory::EFFORT_LAST_CALL) {
-    std::vector<Node> nred = getExtTheory()->getActive();
+    std::vector<Node> nred = d_extTheory->getActive();
     doExtfReductions(nred);
     return;
   }
@@ -404,7 +415,8 @@ void TheoryBV::check(Effort e)
   if (Theory::fullEffort(e)) {
     //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
     std::vector< Node > nred;
-    if( getExtTheory()->doInferences( 0, nred ) ){
+    if (d_extTheory->doInferences(0, nred))
+    {
       return;
     }
     d_needsLastCallCheck = false;
@@ -513,7 +525,8 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
 
 bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
   std::vector< Node > nredr;
-  if( getExtTheory()->doReductions( 0, terms, nredr ) ){
+  if (d_extTheory->doReductions(0, terms, nredr))
+  {
     return true;
   }
   Assert(nredr.empty());
@@ -576,16 +589,6 @@ void TheoryBV::propagate(Effort e) {
   if (!ok) {
     Debug("bitvector::propagate") << indent() << "TheoryBV::propagate(): conflict from theory engine" << std::endl;
     setConflict();
-  }
-}
-
-
-eq::EqualityEngine * TheoryBV::getEqualityEngine() {
-  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-  if( core ){
-    return core->getEqualityEngine();
-  }else{
-    return NULL;
   }
 }
 
@@ -720,10 +723,6 @@ TrustNode TheoryBV::ppRewrite(TNode t)
   if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
-    std::vector<Node> equalities;
-    Slicer::splitEqualities(t, equalities);
-    res = utils::mkAnd(equalities);
   } else if (RewriteRule<UltPlusOne>::applies(t)) {
     Node result = RewriteRule<UltPlusOne>::run<false>(t);
     res = Rewriter::rewrite(result);
@@ -881,9 +880,10 @@ TrustNode TheoryBV::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
-
-void TheoryBV::addSharedTerm(TNode t) {
-  Debug("bitvector::sharing") << indent() << "TheoryBV::addSharedTerm(" << t << ")" << std::endl;
+void TheoryBV::notifySharedTerm(TNode t)
+{
+  Debug("bitvector::sharing")
+      << indent() << "TheoryBV::notifySharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
   if (options::bitvectorEqualitySolver()) {
     for (unsigned i = 0; i < d_subtheories.size(); ++i) {
@@ -906,17 +906,6 @@ EqualityStatus TheoryBV::getEqualityStatus(TNode a, TNode b)
   }
   return EQUALITY_UNKNOWN; ;
 }
-
-
-void TheoryBV::enableCoreTheorySlicer() {
-  Assert(!d_calledPreregister);
-  d_isCoreTheory = true;
-  if (d_subtheoryMap.find(SUB_CORE) != d_subtheoryMap.end()) {
-    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
-    core->enableSlicer();
-  }
-}
-
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned) {
   if(d_staticLearnCache.find(in) != d_staticLearnCache.end()){

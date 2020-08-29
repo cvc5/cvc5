@@ -409,7 +409,7 @@ public:
    * Convert this TypeNode into a Type using the currently-in-scope
    * manager.
    */
-  inline Type toType();
+  inline Type toType() const;
 
   /**
    * Convert a Type into a TypeNode.
@@ -599,6 +599,9 @@ public:
   /** Is this a tuple type? */
   bool isTuple() const;
 
+  /** Is this a record type? */
+  bool isRecord() const;
+
   /** Get the length of a tuple type */
   size_t getTupleLength() const;
 
@@ -638,6 +641,9 @@ public:
 
   /** Is this a fully instantiated datatype type */
   bool isInstantiatedDatatype() const;
+
+  /** Is this a sygus datatype type */
+  bool isSygusDatatype() const;
 
   /**
    * Get instantiated datatype type. The type on which this method is called
@@ -754,11 +760,13 @@ typedef TypeNode::HashFunction TypeNodeHashFunction;
 
 namespace CVC4 {
 
-inline Type TypeNode::toType() {
+inline Type TypeNode::toType() const
+{
   return NodeManager::currentNM()->toType(*this);
 }
 
 inline TypeNode TypeNode::fromType(const Type& t) {
+  NodeManagerScope scope(t.d_nodeManager);
   return NodeManager::fromType(t);
 }
 
@@ -1003,7 +1011,8 @@ inline TypeNode TypeNode::getRangeType() const {
   if(isTester()) {
     return NodeManager::currentNM()->booleanType();
   }
-  Assert(isFunction() || isConstructor() || isSelector());
+  Assert(isFunction() || isConstructor() || isSelector())
+      << "Cannot get range type of " << *this;
   return (*this)[getNumChildren() - 1];
 }
 

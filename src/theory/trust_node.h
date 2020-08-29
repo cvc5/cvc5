@@ -18,6 +18,7 @@
 #define CVC4__THEORY__TRUST_NODE_H
 
 #include "expr/node.h"
+#include "expr/proof_node.h"
 
 namespace CVC4 {
 
@@ -127,6 +128,11 @@ class TrustNode
   ProofGenerator* getGenerator() const;
   /** is null? */
   bool isNull() const;
+  /**
+   * Gets the proof node for this trust node, which is obtained by
+   * calling the generator's getProofFor method on the proven node.
+   */
+  std::shared_ptr<ProofNode> toProofNode();
 
   /** Get the proven formula corresponding to a conflict call */
   static Node getConflictProven(Node conf);
@@ -136,6 +142,15 @@ class TrustNode
   static Node getPropExpProven(TNode lit, Node exp);
   /** Get the proven formula corresponding to a rewrite */
   static Node getRewriteProven(TNode n, Node nr);
+  /** For debugging */
+  std::string identifyGenerator() const;
+
+  /**
+   * debug check closed on Trace c, context ctx is string for debugging
+   *
+   * @param reqNullGen Whether we consider a null generator to be a failure.
+   */
+  void debugCheckClosed(const char* c, const char* ctx, bool reqNullGen = true);
 
  private:
   TrustNode(TrustNodeKind tnk, Node p, ProofGenerator* g = nullptr);

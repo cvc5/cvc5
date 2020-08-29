@@ -69,6 +69,8 @@ public:
 
   static bool isCompetitionBuild();
 
+  static bool isStaticBuild();
+
   static std::string getPackageName();
 
   static std::string getVersionString();
@@ -103,9 +105,11 @@ public:
 
   static bool isBuiltWithDrat2Er();
 
-  static bool isBuiltWithReadline();
+  static bool isBuiltWithEditline();
 
   static bool isBuiltWithLfsc();
+
+  static bool isBuiltWithPoly();
 
   static bool isBuiltWithSymFPU();
 

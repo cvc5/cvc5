@@ -93,7 +93,7 @@ class TheoryArraysRewriter : public TheoryRewriter
     }
     Assert(store.getKind() == kind::STORE_ALL);
     ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-    Node defaultValue = Node::fromExpr(storeAll.getExpr());
+    Node defaultValue = storeAll.getValue();
     NodeManager* nm = NodeManager::currentNM();
 
     // Check if we are writing to default value - if so the store
@@ -214,7 +214,7 @@ class TheoryArraysRewriter : public TheoryRewriter
       std::sort(newIndices.begin(), newIndices.end());
     }
 
-    n = nm->mkConst(ArrayStoreAll(node.getType().toType(), maxValue.toExpr()));
+    n = nm->mkConst(ArrayStoreAll(node.getType(), maxValue));
     std::vector<Node>::iterator itNew = newIndices.begin(), it_end = newIndices.end();
     while (itNew != it_end || !indices.empty()) {
       if (itNew != it_end && (indices.empty() || (*itNew) < indices.back())) {
@@ -267,7 +267,7 @@ class TheoryArraysRewriter : public TheoryRewriter
         if (store.getKind() == kind::STORE_ALL) {
           // select(store_all(v),i) = v
           ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-          n = Node::fromExpr(storeAll.getExpr());
+          n = storeAll.getValue();
           Trace("arrays-postrewrite") << "Arrays::postRewrite returning " << n << std::endl;
           Assert(n.isConst());
           return RewriteResponse(REWRITE_DONE, n);
@@ -432,7 +432,7 @@ class TheoryArraysRewriter : public TheoryRewriter
         if (store.getKind() == kind::STORE_ALL) {
           // select(store_all(v),i) = v
           ArrayStoreAll storeAll = store.getConst<ArrayStoreAll>();
-          n = Node::fromExpr(storeAll.getExpr());
+          n = storeAll.getValue();
           Trace("arrays-prerewrite") << "Arrays::preRewrite returning " << n << std::endl;
           Assert(n.isConst());
           return RewriteResponse(REWRITE_DONE, n);

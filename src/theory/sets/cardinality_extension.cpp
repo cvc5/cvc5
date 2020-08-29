@@ -18,6 +18,7 @@
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "options/sets_options.h"
+#include "smt/logic_exception.h"
 #include "theory/sets/normal_form.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
@@ -31,19 +32,15 @@ namespace sets {
 
 CardinalityExtension::CardinalityExtension(SolverState& s,
                                            InferenceManager& im,
-                                           eq::EqualityEngine& e,
                                            context::Context* c,
                                            context::UserContext* u)
     : d_state(s),
       d_im(im),
-      d_ee(e),
       d_card_processed(u),
       d_finite_type_constants_processed(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  // we do congruence over cardinality
-  d_ee.addFunctionKind(CARD);
 }
 
 void CardinalityExtension::reset()
@@ -60,7 +57,7 @@ void CardinalityExtension::registerTerm(Node n)
   Assert(n.getKind() == CARD);
   TypeNode tnc = n[0].getType().getSetElementType();
   d_t_card_enabled[tnc] = true;
-  Node r = d_ee.getRepresentative(n[0]);
+  Node r = d_state.getRepresentative(n[0]);
   if (d_eqc_to_card_term.find(r) == d_eqc_to_card_term.end())
   {
     d_eqc_to_card_term[r] = n;
@@ -144,7 +141,7 @@ void CardinalityExtension::checkCardinalityExtended(TypeNode& t)
   for (Node& representative : representatives)
   {
     // the universe set is a subset of itself
-    if (representative != d_ee.getRepresentative(univ))
+    if (representative != d_state.getRepresentative(univ))
     {
       // here we only add representatives with variables to avoid adding
       // infinite equivalent generated terms to the cardinality graph
@@ -399,7 +396,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       true_sib = 1;
     }
     Node u = Rewriter::rewrite(nm->mkNode(UNION, n[0], n[1]));
-    if (!d_ee.hasTerm(u))
+    if (!d_state.hasTerm(u))
     {
       u = Node::null();
     }
@@ -413,7 +410,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       // parent equal siblings
       for (unsigned e = 0; e < true_sib; e++)
       {
-        if (d_ee.hasTerm(sib[e]) && !d_state.areEqual(n[e], sib[e]))
+        if (d_state.hasTerm(sib[e]) && !d_state.areEqual(n[e], sib[e]))
         {
           conc.push_back(n[e].eqNode(sib[e]));
         }
@@ -518,7 +515,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     for (unsigned k = 0, numcp = card_parents.size(); k < numcp; k++)
     {
       Node cpk = card_parents[k];
-      Node eqcc = d_ee.getRepresentative(cpk);
+      Node eqcc = d_state.getRepresentative(cpk);
       Trace("sets-debug") << "Check card parent " << k << "/"
                           << card_parents.size() << std::endl;
 
@@ -833,7 +830,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
                                << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);
-              Assert(!d_ee.hasTerm(intro));
+              Assert(!d_state.hasTerm(intro));
               return;
             }
           }
@@ -1001,9 +998,14 @@ void CardinalityExtension::mkModelValueElementsFor(
       Node v = val.getModelValue(it->second);
       Trace("sets-model") << "Cardinality of " << eqc << " is " << v
                           << std::endl;
-      Assert(v.getConst<Rational>() <= LONG_MAX)
-          << "Exceeded LONG_MAX in sets model";
-      unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
+      if (v.getConst<Rational>() > UINT32_MAX)
+      {
+        std::stringstream ss;
+        ss << "The model for " << eqc << " was computed to have cardinality "
+           << v << ". We only allow sets up to cardinality " << UINT32_MAX;
+        throw LogicException(ss.str());
+      }
+      std::uint32_t vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
       Assert(els.size() <= vu);
       NodeManager* nm = NodeManager::currentNM();
       if (elementType.isInterpretedFinite())

@@ -20,7 +20,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -242,7 +241,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("srs-input") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
-  std::set<Type> unres;
+  std::set<TypeNode> unres;
   std::vector<SygusDatatype> sdts;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
@@ -254,7 +253,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     std::string tname = ss.str();
     TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
     cterm_to_utype[ct] = tnu;
-    unres.insert(tnu.toType());
+    unres.insert(tnu);
     sdts.push_back(SygusDatatype(tname));
   }
   Trace("srs-input") << "...finished." << std::endl;
@@ -344,7 +343,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           sdts[i].addConstructor(lambdaOp,
                                  sscs.str(),
                                  argListc,
-                                 printer::SygusEmptyPrintCallback::getEmptyPC(),
                                  0);
         }
         // recursive apply
@@ -371,19 +369,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "Make mutual datatype types for subterms..."
                      << std::endl;
   // extract the datatypes
-  std::vector<Datatype> datatypes;
+  std::vector<DType> datatypes;
   for (unsigned i = 0, ndts = sdts.size(); i < ndts; i++)
   {
     datatypes.push_back(sdts[i].getDatatype());
   }
-  std::vector<DatatypeType> types = nm->toExprManager()->mkMutualDatatypeTypes(
-      datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  std::vector<TypeNode> types = nm->mkMutualDatatypeTypes(
+      datatypes, unres, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("srs-input") << "...finished." << std::endl;
   Assert(types.size() == unres.size());
   std::map<Node, TypeNode> subtermTypes;
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
-    subtermTypes[cterms[i]] = TypeNode::fromType(types[i]);
+    subtermTypes[cterms[i]] = types[i];
   }
 
   Trace("srs-input") << "Construct the top-level types..." << std::endl;
@@ -413,7 +411,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       sdttl.addConstructor(lambdaOp,
                            ssc.str(),
                            argList,
-                           printer::SygusEmptyPrintCallback::getEmptyPC(),
                            0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
@@ -421,12 +418,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     }
     // set that this is a sygus datatype
     sdttl.initializeDatatype(t, sygusVarList, false, false);
-    Datatype dttl = sdttl.getDatatype();
-    DatatypeType tlt = nm->toExprManager()->mkDatatypeType(
-        dttl, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-    tlGrammarTypes[t] = TypeNode::fromType(tlt);
+    DType dttl = sdttl.getDatatype();
+    TypeNode tlt =
+        nm->mkDatatypeType(dttl, NodeManager::DATATYPE_FLAG_PLACEHOLDER);
+    tlGrammarTypes[t] = tlt;
     Trace("srs-input") << "Grammar is: " << std::endl;
-    Trace("srs-input") << tlt.getDatatype() << std::endl;
+    Trace("srs-input") << tlt.getDType() << std::endl;
   }
   Trace("srs-input") << "...finished." << std::endl;
 

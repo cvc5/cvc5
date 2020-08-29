@@ -1,5 +1,6 @@
 set(EXAMPLES_API_PYTHON
   exceptions
+  sequences
 )
 
 find_package(PythonInterp REQUIRED)
