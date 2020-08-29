@@ -133,9 +133,7 @@ class TheoryInferenceManager
   /**
    * Assert internal fact, with a proof generator justification.
    */
-  void assertInternalFact(TNode atom,
-                          bool pol,
-                          ProofGenerator * pg);
+  void assertInternalFact(TNode atom, bool pol, ProofGenerator* pg);
 
  protected:
   /**
@@ -143,11 +141,11 @@ class TheoryInferenceManager
    * assertInternalFact variants above.
    */
   void processInternalFact(TNode atom,
-                                                 bool pol,
+                           bool pol,
                            PfRule id,
                            const std::vector<Node>& exp,
                            const std::vector<Node>& args,
-                          ProofGenerator * pg);
+                           ProofGenerator* pg);
   /**
    * Explain conflict from constants merging in the equality engine. This
    * method is called by conflictEqConstantMerge. By default, it returns

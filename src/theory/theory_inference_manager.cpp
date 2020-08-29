@@ -148,15 +148,15 @@ void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
 {
-  Assert (id!=PfRule::UNKNOWN);
+  Assert(id != PfRule::UNKNOWN);
   processInternalFact(atom, pol, id, exp, args, nullptr);
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
-                            bool pol,
-                            ProofGenerator * pg)
+                                                bool pol,
+                                                ProofGenerator* pg)
 {
-  Assert (pg!=nullptr);
+  Assert(pg != nullptr);
   processInternalFact(atom, pol, PfRule::ASSUME, {}, {}, pg);
 }
 
@@ -165,7 +165,7 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
                                                  PfRule id,
                                                  const std::vector<Node>& exp,
                                                  const std::vector<Node>& args,
-                            ProofGenerator * pg)
+                                                 ProofGenerator* pg)
 {
   // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
@@ -205,7 +205,7 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
     // optimize this so that a few less nodes are created, but at the cost
     // of a more verbose interface to proof equality engine.
     Node lit = pol ? Node(atom) : atom.notNode();
-    if (pg!=nullptr)
+    if (pg != nullptr)
     {
       // use the proof generator interface
       d_pfee->assertFact(lit, expn, pg);
