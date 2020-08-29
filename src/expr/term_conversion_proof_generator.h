@@ -21,6 +21,7 @@
 #include "expr/lazy_proof.h"
 #include "expr/proof_generator.h"
 #include "expr/proof_node_manager.h"
+#include "expr/term_context.h"
 
 namespace CVC4 {
 
@@ -104,27 +105,36 @@ class TConvProofGenerator : public ProofGenerator
                       context::Context* c = nullptr,
                       TConvPolicy pol = TConvPolicy::FIXPOINT,
                       TConvCachePolicy cpol = TConvCachePolicy::NEVER,
-                      std::string name = "TConvProofGenerator");
+                      std::string name = "TConvProofGenerator",
+                      TermContext* tctx = nullptr);
   ~TConvProofGenerator();
   /**
    * Add rewrite step t --> s based on proof generator.
+   *
+   * @param isClosed whether to expect that pg can provide a closed proof for
+   * this fact.
    */
-  void addRewriteStep(Node t, Node s, ProofGenerator* pg);
+  void addRewriteStep(Node t,
+                      Node s,
+                      ProofGenerator* pg,
+                      bool isClosed = true,
+                      uint32_t tctx = 0);
   /** Same as above, for a single step */
-  void addRewriteStep(Node t, Node s, ProofStep ps);
+  void addRewriteStep(Node t, Node s, ProofStep ps, uint32_t tctx = 0);
   /** Same as above, with explicit arguments */
   void addRewriteStep(Node t,
                       Node s,
                       PfRule id,
                       const std::vector<Node>& children,
-                      const std::vector<Node>& args);
+                      const std::vector<Node>& args,
+                      uint32_t tctx = 0);
   /** Has rewrite step for term t */
-  bool hasRewriteStep(Node t) const;
+  bool hasRewriteStep(Node t, uint32_t tctx = 0) const;
   /** 
    * Get rewrite step for term t, returns the s provided in a call to
    * addRewriteStep if one exists, or null otherwise.
    */
-  Node getRewriteStep(Node t) const;
+  Node getRewriteStep(Node t, uint32_t tctx = 0) const;
   /**
    * Get the proof for formula f. It should be the case that f is of the form
    * t = t', where t' is the result of rewriting t based on the rewrite steps
@@ -161,19 +171,25 @@ class TConvProofGenerator : public ProofGenerator
   std::string d_name;
   /** The cache for terms */
   std::map<Node, std::shared_ptr<ProofNode> > d_cache;
+  /** An (optional) term context object */
+  TermContext* d_tcontext;
+  /** Get rewrite step for (hash value of) term. */
+  Node getRewriteStepInternal(Node thash) const;
   /**
    * Adds a proof of t = t' to the proof pf where t' is the result of rewriting
    * t based on the rewrite steps registered to this class. This method then
    * returns the proved equality t = t'.
    */
-  Node getProofForRewriting(Node t, LazyCDProof& pf);
+  Node getProofForRewriting(Node t, LazyCDProof& pf, TermContext* tc);
   /**
    * Register rewrite step, returns the equality t=s if t is distinct from s
    * and a rewrite step has not already been registered for t.
    */
-  Node registerRewriteStep(Node t, Node s);
+  Node registerRewriteStep(Node t, Node s, uint32_t tctx);
   /** cache that r is the rewritten form of cur, pf can provide a proof */
-  void doCache(Node cur, Node r, LazyCDProof& pf);
+  void doCache(Node curHash, Node cur, Node r, LazyCDProof& pf);
+  /** get debug information on this generator */
+  std::string toStringDebug() const;
 };
 
 }  // namespace CVC4
