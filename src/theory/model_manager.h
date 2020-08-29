@@ -46,7 +46,7 @@ class ModelManager
    * Finish initializing this class, which allocates the model, the model
    * builder as well as the equality engine of the model. The equality engine
    * to use is determined by the virtual method initializeModelEqEngine.
-   * 
+   *
    * @param notify The object that wants to be notified for callbacks occurring
    */
   void finishInit(eq::EqualityEngineNotify* notify);
