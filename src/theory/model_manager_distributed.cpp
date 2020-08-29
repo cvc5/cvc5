@@ -44,6 +44,8 @@ void ModelManagerDistributed::initializeModelEqEngine(
   d_modelEqualityEngineAlloc.reset(
       d_eem.allocateEqualityEngine(esim, &d_modelEeContext));
   d_modelEqualityEngine = d_modelEqualityEngineAlloc.get();
+  // finish initializing the model
+  d_model->finishInit(d_modelEqualityEngine);
   // We push a context during initialization since the model is cleared during
   // collectModelInfo using pop/push.
   d_modelEeContext.push();
