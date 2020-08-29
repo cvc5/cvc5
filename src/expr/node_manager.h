@@ -1381,7 +1381,7 @@ Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
   {
     return children[0];
   }
-  return mkNode(AND, a);
+  return mkNode(kind::AND, children);
 }
 
 template <bool ref_count>
