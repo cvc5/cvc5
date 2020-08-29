@@ -42,6 +42,7 @@
 namespace CVC4 {
 
 class TheoryEngine;
+class DecisionManager;
 
 namespace theory {
 
@@ -56,11 +57,13 @@ class QuantifiersEngine {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
 public:
-  QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
+  QuantifiersEngine(TheoryEngine* te, DecisionManager& dm);
   ~QuantifiersEngine();
   //---------------------- external interface
   /** get theory engine */
-  TheoryEngine* getTheoryEngine() const { return d_te; }
+  TheoryEngine* getTheoryEngine() const;
+  /** Get the decision manager */
+  DecisionManager* getDecisionManager();
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
@@ -319,8 +322,10 @@ public:
   Statistics d_statistics;
   
  private:
-  /** reference to theory engine object */
+  /** Pointer to theory engine object */
   TheoryEngine* d_te;
+  /** Reference to the decision manager of the theory engine */
+  DecisionManager& d_decManager;
   /** Pointer to the master equality engine */
   eq::EqualityEngine* d_masterEqualityEngine;
   /** vector of utilities for quantifiers */

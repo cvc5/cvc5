@@ -172,10 +172,9 @@ class QuantifiersEnginePrivate
   }
 };
 
-QuantifiersEngine::QuantifiersEngine(context::Context* c,
-                                     context::UserContext* u,
-                                     TheoryEngine* te)
+QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
     : d_te(te),
+      d_decManager(dm),
       d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_tr_trie(new inst::TriggerTrie),
@@ -278,6 +277,17 @@ QuantifiersEngine::~QuantifiersEngine() {}
 void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
 {
   d_masterEqualityEngine = mee;
+}
+
+
+TheoryEngine* QuantifiersEngine::getTheoryEngine() const
+{
+  return d_te;
+}
+
+DecisionManager& QuantifiersEngine::getDecisionManager()
+{
+  return &d_decManager;
 }
 
 context::Context* QuantifiersEngine::getSatContext()

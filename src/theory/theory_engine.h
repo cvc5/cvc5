@@ -95,10 +95,6 @@ namespace eq {
 class EqualityEngine;
 }  // namespace eq
 
-namespace quantifiers {
-class TermDb;
-}
-
 class EntailmentCheckParameters;
 class EntailmentCheckSideEffects;
 }/* CVC4::theory namespace */
@@ -116,7 +112,6 @@ class TheoryEngine {
   /** Shared terms database can use the internals notify the theories */
   friend class SharedTermsDatabase;
   friend class theory::CombinationEngine;
-  friend class theory::quantifiers::TermDb;
   friend class theory::EngineOutputChannel;
   friend class theory::CombinationEngine;
 
