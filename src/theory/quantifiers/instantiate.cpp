@@ -472,6 +472,7 @@ Node Instantiate::getInstantiation(Node q,
     if (!trn.isNull())
     {
       Node newBody = trn.getNode();
+      // if using proofs, we store a preprocess + transformation step.
       if (pf != nullptr)
       {
         Node proven = trn.getProven();
@@ -481,10 +482,7 @@ Node Instantiate::getInstantiation(Node q,
                         "Instantiate::getInstantiation:rewrite_inst",
                         false,
                         PfRule::THEORY_PREPROCESS);
-        pf->addStep(newBody,
-                    PfRule::MACRO_SR_PRED_TRANSFORM,
-                    {body, proven},
-                    {newBody});
+        pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
       }
       body = newBody;
     }
