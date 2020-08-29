@@ -151,14 +151,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
 
   if (options::solveBVAsInt() != options::SolveBVAsIntMode::OFF)
   {
-    // not compatible with incremental
-    if (options::incrementalSolving())
-    {
-      throw OptionException(
-          "solving bitvectors as integers is currently not supported "
-          "when solving incrementally.");
-    }
-    else if (options::boolToBitvector() != options::BoolToBVMode::OFF)
+    if (options::boolToBitvector() != options::BoolToBVMode::OFF)
     {
       throw OptionException(
           "solving bitvectors as integers is incompatible with --bool-to-bv.");
