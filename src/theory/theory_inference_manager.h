@@ -120,7 +120,7 @@ class TheoryInferenceManager
    * output channel as a propagation or lemma. This method ensures that the
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
-   * 
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
@@ -130,7 +130,7 @@ class TheoryInferenceManager
    * Assert internal fact, with a proof step justification. Notice that if
    * proofs are not enabled in this inference manager, then this asserts
    * a fact to the equality engine in the normal way.
-   * 
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param id The proof rule identifier of the proof step
@@ -145,7 +145,7 @@ class TheoryInferenceManager
   /**
    * Assert internal fact, with a proof generator justification. Same as above,
    * but with a proof generator instead of an explicit step.
-   * 
+   *
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, interpreted as a conjunction
@@ -153,7 +153,8 @@ class TheoryInferenceManager
    * can provide a proof concluding (~) atom from free asumptions in exp in
    * the remainder of the current SAT context.
    */
-  void assertInternalFact(TNode atom, bool pol, 
+  void assertInternalFact(TNode atom,
+                          bool pol,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
 

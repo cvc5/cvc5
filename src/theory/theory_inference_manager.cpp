@@ -153,7 +153,7 @@ void TheoryInferenceManager::assertInternalFact(TNode atom,
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
-                          const std::vector<Node>& exp,
+                                                const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
   Assert(pg != nullptr);
