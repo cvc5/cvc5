@@ -37,6 +37,12 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
   d_ee = ee;
+  // if proofs are enabled, also make a proof equality engine to wrap ee
+  if (d_pnm!=nullptr)
+  {
+    d_pfee.reset(new eq::ProofEqEngine(
+        d_theoryState.getSatContext(), d_theoryState.getUserContext(), *d_ee, d_pnm));
+  }
 }
 
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
@@ -85,7 +91,10 @@ bool TheoryInferenceManager::propagateLit(TNode lit)
 
 TrustNode TheoryInferenceManager::explainLit(TNode lit)
 {
-  // TODO (project #37): use proof equality engine if it exists
+  if (d_pfee!=nullptr)
+  {
+    return d_pfee->explain(lit);
+  }
   if (d_ee != nullptr)
   {
     Node exp = d_ee->mkExplainLit(lit);
@@ -100,10 +109,13 @@ TrustNode TheoryInferenceManager::explainLit(TNode lit)
 TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                                                                  TNode b)
 {
-  // TODO (project #37): use proof equality engine if it exists
+  Node lit = a.eqNode(b);
+  if (d_pfee!=nullptr)
+  {
+    return d_pfee->explain(lit);
+  }
   if (d_ee != nullptr)
   {
-    Node lit = a.eqNode(b);
     Node conf = d_ee->mkExplainLit(lit);
     return TrustNode::mkTrustConflict(conf, nullptr);
   }
@@ -124,7 +136,25 @@ LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
-                                                TNode fact)
+                                                TNode exp)
+{
+  processInternalFact(atom, pol, PfRule::ASSUME, {exp}, {});
+}
+
+void TheoryInferenceManager::assertInternalFact(TNode atom,
+                                                bool pol,
+                PfRule id,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& args)
+{
+  processInternalFact(atom, pol, id, exp, args);
+}
+
+void TheoryInferenceManager::processInternalFact(TNode atom,
+                                                bool pol,
+                PfRule id,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& args)
 {
   // call the pre-notify fact method with preReg = false, isInternal = true
   if (d_theory.preNotifyFact(atom, pol, fact, false, true))
@@ -152,6 +182,41 @@ void TheoryInferenceManager::assertInternalFact(TNode atom,
   // external assertions, which enter as facts in theory check.
   d_keep.insert(atom);
   d_keep.insert(fact);
+}
+
+void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
+{
+  if (n.getKind() == kind::AND)
+  {
+    for (const Node& nc : n)
+    {
+      d_ee->explainLit(nc, assumptions);
+    }
+  }
+  else
+  {
+    d_ee->explainLit(n, assumptions);
+  }
+}
+
+Node TheoryInferenceManager::mkExplain(TNode n)
+{
+  std::vector<TNode> assumptions;
+  explain(n, assumptions);
+  Node ret;
+  if (assumptions.empty())
+  {
+    ret = NodeManager::currentNM()->mkConst(true);
+  }
+  else if (assumptions.size() == 1)
+  {
+    ret = assumptions[0];
+  }
+  else
+  {
+    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
+  }
+  return ret;
 }
 
 }  // namespace theory

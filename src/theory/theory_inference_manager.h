@@ -17,11 +17,14 @@
 #ifndef CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
 #define CVC4__THEORY__THEORY_INFERENCE_MANAGER_H
 
+#include <memory>
+
 #include "context/cdhashset.h"
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
+#include "theory/uf/proof_equality_engine.h"
 
 namespace CVC4 {
 
@@ -118,9 +121,25 @@ class TheoryInferenceManager
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
    */
-  void assertInternalFact(TNode atom, bool pol, TNode fact);
+  void assertInternalFact(TNode atom, bool pol, TNode exp);
+  /**
+   * Assert internal fact, with a proof step justification.
+   */
+  void assertInternalFact(TNode atom,
+                                                bool pol,
+                  PfRule id,
+                  const std::vector<Node>& exp,
+                  const std::vector<Node>& args);
 
  protected:
+  /**
+   * Process internal fact. This is a common helper method for the
+   * assertInternalFact variants above.
+   */
+  void processInternalFact(Node fact,
+                  PfRule id,
+                  const std::vector<Node>& exp,
+                  const std::vector<Node>& args);
   /**
    * Explain conflict from constants merging in the equality engine. This
    * method is called by conflictEqConstantMerge. By default, it returns
@@ -128,6 +147,16 @@ class TheoryInferenceManager
    * exists.
    */
   virtual TrustNode explainConflictEqConstantMerge(TNode a, TNode b);
+  /**
+   * Explain formula n (which is possibly a conjunction with no nested
+   * conjunctions), add its explanation to assumptions.
+   */
+  void explain(TNode n, std::vector<TNode>& assumptions);
+  /**
+   * Explain formula n (which is possibly a conjunction with no nested
+   * conjunctions), return the explanation as a conjunction.
+   */
+  Node mkExplain(TNode n);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
@@ -136,6 +165,8 @@ class TheoryInferenceManager
   OutputChannel& d_out;
   /** Pointer to equality engine of the theory. */
   eq::EqualityEngine* d_ee;
+  /** A proof equality engine */
+  std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
   /**
