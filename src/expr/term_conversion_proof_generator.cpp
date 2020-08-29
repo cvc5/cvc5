@@ -48,13 +48,13 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
-                                         TermContext* tctx)
+                                         TermContext* tccb)
     : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
       d_rewriteMap(c ? c : &d_context),
       d_policy(pol),
       d_cpolicy(cpol),
       d_name(name),
-      d_tcontext(tctx)
+      d_tcontext(tccb)
 {
 }
 
