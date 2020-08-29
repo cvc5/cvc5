@@ -44,8 +44,7 @@ void CombinationEngine::finishInit()
   if (options::eeMode() == options::EqEngineMode::DISTRIBUTED)
   {
     // make the distributed equality engine manager
-    d_eemanager.reset(
-        new EqEngineManagerDistributed(d_te));
+    d_eemanager.reset(new EqEngineManagerDistributed(d_te));
     // make the distributed model manager
     d_mmanager.reset(new ModelManagerDistributed(d_te, *d_eemanager.get()));
   }

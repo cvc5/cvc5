@@ -19,10 +19,7 @@
 namespace CVC4 {
 namespace theory {
 
-EqEngineManager::EqEngineManager(TheoryEngine& te)
-    : d_te(te)
-{
-}
+EqEngineManager::EqEngineManager(TheoryEngine& te) : d_te(te) {}
 
 const EeTheoryInfo* EqEngineManager::getEeTheoryInfo(TheoryId tid) const
 {
