@@ -30,14 +30,14 @@ namespace theory {
 
 /**
  * Manager for building models where the equality engine of the model is
- * a separate instance. Notice that this can be combined with multiple ways
- * of managing the equality engines for theories.
+ * a separate instance. Notice that this manager can be used regardless of the
+ * method for managing the equality engines of the theories (which is the
+ * responsibility of the equality engine manager eem referenced by this class).
  *
  * Its prepare model method uses collectModelInfo to assert all equalities from
  * the equality engine of each theory into the equality engine of the model. It
  * additionally uses the model equality engine context to clear the information
- * from the model's equality engine, as maintained by the distributed equality
- * engine manager.
+ * from the model's equality engine, which is maintained by this class.
  */
 class ModelManagerDistributed : public ModelManager
 {
