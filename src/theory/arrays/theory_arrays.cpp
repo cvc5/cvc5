@@ -1092,7 +1092,9 @@ void TheoryArrays::computeCareGraph()
 
 bool TheoryArrays::collectModelValues(TheoryModel* m,
                                       const std::set<Node>& termSet)
-{
+{  
+  // termSet contains terms appearing in assertions and shared terms, and also	
+  // includes additional reads due to the RIntro1 and RIntro2 rules.
   NodeManager* nm = NodeManager::currentNM();
   // Compute arrays that we need to produce representatives for
   std::vector<Node> arrays;
