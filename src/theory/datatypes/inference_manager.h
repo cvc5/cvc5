@@ -51,22 +51,25 @@ class InferenceManager : public InferenceManagerBuffered
    * or processed internally.
    */
   void process();
-  /** 
+  /**
    * Have we asserted an internal fact (via process) since the most recent call
-   * to reset? 
+   * to reset?
    */
   bool hasAddedFact() const;
-  /** 
-   * Have we sent a lemma (via process) since the most recent call to reset? 
+  /**
+   * Have we sent a lemma (via process) since the most recent call to reset?
    */
   bool hasAddedLemma() const;
   /**
    * If not cached, send lemma lem on the output channel and cache. Returns
    * true if a lemma was sent.
    */
-  bool doSendLemma(Node lem, LemmaProperty p = LemmaProperty::NONE, bool cached=true);
+  bool doSendLemma(Node lem,
+                   LemmaProperty p = LemmaProperty::NONE,
+                   bool cached = true);
   /** Multi-lemma version of the above, returns true if any lemma was sent. */
   bool doSendLemmas(const std::vector<Node>& lem);
+
  protected:
   /**
    * Must communicate fact method.

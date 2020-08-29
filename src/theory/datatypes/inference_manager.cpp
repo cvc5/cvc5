@@ -137,18 +137,12 @@ void InferenceManager::process()
   d_pendingFact.clear();
 }
 
-bool InferenceManager::hasAddedFact() const
-{
-  return d_addedFact;
-}
-bool InferenceManager::hasAddedLemma() const
-{
-  return d_addedLemma;
-}
+bool InferenceManager::hasAddedFact() const { return d_addedFact; }
+bool InferenceManager::hasAddedLemma() const { return d_addedLemma; }
 bool InferenceManager::doSendLemma(Node lem, LemmaProperty p, bool cached)
 {
   // don't cache lemmas with non-standard properties
-  Assert (!cached || p==LemmaProperty::NONE);
+  Assert(!cached || p == LemmaProperty::NONE);
   bool doSend = false;
   if (!cached)
   {
