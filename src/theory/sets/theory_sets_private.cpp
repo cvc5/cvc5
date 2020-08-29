@@ -1259,7 +1259,7 @@ std::string traceElements(const Node& set)
 }  // namespace
 
 bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet)
+                                           const std::set<Node>& termSet)
 {
   Trace("sets-model") << "Set collect model info" << std::endl;
 

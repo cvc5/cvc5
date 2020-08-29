@@ -683,13 +683,13 @@ class Theory {
    *
    * includeShared: Whether to include shared terms in termSet. Notice that
    * shared terms are not influenced by irrKinds.
-   * 
+   *
    * TODO (project #39): this method will be deleted. The version in
    * model manager will be used.
    */
   void computeAssertedTerms(std::set<Node>& termSet,
-                                    const std::set<Kind>& irrKinds,
-                                    bool includeShared = true) const;
+                            const std::set<Kind>& irrKinds,
+                            bool includeShared = true) const;
   /**
    * Compute terms that are not necessarily part of the assertions or
    * shared terms that should be considered relevant, add them to termSet.

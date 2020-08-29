@@ -4141,7 +4141,6 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
 
   std::set<Node> termSet;
   d_containing.computeAssertedTerms(termSet);
- 
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();

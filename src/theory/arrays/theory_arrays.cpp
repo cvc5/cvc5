@@ -1091,7 +1091,7 @@ void TheoryArrays::computeCareGraph()
 /////////////////////////////////////////////////////////////////////////////
 
 bool TheoryArrays::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet)
+                                      const std::set<Node>& termSet)
 {
   NodeManager* nm = NodeManager::currentNM();
   // Compute arrays that we need to produce representatives for

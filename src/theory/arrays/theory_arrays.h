@@ -265,7 +265,7 @@ class TheoryArrays : public Theory {
 
  public:
   bool collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet) override;
+                          const std::set<Node>& termSet) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS

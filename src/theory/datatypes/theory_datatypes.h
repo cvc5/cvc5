@@ -289,7 +289,7 @@ private:
   void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet) override;
+                          const std::set<Node>& termSet) override;
   void shutdown() override {}
   std::string identify() const override
   {

@@ -176,8 +176,7 @@ class TheorySetsPrivate {
 
   void check(Theory::Effort);
 
-  bool collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet);
+  bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
 

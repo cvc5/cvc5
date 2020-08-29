@@ -1484,7 +1484,7 @@ void TheoryDatatypes::computeCareGraph(){
 }
 
 bool TheoryDatatypes::collectModelValues(TheoryModel* m,
-                                  const std::set<Node>& termSet)
+                                         const std::set<Node>& termSet)
 {
   Trace("dt-cmi") << "Datatypes : Collect model info "
                   << d_equalityEngine->consistent() << std::endl;
