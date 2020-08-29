@@ -42,7 +42,8 @@ class PreRegisterVisitor {
   /** The engine */
   TheoryEngine* d_engine;
 
-  typedef context::CDHashMap<TNode, theory::Theory::Set, TNodeHashFunction> TNodeToTheorySetMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      TNodeToTheorySetMap;
 
   /**
    * Map from terms to the theories that have already had this term pre-registered.
@@ -52,43 +53,43 @@ class PreRegisterVisitor {
   /**
    * A set of all theories in the term
    */
-  theory::Theory::Set d_theories;
+  theory::TheoryIdSet d_theories;
 
   /**
    * String representation of the visited map, for debugging purposes.
    */
   std::string toString() const;
 
-public:
-
+ public:
   /** Returned set tells us which theories there are */
-  typedef theory::Theory::Set return_type;
-  
+  typedef theory::TheoryIdSet return_type;
+
   PreRegisterVisitor(TheoryEngine* engine, context::Context* context)
-  : d_engine(engine)
-  , d_visited(context)
-  , d_theories(0)
-  {}
+      : d_engine(engine), d_visited(context), d_theories(0)
+  {
+  }
 
   /**
-   * Returns true is current has already been pre-registered with both current and parent theories.
+   * Returns true is current has already been pre-registered with both current
+   * and parent theories.
    */
   bool alreadyVisited(TNode current, TNode parent);
-  
+
   /**
-   * Pre-registeres current with any of the current and parent theories that haven't seen the term yet.
+   * Pre-registeres current with any of the current and parent theories that
+   * haven't seen the term yet.
    */
   void visit(TNode current, TNode parent);
-  
+
   /**
    * Marks the node as the starting literal.
    */
-  void start(TNode node) { }
+  void start(TNode node) {}
 
   /**
    * Notifies the engine of all the theories used.
    */
-  theory::Theory::Set done(TNode node) { return d_theories; }
+  theory::TheoryIdSet done(TNode node) { return d_theories; }
 };
 
 
@@ -105,7 +106,8 @@ class SharedTermsVisitor {
   /**
    * Cache from preprocessing of atoms.
    */
-  typedef std::unordered_map<TNode, theory::Theory::Set, TNodeHashFunction> TNodeVisitedMap;
+  typedef std::unordered_map<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      TNodeVisitedMap;
   TNodeVisitedMap d_visited;
 
   /**

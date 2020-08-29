@@ -578,7 +578,9 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_OPT, REGEXP_OPT},
         {CVC4::Kind::REGEXP_RANGE, REGEXP_RANGE},
         {CVC4::Kind::REGEXP_REPEAT, REGEXP_REPEAT},
+        {CVC4::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
         {CVC4::Kind::REGEXP_LOOP, REGEXP_LOOP},
+        {CVC4::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
         {CVC4::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
@@ -1321,6 +1323,9 @@ uint32_t Op::getIndices() const
       i = d_node->getConst<FloatingPointToSBV>().bvs.d_size;
       break;
     case TUPLE_UPDATE: i = d_node->getConst<TupleUpdate>().getIndex(); break;
+    case REGEXP_REPEAT:
+      i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
+      break;
     default:
       CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
                                          << " kind " << kindToString(k);
@@ -1378,6 +1383,11 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
     CVC4::FloatingPointToFPGeneric ext =
         d_node->getConst<FloatingPointToFPGeneric>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == REGEXP_LOOP)
+  {
+    CVC4::RegExpLoop ext = d_node->getConst<RegExpLoop>();
+    indices = std::make_pair(ext.d_loopMinOcc, ext.d_loopMaxOcc);
   }
   else
   {

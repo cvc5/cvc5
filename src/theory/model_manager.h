@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "theory/theory_model_builder.h"
 
