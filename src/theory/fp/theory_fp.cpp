@@ -1023,7 +1023,7 @@ bool TheoryFp::collectModelInfo(TheoryModel* m)
 {
   std::set<Node> relevantTerms;
   // Work out which variables are needed
-  computeRelevantTerms(relevantTerms);
+  computeAssertedTerms(relevantTerms);
   // this override behavior to not assert equality engine
   return collectModelValues(m, relevantTerms);
 }

@@ -4140,7 +4140,7 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
   std::set<Node> termSet;
-  d_containing.computeRelevantTerms(termSet);
+  d_containing.computeAssertedTerms(termSet);
  
 
   // Delta lasts at least the duration of the function call

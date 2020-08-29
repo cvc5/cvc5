@@ -366,7 +366,7 @@ bool Theory::collectModelInfo(TheoryModel* m)
   TheoryModel * tm = d_valuation.getModel();
   Assert (tm!=nullptr);
   const std::set<Kind>& irrKinds = tm->getIrrelevantKinds();
-  computeRelevantTermsInternal(termSet, irrKinds, true);
+  computeAssertedTerms(termSet, irrKinds, true);
   // Compute additional relevant terms (theory-specific)
   computeRelevantTerms(termSet);
   // if we are using an equality engine, assert it to the model

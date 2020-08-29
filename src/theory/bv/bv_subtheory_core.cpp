@@ -354,7 +354,7 @@ bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
     }
   }
   set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
+  d_bv->computeAssertedTerms(termSet);
   if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
   {
     return false;
