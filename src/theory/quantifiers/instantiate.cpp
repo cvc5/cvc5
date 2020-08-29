@@ -238,7 +238,8 @@ bool Instantiate::addInstantiation(
   std::shared_ptr<LazyCDProof> pfTmp;
   if (isProofEnabled())
   {
-    pfTmp.reset(new LazyCDProof(d_pnm));
+    pfTmp.reset(new LazyCDProof(
+        d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
   }
 
   // construct the instan::tiation
@@ -263,8 +264,12 @@ bool Instantiate::addInstantiation(
       // body
       Node proven = tpBody.getProven();
       // add the transformation proof, or THEORY_PREPROCESS if none provided
-      pfTmp->addLazyStep(
-          proven, tpBody.getGenerator(), false, PfRule::THEORY_PREPROCESS);
+      pfTmp->addLazyStep(proven,
+                         tpBody.getGenerator(),
+                         true,
+                         "Instantiate::getInstantiation:qpreprocess",
+                         false,
+                         PfRule::THEORY_PREPROCESS);
       pfTmp->addStep(
           body, PfRule::MACRO_SR_PRED_TRANSFORM, {orig_body, proven}, {body});
     }
@@ -470,8 +475,12 @@ Node Instantiate::getInstantiation(Node q,
       if (pf != nullptr)
       {
         Node proven = trn.getProven();
-        pf->addLazyStep(
-            proven, trn.getGenerator(), false, PfRule::THEORY_PREPROCESS);
+        pf->addLazyStep(proven,
+                        trn.getGenerator(),
+                        true,
+                        "Instantiate::getInstantiation:rewrite_inst",
+                        false,
+                        PfRule::THEORY_PREPROCESS);
         pf->addStep(newBody,
                     PfRule::MACRO_SR_PRED_TRANSFORM,
                     {body, proven},

@@ -1115,11 +1115,11 @@ options::UserPatMode QuantifiersEngine::getInstUserPatMode()
 }
 
 void QuantifiersEngine::flushLemmas(){
+  OutputChannel& out = getOutputChannel();
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
     std::map<Node, ProofGenerator*>::iterator itp;
-    OutputChannel& out = getOutputChannel();
     for (const Node& lemw : d_lemmas_waiting)
     {
       Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
@@ -1139,7 +1139,7 @@ void QuantifiersEngine::flushLemmas(){
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
       Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      getOutputChannel().requirePhase( it->first, it->second );
+      out.requirePhase(it->first, it->second);
     }
     d_phase_req_waiting.clear();
   }
