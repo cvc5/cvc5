@@ -130,16 +130,24 @@ class TheoryInferenceManager
                           PfRule id,
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
+  /**
+   * Assert internal fact, with a proof generator justification.
+   */
+  void assertInternalFact(TNode atom,
+                          bool pol,
+                          ProofGenerator * pg);
 
  protected:
   /**
    * Process internal fact. This is a common helper method for the
    * assertInternalFact variants above.
    */
-  void processInternalFact(Node fact,
+  void processInternalFact(TNode atom,
+                                                 bool pol,
                            PfRule id,
                            const std::vector<Node>& exp,
-                           const std::vector<Node>& args);
+                           const std::vector<Node>& args,
+                          ProofGenerator * pg);
   /**
    * Explain conflict from constants merging in the equality engine. This
    * method is called by conflictEqConstantMerge. By default, it returns

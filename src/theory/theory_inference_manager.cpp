@@ -139,7 +139,7 @@ LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 
 void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
 {
-  processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {});
+  processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
@@ -148,15 +148,26 @@ void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
 {
-  processInternalFact(atom, pol, id, exp, args);
+  Assert (id!=PfRule::UNKNOWN);
+  processInternalFact(atom, pol, id, exp, args, nullptr);
+}
+
+void TheoryInferenceManager::assertInternalFact(TNode atom,
+                            bool pol,
+                            ProofGenerator * pg)
+{
+  Assert (pg!=nullptr);
+  processInternalFact(atom, pol, PfRule::ASSUME, {}, {}, pg);
 }
 
 void TheoryInferenceManager::processInternalFact(TNode atom,
                                                  bool pol,
                                                  PfRule id,
                                                  const std::vector<Node>& exp,
-                                                 const std::vector<Node>& args)
+                                                 const std::vector<Node>& args,
+                            ProofGenerator * pg)
 {
+  // make the node corresponding to the explanation
   Node expn = NodeManager::currentNM()->mkAnd(exp);
   // call the pre-notify fact method with preReg = false, isInternal = true
   if (d_theory.preNotifyFact(atom, pol, expn, false, true))
@@ -167,7 +178,8 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
                          << expn << std::endl;
-  // if no proof production, or no proof rule was given
+  // Now, assert the fact. How to do so depends on whether proofs are enabled.
+  // If no proof production, or no proof rule was given
   if (d_pfee == nullptr || id == PfRule::UNKNOWN)
   {
     if (atom.getKind() == kind::EQUAL)
@@ -180,17 +192,29 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
     }
     // Must reference count the equality and its explanation, which is not done
     // by the equality engine. Notice that we do *not* need to do this for
-    // external assertions, which enter as facts in theory check. This is not
-    // done if we are asserting to the proof equality engine, which does this
-    // caching itself.
+    // external assertions, which enter as facts in theory check. This is also
+    // not done if we are asserting to the proof equality engine, which does
+    // this caching itself within ProofEqEngine::assertFact.
     d_keep.insert(atom);
     d_keep.insert(expn);
   }
   else
   {
-    // must reconstruct the literal, which is required for the proof
+    // Note that we reconstruct the original literal lit here, since both the
+    // original literal is needed for bookkeeping proofs. It is possible to
+    // optimize this so that a few less nodes are created, but at the cost
+    // of a more verbose interface to proof equality engine.
     Node lit = pol ? Node(atom) : atom.notNode();
-    d_pfee->assertFact(lit, id, exp, args);
+    if (pg!=nullptr)
+    {
+      // use the proof generator interface
+      d_pfee->assertFact(lit, expn, pg);
+    }
+    else
+    {
+      // use the explict proof step interface
+      d_pfee->assertFact(lit, id, expn, args);
+    }
   }
   // call the notify fact method with isInternal = true
   d_theory.notifyFact(atom, pol, expn, true);
