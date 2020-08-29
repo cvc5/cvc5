@@ -38,10 +38,12 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
 {
   d_ee = ee;
   // if proofs are enabled, also make a proof equality engine to wrap ee
-  if (d_pnm!=nullptr)
+  if (d_pnm != nullptr)
   {
-    d_pfee.reset(new eq::ProofEqEngine(
-        d_theoryState.getSatContext(), d_theoryState.getUserContext(), *d_ee, d_pnm));
+    d_pfee.reset(new eq::ProofEqEngine(d_theoryState.getSatContext(),
+                                       d_theoryState.getUserContext(),
+                                       *d_ee,
+                                       d_pnm));
   }
 }
 
@@ -91,7 +93,7 @@ bool TheoryInferenceManager::propagateLit(TNode lit)
 
 TrustNode TheoryInferenceManager::explainLit(TNode lit)
 {
-  if (d_pfee!=nullptr)
+  if (d_pfee != nullptr)
   {
     return d_pfee->explain(lit);
   }
@@ -110,7 +112,7 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                                                                  TNode b)
 {
   Node lit = a.eqNode(b);
-  if (d_pfee!=nullptr)
+  if (d_pfee != nullptr)
   {
     return d_pfee->explain(lit);
   }
@@ -134,27 +136,25 @@ LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   return d_out.trustedLemma(tlem, p);
 }
 
-void TheoryInferenceManager::assertInternalFact(TNode atom,
-                                                bool pol,
-                                                TNode exp)
+void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
 {
   processInternalFact(atom, pol, PfRule::ASSUME, {exp}, {});
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
-                PfRule id,
-                const std::vector<Node>& exp,
-                const std::vector<Node>& args)
+                                                PfRule id,
+                                                const std::vector<Node>& exp,
+                                                const std::vector<Node>& args)
 {
   processInternalFact(atom, pol, id, exp, args);
 }
 
 void TheoryInferenceManager::processInternalFact(TNode atom,
-                                                bool pol,
-                PfRule id,
-                const std::vector<Node>& exp,
-                const std::vector<Node>& args)
+                                                 bool pol,
+                                                 PfRule id,
+                                                 const std::vector<Node>& exp,
+                                                 const std::vector<Node>& args)
 {
   // call the pre-notify fact method with preReg = false, isInternal = true
   if (d_theory.preNotifyFact(atom, pol, fact, false, true))
