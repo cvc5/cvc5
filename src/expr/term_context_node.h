@@ -22,51 +22,12 @@
 
 namespace CVC4 {
 
-/**
- * Kinds of term-context-sensitive nodes. This enumeration is based on the
- * set of information that the term is sensitive to.
- */
-enum class TCtxKind : uint32_t
-{
-  // Remove term formula (RtfTermContext): the term is sensitive to whether
-  // it appears in a term/formula context and/or beneath quantifiers.
-  RTF,
-  // Polarity (PolarityContext): the term is sensitive to what polarity it
-  // appears in with respect to some root, either true, false or none.
-  POLARITY,
-  // Extended polarity (ExtendedPolarityContext): the term is sensitive to what
-  // polarity it appears in with respect to some root (true, false or
-  // none), as well as "entailed polarity" (true, false, or none).
-  EXTENDED_POLARITY
-};
-
-/**
- * Converts a term context kind to a string. Note: This function is also used
- * in `safe_print()`. Changing this function name or signature will result in
- * `safe_print()` printing "<unsupported>" instead of the proper strings for
- * the enum values.
- *
- * @param id The term context kind
- * @return The name of the proof rule
- */
-const char* toString(TCtxKind id);
-
-/**
- * Writes a term context kind to a stream.
- *
- * @param out The stream to write to
- * @param id The term context kind  to write to the stream
- * @return The stream
- */
-std::ostream& operator<<(std::ostream& out, TCtxKind id);
-
-class TermContext;
 class TCtxStack;
 
 /**
  * A (term-context) sensitive term. This is a wrapper around a Node that
  * additionally has a term context identifier, see getTermContext(). It depends
- * on a pointer to a TermContext callback class from above.
+ * on a pointer to a TermContext callback class (see term_context.h).
  */
 class TCtxNode
 {
@@ -96,7 +57,9 @@ class TCtxNode
    */
   static Node computeNodeHash(Node n, uint32_t val);
   /**
-   * Decompose node hash, which is an inverse of the above operation.
+   * Decompose node hash, which is an inverse of the above operation. In
+   * particular, given input h, this returns a node n and sets val to a value
+   * such that computeNodeHash(n, val) returns h.
    */
   static Node decomposeNodeHash(Node h, uint32_t& val);
   //---------------------- end utility methods

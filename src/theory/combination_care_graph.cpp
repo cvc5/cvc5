@@ -68,9 +68,7 @@ void CombinationCareGraph::combineTheories()
     if (isProofEnabled())
     {
       // make proof of splitting lemma
-      std::vector<Node> pfArgs;
-      pfArgs.push_back(equality);
-      tsplit = d_cmbsPg->mkTrustNode(split, PfRule::SPLIT, pfArgs);
+      tsplit = d_cmbsPg->mkTrustNode(split, PfRule::SPLIT, {equality});
     }
     else
     {

@@ -111,9 +111,9 @@ eq::EqualityEngineNotify* CombinationEngine::getModelEqualityEngineNotify()
   return nullptr;
 }
 
-void CombinationEngine::sendLemma(TrustNode node, TheoryId atomsTo)
+void CombinationEngine::sendLemma(TrustNode trn, TheoryId atomsTo)
 {
-  d_te.lemma(node, RULE_INVALID, LemmaProperty::NONE, atomsTo);
+  d_te.lemma(trn, RULE_INVALID, LemmaProperty::NONE, atomsTo);
 }
 
 void CombinationEngine::resetRound()

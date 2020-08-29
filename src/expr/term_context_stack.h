@@ -32,11 +32,16 @@ class TCtxStack
   virtual ~TCtxStack() {}
   /** Push t to the stack */
   void pushInitial(Node t);
-  /** Push all children of t to the stack */
+  /**
+   * Push all children of t to the stack, where tval is the term context hash
+   * of t. */
   void pushChildren(Node t, uint32_t tval);
-  /** Push the child of t with the given index to the stack */
+  /**
+   * Push the child of t with the given index to the stack, where tval is
+   * the term context hash of t.
+   */
   void pushChild(Node t, uint32_t tval, size_t index);
-  /** Push t to the stack */
+  /** Push t to the stack with term context hash tval. */
   void push(Node t, uint32_t tval);
   /** Pop a term from the context */
   void pop();

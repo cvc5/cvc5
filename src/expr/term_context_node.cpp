@@ -18,14 +18,6 @@
 
 namespace CVC4 {
 
-const char* toString(TCtxKind id) { return "unknown"; }
-
-std::ostream& operator<<(std::ostream& out, TCtxKind id)
-{
-  out << toString(id);
-  return out;
-}
-
 TCtxNode::TCtxNode(Node n, const TermContext* tctx)
     : d_node(n), d_val(tctx->initialValue()), d_tctx(tctx)
 {

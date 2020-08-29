@@ -30,6 +30,7 @@
 #include "theory/arith/partial_model.h"
 #include "theory/eager_proof_generator.h"
 #include "theory/trust_node.h"
+#include "theory/ee_setup_info.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
 #include "util/dense_map.h"

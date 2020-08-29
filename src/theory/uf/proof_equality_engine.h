@@ -25,6 +25,7 @@
 #include <vector>
 
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
 #include "expr/lazy_proof.h"
 #include "expr/node.h"
 #include "expr/proof_node.h"
