@@ -39,6 +39,8 @@ void ModelManagerDistributed::initializeModelEqEngine(
   // which belongs e.g. to CombinationModelBased
   EeSetupInfo esim;
   esim.d_notify = notify;
+  esim.d_name = "DefaultModel::ee";
+  esim.d_constantsAreTriggers = false;
   d_modelEqualityEngineAlloc.reset(
       d_eem.allocateEqualityEngine(esim, &d_modelEeContext));
   d_modelEqualityEngine = d_modelEqualityEngineAlloc.get();
