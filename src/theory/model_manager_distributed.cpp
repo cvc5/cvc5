@@ -20,13 +20,32 @@
 namespace CVC4 {
 namespace theory {
 
-ModelManagerDistributed::ModelManagerDistributed(
-    TheoryEngine& te, EqEngineManagerDistributed& eem)
-    : ModelManager(te), d_eem(eem)
+ModelManagerDistributed::ModelManagerDistributed(TheoryEngine& te,
+                                                 EqEngineManager& eem)
+    : ModelManager(te, eem)
 {
 }
 
-ModelManagerDistributed::~ModelManagerDistributed() {}
+ModelManagerDistributed::~ModelManagerDistributed()
+{
+  // pop the model context which we pushed on initialization
+  d_modelEeContext.pop();
+}
+
+void ModelManagerDistributed::initializeModelEqEngine(
+    eq::EqualityEngineNotify* notify)
+{
+  // initialize the model equality engine, use the provided notification object,
+  // which belongs e.g. to CombinationModelBased
+  EeSetupInfo esim;
+  esim.d_notify = notify;
+  d_modelEqualityEngineAlloc.reset(
+      d_eem.allocateEqualityEngine(esim, &d_modelEeContext));
+  d_modelEqualityEngine = d_modelEqualityEngineAlloc.get();
+  // We push a context during initialization since the model is cleared during
+  // collectModelInfo using pop/push.
+  d_modelEeContext.push();
+}
 
 bool ModelManagerDistributed::prepareModel()
 {
@@ -34,9 +53,8 @@ bool ModelManagerDistributed::prepareModel()
                          << std::endl;
 
   // push/pop to clear the equality engine of the model
-  context::Context* meec = d_eem.getModelEqualityEngineContext();
-  meec->pop();
-  meec->push();
+  d_modelEeContext.pop();
+  d_modelEeContext.push();
 
   // Collect model info from the theories
   Trace("model-builder") << "ModelManagerDistributed: Collect model info..."
@@ -76,12 +94,18 @@ bool ModelManagerDistributed::prepareModel()
 
 bool ModelManagerDistributed::finishBuildModel() const
 {
-  if (!d_modelBuilder->buildModel(d_model))
+  // do not use relevant terms
+  if (!d_modelBuilder->buildModel(d_model, false))
   {
     Trace("model-builder") << "ModelManager: fail build model" << std::endl;
     return false;
   }
   return true;
+}
+
+context::Context* ModelManagerDistributed::getModelEqualityEngineContext()
+{
+  return &d_modelEeContext;
 }
 
 }  // namespace theory
