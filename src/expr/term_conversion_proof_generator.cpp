@@ -209,7 +209,7 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
   // distinct, then pf is able to generate a proof of t=s. We must
   // Node in the domains of the maps below due to hashing creating new (SEXPR)
   // nodes.
-  
+
   // the final rewritten form of terms
   std::unordered_map<Node, Node, TNodeHashFunction> visited;
   // the rewritten form of terms we have processed so far
