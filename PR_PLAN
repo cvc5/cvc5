@@ -62,19 +62,24 @@ PR finished:
 (75) extend interface to proof checker for trusted checkers
 (76) further generalization of eq_proof conversion [Haniel]
 (77) update rule for CONG (req 76)
+(79) term context extended utilities (req 46)
 (82) strings term registry proof preparation (req 75)
 (84) SMT engine proof post-processor (req 63)
 
 PRs ready:
 
-(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65) *
+(43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
-(79) term context extended utilities (req 46) *
-(86) theory rewrite is a trusted rule *
+(71) quantifiers proof producing (req 38, 52, 92)
+(80) generalize TConvProofGenerator for term contexts (req 79) *
+(82) SmtEngine proof manager (req 84, 92)
+(86) builtin proof checker updates including theory rewrite is a trusted rule *
 (88) fixes for smt preprocess proof generator
 (89) combination engine proof producing *
-(90) inference manager uses pfee
+(90) inference manager uses pfee *
+(91) Basic connections for proof producing TheoryEngine
+(92) Delete old proof code [Haniel] *
 
 PRs future:
 
@@ -88,14 +93,10 @@ PRs future:
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
 (68) PropEngine proof producing [Haniel] (req 53)
-(71) quantifiers proof producing (req 38, 52)
-(80) generalize TConvProofGenerator for term contexts (req 79)
 (81) update term formula removal to use term context (req 79, 80)
-(82) SmtEngine proof manager (req 84)
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (85) SmtEngine check proofs (req 68, 82)
 (87) TheoryEngine::lemma takes trusted node (req 52)
-(91) Basic connections for proof producing TheoryEngine
 
 Wish list:
 
