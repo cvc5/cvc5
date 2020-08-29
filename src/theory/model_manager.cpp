@@ -65,9 +65,6 @@ void ModelManager::finishInit(eq::EqualityEngineNotify* notify)
   // notice that the equality engine of the model has yet to be assigned.
   initializeModelEqEngine(notify);
   d_model->finishInit(d_modelEqualityEngine);
-
-  // TODO inform the equality engine manager that we will be using notify
-  // d_eem.usingModelNotify(notify);
 }
 
 void ModelManager::resetModel()
@@ -225,11 +222,6 @@ void ModelManager::collectTerms(TheoryId tid,
       visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
-}
-
-context::Context* ModelManager::getModelEqualityEngineContext()
-{
-  return nullptr;
 }
 
 }  // namespace theory

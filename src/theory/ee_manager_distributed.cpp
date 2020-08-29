@@ -52,6 +52,7 @@ void EqEngineManagerDistributed::initializeTheories()
       // theory said it doesn't need an equality engine, skip
       continue;
     }
+    // allocate the equality engine
     eet.d_allocEe.reset(allocateEqualityEngine(esi, c));
     // the theory uses the equality engine
     eet.d_usedEe = eet.d_allocEe.get();

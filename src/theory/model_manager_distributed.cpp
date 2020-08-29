@@ -95,17 +95,12 @@ bool ModelManagerDistributed::prepareModel()
 bool ModelManagerDistributed::finishBuildModel() const
 {
   // do not use relevant terms
-  if (!d_modelBuilder->buildModel(d_model, false))
+  if (!d_modelBuilder->buildModel(d_model))
   {
     Trace("model-builder") << "ModelManager: fail build model" << std::endl;
     return false;
   }
   return true;
-}
-
-context::Context* ModelManagerDistributed::getModelEqualityEngineContext()
-{
-  return &d_modelEeContext;
 }
 
 }  // namespace theory

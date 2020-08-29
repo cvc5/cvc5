@@ -52,12 +52,6 @@ class ModelManagerDistributed : public ModelManager
    * model, return true if successful.
    */
   bool finishBuildModel() const override;
-  /**
-   * Get the model equality engine context. This is a dummy context that is
-   * used for clearing the contents of the model's equality engine via
-   * pop/push.
-   */
-  context::Context* getModelEqualityEngineContext() override;
 
  protected:
   /** Initialize model equality engine */
