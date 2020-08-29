@@ -142,11 +142,12 @@ void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
   processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {});
 }
 
-void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol,
+void TheoryInferenceManager::assertInternalFact(TNode atom,
+                                                bool pol,
                                                 PfRule id,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
-{  
+{
   processInternalFact(atom, pol, id, exp, args);
 }
 
@@ -167,7 +168,7 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
                          << expn << std::endl;
   // if no proof production, or no proof rule was given
-  if (d_pfee==nullptr || id==PfRule::UNKNOWN)
+  if (d_pfee == nullptr || id == PfRule::UNKNOWN)
   {
     if (atom.getKind() == kind::EQUAL)
     {
@@ -196,7 +197,6 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   Trace("infer-manager")
       << "TheoryInferenceManager::finished assertInternalFact" << std::endl;
 }
-
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
 {

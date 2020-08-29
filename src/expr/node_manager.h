@@ -473,7 +473,7 @@ class NodeManager {
   template <bool ref_count>
   Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
 
-  /** 
+  /**
    * Create an AND node with arbitrary number of children. This returns the
    * true node if children is empty, or the single node in children if
    * it contains only one node.
@@ -483,7 +483,7 @@ class NodeManager {
    */
   template <bool ref_count>
   Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
-  
+
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
   Node* mkNodePtr(TNode opNode);
@@ -1369,7 +1369,7 @@ inline Node NodeManager::mkNode(Kind kind,
   nb.append(children);
   return nb.constructNode();
 }
-  
+
 template <bool ref_count>
 Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
 {
