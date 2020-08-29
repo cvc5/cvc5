@@ -110,7 +110,7 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  * where P is a predicate Bool -> Bool. The proof returned by this class
  * involves congruence and pg's proof of the equivalence above. Notice the
  * callback provided to this class ensures that the rewrite is replayed in the
- * expected way, e.g. the occurrence of (and A B) that is not in formula
+ * expected way, e.g. the occurrence of (and A B) that is not in term
  * position is not rewritten.
  */
 class TConvProofGenerator : public ProofGenerator
