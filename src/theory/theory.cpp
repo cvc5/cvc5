@@ -403,9 +403,9 @@ void Theory::collectTerms(TNode n,
   }
 }
 
-void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
-                                          const std::set<Kind>& irrKinds,
-                                          bool includeShared) const
+void Theory::computeAssertedTerms(std::set<Node>& termSet,
+                                  const std::set<Kind>& irrKinds,
+                                  bool includeShared) const
 {
   // Collect all terms appearing in assertions
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
