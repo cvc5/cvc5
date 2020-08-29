@@ -32,7 +32,6 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_pnm(pnm),
       d_keep(t.getSatContext())
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
@@ -154,10 +153,11 @@ void TheoryInferenceManager::assertInternalFact(TNode atom,
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
+                          const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
   Assert(pg != nullptr);
-  processInternalFact(atom, pol, PfRule::ASSUME, {}, {}, pg);
+  processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
 }
 
 void TheoryInferenceManager::processInternalFact(TNode atom,

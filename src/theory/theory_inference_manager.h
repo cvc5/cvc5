@@ -120,10 +120,22 @@ class TheoryInferenceManager
    * output channel as a propagation or lemma. This method ensures that the
    * Theory's preNotifyFact and notifyFact method have been called with
    * isInternal = true.
+   * 
+   * @param atom The atom of the fact to assert
+   * @param pol Its polarity
+   * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
    */
   void assertInternalFact(TNode atom, bool pol, TNode exp);
   /**
-   * Assert internal fact, with a proof step justification.
+   * Assert internal fact, with a proof step justification. Notice that if
+   * proofs are not enabled in this inference manager, then this asserts
+   * a fact to the equality engine in the normal way.
+   * 
+   * @param atom The atom of the fact to assert
+   * @param pol Its polarity
+   * @param id The proof rule identifier of the proof step
+   * @param exp Its explanation, interpreted as a conjunction
+   * @param args The arguments of the proof step
    */
   void assertInternalFact(TNode atom,
                           bool pol,
@@ -131,9 +143,19 @@ class TheoryInferenceManager
                           const std::vector<Node>& exp,
                           const std::vector<Node>& args);
   /**
-   * Assert internal fact, with a proof generator justification.
+   * Assert internal fact, with a proof generator justification. Same as above,
+   * but with a proof generator instead of an explicit step.
+   * 
+   * @param atom The atom of the fact to assert
+   * @param pol Its polarity
+   * @param exp Its explanation, interpreted as a conjunction
+   * @param pg The proof generator for this step. It must be the case that pf
+   * can provide a proof concluding (~) atom from free asumptions in exp in
+   * the remainder of the current SAT context.
    */
-  void assertInternalFact(TNode atom, bool pol, ProofGenerator* pg);
+  void assertInternalFact(TNode atom, bool pol, 
+                          const std::vector<Node>& exp,
+                          ProofGenerator* pg);
 
  protected:
   /**
@@ -175,8 +197,6 @@ class TheoryInferenceManager
   std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
-  /** Common nodes */
-  Node d_true;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their
