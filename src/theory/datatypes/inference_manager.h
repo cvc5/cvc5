@@ -61,11 +61,11 @@ class InferenceManager : public InferenceManagerBuffered
    */
   bool hasAddedLemma() const;
   /**
-   * If not cached, send lemma on lem the output channel and cache. Returns
+   * If not cached, send lemma lem on the output channel and cache. Returns
    * true if a lemma was sent.
    */
   bool doSendLemma(Node lem, LemmaProperty p = LemmaProperty::NONE, bool cached=true);
-  /** Multi-version of the above, returns true if any lemma was sent. */
+  /** Multi-lemma version of the above, returns true if any lemma was sent. */
   bool doSendLemmas(const std::vector<Node>& lem);
  protected:
   /**
