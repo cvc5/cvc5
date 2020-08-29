@@ -1024,7 +1024,7 @@ bool TheoryFp::collectModelInfo(TheoryModel* m)
   std::set<Node> relevantTerms;
   // Work out which variables are needed
   const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  computeAssertedTerms(termSet, irrKinds);
+  computeAssertedTerms(relevantTerms, irrKinds);
   // this override behavior to not assert equality engine
   return collectModelValues(m, relevantTerms);
 }
