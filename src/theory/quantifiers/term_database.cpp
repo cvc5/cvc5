@@ -1091,17 +1091,22 @@ bool TermDb::reset( Theory::Effort effort ){
       }
       ++eqcs_i;
     }
-    TheoryEngine * te = d_quantEngine->getTheoryEngine();
+    TheoryEngine* te = d_quantEngine->getTheoryEngine();
     const LogicInfo& logicInfo = te->getLogicInfo();
-    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId) 
+    for (TheoryId theoryId = THEORY_FIRST; theoryId < THEORY_LAST; ++theoryId)
     {
       if (!logicInfo.isTheoryEnabled(theoryId))
       {
         continue;
       }
       Theory* theory = te->theoryOf(theoryId);
-      Assert (theory!=nullptr);
-      for (context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end(); it != it_end; ++ it ){
+      Assert(theory != nullptr);
+      for (context::CDList<Assertion>::const_iterator
+               it = theory->facts_begin(),
+               it_end = theory->facts_end();
+           it != it_end;
+           ++it)
+      {
         if ((*it).d_assertion.getKind() != INST_CLOSURE)
         {
           setHasTerm((*it).d_assertion);

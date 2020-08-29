@@ -57,70 +57,70 @@ class QuantifiersEngine {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
 public:
-  QuantifiersEngine(TheoryEngine* te, DecisionManager& dm);
-  ~QuantifiersEngine();
-  //---------------------- external interface
-  /** get theory engine */
-  TheoryEngine* getTheoryEngine() const;
-  /** Get the decision manager */
-  DecisionManager* getDecisionManager();
-  /** get default sat context for quantifiers engine */
-  context::Context* getSatContext();
-  /** get default sat context for quantifiers engine */
-  context::UserContext* getUserContext();
-  /** get default output channel for the quantifiers engine */
-  OutputChannel& getOutputChannel();
-  /** get default valuation for the quantifiers engine */
-  Valuation& getValuation();
-  /** get the logic info for the quantifiers engine */
-  const LogicInfo& getLogicInfo() const;
-  //---------------------- end external interface
-  //---------------------- utilities
-  /** get the master equality engine */
-  eq::EqualityEngine* getMasterEqualityEngine() const;
-  /** get equality query */
-  EqualityQuery* getEqualityQuery() const;
-  /** get the model builder */
-  quantifiers::QModelBuilder* getModelBuilder() const;
-  /** get utility for EPR */
-  quantifiers::QuantEPR* getQuantEPR() const;
-  /** get model */
-  quantifiers::FirstOrderModel* getModel() const;
-  /** get term database */
-  quantifiers::TermDb* getTermDatabase() const;
-  /** get term database sygus */
-  quantifiers::TermDbSygus* getTermDatabaseSygus() const;
-  /** get term utilities */
-  quantifiers::TermUtil* getTermUtil() const;
-  /** get term canonizer */
-  expr::TermCanonize* getTermCanonize() const;
-  /** get quantifiers attributes */
-  quantifiers::QuantAttributes* getQuantAttributes() const;
-  /** get instantiate utility */
-  quantifiers::Instantiate* getInstantiate() const;
-  /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() const;
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration() const;
-  /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() const;
-  //---------------------- end utilities
- private:
-  //---------------------- private initialization
-  /** Set the master equality engine */
-  void setMasterEqualityEngine(eq::EqualityEngine* mee);
-  //---------------------- end private initialization
-  /**
-   * Maps quantified formulas to the module that owns them, if any module has
-   * specifically taken ownership of it.
-   */
-  std::map< Node, QuantifiersModule * > d_owner;
-  /**
-   * The priority value associated with the ownership of quantified formulas
-   * in the domain of the above map, where higher values take higher
-   * precendence.
-   */
-  std::map< Node, int > d_owner_priority;
+ QuantifiersEngine(TheoryEngine* te, DecisionManager& dm);
+ ~QuantifiersEngine();
+ //---------------------- external interface
+ /** get theory engine */
+ TheoryEngine* getTheoryEngine() const;
+ /** Get the decision manager */
+ DecisionManager* getDecisionManager();
+ /** get default sat context for quantifiers engine */
+ context::Context* getSatContext();
+ /** get default sat context for quantifiers engine */
+ context::UserContext* getUserContext();
+ /** get default output channel for the quantifiers engine */
+ OutputChannel& getOutputChannel();
+ /** get default valuation for the quantifiers engine */
+ Valuation& getValuation();
+ /** get the logic info for the quantifiers engine */
+ const LogicInfo& getLogicInfo() const;
+ //---------------------- end external interface
+ //---------------------- utilities
+ /** get the master equality engine */
+ eq::EqualityEngine* getMasterEqualityEngine() const;
+ /** get equality query */
+ EqualityQuery* getEqualityQuery() const;
+ /** get the model builder */
+ quantifiers::QModelBuilder* getModelBuilder() const;
+ /** get utility for EPR */
+ quantifiers::QuantEPR* getQuantEPR() const;
+ /** get model */
+ quantifiers::FirstOrderModel* getModel() const;
+ /** get term database */
+ quantifiers::TermDb* getTermDatabase() const;
+ /** get term database sygus */
+ quantifiers::TermDbSygus* getTermDatabaseSygus() const;
+ /** get term utilities */
+ quantifiers::TermUtil* getTermUtil() const;
+ /** get term canonizer */
+ expr::TermCanonize* getTermCanonize() const;
+ /** get quantifiers attributes */
+ quantifiers::QuantAttributes* getQuantAttributes() const;
+ /** get instantiate utility */
+ quantifiers::Instantiate* getInstantiate() const;
+ /** get skolemize utility */
+ quantifiers::Skolemize* getSkolemize() const;
+ /** get term enumeration utility */
+ quantifiers::TermEnumeration* getTermEnumeration() const;
+ /** get trigger database */
+ inst::TriggerTrie* getTriggerDatabase() const;
+ //---------------------- end utilities
+private:
+ //---------------------- private initialization
+ /** Set the master equality engine */
+ void setMasterEqualityEngine(eq::EqualityEngine* mee);
+ //---------------------- end private initialization
+ /**
+  * Maps quantified formulas to the module that owns them, if any module has
+  * specifically taken ownership of it.
+  */
+ std::map<Node, QuantifiersModule*> d_owner;
+ /**
+  * The priority value associated with the ownership of quantified formulas
+  * in the domain of the above map, where higher values take higher
+  * precendence.
+  */
+ std::map<Node, int> d_owner_priority;
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );

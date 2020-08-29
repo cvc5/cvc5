@@ -279,11 +279,7 @@ void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
   d_masterEqualityEngine = mee;
 }
 
-
-TheoryEngine* QuantifiersEngine::getTheoryEngine() const
-{
-  return d_te;
-}
+TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
 
 DecisionManager& QuantifiersEngine::getDecisionManager()
 {
