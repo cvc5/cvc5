@@ -169,6 +169,8 @@ class TheoryInferenceManager
   std::unique_ptr<eq::ProofEqEngine> d_pfee;
   /** The proof node manager of the theory */
   ProofNodeManager* d_pnm;
+  /** Common nodes */
+  Node d_true;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their

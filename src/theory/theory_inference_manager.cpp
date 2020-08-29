@@ -32,6 +32,7 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_pnm(pnm),
       d_keep(t.getSatContext())
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
 void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
@@ -138,15 +139,14 @@ LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 
 void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
 {
-  processInternalFact(atom, pol, PfRule::ASSUME, {exp}, {});
+  processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {});
 }
 
-void TheoryInferenceManager::assertInternalFact(TNode atom,
-                                                bool pol,
+void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol,
                                                 PfRule id,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
-{
+{  
   processInternalFact(atom, pol, id, exp, args);
 }
 
@@ -156,33 +156,47 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
                                                  const std::vector<Node>& exp,
                                                  const std::vector<Node>& args)
 {
+  Node expn = NodeManager::currentNM()->mkAnd(exp);
   // call the pre-notify fact method with preReg = false, isInternal = true
-  if (d_theory.preNotifyFact(atom, pol, fact, false, true))
+  if (d_theory.preNotifyFact(atom, pol, expn, false, true))
   {
     // handled in a theory-specific way that doesn't require equality engine
     return;
   }
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
-                         << fact << std::endl;
-  if (atom.getKind() == kind::EQUAL)
+                         << expn << std::endl;
+  // if no proof production, or no proof rule was given
+  if (d_pfee==nullptr || id==PfRule::UNKNOWN)
   {
-    d_ee->assertEquality(atom, pol, fact);
+    if (atom.getKind() == kind::EQUAL)
+    {
+      d_ee->assertEquality(atom, pol, expn);
+    }
+    else
+    {
+      d_ee->assertPredicate(atom, pol, expn);
+    }
+    // Must reference count the equality and its explanation, which is not done
+    // by the equality engine. Notice that we do *not* need to do this for
+    // external assertions, which enter as facts in theory check. This is not
+    // done if we are asserting to the proof equality engine, which does this
+    // caching itself.
+    d_keep.insert(atom);
+    d_keep.insert(expn);
   }
   else
   {
-    d_ee->assertPredicate(atom, pol, fact);
+    // must reconstruct the literal, which is required for the proof
+    Node lit = pol ? Node(atom) : atom.notNode();
+    d_pfee->assertFact(lit, id, exp, args);
   }
   // call the notify fact method with isInternal = true
-  d_theory.notifyFact(atom, pol, fact, true);
+  d_theory.notifyFact(atom, pol, expn, true);
   Trace("infer-manager")
       << "TheoryInferenceManager::finished assertInternalFact" << std::endl;
-  // Must reference count the equality and its explanation, which is not done
-  // by the equality engine. Notice that we do *not* need to do this for
-  // external assertions, which enter as facts in theory check.
-  d_keep.insert(atom);
-  d_keep.insert(fact);
 }
+
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
 {
@@ -203,20 +217,7 @@ Node TheoryInferenceManager::mkExplain(TNode n)
 {
   std::vector<TNode> assumptions;
   explain(n, assumptions);
-  Node ret;
-  if (assumptions.empty())
-  {
-    ret = NodeManager::currentNM()->mkConst(true);
-  }
-  else if (assumptions.size() == 1)
-  {
-    ret = assumptions[0];
-  }
-  else
-  {
-    ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
-  }
-  return ret;
+  return NodeManager::currentNM()->mkAnd(assumptions);
 }
 
 }  // namespace theory
