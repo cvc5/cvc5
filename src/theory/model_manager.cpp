@@ -26,6 +26,7 @@ ModelManager::ModelManager(TheoryEngine& te, EqEngineManager& eem)
       d_logicInfo(te.getLogicInfo()),
       d_eem(eem),
       d_modelEqualityEngine(nullptr),
+      d_modelEqualityEngineAlloc(nullptr),
       d_model(nullptr),
       d_modelBuilder(nullptr),
       d_modelBuilt(false),
