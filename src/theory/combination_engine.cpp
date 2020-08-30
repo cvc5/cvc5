@@ -37,7 +37,6 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
 }
 
 CombinationEngine::~CombinationEngine() {
-  d_mmanager->shutdown();
 }
 
 void CombinationEngine::finishInit()

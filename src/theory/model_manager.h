@@ -90,8 +90,6 @@ class ModelManager
    */
   virtual bool finishBuildModel() const = 0;
   //------------------------ end finer grained control over model building
-  /** Shutdown, called just before destruction */
-  virtual void shutdown() {}
  protected:
   /**
    * Initialize model equality engine. This is called at the end of finish
