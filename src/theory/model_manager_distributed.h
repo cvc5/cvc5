@@ -52,7 +52,10 @@ class ModelManagerDistributed : public ModelManager
    * model, return true if successful.
    */
   bool finishBuildModel() const override;
-
+  /**
+   * Shutdown, pop the equality engine context
+   */
+  void shutdown();
  protected:
   /** Initialize model equality engine */
   void initializeModelEqEngine(eq::EqualityEngineNotify* notify) override;

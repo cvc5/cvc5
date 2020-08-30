@@ -28,8 +28,6 @@ ModelManagerDistributed::ModelManagerDistributed(TheoryEngine& te,
 
 ModelManagerDistributed::~ModelManagerDistributed()
 {
-  // pop the model context which we pushed on initialization
-  d_modelEeContext.pop();
 }
 
 void ModelManagerDistributed::initializeModelEqEngine(
@@ -105,6 +103,13 @@ bool ModelManagerDistributed::finishBuildModel() const
     return false;
   }
   return true;
+}
+
+void ModelManagerDistributed::shutdown()
+{
+
+  // pop the model context which we pushed on initialization
+  d_modelEeContext.pop();
 }
 
 }  // namespace theory

@@ -37,8 +37,7 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
 }
 
 CombinationEngine::~CombinationEngine() {
-  d_mmanager.reset(nullptr);
-  d_eemanager.reset(nullptr);
+  d_mmanager->shutdown();
 }
 
 void CombinationEngine::finishInit()
