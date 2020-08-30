@@ -107,9 +107,8 @@ bool ModelManagerDistributed::finishBuildModel() const
 
 void ModelManagerDistributed::shutdown()
 {
-
   // pop the model context which we pushed on initialization
-  d_modelEeContext.pop();
+  //d_modelEeContext.pop();
 }
 
 }  // namespace theory
