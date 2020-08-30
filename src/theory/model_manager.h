@@ -129,6 +129,11 @@ class ModelManager
   const LogicInfo& d_logicInfo;
   /** The equality engine manager */
   EqEngineManager& d_eem;
+  /**
+   * A dummy context for the model equality engine, so we can clear it
+   * independently of search context.
+   */
+  context::Context d_modelEeContext;
   /** Pointer to the equality engine of the model */
   eq::EqualityEngine* d_modelEqualityEngine;
   /** The equality engine of the model, if we allocated it */
