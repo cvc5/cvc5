@@ -46,7 +46,7 @@ TheoryModel::~TheoryModel() {}
 
 void TheoryModel::finishInit(eq::EqualityEngine* ee)
 {
-  Assert(d_equalityEngine != nullptr);
+  Assert(ee != nullptr);
   d_equalityEngine = ee;
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
