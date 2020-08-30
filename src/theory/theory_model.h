@@ -348,6 +348,8 @@ public:
   */
   std::vector< Node > getFunctionsToAssign();
   //---------------------------- end function values
+  /** Get the name of this model */
+  const std::string& getName() const;
  protected:
   /** Unique name of this model */
   std::string d_name;
