@@ -36,7 +36,10 @@ CombinationEngine::CombinationEngine(TheoryEngine& te,
 {
 }
 
-CombinationEngine::~CombinationEngine() {}
+CombinationEngine::~CombinationEngine() {
+  d_mmanager.reset(nullptr);
+  d_eemanager.reset(nullptr);
+}
 
 void CombinationEngine::finishInit()
 {
