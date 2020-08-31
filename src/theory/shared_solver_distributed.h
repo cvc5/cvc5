@@ -24,7 +24,8 @@ namespace CVC4 {
 namespace theory {
 
 /**
- * The shared solver in the distributed architecture.
+ * The shared solver in the distributed architecture. This class uses the
+ * SharedTermsDatabase for implementing the core methods of a shared solver.
  */
 class SharedSolverDistributed : public SharedSolver
 {

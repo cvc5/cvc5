@@ -50,7 +50,8 @@ class SharedSolver
    */
   virtual bool needsEqualityEngine(theory::EeSetupInfo& esi);
   /**
-   * Set the equality engine.
+   * Set the equality engine. This should be called by equality engine manager
+   * during EqEngineManager::initializeTheories.
    */
   virtual void setEqualityEngine(eq::EqualityEngine* ee) = 0;
   //------------------------------------- end initialization
