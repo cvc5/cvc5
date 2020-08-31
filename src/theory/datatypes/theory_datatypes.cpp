@@ -1483,24 +1483,14 @@ void TheoryDatatypes::computeCareGraph(){
   Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
 }
 
-bool TheoryDatatypes::collectModelInfo(TheoryModel* m)
+bool TheoryDatatypes::collectModelValues(TheoryModel* m,
+                                         const std::set<Node>& termSet)
 {
   Trace("dt-cmi") << "Datatypes : Collect model info "
                   << d_equalityEngine->consistent() << std::endl;
   Trace("dt-model") << std::endl;
   printModelDebug( "dt-model" );
   Trace("dt-model") << std::endl;
-
-  std::set<Node> termSet;
-
-  // Compute terms appearing in assertions and shared terms, and in inferred equalities
-  computeRelevantTerms(termSet);
-
-  //combine the equality engine
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    return false;
-  }
 
   //get all constructors
   eq::EqClassesIterator eqccs_i = eq::EqClassesIterator(d_equalityEngine);
@@ -2218,15 +2208,8 @@ Node TheoryDatatypes::mkAnd( std::vector< TNode >& assumptions ) {
   }
 }
 
-void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet,
-                                           bool includeShared)
+void TheoryDatatypes::computeRelevantTerms(std::set<Node>& termSet)
 {
-  // Compute terms appearing in assertions and shared terms
-  std::set<Kind> irrKinds;
-  // testers are not relevant for model construction
-  irrKinds.insert(APPLY_TESTER);
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
-
   Trace("dt-cmi") << "Have " << termSet.size() << " relevant terms..."
                   << std::endl;
 

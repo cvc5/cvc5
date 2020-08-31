@@ -183,26 +183,10 @@ class Theory {
 
   //---------------------------------- private collect model info
   /**
-   * Scans the current set of assertions and shared terms top-down
-   * until a theory-leaf is reached, and adds all terms found to
-   * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model.
-   *
-   * irrKinds: The kinds of terms that appear in assertions that should *not*
-   * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * treated as irrelevant kinds.
-   *
-   * includeShared: Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irrKinds.
-   */
-  void computeRelevantTermsInternal(std::set<Node>& termSet,
-                                    std::set<Kind>& irrKinds,
-                                    bool includeShared = true) const;
-  /**
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
+                    const std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
   //---------------------------------- end private collect model info
 
@@ -688,13 +672,29 @@ class Theory {
    */
   virtual bool collectModelInfo(TheoryModel* m);
   /**
-   * Same as above, but with empty irrKinds. This version can be overridden
-   * by the theory, e.g. by restricting or extending the set of terms returned
-   * by computeRelevantTermsInternal, which is called by default with no
-   * irrKinds.
+   * Scans the current set of assertions and shared terms top-down
+   * until a theory-leaf is reached, and adds all terms found to
+   * termSet.  This is used by collectModelInfo to delimit the set of
+   * terms that should be used when constructing a model.
+   *
+   * @param irrKinds The kinds of terms that appear in assertions that should *not*
+   * be included in termSet. Note that the kinds EQUAL and NOT are always
+   * treated as irrelevant kinds.
+   *
+   * @param includeShared Whether to include shared terms in termSet. Notice that
+   * shared terms are not influenced by irrKinds.
+   *
+   * TODO (project #39): this method will be deleted. The version in
+   * model manager will be used.
    */
-  virtual void computeRelevantTerms(std::set<Node>& termSet,
-                                    bool includeShared = true);
+  void computeAssertedTerms(std::set<Node>& termSet,
+                            const std::set<Kind>& irrKinds,
+                            bool includeShared = true) const;
+  /**
+   * Compute terms that are not necessarily part of the assertions or
+   * shared terms that should be considered relevant, add them to termSet.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
