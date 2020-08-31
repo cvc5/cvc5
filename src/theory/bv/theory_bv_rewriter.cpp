@@ -122,7 +122,7 @@ RewriteResponse TheoryBVRewriter::RewriteSle(TNode node, bool prerewrite){
 
 RewriteResponse TheoryBVRewriter::RewriteUgt(TNode node, bool prerewrite){
   Node resultNode = LinearRewriteStrategy
-    < RewriteRule<UgtEliminate>
+    < RewriteRule<UgtUrem>, RewriteRule<UgtEliminate>
     >::apply(node);
   
   return RewriteResponse(REWRITE_AGAIN, resultNode); 
