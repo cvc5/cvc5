@@ -659,7 +659,7 @@ void TheoryStrings::notifyFact(TNode atom,
       d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
     }
   }
-  // process the conflict
+  // process pending conflicts due to reasoning about endpoints
   if (!d_state.isInConflict())
   {
     Node pc = d_state.getPendingConflict();
