@@ -29,6 +29,7 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -65,27 +66,19 @@ namespace strings {
  * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager
+class InferenceManager : public TheoryInferenceManager
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  InferenceManager(context::Context* c,
-                   context::UserContext* u,
+  InferenceManager(Theory& t,
                    SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
-                   OutputChannel& out,
-                   SequencesStatistics& statistics);
+                   SequencesStatistics& statistics,
+                   ProofNodeManager* pnm);
   ~InferenceManager() {}
-
-  /** send assumption
-   *
-   * This is called when a fact is asserted to TheoryStrings. It adds lit
-   * to the equality engine maintained by this class immediately.
-   */
-  void sendAssumption(TNode lit);
 
   /** send internal inferences
    *
@@ -292,23 +285,12 @@ class InferenceManager
   // ------------------------------------------------- end extended theory
 
  private:
-  /** assert pending fact
-   *
-   * This asserts atom with polarity to the equality engine of this class,
-   * where exp is the explanation of why (~) atom holds.
-   *
-   * This call may trigger further initialization steps involving the terms
-   * of atom, including calls to registerTerm.
-   */
-  void assertPendingFact(Node atom, bool polarity, Node exp);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
   TermRegistry& d_termReg;
   /** the extended theory object for the theory of strings */
   ExtTheory& d_extt;
-  /** A reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
 
@@ -326,13 +308,6 @@ class InferenceManager
   std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
   std::vector<InferInfo> d_pendingLem;
-  /**
-   * The keep set of this class. This set is maintained to ensure that
-   * facts and their explanations are ref-counted. Since facts and their
-   * explanations are SAT-context-dependent, this set is also
-   * SAT-context-dependent.
-   */
-  NodeSet d_keep;
 };
 
 }  // namespace strings
