@@ -76,8 +76,8 @@ void InferenceManager::process()
   while (!d_theoryState.isInConflict() && i < d_pendingFact.size())
   {
     std::pair<Node, Node>& pfact = d_pendingFact[i];
-    Node fact = pfact.first;
-    Node exp = pfact.second;
+    const Node& fact = pfact.first;
+    const Node& exp = pfact.second;
     Trace("datatypes-debug")
         << "Assert fact (#" << (i + 1) << "/" << d_pendingFact.size() << ") "
         << fact << " with explanation " << exp << std::endl;
