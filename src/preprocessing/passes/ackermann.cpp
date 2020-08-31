@@ -70,11 +70,14 @@ void addLemmaForPair(TNode args1,
   }
   else
   {
-    Assert(args1.getKind() == kind::SELECT && args1[0] == func);
-    Assert(args2.getKind() == kind::SELECT && args2[0] == func);
+    Assert(args1.getKind() == kind::SELECT && args1.getOperator() == func);
+    Assert(args2.getKind() == kind::SELECT && args2.getOperator() == func);
     Assert(args1.getNumChildren() == 2);
     Assert(args2.getNumChildren() == 2);
-    args_eq = nm->mkNode(kind::EQUAL, args1[1], args2[1]);
+    args_eq = nm->mkNode(Kind::AND,
+      nm->mkNode(kind::EQUAL, args1[0], args2[0]),
+      nm->mkNode(kind::EQUAL, args1[1], args2[1])
+    );
   }
   Node func_eq = nm->mkNode(kind::EQUAL, args1, args2);
   Node lemma = nm->mkNode(kind::IMPLIES, args_eq, func_eq);
@@ -153,7 +156,7 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
     if (seen.find(term) == seen.end())
     {
       TNode func;
-      if (term.getKind() == kind::APPLY_UF)
+      if (term.getKind() == kind::APPLY_UF || term.getKind() == kind::SELECT)
       {
         storeFunctionAndAddLemmas(term.getOperator(),
                                   term,
@@ -162,11 +165,6 @@ void collectFunctionsAndLemmas(FunctionToArgsMap& fun_to_args,
                                   assertions,
                                   nm,
                                   vec);
-      }
-      else if (term.getKind() == kind::SELECT)
-      {
-        storeFunctionAndAddLemmas(
-            term[0], term, fun_to_args, fun_to_skolem, assertions, nm, vec);
       }
       else
       {
