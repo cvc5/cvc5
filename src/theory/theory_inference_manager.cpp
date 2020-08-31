@@ -32,8 +32,8 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_pnm(pnm),
       d_keep(t.getSatContext()),
       d_lemmasSent(t.getUserContext()),
-      d_numCurrentFacts(0),
-      d_numCurrentLemmas(0)
+      d_numCurrentLemmas(0),
+      d_numCurrentFacts(0)
 {
 }
 
@@ -166,7 +166,7 @@ uint32_t TheoryInferenceManager::numAddedLemmas() const
   return d_numCurrentLemmas;
 }
 
-bool TheoryInferenceManager::hasAddedLemmas() const
+bool TheoryInferenceManager::hasAddedLemma() const
 {
   return d_numCurrentLemmas != 0;
 }
