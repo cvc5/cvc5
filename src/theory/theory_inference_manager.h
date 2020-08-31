@@ -145,10 +145,11 @@ class TheoryInferenceManager
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
   /**
-   * Has this inference manager sent the given lemma (in this user context)?
-   * This method can be overridden by the particular manager. If not, this
-   * returns true if lem is in the cache d_lemmasSent maintained by this class.
-   * Notice that this cache is not dependent on the lemma property.
+   * Has this inference manager cached and sent the given lemma (in this user
+   * context)? This method can be overridden by the particular manager. If not,
+   * this returns true if lem is in the cache d_lemmasSent maintained by this
+   * class. Notice that the default cache in this base class is not dependent
+   * on the lemma property.
    */
   virtual bool hasCachedLemma(TNode lem, LemmaProperty p);
   /** The number of lemmas we have sent since the last call to reset */
