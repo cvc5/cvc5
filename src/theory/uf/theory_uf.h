@@ -104,9 +104,6 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** Proof-producing equaltity engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
-
   /** The conflict node */
   Node d_conflictNode;
 
@@ -205,8 +202,6 @@ private:
 
   std::string identify() const override { return "THEORY_UF"; }
 
-  eq::ProofEqEngine* getProofEqualityEngine();
-
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
 
@@ -222,6 +217,8 @@ private:
   UfProofRuleChecker d_ufProofChecker;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */

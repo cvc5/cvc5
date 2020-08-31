@@ -192,7 +192,7 @@ bool TheoryStrings::propagateLit(TNode literal)
 TrustNode TheoryStrings::explain(TNode literal)
 {
   Debug("strings-explain") << "explain called on " << literal << std::endl;
-  return d_im.explain(literal);
+  return d_im.explainLit(literal);
 }
 
 bool TheoryStrings::getCurrentSubstitution(

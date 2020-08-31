@@ -360,7 +360,6 @@ void InferenceManager::doPendingLemmas()
     return;
   }
   // we probably don't need to add lazily since temporary proofs are setup
-  bool lazyAdd = false;
   for (unsigned i = 0, psize = d_pendingLem.size(); i < psize; i++)
   {
     InferInfo& ii = d_pendingLem[i];
@@ -392,26 +391,17 @@ void InferenceManager::doPendingLemmas()
         utils::flattenOp(AND, ecn, noExplain);
       }
     }
-    if (lazyAdd)
+    // make the trusted lemma object
+    bool useBuffer = false;
+    ProofStep ps;
+    Node conc = d_ipc->convert(ii, ps, useBuffer);
+    if (useBuffer)
     {
-      // notify fact and assert lemma via generator
-      d_ipc->notifyFact(ii);
-      tlem = d_pfee->assertLemma(ii.d_conc, exp, noExplain, d_ipc.get());
+      tlem = d_pfee->assertLemma(conc, exp, noExplain, *d_ipc->getBuffer());
     }
     else
     {
-      // make the trusted lemma object
-      bool useBuffer = false;
-      ProofStep ps;
-      Node conc = d_ipc->convert(ii, ps, useBuffer);
-      if (useBuffer)
-      {
-        tlem = d_pfee->assertLemma(conc, exp, noExplain, *d_ipc->getBuffer());
-      }
-      else
-      {
-        tlem = d_pfee->assertLemma(conc, ps.d_rule, exp, noExplain, ps.d_args);
-      }
+      tlem = d_pfee->assertLemma(conc, ps.d_rule, exp, noExplain, ps.d_args);
     }
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
@@ -454,13 +444,6 @@ void InferenceManager::doPendingLemmas()
 bool InferenceManager::hasProcessed() const
 {
   return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
-}
-
-TrustNode InferenceManager::explain(TNode literal) const
-{
-  // use the explain method of proof equality engine
-  TrustNode trn = d_pfee->explain(literal);
-  return trn;
 }
 
 void InferenceManager::markCongruent(Node a, Node b)

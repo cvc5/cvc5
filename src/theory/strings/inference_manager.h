@@ -257,11 +257,6 @@ class InferenceManager : public TheoryInferenceManager
   /** Do we have a pending lemma to send on the output channel? */
   bool hasPendingLemma() const { return !d_pendingLem.empty(); }
 
-  /**
-   * Explain literal l, add conjuncts to assumptions vector instead of making
-   * the node corresponding to their conjunction.
-   */
-  TrustNode explain(TNode literal) const;
   // ------------------------------------------------- extended theory
   /**
    * Mark that terms a and b are congruent in the current context.

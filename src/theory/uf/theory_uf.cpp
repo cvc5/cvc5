@@ -54,10 +54,10 @@ TheoryUF::TheoryUF(context::Context* c,
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_pfEqualityEngine(nullptr),
       d_functionsTerms(c),
       d_symb(u, instanceName),
-      d_state(c, u, valuation)
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
 
@@ -66,8 +66,9 @@ TheoryUF::TheoryUF(context::Context* c,
   {
     d_ufProofChecker.registerTo(pc);
   }
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryUF::~TheoryUF() {
@@ -100,11 +101,8 @@ void TheoryUF::finishInit() {
   if (options::ufHo())
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(*this, d_state));
+    d_ho.reset(new HoExtension(d_state, d_im));
   }
-
-  d_pfEqualityEngine.reset(new eq::ProofEqEngine(
-      getSatContext(), getUserContext(), *d_equalityEngine, d_pnm));
 }
 
 static Node mkAnd(const std::vector<TNode>& conjunctions) {
@@ -316,7 +314,7 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
 
 TrustNode TheoryUF::explain(TNode literal)
 {
-  return d_pfEqualityEngine->explain(literal);
+  return d_im.explainLit(literal);
 }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
@@ -513,11 +511,6 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-eq::ProofEqEngine* TheoryUF::getProofEqualityEngine()
-{
-  return d_pfEqualityEngine.get();
-}
-
 bool TheoryUF::areCareDisequal(TNode x, TNode y){
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
@@ -683,11 +676,7 @@ void TheoryUF::computeCareGraph() {
 void TheoryUF::conflict(TNode a, TNode b) {
   if (options::proofNew())
   {
-    TrustNode tconflict = d_pfEqualityEngine->assertConflict(a.eqNode(b));
-    d_conflictNode = tconflict.getNode();
-    // it's possible this is not a conflict, actually, so in this case we use
-    // different channels accordingly
-    d_out->trustedConflict(tconflict);
+    d_im.conflictEqConstantMerge(a, b);
   }
   else
   {
