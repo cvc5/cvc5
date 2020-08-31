@@ -132,6 +132,14 @@ void pfgEnsureClosedWrt(Node proven,
                         const char* ctx,
                         bool reqGen = true);
 
+/**
+ * Debug check closed with Trace c, proof node versions.
+ */
+void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx);
+void pfnEnsureClosedWrt(ProofNode* pn,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx);
 }  // namespace CVC4
 
 #endif /* CVC4__EXPR__PROOF_GENERATOR_H */
