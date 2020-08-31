@@ -69,7 +69,7 @@ std::string kindToString(::CVC4::Kind k) {
 std::ostream& operator<<(std::ostream& out, TypeConstant typeConstant) {
   switch(typeConstant) {
 ${type_constant_descriptions}
-#line 73 "${template}"
+#line 73 "${template_rel}"
   default:
     out << "UNKNOWN_TYPE_CONSTANT";
     break;
@@ -85,7 +85,7 @@ TheoryId kindToTheoryId(::CVC4::Kind k) {
   case kind::NULL_EXPR:
     break;
 ${kind_to_theory_id}
-#line 89 "${template}"
+#line 89 "${template_rel}"
   case kind::LAST_KIND:
     break;
   }
@@ -97,7 +97,7 @@ TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant)
   switch (typeConstant)
   {
 ${type_constant_to_theory_id}
-#line 101 "${template}"
+#line 101 "${template_rel}"
     case LAST_TYPE: break;
   }
   throw IllegalArgumentException(

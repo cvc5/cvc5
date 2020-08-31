@@ -43,7 +43,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 47 "${template}"
+#line 47 "${template_rel}"
 
 namespace CVC4 {
 
@@ -621,7 +621,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 625 "${template}"
+#line 625 "${template_rel}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

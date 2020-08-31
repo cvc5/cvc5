@@ -115,6 +115,7 @@ set(mkexpr_script ${CMAKE_CURRENT_LIST_DIR}/mkexpr)
 add_custom_command(
   OUTPUT kind.h
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkkind_script}
     ${CMAKE_CURRENT_LIST_DIR}/kind_template.h
     ${KINDS_FILES}
@@ -125,6 +126,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT kind.cpp
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkkind_script}
     ${CMAKE_CURRENT_LIST_DIR}/kind_template.cpp
     ${KINDS_FILES}
@@ -135,6 +137,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT type_properties.h
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkkind_script}
     ${CMAKE_CURRENT_LIST_DIR}/type_properties_template.h
     ${KINDS_FILES}
@@ -145,6 +148,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT metakind.h
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkmetakind_script}
     ${CMAKE_CURRENT_LIST_DIR}/metakind_template.h
     ${KINDS_FILES}
@@ -155,6 +159,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT metakind.cpp
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkmetakind_script}
     ${CMAKE_CURRENT_LIST_DIR}/metakind_template.cpp
     ${KINDS_FILES}
@@ -165,6 +170,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT expr.h
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkexpr_script}
     ${CMAKE_CURRENT_LIST_DIR}/expr_template.h
     ${KINDS_FILES}
@@ -175,6 +181,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT expr.cpp
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkexpr_script}
     ${CMAKE_CURRENT_LIST_DIR}/expr_template.cpp
     ${KINDS_FILES}
@@ -185,6 +192,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT expr_manager.h
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkexpr_script}
     ${CMAKE_CURRENT_LIST_DIR}/expr_manager_template.h
     ${KINDS_FILES}
@@ -195,6 +203,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT expr_manager.cpp
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkexpr_script}
     ${CMAKE_CURRENT_LIST_DIR}/expr_manager_template.cpp
     ${KINDS_FILES}
@@ -205,6 +214,7 @@ add_custom_command(
 add_custom_command(
   OUTPUT type_checker.cpp
   COMMAND
+    ${CMAKE_COMMAND} -E env CMAKE_SOURCE_DIR=${CMAKE_SOURCE_DIR}
     ${mkexpr_script}
     ${CMAKE_CURRENT_LIST_DIR}/type_checker_template.cpp
     ${KINDS_FILES}

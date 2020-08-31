@@ -63,7 +63,7 @@ const char* toString(CVC4::Kind k);
  */
 std::ostream& operator<<(std::ostream&, CVC4::Kind) CVC4_PUBLIC;
 
-#line 67 "${template}"
+#line 67 "${template_rel}"
 
 /** Returns true if the given kind is associative. This is used by ExprManager to
  * decide whether it's safe to modify big expressions by changing the grouping of
@@ -86,7 +86,7 @@ struct KindHashFunction {
 enum CVC4_PUBLIC TypeConstant
 {
   ${type_constant_list}
-#line 90 "${template}"
+#line 90 "${template_rel}"
   LAST_TYPE
 }; /* enum TypeConstant */
 

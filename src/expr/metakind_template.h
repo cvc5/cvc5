@@ -201,7 +201,7 @@ Kind operatorToKind(::CVC4::expr::NodeValue* nv);
 
 }/* CVC4::kind namespace */
 
-#line 205 "${template}"
+#line 205 "${template_rel}"
 
 }/* CVC4 namespace */
 
