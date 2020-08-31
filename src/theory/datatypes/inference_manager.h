@@ -88,8 +88,6 @@ class InferenceManager : public InferenceManagerBuffered
    * communicate (6) and OR conclusions.
    */
   bool mustCommunicateFact(Node n, Node exp) const;
-  /** A cache of all lemmas sent */
-  NodeSet d_lemmasSent;
   /** Common nodes */
   Node d_true;
   /**

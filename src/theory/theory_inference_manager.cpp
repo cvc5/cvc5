@@ -30,7 +30,8 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
       d_pnm(pnm),
-      d_keep(t.getSatContext())
+      d_keep(t.getSatContext()),
+      d_lemmasSent(t.getUserContext())
 {
 }
 
@@ -111,15 +112,24 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                   << " mkTrustedConflictEqConstantMerge";
 }
 
-LemmaStatus TheoryInferenceManager::lemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::lemma(TNode lem, LemmaProperty p, bool doCache)
 {
-  return d_out.lemma(lem, p);
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  return trustedLemma(tlem, p, doCache);
 }
 
-LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
-                                                 LemmaProperty p)
+bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
+                                                 LemmaProperty p, bool doCache)
 {
-  return d_out.trustedLemma(tlem, p);
+  if (doCache)
+  {
+    if (!cacheSentLemma(tlem.getNode(), p))
+    {
+      return false;
+    }
+  }
+  d_out.trustedLemma(tlem, p);
+  return true;
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom,
@@ -152,6 +162,11 @@ void TheoryInferenceManager::assertInternalFact(TNode atom,
   // external assertions, which enter as facts in theory check.
   d_keep.insert(atom);
   d_keep.insert(fact);
+}
+
+bool TheoryInferenceManager::hasSentLemma(TNode lem, LemmaProperty p)
+{
+  return d_lemmasSent.find(lem) != d_lemmasSent.end();
 }
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
@@ -187,6 +202,16 @@ Node TheoryInferenceManager::mkExplain(TNode n)
     ret = NodeManager::currentNM()->mkNode(kind::AND, assumptions);
   }
   return ret;
+}
+
+bool TheoryInferenceManager::cacheSentLemma(TNode lem, LemmaProperty p)
+{
+  if (d_lemmasSent.find(lem) != d_lemmasSent.end())
+  {
+    return false;
+  }
+  d_lemmasSent.insert(lem);
+  return true;
 }
 
 }  // namespace theory

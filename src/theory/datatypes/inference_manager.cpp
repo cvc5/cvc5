@@ -28,7 +28,6 @@ InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(t, state, pnm),
-      d_lemmasSent(t.getSatContext()),
       d_addedLemma(false),
       d_addedFact(false)
 {
