@@ -4372,7 +4372,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
     //We are only going to recreate the functionality for now.
     //In the future this can be improved to generate a temporary constraint
     //if none exists.
-    //Experiment with doing this everytime or only when the new constraint
+    //Experiment with doing this every time or only when the new constraint
     //implies an unknown fact.
 
     ConstraintType t = upperBound ? UpperBound : LowerBound;
