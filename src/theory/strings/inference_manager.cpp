@@ -28,19 +28,17 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(SolverState& s,
+InferenceManager::InferenceManager(Theory& t,
+                                   SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
-                                   OutputChannel& out,
                                    SequencesStatistics& statistics,
                                    ProofNodeManager* pnm)
-    : d_state(s),
+    : TheoryInferenceManager(t, s, pnm),
+      d_state(s),
       d_termReg(tr),
       d_extt(e),
-      d_out(out),
       d_statistics(statistics),
-      d_pfee(nullptr),
-      d_pnm(pnm),
       d_ipc(new InferProofCons(d_state.getSatContext(), pnm, d_statistics))
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -48,23 +46,6 @@ InferenceManager::InferenceManager(SolverState& s,
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-}
-
-void InferenceManager::finishInit()
-{
-  d_pfee.reset(new eq::ProofEqEngine(d_state.getSatContext(),
-                                     d_state.getUserContext(),
-                                     *d_state.getEqualityEngine(),
-                                     d_pnm));
-}
-
-void InferenceManager::sendAssumption(TNode lit)
-{
-  preProcessFact(lit);
-  // assert it to the equality engine as an assumption
-  d_pfee->assertAssume(lit);
-  // process the fact
-  postProcessFact(lit);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -338,19 +319,19 @@ void InferenceManager::doPendingFacts()
     for (const Node& fact : facts)
     {
       ii.d_conc = fact;
-      preProcessFact(fact);
       // notify fact
       d_ipc->notifyFact(ii);
       // assert to equality engine using proof generator interface for
       // assertFact.
-      d_pfee->assertFact(fact, cexp, d_ipc.get());
+      bool polarity = fact.getKind() != NOT;
+      TNode atom = polarity ? fact : fact[0];
+      // now, assert the internal fact with d_ipc as proof generator
+      assertInternalFact(atom, polarity, exp, d_ipc.get());
       // may be in conflict
       if (d_state.isInConflict())
       {
         break;
       }
-      // otherwise, post-process
-      postProcessFact(fact);
     }
     i++;
   }
@@ -456,64 +437,6 @@ void InferenceManager::doPendingLemmas()
   }
   d_pendingLem.clear();
   d_pendingReqPhase.clear();
-}
-
-void InferenceManager::preProcessFact(TNode fact)
-{
-  bool polarity = fact.getKind() != NOT;
-  TNode atom = polarity ? fact : fact[0];
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  Assert(atom.getKind() != OR) << "Infer error: a split.";
-  if (atom.getKind() == EQUAL)
-  {
-    // we must ensure these terms are registered
-    for (const Node& t : atom)
-    {
-      // terms in the equality engine are already registered, hence skip
-      // currently done for only string-like terms, but this could potentially
-      // be avoided.
-      if (!ee->hasTerm(t) && t.getType().isStringLike())
-      {
-        d_termReg.registerTerm(t, 0);
-      }
-    }
-  }
-}
-void InferenceManager::postProcessFact(TNode fact)
-{
-  bool polarity = fact.getKind() != NOT;
-  TNode atom = polarity ? fact : fact[0];
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  if (atom.getKind() == STRING_IN_REGEXP && polarity
-      && atom[1].getKind() == REGEXP_CONCAT)
-  {
-    Node eqc = ee->getRepresentative(atom[0]);
-    d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-  }
-  // process the conflict
-  if (!d_state.isInConflict())
-  {
-    Node pc = d_state.getPendingConflict();
-    if (!pc.isNull())
-    {
-      Trace("strings-pending")
-          << "Process pending conflict " << pc << std::endl;
-      InferInfo iiPrefixConf;
-      iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
-      iiPrefixConf.d_conc = d_false;
-      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
-      Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << pc << std::endl;
-      ++(d_statistics.d_conflictsEagerPrefix);
-      processConflict(iiPrefixConf);
-    }
-  }
-  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
-  // Collect extended function terms in the atom. Notice that we must register
-  // all extended functions occurring in assertions and shared terms. We
-  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
-  d_extt.registerTermRec(atom);
-  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
 bool InferenceManager::hasProcessed() const

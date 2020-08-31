@@ -31,7 +31,8 @@
 #include "theory/strings/sequences_stats.h"
 #include "theory/strings/solver_state.h"
 #include "theory/strings/term_registry.h"
-#include "theory/uf/proof_equality_engine.h"
+#include "theory/theory_inference_manager.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -67,28 +68,19 @@ namespace strings {
  * theory of strings, e.g. sendPhaseRequirement, setIncomplete, and
  * with the extended theory object e.g. markCongruent.
  */
-class InferenceManager
+class InferenceManager : public TheoryInferenceManager
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  InferenceManager(SolverState& s,
+  InferenceManager(Theory& t,
+                   SolverState& s,
                    TermRegistry& tr,
                    ExtTheory& e,
-                   OutputChannel& out,
                    SequencesStatistics& statistics,
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
-
-  /** finish init */
-  void finishInit();
-  /** send assumption
-   *
-   * This is called when a fact is asserted to TheoryStrings. It adds lit
-   * to the equality engine maintained by this class immediately.
-   */
-  void sendAssumption(TNode lit);
 
   /** send internal inferences
    *
@@ -288,13 +280,6 @@ class InferenceManager
   eq::ProofEqEngine* getProofEqEngine();
 
  private:
-  /** assert pending fact
-   *
-   * This is called immediately after the given fact is asserted to the
-   * equality engine.
-   */
-  void preProcessFact(TNode fact);
-  void postProcessFact(TNode fact);
   /** Process conflict */
   void processConflict(const InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
@@ -303,8 +288,6 @@ class InferenceManager
   TermRegistry& d_termReg;
   /** the extended theory object for the theory of strings */
   ExtTheory& d_extt;
-  /** Reference to the output channel of the theory of strings. */
-  OutputChannel& d_out;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
   /** The proof-producing equality engine */
