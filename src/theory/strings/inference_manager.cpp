@@ -28,33 +28,23 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-InferenceManager::InferenceManager(context::Context* c,
-                                   context::UserContext* u,
+InferenceManager::InferenceManager(Theory& t,
                                    SolverState& s,
                                    TermRegistry& tr,
                                    ExtTheory& e,
-                                   OutputChannel& out,
-                                   SequencesStatistics& statistics)
-    : d_state(s),
+                                   SequencesStatistics& statistics,
+                                   ProofNodeManager* pnm)
+    : TheoryInferenceManager(t, s, pnm),
+      d_state(s),
       d_termReg(tr),
       d_extt(e),
-      d_out(out),
-      d_statistics(statistics),
-      d_keep(c)
+      d_statistics(statistics)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
   d_one = nm->mkConst(Rational(1));
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-}
-
-void InferenceManager::sendAssumption(TNode lit)
-{
-  bool polarity = lit.getKind() != kind::NOT;
-  TNode atom = polarity ? lit : lit[0];
-  // assert pending fact
-  assertPendingFact(atom, polarity, lit);
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
@@ -299,7 +289,7 @@ void InferenceManager::doPendingFacts()
         TNode atom = polarity ? fact : fact[0];
         // no double negation or double (conjunctive) conclusions
         Assert(atom.getKind() != NOT && atom.getKind() != AND);
-        assertPendingFact(atom, polarity, exp);
+        assertInternalFact(atom, polarity, exp);
       }
     }
     else
@@ -308,13 +298,8 @@ void InferenceManager::doPendingFacts()
       TNode atom = polarity ? facts : facts[0];
       // no double negation or double (conjunctive) conclusions
       Assert(atom.getKind() != NOT && atom.getKind() != AND);
-      assertPendingFact(atom, polarity, exp);
+      assertInternalFact(atom, polarity, exp);
     }
-    // Must reference count the equality and its explanation, which is not done
-    // by the equality engine. Notice that we do not need to do this for
-    // external assertions, which enter as facts through sendAssumption.
-    d_keep.insert(facts);
-    d_keep.insert(exp);
     i++;
   }
   d_pending.clear();
@@ -392,68 +377,6 @@ void InferenceManager::doPendingLemmas()
   d_pendingReqPhase.clear();
 }
 
-void InferenceManager::assertPendingFact(Node atom, bool polarity, Node exp)
-{
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
-  Trace("strings-pending") << "Assert pending fact : " << atom << " "
-                           << polarity << " from " << exp << std::endl;
-  Assert(atom.getKind() != OR) << "Infer error: a split.";
-  if (atom.getKind() == EQUAL)
-  {
-    // we must ensure these terms are registered
-    Trace("strings-pending-debug") << "  Register term" << std::endl;
-    for (const Node& t : atom)
-    {
-      // terms in the equality engine are already registered, hence skip
-      // currently done for only string-like terms, but this could potentially
-      // be avoided.
-      if (!ee->hasTerm(t) && t.getType().isStringLike())
-      {
-        d_termReg.registerTerm(t, 0);
-      }
-    }
-    Trace("strings-pending-debug") << "  Now assert equality" << std::endl;
-    ee->assertEquality(atom, polarity, exp);
-    Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
-  }
-  else
-  {
-    ee->assertPredicate(atom, polarity, exp);
-    if (atom.getKind() == STRING_IN_REGEXP)
-    {
-      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
-      {
-        Node eqc = ee->getRepresentative(atom[0]);
-        d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
-      }
-    }
-  }
-  // process the conflict
-  if (!d_state.isInConflict())
-  {
-    Node pc = d_state.getPendingConflict();
-    if (!pc.isNull())
-    {
-      std::vector<Node> a;
-      a.push_back(pc);
-      Trace("strings-pending")
-          << "Process pending conflict " << pc << std::endl;
-      Node conflictNode = mkExplain(a);
-      d_state.notifyInConflict();
-      Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
-      ++(d_statistics.d_conflictsEagerPrefix);
-      d_out.conflict(conflictNode);
-    }
-  }
-  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
-  // Collect extended function terms in the atom. Notice that we must register
-  // all extended functions occurring in assertions and shared terms. We
-  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
-  d_extt.registerTermRec(atom);
-  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
-}
-
 bool InferenceManager::hasProcessed() const
 {
   return d_state.isInConflict() || !d_pendingLem.empty() || !d_pending.empty();
@@ -475,7 +398,6 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
   {
     utils::flattenOp(AND, ac, aconj);
   }
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   for (const Node& apc : aconj)
   {
     if (std::find(noExplain.begin(), noExplain.end(), apc) != noExplain.end())
@@ -492,12 +414,12 @@ Node InferenceManager::mkExplain(const std::vector<Node>& a,
     Debug("strings-explain") << "Add to explanation " << apc << std::endl;
     if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
     {
-      Assert(ee->hasTerm(apc[0][0]));
-      Assert(ee->hasTerm(apc[0][1]));
+      Assert(d_ee->hasTerm(apc[0][0]));
+      Assert(d_ee->hasTerm(apc[0][1]));
       // ensure that we are ready to explain the disequality
-      AlwaysAssert(ee->areDisequal(apc[0][0], apc[0][1], true));
+      AlwaysAssert(d_ee->areDisequal(apc[0][0], apc[0][1], true));
     }
-    Assert(apc.getKind() != EQUAL || ee->areEqual(apc[0], apc[1]));
+    Assert(apc.getKind() != EQUAL || d_ee->areEqual(apc[0], apc[1]));
     // now, explain
     explain(apc, antec_exp);
   }
@@ -522,7 +444,6 @@ void InferenceManager::explain(TNode literal,
 {
   Debug("strings-explain") << "Explain " << literal << " "
                            << d_state.isInConflict() << std::endl;
-  eq::EqualityEngine* ee = d_state.getEqualityEngine();
   bool polarity = literal.getKind() != NOT;
   TNode atom = polarity ? literal : literal[0];
   std::vector<TNode> tassumptions;
@@ -530,14 +451,14 @@ void InferenceManager::explain(TNode literal,
   {
     if (atom[0] != atom[1])
     {
-      Assert(ee->hasTerm(atom[0]));
-      Assert(ee->hasTerm(atom[1]));
-      ee->explainEquality(atom[0], atom[1], polarity, tassumptions);
+      Assert(d_ee->hasTerm(atom[0]));
+      Assert(d_ee->hasTerm(atom[1]));
+      d_ee->explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   }
   else
   {
-    ee->explainPredicate(atom, polarity, tassumptions);
+    d_ee->explainPredicate(atom, polarity, tassumptions);
   }
   for (const TNode a : tassumptions)
   {

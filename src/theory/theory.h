@@ -30,7 +30,6 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -184,26 +183,10 @@ class Theory {
 
   //---------------------------------- private collect model info
   /**
-   * Scans the current set of assertions and shared terms top-down
-   * until a theory-leaf is reached, and adds all terms found to
-   * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model.
-   *
-   * irrKinds: The kinds of terms that appear in assertions that should *not*
-   * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * treated as irrelevant kinds.
-   *
-   * includeShared: Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irrKinds.
-   */
-  void computeRelevantTermsInternal(std::set<Node>& termSet,
-                                    std::set<Kind>& irrKinds,
-                                    bool includeShared = true) const;
-  /**
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
+                    const std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
   //---------------------------------- end private collect model info
 
@@ -689,13 +672,29 @@ class Theory {
    */
   virtual bool collectModelInfo(TheoryModel* m);
   /**
-   * Same as above, but with empty irrKinds. This version can be overridden
-   * by the theory, e.g. by restricting or extending the set of terms returned
-   * by computeRelevantTermsInternal, which is called by default with no
-   * irrKinds.
+   * Scans the current set of assertions and shared terms top-down
+   * until a theory-leaf is reached, and adds all terms found to
+   * termSet.  This is used by collectModelInfo to delimit the set of
+   * terms that should be used when constructing a model.
+   *
+   * @param irrKinds The kinds of terms that appear in assertions that should *not*
+   * be included in termSet. Note that the kinds EQUAL and NOT are always
+   * treated as irrelevant kinds.
+   *
+   * @param includeShared Whether to include shared terms in termSet. Notice that
+   * shared terms are not influenced by irrKinds.
+   *
+   * TODO (project #39): this method will be deleted. The version in
+   * model manager will be used.
    */
-  virtual void computeRelevantTerms(std::set<Node>& termSet,
-                                    bool includeShared = true);
+  void computeAssertedTerms(std::set<Node>& termSet,
+                            const std::set<Kind>& irrKinds,
+                            bool includeShared = true) const;
+  /**
+   * Compute terms that are not necessarily part of the assertions or
+   * shared terms that should be considered relevant, add them to termSet.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
@@ -797,84 +796,6 @@ class Theory {
   virtual void setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value) {
     Unimplemented() << "Theory " << identify()
                     << " doesn't support Theory::setUserAttribute interface";
-  }
-
-  /** A set of theories */
-  typedef uint32_t Set;
-
-  /** A set of all theories */
-  static const Set AllTheories = (1 << theory::THEORY_LAST) - 1;
-
-  /** Pops a first theory off the set */
-  static inline TheoryId setPop(Set& set) {
-    uint32_t i = ffs(set); // Find First Set (bit)
-    if (i == 0) { return THEORY_LAST; }
-    TheoryId id = (TheoryId)(i-1);
-    set = setRemove(id, set);
-    return id;
-  }
-
-  /** Returns the size of a set of theories */
-  static inline size_t setSize(Set set) {
-    size_t count = 0;
-    while (setPop(set) != THEORY_LAST) {
-      ++ count;
-    }
-    return count;
-  }
-
-  /** Returns the index size of a set of theories */
-  static inline size_t setIndex(TheoryId id, Set set) {
-    Assert(setContains(id, set));
-    size_t count = 0;
-    while (setPop(set) != id) {
-      ++ count;
-    }
-    return count;
-  }
-
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static inline Set setInsert(TheoryId theory, Set set = 0) {
-    return set | (1 << theory);
-  }
-
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static inline Set setRemove(TheoryId theory, Set set = 0) {
-    return setDifference(set, setInsert(theory));
-  }
-
-  /** Check if the set contains the theory */
-  static inline bool setContains(TheoryId theory, Set set) {
-    return set & (1 << theory);
-  }
-
-  static inline Set setComplement(Set a) {
-    return (~a) & AllTheories;
-  }
-
-  static inline Set setIntersection(Set a, Set b) {
-    return a & b;
-  }
-
-  static inline Set setUnion(Set a, Set b) {
-    return a | b;
-  }
-
-  /** a - b  */
-  static inline Set setDifference(Set a, Set b) {
-    return (~b) & a;
-  }
-
-  static inline std::string setToString(theory::Theory::Set theorySet) {
-    std::stringstream ss;
-    ss << "[";
-    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
-      if (theory::Theory::setContains((theory::TheoryId)theoryId, theorySet)) {
-        ss << (theory::TheoryId) theoryId << " ";
-      }
-    }
-    ss << "]";
-    return ss.str();
   }
 
   typedef context::CDList<Assertion>::const_iterator assertions_iterator;

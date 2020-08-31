@@ -35,7 +35,8 @@ class CombinationCareGraph : public CombinationEngine
 {
  public:
   CombinationCareGraph(TheoryEngine& te,
-                       const std::vector<Theory*>& paraTheories);
+                       const std::vector<Theory*>& paraTheories,
+                       ProofNodeManager* pnm);
   ~CombinationCareGraph();
 
   bool buildModel() override;
