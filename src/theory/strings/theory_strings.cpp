@@ -131,7 +131,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
-  
+
   d_im.finishInit();
 }
 
@@ -783,16 +783,10 @@ void TheoryStrings::conflict(TNode a, TNode b){
     return;
   }
   Debug("strings-conflict") << "Making conflict..." << std::endl;
-  d_im.conflictEqConstantMerge(a,b);
-  //Trace("strings-conflict")
+  d_im.conflictEqConstantMerge(a, b);
+  // Trace("strings-conflict")
   //    << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
   ++(d_statistics.d_conflictsEqEngine);
-  /*
-  d_state.notifyInConflict();
-  eq::ProofEqEngine* pfee = d_im.getProofEqEngine();
-  TrustNode conf = pfee->assertConflict(a.eqNode(b));
-  d_out->trustedConflict(conf);
-  */
 }
 
 void TheoryStrings::eqNotifyNewClass(TNode t){

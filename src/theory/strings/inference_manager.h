@@ -280,6 +280,7 @@ class InferenceManager : public TheoryInferenceManager
 
   /** Process conflict */
   void processConflict(const InferInfo& ii);
+
  private:
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;

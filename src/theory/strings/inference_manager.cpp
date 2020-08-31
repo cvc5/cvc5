@@ -51,15 +51,14 @@ InferenceManager::InferenceManager(Theory& t,
 void InferenceManager::finishInit()
 {
   // always make a proof equality engine
-  if (d_pfee==nullptr)
+  if (d_pfee == nullptr)
   {
     d_pfee.reset(new eq::ProofEqEngine(d_state.getSatContext(),
-                                      d_state.getUserContext(),
-                                      *d_state.getEqualityEngine(),
-                                      d_pnm));
+                                       d_state.getUserContext(),
+                                       *d_state.getEqualityEngine(),
+                                       d_pnm));
   }
 }
-
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
