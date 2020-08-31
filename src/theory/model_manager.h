@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "theory/logic_info.h"
 #include "theory/theory_model.h"
 #include "theory/theory_model_builder.h"
 
@@ -91,6 +92,22 @@ class ModelManager
    * @return true if we are in conflict.
    */
   bool collectModelBooleanVariables();
+  /**
+   * Collect asserted terms for theory with the given identifier, add to
+   * termSet.
+   *
+   * @param tid The theory whose assertions we are collecting
+   * @param termSet The set to add terms to
+   * @param includeShared Whether to include the shared terms of the theory
+   */
+  void collectAssertedTerms(TheoryId tid,
+                            std::set<Node>& termSet,
+                            bool includeShared = true) const;
+  /**
+   * Helper function for collectAssertedTerms, adds all subterms
+   * belonging to theory tid to termSet.
+   */
+  void collectTerms(TheoryId tid, TNode n, std::set<Node>& termSet) const;
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** Logic info of theory engine (cached) */

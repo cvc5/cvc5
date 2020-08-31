@@ -50,6 +50,7 @@
 #include "theory/relevance_manager.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
@@ -151,7 +152,7 @@ void TheoryEngine::finishInit() {
   // Initialize the theory combination architecture
   if (options::tcMode() == options::TcMode::CARE_GRAPH)
   {
-    d_tc.reset(new CombinationCareGraph(*this, paraTheories));
+    d_tc.reset(new CombinationCareGraph(*this, paraTheories, d_pnm));
   }
   else
   {
@@ -213,6 +214,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
+      d_pnm(nullptr),
       d_sharedTerms(this, context),
       d_tc(nullptr),
       d_quantEngine(nullptr),
@@ -307,12 +309,13 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       Assert(!expr::hasFreeVar(preprocessed));
 
       // Pre-register the terms in the atom
-      Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(
+      theory::TheoryIdSet theories = NodeVisitor<PreRegisterVisitor>::run(
           d_preRegistrationVisitor, preprocessed);
-      theories = Theory::setRemove(THEORY_BOOL, theories);
+      theories = TheoryIdSetUtil::setRemove(THEORY_BOOL, theories);
       // Remove the top theory, if any more that means multiple theories were
       // involved
-      bool multipleTheories = Theory::setRemove(Theory::theoryOf(preprocessed), theories);
+      bool multipleTheories =
+          TheoryIdSetUtil::setRemove(Theory::theoryOf(preprocessed), theories);
       if (Configuration::isAssertionBuild())
       {
         TheoryId i;
@@ -323,7 +326,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
         // even though arithmetic isn't actually involved.
         if (!options::finiteModelFind())
         {
-          while ((i = Theory::setPop(theories)) != THEORY_LAST)
+          while ((i = TheoryIdSetUtil::setPop(theories)) != THEORY_LAST)
           {
             if (!d_logicInfo.isTheoryEnabled(i))
             {
@@ -1073,9 +1076,11 @@ void TheoryEngine::assertFact(TNode literal)
       SharedTermsDatabase::shared_terms_iterator it_end = d_sharedTerms.end(atom);
       for (; it != it_end; ++ it) {
         TNode term = *it;
-        Theory::Set theories = d_sharedTerms.getTheoriesToNotify(atom, term);
+        theory::TheoryIdSet theories =
+            d_sharedTerms.getTheoriesToNotify(atom, term);
         for (TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++ id) {
-          if (Theory::setContains(id, theories)) {
+          if (TheoryIdSetUtil::setContains(id, theories))
+          {
             theoryOf(id)->addSharedTerm(term);
           }
         }

@@ -122,6 +122,11 @@ public:
    * See TheoryModel::setSemiEvaluatedKind for details.
    */
   void setSemiEvaluatedKind(Kind k);
+  /**
+   * Set that k is an irrelevant kind in the TheoryModel, if it exists.
+   * See TheoryModel::setIrrelevantKind for details.
+   */
+  void setIrrelevantKind(Kind k);
   //-------------------------------------- end static configuration of the model
 
   /**
