@@ -56,7 +56,6 @@ bool SharedTermsDatabase::needsEqualityEngine(EeSetupInfo& esi)
   return true;
 }
 
-
 void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   d_registeredEqualities.insert(equality);
   d_equalityEngine.addTriggerPredicate(equality);

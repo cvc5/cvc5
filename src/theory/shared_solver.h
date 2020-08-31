@@ -18,11 +18,11 @@
 #define CVC4__THEORY__SHARED_SOLVER__H
 
 #include "expr/node.h"
+#include "theory/ee_setup_info.h"
 #include "theory/logic_info.h"
 #include "theory/shared_terms_database.h"
 #include "theory/term_registration_visitor.h"
 #include "theory/valuation.h"
-#include "theory/ee_setup_info.h"
 
 namespace CVC4 {
 
