@@ -82,6 +82,8 @@ class InferenceManager : public TheoryInferenceManager
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
 
+  /** finish init */
+  void finishInit();
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
@@ -276,12 +278,9 @@ class InferenceManager : public TheoryInferenceManager
   void markReduced(Node n, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
-  /** Get the proof-producing equality engine of this class */
-  eq::ProofEqEngine* getProofEqEngine();
-
- private:
   /** Process conflict */
   void processConflict(const InferInfo& ii);
+ private:
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
@@ -290,10 +289,6 @@ class InferenceManager : public TheoryInferenceManager
   ExtTheory& d_extt;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
-  /** The proof-producing equality engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfee;
-  /** Pointer to proof node manager */
-  ProofNodeManager* d_pnm;
   /** Conversion from inferences to proofs */
   std::unique_ptr<InferProofCons> d_ipc;
   /** Common constants */

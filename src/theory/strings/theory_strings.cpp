@@ -131,7 +131,7 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
-
+  
   d_im.finishInit();
 }
 
@@ -662,15 +662,17 @@ void TheoryStrings::notifyFact(TNode atom,
     Node pc = d_state.getPendingConflict();
     if (!pc.isNull())
     {
-      std::vector<Node> a;
-      a.push_back(pc);
       Trace("strings-pending")
           << "Process pending conflict " << pc << std::endl;
-      Node conflictNode = d_im.mkExplain(a);
+      InferInfo iiPrefixConf;
+      iiPrefixConf.d_id = Inference::PREFIX_CONFLICT;
+      iiPrefixConf.d_conc = d_false;
+      utils::flattenOp(AND, pc, iiPrefixConf.d_ant);
       Trace("strings-conflict")
-          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+          << "CONFLICT: Eager prefix : " << pc << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
-      d_im.conflict(conflictNode);
+      // call the inference manager to process the conflict
+      d_im.processConflict(iiPrefixConf);
       return;
     }
   }
@@ -781,13 +783,16 @@ void TheoryStrings::conflict(TNode a, TNode b){
     return;
   }
   Debug("strings-conflict") << "Making conflict..." << std::endl;
+  d_im.conflictEqConstantMerge(a,b);
+  //Trace("strings-conflict")
+  //    << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
+  ++(d_statistics.d_conflictsEqEngine);
+  /*
   d_state.notifyInConflict();
   eq::ProofEqEngine* pfee = d_im.getProofEqEngine();
   TrustNode conf = pfee->assertConflict(a.eqNode(b));
-  Trace("strings-conflict")
-      << "CONFLICT: Eq engine conflict : " << conf.getNode() << std::endl;
-  ++(d_statistics.d_conflictsEqEngine);
   d_out->trustedConflict(conf);
+  */
 }
 
 void TheoryStrings::eqNotifyNewClass(TNode t){
