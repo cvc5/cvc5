@@ -47,6 +47,7 @@ class InferenceManager : public InferenceManagerBuffered
    * or processed internally.
    */
   void process();
+
  protected:
   /**
    * Must communicate fact method.

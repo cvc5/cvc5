@@ -168,7 +168,7 @@ uint32_t TheoryInferenceManager::numAddedLemmas() const
 
 bool TheoryInferenceManager::hasAddedLemmas() const
 {
-  return d_numCurrentLemmas!=0;
+  return d_numCurrentLemmas != 0;
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
@@ -287,7 +287,7 @@ uint32_t TheoryInferenceManager::numAddedFacts() const
 
 bool TheoryInferenceManager::hasAddedFact() const
 {
-  return d_numCurrentFacts!=0;
+  return d_numCurrentFacts != 0;
 }
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
