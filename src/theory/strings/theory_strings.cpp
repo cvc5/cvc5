@@ -260,7 +260,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   std::set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms
-  computeRelevantTerms(termSet);
+  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
+  computeAssertedTerms(termSet, irrKinds);
   // assert the (relevant) portion of the equality engine to the model
   if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
   {

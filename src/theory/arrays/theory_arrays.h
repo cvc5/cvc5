@@ -264,7 +264,8 @@ class TheoryArrays : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
 
   /////////////////////////////////////////////////////////////////////////////
   // NOTIFICATIONS
@@ -480,11 +481,10 @@ class TheoryArrays : public Theory {
   Node getNextDecisionRequest();
 
   /**
-   * Compute relevant terms. This includes additional select nodes for the
+   * Compute relevant terms. This includes select nodes for the
    * RIntro1 and RIntro2 rules.
    */
-  void computeRelevantTerms(std::set<Node>& termSet,
-                            bool includeShared = true) override;
+  void computeRelevantTerms(std::set<Node>& termSet) override;
 };/* class TheoryArrays */
 
 }/* CVC4::theory::arrays namespace */
