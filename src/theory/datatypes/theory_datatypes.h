@@ -288,7 +288,8 @@ private:
   TrustNode ppRewrite(TNode n) override;
   void notifySharedTerm(TNode t) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   void shutdown() override {}
   std::string identify() const override
   {
@@ -347,11 +348,10 @@ private:
   TNode getRepresentative( TNode a );
 
   /**
-   * Compute relevant terms. In addition to all terms in assertions and shared
-   * terms, this includes datatypes in non-singleton equivalence classes.
+   * Compute relevant terms. This includes datatypes in non-singleton
+   * equivalence classes.
    */
-  void computeRelevantTerms(std::set<Node>& termSet,
-                            bool includeShared = true) override;
+  void computeRelevantTerms(std::set<Node>& termSet) override;
 
   /** sygus symmetry breaking utility */
   std::unique_ptr<SygusExtension> d_sygusExtension;
