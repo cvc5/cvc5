@@ -119,7 +119,8 @@ bool TheoryInferenceManager::lemma(TNode lem, LemmaProperty p, bool doCache)
 }
 
 bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
-                                                 LemmaProperty p, bool doCache)
+                                          LemmaProperty p,
+                                          bool doCache)
 {
   if (doCache)
   {

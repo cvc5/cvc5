@@ -105,21 +105,24 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
-  /** 
+  /**
    * Send (trusted) lemma lem with property p on the output channel.
-   * 
+   *
    * @param tlem The trust node containing the lemma and its proof generator.
    * @param p The property of the lemma
-   * @param doCache If true, we 
+   * @param doCache If true, we
    * @return true if the lemma was sent on the output channel.
    */
   bool trustedLemma(const TrustNode& tlem,
-                           LemmaProperty p = LemmaProperty::NONE, bool doCache = true);
-  /** 
+                    LemmaProperty p = LemmaProperty::NONE,
+                    bool doCache = true);
+  /**
    * Send lemma lem with property p on the output channel. Same as above, with
    * a node instead of a trust node.
    */
-  bool lemma(TNode lem, LemmaProperty p = LemmaProperty::NONE, bool doCache = true);
+  bool lemma(TNode lem,
+             LemmaProperty p = LemmaProperty::NONE,
+             bool doCache = true);
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
    * facts into the equality engine of the theory. In particular, this method
@@ -129,13 +132,14 @@ class TheoryInferenceManager
    * isInternal = true.
    */
   void assertInternalFact(TNode atom, bool pol, TNode fact);
-  /** 
+  /**
    * Has this inference manager sent the given lemma? This method can be
    * overridden by the particular manager. If not, this returns true if
    * lem is in the cache d_lemmasSent maintained by this class. Notice that
-   * this cache is not dependent on 
+   * this cache is not dependent on
    */
   virtual bool hasSentLemma(TNode lem, LemmaProperty p);
+
  protected:
   /**
    * Explain conflict from constants merging in the equality engine. This
@@ -154,7 +158,7 @@ class TheoryInferenceManager
    * conjunctions), return the explanation as a conjunction.
    */
   Node mkExplain(TNode n);
-  /** 
+  /**
    * Cache that lemma lem is being sent with property p. Return true if it
    * did not already exist in the cache maintained by this class. If this
    * method is not overridden, then we use the d_lemmasSent cache maintained
@@ -180,7 +184,7 @@ class TheoryInferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
-  /** 
+  /**
    * A cache of all lemmas sent, which is a user-context-dependent set of
    * nodes. Notice that this cache does not depedent on lemma property.
    */
