@@ -67,7 +67,7 @@ TrustNode SharedSolverDistributed::explain(TNode literal, TheoryId id)
   TrustNode texp;
   if (id == THEORY_BUILTIN)
   {
-    // explanation based on the specific solver
+    // explanation using the shared terms database
     texp = d_sharedTerms.explain(literal);
     Trace("shared-solver")
         << "\tTerm was propagated by THEORY_BUILTIN. Explanation: "
