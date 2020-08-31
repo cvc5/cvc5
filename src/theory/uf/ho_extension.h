@@ -21,9 +21,9 @@
 #include "context/cdhashset.h"
 #include "context/cdo.h"
 #include "expr/node.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_model.h"
 #include "theory/theory_state.h"
-#include "theory/theory_inference_manager.h"
 
 namespace CVC4 {
 namespace theory {

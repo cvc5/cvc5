@@ -312,10 +312,7 @@ void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqPro
   Debug("pf::uf") << std::endl;
 }
 
-TrustNode TheoryUF::explain(TNode literal)
-{
-  return d_im.explainLit(literal);
-}
+TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
 
 Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
   Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
