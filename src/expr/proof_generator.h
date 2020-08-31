@@ -121,7 +121,9 @@ void pfgEnsureClosed(Node proven,
 
 /**
  * Debug check closed with Trace c. Context ctx is string for debugging and
- * assumps is the set of allowed open assertions.
+ * assumps is the set of allowed open assertions. This method throws an
+ * assertion failure if pg cannot provide a proof for fact proven whose
+ * free assumptions are contained in assumps.
  *
  * @param reqGen Whether we consider a null generator to be a failure.
  */
@@ -133,9 +135,15 @@ void pfgEnsureClosedWrt(Node proven,
                         bool reqGen = true);
 
 /**
- * Debug check closed with Trace c, proof node versions.
+ * Debug check closed with Trace c, proof node versions. This gives an
+ * assertion failure if pn is not closed. Detailed information is printed
+ * on trace c. Context ctx is a string used for debugging.
  */
 void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx);
+/**
+ * Same as above, but throws an assertion failure only if the free assumptions
+ * of pn are not contained in assumps.
+ */
 void pfnEnsureClosedWrt(ProofNode* pn,
                         const std::vector<Node>& assumps,
                         const char* c,
