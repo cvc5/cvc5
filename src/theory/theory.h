@@ -677,11 +677,11 @@ class Theory {
    * termSet.  This is used by collectModelInfo to delimit the set of
    * terms that should be used when constructing a model.
    *
-   * irrKinds: The kinds of terms that appear in assertions that should *not*
+   * @param irrKinds The kinds of terms that appear in assertions that should *not*
    * be included in termSet. Note that the kinds EQUAL and NOT are always
    * treated as irrelevant kinds.
    *
-   * includeShared: Whether to include shared terms in termSet. Notice that
+   * @param includeShared Whether to include shared terms in termSet. Notice that
    * shared terms are not influenced by irrKinds.
    *
    * TODO (project #39): this method will be deleted. The version in
