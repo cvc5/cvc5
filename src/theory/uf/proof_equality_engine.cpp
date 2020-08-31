@@ -126,7 +126,7 @@ bool ProofEqEngine::assertFact(Node lit,
     d_proof.addLazyStep(lit, &d_factPg, false);
   }
   // second, assert it to the equality engine
-  Node reason = mkAnd(exp);
+  Node reason = NodeManager::currentNM()->mkAnd(exp);
   return assertFactInternal(atom, polarity, reason);
 }
 
@@ -494,11 +494,11 @@ TrustNode ProofEqEngine::ensureProofForFact(Node conc,
     // scope the proof constructed above, and connect the formula with the proof
     // minimize the assumptions
     pf = d_pnm->mkScope(pfBody, scopeAssumps, true, true);
-    exp = mkAnd(scopeAssumps);
+    exp = nm->mkAnd(scopeAssumps);
   }
   else
   {
-    exp = mkAnd(assumps);
+    exp = nm->mkAnd(assumps);
   }
   // Make the lemma or conflict node. This must exactly match the conclusion
   // of SCOPE below.
@@ -666,32 +666,6 @@ void ProofEqEngine::explainWithProof(Node lit,
     pf->addToProof(curr);
   }
   Trace("pfee-proof") << "pfee::explainWithProof: finished" << std::endl;
-}
-
-Node ProofEqEngine::mkAnd(const std::vector<Node>& a)
-{
-  if (a.empty())
-  {
-    return d_true;
-  }
-  else if (a.size() == 1)
-  {
-    return a[0];
-  }
-  return NodeManager::currentNM()->mkNode(AND, a);
-}
-
-Node ProofEqEngine::mkAnd(const std::vector<TNode>& a)
-{
-  if (a.empty())
-  {
-    return d_true;
-  }
-  else if (a.size() == 1)
-  {
-    return a[0];
-  }
-  return NodeManager::currentNM()->mkNode(AND, a);
 }
 
 ProofEqEngine::FactProofGenerator::FactProofGenerator(context::Context* c,
