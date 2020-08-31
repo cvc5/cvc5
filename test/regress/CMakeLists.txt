@@ -59,6 +59,7 @@ set(regress_0_tests
   regress0/arrays/bug272.minimized.smtv1.smt2
   regress0/arrays/bug272.smtv1.smt2
   regress0/arrays/bug3020.smt2
+  regress0/arrays/bug4957.smt2
   regress0/arrays/bug637.delta.smt2
   regress0/arrays/constarr.cvc
   regress0/arrays/constarr.smt2

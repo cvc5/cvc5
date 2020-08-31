@@ -359,8 +359,15 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
 
 bool Theory::collectModelInfo(TheoryModel* m)
 {
+  // NOTE: the computation of termSet will be moved to model manager
+  // and passed as an argument to collectModelInfo.
   std::set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  const std::set<Kind>& irrKinds = tm->getIrrelevantKinds();
+  computeAssertedTerms(termSet, irrKinds, true);
+  // Compute additional relevant terms (theory-specific)
   computeRelevantTerms(termSet);
   // if we are using an equality engine, assert it to the model
   if (d_equalityEngine != nullptr)
@@ -375,7 +382,7 @@ bool Theory::collectModelInfo(TheoryModel* m)
 }
 
 void Theory::collectTerms(TNode n,
-                          set<Kind>& irrKinds,
+                          const std::set<Kind>& irrKinds,
                           set<Node>& termSet) const
 {
   if (termSet.find(n) != termSet.end()) {
@@ -396,13 +403,11 @@ void Theory::collectTerms(TNode n,
   }
 }
 
-void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
-                                          std::set<Kind>& irrKinds,
-                                          bool includeShared) const
+void Theory::computeAssertedTerms(std::set<Node>& termSet,
+                                  const std::set<Kind>& irrKinds,
+                                  bool includeShared) const
 {
   // Collect all terms appearing in assertions
-  irrKinds.insert(kind::EQUAL);
-  irrKinds.insert(kind::NOT);
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
@@ -424,10 +429,9 @@ void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
   }
 }
 
-void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
+void Theory::computeRelevantTerms(std::set<Node>& termSet)
 {
-  std::set<Kind> irrKinds;
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+  // by default, there are no additional relevant terms
 }
 
 bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
