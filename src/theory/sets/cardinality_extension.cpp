@@ -18,6 +18,7 @@
 #include "expr/emptyset.h"
 #include "expr/node_algorithm.h"
 #include "options/sets_options.h"
+#include "smt/logic_exception.h"
 #include "theory/sets/normal_form.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"

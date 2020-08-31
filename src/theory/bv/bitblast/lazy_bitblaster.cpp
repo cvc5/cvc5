@@ -540,7 +540,8 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
 bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 {
   std::set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
+  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
+  d_bv->computeAssertedTerms(termSet, irrKinds, true);
 
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;
