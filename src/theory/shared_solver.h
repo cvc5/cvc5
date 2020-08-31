@@ -94,7 +94,9 @@ class SharedSolver
    *
    * This method is called by TheoryEngine when a fact has been marked to
    * send to THEORY_BUILTIN, meaning that shared terms database should
-   * maintain this fact. This is the case when ...
+   * maintain this fact. This is the case when either an equality is
+   * asserted from the SAT solver or a theory propagates an equality between
+   * shared terms.
    */
   virtual void assertSharedEquality(TNode equality,
                                     bool polarity,
