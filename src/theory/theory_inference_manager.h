@@ -131,7 +131,8 @@ class TheoryInferenceManager
    *
    * @param tlem The trust node containing the lemma and its proof generator.
    * @param p The property of the lemma
-   * @param doCache If true, we
+   * @param doCache If true, we send the lemma only if it has not already been
+   * cached (see cacheLemma), and add it to the cache during this call.
    * @return true if the lemma was sent on the output channel.
    */
   bool trustedLemma(const TrustNode& tlem,
