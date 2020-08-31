@@ -31,7 +31,9 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_ee(nullptr),
       d_pnm(pnm),
       d_keep(t.getSatContext()),
-      d_lemmasSent(t.getUserContext())
+      d_lemmasSent(t.getUserContext()),
+      d_numCurrentFacts(0),
+      d_numCurrentLemmas(0)
 {
 }
 
@@ -46,6 +48,12 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
                                        *d_ee,
                                        d_pnm));
   }
+}
+
+void TheoryInferenceManager::reset()
+{
+  d_numCurrentLemmas = 0;
+  d_numCurrentFacts = 0;
 }
 
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
@@ -138,13 +146,29 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 {
   if (doCache)
   {
-    if (!cacheSentLemma(tlem.getNode(), p))
+    if (!cacheLemma(tlem.getNode(), p))
     {
       return false;
     }
   }
+  d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
+}
+
+bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
+{
+  return d_lemmasSent.find(lem) != d_lemmasSent.end();
+}
+
+uint32_t TheoryInferenceManager::numAddedLemmas() const
+{
+  return d_numCurrentLemmas;
+}
+
+bool TheoryInferenceManager::hasAddedLemmas() const
+{
+  return d_numCurrentLemmas!=0;
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
@@ -189,6 +213,7 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
                          << expn << std::endl;
+  d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
   // If no proof production, or no proof rule was given
   if (d_pfee == nullptr || id == PfRule::UNKNOWN)
@@ -255,9 +280,14 @@ Node TheoryInferenceManager::mkExplain(TNode n)
   return NodeManager::currentNM()->mkAnd(assumptions);
 }
 
-bool TheoryInferenceManager::hasSentLemma(TNode lem, LemmaProperty p)
+uint32_t TheoryInferenceManager::numAddedFacts() const
 {
-  return d_lemmasSent.find(lem) != d_lemmasSent.end();
+  return d_numCurrentFacts;
+}
+
+bool TheoryInferenceManager::hasAddedFact() const
+{
+  return d_numCurrentFacts!=0;
 }
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
@@ -295,7 +325,7 @@ Node TheoryInferenceManager::mkExplain(TNode n)
   return ret;
 }
 
-bool TheoryInferenceManager::cacheSentLemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
 {
   if (d_lemmasSent.find(lem) != d_lemmasSent.end())
   {

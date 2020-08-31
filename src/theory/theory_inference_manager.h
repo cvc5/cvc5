@@ -71,13 +71,23 @@ class TheoryInferenceManager
    */
   TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   virtual ~TheoryInferenceManager() {}
-  //--------------------------------------- initialization
   /**
    * Set equality engine, ee is a pointer to the official equality engine
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  //--------------------------------------- end initialization
+  /**
+   * Reset, which resets counters regarding the number of added lemmas and
+   * internal facts. This method should be manually called by the theory at
+   * the appropriate time for the purpose of tracking the usage of this
+   * inference manager.
+   *
+   * For example, some theories implement an internal checking loop that
+   * repeats while new facts are added. The theory should call reset at the
+   * beginning of this loop and repeat its strategy while hasAddedFact is true.
+   */
+  void reset();
+  //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
    * returns false if we are in conflict.
@@ -94,6 +104,7 @@ class TheoryInferenceManager
    * Theory, if it exists.
    */
   virtual TrustNode explainLit(TNode lit);
+  //--------------------------------------- conflicts
   /**
    * Raise conflict, called when constants a and b merge. Sends the conflict
    * on the output channel corresponding to the equality engine's explanation
@@ -114,6 +125,7 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
+  //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
    *
@@ -133,12 +145,17 @@ class TheoryInferenceManager
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
   /**
-   * Has this inference manager sent the given lemma? This method can be
-   * overridden by the particular manager. If not, this returns true if
-   * lem is in the cache d_lemmasSent maintained by this class. Notice that
-   * this cache is not dependent on
+   * Has this inference manager sent the given lemma (in this user context)?
+   * This method can be overridden by the particular manager. If not, this
+   * returns true if lem is in the cache d_lemmasSent maintained by this class.
+   * Notice that this cache is not dependent on the lemma property.
    */
-  virtual bool hasSentLemma(TNode lem, LemmaProperty p);
+  virtual bool hasCachedLemma(TNode lem, LemmaProperty p);
+  /** The number of lemmas we have sent since the last call to reset */
+  uint32_t numAddedLemmas() const;
+  /** Have we added a lemma since the last call to reset? */
+  bool hasAddedLemma() const;
+  //--------------------------------------- internal facts
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
    * facts into the equality engine of the theory. In particular, this method
@@ -183,6 +200,10 @@ class TheoryInferenceManager
                           bool pol,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
+  /** The number of internal facts we have added since the last call to reset */
+  uint32_t numAddedFacts() const;
+  /** Have we added a internal fact since the last call to reset? */
+  bool hasAddedFact() const;
 
  protected:
   /**
@@ -220,7 +241,7 @@ class TheoryInferenceManager
    * the lemma property should be taken into account, the manager should
    * override this method to take the lemma property into account as needed.
    */
-  virtual bool cacheSentLemma(TNode lem, LemmaProperty p);
+  virtual bool cacheLemma(TNode lem, LemmaProperty p);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
@@ -245,6 +266,10 @@ class TheoryInferenceManager
    * nodes. Notice that this cache does not depedent on lemma property.
    */
   NodeSet d_lemmasSent;
+  /** The number of lemmas sent since the last call to reset. */
+  uint32_t d_numCurrentLemmas;
+  /** The number of internal facts added since the last call to reset. */
+  uint32_t d_numCurrentFacts;
 };
 
 }  // namespace theory

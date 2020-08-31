@@ -27,17 +27,9 @@ namespace datatypes {
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm),
-      d_addedLemma(false),
-      d_addedFact(false)
+    : InferenceManagerBuffered(t, state, pnm)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
-}
-
-void InferenceManager::reset()
-{
-  d_addedLemma = false;
-  d_addedFact = false;
 }
 
 bool InferenceManager::mustCommunicateFact(Node n, Node exp) const
@@ -102,11 +94,7 @@ void InferenceManager::process()
         Trace("dt-lemma-debug") << "Get explanation..." << std::endl;
         std::vector<TNode> assumptions;
         explain(exp, assumptions);
-        if (assumptions.empty())
-        {
-          lem = fact;
-        }
-        else
+        if (!assumptions.empty())
         {
           std::vector<Node> children;
           for (const TNode& assumption : assumptions)
@@ -118,7 +106,7 @@ void InferenceManager::process()
         }
       }
       Trace("dt-lemma") << "Datatypes lemma : " << lem << std::endl;
-      doSendLemma(lem);
+      lemma(lem);
     }
     else
     {
@@ -126,7 +114,6 @@ void InferenceManager::process()
       bool polarity = fact.getKind() != NOT;
       TNode atom = polarity ? fact : fact[0];
       assertInternalFact(atom, polarity, exp);
-      d_addedFact = true;
     }
     Trace("datatypes-debug") << "Finished fact " << fact
                              << ", now = " << d_theoryState.isInConflict()
@@ -134,48 +121,6 @@ void InferenceManager::process()
     i++;
   }
   d_pendingFact.clear();
-}
-
-bool InferenceManager::hasAddedFact() const { return d_addedFact; }
-bool InferenceManager::hasAddedLemma() const { return d_addedLemma; }
-bool InferenceManager::doSendLemma(Node lem, LemmaProperty p, bool cached)
-{
-  // don't cache lemmas with non-standard properties
-  Assert(!cached || p == LemmaProperty::NONE);
-  bool doSend = false;
-  if (!cached)
-  {
-    // always send
-    doSend = true;
-  }
-  else if (d_lemmasSent.find(lem) == d_lemmasSent.end())
-  {
-    Trace("dt-lemma-send") << "TheoryDatatypes::doSendLemma : " << lem
-                           << std::endl;
-    d_lemmasSent.insert(lem);
-    doSend = true;
-  }
-  if (doSend)
-  {
-    // call the base class
-    lemma(lem);
-    d_addedLemma = true;
-    return true;
-  }
-  Trace("dt-lemma-send") << "TheoryDatatypes::doSendLemma : duplicate : " << lem
-                         << std::endl;
-  return false;
-}
-
-bool InferenceManager::doSendLemmas(const std::vector<Node>& lemmas)
-{
-  bool ret = false;
-  for (const Node& lem : lemmas)
-  {
-    bool cret = doSendLemma(lem);
-    ret = ret || cret;
-  }
-  return ret;
 }
 
 }  // namespace datatypes
