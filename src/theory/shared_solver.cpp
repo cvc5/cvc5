@@ -86,6 +86,13 @@ EqualityStatus SharedSolver::getEqualityStatus(TNode a, TNode b)
   return EQUALITY_UNKNOWN;
 }
 
+
+void SharedSolver::sendLemma(TrustNode trn, TheoryId atomsTo)
+{
+  d_te.lemma(trn.getNode(), RULE_INVALID, false, LemmaProperty::NONE, atomsTo);
+}
+
+
 bool SharedSolver::propagateSharedEquality(theory::TheoryId theory,
                                            TNode a,
                                            TNode b,
