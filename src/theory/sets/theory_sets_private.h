@@ -176,7 +176,7 @@ class TheorySetsPrivate {
 
   void check(Theory::Effort);
 
-  bool collectModelInfo(TheoryModel* m);
+  bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
 
@@ -218,8 +218,6 @@ class TheorySetsPrivate {
   TrustNode expandDefinition(Node n);
 
   void presolve();
-
-  void propagate(Theory::Effort);
 
   /** get default output channel */
   OutputChannel* getOutputChannel();

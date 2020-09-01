@@ -58,6 +58,8 @@ class TheorySep : public Theory {
   bool d_bounds_init;
 
   TheorySepRewriter d_rewriter;
+  /** A (default) theory state object */
+  TheoryState d_state;
 
   Node mkAnd( std::vector< TNode >& assumptions );
 
@@ -103,18 +105,16 @@ class TheorySep : public Theory {
 
  private:
   /** Should be called to propagate the literal.  */
-  bool propagate(TNode literal);
-
+  bool propagateLit(TNode literal);
+  /** Conflict when merging constants */
+  void conflict(TNode a, TNode b);
   /** Explain why this literal is true by adding assumptions */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
  public:
-  void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
 
  public:
-  void addSharedTerm(TNode t) override;
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void computeCareGraph() override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -122,7 +122,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  bool collectModelInfo(TheoryModel* m) override;
   void postProcessModel(TheoryModel* m) override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -137,12 +136,27 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
   // MAIN SOLVER
   /////////////////////////////////////////////////////////////////////////////
- public:
-  void check(Effort e) override;
 
+  //--------------------------------- standard check
+  /** Do we need a check call at last call effort? */
   bool needsCheckLastEffort() override;
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
 
  private:
+  /** Ensures that the reduction has been added for the given fact */
+  void reduceFact(TNode atom, bool polarity, TNode fact);
+  /** Is spatial kind? */
+  bool isSpatialKind(Kind k) const;
   // NotifyClass: template helper class for d_equalityEngine - handles
   // call-back from congruence closure module
   class NotifyClass : public eq::EqualityEngineNotify
@@ -161,9 +175,9 @@ class TheorySep : public Theory {
       // Just forward to sep
       if (value)
       {
-        return d_sep.propagate(predicate);
+        return d_sep.propagateLit(predicate);
       }
-      return d_sep.propagate(predicate.notNode());
+      return d_sep.propagateLit(predicate.notNode());
     }
     bool eqNotifyTriggerTermEquality(TheoryId tag,
                                      TNode t1,
@@ -176,13 +190,9 @@ class TheorySep : public Theory {
       if (value)
       {
         // Propagate equality between shared terms
-        return d_sep.propagate(t1.eqNode(t2));
+        return d_sep.propagateLit(t1.eqNode(t2));
       }
-      else
-      {
-        return d_sep.propagate(t1.eqNode(t2).notNode());
-      }
-      return true;
+      return d_sep.propagateLit(t1.eqNode(t2).notNode());
     }
 
     void eqNotifyConstantTermMerge(TNode t1, TNode t2) override
@@ -204,16 +214,12 @@ class TheorySep : public Theory {
   NotifyClass d_notify;
 
   /** Are we in conflict? */
-  context::CDO<bool> d_conflict;
   std::vector< Node > d_pending_exp;
   std::vector< Node > d_pending;
   std::vector< int > d_pending_lem;
 
   /** list of all refinement lemms */
   std::map< Node, std::map< Node, std::vector< Node > > > d_refinement_lem;
-
-  /** Conflict when merging constants */
-  void conflict(TNode a, TNode b);
 
   //cache for positive polarity start reduction
   NodeSet d_reduce;

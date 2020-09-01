@@ -27,6 +27,7 @@ jobs:
             cache-key: production
             python-bindings: true
             check-examples: true
+            exclude_regress: 3-4
 
           - name: production-clang
             config: production
@@ -34,16 +35,19 @@ jobs:
             check-examples: true
             env: CC=clang CXX=clang++
             os: ubuntu-latest
+            exclude_regress: 1-4
 
           - name: debug
             config: debug --symfpu --lfsc --no-debug-symbols --editline
             cache-key: debug
             os: ubuntu-latest
+            exclude_regress: 1-4
 
           - name: debug-cln
             config: debug --symfpu --cln --gpl --no-debug-symbols --no-proofs
             cache-key: debug-cln
             os: ubuntu-latest
+            exclude_regress: 1-4
 
     name: ${{ matrix.os }}:${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -86,12 +90,12 @@ jobs:
         python3 -m pip install pexpect
         echo "::add-path::/usr/local/opt/ccache/libexec"
 
-    # Note: We install Cython with sudo since cmake can't find Cython otherwise.
     - name: Install Cython
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
-        sudo python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "::add-path::$(python3 -m site --user-base)/bin"
 
     - name: Install Cython (macOS)
       if: matrix.python-bindings && runner.os == 'macOS'
@@ -168,7 +172,7 @@ jobs:
     - name: Run CTest
       run: make -j2 check
       env:
-        ARGS: --output-on-failure -LE regress[1-4]
+        ARGS: --output-on-failure -LE regress[${{ matrix.exclude_regress }}]
         CVC4_REGRESSION_ARGS: --no-early-exit
       working-directory: build
 

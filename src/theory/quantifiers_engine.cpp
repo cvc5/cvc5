@@ -575,7 +575,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
+    //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
@@ -670,23 +670,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
       QuantifiersModule::QEffort quant_e =
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
-      //build the model if any module requested it
+      // Force the theory engine to build the model if any module requested it.
       if (needsModelE == quant_e)
       {
-        if (!d_model->isBuilt())
+        Trace("quant-engine-debug") << "Build model..." << std::endl;
+        if (!d_te->buildModel())
         {
-          // theory engine's model builder is quantifier engine's builder if it
-          // has one
-          Assert(!getModelBuilder()
-                 || getModelBuilder() == d_te->getModelBuilder());
-          Trace("quant-engine-debug") << "Build model..." << std::endl;
-          if (!d_te->getModelBuilder()->buildModel(d_model.get()))
-          {
-            flushLemmas();
-          }
-        }
-        if (!d_model->isBuiltSuccess())
-        {
+          // If we failed to build the model, flush all pending lemmas and
+          // finish.
+          flushLemmas();
           break;
         }
       }
@@ -962,7 +954,8 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
         Trace("quantifiers-sk-debug")
             << "Skolemize lemma : " << slem << std::endl;
       }
-      getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+      getOutputChannel().lemma(
+          lem, LemmaProperty::PREPROCESS | LemmaProperty::NEEDS_JUSTIFY);
     }
     return;
   }

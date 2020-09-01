@@ -109,24 +109,6 @@ header = "options/bv_options.h"
   help       = "use the equality engine for the bit-vector theory (only if --bitblast=lazy)"
 
 [[option]]
-  name       = "bitvectorEqualitySlicer"
-  category   = "regular"
-  long       = "bv-eq-slicer=MODE"
-  type       = "BvSlicerMode"
-  default    = "OFF"
-  help       = "turn on the slicing equality solver for the bit-vector theory (only if --bitblast=lazy)"
-  help_mode  = "Bit-vector equality slicer modes."
-[[option.mode.ON]]
-  name = "on"
-  help = "Turn slicer on."
-[[option.mode.OFF]]
-  name = "off"
-  help = "Turn slicer off."
-[[option.mode.AUTO]]
-  name = "auto"
-  help = "Turn slicer on if input has only equalities over core symbols."
-
-[[option]]
   name       = "bitvectorInequalitySolver"
   category   = "regular"
   long       = "bv-inequality-solver"

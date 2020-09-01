@@ -119,13 +119,6 @@ class Model {
   bool d_isKnownSat;
 };/* class Model */
 
-class ModelBuilder {
-public:
-  ModelBuilder() { }
-  virtual ~ModelBuilder() { }
-  virtual bool buildModel(Model* m) = 0;
-};/* class ModelBuilder */
-
 }/* CVC4 namespace */
 
 #endif  /* CVC4__MODEL_H */

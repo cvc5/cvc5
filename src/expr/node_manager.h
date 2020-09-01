@@ -91,10 +91,6 @@ class NodeManager {
   friend Expr ExprManager::mkVar(const std::string&, Type, uint32_t flags);
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
-  // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
-      std::vector<Datatype>&, std::set<Type>&, uint32_t);
-
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
     bool operator()(expr::NodeValue* nv) { return nv->d_rc > 0; }
@@ -380,8 +376,8 @@ class NodeManager {
   /** Create a variable with the given type. */
   Node mkVar(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
   Node* mkVarPtr(const TypeNode& type, uint32_t flags = ExprManager::VAR_FLAG_NONE);
-  
-public:
+
+ public:
 
   explicit NodeManager(ExprManager* exprManager);
   ~NodeManager();
@@ -476,6 +472,17 @@ public:
   Node mkNode(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
   template <bool ref_count>
   Node* mkNodePtr(Kind kind, const std::vector<NodeTemplate<ref_count> >& children);
+
+  /**
+   * Create an AND node with arbitrary number of children. This returns the
+   * true node if children is empty, or the single node in children if
+   * it contains only one node.
+   *
+   * We define construction of AND as a special case here since it is widely
+   * used for e.g. constructing explanations.
+   */
+  template <bool ref_count>
+  Node mkAnd(const std::vector<NodeTemplate<ref_count> >& children);
 
   /** Create a node (with no children) by operator. */
   Node mkNode(TNode opNode);
@@ -1361,6 +1368,20 @@ inline Node NodeManager::mkNode(Kind kind,
   NodeBuilder<> nb(this, kind);
   nb.append(children);
   return nb.constructNode();
+}
+
+template <bool ref_count>
+Node NodeManager::mkAnd(const std::vector<NodeTemplate<ref_count> >& children)
+{
+  if (children.empty())
+  {
+    return mkConst(true);
+  }
+  else if (children.size() == 1)
+  {
+    return children[0];
+  }
+  return mkNode(kind::AND, children);
 }
 
 template <bool ref_count>

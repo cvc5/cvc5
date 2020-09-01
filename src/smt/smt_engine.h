@@ -566,7 +566,7 @@ class CVC4_PUBLIC SmtEngine
   /**
    * Get synth solution.
    *
-   * This method returns true if we are in a state immediately preceeded by
+   * This method returns true if we are in a state immediately preceded by
    * a successful call to checkSynth.
    *
    * This method adds entries to solMap that map functions-to-synthesize with
@@ -1113,12 +1113,6 @@ class CVC4_PUBLIC SmtEngine
    * List of items for which to retrieve values using getAssignment().
    */
   AssignmentSet* d_assignments;
-
-  /**
-   * A vector of command definitions to be imported in the new
-   * SmtEngine when checking unsat-cores.
-   */
-  std::vector<Command*> d_defineCommands;
 
   /**
    * The logic we're in. This logic may be an extension of the logic set by the

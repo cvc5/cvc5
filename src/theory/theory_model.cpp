@@ -16,6 +16,7 @@
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_engine.h"
 
@@ -29,9 +30,9 @@ namespace theory {
 TheoryModel::TheoryModel(context::Context* c,
                          std::string name,
                          bool enableFuncModels)
-    : d_substitutions(c, false),
-      d_modelBuilt(false),
-      d_modelBuiltSuccess(false),
+    : d_name(name),
+      d_substitutions(c, false),
+      d_equalityEngine(nullptr),
       d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
@@ -39,10 +40,26 @@ TheoryModel::TheoryModel(context::Context* c,
   Assert(d_enableFuncModels || !options::ufHo());
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+}
 
-  d_eeContext = new context::Context();
-  d_equalityEngine = new eq::EqualityEngine(d_eeContext, name, false);
+TheoryModel::~TheoryModel() {}
 
+void TheoryModel::setEqualityEngine(eq::EqualityEngine* ee)
+{
+  d_equalityEngine = ee;
+}
+
+bool TheoryModel::needsEqualityEngine(EeSetupInfo& esi)
+{
+  // no notifications
+  esi.d_name = d_name;
+  esi.d_constantsAreTriggers = false;
+  return true;
+}
+
+void TheoryModel::finishInit()
+{
+  Assert(d_equalityEngine != nullptr);
   // The kinds we are treating as function application in congruence
   d_equalityEngine->addFunctionKind(kind::APPLY_UF, false, options::ufHo());
   d_equalityEngine->addFunctionKind(kind::HO_APPLY);
@@ -51,24 +68,20 @@ TheoryModel::TheoryModel(context::Context* c,
   d_equalityEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   d_equalityEngine->addFunctionKind(kind::APPLY_SELECTOR_TOTAL);
   d_equalityEngine->addFunctionKind(kind::APPLY_TESTER);
-  d_eeContext->push();
   // do not interpret APPLY_UF if we are not assigning function values
-  if (!enableFuncModels)
+  if (!d_enableFuncModels)
   {
     setSemiEvaluatedKind(kind::APPLY_UF);
   }
-}
-
-TheoryModel::~TheoryModel()
-{
-  d_eeContext->pop();
-  delete d_equalityEngine;
-  delete d_eeContext;
+  // Equal and not terms are not relevant terms. In other words, asserted
+  // equalities and negations of predicates (as terms) do not need to be sent
+  // to the model. Regardless, theories should send information to the model
+  // that ensures that all assertions are satisfied.
+  setIrrelevantKind(EQUAL);
+  setIrrelevantKind(NOT);
 }
 
 void TheoryModel::reset(){
-  d_modelBuilt = false;
-  d_modelBuiltSuccess = false;
   d_modelCache.clear();
   d_comment_str.clear();
   d_sep_heap = Node::null();
@@ -83,8 +96,6 @@ void TheoryModel::reset(){
   d_uf_terms.clear();
   d_ho_uf_terms.clear();
   d_uf_models.clear();
-  d_eeContext->pop();
-  d_eeContext->push();
   d_using_model_core = false;
   d_model_core.clear();
 }
@@ -621,6 +632,13 @@ void TheoryModel::setUnevaluatedKind(Kind k) { d_unevaluated_kinds.insert(k); }
 void TheoryModel::setSemiEvaluatedKind(Kind k)
 {
   d_semi_evaluated_kinds.insert(k);
+}
+
+void TheoryModel::setIrrelevantKind(Kind k) { d_irrKinds.insert(k); }
+
+const std::set<Kind>& TheoryModel::getIrrelevantKinds() const
+{
+  return d_irrKinds;
 }
 
 bool TheoryModel::isLegalElimination(TNode x, TNode val)

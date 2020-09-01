@@ -59,6 +59,7 @@ set(regress_0_tests
   regress0/arrays/bug272.minimized.smtv1.smt2
   regress0/arrays/bug272.smtv1.smt2
   regress0/arrays/bug3020.smt2
+  regress0/arrays/bug4957.smt2
   regress0/arrays/bug637.delta.smt2
   regress0/arrays/constarr.cvc
   regress0/arrays/constarr.smt2
@@ -213,11 +214,11 @@ set(regress_0_tests
   regress0/bv/bv_to_int_bvmul1.smt2
   regress0/bv/bv_to_int_bvmul2.smt2
   regress0/bv/bv_to_int_bitwise.smt2
+  regress0/bv/bv_to_int_bvuf_to_intuf.smt2
+  regress0/bv/bv_to_int_bvuf_to_intuf_smtlib.smt2
+  regress0/bv/bv_to_int_bvuf_to_intuf_sorts.smt2
   regress0/bv/bv_to_int_elim_err.smt2
   regress0/bv/bv_to_int_zext.smt2
-  regress0/bv/bvuf_to_intuf.smt2
-  regress0/bv/bvuf_to_intuf_smtlib.smt2
-  regress0/bv/bvuf_to_intuf_sorts.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -545,6 +546,7 @@ set(regress_0_tests
   regress0/ho/ho-std-fmf.smt2
   regress0/ho/hoa0008.smt2
   regress0/ho/issue4477.smt2
+  regress0/ho/issue4990-care-graph.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/match-middle.smt2
@@ -2074,12 +2076,12 @@ set(regress_2_tests
   regress2/bug812.smt2
   regress2/bv/opStructure_MBA_6.scrambled.min.smt2
   regress2/bv_to_int_ashr.smt2
+  regress2/bv_to_int_inc1.smt2
   regress2/bv_to_int_mask_array_1.smt2
   regress2/bv_to_int_mask_array_2.smt2
   regress2/bv_to_int_shifts.smt2
   regress2/error0.smt2
   regress2/error1.smtv1.smt2
-  regress2/friedman_n4_i5.smtv1.smt2
   regress2/fuzz_2.smtv1.smt2
   regress2/hash_sat_06_19.smt2
   regress2/hash_sat_07_17.smt2
@@ -2110,7 +2112,6 @@ set(regress_2_tests
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
   regress2/quantifiers/specsharp-WindowsCard.15.RTE.Terminate_System.Int32.smt2
-  regress2/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
   regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/cmi-split-cm-fail.smt2
@@ -2121,12 +2122,10 @@ set(regress_2_tests
   regress2/strings/issue3203.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
-  regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/range-perf.smt2
   regress2/strings/repl-repl-i-no-push.smt2
   regress2/strings/repl-repl.smt2
   regress2/strings/replace_re.smt2
-  regress2/strings/replace_re_all.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/strings/small-1.smt2
@@ -2164,6 +2163,10 @@ set(regress_2_tests
 # Regression level 3 tests
 
 set(regress_3_tests
+  regress3/strings/norn-dis-0707-3.smt2
+  regress3/strings/replace_re_all.smt2
+  regress3/quantifiers/sygus-inst-ufbv-sdlx-fixpoint-5.smt2
+  regress3/friedman_n4_i5.smtv1.smt2
   regress3/arith_prp-13-24.smt2
   regress3/bmc-ibm-1.smtv1.smt2
   regress3/bmc-ibm-2.smtv1.smt2

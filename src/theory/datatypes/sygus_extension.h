@@ -25,7 +25,7 @@
 #include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
-#include "expr/datatype.h"
+#include "expr/dtype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"

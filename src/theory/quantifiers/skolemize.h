@@ -21,7 +21,6 @@
 #include <unordered_set>
 
 #include "context/cdhashmap.h"
-#include "expr/datatype.h"
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/quant_util.h"

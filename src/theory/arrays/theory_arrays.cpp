@@ -82,7 +82,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
           name + "theory::arrays::number of setModelVal conflicts", 0),
       d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
-      //      d_ppCache(u),
+      d_state(c, u, valuation),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
@@ -132,6 +132,9 @@ TheoryArrays::TheoryArrays(context::Context* c,
   // The preprocessing congruence kinds
   d_ppEqualityEngine.addFunctionKind(kind::SELECT);
   d_ppEqualityEngine.addFunctionKind(kind::STORE);
+
+  // indicate we are using the default theory state object
+  d_theoryState = &d_state;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -411,14 +414,17 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
 // T-PROPAGATION / REGISTRATION
 /////////////////////////////////////////////////////////////////////////////
 
-
-bool TheoryArrays::propagate(TNode literal)
+bool TheoryArrays::propagateLit(TNode literal)
 {
-  Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal  << ")" << std::endl;
+  Debug("arrays") << spaces(getSatContext()->getLevel())
+                  << "TheoryArrays::propagateLit(" << literal << ")"
+                  << std::endl;
 
   // If already in conflict, no more propagation
   if (d_conflict) {
-    Debug("arrays") << spaces(getSatContext()->getLevel()) << "TheoryArrays::propagate(" << literal << "): already in conflict" << std::endl;
+    Debug("arrays") << spaces(getSatContext()->getLevel())
+                    << "TheoryArrays::propagateLit(" << literal
+                    << "): already in conflict" << std::endl;
     return false;
   }
 
@@ -715,7 +721,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray())
     {
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+      d_equalityEngine->addTerm(node);
     }
     else
     {
@@ -759,7 +765,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     {
       break;
     }
-    d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+    d_equalityEngine->addTerm(node);
 
     TNode a = d_equalityEngine->getRepresentative(node[0]);
 
@@ -822,7 +828,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     d_infoMap.setConstArr(node, node);
     d_mayEqualEqualityEngine.addTerm(node);
     Assert(d_mayEqualEqualityEngine.getRepresentative(node) == node);
-    d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+    d_equalityEngine->addTerm(node);
     d_defValues[node] = defaultValue;
     break;
   }
@@ -831,7 +837,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     if (node.getType().isArray()) {
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine->addTriggerTerm(node, THEORY_ARRAYS);
+      d_equalityEngine->addTerm(node);
       Assert(d_equalityEngine->getSize(node) == 1);
     }
     else {
@@ -858,12 +864,6 @@ void TheoryArrays::preRegisterTerm(TNode node)
   }
 }
 
-
-void TheoryArrays::propagate(Effort e)
-{
-  // direct propagation now
-}
-
 TrustNode TheoryArrays::explain(TNode literal)
 {
   Node explanation = explain(literal, NULL);
@@ -883,9 +883,11 @@ Node TheoryArrays::explain(TNode literal, eq::EqProof* proof) {
 // SHARING
 /////////////////////////////////////////////////////////////////////////////
 
-
-void TheoryArrays::addSharedTerm(TNode t) {
-  Debug("arrays::sharing") << spaces(getSatContext()->getLevel()) << "TheoryArrays::addSharedTerm(" << t << ")" << std::endl;
+void TheoryArrays::notifySharedTerm(TNode t)
+{
+  Debug("arrays::sharing") << spaces(getSatContext()->getLevel())
+                           << "TheoryArrays::notifySharedTerm(" << t << ")"
+                           << std::endl;
   d_equalityEngine->addTriggerTerm(t, THEORY_ARRAYS);
   if (t.getType().isArray()) {
     d_sharedArrays.insert(t);
@@ -1088,19 +1090,11 @@ void TheoryArrays::computeCareGraph()
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-bool TheoryArrays::collectModelInfo(TheoryModel* m)
+bool TheoryArrays::collectModelValues(TheoryModel* m,
+                                      const std::set<Node>& termSet)
 {
-  // Compute terms appearing in assertions and shared terms, and also
-  // include additional reads due to the RIntro1 and RIntro2 rules.
-  std::set<Node> termSet;
-  computeRelevantTerms(termSet);
-
-  // Send the equality engine information to the model
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    return false;
-  }
-
+  // termSet contains terms appearing in assertions and shared terms, and also
+  // includes additional reads due to the RIntro1 and RIntro2 rules.
   NodeManager* nm = NodeManager::currentNM();
   // Compute arrays that we need to produce representatives for
   std::vector<Node> arrays;
@@ -2261,13 +2255,8 @@ TrustNode TheoryArrays::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet,
-                                        bool includeShared)
+void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
 {
-  // include all standard terms
-  std::set<Kind> irrKinds;
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
-
   NodeManager* nm = NodeManager::currentNM();
   // make sure RIntro1 reads are included in the relevant set of reads
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(d_equalityEngine);

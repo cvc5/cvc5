@@ -4140,8 +4140,8 @@ bool TheoryArithPrivate::collectModelInfo(TheoryModel* m)
   Debug("arith::collectModelInfo") << "collectModelInfo() begin " << endl;
 
   std::set<Node> termSet;
-  d_containing.computeRelevantTerms(termSet);
- 
+  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
+  d_containing.computeAssertedTerms(termSet, irrKinds, true);
 
   // Delta lasts at least the duration of the function call
   const Rational& delta = d_partialModel.getDelta();
@@ -4372,7 +4372,7 @@ bool TheoryArithPrivate::propagateCandidateBound(ArithVar basic, bool upperBound
     //We are only going to recreate the functionality for now.
     //In the future this can be improved to generate a temporary constraint
     //if none exists.
-    //Experiment with doing this everytime or only when the new constraint
+    //Experiment with doing this every time or only when the new constraint
     //implies an unknown fact.
 
     ConstraintType t = upperBound ? UpperBound : LowerBound;

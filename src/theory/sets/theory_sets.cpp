@@ -88,9 +88,7 @@ void TheorySets::finishInit()
   d_internal->finishInit();
 }
 
-void TheorySets::addSharedTerm(TNode n) {
-  d_internal->addSharedTerm(n);
-}
+void TheorySets::notifySharedTerm(TNode n) { d_internal->addSharedTerm(n); }
 
 void TheorySets::check(Effort e) {
   if (done() && e < Theory::EFFORT_FULL) {
@@ -100,9 +98,10 @@ void TheorySets::check(Effort e) {
   d_internal->check(e);
 }
 
-bool TheorySets::collectModelInfo(TheoryModel* m)
+bool TheorySets::collectModelValues(TheoryModel* m,
+                                    const std::set<Node>& termSet)
 {
-  return d_internal->collectModelInfo(m);
+  return d_internal->collectModelValues(m, termSet);
 }
 
 void TheorySets::computeCareGraph() {
@@ -194,10 +193,6 @@ Theory::PPAssertStatus TheorySets::ppAssert(TNode in, SubstitutionMap& outSubsti
 
 void TheorySets::presolve() {
   d_internal->presolve();
-}
-
-void TheorySets::propagate(Effort e) {
-  d_internal->propagate(e);
 }
 
 bool TheorySets::isEntailed( Node n, bool pol ) {

@@ -58,9 +58,10 @@ class TheorySets : public Theory
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void addSharedTerm(TNode) override;
+  void notifySharedTerm(TNode) override;
   void check(Effort) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   void computeCareGraph() override;
   TrustNode explain(TNode) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
@@ -70,7 +71,6 @@ class TheorySets : public Theory
   TrustNode expandDefinition(Node n) override;
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
-  void propagate(Effort) override;
   bool isEntailed(Node n, bool pol);
  private:
   /** Functions to handle callbacks from equality engine */
