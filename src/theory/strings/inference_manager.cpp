@@ -245,8 +245,8 @@ void InferenceManager::processConflict(const InferInfo& ii)
   Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("strings-assert") << "(assert (not " << tconf.getNode()
                           << ")) ; conflict " << ii.d_id << std::endl;
-  d_out.trustedConflict(tconf);
-  d_state.notifyInConflict();
+  // send the trusted conflict
+  trustedConflict(tconf);
 }
 
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)

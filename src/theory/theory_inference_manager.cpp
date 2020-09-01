@@ -85,6 +85,28 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf)
   }
 }
 
+
+void TheoryInferenceManager::conflictExp(PfRule id,
+                          const std::vector<Node>& exp,
+                          const std::vector<Node>& args)
+{
+  if (!d_theoryState.isInConflict())
+  {
+    if (d_pfee!=nullptr)
+    {
+      // use proof equality engine to construct the trust node
+      TrustNode tconf = d_pfee->assertConflict(id, exp, args);
+      d_out.trustedConflict(tconf);
+    }
+    else
+    {
+      // version without proofs
+      Node conf = mkExplainPartial(exp, {});
+      conflict(conf);
+    }
+  }
+}
+
 bool TheoryInferenceManager::propagateLit(TNode lit)
 {
   // If already in conflict, no more propagation
@@ -155,6 +177,41 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   d_numCurrentLemmas++;
   d_out.trustedLemma(tlem, p);
   return true;
+}
+
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                      PfRule id,
+                      const std::vector<Node>& exp,
+                      const std::vector<Node>& noExplain,
+                      const std::vector<Node>& args)
+{
+  if (d_pfee != nullptr)
+  {
+    // make the trust node from the proof equality engine
+    TrustNode trn = d_pfee->assertLemma(conc, id, exp, noExplain, args);
+    return trustedLemma(trn);
+  }
+  // otherwise, not using proofs, explain and send lemma
+  Node ant = mkExplainPartial(exp, noExplain);
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  return lemma(lem);
+}
+
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                      const std::vector<Node>& exp,
+                      const std::vector<Node>& noExplain,
+                      ProofGenerator* pg)
+{
+  if (d_pfee != nullptr)
+  {
+    // make the trust node from the proof equality engine
+    TrustNode trn = d_pfee->assertLemma(conc, exp, noExplain, pg);
+    return trustedLemma(trn);
+  }
+  // otherwise, not using proofs, explain and send lemma
+  Node ant = mkExplainPartial(exp, noExplain);
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  return lemma(lem);
 }
 
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
@@ -279,6 +336,27 @@ Node TheoryInferenceManager::mkExplain(TNode n)
   std::vector<TNode> assumptions;
   explain(n, assumptions);
   return NodeManager::currentNM()->mkAnd(assumptions);
+}
+
+Node TheoryInferenceManager::mkExplainPartial(const std::vector<Node>& exp,
+                                              const std::vector<Node>& noExplain)
+{
+  std::vector<TNode> assumps;
+  for (const Node& e : exp)
+  {
+    if (std::find(noExplain.begin(), noExplain.end(), e) != noExplain.end())
+    {
+      if (std::find(assumps.begin(), assumps.end(), e) == assumps.end())
+      {
+        // a non-explained literal
+        assumps.push_back(e);
+      }
+      continue;
+    }
+    // otherwise, explain it
+    explain(e, assumps);
+  }
+  return NodeManager::currentNM()->mkAnd(assumps);
 }
 
 uint32_t TheoryInferenceManager::numAddedFacts() const
