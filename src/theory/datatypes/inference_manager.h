@@ -25,6 +25,11 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
+/**
+  * A custom inference class. The main feature of this class is that it
+  * dynamically decides whether to process itself as a fact or as a lemma,
+  * based on the mustCommunicateFact method below.
+  */
 class DatatypesInference : public SimpleTheoryInternalFact
 {
  public:
@@ -54,12 +59,8 @@ class DatatypesInference : public SimpleTheoryInternalFact
 };
 
 /**
- * The datatypes inference manager. The main unique features of this inference
- * manager are:
- * (1) Explicit caching of lemmas,
- * (2) A custom process() method with relies on a policy determining which
- * facts must be sent as lemmas (mustCommunicateFact).
- * (3) Methods for tracking when lemmas and facts have been processed.
+ * The datatypes inference manager, which uses the above class for
+ * inferences.
  */
 class InferenceManager : public InferenceManagerBuffered
 {
@@ -80,10 +81,6 @@ class InferenceManager : public InferenceManagerBuffered
    * or processed internally.
    */
   void process();
-
- protected:
-  /** Common node */
-  Node d_true;
 };
 
 }  // namespace datatypes
