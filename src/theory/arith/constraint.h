@@ -75,9 +75,9 @@
 #ifndef CVC4__THEORY__ARITH__CONSTRAINT_H
 #define CVC4__THEORY__ARITH__CONSTRAINT_H
 
-#include <unordered_map>
 #include <list>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include "base/configuration_private.h"
