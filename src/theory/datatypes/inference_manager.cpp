@@ -89,7 +89,7 @@ bool DatatypesInference::process(TheoryInferenceManager* im)
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm)
+    : InferenceManagerBuffered(t, state, nullptr)
 {
 }
 
