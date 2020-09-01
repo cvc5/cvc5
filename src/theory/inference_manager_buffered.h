@@ -60,8 +60,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
                        ProofGenerator* pg = nullptr);
   /**
    * Add pending lemma, where lemma can be a (derived) class of the
-   * above one. Pending lemmas are sent to the output channel using
-   * doPendingLemmas.
+   * theory inference base class.
    */
   void addPendingLemma(std::shared_ptr<TheoryInference> lemma);
   /**
@@ -75,6 +74,11 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * doPendingFacts.
    */
   void addPendingFact(Node fact, Node exp, ProofGenerator* pg = nullptr);
+  /**
+   * Add pending fact, where fact can be a (derived) class of the
+   * theory inference base class.
+   */
+  void addPendingFact(std::shared_ptr<TheoryInference> fact);
   /** Add pending phase requirement
    *
    * This method is called to indicate this class should send a phase

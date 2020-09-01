@@ -67,6 +67,11 @@ void InferenceManagerBuffered::addPendingFact(Node fact,
   d_pendingFact.push_back(std::pair<Node, Node>(fact, exp));
 }
 
+void InferenceManagerBuffered::addPendingFact(std::shared_ptr<TheoryInference> fact)
+{
+  d_pendingFact.emplace_back(std::move(fact));
+}
+
 void InferenceManagerBuffered::addPendingPhaseRequirement(Node lit, bool pol)
 {
   // must ensure rewritten
@@ -79,14 +84,9 @@ void InferenceManagerBuffered::doPendingFacts()
   size_t i = 0;
   while (!d_theoryState.isInConflict() && i < d_pendingFact.size())
   {
-    std::pair<Node, Node>& pfact = d_pendingFact[i];
-    Node fact = pfact.first;
-    Node exp = pfact.second;
-    bool polarity = fact.getKind() != NOT;
-    TNode atom = polarity ? fact : fact[0];
-    // no double negation or conjunctive conclusions
-    Assert(atom.getKind() != NOT && atom.getKind() != AND);
-    assertInternalFact(atom, polarity, exp);
+    // process this fact, which notice may enqueue more pending facts in this
+    // loop.
+    d_pendingFact[i]->process(this);
     i++;
   }
   d_pendingFact.clear();
@@ -94,10 +94,9 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
-  // process all the pending lemmas
   for (const std::shared_ptr<TheoryInference>& plem : d_pendingLem)
   {
-    // process the inference
+    // process this lemma
     plem->process(this);
   }
   d_pendingLem.clear();
