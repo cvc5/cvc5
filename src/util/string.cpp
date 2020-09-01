@@ -131,7 +131,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
     ++i;
     // are we an escape sequence?
     bool isEscapeSequence = true;
-    // the string corresponding to the hexidecimal code point
+    // the string corresponding to the hexadecimal code point
     std::stringstream hexString;
     // is the slash followed by a 'u'? Could be last character.
     if (i >= s.size() || s[i] != 'u')
@@ -195,7 +195,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       }
       if (!isEnd)
       {
-        // if we were interupted before ending, then this is not a valid
+        // if we were interrupted before ending, then this is not a valid
         // escape sequence
         isEscapeSequence = false;
       }
@@ -210,7 +210,7 @@ std::vector<unsigned> String::toInternal(const std::string& s,
       if (val > num_codes())
       {
         // Failed due to being out of range. This can happen for strings of
-        // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexidecimal not
+        // the form \ u { d_4 d_3 d_2 d_1 d_0 } where d_4 is a hexadecimal not
         // in the range [0-2].
         isEscapeSequence = false;
       }

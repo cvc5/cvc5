@@ -891,7 +891,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     std::stringstream ss;
     ss << "Cannot " << c
        << " since model is not available. Perhaps the most recent call to "
-          "check-sat was interupted?";
+          "check-sat was interrupted?";
     throw RecoverableModalException(ss.str().c_str());
   }
 
