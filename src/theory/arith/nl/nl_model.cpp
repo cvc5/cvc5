@@ -325,7 +325,7 @@ bool NlModel::checkModel(const std::vector<Node>& assertions,
       Node v = cb.first;
       Node pred = nm->mkNode(AND, nm->mkNode(GEQ, v, l), nm->mkNode(GEQ, u, v));
       pred = nm->mkNode(OR, mg.negate(), pred);
-      lemmas.push_back(pred);
+      lemmas.emplace_back(pred);
     }
   }
   return true;
