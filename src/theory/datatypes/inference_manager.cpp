@@ -24,20 +24,20 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-InferenceManager::InferenceManager(Theory& t,
-                                   TheoryState& state,
-                                   ProofNodeManager* pnm)
-    : InferenceManagerBuffered(t, state, pnm)
+DatatypesInference::DatatypesInference(Node conc, Node exp, ProofGenerator* pg)
+    : SimpleTheoryInternalFact(conc, exp, pg)
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
+  // false is not a valid explanation
+  Assert(d_exp.isNull() || !d_exp.isConst() || d_exp.getConst<bool>());
 }
 
-bool InferenceManager::mustCommunicateFact(Node n, Node exp) const
+bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 {
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
-  if (options::dtInferAsLemmas() && exp != d_true)
+  if (options::dtInferAsLemmas() && !exp.isConst())
   {
+    // all units are lemmas
     addLemma = true;
   }
   else if (n.getKind() == EQUAL)
@@ -66,61 +66,59 @@ bool InferenceManager::mustCommunicateFact(Node n, Node exp) const
   return false;
 }
 
+bool DatatypesInference::process(TheoryInferenceManager* im)
+{
+  // check to see if we have to communicate it to the rest of the system
+  if (mustCommunicateFact(d_conc, d_exp))
+  {
+    // send it as an (explained) lemma
+    std::vector<Node> exp;
+    if (!d_exp.isNull() && !d_exp.isConst())
+    {
+      exp.push_back(d_exp);
+    }
+    return im->lemmaExp(d_conc, exp, {});
+  }
+  // assert the internal fact
+  bool polarity = d_conc.getKind() != NOT;
+  TNode atom = polarity ? d_conc : d_conc[0];
+  im->assertInternalFact(atom, polarity, d_exp);
+  return true;
+}
+
+InferenceManager::InferenceManager(Theory& t,
+                                   TheoryState& state,
+                                   ProofNodeManager* pnm)
+    : InferenceManagerBuffered(t, state, pnm)
+{
+}
+
+void InferenceManager::addPendingInference(Node conc,
+                                           Node exp,
+                                           ProofGenerator* pg)
+{
+  d_pendingFact.push_back(std::make_shared<DatatypesInference>(conc, exp, pg));
+}
+
 void InferenceManager::process()
 {
   // process pending lemmas, used infrequently, only for definitional lemmas
   doPendingLemmas();
   // now process the pending facts
-  size_t i = 0;
-  NodeManager* nm = NodeManager::currentNM();
-  while (!d_theoryState.isInConflict() && i < d_pendingFact.size())
+  doPendingFacts();
+}
+
+bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
+{
+  bool ret = false;
+  for (const Node& lem : lemmas)
   {
-    std::pair<Node, Node>& pfact = d_pendingFact[i];
-    const Node& fact = pfact.first;
-    const Node& exp = pfact.second;
-    Trace("datatypes-debug")
-        << "Assert fact (#" << (i + 1) << "/" << d_pendingFact.size() << ") "
-        << fact << " with explanation " << exp << std::endl;
-    // check to see if we have to communicate it to the rest of the system
-    if (mustCommunicateFact(fact, exp))
+    if (lemma(lem))
     {
-      Node lem = fact;
-      if (exp.isNull() || exp == d_true)
-      {
-        Trace("dt-lemma-debug") << "Trivial explanation." << std::endl;
-      }
-      else
-      {
-        Trace("dt-lemma-debug") << "Get explanation..." << std::endl;
-        std::vector<TNode> assumptions;
-        explain(exp, assumptions);
-        if (!assumptions.empty())
-        {
-          std::vector<Node> children;
-          for (const TNode& assumption : assumptions)
-          {
-            children.push_back(assumption.negate());
-          }
-          children.push_back(fact);
-          lem = nm->mkNode(OR, children);
-        }
-      }
-      Trace("dt-lemma") << "Datatypes lemma : " << lem << std::endl;
-      lemma(lem);
+      ret = true;
     }
-    else
-    {
-      // assert the internal fact
-      bool polarity = fact.getKind() != NOT;
-      TNode atom = polarity ? fact : fact[0];
-      assertInternalFact(atom, polarity, exp);
-    }
-    Trace("datatypes-debug") << "Finished fact " << fact
-                             << ", now = " << d_theoryState.isInConflict()
-                             << " " << d_pendingFact.size() << std::endl;
-    i++;
   }
-  d_pendingFact.clear();
+  return ret;
 }
 
 }  // namespace datatypes

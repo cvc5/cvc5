@@ -26,29 +26,14 @@ namespace theory {
 namespace datatypes {
 
 /**
- * The datatypes inference manager. The main unique features of this inference
- * manager are:
- * (1) Explicit caching of lemmas,
- * (2) A custom process() method with relies on a policy determining which
- * facts must be sent as lemmas (mustCommunicateFact).
- * (3) Methods for tracking when lemmas and facts have been processed.
+ * A custom inference class. The main feature of this class is that it
+ * dynamically decides whether to process itself as a fact or as a lemma,
+ * based on the mustCommunicateFact method below.
  */
-class InferenceManager : public InferenceManagerBuffered
+class DatatypesInference : public SimpleTheoryInternalFact
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-
  public:
-  InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
-  ~InferenceManager() {}
-  /**
-   * Process the current lemmas and facts. This is a custom method that can
-   * be seen as overriding the behavior of calling both doPendingLemmas and
-   * doPendingFacts. It determines whether facts should be sent as lemmas
-   * or processed internally.
-   */
-  void process();
-
- protected:
+  DatatypesInference(Node conc, Node exp, ProofGenerator* pg);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -65,9 +50,42 @@ class InferenceManager : public InferenceManagerBuffered
    * communicate outwards if the conclusions involve other theories.  Also
    * communicate (6) and OR conclusions.
    */
-  bool mustCommunicateFact(Node n, Node exp) const;
-  /** Common node */
-  Node d_true;
+  static bool mustCommunicateFact(Node n, Node exp);
+  /**
+   * Process this fact, possibly as a fact or as a lemma, depending on the
+   * above method.
+   */
+  bool process(TheoryInferenceManager* im) override;
+};
+
+/**
+ * The datatypes inference manager, which uses the above class for
+ * inferences.
+ */
+class InferenceManager : public InferenceManagerBuffered
+{
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
+ public:
+  InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
+  ~InferenceManager() {}
+  /**
+   * Add pending inference, which may be processed as either a fact or
+   * a lemma based on mustCommunicateFact in DatatypesInference above.
+   */
+  void addPendingInference(Node conc, Node exp, ProofGenerator* pg = nullptr);
+  /**
+   * Process the current lemmas and facts. This is a custom method that can
+   * be seen as overriding the behavior of calling both doPendingLemmas and
+   * doPendingFacts. It determines whether facts should be sent as lemmas
+   * or processed internally.
+   */
+  void process();
+  /**
+   * Send lemmas with property NONE on the output channel immediately.
+   * Returns true if any lemma was sent.
+   */
+  bool sendLemmas(const std::vector<Node>& lemmas);
 };
 
 }  // namespace datatypes
