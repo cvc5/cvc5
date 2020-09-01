@@ -64,8 +64,10 @@ class InferenceManager : public InferenceManagerBuffered
   /** Add a lemma (as waiting lemma). */
   void addWaitingLemma(const Node& lemma, nl::Inference inftype);
 
-  /** Flush all waiting lemmas to the this inference manager (as pending
-   * lemmas). */
+  /**
+   * Flush all waiting lemmas to the this inference manager (as pending
+   * lemmas). To actually send them, call doPendingLemmas() afterwards.
+   */
   void flushWaitingLemmas();
 
   /** Add a conflict to the this inference manager. */
