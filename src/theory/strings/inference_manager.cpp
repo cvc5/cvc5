@@ -391,18 +391,13 @@ void InferenceManager::doPendingLemmas()
         utils::flattenOp(AND, ecn, noExplain);
       }
     }
-    // make the trusted lemma object
-    bool useBuffer = false;
-    ProofStep ps;
-    Node conc = d_ipc->convert(ii, ps, useBuffer);
-    if (useBuffer)
-    {
-      tlem = d_pfee->assertLemma(conc, exp, noExplain, *d_ipc->getBuffer());
-    }
-    else
-    {
-      tlem = d_pfee->assertLemma(conc, ps.d_rule, exp, noExplain, ps.d_args);
-    }
+    // update the explanation and no-explain set
+    ii.d_ant = exp;
+    ii.d_noExplain = noExplain;
+    // ensure that the proof generator is ready to explain the final conclusion
+    // of the lemma (ii.d_conc).
+    d_ipc->notifyFact(ii);
+    tlem = d_pfee->assertLemma(ii.d_conc, exp, noExplain, d_ipc.get());
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
 
