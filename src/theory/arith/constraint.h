@@ -336,9 +336,11 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-#if IS_PROOFS_BUILD
-    d_farkasCoefficients = coeffs;
-#endif /* IS_PROOFS_BUILD */
+    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
+    if (ARITH_PROOF_ON())
+    {
+      d_farkasCoefficients = coeffs;
+    }
   }
 
   void print(std::ostream& out) const;
@@ -785,12 +787,12 @@ class Constraint {
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
-#if IS_PROOFS_BUILD
-      if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
-      {
-        delete crp->d_farkasCoefficients;
-      };
-#endif
+      ARITH_PROOF({
+        if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
+        {
+          delete crp->d_farkasCoefficients;
+        }
+      });
     }
   };
 
@@ -876,11 +878,7 @@ class Constraint {
 
   inline RationalVectorCP getFarkasCoefficients() const
   {
-#if IS_PROOFS_BUILD
-    return getConstraintRule().d_farkasCoefficients;
-#else
-    return nullptr;
-#endif
+    return ARITH_NULLPROOF(getConstraintRule().d_farkasCoefficients);
   }
 
   void debugPrint() const;

@@ -647,7 +647,7 @@ ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
 
 
 void ConstraintRule::print(std::ostream& out) const {
-  RationalVectorCP coeffs = d_farkasCoefficients;
+  RationalVectorCP coeffs = ARITH_NULLPROOF(d_farkasCoefficients);
   out << "{ConstraintRule, ";
   out << d_constraint << std::endl;
   out << "d_proofType= " << d_proofType << ", " << std::endl;
@@ -699,6 +699,12 @@ bool Constraint::wellFormedFarkasProof() const {
   if(antecedent  == NullConstraint) { return false; }
 
 #if IS_PROOFS_BUILD
+  if (!ARITH_PROOF_ON())
+  {
+    return cr.d_farkasCoefficients == RationalVectorCPSentinel;
+  }
+  Assert(ARITH_PROOF_ON());
+
   if(cr.d_farkasCoefficients == RationalVectorCPSentinel){ return false; }
   if(cr.d_farkasCoefficients->size() < 2){ return false; }
 
@@ -795,7 +801,7 @@ bool Constraint::wellFormedFarkasProof() const {
   // 0 = lhs <= rhs < 0
   return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
          && rhs.sgn() < 0;
-#else
+#else  /* IS_PROOFS_BUILD */
   return true;
 #endif /* IS_PROOFS_BUILD */
 }
@@ -1206,15 +1212,21 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorP coeffs;
-  std::pair<int, int> sgns = unateFarkasSigns(getNegation(), imp);
+  if (ARITH_PROOF_ON())
+  {
+    std::pair<int, int> sgns = unateFarkasSigns(getNegation(), imp);
 
-  Rational first(sgns.first);
-  Rational second(sgns.second);
+    Rational first(sgns.first);
+    Rational second(sgns.second);
 
-  coeffs = new RationalVector();
-  coeffs->push_back(first);
-  coeffs->push_back(second);
-
+    coeffs = new RationalVector();
+    coeffs->push_back(first);
+    coeffs->push_back(second);
+  }
+  else
+  {
+    coeffs = RationalVectorPSentinel;
+  }
   // no need to delete coeffs the memory is owned by ConstraintRule
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
 
@@ -1348,8 +1360,8 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
 
-  Assert(coeffs != RationalVectorCPSentinel);
-  Assert(coeffs->size() == a.size() + 1);
+  Assert(ARITH_PROOF_ON() == (coeffs != RationalVectorCPSentinel));
+  Assert(!ARITH_PROOF_ON() || coeffs->size() == a.size() + 1);
 
   Assert(a.size() >= 1);
 
@@ -1362,8 +1374,15 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorCP coeffsCopy;
-  Assert(coeffs != RationalVectorCPSentinel);
-  coeffsCopy = new RationalVector(*coeffs);
+  if (ARITH_PROOF_ON())
+  {
+    Assert(coeffs != RationalVectorCPSentinel);
+    coeffsCopy = new RationalVector(*coeffs);
+  }
+  else
+  {
+    coeffsCopy = RationalVectorCPSentinel;
+  }
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));
 
   Assert(inConflict() == nowInConflict);
