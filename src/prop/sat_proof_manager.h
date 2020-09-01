@@ -18,6 +18,7 @@
 #define CVC4__SAT_PROOF_MANAGER_H
 
 #include "expr/expr.h"
+#include "expr/lazy_proof_chain.h"
 #include "expr/node.h"
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
@@ -84,7 +85,9 @@ class SatProofManager
   void finalizeProof();
   void storeUnitConflict(Minisat::Lit inConflict);
 
-  CDProof* getProof() { return &d_proof; }
+  CDProof* getProof();
+
+  void registerInputs(const std::vector<Node>& inputs);
 
  private:
   /** The sat solver to which we are managing proofs */
@@ -105,6 +108,8 @@ class SatProofManager
    * final proof is built based on the proofs saved here.
    */
   std::map<Node, std::shared_ptr<ProofNode>> d_clauseProofs;
+
+  LazyCDProofChain d_chain;
 
   /** The resolution proof of false */
   CDProof d_proof;

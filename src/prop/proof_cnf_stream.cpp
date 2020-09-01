@@ -16,6 +16,7 @@
 
 #include "options/smt_options.h"
 #include "theory/builtin/proof_checker.h"
+#include "prop/minisat/minisat.h"
 
 namespace CVC4 {
 namespace prop {
@@ -147,7 +148,15 @@ void ProofCnfStream::convertAndAssertAnd(TNode node, bool negated)
       d_proof.addStep(clauseNode, PfRule::NOT_AND, {node.notNode()}, {});
       // justify normalized clause as well, since that's what will be saved in
       // the SAT solver and registered with prop engine
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
 }
@@ -164,7 +173,14 @@ void ProofCnfStream::convertAndAssertOr(TNode node, bool negated)
     {
       clause[i] = toCNF(node[i], false);
     }
-    CDProof::factorReorderElimDoubleNeg(node, &d_proof);
+    Node normClauseNode = CDProof::factorReorderElimDoubleNeg(node, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
     d_cnfStream.assertClause(node, clause);
   }
   else
@@ -205,7 +221,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM2, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
     // Construct the clause (p v q)
     SatClause clause2(2);
@@ -216,7 +240,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(clauseNode, PfRule::XOR_ELIM1, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
   else
@@ -235,7 +267,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM2, {node.notNode()}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
     // Construct the clause ~q v p
     SatClause clause2(2);
@@ -246,7 +286,15 @@ void ProofCnfStream::convertAndAssertXor(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_XOR_ELIM1, {node.notNode()}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
 }
@@ -269,7 +317,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM1, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
     // Construct the clauses ~q v p
     SatClause clause2(2);
@@ -280,7 +336,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::EQUIV_ELIM2, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
   else
@@ -301,7 +365,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM2, {node.notNode()}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
     // Construct the clauses q v p
     SatClause clause2(2);
@@ -313,7 +385,15 @@ void ProofCnfStream::convertAndAssertIff(TNode node, bool negated)
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[1]);
       d_proof.addStep(
           clauseNode, PfRule::NOT_EQUIV_ELIM1, {node.notNode()}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
 }
@@ -335,7 +415,15 @@ void ProofCnfStream::convertAndAssertImplies(TNode node, bool negated)
       Node clauseNode = NodeManager::currentNM()->mkNode(
           kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::IMPLIES_ELIM, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
   else
@@ -383,14 +471,30 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0].notNode(), node[1]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM1, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
     else
     {
       Node clauseNode =
           nm->mkNode(kind::OR, node[0].notNode(), node[1].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM1, {node.notNode()}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
   // (p v r)
@@ -405,13 +509,29 @@ void ProofCnfStream::convertAndAssertIte(TNode node, bool negated)
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2]);
       d_proof.addStep(clauseNode, PfRule::ITE_ELIM2, {node}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
     else
     {
       Node clauseNode = nm->mkNode(kind::OR, node[0], node[2].notNode());
       d_proof.addStep(clauseNode, PfRule::NOT_ITE_ELIM2, {node.notNode()}, {});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
 }
@@ -467,7 +587,15 @@ void ProofCnfStream::convertPropagation(theory::TrustNode trn)
   {
     clauseExp = clauseImpliesElim;
   }
-  CDProof::factorReorderElimDoubleNeg(clauseExp, &d_proof);
+  Node normClauseNode =
+      CDProof::factorReorderElimDoubleNeg(clauseExp, &d_proof);
+  // if we are eagerly checking proofs, track sat solver assumptions
+  if (options::proofNewEagerChecking())
+  {
+    MinisatSatSolver* minisat =
+        static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+    minisat->getProofManager()->registerInputs({normClauseNode});
+  }
 }
 
 void ProofCnfStream::ensureLiteral(TNode n, bool noPreregistration)
@@ -579,7 +707,15 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
       Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[i]);
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_AND_POS, {}, {node, iNode});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
   // lit <- (a_1 & a_2 & a_3 & ... a_n)
@@ -597,7 +733,15 @@ SatLiteral ProofCnfStream::handleAnd(TNode node)
     }
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_AND_NEG, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   return lit;
 }
@@ -631,7 +775,15 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
       Node clauseNode = nm->mkNode(kind::OR, node, node[i].notNode());
       Node iNode = nm->mkConst<Rational>(i);
       d_proof.addStep(clauseNode, PfRule::CNF_OR_NEG, {}, {node, iNode});
-      CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      Node normClauseNode =
+          CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+      // if we are eagerly checking proofs, track sat solver assumptions
+      if (options::proofNewEagerChecking())
+      {
+        MinisatSatSolver* minisat =
+            static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+        minisat->getProofManager()->registerInputs({normClauseNode});
+      }
     }
   }
   // lit -> (a_1 | a_2 | a_3 | ... | a_n)
@@ -648,7 +800,15 @@ SatLiteral ProofCnfStream::handleOr(TNode node)
     }
     Node clauseNode = nm->mkNode(kind::OR, disjuncts);
     d_proof.addStep(clauseNode, PfRule::CNF_OR_POS, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   return lit;
 }
@@ -669,7 +829,15 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node.notNode(), node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node.negate(), ~a, ~b, ~lit);
   if (d_pfEnabled && added)
@@ -677,7 +845,15 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node.notNode(), node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_POS2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node, a, ~b, lit);
   if (d_pfEnabled && added)
@@ -685,7 +861,15 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node, node[0], node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node, ~a, b, lit);
   if (d_pfEnabled && added)
@@ -693,7 +877,15 @@ SatLiteral ProofCnfStream::handleXor(TNode node)
     Node clauseNode = NodeManager::currentNM()->mkNode(
         kind::OR, node, node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_XOR_NEG1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   return lit;
 }
@@ -720,7 +912,15 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node.negate(), a, ~b, ~lit);
   if (d_pfEnabled && added)
@@ -728,7 +928,15 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0], node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_POS2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   // (a<->b) -> lit
   // ~((a & b) | (~a & ~b)) | lit
@@ -741,14 +949,30 @@ SatLiteral ProofCnfStream::handleIff(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node, a, b, lit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_EQUIV_NEG1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   return lit;
 }
@@ -773,7 +997,15 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_POS, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   // (a->b) -> lit
   // ~(~a | b) | lit
@@ -783,14 +1015,30 @@ SatLiteral ProofCnfStream::handleImplies(TNode node)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0]);
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node, ~b, lit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_IMPLIES_NEG2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   return lit;
 }
@@ -821,7 +1069,15 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
   {
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[1], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS3, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, ~condLit, thenLit);
   if (d_pfEnabled && added)
@@ -829,14 +1085,30 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node.notNode(), node[0].notNode(), node[1]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node.negate(), ~lit, condLit, elseLit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node.notNode(), node[0], node[2]);
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_POS2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   // If ITE is false then one of the branches is false and the condition
   // implies which one
@@ -850,7 +1122,15 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[1].notNode(), node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG3, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node, lit, ~condLit, ~thenLit);
   if (d_pfEnabled && added)
@@ -858,14 +1138,30 @@ SatLiteral ProofCnfStream::handleIte(TNode node)
     Node clauseNode =
         nm->mkNode(kind::OR, node, node[0].notNode(), node[1].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG1, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   added = d_cnfStream.assertClause(node, lit, condLit, ~elseLit);
   if (d_pfEnabled && added)
   {
     Node clauseNode = nm->mkNode(kind::OR, node, node[0], node[2].notNode());
     d_proof.addStep(clauseNode, PfRule::CNF_ITE_NEG2, {}, {node});
-    CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    Node normClauseNode =
+        CDProof::factorReorderElimDoubleNeg(clauseNode, &d_proof);
+    // if we are eagerly checking proofs, track sat solver assumptions
+    if (options::proofNewEagerChecking())
+    {
+      MinisatSatSolver* minisat =
+          static_cast<MinisatSatSolver*>(d_cnfStream.d_satSolver);
+      minisat->getProofManager()->registerInputs({normClauseNode});
+    }
   }
   return lit;
 }

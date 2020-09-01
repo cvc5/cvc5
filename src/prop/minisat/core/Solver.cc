@@ -2211,6 +2211,11 @@ inline bool Solver::withinBudget(ResourceManager::Resource r) const
   return within_budget;
 }
 
+SatProofManager* Solver::getProofManager()
+{
+  return d_pfManager? d_pfManager.get() : nullptr;
+}
+
 CDProof* Solver::getProof()
 {
   return d_pfManager ? d_pfManager->getProof() : nullptr;

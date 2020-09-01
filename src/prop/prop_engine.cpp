@@ -105,8 +105,8 @@ PropEngine::PropEngine(TheoryEngine* te,
   {
     d_pfCnfStream.reset(
         new ProofCnfStream(userContext, *d_cnfStream, pnm, true));
-    d_ppm.reset(
-        new PropPfManager(pnm, d_satSolver->getProof(), d_pfCnfStream.get()));
+    d_ppm.reset(new PropPfManager(
+        pnm, d_satSolver->getProofManager(), d_pfCnfStream.get()));
   }
 
   PROOF (

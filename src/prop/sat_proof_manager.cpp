@@ -28,6 +28,7 @@ SatProofManager::SatProofManager(Minisat::Solver* solver,
     : d_solver(solver),
       d_proxy(proxy),
       d_pnm(pnm),
+      d_chain(pnm, userContext, "SatProofManager::LazyChain"),
       d_proof(pnm, userContext, "SatProofManager::CDProof"),
       d_false(NodeManager::currentNM()->mkConst(false)),
       d_conflictLit(undefSatVariable)
@@ -244,6 +245,8 @@ void SatProofManager::endResChain(Node conclusion)
                        << conclusion << "\n";
   }
   d_clauseProofs[conclusion] = conclusionProof.getProofFor(conclusion)->clone();
+  // test lazy proof chain
+  d_chain.addLazyStep(conclusion, &conclusionProof);
 }
 
 void SatProofManager::tryJustifyingLit(SatLiteral lit)
@@ -484,6 +487,13 @@ void SatProofManager::finalizeProof(Minisat::Clause& inConflict)
     clause.push_back(MinisatSatSolver::toSatLiteral(inConflict[i]));
   }
   finalizeProof(getClauseNode(inConflict), clause);
+}
+
+CDProof* SatProofManager::getProof() { return &d_proof; }
+
+void SatProofManager::registerInputs(const std::vector<Node>& inputs)
+{
+
 }
 
 }  // namespace prop

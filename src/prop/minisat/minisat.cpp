@@ -221,6 +221,11 @@ bool MinisatSatSolver::isDecision(SatVariable decn) const {
   return d_minisat->isDecision( decn );
 }
 
+SatProofManager* MinisatSatSolver::getProofManager()
+{
+  return d_minisat->getProofManager();
+}
+
 CDProof* MinisatSatSolver::getProof() { return d_minisat->getProof(); }
 
 /** Incremental interface */
