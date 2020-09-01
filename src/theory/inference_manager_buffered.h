@@ -20,42 +20,10 @@
 #include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/theory_inference_manager.h"
+#include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {
-
-/**
- * A lemma base class. This class is an abstract data structure for storing
- * pending lemmas in the inference manager below.
- */
-class Lemma
-{
- public:
-  Lemma(Node n, LemmaProperty p, ProofGenerator* pg)
-      : d_node(n), d_property(p), d_pg(pg)
-  {
-  }
-  virtual ~Lemma() {}
-  /**
-   * Called just before this lemma is sent on the output channel. The purpose
-   * of this callback is to do any specific process of the lemma, e.g. take
-   * debug statistics, cache, etc.
-   *
-   * @return true if the lemma should be sent on the output channel.
-   */
-  virtual bool notifySend() { return true; }
-  /** The lemma to send */
-  Node d_node;
-  /** The lemma property (see OutputChannel::lemma) */
-  LemmaProperty d_property;
-  /**
-   * The proof generator for this lemma, which if non-null, is wrapped in a
-   * TrustNode to be set on the output channel via trustedLemma at the time
-   * the lemma is sent. This proof generator must be able to provide a proof
-   * for d_node in the remainder of the user context.
-   */
-  ProofGenerator* d_pg;
-};
 
 /**
  * The buffered inference manager.  This class implements standard methods
