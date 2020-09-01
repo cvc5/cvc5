@@ -174,31 +174,33 @@ class QuantifiersEnginePrivate
 
 QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
     : d_te(te),
+      d_context(te->getSatContext()),
+      d_userContext(te->getUserContext()),
       d_decManager(dm),
       d_masterEqualityEngine(nullptr),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(te->getSatContext(), this)),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
       d_term_canon(new expr::TermCanonize),
-      d_term_db(new quantifiers::TermDb(te->getSatContext(), te->getUserContext(), this)),
+      d_term_db(new quantifiers::TermDb(d_context, d_userContext, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, te->getUserContext())),
-      d_skolemize(new quantifiers::Skolemize(this, te->getUserContext())),
+      d_instantiate(new quantifiers::Instantiate(this, d_userContext)),
+      d_skolemize(new quantifiers::Skolemize(this, d_userContext)),
       d_term_enum(new quantifiers::TermEnumeration),
-      d_conflict_c(te->getSatContext(), false),
-      d_quants_prereg(te->getUserContext()),
-      d_quants_red(te->getUserContext()),
-      d_lemmas_produced_c(te->getUserContext()),
-      d_ierCounter_c(te->getSatContext()),
-      d_presolve(te->getUserContext(), true),
-      d_presolve_in(te->getUserContext()),
-      d_presolve_cache(te->getUserContext()),
-      d_presolve_cache_wq(te->getUserContext()),
-      d_presolve_cache_wic(te->getUserContext())
+      d_conflict_c(d_context, false),
+      d_quants_prereg(d_userContext),
+      d_quants_red(d_userContext),
+      d_lemmas_produced_c(d_userContext),
+      d_ierCounter_c(d_context),
+      d_presolve(d_userContext, true),
+      d_presolve_in(d_userContext),
+      d_presolve_cache(d_userContext),
+      d_presolve_cache_wq(d_userContext),
+      d_presolve_cache_wic(d_userContext)
 {
   // initialize the private utility
   d_private.reset(new QuantifiersEnginePrivate);
@@ -239,7 +241,7 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
   d_inst_when_phase = 1 + ( options::instWhenPhase()<1 ? 1 : options::instWhenPhase() );
 
   bool needsBuilder = false;
-  d_private->initialize(this, c, d_modules, needsBuilder);
+  d_private->initialize(this, d_context, d_modules, needsBuilder);
 
   if (d_private->d_rel_dom.get())
   {
@@ -255,16 +257,16 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, c, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(c, this));
+          this, d_context, "FirstOrderModelFmc"));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(d_context, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(
-          new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
-      d_builder.reset(new quantifiers::QModelBuilder(c, this));
+          new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(d_context, this));
     }
   }else{
-    d_model.reset(new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
+    d_model.reset(new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
   }
 }
 

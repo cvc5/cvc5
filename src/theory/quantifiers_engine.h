@@ -321,7 +321,11 @@ public:
 
  private:
   /** Pointer to theory engine object */
-  TheoryEngine* d_te;
+  TheoryEngine* d_te;  
+  /** The SAT context */
+  context::Context* d_context;
+  /** The user context */
+  context::UserContext* d_userContext;
   /** Reference to the decision manager of the theory engine */
   DecisionManager& d_decManager;
   /** Pointer to the master equality engine */
