@@ -88,11 +88,14 @@ void FarkasConflictBuilder::reset(){
   d_constraints.clear();
   d_consequentSet = false;
   Assert(!underConstruction());
+  d_farkas.clear();
 }
 
 /* Adds a constraint to the constraint under construction. */
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
-  Assert(d_farkas.empty());
+  Assert(
+      (!underConstruction() && d_constraints.empty() && d_farkas.empty())
+      || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
   Assert(c->isTrue());
 
   if(d_consequent == NullConstraint){
@@ -100,12 +103,21 @@ void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc){
   } else {
     d_constraints.push_back(c);
   }
-  Assert(d_farkas.empty());
+  d_farkas.push_back(fc);
+  Assert(d_constraints.size() + 1 == d_farkas.size());
 }
 
 void FarkasConflictBuilder::addConstraint(ConstraintCP c, const Rational& fc, const Rational& mult){
   Assert(!mult.isZero());
-  addConstraint(c, fc);
+  if (!mult.isOne())
+  {
+    Rational prod = fc * mult;
+    addConstraint(c, prod);
+  }
+  else
+  {
+    addConstraint(c, fc);
+  }
 }
 
 void FarkasConflictBuilder::makeLastConsequent(){
@@ -120,6 +132,7 @@ void FarkasConflictBuilder::makeLastConsequent(){
     ConstraintCP last = d_constraints.back();
     d_constraints.back() = d_consequent;
     d_consequent = last;
+    std::swap(d_farkas.front(), d_farkas.back());
     d_consequentSet = true;
   }
 
@@ -131,11 +144,13 @@ void FarkasConflictBuilder::makeLastConsequent(){
 ConstraintCP FarkasConflictBuilder::commitConflict(){
   Assert(underConstruction());
   Assert(!d_constraints.empty());
-  Assert(d_farkas.empty());
+  Assert(
+      (!underConstruction() && d_constraints.empty() && d_farkas.empty())
+      || (underConstruction() && d_constraints.size() + 1 == d_farkas.size()));
   Assert(d_consequentSet);
 
   ConstraintP not_c = d_consequent->getNegation();
-  RationalVectorCP coeffs = nullptr;
+  RationalVectorCP coeffs = &d_farkas;
   not_c->impliedByFarkas(d_constraints, coeffs, true );
 
   reset();

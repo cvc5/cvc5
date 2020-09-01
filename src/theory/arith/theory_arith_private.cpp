@@ -4669,7 +4669,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-    RationalVectorP coeffs = nullptr;
+    d_farkasBuffer.clear();
+    RationalVectorP coeffs = &d_farkasBuffer;
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
