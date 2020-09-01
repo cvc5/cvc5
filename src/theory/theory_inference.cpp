@@ -21,26 +21,28 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-SimpleTheoryLemma::SimpleTheoryLemma(Node n, LemmaProperty p, ProofGenerator* pg)
+SimpleTheoryLemma::SimpleTheoryLemma(Node n,
+                                     LemmaProperty p,
+                                     ProofGenerator* pg)
     : d_node(n), d_property(p), d_pg(pg)
 {
-  
 }
 
-bool SimpleTheoryLemma::process(InferenceManager * im)
+bool SimpleTheoryLemma::process(InferenceManager* im)
 {
   Assert(!d_node.isNull());
   // send (trusted) lemma on the output channel with property p
   return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), d_property);
 }
 
-
-SimpleTheoryInternalFact::SimpleTheoryInternalFact(Node conc, Node exp, ProofGenerator* pg) : d_conc(conc), d_exp(exp), d_pg(pg)
+SimpleTheoryInternalFact::SimpleTheoryInternalFact(Node conc,
+                                                   Node exp,
+                                                   ProofGenerator* pg)
+    : d_conc(conc), d_exp(exp), d_pg(pg)
 {
-  
 }
 
-bool SimpleTheoryInternalFact::process(TheoryInferenceManager * im)
+bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im)
 {
   bool polarity = d_conc.getKind() != NOT;
   TNode atom = polarity ? d_conc : d_conc[0];

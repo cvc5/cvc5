@@ -31,7 +31,7 @@ namespace theory {
  */
 class TheoryInference
 {
-public:
+ public:
   /**
    * Called by the provided inference manager to process this inference. This
    * method should make a single call to inference manager to process this
@@ -40,7 +40,7 @@ public:
    * @return true if the inference was successfully processed by the inference
    * manager.
    */
-  virtual bool process(TheoryInferenceManager * im) = 0;
+  virtual bool process(TheoryInferenceManager* im) = 0;
 };
 
 /**
@@ -51,11 +51,11 @@ class SimpleTheoryLemma : public TheoryInference
  public:
   SimpleTheoryLemma(Node n, LemmaProperty p, ProofGenerator* pg);
   virtual ~SimpleTheoryLemma() {}
-  /** 
+  /**
    * Send the lemma using inference manager im, return true if the lemma was
    * sent.
    */
-  bool process(TheoryInferenceManager * im) override;
+  bool process(TheoryInferenceManager* im) override;
   /** The lemma to send */
   Node d_node;
   /** The lemma property (see OutputChannel::lemma) */
@@ -77,11 +77,11 @@ class SimpleTheoryInternalFact : public TheoryInference
  public:
   SimpleTheoryInternalFact(Node conc, Node exp, ProofGenerator* pg);
   virtual ~SimpleTheoryInternalFact() {}
-  /** 
+  /**
    * Send the lemma using inference manager im, return true if the lemma was
    * sent.
    */
-  bool process(TheoryInferenceManager * im) override;
+  bool process(TheoryInferenceManager* im) override;
   /** The lemma to send */
   Node d_conc;
   /** The explanation */

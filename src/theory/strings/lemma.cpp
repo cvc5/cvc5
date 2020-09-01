@@ -18,12 +18,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsLemma::StringsLemma(const InferInfo& ii) : d_ii(ii){}
+StringsLemma::StringsLemma(const InferInfo& ii) : d_ii(ii) {}
 
-bool StringsLemma::process(InferenceManager * im)
-{
-  
-}
+bool StringsLemma::process(InferenceManager* im) {}
 
 }  // namespace strings
 }  // namespace theory

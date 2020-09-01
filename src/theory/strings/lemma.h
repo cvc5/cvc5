@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__LEMMA_H
 #define CVC4__THEORY__STRINGS__LEMMA_H
 
-#include "theory/strings/infer_info.h"
 #include "theory/inference_manager_buffered.h"
+#include "theory/strings/infer_info.h"
 
 namespace CVC4 {
 namespace theory {
@@ -26,12 +26,12 @@ namespace strings {
 
 class StringsLemma : public Lemma
 {
-public:
-  StringsLemma(const InferInfo& ii) : d_ii(ii){}
-  ~StringsLemma(){}
-  
+ public:
+  StringsLemma(const InferInfo& ii) : d_ii(ii) {}
+  ~StringsLemma() {}
+
   /** Process with inference manager im */
-  bool process(InferenceManager * im);
+  bool process(InferenceManager* im);
   /** The inference info */
   InferInfo d_ii;
 };

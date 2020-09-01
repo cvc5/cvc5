@@ -19,8 +19,8 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
-#include "theory/theory_inference_manager.h"
 #include "theory/theory_inference.h"
+#include "theory/theory_inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -74,8 +74,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
    */
-  void addPendingFact(Node fact, Node exp,
-                       ProofGenerator* pg = nullptr);
+  void addPendingFact(Node fact, Node exp, ProofGenerator* pg = nullptr);
   /** Add pending phase requirement
    *
    * This method is called to indicate this class should send a phase
