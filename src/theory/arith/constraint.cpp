@@ -550,46 +550,48 @@ bool Constraint::hasTrichotomyProof() const {
 
 void Constraint::printProofTree(std::ostream& out, size_t depth) const
 {
-#if IS_PROOFS_BUILD
-  const ConstraintRule& rule = getConstraintRule();
-  out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
-  if (hasLiteral())
+  if (ARITH_PROOF_ON())
   {
-    out << getLiteral();
-  }
-  else
-  {
-    out << "NOLIT";
-  };
-  out << "]" << ' ' << getType() << ' ' << getValue() << " (" << getProofType()
-      << ")";
-  if (getProofType() == FarkasAP)
-  {
-    out << " [";
-    bool first = true;
-    for (const auto& coeff : *rule.d_farkasCoefficients)
+    const ConstraintRule& rule = getConstraintRule();
+    out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
+    if (hasLiteral())
     {
-      if (not first)
+      out << getLiteral();
+    }
+    else
+    {
+      out << "NOLIT";
+    };
+    out << "]" << ' ' << getType() << ' ' << getValue() << " ("
+        << getProofType() << ")";
+    if (getProofType() == FarkasAP)
+    {
+      out << " [";
+      bool first = true;
+      for (const auto& coeff : *rule.d_farkasCoefficients)
       {
-        out << ", ";
+        if (not first)
+        {
+          out << ", ";
+        }
+        first = false;
+        out << coeff;
       }
-      first = false;
-      out << coeff;
+      out << "]";
     }
-    out << "]";
-  }
-  out << endl;
+    out << endl;
 
-  for (AntecedentId i = rule.d_antecedentEnd; i != AntecedentIdSentinel; --i) {
-    ConstraintCP antecdent = d_database->getAntecedent(i);
-    if (antecdent == NullConstraint) {
-      break;
+    for (AntecedentId i = rule.d_antecedentEnd; i != AntecedentIdSentinel; --i)
+    {
+      ConstraintCP antecdent = d_database->getAntecedent(i);
+      if (antecdent == NullConstraint)
+      {
+        break;
+      }
+      antecdent->printProofTree(out, depth + 1);
     }
-    antecdent->printProofTree(out, depth + 1);
   }
-#else  /* IS_PROOFS_BUILD */
   out << "Cannot print proof. This is not a proof build." << endl;
-#endif /* IS_PROOFS_BUILD */
 }
 
 bool Constraint::sanityChecking(Node n) const {
@@ -698,7 +700,6 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-#if IS_PROOFS_BUILD
   if (!ARITH_PROOF_ON())
   {
     return cr.d_farkasCoefficients == RationalVectorCPSentinel;
@@ -801,9 +802,6 @@ bool Constraint::wellFormedFarkasProof() const {
   // 0 = lhs <= rhs < 0
   return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
          && rhs.sgn() < 0;
-#else  /* IS_PROOFS_BUILD */
-  return true;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
