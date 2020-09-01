@@ -156,7 +156,6 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   return true;
 }
 
-
 bool TheoryInferenceManager::lemmaExp(Node conc,
                                       PfRule id,
                                       const std::vector<Node>& exp,
@@ -336,7 +335,6 @@ Node TheoryInferenceManager::mkExplainPartial(
   }
   return NodeManager::currentNM()->mkAnd(assumps);
 }
-
 
 uint32_t TheoryInferenceManager::numAddedFacts() const
 {

@@ -24,9 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-DatatypeFact::DatatypeFact(Node conc, Node exp) : d_conc(conc), d_exp(exp)
-{
-}
+DatatypeFact::DatatypeFact(Node conc, Node exp) : d_conc(conc), d_exp(exp) {}
 
 bool DatatypeFact::mustCommunicateFact(Node n, Node exp)
 {
@@ -67,7 +65,7 @@ bool DatatypeFact::process(TheoryInferenceManager* im)
   // check to see if we have to communicate it to the rest of the system
   if (mustCommunicateFact(d_conc, d_exp))
   {
-    Assert (!d_exp.isConst() || d_exp.getConst<bool>());
+    Assert(!d_exp.isConst() || d_exp.getConst<bool>());
     // send it as an (explained) lemma
     std::vector<Node> exp;
     if (!d_exp.isNull() && !d_exp.isConst())
@@ -82,7 +80,7 @@ bool DatatypeFact::process(TheoryInferenceManager* im)
   d_im->assertInternalFact(atom, polarity, d_exp);
   return true;
 }
-  
+
 InferenceManager::InferenceManager(Theory& t,
                                    TheoryState& state,
                                    ProofNodeManager* pnm)
@@ -92,8 +90,7 @@ InferenceManager::InferenceManager(Theory& t,
 
 void InferenceManager::addPendingFactOrLemma(Node conc, Node exp)
 {
-  d_pendingFact.push_back(
-      std::make_shared<DatatypeFact>(conc, exp));
+  d_pendingFact.push_back(std::make_shared<DatatypeFact>(conc, exp));
 }
 
 void InferenceManager::process()

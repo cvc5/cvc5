@@ -27,7 +27,7 @@ namespace datatypes {
 
 class DatatypeFact : public TheoryInference
 {
-public:
+ public:
   DatatypeFact(Node conc, Node exp);
   /**
    * Must communicate fact method.
@@ -46,7 +46,7 @@ public:
    * communicate (6) and OR conclusions.
    */
   static bool mustCommunicateFact(Node n, Node exp);
-  /** 
+  /**
    * Process this fact, possibly as a fact or as a lemma, depending on the
    * above method.
    */
@@ -56,7 +56,7 @@ public:
   /** The explanation */
   Node d_exp;
 };
-  
+
 /**
  * The datatypes inference manager. The main unique features of this inference
  * manager are:
@@ -72,7 +72,7 @@ class InferenceManager : public InferenceManagerBuffered
  public:
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   ~InferenceManager() {}
-  /** 
+  /**
    * Add pending fact
    */
   void addPendingFactOrLemma(Node conc, Node exp);

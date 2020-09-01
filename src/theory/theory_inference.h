@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 
 class TheoryInferenceManager;
-  
+
 /**
  * A theory inference base class. This class is an abstract data structure for
  * storing pending lemmas or facts in the buffered inference manager. It can
@@ -35,7 +35,7 @@ class TheoryInferenceManager;
 class TheoryInference
 {
  public:
-   virtual ~TheoryInference(){}
+  virtual ~TheoryInference() {}
   /**
    * Called by the provided inference manager to process this inference. This
    * method should make a single call to inference manager to process this
