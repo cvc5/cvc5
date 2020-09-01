@@ -603,10 +603,11 @@ enum class PfRule : uint32_t
   FALSE_ELIM,
   // ======== HO trust
   // Children: none
-  // Arguments: (F)
+  // Arguments: (t)
   // ---------------------
-  // Conclusion: (F)
-  HO_TRUST,
+  // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
+  // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+  HO_APP_ENCODE,
   // ======== Congruence
   // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
   // Arguments: ()

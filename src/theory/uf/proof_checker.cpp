@@ -14,6 +14,8 @@
 
 #include "theory/uf/proof_checker.h"
 
+#include "theory/uf/theory_uf_rewriter.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -32,8 +34,7 @@ void UfProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::FALSE_INTRO, this);
   pc->registerChecker(PfRule::FALSE_ELIM, this);
   pc->registerChecker(PfRule::HO_CONG, this);
-  // trusted rules
-  pc->registerTrustedChecker(PfRule::HO_TRUST, this, 1);
+  pc->registerChecker(PfRule::HO_APP_ENCODE, this);
 }
 
 Node UfProofRuleChecker::checkInternal(PfRule id,
@@ -194,12 +195,11 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
     Node r = nm->mkNode(kind::APPLY_UF, rchildren);
     return l.eqNode(r);
   }
-  else if (id == PfRule::HO_TRUST)
+  else if (id == PfRule::HO_APP_ENCODE)
   {
-    // "trusted" rules
-    Assert(!args.empty());
-    Assert(args[0].getType().isBoolean());
-    return args[0];
+    Assert(args.size()==1);
+    Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
+    return args[0].eqNode(ret);
   }
   // no rule
   return Node::null();

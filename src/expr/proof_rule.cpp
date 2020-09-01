@@ -103,7 +103,7 @@ const char* toString(PfRule id)
     case PfRule::TRUE_ELIM: return "TRUE_ELIM";
     case PfRule::FALSE_INTRO: return "FALSE_INTRO";
     case PfRule::FALSE_ELIM: return "FALSE_ELIM";
-    case PfRule::HO_TRUST: return "HO_TRUST";
+    case PfRule::HO_APP_ENCODE: return "HO_APP_ENCODE";
     case PfRule::HO_CONG: return "HO_CONG";
     //================================================= Array rules
     case PfRule::ARRAYS_READ_OVER_WRITE: return "ARRAYS_READ_OVER_WRITE";

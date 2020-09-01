@@ -281,10 +281,10 @@ unsigned HoExtension::applyAppCompletion(TNode n)
   Node ret = TheoryUfRewriter::getHoApplyForApplyUf(n);
   if (!ee->hasTerm(ret) || !ee->areEqual(ret, n))
   {
-    Node eq = ret.eqNode(n);
+    Node eq = n.eqNode(ret);
     Trace("uf-ho-lemma") << "uf-ho-lemma : infer, by apply-expand : " << eq
                          << std::endl;
-    d_im.assertInternalFact(eq, true, PfRule::HO_TRUST, {}, {eq});
+    d_im.assertInternalFact(eq, true, PfRule::HO_APP_ENCODE, {}, {n});
     return 1;
   }
   Trace("uf-ho-debug") << "    ...already have " << ret << " == " << n << "."
