@@ -25,10 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-class DatatypeFact : public TheoryInference
+class DatatypesInference : public TheoryInference
 {
  public:
-  DatatypeFact(Node conc, Node exp);
+  DatatypesInference(Node conc, Node exp);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -73,9 +73,10 @@ class InferenceManager : public InferenceManagerBuffered
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   ~InferenceManager() {}
   /**
-   * Add pending fact
+   * Add pending inference, which may be processed as either a fact or
+   * a lemma based on mustCommunicateFact in DatatypesInference above.
    */
-  void addPendingFactOrLemma(Node conc, Node exp);
+  void addPendingInference(Node conc, Node exp);
   /**
    * Process the current lemmas and facts. This is a custom method that can
    * be seen as overriding the behavior of calling both doPendingLemmas and

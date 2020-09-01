@@ -48,7 +48,8 @@ class TheoryInference
 };
 
 /**
- * A simple theory lemma with no side effects.
+ * A simple theory lemma with no side effects. Makes a single call to
+ * trustedLemma in its process method.
  */
 class SimpleTheoryLemma : public TheoryInference
 {
@@ -74,7 +75,8 @@ class SimpleTheoryLemma : public TheoryInference
 };
 
 /**
- * A simple internal fact.
+ * A simple internal fact with no side effects. Makes a single call to
+ * assertFactInternal in its process method.
  */
 class SimpleTheoryInternalFact : public TheoryInference
 {
