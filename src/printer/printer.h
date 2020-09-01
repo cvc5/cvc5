@@ -30,6 +30,8 @@
 
 namespace CVC4 {
 
+class NodeCommand;
+
 class Printer
 {
  public:

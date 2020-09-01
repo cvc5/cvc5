@@ -26,6 +26,7 @@
 #include "options/language.h"  // for LANG_AST
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 #include "theory/substitutions.h"
 
 using namespace std;

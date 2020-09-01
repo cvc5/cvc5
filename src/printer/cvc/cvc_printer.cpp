@@ -33,6 +33,7 @@
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/substitutions.h"
