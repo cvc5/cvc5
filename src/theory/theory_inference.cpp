@@ -28,7 +28,7 @@ SimpleTheoryLemma::SimpleTheoryLemma(Node n,
 {
 }
 
-bool SimpleTheoryLemma::process(InferenceManager* im)
+bool SimpleTheoryLemma::process(TheoryInferenceManager* im)
 {
   Assert(!d_node.isNull());
   // send (trusted) lemma on the output channel with property p

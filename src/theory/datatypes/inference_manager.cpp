@@ -24,11 +24,11 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-DatatypesInference::DatatypesInference(Node conc, Node exp) : d_conc(conc), d_exp(exp) {
-  
-    // false is not a valid explanation
-    Assert(!d_exp.isConst() || d_exp.getConst<bool>());
-
+DatatypesInference::DatatypesInference(Node conc, Node exp)
+    : d_conc(conc), d_exp(exp)
+{
+  // false is not a valid explanation
+  Assert(d_exp.isNull() || !d_exp.isConst() || d_exp.getConst<bool>());
 }
 
 bool DatatypesInference::mustCommunicateFact(Node n, Node exp)

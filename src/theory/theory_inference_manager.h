@@ -125,6 +125,16 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
+  /**
+   * Explain conflict from contradictory facts. This method is called when
+   * the proof rule id with premises exp and arguments args implies false.
+   * This method sends a trusted conflict corresponding to the official
+   * equality engine's explanation of literals in exp, with the proof equality
+   * engine as the proof generator (if it exists).
+   */
+  void conflictExp(PfRule id,
+                   const std::vector<Node>& exp,
+                   const std::vector<Node>& args);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
