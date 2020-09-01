@@ -59,7 +59,7 @@ void TptpPrinter::toStream(std::ostream& out, const Model& m) const
 
 void TptpPrinter::toStream(std::ostream& out,
                            const Model& m,
-                           const Command* c) const
+                           const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();

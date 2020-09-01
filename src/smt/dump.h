@@ -21,6 +21,7 @@
 
 #include "base/output.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 
 namespace CVC4 {
 
@@ -36,6 +37,15 @@ class CVC4_PUBLIC CVC4dumpstream
     if (d_os != nullptr)
     {
       (*d_os) << c << std::endl;
+    }
+    return *this;
+  }
+
+  CVC4dumpstream& operator<<(const NodeCommand& nc)
+  {
+    if (d_os != nullptr)
+    {
+      (*d_os) << nc << std::endl;
     }
     return *this;
   }
@@ -56,6 +66,7 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream() {}
   CVC4dumpstream(std::ostream& os) {}
   CVC4dumpstream& operator<<(const Command& c) { return *this; }
+  CVC4dumpstream& operator<<(const NodeCommand& nc) { return *this; }
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
