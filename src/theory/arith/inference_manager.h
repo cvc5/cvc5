@@ -50,19 +50,27 @@ class InferenceManager : public InferenceManagerBuffered
  public:
   InferenceManager(TheoryArith& ta, ArithState& astate, ProofNodeManager* pnm);
 
-  /** Add a lemma (as pending lemma) to the this inference manager. */
-  void addLemma(std::shared_ptr<ArithLemma> lemma);
-  /** Add a lemma (as pending lemma) to the this inference manager. */
-  void addLemma(const ArithLemma& lemma);
-  /** Add a lemma (as pending lemma) to the this inference manager. */
-  void addLemma(const Node& lemma, nl::Inference inftype);
-
-  /** Add a lemma (as waiting lemma). */
-  void addWaitingLemma(std::shared_ptr<ArithLemma> lemma);
-  /** Add a lemma (as waiting lemma). */
-  void addWaitingLemma(const ArithLemma& lemma);
-  /** Add a lemma (as waiting lemma). */
-  void addWaitingLemma(const Node& lemma, nl::Inference inftype);
+  /**
+   * Add a lemma as pending lemma to the this inference manager.
+   * If isWaiting is true, the lemma is first stored as waiting lemma and only
+   * added as pending lemma when calling flushWaitingLemmas.
+   */
+  void addPendingArithLemma(std::shared_ptr<ArithLemma> lemma,
+                            bool isWaiting = false);
+  /**
+   * Add a lemma as pending lemma to the this inference manager.
+   * If isWaiting is true, the lemma is first stored as waiting lemma and only
+   * added as pending lemma when calling flushWaitingLemmas.
+   */
+  void addPendingArithLemma(const ArithLemma& lemma, bool isWaiting = false);
+  /**
+   * Add a lemma as pending lemma to the this inference manager.
+   * If isWaiting is true, the lemma is first stored as waiting lemma and only
+   * added as pending lemma when calling flushWaitingLemmas.
+   */
+  void addPendingArithLemma(const Node& lemma,
+                            nl::Inference inftype,
+                            bool isWaiting = false);
 
   /**
    * Flush all waiting lemmas to the this inference manager (as pending
@@ -77,33 +85,14 @@ class InferenceManager : public InferenceManagerBuffered
   std::size_t numWaitingLemmas() const;
 
   /** Checks whether the given lemma is already present in the cache. */
-  virtual bool hasCachedLemma(TNode lem, LemmaProperty p) override
-  {
-    if (isLemmaPropertyPreprocess(p))
-    {
-      return d_lemmasPp.find(lem) != d_lemmasPp.end();
-    }
-    return TheoryInferenceManager::hasCachedLemma(lem, p);
-  }
+  virtual bool hasCachedLemma(TNode lem, LemmaProperty p) override;
 
  protected:
   /**
    * Adds the given lemma to the cache. Returns true if it has not been in the
    * cache yet.
    */
-  virtual bool cacheLemma(TNode lem, LemmaProperty p) override
-  {
-    if (isLemmaPropertyPreprocess(p))
-    {
-      if (d_lemmasPp.find(lem) != d_lemmasPp.end())
-      {
-        return false;
-      }
-      d_lemmasPp.insert(lem);
-      return true;
-    }
-    return TheoryInferenceManager::cacheLemma(lem, p);
-  }
+  virtual bool cacheLemma(TNode lem, LemmaProperty p) override;
 
  private:
   /**

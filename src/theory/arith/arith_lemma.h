@@ -52,17 +52,6 @@ class ArithLemma : public Lemma
 
   /** The inference id for the lemma */
   nl::Inference d_inference;
-
-  /** secant points to add
-   *
-   * A member (tf, d, c) in this vector indicates that point c should be added
-   * to the list of secant points for an application of a transcendental
-   * function tf for Taylor degree d. This is used for incremental linearization
-   * for underapproximation (resp. overapproximations) of convex (resp.
-   * concave) regions of transcendental functions. For details, see
-   * Cimatti et al., CADE 2017.
-   */
-  std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
 };
 /**
  * Writes an arithmetic lemma to a stream.
