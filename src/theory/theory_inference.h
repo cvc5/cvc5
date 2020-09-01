@@ -17,7 +17,6 @@
 #ifndef CVC4__THEORY__THEORY_INFERENCE_H
 #define CVC4__THEORY__THEORY_INFERENCE_H
 
-#include "context/cdhashmap.h"
 #include "expr/node.h"
 #include "theory/output_channel.h"
 
