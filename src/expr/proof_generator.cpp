@@ -43,8 +43,10 @@ std::shared_ptr<ProofNode> ProofGenerator::getProofFor(Node f)
   return nullptr;
 }
 
-bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy,
-                          bool doCopy)
+bool ProofGenerator::addProofTo(Node f,
+                                CDProof* pf,
+                                CDPOverwrite opolicy,
+                                bool doCopy)
 {
   Trace("pfgen") << "ProofGenerator::addProofTo: " << f << "..." << std::endl;
   Assert(pf != nullptr);
