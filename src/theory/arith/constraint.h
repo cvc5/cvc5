@@ -787,10 +787,12 @@ class Constraint {
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
+#if IS_PROOFS_BUILD
       if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
       {
         delete crp->d_farkasCoefficients;
       };
+#endif
     }
   };
 
@@ -876,7 +878,11 @@ class Constraint {
 
   inline RationalVectorCP getFarkasCoefficients() const
   {
+#if IS_PROOFS_BUILD
     return getConstraintRule().d_farkasCoefficients;
+#else
+    return nullptr;
+#endif
   }
 
   void debugPrint() const;
