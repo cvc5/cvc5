@@ -39,6 +39,9 @@ class TheoryArith;
  * It adds some convenience methods to send ArithLemma and adds a mechanism for
  * waiting lemmas that can be flushed into the pending lemmas of the this
  * buffered inference manager.
+ * It also extends the caching mechanism of TheoryInferenceManager to cache
+ * preprocessing lemmas and non-preprocessing lemmas separately. For the former,
+ * it uses the cache provided by the TheoryInferenceManager base class.
  */
 class InferenceManager : public InferenceManagerBuffered
 {
@@ -61,7 +64,8 @@ class InferenceManager : public InferenceManagerBuffered
   /** Add a lemma (as waiting lemma). */
   void addWaitingLemma(const Node& lemma, nl::Inference inftype);
 
-  /** Flush all waiting lemmas to the this inference manager (as pending lemmas). */
+  /** Flush all waiting lemmas to the this inference manager (as pending
+   * lemmas). */
   void flushWaitingLemmas();
 
   /** Add a conflict to the this inference manager. */
@@ -69,9 +73,37 @@ class InferenceManager : public InferenceManagerBuffered
 
   /** Returns the number of pending lemmas. */
   std::size_t numWaitingLemmas() const;
+
+  /** Checks whether the given lemma is already present in the cache. */
+  virtual bool hasCachedLemma(TNode lem, LemmaProperty p) override
+  {
+    if (isLemmaPropertyPreprocess(p))
+    {
+      return d_lemmasPp.find(lem) != d_lemmasPp.end();
+    }
+    return TheoryInferenceManager::hasCachedLemma(lem, p);
+  }
+
+ protected:
+  /**
+   * Adds the given lemma to the cache. Returns true if it has not been in the
+   * cache yet.
+   */
+  virtual bool cacheLemma(TNode lem, LemmaProperty p) override
+  {
+    if (isLemmaPropertyPreprocess(p))
+    {
+      if (d_lemmasPp.find(lem) != d_lemmasPp.end())
+      {
+        return false;
+      }
+      d_lemmasPp.insert(lem);
+      return true;
+    }
+    return TheoryInferenceManager::cacheLemma(lem, p);
+  }
+
  private:
-  /** Checks whether the lemma is not yet in the cache. */
-  bool isNewLemma(ArithLemma& lem);
   /**
    * Checks whether the lemma is entailed to be false. In this case, it is a
    * conflict.
@@ -81,9 +113,8 @@ class InferenceManager : public InferenceManagerBuffered
   /** The waiting lemmas. */
   std::vector<std::shared_ptr<ArithLemma>> d_waitingLem;
 
-  /** cache of all lemmas sent on the output channel (user-context-dependent) */
-  NodeSet d_lemmas;
-  /** Same as above, for preprocessed lemmas */
+  /** cache of all preprocessed lemmas sent on the output channel
+   * (user-context-dependent) */
   NodeSet d_lemmasPp;
 };
 

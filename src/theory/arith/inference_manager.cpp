@@ -26,14 +26,14 @@ InferenceManager::InferenceManager(TheoryArith& ta,
                                    ArithState& astate,
                                    ProofNodeManager* pnm)
     : InferenceManagerBuffered(ta, astate, pnm),
-      d_lemmas(ta.getUserContext()),
       d_lemmasPp(ta.getUserContext())
 {
 }
 
 void InferenceManager::addLemma(std::shared_ptr<ArithLemma> lemma)
 {
-  if (!isNewLemma(*lemma))
+  lemma->d_node = Rewriter::rewrite(lemma->d_node);
+  if (hasCachedLemma(lemma->d_node, lemma->d_property))
   {
     return;
   }
@@ -56,7 +56,8 @@ void InferenceManager::addLemma(const Node& lemma, nl::Inference inftype)
 
 void InferenceManager::addWaitingLemma(std::shared_ptr<ArithLemma> lemma)
 {
-  if (!isNewLemma(*lemma))
+  lemma->d_node = Rewriter::rewrite(lemma->d_node);
+  if (hasCachedLemma(lemma->d_node, lemma->d_property))
   {
     return;
   }
@@ -93,23 +94,6 @@ void InferenceManager::addConflict(const Node& conf, nl::Inference inftype)
 std::size_t InferenceManager::numWaitingLemmas() const
 {
   return d_waitingLem.size();
-}
-
-bool InferenceManager::isNewLemma(ArithLemma& lem)
-{
-  Trace("arith-inf-manager")
-      << "InferenceManager::Lemma pre-rewrite : " << lem.d_node << std::endl;
-  lem.d_node = Rewriter::rewrite(lem.d_node);
-
-  NodeSet& lcache =
-      isLemmaPropertyPreprocess(lem.d_property) ? d_lemmasPp : d_lemmas;
-  if (lcache.find(lem.d_node) != lcache.end())
-  {
-    Trace("arith-inf-manager")
-        << "InferenceManager::Lemma duplicate: " << lem.d_node << std::endl;
-    return false;
-  }
-  return true;
 }
 
 bool InferenceManager::isEntailedFalse(const ArithLemma& lem)
