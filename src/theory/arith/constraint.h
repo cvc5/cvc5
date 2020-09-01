@@ -301,9 +301,7 @@ struct ConstraintRule {
    * We do however use all of the constraints by requiring non-zero
    * coefficients.
    */
-#if IS_PROOFS_BUILD
   RationalVectorCP d_farkasCoefficients;
-#endif /* IS_PROOFS_BUILD */
   ConstraintRule()
     : d_constraint(NullConstraint)
     , d_proofType(NoAP)
