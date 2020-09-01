@@ -1258,18 +1258,10 @@ std::string traceElements(const Node& set)
 
 }  // namespace
 
-bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
+bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
+                                           const std::set<Node>& termSet)
 {
   Trace("sets-model") << "Set collect model info" << std::endl;
-  set<Node> termSet;
-  // Compute terms appearing in assertions and shared terms
-  d_external.computeRelevantTerms(termSet);
-
-  // Assert equalities and disequalities to the model
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    return false;
-  }
 
   NodeManager* nm = NodeManager::currentNM();
   std::map<Node, Node> mvals;

@@ -212,7 +212,7 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
   if (options::sygus() || options::sygusInst())
   {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
-  }  
+  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -577,12 +577,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
+    //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
     }
-    
+
     double clSet = 0;
     if( Trace.isOn("quant-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -807,7 +807,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
       Trace("quant-engine") << std::endl;
     }
-    
+
     Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
@@ -1037,7 +1037,7 @@ bool QuantifiersEngine::removeLemma( Node lem ) {
 void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
 }
-  
+
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
@@ -1050,9 +1050,10 @@ bool QuantifiersEngine::theoryEngineNeedsCheck() const
   return d_te->needCheck();
 }
 
-void QuantifiersEngine::setConflict() { 
-  d_conflict = true; 
-  d_conflict_c = true; 
+void QuantifiersEngine::setConflict()
+{
+  d_conflict = true;
+  d_conflict_c = true;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
@@ -1123,10 +1124,6 @@ void QuantifiersEngine::flushLemmas(){
 
 bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
   return d_instantiate->getUnsatCoreLemmas(active_lemmas);
-}
-
-bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas, weak_imp);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {

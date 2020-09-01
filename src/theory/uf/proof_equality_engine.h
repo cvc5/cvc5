@@ -307,12 +307,6 @@ class ProofEqEngine : public EagerProofGenerator
                                const std::vector<TNode>& assumps,
                                TrustNodeKind tnk,
                                LazyCDProof* curr);
-  /**
-   * Make the conjunction of nodes in a. Returns true if a is empty, and a
-   * single literal if a has size 1.
-   */
-  Node mkAnd(const std::vector<Node>& a);
-  Node mkAnd(const std::vector<TNode>& a);
   /** Reference to the equality engine */
   eq::EqualityEngine& d_ee;
   /** The default proof generator (for simple facts) */

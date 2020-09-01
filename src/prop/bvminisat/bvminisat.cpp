@@ -18,7 +18,6 @@
 
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "proof/clause_id.h"
-#include "proof/sat_proof.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -66,7 +65,6 @@ ClauseId BVMinisatSatSolver::addClause(SatClause& clause,
   // }
   ClauseId clause_id = ClauseIdError;
   d_minisat->addClause(minisat_clause, clause_id);
-  THEORY_PROOF(Assert(clause_id != ClauseIdError););
   return clause_id;
 }
 
@@ -76,14 +74,14 @@ SatValue BVMinisatSatSolver::propagate() {
 
 void BVMinisatSatSolver::addMarkerLiteral(SatLiteral lit) {
   d_minisat->addMarkerLiteral(BVMinisat::var(toMinisatLit(lit)));
-  markUnremovable(lit); 
+  markUnremovable(lit);
 }
 
 void BVMinisatSatSolver::explain(SatLiteral lit, std::vector<SatLiteral>& explanation) {
   std::vector<BVMinisat::Lit> minisat_explanation;
   d_minisat->explain(toMinisatLit(lit), minisat_explanation);
   for (unsigned i = 0; i < minisat_explanation.size(); ++i) {
-    explanation.push_back(toSatLiteral(minisat_explanation[i])); 
+    explanation.push_back(toSatLiteral(minisat_explanation[i]));
   }
 }
 
@@ -102,12 +100,6 @@ void BVMinisatSatSolver::contextNotifyPop() {
 
 void BVMinisatSatSolver::popAssumption() {
   d_minisat->popAssumption();
-}
-
-void BVMinisatSatSolver::setResolutionProofLog(
-    proof::ResolutionBitVectorProof* bvp)
-{
-  d_minisat->setProofLog( bvp );
 }
 
 SatVariable BVMinisatSatSolver::newVar(bool isTheoryAtom, bool preRegister, bool canErase){
@@ -148,9 +140,7 @@ SatValue BVMinisatSatSolver::solve(long unsigned int& resource){
   return result;
 }
 
-bool BVMinisatSatSolver::ok() const {
-  return d_minisat->okay(); 
-}
+bool BVMinisatSatSolver::ok() const { return d_minisat->okay(); }
 
 void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
   // TODO add assertion to check the call was after an unsat call
@@ -160,11 +150,11 @@ void BVMinisatSatSolver::getUnsatCore(SatClause& unsatCore) {
 }
 
 SatValue BVMinisatSatSolver::value(SatLiteral l){
-	return toSatLiteralValue(d_minisat->value(toMinisatLit(l)));
+  return toSatLiteralValue(d_minisat->value(toMinisatLit(l)));
 }
 
 SatValue BVMinisatSatSolver::modelValue(SatLiteral l){
-	return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
+  return toSatLiteralValue(d_minisat->modelValue(toMinisatLit(l)));
 }
 
 void BVMinisatSatSolver::unregisterVar(SatLiteral lit) {
@@ -309,17 +299,3 @@ void BVMinisatSatSolver::Statistics::init(BVMinisat::SimpSolver* minisat){
 
 } /* namespace CVC4::prop */
 } /* namespace CVC4 */
-
-namespace CVC4 {
-template<>
-prop::SatLiteral toSatLiteral< BVMinisat::Solver>(BVMinisat::Solver::TLit lit) {
-  return prop::BVMinisatSatSolver::toSatLiteral(lit);
-} 
-
-template<>
-void toSatClause< BVMinisat::Solver> (const BVMinisat::Solver::TClause& minisat_cl,
-                                        prop::SatClause& sat_cl) {
-  prop::BVMinisatSatSolver::toSatClause(minisat_cl, sat_cl);
-}
-
-}

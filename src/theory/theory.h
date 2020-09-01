@@ -183,26 +183,10 @@ class Theory {
 
   //---------------------------------- private collect model info
   /**
-   * Scans the current set of assertions and shared terms top-down
-   * until a theory-leaf is reached, and adds all terms found to
-   * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model.
-   *
-   * irrKinds: The kinds of terms that appear in assertions that should *not*
-   * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * treated as irrelevant kinds.
-   *
-   * includeShared: Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irrKinds.
-   */
-  void computeRelevantTermsInternal(std::set<Node>& termSet,
-                                    std::set<Kind>& irrKinds,
-                                    bool includeShared = true) const;
-  /**
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
+                    const std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
   //---------------------------------- end private collect model info
 
@@ -262,11 +246,6 @@ class Theory {
    * the equality engine are used properly.
    */
   TheoryInferenceManager* d_inferManager;
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofsEnabled;
 
   /**
    * Returns the next assertion in the assertFact() queue.
@@ -597,6 +576,7 @@ class Theory {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
+    return TrustNode::null();
   }
 
   //--------------------------------- check
@@ -688,13 +668,29 @@ class Theory {
    */
   virtual bool collectModelInfo(TheoryModel* m);
   /**
-   * Same as above, but with empty irrKinds. This version can be overridden
-   * by the theory, e.g. by restricting or extending the set of terms returned
-   * by computeRelevantTermsInternal, which is called by default with no
-   * irrKinds.
+   * Scans the current set of assertions and shared terms top-down
+   * until a theory-leaf is reached, and adds all terms found to
+   * termSet.  This is used by collectModelInfo to delimit the set of
+   * terms that should be used when constructing a model.
+   *
+   * @param irrKinds The kinds of terms that appear in assertions that should *not*
+   * be included in termSet. Note that the kinds EQUAL and NOT are always
+   * treated as irrelevant kinds.
+   *
+   * @param includeShared Whether to include shared terms in termSet. Notice that
+   * shared terms are not influenced by irrKinds.
+   *
+   * TODO (project #39): this method will be deleted. The version in
+   * model manager will be used.
    */
-  virtual void computeRelevantTerms(std::set<Node>& termSet,
-                                    bool includeShared = true);
+  void computeAssertedTerms(std::set<Node>& termSet,
+                            const std::set<Kind>& irrKinds,
+                            bool includeShared = true) const;
+  /**
+   * Compute terms that are not necessarily part of the assertions or
+   * shared terms that should be considered relevant, add them to termSet.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
@@ -824,15 +820,13 @@ class Theory {
    *
    * @return true iff facts have been asserted to this theory.
    */
-  bool hasFacts() { 
-    return !d_facts.empty(); 
-  }
+  bool hasFacts() { return !d_facts.empty(); }
 
   /** Return total number of facts asserted to this theory */
   size_t numAssertions() {
     return d_facts.size();
   }
-  
+
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
@@ -917,7 +911,7 @@ class Theory {
 
   /* is extended function reduced */
   virtual bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) { return n.isConst(); }
-  
+
   /**
    * Get reduction for node
    * If return value is not 0, then n is reduced.
@@ -927,9 +921,6 @@ class Theory {
    *  and return value should be <0.
    */
   virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
-
-  /** Turn on proof-production mode. */
-  void produceProofs() { d_proofsEnabled = true; }
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

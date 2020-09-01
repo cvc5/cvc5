@@ -18,8 +18,6 @@
 #include "expr/node_algorithm.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_eager_solver.h"
@@ -83,19 +81,19 @@ TheoryBV::TheoryBV(context::Context* c,
     return;
   }
 
-  if (options::bitvectorEqualitySolver() && !options::proof())
+  if (options::bitvectorEqualitySolver())
   {
     d_subtheories.emplace_back(new CoreSolver(c, this, d_extTheory.get()));
     d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
-  if (options::bitvectorInequalitySolver() && !options::proof())
+  if (options::bitvectorInequalitySolver())
   {
     d_subtheories.emplace_back(new InequalitySolver(c, u, this));
     d_subtheoryMap[SUB_INEQUALITY] = d_subtheories.back().get();
   }
 
-  if (options::bitvectorAlgebraicSolver() && !options::proof())
+  if (options::bitvectorAlgebraicSolver())
   {
     d_subtheories.emplace_back(new AlgebraicSolver(c, this));
     d_subtheoryMap[SUB_ALGEBRAIC] = d_subtheories.back().get();
@@ -230,8 +228,11 @@ TrustNode TheoryBV::expandDefinition(Node node)
 
     TNode num = node[0], den = node[1];
     Node den_eq_0 = nm->mkNode(kind::EQUAL, den, utils::mkZero(width));
-    Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV ? kind::BITVECTOR_UDIV_TOTAL :
-				     kind::BITVECTOR_UREM_TOTAL, num, den);
+    Node divTotalNumDen = nm->mkNode(node.getKind() == kind::BITVECTOR_UDIV
+                                         ? kind::BITVECTOR_UDIV_TOTAL
+                                         : kind::BITVECTOR_UREM_TOTAL,
+                                     num,
+                                     den);
     Node divByZero = getBVDivByZero(node.getKind(), width);
     Node divByZeroNum = nm->mkNode(kind::APPLY_UF, divByZero, num);
     ret = nm->mkNode(kind::ITE, den_eq_0, divByZeroNum, divTotalNumDen);
@@ -327,7 +328,7 @@ void TheoryBV::check(Effort e)
   if (done() && e<Theory::EFFORT_FULL) {
     return;
   }
-  
+
   //last call : do reductions on extended bitvector functions
   if (e == Theory::EFFORT_LAST_CALL) {
     std::vector<Node> nred = d_extTheory->getActive();
@@ -410,7 +411,7 @@ void TheoryBV::check(Effort e)
       break;
     }
   }
-  
+
   //check extended functions
   if (Theory::fullEffort(e)) {
     //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
@@ -431,7 +432,9 @@ void TheoryBV::check(Effort e)
         if( doExtfReductions( nred ) ){
           return;
         }
-      }else{     
+      }
+      else
+      {
         d_needsLastCallCheck = true;
       }
     }
@@ -726,11 +729,13 @@ TrustNode TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<UltPlusOne>::applies(t)) {
     Node result = RewriteRule<UltPlusOne>::run<false>(t);
     res = Rewriter::rewrite(result);
-  } else if( res.getKind() == kind::EQUAL &&
-      ((res[0].getKind() == kind::BITVECTOR_PLUS &&
-        RewriteRule<ConcatToMult>::applies(res[1])) ||
-       (res[1].getKind() == kind::BITVECTOR_PLUS &&
-	RewriteRule<ConcatToMult>::applies(res[0])))) {
+  }
+  else if (res.getKind() == kind::EQUAL
+           && ((res[0].getKind() == kind::BITVECTOR_PLUS
+                && RewriteRule<ConcatToMult>::applies(res[1]))
+               || (res[1].getKind() == kind::BITVECTOR_PLUS
+                   && RewriteRule<ConcatToMult>::applies(res[0]))))
+  {
     Node mult = RewriteRule<ConcatToMult>::applies(res[0])?
       RewriteRule<ConcatToMult>::run<false>(res[0]) :
       RewriteRule<ConcatToMult>::run<true>(res[1]);
@@ -743,9 +748,13 @@ TrustNode TheoryBV::ppRewrite(TNode t)
     } else {
       res = t;
     }
-  } else if (RewriteRule<SignExtendEqConst>::applies(t)) {
+  }
+  else if (RewriteRule<SignExtendEqConst>::applies(t))
+  {
     res = RewriteRule<SignExtendEqConst>::run<false>(t);
-  } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
+  }
+  else if (RewriteRule<ZeroExtendEqConst>::applies(t))
+  {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
   else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))
@@ -958,20 +967,6 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
     d_eagerSolver->initialize();
   }
   return changed;
-}
-
-void TheoryBV::setProofLog(proof::BitVectorProof* bvp)
-{
-  if (options::bitblastMode() == options::BitblastMode::EAGER)
-  {
-    d_eagerSolver->setProofLog(bvp);
-  }
-  else
-  {
-    for( unsigned i=0; i< d_subtheories.size(); i++ ){
-      d_subtheories[i]->setProofLog( bvp );
-    }
-  }
 }
 
 void TheoryBV::setConflict(Node conflict)
