@@ -85,14 +85,13 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf)
   }
 }
 
-
 void TheoryInferenceManager::conflictExp(PfRule id,
-                          const std::vector<Node>& exp,
-                          const std::vector<Node>& args)
+                                         const std::vector<Node>& exp,
+                                         const std::vector<Node>& args)
 {
   if (!d_theoryState.isInConflict())
   {
-    if (d_pfee!=nullptr)
+    if (d_pfee != nullptr)
     {
       // use proof equality engine to construct the trust node
       TrustNode tconf = d_pfee->assertConflict(id, exp, args);
@@ -180,10 +179,10 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
 }
 
 bool TheoryInferenceManager::lemmaExp(Node conc,
-                      PfRule id,
-                      const std::vector<Node>& exp,
-                      const std::vector<Node>& noExplain,
-                      const std::vector<Node>& args)
+                                      PfRule id,
+                                      const std::vector<Node>& exp,
+                                      const std::vector<Node>& noExplain,
+                                      const std::vector<Node>& args)
 {
   if (d_pfee != nullptr)
   {
@@ -198,9 +197,9 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
 }
 
 bool TheoryInferenceManager::lemmaExp(Node conc,
-                      const std::vector<Node>& exp,
-                      const std::vector<Node>& noExplain,
-                      ProofGenerator* pg)
+                                      const std::vector<Node>& exp,
+                                      const std::vector<Node>& noExplain,
+                                      ProofGenerator* pg)
 {
   if (d_pfee != nullptr)
   {
@@ -338,8 +337,8 @@ Node TheoryInferenceManager::mkExplain(TNode n)
   return NodeManager::currentNM()->mkAnd(assumptions);
 }
 
-Node TheoryInferenceManager::mkExplainPartial(const std::vector<Node>& exp,
-                                              const std::vector<Node>& noExplain)
+Node TheoryInferenceManager::mkExplainPartial(
+    const std::vector<Node>& exp, const std::vector<Node>& noExplain)
 {
   std::vector<TNode> assumps;
   for (const Node& e : exp)

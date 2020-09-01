@@ -273,8 +273,8 @@ class InferenceManager : public TheoryInferenceManager
   void markReduced(Node n, bool contextDepend = true);
   // ------------------------------------------------- end extended theory
 
-  /** 
-   * Process conflict 
+  /**
+   * Process conflict
    */
   void processConflict(const InferInfo& ii);
 

@@ -132,8 +132,8 @@ class TheoryInferenceManager
    * by proof rule id.
    */
   void conflictExp(PfRule id,
-                           const std::vector<Node>& exp,
-                           const std::vector<Node>& args);
+                   const std::vector<Node>& exp,
+                   const std::vector<Node>& args);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
@@ -160,13 +160,13 @@ class TheoryInferenceManager
    * is a valid theory lemma. This method adds a lemma where part of exp
    * is replaced by its explanation according to the official equality engine
    * of the theory.
-   * 
+   *
    * In particular, this method adds a lemma on the output channel of the form
    *   ( ^_{e in exp \ noExplain} EXPLAIN(e) ^ noExplain ) => conc
    * where EXPLAIN(e) returns the explanation of literal e according to the
    * official equality engine of the theory. Note that noExplain is the *subset*
    * of exp that should not be explained.
-   * 
+   *
    * @param conc The conclusion of the lemma
    * @param id The proof rule concluding conc
    * @param exp The set of (all) literals that imply conc
@@ -176,15 +176,15 @@ class TheoryInferenceManager
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
-                        PfRule id,
-                        const std::vector<Node>& exp,
-                        const std::vector<Node>& noExplain,
-                        const std::vector<Node>& args);
-  /** 
+                PfRule id,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& noExplain,
+                const std::vector<Node>& args);
+  /**
    * Same as above, but where pg can provide a proof of conc from free
    * assumptions in exp. It is required to do so in the remainder of the user
    * context when this method returns true.
-   * 
+   *
    * @param conc The conclusion of the lemma
    * @param exp The set of (all) literals that imply conc
    * @param noExplain The subset of exp that should not be explained by the
@@ -193,9 +193,9 @@ class TheoryInferenceManager
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
-                        const std::vector<Node>& exp,
-                        const std::vector<Node>& noExplain,
-                        ProofGenerator* pg);
+                const std::vector<Node>& exp,
+                const std::vector<Node>& noExplain,
+                ProofGenerator* pg);
   /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,
@@ -286,7 +286,7 @@ class TheoryInferenceManager
    * conjunctions), return the explanation as a conjunction.
    */
   Node mkExplain(TNode n);
-  /** 
+  /**
    * Explain the set of formulas in exp using the official equality engine of
    * the theory. We ask the equality engine to explain literals in exp
    * that do not occur in noExplain, and return unchanged those that occur in
