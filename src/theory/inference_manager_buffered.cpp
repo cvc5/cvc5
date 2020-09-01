@@ -67,7 +67,8 @@ void InferenceManagerBuffered::addPendingFact(Node fact,
   d_pendingFact.push_back(std::pair<Node, Node>(fact, exp));
 }
 
-void InferenceManagerBuffered::addPendingFact(std::shared_ptr<TheoryInference> fact)
+void InferenceManagerBuffered::addPendingFact(
+    std::shared_ptr<TheoryInference> fact)
 {
   d_pendingFact.emplace_back(std::move(fact));
 }
