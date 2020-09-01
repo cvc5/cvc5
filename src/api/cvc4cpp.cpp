@@ -3044,10 +3044,10 @@ Term Solver::mkCharFromStrHelper(const std::string& s) const
   CVC4_API_CHECK(s.find_first_not_of("0123456789abcdefABCDEF", 0)
                      == std::string::npos
                  && s.size() <= 5 && s.size() > 0)
-      << "Unexpected string for hexidecimal character " << s;
+      << "Unexpected string for hexadecimal character " << s;
   uint32_t val = static_cast<uint32_t>(std::stoul(s, 0, 16));
   CVC4_API_CHECK(val < String::num_codes())
-      << "Not a valid code point for hexidecimal character " << s;
+      << "Not a valid code point for hexadecimal character " << s;
   std::vector<unsigned> cpts;
   cpts.push_back(val);
   return mkValHelper<CVC4::String>(CVC4::String(cpts));
@@ -5506,7 +5506,7 @@ Term Solver::getSynthSolution(Term term) const
 
   std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceeded by a "
+      << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::map<CVC4::Node, CVC4::Node>::const_iterator it = map.find(*term.d_node);
@@ -5535,7 +5535,7 @@ std::vector<Term> Solver::getSynthSolutions(
 
   std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceeded by a "
+      << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::vector<Term> synthSolution;

@@ -25,9 +25,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
-#include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
@@ -288,39 +285,30 @@ bool TheoryUF::propagateLit(TNode literal)
   return ok;
 }/* TheoryUF::propagate(TNode) */
 
-void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
+void TheoryUF::explain(TNode literal, Node& exp)
+{
+  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
+  std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL) {
+  if (atom.getKind() == kind::EQUAL)
+  {
     d_equalityEngine->explainEquality(
-        atom[0], atom[1], polarity, assumptions, pf);
-  } else {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions, pf);
+        atom[0], atom[1], polarity, assumptions, nullptr);
   }
-  if( pf ){
-    Debug("pf::uf") << std::endl;
-    pf->debug_print("pf::uf");
+  else
+  {
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-
-  Debug("pf::uf") << "UF: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::uf") << assumptions[i] << " ";
-  }
-  Debug("pf::uf") << std::endl;
+  exp = mkAnd(assumptions);
 }
 
 TrustNode TheoryUF::explain(TNode literal)
 {
-  Node exp = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
-}
-
-Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
-  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions, pf);
-  return mkAnd(assumptions);
+  Node explanation;
+  explain(literal, explanation);
+  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
 }
 
 bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
@@ -662,12 +650,11 @@ void TheoryUF::computeCareGraph() {
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
-void TheoryUF::conflict(TNode a, TNode b) {
-  std::shared_ptr<eq::EqProof> pf =
-      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Node conf = explain(a.eqNode(b), pf.get());
-  std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
-  d_out->conflict(conf, std::move(puf));
+void TheoryUF::conflict(TNode a, TNode b)
+{
+  Node conf;
+  explain(a.eqNode(b), conf);
+  d_out->conflict(conf);
   d_state.notifyInConflict();
 }
 

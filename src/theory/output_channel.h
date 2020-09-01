@@ -22,11 +22,9 @@
 #include <memory>
 
 #include "expr/proof_node.h"
-#include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
 #include "theory/interrupted.h"
 #include "theory/trust_node.h"
-#include "util/proof.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -135,10 +133,8 @@ class OutputChannel {
    * assigned false), or else a literal by itself (in the case of a
    * unit conflict) which is assigned TRUE (and T-conflicting) in the
    * current assignment.
-   * @param pf - a proof of the conflict. This is only non-null if proofs
-   * are enabled.
    */
-  virtual void conflict(TNode n, std::unique_ptr<Proof> pf = nullptr) = 0;
+  virtual void conflict(TNode n) = 0;
 
   /**
    * Propagate a theory literal.
@@ -153,19 +149,11 @@ class OutputChannel {
    * been detected.  (This requests a split.)
    *
    * @param n - a theory lemma valid at decision level 0
-   * @param rule - the proof rule for this lemma
    * @param p The properties of the lemma
    * @return the "status" of the lemma, including user level at which
    * the lemma resides; the lemma will be removed when this user level pops
    */
-  virtual LemmaStatus lemma(TNode n,
-                            ProofRule rule,
-                            LemmaProperty p = LemmaProperty::NONE) = 0;
-
-  /**
-   * Variant of the lemma function that does not require providing a proof rule.
-   */
-  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE);
+  virtual LemmaStatus lemma(TNode n, LemmaProperty p = LemmaProperty::NONE) = 0;
 
   /**
    * Request a split on a new theory atom.  This is equivalent to
