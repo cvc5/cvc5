@@ -182,8 +182,8 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
                                       const std::vector<Node>& args,
-                                          LemmaProperty p,
-                                          bool doCache)
+                                      LemmaProperty p,
+                                      bool doCache)
 {
   if (d_pfee != nullptr)
   {
@@ -201,8 +201,8 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
                                       ProofGenerator* pg,
-                                          LemmaProperty p,
-                                          bool doCache)
+                                      LemmaProperty p,
+                                      bool doCache)
 {
   if (d_pfee != nullptr)
   {
