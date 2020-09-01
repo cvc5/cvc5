@@ -156,6 +156,42 @@ bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
   return true;
 }
 
+
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                                      PfRule id,
+                                      const std::vector<Node>& exp,
+                                      const std::vector<Node>& noExplain,
+                                      const std::vector<Node>& args)
+{
+  if (d_pfee != nullptr)
+  {
+    // make the trust node from the proof equality engine
+    TrustNode trn = d_pfee->assertLemma(conc, id, exp, noExplain, args);
+    return trustedLemma(trn);
+  }
+  // otherwise, not using proofs, explain and send lemma
+  Node ant = mkExplainPartial(exp, noExplain);
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  return lemma(lem);
+}
+
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                                      const std::vector<Node>& exp,
+                                      const std::vector<Node>& noExplain,
+                                      ProofGenerator* pg)
+{
+  if (d_pfee != nullptr)
+  {
+    // make the trust node from the proof equality engine
+    TrustNode trn = d_pfee->assertLemma(conc, exp, noExplain, pg);
+    return trustedLemma(trn);
+  }
+  // otherwise, not using proofs, explain and send lemma
+  Node ant = mkExplainPartial(exp, noExplain);
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  return lemma(lem);
+}
+
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
   return d_lemmasSent.find(lem) != d_lemmasSent.end();
@@ -279,6 +315,28 @@ Node TheoryInferenceManager::mkExplain(TNode n)
   explain(n, assumptions);
   return NodeManager::currentNM()->mkAnd(assumptions);
 }
+
+Node TheoryInferenceManager::mkExplainPartial(
+    const std::vector<Node>& exp, const std::vector<Node>& noExplain)
+{
+  std::vector<TNode> assumps;
+  for (const Node& e : exp)
+  {
+    if (std::find(noExplain.begin(), noExplain.end(), e) != noExplain.end())
+    {
+      if (std::find(assumps.begin(), assumps.end(), e) == assumps.end())
+      {
+        // a non-explained literal
+        assumps.push_back(e);
+      }
+      continue;
+    }
+    // otherwise, explain it
+    explain(e, assumps);
+  }
+  return NodeManager::currentNM()->mkAnd(assumps);
+}
+
 
 uint32_t TheoryInferenceManager::numAddedFacts() const
 {

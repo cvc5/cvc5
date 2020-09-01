@@ -25,30 +25,10 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-/**
- * The datatypes inference manager. The main unique features of this inference
- * manager are:
- * (1) Explicit caching of lemmas,
- * (2) A custom process() method with relies on a policy determining which
- * facts must be sent as lemmas (mustCommunicateFact).
- * (3) Methods for tracking when lemmas and facts have been processed.
- */
-class InferenceManager : public InferenceManagerBuffered
+class DatatypeFact : public TheoryInference
 {
-  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-
- public:
-  InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
-  ~InferenceManager() {}
-  /**
-   * Process the current lemmas and facts. This is a custom method that can
-   * be seen as overriding the behavior of calling both doPendingLemmas and
-   * doPendingFacts. It determines whether facts should be sent as lemmas
-   * or processed internally.
-   */
-  void process();
-
- protected:
+public:
+  DatatypeFact(Node conc, Node exp);
   /**
    * Must communicate fact method.
    * The datatypes decision procedure makes "internal" inferences :
@@ -65,7 +45,46 @@ class InferenceManager : public InferenceManagerBuffered
    * communicate outwards if the conclusions involve other theories.  Also
    * communicate (6) and OR conclusions.
    */
-  bool mustCommunicateFact(Node n, Node exp) const;
+  static bool mustCommunicateFact(Node n, Node exp);
+  /** 
+   * Process this fact, possibly as a fact or as a lemma, depending on the
+   * above method.
+   */
+  bool process(TheoryInferenceManager* im) override;
+  /** The conclusion */
+  Node d_conc;
+  /** The explanation */
+  Node d_exp;
+};
+  
+/**
+ * The datatypes inference manager. The main unique features of this inference
+ * manager are:
+ * (1) Explicit caching of lemmas,
+ * (2) A custom process() method with relies on a policy determining which
+ * facts must be sent as lemmas (mustCommunicateFact).
+ * (3) Methods for tracking when lemmas and facts have been processed.
+ */
+class InferenceManager : public InferenceManagerBuffered
+{
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
+ public:
+  InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
+  ~InferenceManager() {}
+  /** 
+   * Add pending fact
+   */
+  void addPendingFactOrLemma(Node conc, Node exp);
+  /**
+   * Process the current lemmas and facts. This is a custom method that can
+   * be seen as overriding the behavior of calling both doPendingLemmas and
+   * doPendingFacts. It determines whether facts should be sent as lemmas
+   * or processed internally.
+   */
+  void process();
+
+ protected:
   /** Common node */
   Node d_true;
 };

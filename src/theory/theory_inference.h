@@ -19,10 +19,13 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "theory/output_channel.h"
 
 namespace CVC4 {
 namespace theory {
 
+class TheoryInferenceManager;
+  
 /**
  * A theory inference base class. This class is an abstract data structure for
  * storing pending lemmas or facts in the buffered inference manager. It can
@@ -32,6 +35,7 @@ namespace theory {
 class TheoryInference
 {
  public:
+   virtual ~TheoryInference(){}
   /**
    * Called by the provided inference manager to process this inference. This
    * method should make a single call to inference manager to process this
