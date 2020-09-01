@@ -16,6 +16,8 @@
  **/
 
 #include "theory/arith/callbacks.h"
+
+#include "theory/arith/proof_macros.h"
 #include "theory/arith/theory_arith_private.h"
 
 namespace CVC4 {

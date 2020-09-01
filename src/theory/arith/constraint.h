@@ -90,6 +90,7 @@
 #include "theory/arith/congruence_manager.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/delta_rational.h"
+#include "theory/arith/proof_macros.h"
 
 namespace CVC4 {
 namespace theory {
