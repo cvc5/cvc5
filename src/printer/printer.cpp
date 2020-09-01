@@ -74,7 +74,8 @@ void Printer::toStream(std::ostream& out, const Model& m) const
 {
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     const NodeCommand* cmd = m.getCommand(i);
-    const DeclareFunctionNodeCommand* dfc = dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
+    const DeclareFunctionNodeCommand* dfc =
+        dynamic_cast<const DeclareFunctionNodeCommand*>(cmd);
     if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction().toExpr()))
     {
       continue;
