@@ -48,7 +48,14 @@ bool SimpleTheoryInternalFact::process(TheoryInferenceManager* im)
   TNode atom = polarity ? d_conc : d_conc[0];
   // no double negation or conjunctive conclusions
   Assert(atom.getKind() != NOT && atom.getKind() != AND);
-  im->assertInternalFact(atom, polarity, d_exp, d_pg);
+  if (d_pg!=nullptr)
+  {
+    im->assertInternalFact(atom, polarity, {d_exp}, d_pg);
+  }
+  else
+  {
+    im->assertInternalFact(atom, polarity, d_exp);
+  }
   return true;
 }
 
