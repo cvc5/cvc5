@@ -24,14 +24,20 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-DatatypesInference::DatatypesInference(Node conc, Node exp) : d_conc(conc), d_exp(exp) {}
+DatatypesInference::DatatypesInference(Node conc, Node exp) : d_conc(conc), d_exp(exp) {
+  
+    // false is not a valid explanation
+    Assert(!d_exp.isConst() || d_exp.getConst<bool>());
+
+}
 
 bool DatatypesInference::mustCommunicateFact(Node n, Node exp)
 {
   Trace("dt-lemma-debug") << "Compute for " << exp << " => " << n << std::endl;
   bool addLemma = false;
-  if (options::dtInferAsLemmas() && exp != d_true)
+  if (options::dtInferAsLemmas() && !exp.isConst())
   {
+    // all units are lemmas
     addLemma = true;
   }
   else if (n.getKind() == EQUAL)
@@ -65,19 +71,18 @@ bool DatatypesInference::process(TheoryInferenceManager* im)
   // check to see if we have to communicate it to the rest of the system
   if (mustCommunicateFact(d_conc, d_exp))
   {
-    Assert(!d_exp.isConst() || d_exp.getConst<bool>());
     // send it as an (explained) lemma
     std::vector<Node> exp;
     if (!d_exp.isNull() && !d_exp.isConst())
     {
       exp.push_back(d_exp);
     }
-    return d_im->lemmaExp(d_conc, exp, {});
+    return im->lemmaExp(d_conc, exp, {});
   }
   // assert the internal fact
   bool polarity = d_conc.getKind() != NOT;
   TNode atom = polarity ? d_conc : d_conc[0];
-  d_im->assertInternalFact(atom, polarity, d_exp);
+  im->assertInternalFact(atom, polarity, d_exp);
   return true;
 }
 
