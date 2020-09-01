@@ -197,7 +197,7 @@ Node UfProofRuleChecker::checkInternal(PfRule id,
   }
   else if (id == PfRule::HO_APP_ENCODE)
   {
-    Assert(args.size()==1);
+    Assert(args.size() == 1);
     Node ret = TheoryUfRewriter::getHoApplyForApplyUf(args[0]);
     return args[0].eqNode(ret);
   }

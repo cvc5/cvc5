@@ -22,9 +22,9 @@
 
 #include "expr/node_algorithm.h"
 #include "options/uf_options.h"
+#include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_rewriter.h"
-#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
