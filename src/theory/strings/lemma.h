@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__STRINGS_INFERENCE_H
 #define CVC4__THEORY__STRINGS__STRINGS_INFERENCE_H
 
-#include "theory/theory_inference.h"
 #include "theory/strings/infer_info.h"
+#include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {

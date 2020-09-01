@@ -65,7 +65,8 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
 {
   // make a simple theory internal fact
   Assert(conc.getKind() != AND && conc.getKind() != OR);
-  d_pendingFact.push_back(std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
+  d_pendingFact.push_back(
+      std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(
