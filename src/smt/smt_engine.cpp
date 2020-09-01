@@ -62,7 +62,6 @@
 #include "options/open_ostream.h"
 #include "options/option_exception.h"
 #include "options/printer_options.h"
-#include "options/proof_options.h"
 #include "options/prop_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -75,9 +74,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
-#include "proof/proof.h"
 #include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
 #include "proof/unsat_core.h"
 #include "smt/abduction_solver.h"
 #include "smt/abstract_values.h"
@@ -113,13 +110,8 @@
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "util/hash.h"
-#include "util/proof.h"
 #include "util/random.h"
 #include "util/resource_manager.h"
-
-#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
-#include "lfscc.h"
-#endif
 
 using namespace std;
 using namespace CVC4;
@@ -130,10 +122,6 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 namespace CVC4 {
-
-namespace proof {
-extern const char* const plf_signatures;
-}  // namespace proof
 
 namespace smt {
 
@@ -307,15 +295,6 @@ void SmtEngine::finishInit()
     d_abductSolver.reset(new AbductionSolver(this));
   }
 
-  PROOF( ProofManager::currentPM()->setLogic(d_logic); );
-  PROOF({
-    TheoryEngine* te = d_smtSolver->getTheoryEngine();
-    for (TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id)
-    {
-      ProofManager::currentPM()->getTheoryProofEngine()->finishRegisterTheory(
-          te->theoryOf(id));
-    }
-  });
   d_pp->finishInit();
 
   AlwaysAssert(getPropEngine()->getAssertionLevel() == 0)
@@ -1005,12 +984,6 @@ Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
         checkModel();
       }
     }
-    // Check that UNSAT results generate a proof correctly.
-    if(options::checkProofs()) {
-      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-        checkProof();
-      }
-    }
     // Check that UNSAT results generate an unsat core correctly.
     if(options::checkUnsatCores()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
@@ -1476,43 +1449,6 @@ Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
 
-void SmtEngine::checkProof()
-{
-#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
-
-  Chat() << "generating proof..." << endl;
-
-  const Proof& pf = getProof();
-
-  Chat() << "checking proof..." << endl;
-
-  std::string logicString = d_logic.getLogicString();
-
-  std::stringstream pfStream;
-
-  pfStream << proof::plf_signatures << endl;
-  int64_t sizeBeforeProof = static_cast<int64_t>(pfStream.tellp());
-
-  pf.toStream(pfStream);
-  d_stats->d_proofsSize +=
-      static_cast<int64_t>(pfStream.tellp()) - sizeBeforeProof;
-
-  {
-    TimerStat::CodeTimer checkProofTimer(d_stats->d_lfscCheckProofTime);
-    lfscc_init();
-    lfscc_check_file(pfStream, false, false, false, false, false, false, false);
-  }
-  // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
-  // segfaults on regress0/bv/core/bitvec7.smt
-  // lfscc_cleanup();
-
-#else  /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
-  Unreachable()
-      << "This version of CVC4 was built without proof support; cannot check "
-         "proofs.";
-#endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
-}
-
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
 #if IS_PROOFS_BUILD
@@ -1548,7 +1484,6 @@ void SmtEngine::checkUnsatCore() {
   coreChecker.setIsInternalSubsolver();
   coreChecker.setLogic(getLogicInfo());
   coreChecker.getOptions().set(options::checkUnsatCores, false);
-  coreChecker.getOptions().set(options::checkProofs, false);
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {
@@ -1821,32 +1756,6 @@ UnsatCore SmtEngine::getUnsatCore() {
     Dump("benchmark") << GetUnsatCoreCommand();
   }
   return getUnsatCoreInternal();
-}
-
-// TODO(#1108): Simplify the error reporting of this method.
-const Proof& SmtEngine::getProof()
-{
-  Trace("smt") << "SMT getProof()" << endl;
-  SmtScope smts(this);
-  finishInit();
-  if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << GetProofCommand();
-  }
-#if IS_PROOFS_BUILD
-  if(!options::proof()) {
-    throw ModalException("Cannot get a proof when produce-proofs option is off.");
-  }
-  if (d_state->getMode() != SmtMode::UNSAT)
-  {
-    throw RecoverableModalException(
-        "Cannot get a proof unless immediately preceded by UNSAT/ENTAILED "
-        "response.");
-  }
-
-  return ProofManager::getProof(this);
-#else /* IS_PROOFS_BUILD */
-  throw ModalException("This build of CVC4 doesn't have proof support.");
-#endif /* IS_PROOFS_BUILD */
 }
 
 void SmtEngine::printInstantiations( std::ostream& out ) {

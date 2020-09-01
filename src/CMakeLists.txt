@@ -118,50 +118,13 @@ libcvc4_add_sources(
   printer/smt2/smt2_printer.h
   printer/tptp/tptp_printer.cpp
   printer/tptp/tptp_printer.h
-  proof/arith_proof.cpp
-  proof/arith_proof.h
-  proof/arith_proof_recorder.cpp
-  proof/arith_proof_recorder.h
-  proof/array_proof.cpp
-  proof/array_proof.h
-  proof/bitvector_proof.cpp
-  proof/bitvector_proof.h
-  proof/clausal_bitvector_proof.cpp
-  proof/clausal_bitvector_proof.h
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
-  proof/dimacs.cpp
-  proof/dimacs.h
-  proof/drat/drat_proof.cpp
-  proof/drat/drat_proof.h
-  proof/er/er_proof.cpp
-  proof/er/er_proof.h
-  proof/lemma_proof.cpp
-  proof/lemma_proof.h
-  proof/lfsc_proof_printer.cpp
-  proof/lfsc_proof_printer.h
-  proof/lrat/lrat_proof.cpp
-  proof/lrat/lrat_proof.h
-  proof/proof.h
   proof/proof_manager.cpp
   proof/proof_manager.h
-  proof/proof_output_channel.cpp
-  proof/proof_output_channel.h
-  proof/proof_utils.cpp
-  proof/proof_utils.h
-  proof/resolution_bitvector_proof.cpp
-  proof/resolution_bitvector_proof.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
-  proof/simplify_boolean_node.cpp
-  proof/simplify_boolean_node.h
-  proof/skolemization_manager.cpp
-  proof/skolemization_manager.h
-  proof/theory_proof.cpp
-  proof/theory_proof.h
-  proof/uf_proof.cpp
-  proof/uf_proof.h
   proof/unsat_core.cpp
   proof/unsat_core.h
   prop/bvminisat/bvminisat.cpp
@@ -387,8 +350,6 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
-  theory/arrays/array_proof_reconstruction.cpp
-  theory/arrays/array_proof_reconstruction.h
   theory/arrays/static_fact_manager.cpp
   theory/arrays/static_fact_manager.h
   theory/arrays/theory_arrays.cpp
@@ -1102,7 +1063,6 @@ install(FILES
           util/integer_gmp_imp.h
           util/maybe.h
           util/poly_util.h
-          util/proof.h
           util/rational_cln_imp.h
           util/rational_gmp_imp.h
           util/real_algebraic_number_poly_imp.h

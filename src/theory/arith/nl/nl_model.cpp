@@ -16,6 +16,7 @@
 
 #include "expr/node_algorithm.h"
 #include "options/arith_options.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/arith_utilities.h"
