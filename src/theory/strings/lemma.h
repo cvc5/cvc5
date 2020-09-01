@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lemma.h
+/*! \file strings_inference.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,21 +14,21 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__LEMMA_H
-#define CVC4__THEORY__STRINGS__LEMMA_H
+#ifndef CVC4__THEORY__STRINGS__STRINGS_INFERENCE_H
+#define CVC4__THEORY__STRINGS__STRINGS_INFERENCE_H
 
-#include "theory/inference_manager_buffered.h"
+#include "theory/theory_inference.h"
 #include "theory/strings/infer_info.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class StringsLemma : public Lemma
+class StringsInference : public TheoryInference
 {
  public:
-  StringsLemma(const InferInfo& ii) : d_ii(ii) {}
-  ~StringsLemma() {}
+  StringsInference(const InferInfo& ii) : d_ii(ii) {}
+  ~StringsInference() {}
 
   /** Process with inference manager im */
   bool process(InferenceManager* im);
@@ -40,4 +40,4 @@ class StringsLemma : public Lemma
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__LEMMA_H */
+#endif /* CVC4__THEORY__STRINGS__STRINGS_INFERENCE_H */
