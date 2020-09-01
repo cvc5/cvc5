@@ -798,7 +798,6 @@ bool Constraint::wellFormedFarkasProof() const {
 #else
   return true;
 #endif /* IS_PROOFS_BUILD */
-
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
