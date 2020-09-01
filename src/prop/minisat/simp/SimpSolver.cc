@@ -525,7 +525,7 @@ bool SimpSolver::eliminateVar(Var v)
     for (int i = 0; i < cls.size(); i++)
         (find(ca[cls[i]], mkLit(v)) ? pos : neg).push(cls[i]);
 
-    // Check wether the increase in number of clauses stays within the allowed ('grow'). Moreover, no
+    // Check whether the increase in number of clauses stays within the allowed ('grow'). Moreover, no
     // clause must exceed the limit on the maximal clause size (if it is set):
     //
     int cnt         = 0;
