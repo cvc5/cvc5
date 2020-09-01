@@ -1213,6 +1213,7 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
 
   coeffs = new RationalVector();
   coeffs->push_back(first);
+  coeffs->push_back(second);
 
   // no need to delete coeffs the memory is owned by ConstraintRule
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
@@ -1361,7 +1362,8 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorCP coeffsCopy;
-  coeffsCopy = RationalVectorCPSentinel;
+  Assert(coeffs != RationalVectorCPSentinel);
+  coeffsCopy = new RationalVector(*coeffs);
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));
 
   Assert(inConflict() == nowInConflict);
