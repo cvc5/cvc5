@@ -71,13 +71,23 @@ class TheoryInferenceManager
    */
   TheoryInferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   virtual ~TheoryInferenceManager() {}
-  //--------------------------------------- initialization
   /**
    * Set equality engine, ee is a pointer to the official equality engine
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
-  //--------------------------------------- end initialization
+  /**
+   * Reset, which resets counters regarding the number of added lemmas and
+   * internal facts. This method should be manually called by the theory at
+   * the appropriate time for the purpose of tracking the usage of this
+   * inference manager.
+   *
+   * For example, some theories implement an internal checking loop that
+   * repeats while new facts are added. The theory should call reset at the
+   * beginning of this loop and repeat its strategy while hasAddedFact is true.
+   */
+  void reset();
+  //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
    * returns false if we are in conflict.
@@ -94,6 +104,7 @@ class TheoryInferenceManager
    * Theory, if it exists.
    */
   virtual TrustNode explainLit(TNode lit);
+  //--------------------------------------- conflicts
   /**
    * Raise conflict, called when constants a and b merge. Sends the conflict
    * on the output channel corresponding to the equality engine's explanation
@@ -114,11 +125,39 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
-  /** Send lemma lem with property p on the output channel. */
-  LemmaStatus lemma(TNode lem, LemmaProperty p = LemmaProperty::NONE);
-  /** Send (trusted) lemma lem with property p on the output channel. */
-  LemmaStatus trustedLemma(const TrustNode& tlem,
-                           LemmaProperty p = LemmaProperty::NONE);
+  //--------------------------------------- lemmas
+  /**
+   * Send (trusted) lemma lem with property p on the output channel.
+   *
+   * @param tlem The trust node containing the lemma and its proof generator.
+   * @param p The property of the lemma
+   * @param doCache If true, we send the lemma only if it has not already been
+   * cached (see cacheLemma), and add it to the cache during this call.
+   * @return true if the lemma was sent on the output channel.
+   */
+  bool trustedLemma(const TrustNode& tlem,
+                    LemmaProperty p = LemmaProperty::NONE,
+                    bool doCache = true);
+  /**
+   * Send lemma lem with property p on the output channel. Same as above, with
+   * a node instead of a trust node.
+   */
+  bool lemma(TNode lem,
+             LemmaProperty p = LemmaProperty::NONE,
+             bool doCache = true);
+  /**
+   * Has this inference manager cached and sent the given lemma (in this user
+   * context)? This method can be overridden by the particular manager. If not,
+   * this returns true if lem is in the cache d_lemmasSent maintained by this
+   * class. Notice that the default cache in this base class is not dependent
+   * on the lemma property.
+   */
+  virtual bool hasCachedLemma(TNode lem, LemmaProperty p);
+  /** The number of lemmas we have sent since the last call to reset */
+  uint32_t numAddedLemmas() const;
+  /** Have we added a lemma since the last call to reset? */
+  bool hasAddedLemma() const;
+  //--------------------------------------- internal facts
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
    * facts into the equality engine of the theory. In particular, this method
@@ -163,6 +202,10 @@ class TheoryInferenceManager
                           bool pol,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
+  /** The number of internal facts we have added since the last call to reset */
+  uint32_t numAddedFacts() const;
+  /** Have we added a internal fact since the last call to reset? */
+  bool hasAddedFact() const;
 
  protected:
   /**
@@ -192,6 +235,15 @@ class TheoryInferenceManager
    * conjunctions), return the explanation as a conjunction.
    */
   Node mkExplain(TNode n);
+  /**
+   * Cache that lemma lem is being sent with property p. Return true if it
+   * did not already exist in the cache maintained by this class. If this
+   * method is not overridden, then we use the d_lemmasSent cache maintained
+   * by this class, which notice is not dependent on lemma property. If
+   * the lemma property should be taken into account, the manager should
+   * override this method to take the lemma property into account as needed.
+   */
+  virtual bool cacheLemma(TNode lem, LemmaProperty p);
   /** The theory object */
   Theory& d_theory;
   /** Reference to the state of theory */
@@ -211,6 +263,15 @@ class TheoryInferenceManager
    * SAT-context-dependent.
    */
   NodeSet d_keep;
+  /**
+   * A cache of all lemmas sent, which is a user-context-dependent set of
+   * nodes. Notice that this cache does not depedent on lemma property.
+   */
+  NodeSet d_lemmasSent;
+  /** The number of lemmas sent since the last call to reset. */
+  uint32_t d_numCurrentLemmas;
+  /** The number of internal facts added since the last call to reset. */
+  uint32_t d_numCurrentFacts;
 };
 
 }  // namespace theory

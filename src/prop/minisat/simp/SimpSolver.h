@@ -55,7 +55,7 @@ class SimpSolver : public Solver {
     bool    addClause (Lit p, Lit q, bool removable, ClauseId& id); // Add a binary clause to the solver.
     bool    addClause (Lit p, Lit q, Lit r, bool removable, ClauseId& id); // Add a ternary clause to the solver.
     bool    addClause_(vec<Lit>& ps, bool removable, ClauseId& id);
-    bool    substitute(Var v, Lit x);  // Replace all occurences of v with x (may cause a contradiction).
+    bool    substitute(Var v, Lit x);  // Replace all occurrences of v with x (may cause a contradiction).
 
     // Variable mode:
     // 

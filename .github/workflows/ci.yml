@@ -90,12 +90,12 @@ jobs:
         python3 -m pip install pexpect
         echo "::add-path::/usr/local/opt/ccache/libexec"
 
-    # Note: We install Cython with sudo since cmake can't find Cython otherwise.
     - name: Install Cython
       if: matrix.python-bindings && runner.os == 'Linux'
       run: |
-        sudo python3 -m pip install \
-          Cython==0.29 --install-option="--no-cython-compile"
+        python3 -m pip install \
+          Cython==0.29.* --install-option="--no-cython-compile"
+        echo "::add-path::$(python3 -m site --user-base)/bin"
 
     - name: Install Cython (macOS)
       if: matrix.python-bindings && runner.os == 'macOS'
