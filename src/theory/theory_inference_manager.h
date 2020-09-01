@@ -174,13 +174,17 @@ class TheoryInferenceManager
    * @param noExplain The subset of exp that should not be explained by the
    * equality engine
    * @param args The arguments to the proof step concluding conc
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
                 PfRule id,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
-                const std::vector<Node>& args);
+                const std::vector<Node>& args,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
   /**
    * Same as above, but where pg can provide a proof of conc from free
    * assumptions in exp. It is required to do so in the remainder of the user
@@ -191,12 +195,16 @@ class TheoryInferenceManager
    * @param noExplain The subset of exp that should not be explained by the
    * equality engine
    * @param pg If non-null, the proof generator who can provide a proof of conc.
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
-                ProofGenerator* pg = nullptr);
+                ProofGenerator* pg = nullptr,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
   /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,
