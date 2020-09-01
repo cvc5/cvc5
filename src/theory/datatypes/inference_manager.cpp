@@ -123,6 +123,19 @@ void InferenceManager::process()
   d_pendingFact.clear();
 }
 
+bool InferenceManager::sendLemmas(const std::vector<Node>& lemmas)
+{
+  bool ret = false;
+  for (const Node& lem : lemmas)
+  {
+    if (lemma(lem))
+    {
+      ret = true;
+    }
+  }
+  return ret;
+}
+
 }  // namespace datatypes
 }  // namespace theory
 }  // namespace CVC4
