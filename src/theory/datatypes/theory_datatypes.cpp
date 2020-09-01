@@ -1007,7 +1007,7 @@ void TheoryDatatypes::addTester(
       if( tpolarity ){
         instantiate( eqc, n );
         // We could propagate is-C1(x) => not is-C2(x) here for all other
-        // constructors, but empirically this is not helpful.
+        // constructors, but empirically this hurts performance.
       }else{
         //check if we have reached the maximum number of testers
         // in this case, add the positive tester
