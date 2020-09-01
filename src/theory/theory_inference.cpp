@@ -34,5 +34,19 @@ bool SimpleTheoryLemma::process(InferenceManager * im)
   return im->trustedLemma(TrustNode::mkTrustLemma(d_node, d_pg), d_property);
 }
 
+
+SimpleTheoryInternalFact::SimpleTheoryInternalFact(Node conc, Node exp, ProofGenerator* pg) : d_conc(conc), d_exp(exp), d_pg(pg)
+{
+  
+}
+
+bool SimpleTheoryInternalFact::process(TheoryInferenceManager * im)
+{
+  bool polarity = d_conc.getKind() != NOT;
+  TNode atom = polarity ? d_conc : d_conc[0];
+  d_im.assertInternalFact(atom, polarity, d_exp, d_pg);
+  return true;
+}
+
 }  // namespace theory
 }  // namespace CVC4

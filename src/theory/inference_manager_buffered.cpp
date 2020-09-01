@@ -49,15 +49,17 @@ void InferenceManagerBuffered::addPendingLemma(Node lem,
                                                LemmaProperty p,
                                                ProofGenerator* pg)
 {
-  d_pendingLem.push_back(std::make_shared<Lemma>(lem, p, pg));
+  // make the simple theory lemma
+  d_pendingLem.push_back(std::make_shared<SimpleTheoryLemma>(lem, p, pg));
 }
 
-void InferenceManagerBuffered::addPendingLemma(std::shared_ptr<Lemma> lemma)
+void InferenceManagerBuffered::addPendingLemma(std::shared_ptr<TheoryInference> lemma)
 {
   d_pendingLem.emplace_back(std::move(lemma));
 }
 
-void InferenceManagerBuffered::addPendingFact(Node fact, Node exp)
+void InferenceManagerBuffered::addPendingFact(Node fact, Node exp,
+                       ProofGenerator* pg)
 {
   Assert(fact.getKind() != AND && fact.getKind() != OR);
   d_pendingFact.push_back(std::pair<Node, Node>(fact, exp));
@@ -91,19 +93,10 @@ void InferenceManagerBuffered::doPendingFacts()
 void InferenceManagerBuffered::doPendingLemmas()
 {
   // process all the pending lemmas
-  for (const std::shared_ptr<Lemma>& plem : d_pendingLem)
+  for (const std::shared_ptr<TheoryInference>& plem : d_pendingLem)
   {
-    if (!plem->notifySend())
-    {
-      // the lemma indicated that it should not be sent after all
-      continue;
-    }
-    Node lem = plem->d_node;
-    LemmaProperty p = plem->d_property;
-    ProofGenerator* pg = plem->d_pg;
-    Assert(!lem.isNull());
-    // send (trusted) lemma on the output channel with property p
-    trustedLemma(TrustNode::mkTrustLemma(lem, pg), p);
+    // process the inference
+    plem->process(this);
   }
   d_pendingLem.clear();
 }

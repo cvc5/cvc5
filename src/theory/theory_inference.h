@@ -69,6 +69,27 @@ class SimpleTheoryLemma : public TheoryInference
   ProofGenerator* d_pg;
 };
 
+/**
+ * A simple internal fact.
+ */
+class SimpleTheoryInternalFact : public TheoryInference
+{
+ public:
+  SimpleTheoryInternalFact(Node conc, Node exp, ProofGenerator* pg);
+  virtual ~SimpleTheoryInternalFact() {}
+  /** 
+   * Send the lemma using inference manager im, return true if the lemma was
+   * sent.
+   */
+  bool process(TheoryInferenceManager * im) override;
+  /** The lemma to send */
+  Node d_conc;
+  /** The explanation */
+  Node d_exp;
+  /** The proof generator */
+  ProofGenerator* d_pg;
+};
+
 }  // namespace theory
 }  // namespace CVC4
 

@@ -63,7 +63,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * above one. Pending lemmas are sent to the output channel using
    * doPendingLemmas.
    */
-  void addPendingLemma(std::shared_ptr<Lemma> lemma);
+  void addPendingLemma(std::shared_ptr<TheoryInference> lemma);
   /**
    * Add pending fact, which adds a fact on the pending fact queue. It must
    * be the case that:
@@ -74,7 +74,8 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
    */
-  void addPendingFact(Node fact, Node exp);
+  void addPendingFact(Node fact, Node exp,
+                       ProofGenerator* pg = nullptr);
   /** Add pending phase requirement
    *
    * This method is called to indicate this class should send a phase
@@ -122,9 +123,9 @@ class InferenceManagerBuffered : public TheoryInferenceManager
 
  protected:
   /** A set of pending lemmas */
-  std::vector<std::shared_ptr<Lemma>> d_pendingLem;
+  std::vector<std::shared_ptr<TheoryInference>> d_pendingLem;
   /** A set of pending facts, paired with their explanations */
-  std::vector<std::pair<Node, Node>> d_pendingFact;
+  std::vector<std::shared_ptr<TheoryInference>> d_pendingFact;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
 };
