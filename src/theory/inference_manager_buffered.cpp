@@ -49,18 +49,30 @@ void InferenceManagerBuffered::addPendingLemma(Node lem,
                                                LemmaProperty p,
                                                ProofGenerator* pg)
 {
-  d_pendingLem.push_back(std::make_shared<Lemma>(lem, p, pg));
+  // make the simple theory lemma
+  d_pendingLem.push_back(std::make_shared<SimpleTheoryLemma>(lem, p, pg));
 }
 
-void InferenceManagerBuffered::addPendingLemma(std::shared_ptr<Lemma> lemma)
+void InferenceManagerBuffered::addPendingLemma(
+    std::shared_ptr<TheoryInference> lemma)
 {
   d_pendingLem.emplace_back(std::move(lemma));
 }
 
-void InferenceManagerBuffered::addPendingFact(Node fact, Node exp)
+void InferenceManagerBuffered::addPendingFact(Node conc,
+                                              Node exp,
+                                              ProofGenerator* pg)
 {
-  Assert(fact.getKind() != AND && fact.getKind() != OR);
-  d_pendingFact.push_back(std::pair<Node, Node>(fact, exp));
+  // make a simple theory internal fact
+  Assert(conc.getKind() != AND && conc.getKind() != OR);
+  d_pendingFact.push_back(
+      std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
+}
+
+void InferenceManagerBuffered::addPendingFact(
+    std::shared_ptr<TheoryInference> fact)
+{
+  d_pendingFact.emplace_back(std::move(fact));
 }
 
 void InferenceManagerBuffered::addPendingPhaseRequirement(Node lit, bool pol)
@@ -75,14 +87,9 @@ void InferenceManagerBuffered::doPendingFacts()
   size_t i = 0;
   while (!d_theoryState.isInConflict() && i < d_pendingFact.size())
   {
-    std::pair<Node, Node>& pfact = d_pendingFact[i];
-    Node fact = pfact.first;
-    Node exp = pfact.second;
-    bool polarity = fact.getKind() != NOT;
-    TNode atom = polarity ? fact : fact[0];
-    // no double negation or conjunctive conclusions
-    Assert(atom.getKind() != NOT && atom.getKind() != AND);
-    assertInternalFact(atom, polarity, exp);
+    // process this fact, which notice may enqueue more pending facts in this
+    // loop.
+    d_pendingFact[i]->process(this);
     i++;
   }
   d_pendingFact.clear();
@@ -90,20 +97,10 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
-  // process all the pending lemmas
-  for (const std::shared_ptr<Lemma>& plem : d_pendingLem)
+  for (const std::shared_ptr<TheoryInference>& plem : d_pendingLem)
   {
-    if (!plem->notifySend())
-    {
-      // the lemma indicated that it should not be sent after all
-      continue;
-    }
-    Node lem = plem->d_node;
-    LemmaProperty p = plem->d_property;
-    ProofGenerator* pg = plem->d_pg;
-    Assert(!lem.isNull());
-    // send (trusted) lemma on the output channel with property p
-    trustedLemma(TrustNode::mkTrustLemma(lem, pg), p);
+    // process this lemma
+    plem->process(this);
   }
   d_pendingLem.clear();
 }
