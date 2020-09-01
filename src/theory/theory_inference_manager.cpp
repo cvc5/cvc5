@@ -16,7 +16,6 @@
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/proof_equality_engine.h"
 
 using namespace CVC4::kind;
 
@@ -182,35 +181,39 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       PfRule id,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
-                                      const std::vector<Node>& args)
+                                      const std::vector<Node>& args,
+                                      LemmaProperty p,
+                                      bool doCache)
 {
   if (d_pfee != nullptr)
   {
     // make the trust node from the proof equality engine
     TrustNode trn = d_pfee->assertLemma(conc, id, exp, noExplain, args);
-    return trustedLemma(trn);
+    return trustedLemma(trn, p, doCache);
   }
   // otherwise, not using proofs, explain and send lemma
   Node ant = mkExplainPartial(exp, noExplain);
   Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
-  return lemma(lem);
+  return lemma(lem, p, doCache);
 }
 
 bool TheoryInferenceManager::lemmaExp(Node conc,
                                       const std::vector<Node>& exp,
                                       const std::vector<Node>& noExplain,
-                                      ProofGenerator* pg)
+                                      ProofGenerator* pg,
+                                      LemmaProperty p,
+                                      bool doCache)
 {
   if (d_pfee != nullptr)
   {
     // make the trust node from the proof equality engine
     TrustNode trn = d_pfee->assertLemma(conc, exp, noExplain, pg);
-    return trustedLemma(trn);
+    return trustedLemma(trn, p, doCache);
   }
   // otherwise, not using proofs, explain and send lemma
   Node ant = mkExplainPartial(exp, noExplain);
   Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
-  return lemma(lem);
+  return lemma(lem, p, doCache);
 }
 
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)

@@ -33,7 +33,6 @@ class ProofNodeManager;
 namespace theory {
 
 class Theory;
-
 namespace eq {
 class EqualityEngine;
 }
@@ -127,9 +126,11 @@ class TheoryInferenceManager
    */
   void trustedConflict(TrustNode tconf);
   /**
-   * Get proven conflict from contradictory facts. This method is called when
-   * the proof rule with premises exp and arguments args implies a contradiction
-   * by proof rule id.
+   * Explain and send conflict from contradictory facts. This method is called
+   * when the proof rule id with premises exp and arguments args concludes
+   * false. This method sends a trusted conflict corresponding to the official
+   * equality engine's explanation of literals in exp, with the proof equality
+   * engine as the proof generator (if it exists).
    */
   void conflictExp(PfRule id,
                    const std::vector<Node>& exp,
@@ -173,13 +174,17 @@ class TheoryInferenceManager
    * @param noExplain The subset of exp that should not be explained by the
    * equality engine
    * @param args The arguments to the proof step concluding conc
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
                 PfRule id,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
-                const std::vector<Node>& args);
+                const std::vector<Node>& args,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
   /**
    * Same as above, but where pg can provide a proof of conc from free
    * assumptions in exp. It is required to do so in the remainder of the user
@@ -189,13 +194,17 @@ class TheoryInferenceManager
    * @param exp The set of (all) literals that imply conc
    * @param noExplain The subset of exp that should not be explained by the
    * equality engine
-   * @param pg The proof generator who can provide a proof of conc.
+   * @param pg If non-null, the proof generator who can provide a proof of conc.
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
                 const std::vector<Node>& exp,
                 const std::vector<Node>& noExplain,
-                ProofGenerator* pg);
+                ProofGenerator* pg = nullptr,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
   /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,
@@ -245,8 +254,8 @@ class TheoryInferenceManager
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, interpreted as a conjunction
-   * @param pg The proof generator for this step. It must be the case that pf
-   * can provide a proof concluding (~) atom from free asumptions in exp in
+   * @param pg The proof generator for this step. If non-null, pg must be able
+   * to provide a proof concluding (~) atom from free asumptions in exp in
    * the remainder of the current SAT context.
    */
   void assertInternalFact(TNode atom,
