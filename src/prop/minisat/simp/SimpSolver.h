@@ -72,7 +72,7 @@ class SimpSolver : public Solver {
                  bool removable,
                  ClauseId& id);  // Add a ternary clause to the solver.
   bool addClause_(vec<Lit>& ps, bool removable, ClauseId& id);
-  bool substitute(Var v, Lit x);  // Replace all occurences of v with x (may
+  bool substitute(Var v, Lit x);  // Replace all occurrences of v with x (may
                                   // cause a contradiction).
 
   // Variable mode:
