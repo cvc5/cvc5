@@ -116,7 +116,7 @@ class SygusSolver
   /**
    * Get synth solution.
    *
-   * This method returns true if we are in a state immediately preceeded by
+   * This method returns true if we are in a state immediately preceded by
    * a successful call to checkSynth.
    *
    * This method adds entries to sol_map that map functions-to-synthesize with
