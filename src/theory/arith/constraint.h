@@ -337,7 +337,7 @@ struct ConstraintRule {
     , d_proofType(pt)
     , d_antecedentEnd(antecedentEnd)
   {
-    Assert(PROOF_ON() || coeffs == RationalVectorCPSentinel);
+    Assert(ARITH_PROOF_ON() || coeffs == RationalVectorCPSentinel);
     if (ARITH_PROOF_ON())
     {
       d_farkasCoefficients = coeffs;
