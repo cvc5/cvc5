@@ -144,7 +144,7 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
   Node lit = a.eqNode(b);
   if (d_pfee != nullptr)
   {
-    return d_pfee->explain(lit);
+    return d_pfee->assertConflict(lit);
   }
   if (d_ee != nullptr)
   {
