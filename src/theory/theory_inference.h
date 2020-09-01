@@ -60,7 +60,7 @@ class SimpleTheoryLemma : public TheoryInference
    * Send the lemma using inference manager im, return true if the lemma was
    * sent.
    */
-  bool process(TheoryInferenceManager* im) override;
+  virtual bool process(TheoryInferenceManager* im) override;
   /** The lemma to send */
   Node d_node;
   /** The lemma property (see OutputChannel::lemma) */
@@ -87,7 +87,7 @@ class SimpleTheoryInternalFact : public TheoryInference
    * Send the lemma using inference manager im, return true if the lemma was
    * sent.
    */
-  bool process(TheoryInferenceManager* im) override;
+  virtual bool process(TheoryInferenceManager* im) override;
   /** The lemma to send */
   Node d_conc;
   /** The explanation */
