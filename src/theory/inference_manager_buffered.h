@@ -66,14 +66,14 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   /**
    * Add pending fact, which adds a fact on the pending fact queue. It must
    * be the case that:
-   * (1) exp => fact is valid,
+   * (1) exp => conc is valid,
    * (2) exp is a literal (or conjunction of literals) that holds in the
    * equality engine of the theory.
    *
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
    */
-  void addPendingFact(Node fact, Node exp, ProofGenerator* pg = nullptr);
+  void addPendingFact(Node conc, Node exp, ProofGenerator* pg = nullptr);
   /**
    * Add pending fact, where fact can be a (derived) class of the
    * theory inference base class.

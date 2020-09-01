@@ -59,12 +59,13 @@ void InferenceManagerBuffered::addPendingLemma(
   d_pendingLem.emplace_back(std::move(lemma));
 }
 
-void InferenceManagerBuffered::addPendingFact(Node fact,
+void InferenceManagerBuffered::addPendingFact(Node conc,
                                               Node exp,
                                               ProofGenerator* pg)
 {
-  Assert(fact.getKind() != AND && fact.getKind() != OR);
-  d_pendingFact.push_back(std::pair<Node, Node>(fact, exp));
+  // make a simple theory internal fact
+  Assert(conc.getKind() != AND && conc.getKind() != OR);
+  d_pendingFact.push_back(std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(
