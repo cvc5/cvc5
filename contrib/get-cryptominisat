@@ -3,7 +3,7 @@
 source "$(dirname "$0")/get-script-header.sh"
 
 CMS_DIR="$DEPS_DIR/cryptominisat5"
-version="5.6.3"
+version="5.8.0"
 
 check_dep_dir "$CMS_DIR"
 setup_dep \
