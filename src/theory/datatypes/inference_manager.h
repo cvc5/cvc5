@@ -26,10 +26,10 @@ namespace theory {
 namespace datatypes {
 
 /**
-  * A custom inference class. The main feature of this class is that it
-  * dynamically decides whether to process itself as a fact or as a lemma,
-  * based on the mustCommunicateFact method below.
-  */
+ * A custom inference class. The main feature of this class is that it
+ * dynamically decides whether to process itself as a fact or as a lemma,
+ * based on the mustCommunicateFact method below.
+ */
 class DatatypesInference : public SimpleTheoryInternalFact
 {
  public:
