@@ -125,6 +125,16 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
+  /**
+   * Explain and send conflict from contradictory facts. This method is called
+   * when the proof rule id with premises exp and arguments args concludes
+   * false. This method sends a trusted conflict corresponding to the official
+   * equality engine's explanation of literals in exp, with the proof equality
+   * engine as the proof generator (if it exists).
+   */
+  void conflictExp(PfRule id,
+                   const std::vector<Node>& exp,
+                   const std::vector<Node>& args);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
@@ -145,6 +155,56 @@ class TheoryInferenceManager
   bool lemma(TNode lem,
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
+  /**
+   * Explained lemma. This should be called when
+   *   ( exp => conc )
+   * is a valid theory lemma. This method adds a lemma where part of exp
+   * is replaced by its explanation according to the official equality engine
+   * of the theory.
+   *
+   * In particular, this method adds a lemma on the output channel of the form
+   *   ( ^_{e in exp \ noExplain} EXPLAIN(e) ^ noExplain ) => conc
+   * where EXPLAIN(e) returns the explanation of literal e according to the
+   * official equality engine of the theory. Note that noExplain is the *subset*
+   * of exp that should not be explained.
+   *
+   * @param conc The conclusion of the lemma
+   * @param id The proof rule concluding conc
+   * @param exp The set of (all) literals that imply conc
+   * @param noExplain The subset of exp that should not be explained by the
+   * equality engine
+   * @param args The arguments to the proof step concluding conc
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
+   * @return true if the lemma was sent on the output channel.
+   */
+  bool lemmaExp(Node conc,
+                PfRule id,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& noExplain,
+                const std::vector<Node>& args,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
+  /**
+   * Same as above, but where pg can provide a proof of conc from free
+   * assumptions in exp. It is required to do so in the remainder of the user
+   * context when this method returns true.
+   *
+   * @param conc The conclusion of the lemma
+   * @param exp The set of (all) literals that imply conc
+   * @param noExplain The subset of exp that should not be explained by the
+   * equality engine
+   * @param pg If non-null, the proof generator who can provide a proof of conc.
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
+   * @return true if the lemma was sent on the output channel.
+   */
+  bool lemmaExp(Node conc,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& noExplain,
+                ProofGenerator* pg = nullptr,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
   /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,
@@ -194,8 +254,8 @@ class TheoryInferenceManager
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, interpreted as a conjunction
-   * @param pg The proof generator for this step. It must be the case that pf
-   * can provide a proof concluding (~) atom from free asumptions in exp in
+   * @param pg The proof generator for this step. If non-null, pg must be able
+   * to provide a proof concluding (~) atom from free asumptions in exp in
    * the remainder of the current SAT context.
    */
   void assertInternalFact(TNode atom,
@@ -235,6 +295,14 @@ class TheoryInferenceManager
    * conjunctions), return the explanation as a conjunction.
    */
   Node mkExplain(TNode n);
+  /**
+   * Explain the set of formulas in exp using the official equality engine of
+   * the theory. We ask the equality engine to explain literals in exp
+   * that do not occur in noExplain, and return unchanged those that occur in
+   * noExplain. Note the vector noExplain should be a subset of exp.
+   */
+  Node mkExplainPartial(const std::vector<Node>& exp,
+                        const std::vector<Node>& noExplain);
   /**
    * Cache that lemma lem is being sent with property p. Return true if it
    * did not already exist in the cache maintained by this class. If this
