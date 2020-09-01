@@ -125,9 +125,9 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   void clearPendingPhaseRequirements();
 
  protected:
-  /** A set of pending lemmas */
+  /** A set of pending inferences to be processed as lemmas */
   std::vector<std::shared_ptr<TheoryInference>> d_pendingLem;
-  /** A set of pending facts, paired with their explanations */
+  /** A set of pending inferences to be processed as facts */
   std::vector<std::shared_ptr<TheoryInference>> d_pendingFact;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;

@@ -24,8 +24,8 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-DatatypesInference::DatatypesInference(Node conc, Node exp)
-    : d_conc(conc), d_exp(exp)
+DatatypesInference::DatatypesInference(Node conc, Node exp, ProofGenerator* pg)
+    : SimpleTheoryInternalFact(conc, exp, pg)
 {
   // false is not a valid explanation
   Assert(d_exp.isNull() || !d_exp.isConst() || d_exp.getConst<bool>());
@@ -93,9 +93,9 @@ InferenceManager::InferenceManager(Theory& t,
 {
 }
 
-void InferenceManager::addPendingInference(Node conc, Node exp)
+void InferenceManager::addPendingInference(Node conc, Node exp, ProofGenerator* pg)
 {
-  d_pendingFact.push_back(std::make_shared<DatatypesInference>(conc, exp));
+  d_pendingFact.push_back(std::make_shared<DatatypesInference>(conc, exp, pg));
 }
 
 void InferenceManager::process()

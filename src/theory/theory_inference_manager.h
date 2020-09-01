@@ -190,7 +190,7 @@ class TheoryInferenceManager
    * @param exp The set of (all) literals that imply conc
    * @param noExplain The subset of exp that should not be explained by the
    * equality engine
-   * @param pg The proof generator who can provide a proof of conc.
+   * @param pg If non-null, the proof generator who can provide a proof of conc.
    * @return true if the lemma was sent on the output channel.
    */
   bool lemmaExp(Node conc,
@@ -246,8 +246,8 @@ class TheoryInferenceManager
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, interpreted as a conjunction
-   * @param pg The proof generator for this step. It must be the case that pf
-   * can provide a proof concluding (~) atom from free asumptions in exp in
+   * @param pg The proof generator for this step. If non-null, pg must be able
+   * to provide a proof concluding (~) atom from free asumptions in exp in
    * the remainder of the current SAT context.
    */
   void assertInternalFact(TNode atom,
