@@ -286,12 +286,12 @@ DecisionManager& QuantifiersEngine::getDecisionManager()
 
 context::Context* QuantifiersEngine::getSatContext()
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getSatContext();
+  return d_context;
 }
 
 context::UserContext* QuantifiersEngine::getUserContext()
 {
-  return d_te->theoryOf(THEORY_QUANTIFIERS)->getUserContext();
+  return d_userContext;
 }
 
 OutputChannel& QuantifiersEngine::getOutputChannel()
