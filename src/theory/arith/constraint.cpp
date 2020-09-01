@@ -590,6 +590,7 @@ void Constraint::printProofTree(std::ostream& out, size_t depth) const
       }
       antecdent->printProofTree(out, depth + 1);
     }
+    return;
   }
   out << "Cannot print proof. This is not a proof build." << endl;
 }
