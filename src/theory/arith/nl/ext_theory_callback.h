@@ -23,11 +23,11 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-class NlExtTheoryCallback : public
+class NlExtTheoryCallback : public ExtTheoryCallback
 {
  public:
   NlExtTheoryCallback(eq::EqualityEngine* ee);
-
+  ~NlExtTheoryCallback(){}
   /** Get current substitution
    *
    * This function and the one below are
@@ -66,12 +66,16 @@ class NlExtTheoryCallback : public
    * The second part of the pair is used for constructing
    * minimal explanations for context-dependent simplifications.
    */
-  std::pair<bool, Node> isExtfReduced(
-      int effort, Node n, Node on, const std::vector<Node>& exp) const override;
+  bool isExtfReduced(int effort,
+                             Node n,
+                             Node on,
+                             std::vector<Node>& exp) override;
 
  private:
   /** The underlying equality engine. */
   eq::EqualityEngine* d_ee;
+  /** Commonly used nodes */
+  Node d_zero;
 };
 
 }  // namespace nl

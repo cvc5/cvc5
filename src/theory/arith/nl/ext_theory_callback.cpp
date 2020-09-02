@@ -21,7 +21,10 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee) {}
+NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee) {
+  d_zero = NodeManager::currentNM()->mkConst(Rational(0));
+  
+}
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
     int effort,
@@ -63,15 +66,16 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
   return retVal;
 }
 
-std::pair<bool, Node> NlExtTheoryCallback::isExtfReduced(
-    int effort, Node n, Node on, const std::vector<Node>& exp) const
+bool NlExtTheoryCallback::isExtfReduced(int effort,
+                             Node n,
+                             Node on,
+                             std::vector<Node>& exp)
 {
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    return std::make_pair(
-        k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND,
-        Node::null());
+    return 
+        k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND;
   }
   Assert(n == d_zero);
   if (on.getKind() == NONLINEAR_MULT)
@@ -109,13 +113,14 @@ std::pair<bool, Node> NlExtTheoryCallback::isExtfReduced(
           {
             Trace("nl-ext-zero-exp")
                 << "...single exp : " << eqs[j] << std::endl;
-            return std::make_pair(true, eqs[j]);
+                exp.push_back(eqs[j]);
+            return true;
           }
         }
       }
     }
   }
-  return std::make_pair(true, Node::null());
+  return true;
 }
 
 }  // namespace nl
