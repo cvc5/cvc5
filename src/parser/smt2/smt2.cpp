@@ -718,7 +718,7 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
   }
 
   if (d_logic.isTheoryEnabled(theory::THEORY_FP)) {
-    defineType("RoundingMode", d_solver->getRoundingmodeSort());
+    defineType("RoundingMode", d_solver->getRoundingModeSort());
     defineType("Float16", d_solver->mkFloatingPointSort(5, 11));
     defineType("Float32", d_solver->mkFloatingPointSort(8, 24));
     defineType("Float64", d_solver->mkFloatingPointSort(11, 53));
