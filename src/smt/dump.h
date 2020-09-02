@@ -41,6 +41,11 @@ class CVC4_PUBLIC CVC4dumpstream
     return *this;
   }
 
+  /** A convenience function for dumping internal commands.
+   *
+   * Since Commands are now part of the public API, internal code should use
+   * NodeCommands and this function (instead of the one above) to dump them.
+   */
   CVC4dumpstream& operator<<(const NodeCommand& nc)
   {
     if (d_os != nullptr)

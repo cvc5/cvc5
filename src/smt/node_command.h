@@ -27,8 +27,10 @@
 
 namespace CVC4 {
 
-/** A node version of Command. DO NOT use this version unless there is a need
- * to buffer commands for later use (e.g., printing models). */
+/**
+ * A node version of Command. DO NOT use this version unless there is a need
+ * to buffer commands for later use (e.g., printing models).
+ */
 class NodeCommand
 {
  public:
@@ -52,6 +54,10 @@ class NodeCommand
 
 std::ostream& operator<<(std::ostream& out, const NodeCommand& nc);
 
+/**
+ * Declare n-ary function symbol.
+ * SMT-LIB: ( declare-fun <id> ( <type.getArgTypes()> ) <type.getRangeType()> )
+ */
 class DeclareFunctionNodeCommand : public NodeCommand
 {
  public:
@@ -76,6 +82,10 @@ class DeclareFunctionNodeCommand : public NodeCommand
   bool d_printInModelSetByUser;
 };
 
+/**
+ * Create datatype sort.
+ * SMT-LIB: ( declare-datatypes ( <datatype decls>{n+1} ) ( <datatypes>{n+1} ) )
+ */
 class DeclareDatatypeNodeCommand : public NodeCommand
 {
  public:
@@ -92,6 +102,10 @@ class DeclareDatatypeNodeCommand : public NodeCommand
   std::vector<TypeNode> d_datatypes;
 };
 
+/**
+ * Declare uninterpreted sort.
+ * SMT-LIB: ( declare-sort <id> <arity> )
+ */
 class DeclareTypeNodeCommand : public NodeCommand
 {
  public:
@@ -112,6 +126,10 @@ class DeclareTypeNodeCommand : public NodeCommand
   TypeNode d_type;
 };
 
+/**
+ * Define n-ary function.
+ * SMT-LIB: ( define-fun <id> ( <formals> ) <fun.getType()> <formula> )
+ */
 class DefineFunctionNodeCommand : public NodeCommand
 {
  public:
