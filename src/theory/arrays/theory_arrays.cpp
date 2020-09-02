@@ -189,7 +189,6 @@ void TheoryArrays::finishInit()
 
   d_pfEqualityEngine.reset(new eq::ProofEqEngine(
       getSatContext(), getUserContext(), *d_equalityEngine, d_pnm));
-
 }
 
 /////////////////////////////////////////////////////////////////////////////

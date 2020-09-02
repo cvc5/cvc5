@@ -648,8 +648,7 @@ void TheoryUF::computeCareGraph() {
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
-
-void TheoryUF::conflict(TNode a, TNode b) 
+void TheoryUF::conflict(TNode a, TNode b)
 {
   // call the inference manager, which will construct the conflict (possibly
   // with proofs from the underlying proof equality engine), and notify the

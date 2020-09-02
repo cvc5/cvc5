@@ -146,8 +146,7 @@ void PropEngine::assertFormula(TNode node) {
   }
 }
 
-void PropEngine::assertLemma(theory::TrustNode trn,
-                             bool removable)
+void PropEngine::assertLemma(theory::TrustNode trn, bool removable)
 {
   Node node = trn.getNode();
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;

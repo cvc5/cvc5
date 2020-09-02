@@ -1678,7 +1678,6 @@ lbool Solver::search(int nof_conflicts)
               {
                 d_pfManager->endResChain(ca[cr]);
               }
-
             }
 
             varDecayActivity();
@@ -1731,16 +1730,16 @@ lbool Solver::search(int nof_conflicts)
             check_type = CHECK_WITH_THEORY;
           }
 
-            if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
-                || !withinBudget(ResourceManager::Resource::SatConflictStep))
-            {
-              // Reached bound on number of conflicts:
-              progress_estimate = progressEstimate();
-              cancelUntil(0);
-              // [mdeters] notify theory engine of restarts for deferred
-              // theory processing
-              d_proxy->notifyRestart();
-              return l_Undef;
+          if ((nof_conflicts >= 0 && conflictC >= nof_conflicts)
+              || !withinBudget(ResourceManager::Resource::SatConflictStep))
+          {
+            // Reached bound on number of conflicts:
+            progress_estimate = progressEstimate();
+            cancelUntil(0);
+            // [mdeters] notify theory engine of restarts for deferred
+            // theory processing
+            d_proxy->notifyRestart();
+            return l_Undef;
             }
 
             // Simplify the set of problem clauses:
@@ -2128,7 +2127,6 @@ CRef Solver::updateLemmas() {
 
       // If it's an empty lemma, we have a conflict at zero level
       if (lemma.size() == 0) {
-
         Assert(!options::unsatCores() && !d_pfManager);
         conflict = CRef_Lazy;
         backtrackLevel = 0;

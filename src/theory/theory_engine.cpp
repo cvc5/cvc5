@@ -1704,10 +1704,7 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
     // pass the trust node that was sent from the theory
-    lemma(tconflict,
-          LemmaProperty::REMOVABLE,
-          THEORY_LAST,
-          theoryId);
+    lemma(tconflict, LemmaProperty::REMOVABLE, THEORY_LAST, theoryId);
   }
 }
 

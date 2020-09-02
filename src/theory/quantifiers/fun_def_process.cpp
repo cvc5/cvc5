@@ -188,7 +188,7 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
                                : (cconstraints.size() == 1
                                       ? cconstraints[0]
                                       : NodeManager::currentNM()->mkNode(
-                                          AND, cconstraints));
+                                            AND, cconstraints));
               branch_constraints.push_back( bcons );
               Trace("fmf-fun-def-debug2") << "Branching constraint at arg " << i << " is " << bcons << std::endl;
             }
