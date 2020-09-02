@@ -288,6 +288,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
   {
     nassertions++;
     const Assertion& assertion = *it;
+    Trace("nl-ext") << "Loaded " << assertion.d_assertion << " from theory"
+                    << std::endl;
     Node lit = assertion.d_assertion;
     if (useRelevance && !v.isRelevant(lit))
     {
@@ -388,6 +390,19 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
     }
   }
 
+  // Try to be "more deterministic" by adding assertions in the order they were
+  // given
+  for (auto it = d_containing.facts_begin(); it != d_containing.facts_end();
+       ++it)
+  {
+    Node lit = (*it).d_assertion;
+    auto iait = init_assertions.find(lit);
+    if (iait != init_assertions.end())
+    {
+      assertions.push_back(lit);
+      init_assertions.erase(iait);
+    }
+  }
   for (const Node& a : init_assertions)
   {
     assertions.push_back(a);
@@ -462,6 +477,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   ++(d_stats.d_checkRuns);
 
+  if (Trace.isOn("nl-ext"))
+  {
+    for (const auto& a : assertions)
+    {
+      Trace("nl-ext") << "Input assertion: " << a << std::endl;
+    }
+  }
+
   if (options::nlExt())
   {
     // initialize the non-linear solver
@@ -478,7 +501,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
 
   // init last call with IAND
   d_iandSlv.initLastCall(assertions, false_asserts, xts);
-  
+
   if (!lems.empty())
   {
     Trace("nl-ext") << "  ...finished with " << lems.size()
@@ -522,7 +545,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
                     << std::endl;
     return lems.size();
   }
-  
+
   // main calls to nlExt
   if (options::nlExt())
   {
