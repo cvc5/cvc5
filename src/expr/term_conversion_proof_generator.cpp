@@ -48,13 +48,13 @@ TConvProofGenerator::TConvProofGenerator(ProofNodeManager* pnm,
                                          TConvPolicy pol,
                                          TConvCachePolicy cpol,
                                          std::string name,
-                                         TermContext* tctx)
+                                         TermContext* tccb)
     : d_proof(pnm, nullptr, c, name + "::LazyCDProof"),
       d_rewriteMap(c ? c : &d_context),
       d_policy(pol),
       d_cpolicy(cpol),
       d_name(name),
-      d_tcontext(tctx)
+      d_tcontext(tccb)
 {
 }
 
@@ -153,7 +153,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
     std::stringstream serr;
     serr << "TConvProofGenerator::getProofFor: " << identify()
          << ": fail, non-equality " << f;
-    AlwaysAssert(false) << serr.str();
+    Unhandled() << serr.str();
     Trace("tconv-pf-gen") << serr.str() << std::endl;
     return nullptr;
   }
@@ -192,7 +192,7 @@ std::shared_ptr<ProofNode> TConvProofGenerator::getProofFor(Node f)
           serr << (*it).first << " -> " << (*it).second << std::endl;
         }
       }
-      AlwaysAssert(false) << serr.str();
+      Unhandled() << serr.str();
       return nullptr;
     }
   }
@@ -234,9 +234,10 @@ Node TConvProofGenerator::getProofForRewriting(Node t,
 {
   NodeManager* nm = NodeManager::currentNM();
   // Invariant: if visited[hash(t)] = s or rewritten[hash(t)] = s and t,s are
-  // distinct, then pf is able to generate a proof of t=s. We use maps with
-  // Node in domains due to hashing creating new (SEXPR) nodes.
-  // TODO: could cache the results of node hashing for efficiency
+  // distinct, then pf is able to generate a proof of t=s. We must
+  // Node in the domains of the maps below due to hashing creating new (SEXPR)
+  // nodes.
+
   // the final rewritten form of terms
   std::unordered_map<Node, Node, TNodeHashFunction> visited;
   // the rewritten form of terms we have processed so far

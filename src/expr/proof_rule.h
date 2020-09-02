@@ -102,7 +102,7 @@ enum class PfRule : uint32_t
   // Arguments: (t)
   // ----------------------------------------
   // Conclusion: (= t Evaluator::evaluate(t))
-  // Note this can be seen as syntax sugar for:
+  // Note this is equivalent to:
   //   (REWRITE t MethodId::RW_EVALUATE)
   EVALUATE,
   // ======== Substitution + Rewriting equality introduction
@@ -186,7 +186,6 @@ enum class PfRule : uint32_t
   //  G1*sigma = F1, ..., Gn*sigma = Fn, G*sigma = F
   // for some substitution sigma.
   DSL_REWRITE,
-
   //================================================= Processing rules
   // ======== Remove Term Formulas Axiom
   // Children: none
