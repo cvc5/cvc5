@@ -520,6 +520,20 @@ enum class PfRule : uint32_t
   // ----------------------------------------
   // Conclusion: (not F)
   FALSE_ELIM,
+  // ======== HO trust
+  // Children: none
+  // Arguments: (t)
+  // ---------------------
+  // Conclusion: (= t TheoryUfRewriter::getHoApplyForApplyUf(t))
+  // For example, this rule concludes (f x y) = (HO_APPLY (HO_APPLY f x) y)
+  HO_APP_ENCODE,
+  // ======== Congruence
+  // Children: (P1:(= f g), P2:(= t1 s1), ..., Pn+1:(= tn sn))
+  // Arguments: ()
+  // ---------------------------------------------
+  // Conclusion: (= (f t1 ... tn) (g s1 ... sn))
+  // Notice that this rule is only used when the application kinds are APPLY_UF.
+  HO_CONG,
 
   //================================================= Quantifiers rules
   // ======== Witness intro
