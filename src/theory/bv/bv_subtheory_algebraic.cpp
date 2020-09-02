@@ -715,7 +715,8 @@ bool AlgebraicSolver::collectModelInfo(TheoryModel* model, bool fullModel)
   Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
   AlwaysAssert(!d_quickSolver->inConflict());
   set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
+  const std::set<Kind>& irrKinds = model->getIrrelevantKinds();
+  d_bv->computeAssertedTerms(termSet, irrKinds, true);
 
   // collect relevant terms that the bv theory abstracts to variables
   // (variables and parametric terms such as select apply_uf)

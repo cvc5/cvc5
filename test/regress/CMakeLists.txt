@@ -59,6 +59,7 @@ set(regress_0_tests
   regress0/arrays/bug272.minimized.smtv1.smt2
   regress0/arrays/bug272.smtv1.smt2
   regress0/arrays/bug3020.smt2
+  regress0/arrays/bug4957.smt2
   regress0/arrays/bug637.delta.smt2
   regress0/arrays/constarr.cvc
   regress0/arrays/constarr.smt2
@@ -621,7 +622,6 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/options/invalid_dump.smt2
-  regress0/options/invalid_option_inc_proofs.smt2
   regress0/opt-abd-no-use.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
@@ -871,7 +871,7 @@ set(regress_0_tests
   regress0/seq/seq-nth.smt2
   regress0/seq/seq-nth-uf.smt2
   regress0/seq/seq-nth-uf-z.smt2
-  regress0/seq/seq-nth-undef.smt2        
+  regress0/seq/seq-nth-undef.smt2
   regress0/seq/seq-rewrites.smt2
   regress0/sets/abt-min.smt2
   regress0/sets/abt-te-exh.smt2

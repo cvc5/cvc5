@@ -131,24 +131,6 @@ header = "options/smt_options.h"
   help = "Block models based on the concrete model values for the free variables."
 
 [[option]]
-  name       = "proof"
-  smt_name   = "produce-proofs"
-  category   = "regular"
-  long       = "proof"
-  type       = "bool"
-  default    = "false"
-  predicates = ["proofEnabledBuild"]
-  help       = "turn on proof generation"
-
-[[option]]
-  name       = "checkProofs"
-  category   = "regular"
-  long       = "check-proofs"
-  type       = "bool"
-  predicates = ["LFSCEnabledBuild"]
-  help       = "after UNSAT/VALID, machine-check the generated proof"
-
-[[option]]
   name       = "dumpProofs"
   category   = "regular"
   long       = "dump-proofs"
@@ -390,7 +372,7 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-  
+
 [[option]]
   name       = "incrementalSolving"
   category   = "common"
@@ -660,7 +642,7 @@ header = "options/smt_options.h"
   [[option.mode.BITWISE]]
   name = "bitwise"
   help = "use bitwise comparisons on binary representation of integer for refinement (experimental)"
-  
+
 [[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"

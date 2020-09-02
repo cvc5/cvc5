@@ -17,7 +17,9 @@
 
 #include <tuple>
 #include <vector>
+
 #include "expr/node.h"
+#include "theory/arith/arith_lemma.h"
 #include "theory/arith/nl/inference.h"
 #include "theory/output_channel.h"
 
@@ -27,6 +29,7 @@ namespace arith {
 namespace nl {
 
 class NlModel;
+class NonlinearExtension;
 
 /**
  * The data structure for a single lemma to process by the non-linear solver,
@@ -39,19 +42,24 @@ class NlModel;
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-struct NlLemma
+class NlLemma : public ArithLemma
 {
-  NlLemma(Node lem, Inference id = Inference::UNKNOWN)
-      : d_id(id), d_lemma(lem), d_preprocess(false)
+ public:
+  NlLemma(Node n,
+          LemmaProperty p,
+          ProofGenerator* pg,
+          nl::Inference inf = nl::Inference::UNKNOWN)
+      : ArithLemma(n, p, pg, inf)
+  {
+  }
+  NlLemma(Node n, nl::Inference inf = nl::Inference::UNKNOWN)
+      : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
   {
   }
   ~NlLemma() {}
-  /** The inference id for the lemma */
-  Inference d_id;
-  /** The lemma */
-  Node d_lemma;
-  /** Whether to preprocess the lemma */
-  bool d_preprocess;
+
+  bool process(TheoryInferenceManager* im) override;
+
   /** secant points to add
    *
    * A member (tf, d, c) in this vector indicates that point c should be added
@@ -62,8 +70,8 @@ struct NlLemma
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
-  /** get lemma property (preprocess or none) */
-  LemmaProperty getLemmaProperty() const;
+
+  NonlinearExtension* d_nlext;
 };
 /**
  * Writes a non-linear lemma to a stream.

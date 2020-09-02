@@ -30,6 +30,8 @@
 
 namespace CVC4 {
 
+class NodeCommand;
+
 class Printer
 {
  public:
@@ -271,13 +273,13 @@ class Printer
   /** write model response to command */
   virtual void toStream(std::ostream& out,
                         const Model& m,
-                        const Command* c) const = 0;
+                        const NodeCommand* c) const = 0;
 
   /** write model response to command using another language printer */
   void toStreamUsing(OutputLanguage lang,
                      std::ostream& out,
                      const Model& m,
-                     const Command* c) const
+                     const NodeCommand* c) const
   {
     getPrinter(lang)->toStream(out, m, c);
   }

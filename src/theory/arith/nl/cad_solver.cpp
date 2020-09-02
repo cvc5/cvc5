@@ -95,7 +95,7 @@ std::vector<NlLemma> CadSolver::checkFull()
     {
       lems.emplace_back(nm->mkNode(Kind::OR, mis), Inference::CAD_CONFLICT);
     }
-    Trace("nl-cad") << "UNSAT with MIS: " << lems.back().d_lemma << std::endl;
+    Trace("nl-cad") << "UNSAT with MIS: " << lems.back().d_node << std::endl;
   }
   return lems;
 #else
