@@ -19,8 +19,8 @@
 #include "expr/expr_iomanip.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
-#include "smt/command.h"
 #include "smt/dump_manager.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 
@@ -42,7 +42,7 @@ size_t Model::getNumCommands() const
   return d_smt.getDumpManager()->getNumModelCommands();
 }
 
-const Command* Model::getCommand(size_t i) const
+const NodeCommand* Model::getCommand(size_t i) const
 {
   return d_smt.getDumpManager()->getModelCommand(i);
 }
