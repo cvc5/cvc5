@@ -28,24 +28,36 @@ using namespace std;
 namespace CVC4 {
 namespace theory {
 
-bool ExtTheoryCallback::getCurrentSubstitution(int effort, const std::vector<Node>& vars,
-                                      std::vector<Node>& subs,
-                                      std::map<Node, std::vector<Node> >& exp)
+bool ExtTheoryCallback::getCurrentSubstitution(
+    int effort,
+    const std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node> >& exp)
 {
   return false;
 }
-bool ExtTheoryCallback::isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp )
+bool ExtTheoryCallback::isExtfReduced(int effort,
+                                      Node n,
+                                      Node on,
+                                      std::vector<Node>& exp)
 {
   return n.isConst();
 }
-int ExtTheoryCallback::getReduction( int effort, Node n, Node& nr, bool& isSatDep )
+int ExtTheoryCallback::getReduction(int effort,
+                                    Node n,
+                                    Node& nr,
+                                    bool& isSatDep)
 {
   return 0;
 }
 
-ExtTheory::ExtTheory(ExtTheoryCallback& p, context::Context * c,  context::UserContext * u,OutputChannel& out, bool cacheEnabled)
+ExtTheory::ExtTheory(ExtTheoryCallback& p,
+                     context::Context* c,
+                     context::UserContext* u,
+                     OutputChannel& out,
+                     bool cacheEnabled)
     : d_parent(p),
-    d_out(out),
+      d_out(out),
       d_ext_func_terms(c),
       d_ci_inactive(u),
       d_has_extf(c),
