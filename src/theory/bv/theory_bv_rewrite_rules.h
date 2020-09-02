@@ -325,7 +325,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UremOne :            out << "UremOne";             return out;
   case UremSelf :            out << "UremSelf";             return out;
   case ShiftZero :            out << "ShiftZero";             return out;
-  case UgtUrem :            out << "UgtUrem";               return out;
+  case UgtUrem: out << "UgtUrem"; return out;
   case SubEliminate :            out << "SubEliminate";             return out;
   case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;

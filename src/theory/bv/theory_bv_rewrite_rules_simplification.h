@@ -1568,25 +1568,25 @@ Node RewriteRule<ShiftZero>::apply(TNode node) {
  *   ==>  (and (bvugt T 0_k) (= x 0_k))
  */
 
-template<> inline
-bool RewriteRule<UgtUrem>::applies(TNode node) {
-  return (
-      node.getKind() == kind::BITVECTOR_UGT &&
-      node[0].getKind() == kind::BITVECTOR_UREM_TOTAL &&
-      node[0][1] == node[1]
-  );
+template <>
+inline bool RewriteRule<UgtUrem>::applies(TNode node)
+{
+  return (node.getKind() == kind::BITVECTOR_UGT
+          && node[0].getKind() == kind::BITVECTOR_UREM_TOTAL
+          && node[0][1] == node[1]);
 }
 
-template<> inline
-Node RewriteRule<UgtUrem>::apply(TNode node) {
+template <>
+inline Node RewriteRule<UgtUrem>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<UgtUrem>(" << node << ")" << std::endl;
   const Node& T = node[0][0];
   const Node& x = node[1];
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::AND,
-    nm->mkNode(kind::EQUAL, x, utils::mkConst(utils::getSize(x), 0)),
-    nm->mkNode(kind::BITVECTOR_UGT, T, utils::mkConst(utils::getSize(x), 0))
-  );
+  return nm->mkNode(
+      kind::AND,
+      nm->mkNode(kind::EQUAL, x, utils::mkConst(utils::getSize(x), 0)),
+      nm->mkNode(kind::BITVECTOR_UGT, T, utils::mkConst(utils::getSize(x), 0)));
 }
 
 /* -------------------------------------------------------------------------- */
