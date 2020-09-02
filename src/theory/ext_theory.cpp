@@ -43,12 +43,12 @@ bool ExtTheoryCallback::isExtfReduced(int effort,
 {
   return n.isConst();
 }
-int ExtTheoryCallback::getReduction(int effort,
+bool ExtTheoryCallback::getReduction(int effort,
                                     Node n,
                                     Node& nr,
                                     bool& isSatDep)
 {
-  return 0;
+  return false;
 }
 
 ExtTheory::ExtTheory(ExtTheoryCallback& p,
