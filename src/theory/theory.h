@@ -246,11 +246,6 @@ class Theory {
    * the equality engine are used properly.
    */
   TheoryInferenceManager* d_inferManager;
-  /**
-   * Whether proofs are enabled
-   *
-   */
-  bool d_proofsEnabled;
 
   /**
    * Returns the next assertion in the assertFact() queue.
@@ -581,6 +576,7 @@ class Theory {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
+    return TrustNode::null();
   }
 
   //--------------------------------- check
@@ -824,15 +820,13 @@ class Theory {
    *
    * @return true iff facts have been asserted to this theory.
    */
-  bool hasFacts() { 
-    return !d_facts.empty(); 
-  }
+  bool hasFacts() { return !d_facts.empty(); }
 
   /** Return total number of facts asserted to this theory */
   size_t numAssertions() {
     return d_facts.size();
   }
-  
+
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
@@ -917,7 +911,7 @@ class Theory {
 
   /* is extended function reduced */
   virtual bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) { return n.isConst(); }
-  
+
   /**
    * Get reduction for node
    * If return value is not 0, then n is reduced.
@@ -927,9 +921,6 @@ class Theory {
    *  and return value should be <0.
    */
   virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
-
-  /** Turn on proof-production mode. */
-  void produceProofs() { d_proofsEnabled = true; }
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

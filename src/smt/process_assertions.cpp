@@ -21,7 +21,6 @@
 #include "options/arith_options.h"
 #include "options/base_options.h"
 #include "options/bv_options.h"
-#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
 #include "options/smt_options.h"
@@ -146,12 +145,6 @@ bool ProcessAssertions::apply(Assertions& as)
       << "ProcessAssertions::processAssertions() : post-definition-expansion"
       << endl;
   dumpAssertions("post-definition-expansion", assertions);
-
-  // save the assertions now
-  THEORY_PROOF(
-      for (size_t i = 0, nasserts = assertions.size(); i < nasserts; ++i) {
-        ProofManager::currentPM()->addAssertion(assertions[i].toExpr());
-      });
 
   Debug("smt") << " assertions     : " << assertions.size() << endl;
 
@@ -470,7 +463,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::simplificationMode() != options::SimplificationMode::NONE)
     {
-      if (!options::unsatCores() && !options::fewerPreprocessingHoles())
+      if (!options::unsatCores())
       {
         // Perform non-clausal simplification
         PreprocessingPassResult res =
@@ -532,7 +525,7 @@ bool ProcessAssertions::simplifyAssertions(AssertionPipeline& assertions)
 
     if (options::repeatSimp()
         && options::simplificationMode() != options::SimplificationMode::NONE
-        && !options::unsatCores() && !options::fewerPreprocessingHoles())
+        && !options::unsatCores())
     {
       PreprocessingPassResult res =
           d_passes["non-clausal-simp"]->apply(&assertions);

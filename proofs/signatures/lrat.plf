@@ -101,7 +101,7 @@
                                  ((pos v2) ff)
                                  ((neg v2) (ifequal v1 v2 tt ff))))))
 
-; Remove **all** occurences of a literal from clause
+; Remove **all** occurrences of a literal from clause
 (program clause_remove_all ((l lit) (c clause)) clause
          (match c
                 (cln cln)
@@ -180,7 +180,7 @@
                        (CMapc ci c (CMap_remove_many is cs'))))))))
 
 ; Given a map of clauses and a literal, return all indices in the map
-; corresponsing to clauses that could resolve against that literal. i.e. for x,
+; corresponding to clauses that could resolve against that literal. i.e. for x,
 ; return the indices of all clauses containing x.
 (program collect_resolution_targets_w_lit ((cs CMap) (l lit)) CIList
          (match cs
@@ -260,14 +260,14 @@
                                     (fail Unit)
                                     (ifmarked2 v unit (do (markvar2 v) unit))))))
 
-; Unmarks the variable within a satified literal to render it neither satified nor falsified
+; Unmarks the variable within a satisfied literal to render it neither satisfied nor falsified
 ; fails if the literal is not already satisfied
 (program lit_un_mk_sat ((l lit)) Unit
          (match l
                 ((pos v) (ifmarked1 v (do (markvar1 v) unit) (fail Unit)))
                 ((neg v) (ifmarked2 v (do (markvar2 v) unit) (fail Unit)))))
 
-; Unmarks the variable within a falsified literal to render it neither satified nor falsified
+; Unmarks the variable within a falsified literal to render it neither satisfied nor falsified
 ; fails if the literal is not already falsified
 (program lit_un_mk_unsat ((l lit)) Unit
          (match l
@@ -348,7 +348,7 @@
 ; The return type for verifying that a clause is unit and modifying the global
 ; assignment to satisfy it
 (declare MarkResult type)
-; The clause is unit, and this is the (previoiusly floating) literal that is now satified.
+; The clause is unit, and this is the (previoiusly floating) literal that is now satisfied.
 (declare MRUnit (! l lit MarkResult))
 ; The clause was unsat!
 (declare MRUnsat MarkResult)
@@ -357,7 +357,7 @@
 ; The clause had multiple floating literals.
 (declare MRNotUnit MarkResult)
 
-; Determine wether this clause is sat, unsat, unit, or not unit, and if it is
+; Determine whether this clause is sat, unsat, unit, or not unit, and if it is
 ; unit, it modifies the global assignment to satisfy the clause, and returns
 ; the literal that was made SAT by the new mark.
 ;

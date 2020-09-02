@@ -20,10 +20,7 @@
 #define CVC4__SAT__PROOF_IMPLEMENTATION_H
 
 #include "proof/clause_id.h"
-#include "proof/cnf_proof.h"
 #include "proof/sat_proof.h"
-#include "prop/bvminisat/bvminisat.h"
-#include "prop/bvminisat/core/Solver.h"
 #include "prop/minisat/core/Solver.h"
 #include "prop/minisat/minisat.h"
 #include "prop/sat_solver_types.h"
@@ -712,11 +709,6 @@ void TSatProof<Solver>::registerResolution(ClauseId id, ResChain<Solver>* res) {
     Assert(checkResolution(id));
   }
 
-  PSTATS(uint64_t resolutionSteps =
-             static_cast<uint64_t>(res.getSteps().size());
-         d_statistics.d_resChainLengths << resolutionSteps;
-         d_statistics.d_avgChainLength.addEntry(resolutionSteps);
-         ++(d_statistics.d_numLearnedClauses);)
 }
 
 /// recording resolutions
@@ -912,14 +904,6 @@ void TSatProof<Solver>::markDeleted(typename Solver::TCRef clause) {
   }
 }
 
-// template<>
-// void toSatClause< ::BVMinisat::Solver> (const BVMinisat::Solver::TClause&
-// minisat_cl,
-//                                         prop::SatClause& sat_cl) {
-
-//   prop::BVMinisatSatSolver::toSatClause(minisat_cl, sat_cl);
-// }
-
 template <class Solver>
 void TSatProof<Solver>::constructProof(ClauseId conflict) {
   d_satProofConstructed = true;
@@ -1002,9 +986,6 @@ void TSatProof<Solver>::collectClauses(ClauseId id) {
 
   const ResolutionChain& res = getResolutionChain(id);
   const typename ResolutionChain::ResSteps& steps = res.getSteps();
-  PSTATS(d_statistics.d_usedResChainLengths
-             << ((uint64_t)steps.size());
-         d_statistics.d_usedClauseGlue << ((uint64_t)d_glueMap[id]););
   ClauseId start = res.getStart();
   collectClauses(start);
 
@@ -1018,8 +999,6 @@ void TSatProof<Solver>::collectClausesUsed(IdToSatClause& inputs,
                                            IdToSatClause& lemmas) {
   inputs = d_seenInputs;
   lemmas = d_seenLemmas;
-  PSTATS(d_statistics.d_numLearnedInProof.setData(d_seenLearnt.size());
-         d_statistics.d_numLemmasInProof.setData(d_seenLemmas.size()););
 }
 
 template <class Solver>

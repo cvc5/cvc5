@@ -2275,57 +2275,22 @@ void BlockModelValuesCommand::toStream(std::ostream& out,
 /* class GetProofCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetProofCommand::GetProofCommand() : d_smtEngine(nullptr), d_result(nullptr) {}
+GetProofCommand::GetProofCommand() {}
 void GetProofCommand::invoke(SmtEngine* smtEngine)
 {
-  try
-  {
-    d_smtEngine = smtEngine;
-    d_result = &smtEngine->getProof();
-    d_commandStatus = CommandSuccess::instance();
-  }
-  catch (RecoverableModalException& e)
-  {
-    d_commandStatus = new CommandRecoverableFailure(e.what());
-  }
-  catch (UnsafeInterruptException& e)
-  {
-    d_commandStatus = new CommandInterrupted();
-  }
-  catch (exception& e)
-  {
-    d_commandStatus = new CommandFailure(e.what());
-  }
-}
-
-const Proof& GetProofCommand::getResult() const { return *d_result; }
-void GetProofCommand::printResult(std::ostream& out, uint32_t verbosity) const
-{
-  if (!ok())
-  {
-    this->Command::printResult(out, verbosity);
-  }
-  else
-  {
-    smt::SmtScope scope(d_smtEngine);
-    d_result->toStream(out);
-  }
+  Unimplemented() << "Unimplemented get-proof\n";
 }
 
 Command* GetProofCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
 {
   GetProofCommand* c = new GetProofCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 
 Command* GetProofCommand::clone() const
 {
   GetProofCommand* c = new GetProofCommand();
-  c->d_result = d_result;
-  c->d_smtEngine = d_smtEngine;
   return c;
 }
 

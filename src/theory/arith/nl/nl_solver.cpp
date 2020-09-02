@@ -843,7 +843,7 @@ std::vector<NlLemma> NlSolver::checkMonomialMagnitude(unsigned c)
   std::vector<NlLemma> nr_lemmas;
   for (unsigned i = 0; i < lemmas.size(); i++)
   {
-    if (r_lemmas.find(lemmas[i].d_lemma) == r_lemmas.end())
+    if (r_lemmas.find(lemmas[i].d_node) == r_lemmas.end())
     {
       nr_lemmas.push_back(lemmas[i]);
     }
