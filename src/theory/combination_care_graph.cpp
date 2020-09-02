@@ -22,8 +22,10 @@ namespace CVC4 {
 namespace theory {
 
 CombinationCareGraph::CombinationCareGraph(
-    TheoryEngine& te, const std::vector<Theory*>& paraTheories)
-    : CombinationEngine(te, paraTheories)
+    TheoryEngine& te,
+    const std::vector<Theory*>& paraTheories,
+    ProofNodeManager* pnm)
+    : CombinationEngine(te, paraTheories, pnm)
 {
 }
 
@@ -62,7 +64,17 @@ void CombinationCareGraph::combineTheories()
         << "TheoryEngine::combineTheories(): requesting a split " << std::endl;
 
     Node split = equality.orNode(equality.notNode());
-    sendLemma(split, carePair.d_theory);
+    TrustNode tsplit;
+    if (isProofEnabled())
+    {
+      // make proof of splitting lemma
+      tsplit = d_cmbsPg->mkTrustNode(split, PfRule::SPLIT, {equality});
+    }
+    else
+    {
+      tsplit = TrustNode::mkTrustLemma(split, nullptr);
+    }
+    sendLemma(tsplit, carePair.d_theory);
 
     // Could check the equality status here:
     //   EqualityStatus es = getEqualityStatus(carePair.d_a, carePair.d_b);

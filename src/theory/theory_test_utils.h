@@ -27,7 +27,6 @@
 #include "expr/node.h"
 #include "theory/interrupted.h"
 #include "theory/output_channel.h"
-#include "util/proof.h"
 #include "util/resource_manager.h"
 #include "util/unsafe_interrupt_exception.h"
 
@@ -69,17 +68,14 @@ public:
   ~TestOutputChannel() override {}
 
   void safePoint(ResourceManager::Resource r) override {}
-  void conflict(TNode n, std::unique_ptr<Proof> pf) override
-  {
-    push(CONFLICT, n);
-  }
+  void conflict(TNode n) override { push(CONFLICT, n); }
 
   bool propagate(TNode n) override {
     push(PROPAGATE, n);
     return true;
   }
 
-  LemmaStatus lemma(TNode n, ProofRule rule, LemmaProperty p) override
+  LemmaStatus lemma(TNode n, LemmaProperty p) override
   {
     push(LEMMA, n);
     return LemmaStatus(Node::null(), 0);

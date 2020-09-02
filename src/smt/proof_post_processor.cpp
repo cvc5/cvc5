@@ -404,17 +404,8 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           pfn = cdp->getProofFor(children[i]);
           pf->addProof(pfn);
           // ensure we have a proof of var = subs
-          Node veqs = var.eqNode(subs);
-          if (veqs != children[index])
-          {
-            // should be true intro or false intro
-            Assert(subs.isConst());
-            pf->addStep(veqs,
-                        subs.getConst<bool>() ? PfRule::TRUE_INTRO
-                                              : PfRule::FALSE_INTRO,
-                        {children[index]},
-                        {});
-          }
+          Node veqs = addProofForSubsStep(var, subs, children[index], pf.get());
+          // transitivity
           pf->addStep(var.eqNode(ss), PfRule::TRANS, {veqs, seqss}, {});
           // add to the substitution
           vvec.push_back(var);
@@ -423,7 +414,11 @@ Node ProofPostprocessCallback::expandMacros(PfRule id,
           continue;
         }
       }
-      // just use equality from CDProof
+      // Just use equality from CDProof, but ensure we have a proof in cdp.
+      // This may involve a TRUE_INTRO/FALSE_INTRO if the substitution step
+      // uses the assumption children[index] as a Boolean assignment (e.g.
+      // children[index] = true if we are using MethodId::SB_LITERAL).
+      addProofForSubsStep(var, subs, children[index], cdp);
       vvec.push_back(var);
       svec.push_back(subs);
       pgs.push_back(cdp);
@@ -550,6 +545,26 @@ Node ProofPostprocessCallback::addProofForTrans(
   return Node::null();
 }
 
+Node ProofPostprocessCallback::addProofForSubsStep(Node var,
+                                                   Node subs,
+                                                   Node assump,
+                                                   CDProof* cdp)
+{
+  // ensure we have a proof of var = subs
+  Node veqs = var.eqNode(subs);
+  if (veqs != assump)
+  {
+    // should be true intro or false intro
+    Assert(subs.isConst());
+    cdp->addStep(
+        veqs,
+        subs.getConst<bool>() ? PfRule::TRUE_INTRO : PfRule::FALSE_INTRO,
+        {assump},
+        {});
+  }
+  return veqs;
+}
+
 bool ProofPostprocessCallback::addToTransChildren(Node eq,
                                                   std::vector<Node>& tchildren,
                                                   bool isSymm)
@@ -566,6 +581,105 @@ bool ProofPostprocessCallback::addToTransChildren(Node eq,
              && tchildren[tchildren.size() - 1][1] == equ[0]));
   tchildren.push_back(equ);
   return true;
+}
+
+ProofPostprocessFinalCallback::ProofPostprocessFinalCallback(
+    ProofNodeManager* pnm)
+    : d_ruleCount("finalProof::ruleCount"),
+      d_totalRuleCount("finalProof::totalRuleCount", 0),
+      d_pnm(pnm),
+      d_pedanticFailure(false)
+{
+  smtStatisticsRegistry()->registerStat(&d_ruleCount);
+  smtStatisticsRegistry()->registerStat(&d_totalRuleCount);
+}
+
+ProofPostprocessFinalCallback::~ProofPostprocessFinalCallback()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_ruleCount);
+  smtStatisticsRegistry()->unregisterStat(&d_totalRuleCount);
+}
+
+void ProofPostprocessFinalCallback::initializeUpdate()
+{
+  d_pedanticFailure = false;
+  d_pedanticFailureOut.str("");
+}
+
+bool ProofPostprocessFinalCallback::shouldUpdate(ProofNode* pn)
+{
+  PfRule r = pn->getRule();
+  if (Trace.isOn("final-pf-hole"))
+  {
+    if (r == PfRule::THEORY_REWRITE)
+    {
+      Trace("final-pf-hole") << "hole: " << r << " : " << pn->getResult()
+                            << std::endl;
+    }
+  }
+  // if not doing eager pedantic checking, fail if below threshold
+  if (!options::proofNewPedanticEager())
+  {
+    if (!d_pedanticFailure)
+    {
+      Assert(d_pedanticFailureOut.str().empty());
+      if (d_pnm->getChecker()->isPedanticFailure(r, d_pedanticFailureOut))
+      {
+        d_pedanticFailure = true;
+      }
+    }
+  }
+  // record stats for the rule
+  d_ruleCount << r;
+  ++d_totalRuleCount;
+  return false;
+}
+
+bool ProofPostprocessFinalCallback::wasPedanticFailure(std::ostream& out) const
+{
+  if (d_pedanticFailure)
+  {
+    out << d_pedanticFailureOut.str();
+    return true;
+  }
+  return false;
+}
+
+ProofPostproccess::ProofPostproccess(ProofNodeManager* pnm,
+                                     SmtEngine* smte,
+                                     ProofGenerator* pppg)
+    : d_cb(pnm, smte, pppg), d_finalCb(pnm), d_pnm(pnm)
+{
+}
+
+ProofPostproccess::~ProofPostproccess() {}
+
+void ProofPostproccess::process(std::shared_ptr<ProofNode> pf)
+{
+  // Initialize the callback, which computes necessary static information about
+  // how to process, including how to process assumptions in pf.
+  d_cb.initializeUpdate();
+  // now, process
+  ProofNodeUpdater updater(d_pnm, d_cb);
+  updater.process(pf);
+  // take stats and check pedantic
+  d_finalCb.initializeUpdate();
+  ProofNodeUpdater finalizer(d_pnm, d_finalCb);
+  finalizer.process(pf);
+
+  std::stringstream serr;
+  bool wasPedanticFailure = d_finalCb.wasPedanticFailure(serr);
+  if (wasPedanticFailure)
+  {
+    AlwaysAssert(!wasPedanticFailure)
+        << "ProofPostproccess::process: pedantic failure:" << std::endl
+        << serr.str();
+  }
+}
+
+void ProofPostproccess::setEliminateRule(PfRule rule)
+{
+  d_cb.setEliminateRule(rule);
 }
 
 }  // namespace smt

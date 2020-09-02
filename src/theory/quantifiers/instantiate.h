@@ -268,21 +268,6 @@ class Instantiate : public QuantifiersUtil
    * This method returns false if the unsat core is not available.
    */
   bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
-  /** get unsat core lemmas
-   *
-   * If this method returns true, then it appends to active_lemmas all lemmas
-   * that are in the unsat core that originated from the theory of quantifiers.
-   * This method returns false if the unsat core is not available.
-   *
-   * It also computes a weak implicant for each of these lemmas. For each lemma
-   * L in active_lemmas, this is a formula L' such that:
-   *   L => L'
-   * and replacing L by L' in the unsat core results in a set that is still
-   * unsatisfiable. The map weak_imp stores this formula for each formula in
-   * active_lemmas.
-   */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
-                          std::map<Node, Node>& weak_imp);
   /** get explanation for instantiation lemmas
    *
    *

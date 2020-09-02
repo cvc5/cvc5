@@ -32,12 +32,7 @@
 #include "util/hash.h"
 #include "util/statistics_registry.h"
 
-// Forward declarations, needed because the BV theory and the BV Proof classes
-// are cyclically dependent
 namespace CVC4 {
-namespace proof {
-class BitVectorProof;
-}
 
 namespace theory {
 
@@ -123,8 +118,6 @@ class TheoryBV : public Theory {
   bool applyAbstraction(const std::vector<Node>& assertions,
                         std::vector<Node>& new_assertions);
 
-  void setProofLog(proof::BitVectorProof* bvp);
-
  private:
   class Statistics
   {
@@ -197,7 +190,7 @@ class TheoryBV : public Theory {
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
   std::unique_ptr<AbstractionModule> d_abstractionModule;
   bool d_calledPreregister;
-  
+
   //for extended functions
   bool d_needsLastCallCheck;
   context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
@@ -225,7 +218,7 @@ class TheoryBV : public Theory {
    *                (ite ((_ extract 1 0) x) 1 0)
    */
   bool doExtfReductions( std::vector< Node >& terms );
-  
+
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end();
   }
@@ -266,7 +259,11 @@ class TheoryBV : public Theory {
 
   void sendConflict();
 
-  void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
+  void lemma(TNode node)
+  {
+    d_out->lemma(node);
+    d_lemmasAdded = true;
+  }
 
   void checkForLemma(TNode node);
 

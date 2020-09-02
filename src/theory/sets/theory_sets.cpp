@@ -98,9 +98,10 @@ void TheorySets::check(Effort e) {
   d_internal->check(e);
 }
 
-bool TheorySets::collectModelInfo(TheoryModel* m)
+bool TheorySets::collectModelValues(TheoryModel* m,
+                                    const std::set<Node>& termSet)
 {
-  return d_internal->collectModelInfo(m);
+  return d_internal->collectModelValues(m, termSet);
 }
 
 void TheorySets::computeCareGraph() {
