@@ -64,22 +64,25 @@ PR finished:
 (77) update rule for CONG (req 76)
 (79) term context extended utilities (req 46)
 (84) SMT engine proof post-processor (req 63)
+(87) Delete old proof code [Haniel]
+(89) combination engine proof producing
+(90) inference manager uses pfee
 (92) strings term registry proof preparation (req 75)
 
 PRs ready:
 
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
+(47) TheoryUF proof producing (req 24, 39, 90)
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
 (71) quantifiers proof producing (req 38, 52, 87)
 (80) generalize TConvProofGenerator for term contexts (req 79) *
-(82) SmtEngine proof manager (req 84, 87)
+(82) SmtEngine proof manager (req 84, 87, 93)
 (86) builtin proof checker updates including theory rewrite is a trusted rule *
 (88) fixes for smt preprocess proof generator
-(89) combination engine proof producing *
-(90) inference manager uses pfee *
 (91) Basic connections for proof producing TheoryEngine
-(87) Delete old proof code [Haniel] *
+(93) updates to proof node updater (req 86)
+(94) HO_CONG in eq proof conversion [Haniel]
 
 PRs future:
 
@@ -87,7 +90,6 @@ PRs future:
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
 (41) SharedTermDatabase uses pfee (req 24)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
-(47) TheoryUF proof producing [Haniel] (req 24, 39, 90)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
