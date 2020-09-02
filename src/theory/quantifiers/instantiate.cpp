@@ -282,16 +282,7 @@ bool Instantiate::addInstantiation(
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
   // construct the instantiation, and rewrite the lemma
-  Node lem;
-  if (options::proof())
-  {
-    // necessary for some strange dependency with dumping instantiations
-    lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
-  }
-  else
-  {
-    lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
-  }
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
 
   // If proofs are enabled, attempt to construct the proof
   bool hasProof = false;
