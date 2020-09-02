@@ -42,7 +42,6 @@ TheorySets::TheorySets(context::Context* c,
   // use the official theory state and inference manager objects
   d_theoryState = &d_state;
   d_inferManager = &d_im;
-  d_needsSharedTermEqFacts = false;
 
   // TODO: remove this
   d_state.setParent(d_internal.get());
@@ -61,12 +60,6 @@ bool TheorySets::needsEqualityEngine(EeSetupInfo& esi)
 {
   esi.d_notify = &d_notify;
   esi.d_name = "theory::sets::ee";
-  // need notifications about equivalence class changes, for all string eqc
-  esi.d_notifyMergeTypeKinds.push_back(SET_TYPE);
-  esi.d_notifyDisequalTypeKinds.push_back(SET_TYPE);
-  // also tracking new equivalence classes for singleton/emptyset
-  esi.d_notifyNewEqClassKinds.push_back(SINGLETON);
-  esi.d_notifyNewEqClassKinds.push_back(EMPTYSET);
   return true;
 }
 
