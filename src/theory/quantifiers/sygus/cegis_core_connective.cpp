@@ -14,7 +14,6 @@
 
 #include "theory/quantifiers/sygus/cegis_core_connective.h"
 
-#include "expr/datatype.h"
 #include "options/base_options.h"
 #include "printer/printer.h"
 #include "proof/unsat_core.h"

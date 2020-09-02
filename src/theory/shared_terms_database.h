@@ -21,7 +21,7 @@
 
 #include "context/cdhashset.h"
 #include "expr/node.h"
-#include "theory/theory.h"
+#include "theory/theory_id.h"
 #include "theory/uf/equality_engine.h"
 #include "util/statistics_registry.h"
 
@@ -57,11 +57,15 @@ private:
   context::CDO<unsigned> d_addedSharedTermsSize;
 
   /** A map from atoms and subterms to the theories that use it */
-  typedef context::CDHashMap<std::pair<Node, TNode>, theory::Theory::Set, TNodePairHashFunction> SharedTermsTheoriesMap;
+  typedef context::CDHashMap<std::pair<Node, TNode>,
+                             theory::TheoryIdSet,
+                             TNodePairHashFunction>
+      SharedTermsTheoriesMap;
   SharedTermsTheoriesMap d_termsToTheories;
 
   /** Map from term to theories that have already been notified about the shared term */
-  typedef context::CDHashMap<TNode, theory::Theory::Set, TNodeHashFunction> AlreadyNotifiedMap;
+  typedef context::CDHashMap<TNode, theory::TheoryIdSet, TNodeHashFunction>
+      AlreadyNotifiedMap;
   AlreadyNotifiedMap d_alreadyNotifiedMap;
 
   /** The registered equalities for propagation */
@@ -178,12 +182,12 @@ public:
    * Add a shared term to the database. The shared term is a subterm of the atom and
    * should be associated with the given theory.
    */
-  void addSharedTerm(TNode atom, TNode term, theory::Theory::Set theories);
+  void addSharedTerm(TNode atom, TNode term, theory::TheoryIdSet theories);
 
   /**
    * Mark that the given theories have been notified of the given shared term.
    */
-  void markNotified(TNode term, theory::Theory::Set theories);
+  void markNotified(TNode term, theory::TheoryIdSet theories);
 
   /**
    * Returns true if the atom contains any shared terms, false otherwise.
@@ -203,12 +207,12 @@ public:
   /**
    * Get the theories that share the term in a given atom (and have not yet been notified).
    */
-  theory::Theory::Set getTheoriesToNotify(TNode atom, TNode term) const;
+  theory::TheoryIdSet getTheoriesToNotify(TNode atom, TNode term) const;
 
   /**
    * Get the theories that share the term and have been notified already.
    */
-  theory::Theory::Set getNotifiedTheories(TNode term) const;
+  theory::TheoryIdSet getNotifiedTheories(TNode term) const;
 
   /**
    * Returns true if the term is currently registered as shared with some theory.

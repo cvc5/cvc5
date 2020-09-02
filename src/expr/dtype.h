@@ -77,7 +77,6 @@ typedef expr::Attribute<DTypeUFiniteComputedTag, bool> DTypeUFiniteComputedAttr;
 // ----------------------- end datatype attributes
 
 class NodeManager;
-class Datatype;
 
 /**
  * The Node-level representation of an inductive datatype, which currently
@@ -141,7 +140,6 @@ class Datatype;
  */
 class DType
 {
-  friend class Datatype;
   friend class DTypeConstructor;
   friend class NodeManager;  // for access to resolve()
 

@@ -20,6 +20,7 @@
 #include <vector>
 #include <memory>
 
+#include "theory/eager_proof_generator.h"
 #include "theory/ee_manager.h"
 #include "theory/model_manager.h"
 
@@ -39,7 +40,9 @@ namespace theory {
 class CombinationEngine
 {
  public:
-  CombinationEngine(TheoryEngine& te, const std::vector<Theory*>& paraTheories);
+  CombinationEngine(TheoryEngine& te,
+                    const std::vector<Theory*>& paraTheories,
+                    ProofNodeManager* pnm);
   virtual ~CombinationEngine();
 
   /** Finish initialization */
@@ -91,13 +94,15 @@ class CombinationEngine
   virtual void combineTheories() = 0;
 
  protected:
+  /** Is proof enabled? */
+  bool isProofEnabled() const;
   /**
    * Get model equality engine notify. Return the notification object for
    * who listens to the model's equality engine (if any).
    */
   virtual eq::EqualityEngineNotify* getModelEqualityEngineNotify();
   /** Send lemma to the theory engine, atomsTo is the theory to send atoms to */
-  void sendLemma(TNode node, TheoryId atomsTo);
+  void sendLemma(TrustNode trn, TheoryId atomsTo);
   /** Reference to the theory engine */
   TheoryEngine& d_te;
   /** Logic info of theory engine (cached) */
@@ -114,6 +119,11 @@ class CombinationEngine
    * model.
    */
   std::unique_ptr<ModelManager> d_mmanager;
+  /**
+   * An eager proof generator, if proofs are enabled. This proof generator is
+   * responsible for proofs of splitting lemmas generated in combineTheories.
+   */
+  std::unique_ptr<EagerProofGenerator> d_cmbsPg;
 };
 
 }  // namespace theory

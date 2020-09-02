@@ -73,8 +73,6 @@ libcvc4_add_sources(
   type_node.cpp
   type_node.h
   variable_type_map.h
-  datatype.h
-  datatype.cpp
   datatype_index.h
   datatype_index.cpp
   dtype.h

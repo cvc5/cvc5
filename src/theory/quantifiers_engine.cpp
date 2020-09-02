@@ -217,7 +217,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   if (options::sygus() || options::sygusInst())
   {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
-  }  
+  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -575,12 +575,12 @@ void QuantifiersEngine::check( Theory::Effort e ){
 
   Trace("quant-engine-debug2") << "Quantifiers Engine call to check, level = " << e << ", needsCheck=" << needsCheck << std::endl;
   if( needsCheck ){
-    //flush previous lemmas (for instance, if was interupted), or other lemmas to process
+    //flush previous lemmas (for instance, if was interrupted), or other lemmas to process
     flushLemmas();
     if( d_hasAddedLemma ){
       return;
     }
-    
+
     double clSet = 0;
     if( Trace.isOn("quant-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -670,23 +670,15 @@ void QuantifiersEngine::check( Theory::Effort e ){
       QuantifiersModule::QEffort quant_e =
           static_cast<QuantifiersModule::QEffort>(qef);
       d_curr_effort_level = quant_e;
-      //build the model if any module requested it
+      // Force the theory engine to build the model if any module requested it.
       if (needsModelE == quant_e)
       {
-        if (!d_model->isBuilt())
+        Trace("quant-engine-debug") << "Build model..." << std::endl;
+        if (!d_te->buildModel())
         {
-          // theory engine's model builder is quantifier engine's builder if it
-          // has one
-          Assert(!getModelBuilder()
-                 || getModelBuilder() == d_te->getModelBuilder());
-          Trace("quant-engine-debug") << "Build model..." << std::endl;
-          if (!d_te->getModelBuilder()->buildModel(d_model.get()))
-          {
-            flushLemmas();
-          }
-        }
-        if (!d_model->isBuiltSuccess())
-        {
+          // If we failed to build the model, flush all pending lemmas and
+          // finish.
+          flushLemmas();
           break;
         }
       }
@@ -813,7 +805,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
       Trace("quant-engine") << std::endl;
     }
-    
+
     Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
@@ -1043,7 +1035,7 @@ bool QuantifiersEngine::removeLemma( Node lem ) {
 void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
 }
-  
+
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
@@ -1056,9 +1048,10 @@ bool QuantifiersEngine::theoryEngineNeedsCheck() const
   return d_te->needCheck();
 }
 
-void QuantifiersEngine::setConflict() { 
-  d_conflict = true; 
-  d_conflict_c = true; 
+void QuantifiersEngine::setConflict()
+{
+  d_conflict = true;
+  d_conflict_c = true;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
@@ -1129,10 +1122,6 @@ void QuantifiersEngine::flushLemmas(){
 
 bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
   return d_instantiate->getUnsatCoreLemmas(active_lemmas);
-}
-
-bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas, weak_imp);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {

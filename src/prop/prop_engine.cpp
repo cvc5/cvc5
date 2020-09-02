@@ -99,17 +99,17 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
-  PROOF (
-         ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
-         );
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
+  }
 }
 
 void PropEngine::finishInit()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
-  d_cnfStream->convertAndAssert(
-      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
+  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
 PropEngine::~PropEngine() {
@@ -126,18 +126,15 @@ void PropEngine::assertFormula(TNode node) {
   Assert(!d_inCheckSat) << "Sat solver in solve()!";
   Debug("prop") << "assertFormula(" << node << ")" << endl;
   // Assert as non-removable
-  d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(node, false, false, true);
 }
 
-void PropEngine::assertLemma(TNode node, bool negated,
-                             bool removable,
-                             ProofRule rule,
-                             TNode from) {
-  //Assert(d_inCheckSat, "Sat solver should be in solve()!");
+void PropEngine::assertLemma(TNode node, bool negated, bool removable)
+{
   Debug("prop::lemmas") << "assertLemma(" << node << ")" << endl;
 
   // Assert as (possibly) removable
-  d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+  d_cnfStream->convertAndAssert(node, removable, negated);
 }
 
 void PropEngine::addAssertionsToDecisionEngine(

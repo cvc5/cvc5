@@ -150,7 +150,6 @@ public:
   options::InstFormatMode getInstFormatMode() const;
   OutputLanguage getOutputLanguage() const;
   bool getUfHo() const;
-  bool getCheckProofs() const;
   bool getDumpInstantiations() const;
   bool getDumpModels() const;
   bool getDumpProofs() const;
@@ -167,7 +166,6 @@ public:
   bool getMemoryMap() const;
   bool getParseOnly() const;
   bool getProduceModels() const;
-  bool getProof() const;
   bool getSegvSpin() const;
   bool getSemanticChecks() const;
   bool getStatistics() const;

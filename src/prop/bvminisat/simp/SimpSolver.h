@@ -54,7 +54,7 @@ class SimpSolver : public Solver {
                  Lit r,
                  ClauseId& id);  // Add a ternary clause to the solver.
   bool addClause_(vec<Lit>& ps, ClauseId& id);
-  bool substitute(Var v, Lit x);  // Replace all occurences of v with x (may
+  bool substitute(Var v, Lit x);  // Replace all occurrences of v with x (may
                                   // cause a contradiction).
 
   // Variable mode:
