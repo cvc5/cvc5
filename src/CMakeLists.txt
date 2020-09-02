@@ -251,6 +251,8 @@ libcvc4_add_sources(
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
   theory/arith/arith_ite_utils.h
+  theory/arith/arith_lemma.cpp
+  theory/arith/arith_lemma.h
   theory/arith/arith_msum.cpp
   theory/arith/arith_msum.h
   theory/arith/arith_rewriter.cpp
@@ -287,6 +289,8 @@ libcvc4_add_sources(
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
+  theory/arith/inference_manager.cpp
+  theory/arith/inference_manager.h
   theory/arith/linear_equality.cpp
   theory/arith/linear_equality.h
   theory/arith/matrix.cpp
@@ -350,8 +354,6 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
-  theory/arrays/static_fact_manager.cpp
-  theory/arrays/static_fact_manager.h
   theory/arrays/theory_arrays.cpp
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
