@@ -859,31 +859,32 @@ Node BVToInt::createShiftNode(vector<Node> children,
                               uint64_t bvsize,
                               bool isLeftShift)
 {
-  Node x = children[0];
-  Node y = children[1];
-  Assert(!y.isConst());
-  // ite represents 2^x for every integer x from 0 to bvsize-1.
-  Node ite = pow2(0);
-  for (uint64_t i = 1; i < bvsize; i++)
-  {
-    ite = d_nm->mkNode(kind::ITE,
-                       d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)),
-                       pow2(i),
-                       ite);
-  }
-  /**
+    /**
    * from SMT-LIB:
    * [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
    * [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
-   * Since we don't have exponentiation, we use the ite declared above.
+   * Since we don't have exponentiation, we use an ite.
+   * Important note: below we use INTS_DIVISION_TOTAL, which is safe here because we divide by 2^... which is never 0.
    */
-  kind::Kind_t then_kind = isLeftShift ? kind::MULT : kind::INTS_DIVISION_TOTAL;
-  return d_nm->mkNode(kind::ITE,
-                              d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)),
-                              d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
-                                                            d_nm->mkNode(then_kind, x, ite),
-                                                            pow2(bvsize)),
-                              d_zero);
+  Node x = children[0];
+  Node y = children[1];
+  //shifting by const is eliminated by the theory rewriter
+  Assert(!y.isConst());
+  Node ite = d_zero;
+  Node body;
+  for (uint64_t i = 0; i < bvsize; i++)
+  {
+    if (isLeftShift) {
+      body = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, pow2(i)), pow2(bvsize));
+    } else {
+      body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
+    }
+    ite = d_nm->mkNode(kind::ITE,
+                       d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)),
+                       body,
+                       ite);
+  }
+  return ite;
 }
 
 Node BVToInt::createITEFromTable(
