@@ -3,44 +3,6 @@ name   = "Bitvector theory"
 header = "options/bv_options.h"
 
 [[option]]
-  name       = "bvProofFormat"
-  category   = "expert"
-  long       = "bv-proof-format=MODE"
-  type       = "BvProofFormat"
-  default    = "ER"
-  predicates = ["checkSatSolverEnabled<BvProofFormat>"]
-  help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
-  help_mode  = "Bit-vector proof formats."
-[[option.mode.ER]]
-  name = "er"
-  help = "Extended Resolution, i.e. resolution with new variable definitions."
-[[option.mode.DRAT]]
-  name = "drat"
-  help = "Deletion and Resolution Asymmetric Tautology Additions."
-[[option.mode.LRAT]]
-  name = "lrat"
-  help = "DRAT with unit propagation hints to accelerate checking."
-
-[[option]]
-  name       = "bvOptimizeSatProof"
-  category   = "expert"
-  long       = "bv-optimize-sat-proof=MODE"
-  type       = "BvOptimizeSatProof"
-  default    = "FORMULA"
-  predicates = ["checkSatSolverEnabled<BvOptimizeSatProof>"]
-  help       = "enable SAT proof optimizations, see --bv-optimize-sat-proof=help"
-  help_mode  = "SAT proof optimization level."
-[[option.mode.NONE]]
-  name = "none"
-  help = "Do not optimize the SAT proof."
-[[option.mode.PROOF]]
-  name = "proof"
-  help = "Use drat-trim to shrink the SAT proof."
-[[option.mode.FORMULA]]
-  name = "formula"
-  help = "Use drat-trim to shrink the SAT proof and formula."
-
-[[option]]
   name       = "bvSatSolver"
   smt_name   = "bv-sat-solver"
   category   = "expert"

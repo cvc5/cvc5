@@ -21,7 +21,8 @@ from cvc4 cimport Grammar as c_Grammar
 from cvc4 cimport Sort as c_Sort
 from cvc4 cimport SortHashFunction as c_SortHashFunction
 from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
-from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
+from cvc4 cimport ROUND_TOWARD_NEGATIVE, ROUND_TOWARD_ZERO
+from cvc4 cimport ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
 from cvc4 cimport TermHashFunction as c_TermHashFunction
 
@@ -88,7 +89,7 @@ cdef class Datatype:
         if isinstance(index, int) and index >= 0:
             dc.cdc = self.cd[(<int?> index)]
         elif isinstance(index, str):
-            dc.cdc = self.cd[(<const string &> name.encode())]
+            dc.cdc = self.cd[(<const string &> index.encode())]
         else:
             raise ValueError("Expecting a non-negative integer or string")
         return dc
@@ -395,6 +396,9 @@ cdef class Solver:
     def __dealloc__(self):
         del self.csolver
 
+    def supportsFloatingPoint(self):
+        return self.csolver.supportsFloatingPoint()
+
     def getBooleanSort(self):
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.getBooleanSort()
@@ -415,9 +419,9 @@ cdef class Solver:
         sort.csort = self.csolver.getRegExpSort()
         return sort
 
-    def getRoundingmodeSort(self):
+    def getRoundingModeSort(self):
         cdef Sort sort = Sort(self)
-        sort.csort = self.csolver.getRoundingmodeSort()
+        sort.csort = self.csolver.getRoundingModeSort()
         return sort
 
     def getStringSort(self):
@@ -1457,6 +1461,7 @@ cdef class Term:
 cdef __rounding_modes = {
     <int> ROUND_NEAREST_TIES_TO_EVEN: "RoundNearestTiesToEven",
     <int> ROUND_TOWARD_POSITIVE: "RoundTowardPositive",
+    <int> ROUND_TOWARD_NEGATIVE: "RoundTowardNegative",
     <int> ROUND_TOWARD_ZERO: "RoundTowardZero",
     <int> ROUND_NEAREST_TIES_TO_AWAY: "RoundNearestTiesToAway"
 }

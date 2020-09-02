@@ -30,7 +30,10 @@ TheoryInferenceManager::TheoryInferenceManager(Theory& t,
       d_out(t.getOutputChannel()),
       d_ee(nullptr),
       d_pnm(pnm),
-      d_keep(t.getSatContext())
+      d_keep(t.getSatContext()),
+      d_lemmasSent(t.getUserContext()),
+      d_numCurrentLemmas(0),
+      d_numCurrentFacts(0)
 {
 }
 
@@ -45,6 +48,12 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
                                        *d_ee,
                                        d_pnm));
   }
+}
+
+void TheoryInferenceManager::reset()
+{
+  d_numCurrentLemmas = 0;
+  d_numCurrentFacts = 0;
 }
 
 void TheoryInferenceManager::conflictEqConstantMerge(TNode a, TNode b)
@@ -72,6 +81,27 @@ void TheoryInferenceManager::trustedConflict(TrustNode tconf)
   {
     d_theoryState.notifyInConflict();
     d_out.trustedConflict(tconf);
+  }
+}
+
+void TheoryInferenceManager::conflictExp(PfRule id,
+                                         const std::vector<Node>& exp,
+                                         const std::vector<Node>& args)
+{
+  if (!d_theoryState.isInConflict())
+  {
+    if (d_pfee != nullptr)
+    {
+      // use proof equality engine to construct the trust node
+      TrustNode tconf = d_pfee->assertConflict(id, exp, args);
+      d_out.trustedConflict(tconf);
+    }
+    else
+    {
+      // version without proofs
+      Node conf = mkExplainPartial(exp, {});
+      conflict(conf);
+    }
   }
 }
 
@@ -114,7 +144,7 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
   Node lit = a.eqNode(b);
   if (d_pfee != nullptr)
   {
-    return d_pfee->explain(lit);
+    return d_pfee->assertConflict(lit);
   }
   if (d_ee != nullptr)
   {
@@ -125,15 +155,80 @@ TrustNode TheoryInferenceManager::explainConflictEqConstantMerge(TNode a,
                   << " mkTrustedConflictEqConstantMerge";
 }
 
-LemmaStatus TheoryInferenceManager::lemma(TNode lem, LemmaProperty p)
+bool TheoryInferenceManager::lemma(TNode lem, LemmaProperty p, bool doCache)
 {
-  return d_out.lemma(lem, p);
+  TrustNode tlem = TrustNode::mkTrustLemma(lem, nullptr);
+  return trustedLemma(tlem, p, doCache);
 }
 
-LemmaStatus TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
-                                                 LemmaProperty p)
+bool TheoryInferenceManager::trustedLemma(const TrustNode& tlem,
+                                          LemmaProperty p,
+                                          bool doCache)
 {
-  return d_out.trustedLemma(tlem, p);
+  if (doCache)
+  {
+    if (!cacheLemma(tlem.getNode(), p))
+    {
+      return false;
+    }
+  }
+  d_numCurrentLemmas++;
+  d_out.trustedLemma(tlem, p);
+  return true;
+}
+
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                                      PfRule id,
+                                      const std::vector<Node>& exp,
+                                      const std::vector<Node>& noExplain,
+                                      const std::vector<Node>& args,
+                                      LemmaProperty p,
+                                      bool doCache)
+{
+  if (d_pfee != nullptr)
+  {
+    // make the trust node from the proof equality engine
+    TrustNode trn = d_pfee->assertLemma(conc, id, exp, noExplain, args);
+    return trustedLemma(trn, p, doCache);
+  }
+  // otherwise, not using proofs, explain and send lemma
+  Node ant = mkExplainPartial(exp, noExplain);
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  return lemma(lem, p, doCache);
+}
+
+bool TheoryInferenceManager::lemmaExp(Node conc,
+                                      const std::vector<Node>& exp,
+                                      const std::vector<Node>& noExplain,
+                                      ProofGenerator* pg,
+                                      LemmaProperty p,
+                                      bool doCache)
+{
+  if (d_pfee != nullptr)
+  {
+    // make the trust node from the proof equality engine
+    TrustNode trn = d_pfee->assertLemma(conc, exp, noExplain, pg);
+    return trustedLemma(trn, p, doCache);
+  }
+  // otherwise, not using proofs, explain and send lemma
+  Node ant = mkExplainPartial(exp, noExplain);
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+  return lemma(lem, p, doCache);
+}
+
+bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
+{
+  return d_lemmasSent.find(lem) != d_lemmasSent.end();
+}
+
+uint32_t TheoryInferenceManager::numAddedLemmas() const
+{
+  return d_numCurrentLemmas;
+}
+
+bool TheoryInferenceManager::hasAddedLemma() const
+{
+  return d_numCurrentLemmas != 0;
 }
 
 void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
@@ -178,6 +273,7 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
                          << expn << std::endl;
+  d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
   // If no proof production, or no proof rule was given
   if (d_pfee == nullptr || id == PfRule::UNKNOWN)
@@ -242,6 +338,47 @@ Node TheoryInferenceManager::mkExplain(TNode n)
   std::vector<TNode> assumptions;
   explain(n, assumptions);
   return NodeManager::currentNM()->mkAnd(assumptions);
+}
+
+Node TheoryInferenceManager::mkExplainPartial(
+    const std::vector<Node>& exp, const std::vector<Node>& noExplain)
+{
+  std::vector<TNode> assumps;
+  for (const Node& e : exp)
+  {
+    if (std::find(noExplain.begin(), noExplain.end(), e) != noExplain.end())
+    {
+      if (std::find(assumps.begin(), assumps.end(), e) == assumps.end())
+      {
+        // a non-explained literal
+        assumps.push_back(e);
+      }
+      continue;
+    }
+    // otherwise, explain it
+    explain(e, assumps);
+  }
+  return NodeManager::currentNM()->mkAnd(assumps);
+}
+
+uint32_t TheoryInferenceManager::numAddedFacts() const
+{
+  return d_numCurrentFacts;
+}
+
+bool TheoryInferenceManager::hasAddedFact() const
+{
+  return d_numCurrentFacts != 0;
+}
+
+bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
+{
+  if (d_lemmasSent.find(lem) != d_lemmasSent.end())
+  {
+    return false;
+  }
+  d_lemmasSent.insert(lem);
+  return true;
 }
 
 }  // namespace theory

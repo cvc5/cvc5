@@ -32,7 +32,6 @@
 #include "expr/expr.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
-#include "util/proof.h"
 #include "util/statistics_registry.h"
 
 // Forward declarations.

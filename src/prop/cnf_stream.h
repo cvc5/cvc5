@@ -186,10 +186,13 @@ class CnfStream {
    * @param node node to convert and assert
    * @param removable whether the sat solver can choose to remove the clauses
    * @param negated whether we are asserting the node negated
+   * @param input whether it is an input assertion (rather than a lemma). This
+   * information is only relevant for unsat core tracking.
    */
-  virtual void convertAndAssert(TNode node, bool removable, bool negated,
-                                ProofRule proof_id,
-                                TNode from = TNode::null()) = 0;
+  virtual void convertAndAssert(TNode node,
+                                bool removable,
+                                bool negated,
+                                bool input = false) = 0;
 
   /**
    * Get the node that is represented by the given SatLiteral.
@@ -269,12 +272,13 @@ class TseitinCnfStream : public CnfStream {
    * @param node the formula to assert
    * @param removable is this something that can be erased
    * @param negated true if negated
+   * @param input whether it is an input assertion (rather than a lemma). This
+   * information is only relevant for unsat core tracking.
    */
   void convertAndAssert(TNode node,
                         bool removable,
                         bool negated,
-                        ProofRule rule,
-                        TNode from = TNode::null()) override;
+                        bool input = false) override;
 
  private:
   /**

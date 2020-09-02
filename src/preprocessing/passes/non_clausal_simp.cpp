@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "context/cdo.h"
-#include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
 
@@ -54,7 +53,7 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+  Assert(!options::unsatCores());
 
   d_preprocContext->spendResource(ResourceManager::Resource::PreprocessStep);
 
@@ -98,11 +97,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
-    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    Assert(!options::unsatCores());
     assertionsToPreprocess->clear();
     Node n = NodeManager::currentNM()->mkConst<bool>(false);
     assertionsToPreprocess->push_back(n);
-    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+    if (options::unsatCores())
+    {
+      ProofManager::currentPM()->addDependence(n, Node::null());
+    }
     propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
   }
@@ -164,7 +166,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+        if (options::unsatCores())
+        {
+          ProofManager::currentPM()->addDependence(n, Node::null());
+        }
         propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -207,7 +212,10 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+        if (options::unsatCores())
+        {
+          ProofManager::currentPM()->addDependence(n, Node::null());
+        }
         propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -241,7 +249,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           //   equations[0].second); assertionsToPreprocess->clear();
           //   Node n = NodeManager::currentNM()->mkConst<bool>(false);
           //   assertionsToPreprocess->push_back(n);
-          //   PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
           //   false); return;
           // }
           // top_level_substs.simplifyRHS(constantPropagations);
