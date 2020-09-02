@@ -349,9 +349,6 @@ class TheoryArrays : public Theory {
   /** The proof checker */
   ArraysProofRuleChecker d_pchecker;
 
-  /** Proof-producing equaltity engine */
-  std::unique_ptr<eq::ProofEqEngine> d_pfEqualityEngine;
-
   /** Conflict when merging constants */
   void conflict(TNode a, TNode b);
 
@@ -482,9 +479,6 @@ class TheoryArrays : public Theory {
    * for the comparison between the indexes that appears in the lemma.
    */
   Node getNextDecisionRequest();
-  /** Assert inference internal */
-  bool assertInference(TNode eq, bool polarity, TNode reason, PfRule r);
-
   /**
    * Compute relevant terms. This includes select nodes for the
    * RIntro1 and RIntro2 rules.

@@ -86,7 +86,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_isPreRegistered(c),
       d_mayEqualEqualityEngine(c, name + "theory::arrays::mayEqual", true),
       d_notify(*this),
-      d_pfEqualityEngine(nullptr),
       d_backtracker(c),
       d_infoMap(c, &d_backtracker, name),
       d_mergeQueue(c),
@@ -138,7 +137,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
   // indicate we are using the default theory state object, and the arrays
   // inference manager
   d_theoryState = &d_state;
-  //d_inferManager = &d_im;
+  d_inferManager = &d_im;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -183,10 +182,6 @@ void TheoryArrays::finishInit()
   {
     d_equalityEngine->addFunctionKind(kind::STORE);
   }
-
-  // FIXME: don't create if not necessary
-  d_pfEqualityEngine.reset(new eq::ProofEqEngine(
-      getSatContext(), getUserContext(), *d_equalityEngine, d_pnm));
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -754,7 +749,7 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     }
 
     // Apply RIntro1 Rule
-    assertInference(
+    d_im.assertInference(
         ni.eqNode(v), true, d_true, PfRule::ARRAYS_READ_OVER_WRITE_1);
 
     d_infoMap.addStore(node, node);
@@ -845,8 +840,7 @@ void TheoryArrays::explain(TNode literal, Node& explanation)
 
 TrustNode TheoryArrays::explain(TNode literal)
 {
-  return d_pfEqualityEngine->explain(literal);
-  // return d_im.explainLit(literal);
+  return d_im.explainLit(literal);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1213,7 +1207,7 @@ Node TheoryArrays::getSkolem(TNode ref, const string& name, const TypeNode& type
   if (makeEqual) {
     Node d = skolem.eqNode(ref);
     Debug("arrays-model-based") << "Asserting skolem equality " << d << endl;
-    assertInference(d, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+    d_im.assertInference(d, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     Assert(!d_state.isInConflict());
     d_skolemAssertions.push_back(d);
     d_skolemIndex = d_skolemIndex + 1;
@@ -1355,11 +1349,10 @@ bool TheoryArrays::preNotifyFact(
 void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
 {
   // if a disequality
-  if (atom.getKind() == kind::EQUAL && !pol)
+  if (atom.getKind() == kind::EQUAL && !pol && !isInternal)
   {
     // Notice that we this should be an external assertion, since we do not
     // internally infer disequalities.
-    Assert (!isInternal);
     // Apply ArrDiseq Rule if diseq is between arrays
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
     {
@@ -1392,7 +1385,7 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
         Debug("pf::array") << "Asserting to the equality engine:" << std::endl
                            << "\teq = " << eq << std::endl
                            << "\treason = " << fact << std::endl;
-        assertInference(eq, false, fact, PfRule::ARRAYS_EXT);
+        d_im.assertInference(eq, false, fact, PfRule::ARRAYS_EXT);
         ++d_numProp;
       }
 
@@ -1679,7 +1672,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     {
       preRegisterTermInternal(selConst);
     }
-    assertInference(
+    d_im.assertInference(
         selConst.eqNode(defValue), true, d_true, PfRule::ARRAYS_TRUST);
   }
 
@@ -1816,7 +1809,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      assertInference(aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+      d_im.assertInference(aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1827,7 +1820,7 @@ void TheoryArrays::propagate(RowLemmaType lem)
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
       d_permRef.push_back(reason);
-      assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+      d_im.assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1893,7 +1886,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(aj2);
       }
-      assertInference(
+      d_im.assertInference(
           aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
@@ -1905,7 +1898,7 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      assertInference(
+      d_im.assertInference(
           bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
@@ -1924,14 +1917,14 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
       {
         preRegisterTermInternal(bj2);
       }
-      assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       return;
     }
 
@@ -2008,7 +2001,7 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(aj2);
       }
-      assertInference(
+      d_im.assertInference(
           aj.eqNode(aj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     Node bj2 = Rewriter::rewrite(bj);
@@ -2020,7 +2013,7 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      assertInference(
+      d_im.assertInference(
           bj.eqNode(bj2), true, d_true, PfRule::MACRO_SR_PRED_INTRO);
     }
     if (aj2 == bj2) {
@@ -2039,14 +2032,14 @@ bool TheoryArrays::dischargeLemmas()
       {
         preRegisterTermInternal(bj2);
       }
-      assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq1, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
     Node eq2 = i.eqNode(j);
     Node eq2_r = Rewriter::rewrite(eq2);
     if (eq2_r == d_true) {
-      assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
+      d_im.assertInference(eq2, true, d_true, PfRule::MACRO_SR_PRED_INTRO);
       continue;
     }
 
@@ -2066,30 +2059,12 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  TrustNode tconf;
-  if (options::proofNew())
-  {
-    tconf = d_pfEqualityEngine->assertConflict(a.eqNode(b));
-    d_conflictNode = tconf.getNode();
-    // d_im.conflictEqConstantMerge(a,b);
-    //return;
+  if (d_inCheckModel) {
+    // if in check model, don't send the conflict?
+    d_state.notifyInConflict();
+    return;
   }
-  else
-  {
-    explain(a.eqNode(b), d_conflictNode);
-    tconf = TrustNode::mkTrustConflict(d_conflictNode, nullptr);
-  }
-  if (!d_inCheckModel) {
-    if (options::proofNew())
-    {
-      d_out->trustedConflict(tconf);
-    }
-    else
-    {
-      d_out->conflict(tconf.getNode());
-    }
-  }
-  d_state.notifyInConflict();
+  d_im.conflictEqConstantMerge(a,b);
 }
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(
@@ -2161,38 +2136,6 @@ TrustNode TheoryArrays::expandDefinition(Node node)
     return TrustNode::mkTrustRewrite(node, ret, nullptr);
   }
   return TrustNode::null();
-}
-
-bool TheoryArrays::assertInference(TNode eq,
-                                   bool polarity,
-                                   TNode reason,
-                                   PfRule r)
-{
-  Trace("arrays-infer") << "TheoryArrays::assertInference: "
-                        << (polarity ? Node(eq) : eq.notNode()) << " by "
-                        << reason << "; " << r << std::endl;
-  Assert(eq.getKind() == kind::EQUAL);
-  if (options::proofNew())
-  {
-    Node fact = polarity ? Node(eq) : eq.notNode();
-    std::vector<Node> args;
-    switch (r)
-    {
-      case PfRule::MACRO_SR_PRED_INTRO: args.push_back(fact); break;
-      case PfRule::ARRAYS_READ_OVER_WRITE_1:
-        Assert(polarity);
-        args.push_back(eq[0]);
-        break;
-      case PfRule::ARRAYS_READ_OVER_WRITE:
-      case PfRule::ARRAYS_EXT:
-      default:
-        args.push_back(fact);
-        r = PfRule::ARRAYS_TRUST;
-        break;
-    }
-    return d_pfEqualityEngine->assertFact(fact, r, reason, args);
-  }
-  return d_equalityEngine->assertEquality(eq, polarity, reason);
 }
 
 void TheoryArrays::computeRelevantTerms(std::set<Node>& termSet)
