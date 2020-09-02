@@ -182,29 +182,6 @@ class TheoryBV : public Theory {
   bool d_needsLastCallCheck;
   context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
   context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
-  /** do extended function inferences
-   *
-   * This method adds lemmas on the output channel of TheoryBV based on
-   * reasoning about extended functions, such as bv2nat and int2bv. Examples
-   * of lemmas added by this method include:
-   *   0 <= ((_ int2bv w) x) < 2^w
-   *   ((_ int2bv w) (bv2nat x)) = x
-   *   (bv2nat ((_ int2bv w) x)) == x + k*2^w
-   * The purpose of these lemmas is to recognize easy conflicts before fully
-   * reducing extended functions based on their full semantics.
-   */
-  bool doExtfInferences( std::vector< Node >& terms );
-  /** do extended function reductions
-   *
-   * This method adds lemmas on the output channel of TheoryBV based on
-   * reducing all extended function applications that are preregistered to
-   * this theory and have not already been reduced by context-dependent
-   * simplification (see theory/ext_theory.h). Examples of lemmas added by
-   * this method include:
-   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
-   *                (ite ((_ extract 1 0) x) 1 0)
-   */
-  bool doExtfReductions( std::vector< Node >& terms );
 
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end();

@@ -43,7 +43,7 @@ class CoreSolverExtTheoryCallback : public ExtTheoryCallback
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
   /** Get reduction. */
-  int getReduction(int effort, Node n, Node& nr, bool& satDep) override;
+  bool getReduction(int effort, Node n, Node& nr, bool& satDep) override;
   /** The underlying equality engine */
   eq::EqualityEngine* d_equalityEngine;
 };
@@ -115,6 +115,29 @@ class CoreSolver : public SubtheorySolver {
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 
+  /** do extended function inferences
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reasoning about extended functions, such as bv2nat and int2bv. Examples
+   * of lemmas added by this method include:
+   *   0 <= ((_ int2bv w) x) < 2^w
+   *   ((_ int2bv w) (bv2nat x)) = x
+   *   (bv2nat ((_ int2bv w) x)) == x + k*2^w
+   * The purpose of these lemmas is to recognize easy conflicts before fully
+   * reducing extended functions based on their full semantics.
+   */
+  bool doExtfInferences( std::vector< Node >& terms );
+  /** do extended function reductions
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reducing all extended function applications that are preregistered to
+   * this theory and have not already been reduced by context-dependent
+   * simplification (see theory/ext_theory.h). Examples of lemmas added by
+   * this method include:
+   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
+   *                (ite ((_ extract 1 0) x) 1 0)
+   */
+  bool doExtfReductions( std::vector< Node >& terms );
  public:
   CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
   ~CoreSolver();
@@ -130,6 +153,8 @@ class CoreSolver : public SubtheorySolver {
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool hasTerm(TNode node) const;
   void addTermToEqualityEngine(TNode node);
+  /** check extended functions at the given effort */
+  void checkExtf(Theory::Effort e);
 };
 
 }

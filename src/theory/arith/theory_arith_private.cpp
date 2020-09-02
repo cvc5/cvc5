@@ -3877,31 +3877,6 @@ Node TheoryArithPrivate::explain(TNode n)
   }
 }
 
-bool TheoryArithPrivate::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if (d_nonlinearExtension != nullptr)
-  {
-    return d_nonlinearExtension->getCurrentSubstitution( effort, vars, subs, exp );
-  }else{
-    return false;
-  }
-}
-
-bool TheoryArithPrivate::isExtfReduced(int effort, Node n, Node on,
-                                       std::vector<Node>& exp) {
-  if (d_nonlinearExtension != nullptr)
-  {
-    std::pair<bool, Node> reduced =
-        d_nonlinearExtension->isExtfReduced(effort, n, on, exp);
-    if (!reduced.second.isNull()) {
-      exp.clear();
-      exp.push_back(reduced.second);
-    }
-    return reduced.first;
-  } else {
-    return false;  // d_containing.isExtfReduced( effort, n, on );
-  }
-}
-
 void TheoryArithPrivate::propagate(Theory::Effort e) {
   // This uses model values for safety. Disable for now.
   if (d_qflraStatus == Result::SAT

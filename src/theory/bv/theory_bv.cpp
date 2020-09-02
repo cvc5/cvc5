@@ -29,7 +29,6 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
-#include "theory/ext_theory.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -72,8 +71,6 @@ TheoryBV::TheoryBV(context::Context* c,
       d_extf_collapse_infer(u),
       d_state(c, u, valuation)
 {
-  d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
-  d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     d_eagerSolver.reset(new EagerBitblastSolver(c, this));
@@ -82,7 +79,7 @@ TheoryBV::TheoryBV(context::Context* c,
 
   if (options::bitvectorEqualitySolver())
   {
-    d_subtheories.emplace_back(new CoreSolver(c, this, d_extTheory.get()));
+    d_subtheories.emplace_back(new CoreSolver(c, this));
     d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
@@ -330,8 +327,12 @@ void TheoryBV::check(Effort e)
 
   //last call : do reductions on extended bitvector functions
   if (e == Theory::EFFORT_LAST_CALL) {
-    std::vector<Node> nred = d_extTheory->getActive();
-    doExtfReductions(nred);
+    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+    if (core)
+    {
+      // check extended functions at last call effort
+      core->checkExtf(e);
+    }
     return;
   }
 
@@ -413,29 +414,11 @@ void TheoryBV::check(Effort e)
 
   //check extended functions
   if (Theory::fullEffort(e)) {
-    //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
-    std::vector< Node > nred;
-    if (d_extTheory->doInferences(0, nred))
+    CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+    if (core)
     {
-      return;
-    }
-    d_needsLastCallCheck = false;
-    if( !nred.empty() ){
-      //other inferences involving bv2nat, int2bv
-      if( options::bvAlgExtf() ){
-        if( doExtfInferences( nred ) ){
-          return;
-        }
-      }
-      if( !options::bvLazyReduceExtf() ){
-        if( doExtfReductions( nred ) ){
-          return;
-        }
-      }
-      else
-      {
-        d_needsLastCallCheck = true;
-      }
+      // check extended functions at full effort
+      core->checkExtf(e);
     }
   }
 }

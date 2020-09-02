@@ -258,7 +258,7 @@ class TheoryStrings : public Theory {
   /** The term registry for this theory */
   TermRegistry d_termReg;
   /** The extended theory callback */
-  StringsExtTheoryCallback d_extTheoryCb;
+  StringsExtfCallback d_extTheoryCb;
   /** Extended theory, responsible for context-dependent simplification. */
   ExtTheory d_extTheory;
   /** The (custom) output channel of the theory of strings */

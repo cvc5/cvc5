@@ -16,6 +16,8 @@
 
 #include "theory/arith/arith_utilities.h"
 
+using namespace CVC4::kind;
+
 namespace CVC4 {
 namespace theory {
 namespace arith {
@@ -112,6 +114,7 @@ bool NlExtTheoryCallback::isExtfReduced(int effort,
           {
             Trace("nl-ext-zero-exp")
                 << "...single exp : " << eqs[j] << std::endl;
+            exp.clear();
             exp.push_back(eqs[j]);
             return true;
           }
@@ -126,5 +129,3 @@ bool NlExtTheoryCallback::isExtfReduced(int effort,
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
-
-#endif /* CVC4__THEORY__ARITH__NL__EXT_THEORY_CALLBACK_H */
