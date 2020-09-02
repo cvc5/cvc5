@@ -55,7 +55,7 @@ class InferenceManager : public InferenceManagerBuffered
    * If isWaiting is true, the lemma is first stored as waiting lemma and only
    * added as pending lemma when calling flushWaitingLemmas.
    */
-  void addPendingArithLemma(std::shared_ptr<ArithLemma> lemma,
+  void addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
                             bool isWaiting = false);
   /**
    * Add a lemma as pending lemma to the this inference manager.
@@ -102,7 +102,7 @@ class InferenceManager : public InferenceManagerBuffered
   bool isEntailedFalse(const ArithLemma& lem);
 
   /** The waiting lemmas. */
-  std::vector<std::shared_ptr<ArithLemma>> d_waitingLem;
+  std::vector<std::unique_ptr<ArithLemma>> d_waitingLem;
 
   /** cache of all preprocessed lemmas sent on the output channel
    * (user-context-dependent) */
