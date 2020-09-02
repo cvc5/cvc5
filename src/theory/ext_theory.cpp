@@ -89,7 +89,6 @@ std::vector<Node> ExtTheory::collectVars(Node n)
     // (commented below)
     if (current.getNumChildren() > 0)
     {
-      //&& Theory::theoryOf(n)==d_parent->getId() ){
       worklist.insert(worklist.end(), current.begin(), current.end());
     }
     else
@@ -168,7 +167,7 @@ void ExtTheory::getSubstitutedTerms(int effort,
           }
         }
       }
-      bool useSubs = d_parent->getCurrentSubstitution(effort, vars, sub, expc);
+      bool useSubs = d_parent.getCurrentSubstitution(effort, vars, sub, expc);
       // get the current substitution for all variables
       Assert(!useSubs || vars.size() == sub.size());
       for (const Node& n : terms)
@@ -234,8 +233,8 @@ bool ExtTheory::doInferencesInternal(int effort,
       {
         Node nr;
         // note: could do reduction with substitution here
-        int ret = d_parent->getReduction(effort, n, nr);
-        if (ret == 0)
+        bool satDep = false;
+        if (!d_parent.getReduction(effort, n, nr, satDep))
         {
           nred.push_back(n);
         }
@@ -251,7 +250,7 @@ bool ExtTheory::doInferencesInternal(int effort,
               addedLemma = true;
             }
           }
-          markReduced(n, ret < 0);
+          markReduced(n, satDep);
         }
       }
     }
@@ -270,7 +269,7 @@ bool ExtTheory::doInferencesInternal(int effort,
           Node sr = Rewriter::rewrite(sterms[i]);
           // ask the theory if this term is reduced, e.g. is it constant or it
           // is a non-extf term.
-          if (d_parent->isExtfReduced(effort, sr, terms[i], exp[i]))
+          if (d_parent.isExtfReduced(effort, sr, terms[i], exp[i]))
           {
             processed = true;
             markReduced(terms[i]);
@@ -372,7 +371,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_pp_lemmas.find(lem) == d_pp_lemmas.end())
     {
       d_pp_lemmas.insert(lem);
-      d_parent->getOutputChannel().lemma(lem, LemmaProperty::PREPROCESS);
+      d_out.lemma(lem, LemmaProperty::PREPROCESS);
       return true;
     }
   }
@@ -381,7 +380,7 @@ bool ExtTheory::sendLemma(Node lem, bool preprocess)
     if (d_lemmas.find(lem) == d_lemmas.end())
     {
       d_lemmas.insert(lem);
-      d_parent->getOutputChannel().lemma(lem);
+      d_out.lemma(lem);
       return true;
     }
   }
@@ -431,8 +430,7 @@ void ExtTheory::registerTerm(Node n)
   {
     if (d_ext_func_terms.find(n) == d_ext_func_terms.end())
     {
-      Trace("extt-debug") << "Found extended function : " << n << " in "
-                          << d_parent->getId() << std::endl;
+      Trace("extt-debug") << "Found extended function : " << n << std::endl;
       d_ext_func_terms[n] = true;
       d_has_extf = n;
       d_extf_info[n].d_vars = collectVars(n);
@@ -463,13 +461,13 @@ void ExtTheory::registerTermRec(Node n)
 }
 
 // mark reduced
-void ExtTheory::markReduced(Node n, bool contextDepend)
+void ExtTheory::markReduced(Node n, bool satDep)
 {
   Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
   Assert(d_ext_func_terms.find(n) != d_ext_func_terms.end());
   d_ext_func_terms[n] = false;
-  if (!contextDepend)
+  if (!satDep)
   {
     d_ci_inactive.insert(n);
   }

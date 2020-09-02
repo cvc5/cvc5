@@ -52,6 +52,7 @@ namespace theory {
 class ExtTheoryCallback
 {
  public:
+   virtual ~ExtTheoryCallback(){}
   /*
    * Get current substitution at an effort
    * @param effort The effort identifier
@@ -86,13 +87,13 @@ class ExtTheoryCallback
   /**
    * Get reduction for node n.
    * If return value is true, then n is reduced.
-   * If isSatDep is updated to false, then n is reduced independent of the
+   * If satDep is updated to false, then n is reduced independent of the
    * SAT context (e.g. by a lemma that persists at this
    * user-context level).
    * If nr is non-null, then ( n = nr ) should be added as a lemma by caller,
    * and return value of this method should be true.
    */
-  virtual bool getReduction(int effort, Node n, Node& nr, bool& isSatDep);
+  virtual bool getReduction(int effort, Node n, Node& nr, bool& satDep);
 };
 
 /** Extended theory class
@@ -147,10 +148,10 @@ class ExtTheory
   void registerTermRec(Node n);
   /** set n as reduced/inactive
    *
-   * If contextDepend = false, then n remains inactive in the duration of this
+   * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, bool contextDepend = true);
+  void markReduced(Node n, bool satDep = true);
   /**
    * Mark that a and b are congruent terms. This sets b inactive, and sets a to
    * inactive if b was inactive.
