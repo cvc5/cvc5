@@ -265,8 +265,6 @@ public:
   Node getInstantiatedConjunction(Node q);
   /** get unsat core lemmas */
   bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
-                          std::map<Node, Node>& weak_imp);
   /** get explanation for instantiation lemmas */
   void getExplanationForInstLemmas(const std::vector<Node>& lems,
                                    std::map<Node, Node>& quant,
@@ -317,7 +315,7 @@ public:
     ~Statistics();
   };/* class QuantifiersEngine::Statistics */
   Statistics d_statistics;
-  
+
  private:
   /** reference to theory engine object */
   TheoryEngine* d_te;

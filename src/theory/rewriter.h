@@ -80,7 +80,7 @@ class Rewriter {
   /**
    * Rewrite with proof production, which is managed by the term conversion
    * proof generator managed by this class (d_tpg). This method requires a call
-   * to setProofChecker prior to this call.
+   * to setProofNodeManager prior to this call.
    *
    * @param node The node to rewrite.
    * @param elimTheoryRewrite Whether we also want fine-grained proofs for
@@ -94,8 +94,8 @@ class Rewriter {
                              bool elimTheoryRewrite = false,
                              bool isExtEq = false);
 
-  /** Set proof checker */
-  void setProofChecker(ProofChecker* pc);
+  /** Set proof node manager */
+  void setProofNodeManager(ProofNodeManager* pnm);
 
   /**
    * Garbage collects the rewrite caches.
@@ -189,6 +189,7 @@ class Rewriter {
                               TConvProofGenerator* tcpg = nullptr);
   /** processes a trust rewrite response */
   RewriteResponse processTrustRewriteResponse(
+      theory::TheoryId theoryId,
       const TrustRewriteResponse& tresponse,
       bool isPre,
       TConvProofGenerator* tcpg);
@@ -226,8 +227,6 @@ class Rewriter {
 
   RewriteEnvironment d_re;
 
-  /** The proof node manager */
-  std::unique_ptr<ProofNodeManager> d_pnm;
   /** The proof generator */
   std::unique_ptr<TConvProofGenerator> d_tpg;
 #ifdef CVC4_ASSERTIONS

@@ -22,7 +22,6 @@
 
 
 ${type_enumerator_includes}
-#line 26 "${template}"
 
 using namespace std;
 
@@ -42,7 +41,6 @@ TypeEnumeratorInterface* TypeEnumerator::mkTypeEnumerator(
       }
       Unreachable();
       ${mk_type_enumerator_cases}
-#line 46 "${template}"
     default: Unhandled() << "No type enumerator for type `" << type << "'";
   }
   Unreachable();

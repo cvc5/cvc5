@@ -45,12 +45,10 @@ class EngineOutputChannel : public theory::OutputChannel
 
   void safePoint(ResourceManager::Resource r) override;
 
-  void conflict(TNode conflictNode,
-                std::unique_ptr<Proof> pf = nullptr) override;
+  void conflict(TNode conflictNode) override;
   bool propagate(TNode literal) override;
 
   theory::LemmaStatus lemma(TNode lemma,
-                            ProofRule rule,
                             LemmaProperty p = LemmaProperty::NONE) override;
 
   theory::LemmaStatus splitLemma(TNode lemma, bool removable = false) override;

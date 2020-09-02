@@ -21,7 +21,6 @@
 #include <unordered_set>
 
 #include "base/output.h"
-#include "proof/proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
@@ -551,46 +550,49 @@ bool Constraint::hasTrichotomyProof() const {
 
 void Constraint::printProofTree(std::ostream& out, size_t depth) const
 {
-#if IS_PROOFS_BUILD
-  const ConstraintRule& rule = getConstraintRule();
-  out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
-  if (hasLiteral())
+  if (ARITH_PROOF_ON())
   {
-    out << getLiteral();
-  }
-  else
-  {
-    out << "NOLIT";
-  };
-  out << "]" << ' ' << getType() << ' ' << getValue() << " (" << getProofType()
-      << ")";
-  if (getProofType() == FarkasAP)
-  {
-    out << " [";
-    bool first = true;
-    for (const auto& coeff : *rule.d_farkasCoefficients)
+    const ConstraintRule& rule = getConstraintRule();
+    out << std::string(2 * depth, ' ') << "* " << getVariable() << " [";
+    if (hasLiteral())
     {
-      if (not first)
+      out << getLiteral();
+    }
+    else
+    {
+      out << "NOLIT";
+    };
+    out << "]" << ' ' << getType() << ' ' << getValue() << " ("
+        << getProofType() << ")";
+    if (getProofType() == FarkasAP)
+    {
+      out << " [";
+      bool first = true;
+      for (const auto& coeff : *rule.d_farkasCoefficients)
       {
-        out << ", ";
+        if (not first)
+        {
+          out << ", ";
+        }
+        first = false;
+        out << coeff;
       }
-      first = false;
-      out << coeff;
+      out << "]";
     }
-    out << "]";
-  }
-  out << endl;
+    out << endl;
 
-  for (AntecedentId i = rule.d_antecedentEnd; i != AntecedentIdSentinel; --i) {
-    ConstraintCP antecdent = d_database->getAntecedent(i);
-    if (antecdent == NullConstraint) {
-      break;
+    for (AntecedentId i = rule.d_antecedentEnd; i != AntecedentIdSentinel; --i)
+    {
+      ConstraintCP antecdent = d_database->getAntecedent(i);
+      if (antecdent == NullConstraint)
+      {
+        break;
+      }
+      antecdent->printProofTree(out, depth + 1);
     }
-    antecdent->printProofTree(out, depth + 1);
+    return;
   }
-#else  /* IS_PROOFS_BUILD */
   out << "Cannot print proof. This is not a proof build." << endl;
-#endif /* IS_PROOFS_BUILD */
 }
 
 bool Constraint::sanityChecking(Node n) const {
@@ -648,8 +650,7 @@ ConstraintCP ConstraintDatabase::getAntecedent (AntecedentId p) const {
 
 
 void ConstraintRule::print(std::ostream& out) const {
-  
-  RationalVectorCP coeffs = NULLPROOF(d_farkasCoefficients);
+  RationalVectorCP coeffs = ARITH_NULLPROOF(d_farkasCoefficients);
   out << "{ConstraintRule, ";
   out << d_constraint << std::endl;
   out << "d_proofType= " << d_proofType << ", " << std::endl;
@@ -658,7 +659,7 @@ void ConstraintRule::print(std::ostream& out) const {
   if (d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel)
   {
     const ConstraintDatabase& database = d_constraint->getDatabase();
-    
+
     size_t coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffs->size()-1 : 0;
     AntecedentId p = d_antecedentEnd;
     // must have at least one antecedent
@@ -700,9 +701,11 @@ bool Constraint::wellFormedFarkasProof() const {
   ConstraintCP antecedent = d_database->d_antecedents[p];
   if(antecedent  == NullConstraint) { return false; }
 
-#if IS_PROOFS_BUILD
-  if(!PROOF_ON()){ return cr.d_farkasCoefficients == RationalVectorCPSentinel; }
-  Assert(PROOF_ON());
+  if (!ARITH_PROOF_ON())
+  {
+    return cr.d_farkasCoefficients == RationalVectorCPSentinel;
+  }
+  Assert(ARITH_PROOF_ON());
 
   if(cr.d_farkasCoefficients == RationalVectorCPSentinel){ return false; }
   if(cr.d_farkasCoefficients->size() < 2){ return false; }
@@ -755,7 +758,7 @@ bool Constraint::wellFormedFarkasProof() const {
     default:
       return false;
     }
-    
+
     if(coeffIterator == coeffBegin){ return false; }
     --coeffIterator;
     --p;
@@ -800,10 +803,6 @@ bool Constraint::wellFormedFarkasProof() const {
   // 0 = lhs <= rhs < 0
   return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
          && rhs.sgn() < 0;
-
-#else  /* IS_PROOFS_BUILD */
-  return true;
-#endif /* IS_PROOFS_BUILD */
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
@@ -860,7 +859,6 @@ ConstraintDatabase::ConstraintDatabase(context::Context* satContext, context::Co
   , d_one(1)
   , d_negOne(-1)
 {
-  
 }
 
 SortedConstraintMap& ConstraintDatabase::getVariableSCM(ArithVar v) const{
@@ -1109,7 +1107,7 @@ ConstraintP ConstraintDatabase::addLiteral(TNode literal){
     return isNot ? hit->getNegation(): hit;
   }else{
     Comparison negCmp = Comparison::parseNormalForm(negationNode);
-    
+
     ConstraintType negType = Constraint::constraintTypeOfComparison(negCmp);
     DeltaRational negDR = negCmp.normalizedDeltaRational();
 
@@ -1213,7 +1211,8 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorP coeffs;
-  if(PROOF_ON()){
+  if (ARITH_PROOF_ON())
+  {
     std::pair<int, int> sgns = unateFarkasSigns(getNegation(), imp);
 
     Rational first(sgns.first);
@@ -1222,10 +1221,11 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
     coeffs = new RationalVector();
     coeffs->push_back(first);
     coeffs->push_back(second);
-  } else {
+  }
+  else
+  {
     coeffs = RationalVectorPSentinel;
   }
-
   // no need to delete coeffs the memory is owned by ConstraintRule
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
 
@@ -1233,7 +1233,7 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   if(Debug.isOn("constraint::conflictCommit") && inConflict()){
     Debug("constraint::conflictCommit") << "inConflict@impliedByUnate " << this << std::endl;
   }
-  
+
   if(Debug.isOn("constraints::wffp") && !wellFormedFarkasProof()){
     getConstraintRule().print(Debug("constraints::wffp"));
   }
@@ -1343,7 +1343,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   coeffs != RationalVectorSentinal,
  *   coeffs->size() = a.size() + 1,
  *   for i in [0,a.size) : coeff[i] corresponds to a[i], and
- *   coeff.back() corresponds to the current constraint. 
+ *   coeff.back() corresponds to the current constraint.
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
   Debug("constraints::pf") << "impliedByFarkas(" << this;
@@ -1359,10 +1359,9 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
 
-  Assert(PROOF_ON() == (coeffs != RationalVectorCPSentinel));
-  // !PROOF_ON() => coeffs == RationalVectorCPSentinel
-  //  PROOF_ON() => coeffs->size() == a.size() + 1
-  Assert(!PROOF_ON() || coeffs->size() == a.size() + 1);
+  Assert(ARITH_PROOF_ON() == (coeffs != RationalVectorCPSentinel));
+  Assert(!ARITH_PROOF_ON() || coeffs->size() == a.size() + 1);
+
   Assert(a.size() >= 1);
 
   d_database->d_antecedents.push_back(NullConstraint);
@@ -1374,10 +1373,13 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   AntecedentId antecedentEnd = d_database->d_antecedents.size() - 1;
 
   RationalVectorCP coeffsCopy;
-  if(PROOF_ON()){
+  if (ARITH_PROOF_ON())
+  {
     Assert(coeffs != RationalVectorCPSentinel);
     coeffsCopy = new RationalVector(*coeffs);
-  } else {
+  }
+  else
+  {
     coeffsCopy = RationalVectorCPSentinel;
   }
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffsCopy));

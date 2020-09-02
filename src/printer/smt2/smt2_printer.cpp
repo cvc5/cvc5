@@ -31,11 +31,12 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/datatypes/sygus_datatype_utils.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
 #include "util/smt2_quote_string.h"
@@ -1331,23 +1332,23 @@ void Smt2Printer::toStream(std::ostream& out, const Model& m) const
 
 void Smt2Printer::toStream(std::ostream& out,
                            const Model& model,
-                           const Command* command) const
+                           const NodeCommand* command) const
 {
   const theory::TheoryModel* theory_model =
       dynamic_cast<const theory::TheoryModel*>(&model);
   AlwaysAssert(theory_model != nullptr);
-  if (const DeclareTypeCommand* dtc =
-          dynamic_cast<const DeclareTypeCommand*>(command))
+  if (const DeclareTypeNodeCommand* dtc =
+          dynamic_cast<const DeclareTypeNodeCommand*>(command))
   {
     // print out the DeclareTypeCommand
-    Type t = (*dtc).getType();
-    if (!t.isSort())
+    TypeNode tn = dtc->getType();
+    if (!tn.isSort())
     {
       out << (*dtc) << endl;
     }
     else
     {
-      std::vector<Expr> elements = theory_model->getDomainElements(t);
+      std::vector<Expr> elements = theory_model->getDomainElements(tn.toType());
       if (options::modelUninterpDtEnum())
       {
         if (isVariant_2_6(d_variant))
@@ -1367,7 +1368,7 @@ void Smt2Printer::toStream(std::ostream& out,
       else
       {
         // print the cardinality
-        out << "; cardinality of " << t << " is " << elements.size() << endl;
+        out << "; cardinality of " << tn << " is " << elements.size() << endl;
         out << (*dtc) << endl;
         // print the representatives
         for (const Expr& type_ref : elements)
@@ -1375,7 +1376,7 @@ void Smt2Printer::toStream(std::ostream& out,
           Node trn = Node::fromExpr(type_ref);
           if (trn.isVar())
           {
-            out << "(declare-fun " << quoteSymbol(trn) << " () " << t << ")"
+            out << "(declare-fun " << quoteSymbol(trn) << " () " << tn << ")"
                 << endl;
           }
           else
@@ -1386,11 +1387,11 @@ void Smt2Printer::toStream(std::ostream& out,
       }
     }
   }
-  else if (const DeclareFunctionCommand* dfc =
-               dynamic_cast<const DeclareFunctionCommand*>(command))
+  else if (const DeclareFunctionNodeCommand* dfc =
+               dynamic_cast<const DeclareFunctionNodeCommand*>(command))
   {
     // print out the DeclareFunctionCommand
-    Node n = Node::fromExpr((*dfc).getFunction());
+    Node n = dfc->getFunction();
     if ((*dfc).getPrintInModelSetByUser())
     {
       if (!(*dfc).getPrintInModel())
@@ -1432,10 +1433,10 @@ void Smt2Printer::toStream(std::ostream& out,
       out << ")" << endl;
     }
   }
-  else if (const DatatypeDeclarationCommand* datatype_declaration_command =
-               dynamic_cast<const DatatypeDeclarationCommand*>(command))
+  else if (const DeclareDatatypeNodeCommand* declare_datatype_command =
+               dynamic_cast<const DeclareDatatypeNodeCommand*>(command))
   {
-    out << datatype_declaration_command;
+    out << *declare_datatype_command;
   }
   else
   {
