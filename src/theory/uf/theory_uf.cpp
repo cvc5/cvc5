@@ -25,9 +25,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
-#include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
@@ -54,7 +51,6 @@ TheoryUF::TheoryUF(context::Context* c,
        * so make sure it's initialized first. */
       d_thss(nullptr),
       d_ho(nullptr),
-      d_conflict(c, false),
       d_functionsTerms(c),
       d_symb(u, instanceName),
       d_state(c, u, valuation)
@@ -89,7 +85,7 @@ void TheoryUF::finishInit() {
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // options::ufssMode().
-  if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
+  if (options::finiteModelFind()
       && options::ufssMode() != options::UfssMode::NONE)
   {
     d_thss.reset(new CardinalityExtension(
@@ -100,7 +96,7 @@ void TheoryUF::finishInit() {
   if (options::ufHo())
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
+    d_ho.reset(new HoExtension(*this, d_state));
   }
 }
 
@@ -126,79 +122,87 @@ static Node mkAnd(const std::vector<TNode>& conjunctions) {
   return conjunction;
 }/* mkAnd() */
 
-void TheoryUF::check(Effort level) {
-  if (done() && !fullEffort(level)) {
+//--------------------------------- standard check
+
+void TheoryUF::postCheck(Effort level)
+{
+  if (d_state.isInConflict())
+  {
     return;
   }
-  getOutputChannel().spendResource(ResourceManager::Resource::TheoryCheckStep);
-  TimerStat::CodeTimer checkTimer(d_checkTime);
-
-  while (!done() && !d_conflict)
+  // check with the cardinality constraints extension
+  if (d_thss != nullptr)
   {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.d_assertion;
-
-    Debug("uf") << "TheoryUF::check(): processing " << fact << std::endl;
-    Debug("uf") << "Term's theory: " << theory::Theory::theoryOf(fact.toExpr()) << std::endl;
-
-    if (d_thss != NULL) {
-      bool isDecision = d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
-      d_thss->assertNode(fact, isDecision);
-      if( d_thss->isConflict() ){
-        d_conflict = true;
-        return;
-      }
-    }
-
-    // Do the work
-    bool polarity = fact.getKind() != kind::NOT;
-    TNode atom = polarity ? fact : fact[0];
-    if (atom.getKind() == kind::EQUAL) {
-      d_equalityEngine->assertEquality(atom, polarity, fact);
-      if( options::ufHo() && options::ufHoExt() ){
-        if( !polarity && !d_conflict && atom[0].getType().isFunction() ){
-          // apply extensionality eagerly using the ho extension
-          d_ho->applyExtensionality(fact);
-        }
-      }
-    } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
-      if( d_thss == NULL ){
-        if( !getLogicInfo().hasCardinalityConstraints() ){
-          std::stringstream ss;
-          ss << "Cardinality constraint " << atom << " was asserted, but the logic does not allow it." << std::endl;
-          ss << "Try using a logic containing \"UFC\"." << std::endl;
-          throw Exception( ss.str() );
-        }else{
-          // support for cardinality constraints is not enabled, set incomplete
-          d_out->setIncomplete();
-        }
-      }
-      //needed for models
-      if( options::produceModels() ){
-        d_equalityEngine->assertPredicate(atom, polarity, fact);
-      }
-    } else {
-      d_equalityEngine->assertPredicate(atom, polarity, fact);
+    d_thss->check(level);
+    if (d_thss->isConflict())
+    {
+      d_state.notifyInConflict();
     }
   }
+  // check with the higher-order extension
+  if (!d_state.isInConflict() && fullEffort(level))
+  {
+    if (options::ufHo())
+    {
+      d_ho->check();
+    }
+  }
+}
 
-  if(! d_conflict ){
-    // check with the cardinality constraints extension
-    if (d_thss != NULL) {
-      d_thss->check(level);
-      if( d_thss->isConflict() ){
-        d_conflict = true;
+bool TheoryUF::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  if (d_thss != nullptr)
+  {
+    bool isDecision =
+        d_valuation.isSatLiteral(fact) && d_valuation.isDecision(fact);
+    d_thss->assertNode(fact, isDecision);
+    if (d_thss->isConflict())
+    {
+      d_state.notifyInConflict();
+      return true;
+    }
+  }
+  if (atom.getKind() == kind::CARDINALITY_CONSTRAINT
+      || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT)
+  {
+    if (d_thss == nullptr)
+    {
+      if (!getLogicInfo().hasCardinalityConstraints())
+      {
+        std::stringstream ss;
+        ss << "Cardinality constraint " << atom
+           << " was asserted, but the logic does not allow it." << std::endl;
+        ss << "Try using a logic containing \"UFC\"." << std::endl;
+        throw Exception(ss.str());
+      }
+      else
+      {
+        // support for cardinality constraints is not enabled, set incomplete
+        d_out->setIncomplete();
       }
     }
-    // check with the higher-order extension
-    if(! d_conflict && fullEffort(level) ){
-      if( options::ufHo() ){
-        d_ho->check();
+    // don't need to assert cardinality constraints if not producing models
+    return !options::produceModels();
+  }
+  return false;
+}
+
+void TheoryUF::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
+{
+  if (!d_state.isInConflict() && atom.getKind() == kind::EQUAL)
+  {
+    if (options::ufHo() && options::ufHoExt())
+    {
+      if (!pol && !d_state.isInConflict() && atom[0].getType().isFunction())
+      {
+        // apply extensionality eagerly using the ho extension
+        d_ho->applyExtensionality(fact);
       }
     }
   }
-}/* TheoryUF::check() */
+}
+//--------------------------------- end standard check
 
 TrustNode TheoryUF::expandDefinition(Node node)
 {
@@ -221,7 +225,8 @@ TrustNode TheoryUF::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-void TheoryUF::preRegisterTerm(TNode node) {
+void TheoryUF::preRegisterTerm(TNode node)
+{
   Debug("uf") << "TheoryUF::preRegisterTerm(" << node << ")" << std::endl;
 
   if (d_thss != NULL) {
@@ -259,14 +264,15 @@ void TheoryUF::preRegisterTerm(TNode node) {
     d_equalityEngine->addTerm(node);
     break;
   }
-}/* TheoryUF::preRegisterTerm() */
+}
 
 bool TheoryUF::propagateLit(TNode literal)
 {
   Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal << ")"
                          << std::endl;
   // If already in conflict, no more propagation
-  if (d_conflict) {
+  if (d_state.isInConflict())
+  {
     Debug("uf::propagate") << "TheoryUF::propagateLit(" << literal
                            << "): already in conflict" << std::endl;
     return false;
@@ -274,64 +280,43 @@ bool TheoryUF::propagateLit(TNode literal)
   // Propagate out
   bool ok = d_out->propagate(literal);
   if (!ok) {
-    d_conflict = true;
+    d_state.notifyInConflict();
   }
   return ok;
 }/* TheoryUF::propagate(TNode) */
 
-void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
+void TheoryUF::explain(TNode literal, Node& exp)
+{
+  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
+  std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL) {
+  if (atom.getKind() == kind::EQUAL)
+  {
     d_equalityEngine->explainEquality(
-        atom[0], atom[1], polarity, assumptions, pf);
-  } else {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions, pf);
+        atom[0], atom[1], polarity, assumptions, nullptr);
   }
-  if( pf ){
-    Debug("pf::uf") << std::endl;
-    pf->debug_print("pf::uf");
+  else
+  {
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-
-  Debug("pf::uf") << "UF: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::uf") << assumptions[i] << " ";
-  }
-  Debug("pf::uf") << std::endl;
+  exp = mkAnd(assumptions);
 }
 
 TrustNode TheoryUF::explain(TNode literal)
 {
-  Node exp = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
+  Node explanation;
+  explain(literal, explanation);
+  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
 }
 
-Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
-  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions, pf);
-  return mkAnd(assumptions);
-}
-
-bool TheoryUF::collectModelInfo(TheoryModel* m)
+bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
-  Debug("uf") << "UF : collectModelInfo " << std::endl;
-  set<Node> termSet;
-
-  // Compute terms appearing in assertions and shared terms
-  computeRelevantTerms(termSet);
-
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    Trace("uf") << "Collect model info fail UF" << std::endl;
-    return false;
-  }
-
   if( options::ufHo() ){
     // must add extensionality disequalities for all pairs of (non-disequal)
     // function equivalence classes.
-    if (!d_ho->collectModelInfoHo(termSet, m))
+    if (!d_ho->collectModelInfoHo(m, termSet))
     {
       Trace("uf") << "Collect model info fail HO" << std::endl;
       return false;
@@ -503,12 +488,6 @@ EqualityStatus TheoryUF::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-void TheoryUF::notifySharedTerm(TNode t)
-{
-  Debug("uf::sharing") << "TheoryUF::addSharedTerm(" << t << ")" << std::endl;
-  d_equalityEngine->addTriggerTerm(t, THEORY_UF);
-}
-
 bool TheoryUF::areCareDisequal(TNode x, TNode y){
   Assert(d_equalityEngine->hasTerm(x));
   Assert(d_equalityEngine->hasTerm(y));
@@ -671,13 +650,12 @@ void TheoryUF::computeCareGraph() {
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
-void TheoryUF::conflict(TNode a, TNode b) {
-  std::shared_ptr<eq::EqProof> pf =
-      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  d_conflictNode = explain(a.eqNode(b), pf.get());
-  std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
-  d_out->conflict(d_conflictNode, std::move(puf));
-  d_conflict = true;
+void TheoryUF::conflict(TNode a, TNode b)
+{
+  Node conf;
+  explain(a.eqNode(b), conf);
+  d_out->conflict(conf);
+  d_state.notifyInConflict();
 }
 
 void TheoryUF::eqNotifyNewClass(TNode t) {

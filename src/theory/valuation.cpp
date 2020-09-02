@@ -145,6 +145,15 @@ void Valuation::setSemiEvaluatedKind(Kind k)
   }
 }
 
+void Valuation::setIrrelevantKind(Kind k)
+{
+  TheoryModel* m = getModel();
+  if (m != nullptr)
+  {
+    m->setIrrelevantKind(k);
+  }
+}
+
 Node Valuation::ensureLiteral(TNode n) {
   Assert(d_engine != nullptr);
   return d_engine->ensureLiteral(n);

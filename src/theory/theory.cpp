@@ -23,6 +23,7 @@
 
 #include "base/check.h"
 #include "expr/node_algorithm.h"
+#include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
@@ -81,7 +82,7 @@ Theory::Theory(TheoryId id,
       d_equalityEngine(nullptr),
       d_allocEqualityEngine(nullptr),
       d_theoryState(nullptr),
-      d_proofsEnabled(false)
+      d_inferManager(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_checkTime);
   smtStatisticsRegistry()->registerStat(&d_computeCareGraphTime);
@@ -105,6 +106,10 @@ void Theory::setEqualityEngine(eq::EqualityEngine* ee)
   if (d_theoryState != nullptr)
   {
     d_theoryState->setEqualityEngine(ee);
+  }
+  if (d_inferManager != nullptr)
+  {
+    d_inferManager->setEqualityEngine(ee);
   }
 }
 
@@ -291,12 +296,12 @@ void Theory::computeCareGraph() {
       switch (d_valuation.getEqualityStatus(a, b)) {
       case EQUALITY_TRUE_AND_PROPAGATED:
       case EQUALITY_FALSE_AND_PROPAGATED:
-  	// If we know about it, we should have propagated it, so we can skip
-  	break;
+        // If we know about it, we should have propagated it, so we can skip
+        break;
       default:
-  	// Let's split on it
-  	addCarePair(a, b);
-  	break;
+        // Let's split on it
+        addCarePair(a, b);
+        break;
       }
     }
   }
@@ -354,8 +359,15 @@ std::unordered_set<TNode, TNodeHashFunction> Theory::currentlySharedTerms() cons
 
 bool Theory::collectModelInfo(TheoryModel* m)
 {
+  // NOTE: the computation of termSet will be moved to model manager
+  // and passed as an argument to collectModelInfo.
   std::set<Node> termSet;
   // Compute terms appearing in assertions and shared terms
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  const std::set<Kind>& irrKinds = tm->getIrrelevantKinds();
+  computeAssertedTerms(termSet, irrKinds, true);
+  // Compute additional relevant terms (theory-specific)
   computeRelevantTerms(termSet);
   // if we are using an equality engine, assert it to the model
   if (d_equalityEngine != nullptr)
@@ -370,7 +382,7 @@ bool Theory::collectModelInfo(TheoryModel* m)
 }
 
 void Theory::collectTerms(TNode n,
-                          set<Kind>& irrKinds,
+                          const std::set<Kind>& irrKinds,
                           set<Node>& termSet) const
 {
   if (termSet.find(n) != termSet.end()) {
@@ -391,13 +403,11 @@ void Theory::collectTerms(TNode n,
   }
 }
 
-void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
-                                          std::set<Kind>& irrKinds,
-                                          bool includeShared) const
+void Theory::computeAssertedTerms(std::set<Node>& termSet,
+                                  const std::set<Kind>& irrKinds,
+                                  bool includeShared) const
 {
   // Collect all terms appearing in assertions
-  irrKinds.insert(kind::EQUAL);
-  irrKinds.insert(kind::NOT);
   context::CDList<Assertion>::const_iterator assert_it = facts_begin(),
                                              assert_it_end = facts_end();
   for (; assert_it != assert_it_end; ++assert_it)
@@ -419,13 +429,12 @@ void Theory::computeRelevantTermsInternal(std::set<Node>& termSet,
   }
 }
 
-void Theory::computeRelevantTerms(std::set<Node>& termSet, bool includeShared)
+void Theory::computeRelevantTerms(std::set<Node>& termSet)
 {
-  std::set<Kind> irrKinds;
-  computeRelevantTermsInternal(termSet, irrKinds, includeShared);
+  // by default, there are no additional relevant terms
 }
 
-bool Theory::collectModelValues(TheoryModel* m, std::set<Node>& termSet)
+bool Theory::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
   return true;
 }
@@ -538,7 +547,7 @@ void Theory::check(Effort level)
     bool polarity = fact.getKind() != kind::NOT;
     TNode atom = polarity ? fact : fact[0];
     // call the pre-notify method
-    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered))
+    if (preNotifyFact(atom, polarity, fact, assertion.d_isPreregistered, false))
     {
       // handled in theory-specific way that doesn't involve equality engine
       continue;
@@ -566,7 +575,8 @@ bool Theory::preCheck(Effort level) { return false; }
 
 void Theory::postCheck(Effort level) {}
 
-bool Theory::preNotifyFact(TNode atom, bool polarity, TNode fact, bool isPrereg)
+bool Theory::preNotifyFact(
+    TNode atom, bool polarity, TNode fact, bool isPrereg, bool isInternal)
 {
   return false;
 }

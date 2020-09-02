@@ -22,6 +22,7 @@
 #include "context/cdo.h"
 #include "expr/node.h"
 #include "theory/theory_model.h"
+#include "theory/theory_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -50,7 +51,7 @@ class HoExtension
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  HoExtension(TheoryUF& p, context::Context* c, context::UserContext* u);
+  HoExtension(TheoryUF& p, TheoryState& state);
 
   /** expand definition
    *
@@ -110,7 +111,7 @@ class HoExtension
    * values in m. It returns false if any (dis)equality added to m led to
    * an inconsistency in m.
    */
-  bool collectModelInfoHo(std::set<Node>& termSet, TheoryModel* m);
+  bool collectModelInfoHo(TheoryModel* m, const std::set<Node>& termSet);
 
  protected:
   /** get apply uf for ho apply
@@ -182,6 +183,8 @@ class HoExtension
   Node d_true;
   /** the parent of this extension */
   TheoryUF& d_parent;
+  /** Reference to the state object */
+  TheoryState& d_state;
   /** extensionality has been applied to these disequalities */
   NodeSet d_extensionality;
 

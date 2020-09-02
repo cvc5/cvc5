@@ -33,8 +33,7 @@ EagerBitblastSolver::EagerBitblastSolver(context::Context* c, TheoryBV* bv)
       d_bitblaster(),
       d_aigBitblaster(),
       d_useAig(options::bitvectorAig()),
-      d_bv(bv),
-      d_bvp(nullptr)
+      d_bv(bv)
 {
 }
 
@@ -55,10 +54,6 @@ void EagerBitblastSolver::initialize() {
 #endif
   } else {
     d_bitblaster.reset(new EagerBitblaster(d_bv, d_context));
-    THEORY_PROOF(if (d_bvp) {
-      d_bitblaster->setProofLog(d_bvp);
-      d_bvp->setBitblaster(d_bitblaster.get());
-    });
   }
 }
 
@@ -125,11 +120,6 @@ bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 {
   AlwaysAssert(!d_useAig && d_bitblaster);
   return d_bitblaster->collectModelInfo(m, fullModel);
-}
-
-void EagerBitblastSolver::setProofLog(proof::BitVectorProof* bvp)
-{
-  d_bvp = bvp;
 }
 
 }  // namespace bv

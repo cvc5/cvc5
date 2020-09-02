@@ -19,9 +19,7 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 #define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
-#include "context/context.h"
 #include "expr/node.h"
-#include "theory/output_channel.h"
 #include "theory/quantifiers/proof_checker.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/quantifiers_state.h"
@@ -52,8 +50,19 @@ class TheoryQuantifiers : public Theory {
   void preRegisterTerm(TNode n) override;
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
-  void check(Effort e) override;
-  bool collectModelInfo(TheoryModel* m) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  //--------------------------------- end standard check
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
   void shutdown() override {}
   std::string identify() const override
   {

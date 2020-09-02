@@ -103,13 +103,6 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
-
-  /** The conflict node */
-  Node d_conflictNode;
-
-
   /** node for true */
   Node d_true;
 
@@ -118,17 +111,6 @@ private:
    * since some of the propagated literals are not kept anywhere.
    */
   bool propagateLit(TNode literal);
-
-  /**
-   * Explain why this literal is true by adding assumptions
-   * with proof (if "pf" is non-NULL).
-   */
-  void explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf);
-
-  /**
-   * Explain a literal, with proof (if "pf" is non-NULL).
-   */
-  Node explain(TNode literal, eq::EqProof* pf);
 
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
@@ -174,17 +156,31 @@ private:
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void check(Effort) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Pre-notify fact, return true if processed. */
+  bool preNotifyFact(TNode atom,
+                     bool pol,
+                     TNode fact,
+                     bool isPrereg,
+                     bool isInternal) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
+  bool collectModelValues(TheoryModel* m,
+                          const std::set<Node>& termSet) override;
+
   TrustNode expandDefinition(Node node) override;
   void preRegisterTerm(TNode term) override;
   TrustNode explain(TNode n) override;
 
-  bool collectModelInfo(TheoryModel* m) override;
 
   void ppStaticLearn(TNode in, NodeBuilder<>& learned) override;
   void presolve() override;
 
-  void notifySharedTerm(TNode n) override;
   void computeCareGraph() override;
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
@@ -193,10 +189,11 @@ private:
 
   /** get a pointer to the uf with cardinality */
   CardinalityExtension* getCardinalityExtension() const { return d_thss.get(); }
-  /** are we in conflict? */
-  bool inConflict() const { return d_conflict; }
 
  private:
+  /** Explain why this literal is true by building an explanation */
+  void explain(TNode literal, Node& exp);
+
   bool areCareDisequal(TNode x, TNode y);
   void addCarePairs(const TNodeTrie* t1,
                     const TNodeTrie* t2,

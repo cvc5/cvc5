@@ -30,7 +30,6 @@
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "lib/ffs.h"
 #include "options/options.h"
 #include "options/theory_options.h"
 #include "smt/command.h"
@@ -43,6 +42,7 @@
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/theory_id.h"
+#include "theory/theory_inference_manager.h"
 #include "theory/theory_rewriter.h"
 #include "theory/theory_state.h"
 #include "theory/trust_node.h"
@@ -183,26 +183,10 @@ class Theory {
 
   //---------------------------------- private collect model info
   /**
-   * Scans the current set of assertions and shared terms top-down
-   * until a theory-leaf is reached, and adds all terms found to
-   * termSet.  This is used by collectModelInfo to delimit the set of
-   * terms that should be used when constructing a model.
-   *
-   * irrKinds: The kinds of terms that appear in assertions that should *not*
-   * be included in termSet. Note that the kinds EQUAL and NOT are always
-   * treated as irrelevant kinds.
-   *
-   * includeShared: Whether to include shared terms in termSet. Notice that
-   * shared terms are not influenced by irrKinds.
-   */
-  void computeRelevantTermsInternal(std::set<Node>& termSet,
-                                    std::set<Kind>& irrKinds,
-                                    bool includeShared = true) const;
-  /**
    * Helper function for computeRelevantTerms
    */
   void collectTerms(TNode n,
-                    std::set<Kind>& irrKinds,
+                    const std::set<Kind>& irrKinds,
                     std::set<Node>& termSet) const;
   //---------------------------------- end private collect model info
 
@@ -257,10 +241,11 @@ class Theory {
    */
   TheoryState* d_theoryState;
   /**
-   * Whether proofs are enabled
-   *
+   * The theory inference manager. This is a wrapper around the equality
+   * engine and the output channel. It ensures that the output channel and
+   * the equality engine are used properly.
    */
-  bool d_proofsEnabled;
+  TheoryInferenceManager* d_inferManager;
 
   /**
    * Returns the next assertion in the assertFact() queue.
@@ -591,6 +576,7 @@ class Theory {
     Unimplemented() << "Theory " << identify()
                     << " propagated a node but doesn't implement the "
                        "Theory::explain() interface!";
+    return TrustNode::null();
   }
 
   //--------------------------------- check
@@ -644,18 +630,22 @@ class Theory {
    * @param polarity Its polarity
    * @param fact The original literal that was asserted
    * @param isPrereg Whether the assertion is preregistered
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
    * @return true if the theory completely processed this fact, i.e. it does
    * not need to assert the fact to its equality engine.
    */
-  virtual bool preNotifyFact(TNode atom, bool pol, TNode fact, bool isPrereg);
+  virtual bool preNotifyFact(
+      TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal);
   /**
    * Notify fact, called immediately after the fact was pushed into the
    * equality engine.
    *
    * @param atom The atom
    * @param polarity Its polarity
-   * @param fact The original literal that was asserted
-   * @param isInternal Whether the origin of the fact was internal
+   * @param fact The original literal that was asserted.
+   * @param isInternal Whether the origin of the fact was internal. If this
+   * is false, the fact was asserted via the fact queue of the theory.
    */
   virtual void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal);
   //--------------------------------- end check
@@ -678,19 +668,36 @@ class Theory {
    */
   virtual bool collectModelInfo(TheoryModel* m);
   /**
-   * Same as above, but with empty irrKinds. This version can be overridden
-   * by the theory, e.g. by restricting or extending the set of terms returned
-   * by computeRelevantTermsInternal, which is called by default with no
-   * irrKinds.
+   * Scans the current set of assertions and shared terms top-down
+   * until a theory-leaf is reached, and adds all terms found to
+   * termSet.  This is used by collectModelInfo to delimit the set of
+   * terms that should be used when constructing a model.
+   *
+   * @param irrKinds The kinds of terms that appear in assertions that should *not*
+   * be included in termSet. Note that the kinds EQUAL and NOT are always
+   * treated as irrelevant kinds.
+   *
+   * @param includeShared Whether to include shared terms in termSet. Notice that
+   * shared terms are not influenced by irrKinds.
+   *
+   * TODO (project #39): this method will be deleted. The version in
+   * model manager will be used.
    */
-  virtual void computeRelevantTerms(std::set<Node>& termSet,
-                                    bool includeShared = true);
+  void computeAssertedTerms(std::set<Node>& termSet,
+                            const std::set<Kind>& irrKinds,
+                            bool includeShared = true) const;
+  /**
+   * Compute terms that are not necessarily part of the assertions or
+   * shared terms that should be considered relevant, add them to termSet.
+   */
+  virtual void computeRelevantTerms(std::set<Node>& termSet);
   /**
    * Collect model values, after equality information is added to the model.
    * The argument termSet is the set of relevant terms returned by
    * computeRelevantTerms.
    */
-  virtual bool collectModelValues(TheoryModel* m, std::set<Node>& termSet);
+  virtual bool collectModelValues(TheoryModel* m,
+                                  const std::set<Node>& termSet);
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   //--------------------------------- end collect model info
@@ -787,84 +794,6 @@ class Theory {
                     << " doesn't support Theory::setUserAttribute interface";
   }
 
-  /** A set of theories */
-  typedef uint32_t Set;
-
-  /** A set of all theories */
-  static const Set AllTheories = (1 << theory::THEORY_LAST) - 1;
-
-  /** Pops a first theory off the set */
-  static inline TheoryId setPop(Set& set) {
-    uint32_t i = ffs(set); // Find First Set (bit)
-    if (i == 0) { return THEORY_LAST; }
-    TheoryId id = (TheoryId)(i-1);
-    set = setRemove(id, set);
-    return id;
-  }
-
-  /** Returns the size of a set of theories */
-  static inline size_t setSize(Set set) {
-    size_t count = 0;
-    while (setPop(set) != THEORY_LAST) {
-      ++ count;
-    }
-    return count;
-  }
-
-  /** Returns the index size of a set of theories */
-  static inline size_t setIndex(TheoryId id, Set set) {
-    Assert(setContains(id, set));
-    size_t count = 0;
-    while (setPop(set) != id) {
-      ++ count;
-    }
-    return count;
-  }
-
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static inline Set setInsert(TheoryId theory, Set set = 0) {
-    return set | (1 << theory);
-  }
-
-  /** Add the theory to the set. If no set specified, just returns a singleton set */
-  static inline Set setRemove(TheoryId theory, Set set = 0) {
-    return setDifference(set, setInsert(theory));
-  }
-
-  /** Check if the set contains the theory */
-  static inline bool setContains(TheoryId theory, Set set) {
-    return set & (1 << theory);
-  }
-
-  static inline Set setComplement(Set a) {
-    return (~a) & AllTheories;
-  }
-
-  static inline Set setIntersection(Set a, Set b) {
-    return a & b;
-  }
-
-  static inline Set setUnion(Set a, Set b) {
-    return a | b;
-  }
-
-  /** a - b  */
-  static inline Set setDifference(Set a, Set b) {
-    return (~b) & a;
-  }
-
-  static inline std::string setToString(theory::Theory::Set theorySet) {
-    std::stringstream ss;
-    ss << "[";
-    for(unsigned theoryId = 0; theoryId < theory::THEORY_LAST; ++theoryId) {
-      if (theory::Theory::setContains((theory::TheoryId)theoryId, theorySet)) {
-        ss << (theory::TheoryId) theoryId << " ";
-      }
-    }
-    ss << "]";
-    return ss.str();
-  }
-
   typedef context::CDList<Assertion>::const_iterator assertions_iterator;
 
   /**
@@ -891,15 +820,13 @@ class Theory {
    *
    * @return true iff facts have been asserted to this theory.
    */
-  bool hasFacts() { 
-    return !d_facts.empty(); 
-  }
+  bool hasFacts() { return !d_facts.empty(); }
 
   /** Return total number of facts asserted to this theory */
   size_t numAssertions() {
     return d_facts.size();
   }
-  
+
   typedef context::CDList<TNode>::const_iterator shared_terms_iterator;
 
   /**
@@ -984,7 +911,7 @@ class Theory {
 
   /* is extended function reduced */
   virtual bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) { return n.isConst(); }
-  
+
   /**
    * Get reduction for node
    * If return value is not 0, then n is reduced.
@@ -994,9 +921,6 @@ class Theory {
    *  and return value should be <0.
    */
   virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
-
-  /** Turn on proof-production mode. */
-  void produceProofs() { d_proofsEnabled = true; }
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);
