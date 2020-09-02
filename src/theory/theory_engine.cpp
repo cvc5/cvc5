@@ -997,7 +997,9 @@ void TheoryEngine::assertToTheory(TNode assertion, TNode originalAssertion, theo
                && assertion[0].getKind() == kind::EQUAL))
         << "atom should be an EQUALity, not `" << assertion << "'";
     if (markPropagation(assertion, originalAssertion, toTheoryId, fromTheoryId)) {
-      d_sharedTerms.assertLiteral(assertion);
+      bool polarity = assertion.getKind() != kind::NOT;
+      TNode atom = polarity ? assertion : assertion[0];
+      d_sharedTerms.assertEquality(atom, polarity, assertion);
     }
     return;
   }

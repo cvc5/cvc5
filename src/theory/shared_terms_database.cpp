@@ -209,12 +209,11 @@ bool SharedTermsDatabase::areDisequal(TNode a, TNode b) const {
   }
 }
 
-void SharedTermsDatabase::assertLiteral(TNode lit)
+void SharedTermsDatabase::assertEquality(TNode equality, bool polarity, TNode reason)
 {
-  Debug("shared-terms-database::assert")
-      << "SharedTermsDatabase::assertLiteral(" << lit << ")" << endl;
+  Debug("shared-terms-database::assert") << "SharedTermsDatabase::assertEquality(" << equality << ", " << (polarity ? "true" : "false") << ", " << reason << ")" << endl;
   // Add it to the equality engine
-  d_pfee.assertAssume(lit);
+  d_equalityEngine.assertEquality(equality, polarity, reason);
   // Check for conflict
   checkForConflict();
 }
