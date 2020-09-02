@@ -172,17 +172,22 @@ class TheorySetsPrivate {
    */
   void finishInit();
 
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Theory::Effort level);
+  /** Preprocess fact, return true if processed. */
+  bool preNotifyFact(TNode atom, bool polarity, TNode fact);
+  /** Notify new fact */
+  void notifyFact(TNode atom, bool polarity, TNode fact);
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
   void addSharedTerm(TNode);
-
-  void check(Theory::Effort);
-
   bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
 
   Node explain(TNode);
-
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   void preRegisterTerm(TNode node);
 
