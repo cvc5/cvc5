@@ -89,8 +89,7 @@ void setDefaults(LogicInfo& logic, bool isInternalSubsolver)
     // set this option if the input format is SMT LIB 2.6. We also set this
     // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
-        language::isInputLang_smt2_6(options::inputLanguage())
-        || language::isInputLangSygus(options::inputLanguage()));
+        !language::isInputLang_smt2_5(options::inputLanguage(), true));
   }
   bool is_sygus = language::isInputLangSygus(options::inputLanguage());
 
