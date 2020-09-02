@@ -105,7 +105,7 @@ public:
   vec<bool> lemmas_removable;
 
   /** Nodes being converted to CNF */
-  std::vector<std::pair<CVC4::Node, CVC4::Node> > lemmas_cnf_assertion;
+  std::vector<CVC4::Node> lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;

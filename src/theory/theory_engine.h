@@ -55,8 +55,6 @@
 namespace CVC4 {
 
 class ResourceManager;
-class LemmaProofRecipe;
-class LazyCDProof;
 class TheoryEngineProofGenerator;
 
 /**
@@ -296,7 +294,6 @@ class TheoryEngine {
    * @param p the properties of the lemma.
    */
   theory::LemmaStatus lemma(theory::TrustNode node,
-                            ProofRule rule,
                             theory::LemmaProperty p,
                             theory::TheoryId atomsTo = theory::THEORY_LAST,
                             theory::TheoryId from = theory::THEORY_LAST);
@@ -453,16 +450,14 @@ class TheoryEngine {
   bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
 
   /**
-   * Computes the explanation by travarsing the propagation graph and
+   * Computes the explanation by traversing the propagation graph and
    * asking relevant theories to explain the propagations. Initially
    * the explanation vector should contain only the element (node, theory)
    * where the node is the one to be explained, and the theory is the
-   * theory that sent the literal. The lemmaProofRecipe will contain a list
-   * of the explanation steps required to produce the original node.
+   * theory that sent the literal.
    */
   theory::TrustNode getExplanation(
-      std::vector<NodeTheoryPair>& explanationVector,
-      LemmaProofRecipe* lemmaProofRecipe);
+      std::vector<NodeTheoryPair>& explanationVector);
 
  public:
   /**
@@ -581,13 +576,6 @@ class TheoryEngine {
    * Returns an explanation of the node propagated to the SAT solver.
    */
   theory::TrustNode getExplanation(TNode node);
-
-  /**
-   * Returns an explanation of the node propagated to the SAT solver and the theory
-   * that propagated it.
-   */
-  theory::TrustNode getExplanationAndRecipe(TNode node,
-                                            LemmaProofRecipe* proofRecipe);
 
   /**
    * Get the pointer to the model object used by this theory engine.

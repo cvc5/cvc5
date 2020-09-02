@@ -21,7 +21,6 @@
 #include <unordered_set>
 
 #include "base/output.h"
-#include "proof/proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
@@ -612,7 +611,7 @@ void Constraint::printProofTree(std::ostream& out, size_t depth) const
     }
     return;
   }
-  out << "Cannot print proof. Proofs on not on." << endl;
+  out << "Cannot print proof. This is not a proof build." << endl;
 }
 
 bool Constraint::sanityChecking(Node n) const {
@@ -824,7 +823,6 @@ bool Constraint::wellFormedFarkasProof() const {
   // 0 = lhs <= rhs < 0
   return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
          && rhs.sgn() < 0;
-
 }
 
 ConstraintP Constraint::makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r){
@@ -1288,7 +1286,6 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
   {
     coeffs = RationalVectorPSentinel;
   }
-
   // no need to delete coeffs the memory is owned by ConstraintRule
   d_database->pushConstraintRule(ConstraintRule(this, FarkasAP, antecedentEnd, coeffs));
 
@@ -1427,8 +1424,6 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
   Assert(allHaveProof(a));
 
   Assert(ARITH_PROOF_ON() == (coeffs != RationalVectorCPSentinel));
-  // !ARITH_PROOF_ON() => coeffs == RationalVectorCPSentinel
-  //  ARITH_PROOF_ON() => coeffs->size() == a.size() + 1
   Assert(!ARITH_PROOF_ON() || coeffs->size() == a.size() + 1);
   Assert(a.size() >= 1);
 

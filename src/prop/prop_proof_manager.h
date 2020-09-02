@@ -19,6 +19,7 @@
 
 #include "expr/proof.h"
 #include "expr/proof_node_manager.h"
+#include "options/smt_options.h"
 #include "prop/proof_post_processor.h"
 
 namespace CVC4 {

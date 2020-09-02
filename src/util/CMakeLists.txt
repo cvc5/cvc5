@@ -26,7 +26,6 @@ libcvc4_add_sources(
   ostream_util.h
   poly_util.cpp
   poly_util.h
-  proof.h
   random.cpp
   random.h
   resource_manager.cpp

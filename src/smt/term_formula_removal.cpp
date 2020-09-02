@@ -19,7 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "options/proof_options.h"
+#include "options/smt_options.h"
 #include "proof/proof_manager.h"
 
 using namespace std;
@@ -47,16 +47,21 @@ theory::TrustNode RemoveTermFormulas::run(
   ctx.pushInitial(assertion);
   Node itesRemoved = run(ctx, newAsserts, newSkolems);
   // In some calling contexts, not necessary to report dependence information.
-  if (reportDeps
-      && (options::unsatCores() || options::fewerPreprocessingHoles()))
+  if (reportDeps && options::unsatCores())
   {
     // new assertions have a dependence on the node
-    PROOF(ProofManager::currentPM()->addDependence(itesRemoved, assertion);)
+    if (options::unsatCores())
+    {
+      ProofManager::currentPM()->addDependence(itesRemoved, assertion);
+    }
     unsigned n = 0;
     while (n < newAsserts.size())
     {
-      PROOF(ProofManager::currentPM()->addDependence(newAsserts[n].getProven(),
-                                                     assertion);)
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(newAsserts[n].getProven(),
+                                                 assertion);
+      }
       ++n;
     }
   }

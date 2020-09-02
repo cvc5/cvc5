@@ -76,29 +76,16 @@ void TheoryProxy::explainPropagation(SatLiteral l, SatClause& explanation) {
   TNode lNode = d_cnfStream->getNode(l);
   Debug("prop-explain") << "explainPropagation(" << lNode << ")" << std::endl;
 
-  LemmaProofRecipe* proofRecipe = NULL;
-  PROOF(proofRecipe = new LemmaProofRecipe;);
-
-  theory::TrustNode tte =
-      d_theoryEngine->getExplanationAndRecipe(lNode, proofRecipe);
+  theory::TrustNode tte = d_theoryEngine->getExplanation(lNode);
   Node theoryExplanation = tte.getNode();
-
   if (CVC4::options::proofNew())
   {
     d_propEngine->getProofCnfStream()->convertPropagation(tte);
   }
-  PROOF({
-      ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
-      ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
-
-      Debug("pf::sat") << "TheoryProxy::explainPropagation: setting lemma recipe to: "
-                       << std::endl;
-      proofRecipe->dump("pf::sat");
-
-      delete proofRecipe;
-      proofRecipe = NULL;
-    });
-
+  if (options::unsatCores())
+  {
+    ProofManager::getCnfProof()->pushCurrentAssertion(theoryExplanation);
+  }
   Debug("prop-explain") << "explainPropagation() => " << theoryExplanation << std::endl;
   if (theoryExplanation.getKind() == kind::AND) {
     Node::const_iterator it = theoryExplanation.begin();

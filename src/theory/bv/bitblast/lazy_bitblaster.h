@@ -19,7 +19,6 @@
 #ifndef CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 #define CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
-#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
 
 #include "context/cdhashmap.h"

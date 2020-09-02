@@ -1324,8 +1324,10 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
   }else{
     if (d_nonlinearExtension == nullptr)
     {
-      if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE || 
-          vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
+      if (vlNode.getKind() == kind::EXPONENTIAL
+          || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+          || vlNode.getKind() == kind::TANGENT)
+      {
         d_nlIncomplete = true;
       }
     }
@@ -1967,32 +1969,6 @@ void TheoryArithPrivate::outputConflicts(){
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
                                << " has proof: " << hasProof << endl;
-      // Farkas coefficients in conflict-order
-      ARITH_PROOF(if (d_containing.d_proofRecorder
-                      && confConstraint->hasFarkasProof()
-                      && pf.d_farkasCoefficients->size()
-                             == conflict.getNumChildren()) {
-        // The Farkas coefficients and the children of `conflict` seem to be in
-        // opposite orders... There is some relevant documentation in the
-        // comment for the d_farkasCoefficients field  in "constraint.h"
-        //
-        // Anyways, we reverse the children in `conflict` here.
-        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        for (size_t j = 0, nchildren = conflict.getNumChildren(); j < nchildren;
-             ++j)
-        {
-          conflictInFarkasCoefficientOrder
-              << conflict[conflict.getNumChildren() - j - 1];
-        }
-
-        Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof()
-            && confConstraint->getNegation()->isPossiblyTightenedAssumption())
-        {
-          d_containing.d_proofRecorder->saveFarkasCoefficients(
-              conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
-        }
-      })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -4782,7 +4758,6 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-
     ARITH_PROOF(d_farkasBuffer.clear());
     RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
 
@@ -4801,43 +4776,6 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
       std::shared_ptr<ProofNode> clausePf{nullptr};
-
-      ARITH_PROOF({
-        Assert(coeffs != RationalVectorCPSentinel);
-        Debug("arith::pf::prop") << "implied    : " << implied << std::endl;
-        Debug("arith::pf::prop") << "implication: " << implication << std::endl;
-        Debug("arith::pf::prop")
-            << "coeff len: " << coeffs->size() << std::endl;
-        Debug("arith::pf::prop") << "exp    : " << explain << std::endl;
-        Debug("arith::pf::prop") << "clause : " << clause << std::endl;
-        Debug("arith::pf::prop")
-            << "clause len: " << clause.getNumChildren() << std::endl;
-        Debug("arith::pf::prop") << "exp len: " << explain.size() << std::endl;
-        // Using the information from the above comment we assemble a conflict
-        // AND in coefficient order
-        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        conflictInFarkasCoefficientOrder << implication[1].negate();
-        for (const Node& antecedent : implication[0])
-        {
-          Debug("arith::pf::prop") << "  ante: " << antecedent << std::endl;
-          conflictInFarkasCoefficientOrder << antecedent;
-        }
-
-        if (d_containing.d_proofRecorder
-            && coeffs->size() == clause.getNumChildren())
-        {
-          Assert(coeffs != RationalVectorPSentinel);
-          Assert(conflictInFarkasCoefficientOrder.getNumChildren()
-                 == coeffs->size());
-          if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
-                return c->isAssumption() || c->hasIntTightenProof();
-              }))
-          {
-            d_containing.d_proofRecorder->saveFarkasCoefficients(
-                conflictInFarkasCoefficientOrder, coeffs);
-          }
-        }
-      })
 
       if (options::proofNew())
       {

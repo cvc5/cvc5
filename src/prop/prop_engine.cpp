@@ -100,7 +100,6 @@ PropEngine::PropEngine(TheoryEngine* te,
 
   d_decisionEngine->setSatSolver(d_satSolver);
   d_decisionEngine->setCnfStream(d_cnfStream);
-
   if (pnm)
   {
     d_pfCnfStream.reset(
@@ -108,18 +107,17 @@ PropEngine::PropEngine(TheoryEngine* te,
     d_ppm.reset(
         new PropPfManager(pnm, d_satSolver->getProof(), d_pfCnfStream.get()));
   }
-
-  PROOF (
-         ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
-         );
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->initCnfProof(d_cnfStream, userContext);
+  }
 }
 
 void PropEngine::finishInit()
 {
   NodeManager* nm = NodeManager::currentNM();
-  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false, RULE_GIVEN);
-  d_cnfStream->convertAndAssert(
-      nm->mkConst(false).notNode(), false, false, RULE_GIVEN);
+  d_cnfStream->convertAndAssert(nm->mkConst(true), false, false);
+  d_cnfStream->convertAndAssert(nm->mkConst(false).notNode(), false, false);
 }
 
 PropEngine::~PropEngine() {
@@ -144,14 +142,12 @@ void PropEngine::assertFormula(TNode node) {
   }
   else
   {
-    d_cnfStream->convertAndAssert(node, false, false, RULE_GIVEN);
+    d_cnfStream->convertAndAssert(node, false, false, true);
   }
 }
 
 void PropEngine::assertLemma(theory::TrustNode trn,
-                             bool removable,
-                             ProofRule rule,
-                             TNode from)
+                             bool removable)
 {
   Node node = trn.getNode();
   bool negated = trn.getKind() == theory::TrustNodeKind::CONFLICT;
@@ -165,7 +161,7 @@ void PropEngine::assertLemma(theory::TrustNode trn,
   }
   else
   {
-    d_cnfStream->convertAndAssert(node, removable, negated, rule, from);
+    d_cnfStream->convertAndAssert(node, removable, negated);
   }
 }
 

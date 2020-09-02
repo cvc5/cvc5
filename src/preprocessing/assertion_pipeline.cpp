@@ -16,7 +16,7 @@
 #include "preprocessing/assertion_pipeline.h"
 
 #include "expr/node_manager.h"
-#include "proof/proof.h"
+#include "options/smt_options.h"
 #include "proof/proof_manager.h"
 #include "theory/rewriter.h"
 
@@ -77,7 +77,10 @@ void AssertionPipeline::pushBackTrusted(theory::TrustNode trn)
 
 void AssertionPipeline::replace(size_t i, Node n, ProofGenerator* pgen)
 {
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
+  }
   if (isProofEnabled())
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);
@@ -96,11 +99,14 @@ void AssertionPipeline::replace(size_t i,
                                 const std::vector<Node>& addnDeps,
                                 ProofGenerator* pgen)
 {
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-        for (const auto& addnDep
-             : addnDeps) {
-          ProofManager::currentPM()->addDependence(n, addnDep);
-        });
+  if (options::unsatCores())
+  {
+    ProofManager::currentPM()->addDependence(n, d_nodes[i]);
+    for (const auto& addnDep : addnDeps)
+    {
+      ProofManager::currentPM()->addDependence(n, addnDep);
+    }
+  }
   if (isProofEnabled())
   {
     d_pppg->notifyPreprocessed(d_nodes[i], n, pgen);

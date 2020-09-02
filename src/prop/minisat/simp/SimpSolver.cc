@@ -21,8 +21,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "prop/minisat/simp/SimpSolver.h"
 
 #include "options/prop_options.h"
+#include "options/smt_options.h"
 #include "proof/clause_id.h"
-#include "proof/proof.h"
 #include "prop/minisat/mtl/Sort.h"
 #include "prop/minisat/utils/System.h"
 
@@ -64,9 +64,10 @@ SimpSolver::SimpSolver(CVC4::prop::TheoryProxy* proxy,
       asymm_lits(0),
       eliminated_vars(0),
       elimorder(1),
-      use_simplification(!enableIncremental
-                         && !PROOF_ON())  // TODO: turn off simplifications if
-                                          // proofs are on initially
+      use_simplification(
+          !enableIncremental
+          && !options::unsatCores())  // TODO: turn off simplifications if
+                                      // proofs are on initially
       ,
       occurs(ClauseDeleted(ca)),
       elim_heap(ElimLt(n_occ)),

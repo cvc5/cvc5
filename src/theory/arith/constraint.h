@@ -86,7 +86,6 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "expr/proof_node_manager.h"
-#include "proof/proof.h"
 #include "theory/arith/arithvar.h"
 #include "theory/arith/callbacks.h"
 #include "theory/arith/congruence_manager.h"
@@ -255,11 +254,11 @@ struct PerVariableDatabase{
   }
 };
 
-
 /**
  * If proofs are on, there is a vector of rationals for farkas coefficients.
- * This is the owner of the memory for the vector, and calls delete upon cleanup.
- * 
+ * This is the owner of the memory for the vector, and calls delete upon
+ * cleanup.
+ *
  */
 struct ConstraintRule {
   ConstraintP d_constraint;
@@ -749,7 +748,7 @@ class Constraint {
 
   /**
    * If the constraint
-   *   canBePropagated() and 
+   *   canBePropagated() and
    *   !assertedToTheTheory(),
    * the constraint is added to the database's propagation queue.
    *
@@ -788,9 +787,11 @@ class Constraint {
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
-
-      ARITH_PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
-        delete crp->d_farkasCoefficients;
+      ARITH_PROOF({
+        if (crp->d_farkasCoefficients != RationalVectorCPSentinel)
+        {
+          delete crp->d_farkasCoefficients;
+        }
       });
     }
   };
@@ -876,10 +877,11 @@ class Constraint {
     return getConstraintRule().d_antecedentEnd;
   }
 
-  inline RationalVectorCP getFarkasCoefficients() const {
+  inline RationalVectorCP getFarkasCoefficients() const
+  {
     return ARITH_NULLPROOF(getConstraintRule().d_farkasCoefficients);
   }
-  
+
   void debugPrint() const;
 
   /**
@@ -1051,8 +1053,7 @@ private:
      * The index in this list is the proper ordering of the proofs.
      */
     ConstraintRuleList d_constraintProofs;
-    
-    
+
     /**
      * Contains the exact list of constraints that can be used for propagation.
      */
@@ -1104,9 +1105,9 @@ private:
 
   const Rational d_one;
   const Rational d_negOne;
-  
+
   friend class Constraint;
-  
+
 public:
  ConstraintDatabase(context::Context* satContext,
                     context::Context* userContext,

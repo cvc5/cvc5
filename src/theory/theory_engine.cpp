@@ -29,14 +29,9 @@
 #include "expr/node_visitor.h"
 #include "options/bv_options.h"
 #include "options/options.h"
-#include "options/proof_options.h"
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "preprocessing/assertion_pipeline.h"
-#include "proof/cnf_proof.h"
-#include "proof/lemma_proof.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
 #include "smt/logic_exception.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -272,10 +267,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
-
-#ifdef CVC4_PROOF
-  ProofManager::currentPM()->initTheoryProofEngine();
-#endif
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -1179,23 +1170,6 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
       assertToTheory(literal, literal, /* to */ THEORY_BUILTIN, /* from */ theory);
     }
   } else {
-    // We could be propagating a unit-clause lemma. In this case, we need to provide a
-    // recipe.
-    // TODO: Consider putting this someplace else? This is the only refence to the proof
-    // manager in this class.
-
-    PROOF({
-        LemmaProofRecipe proofRecipe;
-        proofRecipe.addBaseAssertion(literal);
-
-        Node emptyNode;
-        LemmaProofRecipe::ProofStep proofStep(theory, emptyNode);
-        proofStep.addAssertion(literal);
-        proofRecipe.addStep(proofStep);
-
-        ProofManager::getCnfProof()->setProofRecipe(&proofRecipe);
-      });
-
     // Just send off to the SAT solver
     Assert(d_propEngine->isSatLiteral(literal));
     assertToTheory(literal, literal, /* to */ THEORY_SAT_SOLVER, /* from */ theory);
@@ -1308,62 +1282,22 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
   }
 }
 
-theory::TrustNode TheoryEngine::getExplanationAndRecipe(
-    TNode node, LemmaProofRecipe* proofRecipe)
+theory::TrustNode TheoryEngine::getExplanation(TNode node)
 {
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
-
   bool polarity = node.getKind() != kind::NOT;
   TNode atom = polarity ? node : node[0];
 
   // If we're not in shared mode, explanations are simple
-  if (!d_logicInfo.isSharingEnabled()) {
-    Debug("theory::explain") << "TheoryEngine::getExplanation: sharing is NOT enabled. "
-                             << " Responsible theory is: "
-                             << theoryOf(atom)->getId() << std::endl;
+  if (!d_logicInfo.isSharingEnabled())
+  {
+    Debug("theory::explain")
+        << "TheoryEngine::getExplanation: sharing is NOT enabled. "
+        << " Responsible theory is: " << theoryOf(atom)->getId() << std::endl;
 
     TrustNode texplanation = theoryOf(atom)->explain(node);
     Node explanation = texplanation.getNode();
     Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
-    PROOF({
-        if(proofRecipe) {
-          Node emptyNode;
-          LemmaProofRecipe::ProofStep proofStep(theoryOf(atom)->getId(), emptyNode);
-          proofStep.addAssertion(node);
-          proofRecipe->addBaseAssertion(node);
-
-          if (explanation.getKind() == kind::AND) {
-            // If the explanation is a conjunction, the recipe for the corresponding lemma is
-            // the negation of its conjuncts.
-            Node flat = flattenAnd(explanation);
-            for (unsigned i = 0; i < flat.getNumChildren(); ++i) {
-              if (flat[i].isConst() && flat[i].getConst<bool>()) {
-                ++ i;
-                continue;
-              }
-              if (flat[i].getKind() == kind::NOT &&
-                  flat[i][0].isConst() && !flat[i][0].getConst<bool>()) {
-                ++ i;
-                continue;
-              }
-              Debug("theory::explain") << "TheoryEngine::getExplanationAndRecipe: adding recipe assertion: "
-                                       << flat[i].negate() << std::endl;
-              proofStep.addAssertion(flat[i].negate());
-              proofRecipe->addBaseAssertion(flat[i].negate());
-            }
-          } else {
-            // The recipe for proving it is by negating it. "True" is not an acceptable reason.
-            if (!((explanation.isConst() && explanation.getConst<bool>()) ||
-                  (explanation.getKind() == kind::NOT &&
-                   explanation[0].isConst() && !explanation[0].getConst<bool>()))) {
-              proofStep.addAssertion(explanation.negate());
-              proofRecipe->addBaseAssertion(explanation.negate());
-            }
-          }
-
-          proofRecipe->addStep(proofStep);
-        }
-      });
     if (options::proofNew())
     {
       // check if no generator, if so, add THEORY_LEMMA
@@ -1381,7 +1315,8 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
     return texplanation;
   }
 
-  Debug("theory::explain") << "TheoryEngine::getExplanation: sharing IS enabled" << std::endl;
+  Debug("theory::explain") << "TheoryEngine::getExplanation: sharing IS enabled"
+                           << std::endl;
 
   // Initial thing to explain
   NodeTheoryPair toExplain(node, THEORY_SAT_SOLVER, d_propagationMapTimestamp);
@@ -1392,32 +1327,15 @@ theory::TrustNode TheoryEngine::getExplanationAndRecipe(
       << "TheoryEngine::getExplanation: explainer for node "
       << nodeExplainerPair.d_node
       << " is theory: " << nodeExplainerPair.d_theory << std::endl;
-  TheoryId explainer = nodeExplainerPair.d_theory;
 
   // Create the workplace for explanations
   std::vector<NodeTheoryPair> vec;
   vec.push_back(d_propagationMap[toExplain]);
   // Process the explanation
-  if (proofRecipe) {
-    Node emptyNode;
-    LemmaProofRecipe::ProofStep proofStep(explainer, emptyNode);
-    proofStep.addAssertion(node);
-    proofRecipe->addStep(proofStep);
-    proofRecipe->addBaseAssertion(node);
-  }
-
-  TrustNode texplanation = getExplanation(vec, proofRecipe);
-
+  TrustNode texplanation = getExplanation(vec);
   Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => "
                            << texplanation.getNode() << endl;
   return texplanation;
-}
-
-theory::TrustNode TheoryEngine::getExplanation(TNode node)
-{
-  LemmaProofRecipe *dontCareRecipe = NULL;
-  // the trust node was processed within getExplanationAndRecipe
-  return getExplanationAndRecipe(node, dontCareRecipe);
 }
 
 struct AtomsCollect {
@@ -1519,7 +1437,6 @@ void TheoryEngine::ensureLemmaAtoms(const std::vector<TNode>& atoms, theory::The
 }
 
 theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
-                                        ProofRule rule,
                                         theory::LemmaProperty p,
                                         theory::TheoryId atomsTo,
                                         theory::TheoryId from)
@@ -1646,12 +1563,12 @@ theory::LemmaStatus TheoryEngine::lemma(theory::TrustNode tlemma,
   Assert(!options::proofNew() || tlemma.getGenerator() != nullptr);
   // ensure closed, make the proof node eagerly here to debug
   tlemma.debugCheckClosed("te-proof-debug", "TheoryEngine::lemma");
-  d_propEngine->assertLemma(tlemma, removable, rule, node);
+  d_propEngine->assertLemma(tlemma, removable);
   for (size_t i = 0, lsize = newLemmas.size(); i < lsize; ++i)
   {
     Assert(!options::proofNew() || newLemmas[i].getGenerator() != nullptr);
     newLemmas[i].debugCheckClosed("te-proof-debug", "TheoryEngine::lemma_new");
-    d_propEngine->assertLemma(newLemmas[i], removable, rule, node);
+    d_propEngine->assertLemma(newLemmas[i], removable);
   }
 
   // assert to decision engine
@@ -1704,23 +1621,6 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
                         << CheckSatCommand(conflict.toExpr());
   }
 
-  LemmaProofRecipe* proofRecipe = NULL;
-  PROOF({
-      proofRecipe = new LemmaProofRecipe;
-      Node emptyNode;
-      LemmaProofRecipe::ProofStep proofStep(theoryId, emptyNode);
-
-      if (conflict.getKind() == kind::AND) {
-        for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
-          proofStep.addAssertion(conflict[i].negate());
-        }
-      } else {
-        proofStep.addAssertion(conflict.negate());
-      }
-
-      proofRecipe->addStep(proofStep);
-    });
-
   // In the multiple-theories case, we need to reconstruct the conflict
   if (d_logicInfo.isSharingEnabled()) {
     // Create the workplace for explanations
@@ -1729,12 +1629,11 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
         NodeTheoryPair(conflict, theoryId, d_propagationMapTimestamp));
 
     // Process the explanation
-    TrustNode tncExp = getExplanation(vec, proofRecipe);
+    TrustNode tncExp = getExplanation(vec);
     Trace("te-proof-debug")
         << "Check closed conflict explained with sharing" << std::endl;
     tncExp.debugCheckClosed("te-proof-debug",
                             "TheoryEngine::conflict_explained_sharing");
-    PROOF(ProofManager::getCnfProof()->setProofRecipe(proofRecipe));
     Node fullConflict = tncExp.getNode();
 
     if (options::proofNew())
@@ -1800,55 +1699,22 @@ void TheoryEngine::conflict(theory::TrustNode tconflict, TheoryId theoryId)
     Trace("te-proof-debug")
         << "Check closed conflict with sharing" << std::endl;
     tconf.debugCheckClosed("te-proof-debug", "TheoryEngine::conflict:sharing");
-    lemma(tconf, RULE_CONFLICT, LemmaProperty::REMOVABLE);
+    lemma(tconf, LemmaProperty::REMOVABLE);
   } else {
     // When only one theory, the conflict should need no processing
     Assert(properConflict(conflict));
-    PROOF({
-        if (conflict.getKind() == kind::AND) {
-          // If the conflict is a conjunction, the corresponding lemma is derived by negating
-          // its conjuncts.
-          for (unsigned i = 0; i < conflict.getNumChildren(); ++i) {
-            if (conflict[i].isConst() && conflict[i].getConst<bool>()) {
-              ++ i;
-              continue;
-            }
-            if (conflict[i].getKind() == kind::NOT &&
-                conflict[i][0].isConst() && !conflict[i][0].getConst<bool>()) {
-              ++ i;
-              continue;
-            }
-            proofRecipe->getStep(0)->addAssertion(conflict[i].negate());
-            proofRecipe->addBaseAssertion(conflict[i].negate());
-          }
-        } else {
-          proofRecipe->getStep(0)->addAssertion(conflict.negate());
-          proofRecipe->addBaseAssertion(conflict.negate());
-        }
-
-        ProofManager::getCnfProof()->setProofRecipe(proofRecipe);
-      });
-
     // pass the trust node that was sent from the theory
     lemma(tconflict,
-          RULE_CONFLICT,
           LemmaProperty::REMOVABLE,
           THEORY_LAST,
           theoryId);
   }
-
-  PROOF({
-      delete proofRecipe;
-      proofRecipe = NULL;
-    });
 }
 
 theory::TrustNode TheoryEngine::getExplanation(
-    std::vector<NodeTheoryPair>& explanationVector,
-    LemmaProofRecipe* proofRecipe)
+    std::vector<NodeTheoryPair>& explanationVector)
 {
   Assert(explanationVector.size() == 1);
-
   Node conclusion = explanationVector[0].d_node;
   std::shared_ptr<LazyCDProof> lcp;
   if (d_lazyProof != nullptr)
@@ -1861,13 +1727,6 @@ theory::TrustNode TheoryEngine::getExplanation(
   unsigned i = 0; // Index of the current literal we are processing
 
   std::unique_ptr<std::set<Node>> inputAssertions = nullptr;
-  PROOF({
-    if (proofRecipe)
-    {
-      inputAssertions.reset(
-          new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
-    }
-  });
   // the overall explanation
   std::set<TNode> exp;
   // vector of trust nodes to explain at the end
@@ -1966,21 +1825,6 @@ theory::TrustNode TheoryEngine::getExplanation(
         explanationVector.push_back((*find).second);
         ++i;
 
-        PROOF({
-          if (toExplain.d_node != (*find).second.d_node)
-          {
-            Debug("pf::explain")
-                << "TheoryEngine::getExplanation: Rewrite alert! toAssert = "
-                << toExplain.d_node << ", toExplain = " << (*find).second.d_node
-                << std::endl;
-
-            if (proofRecipe)
-            {
-              proofRecipe->addRewriteRule(toExplain.d_node,
-                                          (*find).second.d_node);
-            }
-          }
-        })
         if (lcp != nullptr)
         {
           if (!CDProof::isSame(toExplain.d_node, (*find).second.d_node))
@@ -2046,57 +1890,7 @@ theory::TrustNode TheoryEngine::getExplanation(
     explanationVector.push_back(newExplain);
 
     ++ i;
-
-    PROOF({
-      if (proofRecipe && inputAssertions)
-      {
-        // If we're expanding the target node of the explanation (this is the
-        // first expansion...), we don't want to add it as a separate proof
-        // step. It is already part of the assertions.
-        if (!ContainsKey(*inputAssertions, toExplain.d_node))
-        {
-          LemmaProofRecipe::ProofStep proofStep(toExplain.d_theory,
-                                                toExplain.d_node);
-          if (explanation.getKind() == kind::AND)
-          {
-            Node flat = flattenAnd(explanation);
-            for (unsigned k = 0; k < flat.getNumChildren(); ++k)
-            {
-              // If a true constant or a negation of a false constant we can
-              // ignore it
-              if (!((flat[k].isConst() && flat[k].getConst<bool>())
-                    || (flat[k].getKind() == kind::NOT && flat[k][0].isConst()
-                        && !flat[k][0].getConst<bool>())))
-              {
-                proofStep.addAssertion(flat[k].negate());
-              }
-            }
-          }
-          else
-          {
-            if (!((explanation.isConst() && explanation.getConst<bool>())
-                  || (explanation.getKind() == kind::NOT
-                      && explanation[0].isConst()
-                      && !explanation[0].getConst<bool>())))
-            {
-              proofStep.addAssertion(explanation.negate());
-            }
-          }
-          proofRecipe->addStep(proofStep);
-        }
-      }
-    });
   }
-
-  PROOF({
-      if (proofRecipe) {
-        // The remaining literals are the base of the proof
-        for (const Node& e : exp)
-        {
-          proofRecipe->addBaseAssertion(e.negate());
-        }
-      }
-    });
 
   // make the explanation node
   Node expNode;

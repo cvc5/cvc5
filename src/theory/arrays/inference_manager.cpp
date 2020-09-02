@@ -14,6 +14,7 @@
 
 #include "theory/arrays/inference_manager.h"
 
+#include "options/smt_options.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 

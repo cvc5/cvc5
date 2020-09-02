@@ -36,12 +36,8 @@ struct SmtEngineStatistics
   IntStat d_numAssertionsPre;
   /** Number of assertions after ite removal */
   IntStat d_numAssertionsPost;
-  /** Size of all proofs generated */
-  IntStat d_proofsSize;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
-  /** time spent checking the proof with LFSC */
-  TimerStat d_lfscCheckProofTime;
   /** time spent in checkUnsatCore() */
   TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */

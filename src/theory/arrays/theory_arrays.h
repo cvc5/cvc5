@@ -26,7 +26,6 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "theory/arrays/array_info.h"
-#include "theory/arrays/array_proof_reconstruction.h"
 #include "theory/arrays/proof_checker.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
 #include "theory/theory.h"
@@ -131,15 +130,6 @@ class TheoryArrays : public Theory {
   /** conflicts in setModelVal */
   IntStat d_numSetModelValConflicts;
 
-  // Merge reason types
-
-  /** Merge tag for ROW applications */
-  unsigned d_reasonRow;
-  /** Merge tag for ROW1 applications */
-  unsigned d_reasonRow1;
-  /** Merge tag for EXT applications */
-  unsigned d_reasonExt;
-
  public:
   TheoryArrays(context::Context* c,
                context::UserContext* u,
@@ -217,9 +207,8 @@ class TheoryArrays : public Theory {
   /** Should be called to propagate the literal.  */
   bool propagateLit(TNode literal);
 
-  /** Explain why this literal is true by adding assumptions */
-  void explain(TNode literal, std::vector<TNode>& assumptions,
-               eq::EqProof* proof);
+  /** Explain why this literal is true by building an explanation */
+  void explain(TNode literal, Node& exp);
 
   /** For debugging only- checks invariants about when things are preregistered*/
   context::CDHashSet<Node, NodeHashFunction > d_isPreRegistered;
@@ -229,7 +218,6 @@ class TheoryArrays : public Theory {
 
  public:
   void preRegisterTerm(TNode n) override;
-  Node explain(TNode n, eq::EqProof* proof);
   TrustNode explain(TNode n) override;
 
   /////////////////////////////////////////////////////////////////////////////
@@ -453,9 +441,6 @@ class TheoryArrays : public Theory {
   std::vector<Node> d_decisions;
   bool d_inCheckModel;
   int d_topLevel;
-
-  /** An equality-engine callback for proof reconstruction */
-  std::unique_ptr<ArrayProofReconstruction> d_proofReconstruction;
 
   /**
    * The decision strategy for the theory of arrays, which calls the
