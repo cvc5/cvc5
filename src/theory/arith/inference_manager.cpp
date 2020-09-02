@@ -29,7 +29,7 @@ InferenceManager::InferenceManager(TheoryArith& ta,
 {
 }
 
-void InferenceManager::addPendingArithLemma(std::shared_ptr<ArithLemma> lemma,
+void InferenceManager::addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
                                             bool isWaiting)
 {
   lemma->d_node = Rewriter::rewrite(lemma->d_node);
@@ -61,14 +61,15 @@ void InferenceManager::addPendingArithLemma(std::shared_ptr<ArithLemma> lemma,
 void InferenceManager::addPendingArithLemma(const ArithLemma& lemma,
                                             bool isWaiting)
 {
-  addPendingArithLemma(std::make_shared<ArithLemma>(lemma), isWaiting);
+  addPendingArithLemma(std::unique_ptr<ArithLemma>(new ArithLemma(lemma)),
+                       isWaiting);
 }
 void InferenceManager::addPendingArithLemma(const Node& lemma,
                                             nl::Inference inftype,
                                             bool isWaiting)
 {
-  addPendingArithLemma(std::make_shared<ArithLemma>(
-                           lemma, LemmaProperty::NONE, nullptr, inftype),
+  addPendingArithLemma(std::unique_ptr<ArithLemma>(new ArithLemma(
+                           lemma, LemmaProperty::NONE, nullptr, inftype)),
                        isWaiting);
 }
 

@@ -97,7 +97,8 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            ProofGenerator* pg)
 {
-  d_pendingFact.push_back(std::make_shared<DatatypesInference>(conc, exp, pg));
+  addPendingFact(std::unique_ptr<DatatypesInference>(
+      new DatatypesInference(conc, exp, pg)));
 }
 
 void InferenceManager::process()
