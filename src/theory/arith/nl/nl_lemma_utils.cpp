@@ -15,20 +15,26 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
 
-LemmaProperty NlLemma::getLemmaProperty() const
+bool NlLemma::process(TheoryInferenceManager* im)
 {
-  return d_preprocess ? LemmaProperty::PREPROCESS : LemmaProperty::NONE;
+  bool res = ArithLemma::process(im);
+  if (d_nlext != nullptr)
+  {
+    d_nlext->processSideEffect(*this);
+  }
+  return res;
 }
 
 std::ostream& operator<<(std::ostream& out, NlLemma& n)
 {
-  out << n.d_lemma;
+  out << n.d_node;
   return out;
 }
 

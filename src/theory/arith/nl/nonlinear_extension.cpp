@@ -166,9 +166,9 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
 {
   for (const NlLemma& nlem : out)
   {
-    Node lem = nlem.d_lemma;
-    LemmaProperty p = nlem.getLemmaProperty();
-    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_id
+    Node lem = nlem.d_node;
+    LemmaProperty p = nlem.d_property;
+    Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : " << nlem.d_inference
                           << " : " << lem << std::endl;
     d_containing.getOutputChannel().lemma(lem, p);
     // process the side effect
@@ -182,7 +182,7 @@ void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)
     {
       d_lemmas.insert(lem);
     }
-    d_stats.d_inferences << nlem.d_id;
+    d_stats.d_inferences << nlem.d_inference;
   }
 }
 
@@ -210,14 +210,15 @@ void NonlinearExtension::computeRelevantAssertions(
 unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
 {
   Trace("nl-ext-lemma-debug")
-      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_lemma << std::endl;
-  lem.d_lemma = Rewriter::rewrite(lem.d_lemma);
+      << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
+  lem.d_node = Rewriter::rewrite(lem.d_node);
   // get the proper cache
-  NodeSet& lcache = lem.d_preprocess ? d_lemmasPp : d_lemmas;
-  if (lcache.find(lem.d_lemma) != lcache.end())
+  NodeSet& lcache =
+      isLemmaPropertyPreprocess(lem.d_property) ? d_lemmasPp : d_lemmas;
+  if (lcache.find(lem.d_node) != lcache.end())
   {
     Trace("nl-ext-lemma-debug")
-        << "NonlinearExtension::Lemma duplicate : " << lem.d_lemma << std::endl;
+        << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;
     return 0;
   }
   out.emplace_back(lem);
@@ -232,7 +233,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
     // check if any are entailed to be false
     for (const NlLemma& lem : lemmas)
     {
-      Node ch_lemma = lem.d_lemma.negate();
+      Node ch_lemma = lem.d_node.negate();
       ch_lemma = Rewriter::rewrite(ch_lemma);
       Trace("nl-ext-et-debug")
           << "Check entailment of " << ch_lemma << "..." << std::endl;
@@ -243,7 +244,7 @@ unsigned NonlinearExtension::filterLemmas(std::vector<NlLemma>& lemmas,
       if (et.first)
       {
         Trace("nl-ext-et") << "*** Lemma entailed to be in conflict : "
-                           << lem.d_lemma << std::endl;
+                           << lem.d_node << std::endl;
         // return just this lemma
         if (filterLemma(lem, out) > 0)
         {
