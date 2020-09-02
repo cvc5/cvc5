@@ -351,8 +351,8 @@ Node RemoveTermFormulas::run(TCtxStack& ctx,
           d_lp->addLazyStep(naEq, d_tpg.get());
           // ---------------- from lp  ------------------------------- from tpg
           // newAssertionPre            newAssertionPre = newAssertion
-          // ---------------------------------------------------------
-          // EQ_RESOLVE newAssertion
+          // ------------------------------------------------------- EQ_RESOLVE
+          // newAssertion
           d_lp->addStep(
               newAssertion, PfRule::EQ_RESOLVE, {newAssertionPre, naEq}, {});
         }
