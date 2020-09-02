@@ -1809,7 +1809,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
       if (!bjExists) {
         preRegisterTermInternal(bj);
       }
-      d_im.assertInference(aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+      d_im.assertInference(
+          aj_eq_bj, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -1820,7 +1821,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
           (aj.isConst() && bj.isConst()) ? d_true : aj.eqNode(bj).notNode();
       Node i_eq_j = i.eqNode(j);
       d_permRef.push_back(reason);
-      d_im.assertInference(i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
+      d_im.assertInference(
+          i_eq_j, true, reason, PfRule::ARRAYS_READ_OVER_WRITE);
       ++d_numProp;
       return;
     }
@@ -2059,12 +2061,13 @@ bool TheoryArrays::dischargeLemmas()
 
 void TheoryArrays::conflict(TNode a, TNode b) {
   Debug("pf::array") << "TheoryArrays::Conflict called" << std::endl;
-  if (d_inCheckModel) {
+  if (d_inCheckModel)
+  {
     // if in check model, don't send the conflict?
     d_state.notifyInConflict();
     return;
   }
-  d_im.conflictEqConstantMerge(a,b);
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(

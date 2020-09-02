@@ -1022,7 +1022,8 @@ Result SmtEngine::checkSatInternal(const vector<Node>& assumptions,
     // Check that UNSAT results generate a proof correctly.
     if (options::checkProofsNew() || options::proofNewEagerChecking())
     {
-      if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
         if ((options::checkProofsNew() || options::proofNewEagerChecking())
             && !options::proofNew())
         {

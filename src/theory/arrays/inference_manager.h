@@ -34,13 +34,13 @@ class InferenceManager : public TheoryInferenceManager
   InferenceManager(Theory& t, TheoryState& state, ProofNodeManager* pnm);
   ~InferenceManager() {}
 
-  /** 
+  /**
    * Assert inference. This sends an internal fact to the equality engine
    * immediately, possibly with proof support. The identifier id which
    * rule to apply when proofs are enabled. The order of children
    * and arguments to use in the proof step are determined internally in
    * this method.
-   * 
+   *
    * @return true if the fact was successfully asserted, and false if the
    * fact was redundant.
    */

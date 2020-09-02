@@ -1286,7 +1286,9 @@ Node TheoryEngine::getInstantiatedConjunction( Node q ) {
 
 theory::TrustNode TheoryEngine::getExplanation(TNode node)
 {
-  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << "): current propagation index = " << d_propagationMapTimestamp << endl;
+  Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
+                           << "): current propagation index = "
+                           << d_propagationMapTimestamp << endl;
   bool polarity = node.getKind() != kind::NOT;
   TNode atom = polarity ? node : node[0];
 
@@ -1299,7 +1301,8 @@ theory::TrustNode TheoryEngine::getExplanation(TNode node)
 
     TrustNode texplanation = theoryOf(atom)->explain(node);
     Node explanation = texplanation.getNode();
-    Debug("theory::explain") << "TheoryEngine::getExplanation(" << node << ") => " << explanation << endl;
+    Debug("theory::explain") << "TheoryEngine::getExplanation(" << node
+                             << ") => " << explanation << endl;
     if (options::proofNew())
     {
       // check if no generator, if so, add THEORY_LEMMA

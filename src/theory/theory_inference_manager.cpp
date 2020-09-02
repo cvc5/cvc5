@@ -50,10 +50,7 @@ void TheoryInferenceManager::setEqualityEngine(eq::EqualityEngine* ee)
   }
 }
 
-bool TheoryInferenceManager::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool TheoryInferenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 void TheoryInferenceManager::reset()
 {

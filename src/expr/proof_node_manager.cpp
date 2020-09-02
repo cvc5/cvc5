@@ -73,7 +73,7 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
   std::unordered_map<Node, Node, NodeHashFunction> acr;
   // whether we have compute the map above
   bool computedAcr = false;
-  
+
   // The free assumptions of the proof
   std::map<Node, std::vector<ProofNode*>> famap;
   expr::getFreeAssumptionsMap(pf.get(), famap);
@@ -95,8 +95,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     if (!aeqSym.isNull() && ac.count(aeqSym))
     {
       Trace("pnm-scope") << "- reorient assumption " << aeqSym << " via " << a
-                          << " for " << fa.second.size() << " proof nodes"
-                          << std::endl;
+                         << " for " << fa.second.size() << " proof nodes"
+                         << std::endl;
       aMatch = aeqSym;
     }
     else
@@ -110,20 +110,21 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
         for (const Node& acc : ac)
         {
           Node accr = theory::Rewriter::rewrite(acc);
-          if (accr!=acc)
+          if (accr != acc)
           {
             acr[accr] = acc;
           }
         }
       }
       Node ar = theory::Rewriter::rewrite(a);
-      std::unordered_map<Node, Node, NodeHashFunction>::iterator itr = acr.find(ar);
-      if (itr!=acr.end())
+      std::unordered_map<Node, Node, NodeHashFunction>::iterator itr =
+          acr.find(ar);
+      if (itr != acr.end())
       {
         aMatch = itr->second;
       }
     }
-    
+
     // if we found a match either by symmetry or rewriting, then we connect
     // the assumption here.
     if (!aMatch.isNull())
