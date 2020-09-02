@@ -420,7 +420,8 @@ void TheoryBV::check(Effort e)
   }
 }
 
-bool TheoryBV::needsCheckLastEffort() {
+bool TheoryBV::needsCheckLastEffort()
+{
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
   {

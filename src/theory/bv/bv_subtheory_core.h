@@ -120,7 +120,7 @@ class CoreSolver : public SubtheorySolver {
   /** For extended functions */
   context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
   context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
-  
+
   /** do extended function inferences
    *
    * This method adds lemmas on the output channel of TheoryBV based on

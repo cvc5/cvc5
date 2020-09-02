@@ -68,7 +68,10 @@ bool CoreSolverExtTheoryCallback::getCurrentSubstitution(
   return retVal;
 }
 
-bool CoreSolverExtTheoryCallback::getReduction(int effort, Node n, Node& nr, bool& satDep)
+bool CoreSolverExtTheoryCallback::getReduction(int effort,
+                                               Node n,
+                                               Node& nr,
+                                               bool& satDep)
 {
   Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
   if (n.getKind() == kind::BITVECTOR_TO_NAT)
@@ -536,12 +539,7 @@ void CoreSolver::checkExtf(Theory::Effort e)
   }
 }
 
-bool CoreSolver::needsCheckLastEffort() const
-{
-  return d_needsLastCallCheck;
-}
-
-
+bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
 
 bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
 {
@@ -628,8 +626,9 @@ bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
   return sentLemma;
 }
 
-bool CoreSolver::doExtfReductions( std::vector< Node >& terms ) {
-  std::vector< Node > nredr;
+bool CoreSolver::doExtfReductions(std::vector<Node>& terms)
+{
+  std::vector<Node> nredr;
   if (d_extTheory->doReductions(0, terms, nredr))
   {
     return true;
