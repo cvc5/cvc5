@@ -859,24 +859,30 @@ Node BVToInt::createShiftNode(vector<Node> children,
                               uint64_t bvsize,
                               bool isLeftShift)
 {
-    /**
+  /**
    * from SMT-LIB:
    * [[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
    * [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
    * Since we don't have exponentiation, we use an ite.
-   * Important note: below we use INTS_DIVISION_TOTAL, which is safe here because we divide by 2^... which is never 0.
+   * Important note: below we use INTS_DIVISION_TOTAL, which is safe here
+   * because we divide by 2^... which is never 0.
    */
   Node x = children[0];
   Node y = children[1];
-  //shifting by const is eliminated by the theory rewriter
+  // shifting by const is eliminated by the theory rewriter
   Assert(!y.isConst());
   Node ite = d_zero;
   Node body;
   for (uint64_t i = 0; i < bvsize; i++)
   {
-    if (isLeftShift) {
-      body = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, pow2(i)), pow2(bvsize));
-    } else {
+    if (isLeftShift)
+    {
+      body = d_nm->mkNode(kind::INTS_MODULUS_TOTAL,
+                          d_nm->mkNode(kind::MULT, x, pow2(i)),
+                          pow2(bvsize));
+    }
+    else
+    {
       body = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i));
     }
     ite = d_nm->mkNode(kind::ITE,
