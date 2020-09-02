@@ -177,7 +177,7 @@ class CvcPrinter : public CVC4::Printer
       std::ostream& out, TNode n, int toDepth, bool types, bool bracket) const;
   void toStream(std::ostream& out,
                 const Model& m,
-                const Command* c) const override;
+                const NodeCommand* c) const override;
 
   bool d_cvc3Mode;
 }; /* class CvcPrinter */

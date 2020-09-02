@@ -22,7 +22,7 @@
 
 #include "context/cdlist.h"
 #include "expr/node.h"
-#include "smt/command.h"
+#include "smt/node_command.h"
 
 namespace CVC4 {
 namespace smt {
@@ -36,7 +36,7 @@ namespace smt {
  */
 class DumpManager
 {
-  typedef context::CDList<Command*> CommandList;
+  typedef context::CDList<NodeCommand*> CommandList;
 
  public:
   DumpManager(context::UserContext* u);
@@ -54,7 +54,7 @@ class DumpManager
    * Add to Model command.  This is used for recording a command
    * that should be reported during a get-model call.
    */
-  void addToModelCommandAndDump(const Command& c,
+  void addToModelCommandAndDump(const NodeCommand& c,
                                 uint32_t flags = 0,
                                 bool userVisible = true,
                                 const char* dumpTag = "declarations");
@@ -66,7 +66,7 @@ class DumpManager
   /** get number of commands to report in a model */
   size_t getNumModelCommands() const;
   /** get model command at index i */
-  const Command* getModelCommand(size_t i) const;
+  const NodeCommand* getModelCommand(size_t i) const;
 
  private:
   /** Fully inited */
@@ -77,7 +77,7 @@ class DumpManager
    * regardless of push/pop).  Only maintained if produce-models option
    * is on.
    */
-  std::vector<std::unique_ptr<Command>> d_modelGlobalCommands;
+  std::vector<std::unique_ptr<NodeCommand>> d_modelGlobalCommands;
 
   /**
    * A list of commands that should be in the Model locally (i.e.,
@@ -89,7 +89,7 @@ class DumpManager
    * A list of model commands allocated to d_modelCommands at any time. This
    * is maintained for memory management purposes.
    */
-  std::vector<std::unique_ptr<Command>> d_modelCommandsAlloc;
+  std::vector<std::unique_ptr<NodeCommand>> d_modelCommandsAlloc;
 
   /**
    * A vector of declaration commands waiting to be dumped out.
@@ -97,7 +97,7 @@ class DumpManager
    * This ensures the declarations come after the set-logic and
    * any necessary set-option commands are dumped.
    */
-  std::vector<std::unique_ptr<Command>> d_dumpCommands;
+  std::vector<std::unique_ptr<NodeCommand>> d_dumpCommands;
 };
 
 }  // namespace smt

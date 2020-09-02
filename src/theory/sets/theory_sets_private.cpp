@@ -276,74 +276,21 @@ bool TheorySetsPrivate::assertFact(Node fact, Node exp)
                        << ", exp = " << exp << std::endl;
   bool polarity = fact.getKind() != kind::NOT;
   TNode atom = polarity ? fact : fact[0];
-  if (!d_state.isEntailed(atom, polarity))
-  {
-    if (atom.getKind() == kind::EQUAL)
-    {
-      d_equalityEngine->assertEquality(atom, polarity, exp);
-    }
-    else
-    {
-      d_equalityEngine->assertPredicate(atom, polarity, exp);
-    }
-    if (!d_state.isInConflict())
-    {
-      if (atom.getKind() == kind::MEMBER && polarity)
-      {
-        // check if set has a value, if so, we can propagate
-        Node r = d_equalityEngine->getRepresentative(atom[1]);
-        EqcInfo* e = getOrMakeEqcInfo(r, true);
-        if (e)
-        {
-          Node s = e->d_singleton;
-          if (!s.isNull())
-          {
-            Node pexp = NodeManager::currentNM()->mkNode(
-                kind::AND, atom, atom[1].eqNode(s));
-            d_keep.insert(pexp);
-            if (s.getKind() == kind::SINGLETON)
-            {
-              if (s[0] != atom[0])
-              {
-                Trace("sets-prop")
-                    << "Propagate mem-eq : " << pexp << std::endl;
-                Node eq = s[0].eqNode(atom[0]);
-                d_keep.insert(eq);
-                assertFact(eq, pexp);
-              }
-            }
-            else
-            {
-              Trace("sets-prop")
-                  << "Propagate mem-eq conflict : " << pexp << std::endl;
-              d_im.conflict(pexp);
-            }
-          }
-        }
-        // add to membership list
-        NodeIntMap::iterator mem_i = d_members.find(r);
-        int n_members = 0;
-        if (mem_i != d_members.end())
-        {
-          n_members = (*mem_i).second;
-        }
-        d_members[r] = n_members + 1;
-        if (n_members < (int)d_members_data[r].size())
-        {
-          d_members_data[r][n_members] = atom;
-        }
-        else
-        {
-          d_members_data[r].push_back(atom);
-        }
-      }
-    }
-    return true;
-  }
-  else
+  if (d_state.isEntailed(atom, polarity))
   {
     return false;
   }
+  if (atom.getKind() == kind::EQUAL)
+  {
+    d_equalityEngine->assertEquality(atom, polarity, exp);
+  }
+  else
+  {
+    d_equalityEngine->assertPredicate(atom, polarity, exp);
+  }
+  // call the notify new fact method
+  notifyFact(atom, polarity, exp);
+  return true;
 }
 
 void TheorySetsPrivate::fullEffortReset()
@@ -950,26 +897,10 @@ void TheorySetsPrivate::checkReduceComprehensions()
   }
 }
 
-/**************************** TheorySetsPrivate *****************************/
-/**************************** TheorySetsPrivate *****************************/
-/**************************** TheorySetsPrivate *****************************/
+//--------------------------------- standard check
 
-void TheorySetsPrivate::check(Theory::Effort level)
+void TheorySetsPrivate::postCheck(Theory::Effort level)
 {
-  Trace("sets-check") << "Sets check effort " << level << std::endl;
-  if (level == Theory::EFFORT_LAST_CALL)
-  {
-    return;
-  }
-  while (!d_external.done() && !d_state.isInConflict())
-  {
-    // Get all the assertions
-    Assertion assertion = d_external.get();
-    TNode fact = assertion.d_assertion;
-    Trace("sets-assert") << "Assert from input " << fact << std::endl;
-    // assert the fact
-    assertFact(fact, fact);
-  }
   Trace("sets-check") << "Sets finished assertions effort " << level
                       << std::endl;
   // invoke full effort check, relations check
@@ -989,18 +920,75 @@ void TheorySetsPrivate::check(Theory::Effort level)
     }
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
-} /* TheorySetsPrivate::check() */
-
-/************************ Sharing ************************/
-/************************ Sharing ************************/
-/************************ Sharing ************************/
-
-void TheorySetsPrivate::addSharedTerm(TNode n)
-{
-  Debug("sets") << "[sets] TheorySetsPrivate::addSharedTerm( " << n << ")"
-                << std::endl;
-  d_equalityEngine->addTriggerTerm(n, THEORY_SETS);
 }
+
+bool TheorySetsPrivate::preNotifyFact(TNode atom, bool polarity, TNode fact)
+{
+  // use entailment check (is this necessary?)
+  return d_state.isEntailed(atom, polarity);
+}
+
+void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
+{
+  if (d_state.isInConflict())
+  {
+    return;
+  }
+  if (atom.getKind() == kind::MEMBER && polarity)
+  {
+    // check if set has a value, if so, we can propagate
+    Node r = d_equalityEngine->getRepresentative(atom[1]);
+    EqcInfo* e = getOrMakeEqcInfo(r, true);
+    if (e)
+    {
+      Node s = e->d_singleton;
+      if (!s.isNull())
+      {
+        Node pexp = NodeManager::currentNM()->mkNode(
+            kind::AND, atom, atom[1].eqNode(s));
+        d_keep.insert(pexp);
+        if (s.getKind() == kind::SINGLETON)
+        {
+          if (s[0] != atom[0])
+          {
+            Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
+            Node eq = s[0].eqNode(atom[0]);
+            d_keep.insert(eq);
+            // triggers an internal inference
+            assertFact(eq, pexp);
+          }
+        }
+        else
+        {
+          Trace("sets-prop")
+              << "Propagate mem-eq conflict : " << pexp << std::endl;
+          d_im.conflict(pexp);
+        }
+      }
+    }
+    // add to membership list
+    NodeIntMap::iterator mem_i = d_members.find(r);
+    int n_members = 0;
+    if (mem_i != d_members.end())
+    {
+      n_members = (*mem_i).second;
+    }
+    d_members[r] = n_members + 1;
+    if (n_members < (int)d_members_data[r].size())
+    {
+      d_members_data[r][n_members] = atom;
+    }
+    else
+    {
+      d_members_data[r].push_back(atom);
+    }
+  }
+}
+//--------------------------------- end standard check
+
+/************************ Sharing ************************/
+/************************ Sharing ************************/
+/************************ Sharing ************************/
 
 void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
                                      TNodeTrie* t2,
@@ -1193,37 +1181,6 @@ bool TheorySetsPrivate::isCareArg(Node n, unsigned a)
   }
 }
 
-EqualityStatus TheorySetsPrivate::getEqualityStatus(TNode a, TNode b)
-{
-  Assert(d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b));
-  if (d_equalityEngine->areEqual(a, b))
-  {
-    // The terms are implied to be equal
-    return EQUALITY_TRUE;
-  }
-  if (d_equalityEngine->areDisequal(a, b, false))
-  {
-    // The terms are implied to be dis-equal
-    return EQUALITY_FALSE;
-  }
-  return EQUALITY_UNKNOWN;
-  /*
-  Node aModelValue = d_external.d_valuation.getModelValue(a);
-  if(aModelValue.isNull()) { return EQUALITY_UNKNOWN; }
-  Node bModelValue = d_external.d_valuation.getModelValue(b);
-  if(bModelValue.isNull()) { return EQUALITY_UNKNOWN; }
-  if( aModelValue == bModelValue ) {
-    // The term are true in current model
-    return EQUALITY_TRUE_IN_MODEL;
-  } else {
-    return EQUALITY_FALSE_IN_MODEL;
-  }
-  */
-  // }
-  // //TODO: can we be more precise sometimes?
-  // return EQUALITY_UNKNOWN;
-}
-
 /******************** Model generation ********************/
 /******************** Model generation ********************/
 /******************** Model generation ********************/
@@ -1261,7 +1218,7 @@ std::string traceElements(const Node& set)
 bool TheorySetsPrivate::collectModelValues(TheoryModel* m,
                                            const std::set<Node>& termSet)
 {
-  Trace("sets-model") << "Set collect model info" << std::endl;
+  Trace("sets-model") << "Set collect model values" << std::endl;
 
   NodeManager* nm = NodeManager::currentNM();
   std::map<Node, Node> mvals;
