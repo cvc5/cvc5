@@ -330,22 +330,13 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: begin presolve()" << endl;
   if(options::ufSymmetryBreaker()) {
     vector<Node> newClauses;
-    // would need to make this proof producing, which is not supposed to be
-    // something easy...
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      if (options::proofNew())
-      {
-        TrustNode tlemma = TrustNode::mkTrustLemma(*i);
-        d_out->trustedLemma(tlemma);
-      }
-      else
-      {
-        d_out->lemma(*i);
-      }
+      // no proof generator provided
+      d_im.lemma(*i);
     }
   }
   if( d_thss ){
@@ -657,19 +648,12 @@ void TheoryUF::computeCareGraph() {
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
-
-void TheoryUF::conflict(TNode a, TNode b) {
-  if (options::proofNew())
-  {
-    d_im.conflictEqConstantMerge(a, b);
-  }
-  else
-  {
-    Node conf;
-    explain(a.eqNode(b), conf);
-    d_out->conflict(conf);
-  }
-  d_state.notifyInConflict();
+void TheoryUF::conflict(TNode a, TNode b)
+{
+  // call the inference manager, which will construct the conflict (possibly
+  // with proofs from the underlying proof equality engine), and notify the
+  // state object.
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 void TheoryUF::eqNotifyNewClass(TNode t) {

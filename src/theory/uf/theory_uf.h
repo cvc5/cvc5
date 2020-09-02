@@ -104,9 +104,6 @@ private:
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
 
-  /** The conflict node */
-  Node d_conflictNode;
-
   /** node for true */
   Node d_true;
 
