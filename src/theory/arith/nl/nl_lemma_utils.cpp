@@ -24,7 +24,7 @@ namespace nl {
 
 bool NlLemma::process(TheoryInferenceManager* im)
 {
-  bool res = SimpleTheoryLemma::process(im);
+  bool res = ArithLemma::process(im);
   if (d_nlext != nullptr)
   {
     d_nlext->processSideEffect(*this);
