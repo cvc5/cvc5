@@ -50,9 +50,13 @@ void SharedTermsDatabase::addEqualityToPropagate(TNode equality) {
   checkForConflict();
 }
 
-
-void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, Theory::Set theories) {
-  Debug("register") << "SharedTermsDatabase::addSharedTerm(" << atom << ", " << term << ", " << Theory::setToString(theories) << ")" << std::endl;
+void SharedTermsDatabase::addSharedTerm(TNode atom,
+                                        TNode term,
+                                        TheoryIdSet theories)
+{
+  Debug("register") << "SharedTermsDatabase::addSharedTerm(" << atom << ", "
+                    << term << ", " << TheoryIdSetUtil::setToString(theories)
+                    << ")" << std::endl;
 
   std::pair<TNode, TNode> search_pair(atom, term);
   SharedTermsTheoriesMap::iterator find = d_termsToTheories.find(search_pair);
@@ -64,7 +68,8 @@ void SharedTermsDatabase::addSharedTerm(TNode atom, TNode term, Theory::Set theo
     d_termsToTheories[search_pair] = theories;
   } else {
     Assert(theories != (*find).second);
-    d_termsToTheories[search_pair] = Theory::setUnion(theories, (*find).second);
+    d_termsToTheories[search_pair] =
+        TheoryIdSetUtil::setUnion(theories, (*find).second);
   }
 }
 
@@ -94,25 +99,27 @@ void SharedTermsDatabase::backtrack() {
   d_addedSharedTerms.resize(d_addedSharedTermsSize);
 }
 
-Theory::Set SharedTermsDatabase::getTheoriesToNotify(TNode atom, TNode term) const {
+TheoryIdSet SharedTermsDatabase::getTheoriesToNotify(TNode atom,
+                                                     TNode term) const
+{
   // Get the theories that share this term from this atom
   std::pair<TNode, TNode> search_pair(atom, term);
   SharedTermsTheoriesMap::iterator find = d_termsToTheories.find(search_pair);
   Assert(find != d_termsToTheories.end());
 
   // Get the theories that were already notified
-  Theory::Set alreadyNotified = 0;
+  TheoryIdSet alreadyNotified = 0;
   AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
   if (theoriesFind != d_alreadyNotifiedMap.end()) {
     alreadyNotified = (*theoriesFind).second;
   }
 
   // Return the ones that haven't been notified yet
-  return Theory::setDifference((*find).second, alreadyNotified);
+  return TheoryIdSetUtil::setDifference((*find).second, alreadyNotified);
 }
 
-
-Theory::Set SharedTermsDatabase::getNotifiedTheories(TNode term) const {
+TheoryIdSet SharedTermsDatabase::getNotifiedTheories(TNode term) const
+{
   // Get the theories that were already notified
   AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
   if (theoriesFind != d_alreadyNotifiedMap.end()) {
@@ -142,15 +149,16 @@ bool SharedTermsDatabase::propagateSharedEquality(TheoryId theory, TNode a, TNod
   return true;
 }
 
-void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
-
+void SharedTermsDatabase::markNotified(TNode term, TheoryIdSet theories)
+{
   // Find out if there are any new theories that were notified about this term
-  Theory::Set alreadyNotified = 0;
+  TheoryIdSet alreadyNotified = 0;
   AlreadyNotifiedMap::iterator theoriesFind = d_alreadyNotifiedMap.find(term);
   if (theoriesFind != d_alreadyNotifiedMap.end()) {
     alreadyNotified = (*theoriesFind).second;
   }
-  Theory::Set newlyNotified = Theory::setDifference(theories, alreadyNotified);
+  TheoryIdSet newlyNotified =
+      TheoryIdSetUtil::setDifference(theories, alreadyNotified);
 
   // If no new theories were notified, we are done
   if (newlyNotified == 0) {
@@ -160,11 +168,14 @@ void SharedTermsDatabase::markNotified(TNode term, Theory::Set theories) {
   Debug("shared-terms-database") << "SharedTermsDatabase::markNotified(" << term << ")" << endl;
 
   // First update the set of notified theories for this term
-  d_alreadyNotifiedMap[term] = Theory::setUnion(newlyNotified, alreadyNotified);
+  d_alreadyNotifiedMap[term] =
+      TheoryIdSetUtil::setUnion(newlyNotified, alreadyNotified);
 
   // Mark the shared terms in the equality engine
   theory::TheoryId currentTheory;
-  while ((currentTheory = Theory::setPop(newlyNotified)) != THEORY_LAST) {
+  while ((currentTheory = TheoryIdSetUtil::setPop(newlyNotified))
+         != THEORY_LAST)
+  {
     d_equalityEngine.addTriggerTerm(term, currentTheory);
   }
 

@@ -223,21 +223,31 @@ def testGetBVSize():
 
 def testGetFPExponentSize():
     solver = pycvc4.Solver()
-    fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPExponentSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
 
-    with pytest.raises(Exception):
-        setSort.getFPExponentSize()
+    if solver.supportsFloatingPoint():
+        fpSort = solver.mkFloatingPointSort(4, 8)
+        fpSort.getFPExponentSize()
+        setSort = solver.mkSetSort(solver.getIntegerSort())
+
+        with pytest.raises(Exception):
+            setSort.getFPExponentSize()
+    else:
+        with pytest.raises(Exception):
+            solver.mkFloatingPointSort(4, 8)
 
 def testGetFPSignificandSize():
     solver = pycvc4.Solver()
-    fpSort = solver.mkFloatingPointSort(4, 8)
-    fpSort.getFPSignificandSize()
-    setSort = solver.mkSetSort(solver.getIntegerSort())
 
-    with pytest.raises(Exception):
-        setSort.getFPSignificandSize()
+    if solver.supportsFloatingPoint():
+        fpSort = solver.mkFloatingPointSort(4, 8)
+        fpSort.getFPSignificandSize()
+        setSort = solver.mkSetSort(solver.getIntegerSort())
+
+        with pytest.raises(Exception):
+            setSort.getFPSignificandSize()
+    else:
+        with pytest.raises(Exception):
+            solver.mkFloatingPointSort(4, 8)
 
 def testGetDatatypeParamSorts():
     solver = pycvc4.Solver()

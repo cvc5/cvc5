@@ -95,7 +95,7 @@ std::vector<NlLemma> CadSolver::checkFull()
     {
       lems.emplace_back(nm->mkNode(Kind::OR, mis), Inference::CAD_CONFLICT);
     }
-    Trace("nl-cad") << "UNSAT with MIS: " << lems.back().d_lemma << std::endl;
+    Trace("nl-cad") << "UNSAT with MIS: " << lems.back().d_node << std::endl;
   }
   return lems;
 #else
@@ -134,10 +134,12 @@ std::vector<NlLemma> CadSolver::checkPartial()
         premise = nm->mkNode(Kind::AND, interval.d_origins);
       }
       Node conclusion =
-          excluding_interval_to_lemma(first_var, interval.d_interval);
-      Node lemma = nm->mkNode(Kind::IMPLIES, premise, conclusion);
-      Trace("nl-cad") << "Excluding " << first_var << " -> " << interval.d_interval << " using " << lemma << std::endl;
-      lems.emplace_back(lemma, Inference::CAD_EXCLUDED_INTERVAL);
+          excluding_interval_to_lemma(first_var, interval.d_interval, false);
+      if (!conclusion.isNull()) {
+        Node lemma = nm->mkNode(Kind::IMPLIES, premise, conclusion);
+        Trace("nl-cad") << "Excluding " << first_var << " -> " << interval.d_interval << " using " << lemma << std::endl;
+        lems.emplace_back(lemma, Inference::CAD_EXCLUDED_INTERVAL);
+       }
     }
   }
   return lems;

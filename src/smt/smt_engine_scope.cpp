@@ -20,7 +20,6 @@
 #include "base/check.h"
 #include "base/configuration_private.h"
 #include "base/output.h"
-#include "proof/proof.h"
 #include "smt/smt_engine.h"
 
 namespace CVC4 {

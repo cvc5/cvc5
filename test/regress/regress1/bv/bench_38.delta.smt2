@@ -1,4 +1,4 @@
-; COMMAND-LINE: --fewer-preprocessing-holes --check-proof --quiet
+; COMMAND-LINE: --quiet
 ; EXPECT: unsat
 (set-logic QF_BV)
 (declare-fun x () (_ BitVec 4))
