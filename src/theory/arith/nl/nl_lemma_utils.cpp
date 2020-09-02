@@ -15,11 +15,22 @@
 #include "theory/arith/nl/nl_lemma_utils.h"
 
 #include "theory/arith/nl/nl_model.h"
+#include "theory/arith/nl/nonlinear_extension.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
+
+bool NlLemma::process(TheoryInferenceManager* im)
+{
+  bool res = SimpleTheoryLemma::process(im);
+  if (d_nlext != nullptr)
+  {
+    d_nlext->processSideEffect(*this);
+  }
+  return res;
+}
 
 std::ostream& operator<<(std::ostream& out, NlLemma& n)
 {

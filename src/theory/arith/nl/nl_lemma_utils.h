@@ -29,6 +29,7 @@ namespace arith {
 namespace nl {
 
 class NlModel;
+class NonlinearExtension;
 
 /**
  * The data structure for a single lemma to process by the non-linear solver,
@@ -56,6 +57,9 @@ class NlLemma : public ArithLemma
   {
   }
   ~NlLemma() {}
+
+  bool process(TheoryInferenceManager* im) override;
+
   /** secant points to add
    *
    * A member (tf, d, c) in this vector indicates that point c should be added
@@ -66,6 +70,8 @@ class NlLemma : public ArithLemma
    * Cimatti et al., CADE 2017.
    */
   std::vector<std::tuple<Node, unsigned, Node> > d_secantPoint;
+
+  NonlinearExtension* d_nlext;
 };
 /**
  * Writes a non-linear lemma to a stream.
