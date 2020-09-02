@@ -212,8 +212,8 @@ void TranscendentalSolver::initLastCall(const std::vector<Node>& assertions,
     // note we must do preprocess on this lemma
     Trace("nl-ext-lemma") << "NonlinearExtension::Lemma : purify : " << lem
                           << std::endl;
-    NlLemma nlem(lem, Inference::T_PURIFY_ARG);
-    nlem.d_preprocess = true;
+    NlLemma nlem(
+        lem, LemmaProperty::PREPROCESS, nullptr, Inference::T_PURIFY_ARG);
     lems.emplace_back(nlem);
   }
 

@@ -20,8 +20,15 @@ from pycvc4 import kinds
 
 if __name__ == "__main__":
     slv = pycvc4.Solver()
+
+    if not slv.supportsFloatingPoint():
+        # CVC4 must be built with SymFPU to support the theory of
+        # floating-point numbers
+        print("CVC4 was not built with floating-point support.")
+        exit()
+
     slv.setOption("produce-models", "true")
-    slv.setLogic("FP")
+    slv.setLogic("QF_FP")
 
     # single 32-bit precision
     fp32 = slv.mkFloatingPointSort(8, 24)

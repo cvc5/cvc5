@@ -172,6 +172,9 @@ class NonlinearExtension
    */
   void presolve();
 
+  /** Process side effect se */
+  void processSideEffect(const NlLemma& se);
+
  private:
   /** Model-based refinement
    *
@@ -274,8 +277,6 @@ class NonlinearExtension
    * Send lemmas in out on the output channel of theory of arithmetic.
    */
   void sendLemmas(const std::vector<NlLemma>& out);
-  /** Process side effect se */
-  void processSideEffect(const NlLemma& se);
 
   /** cache of all lemmas sent on the output channel (user-context-dependent) */
   NodeSet d_lemmas;
