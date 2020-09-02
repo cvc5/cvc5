@@ -40,7 +40,10 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
       d_checkCalled(false),
       d_bv(bv),
       d_extTheoryCb(),
-      d_extTheory(new ExtTheory(d_extTheoryCb, bv->getSatContext(), bv->getUserContext(), bv->getOutputChannel())),
+      d_extTheory(new ExtTheory(d_extTheoryCb,
+                                bv->getSatContext(),
+                                bv->getUserContext(),
+                                bv->getOutputChannel())),
       d_reasons(c)
 {
 }
@@ -433,27 +436,40 @@ CoreSolver::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
 }
 
-void CoreSolverExtTheoryCallback::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  if( d_equalityEngine==nullptr ){
+void CoreSolverExtTheoryCallback::getCurrentSubstitution(
+    int effort,
+    std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node> >& exp)
+{
+  if (d_equalityEngine == nullptr)
+  {
     return false;
   }
-  //get the constant equivalence classes
+  // get the constant equivalence classes
   bool retVal = false;
-  for (const Node& n : vars){
-    if( d_equalityEngine->hasTerm( n ) ){
-      Node nr = d_equalityEngine->getRepresentative( n );
-      if( nr.isConst() ){
-        subs.push_back( nr );
-        exp[n].push_back( n.eqNode( nr ) );
+  for (const Node& n : vars)
+  {
+    if (d_equalityEngine->hasTerm(n))
+    {
+      Node nr = d_equalityEngine->getRepresentative(n);
+      if (nr.isConst())
+      {
+        subs.push_back(nr);
+        exp[n].push_back(n.eqNode(nr));
         retVal = true;
-      }else{
-        subs.push_back( n );
       }
-    }else{
-      subs.push_back( n );
+      else
+      {
+        subs.push_back(n);
+      }
+    }
+    else
+    {
+      subs.push_back(n);
     }
   }
-  //return true if the substitution is non-trivial
+  // return true if the substitution is non-trivial
   return retVal;
 }
 
