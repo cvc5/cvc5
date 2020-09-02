@@ -551,12 +551,18 @@ Node BVToInt::bvToInt(Node n)
                 Rational c(arg.getConst<Rational>());
                 Rational twoToKMinusOne(intpow2(bvsize - 1));
                 uint64_t amount = bv::utils::getSignExtendAmount(current);
+                /* if the msb is 0, this is like zero_extend.
+                 *  msb is 0 <-> the value is less than 2^{bvsize-1}
+                 */
                 if (c < twoToKMinusOne || amount == 0)
                 {
                   d_bvToIntCache[current] = arg;
                 }
                 else
                 {
+                  /* otherwise, we add the integer equivalent of
+                   * 11....1 `amount` times
+                   */
                   Rational max_of_amount = intpow2(amount) - 1;
                   Rational mul = max_of_amount * intpow2(bvsize);
                   Rational sum = mul + c;
@@ -575,6 +581,10 @@ Node BVToInt::bvToInt(Node n)
                 {
                   Rational twoToKMinusOne(intpow2(bvsize - 1));
                   Node minSigned = d_nm->mkConst(twoToKMinusOne);
+                  /* condition checks whether the msb is 1.
+                   * This holds when the integer value is smaller than
+                   * 100...0, which is 2^{bvsize-1}.
+                   */
                   Node condition = d_nm->mkNode(kind::LT, arg, minSigned);
                   Node thenResult = arg;
                   Node left = maxInt(amount);
