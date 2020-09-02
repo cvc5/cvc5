@@ -368,14 +368,14 @@ class TheoryEngine {
   /**
    * Get a pointer to the underlying sat context.
    */
-  inline context::Context* getSatContext() const {
+  context::Context* getSatContext() const {
     return d_context;
   }
 
   /**
    * Get a pointer to the underlying user context.
    */
-  inline context::UserContext* getUserContext() const { return d_userContext; }
+  context::UserContext* getUserContext() const { return d_userContext; }
 
   /**
    * Get a pointer to the underlying quantifiers engine.
