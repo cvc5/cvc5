@@ -63,7 +63,6 @@ TheoryBV::TheoryBV(context::Context* c,
       d_invalidateModelCache(c, true),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
-      d_extTheory(new ExtTheory(this)),
       d_propagatedBy(c),
       d_eagerSolver(),
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
@@ -593,48 +592,6 @@ void TheoryBV::propagate(Effort e) {
     Debug("bitvector::propagate") << indent() << "TheoryBV::propagate(): conflict from theory engine" << std::endl;
     setConflict();
   }
-}
-
-bool TheoryBV::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  eq::EqualityEngine * ee = getEqualityEngine();
-  if( ee ){
-    //get the constant equivalence classes
-    bool retVal = false;
-    for( unsigned i=0; i<vars.size(); i++ ){
-      Node n = vars[i];
-      if( ee->hasTerm( n ) ){
-        Node nr = ee->getRepresentative( n );
-        if( nr.isConst() ){
-          subs.push_back( nr );
-          exp[n].push_back( n.eqNode( nr ) );
-          retVal = true;
-        }else{
-          subs.push_back( n );
-        }
-      }else{
-        subs.push_back( n );
-      }
-    }
-    //return true if the substitution is non-trivial
-    return retVal;
-  }
-  return false;
-}
-
-int TheoryBV::getReduction(int effort, Node n, Node& nr)
-{
-  Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
-  if (n.getKind() == kind::BITVECTOR_TO_NAT)
-  {
-    nr = utils::eliminateBv2Nat(n);
-    return -1;
-  }
-  else if (n.getKind() == kind::INT_TO_BITVECTOR)
-  {
-    nr = utils::eliminateInt2Bv(n);
-    return -1;
-  }
-  return 0;
 }
 
 Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,

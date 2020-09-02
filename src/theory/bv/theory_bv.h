@@ -33,11 +33,7 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-
 namespace theory {
-
-class ExtTheory;
-
 namespace bv {
 
 class CoreSolver;
@@ -100,12 +96,6 @@ class TheoryBV : public Theory {
   bool collectModelInfo(TheoryModel* m) override;
 
   std::string identify() const override { return std::string("TheoryBV"); }
-
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node>>& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
 
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
@@ -176,9 +166,6 @@ class TheoryBV : public Theory {
 
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
-
-  /** Extended theory module, for context-dependent simplification. */
-  std::unique_ptr<ExtTheory> d_extTheory;
 
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it

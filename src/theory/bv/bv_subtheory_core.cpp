@@ -31,7 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
+CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     : SubtheorySolver(c, bv),
       d_notify(*this),
       d_isComplete(c, true),
@@ -39,7 +39,8 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
       d_preregisterCalled(false),
       d_checkCalled(false),
       d_bv(bv),
-      d_extTheory(extt),
+      d_extTheoryCb(),
+      d_extTheory(new ExtTheory(d_extTheoryCb, bv->getSatContext(), bv->getUserContext(), bv->getOutputChannel())),
       d_reasons(c)
 {
 }
@@ -430,4 +431,46 @@ CoreSolver::Statistics::Statistics()
 }
 CoreSolver::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+}
+
+void CoreSolverExtTheoryCallback::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
+  if( d_equalityEngine==nullptr ){
+    return false;
+  }
+  //get the constant equivalence classes
+  bool retVal = false;
+  for (const Node& n : vars){
+    if( d_equalityEngine->hasTerm( n ) ){
+      Node nr = d_equalityEngine->getRepresentative( n );
+      if( nr.isConst() ){
+        subs.push_back( nr );
+        exp[n].push_back( n.eqNode( nr ) );
+        retVal = true;
+      }else{
+        subs.push_back( n );
+      }
+    }else{
+      subs.push_back( n );
+    }
+  }
+  //return true if the substitution is non-trivial
+  return retVal;
+}
+
+bool CoreSolver::getReduction(int effort, Node n, Node& nr, bool& satDep)
+{
+  Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
+  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    nr = utils::eliminateBv2Nat(n);
+    satDep = false;
+    return true;
+  }
+  else if (n.getKind() == kind::INT_TO_BITVECTOR)
+  {
+    nr = utils::eliminateInt2Bv(n);
+    satDep = false;
+    return true;
+  }
+  return false;
 }

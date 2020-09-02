@@ -31,6 +31,23 @@ namespace theory {
 namespace bv {
 
 class Base;
+
+/** An extended theory callback used by the core solver */
+class CoreSolverExtTheoryCallback : public ExtTheoryCallback
+{
+ public:
+  CoreSolverExtTheoryCallback() : d_equalityEngine(nullptr) {}
+  /** Get current substitution based on the underlying equality engine. */
+  bool getCurrentSubstitution(int effort,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  /** Get reduction. */
+  int getReduction(int effort, Node n, Node& nr, bool& satDep) override;
+  /** The underlying equality engine */
+  eq::EqualityEngine* d_equalityEngine;
+};
+
 /**
  * Bitvector equality solver
  */
@@ -83,8 +100,10 @@ class CoreSolver : public SubtheorySolver {
   TheoryBV* d_bv;
   /** Pointer to the equality engine of the parent */
   eq::EqualityEngine* d_equalityEngine;
-  /** Pointer to the extended theory module. */
-  ExtTheory* d_extTheory;
+  /** The extended theory callback */
+  CoreSolverExtTheoryCallback d_extTheoryCb;
+  /** Extended theory module, for context-dependent simplification. */
+  std::uniq_ptr<ExtTheory> d_extTheory;
 
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
@@ -112,7 +131,6 @@ class CoreSolver : public SubtheorySolver {
   bool hasTerm(TNode node) const;
   void addTermToEqualityEngine(TNode node);
 };
-
 
 }
 }
