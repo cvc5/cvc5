@@ -76,8 +76,7 @@ void InferenceManagerBuffered::addPendingFact(
 
 void InferenceManagerBuffered::addPendingPhaseRequirement(Node lit, bool pol)
 {
-  // must ensure rewritten
-  lit = Rewriter::rewrite(lit);
+  // it is the responsibility of the caller to ensure lit is rewritten
   d_pendingReqPhase[lit] = pol;
 }
 
@@ -109,7 +108,7 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
-    d_out.requirePhase(prp.first, prp.second);
+    requirePhase(prp.first, prp.second);
   }
   d_pendingReqPhase.clear();
 }

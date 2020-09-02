@@ -688,9 +688,18 @@ void SmtEngine::defineFunction(Expr func,
   ss << language::SetLanguage(
             language::SetLanguage::getLanguage(Dump.getStream()))
      << func;
-  DefineFunctionCommand c(ss.str(), func, formals, formula, global);
+  std::vector<Node> nFormals;
+  nFormals.reserve(formals.size());
+
+  for (const Expr& formal : formals)
+  {
+    nFormals.push_back(formal.getNode());
+  }
+
+  DefineFunctionNodeCommand nc(
+      ss.str(), func.getNode(), nFormals, formula.getNode());
   d_dumpm->addToModelCommandAndDump(
-      c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
+      nc, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   // type check body
   debugCheckFunctionBody(formula, formals, func);

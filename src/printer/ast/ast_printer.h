@@ -175,7 +175,7 @@ class AstPrinter : public CVC4::Printer
   void toStream(std::ostream& out, TNode n, int toDepth, bool types) const;
   void toStream(std::ostream& out,
                 const Model& m,
-                const Command* c) const override;
+                const NodeCommand* c) const override;
 }; /* class AstPrinter */
 
 }  // namespace ast
