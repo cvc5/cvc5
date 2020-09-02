@@ -3240,6 +3240,14 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
+/* Solver Configuration                                                       */
+/* -------------------------------------------------------------------------- */
+
+bool Solver::supportsFloatingPoint() const
+{
+  return Configuration::isBuiltWithSymFPU();
+}
+
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -3285,9 +3293,11 @@ Sort Solver::getStringSort(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Sort Solver::getRoundingmodeSort(void) const
+Sort Solver::getRoundingModeSort(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return Sort(this, d_exprMgr->roundingModeType());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3323,6 +3333,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
 
@@ -3803,6 +3815,8 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return mkValHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5396,7 +5410,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   {
     CVC4_API_CHECK(g->d_ntSyms[0].d_node->getType().toType() == *sort.d_type)
         << "Invalid Start symbol for Grammar g, Expected Start's sort to be "
-        << *sort.d_type;
+        << *sort.d_type << " but found " << g->d_ntSyms[0].d_node->getType();
   }
 
   Type funType = varTypes.empty()
