@@ -213,7 +213,7 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
 
   if (options::sygus() || options::sygusInst())
   {
-    d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
+    d_sygus_tdb.reset(new quantifiers::TermDbSygus(d_context, this));
   }
 
   d_util.push_back(d_instantiate.get());
@@ -279,7 +279,7 @@ void QuantifiersEngine::setMasterEqualityEngine(eq::EqualityEngine* mee)
 
 TheoryEngine* QuantifiersEngine::getTheoryEngine() const { return d_te; }
 
-DecisionManager& QuantifiersEngine::getDecisionManager()
+DecisionManager* QuantifiersEngine::getDecisionManager()
 {
   return &d_decManager;
 }

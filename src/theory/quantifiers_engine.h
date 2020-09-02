@@ -42,10 +42,10 @@
 namespace CVC4 {
 
 class TheoryEngine;
-class DecisionManager;
 
 namespace theory {
 
+class DecisionManager;
 class QuantifiersEnginePrivate;
 
 // TODO: organize this more/review this, github issue #1163
