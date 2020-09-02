@@ -13,6 +13,6 @@
 (assert (= negshift1 (bvneg shift1)))
 (assert (= splust (bvadd s t)))
 (assert (distinct negshift1 shift2))
-(assert (distinct (s (bvshl s (_ bv4 4)))))
+(assert (distinct s (bvshl s (_ bv4 4))))
 
 (check-sat)
