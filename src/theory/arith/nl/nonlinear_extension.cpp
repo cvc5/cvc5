@@ -33,9 +33,7 @@ namespace nl {
 
 NonlinearExtension::NonlinearExtension(TheoryArith& containing,
                                        eq::EqualityEngine* ee)
-    : d_lemmas(containing.getUserContext()),
-      d_lemmasPp(containing.getUserContext()),
-      d_containing(containing),
+    : d_containing(containing),
       d_im(containing.getInferenceManager()),
       d_ee(ee),
       d_needsLastCall(false),
@@ -200,10 +198,8 @@ unsigned NonlinearExtension::filterLemma(NlLemma lem, std::vector<NlLemma>& out)
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem.d_node << std::endl;
   lem.d_node = Rewriter::rewrite(lem.d_node);
-  // get the proper cache
-  NodeSet& lcache =
-      isLemmaPropertyPreprocess(lem.d_property) ? d_lemmasPp : d_lemmas;
-  if (lcache.find(lem.d_node) != lcache.end())
+
+  if (d_im.hasCachedLemma(lem.d_node, lem.d_property))
   {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem.d_node << std::endl;

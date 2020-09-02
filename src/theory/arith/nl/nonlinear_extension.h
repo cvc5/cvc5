@@ -279,10 +279,6 @@ class NonlinearExtension
    */
   void sendLemmas(const std::vector<NlLemma>& out);
 
-  /** cache of all lemmas sent on the output channel (user-context-dependent) */
-  NodeSet d_lemmas;
-  /** Same as above, for preprocessed lemmas */
-  NodeSet d_lemmasPp;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
