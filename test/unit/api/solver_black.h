@@ -34,7 +34,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testGetNullSort();
   void testGetRealSort();
   void testGetRegExpSort();
-  void testGetRoundingmodeSort();
+  void testGetRoundingModeSort();
   void testGetStringSort();
 
   void testMkArraySort();
@@ -215,9 +215,16 @@ void SolverBlack::testGetStringSort()
   TS_ASSERT_THROWS_NOTHING(d_solver->getStringSort());
 }
 
-void SolverBlack::testGetRoundingmodeSort()
+void SolverBlack::testGetRoundingModeSort()
 {
-  TS_ASSERT_THROWS_NOTHING(d_solver->getRoundingModeSort());
+  if (d_solver->supportsFloatingPoint())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver->getRoundingModeSort());
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver->getRoundingModeSort(), CVC4ApiException&);
+  }
 }
 
 void SolverBlack::testMkArraySort()
@@ -226,15 +233,20 @@ void SolverBlack::testMkArraySort()
   Sort intSort = d_solver->getIntegerSort();
   Sort realSort = d_solver->getRealSort();
   Sort bvSort = d_solver->mkBitVectorSort(32);
-  Sort fpSort = d_solver->mkFloatingPointSort(3, 5);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(boolSort, boolSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(intSort, intSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(realSort, realSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(bvSort, bvSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(fpSort, fpSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(boolSort, intSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(realSort, bvSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(bvSort, fpSort));
+
+  if (d_solver->supportsFloatingPoint())
+  {
+    Sort fpSort = d_solver->mkFloatingPointSort(3, 5);
+    TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(fpSort, fpSort));
+    TS_ASSERT_THROWS_NOTHING(d_solver->mkArraySort(bvSort, fpSort));
+  }
+
   Solver slv;
   TS_ASSERT_THROWS(slv.mkArraySort(boolSort, boolSort), CVC4ApiException&);
 }
@@ -247,9 +259,16 @@ void SolverBlack::testMkBitVectorSort()
 
 void SolverBlack::testMkFloatingPointSort()
 {
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkFloatingPointSort(4, 8));
-  TS_ASSERT_THROWS(d_solver->mkFloatingPointSort(0, 8), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkFloatingPointSort(4, 0), CVC4ApiException&);
+  if (d_solver->supportsFloatingPoint())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver->mkFloatingPointSort(4, 8));
+    TS_ASSERT_THROWS(d_solver->mkFloatingPointSort(0, 8), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver->mkFloatingPointSort(4, 0), CVC4ApiException&);
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver->mkFloatingPointSort(4, 8), CVC4ApiException&);
+  }
 }
 
 void SolverBlack::testMkDatatypeSort()

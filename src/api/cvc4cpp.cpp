@@ -3286,6 +3286,8 @@ Sort Solver::getStringSort(void) const
 Sort Solver::getRoundingModeSort(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return Sort(this, d_exprMgr->roundingModeType());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3321,6 +3323,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
 
