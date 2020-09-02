@@ -53,7 +53,8 @@ TheoryUF::TheoryUF(context::Context* c,
       d_ho(nullptr),
       d_functionsTerms(c),
       d_symb(u, instanceName),
-      d_state(c, u, valuation)
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
 
@@ -62,8 +63,9 @@ TheoryUF::TheoryUF(context::Context* c,
   {
     d_ufProofChecker.registerTo(pc);
   }
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryUF::~TheoryUF() {
@@ -96,7 +98,7 @@ void TheoryUF::finishInit() {
   if (options::ufHo())
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(*this, d_state));
+    d_ho.reset(new HoExtension(d_state, d_im));
   }
 }
 
@@ -304,12 +306,7 @@ void TheoryUF::explain(TNode literal, Node& exp)
   exp = mkAnd(assumptions);
 }
 
-TrustNode TheoryUF::explain(TNode literal)
-{
-  Node explanation;
-  explain(literal, explanation);
-  return TrustNode::mkTrustPropExp(literal, explanation, nullptr);
-}
+TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
 
 bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
@@ -333,12 +330,22 @@ void TheoryUF::presolve() {
   Debug("uf") << "uf: begin presolve()" << endl;
   if(options::ufSymmetryBreaker()) {
     vector<Node> newClauses;
+    // would need to make this proof producing, which is not supposed to be
+    // something easy...
     d_symb.apply(newClauses);
     for(vector<Node>::const_iterator i = newClauses.begin();
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      d_out->lemma(*i);
+      if (options::proofNew())
+      {
+        TrustNode tlemma = TrustNode::mkTrustLemma(*i);
+        d_out->trustedLemma(tlemma);
+      }
+      else
+      {
+        d_out->lemma(*i);
+      }
     }
   }
   if( d_thss ){
@@ -650,11 +657,18 @@ void TheoryUF::computeCareGraph() {
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
-void TheoryUF::conflict(TNode a, TNode b)
-{
-  Node conf;
-  explain(a.eqNode(b), conf);
-  d_out->conflict(conf);
+
+void TheoryUF::conflict(TNode a, TNode b) {
+  if (options::proofNew())
+  {
+    d_im.conflictEqConstantMerge(a, b);
+  }
+  else
+  {
+    Node conf;
+    explain(a.eqNode(b), conf);
+    d_out->conflict(conf);
+  }
   d_state.notifyInConflict();
 }
 

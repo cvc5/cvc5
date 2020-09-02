@@ -26,6 +26,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_checker.h"
+#include "theory/uf/proof_equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 #include "theory/uf/theory_uf_rewriter.h"
 
@@ -102,6 +103,9 @@ private:
   std::unique_ptr<CardinalityExtension> d_thss;
   /** the higher-order solver extension (or nullptr if it does not exist) */
   std::unique_ptr<HoExtension> d_ho;
+
+  /** The conflict node */
+  Node d_conflictNode;
 
   /** node for true */
   Node d_true;
@@ -205,6 +209,8 @@ private:
   UfProofRuleChecker d_ufProofChecker;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** A (default) inference manager */
+  TheoryInferenceManager d_im;
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */
