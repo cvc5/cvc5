@@ -46,6 +46,9 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
   ProofNode* cur;
   visit.push_back(pf.get());
   std::map<Node, ProofNode*>::iterator itc;
+  // A cache from formulas to proof nodes that are in the current scope.
+  // Notice that we make a fresh recursive call to process if the current
+  // rule is SCOPE below.
   std::map<Node, ProofNode*> resCache;
   TNode res;
   do
@@ -75,7 +78,8 @@ void ProofNodeUpdater::process(std::shared_ptr<ProofNode> pf)
         {
           if (cp->getRule() == PfRule::SCOPE)
           {
-            // process in new scope separately
+            // Process in new call separately, since we should not cache
+            // the results of proofs that have a different scope.
             process(cp);
             continue;
           }
