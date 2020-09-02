@@ -784,8 +784,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       // The may equal needs the node
       d_mayEqualEqualityEngine.addTerm(node);
       d_equalityEngine->addTerm(node);
-      // HACK-centralEe
-      // Assert(d_equalityEngine->getSize(node) == 1);
     }
     else {
       d_equalityEngine->addTerm(node);
