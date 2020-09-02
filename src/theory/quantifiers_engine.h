@@ -121,6 +121,7 @@ private:
   * precendence.
   */
  std::map<Node, int> d_owner_priority;
+
 public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
@@ -321,7 +322,7 @@ public:
 
  private:
   /** Pointer to theory engine object */
-  TheoryEngine* d_te;  
+  TheoryEngine* d_te;
   /** The SAT context */
   context::Context* d_context;
   /** The user context */

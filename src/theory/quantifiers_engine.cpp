@@ -178,7 +178,8 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
       d_userContext(te->getUserContext()),
       d_decManager(dm),
       d_masterEqualityEngine(nullptr),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
+      d_eq_query(
+          new quantifiers::EqualityQueryQuantifiersEngine(d_context, this)),
       d_tr_trie(new inst::TriggerTrie),
       d_model(nullptr),
       d_builder(nullptr),
@@ -258,7 +259,8 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
           this, d_context, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(d_context, this));
+      d_builder.reset(
+          new quantifiers::fmcheck::FullModelChecker(d_context, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(
@@ -266,7 +268,8 @@ QuantifiersEngine::QuantifiersEngine(TheoryEngine* te, DecisionManager& dm)
       d_builder.reset(new quantifiers::QModelBuilder(d_context, this));
     }
   }else{
-    d_model.reset(new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
+    d_model.reset(
+        new quantifiers::FirstOrderModel(this, d_context, "FirstOrderModel"));
   }
 }
 
@@ -284,10 +287,7 @@ DecisionManager* QuantifiersEngine::getDecisionManager()
   return &d_decManager;
 }
 
-context::Context* QuantifiersEngine::getSatContext()
-{
-  return d_context;
-}
+context::Context* QuantifiersEngine::getSatContext() { return d_context; }
 
 context::UserContext* QuantifiersEngine::getUserContext()
 {

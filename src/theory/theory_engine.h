@@ -375,9 +375,7 @@ class TheoryEngine {
   /**
    * Get a pointer to the underlying user context.
    */
-  inline context::UserContext* getUserContext() const {
-    return d_userContext;
-  }
+  inline context::UserContext* getUserContext() const { return d_userContext; }
 
   /**
    * Get a pointer to the underlying quantifiers engine.
