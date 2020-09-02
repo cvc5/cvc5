@@ -403,6 +403,8 @@ void NonlinearExtension::getAssertions(std::vector<Node>& assertions)
       init_assertions.erase(iait);
     }
   }
+  // Now add left over assertions that have been newly created within this
+  // function by the code above.
   for (const Node& a : init_assertions)
   {
     assertions.push_back(a);
