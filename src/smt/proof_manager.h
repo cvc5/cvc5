@@ -25,7 +25,6 @@
 #include "expr/proof_node_manager.h"
 #include "smt/preprocess_proof_generator.h"
 #include "smt/proof_post_processor.h"
-#include "theory/rewrite_db.h"
 
 namespace CVC4 {
 
@@ -71,8 +70,6 @@ class PfManager
   ProofChecker* getProofChecker() const;
   /** Get a pointer to the ProofNodeManager owned by this. */
   ProofNodeManager* getProofNodeManager() const;
-  /** Get the rewrite database, containing definitions of rewrites from DSL. */
-  theory::RewriteDb* getRewriteDatabase() const;
   /** Get the proof generator for proofs of preprocessing. */
   smt::PreprocessProofGenerator* getPreprocessProofGenerator() const;
   //--------------------------- end access to utilities
@@ -88,8 +85,6 @@ class PfManager
   std::unique_ptr<ProofChecker> d_pchecker;
   /** A proof node manager based on the above checker */
   std::unique_ptr<ProofNodeManager> d_pnm;
-  /** The rewrite proof database. */
-  std::unique_ptr<theory::RewriteDb> d_rewriteDb;
   /** The preprocess proof manager. */
   std::unique_ptr<smt::PreprocessProofGenerator> d_pppg;
   /** The proof post-processor */

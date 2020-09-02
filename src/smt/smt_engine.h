@@ -117,6 +117,7 @@ class DefinedFunction;
 struct SmtEngineStatistics;
 class SmtScope;
 class ProcessAssertions;
+class PfManager;
 
 ProofManager* currentProofManager();
 }/* CVC4::smt namespace */
