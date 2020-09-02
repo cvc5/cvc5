@@ -178,11 +178,6 @@ class TheoryBV : public Theory {
   std::unique_ptr<AbstractionModule> d_abstractionModule;
   bool d_calledPreregister;
 
-  //for extended functions
-  bool d_needsLastCallCheck;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
-
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end();
   }

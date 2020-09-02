@@ -66,9 +66,6 @@ TheoryBV::TheoryBV(context::Context* c,
       d_eagerSolver(),
       d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
       d_calledPreregister(false),
-      d_needsLastCallCheck(false),
-      d_extf_range_infer(u),
-      d_extf_collapse_infer(u),
       d_state(c, u, valuation)
 {
   if (options::bitblastMode() == options::BitblastMode::EAGER)
@@ -423,103 +420,13 @@ void TheoryBV::check(Effort e)
   }
 }
 
-bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  bool sentLemma = false;
-  eq::EqualityEngine* ee = getEqualityEngine();
-  std::map<Node, Node> op_map;
-  for (unsigned j = 0; j < terms.size(); j++)
-  {
-    TNode n = terms[j];
-    Assert(n.getKind() == kind::BITVECTOR_TO_NAT
-           || n.getKind() == kind::INT_TO_BITVECTOR);
-    if (n.getKind() == kind::BITVECTOR_TO_NAT)
-    {
-      // range lemmas
-      if (d_extf_range_infer.find(n) == d_extf_range_infer.end())
-      {
-        d_extf_range_infer.insert(n);
-        unsigned bvs = n[0].getType().getBitVectorSize();
-        Node min = nm->mkConst(Rational(0));
-        Node max = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-        Node lem = nm->mkNode(kind::AND,
-                              nm->mkNode(kind::GEQ, n, min),
-                              nm->mkNode(kind::LT, n, max));
-        Trace("bv-extf-lemma")
-            << "BV extf lemma (range) : " << lem << std::endl;
-        d_out->lemma(lem);
-        sentLemma = true;
-      }
-    }
-    Node r = (ee && ee->hasTerm(n[0])) ? ee->getRepresentative(n[0]) : n[0];
-    op_map[r] = n;
-  }
-  for (unsigned j = 0; j < terms.size(); j++)
-  {
-    TNode n = terms[j];
-    Node r = (ee && ee->hasTerm(n[0])) ? ee->getRepresentative(n) : n;
-    std::map<Node, Node>::iterator it = op_map.find(r);
-    if (it != op_map.end())
-    {
-      Node parent = it->second;
-      // Node cterm = parent[0]==n ? parent : nm->mkNode( parent.getOperator(),
-      // n );
-      Node cterm = parent[0].eqNode(n);
-      Trace("bv-extf-lemma-debug")
-          << "BV extf collapse based on : " << cterm << std::endl;
-      if (d_extf_collapse_infer.find(cterm) == d_extf_collapse_infer.end())
-      {
-        d_extf_collapse_infer.insert(cterm);
-
-        Node t = n[0];
-        if (t.getType() == parent.getType())
-        {
-          if (n.getKind() == kind::INT_TO_BITVECTOR)
-          {
-            Assert(t.getType().isInteger());
-            // congruent modulo 2^( bv width )
-            unsigned bvs = n.getType().getBitVectorSize();
-            Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-            Node k = nm->mkSkolem(
-                "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
-            t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
-          }
-          Node lem = parent.eqNode(t);
-
-          if (parent[0] != n)
-          {
-            Assert(ee->areEqual(parent[0], n));
-            lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
-          }
-          // this handles inferences of the form, e.g.:
-          //   ((_ int2bv w) (bv2nat x)) == x (if x is bit-width w)
-          //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
-          Trace("bv-extf-lemma")
-              << "BV extf lemma (collapse) : " << lem << std::endl;
-          d_out->lemma(lem);
-          sentLemma = true;
-        }
-      }
-      Trace("bv-extf-lemma-debug")
-          << "BV extf f collapse based on : " << cterm << std::endl;
-    }
-  }
-  return sentLemma;
-}
-
-bool TheoryBV::doExtfReductions( std::vector< Node >& terms ) {
-  std::vector< Node > nredr;
-  if (d_extTheory->doReductions(0, terms, nredr))
-  {
-    return true;
-  }
-  Assert(nredr.empty());
-  return false;
-}
-
 bool TheoryBV::needsCheckLastEffort() {
-  return d_needsLastCallCheck;
+  CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
+  if (core)
+  {
+    return core->needsCheckLastEffort();
+  }
+  return false;
 }
 bool TheoryBV::collectModelInfo(TheoryModel* m)
 {

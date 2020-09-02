@@ -103,7 +103,7 @@ class CoreSolver : public SubtheorySolver {
   /** The extended theory callback */
   CoreSolverExtTheoryCallback d_extTheoryCb;
   /** Extended theory module, for context-dependent simplification. */
-  std::uniq_ptr<ExtTheory> d_extTheory;
+  std::unique_ptr<ExtTheory> d_extTheory;
 
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
@@ -115,6 +115,12 @@ class CoreSolver : public SubtheorySolver {
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 
+  /** Whether we need a last call effort check */
+  bool d_needsLastCallCheck;
+  /** For extended functions */
+  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
+  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
+  
   /** do extended function inferences
    *
    * This method adds lemmas on the output channel of TheoryBV based on
@@ -140,7 +146,7 @@ class CoreSolver : public SubtheorySolver {
   bool doExtfReductions(std::vector<Node>& terms);
 
  public:
-  CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
+  CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();
   bool needsEqualityEngine(EeSetupInfo& esi);
   void finishInit();
@@ -156,6 +162,7 @@ class CoreSolver : public SubtheorySolver {
   void addTermToEqualityEngine(TNode node);
   /** check extended functions at the given effort */
   void checkExtf(Theory::Effort e);
+  bool needsCheckLastEffort() const;
 };
 
 }
