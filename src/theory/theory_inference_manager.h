@@ -278,12 +278,11 @@ class TheoryInferenceManager
   /** Have we added a internal fact since the last call to reset? */
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
-  /**
+  /** 
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
    */
   void requirePhase(TNode n, bool pol);
-
  protected:
   /**
    * Process internal fact. This is a common helper method for the
