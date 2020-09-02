@@ -493,31 +493,36 @@ bool CoreSolver::getReduction(int effort, Node n, Node& nr, bool& satDep)
   return false;
 }
 
-
 void CoreSolver::checkExtf(Theory::Effort e)
 {
-  if (e==Theory::EFFORT_LAST_CALL)
+  if (e == Theory::EFFORT_LAST_CALL)
   {
-      std::vector<Node> nred = d_extTheory->getActive();
-      doExtfReductions(nred);
+    std::vector<Node> nred = d_extTheory->getActive();
+    doExtfReductions(nred);
   }
-  Assert (e==Theory::EFFORT_FULL);
-  //do inferences (adds external lemmas)  TODO: this can be improved to add internal inferences
-  std::vector< Node > nred;
+  Assert(e == Theory::EFFORT_FULL);
+  // do inferences (adds external lemmas)  TODO: this can be improved to add
+  // internal inferences
+  std::vector<Node> nred;
   if (d_extTheory->doInferences(0, nred))
   {
     return;
   }
   d_needsLastCallCheck = false;
-  if( !nred.empty() ){
-    //other inferences involving bv2nat, int2bv
-    if( options::bvAlgExtf() ){
-      if( doExtfInferences( nred ) ){
+  if (!nred.empty())
+  {
+    // other inferences involving bv2nat, int2bv
+    if (options::bvAlgExtf())
+    {
+      if (doExtfInferences(nred))
+      {
         return;
       }
     }
-    if( !options::bvLazyReduceExtf() ){
-      if( doExtfReductions( nred ) ){
+    if (!options::bvLazyReduceExtf())
+    {
+      if (doExtfReductions(nred))
+      {
         return;
       }
     }

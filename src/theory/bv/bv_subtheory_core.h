@@ -126,7 +126,7 @@ class CoreSolver : public SubtheorySolver {
    * The purpose of these lemmas is to recognize easy conflicts before fully
    * reducing extended functions based on their full semantics.
    */
-  bool doExtfInferences( std::vector< Node >& terms );
+  bool doExtfInferences(std::vector<Node>& terms);
   /** do extended function reductions
    *
    * This method adds lemmas on the output channel of TheoryBV based on
@@ -137,7 +137,8 @@ class CoreSolver : public SubtheorySolver {
    *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
    *                (ite ((_ extract 1 0) x) 1 0)
    */
-  bool doExtfReductions( std::vector< Node >& terms );
+  bool doExtfReductions(std::vector<Node>& terms);
+
  public:
   CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
   ~CoreSolver();
