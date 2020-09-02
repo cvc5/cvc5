@@ -21,9 +21,9 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee) {
+NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee)
+{
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-  
 }
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
@@ -67,15 +67,14 @@ bool NlExtTheoryCallback::getCurrentSubstitution(
 }
 
 bool NlExtTheoryCallback::isExtfReduced(int effort,
-                             Node n,
-                             Node on,
-                             std::vector<Node>& exp)
+                                        Node n,
+                                        Node on,
+                                        std::vector<Node>& exp)
 {
   if (n != d_zero)
   {
     Kind k = n.getKind();
-    return 
-        k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND;
+    return k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND;
   }
   Assert(n == d_zero);
   if (on.getKind() == NONLINEAR_MULT)
@@ -113,7 +112,7 @@ bool NlExtTheoryCallback::isExtfReduced(int effort,
           {
             Trace("nl-ext-zero-exp")
                 << "...single exp : " << eqs[j] << std::endl;
-                exp.push_back(eqs[j]);
+            exp.push_back(eqs[j]);
             return true;
           }
         }

@@ -27,7 +27,7 @@ class NlExtTheoryCallback : public ExtTheoryCallback
 {
  public:
   NlExtTheoryCallback(eq::EqualityEngine* ee);
-  ~NlExtTheoryCallback(){}
+  ~NlExtTheoryCallback() {}
   /** Get current substitution
    *
    * This function and the one below are
@@ -67,9 +67,9 @@ class NlExtTheoryCallback : public ExtTheoryCallback
    * minimal explanations for context-dependent simplifications.
    */
   bool isExtfReduced(int effort,
-                             Node n,
-                             Node on,
-                             std::vector<Node>& exp) override;
+                     Node n,
+                     Node on,
+                     std::vector<Node>& exp) override;
 
  private:
   /** The underlying equality engine. */
