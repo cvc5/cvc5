@@ -122,7 +122,8 @@ class Assertions
    * formula might be pushed out to the propositional layer
    * immediately, or it might be simplified and kept, or it might not
    * even be simplified.
-   * The arguments isInput and isAssumption are used for bookkeeping for proofs.
+   * The arguments isInput and isAssumption are used for bookkeeping for unsat
+   * cores.
    * The argument maybeHasFv should be set to true if the assertion may have
    * free variables. By construction, assertions from the smt2 parser are
    * guaranteed not to have free variables. However, other cases such as

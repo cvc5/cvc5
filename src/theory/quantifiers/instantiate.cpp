@@ -16,6 +16,8 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "options/smt_options.h"
+#include "proof/proof_manager.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -577,18 +579,21 @@ void Instantiate::getInstantiatedQuantifiedFormulas(std::vector<Node>& qs)
 bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
 {
   // only if unsat core available
-  if (options::proof())
+  if (options::unsatCores())
   {
     if (!ProofManager::currentPM()->unsatCoreAvailable())
     {
       return false;
     }
   }
+  else
+  {
+    return false;
+  }
 
   Trace("inst-unsat-core") << "Get instantiations in unsat core..."
                            << std::endl;
-  ProofManager::currentPM()->getLemmasInUnsatCore(theory::THEORY_QUANTIFIERS,
-                                                  active_lemmas);
+  ProofManager::currentPM()->getLemmasInUnsatCore(active_lemmas);
   if (Trace.isOn("inst-unsat-core"))
   {
     Trace("inst-unsat-core") << "Quantifiers lemmas in unsat core: "
@@ -600,27 +605,6 @@ bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas)
     Trace("inst-unsat-core") << std::endl;
   }
   return true;
-}
-
-bool Instantiate::getUnsatCoreLemmas(std::vector<Node>& active_lemmas,
-                                     std::map<Node, Node>& weak_imp)
-{
-  if (getUnsatCoreLemmas(active_lemmas))
-  {
-    for (unsigned i = 0, size = active_lemmas.size(); i < size; ++i)
-    {
-      Node n = ProofManager::currentPM()->getWeakestImplicantInUnsatCore(
-          active_lemmas[i]);
-      if (n != active_lemmas[i])
-      {
-        Trace("inst-unsat-core") << "  weaken : " << active_lemmas[i] << " -> "
-                                 << n << std::endl;
-      }
-      weak_imp[active_lemmas[i]] = n;
-    }
-    return true;
-  }
-  return false;
 }
 
 void Instantiate::getInstantiationTermVectors(

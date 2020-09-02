@@ -510,11 +510,11 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
   RowIndex ridx = d_tableau.basicToRowIndex(basic);
 
   ConstraintCPVec bounds;
-  RationalVectorP coeffs = NULLPROOF(new RationalVector());
+  RationalVectorP coeffs = ARITH_NULLPROOF(new RationalVector());
   propagateRow(bounds, ridx, upperBound, c, coeffs);
   c->impliedByFarkas(bounds, coeffs, false);
   c->tryToPropagate();
-  
+
   if(coeffs != RationalVectorPSentinel) { delete coeffs; }
 }
 
@@ -524,9 +524,9 @@ void LinearEqualityModule::propagateBasicFromRow(ConstraintP c){
  * The proof is in terms of the other constraints and the negation of c, ~c.
  *
  * A row has the form:
- *   sum a_i * x_i  = 0 
+ *   sum a_i * x_i  = 0
  * or
- *   sx + sum r y + sum q z = 0 
+ *   sx + sum r y + sum q z = 0
  * where r > 0 and q < 0.
  *
  * If rowUp, we are proving c
@@ -555,7 +555,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
     Assert(farkas->empty());
     farkas->push_back(Rational(0));
   }
-  
+
   ArithVar v = c->getVariable();
   Debug("arith::propagateRow") << "LinearEqualityModule::propagateRow("
                                    << ridx << ", " << rowUp << ", " << v << ") start" << endl;
@@ -563,7 +563,7 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
   const Rational& multiple = rowUp ? d_one : d_negOne;
 
   Debug("arith::propagateRow") << "multiple: " << multiple << endl;
-  
+
   Tableau::RowIterator iter = d_tableau.ridRowIterator(ridx);
   for(; !iter.atEnd(); ++iter){
     const Tableau::Entry& entry = *iter;
@@ -595,8 +595,8 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
       if(farkas != RationalVectorPSentinel){
         Assert(farkas->front().isZero());
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "("<<multAij<<") ";        
-        farkas->front() = multAij;      
+        Debug("arith::propagateRow") << "(" << multAij << ") ";
+        farkas->front() = multAij;
       }
 
       Debug("arith::propagateRow") << c << endl;
@@ -605,10 +605,10 @@ void LinearEqualityModule::propagateRow(ConstraintCPVec& into, RowIndex ridx, bo
       ConstraintCP bound = selectUb
         ? d_variables.getUpperBoundConstraint(nonbasic)
         : d_variables.getLowerBoundConstraint(nonbasic);
-      
+
       if(farkas != RationalVectorPSentinel){
         Rational multAij = multiple * a_ij;
-        Debug("arith::propagateRow") << "("<<multAij<<") ";        
+        Debug("arith::propagateRow") << "(" << multAij << ") ";
         farkas->push_back(multAij);
       }
       Assert(bound != NullConstraint);
@@ -678,7 +678,7 @@ ConstraintP LinearEqualityModule::weakestExplanation(bool aboveUpper, DeltaRatio
  * If !aboveUpper, then the conflict is with the constraint c : x_b >= l_b.
  *
  * A row has the form:
- *   -x_b sum a_i * x_i  = 0 
+ *   -x_b sum a_i * x_i  = 0
  * or
  *   -x_b + sum r y + sum q z = 0,
  *    x_b = sum r y + sum q z
@@ -724,7 +724,7 @@ ConstraintCP LinearEqualityModule::minimallyWeakConflict(bool aboveUpper, ArithV
     Assert(assignment < d_variables.getLowerBound(basicVar));
     surplus = d_variables.getLowerBound(basicVar) - assignment;
   }
-  
+
   bool anyWeakenings = false;
   for(Tableau::RowIterator i = d_tableau.basicRowIterator(basicVar); !i.atEnd(); ++i){
     const Tableau::Entry& entry = *i;
