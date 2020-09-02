@@ -18,7 +18,7 @@
 #define CVC4__THEORY__ARITH__NL__STATS_H
 
 #include "expr/kind.h"
-#include "theory/arith/nl/inference.h"
+#include "theory/arith/inference.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

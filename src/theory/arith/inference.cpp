@@ -12,12 +12,11 @@
  ** \brief Implementation of inference enumeration.
  **/
 
-#include "theory/arith/nl/inference.h"
+#include "theory/arith/inference.h"
 
 namespace CVC4 {
 namespace theory {
 namespace arith {
-namespace nl {
 
 const char* toString(Inference i)
 {
@@ -53,7 +52,6 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4

@@ -9,13 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Inference enumeration for non-linear arithmetic.
+ ** \brief Inference enumeration for arithmetic.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__ARITH__NL__INFER_INFO_H
-#define CVC4__THEORY__ARITH__NL__INFER_INFO_H
+#ifndef CVC4__THEORY__ARITH__INFERENCE_H
+#define CVC4__THEORY__ARITH__INFERENCE_H
 
 #include <map>
 #include <vector>
@@ -25,7 +25,6 @@
 namespace CVC4 {
 namespace theory {
 namespace arith {
-namespace nl {
 
 /**
  * Types of inferences used in the procedure
@@ -101,9 +100,8 @@ const char* toString(Inference i);
  */
 std::ostream& operator<<(std::ostream& out, Inference i);
 
-}  // namespace nl
 }  // namespace arith
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__ARITH__NL__INFER_INFO_H */
+#endif /* CVC4__THEORY__ARITH__INFERENCE_H */
