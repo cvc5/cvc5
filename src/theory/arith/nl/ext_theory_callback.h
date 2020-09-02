@@ -22,11 +22,11 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 namespace nl {
-  
-class NlExtTheoryCallback : public 
+
+class NlExtTheoryCallback : public
 {
-public:
-  NlExtTheoryCallback(eq::EqualityEngine * ee);
+ public:
+  NlExtTheoryCallback(eq::EqualityEngine* ee);
 
   /** Get current substitution
    *
@@ -66,13 +66,12 @@ public:
    * The second part of the pair is used for constructing
    * minimal explanations for context-dependent simplifications.
    */
-  std::pair<bool, Node> isExtfReduced(int effort,
-                                      Node n,
-                                      Node on,
-                                      const std::vector<Node>& exp) const override;
-private:
+  std::pair<bool, Node> isExtfReduced(
+      int effort, Node n, Node on, const std::vector<Node>& exp) const override;
+
+ private:
   /** The underlying equality engine. */
-  eq::EqualityEngine * d_ee;
+  eq::EqualityEngine* d_ee;
 };
 
 }  // namespace nl

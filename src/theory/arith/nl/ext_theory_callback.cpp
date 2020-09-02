@@ -21,7 +21,7 @@ namespace theory {
 namespace arith {
 namespace nl {
 
-NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine * ee) : d_ee(ee){}
+NlExtTheoryCallback::NlExtTheoryCallback(eq::EqualityEngine* ee) : d_ee(ee) {}
 
 bool NlExtTheoryCallback::getCurrentSubstitution(
     int effort,
