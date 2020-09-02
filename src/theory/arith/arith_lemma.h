@@ -32,12 +32,7 @@ namespace arith {
  * The data structure for a single lemma to process by the arithmetic theory,
  * derived from theory::SimpleTheoryLemma.
  *
- * This also includes the inference type that produced this lemma and data
- * structures that encapsulate the side effect of adding this lemma in the
- * non-linear solver. This is used to specify how the state of the non-linear
- * solver should update. This includes:
- * - A set of secant points to record (for transcendental secant plane
- * inferences).
+ * This also includes the inference type that produced this lemma.
  */
 class ArithLemma : public SimpleTheoryLemma
 {
