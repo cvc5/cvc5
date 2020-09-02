@@ -108,10 +108,12 @@ std::ostream& operator<<(std::ostream& out, TConvCachePolicy tcpol);
  *     (or (and A B) (P (and A B)))
  *     (or (and A B) (P BOOLEAN_TERM_VARIABLE_1)))
  * where P is a predicate Bool -> Bool. The proof returned by this class
- * involves congruence and pg's proof of the equivalence above. Notice the
- * callback provided to this class ensures that the rewrite is replayed in the
- * expected way, e.g. the occurrence of (and A B) that is not in term
- * position is not rewritten.
+ * involves congruence and pg's proof of the equivalence above. In particular,
+ * assuming its proof of the equivalence is P1, this proof is:
+ *   (CONG{=} (CONG{or} (REFL (and A B)) (CONG{P} P1)))
+ * Notice the callback provided to this class ensures that the rewrite is
+ * replayed in the expected way, e.g. the occurrence of (and A B) that is not
+ * in term position is not rewritten.
  */
 class TConvProofGenerator : public ProofGenerator
 {
@@ -214,7 +216,7 @@ class TConvProofGenerator : public ProofGenerator
    * t based on the rewrite steps registered to this class. This method then
    * returns the proved equality t = t'.
    */
-  Node getProofForRewriting(Node t, LazyCDProof& pf, TermContext* tc);
+  Node getProofForRewriting(Node t, LazyCDProof& pf, TermContext* tc = nullptr);
   /**
    * Register rewrite step, returns the equality t=s if t is distinct from s
    * and a rewrite step has not already been registered for t.
