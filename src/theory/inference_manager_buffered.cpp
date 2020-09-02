@@ -29,10 +29,9 @@ InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
 {
 }
 
-bool InferenceManagerBuffered::hasProcessed() const
+bool InferenceManagerBuffered::hasPending() const
 {
-  return d_theoryState.isInConflict() || !d_pendingLem.empty()
-         || !d_pendingFact.empty();
+  return !d_pendingLem.empty() || !d_pendingFact.empty();
 }
 
 bool InferenceManagerBuffered::hasPendingFact() const
@@ -50,11 +49,11 @@ void InferenceManagerBuffered::addPendingLemma(Node lem,
                                                ProofGenerator* pg)
 {
   // make the simple theory lemma
-  d_pendingLem.emplace_back(new SimpleTheoryLemma(lem, p, pg));
+  d_pendingLem.push_back(std::make_shared<SimpleTheoryLemma>(lem, p, pg));
 }
 
 void InferenceManagerBuffered::addPendingLemma(
-    std::unique_ptr<TheoryInference> lemma)
+    std::shared_ptr<TheoryInference> lemma)
 {
   d_pendingLem.emplace_back(std::move(lemma));
 }
@@ -65,11 +64,12 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
 {
   // make a simple theory internal fact
   Assert(conc.getKind() != AND && conc.getKind() != OR);
-  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(conc, exp, pg));
+  d_pendingFact.push_back(
+      std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(
-    std::unique_ptr<TheoryInference> fact)
+    std::shared_ptr<TheoryInference> fact)
 {
   d_pendingFact.emplace_back(std::move(fact));
 }
@@ -95,7 +95,7 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
-  for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
+  for (const std::shared_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
     plem->process(this);
@@ -118,14 +118,6 @@ void InferenceManagerBuffered::clearPendingPhaseRequirements()
 {
   d_pendingReqPhase.clear();
 }
-
-
-  std::size_t InferenceManagerBuffered::numPendingLemmas() const {
-    return d_pendingLem.size();
-  }
-  std::size_t InferenceManagerBuffered::numPendingFacts() const {
-    return d_pendingFact.size();
-  }
 
 }  // namespace theory
 }  // namespace CVC4

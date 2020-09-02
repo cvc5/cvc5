@@ -87,6 +87,11 @@ class TheoryInferenceManager
    * beginning of this loop and repeat its strategy while hasAddedFact is true.
    */
   void reset();
+  /**
+   * Returns true if we are in conflict, or if we have sent a lemma or fact
+   * since the last call to reset.
+   */
+  bool hasProcessed() const;
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
@@ -273,11 +278,12 @@ class TheoryInferenceManager
   /** Have we added a internal fact since the last call to reset? */
   bool hasSentFact() const;
   //--------------------------------------- phase requirements
-  /** 
+  /**
    * Set that literal n has SAT phase requirement pol, that is, it should be
    * decided with polarity pol, for details see OutputChannel::requirePhase.
    */
   void requirePhase(TNode n, bool pol);
+
  protected:
   /**
    * Process internal fact. This is a common helper method for the

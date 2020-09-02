@@ -35,13 +35,11 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
                            ProofNodeManager* pnm);
-  virtual ~InferenceManagerBuffered() {}
+  ~InferenceManagerBuffered() {}
   /**
-   * Have we processed an inference during this call to check? In particular,
-   * this returns true if we have a pending fact or lemma, or have encountered
-   * a conflict.
+   * Do we have a pending fact or lemma?
    */
-  bool hasProcessed() const;
+  bool hasPending() const;
   /**
    * Do we have a pending fact to add as an internal fact to the equality
    * engine?
@@ -62,7 +60,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * Add pending lemma, where lemma can be a (derived) class of the
    * theory inference base class.
    */
-  void addPendingLemma(std::unique_ptr<TheoryInference> lemma);
+  void addPendingLemma(std::shared_ptr<TheoryInference> lemma);
   /**
    * Add pending fact, which adds a fact on the pending fact queue. It must
    * be the case that:
@@ -78,7 +76,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * Add pending fact, where fact can be a (derived) class of the
    * theory inference base class.
    */
-  void addPendingFact(std::unique_ptr<TheoryInference> fact);
+  void addPendingFact(std::shared_ptr<TheoryInference> fact);
   /** Add pending phase requirement
    *
    * This method is called to indicate this class should send a phase
@@ -124,16 +122,11 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   /** Clear pending phase requirements, without processing */
   void clearPendingPhaseRequirements();
 
-  /** Returns the number of pending lemmas. */
-  std::size_t numPendingLemmas() const;
-  /** Returns the number of pending facts. */
-  std::size_t numPendingFacts() const;
-
  protected:
   /** A set of pending inferences to be processed as lemmas */
-  std::vector<std::unique_ptr<TheoryInference>> d_pendingLem;
+  std::vector<std::shared_ptr<TheoryInference>> d_pendingLem;
   /** A set of pending inferences to be processed as facts */
-  std::vector<std::unique_ptr<TheoryInference>> d_pendingFact;
+  std::vector<std::shared_ptr<TheoryInference>> d_pendingFact;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
 };
