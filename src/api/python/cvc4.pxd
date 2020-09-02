@@ -116,11 +116,12 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
 
     cdef cppclass Solver:
         Solver(Options*) except +
+        bint supportsFloatingPoint() except +
         Sort getBooleanSort() except +
         Sort getIntegerSort() except +
         Sort getRealSort() except +
         Sort getRegExpSort() except +
-        Sort getRoundingmodeSort() except +
+        Sort getRoundingModeSort() except +
         Sort getStringSort() except +
         Sort mkArraySort(Sort indexSort, Sort elemSort) except +
         Sort mkBitVectorSort(uint32_t size) except +

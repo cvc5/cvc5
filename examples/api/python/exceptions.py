@@ -16,40 +16,40 @@
 ## A simple demonstration of catching CVC4 execptions with the legacy Python
 ## API.
 
-import CVC4
+import pycvc4
+from pycvc4 import kinds
 import sys
 
 
 def main():
-    em = CVC4.ExprManager()
-    smt = CVC4.SmtEngine(em)
+    slv = pycvc4.Solver()
 
-    smt.setOption("produce-models", CVC4.SExpr("true"))
+    slv.setOption("produce-models", "true")
 
     # Setting an invalid option
     try:
-        smt.setOption("non-existing", CVC4.SExpr("true"))
+        slv.setOption("non-existing", "true")
         return 1
-    except CVC4.Exception as e:
-        print(e.toString())
+    except:
+        pass
 
     # Creating a term with an invalid type
     try:
-        integer = em.integerType()
-        x = em.mkVar("x", integer)
-        invalidExpr = em.mkExpr(CVC4.AND, x, x)
-        smt.checkSat(invalidExpr)
+        integer = slv.getIntegerSort()
+        x = slv.mkConst("x", integer)
+        invalidTerm = em.mkTerm(AND, x, x)
+        slv.checkSat(invalidTerm)
         return 1
-    except CVC4.Exception as e:
-        print(e.toString())
+    except:
+        pass
 
     # Asking for a model after unsat result
     try:
-        smt.checkSat(em.mkBoolConst(False))
-        smt.getModel()
+        slv.checkSat(slv.mkBoolean(False))
+        slv.getModel()
         return 1
-    except CVC4.Exception as e:
-        print(e.toString())
+    except:
+        pass
 
     return 0
 
