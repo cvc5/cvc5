@@ -3,6 +3,7 @@ import sys
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 
 from libcpp.pair cimport pair
+from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 
@@ -109,6 +110,24 @@ cdef class Datatype:
 
     def isParametric(self):
         return self.cd.isParametric()
+
+    def isCodatatype(self):
+        return self.cd.isCodatatype()
+
+    def isTuple(self):
+        return self.cd.isTuple()
+
+    def isRecord(self):
+        return self.cd.isRecord()
+
+    def isFinite(self):
+        return self.cd.isFinite()
+
+    def isWellFounded(self):
+        return self.cd.isWellFounded()
+
+    def hasNestedRecursion(self):
+        return self.cd.hasNestedRecursion()
 
     def __str__(self):
         return self.cd.toString().decode()
@@ -448,6 +467,26 @@ cdef class Solver:
         cdef Sort sort = Sort(self)
         sort.csort = self.csolver.mkDatatypeSort(dtypedecl.cdd)
         return sort
+
+    def mkDatatypeSorts(self, list dtypedecls, unresolvedSorts):
+        sorts = []
+
+        cdef vector[c_DatatypeDecl] decls
+        for decl in dtypedecls:
+            decls.push_back((<DatatypeDecl?> decl).cdd)
+
+        cdef set[c_Sort] usorts
+        for usort in unresolvedSorts:
+            usorts.insert((<Sort?> usort).csort)
+
+        csorts = self.csolver.mkDatatypeSorts(
+            <const vector[c_DatatypeDecl]&> decls, <const set[c_Sort]&> usorts)
+        for csort in csorts:
+          sort = Sort(self)
+          sort.csort = csort
+          sorts.append(sort)
+
+        return sorts
 
     def mkFunctionSort(self, sorts, Sort codomain):
 
@@ -1353,6 +1392,14 @@ cdef class Term:
 
     def __ne__(self, Term other):
         return self.cterm != other.cterm
+
+    def __getitem__(self, int index):
+        cdef Term term = Term(self.solver)
+        if index >= 0:
+            term.cterm = self.cterm[index]
+        else:
+            raise ValueError("Expecting a non-negative integer or string")
+        return term
 
     def __str__(self):
         return self.cterm.toString().decode()

@@ -2254,8 +2254,9 @@ class CVC4_PUBLIC Solver
    * @param unresolvedSorts the list of unresolved sorts
    * @return the datatype sorts
    */
-  std::vector<Sort> mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
-                                    std::set<Sort>& unresolvedSorts) const;
+  std::vector<Sort> mkDatatypeSorts(
+      const std::vector<DatatypeDecl>& dtypedecls,
+      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Create function sort.
@@ -3353,8 +3354,8 @@ class CVC4_PUBLIC Solver
    * @return the datatype sorts
    */
   std::vector<Sort> mkDatatypeSortsInternal(
-      std::vector<DatatypeDecl>& dtypedecls,
-      std::set<Sort>& unresolvedSorts) const;
+      const std::vector<DatatypeDecl>& dtypedecls,
+      const std::set<Sort>& unresolvedSorts) const;
 
   /**
    * Synthesize n-ary function following specified syntactic constraints.
