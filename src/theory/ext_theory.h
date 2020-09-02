@@ -36,6 +36,7 @@
 #include <map>
 #include <set>
 
+#include "context/cdhashmap.h"
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "expr/node.h"

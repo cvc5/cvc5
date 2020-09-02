@@ -23,6 +23,9 @@
 #include "theory/theory_model.h"
 
 namespace CVC4 {
+
+class TheoryEngine;
+
 namespace theory {
 
 /** TheoryEngineModelBuilder class

@@ -25,7 +25,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "context/context.h"
 #include "proof/clause_id.h"
-#include "proof/sat_proof.h"
 #include "prop/bvminisat/core/SolverTypes.h"
 #include "prop/bvminisat/mtl/Alg.h"
 #include "prop/bvminisat/mtl/Heap.h"
@@ -37,11 +36,6 @@ namespace CVC4 {
 
 namespace BVMinisat {
 class Solver;
-}
-
-// TODO (aozdemir) replace this forward declaration with an include
-namespace proof {
-class ResolutionBitVectorProof;
 }
 
 namespace BVMinisat {
@@ -71,11 +65,10 @@ public:
 //=================================================================================================
 // Solver -- the main class:
 class Solver {
-    friend class CVC4::TSatProof< CVC4::BVMinisat::Solver>;
 public:
     typedef Var TVar;
     typedef Lit TLit;
-    typedef Clause TClause; 
+    typedef Clause TClause;
     typedef CRef TCRef;
     typedef vec<Lit> TLitVec;
 
@@ -109,12 +102,17 @@ public:
     Var     trueVar() const { return varTrue; }
     Var     falseVar() const { return varFalse; }
 
-
-    bool    addClause (const vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver. 
+    bool addClause(const vec<Lit>& ps,
+                   ClauseId& id);  // Add a clause to the solver.
     bool    addEmptyClause();                                   // Add the empty clause, making the solver contradictory.
-    bool    addClause (Lit p, ClauseId& id);                                  // Add a unit clause to the solver. 
-    bool    addClause (Lit p, Lit q, ClauseId& id);                           // Add a binary clause to the solver. 
-    bool    addClause (Lit p, Lit q, Lit r, ClauseId& id);                    // Add a ternary clause to the solver. 
+    bool addClause(Lit p, ClauseId& id);  // Add a unit clause to the solver.
+    bool addClause(Lit p,
+                   Lit q,
+                   ClauseId& id);  // Add a binary clause to the solver.
+    bool addClause(Lit p,
+                   Lit q,
+                   Lit r,
+                   ClauseId& id);  // Add a ternary clause to the solver.
     bool    addClause_(      vec<Lit>& ps, ClauseId& id);                     // Add a clause to the solver without making superflous internal copy. Will
                                                                 // change the passed vector 'ps'.
 
@@ -141,9 +139,9 @@ public:
     void    toDimacs     (const char* file, Lit p);
     void    toDimacs     (const char* file, Lit p, Lit q);
     void    toDimacs     (const char* file, Lit p, Lit q, Lit r);
-    
+
     // Variable mode:
-    // 
+    //
     void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
     void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
 
@@ -211,12 +209,11 @@ public:
 
     void addMarkerLiteral(Var var);
 
-    bool need_to_propagate;             // true if we added new clauses, set to true in propagation 
+    bool need_to_propagate;  // true if we added new clauses, set to true in
+                             // propagation
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
     void setOnlyBCP (bool val) { only_bcp = val;}
     void explain(Lit l, std::vector<Lit>& explanation);
-
-    void setProofLog(CVC4::proof::ResolutionBitVectorProof* bvp);
 
    protected:
 
@@ -293,9 +290,6 @@ public:
     int64_t             conflict_budget;    // -1 means no budget.
     int64_t             propagation_budget; // -1 means no budget.
     bool                asynch_interrupt;
-    
-    //proof log
-    CVC4::proof::ResolutionBitVectorProof* d_bvp;
 
     // Main internal methods:
     //
@@ -458,13 +452,15 @@ inline int      Solver::nLearnts      ()      const   { return learnts.size(); }
 inline int      Solver::nVars         ()      const   { return vardata.size(); }
 inline int      Solver::nFreeVars     ()      const   { return (int)dec_vars - (trail_lim.size() == 0 ? trail.size() : trail_lim[0]); }
 inline void     Solver::setPolarity   (Var v, bool b) { polarity[v] = b; }
-inline void     Solver::setDecisionVar(Var v, bool b) 
-{ 
-    if      ( b && !decision[v]) dec_vars++;
-    else if (!b &&  decision[v]) dec_vars--;
+inline void Solver::setDecisionVar(Var v, bool b)
+{
+  if (b && !decision[v])
+    dec_vars++;
+  else if (!b && decision[v])
+    dec_vars--;
 
-    decision[v] = b;
-    insertVarOrder(v);
+  decision[v] = b;
+  insertVarOrder(v);
 }
 inline void     Solver::setConfBudget(int64_t x){ conflict_budget    = conflicts    + x; }
 inline void     Solver::setPropBudget(int64_t x){ propagation_budget = propagations + x; }

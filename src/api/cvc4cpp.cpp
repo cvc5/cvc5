@@ -578,7 +578,9 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::REGEXP_OPT, REGEXP_OPT},
         {CVC4::Kind::REGEXP_RANGE, REGEXP_RANGE},
         {CVC4::Kind::REGEXP_REPEAT, REGEXP_REPEAT},
+        {CVC4::Kind::REGEXP_REPEAT_OP, REGEXP_REPEAT},
         {CVC4::Kind::REGEXP_LOOP, REGEXP_LOOP},
+        {CVC4::Kind::REGEXP_LOOP_OP, REGEXP_LOOP},
         {CVC4::Kind::REGEXP_EMPTY, REGEXP_EMPTY},
         {CVC4::Kind::REGEXP_SIGMA, REGEXP_SIGMA},
         {CVC4::Kind::REGEXP_COMPLEMENT, REGEXP_COMPLEMENT},
@@ -1321,6 +1323,9 @@ uint32_t Op::getIndices() const
       i = d_node->getConst<FloatingPointToSBV>().bvs.d_size;
       break;
     case TUPLE_UPDATE: i = d_node->getConst<TupleUpdate>().getIndex(); break;
+    case REGEXP_REPEAT:
+      i = d_node->getConst<RegExpRepeat>().d_repeatAmount;
+      break;
     default:
       CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
                                          << " kind " << kindToString(k);
@@ -1378,6 +1383,11 @@ std::pair<uint32_t, uint32_t> Op::getIndices() const
     CVC4::FloatingPointToFPGeneric ext =
         d_node->getConst<FloatingPointToFPGeneric>();
     indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == REGEXP_LOOP)
+  {
+    CVC4::RegExpLoop ext = d_node->getConst<RegExpLoop>();
+    indices = std::make_pair(ext.d_loopMinOcc, ext.d_loopMaxOcc);
   }
   else
   {
@@ -3034,10 +3044,10 @@ Term Solver::mkCharFromStrHelper(const std::string& s) const
   CVC4_API_CHECK(s.find_first_not_of("0123456789abcdefABCDEF", 0)
                      == std::string::npos
                  && s.size() <= 5 && s.size() > 0)
-      << "Unexpected string for hexidecimal character " << s;
+      << "Unexpected string for hexadecimal character " << s;
   uint32_t val = static_cast<uint32_t>(std::stoul(s, 0, 16));
   CVC4_API_CHECK(val < String::num_codes())
-      << "Not a valid code point for hexidecimal character " << s;
+      << "Not a valid code point for hexadecimal character " << s;
   std::vector<unsigned> cpts;
   cpts.push_back(val);
   return mkValHelper<CVC4::String>(CVC4::String(cpts));
@@ -3230,6 +3240,14 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
+/* Solver Configuration                                                       */
+/* -------------------------------------------------------------------------- */
+
+bool Solver::supportsFloatingPoint() const
+{
+  return Configuration::isBuiltWithSymFPU();
+}
+
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -3275,9 +3293,11 @@ Sort Solver::getStringSort(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Sort Solver::getRoundingmodeSort(void) const
+Sort Solver::getRoundingModeSort(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return Sort(this, d_exprMgr->roundingModeType());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3313,6 +3333,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
 
@@ -3793,6 +3815,8 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return mkValHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5386,7 +5410,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   {
     CVC4_API_CHECK(g->d_ntSyms[0].d_node->getType().toType() == *sort.d_type)
         << "Invalid Start symbol for Grammar g, Expected Start's sort to be "
-        << *sort.d_type;
+        << *sort.d_type << " but found " << g->d_ntSyms[0].d_node->getType();
   }
 
   Type funType = varTypes.empty()
@@ -5496,7 +5520,7 @@ Term Solver::getSynthSolution(Term term) const
 
   std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceeded by a "
+      << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::map<CVC4::Node, CVC4::Node>::const_iterator it = map.find(*term.d_node);
@@ -5525,7 +5549,7 @@ std::vector<Term> Solver::getSynthSolutions(
 
   std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceeded by a "
+      << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::vector<Term> synthSolution;
