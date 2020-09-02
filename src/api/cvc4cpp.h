@@ -2153,6 +2153,12 @@ class CVC4_PUBLIC Solver
   Solver& operator=(const Solver&) = delete;
 
   /* .................................................................... */
+  /* Solver Configuration                                                 */
+  /* .................................................................... */
+
+  bool supportsFloatingPoint() const;
+
+  /* .................................................................... */
   /* Sorts Handling                                                       */
   /* .................................................................... */
 
@@ -2184,7 +2190,7 @@ class CVC4_PUBLIC Solver
   /**
    * @return sort RoundingMode
    */
-  Sort getRoundingmodeSort() const;
+  Sort getRoundingModeSort() const;
 
   /**
    * @return sort String
@@ -3169,7 +3175,9 @@ class CVC4_PUBLIC Solver
   Term mkSygusVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
-   * Create a Sygus grammar.
+   * Create a Sygus grammar. The first non-terminal is treated as the starting
+   * non-terminal, so the order of non-terminals matters.
+   *
    * @param boundVars the parameters to corresponding synth-fun/synth-inv
    * @param ntSymbols the pre-declaration of the non-terminal symbols
    * @return the grammar

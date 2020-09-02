@@ -221,41 +221,41 @@ bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
   return d_lemmasSent.find(lem) != d_lemmasSent.end();
 }
 
-uint32_t TheoryInferenceManager::numAddedLemmas() const
+uint32_t TheoryInferenceManager::numSentLemmas() const
 {
   return d_numCurrentLemmas;
 }
 
-bool TheoryInferenceManager::hasAddedLemma() const
+bool TheoryInferenceManager::hasSentLemma() const
 {
   return d_numCurrentLemmas != 0;
 }
 
-void TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
+bool TheoryInferenceManager::assertInternalFact(TNode atom, bool pol, TNode exp)
 {
-  processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
+  return processInternalFact(atom, pol, PfRule::UNKNOWN, {exp}, {}, nullptr);
 }
 
-void TheoryInferenceManager::assertInternalFact(TNode atom,
+bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
                                                 PfRule id,
                                                 const std::vector<Node>& exp,
                                                 const std::vector<Node>& args)
 {
   Assert(id != PfRule::UNKNOWN);
-  processInternalFact(atom, pol, id, exp, args, nullptr);
+  return processInternalFact(atom, pol, id, exp, args, nullptr);
 }
 
-void TheoryInferenceManager::assertInternalFact(TNode atom,
+bool TheoryInferenceManager::assertInternalFact(TNode atom,
                                                 bool pol,
                                                 const std::vector<Node>& exp,
                                                 ProofGenerator* pg)
 {
   Assert(pg != nullptr);
-  processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
+  return processInternalFact(atom, pol, PfRule::ASSUME, exp, {}, pg);
 }
 
-void TheoryInferenceManager::processInternalFact(TNode atom,
+bool TheoryInferenceManager::processInternalFact(TNode atom,
                                                  bool pol,
                                                  PfRule id,
                                                  const std::vector<Node>& exp,
@@ -267,8 +267,9 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   // call the pre-notify fact method with preReg = false, isInternal = true
   if (d_theory.preNotifyFact(atom, pol, expn, false, true))
   {
-    // handled in a theory-specific way that doesn't require equality engine
-    return;
+    // Handled in a theory-specific way that doesn't require equality engine,
+    // notice we return true, indicating that the fact was processed.
+    return true;
   }
   Assert(d_ee != nullptr);
   Trace("infer-manager") << "TheoryInferenceManager::assertInternalFact: "
@@ -276,15 +277,16 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
   d_numCurrentFacts++;
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
   // If no proof production, or no proof rule was given
+  bool ret = false;
   if (d_pfee == nullptr || id == PfRule::UNKNOWN)
   {
     if (atom.getKind() == kind::EQUAL)
     {
-      d_ee->assertEquality(atom, pol, expn);
+      ret = d_ee->assertEquality(atom, pol, expn);
     }
     else
     {
-      d_ee->assertPredicate(atom, pol, expn);
+      ret = d_ee->assertPredicate(atom, pol, expn);
     }
     // Must reference count the equality and its explanation, which is not done
     // by the equality engine. Notice that we do *not* need to do this for
@@ -304,18 +306,19 @@ void TheoryInferenceManager::processInternalFact(TNode atom,
     if (pg != nullptr)
     {
       // use the proof generator interface
-      d_pfee->assertFact(lit, expn, pg);
+      ret = d_pfee->assertFact(lit, expn, pg);
     }
     else
     {
       // use the explict proof step interface
-      d_pfee->assertFact(lit, id, expn, args);
+      ret = d_pfee->assertFact(lit, id, expn, args);
     }
   }
   // call the notify fact method with isInternal = true
   d_theory.notifyFact(atom, pol, expn, true);
   Trace("infer-manager")
       << "TheoryInferenceManager::finished assertInternalFact" << std::endl;
+  return ret;
 }
 
 void TheoryInferenceManager::explain(TNode n, std::vector<TNode>& assumptions)
@@ -361,12 +364,12 @@ Node TheoryInferenceManager::mkExplainPartial(
   return NodeManager::currentNM()->mkAnd(assumps);
 }
 
-uint32_t TheoryInferenceManager::numAddedFacts() const
+uint32_t TheoryInferenceManager::numSentFacts() const
 {
   return d_numCurrentFacts;
 }
 
-bool TheoryInferenceManager::hasAddedFact() const
+bool TheoryInferenceManager::hasSentFact() const
 {
   return d_numCurrentFacts != 0;
 }
@@ -379,6 +382,11 @@ bool TheoryInferenceManager::cacheLemma(TNode lem, LemmaProperty p)
   }
   d_lemmasSent.insert(lem);
   return true;
+}
+
+void TheoryInferenceManager::requirePhase(TNode n, bool pol)
+{
+  return d_out.requirePhase(n, pol);
 }
 
 }  // namespace theory

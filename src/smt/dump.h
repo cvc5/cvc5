@@ -22,6 +22,7 @@
 #include "base/output.h"
 #include "expr/proof_node.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 
 namespace CVC4 {
 
@@ -37,6 +38,19 @@ class CVC4_PUBLIC CVC4dumpstream
     if (d_os != nullptr)
     {
       (*d_os) << c << std::endl;
+    }
+    return *this;
+  }
+  /** A convenience function for dumping internal commands.
+   *
+   * Since Commands are now part of the public API, internal code should use
+   * NodeCommands and this function (instead of the one above) to dump them.
+   */
+  CVC4dumpstream& operator<<(const NodeCommand& nc)
+  {
+    if (d_os != nullptr)
+    {
+      (*d_os) << nc << std::endl;
     }
     return *this;
   }
@@ -66,7 +80,11 @@ class CVC4_PUBLIC CVC4dumpstream
   CVC4dumpstream() {}
   CVC4dumpstream(std::ostream& os) {}
   CVC4dumpstream& operator<<(const Command& c) { return *this; }
+<<<<<<< HEAD
   CVC4dumpstream& operator<<(ProofNode* pn) { return *this; }
+=======
+  CVC4dumpstream& operator<<(const NodeCommand& nc) { return *this; }
+>>>>>>> 254c0391d9186221bc3b8c63687cc30a06b14f1b
 }; /* class CVC4dumpstream */
 
 #endif /* CVC4_DUMPING && !CVC4_MUZZLE */
