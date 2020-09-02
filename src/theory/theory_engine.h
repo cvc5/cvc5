@@ -53,7 +53,6 @@
 namespace CVC4 {
 
 class ResourceManager;
-class LemmaProofRecipe;
 
 /**
  * A pair of a theory and a node. This is used to mark the flow of
@@ -292,7 +291,6 @@ class TheoryEngine {
    * @param p the properties of the lemma.
    */
   theory::LemmaStatus lemma(TNode node,
-                            ProofRule rule,
                             bool negated,
                             theory::LemmaProperty p,
                             theory::TheoryId atomsTo);
@@ -442,14 +440,13 @@ class TheoryEngine {
   bool markPropagation(TNode assertion, TNode originalAssertions, theory::TheoryId toTheoryId, theory::TheoryId fromTheoryId);
 
   /**
-   * Computes the explanation by travarsing the propagation graph and
+   * Computes the explanation by traversing the propagation graph and
    * asking relevant theories to explain the propagations. Initially
    * the explanation vector should contain only the element (node, theory)
    * where the node is the one to be explained, and the theory is the
-   * theory that sent the literal. The lemmaProofRecipe will contain a list
-   * of the explanation steps required to produce the original node.
+   * theory that sent the literal.
    */
-  void getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* lemmaProofRecipe);
+  void getExplanation(std::vector<NodeTheoryPair>& explanationVector);
 
  public:
   /**
@@ -570,12 +567,6 @@ class TheoryEngine {
   Node getExplanation(TNode node);
 
   /**
-   * Returns an explanation of the node propagated to the SAT solver and the theory
-   * that propagated it.
-   */
-  Node getExplanationAndRecipe(TNode node, LemmaProofRecipe* proofRecipe);
-
-  /**
    * Get the pointer to the model object used by this theory engine.
    */
   theory::TheoryModel* getModel();
@@ -687,14 +678,15 @@ class TheoryEngine {
   /**
    * Get instantiation methods
    *   first inputs forall x.q[x] and returns ( q[a], ..., q[z] )
-   *   second inputs forall x.q[x] and returns ( a, ..., z ) 
-   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] ) , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
+   *   second inputs forall x.q[x] and returns ( a, ..., z )
+   *   third and fourth return mappings e.g. forall x.q1[x] -> ( q1[a]...q1[z] )
+   * , ... , forall x.qn[x] -> ( qn[a]...qn[z] )
    */
   void getInstantiations( Node q, std::vector< Node >& insts );
   void getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs );
   void getInstantiations( std::map< Node, std::vector< Node > >& insts );
   void getInstantiationTermVectors( std::map< Node, std::vector< std::vector< Node > > >& insts );
-  
+
   /**
    * Get instantiated conjunction, returns q[t1] ^ ... ^ q[tn] where t1...tn are current set of instantiations for q.
    *   Can be used for quantifier elimination when satisfiable and q[t1] ^ ... ^ q[tn] |= q
@@ -726,7 +718,7 @@ private:
 
  public:
   /** Set user attribute.
-   * 
+   *
    * This function is called when an attribute is set by a user.  In SMT-LIBv2
    * this is done via the syntax (! n :attr)
    */
@@ -736,7 +728,7 @@ private:
                         const std::string& str_value);
 
   /** Handle user attribute.
-   * 
+   *
    * Associates theory t with the attribute attr.  Theory t will be
    * notified whenever an attribute of name attr is set.
    */

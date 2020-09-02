@@ -83,22 +83,13 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
     }
   }
 
-  if (PROOF_ON() && d_cnfProof)
-  {
-    d_cnfProof->pushCurrentDefinition(node);
-  }
-
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
   if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
 
-  if (PROOF_ON() && d_cnfProof)
+  if (d_cnfProof && clause_id != ClauseIdError)
   {
-    if (clause_id != ClauseIdError)
-    {
-      d_cnfProof->registerConvertedClause(clause_id);
-    }
-    d_cnfProof->popCurrentDefinition();
-  };
+    d_cnfProof->registerConvertedClause(clause_id);
+  }
 }
 
 void CnfStream::assertClause(TNode node, SatLiteral a) {
@@ -171,11 +162,17 @@ void TseitinCnfStream::ensureLiteral(TNode n, bool noPreregistration) {
     // non-empty and that we are not associating a bogus assertion with the
     // clause. This should be ok because we use the mapping back to assertions
     // for clauses from input assertions only.
-    PROOF(if (d_cnfProof) { d_cnfProof->pushCurrentAssertion(Node::null()); });
+    if (d_cnfProof)
+    {
+      d_cnfProof->pushCurrentAssertion(Node::null());
+    }
 
     lit = toCNF(n, false);
 
-    PROOF(if (d_cnfProof) { d_cnfProof->popCurrentAssertion(); });
+    if (d_cnfProof)
+    {
+      d_cnfProof->popCurrentAssertion();
+    }
 
     // Store backward-mappings
     // These may already exist
@@ -547,7 +544,6 @@ void TseitinCnfStream::convertAndAssertAnd(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(*conjunct, node););
       convertAndAssert(*conjunct, false);
     }
   } else {
@@ -581,7 +577,6 @@ void TseitinCnfStream::convertAndAssertOr(TNode node, bool negated) {
     // If the node is a conjunction, we handle each conjunct separately
     for(TNode::const_iterator conjunct = node.begin(), node_end = node.end();
         conjunct != node_end; ++conjunct ) {
-      PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence((*conjunct).negate(), node.negate()););
       convertAndAssert(*conjunct, true);
     }
   }
@@ -658,8 +653,6 @@ void TseitinCnfStream::convertAndAssertImplies(TNode node, bool negated) {
     clause[1] = q;
     assertClause(node, clause);
   } else {// Construct the
-    PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[0], node.negate()););
-    PROOF(if (d_cnfProof) d_cnfProof->setCnfDependence(node[1].negate(), node.negate()););
     // !(p => q) is the same as (p && ~q)
     convertAndAssert(node[0], false);
     convertAndAssert(node[1], true);
@@ -693,32 +686,23 @@ void TseitinCnfStream::convertAndAssertIte(TNode node, bool negated) {
 void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool removable,
                                         bool negated,
-                                        ProofRule proof_id,
-                                        TNode from) {
+                                        bool input)
+{
   Debug("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
-  PROOF
-    (if (d_cnfProof) {
-      Node assertion = negated ? node.notNode() : (Node)node;
-      Node from_assertion = negated? from.notNode() : (Node) from;
 
-      if (proof_id != RULE_INVALID) {
-        d_cnfProof->pushCurrentAssertion(from.isNull() ? assertion : from_assertion);
-        d_cnfProof->registerAssertion(from.isNull() ? assertion : from_assertion, proof_id);
-      }
-      else {
-        d_cnfProof->pushCurrentAssertion(assertion);
-        d_cnfProof->registerAssertion(assertion, proof_id);
-      }
-    });
-
+  if (d_cnfProof)
+  {
+    d_cnfProof->pushCurrentAssertion(negated ? node.notNode() : (Node)node,
+                                     input);
+  }
   convertAndAssert(node, negated);
-  PROOF
-    (if (d_cnfProof) {
-      d_cnfProof->popCurrentAssertion();
-    });
+  if (d_cnfProof)
+  {
+    d_cnfProof->popCurrentAssertion();
+  }
 }
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {

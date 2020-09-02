@@ -2481,7 +2481,7 @@ fragment DOT:;
 fragment DOTDOT:;
 
 /**
- * Matches the hexidecimal digits (0-9, a-f, A-F)
+ * Matches the hexadecimal digits (0-9, a-f, A-F)
  */
 fragment HEX_DIGIT : DIGIT | 'a'..'f' | 'A'..'F';
 
