@@ -1,4 +1,3 @@
-
 /*********************                                                        */
 /*! \file node_command.cpp
  ** \verbatim
