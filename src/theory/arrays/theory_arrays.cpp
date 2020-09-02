@@ -27,7 +27,6 @@
 #include "smt/logic_exception.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
-#include "theory/relevant_terms_database.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
