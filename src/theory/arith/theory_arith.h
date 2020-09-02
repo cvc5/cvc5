@@ -19,6 +19,7 @@
 
 #include "expr/node.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
@@ -104,9 +105,18 @@ class TheoryArith : public Theory {
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
+  /** Return a reference to the arith::InferenceManager. */
+  InferenceManager& getInferenceManager() {
+    return d_inferenceManager;
+  }
+
  private:
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
+
+  /** The arith::InferenceManager. */
+  InferenceManager d_inferenceManager;
+
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

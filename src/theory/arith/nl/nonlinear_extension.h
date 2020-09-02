@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/iand_solver.h"
 #include "theory/arith/nl/nl_lemma_utils.h"
@@ -289,6 +290,7 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  InferenceManager& d_im;
   // pointer to used equality engine
   eq::EqualityEngine* d_ee;
   /** The statistics class */

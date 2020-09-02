@@ -36,6 +36,7 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
     : d_lemmas(containing.getUserContext()),
       d_lemmasPp(containing.getUserContext()),
       d_containing(containing),
+      d_im(containing.getInferenceManager()),
       d_ee(ee),
       d_needsLastCall(false),
       d_checkCounter(0),
@@ -686,9 +687,12 @@ void NonlinearExtension::check(Theory::Effort e)
   else
   {
     // If we computed lemmas during collectModelInfo, send them now.
-    if (!d_cmiLemmas.empty())
+    if (!d_cmiLemmas.empty() || d_im.hasPendingLemma())
     {
       sendLemmas(d_cmiLemmas);
+      d_im.doPendingFacts();
+      d_im.doPendingLemmas();
+      d_im.doPendingPhaseRequirements();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
