@@ -125,5 +125,10 @@ void TheoryState::notifyInConflict() { d_conflict = true; }
 
 bool TheoryState::isInConflict() const { return d_conflict; }
 
+bool TheoryState::isSatLiteral(TNode lit) const
+{
+  return d_valuation.isSatLiteral(lit);
+}
+
 }  // namespace theory
 }  // namespace CVC4

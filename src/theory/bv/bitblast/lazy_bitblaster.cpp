@@ -14,10 +14,9 @@
  ** Bitblaster for the lazy bv solver.
  **/
 
-#include "cvc4_private.h"
-
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
+#include "cvc4_private.h"
 #include "options/bv_options.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
@@ -25,6 +24,7 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/bv/theory_bv_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -58,7 +58,7 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c,
-                                 bv::TheoryBV* bv,
+                                 bv::TheoryBVLazy* bv,
                                  const std::string name,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
@@ -292,8 +292,12 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
     markerLit = ~markerLit;
   }
 
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat asserting node: " << atom <<"\n";
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat with literal:   " << markerLit << "\n";
+  Debug("bitvector-bb")
+      << "TheoryBVLazy::TLazyBitblaster::assertToSat asserting node: " << atom
+      << "\n";
+  Debug("bitvector-bb")
+      << "TheoryBVLazy::TLazyBitblaster::assertToSat with literal:   "
+      << markerLit << "\n";
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
@@ -410,9 +414,9 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_out->lemma(lemma);
+    d_bv->d_inferManager.lemma(lemma);
   } else {
-    d_bv->d_out->lemma(d_cnf->getNode(clause[0]));
+    d_bv->d_inferManager.lemma(d_cnf->getNode(clause[0]));
   }
 }
 
@@ -423,7 +427,7 @@ void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 
 void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_out->safePoint(r);
+  d_bv->d_inferManager.safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)

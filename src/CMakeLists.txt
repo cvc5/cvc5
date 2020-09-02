@@ -419,6 +419,8 @@ libcvc4_add_sources(
   theory/bv/slicer.h
   theory/bv/theory_bv.cpp
   theory/bv/theory_bv.h
+  theory/bv/theory_bv_lazy.cpp
+  theory/bv/theory_bv_lazy.h
   theory/bv/theory_bv_rewrite_rules.h
   theory/bv/theory_bv_rewrite_rules_constant_evaluation.h
   theory/bv/theory_bv_rewrite_rules_core.h
@@ -427,6 +429,7 @@ libcvc4_add_sources(
   theory/bv/theory_bv_rewrite_rules_simplification.h
   theory/bv/theory_bv_rewriter.cpp
   theory/bv/theory_bv_rewriter.h
+  theory/bv/theory_bv_solver.h
   theory/bv/theory_bv_type_rules.h
   theory/bv/theory_bv_utils.cpp
   theory/bv/theory_bv_utils.h
