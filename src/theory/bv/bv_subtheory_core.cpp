@@ -104,8 +104,8 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
                                 bv->getOutputChannel())),
       d_reasons(c),
       d_needsLastCallCheck(false),
-      d_extf_range_infer(u),
-      d_extf_collapse_infer(u)
+      d_extf_range_infer(bv->getUserContext()),
+      d_extf_collapse_infer(bv->getUserContext())
 {
   d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
   d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
