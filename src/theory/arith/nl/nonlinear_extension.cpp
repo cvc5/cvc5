@@ -39,7 +39,8 @@ NonlinearExtension::NonlinearExtension(TheoryArith& containing,
       d_ee(ee),
       d_needsLastCall(false),
       d_checkCounter(0),
-      d_extTheory(&containing),
+      d_extTheoryCb(ee),
+      d_extTheory(&d_extTheoryCb, containing.getSatContext(), containing.getUserContext(), containing.getOutputChannel()),
       d_model(containing.getSatContext()),
       d_trSlv(d_model),
       d_nlSlv(containing, d_model),
@@ -65,101 +66,6 @@ void NonlinearExtension::preRegisterTerm(TNode n)
   // register terms with extended theory, to find extended terms that can be
   // eliminated by context-depedendent simplification.
   d_extTheory.registerTermRec(n);
-}
-
-bool NonlinearExtension::getCurrentSubstitution(
-    int effort,
-    const std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::map<Node, std::vector<Node>>& exp)
-{
-  // get the constant equivalence classes
-  std::map<Node, std::vector<int>> rep_to_subs_index;
-
-  bool retVal = false;
-  for (unsigned i = 0; i < vars.size(); i++)
-  {
-    Node n = vars[i];
-    if (d_ee->hasTerm(n))
-    {
-      Node nr = d_ee->getRepresentative(n);
-      if (nr.isConst())
-      {
-        subs.push_back(nr);
-        Trace("nl-subs") << "Basic substitution : " << n << " -> " << nr
-                         << std::endl;
-        exp[n].push_back(n.eqNode(nr));
-        retVal = true;
-      }
-      else
-      {
-        rep_to_subs_index[nr].push_back(i);
-        subs.push_back(n);
-      }
-    }
-    else
-    {
-      subs.push_back(n);
-    }
-  }
-
-  // return true if the substitution is non-trivial
-  return retVal;
-}
-
-std::pair<bool, Node> NonlinearExtension::isExtfReduced(
-    int effort, Node n, Node on, const std::vector<Node>& exp) const
-{
-  if (n != d_zero)
-  {
-    Kind k = n.getKind();
-    return std::make_pair(
-        k != NONLINEAR_MULT && !isTranscendentalKind(k) && k != IAND,
-        Node::null());
-  }
-  Assert(n == d_zero);
-  if (on.getKind() == NONLINEAR_MULT)
-  {
-    Trace("nl-ext-zero-exp")
-        << "Infer zero : " << on << " == " << n << std::endl;
-    // minimize explanation if a substitution+rewrite results in zero
-    const std::set<Node> vars(on.begin(), on.end());
-
-    for (unsigned i = 0, size = exp.size(); i < size; i++)
-    {
-      Trace("nl-ext-zero-exp")
-          << "  exp[" << i << "] = " << exp[i] << std::endl;
-      std::vector<Node> eqs;
-      if (exp[i].getKind() == EQUAL)
-      {
-        eqs.push_back(exp[i]);
-      }
-      else if (exp[i].getKind() == AND)
-      {
-        for (const Node& ec : exp[i])
-        {
-          if (ec.getKind() == EQUAL)
-          {
-            eqs.push_back(ec);
-          }
-        }
-      }
-
-      for (unsigned j = 0; j < eqs.size(); j++)
-      {
-        for (unsigned r = 0; r < 2; r++)
-        {
-          if (eqs[j][r] == d_zero && vars.find(eqs[j][1 - r]) != vars.end())
-          {
-            Trace("nl-ext-zero-exp")
-                << "...single exp : " << eqs[j] << std::endl;
-            return std::make_pair(true, eqs[j]);
-          }
-        }
-      }
-    }
-  }
-  return std::make_pair(true, Node::null());
 }
 
 void NonlinearExtension::sendLemmas(const std::vector<NlLemma>& out)

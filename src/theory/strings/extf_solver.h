@@ -226,7 +226,7 @@ class StringsExtfCallback : public ExtTheoryCallback
   bool getCurrentSubstitution(int effort,
                               const std::vector<Node>& vars,
                               std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp);
+                              std::map<Node, std::vector<Node> >& exp) override;
   /** The extended function solver */
   ExtfSolver* d_esolver;
 };
