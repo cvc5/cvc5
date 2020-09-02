@@ -73,7 +73,7 @@ class ProofNodeUpdater
   ProofNodeManager* d_pnm;
   /** The callback */
   ProofNodeUpdaterCallback& d_cb;
-  /** 
+  /**
    * Update proof node cur based on the callback. This modifies curr using
    * ProofNodeManager::updateNode based on the proof node constructed to
    * replace it by the callback.
