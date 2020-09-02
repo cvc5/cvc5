@@ -278,7 +278,7 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
   // Now, assert the fact. How to do so depends on whether proofs are enabled.
   // If no proof production, or no proof rule was given
   bool ret = false;
-  if (d_pfee == nullptr || id == PfRule::UNKNOWN)
+  if (d_pfee == nullptr)
   {
     if (atom.getKind() == kind::EQUAL)
     {
@@ -303,7 +303,12 @@ bool TheoryInferenceManager::processInternalFact(TNode atom,
     // optimize this so that a few less nodes are created, but at the cost
     // of a more verbose interface to proof equality engine.
     Node lit = pol ? Node(atom) : atom.notNode();
-    if (pg != nullptr)
+    if (id == PfRule::UNKNOWN)
+    {
+      // required for Boolean equalities (see ProofEqEngine)
+      ret = d_pfee->assertAssume(lit);
+    }
+    else if (pg != nullptr)
     {
       // use the proof generator interface
       ret = d_pfee->assertFact(lit, expn, pg);

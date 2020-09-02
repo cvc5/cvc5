@@ -1345,12 +1345,6 @@ bool TheoryArrays::preNotifyFact(
       }
     }
   }
-  // FIXME
-  if (!isInternal && atom.getKind()==EQUAL)
-  {
-    d_pfEqualityEngine->assertAssume(fact);
-    return true;
-  }
   return false;
 }
 
