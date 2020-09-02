@@ -700,10 +700,16 @@ std::vector<Node> ExtfSolver::getActive(Kind k) const
   return d_extt.getActive(k);
 }
 
-bool StringsExtfCallback::getCurrentSubstitution( int effort, std::vector< Node >& vars, 
-                                            std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort << std::endl;
-  for (const Node& v : vars){
+bool StringsExtfCallback::getCurrentSubstitution(
+    int effort,
+    std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node> >& exp)
+{
+  Trace("strings-subs") << "getCurrentSubstitution, effort = " << effort
+                        << std::endl;
+  for (const Node& v : vars)
+  {
     Trace("strings-subs") << "  get subs for " << v << "..." << std::endl;
     Node s = d_esolver->getCurrentSubstitutionFor(effort, v, exp[v]);
     subs.push_back(s);

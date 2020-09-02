@@ -78,7 +78,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
 
   // set up the extended function callback
   d_extTheoryCb.d_esolver = &d_esolver;
-  
+
   ProofChecker* pc = pnm != nullptr ? pnm->getChecker() : nullptr;
   if (pc != nullptr)
   {

@@ -35,7 +35,7 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 /**
  * Non-static information about an extended function t. This information is
  * constructed and used during the check extended function evaluation
@@ -217,16 +217,16 @@ class ExtfSolver
 /** An extended theory callback */
 class StringsExtfCallback : public ExtTheoryCallback
 {
-public:
-  StringsExtfCallback() : d_esolver(nullptr){}
-  /** 
+ public:
+  StringsExtfCallback() : d_esolver(nullptr) {}
+  /**
    * Get current substitution based on the underlying extended function
    * solver.
    */
   bool getCurrentSubstitution(int effort,
-                                      const std::vector<Node>& vars,
-                                      std::vector<Node>& subs,
-                                      std::map<Node, std::vector<Node> >& exp);
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp);
   /** The extended function solver */
   ExtfSolver* d_esolver;
 };

@@ -52,7 +52,7 @@ namespace theory {
 class ExtTheoryCallback
 {
  public:
-   virtual ~ExtTheoryCallback(){}
+  virtual ~ExtTheoryCallback() {}
   /*
    * Get current substitution at an effort
    * @param effort The effort identifier
