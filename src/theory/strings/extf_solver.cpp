@@ -702,7 +702,7 @@ std::vector<Node> ExtfSolver::getActive(Kind k) const
 
 bool StringsExtfCallback::getCurrentSubstitution(
     int effort,
-    std::vector<Node>& vars,
+    const std::vector<Node>& vars,
     std::vector<Node>& subs,
     std::map<Node, std::vector<Node> >& exp)
 {
