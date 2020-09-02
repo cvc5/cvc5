@@ -21,33 +21,20 @@ namespace CVC4 {
 namespace theory {
 namespace eq {
 
-void EqProof::debug_print(const char* c,
-                          unsigned tb,
-                          PrettyPrinter* prettyPrinter) const
+void EqProof::debug_print(const char* c, unsigned tb) const
 {
   std::stringstream ss;
-  debug_print(ss, tb, prettyPrinter);
+  debug_print(ss, tb);
   Debug(c) << ss.str();
 }
 
-void EqProof::debug_print(std::ostream& os,
-                          unsigned tb,
-                          PrettyPrinter* prettyPrinter) const
+void EqProof::debug_print(std::ostream& os, unsigned tb) const
 {
   for (unsigned i = 0; i < tb; i++)
   {
     os << "  ";
   }
-
-  if (prettyPrinter)
-  {
-    os << prettyPrinter->printTag(d_id);
-  }
-  else
-  {
-    os << static_cast<MergeReasonType>(d_id);
-  }
-  os << "(";
+  os << d_id << "(";
   if (d_children.empty() && d_node.isNull())
   {
     os << ")";
@@ -66,7 +53,7 @@ void EqProof::debug_print(std::ostream& os,
   for (unsigned i = 0; i < size; ++i)
   {
     os << std::endl;
-    d_children[i]->debug_print(os, tb + 1, prettyPrinter);
+    d_children[i]->debug_print(os, tb + 1);
     if (i < size - 1)
     {
       for (unsigned j = 0; j < tb + 1; ++j)
@@ -850,8 +837,7 @@ Node EqProof::addToProof(
                           << ", returning " << it->second << "\n";
     return it->second;
   }
-  Trace("eqproof-conv") << "EqProof::addToProof: adding step for "
-                        << static_cast<MergeReasonType>(d_id)
+  Trace("eqproof-conv") << "EqProof::addToProof: adding step for " << d_id
                         << " with conclusion " << d_node << "\n";
   // Assumption
   if (d_id == MERGED_THROUGH_EQUALITY)
@@ -976,12 +962,10 @@ Node EqProof::addToProof(
   {
     Assert(!d_node.isNull() && d_node.getKind() == kind::EQUAL
            && d_node[1].isConst())
-        << ". Conclusion " << d_node << " from "
-        << static_cast<MergeReasonType>(d_id)
+        << ". Conclusion " << d_node << " from " << d_id
         << " was expected to be (= (f t1 ... tn) c)\n";
     Assert(!assumptions.count(d_node))
-        << "Conclusion " << d_node << " from "
-        << static_cast<MergeReasonType>(d_id) << " is an assumption\n";
+        << "Conclusion " << d_node << " from " << d_id << " is an assumption\n";
     // The step has the form
     //  [(= t1 c1)] ... [(= tn cn)]
     //  ------------------------

@@ -81,6 +81,11 @@ class InferenceManager : public InferenceManagerBuffered
    * or processed internally.
    */
   void process();
+  /**
+   * Send lemmas with property NONE on the output channel immediately.
+   * Returns true if any lemma was sent.
+   */
+  bool sendLemmas(const std::vector<Node>& lemmas);
 };
 
 }  // namespace datatypes

@@ -624,7 +624,7 @@ bool TheoryArithPrivate::AssertLower(ConstraintP constraint){
     ConstraintP ubc = d_partialModel.getUpperBoundConstraint(x_i);
     ConstraintP negation = constraint->getNegation();
     negation->impliedByUnate(ubc, true);
-    
+
     raiseConflict(constraint);
 
     ++(d_statistics.d_statAssertLowerConflicts);
@@ -757,7 +757,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
   if(d_partialModel.greaterThanUpperBound(x_i, c_i) ){ // \upperbound(x_i) <= c_i
     return false; //sat
   }
-  
+
   // cmpToLb =  \lowerbound(x_i).cmp(c_i)
   int cmpToLB = d_partialModel.cmpToLowerBound(x_i, c_i);
   if( cmpToLB < 0 ){ //  \upperbound(x_i) < \lowerbound(x_i)
@@ -802,7 +802,7 @@ bool TheoryArithPrivate::AssertUpper(ConstraintP constraint){
         ++(d_statistics.d_statDisequalityConflicts);
         raiseConflict(eq);
         return true;
-      }      
+      }
     }
   }else if(cmpToLB > 0){
     // l <= x <= u and l < u
@@ -1291,8 +1291,10 @@ void TheoryArithPrivate::setupVariableList(const VarList& vl){
   }else{
     if (d_nonlinearExtension == nullptr)
     {
-      if( vlNode.getKind()==kind::EXPONENTIAL || vlNode.getKind()==kind::SINE || 
-          vlNode.getKind()==kind::COSINE || vlNode.getKind()==kind::TANGENT ){
+      if (vlNode.getKind() == kind::EXPONENTIAL
+          || vlNode.getKind() == kind::SINE || vlNode.getKind() == kind::COSINE
+          || vlNode.getKind() == kind::TANGENT)
+      {
         d_nlIncomplete = true;
       }
     }
@@ -1737,7 +1739,6 @@ ConstraintP TheoryArithPrivate::constraintFromFactQueue(){
   } else {
     Debug("arith::constraint") << "already has proof: " << constraint->externalExplainByAssertions() << endl;
   }
-  
 
   if(Debug.isOn("arith::negatedassumption") && inConflict){
     ConstraintP negation = constraint->getNegation();
@@ -1905,7 +1906,7 @@ void TheoryArithPrivate::outputConflicts(){
   Debug("arith::conflict") << "outputting conflicts" << std::endl;
   Assert(anyConflict());
   static unsigned int conflicts = 0;
-  
+
   if(!conflictQueueEmpty()){
     Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
@@ -1923,35 +1924,6 @@ void TheoryArithPrivate::outputConflicts(){
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
                                << " has proof: " << hasProof << endl;
-      PROOF(if (d_containing.d_proofRecorder && confConstraint->hasFarkasProof()
-                && pf.d_farkasCoefficients->size()
-                       == conflict.getNumChildren()) {
-        // The Farkas coefficients and the children of `conflict` seem to be in
-        // opposite orders... There is some relevant documentation in the
-        // comment for the d_farkasCoefficients field  in "constraint.h"
-        //
-        // Anyways, we reverse the children in `conflict` here.
-        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        for (size_t j = 0, nchildren = conflict.getNumChildren(); j < nchildren;
-             ++j)
-        {
-          conflictInFarkasCoefficientOrder
-              << conflict[conflict.getNumChildren() - j - 1];
-        }
-
-        if (Debug.isOn("arith::pf::tree")) {
-          confConstraint->printProofTree(Debug("arith::pf::tree"));
-          confConstraint->getNegation()->printProofTree(Debug("arith::pf::tree"));
-        }
-
-        Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
-        if (confConstraint->hasSimpleFarkasProof()
-            && confConstraint->getNegation()->isPossiblyTightenedAssumption())
-        {
-          d_containing.d_proofRecorder->saveFarkasCoefficients(
-              conflictInFarkasCoefficientOrder, pf.d_farkasCoefficients);
-        }
-      })
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -2190,7 +2162,6 @@ std::pair<ConstraintP, ArithVar> TheoryArithPrivate::replayGetConstraint(const D
       return make_pair(imp, added);
     }
   }
-  
 
   ConstraintP newc = d_constraintDatabase.getConstraint(v, t, dr);
   d_replayConstraints.push_back(newc);
@@ -2337,7 +2308,7 @@ void TheoryArithPrivate::tryBranchCut(ApproximateSimplex* approx, int nid, Branc
       // ConstraintCPVec& back = conflicts.back();
       // back.push_back(conflicting);
       // back.push_back(negConflicting);
-      
+
       // // remove the floor/ceiling contraint implied by bcneg
       // Constraint::assertionFringe(back);
     }
@@ -2375,14 +2346,15 @@ void TheoryArithPrivate::replayAssert(ConstraintP c) {
     }else{
       Debug("approx::replayAssert") << "replayAssert " << c << " has explanation" << endl;
     }
-    Debug("approx::replayAssert") << "replayAssertion " << c << endl;    
+    Debug("approx::replayAssert") << "replayAssertion " << c << endl;
     if(inConflict){
       raiseConflict(c);
     }else{
       assertionCases(c);
     }
   }else{
-    Debug("approx::replayAssert") << "replayAssert " << c << " already asserted" << endl;    
+    Debug("approx::replayAssert")
+        << "replayAssert " << c << " already asserted" << endl;
   }
 }
 
@@ -2551,7 +2523,7 @@ std::vector<ConstraintCPVec> TheoryArithPrivate::replayLogRec(ApproximateSimplex
 
         SimplexDecisionProcedure& simplex = selectSimplex(true);
         simplex.findModel(false);
-	// can change d_qflraStatus
+        // can change d_qflraStatus
 
         d_linEq.stopTrackingBoundCounts();
         d_partialModel.startQueueingBoundCounts();
@@ -3101,13 +3073,13 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
     << " " << useApprox
     << " " << safeToCallApprox()
     << endl;
-  
+
   bool noPivotLimitPass1 = noPivotLimit && !useApprox;
   d_qflraStatus = simplex.findModel(noPivotLimitPass1);
 
   Debug("TheoryArithPrivate::solveRealRelaxation")
     << "solveRealRelaxation()" << " pass1 " << d_qflraStatus << endl;
-  
+
   if(d_qflraStatus == Result::SAT_UNKNOWN && useApprox && safeToCallApprox()){
     // pass2: fancy-final
     static const int32_t relaxationLimit = 10000;
@@ -3275,7 +3247,6 @@ bool TheoryArithPrivate::solveRealRelaxation(Theory::Effort effortLevel){
 //   if(!useFancyFinal){
 //     d_qflraStatus = simplex.findModel(noPivotLimit);
 //   }else{
-    
 
 //     if(d_qflraStatus == Result::SAT_UNKNOWN){
 //       //Message() << "got sat unknown" << endl;
@@ -3711,7 +3682,7 @@ Node TheoryArithPrivate::branchIntegerVariable(ArithVar x) const {
     Integer ceil_d = d.ceiling();
     Rational f = r - floor_d;
     // Multiply by -1 to get abs value.
-    Rational c = (r - ceil_d) * (-1); 
+    Rational c = (r - ceil_d) * (-1);
     Integer nearest = (c > f) ? floor_d : ceil_d;
 
     // Prioritize trying a simple rounding of the real solution first,
@@ -4651,7 +4622,6 @@ bool TheoryArithPrivate::tryToPropagate(RowIndex ridx, bool rowUp, ArithVar v, b
 
     ConstraintP implied = d_constraintDatabase.getBestImpliedBound(v, t, bound);
     if(implied != NullConstraint){
-      
       return rowImplicationCanBeApplied(ridx, rowUp, implied);
     }
   }
@@ -4699,9 +4669,8 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
   if( !assertedToTheTheory && canBePropagated && !hasProof ){
     ConstraintCPVec explain;
-
-    PROOF(d_farkasBuffer.clear());
-    RationalVectorP coeffs = NULLPROOF(&d_farkasBuffer);
+    ARITH_PROOF(d_farkasBuffer.clear());
+    RationalVectorP coeffs = ARITH_NULLPROOF(&d_farkasBuffer);
 
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
@@ -4716,38 +4685,6 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
       }
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
-      PROOF(if (d_containing.d_proofRecorder
-                && coeffs != RationalVectorCPSentinel
-                && coeffs->size() == clause.getNumChildren()) {
-        Debug("arith::prop") << "implied    : " << implied << std::endl;
-        Debug("arith::prop") << "implication: " << implication << std::endl;
-        Debug("arith::prop") << "coeff len: " << coeffs->size() << std::endl;
-        Debug("arith::prop") << "exp    : " << explain << std::endl;
-        Debug("arith::prop") << "clause : " << clause << std::endl;
-        Debug("arith::prop")
-            << "clause len: " << clause.getNumChildren() << std::endl;
-        Debug("arith::prop") << "exp len: " << explain.size() << std::endl;
-        // Using the information from the above comment we assemble a conflict
-        // AND in coefficient order
-        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        conflictInFarkasCoefficientOrder << implication[1].negate();
-        for (const Node& antecedent : implication[0])
-        {
-          Debug("arith::prop") << "  ante: " << antecedent << std::endl;
-          conflictInFarkasCoefficientOrder << antecedent;
-        }
-
-        Assert(coeffs != RationalVectorPSentinel);
-        Assert(conflictInFarkasCoefficientOrder.getNumChildren()
-               == coeffs->size());
-        if (std::all_of(explain.begin(), explain.end(), [](ConstraintCP c) {
-              return c->isAssumption() || c->hasIntTightenProof();
-            }))
-        {
-          d_containing.d_proofRecorder->saveFarkasCoefficients(
-              conflictInFarkasCoefficientOrder, coeffs);
-        }
-      })
       outputLemma(clause);
     }else{
       Assert(!implied->negationHasProof());

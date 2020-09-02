@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "options/quantifiers_options.h"
-#include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/arith/arith_msum.h"
@@ -79,11 +78,14 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
     for( int i=0; i<(int)assertions.size(); i++ ){
       Trace("macros-debug") << "  process assertion " << assertions[i] << std::endl;
       if( processAssertion( assertions[i] ) ){
-        PROOF( 
-          if( std::find( macro_assertions.begin(), macro_assertions.end(), assertions[i] )==macro_assertions.end() ){
-            macro_assertions.push_back( assertions[i] );
-          }
-        );
+        if (options::unsatCores()
+            && std::find(macro_assertions.begin(),
+                         macro_assertions.end(),
+                         assertions[i])
+                   == macro_assertions.end())
+        {
+          macro_assertions.push_back(assertions[i]);
+        }
         //process this assertion again
         i--;
       }
@@ -98,17 +100,22 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
         if( curr!=assertions[i] ){
           curr = Rewriter::rewrite( curr );
           Trace("macros-rewrite") << "Rewrite " << assertions[i] << " to " << curr << std::endl;
-          //for now, it is dependent upon all assertions involving macros, this is an over-approximation.
-          //a more fine-grained unsat core computation would require caching dependencies for each subterm of the formula, 
-          // which is expensive.
-          PROOF(ProofManager::currentPM()->addDependence(curr, assertions[i]);
-                for (unsigned j = 0; j < macro_assertions.size(); j++) {
-                  if (macro_assertions[j] != assertions[i])
-                  {
-                    ProofManager::currentPM()->addDependence(
-                        curr, macro_assertions[j]);
-                  }
-                });
+          // for now, it is dependent upon all assertions involving macros, this
+          // is an over-approximation. a more fine-grained unsat core
+          // computation would require caching dependencies for each subterm of
+          // the formula, which is expensive.
+          if (options::unsatCores())
+          {
+            ProofManager::currentPM()->addDependence(curr, assertions[i]);
+            for (unsigned j = 0; j < macro_assertions.size(); j++)
+            {
+              if (macro_assertions[j] != assertions[i])
+              {
+                ProofManager::currentPM()->addDependence(curr,
+                                                         macro_assertions[j]);
+              }
+            }
+          }
           assertions[i] = curr;
           retVal = true;
         }
@@ -432,9 +439,9 @@ Node QuantifierMacros::simplify( Node n ){
           for( unsigned i=0; i<children.size(); i++ ){
             Node etc = TypeNode::getEnsureTypeCondition( children[i], tno[i] );
             if( etc.isNull() ){
-              //if this does fail, we are incomplete, since we are eliminating quantified formula corresponding to op, 
+              // if this does fail, we are incomplete, since we are eliminating
+              // quantified formula corresponding to op,
               //  and not ensuring it applies to n when its types are correct.
-              //Assert( false );
               success = false;
               break;
             }else if( !etc.isConst() ){
