@@ -522,8 +522,10 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
-              PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-
+              if (options::unsatCores())
+              {
+                ProofManager::currentPM()->addDependence(n, Node::null());
+              }
               SubstitutionMap nullMap(&fakeContext);
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
               status = te->solve(geq, nullMap);
@@ -591,9 +593,11 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Debug("miplib") << "  " << newAssertion << endl;
 
           assertionsToPreprocess->push_back(newAssertion);
-          PROOF(ProofManager::currentPM()->addDependence(newAssertion,
-                                                         Node::null()));
-
+          if (options::unsatCores())
+          {
+            ProofManager::currentPM()->addDependence(newAssertion,
+                                                     Node::null());
+          }
           Debug("miplib") << "  assertions to remove: " << endl;
           for (vector<TNode>::const_iterator k = asserts[pos_var].begin(),
                                              k_end = asserts[pos_var].end();

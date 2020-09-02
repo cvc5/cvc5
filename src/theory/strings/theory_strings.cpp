@@ -46,7 +46,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_state(c, u, d_valuation),
       d_termReg(d_state, out, d_statistics, nullptr),
       d_extTheory(this),
-      d_im(c, u, d_state, d_termReg, d_extTheory, out, d_statistics),
+      d_im(*this, d_state, d_termReg, d_extTheory, d_statistics, pnm),
       d_rewriter(&d_statistics.d_rewrites),
       d_bsolver(d_state, d_im),
       d_csolver(d_state, d_im, d_termReg, d_bsolver),
@@ -83,6 +83,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
   }
   // use the state object as the official theory state
   d_theoryState = &d_state;
+  // use the inference manager as the official inference manager
+  d_inferManager = &d_im;
 }
 
 TheoryStrings::~TheoryStrings() {
@@ -165,23 +167,6 @@ void TheoryStrings::notifySharedTerm(TNode t)
   Debug("strings") << "TheoryStrings::notifySharedTerm() finished" << std::endl;
 }
 
-EqualityStatus TheoryStrings::getEqualityStatus(TNode a, TNode b) {
-  if (d_equalityEngine->hasTerm(a) && d_equalityEngine->hasTerm(b))
-  {
-    if (d_equalityEngine->areEqual(a, b))
-    {
-      // The terms are implied to be equal
-      return EQUALITY_TRUE;
-    }
-    if (d_equalityEngine->areDisequal(a, b, false))
-    {
-      // The terms are implied to be dis-equal
-      return EQUALITY_FALSE;
-    }
-  }
-  return EQUALITY_UNKNOWN;
-}
-
 bool TheoryStrings::propagateLit(TNode literal)
 {
   Debug("strings-propagate")
@@ -252,23 +237,10 @@ void TheoryStrings::presolve() {
 // MODEL GENERATION
 /////////////////////////////////////////////////////////////////////////////
 
-bool TheoryStrings::collectModelInfo(TheoryModel* m)
+bool TheoryStrings::collectModelValues(TheoryModel* m,
+                                       const std::set<Node>& termSet)
 {
-  Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
-  Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
-
-  std::set<Node> termSet;
-
-  // Compute terms appearing in assertions and shared terms
-  computeRelevantTerms(termSet);
-  // assert the (relevant) portion of the equality engine to the model
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    Unreachable()
-        << "TheoryStrings::collectModelInfo: failed to assert equality engine"
-        << std::endl;
-    return false;
-  }
+  Trace("strings-model") << "TheoryStrings : Collect model values" << std::endl;
 
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > repSet;
   // Generate model
@@ -653,25 +625,68 @@ TrustNode TheoryStrings::expandDefinition(Node node)
   return TrustNode::null();
 }
 
-void TheoryStrings::check(Effort e) {
-  if (done() && e<EFFORT_FULL) {
-    return;
-  }
-
-  TimerStat::CodeTimer checkTimer(d_checkTime);
-
-  // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
-  Trace("strings-check-debug")
-      << "Theory of strings, check : " << e << std::endl;
-  while (!done() && !d_state.isInConflict())
+bool TheoryStrings::preNotifyFact(
+    TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
+{
+  // this is only required for internal facts, others are already registered
+  if (isInternal && atom.getKind() == EQUAL)
   {
-    // Get all the assertions
-    Assertion assertion = get();
-    TNode fact = assertion.d_assertion;
-
-    Trace("strings-assertion") << "get assertion: " << fact << endl;
-    d_im.sendAssumption(fact);
+    // we must ensure these terms are registered
+    for (const Node& t : atom)
+    {
+      // terms in the equality engine are already registered, hence skip
+      // currently done for only string-like terms, but this could potentially
+      // be avoided.
+      if (!d_equalityEngine->hasTerm(t) && t.getType().isStringLike())
+      {
+        d_termReg.registerTerm(t, 0);
+      }
+    }
   }
+  return false;
+}
+
+void TheoryStrings::notifyFact(TNode atom,
+                               bool polarity,
+                               TNode fact,
+                               bool isInternal)
+{
+  if (atom.getKind() == STRING_IN_REGEXP)
+  {
+    if (polarity && atom[1].getKind() == REGEXP_CONCAT)
+    {
+      Node eqc = d_equalityEngine->getRepresentative(atom[0]);
+      d_state.addEndpointsToEqcInfo(atom, atom[1], eqc);
+    }
+  }
+  // process pending conflicts due to reasoning about endpoints
+  if (!d_state.isInConflict())
+  {
+    Node pc = d_state.getPendingConflict();
+    if (!pc.isNull())
+    {
+      std::vector<Node> a;
+      a.push_back(pc);
+      Trace("strings-pending")
+          << "Process pending conflict " << pc << std::endl;
+      Node conflictNode = d_im.mkExplain(a);
+      Trace("strings-conflict")
+          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
+      ++(d_statistics.d_conflictsEagerPrefix);
+      d_im.conflict(conflictNode);
+      return;
+    }
+  }
+  Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
+  // Collect extended function terms in the atom. Notice that we must register
+  // all extended functions occurring in assertions and shared terms. We
+  // make a similar call to registerTermRec in TheoryStrings::addSharedTerm.
+  d_extTheory.registerTermRec(atom);
+  Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
+}
+
+void TheoryStrings::postCheck(Effort e)
+{
   d_im.doPendingFacts();
 
   Assert(d_strat.isStrategyInit());
@@ -680,8 +695,10 @@ void TheoryStrings::check(Effort e) {
   {
     Trace("strings-check-debug")
         << "Theory of strings " << e << " effort check " << std::endl;
-    if(Trace.isOn("strings-eqc")) {
-      for( unsigned t=0; t<2; t++ ) {
+    if (Trace.isOn("strings-eqc"))
+    {
+      for (unsigned t = 0; t < 2; t++)
+      {
         eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator(d_equalityEngine);
         Trace("strings-eqc") << (t==0 ? "STRINGS:" : "OTHER:") << std::endl;
         while( !eqcs2_i.isFinished() ){
@@ -725,7 +742,9 @@ void TheoryStrings::check(Effort e) {
       ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
-      // flush the facts
+      // Send the facts *and* the lemmas. We send lemmas regardless of whether
+      // we send facts since some lemmas cannot be dropped. Other lemmas are
+      // otherwise avoided by aborting the strategy when a fact is ready.
       addedFact = d_im.hasPendingFact();
       addedLemma = d_im.hasPendingLemma();
       d_im.doPendingFacts();

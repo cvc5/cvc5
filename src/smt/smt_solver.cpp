@@ -14,7 +14,6 @@
 
 #include "smt/smt_solver.h"
 
-#include "proof/theory_proof.h"
 #include "prop/prop_engine.h"
 #include "smt/assertions.h"
 #include "smt/preprocessor.h"
@@ -58,11 +57,6 @@ void SmtSolver::finishInit(const LogicInfo& logicInfo)
        ++id)
   {
     theory::TheoryConstructor::addTheory(d_theoryEngine.get(), id);
-    // register with proof engine if applicable
-#ifdef CVC4_PROOF
-    ProofManager::currentPM()->getTheoryProofEngine()->registerTheory(
-        d_theoryEngine->theoryOf(id));
-#endif
   }
 
   Trace("smt-debug") << "Making prop engine..." << std::endl;
@@ -197,7 +191,7 @@ Result SmtSolver::checkSatisfiability(Assertions& as,
 
   // set the filename on the result
   Result r = Result(result, filename);
-  
+
   // notify our state of the check-sat result
   d_state.notifyCheckSatResult(hasAssumptions, r);
 

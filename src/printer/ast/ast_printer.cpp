@@ -26,6 +26,7 @@
 #include "options/language.h"  // for LANG_AST
 #include "printer/dagification_visitor.h"
 #include "smt/command.h"
+#include "smt/node_command.h"
 #include "theory/substitutions.h"
 
 using namespace std;
@@ -156,7 +157,7 @@ void AstPrinter::toStream(std::ostream& out, const Model& m) const
 
 void AstPrinter::toStream(std::ostream& out,
                           const Model& m,
-                          const Command* c) const
+                          const NodeCommand* c) const
 {
   // shouldn't be called; only the non-Command* version above should be
   Unreachable();
