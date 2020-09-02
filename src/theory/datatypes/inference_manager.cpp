@@ -97,8 +97,7 @@ void InferenceManager::addPendingInference(Node conc,
                                            Node exp,
                                            ProofGenerator* pg)
 {
-  addPendingFact(std::unique_ptr<DatatypesInference>(
-      new DatatypesInference(conc, exp, pg)));
+  d_pendingFact.emplace_back(new DatatypesInference(conc, exp, pg));
 }
 
 void InferenceManager::process()

@@ -55,7 +55,7 @@ void InferenceManager::addPendingArithLemma(std::unique_ptr<ArithLemma> lemma,
   }
   else
   {
-    addPendingLemma(std::move(lemma));
+    d_pendingLem.emplace_back(std::move(lemma));
   }
 }
 void InferenceManager::addPendingArithLemma(const ArithLemma& lemma,
@@ -77,7 +77,7 @@ void InferenceManager::flushWaitingLemmas()
 {
   for (auto& lem : d_waitingLem)
   {
-    addPendingLemma(std::move(lem));
+    d_pendingLem.emplace_back(std::move(lem));
   }
   d_waitingLem.clear();
 }
