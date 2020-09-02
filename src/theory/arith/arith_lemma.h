@@ -22,6 +22,7 @@
 #include "theory/arith/nl/inference.h"
 #include "theory/inference_manager_buffered.h"
 #include "theory/output_channel.h"
+#include "theory/theory_inference.h"
 
 namespace CVC4 {
 namespace theory {
@@ -29,7 +30,7 @@ namespace arith {
 
 /**
  * The data structure for a single lemma to process by the arithmetic theory,
- * derived from theory::Lemma.
+ * derived from theory::SimpleTheoryLemma.
  *
  * This also includes the inference type that produced this lemma and data
  * structures that encapsulate the side effect of adding this lemma in the
@@ -38,17 +39,17 @@ namespace arith {
  * - A set of secant points to record (for transcendental secant plane
  * inferences).
  */
-class ArithLemma : public Lemma
+class ArithLemma : public SimpleTheoryLemma
 {
  public:
   ArithLemma(Node n,
              LemmaProperty p,
              ProofGenerator* pg,
              nl::Inference inf = nl::Inference::UNKNOWN)
-      : Lemma(n, p, pg), d_inference(inf)
+      : SimpleTheoryLemma(n, p, pg), d_inference(inf)
   {
   }
-  ~ArithLemma() {}
+  virtual ~ArithLemma() {}
 
   /** The inference id for the lemma */
   nl::Inference d_inference;
