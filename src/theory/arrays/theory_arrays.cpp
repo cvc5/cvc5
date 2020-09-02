@@ -130,7 +130,6 @@ TheoryArrays::TheoryArrays(context::Context* c,
 
   // indicate we are using the default theory state object
   d_theoryState = &d_state;
-  d_needsSharedTermEqFacts = false;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -849,6 +848,7 @@ void TheoryArrays::notifySharedTerm(TNode t)
   Debug("arrays::sharing") << spaces(getSatContext()->getLevel())
                            << "TheoryArrays::notifySharedTerm(" << t << ")"
                            << std::endl;
+  d_equalityEngine->addTriggerTerm(t, THEORY_ARRAYS);
   if (t.getType().isArray()) {
     d_sharedArrays.insert(t);
   }
