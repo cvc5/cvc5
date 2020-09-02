@@ -31,38 +31,42 @@ InferenceManager::InferenceManager(Theory& t,
 {
 }
 
-bool InferenceManager::assertInference(TNode eq,
+bool InferenceManager::assertInference(TNode atom,
                                        bool polarity,
                                        TNode reason,
-                                       PfRule r)
+                                       PfRule id)
 {
   Trace("arrays-infer") << "TheoryArrays::assertInference: "
-                        << (polarity ? Node(eq) : eq.notNode()) << " by "
-                        << reason << "; " << r << std::endl;
-  Assert(eq.getKind() == EQUAL);
-  if (options::proofNew())
+                        << (polarity ? Node(atom) : atom.notNode()) << " by "
+                        << reason << "; " << id << std::endl;
+  Assert(atom.getKind() == EQUAL);
+  // if proofs are enabled, we determine which proof rule to add, otherwise
+  // we simply assert the internal fact
+  if (isProofEnabled())
   {
-    Node fact = polarity ? Node(eq) : eq.notNode();
+    Node fact = polarity ? Node(atom) : atom.notNode();
+    std::vector<Node> children;
     std::vector<Node> args;
-    switch (r)
+    switch (id)
     {
       case PfRule::MACRO_SR_PRED_INTRO: args.push_back(fact); break;
       case PfRule::ARRAYS_READ_OVER_WRITE_1:
         Assert(polarity);
-        args.push_back(eq[0]);
+        args.push_back(atom[0]);
         break;
       case PfRule::ARRAYS_READ_OVER_WRITE:
       case PfRule::ARRAYS_EXT:
       default:
+        children.push_back(reason);
         args.push_back(fact);
-        r = PfRule::ARRAYS_TRUST;
+        id = PfRule::ARRAYS_TRUST;
         break;
     }
-    // FIXME
-    // return d_pfee->assertFact(fact, r, reason, args);
+    // note that children must contain something equivalent to reason,
+    // regardless of the PfRule.
+    return assertInternalFact(atom, polarity, id, children, args);
   }
-  // FIXME
-  return d_ee->assertEquality(eq, polarity, reason);
+  return assertInternalFact(atom, polarity, reason);
 }
 
 }  // namespace arrays

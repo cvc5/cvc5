@@ -80,6 +80,7 @@ TheoryArrays::TheoryArrays(context::Context* c,
       d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
       d_state(c, u, valuation),
+      d_im(*this, d_state, pnm),
       d_literalsToPropagate(c),
       d_literalsToPropagateIndex(c, 0),
       d_isPreRegistered(c),
@@ -134,8 +135,10 @@ TheoryArrays::TheoryArrays(context::Context* c,
   {
     d_pchecker.registerTo(pc);
   }
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state object, and the arrays
+  // inference manager
   d_theoryState = &d_state;
+  //d_inferManager = &d_im;
 }
 
 TheoryArrays::~TheoryArrays() {
@@ -843,6 +846,7 @@ void TheoryArrays::explain(TNode literal, Node& explanation)
 TrustNode TheoryArrays::explain(TNode literal)
 {
   return d_pfEqualityEngine->explain(literal);
+  // return d_im.explainLit(literal);
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -1329,7 +1333,7 @@ void TheoryArrays::postCheck(Effort level)
 bool TheoryArrays::preNotifyFact(
     TNode atom, bool pol, TNode fact, bool isPrereg, bool isInternal)
 {
-  if (!isPrereg)
+  if (!isInternal && !isPrereg)
   {
     if (atom.getKind() == kind::EQUAL)
     {
@@ -1353,6 +1357,9 @@ void TheoryArrays::notifyFact(TNode atom, bool pol, TNode fact, bool isInternal)
   // if a disequality
   if (atom.getKind() == kind::EQUAL && !pol)
   {
+    // Notice that we this should be an external assertion, since we do not
+    // internally infer disequalities.
+    Assert (!isInternal);
     // Apply ArrDiseq Rule if diseq is between arrays
     if (fact[0][0].getType().isArray() && !d_state.isInConflict())
     {
@@ -2064,6 +2071,8 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   {
     tconf = d_pfEqualityEngine->assertConflict(a.eqNode(b));
     d_conflictNode = tconf.getNode();
+    // d_im.conflictEqConstantMerge(a,b);
+    //return;
   }
   else
   {

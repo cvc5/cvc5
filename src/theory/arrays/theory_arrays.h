@@ -28,6 +28,7 @@
 #include "theory/arrays/array_info.h"
 #include "theory/arrays/proof_checker.h"
 #include "theory/arrays/theory_arrays_rewriter.h"
+#include "theory/arrays/inference_manager.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/proof_equality_engine.h"
@@ -188,6 +189,8 @@ class TheoryArrays : public Theory {
   TheoryArraysRewriter d_rewriter;
   /** A (default) theory state object */
   TheoryState d_state;
+  /** The arrays inference manager */
+  InferenceManager d_im;
 
  public:
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;

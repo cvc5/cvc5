@@ -42,6 +42,7 @@ PR finished:
 (42) Strings proof checker (req 5, 17, 22, 45, 65)
 (45) regexp operation refactor (req 3, 7, 8)
 (46) term context core utilities
+(47) TheoryUF proof producing (req 24, 39, 90)
 (48) remove snorm option
 (49) re elim static
 (50) term formula removal proof producing (req 36, 38, 51, 64)
@@ -63,7 +64,9 @@ PR finished:
 (76) further generalization of eq_proof conversion [Haniel]
 (77) update rule for CONG (req 76)
 (79) term context extended utilities (req 46)
+(80) generalize TConvProofGenerator for term contexts (req 79)
 (84) SMT engine proof post-processor (req 63)
+(86) builtin proof checker updates including theory rewrite is a trusted rule
 (87) Delete old proof code [Haniel]
 (89) combination engine proof producing
 (90) inference manager uses pfee
@@ -71,14 +74,13 @@ PR finished:
 
 PRs ready:
 
+(41) SharedTermDatabase uses pfee (req 24)
 (43) strings InferProofCons (req 13, 18, 26, 34, 42, 65, 86) *
-(47) TheoryUF proof producing (req 24, 39, 90)
 (53) CNF proof producing [Haniel]
 (70) rewriter unit test [Andres] (req 36, 37)
 (71) quantifiers proof producing (req 38, 52, 87)
-(80) generalize TConvProofGenerator for term contexts (req 79) *
+(81) update term formula removal to use term context (req 79, 80)
 (82) SmtEngine proof manager (req 84, 87, 93)
-(86) builtin proof checker updates including theory rewrite is a trusted rule *
 (88) fixes for smt preprocess proof generator
 (91) Basic connections for proof producing TheoryEngine
 (93) updates to proof node updater (req 86)
@@ -88,14 +90,12 @@ PRs future:
 
 (29) arithmetic proof producing [Alex] (req 24, 25)
 (31) update strings inference manager to use ProofEqEngine (req 24, 26, 43, cee-strings)
-(41) SharedTermDatabase uses pfee (req 24)
 (44) TheoryEngine explanation proof producing (req 12, 40, 41, 87, 91)
 (54) DSL rewrite rule
 (55) DSL rewrite rule term processor
 (56) DSL rewrite rule database (req 54)
 (58) DSL rewrite rule proof generator (req 57)
 (68) PropEngine proof producing [Haniel] (req 53)
-(81) update term formula removal to use term context (req 79, 80)
 (83) DSL rewrite rule compilation, including side condition utility [Andres] (req 56)
 (85) SmtEngine check proofs (req 68, 82)
 

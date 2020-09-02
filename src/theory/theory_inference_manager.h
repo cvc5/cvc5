@@ -76,6 +76,11 @@ class TheoryInferenceManager
    * of theory.
    */
   void setEqualityEngine(eq::EqualityEngine* ee);
+  /** 
+   * Are proofs enabled in this inference manager? Returns true if the proof
+   * node manager pnm provided to the constructor of this class was non-null.
+   */
+  bool isProofEnabled() const;
   /**
    * Reset, which resets counters regarding the number of added lemmas and
    * internal facts. This method should be manually called by the theory at
