@@ -368,9 +368,7 @@ class TheoryEngine {
   /**
    * Get a pointer to the underlying sat context.
    */
-  context::Context* getSatContext() const {
-    return d_context;
-  }
+  context::Context* getSatContext() const { return d_context; }
 
   /**
    * Get a pointer to the underlying user context.
