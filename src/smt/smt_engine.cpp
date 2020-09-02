@@ -139,6 +139,7 @@ SmtEngine::SmtEngine(ExprManager* em, Options* optr)
       d_snmListener(new SmtNodeManagerListener(*d_dumpm.get())),
       d_smtSolver(nullptr),
       d_proofManager(nullptr),
+      d_pfManager(nullptr),
       d_rewriter(new theory::Rewriter()),
       d_definedFunctions(nullptr),
       d_sygusSolver(nullptr),
@@ -261,6 +262,20 @@ void SmtEngine::finishInit()
   // manager based on the options, and sets up the best default options
   // based on our heuristics.
   d_optm->finishInit(d_logic, d_isInternalSubsolver);
+
+  ProofNodeManager* pnm = nullptr;
+  if (options::proofNew())
+  {
+    d_pfManager.reset(new PfManager(this));
+    // use this proof node manager
+    pnm = d_pfManager->getProofNodeManager();
+    // enable proof support in the rewriter
+    d_rewriter->setProofNodeManager(pnm);
+    // enable it in the assertions pipeline
+    d_asserts->setProofGenerator(d_pfManager->getPreprocessProofGenerator());
+    // enable it in the SmtSolver
+    d_smtSolver->setProofNodeManager(pnm);
+  }
 
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   d_smtSolver->finishInit(const_cast<const LogicInfo&>(d_logic));
