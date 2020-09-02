@@ -3148,8 +3148,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
 }
 
 std::vector<Sort> Solver::mkDatatypeSortsInternal(
-    std::vector<DatatypeDecl>& dtypedecls,
-    std::set<Sort>& unresolvedSorts) const
+    const std::vector<DatatypeDecl>& dtypedecls,
+    const std::set<Sort>& unresolvedSorts) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3367,8 +3367,9 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
-                                          std::set<Sort>& unresolvedSorts) const
+std::vector<Sort> Solver::mkDatatypeSorts(
+    const std::vector<DatatypeDecl>& dtypedecls,
+    const std::set<Sort>& unresolvedSorts) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);

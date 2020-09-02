@@ -1,6 +1,7 @@
 # import dereference and increment operators
 from cython.operator cimport dereference as deref, preincrement as inc
 from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
+from libcpp.set cimport set
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
@@ -27,6 +28,12 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term getConstructorTerm(const string& name) except +
         size_t getNumConstructors() except +
         bint isParametric() except +
+        bint isCodatatype() except +
+        bint isTuple() except +
+        bint isRecord() except +
+        bint isFinite() except +
+        bint isWellFounded() except +
+        bint hasNestedRecursion() except +
         string toString() except +
         cppclass const_iterator:
             const_iterator() except +
@@ -127,6 +134,8 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Sort mkBitVectorSort(uint32_t size) except +
         Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) except +
         Sort mkDatatypeSort(DatatypeDecl dtypedecl) except +
+        vector[Sort] mkDatatypeSorts(const vector[DatatypeDecl]& dtypedecls,
+                                     const set[Sort]& unresolvedSorts) except +
         Sort mkFunctionSort(Sort domain, Sort codomain) except +
         Sort mkFunctionSort(const vector[Sort]& sorts, Sort codomain) except +
         Sort mkParamSort(const string& symbol) except +
@@ -313,6 +322,7 @@ cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
         Term()
         bint operator==(const Term&) except +
         bint operator!=(const Term&) except +
+        Term operator[](size_t idx) except +
         Kind getKind() except +
         Sort getSort() except +
         Term substitute(const vector[Term] es, const vector[Term] & reps) except +
