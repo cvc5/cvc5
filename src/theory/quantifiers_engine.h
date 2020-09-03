@@ -57,9 +57,7 @@ class QuantifiersEngine {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantifiersEngine(context::Context* c,
-                    context::UserContext* u,
-                    TheoryEngine* te,
+  QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
