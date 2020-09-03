@@ -31,6 +31,23 @@ namespace theory {
 namespace bv {
 
 class Base;
+
+/** An extended theory callback used by the core solver */
+class CoreSolverExtTheoryCallback : public ExtTheoryCallback
+{
+ public:
+  CoreSolverExtTheoryCallback() : d_equalityEngine(nullptr) {}
+  /** Get current substitution based on the underlying equality engine. */
+  bool getCurrentSubstitution(int effort,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  /** Get reduction. */
+  bool getReduction(int effort, Node n, Node& nr, bool& satDep) override;
+  /** The underlying equality engine */
+  eq::EqualityEngine* d_equalityEngine;
+};
+
 /**
  * Bitvector equality solver
  */
@@ -83,8 +100,10 @@ class CoreSolver : public SubtheorySolver {
   TheoryBV* d_bv;
   /** Pointer to the equality engine of the parent */
   eq::EqualityEngine* d_equalityEngine;
-  /** Pointer to the extended theory module. */
-  ExtTheory* d_extTheory;
+  /** The extended theory callback */
+  CoreSolverExtTheoryCallback d_extTheoryCb;
+  /** Extended theory module, for context-dependent simplification. */
+  std::unique_ptr<ExtTheory> d_extTheory;
 
   /** To make sure we keep the explanations */
   context::CDHashSet<Node, NodeHashFunction> d_reasons;
@@ -96,8 +115,38 @@ class CoreSolver : public SubtheorySolver {
   bool isCompleteForTerm(TNode term, TNodeBoolMap& seen);
   Statistics d_statistics;
 
+  /** Whether we need a last call effort check */
+  bool d_needsLastCallCheck;
+  /** For extended functions */
+  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
+  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
+
+  /** do extended function inferences
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reasoning about extended functions, such as bv2nat and int2bv. Examples
+   * of lemmas added by this method include:
+   *   0 <= ((_ int2bv w) x) < 2^w
+   *   ((_ int2bv w) (bv2nat x)) = x
+   *   (bv2nat ((_ int2bv w) x)) == x + k*2^w
+   * The purpose of these lemmas is to recognize easy conflicts before fully
+   * reducing extended functions based on their full semantics.
+   */
+  bool doExtfInferences(std::vector<Node>& terms);
+  /** do extended function reductions
+   *
+   * This method adds lemmas on the output channel of TheoryBV based on
+   * reducing all extended function applications that are preregistered to
+   * this theory and have not already been reduced by context-dependent
+   * simplification (see theory/ext_theory.h). Examples of lemmas added by
+   * this method include:
+   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
+   *                (ite ((_ extract 1 0) x) 1 0)
+   */
+  bool doExtfReductions(std::vector<Node>& terms);
+
  public:
-  CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt);
+  CoreSolver(context::Context* c, TheoryBV* bv);
   ~CoreSolver();
   bool needsEqualityEngine(EeSetupInfo& esi);
   void finishInit();
@@ -111,8 +160,10 @@ class CoreSolver : public SubtheorySolver {
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   bool hasTerm(TNode node) const;
   void addTermToEqualityEngine(TNode node);
+  /** check extended functions at the given effort */
+  void checkExtf(Theory::Effort e);
+  bool needsCheckLastEffort() const;
 };
-
 
 }
 }
