@@ -36,11 +36,11 @@ TheoryBV::TheoryBV(context::Context* c,
       d_ufRemByZero(),
       d_rewriter(),
       d_state(c, u, valuation),
-      d_infer(*this, d_state, pnm)
+      d_inferMgr(*this, d_state, pnm)
 {
   d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
   d_theoryState = &d_state;
-  d_inferManager = &d_infer;
+  d_inferManager = &d_inferMgr;
 }
 
 TheoryBV::~TheoryBV() {}

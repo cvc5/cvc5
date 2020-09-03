@@ -32,8 +32,6 @@ class BVSolver;
 
 class TheoryBV : public Theory
 {
-  friend class BVSolver;
-
   /* TheoryBVLazy accesses methods from theory in a way that is deprecated and
    * will be removed in the future. For now we allow direct access. */
   friend class BVSolverLazy;
@@ -117,7 +115,7 @@ class TheoryBV : public Theory
   TheoryState d_state;
 
   /** A (default) theory inference manager. */
-  TheoryInferenceManager d_infer;
+  TheoryInferenceManager d_inferMgr;
 
 }; /* class TheoryBV */
 

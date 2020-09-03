@@ -42,7 +42,7 @@ BVSolverLazy::BVSolverLazy(TheoryBV& bv,
                            context::UserContext* u,
                            ProofNodeManager* pnm,
                            std::string name)
-    : BVSolver(bv),
+    : BVSolver(bv.d_state, bv.d_inferMgr),
       d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
@@ -123,13 +123,14 @@ void BVSolverLazy::spendResource(ResourceManager::Resource r)
 }
 
 BVSolverLazy::Statistics::Statistics()
-    : d_avgConflictSize("theory::bv::AvgBVConflictSize"),
-      d_solveSubstitutions("theory::bv::NumSolveSubstitutions", 0),
-      d_solveTimer("theory::bv::solveTimer"),
-      d_numCallsToCheckFullEffort("theory::bv::NumFullCheckCalls", 0),
-      d_numCallsToCheckStandardEffort("theory::bv::NumStandardCheckCalls", 0),
-      d_weightComputationTimer("theory::bv::weightComputationTimer"),
-      d_numMultSlice("theory::bv::NumMultSliceApplied", 0)
+    : d_avgConflictSize("theory::bv::lazy::AvgBVConflictSize"),
+      d_solveSubstitutions("theory::bv::lazy::NumSolveSubstitutions", 0),
+      d_solveTimer("theory::bv::lazy::solveTimer"),
+      d_numCallsToCheckFullEffort("theory::bv::lazy::NumFullCheckCalls", 0),
+      d_numCallsToCheckStandardEffort("theory::bv::lazy::NumStandardCheckCalls",
+                                      0),
+      d_weightComputationTimer("theory::bv::lazy::weightComputationTimer"),
+      d_numMultSlice("theory::bv::lazy::NumMultSliceApplied", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_avgConflictSize);
   smtStatisticsRegistry()->registerStat(&d_solveSubstitutions);
@@ -155,7 +156,7 @@ void BVSolverLazy::preRegisterTerm(TNode node)
 {
   d_calledPreregister = true;
   Debug("bitvector-preregister")
-      << "TheoryBVLazy::preRegister(" << node << ")" << std::endl;
+      << "BVSolverLazy::preRegister(" << node << ")" << std::endl;
 
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
@@ -193,7 +194,7 @@ void BVSolverLazy::sendConflict()
   }
   else
   {
-    Debug("bitvector") << indent() << "TheoryBVLazy::check(): conflict "
+    Debug("bitvector") << indent() << "BVSolverLazy::check(): conflict "
                        << d_conflictNode << std::endl;
     d_inferManager.conflict(d_conflictNode);
     d_statistics.d_avgConflictSize.addEntry(d_conflictNode.getNumChildren());
@@ -258,7 +259,7 @@ void BVSolverLazy::check(Theory::Effort e)
     return;
   }
 
-  Debug("bitvector") << "TheoryBVLazy::check(" << e << ")" << std::endl;
+  Debug("bitvector") << "BVSolverLazy::check(" << e << ")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_statistics.d_solveTimer);
   // we may be getting new assertions so the model cache may not be sound
   d_invalidateModelCache.set(true);
@@ -402,7 +403,7 @@ Node BVSolverLazy::getModelValue(TNode var)
 
 void BVSolverLazy::propagate(Theory::Effort e)
 {
-  Debug("bitvector") << indent() << "TheoryBVLazy::propagate()" << std::endl;
+  Debug("bitvector") << indent() << "BVSolverLazy::propagate()" << std::endl;
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     return;
@@ -423,7 +424,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
     if (d_state.isSatLiteral(literal))
     {
       Debug("bitvector::propagate")
-          << "TheoryBVLazy:: propagating " << literal << "\n";
+          << "BVSolverLazy:: propagating " << literal << "\n";
       ok = d_inferManager.propagateLit(literal);
     }
   }
@@ -431,7 +432,7 @@ void BVSolverLazy::propagate(Theory::Effort e)
   if (!ok)
   {
     Debug("bitvector::propagate")
-        << indent() << "TheoryBVLazy::propagate(): conflict from theory engine"
+        << indent() << "BVSolverLazy::propagate(): conflict from theory engine"
         << std::endl;
     setConflict();
   }
@@ -521,7 +522,7 @@ Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
 
 TrustNode BVSolverLazy::ppRewrite(TNode t)
 {
-  Debug("bv-pp-rewrite") << "TheoryBVLazy::ppRewrite " << t << "\n";
+  Debug("bv-pp-rewrite") << "BVSolverLazy::ppRewrite " << t << "\n";
   Node res = t;
   if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t))
   {
@@ -618,7 +619,7 @@ TrustNode BVSolverLazy::ppRewrite(TNode t)
 
 void BVSolverLazy::presolve()
 {
-  Debug("bitvector") << "TheoryBVLazy::presolve" << endl;
+  Debug("bitvector") << "BVSolverLazy::presolve" << std::endl;
 }
 
 static int prop_count = 0;
@@ -626,7 +627,7 @@ static int prop_count = 0;
 bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
 {
   Debug("bitvector::propagate") << indent() << d_context->getLevel() << " "
-                                << "TheoryBVLazy::storePropagation(" << literal
+                                << "BVSolverLazy::storePropagation(" << literal
                                 << ", " << subtheory << ")" << std::endl;
   prop_count++;
 
@@ -634,7 +635,7 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   if (d_conflict)
   {
     Debug("bitvector::propagate")
-        << indent() << "TheoryBVLazy::storePropagation(" << literal << ", "
+        << indent() << "BVSolverLazy::storePropagation(" << literal << ", "
         << subtheory << "): already in conflict" << std::endl;
     return false;
   }
@@ -679,7 +680,7 @@ bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
   }
   return ok;
 
-} /* TheoryBVLazy::propagate(TNode) */
+} /* BVSolverLazy::propagate(TNode) */
 
 void BVSolverLazy::explain(TNode literal, std::vector<TNode>& assumptions)
 {
@@ -691,7 +692,7 @@ void BVSolverLazy::explain(TNode literal, std::vector<TNode>& assumptions)
 TrustNode BVSolverLazy::explain(TNode node)
 {
   Debug("bitvector::explain")
-      << "TheoryBVLazy::explain(" << node << ")" << std::endl;
+      << "BVSolverLazy::explain(" << node << ")" << std::endl;
   std::vector<TNode> assumptions;
 
   // Ask for the explanation
@@ -707,16 +708,16 @@ TrustNode BVSolverLazy::explain(TNode node)
     // return the explanation
     explanation = utils::mkAnd(assumptions);
   }
-  Debug("bitvector::explain") << "TheoryBVLazy::explain(" << node << ") => "
+  Debug("bitvector::explain") << "BVSolverLazy::explain(" << node << ") => "
                               << explanation << std::endl;
-  Debug("bitvector::explain") << "TheoryBVLazy::explain done. \n";
+  Debug("bitvector::explain") << "BVSolverLazy::explain done. \n";
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
 void BVSolverLazy::notifySharedTerm(TNode t)
 {
   Debug("bitvector::sharing")
-      << indent() << "TheoryBVLazy::notifySharedTerm(" << t << ")" << std::endl;
+      << indent() << "BVSolverLazy::notifySharedTerm(" << t << ")" << std::endl;
   d_sharedTermsSet.insert(t);
   if (options::bitvectorEqualitySolver())
   {

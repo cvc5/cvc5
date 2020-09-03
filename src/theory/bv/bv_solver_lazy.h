@@ -25,6 +25,7 @@
 #include "context/context.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/bv_subtheory.h"
+#include "theory/bv/theory_bv.h"
 #include "util/hash.h"
 
 namespace CVC4 {
@@ -35,9 +36,7 @@ class CoreSolver;
 class InequalitySolver;
 class AlgebraicSolver;
 class BitblastSolver;
-
 class EagerBitblastSolver;
-
 class AbstractionModule;
 
 class BVSolverLazy : public BVSolver
