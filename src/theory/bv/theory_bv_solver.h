@@ -30,7 +30,7 @@ class TheoryBVSolver
 {
  public:
   TheoryBVSolver(TheoryBV& bv)
-      : d_bv(bv), d_state(bv.d_state), d_inferManager(*bv.d_inferManager){};
+      : d_bv(bv), d_state(bv.d_state), d_inferManager(bv.d_infer){};
 
   virtual ~TheoryBVSolver(){};
 
@@ -77,7 +77,7 @@ class TheoryBVSolver
   {
     Unimplemented()
         << "TheoryBVSolver propagated a node but doesn't implement the "
-           "Theory::explain() interface!";
+           "TheoryBVSolver::explain() interface!";
     return TrustNode::null();
   };
 

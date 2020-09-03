@@ -124,6 +124,9 @@ class TheoryBV : public Theory
   /** A (default) theory state object */
   TheoryState d_state;
 
+  /** A (default) theory inference manager. */
+  TheoryInferenceManager d_infer;
+
 }; /* class TheoryBV */
 
 }  // namespace bv
