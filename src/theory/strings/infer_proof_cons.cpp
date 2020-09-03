@@ -649,8 +649,6 @@ void InferProofCons::convert(Inference infer,
       }
     }
     break;
-    // ========================== Cardinality
-    case Inference::CARDINALITY: break;
     // ========================== code injectivity
     case Inference::CODE_INJ:
     {
@@ -827,20 +825,22 @@ void InferProofCons::convert(Inference infer,
       }
     }
     break;
-    // ========================== unknown
+    // ========================== unknown and currently unsupported
+    case Inference::CARDINALITY:
     case Inference::I_CYCLE_E:
     case Inference::I_CYCLE:
     case Inference::RE_DELTA:
     case Inference::RE_DELTA_CONF:
     case Inference::RE_DERIVE:
     case Inference::FLOOP:
-    case Inference::FLOOP_CONFLICT: break;
-
-    // inferences that are not yet supported
+    case Inference::FLOOP_CONFLICT:
     case Inference::DEQ_NORM_EMP:
     case Inference::CTN_TRANS:
     case Inference::CTN_DECOMPOSE:
-    default: break;
+    default:
+      // do nothing, these will be converted to STRINGS_TRUST below since the
+      // rule is unknown.
+      break;
   }
 
   // now see if we would succeed with the checker-to-try
@@ -904,7 +904,7 @@ void InferProofCons::convert(Inference infer,
       {
         serr << "    e: " << ec << std::endl;
       }
-      AlwaysAssert(false) << serr.str();
+      Unhandled() << serr.str();
     }
   }
   if (Trace.isOn("strings-ipc-debug"))
