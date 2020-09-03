@@ -205,7 +205,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
       dlds = itds->second.get();
     }
     // it is appended to the list of strategies
-    d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
+    d_quantEngine->getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, dlds);
     return true;
   }else{
