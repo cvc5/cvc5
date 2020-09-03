@@ -18,10 +18,18 @@
  ** Tr(x) = fresh_x for every bit-vector variable x, where fresh_x is a fresh
  **         integer variable.
  ** Tr(c) = the integer value of c, for any bit-vector constant c.
- ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of 
+ ** Tr((bvadd s t)) = Tr(s) + Tr(t) mod 2^k, where k is the bit width of
  **         s and t.
  ** Similar transformations are done for bvmul, bvsub, bvudiv, bvurem, bvneg,
  **         bvnot, bvconcat, bvextract
+ ** Tr((_ zero_extend m) x) = Tr(x)
+ ** Tr((_ sign_extend m) x) = ite(msb(x)=0, x, 2^k*(2^m-1) + x))
+ ** explanation: if the msb is 0, this is the same as zero_extend,
+ ** which does not change the integer value.
+ ** If the msb is 1, then the result should correspond to
+ ** concat(1...1, x), with m 1's.
+ ** m 1's is 2^m-1, and multiplying it by x's width (k) moves it
+ ** to the front.
  **
  ** Tr((bvand s t)) depends on the granularity, which is provided by the user
  ** when enabling this preprocessing pass.

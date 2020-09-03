@@ -235,7 +235,7 @@ void SynthConjecture::assign(Node q)
                                     d_feasible_guard,
                                     d_qe->getSatContext(),
                                     d_qe->getValuation()));
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+  d_qe->getDecisionManager()->registerStrategy(
       DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
@@ -255,7 +255,7 @@ void SynthConjecture::assign(Node q)
   {
     d_stream_strategy.reset(new SygusStreamDecisionStrategy(
         d_qe->getSatContext(), d_qe->getValuation()));
-    d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+    d_qe->getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
         d_stream_strategy.get());
     d_current_stream_guard = d_stream_strategy->getLiteral(0);
