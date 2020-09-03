@@ -39,9 +39,10 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
   for (size_t i = 0; i < size; ++i)
   {
     Node prev = (*assertionsToPreprocess)[i];
-    Node next = quantifiers::QuantifiersRewriter::preprocess(prev);
-    if (next != prev)
+    TrustNode trn = quantifiers::QuantifiersRewriter::preprocess(prev);
+    if (!trn.isNull())
     {
+      Node next = trn.getNode();
       assertionsToPreprocess->replace(i, Rewriter::rewrite(next));
       Trace("quantifiers-preprocess") << "*** Pre-skolemize " << prev << endl;
       Trace("quantifiers-preprocess")

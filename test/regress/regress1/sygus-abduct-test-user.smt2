@@ -1,3 +1,4 @@
+; REQUIRES: proofs
 ; COMMAND-LINE: --produce-abducts
 ; COMMAND-LINE: --produce-abducts --sygus-core-connective
 ; SCRUBBER: grep -v -E '(\(define-fun)'

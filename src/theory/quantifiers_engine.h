@@ -56,73 +56,75 @@ class QuantifiersEngine {
   typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
-public:
- QuantifiersEngine(TheoryEngine* te, DecisionManager& dm);
- ~QuantifiersEngine();
- //---------------------- external interface
- /** get theory engine */
- TheoryEngine* getTheoryEngine() const;
- /** Get the decision manager */
- DecisionManager* getDecisionManager();
- /** get default sat context for quantifiers engine */
- context::Context* getSatContext();
- /** get default sat context for quantifiers engine */
- context::UserContext* getUserContext();
- /** get default output channel for the quantifiers engine */
- OutputChannel& getOutputChannel();
- /** get default valuation for the quantifiers engine */
- Valuation& getValuation();
- /** get the logic info for the quantifiers engine */
- const LogicInfo& getLogicInfo() const;
- //---------------------- end external interface
- //---------------------- utilities
- /** get the master equality engine */
- eq::EqualityEngine* getMasterEqualityEngine() const;
- /** get equality query */
- EqualityQuery* getEqualityQuery() const;
- /** get the model builder */
- quantifiers::QModelBuilder* getModelBuilder() const;
- /** get utility for EPR */
- quantifiers::QuantEPR* getQuantEPR() const;
- /** get model */
- quantifiers::FirstOrderModel* getModel() const;
- /** get term database */
- quantifiers::TermDb* getTermDatabase() const;
- /** get term database sygus */
- quantifiers::TermDbSygus* getTermDatabaseSygus() const;
- /** get term utilities */
- quantifiers::TermUtil* getTermUtil() const;
- /** get term canonizer */
- expr::TermCanonize* getTermCanonize() const;
- /** get quantifiers attributes */
- quantifiers::QuantAttributes* getQuantAttributes() const;
- /** get instantiate utility */
- quantifiers::Instantiate* getInstantiate() const;
- /** get skolemize utility */
- quantifiers::Skolemize* getSkolemize() const;
- /** get term enumeration utility */
- quantifiers::TermEnumeration* getTermEnumeration() const;
- /** get trigger database */
- inst::TriggerTrie* getTriggerDatabase() const;
- //---------------------- end utilities
-private:
- //---------------------- private initialization
- /** Set the master equality engine */
- void setMasterEqualityEngine(eq::EqualityEngine* mee);
- //---------------------- end private initialization
- /**
-  * Maps quantified formulas to the module that owns them, if any module has
-  * specifically taken ownership of it.
-  */
- std::map<Node, QuantifiersModule*> d_owner;
- /**
-  * The priority value associated with the ownership of quantified formulas
-  * in the domain of the above map, where higher values take higher
-  * precendence.
-  */
- std::map<Node, int> d_owner_priority;
-
-public:
+ public:
+  QuantifiersEngine(context::Context* c,
+                    context::UserContext* u,
+                    TheoryEngine* te,
+                    ProofNodeManager* pnm);
+  ~QuantifiersEngine();
+  //---------------------- external interface
+  /** get theory engine */
+  TheoryEngine* getTheoryEngine() const;
+  /** Get the decision manager */
+  DecisionManager* getDecisionManager();
+  /** get default sat context for quantifiers engine */
+  context::Context* getSatContext();
+  /** get default sat context for quantifiers engine */
+  context::UserContext* getUserContext();
+  /** get default output channel for the quantifiers engine */
+  OutputChannel& getOutputChannel();
+  /** get default valuation for the quantifiers engine */
+  Valuation& getValuation();
+  /** get the logic info for the quantifiers engine */
+  const LogicInfo& getLogicInfo() const;
+  //---------------------- end external interface
+  //---------------------- utilities
+  /** get the master equality engine */
+  eq::EqualityEngine* getMasterEqualityEngine() const;
+  /** get equality query */
+  EqualityQuery* getEqualityQuery() const;
+  /** get the model builder */
+  quantifiers::QModelBuilder* getModelBuilder() const;
+  /** get utility for EPR */
+  quantifiers::QuantEPR* getQuantEPR() const;
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() const;
+  /** get term database */
+  quantifiers::TermDb* getTermDatabase() const;
+  /** get term database sygus */
+  quantifiers::TermDbSygus* getTermDatabaseSygus() const;
+  /** get term utilities */
+  quantifiers::TermUtil* getTermUtil() const;
+  /** get term canonizer */
+  expr::TermCanonize* getTermCanonize() const;
+  /** get quantifiers attributes */
+  quantifiers::QuantAttributes* getQuantAttributes() const;
+  /** get instantiate utility */
+  quantifiers::Instantiate* getInstantiate() const;
+  /** get skolemize utility */
+  quantifiers::Skolemize* getSkolemize() const;
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration() const;
+  /** get trigger database */
+  inst::TriggerTrie* getTriggerDatabase() const;
+  //---------------------- end utilities
+ private:
+  //---------------------- private initialization
+  /** Set the master equality engine */
+  void setMasterEqualityEngine(eq::EqualityEngine* mee);
+  //---------------------- end private initialization
+  /**
+   * Maps quantified formulas to the module that owns them, if any module has
+   * specifically taken ownership of it.
+   */
+  std::map< Node, QuantifiersModule * > d_owner;
+  /**
+   * The priority value associated with the ownership of quantified formulas
+   * in the domain of the above map, where higher values take higher
+   * precendence.
+   */
+  std::map< Node, int > d_owner_priority;
+ public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
   /**
@@ -200,100 +202,117 @@ private:
  void flushLemmas();
 
 public:
-  /** add lemma lem */
-  bool addLemma( Node lem, bool doCache = true, bool doRewrite = true );
-  /** remove pending lemma */
-  bool removeLemma( Node lem );
-  /** add require phase */
-  void addRequirePhase( Node lit, bool req );
-  /** mark relevant quantified formula, this will indicate it should be checked before the others */
-  void markRelevant( Node q );
-  /** has added lemma */
-  bool hasAddedLemma() const;
-  /** theory engine needs check
-   *
-   * This is true if the theory engine has more constraints to process. When
-   * it is false, we are tentatively going to terminate solving with
-   * sat/unknown. For details, see TheoryEngine::needCheck.
-   */
-  bool theoryEngineNeedsCheck() const;
-  /** is in conflict */
-  bool inConflict() { return d_conflict; }
-  /** set conflict */
-  void setConflict();
-  /** get current q effort */
-  QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
-  /** get number of waiting lemmas */
-  unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
-  /** get needs check */
-  bool getInstWhenNeedsCheck( Theory::Effort e );
-  /** get user pat mode */
-  options::UserPatMode getInstUserPatMode();
+ /**
+  * Add lemma to the lemma buffer of this quantifiers engine.
+  * @param lem The lemma to send
+  * @param doCache Whether to cache the lemma (to check for duplicate lemmas)
+  * @param doRewrite Whether to rewrite the lemma
+  * @return true if the lemma was successfully added to the buffer
+  */
+ bool addLemma(Node lem, bool doCache = true, bool doRewrite = true);
+ /**
+  * Add trusted lemma lem, same as above, but where a proof generator may be
+  * provided along with the lemma.
+  */
+ bool addTrustedLemma(TrustNode tlem,
+                      bool doCache = true,
+                      bool doRewrite = true);
+ /** remove pending lemma */
+ bool removeLemma(Node lem);
+ /** add require phase */
+ void addRequirePhase(Node lit, bool req);
+ /** mark relevant quantified formula, this will indicate it should be checked
+  * before the others */
+ void markRelevant(Node q);
+ /** has added lemma */
+ bool hasAddedLemma() const;
+ /** theory engine needs check
+  *
+  * This is true if the theory engine has more constraints to process. When
+  * it is false, we are tentatively going to terminate solving with
+  * sat/unknown. For details, see TheoryEngine::needCheck.
+  */
+ bool theoryEngineNeedsCheck() const;
+ /** is in conflict */
+ bool inConflict() { return d_conflict; }
+ /** set conflict */
+ void setConflict();
+ /** get current q effort */
+ QuantifiersModule::QEffort getCurrentQEffort() { return d_curr_effort_level; }
+ /** get number of waiting lemmas */
+ unsigned getNumLemmasWaiting() { return d_lemmas_waiting.size(); }
+ /** get needs check */
+ bool getInstWhenNeedsCheck(Theory::Effort e);
+ /** get user pat mode */
+ options::UserPatMode getInstUserPatMode();
 
- public:
-  /** add term to database */
-  void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
-  /** notification when master equality engine is updated */
-  void eqNotifyNewClass(TNode t);
-  /** debug print equality engine */
-  void debugPrintEqualityEngine( const char * c );
-  /** get internal representative
-   *
-   * Choose a term that is equivalent to a in the current context that is the
-   * best term for instantiating the index^th variable of quantified formula q.
-   * If no legal term can be found, we return null. This can occur if:
-   * - a's type is not a subtype of the type of the index^th variable of q,
-   * - a is in an equivalent class with all terms that are restricted not to
-   * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
-   * guided instantiation.
-   */
-  Node getInternalRepresentative( Node a, Node q, int index );
+public:
+ /** add term to database */
+ void addTermToDatabase(Node n,
+                        bool withinQuant = false,
+                        bool withinInstClosure = false);
+ /** notification when master equality engine is updated */
+ void eqNotifyNewClass(TNode t);
+ /** debug print equality engine */
+ void debugPrintEqualityEngine(const char* c);
+ /** get internal representative
+  *
+  * Choose a term that is equivalent to a in the current context that is the
+  * best term for instantiating the index^th variable of quantified formula q.
+  * If no legal term can be found, we return null. This can occur if:
+  * - a's type is not a subtype of the type of the index^th variable of q,
+  * - a is in an equivalent class with all terms that are restricted not to
+  * appear in instantiations of q, e.g. INST_CONSTANT terms for counterexample
+  * guided instantiation.
+  */
+ Node getInternalRepresentative(Node a, Node q, int index);
 
- public:
-  //----------user interface for instantiations (see quantifiers/instantiate.h)
-  /** print instantiations */
-  void printInstantiations(std::ostream& out);
-  /** print solution for synthesis conjectures */
-  void printSynthSolution(std::ostream& out);
-  /** get list of quantified formulas that were instantiated */
-  void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
-  /** get instantiations */
-  void getInstantiations(Node q, std::vector<Node>& insts);
-  void getInstantiations(std::map<Node, std::vector<Node> >& insts);
-  /** get instantiation term vectors */
-  void getInstantiationTermVectors(Node q,
-                                   std::vector<std::vector<Node> >& tvecs);
-  void getInstantiationTermVectors(
-      std::map<Node, std::vector<std::vector<Node> > >& insts);
-  /** get instantiated conjunction */
-  Node getInstantiatedConjunction(Node q);
-  /** get unsat core lemmas */
-  bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
-  /** get explanation for instantiation lemmas */
-  void getExplanationForInstLemmas(const std::vector<Node>& lems,
-                                   std::map<Node, Node>& quant,
-                                   std::map<Node, std::vector<Node> >& tvec);
+public:
+ //----------user interface for instantiations (see quantifiers/instantiate.h)
+ /** print instantiations */
+ void printInstantiations(std::ostream& out);
+ /** print solution for synthesis conjectures */
+ void printSynthSolution(std::ostream& out);
+ /** get list of quantified formulas that were instantiated */
+ void getInstantiatedQuantifiedFormulas(std::vector<Node>& qs);
+ /** get instantiations */
+ void getInstantiations(Node q, std::vector<Node>& insts);
+ void getInstantiations(std::map<Node, std::vector<Node> >& insts);
+ /** get instantiation term vectors */
+ void getInstantiationTermVectors(Node q,
+                                  std::vector<std::vector<Node> >& tvecs);
+ void getInstantiationTermVectors(
+     std::map<Node, std::vector<std::vector<Node> > >& insts);
+ /** get instantiated conjunction */
+ Node getInstantiatedConjunction(Node q);
+ /** get unsat core lemmas */
+ bool getUnsatCoreLemmas(std::vector<Node>& active_lemmas);
+ /** get explanation for instantiation lemmas */
+ void getExplanationForInstLemmas(const std::vector<Node>& lems,
+                                  std::map<Node, Node>& quant,
+                                  std::map<Node, std::vector<Node> >& tvec);
 
-  /** get synth solutions
-   *
-   * This method returns true if there is a synthesis solution available. This
-   * is the case if the last call to check satisfiability originated in a
-   * check-synth call, and the synthesis engine module of this class
-   * successfully found a solution for all active synthesis conjectures.
-   *
-   * This method adds entries to sol_map that map functions-to-synthesize with
-   * their solutions, for all active conjectures. This should be called
-   * immediately after the solver answers unsat for sygus input.
-   *
-   * For details on what is added to sol_map, see
-   * SynthConjecture::getSynthSolutions.
-   */
-  bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
+ /** get synth solutions
+  *
+  * This method returns true if there is a synthesis solution available. This
+  * is the case if the last call to check satisfiability originated in a
+  * check-synth call, and the synthesis engine module of this class
+  * successfully found a solution for all active synthesis conjectures.
+  *
+  * This method adds entries to sol_map that map functions-to-synthesize with
+  * their solutions, for all active conjectures. This should be called
+  * immediately after the solver answers unsat for sygus input.
+  *
+  * For details on what is added to sol_map, see
+  * SynthConjecture::getSynthSolutions.
+  */
+ bool getSynthSolutions(std::map<Node, std::map<Node, Node> >& sol_map);
 
-  //----------end user interface for instantiations
+ //----------end user interface for instantiations
 
-  /** statistics class */
-  class Statistics {
+ /** statistics class */
+ class Statistics
+ {
   public:
     TimerStat d_time;
     TimerStat d_qcf_time;
@@ -389,6 +408,8 @@ public:
   BoolMap d_lemmas_produced_c;
   /** lemmas waiting */
   std::vector<Node> d_lemmas_waiting;
+  /** map from waiting lemmas to their proof generators */
+  std::map<Node, ProofGenerator*> d_lemmasWaitingPg;
   /** phase requirements waiting */
   std::map<Node, bool> d_phase_req_waiting;
   /** inst round counters TODO: make context-dependent? */
