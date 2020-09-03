@@ -31,7 +31,65 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
+bool CoreSolverExtTheoryCallback::getCurrentSubstitution(
+    int effort,
+    const std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::map<Node, std::vector<Node> >& exp)
+{
+  if (d_equalityEngine == nullptr)
+  {
+    return false;
+  }
+  // get the constant equivalence classes
+  bool retVal = false;
+  for (const Node& n : vars)
+  {
+    if (d_equalityEngine->hasTerm(n))
+    {
+      Node nr = d_equalityEngine->getRepresentative(n);
+      if (nr.isConst())
+      {
+        subs.push_back(nr);
+        exp[n].push_back(n.eqNode(nr));
+        retVal = true;
+      }
+      else
+      {
+        subs.push_back(n);
+      }
+    }
+    else
+    {
+      subs.push_back(n);
+    }
+  }
+  // return true if the substitution is non-trivial
+  return retVal;
+}
+
+bool CoreSolverExtTheoryCallback::getReduction(int effort,
+                                               Node n,
+                                               Node& nr,
+                                               bool& satDep)
+{
+  Trace("bv-ext") << "TheoryBV::checkExt : non-reduced : " << n << std::endl;
+  if (n.getKind() == kind::BITVECTOR_TO_NAT)
+  {
+    nr = utils::eliminateBv2Nat(n);
+    satDep = false;
+    return true;
+  }
+  else if (n.getKind() == kind::INT_TO_BITVECTOR)
+  {
+    nr = utils::eliminateInt2Bv(n);
+    satDep = false;
+    return true;
+  }
+  return false;
+}
+
+CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
     : SubtheorySolver(c, bv),
       d_notify(*this),
       d_isComplete(c, true),
@@ -39,9 +97,18 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv, ExtTheory* extt)
       d_preregisterCalled(false),
       d_checkCalled(false),
       d_bv(bv),
-      d_extTheory(extt),
-      d_reasons(c)
+      d_extTheoryCb(),
+      d_extTheory(new ExtTheory(d_extTheoryCb,
+                                bv->getSatContext(),
+                                bv->getUserContext(),
+                                bv->getOutputChannel())),
+      d_reasons(c),
+      d_needsLastCallCheck(false),
+      d_extf_range_infer(bv->getUserContext()),
+      d_extf_collapse_infer(bv->getUserContext())
 {
+  d_extTheory->addFunctionKind(kind::BITVECTOR_TO_NAT);
+  d_extTheory->addFunctionKind(kind::INT_TO_BITVECTOR);
 }
 
 CoreSolver::~CoreSolver() {}
@@ -430,4 +497,142 @@ CoreSolver::Statistics::Statistics()
 }
 CoreSolver::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+}
+
+void CoreSolver::checkExtf(Theory::Effort e)
+{
+  if (e == Theory::EFFORT_LAST_CALL)
+  {
+    std::vector<Node> nred = d_extTheory->getActive();
+    doExtfReductions(nred);
+  }
+  Assert(e == Theory::EFFORT_FULL);
+  // do inferences (adds external lemmas)  TODO: this can be improved to add
+  // internal inferences
+  std::vector<Node> nred;
+  if (d_extTheory->doInferences(0, nred))
+  {
+    return;
+  }
+  d_needsLastCallCheck = false;
+  if (!nred.empty())
+  {
+    // other inferences involving bv2nat, int2bv
+    if (options::bvAlgExtf())
+    {
+      if (doExtfInferences(nred))
+      {
+        return;
+      }
+    }
+    if (!options::bvLazyReduceExtf())
+    {
+      if (doExtfReductions(nred))
+      {
+        return;
+      }
+    }
+    else
+    {
+      d_needsLastCallCheck = true;
+    }
+  }
+}
+
+bool CoreSolver::needsCheckLastEffort() const { return d_needsLastCallCheck; }
+
+bool CoreSolver::doExtfInferences(std::vector<Node>& terms)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  bool sentLemma = false;
+  eq::EqualityEngine* ee = d_equalityEngine;
+  std::map<Node, Node> op_map;
+  for (unsigned j = 0; j < terms.size(); j++)
+  {
+    TNode n = terms[j];
+    Assert(n.getKind() == kind::BITVECTOR_TO_NAT
+           || n.getKind() == kind::INT_TO_BITVECTOR);
+    if (n.getKind() == kind::BITVECTOR_TO_NAT)
+    {
+      // range lemmas
+      if (d_extf_range_infer.find(n) == d_extf_range_infer.end())
+      {
+        d_extf_range_infer.insert(n);
+        unsigned bvs = n[0].getType().getBitVectorSize();
+        Node min = nm->mkConst(Rational(0));
+        Node max = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
+        Node lem = nm->mkNode(kind::AND,
+                              nm->mkNode(kind::GEQ, n, min),
+                              nm->mkNode(kind::LT, n, max));
+        Trace("bv-extf-lemma")
+            << "BV extf lemma (range) : " << lem << std::endl;
+        d_bv->getOutputChannel().lemma(lem);
+        sentLemma = true;
+      }
+    }
+    Node r = (ee && ee->hasTerm(n[0])) ? ee->getRepresentative(n[0]) : n[0];
+    op_map[r] = n;
+  }
+  for (unsigned j = 0; j < terms.size(); j++)
+  {
+    TNode n = terms[j];
+    Node r = (ee && ee->hasTerm(n[0])) ? ee->getRepresentative(n) : n;
+    std::map<Node, Node>::iterator it = op_map.find(r);
+    if (it != op_map.end())
+    {
+      Node parent = it->second;
+      // Node cterm = parent[0]==n ? parent : nm->mkNode( parent.getOperator(),
+      // n );
+      Node cterm = parent[0].eqNode(n);
+      Trace("bv-extf-lemma-debug")
+          << "BV extf collapse based on : " << cterm << std::endl;
+      if (d_extf_collapse_infer.find(cterm) == d_extf_collapse_infer.end())
+      {
+        d_extf_collapse_infer.insert(cterm);
+
+        Node t = n[0];
+        if (t.getType() == parent.getType())
+        {
+          if (n.getKind() == kind::INT_TO_BITVECTOR)
+          {
+            Assert(t.getType().isInteger());
+            // congruent modulo 2^( bv width )
+            unsigned bvs = n.getType().getBitVectorSize();
+            Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
+            Node k = nm->mkSkolem(
+                "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
+            t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
+          }
+          Node lem = parent.eqNode(t);
+
+          if (parent[0] != n)
+          {
+            Assert(ee->areEqual(parent[0], n));
+            lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
+          }
+          // this handles inferences of the form, e.g.:
+          //   ((_ int2bv w) (bv2nat x)) == x (if x is bit-width w)
+          //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
+          Trace("bv-extf-lemma")
+              << "BV extf lemma (collapse) : " << lem << std::endl;
+          d_bv->getOutputChannel().lemma(lem);
+          sentLemma = true;
+        }
+      }
+      Trace("bv-extf-lemma-debug")
+          << "BV extf f collapse based on : " << cterm << std::endl;
+    }
+  }
+  return sentLemma;
+}
+
+bool CoreSolver::doExtfReductions(std::vector<Node>& terms)
+{
+  std::vector<Node> nredr;
+  if (d_extTheory->doReductions(0, terms, nredr))
+  {
+    return true;
+  }
+  Assert(nredr.empty());
+  return false;
 }
