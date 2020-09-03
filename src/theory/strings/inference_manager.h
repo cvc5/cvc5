@@ -82,8 +82,6 @@ class InferenceManager : public TheoryInferenceManager
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
 
-  /** finish init */
-  void finishInit();
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set

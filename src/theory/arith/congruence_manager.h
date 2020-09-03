@@ -133,6 +133,11 @@ private:
 
   void raiseConflict(Node conflict, std::shared_ptr<ProofNode> pf = nullptr);
 
+  /**
+   * Are proofs enabled? This is true if a non-null proof manager was provided
+   * to the constructor of this class.
+   */
+  bool isProofEnabled() const;
  public:
   bool inConflict() const;
 

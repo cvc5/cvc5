@@ -131,8 +131,6 @@ void TheoryStrings::finishInit()
   d_equalityEngine->addFunctionKind(kind::STRING_TOLOWER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_TOUPPER, eagerEval);
   d_equalityEngine->addFunctionKind(kind::STRING_REV, eagerEval);
-
-  d_im.finishInit();
 }
 
 std::string TheoryStrings::identify() const

@@ -93,9 +93,12 @@ void ArithCongruenceManager::finishInit(eq::EqualityEngine* ee)
   d_ee->addFunctionKind(kind::SINE);
   d_ee->addFunctionKind(kind::IAND);
 
-  // initialize the proof equality engine
-  d_pfee.reset(
-      new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+  // initialize the proof equality engine if proofs are enabled
+  if (isProofEnabled())
+  {
+    d_pfee.reset(
+        new eq::ProofEqEngine(d_satContext, d_userContext, *d_ee, d_pnm));
+  }
 }
 
 ArithCongruenceManager::Statistics::Statistics():
@@ -237,7 +240,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP lb, ConstraintCP
   auto pfUb = ub->externalExplainByAssertions(reasonBuilder);
   Node reason = safeConstructNary(reasonBuilder);
   std::shared_ptr<ProofNode> pf{};
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     pf = d_pnm->mkNode(
         PfRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eqC->getProofLiteral()});
@@ -272,7 +275,7 @@ void ArithCongruenceManager::watchedVariableIsZero(ConstraintCP eq){
     eq->printProofTree(Debug("arith::cong"));
   }
   auto pf = eq->externalExplainByAssertions(nb);
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     pf = d_pnm->mkNode(
         PfRule::MACRO_SR_PRED_TRANSFORM, {pf}, {d_watchedEqualities[s]});
@@ -303,7 +306,7 @@ void ArithCongruenceManager::watchedVariableCannotBeZero(ConstraintCP c){
     Debug("arith::cong::notzero") << std::endl;
   }
   Node reason = safeConstructNary(nb);
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     if (c->getType() == ConstraintType::Disequality)
     {
@@ -368,7 +371,7 @@ bool ArithCongruenceManager::propagate(TNode x){
       TrustNode trn = explainInternal(x);
       Node conf = flattenAnd(trn.getNode());
       Debug("arith::congruenceManager") << "rewritten to false "<<x<<" with explanation "<< conf << std::endl;
-      if (options::proofNew())
+      if (isProofEnabled())
       {
         auto pf = trn.getGenerator()->getProofFor(trn.getProven());
         auto confPf = d_pnm->mkNode(
@@ -475,7 +478,13 @@ void ArithCongruenceManager::enqueueIntoNB(const std::set<TNode> s, NodeBuilder<
 
 TrustNode ArithCongruenceManager::explainInternal(TNode internal)
 {
-  return d_pfee->explain(internal);
+  if (isProofEnabled())
+  {
+    return d_pfee->explain(internal);
+  }
+  // otherwise, explain without proof generator
+  Node exp = d_ee->mkExplainLit(internal);
+  return TrustNode::mkTrustPropExp(internal, exp, nullptr);
 }
 
 TrustNode ArithCongruenceManager::explain(TNode external)
@@ -484,7 +493,7 @@ TrustNode ArithCongruenceManager::explain(TNode external)
   Node internal = externalToInternal(external);
   Trace("arith-ee") << "...internal = " << internal << std::endl;
   TrustNode trn = explainInternal(internal);
-  if (options::proofNew() && trn.getProven()[1] != external)
+  if (isProofEnabled() && trn.getProven()[1] != external)
   {
     Assert(trn.getKind() == TrustNodeKind::PROP_EXP);
     Assert(trn.getProven().getKind() == Kind::IMPLIES);
@@ -545,7 +554,7 @@ void ArithCongruenceManager::assertLitToEqualityEngine(
 
   Trace("arith-ee") << "Assert to Eq " << lit << ", reason " << reason
                     << std::endl;
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     if (CDProof::isSame(lit, reason))
     {
@@ -598,7 +607,7 @@ void ArithCongruenceManager::assertionToEqualityEngine(
 
 bool ArithCongruenceManager::hasProofFor(TNode f) const
 {
-  Assert(options::proofNew());
+  Assert(isProofEnabled());
   if (d_pfGenEe->hasProofFor(f))
   {
     return true;
@@ -664,7 +673,7 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
   // Note though, that it happens to be in proof normal form!
   Node eq = xAsNode.eqNode(asRational);
   std::shared_ptr<ProofNode> pf;
-  if (options::proofNew())
+  if (isProofEnabled())
   {
     pf = d_pnm->mkNode(PfRule::ARITH_TRICHOTOMY, {pfLb, pfUb}, {eq});
   }
@@ -678,6 +687,11 @@ void ArithCongruenceManager::equalsConstant(ConstraintCP lb, ConstraintCP ub){
 
 void ArithCongruenceManager::addSharedTerm(Node x){
   d_ee->addTriggerTerm(x, THEORY_ARITH);
+}
+
+bool ArithCongruenceManager::isProofEnabled() const
+{
+  return d_pnm!=nullptr;
 }
 
 }/* CVC4::theory::arith namespace */

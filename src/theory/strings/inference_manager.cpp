@@ -48,18 +48,6 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = nm->mkConst(false);
 }
 
-void InferenceManager::finishInit()
-{
-  // always make a proof equality engine
-  if (d_pfee == nullptr)
-  {
-    d_pfee.reset(new eq::ProofEqEngine(d_state.getSatContext(),
-                                       d_state.getUserContext(),
-                                       *d_state.getEqualityEngine(),
-                                       d_pnm));
-  }
-}
-
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
                                              Inference infer)
@@ -229,7 +217,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 
 void InferenceManager::conflictExpInferInfo(const InferInfo& ii)
 {
-  // setup the fact to reproduce
+  // setup the fact to reproduce the proof in the call below
   d_ipc->notifyFact(ii);
   // make the trust node
   TrustNode tconf = mkConflictExp(ii.d_ant, d_ipc.get());

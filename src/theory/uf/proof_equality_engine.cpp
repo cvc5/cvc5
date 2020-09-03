@@ -33,11 +33,12 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
       d_pnm(pnm),
       d_proof(pnm, nullptr, c, "pfee::LazyCDProof::" + ee.identify()),
       d_keep(c),
-      d_pfEnabled(pnm != nullptr)
+      d_pfEnabled(pnm!=nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
+  //AlwaysAssert(pnm!=nullptr) << "Should not construct ProofEqEngine without proof node manager";
 }
 
 bool ProofEqEngine::assertFact(Node lit,
