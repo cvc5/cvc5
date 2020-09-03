@@ -18,7 +18,7 @@
 #include <poly/polyxx.h>
 #endif
 
-#include "theory/arith/inference.h"
+#include "theory/arith/inference_id.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/poly_util.h"
@@ -89,12 +89,12 @@ void CadSolver::checkFull()
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
     if (mis.size() == 1)
     {
-      d_im.addPendingArithLemma(mis.front(), Inference::CAD_CONFLICT);
+      d_im.addPendingArithLemma(mis.front(), InferenceId::NL_CAD_CONFLICT);
     }
     else
     {
       d_im.addPendingArithLemma(nm->mkNode(Kind::OR, mis),
-                                Inference::CAD_CONFLICT);
+                                InferenceId::NL_CAD_CONFLICT);
     }
   }
 #else
@@ -133,11 +133,14 @@ void CadSolver::checkPartial()
       }
       Node conclusion =
           excluding_interval_to_lemma(first_var, interval.d_interval, false);
-      if (!conclusion.isNull()) {
+      if (!conclusion.isNull())
+      {
         Node lemma = nm->mkNode(Kind::IMPLIES, premise, conclusion);
-        Trace("nl-cad") << "Excluding " << first_var << " -> " << interval.d_interval << " using " << lemma << std::endl;
-        d_im.addPendingArithLemma(lemma, Inference::CAD_EXCLUDED_INTERVAL);
-       }
+        Trace("nl-cad") << "Excluding " << first_var << " -> "
+                        << interval.d_interval << " using " << lemma
+                        << std::endl;
+        d_im.addPendingArithLemma(lemma, InferenceId::NL_CAD_EXCLUDED_INTERVAL);
+      }
     }
   }
 #else

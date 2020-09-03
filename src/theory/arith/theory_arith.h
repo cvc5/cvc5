@@ -98,7 +98,8 @@ class TheoryArith : public Theory {
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
   /** Return a reference to the arith::InferenceManager. */
-  InferenceManager& getInferenceManager() {
+  InferenceManager& getInferenceManager()
+  {
     return d_inferenceManager;
   }
 

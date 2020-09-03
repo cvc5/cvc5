@@ -47,11 +47,11 @@ class NlLemma : public ArithLemma
   NlLemma(Node n,
           LemmaProperty p,
           ProofGenerator* pg,
-          Inference inf = Inference::UNKNOWN)
+          InferenceId inf = InferenceId::UNKNOWN)
       : ArithLemma(n, p, pg, inf)
   {
   }
-  NlLemma(Node n, Inference inf = Inference::UNKNOWN)
+  NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
       : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
   {
   }
