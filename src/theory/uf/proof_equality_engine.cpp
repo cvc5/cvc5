@@ -377,8 +377,16 @@ TrustNode ProofEqEngine::assertLemma(Node conc,
     {
       curr = &tmpProof;
     }
-    // Register the proof step.
-    if (!pg->addProofTo(conc, curr))
+    // Register the proof. Notice we do a deep copy here because the CDProof
+    // curr should take ownership of the proof steps that pg provided for conc.
+    // In other words, this sets up the "skeleton" of proof that is the base
+    // of the proof we are constructing. The call to assertLemmaInternal below
+    // will expand the leaves of this proof. If we used a shallow copy, then
+    // the connection to these leaves would be lost since they would not be
+    // owned by curr. Notice this is very rarely more than a single step, but
+    // may be multiple steps if e.g. a theory inference corresponds to a
+    // sequence of more than one PfRule steps.
+    if (!pg->addProofTo(conc, curr, CDPOverwrite::ASSUME_ONLY, true))
     {
       // a step went wrong, e.g. during checking
       Assert(false) << "pfee::assertConflict: register proof step";
