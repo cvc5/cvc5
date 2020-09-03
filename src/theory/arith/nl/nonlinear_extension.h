@@ -26,6 +26,7 @@
 #include "context/cdlist.h"
 #include "expr/kind.h"
 #include "expr/node.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/nl/cad_solver.h"
 #include "theory/arith/nl/ext_theory_callback.h"
 #include "theory/arith/nl/iand_solver.h"
@@ -237,10 +238,6 @@ class NonlinearExtension
    */
   void sendLemmas(const std::vector<NlLemma>& out);
 
-  /** cache of all lemmas sent on the output channel (user-context-dependent) */
-  NodeSet d_lemmas;
-  /** Same as above, for preprocessed lemmas */
-  NodeSet d_lemmasPp;
   /** commonly used terms */
   Node d_zero;
   Node d_one;
@@ -248,6 +245,7 @@ class NonlinearExtension
   Node d_true;
   // The theory of arithmetic containing this extension.
   TheoryArith& d_containing;
+  InferenceManager& d_im;
   // pointer to used equality engine
   eq::EqualityEngine* d_ee;
   /** The statistics class */
