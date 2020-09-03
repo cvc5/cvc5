@@ -244,7 +244,7 @@ bool Instantiate::addInstantiation(
         d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
   }
 
-  // construct the instan::tiation
+  // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
@@ -262,7 +262,7 @@ bool Instantiate::addInstantiation(
     {
       //              ----------------- from preprocess
       // orig_body    orig_body = body
-      // ------------------------------ MACRO_SR_PRED_TRANSFORM
+      // ------------------------------ EQ_RESOLVE
       // body
       Node proven = tpBody.getProven();
       // add the transformation proof, or THEORY_PREPROCESS if none provided
@@ -272,8 +272,7 @@ bool Instantiate::addInstantiation(
                          "Instantiate::getInstantiation:qpreprocess",
                          false,
                          PfRule::THEORY_PREPROCESS);
-      pfTmp->addStep(
-          body, PfRule::MACRO_SR_PRED_TRANSFORM, {orig_body, proven}, {body});
+      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {body});
     }
   }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
@@ -284,7 +283,14 @@ bool Instantiate::addInstantiation(
   // construct the instantiation, and rewrite the lemma
   Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
 
-  // If proofs are enabled, attempt to construct the proof
+  // If proofs are enabled, construct the proof, which is of the form:
+  // ... free assumption q ...
+  // ------------------------- from pfTmp
+  // body
+  // ------------------------- SCOPE
+  // (=> q body)
+  // -------------------------- MACRO_SR_PRED_ELIM
+  // lem
   bool hasProof = false;
   if (isProofEnabled())
   {

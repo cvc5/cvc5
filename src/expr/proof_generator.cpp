@@ -214,8 +214,7 @@ void pfgEnsureClosedWrt(Node proven,
 
 void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx)
 {
-  std::vector<Node> assumps;
-  ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
+  ensureClosedWrtInternal(Node::null(), nullptr, pn, {}, c, ctx, false);
 }
 
 void pfnEnsureClosedWrt(ProofNode* pn,
