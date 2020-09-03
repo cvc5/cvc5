@@ -165,7 +165,7 @@ void TheoryEngine::finishInit() {
   if (d_logicInfo.isQuantified())
   {
     // initialize the quantifiers engine
-    d_quantEngine = new QuantifiersEngine(d_context, d_userContext, this);
+    d_quantEngine = new QuantifiersEngine(this, *d_decManager.get(), d_pnm);
   }
   // initialize the theory combination manager, which decides and allocates the
   // equality engines to use for all theories.

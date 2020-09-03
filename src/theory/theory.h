@@ -897,30 +897,6 @@ class Theory {
    * E |= lit in the theory.
    */
   virtual std::pair<bool, Node> entailmentCheck(TNode lit);
-
-  /* get current substitution at an effort
-   *   input : vars
-   *   output : subs, exp
-   *   where ( exp[vars[i]] => vars[i] = subs[i] ) holds for all i
-   */
-  virtual bool getCurrentSubstitution(int effort, std::vector<Node>& vars,
-                                      std::vector<Node>& subs,
-                                      std::map<Node, std::vector<Node> >& exp) {
-    return false;
-  }
-
-  /* is extended function reduced */
-  virtual bool isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) { return n.isConst(); }
-
-  /**
-   * Get reduction for node
-   * If return value is not 0, then n is reduced.
-   * If return value <0 then n is reduced SAT-context-independently (e.g. by a
-   *  lemma that persists at this user-context level).
-   * If nr is non-null, then ( n = nr ) should be added as a lemma by caller,
-   *  and return value should be <0.
-   */
-  virtual int getReduction( int effort, Node n, Node& nr ) { return 0; }
 };/* class Theory */
 
 std::ostream& operator<<(std::ostream& os, theory::Theory::Effort level);

@@ -45,6 +45,57 @@
 namespace CVC4 {
 namespace theory {
 
+/**
+ * A callback class for ExtTheory below. This class is responsible for
+ * determining how to apply context-dependent simplification.
+ */
+class ExtTheoryCallback
+{
+ public:
+  virtual ~ExtTheoryCallback() {}
+  /*
+   * Get current substitution at an effort
+   * @param effort The effort identifier
+   * @param vars The variables to get a substitution for
+   * @param subs The terms to substitute for variables, in order. This vector
+   * should be updated to one the same size as vars.
+   * @param exp The map containing the explanation for each variable. Together
+   * with subs, we have that:
+   *   ( exp[vars[i]] => vars[i] = subs[i] ) holds for all i
+   * @return true if any (non-identity) substitution was added to subs.
+   */
+  virtual bool getCurrentSubstitution(int effort,
+                                      const std::vector<Node>& vars,
+                                      std::vector<Node>& subs,
+                                      std::map<Node, std::vector<Node> >& exp);
+
+  /*
+   * Is extended function n reduced? This returns true if n is reduced to a
+   * form that requires no further interaction from the theory.
+   *
+   * @param effort The effort identifier
+   * @param n The term to reduce
+   * @param on The original form of n, before substitution
+   * @param exp The explanation of on = n
+   * @return true if n is reduced.
+   */
+  virtual bool isExtfReduced(int effort,
+                             Node n,
+                             Node on,
+                             std::vector<Node>& exp);
+
+  /**
+   * Get reduction for node n.
+   * If return value is true, then n is reduced.
+   * If satDep is updated to false, then n is reduced independent of the
+   * SAT context (e.g. by a lemma that persists at this
+   * user-context level).
+   * If nr is non-null, then ( n = nr ) should be added as a lemma by caller,
+   * and return value of this method should be true.
+   */
+  virtual bool getReduction(int effort, Node n, Node& nr, bool& satDep);
+};
+
 /** Extended theory class
  *
  * This class is used for constructing generic extensions to theory solvers.
@@ -73,7 +124,11 @@ class ExtTheory
    *
    * If cacheEnabled is false, we do not cache results of getSubstitutedTerm.
    */
-  ExtTheory(Theory* p, bool cacheEnabled = false);
+  ExtTheory(ExtTheoryCallback& p,
+            context::Context* c,
+            context::UserContext* u,
+            OutputChannel& out,
+            bool cacheEnabled = false);
   virtual ~ExtTheory() {}
   /** Tells this class to treat terms with Kind k as extended functions */
   void addFunctionKind(Kind k) { d_extf_kind[k] = true; }
@@ -93,10 +148,10 @@ class ExtTheory
   void registerTermRec(Node n);
   /** set n as reduced/inactive
    *
-   * If contextDepend = false, then n remains inactive in the duration of this
+   * If satDep = false, then n remains inactive in the duration of this
    * user-context level
    */
-  void markReduced(Node n, bool contextDepend = true);
+  void markReduced(Node n, bool satDep = true);
   /**
    * Mark that a and b are congruent terms. This sets b inactive, and sets a to
    * inactive if b was inactive.
@@ -194,10 +249,12 @@ class ExtTheory
                             std::vector<Node>& nred,
                             bool batch,
                             bool isRed);
-  /** send lemma on the output channel of d_parent */
+  /** send lemma on the output channel */
   bool sendLemma(Node lem, bool preprocess = false);
-  /** reference to the underlying theory */
-  Theory* d_parent;
+  /** reference to the callback */
+  ExtTheoryCallback& d_parent;
+  /** Reference to the output channel we are using */
+  OutputChannel& d_out;
   /** the true node */
   Node d_true;
   /** extended function terms, map to whether they are active */

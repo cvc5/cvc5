@@ -20,6 +20,7 @@
 #include <map>
 
 #include "expr/node.h"
+#include "expr/proof.h"
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
@@ -53,11 +54,14 @@ class InstantiationRewriter
    *
    * The flag doVts is whether we must apply virtual term substitution to the
    * instantiation.
+   *
+   * Returns a TrustNode of kind REWRITE, corresponding to the rewrite of inst
+   * and its proof generator.
    */
-  virtual Node rewriteInstantiation(Node q,
-                                    std::vector<Node>& terms,
-                                    Node inst,
-                                    bool doVts) = 0;
+  virtual TrustNode rewriteInstantiation(Node q,
+                                         std::vector<Node>& terms,
+                                         Node inst,
+                                         bool doVts) = 0;
 };
 
 /** Instantiate
@@ -84,7 +88,9 @@ class Instantiate : public QuantifiersUtil
   typedef context::CDHashMap<Node, uint32_t, NodeHashFunction> NodeUIntMap;
 
  public:
-  Instantiate(QuantifiersEngine* qe, context::UserContext* u);
+  Instantiate(QuantifiersEngine* qe,
+              context::UserContext* u,
+              ProofNodeManager* pnm = nullptr);
   ~Instantiate();
 
   /** reset */
@@ -174,11 +180,16 @@ class Instantiate : public QuantifiersUtil
    *
    * Returns the instantiation lemma for q under substitution { vars -> terms }.
    * doVts is whether to apply virtual term substitution to its body.
+   *
+   * If provided, pf is a lazy proof for which we store a proof of the
+   * returned formula with free assumption q. This typically stores a
+   * single INSTANTIATE step concluding the instantiated body of q from q.
    */
   Node getInstantiation(Node q,
                         std::vector<Node>& vars,
                         std::vector<Node>& terms,
-                        bool doVts = false);
+                        bool doVts = false,
+                        LazyCDProof* pf = nullptr);
   /** get instantiation
    *
    * Same as above, but with vars/terms specified by InstMatch m.
@@ -277,6 +288,9 @@ class Instantiate : public QuantifiersUtil
                                    std::map<Node, std::vector<Node> >& tvec);
   //--------------------------------------end user-level interface utilities
 
+  /** Are proofs enabled for this object? */
+  bool isProofEnabled() const;
+
   /** statistics class
    *
    * This tracks statistics on the number of instantiations successfully
@@ -327,6 +341,8 @@ class Instantiate : public QuantifiersUtil
 
   /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
+  /** pointer to the proof node manager */
+  ProofNodeManager* d_pnm;
   /** cache of term database for quantifiers engine */
   TermDb* d_term_db;
   /** cache of term util for quantifiers engine */
@@ -359,6 +375,10 @@ class Instantiate : public QuantifiersUtil
    * of these instantiations, for each quantified formula.
    */
   std::vector<std::pair<Node, std::vector<Node> > > d_recorded_inst;
+  /**
+   * A CDProof storing instantiation steps.
+   */
+  std::unique_ptr<CDProof> d_pfInst;
 };
 
 } /* CVC4::theory::quantifiers namespace */
