@@ -31,7 +31,7 @@ InferenceManagerBuffered::InferenceManagerBuffered(Theory& t,
 
 bool InferenceManagerBuffered::hasPending() const
 {
-  return !d_pendingLem.empty() || !d_pendingFact.empty();
+  return hasPendingFact() || hasPendingLemma();
 }
 
 bool InferenceManagerBuffered::hasPendingFact() const
