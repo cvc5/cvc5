@@ -32,17 +32,8 @@
 #include "util/hash.h"
 #include "util/statistics_registry.h"
 
-// Forward declarations, needed because the BV theory and the BV Proof classes
-// are cyclically dependent
 namespace CVC4 {
-namespace proof {
-class BitVectorProof;
-}
-
 namespace theory {
-
-class ExtTheory;
-
 namespace bv {
 
 class CoreSolver;
@@ -106,12 +97,6 @@ class TheoryBV : public Theory {
 
   std::string identify() const override { return std::string("TheoryBV"); }
 
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node>>& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
-
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
 
   TrustNode ppRewrite(TNode t) override;
@@ -122,8 +107,6 @@ class TheoryBV : public Theory {
 
   bool applyAbstraction(const std::vector<Node>& assertions,
                         std::vector<Node>& new_assertions);
-
-  void setProofLog(proof::BitVectorProof* bvp);
 
  private:
   class Statistics
@@ -184,9 +167,6 @@ class TheoryBV : public Theory {
   /** Index of the next literal to propagate */
   context::CDO<unsigned> d_literalsToPropagateIndex;
 
-  /** Extended theory module, for context-dependent simplification. */
-  std::unique_ptr<ExtTheory> d_extTheory;
-
   /**
    * Keeps a map from nodes to the subtheory that propagated it so that we can explain it
    * properly.
@@ -197,35 +177,7 @@ class TheoryBV : public Theory {
   std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
   std::unique_ptr<AbstractionModule> d_abstractionModule;
   bool d_calledPreregister;
-  
-  //for extended functions
-  bool d_needsLastCallCheck;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_range_infer;
-  context::CDHashSet<Node, NodeHashFunction> d_extf_collapse_infer;
-  /** do extended function inferences
-   *
-   * This method adds lemmas on the output channel of TheoryBV based on
-   * reasoning about extended functions, such as bv2nat and int2bv. Examples
-   * of lemmas added by this method include:
-   *   0 <= ((_ int2bv w) x) < 2^w
-   *   ((_ int2bv w) (bv2nat x)) = x
-   *   (bv2nat ((_ int2bv w) x)) == x + k*2^w
-   * The purpose of these lemmas is to recognize easy conflicts before fully
-   * reducing extended functions based on their full semantics.
-   */
-  bool doExtfInferences( std::vector< Node >& terms );
-  /** do extended function reductions
-   *
-   * This method adds lemmas on the output channel of TheoryBV based on
-   * reducing all extended function applications that are preregistered to
-   * this theory and have not already been reduced by context-dependent
-   * simplification (see theory/ext_theory.h). Examples of lemmas added by
-   * this method include:
-   *   (bv2nat x) = (ite ((_ extract w w-1) x) 2^{w-1} 0) + ... +
-   *                (ite ((_ extract 1 0) x) 1 0)
-   */
-  bool doExtfReductions( std::vector< Node >& terms );
-  
+
   bool wasPropagatedBySubtheory(TNode literal) const {
     return d_propagatedBy.find(literal) != d_propagatedBy.end();
   }
@@ -266,7 +218,11 @@ class TheoryBV : public Theory {
 
   void sendConflict();
 
-  void lemma(TNode node) { d_out->lemma(node, RULE_CONFLICT); d_lemmasAdded = true; }
+  void lemma(TNode node)
+  {
+    d_out->lemma(node);
+    d_lemmasAdded = true;
+  }
 
   void checkForLemma(TNode node);
 

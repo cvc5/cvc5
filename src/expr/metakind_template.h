@@ -201,8 +201,6 @@ Kind operatorToKind(::CVC4::expr::NodeValue* nv);
 
 }/* CVC4::kind namespace */
 
-#line 205 "${template}"
-
 }/* CVC4 namespace */
 
 #endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */

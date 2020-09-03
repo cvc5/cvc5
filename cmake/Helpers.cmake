@@ -1,6 +1,12 @@
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+if(NOT WIN32)
+  string(ASCII 27 Esc)
+  set(Yellow "${Esc}[33m")
+  set(ResetColor "${Esc}[m")
+endif()
+
 # Add a C flag to the global list of C flags.
 macro(add_c_flag flag)
   if(CMAKE_C_FLAGS)

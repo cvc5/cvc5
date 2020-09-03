@@ -174,7 +174,8 @@ class QuantifiersEnginePrivate
 
 QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
-                                     TheoryEngine* te)
+                                     TheoryEngine* te,
+                                     ProofNodeManager* pnm)
     : d_te(te),
       d_masterEqualityEngine(nullptr),
       d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
@@ -187,7 +188,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
-      d_instantiate(new quantifiers::Instantiate(this, u)),
+      d_instantiate(new quantifiers::Instantiate(this, u, pnm)),
       d_skolemize(new quantifiers::Skolemize(this, u)),
       d_term_enum(new quantifiers::TermEnumeration),
       d_conflict_c(c, false),
@@ -217,7 +218,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   if (options::sygus() || options::sygusInst())
   {
     d_sygus_tdb.reset(new quantifiers::TermDbSygus(c, this));
-  }  
+  }
 
   d_util.push_back(d_instantiate.get());
 
@@ -580,7 +581,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
     if( d_hasAddedLemma ){
       return;
     }
-    
+
     double clSet = 0;
     if( Trace.isOn("quant-engine") ){
       clSet = double(clock())/double(CLOCKS_PER_SEC);
@@ -805,7 +806,7 @@ void QuantifiersEngine::check( Theory::Effort e ){
       Trace("quant-engine") << ", added lemma = " << d_hasAddedLemma;
       Trace("quant-engine") << std::endl;
     }
-    
+
     Trace("quant-engine-debug2") << "Finished quantifiers engine check." << std::endl;
   }else{
     Trace("quant-engine-debug2") << "Quantifiers Engine does not need check." << std::endl;
@@ -1021,6 +1022,19 @@ bool QuantifiersEngine::addLemma( Node lem, bool doCache, bool doRewrite ){
   }
 }
 
+bool QuantifiersEngine::addTrustedLemma(TrustNode tlem,
+                                        bool doCache,
+                                        bool doRewrite)
+{
+  Node lem = tlem.getProven();
+  if (!addLemma(lem, doCache, doRewrite))
+  {
+    return false;
+  }
+  d_lemmasWaitingPg[lem] = tlem.getGenerator();
+  return true;
+}
+
 bool QuantifiersEngine::removeLemma( Node lem ) {
   std::vector< Node >::iterator it = std::find( d_lemmas_waiting.begin(), d_lemmas_waiting.end(), lem );
   if( it!=d_lemmas_waiting.end() ){
@@ -1035,7 +1049,7 @@ bool QuantifiersEngine::removeLemma( Node lem ) {
 void QuantifiersEngine::addRequirePhase( Node lit, bool req ){
   d_phase_req_waiting[lit] = req;
 }
-  
+
 void QuantifiersEngine::markRelevant( Node q ) {
   d_model->markRelevant( q );
 }
@@ -1048,9 +1062,10 @@ bool QuantifiersEngine::theoryEngineNeedsCheck() const
   return d_te->needCheck();
 }
 
-void QuantifiersEngine::setConflict() { 
-  d_conflict = true; 
-  d_conflict_c = true; 
+void QuantifiersEngine::setConflict()
+{
+  d_conflict = true;
+  d_conflict_c = true;
 }
 
 bool QuantifiersEngine::getInstWhenNeedsCheck( Theory::Effort e ) {
@@ -1101,19 +1116,31 @@ options::UserPatMode QuantifiersEngine::getInstUserPatMode()
 }
 
 void QuantifiersEngine::flushLemmas(){
+  OutputChannel& out = getOutputChannel();
   if( !d_lemmas_waiting.empty() ){
     //take default output channel if none is provided
     d_hasAddedLemma = true;
-    for( unsigned i=0; i<d_lemmas_waiting.size(); i++ ){
-      Trace("qe-lemma") << "Lemma : " << d_lemmas_waiting[i] << std::endl;
-      getOutputChannel().lemma(d_lemmas_waiting[i], LemmaProperty::PREPROCESS);
+    std::map<Node, ProofGenerator*>::iterator itp;
+    for (const Node& lemw : d_lemmas_waiting)
+    {
+      Trace("qe-lemma") << "Lemma : " << lemw << std::endl;
+      itp = d_lemmasWaitingPg.find(lemw);
+      if (itp != d_lemmasWaitingPg.end())
+      {
+        TrustNode tlemw = TrustNode::mkTrustLemma(lemw, itp->second);
+        out.trustedLemma(tlemw, LemmaProperty::PREPROCESS);
+      }
+      else
+      {
+        out.lemma(lemw, LemmaProperty::PREPROCESS);
+      }
     }
     d_lemmas_waiting.clear();
   }
   if( !d_phase_req_waiting.empty() ){
     for( std::map< Node, bool >::iterator it = d_phase_req_waiting.begin(); it != d_phase_req_waiting.end(); ++it ){
       Trace("qe-lemma") << "Require phase : " << it->first << " -> " << it->second << std::endl;
-      getOutputChannel().requirePhase( it->first, it->second );
+      out.requirePhase(it->first, it->second);
     }
     d_phase_req_waiting.clear();
   }
@@ -1121,10 +1148,6 @@ void QuantifiersEngine::flushLemmas(){
 
 bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas ) {
   return d_instantiate->getUnsatCoreLemmas(active_lemmas);
-}
-
-bool QuantifiersEngine::getUnsatCoreLemmas( std::vector< Node >& active_lemmas, std::map< Node, Node >& weak_imp ) {
-  return d_instantiate->getUnsatCoreLemmas(active_lemmas, weak_imp);
 }
 
 void QuantifiersEngine::getInstantiationTermVectors( Node q, std::vector< std::vector< Node > >& tvecs ) {

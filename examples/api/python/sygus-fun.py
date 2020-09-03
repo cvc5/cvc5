@@ -53,7 +53,7 @@ if __name__ == "__main__":
   leq = slv.mkTerm(kinds.Leq, start, start)
 
   # create the grammar object
-  g = slv.mkSygusGrammar({x, y}, {start, start_bool})
+  g = slv.mkSygusGrammar([x, y], [start, start_bool])
 
   # bind each non-terminal to its rules
   g.addRules(start, {zero, one, x, y, plus, minus, ite})
@@ -61,8 +61,8 @@ if __name__ == "__main__":
 
   # declare the functions-to-synthesize. Optionally, provide the grammar
   # constraints
-  max = slv.synthFun("max", {x, y}, integer, g)
-  min = slv.synthFun("min", {x, y}, integer)
+  max = slv.synthFun("max", [x, y], integer, g)
+  min = slv.synthFun("min", [x, y], integer)
 
   # declare universal variables.
   varX = slv.mkSygusVar(integer, "x")

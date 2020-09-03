@@ -125,6 +125,16 @@ class TheoryInferenceManager
    * been provided in a custom way.
    */
   void trustedConflict(TrustNode tconf);
+  /**
+   * Explain and send conflict from contradictory facts. This method is called
+   * when the proof rule id with premises exp and arguments args concludes
+   * false. This method sends a trusted conflict corresponding to the official
+   * equality engine's explanation of literals in exp, with the proof equality
+   * engine as the proof generator (if it exists).
+   */
+  void conflictExp(PfRule id,
+                   const std::vector<Node>& exp,
+                   const std::vector<Node>& args);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
@@ -146,6 +156,56 @@ class TheoryInferenceManager
              LemmaProperty p = LemmaProperty::NONE,
              bool doCache = true);
   /**
+   * Explained lemma. This should be called when
+   *   ( exp => conc )
+   * is a valid theory lemma. This method adds a lemma where part of exp
+   * is replaced by its explanation according to the official equality engine
+   * of the theory.
+   *
+   * In particular, this method adds a lemma on the output channel of the form
+   *   ( ^_{e in exp \ noExplain} EXPLAIN(e) ^ noExplain ) => conc
+   * where EXPLAIN(e) returns the explanation of literal e according to the
+   * official equality engine of the theory. Note that noExplain is the *subset*
+   * of exp that should not be explained.
+   *
+   * @param conc The conclusion of the lemma
+   * @param id The proof rule concluding conc
+   * @param exp The set of (all) literals that imply conc
+   * @param noExplain The subset of exp that should not be explained by the
+   * equality engine
+   * @param args The arguments to the proof step concluding conc
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
+   * @return true if the lemma was sent on the output channel.
+   */
+  bool lemmaExp(Node conc,
+                PfRule id,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& noExplain,
+                const std::vector<Node>& args,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
+  /**
+   * Same as above, but where pg can provide a proof of conc from free
+   * assumptions in exp. It is required to do so in the remainder of the user
+   * context when this method returns true.
+   *
+   * @param conc The conclusion of the lemma
+   * @param exp The set of (all) literals that imply conc
+   * @param noExplain The subset of exp that should not be explained by the
+   * equality engine
+   * @param pg If non-null, the proof generator who can provide a proof of conc.
+   * @param p The property of the lemma
+   * @param doCache Whether to check and add the lemma to the cache
+   * @return true if the lemma was sent on the output channel.
+   */
+  bool lemmaExp(Node conc,
+                const std::vector<Node>& exp,
+                const std::vector<Node>& noExplain,
+                ProofGenerator* pg = nullptr,
+                LemmaProperty p = LemmaProperty::NONE,
+                bool doCache = true);
+  /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,
    * this returns true if lem is in the cache d_lemmasSent maintained by this
@@ -154,9 +214,9 @@ class TheoryInferenceManager
    */
   virtual bool hasCachedLemma(TNode lem, LemmaProperty p);
   /** The number of lemmas we have sent since the last call to reset */
-  uint32_t numAddedLemmas() const;
+  uint32_t numSentLemmas() const;
   /** Have we added a lemma since the last call to reset? */
-  bool hasAddedLemma() const;
+  bool hasSentLemma() const;
   //--------------------------------------- internal facts
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
@@ -169,8 +229,10 @@ class TheoryInferenceManager
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
+   * @return true if the fact was processed, i.e. it was asserted to the
+   * equality engine or preNotifyFact returned true.
    */
-  void assertInternalFact(TNode atom, bool pol, TNode exp);
+  bool assertInternalFact(TNode atom, bool pol, TNode exp);
   /**
    * Assert internal fact, with a proof step justification. Notice that if
    * proofs are not enabled in this inference manager, then this asserts
@@ -181,8 +243,10 @@ class TheoryInferenceManager
    * @param id The proof rule identifier of the proof step
    * @param exp Its explanation, interpreted as a conjunction
    * @param args The arguments of the proof step
+   * @return true if the fact was processed, i.e. it was asserted to the
+   * equality engine or preNotifyFact returned true.
    */
-  void assertInternalFact(TNode atom,
+  bool assertInternalFact(TNode atom,
                           bool pol,
                           PfRule id,
                           const std::vector<Node>& exp,
@@ -194,25 +258,32 @@ class TheoryInferenceManager
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, interpreted as a conjunction
-   * @param pg The proof generator for this step. It must be the case that pf
-   * can provide a proof concluding (~) atom from free asumptions in exp in
+   * @param pg The proof generator for this step. If non-null, pg must be able
+   * to provide a proof concluding (~) atom from free asumptions in exp in
    * the remainder of the current SAT context.
+   * @return true if the fact was processed, i.e. it was asserted to the
+   * equality engine or preNotifyFact returned true.
    */
-  void assertInternalFact(TNode atom,
+  bool assertInternalFact(TNode atom,
                           bool pol,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
   /** The number of internal facts we have added since the last call to reset */
-  uint32_t numAddedFacts() const;
+  uint32_t numSentFacts() const;
   /** Have we added a internal fact since the last call to reset? */
-  bool hasAddedFact() const;
-
+  bool hasSentFact() const;
+  //--------------------------------------- phase requirements
+  /** 
+   * Set that literal n has SAT phase requirement pol, that is, it should be
+   * decided with polarity pol, for details see OutputChannel::requirePhase.
+   */
+  void requirePhase(TNode n, bool pol);
  protected:
   /**
    * Process internal fact. This is a common helper method for the
-   * assertInternalFact variants above.
+   * assertInternalFact variants above. Returns true if the fact was processed.
    */
-  void processInternalFact(TNode atom,
+  bool processInternalFact(TNode atom,
                            bool pol,
                            PfRule id,
                            const std::vector<Node>& exp,
@@ -235,6 +306,14 @@ class TheoryInferenceManager
    * conjunctions), return the explanation as a conjunction.
    */
   Node mkExplain(TNode n);
+  /**
+   * Explain the set of formulas in exp using the official equality engine of
+   * the theory. We ask the equality engine to explain literals in exp
+   * that do not occur in noExplain, and return unchanged those that occur in
+   * noExplain. Note the vector noExplain should be a subset of exp.
+   */
+  Node mkExplainPartial(const std::vector<Node>& exp,
+                        const std::vector<Node>& noExplain);
   /**
    * Cache that lemma lem is being sent with property p. Return true if it
    * did not already exist in the cache maintained by this class. If this
