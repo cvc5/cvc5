@@ -113,7 +113,7 @@ class SharedTermsDatabase : public context::ContextNotifyObj {
   theory::eq::EqualityEngine d_equalityEngine;
 
   /** Proof equality engine */
-  theory::eq::ProofEqEngine d_pfee;
+  std::unique_ptr<theory::eq::ProofEqEngine> d_pfee;
 
   /**
    * Method called by equalityEngine when a becomes (dis-)equal to b and a and b are shared with

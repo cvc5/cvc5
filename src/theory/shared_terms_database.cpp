@@ -35,12 +35,17 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_registeredEqualities(context),
       d_EENotify(*this),
       d_equalityEngine(d_EENotify, context, "SharedTermsDatabase", true),
-      d_pfee(context, userContext, d_equalityEngine, pnm),
       d_theoryEngine(theoryEngine),
       d_inConflict(context, false),
       d_conflictPolarity()
 {
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
+  
+  // if proofs are enabled, make the proof equality engine
+  if (pnm!=nullptr)
+  {
+    d_pfee.reset(new eq::ProofEqEngine(context, userContext, d_equalityEngine, pnm));
+  }
 }
 
 SharedTermsDatabase::~SharedTermsDatabase()
@@ -228,17 +233,30 @@ bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
 }
 
 void SharedTermsDatabase::checkForConflict() {
-  if (d_inConflict) {
-    d_inConflict = false;
-    Node conflict = d_conflictLHS.eqNode(d_conflictRHS);
-    if (!d_conflictPolarity)
-    {
-      conflict = conflict.notNode();
-    }
-    TrustNode trnc = d_pfee.assertConflict(conflict);
-    d_theoryEngine->conflict(trnc, THEORY_BUILTIN);
-    d_conflictLHS = d_conflictRHS = Node::null();
+  if (!d_inConflict) {
+    return;
   }
+  d_inConflict = false;
+  Node conflict = d_conflictLHS.eqNode(d_conflictRHS);
+  if (!d_conflictPolarity)
+  {
+    conflict = conflict.notNode();
+  }
+  TrustNode trnc;
+  if (d_pfee!=nullptr)
+  {
+    trnc = d_pfee->assertConflict(conflict);
+  }
+  else
+  {
+    // standard explain
+    std::vector<TNode> assumptions;
+    d_equalityEngine.explainEquality(d_conflictLHS, d_conflictRHS, d_conflictPolarity, assumptions);
+    Node conflictNode = NodeManager::currentNM()->mkAnd(assumptions);
+    trnc = TrustNode::mkTrustConflict(conflictNode, nullptr);
+  }
+  d_theoryEngine->conflict(trnc, THEORY_BUILTIN);
+  d_conflictLHS = d_conflictRHS = Node::null();
 }
 
 bool SharedTermsDatabase::isKnown(TNode literal) const {
@@ -253,8 +271,15 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
 
 theory::TrustNode SharedTermsDatabase::explain(TNode literal)
 {
-  TrustNode trn = d_pfee.explain(literal);
-  return trn;
+  if (d_pfee!=nullptr)
+  {
+    // use the proof equality engine if it exists
+    return d_pfee->explain(literal);
+  }
+  // otherwise, explain without proofs
+  Node exp = d_equalityEngine.mkExplainLit(literal);
+  // no proof generator
+  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
 }
 
 } /* namespace CVC4 */
