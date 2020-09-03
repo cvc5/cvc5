@@ -230,9 +230,7 @@ PropagationResult ICPSolver::doPropagationRound()
         break;
       case PropagationResult::CONFLICT:
         d_state.d_origins.add(d_mapper(c.lhs), c.origin, c.rhsVariables);
-        auto origins = d_state.d_origins.getOrigins(d_mapper(c.lhs));
-        d_state.d_conflict =
-            NodeManager::currentNM()->mkNode(Kind::NOT, origins);
+        d_state.d_conflict = d_state.d_origins.getOrigins(d_mapper(c.lhs));
         return PropagationResult::CONFLICT;
     }
     switch (cres)
@@ -336,8 +334,7 @@ void ICPSolver::check()
         Trace("nl-icp") << "Found a conflict: " << d_state.d_conflict
                         << std::endl;
 
-        d_im.addPendingArithLemma(d_state.d_conflict,
-                                  InferenceId::NL_ICP_PROPAGATION);
+        d_im.addConflict(d_state.d_conflict, InferenceId::NL_ICP_CONFLICT);
         did_progress = true;
         progress = false;
         break;
