@@ -20,7 +20,6 @@
 #define CVC4__THEORY__BV__BV_SOLVER_H
 
 #include "theory/bv/theory_bv.h"
-#include "theory/theory.h"
 
 namespace CVC4 {
 namespace theory {

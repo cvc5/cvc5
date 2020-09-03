@@ -17,12 +17,7 @@
 
 #include "options/bv_options.h"
 #include "theory/bv/bv_solver_lazy.h"
-#include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
-
-using namespace CVC4::context;
-using namespace CVC4::theory::bv::utils;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
@@ -74,7 +69,7 @@ Node TheoryBV::getUFDivByZero(Kind k, unsigned width)
     if (d_ufDivByZero.find(width) == d_ufDivByZero.end())
     {
       // lazily create the function symbols
-      ostringstream os;
+      std::ostringstream os;
       os << "BVUDivByZero_" << width;
       Node divByZero =
           nm->mkSkolem(os.str(),
@@ -90,7 +85,7 @@ Node TheoryBV::getUFDivByZero(Kind k, unsigned width)
   {
     if (d_ufRemByZero.find(width) == d_ufRemByZero.end())
     {
-      ostringstream os;
+      std::ostringstream os;
       os << "BVURemByZero_" << width;
       Node divByZero =
           nm->mkSkolem(os.str(),

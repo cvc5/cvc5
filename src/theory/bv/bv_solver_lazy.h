@@ -25,10 +25,7 @@
 #include "context/context.h"
 #include "theory/bv/bv_solver.h"
 #include "theory/bv/bv_subtheory.h"
-#include "theory/bv/theory_bv_rewriter.h"
-#include "theory/bv/theory_bv_utils.h"
 #include "util/hash.h"
-#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {

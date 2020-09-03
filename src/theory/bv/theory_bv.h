@@ -20,17 +20,9 @@
 #define CVC4__THEORY__BV__THEORY_BV_H
 
 #include <unordered_map>
-#include <unordered_set>
 
-#include "context/context.h"
-#include "expr/node.h"
-#include "expr/proof_node_manager.h"
 #include "theory/bv/theory_bv_rewriter.h"
-#include "theory/bv/theory_bv_utils.h"
-#include "theory/logic_info.h"
-#include "theory/output_channel.h"
 #include "theory/theory.h"
-#include "theory/valuation.h"
 
 namespace CVC4 {
 namespace theory {

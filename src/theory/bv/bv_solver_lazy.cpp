@@ -31,9 +31,7 @@
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 
-using namespace CVC4::context;
 using namespace CVC4::theory::bv::utils;
-using namespace std;
 
 namespace CVC4 {
 namespace theory {
