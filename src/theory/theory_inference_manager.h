@@ -150,7 +150,7 @@ class TheoryInferenceManager
                           const std::vector<Node>& args);
   /**
    * Explain and send conflict from contradictory facts. This method is called
-   * when proof generator pf has a proof of false from free assumptions exp.
+   * when proof generator pg has a proof of false from free assumptions exp.
    * This method sends a trusted conflict corresponding to the official
    * equality engine's explanation of literals in exp, with the proof equality
    * engine as the proof generator (if it exists), where pg provides the
