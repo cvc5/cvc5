@@ -291,8 +291,8 @@ libcvc4_add_sources(
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
-  theory/arith/inference.cpp
-  theory/arith/inference.h
+  theory/arith/inference_id.cpp
+  theory/arith/inference_id.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear_equality.cpp

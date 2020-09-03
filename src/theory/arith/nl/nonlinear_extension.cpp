@@ -761,7 +761,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
             d_containing.getOutputChannel().requirePhase(literal, true);
             Trace("nl-ext-debug") << "Split on : " << literal << std::endl;
             Node split = literal.orNode(literal.negate());
-            NlLemma nsplit(split, Inference::SHARED_TERM_VALUE_SPLIT);
+            NlLemma nsplit(split, InferenceId::NL_SHARED_TERM_VALUE_SPLIT);
             filterLemma(nsplit, stvLemmas);
           }
           if (!stvLemmas.empty())
