@@ -40,11 +40,12 @@ SharedTermsDatabase::SharedTermsDatabase(TheoryEngine* theoryEngine,
       d_conflictPolarity()
 {
   smtStatisticsRegistry()->registerStat(&d_statSharedTerms);
-  
+
   // if proofs are enabled, make the proof equality engine
-  if (pnm!=nullptr)
+  if (pnm != nullptr)
   {
-    d_pfee.reset(new eq::ProofEqEngine(context, userContext, d_equalityEngine, pnm));
+    d_pfee.reset(
+        new eq::ProofEqEngine(context, userContext, d_equalityEngine, pnm));
   }
 }
 
@@ -232,8 +233,10 @@ bool SharedTermsDatabase::propagateEquality(TNode equality, bool polarity) {
   return true;
 }
 
-void SharedTermsDatabase::checkForConflict() {
-  if (!d_inConflict) {
+void SharedTermsDatabase::checkForConflict()
+{
+  if (!d_inConflict)
+  {
     return;
   }
   d_inConflict = false;
@@ -243,7 +246,7 @@ void SharedTermsDatabase::checkForConflict() {
     conflict = conflict.notNode();
   }
   TrustNode trnc;
-  if (d_pfee!=nullptr)
+  if (d_pfee != nullptr)
   {
     trnc = d_pfee->assertConflict(conflict);
   }
@@ -271,7 +274,7 @@ bool SharedTermsDatabase::isKnown(TNode literal) const {
 
 theory::TrustNode SharedTermsDatabase::explain(TNode literal)
 {
-  if (d_pfee!=nullptr)
+  if (d_pfee != nullptr)
   {
     // use the proof equality engine if it exists
     return d_pfee->explain(literal);

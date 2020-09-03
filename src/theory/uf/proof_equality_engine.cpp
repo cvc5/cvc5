@@ -37,7 +37,8 @@ ProofEqEngine::ProofEqEngine(context::Context* c,
   NodeManager* nm = NodeManager::currentNM();
   d_true = nm->mkConst(true);
   d_false = nm->mkConst(false);
-  AlwaysAssert(pnm!=nullptr) << "Should not construct ProofEqEngine without proof node manager";
+  AlwaysAssert(pnm != nullptr)
+      << "Should not construct ProofEqEngine without proof node manager";
 }
 
 bool ProofEqEngine::assertFact(Node lit,
@@ -171,7 +172,7 @@ TrustNode ProofEqEngine::assertConflict(Node lit)
   {
     Assert(Rewriter::rewrite(lit) == d_false)
         << "pfee::assertConflict: conflict literal is not rewritable to "
-            "false";
+           "false";
     std::vector<Node> exp;
     exp.push_back(lit);
     std::vector<Node> args;
@@ -318,8 +319,7 @@ TrustNode ProofEqEngine::explain(Node conc)
   LazyCDProof tmpProof(d_pnm, &d_proof);
   std::vector<TNode> assumps;
   explainWithProof(conc, assumps, &tmpProof);
-  return ensureProofForFact(
-      conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
+  return ensureProofForFact(conc, assumps, TrustNodeKind::PROP_EXP, &tmpProof);
 }
 
 TrustNode ProofEqEngine::assertLemmaInternal(Node conc,
