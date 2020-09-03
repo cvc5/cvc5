@@ -107,6 +107,26 @@ void TheoryInferenceManager::conflictExp(PfRule id,
   }
 }
 
+void TheoryInferenceManager::conflictExp(const std::vector<Node>& exp,
+                  ProofGenerator * pg)
+{
+  if (!d_theoryState.isInConflict())
+  {
+    if (d_pfee != nullptr)
+    {
+      // use proof equality engine to construct the trust node
+      TrustNode tconf = d_pfee->assertConflict(exp, pg);
+      d_out.trustedConflict(tconf);
+    }
+    else
+    {
+      // version without proofs
+      Node conf = mkExplainPartial(exp, {});
+      conflict(conf);
+    }
+  }
+}
+
 bool TheoryInferenceManager::propagateLit(TNode lit)
 {
   // If already in conflict, no more propagation

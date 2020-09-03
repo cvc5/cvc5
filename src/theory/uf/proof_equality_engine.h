@@ -4,11 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
-<<<<<<< HEAD
- ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
-=======
  ** Copyright (c) 2009-2020 by the authors listed in the file AUTHORS
->>>>>>> 4adff162770a841d136ec44146928c2296eaf1b2
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -174,6 +170,8 @@ class ProofEqEngine : public EagerProofGenerator
                            const std::vector<Node>& args);
   /** Multi-step version */
   TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
+  /** Generator version, where pg has a proof of false from exp */
+  TrustNode assertConflict(const std::vector<Node>& exp, ProofGenerator * pg);
   //-------------------------- assert lemma
   /**
    * Called when we have concluded conc, typically via theory specific

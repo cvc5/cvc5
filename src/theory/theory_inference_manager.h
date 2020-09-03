@@ -127,7 +127,7 @@ class TheoryInferenceManager
   void conflict(TNode conf);
   /**
    * Raise trusted conflict tconf (of any form) where a proof generator has
-   * been provided in a custom way.
+   * been provided (as part of the trust node) in a custom way.
    */
   void trustedConflict(TrustNode tconf);
   /**
@@ -140,6 +140,11 @@ class TheoryInferenceManager
   void conflictExp(PfRule id,
                    const std::vector<Node>& exp,
                    const std::vector<Node>& args);
+  /**
+   * Explain and send conflict from contradictory facts.
+   */
+  void conflictExp(const std::vector<Node>& exp,
+                   ProofGenerator * pg);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.

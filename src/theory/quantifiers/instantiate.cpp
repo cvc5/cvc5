@@ -272,7 +272,7 @@ bool Instantiate::addInstantiation(
                          "Instantiate::getInstantiation:qpreprocess",
                          false,
                          PfRule::THEORY_PREPROCESS);
-      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {body});
+      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {});
     }
   }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
