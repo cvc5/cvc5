@@ -35,19 +35,17 @@ namespace theory {
 namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
-                                     context::Context* c,
-                                     context::UserContext* u,
-                                     Valuation valuation)
-    : d_members(c),
-      d_deq(c),
-      d_termProcessed(u),
-      d_keep(c),
+                                     SolverState& state,
+                                     InferenceManager& im)
+    : d_members(state.getSatContext()),
+      d_deq(state.getSatContext()),
+      d_termProcessed(state.getUserContext()),
       d_full_check_incomplete(false),
       d_external(external),
-      d_state(*this, c, u, valuation),
-      d_im(*this, d_state, c, u),
-      d_rels(new TheorySetsRels(d_state, d_im, u)),
-      d_cardSolver(new CardinalityExtension(d_state, d_im, c, u)),
+      d_state(state),
+      d_im(im),
+      d_rels(new TheorySetsRels(d_state, d_im)),
+      d_cardSolver(new CardinalityExtension(d_state, d_im)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
@@ -104,9 +102,7 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
             // infer equality between elements of singleton
             Node exp = s1.eqNode(s2);
             Node eq = s1[0].eqNode(s2[0]);
-            d_keep.insert(exp);
-            d_keep.insert(eq);
-            assertFact(eq, exp);
+            d_im.assertInternalFact(eq, true, exp);
           }
           else
           {
@@ -166,11 +162,9 @@ void TheorySetsPrivate::eqNotifyMerge(TNode t1, TNode t2)
               if (s1[0] != m2[0])
               {
                 Node eq = s1[0].eqNode(m2[0]);
-                d_keep.insert(exp);
-                d_keep.insert(eq);
                 Trace("sets-prop") << "Propagate eq-mem eq inference : " << exp
                                    << " => " << eq << std::endl;
-                assertFact(eq, exp);
+                d_im.assertInternalFact(eq, true, exp);
               }
             }
             else
@@ -270,29 +264,6 @@ bool TheorySetsPrivate::isMember(Node x, Node s)
   return false;
 }
 
-bool TheorySetsPrivate::assertFact(Node fact, Node exp)
-{
-  Trace("sets-assert") << "TheorySets::assertFact : " << fact
-                       << ", exp = " << exp << std::endl;
-  bool polarity = fact.getKind() != kind::NOT;
-  TNode atom = polarity ? fact : fact[0];
-  if (d_state.isEntailed(atom, polarity))
-  {
-    return false;
-  }
-  if (atom.getKind() == kind::EQUAL)
-  {
-    d_equalityEngine->assertEquality(atom, polarity, exp);
-  }
-  else
-  {
-    d_equalityEngine->assertPredicate(atom, polarity, exp);
-  }
-  // call the notify new fact method
-  notifyFact(atom, polarity, exp);
-  return true;
-}
-
 void TheorySetsPrivate::fullEffortReset()
 {
   Assert(d_equalityEngine->consistent());
@@ -305,6 +276,7 @@ void TheorySetsPrivate::fullEffortReset()
   d_state.reset();
   // reset the inference manager
   d_im.reset();
+  d_im.clearPendingLemmas();
   // reset the cardinality solver
   d_cardSolver->reset();
 }
@@ -314,7 +286,7 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- Full effort check ------" << std::endl;
   do
   {
-    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+    Assert(!d_im.hasPendingLemma() || d_im.hasProcessed());
 
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
@@ -448,35 +420,35 @@ void TheorySetsPrivate::fullEffortCheck()
     }
     // check subtypes
     checkSubtypes();
-    d_im.flushPendingLemmas(true);
+    d_im.doPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
     }
     // check downwards closure
     checkDownwardsClosure();
-    d_im.flushPendingLemmas();
+    d_im.doPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
     }
     // check upwards closure
     checkUpwardsClosure();
-    d_im.flushPendingLemmas();
+    d_im.doPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
     }
     // check disequalities
     checkDisequalities();
-    d_im.flushPendingLemmas();
+    d_im.doPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
     }
     // check reduce comprehensions
     checkReduceComprehensions();
-    d_im.flushPendingLemmas();
+    d_im.doPendingLemmas();
     if (d_im.hasProcessed())
     {
       continue;
@@ -496,8 +468,8 @@ void TheorySetsPrivate::fullEffortCheck()
       d_rels->check(Theory::EFFORT_FULL);
     }
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
-           && d_im.hasAddedFact());
-  Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+           && d_im.hasSentFact());
+  Assert(!d_im.hasPendingLemma() || d_im.hasProcessed());
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
@@ -854,7 +826,7 @@ void TheorySetsPrivate::checkDisequalities()
     Node lem = nm->mkNode(OR, deq, nm->mkNode(EQUAL, mem1, mem2).negate());
     lem = Rewriter::rewrite(lem);
     d_im.assertInference(lem, d_true, "diseq", 1);
-    d_im.flushPendingLemmas();
+    d_im.doPendingLemmas();
     if (d_im.hasProcessed())
     {
       return;
@@ -893,7 +865,7 @@ void TheorySetsPrivate::checkReduceComprehensions()
         nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, v), body.eqNode(mem));
     Trace("sets-comprehension")
         << "Comprehension reduction: " << lem << std::endl;
-    d_im.flushLemma(lem);
+    d_im.lemma(lem);
   }
 }
 
@@ -922,12 +894,6 @@ void TheorySetsPrivate::postCheck(Theory::Effort level)
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }
 
-bool TheorySetsPrivate::preNotifyFact(TNode atom, bool polarity, TNode fact)
-{
-  // use entailment check (is this necessary?)
-  return d_state.isEntailed(atom, polarity);
-}
-
 void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
 {
   if (d_state.isInConflict())
@@ -946,16 +912,14 @@ void TheorySetsPrivate::notifyFact(TNode atom, bool polarity, TNode fact)
       {
         Node pexp = NodeManager::currentNM()->mkNode(
             kind::AND, atom, atom[1].eqNode(s));
-        d_keep.insert(pexp);
         if (s.getKind() == kind::SINGLETON)
         {
           if (s[0] != atom[0])
           {
             Trace("sets-prop") << "Propagate mem-eq : " << pexp << std::endl;
             Node eq = s[0].eqNode(atom[0]);
-            d_keep.insert(eq);
             // triggers an internal inference
-            assertFact(eq, pexp);
+            d_im.assertInternalFact(eq, true, pexp);
           }
         }
         else
