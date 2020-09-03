@@ -241,7 +241,6 @@ void InferProofCons::convert(Inference infer,
       {
         Trace("strings-ipc-core")
             << "...failed to find main equality" << std::endl;
-        // Assert(false);
         break;
       }
       // apply MACRO_SR_PRED_ELIM using equalities up to the main eq
@@ -255,7 +254,7 @@ void InferProofCons::convert(Inference infer,
       if (CDProof::isSame(mainEqSRew, mainEq))
       {
         Trace("strings-ipc-core") << "...undo step" << std::endl;
-        // not necessary
+        // the rule added above was not necessary
         psb.popStep();
       }
       else if (mainEqSRew == conc)
@@ -476,7 +475,8 @@ void InferProofCons::convert(Inference infer,
         }
         else
         {
-          Assert(false);
+          // should always have given a rule to try above
+          Assert(false) << "No reconstruction rule given for " << infer;
         }
       }
     }
@@ -491,7 +491,7 @@ void InferProofCons::convert(Inference infer,
           || conc[1][0].getKind() != STRING_LENGTH)
       {
         Trace("strings-ipc-deq") << "malformed application" << std::endl;
-        Assert(false);
+        Assert(false) << "unexpected conclusion " << conc << " for " << infer;
       }
       else
       {
@@ -534,7 +534,7 @@ void InferProofCons::convert(Inference infer,
     {
       if (conc.getKind() != OR)
       {
-        Assert(false);
+        Assert(false) << "Expected OR conclusion for " << infer;
       }
       else
       {
@@ -625,7 +625,7 @@ void InferProofCons::convert(Inference infer,
       if (mainEq.isNull())
       {
         Trace("strings-ipc-red") << "Bad Reduction: " << conc << std::endl;
-        Assert(false);
+        Assert(false) << "Unexpected reduction " << conc;
         break;
       }
       std::vector<Node> argsRed;
@@ -701,7 +701,7 @@ void InferProofCons::convert(Inference infer,
                 << "--- and elim to " << eunfAE << std::endl;
             if (eunfAE.isNull() || eunfAE.getKind() != EQUAL)
             {
-              Assert(false);
+              Assert(false) << "Unexpected unfolded premise " << eunf << " for " << infer;
               continue;
             }
             Trace("strings-ipc-prefix")
@@ -717,7 +717,7 @@ void InferProofCons::convert(Inference infer,
         else
         {
           // not sure how to use this assumption
-          Assert(false);
+          Assert(false) << "Unexpected premise " << e << " for " << infer;
         }
       }
       if (eqs.empty())
@@ -838,7 +838,7 @@ void InferProofCons::convert(Inference infer,
     case Inference::CTN_TRANS:
     case Inference::CTN_DECOMPOSE:
     default:
-      // do nothing, these will be converted to STRINGS_TRUST below since the
+      // do nothing, these will be converted to STRING_TRUST below since the
       // rule is unknown.
       break;
   }
@@ -887,8 +887,7 @@ void InferProofCons::convert(Inference infer,
         Trace("strings-ipc-fail") << "    e: " << ec << std::endl;
       }
     }
-    // untrustworthy conversion
-    // argument is the conclusion
+    // untrustworthy conversion, the argument of STRING_TRUST is its conclusion
     ps.d_args.clear();
     ps.d_args.push_back(conc);
     // use the trust rule
