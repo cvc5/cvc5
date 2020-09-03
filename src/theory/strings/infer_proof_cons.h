@@ -34,12 +34,13 @@ namespace strings {
 
 /**
  * Converts between the strings-specific (untrustworthy) InferInfo class and
- * information about how to construct a trustworthy proof step, e.g.
- * (PfRule, children, args). It also acts as a (lazy) proof generator.]
+ * information about how to construct a trustworthy proof step
+ * (PfRule, children, args). It acts as a (lazy) proof generator where the
+ * former is registered via notifyFact and the latter is asked for in
+ * getProofFor, typically by the proof equality engine.
  *
- * In particular, the main method of this class is convert below, which is
- * called when we need to construct a proof node for a fact that was added to
- * the equality engine of strings using strings-specific reasoning.
+ * The main (private) method of this class is convert below, which is
+ * called when we need to construct a proof node from an InferInfo.
  */
 class InferProofCons : public ProofGenerator
 {
@@ -64,43 +65,6 @@ class InferProofCons : public ProofGenerator
    * only for facts that are explained.
    */
   void notifyFact(const InferInfo& ii);
-  /** convert
-   *
-   * This method is called when the theory of strings makes an inference
-   * described by an inference info ii, which is of the form:
-   * (<conclusion>, <Inference_id>, <antecendant>).
-   *
-   * This method converts this call to instructions on what the proof rule
-   * step(s) are for concluding the conclusion of the inference. This
-   * information is stored in the argument ps, which consists of:
-   * (1) A proof rule identifier (d_rule).
-   * (2) The premises of the proof step (d_children).
-   * (3) Arguments to the proof step (d_args).
-   *
-   * If the proof for the inference cannot be captured by a single
-   * step, then the d_rule field of ps is not set, and useBuffer is set to
-   * true. In this case, the ProofStepBuffer of this class contains (multiple)
-   * steps for how to construct a proof for the inference. This buffer can be
-   * obtained by getBuffer() below.
-   *
-   * This method returns the conclusion of ii.
-   */
-  Node convert(const InferInfo& ii, ProofStep& ps, bool& useBuffer);
-  /**
-   * Internal version of above, where the fields of ii have been expanded
-   * into separate arguments.
-   */
-  Node convert(Inference infer,
-               bool isRev,
-               Node conc,
-               const std::vector<Node>& exp,
-               ProofStep& ps,
-               bool& useBuffer);
-  /**
-   * Get the proof step buffer, which should be called immediately after the
-   * above convert method when useBuffer is set to true.
-   */
-  ProofStepBuffer* getBuffer();
 
   /**
    * This returns the proof for fact. This is required for using this class as
@@ -114,25 +78,52 @@ class InferProofCons : public ProofGenerator
   virtual std::string identify() const override;
 
  private:
+  /** convert
+   *
+   * This method is called when the theory of strings makes an inference
+   * described by an InferInfo, whose fields are given by the first four
+   * arguments of this method.
+   *
+   * This method converts this call to instructions on what the proof rule
+   * step(s) are for concluding the conclusion of the inference. This
+   * information is either:
+   *
+   * (A) stored in the argument ps, which consists of:
+   * - A proof rule identifier (ProofStep::d_rule).
+   * - The premises of the proof step (ProofStep::d_children).
+   * - Arguments to the proof step (ProofStep::d_args).
+   *
+   * (B) If the proof for the inference cannot be captured by a single
+   * step, then the d_rule field of ps is not set, and useBuffer is set to
+   * true. In this case, the argument psb is updated to contain (possibly
+   * multiple) proof steps for how to construct a proof for the given inference.
+   * In particular, psb will contain a set of steps that form a proof
+   * whose conclusion is ii.d_conc and whose free assumptions are ii.d_ant.
+   */
+  void convert(Inference infer,
+               bool isRev,
+               Node conc,
+               const std::vector<Node>& exp,
+               ProofStep& ps,
+               TheoryProofStepBuffer& psb,
+               bool& useBuffer);
   /**
    * Convert length proof. If this method returns true, it adds proof step(s)
-   * to the buffer that conclude lenReq from premises lenExp.
+   * to the buffer psb that conclude lenReq from premises lenExp.
    */
-  bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp);
-  /** Are proofs enabled? */
-  bool isProofEnabled() const;
+  bool convertLengthPf(Node lenReq,
+                       const std::vector<Node>& lenExp,
+                       TheoryProofStepBuffer& psb);
   /**
    * Helper method, adds the proof of (TRANS eqa eqb) into the proof step
-   * buffer d_psb, where eqa and eqb are flipped as needed. Returns the
+   * buffer psb, where eqa and eqb are flipped as needed. Returns the
    * conclusion, or null if we were not able to construct a TRANS step.
    */
-  Node convertTrans(Node eqa, Node eqb);
+  Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */
   NodeInferInfoMap d_lazyFactMap;
-  /** The proof step buffer */
-  TheoryProofStepBuffer d_psb;
   /** Reference to the statistics for the theory of strings/sequences. */
   SequencesStatistics& d_statistics;
 };
