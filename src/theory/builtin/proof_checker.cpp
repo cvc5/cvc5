@@ -70,11 +70,11 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   // trusted rules
   pc->registerTrustedChecker(PfRule::TRUST, this, 1);
   pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
-  pc->registerTrustedChecker(PfRule::PREPROCESS, this, 2);
-  pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 2);
-  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 2);
-  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 2);
-  pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
+  pc->registerTrustedChecker(PfRule::PREPROCESS, this, 3);
+  pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 3);
+  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 3);
+  pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 3);
+  pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 3);
 }
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
