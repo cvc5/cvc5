@@ -273,10 +273,6 @@ private:
   {
     return std::string("TheoryDatatypes");
   }
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
   /** debug print */
   void printModelDebug( const char* c );
   /** entailment check */

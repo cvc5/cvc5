@@ -210,6 +210,8 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/model_blocker.cpp
   smt/model_blocker.h
+  smt/node_command.cpp
+  smt/node_command.h
   smt/options_manager.cpp
   smt/options_manager.h
   smt/quant_elim_solver.cpp
@@ -309,6 +311,8 @@ libcvc4_add_sources(
   theory/arith/nl/cad/projections.h
   theory/arith/nl/cad/variable_ordering.cpp
   theory/arith/nl/cad/variable_ordering.h
+  theory/arith/nl/ext_theory_callback.cpp
+  theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
   theory/arith/nl/nl_constraint.cpp
@@ -354,8 +358,6 @@ libcvc4_add_sources(
   theory/arith/type_enumerator.h
   theory/arrays/array_info.cpp
   theory/arrays/array_info.h
-  theory/arrays/static_fact_manager.cpp
-  theory/arrays/static_fact_manager.h
   theory/arrays/theory_arrays.cpp
   theory/arrays/theory_arrays.h
   theory/arrays/theory_arrays_rewriter.cpp
@@ -891,8 +893,8 @@ target_include_directories(cvc4
 
 install(TARGETS cvc4
   EXPORT cvc4-targets
-  LIBRARY DESTINATION ${LIBRARY_INSTALL_DIR}
-  ARCHIVE DESTINATION ${LIBRARY_INSTALL_DIR})
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
@@ -982,27 +984,27 @@ install(FILES
           api/cvc4cpp.h
           api/cvc4cppkind.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/api)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/api)
 install(FILES
           base/configuration.h
           base/exception.h
           base/listener.h
           base/modal_exception.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/base)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/base)
 install(FILES
           context/cdhashmap_forward.h
           context/cdhashset_forward.h
           context/cdinsert_hashmap_forward.h
           context/cdlist_forward.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/context)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/context)
 install(FILES
           include/cvc4.h
           include/cvc4_public.h
           include/cvc4parser_public.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4)
 install(FILES
           expr/array.h
           expr/array_store_all.h
@@ -1019,7 +1021,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
           ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/expr)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/expr)
 install(FILES
           options/language.h
           options/option_exception.h
@@ -1027,7 +1029,7 @@ install(FILES
           options/printer_modes.h
           options/set_language.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/options)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/options)
 install(FILES
           parser/input.h
           parser/parser.h
@@ -1035,25 +1037,25 @@ install(FILES
           parser/parser_exception.h
           parser/parse_op.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/parser)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/parser)
 install(FILES
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/printer)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/printer)
 install(FILES
           proof/unsat_core.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/proof)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/proof)
 install(FILES
           smt/command.h
           smt/logic_exception.h
           smt/smt_engine.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/smt)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/smt)
 install(FILES
           theory/logic_info.h
           theory/theory_id.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/theory)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/theory)
 install(FILES
           util/abstract_value.h
           util/bitvector.h
@@ -1083,7 +1085,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/real_algebraic_number.h
         DESTINATION
-          ${INCLUDE_INSTALL_DIR}/cvc4/util)
+          ${CMAKE_INSTALL_INCLUDEDIR}/cvc4/util)
 
 # Fix include paths for all public headers.
 # Note: This is a temporary fix until the new C++ API is in place.

@@ -118,14 +118,6 @@ TrustNode TheoryArith::explain(TNode n)
   return TrustNode::mkTrustPropExp(n, exp, nullptr);
 }
 
-bool TheoryArith::getCurrentSubstitution( int effort, std::vector< Node >& vars, std::vector< Node >& subs, std::map< Node, std::vector< Node > >& exp ) {
-  return d_internal->getCurrentSubstitution( effort, vars, subs, exp );
-}
-
-bool TheoryArith::isExtfReduced( int effort, Node n, Node on, std::vector< Node >& exp ) {
-  return d_internal->isExtfReduced( effort, n, on, exp );
-}
-
 void TheoryArith::propagate(Effort e) {
   d_internal->propagate(e);
 }

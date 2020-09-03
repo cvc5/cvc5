@@ -50,11 +50,11 @@ void InferenceManagerBuffered::addPendingLemma(Node lem,
                                                ProofGenerator* pg)
 {
   // make the simple theory lemma
-  d_pendingLem.push_back(std::make_shared<SimpleTheoryLemma>(lem, p, pg));
+  d_pendingLem.emplace_back(new SimpleTheoryLemma(lem, p, pg));
 }
 
 void InferenceManagerBuffered::addPendingLemma(
-    std::shared_ptr<TheoryInference> lemma)
+    std::unique_ptr<TheoryInference> lemma)
 {
   d_pendingLem.emplace_back(std::move(lemma));
 }
@@ -65,20 +65,18 @@ void InferenceManagerBuffered::addPendingFact(Node conc,
 {
   // make a simple theory internal fact
   Assert(conc.getKind() != AND && conc.getKind() != OR);
-  d_pendingFact.push_back(
-      std::make_shared<SimpleTheoryInternalFact>(conc, exp, pg));
+  d_pendingFact.emplace_back(new SimpleTheoryInternalFact(conc, exp, pg));
 }
 
 void InferenceManagerBuffered::addPendingFact(
-    std::shared_ptr<TheoryInference> fact)
+    std::unique_ptr<TheoryInference> fact)
 {
   d_pendingFact.emplace_back(std::move(fact));
 }
 
 void InferenceManagerBuffered::addPendingPhaseRequirement(Node lit, bool pol)
 {
-  // must ensure rewritten
-  lit = Rewriter::rewrite(lit);
+  // it is the responsibility of the caller to ensure lit is rewritten
   d_pendingReqPhase[lit] = pol;
 }
 
@@ -97,7 +95,7 @@ void InferenceManagerBuffered::doPendingFacts()
 
 void InferenceManagerBuffered::doPendingLemmas()
 {
-  for (const std::shared_ptr<TheoryInference>& plem : d_pendingLem)
+  for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
     plem->process(this);
@@ -110,7 +108,7 @@ void InferenceManagerBuffered::doPendingPhaseRequirements()
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
   {
-    d_out.requirePhase(prp.first, prp.second);
+    requirePhase(prp.first, prp.second);
   }
   d_pendingReqPhase.clear();
 }

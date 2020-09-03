@@ -68,22 +68,17 @@ bool ProofGenerator::addProofTo(Node f, CDProof* pf, CDPOverwrite opolicy)
   return false;
 }
 
-void pfgEnsureClosed(Node proven,
-                     ProofGenerator* pg,
-                     const char* c,
-                     const char* ctx,
-                     bool reqGen)
-{
-  std::vector<Node> assumps;
-  pfgEnsureClosedWrt(proven, pg, assumps, c, ctx, reqGen);
-}
-
-void pfgEnsureClosedWrt(Node proven,
-                        ProofGenerator* pg,
-                        const std::vector<Node>& assumps,
-                        const char* c,
-                        const char* ctx,
-                        bool reqGen)
+/**
+ * Ensure closed with respect to assumptions, internal version, which
+ * generalizes the check for a proof generator or a proof node.
+ */
+void ensureClosedWrtInternal(Node proven,
+                             ProofGenerator* pg,
+                             ProofNode* pnp,
+                             const std::vector<Node>& assumps,
+                             const char* c,
+                             const char* ctx,
+                             bool reqGen)
 {
   if (!options::proofNew())
   {
@@ -96,38 +91,68 @@ void pfgEnsureClosedWrt(Node proven,
     // trace is off and proof new eager checking is off, do not do check
     return;
   }
-  std::stringstream ss;
-  ss << "ProofGenerator: " << (pg == nullptr ? "null" : pg->identify())
-     << " in context " << ctx;
   std::stringstream sdiag;
   bool isTraceOn = Trace.isOn(c);
   if (!isTraceOn)
   {
     sdiag << ", use -t " << c << " for details";
   }
-  Trace(c) << "=== pfgEnsureClosed: " << ss.str() << std::endl;
-  Trace(c) << "Proven: " << proven << std::endl;
-  if (pg == nullptr)
+  bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+  if (!dumpProofTraceOn)
   {
-    // only failure if flag is true
-    if (reqGen)
-    {
-      Unreachable() << "...pfgEnsureClosed: no generator in context " << ctx
-                    << sdiag.str();
-    }
-    Trace(c) << "...pfgEnsureClosed: no generator in context " << ctx
-             << std::endl;
-    return;
+    sdiag << ", use -t dump-proof-error for details on proof";
   }
-  std::shared_ptr<ProofNode> pn = pg->getProofFor(proven);
-  Trace(c) << " Proof: " << *pn.get() << std::endl;
-  if (pn == nullptr)
+  // get the proof node in question, which is either provided or built by the
+  // proof generator
+  std::shared_ptr<ProofNode> pn;
+  std::stringstream ss;
+  if (pnp != nullptr)
   {
-    AlwaysAssert(false) << "...pfgEnsureClosed: null proof from " << ss.str()
+    Assert(pg == nullptr);
+    ss << "ProofNode in context " << ctx;
+  }
+  else
+  {
+    ss << "ProofGenerator: " << (pg == nullptr ? "null" : pg->identify())
+       << " in context " << ctx;
+    if (pg == nullptr)
+    {
+      // only failure if flag is true
+      if (reqGen)
+      {
+        Unreachable() << "...ensureClosed: no generator in context " << ctx
+                      << sdiag.str();
+      }
+    }
+    else
+    {
+      Assert(!proven.isNull());
+      pn = pg->getProofFor(proven);
+      pnp = pn.get();
+    }
+  }
+  Trace(c) << "=== ensureClosed: " << ss.str() << std::endl;
+  Trace(c) << "Proven: " << proven << std::endl;
+  if (pnp == nullptr)
+  {
+    if (pg == nullptr)
+    {
+      // did not require generator
+      Assert(!reqGen);
+      Trace(c) << "...ensureClosed: no generator in context " << ctx
+               << std::endl;
+      return;
+    }
+  }
+  // if we don't have a proof node, a generator failed
+  if (pnp == nullptr)
+  {
+    Assert(pg != nullptr);
+    AlwaysAssert(false) << "...ensureClosed: null proof from " << ss.str()
                         << sdiag.str();
   }
   std::vector<Node> fassumps;
-  expr::getFreeAssumptions(pn.get(), fassumps);
+  expr::getFreeAssumptions(pnp, fassumps);
   bool isClosed = true;
   std::stringstream ssf;
   for (const Node& fa : fassumps)
@@ -150,11 +175,52 @@ void pfgEnsureClosedWrt(Node proven,
         Trace(c) << "- " << a << std::endl;
       }
     }
+    if (dumpProofTraceOn)
+    {
+      Trace("dump-proof-error") << " Proof: " << *pnp << std::endl;
+    }
   }
-  AlwaysAssert(isClosed) << "...pfgEnsureClosed: open proof from " << ss.str()
+  AlwaysAssert(isClosed) << "...ensureClosed: open proof from " << ss.str()
                          << sdiag.str();
-  Trace(c) << "...pfgEnsureClosed: success" << std::endl;
+  Trace(c) << "...ensureClosed: success" << std::endl;
   Trace(c) << "====" << std::endl;
+}
+
+void pfgEnsureClosed(Node proven,
+                     ProofGenerator* pg,
+                     const char* c,
+                     const char* ctx,
+                     bool reqGen)
+{
+  Assert(!proven.isNull());
+  // proof generator may be null
+  std::vector<Node> assumps;
+  ensureClosedWrtInternal(proven, pg, nullptr, assumps, c, ctx, reqGen);
+}
+
+void pfgEnsureClosedWrt(Node proven,
+                        ProofGenerator* pg,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx,
+                        bool reqGen)
+{
+  Assert(!proven.isNull());
+  // proof generator may be null
+  ensureClosedWrtInternal(proven, pg, nullptr, assumps, c, ctx, reqGen);
+}
+
+void pfnEnsureClosed(ProofNode* pn, const char* c, const char* ctx)
+{
+  ensureClosedWrtInternal(Node::null(), nullptr, pn, {}, c, ctx, false);
+}
+
+void pfnEnsureClosedWrt(ProofNode* pn,
+                        const std::vector<Node>& assumps,
+                        const char* c,
+                        const char* ctx)
+{
+  ensureClosedWrtInternal(Node::null(), nullptr, pn, assumps, c, ctx, false);
 }
 
 }  // namespace CVC4

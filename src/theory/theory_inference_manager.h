@@ -214,9 +214,9 @@ class TheoryInferenceManager
    */
   virtual bool hasCachedLemma(TNode lem, LemmaProperty p);
   /** The number of lemmas we have sent since the last call to reset */
-  uint32_t numAddedLemmas() const;
+  uint32_t numSentLemmas() const;
   /** Have we added a lemma since the last call to reset? */
-  bool hasAddedLemma() const;
+  bool hasSentLemma() const;
   //--------------------------------------- internal facts
   /**
    * Assert internal fact. This is recommended method for asserting "internal"
@@ -229,8 +229,10 @@ class TheoryInferenceManager
    * @param atom The atom of the fact to assert
    * @param pol Its polarity
    * @param exp Its explanation, i.e. ( exp => (~) atom ) is valid.
+   * @return true if the fact was processed, i.e. it was asserted to the
+   * equality engine or preNotifyFact returned true.
    */
-  void assertInternalFact(TNode atom, bool pol, TNode exp);
+  bool assertInternalFact(TNode atom, bool pol, TNode exp);
   /**
    * Assert internal fact, with a proof step justification. Notice that if
    * proofs are not enabled in this inference manager, then this asserts
@@ -241,8 +243,10 @@ class TheoryInferenceManager
    * @param id The proof rule identifier of the proof step
    * @param exp Its explanation, interpreted as a conjunction
    * @param args The arguments of the proof step
+   * @return true if the fact was processed, i.e. it was asserted to the
+   * equality engine or preNotifyFact returned true.
    */
-  void assertInternalFact(TNode atom,
+  bool assertInternalFact(TNode atom,
                           bool pol,
                           PfRule id,
                           const std::vector<Node>& exp,
@@ -257,22 +261,29 @@ class TheoryInferenceManager
    * @param pg The proof generator for this step. If non-null, pg must be able
    * to provide a proof concluding (~) atom from free asumptions in exp in
    * the remainder of the current SAT context.
+   * @return true if the fact was processed, i.e. it was asserted to the
+   * equality engine or preNotifyFact returned true.
    */
-  void assertInternalFact(TNode atom,
+  bool assertInternalFact(TNode atom,
                           bool pol,
                           const std::vector<Node>& exp,
                           ProofGenerator* pg);
   /** The number of internal facts we have added since the last call to reset */
-  uint32_t numAddedFacts() const;
+  uint32_t numSentFacts() const;
   /** Have we added a internal fact since the last call to reset? */
-  bool hasAddedFact() const;
-
+  bool hasSentFact() const;
+  //--------------------------------------- phase requirements
+  /** 
+   * Set that literal n has SAT phase requirement pol, that is, it should be
+   * decided with polarity pol, for details see OutputChannel::requirePhase.
+   */
+  void requirePhase(TNode n, bool pol);
  protected:
   /**
    * Process internal fact. This is a common helper method for the
-   * assertInternalFact variants above.
+   * assertInternalFact variants above. Returns true if the fact was processed.
    */
-  void processInternalFact(TNode atom,
+  bool processInternalFact(TNode atom,
                            bool pol,
                            PfRule id,
                            const std::vector<Node>& exp,
