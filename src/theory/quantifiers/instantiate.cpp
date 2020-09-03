@@ -35,12 +35,16 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Instantiate::Instantiate(QuantifiersEngine* qe, context::UserContext* u)
+Instantiate::Instantiate(QuantifiersEngine* qe,
+                         context::UserContext* u,
+                         ProofNodeManager* pnm)
     : d_qe(qe),
+      d_pnm(pnm),
       d_term_db(nullptr),
       d_term_util(nullptr),
       d_total_inst_debug(u),
-      d_c_inst_match_trie_dom(u)
+      d_c_inst_match_trie_dom(u),
+      d_pfInst(pnm ? new CDProof(pnm) : nullptr)
 {
 }
 
@@ -231,24 +235,101 @@ bool Instantiate::addInstantiation(
     return false;
   }
 
+  // Set up a proof if proofs are enabled. This proof stores a proof of
+  // the instantiation body with q as a free assumption.
+  std::shared_ptr<LazyCDProof> pfTmp;
+  if (isProofEnabled())
+  {
+    pfTmp.reset(new LazyCDProof(
+        d_pnm, nullptr, nullptr, "Instantiate::LazyCDProof::tmp"));
+  }
+
   // construct the instantiation
   Trace("inst-add-debug") << "Constructing instantiation..." << std::endl;
   Assert(d_term_util->d_vars[q].size() == terms.size());
   // get the instantiation
-  Node body = getInstantiation(q, d_term_util->d_vars[q], terms, doVts);
+  Node body =
+      getInstantiation(q, d_term_util->d_vars[q], terms, doVts, pfTmp.get());
   Node orig_body = body;
-  // now preprocess
-  body = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  // now preprocess, storing the trust node for the rewrite
+  TrustNode tpBody = quantifiers::QuantifiersRewriter::preprocess(body, true);
+  if (!tpBody.isNull())
+  {
+    Assert(tpBody.getKind() == TrustNodeKind::REWRITE);
+    body = tpBody.getNode();
+    // do a tranformation step
+    if (pfTmp != nullptr)
+    {
+      //              ----------------- from preprocess
+      // orig_body    orig_body = body
+      // ------------------------------ EQ_RESOLVE
+      // body
+      Node proven = tpBody.getProven();
+      // add the transformation proof, or THEORY_PREPROCESS if none provided
+      pfTmp->addLazyStep(proven,
+                         tpBody.getGenerator(),
+                         true,
+                         "Instantiate::getInstantiation:qpreprocess",
+                         false,
+                         PfRule::THEORY_PREPROCESS);
+      pfTmp->addStep(body, PfRule::EQ_RESOLVE, {orig_body, proven}, {body});
+    }
+  }
   Trace("inst-debug") << "...preprocess to " << body << std::endl;
 
   // construct the lemma
   Trace("inst-assert") << "(assert " << body << ")" << std::endl;
 
-  Node lem = NodeManager::currentNM()->mkNode(kind::OR, q.negate(), body);
-  lem = Rewriter::rewrite(lem);
+  // construct the instantiation, and rewrite the lemma
+  Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, q, body);
 
-  // check for lemma duplication
-  if (!d_qe->addLemma(lem, true, false))
+  // If proofs are enabled, construct the proof, which is of the form:
+  // ... free assumption q ...
+  // ------------------------- from pfTmp
+  // body
+  // ------------------------- SCOPE
+  // (=> q body)
+  // -------------------------- MACRO_SR_PRED_ELIM
+  // lem
+  bool hasProof = false;
+  if (isProofEnabled())
+  {
+    // make the proof of body
+    std::shared_ptr<ProofNode> pfn = pfTmp->getProofFor(body);
+    // make the scope proof to get (=> q body)
+    std::vector<Node> assumps;
+    assumps.push_back(q);
+    std::shared_ptr<ProofNode> pfns = d_pnm->mkScope({pfn}, assumps);
+    Assert(assumps.size() == 1 && assumps[0] == q);
+    // store in the main proof
+    d_pfInst->addProof(pfns);
+    Node prevLem = lem;
+    lem = Rewriter::rewrite(lem);
+    if (prevLem != lem)
+    {
+      d_pfInst->addStep(lem, PfRule::MACRO_SR_PRED_ELIM, {prevLem}, {});
+    }
+    hasProof = true;
+  }
+  else
+  {
+    lem = Rewriter::rewrite(lem);
+  }
+
+  // added lemma, which checks for lemma duplication
+  bool addedLem = false;
+  if (hasProof)
+  {
+    // use trust interface
+    TrustNode tlem = TrustNode::mkTrustLemma(lem, d_pfInst.get());
+    addedLem = d_qe->addTrustedLemma(tlem, true, false);
+  }
+  else
+  {
+    addedLem = d_qe->addLemma(lem, true, false);
+  }
+
+  if (!addedLem)
   {
     Trace("inst-add-debug") << " --> Lemma already exists." << std::endl;
     ++(d_statistics.d_inst_duplicate);
@@ -367,7 +448,8 @@ bool Instantiate::existsInstantiation(Node q,
 Node Instantiate::getInstantiation(Node q,
                                    std::vector<Node>& vars,
                                    std::vector<Node>& terms,
-                                   bool doVts)
+                                   bool doVts,
+                                   LazyCDProof* pf)
 {
   Node body;
   Assert(vars.size() == terms.size());
@@ -375,10 +457,34 @@ Node Instantiate::getInstantiation(Node q,
   // Notice that this could be optimized, but no significant performance
   // improvements were observed with alternative implementations (see #1386).
   body = q[1].substitute(vars.begin(), vars.end(), terms.begin(), terms.end());
+
+  // store the proof of the instantiated body, with (open) assumption q
+  if (pf != nullptr)
+  {
+    pf->addStep(body, PfRule::INSTANTIATE, {q}, terms);
+  }
+
   // run rewriters to rewrite the instantiation in sequence.
   for (InstantiationRewriter*& ir : d_instRewrite)
   {
-    body = ir->rewriteInstantiation(q, terms, body, doVts);
+    TrustNode trn = ir->rewriteInstantiation(q, terms, body, doVts);
+    if (!trn.isNull())
+    {
+      Node newBody = trn.getNode();
+      // if using proofs, we store a preprocess + transformation step.
+      if (pf != nullptr)
+      {
+        Node proven = trn.getProven();
+        pf->addLazyStep(proven,
+                        trn.getGenerator(),
+                        true,
+                        "Instantiate::getInstantiation:rewrite_inst",
+                        false,
+                        PfRule::THEORY_PREPROCESS);
+        pf->addStep(newBody, PfRule::EQ_RESOLVE, {body, proven}, {});
+      }
+      body = newBody;
+    }
   }
   return body;
 }
@@ -674,6 +780,8 @@ void Instantiate::getExplanationForInstLemmas(
   }
 #endif
 }
+
+bool Instantiate::isProofEnabled() const { return d_pfInst != nullptr; }
 
 void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 {
