@@ -138,6 +138,7 @@ private:
    * to the constructor of this class.
    */
   bool isProofEnabled() const;
+
  public:
   bool inConflict() const;
 

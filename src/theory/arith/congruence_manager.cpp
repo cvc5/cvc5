@@ -689,10 +689,7 @@ void ArithCongruenceManager::addSharedTerm(Node x){
   d_ee->addTriggerTerm(x, THEORY_ARITH);
 }
 
-bool ArithCongruenceManager::isProofEnabled() const
-{
-  return d_pnm!=nullptr;
-}
+bool ArithCongruenceManager::isProofEnabled() const { return d_pnm != nullptr; }
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
