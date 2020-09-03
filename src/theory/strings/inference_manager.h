@@ -274,9 +274,11 @@ class InferenceManager : public TheoryInferenceManager
   // ------------------------------------------------- end extended theory
 
   /**
-   * Process conflict
+   * Send explained conflict based on the inference info ii. This makes a
+   * trusted node whose generator is the underlying proof equality engine
+   * (if it exists), and sends it on the output channel.
    */
-  void processConflict(const InferInfo& ii);
+  void conflictExpInferInfo(const InferInfo& ii);
 
  private:
   /** Reference to the solver state of the theory of strings. */

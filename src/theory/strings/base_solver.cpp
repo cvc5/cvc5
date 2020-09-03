@@ -674,7 +674,7 @@ Node BaseSolver::explainConstantEqc(Node n, Node eqc, std::vector<Node>& exp)
     }
     if (!bei.d_exp.isNull())
     {
-      exp.push_back(bei.d_exp);
+      utils::flattenOp(AND, bei.d_exp, exp);
     }
     if (!bei.d_base.isNull())
     {
@@ -694,7 +694,7 @@ Node BaseSolver::explainBestContentEqc(Node n, Node eqc, std::vector<Node>& exp)
     Assert(!bei.d_bestContent.isNull());
     if (!bei.d_exp.isNull())
     {
-      exp.push_back(bei.d_exp);
+      utils::flattenOp(AND, bei.d_exp, exp);
     }
     if (!bei.d_base.isNull())
     {

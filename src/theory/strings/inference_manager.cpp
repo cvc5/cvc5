@@ -172,7 +172,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
                                 << " by " << ii.d_id << std::endl;
       ++(d_statistics.d_conflictsInfer);
       // process the conflict
-      processConflict(ii);
+      conflictExpInferInfo(ii);
       return;
     }
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
@@ -227,21 +227,12 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   d_pending.push_back(ii);
 }
 
-void InferenceManager::processConflict(const InferInfo& ii)
+void InferenceManager::conflictExpInferInfo(const InferInfo& ii)
 {
-  // we must fully explain it
-  bool useBuffer = false;
-  ProofStep ps;
-  d_ipc->convert(ii, ps, useBuffer);
-  TrustNode tconf;
-  if (useBuffer)
-  {
-    tconf = d_pfee->assertConflict(ps.d_children, *d_ipc->getBuffer());
-  }
-  else
-  {
-    tconf = d_pfee->assertConflict(ps.d_rule, ps.d_children, ps.d_args);
-  }
+  // setup the fact to reproduce
+  d_ipc->notifyFact(ii);
+  // make the trust node
+  TrustNode tconf = mkConflictExp(ii.d_ant, d_ipc.get());
   Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
   Trace("strings-assert") << "(assert (not " << tconf.getNode()
                           << ")) ; conflict " << ii.d_id << std::endl;
@@ -397,7 +388,7 @@ void InferenceManager::doPendingLemmas()
     // ensure that the proof generator is ready to explain the final conclusion
     // of the lemma (ii.d_conc).
     d_ipc->notifyFact(ii);
-    tlem = d_pfee->assertLemma(ii.d_conc, exp, noExplain, d_ipc.get());
+    tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;
 
