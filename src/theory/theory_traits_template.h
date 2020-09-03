@@ -34,8 +34,6 @@ struct TheoryTraits;
 
 ${theory_traits}
 
-#line 38 "${template}"
-
 struct TheoryConstructor {
   static void addTheory(TheoryEngine* engine, TheoryId id) {
     switch(id) {

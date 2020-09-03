@@ -103,8 +103,6 @@ void EqualityEngine::init() {
 
   d_trueId = getNodeId(d_true);
   d_falseId = getNodeId(d_false);
-
-  d_freshMergeReasonType = eq::NUMBER_OF_MERGE_REASONS;
 }
 
 EqualityEngine::~EqualityEngine() {
@@ -1100,7 +1098,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
     getExplanation(t1Id, t2Id, equalities, cache, eqp);
   } else {
     if (eqp) {
-      eqp->d_id = eq::MERGED_THROUGH_TRANS;
+      eqp->d_id = MERGED_THROUGH_TRANS;
       eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t2Id]).notNode();
     }
 
@@ -1137,12 +1135,13 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           Debug("pf::ee") << "Child proof is:" << std::endl;
           eqpc->debug_print("pf::ee", 1);
         }
-        if (eqpc->d_id == eq::MERGED_THROUGH_TRANS) {
+        if (eqpc->d_id == MERGED_THROUGH_TRANS)
+        {
           std::vector<std::shared_ptr<EqProof>> orderedChildren;
           bool nullCongruenceFound = false;
           for (const auto& child : eqpc->d_children)
           {
-            if (child->d_id == eq::MERGED_THROUGH_CONGRUENCE
+            if (child->d_id == MERGED_THROUGH_CONGRUENCE
                 && child->d_node.isNull())
             {
               nullCongruenceFound = true;
@@ -1382,35 +1381,24 @@ void EqualityEngine::getExplanation(
 #endif
 
   // If the nodes are the same, we're done
-  if (t1Id == t2Id){
-    if( eqp ) {
-      if (options::proofNew())
+  if (t1Id == t2Id)
+  {
+    if (eqp)
+    {
+      // ignore equalities between function symbols, i.e. internal nullary
+      // non-constant nodes.
+      //
+      // Note that this is robust for HOL because in that case function
+      // symbols are not internal nodes
+      if (d_isInternal[t1Id] && d_nodes[t1Id].getNumChildren() == 0
+          && !d_isConstant[t1Id])
       {
-        // ignore equalities between function symbols, i.e. internal nullary
-        // non-constant nodes.
-        //
-        // Note that this is robust for HOL because in that case function
-        // symbols are not internal nodes
-        if (d_isInternal[t1Id] && d_nodes[t1Id].getNumChildren() == 0
-            && !d_isConstant[t1Id])
-        {
-          eqp->d_node = Node::null();
-        }
-        else
-        {
-          Assert(d_nodes[t1Id].getKind() != kind::BUILTIN);
-          eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t1Id]);
-        }
-      }
-      else if ((d_nodes[t1Id].getKind() == kind::BUILTIN)
-               && (d_nodes[t1Id].getConst<Kind>() == kind::SELECT))
-      {
-        std::vector<Node> no_children;
-        eqp->d_node = NodeManager::currentNM()->mkNode(kind::PARTIAL_SELECT_0, no_children);
+        eqp->d_node = Node::null();
       }
       else
       {
-        eqp->d_node = ProofManager::currentPM()->mkOp(d_nodes[t1Id]);
+        Assert(d_nodes[t1Id].getKind() != kind::BUILTIN);
+        eqp->d_node = d_nodes[t1Id].eqNode(d_nodes[t1Id]);
       }
     }
     return;
@@ -1466,7 +1454,8 @@ void EqualityEngine::getExplanation(
             // The current node
             currentNode = bfsQueue[currentIndex].d_nodeId;
             EqualityNodeId edgeNode = d_equalityEdges[currentEdge].getNodeId();
-            unsigned reasonType = d_equalityEdges[currentEdge].getReasonType();
+            MergeReasonType reasonType = static_cast<MergeReasonType>(
+                d_equalityEdges[currentEdge].getReasonType());
             Node reason = d_equalityEdges[currentEdge].getReason();
 
             Debug("equality")
@@ -1482,8 +1471,9 @@ void EqualityEngine::getExplanation(
                 << edge.getNodeId() << "} " << d_nodes[edge.getNodeId()] << ")"
                 << std::endl;
             Debug("equality")
-                << d_name << "                       reason type = "
-                << static_cast<MergeReasonType>(reasonType) << std::endl;
+                << d_name
+                << "                       reason type = " << reasonType
+                << "\n";
 
             std::shared_ptr<EqProof> eqpc;;
             // Make child proof if a proof is being constructed
@@ -1518,63 +1508,21 @@ void EqualityEngine::getExplanation(
               {
                 eqpc->d_children.push_back(eqpc1);
                 eqpc->d_children.push_back(eqpc2);
-                if (options::proofNew())
+                // build conclusion if ids correspond to non-internal nodes or
+                // if non-internal nodes can be retrieved from them (in the
+                // case of n-ary applications), otherwise leave conclusion as
+                // null. This is only done for congruence kinds, since
+                // congruence is not used otherwise.
+                Kind k = d_nodes[currentNode].getKind();
+                if (d_congruenceKinds[k])
                 {
-                  // build conclusion if ids correspond to non-internal nodes or
-                  // if non-internal nodes can be retrieved from them (in the
-                  // case of n-ary applications), otherwise leave conclusion as
-                  // null. This is only done for congruence kinds, since
-                  // congruence is not used otherwise.
-                  Kind k = d_nodes[currentNode].getKind();
-                  if (d_congruenceKinds[k])
-                  {
-                    buildEqConclusion(currentNode, edgeNode, eqpc.get());
-                  }
-                  else
-                  {
-                    Assert(k == kind::EQUAL)
-                        << "not an internal node " << d_nodes[currentNode]
-                        << " with non-congruence with " << k << "\n";
-                  }
-                }
-                else if (d_nodes[currentNode].getKind() == kind::EQUAL)
-                {
-                  //leave node null for now
-                  eqpc->d_node = Node::null();
+                  buildEqConclusion(currentNode, edgeNode, eqpc.get());
                 }
                 else
                 {
-                  if (d_nodes[f1.d_a].getKind() == kind::APPLY_UF
-                      || d_nodes[f1.d_a].getKind() == kind::SELECT
-                      || d_nodes[f1.d_a].getKind() == kind::STORE)
-                  {
-                    eqpc->d_node = d_nodes[f1.d_a];
-                  }
-                  else
-                  {
-                    if (d_nodes[f1.d_a].getKind() == kind::BUILTIN
-                        && d_nodes[f1.d_a].getConst<Kind>() == kind::SELECT)
-                    {
-                      eqpc->d_node = NodeManager::currentNM()->mkNode(
-                          kind::PARTIAL_SELECT_1, d_nodes[f1.d_b]);
-                      // The first child is a PARTIAL_SELECT_0.
-                      // Give it a child so that we know what kind of (read) it is, when we dump to LFSC.
-                      Assert(eqpc->d_children[0]->d_node.getKind()
-                             == kind::PARTIAL_SELECT_0);
-                      Assert(eqpc->d_children[0]->d_children.size() == 0);
-
-                      eqpc->d_children[0]->d_node =
-                          NodeManager::currentNM()->mkNode(
-                              kind::PARTIAL_SELECT_0, d_nodes[f1.d_b]);
-                    }
-                    else
-                    {
-                      eqpc->d_node = NodeManager::currentNM()->mkNode(
-                          kind::PARTIAL_APPLY_UF,
-                          ProofManager::currentPM()->mkOp(d_nodes[f1.d_a]),
-                          d_nodes[f1.d_b]);
-                    }
-                  }
+                  Assert(k == kind::EQUAL)
+                      << "not an internal node " << d_nodes[currentNode]
+                      << " with non-congruence with " << k << "\n";
                 }
               }
               Debug("equality") << pop;
@@ -1608,7 +1556,7 @@ void EqualityEngine::getExplanation(
 
               // Get the node we interpreted
               TNode interpreted;
-              if (eqpc && options::proofNew())
+              if (eqpc)
               {
                 // build the conclusion f(c1, ..., cn) = c
                 if (d_nodes[currentNode].isConst())
@@ -1661,24 +1609,19 @@ void EqualityEngine::getExplanation(
               Debug("equality") << d_name << "::eq::getExplanation(): adding: "
                                 << reason << std::endl;
               Debug("equality")
-                  << d_name << "::eq::getExplanation(): reason type = "
-                  << static_cast<MergeReasonType>(reasonType) << std::endl;
+                  << d_name
+                  << "::eq::getExplanation(): reason type = " << reasonType
+                  << "\n";
               Node a = d_nodes[currentNode];
               Node b = d_nodes[d_equalityEdges[currentEdge].getNodeId()];
 
               if (eqpc) {
-                //apply proof reconstruction processing (when eqpc is non-null)
-                if (d_pathReconstructionTriggers.find(reasonType) != d_pathReconstructionTriggers.end()) {
-                  d_pathReconstructionTriggers.find(reasonType)
-                      ->second->notify(reasonType, reason, a, b, equalities,
-                                       eqpc.get());
-                }
                 if (reasonType == MERGED_THROUGH_EQUALITY) {
                   // in the new proof infrastructure we can assume that "theory
                   // assumptions", which are a consequence of theory reasoning
                   // on other assumptions, are externally justified. In this
                   // case we can use (= a b) directly as the conclusion here.
-                  eqpc->d_node = !options::proofNew() ? reason : b.eqNode(a);
+                  eqpc->d_node = b.eqNode(a);
                 } else {
                   // The LFSC translator prefers (not (= a b)) over (= (= a b) false)
 
@@ -1722,20 +1665,12 @@ void EqualityEngine::getExplanation(
             } else {
               eqp->d_id = MERGED_THROUGH_TRANS;
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
-              if (options::proofNew())
-              {
-                // build conclusion in case of equality between non-internal
-                // nodes or of n-ary congruence kinds, otherwise leave as
-                // null. The latter is necessary for the overall handling of
-                // congruence proofs involving n-ary kinds, see
-                // EqProof::reduceNestedCongruence for more details.
-                buildEqConclusion(t1Id, t2Id, eqp);
-              }
-              else
-              {
-                eqp->d_node = NodeManager::currentNM()->mkNode(
-                    kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
-              }
+              // build conclusion in case of equality between non-internal
+              // nodes or of n-ary congruence kinds, otherwise leave as
+              // null. The latter is necessary for the overall handling of
+              // congruence proofs involving n-ary kinds, see
+              // EqProof::reduceNestedCongruence for more details.
+              buildEqConclusion(t1Id, t2Id, eqp);
             }
             if (Debug.isOn("pf::ee"))
             {
@@ -2216,18 +2151,6 @@ size_t EqualityEngine::getSize(TNode t) {
   // Add the term
   addTermInternal(t);
   return getEqualityNode(getEqualityNode(t).getFind()).getSize();
-}
-
-
-void EqualityEngine::addPathReconstructionTrigger(unsigned trigger, const PathReconstructionNotify* notify) {
-  // Currently we can only inform one callback per trigger
-  Assert(d_pathReconstructionTriggers.find(trigger)
-         == d_pathReconstructionTriggers.end());
-  d_pathReconstructionTriggers[trigger] = notify;
-}
-
-unsigned EqualityEngine::getFreshMergeReasonType() {
-  return d_freshMergeReasonType++;
 }
 
 std::string EqualityEngine::identify() const { return d_name; }

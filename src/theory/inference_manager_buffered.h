@@ -19,43 +19,11 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node.h"
+#include "theory/theory_inference.h"
 #include "theory/theory_inference_manager.h"
 
 namespace CVC4 {
 namespace theory {
-
-/**
- * A lemma base class. This class is an abstract data structure for storing
- * pending lemmas in the inference manager below.
- */
-class Lemma
-{
- public:
-  Lemma(Node n, LemmaProperty p, ProofGenerator* pg)
-      : d_node(n), d_property(p), d_pg(pg)
-  {
-  }
-  virtual ~Lemma() {}
-  /**
-   * Called just before this lemma is sent on the output channel. The purpose
-   * of this callback is to do any specific process of the lemma, e.g. take
-   * debug statistics, cache, etc.
-   *
-   * @return true if the lemma should be sent on the output channel.
-   */
-  virtual bool notifySend() { return true; }
-  /** The lemma to send */
-  Node d_node;
-  /** The lemma property (see OutputChannel::lemma) */
-  LemmaProperty d_property;
-  /**
-   * The proof generator for this lemma, which if non-null, is wrapped in a
-   * TrustNode to be set on the output channel via trustedLemma at the time
-   * the lemma is sent. This proof generator must be able to provide a proof
-   * for d_node in the remainder of the user context.
-   */
-  ProofGenerator* d_pg;
-};
 
 /**
  * The buffered inference manager.  This class implements standard methods
@@ -67,7 +35,7 @@ class InferenceManagerBuffered : public TheoryInferenceManager
   InferenceManagerBuffered(Theory& t,
                            TheoryState& state,
                            ProofNodeManager* pnm);
-  ~InferenceManagerBuffered() {}
+  virtual ~InferenceManagerBuffered() {}
   /**
    * Have we processed an inference during this call to check? In particular,
    * this returns true if we have a pending fact or lemma, or have encountered
@@ -92,21 +60,25 @@ class InferenceManagerBuffered : public TheoryInferenceManager
                        ProofGenerator* pg = nullptr);
   /**
    * Add pending lemma, where lemma can be a (derived) class of the
-   * above one. Pending lemmas are sent to the output channel using
-   * doPendingLemmas.
+   * theory inference base class.
    */
-  void addPendingLemma(std::shared_ptr<Lemma> lemma);
+  void addPendingLemma(std::unique_ptr<TheoryInference> lemma);
   /**
    * Add pending fact, which adds a fact on the pending fact queue. It must
    * be the case that:
-   * (1) exp => fact is valid,
+   * (1) exp => conc is valid,
    * (2) exp is a literal (or conjunction of literals) that holds in the
    * equality engine of the theory.
    *
    * Pending facts are sent to the equality engine of this class using
    * doPendingFacts.
    */
-  void addPendingFact(Node fact, Node exp);
+  void addPendingFact(Node conc, Node exp, ProofGenerator* pg = nullptr);
+  /**
+   * Add pending fact, where fact can be a (derived) class of the
+   * theory inference base class.
+   */
+  void addPendingFact(std::unique_ptr<TheoryInference> fact);
   /** Add pending phase requirement
    *
    * This method is called to indicate this class should send a phase
@@ -145,12 +117,23 @@ class InferenceManagerBuffered : public TheoryInferenceManager
    * phase requirements and clears d_pendingReqPhase.
    */
   void doPendingPhaseRequirements();
+  /** Clear pending facts, without processing */
+  void clearPendingFacts();
+  /** Clear pending lemmas, without processing */
+  void clearPendingLemmas();
+  /** Clear pending phase requirements, without processing */
+  void clearPendingPhaseRequirements();
+
+  /** Returns the number of pending lemmas. */
+  std::size_t numPendingLemmas() const;
+  /** Returns the number of pending facts. */
+  std::size_t numPendingFacts() const;
 
  protected:
-  /** A set of pending lemmas */
-  std::vector<std::shared_ptr<Lemma>> d_pendingLem;
-  /** A set of pending facts, paired with their explanations */
-  std::vector<std::pair<Node, Node>> d_pendingFact;
+  /** A set of pending inferences to be processed as lemmas */
+  std::vector<std::unique_ptr<TheoryInference>> d_pendingLem;
+  /** A set of pending inferences to be processed as facts */
+  std::vector<std::unique_ptr<TheoryInference>> d_pendingFact;
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pendingReqPhase;
 };

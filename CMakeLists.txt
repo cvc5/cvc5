@@ -567,6 +567,7 @@ add_subdirectory(src)
 add_subdirectory(test)
 
 if(BUILD_BINDINGS_PYTHON)
+  set(BUILD_BINDINGS_PYTHON_VERSION ${PYTHON_VERSION_MAJOR})
   add_subdirectory(src/api/python)
 endif()
 
@@ -763,7 +764,7 @@ message("")
 
 if(GPL_LIBS)
   message(
-  "CVC4 license             : GPLv3 (due to optional libraries; see below)"
+  "CVC4 license             : ${Yellow}GPLv3 (due to optional libraries; see below)${ResetColor}"
   "\n"
   "\n"
   "Please note that CVC4 will be built against the following GPLed libraries:"

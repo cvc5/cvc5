@@ -3044,10 +3044,10 @@ Term Solver::mkCharFromStrHelper(const std::string& s) const
   CVC4_API_CHECK(s.find_first_not_of("0123456789abcdefABCDEF", 0)
                      == std::string::npos
                  && s.size() <= 5 && s.size() > 0)
-      << "Unexpected string for hexidecimal character " << s;
+      << "Unexpected string for hexadecimal character " << s;
   uint32_t val = static_cast<uint32_t>(std::stoul(s, 0, 16));
   CVC4_API_CHECK(val < String::num_codes())
-      << "Not a valid code point for hexidecimal character " << s;
+      << "Not a valid code point for hexadecimal character " << s;
   std::vector<unsigned> cpts;
   cpts.push_back(val);
   return mkValHelper<CVC4::String>(CVC4::String(cpts));
@@ -3148,8 +3148,8 @@ Term Solver::mkTermHelper(Kind kind, const std::vector<Term>& children) const
 }
 
 std::vector<Sort> Solver::mkDatatypeSortsInternal(
-    std::vector<DatatypeDecl>& dtypedecls,
-    std::set<Sort>& unresolvedSorts) const
+    const std::vector<DatatypeDecl>& dtypedecls,
+    const std::set<Sort>& unresolvedSorts) const
 {
   NodeManagerScope scope(getNodeManager());
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
@@ -3240,6 +3240,14 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << " children (the one under construction has " << nchildren << ")";
 }
 
+/* Solver Configuration                                                       */
+/* -------------------------------------------------------------------------- */
+
+bool Solver::supportsFloatingPoint() const
+{
+  return Configuration::isBuiltWithSymFPU();
+}
+
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
 
@@ -3285,9 +3293,11 @@ Sort Solver::getStringSort(void) const
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-Sort Solver::getRoundingmodeSort(void) const
+Sort Solver::getRoundingModeSort(void) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return Sort(this, d_exprMgr->roundingModeType());
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -3323,6 +3333,8 @@ Sort Solver::mkBitVectorSort(uint32_t size) const
 Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
   CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
 
@@ -3355,8 +3367,9 @@ std::vector<Sort> Solver::mkDatatypeSorts(
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
-std::vector<Sort> Solver::mkDatatypeSorts(std::vector<DatatypeDecl>& dtypedecls,
-                                          std::set<Sort>& unresolvedSorts) const
+std::vector<Sort> Solver::mkDatatypeSorts(
+    const std::vector<DatatypeDecl>& dtypedecls,
+    const std::set<Sort>& unresolvedSorts) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
   return mkDatatypeSortsInternal(dtypedecls, unresolvedSorts);
@@ -3803,6 +3816,8 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return mkValHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
   CVC4_API_SOLVER_TRY_CATCH_END;
 }
@@ -5396,7 +5411,7 @@ Term Solver::synthFunHelper(const std::string& symbol,
   {
     CVC4_API_CHECK(g->d_ntSyms[0].d_node->getType().toType() == *sort.d_type)
         << "Invalid Start symbol for Grammar g, Expected Start's sort to be "
-        << *sort.d_type;
+        << *sort.d_type << " but found " << g->d_ntSyms[0].d_node->getType();
   }
 
   Type funType = varTypes.empty()
@@ -5506,7 +5521,7 @@ Term Solver::getSynthSolution(Term term) const
 
   std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceeded by a "
+      << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::map<CVC4::Node, CVC4::Node>::const_iterator it = map.find(*term.d_node);
@@ -5535,7 +5550,7 @@ std::vector<Term> Solver::getSynthSolutions(
 
   std::map<CVC4::Node, CVC4::Node> map;
   CVC4_API_CHECK(d_smtEngine->getSynthSolutions(map))
-      << "The solver is not in a state immediately preceeded by a "
+      << "The solver is not in a state immediately preceded by a "
          "successful call to checkSynth";
 
   std::vector<Term> synthSolution;
