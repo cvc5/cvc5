@@ -39,7 +39,8 @@ InferenceManager::InferenceManager(Theory& t,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(pnm ? new InferProofCons(d_state.getSatContext(), pnm, d_statistics) : nullptr)
+      d_ipc(pnm ? new InferProofCons(d_state.getSatContext(), pnm, d_statistics)
+                : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -219,7 +220,7 @@ void InferenceManager::conflictExpInferInfo(const InferInfo& ii)
 {
   // setup the fact to reproduce the proof in the call below
   d_statistics.d_inferences << ii.d_id;
-  if (d_ipc!=nullptr)
+  if (d_ipc != nullptr)
   {
     d_ipc->notifyFact(ii);
   }
@@ -316,7 +317,7 @@ void InferenceManager::doPendingFacts()
       ii.d_conc = fact;
       // notify fact, which
       d_statistics.d_inferences << ii.d_id;
-      if (d_ipc!=nullptr)
+      if (d_ipc != nullptr)
       {
         d_ipc->notifyFact(ii);
       }
@@ -384,7 +385,7 @@ void InferenceManager::doPendingLemmas()
     // ensure that the proof generator is ready to explain the final conclusion
     // of the lemma (ii.d_conc).
     d_statistics.d_inferences << ii.d_id;
-    if (d_ipc!=nullptr)
+    if (d_ipc != nullptr)
     {
       d_ipc->notifyFact(ii);
     }

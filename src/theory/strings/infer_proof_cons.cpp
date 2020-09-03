@@ -31,11 +31,9 @@ namespace strings {
 InferProofCons::InferProofCons(context::Context* c,
                                ProofNodeManager* pnm,
                                SequencesStatistics& statistics)
-    : d_pnm(pnm),
-      d_lazyFactMap(c),
-      d_statistics(statistics)
+    : d_pnm(pnm), d_lazyFactMap(c), d_statistics(statistics)
 {
-  Assert (d_pnm!=nullptr);
+  Assert(d_pnm != nullptr);
 }
 
 void InferProofCons::notifyFact(const InferInfo& ii)
@@ -66,7 +64,7 @@ void InferProofCons::convert(Inference infer,
                              Node conc,
                              const std::vector<Node>& exp,
                              ProofStep& ps,
-                             TheoryProofStepBuffer& psb, 
+                             TheoryProofStepBuffer& psb,
                              bool& useBuffer)
 {
   // by default, don't use the buffer
@@ -300,10 +298,10 @@ void InferProofCons::convert(Inference infer,
         // possibly be done by CONCAT_EQ with !isRev.
         std::vector<Node> cexp;
         if (psb.applyPredTransform(mainEqCeq,
-                                     conc,
-                                     cexp,
-                                     MethodId::SB_DEFAULT,
-                                     MethodId::RW_REWRITE_EQ_EXT))
+                                   conc,
+                                   cexp,
+                                   MethodId::SB_DEFAULT,
+                                   MethodId::RW_REWRITE_EQ_EXT))
         {
           Trace("strings-ipc-core") << "Transformed to " << conc
                                     << " via pred transform" << std::endl;
@@ -798,8 +796,7 @@ void InferProofCons::convert(Inference infer,
       bool successChildren = true;
       for (unsigned i = 0, nchild = reiChildren.size(); i < nchild; i++)
       {
-        if (!psb.applyPredTransform(
-                reiChildrenOrig[i], reiChildren[i], reiExp))
+        if (!psb.applyPredTransform(reiChildrenOrig[i], reiChildren[i], reiExp))
         {
           Trace("strings-ipc-re")
               << "... failed to justify child " << reiChildren[i] << " from "
@@ -933,8 +930,8 @@ void InferProofCons::convert(Inference infer,
 }
 
 bool InferProofCons::convertLengthPf(Node lenReq,
-                                     const std::vector<Node>& lenExp, 
-  TheoryProofStepBuffer& psb)
+                                     const std::vector<Node>& lenExp,
+                                     TheoryProofStepBuffer& psb)
 {
   for (const Node& le : lenExp)
   {
@@ -969,8 +966,9 @@ bool InferProofCons::convertLengthPf(Node lenReq,
   return false;
 }
 
-Node InferProofCons::convertTrans(Node eqa, Node eqb,
-               TheoryProofStepBuffer& psb)
+Node InferProofCons::convertTrans(Node eqa,
+                                  Node eqb,
+                                  TheoryProofStepBuffer& psb)
 {
   if (eqa.getKind() != EQUAL || eqb.getKind() != EQUAL)
   {
@@ -1017,8 +1015,7 @@ std::shared_ptr<ProofNode> InferProofCons::getProofFor(Node fact)
   TheoryProofStepBuffer psb;
   std::shared_ptr<InferInfo> ii = (*it).second;
   // run the conversion
-  convert(ii->d_id, ii->d_idRev, ii->d_conc, ii->d_ant,
-    ps, psb, useBuffer);
+  convert(ii->d_id, ii->d_idRev, ii->d_conc, ii->d_ant, ps, psb, useBuffer);
   // make the proof based on the step or the buffer
   if (useBuffer)
   {

@@ -87,7 +87,7 @@ class InferProofCons : public ProofGenerator
    * This method converts this call to instructions on what the proof rule
    * step(s) are for concluding the conclusion of the inference. This
    * information is either:
-   * 
+   *
    * (A) stored in the argument ps, which consists of:
    * - A proof rule identifier (ProofStep::d_rule).
    * - The premises of the proof step (ProofStep::d_children).
@@ -105,21 +105,21 @@ class InferProofCons : public ProofGenerator
                Node conc,
                const std::vector<Node>& exp,
                ProofStep& ps,
-               TheoryProofStepBuffer& psb, 
+               TheoryProofStepBuffer& psb,
                bool& useBuffer);
   /**
    * Convert length proof. If this method returns true, it adds proof step(s)
    * to the buffer psb that conclude lenReq from premises lenExp.
    */
-  bool convertLengthPf(Node lenReq, const std::vector<Node>& lenExp, 
-  TheoryProofStepBuffer& psb);
+  bool convertLengthPf(Node lenReq,
+                       const std::vector<Node>& lenExp,
+                       TheoryProofStepBuffer& psb);
   /**
    * Helper method, adds the proof of (TRANS eqa eqb) into the proof step
    * buffer psb, where eqa and eqb are flipped as needed. Returns the
    * conclusion, or null if we were not able to construct a TRANS step.
    */
-  Node convertTrans(Node eqa, Node eqb,
-               TheoryProofStepBuffer& psb);
+  Node convertTrans(Node eqa, Node eqb, TheoryProofStepBuffer& psb);
   /** the proof node manager */
   ProofNodeManager* d_pnm;
   /** The lazy fact map */
