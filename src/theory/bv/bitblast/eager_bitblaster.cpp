@@ -21,15 +21,15 @@
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/theory_bv_lazy.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
 namespace theory {
 namespace bv {
 
-EagerBitblaster::EagerBitblaster(TheoryBVLazy* theory_bv, context::Context* c)
+EagerBitblaster::EagerBitblaster(BVSolverLazy* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
       d_context(c),
       d_satSolver(),

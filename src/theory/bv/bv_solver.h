@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bv_solver.h
+/*! \file bv_solver.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Mathias Preiner
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_SOLVER_H
-#define CVC4__THEORY__BV__THEORY_BV_SOLVER_H
+#ifndef CVC4__THEORY__BV__BV_SOLVER_H
+#define CVC4__THEORY__BV__BV_SOLVER_H
 
 #include "theory/bv/theory_bv.h"
 #include "theory/theory.h"
@@ -26,13 +26,12 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class TheoryBVSolver
+class BVSolver
 {
  public:
-  TheoryBVSolver(TheoryBV& bv)
-      : d_bv(bv), d_state(bv.d_state), d_inferManager(bv.d_infer){};
+  BVSolver(TheoryBV& bv) : d_state(bv.d_state), d_inferManager(bv.d_infer){};
 
-  virtual ~TheoryBVSolver(){};
+  virtual ~BVSolver(){};
 
   /**
    * Returns true if we need an equality engine. If so, we initialize the
@@ -75,23 +74,18 @@ class TheoryBVSolver
 
   virtual TrustNode explain(TNode n)
   {
-    Unimplemented()
-        << "TheoryBVSolver propagated a node but doesn't implement the "
-           "TheoryBVSolver::explain() interface!";
+    Unimplemented() << "BVSolver propagated a node but doesn't implement the "
+                       "BVSolver::explain() interface!";
     return TrustNode::null();
   };
 
+  /**
+   * This is temporary only and will be deprecated soon in favor of
+   * Theory::collectModelValues.
+   */
   virtual bool collectModelInfo(TheoryModel* m) = 0;
 
   virtual std::string identify() const = 0;
-
-  virtual bool getCurrentSubstitution(int effort,
-                                      std::vector<Node>& vars,
-                                      std::vector<Node>& subs,
-                                      std::map<Node, std::vector<Node>>& exp)
-  {
-    return false;
-  };
 
   virtual Theory::PPAssertStatus ppAssert(
       TNode in, SubstitutionMap& outSubstitutions) = 0;
@@ -106,7 +100,7 @@ class TheoryBVSolver
 
   virtual EqualityStatus getEqualityStatus(TNode a, TNode b)
   {
-    return d_bv.getEqualityStatus(a, b);
+    return EqualityStatus::EQUALITY_UNKNOWN;
   }
 
   /** Called by abstraction preprocessing pass. */
@@ -114,7 +108,6 @@ class TheoryBVSolver
                                 std::vector<Node>& new_assertions) = 0;
 
  protected:
-  TheoryBV& d_bv;
   TheoryState& d_state;
   TheoryInferenceManager& d_inferManager;
 };
@@ -123,4 +116,4 @@ class TheoryBVSolver
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_SOLVER_H */
+#endif /* CVC4__THEORY__BV__BV_SOLVER_H */

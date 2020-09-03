@@ -280,12 +280,12 @@ class TheoryInferenceManager
   void requirePhase(TNode n, bool pol);
 
   /**
-   * Forward to OutputChannel::spendResource() to spend resources..
+   * Forward to OutputChannel::spendResource() to spend resources.
    */
   void spendResource(ResourceManager::Resource r);
 
   /**
-   * Forward to OutputChannel::safePoint() to spend resources..
+   * Forward to OutputChannel::safePoint() to spend resources.
    */
   void safePoint(ResourceManager::Resource r);
 

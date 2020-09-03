@@ -16,7 +16,7 @@
 #include "theory/bv/theory_bv.h"
 
 #include "options/bv_options.h"
-#include "theory/bv/theory_bv_lazy.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 
@@ -43,7 +43,7 @@ TheoryBV::TheoryBV(context::Context* c,
       d_state(c, u, valuation),
       d_infer(*this, d_state, pnm)
 {
-  d_internal.reset(new TheoryBVLazy(*this, c, u, pnm, name));
+  d_internal.reset(new BVSolverLazy(*this, c, u, pnm, name));
   d_theoryState = &d_state;
   d_inferManager = &d_infer;
 }

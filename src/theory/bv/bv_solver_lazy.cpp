@@ -13,7 +13,7 @@
  ** \todo document this file
  **/
 
-#include "theory/bv/theory_bv_lazy.h"
+#include "theory/bv/bv_solver_lazy.h"
 
 #include "expr/node_algorithm.h"
 #include "options/bv_options.h"
@@ -39,12 +39,13 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-TheoryBVLazy::TheoryBVLazy(TheoryBV& bv,
+BVSolverLazy::BVSolverLazy(TheoryBV& bv,
                            context::Context* c,
                            context::UserContext* u,
                            ProofNodeManager* pnm,
                            std::string name)
-    : TheoryBVSolver(bv),
+    : BVSolver(bv),
+      d_bv(bv),
       d_context(c),
       d_alreadyPropagatedSet(c),
       d_sharedTermsSet(c),
@@ -95,9 +96,9 @@ TheoryBVLazy::TheoryBVLazy(TheoryBV& bv,
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
 }
 
-TheoryBVLazy::~TheoryBVLazy() {}
+BVSolverLazy::~BVSolverLazy() {}
 
-bool TheoryBVLazy::needsEqualityEngine(EeSetupInfo& esi)
+bool BVSolverLazy::needsEqualityEngine(EeSetupInfo& esi)
 {
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
@@ -108,7 +109,7 @@ bool TheoryBVLazy::needsEqualityEngine(EeSetupInfo& esi)
   return false;
 }
 
-void TheoryBVLazy::finishInit()
+void BVSolverLazy::finishInit()
 {
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
@@ -118,12 +119,12 @@ void TheoryBVLazy::finishInit()
   }
 }
 
-void TheoryBVLazy::spendResource(ResourceManager::Resource r)
+void BVSolverLazy::spendResource(ResourceManager::Resource r)
 {
   d_inferManager.spendResource(r);
 }
 
-TheoryBVLazy::Statistics::Statistics()
+BVSolverLazy::Statistics::Statistics()
     : d_avgConflictSize("theory::bv::AvgBVConflictSize"),
       d_solveSubstitutions("theory::bv::NumSolveSubstitutions", 0),
       d_solveTimer("theory::bv::solveTimer"),
@@ -141,7 +142,7 @@ TheoryBVLazy::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_numMultSlice);
 }
 
-TheoryBVLazy::Statistics::~Statistics()
+BVSolverLazy::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_avgConflictSize);
   smtStatisticsRegistry()->unregisterStat(&d_solveSubstitutions);
@@ -152,7 +153,7 @@ TheoryBVLazy::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_numMultSlice);
 }
 
-void TheoryBVLazy::preRegisterTerm(TNode node)
+void BVSolverLazy::preRegisterTerm(TNode node)
 {
   d_calledPreregister = true;
   Debug("bitvector-preregister")
@@ -185,7 +186,7 @@ void TheoryBVLazy::preRegisterTerm(TNode node)
   // d_bv.d_extTheory->registerTermRec( node );
 }
 
-void TheoryBVLazy::sendConflict()
+void BVSolverLazy::sendConflict()
 {
   Assert(d_conflict);
   if (d_conflictNode.isNull())
@@ -202,7 +203,7 @@ void TheoryBVLazy::sendConflict()
   }
 }
 
-void TheoryBVLazy::checkForLemma(TNode fact)
+void BVSolverLazy::checkForLemma(TNode fact)
 {
   if (fact.getKind() == kind::EQUAL)
   {
@@ -234,20 +235,22 @@ void TheoryBVLazy::checkForLemma(TNode fact)
   }
 }
 
-bool TheoryBVLazy::preCheck(Theory::Effort e)
+bool BVSolverLazy::preCheck(Theory::Effort e)
 {
   check(e);
   return true;
 }
 
-void TheoryBVLazy::check(Theory::Effort e)
+void BVSolverLazy::check(Theory::Effort e)
 {
-  if (done() && e<Theory::EFFORT_FULL) {
+  if (done() && e < Theory::EFFORT_FULL)
+  {
     return;
   }
 
-  //last call : do reductions on extended bitvector functions
-  if (e == Theory::EFFORT_LAST_CALL) {
+  // last call : do reductions on extended bitvector functions
+  if (e == Theory::EFFORT_LAST_CALL)
+  {
     CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
     if (core)
     {
@@ -265,14 +268,15 @@ void TheoryBVLazy::check(Theory::Effort e)
   if (options::bitblastMode() == options::BitblastMode::EAGER)
   {
     // this can only happen on an empty benchmark
-    if (!d_eagerSolver->isInitialized()) {
+    if (!d_eagerSolver->isInitialized())
+    {
       d_eagerSolver->initialize();
     }
-    if (!Theory::fullEffort(e))
-      return;
+    if (!Theory::fullEffort(e)) return;
 
     std::vector<TNode> assertions;
-    while (!done()) {
+    while (!done())
+    {
       TNode fact = get().d_assertion;
       Assert(fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
@@ -280,8 +284,10 @@ void TheoryBVLazy::check(Theory::Effort e)
     }
 
     bool ok = d_eagerSolver->checkSat();
-    if (!ok) {
-      if (assertions.size() == 1) {
+    if (!ok)
+    {
+      if (assertions.size() == 1)
+      {
         d_inferManager.conflict(assertions[0]);
         return;
       }
@@ -292,48 +298,58 @@ void TheoryBVLazy::check(Theory::Effort e)
     return;
   }
 
-  if (Theory::fullEffort(e)) {
+  if (Theory::fullEffort(e))
+  {
     ++(d_statistics.d_numCallsToCheckFullEffort);
-  } else {
+  }
+  else
+  {
     ++(d_statistics.d_numCallsToCheckStandardEffort);
   }
   // if we are already in conflict just return the conflict
-  if (inConflict()) {
+  if (inConflict())
+  {
     sendConflict();
     return;
   }
 
-  while (!done()) {
+  while (!done())
+  {
     TNode fact = get().d_assertion;
 
     checkForLemma(fact);
 
-    for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+    for (unsigned i = 0; i < d_subtheories.size(); ++i)
+    {
       d_subtheories[i]->assertFact(fact);
     }
   }
 
   bool ok = true;
   bool complete = false;
-  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
+  for (unsigned i = 0; i < d_subtheories.size(); ++i)
+  {
     Assert(!inConflict());
     ok = d_subtheories[i]->check(e);
     complete = d_subtheories[i]->isComplete();
 
-    if (!ok) {
+    if (!ok)
+    {
       // if we are in a conflict no need to check with other theories
       Assert(inConflict());
       sendConflict();
       return;
     }
-    if (complete) {
+    if (complete)
+    {
       // if the last subtheory was complete we stop
       break;
     }
   }
 
-  //check extended functions
-  if (Theory::fullEffort(e)) {
+  // check extended functions
+  if (Theory::fullEffort(e))
+  {
     CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
     if (core)
     {
@@ -343,7 +359,7 @@ void TheoryBVLazy::check(Theory::Effort e)
   }
 }
 
-bool TheoryBVLazy::needsCheckLastEffort()
+bool BVSolverLazy::needsCheckLastEffort()
 {
   CoreSolver* core = (CoreSolver*)d_subtheoryMap[SUB_CORE];
   if (core)
@@ -353,7 +369,7 @@ bool TheoryBVLazy::needsCheckLastEffort()
   return false;
 }
 
-bool TheoryBVLazy::collectModelInfo(TheoryModel* m)
+bool BVSolverLazy::collectModelInfo(TheoryModel* m)
 {
   Assert(!inConflict());
   if (options::bitblastMode() == options::BitblastMode::EAGER)
@@ -373,7 +389,7 @@ bool TheoryBVLazy::collectModelInfo(TheoryModel* m)
   return true;
 }
 
-Node TheoryBVLazy::getModelValue(TNode var)
+Node BVSolverLazy::getModelValue(TNode var)
 {
   Assert(!inConflict());
   for (unsigned i = 0; i < d_subtheories.size(); ++i)
@@ -386,7 +402,7 @@ Node TheoryBVLazy::getModelValue(TNode var)
   Unreachable();
 }
 
-void TheoryBVLazy::propagate(Theory::Effort e)
+void BVSolverLazy::propagate(Theory::Effort e)
 {
   Debug("bitvector") << indent() << "TheoryBVLazy::propagate()" << std::endl;
   if (options::bitblastMode() == options::BitblastMode::EAGER)
@@ -423,7 +439,7 @@ void TheoryBVLazy::propagate(Theory::Effort e)
   }
 }
 
-Theory::PPAssertStatus TheoryBVLazy::ppAssert(TNode in,
+Theory::PPAssertStatus BVSolverLazy::ppAssert(TNode in,
                                               SubstitutionMap& outSubstitutions)
 {
   switch (in.getKind())
@@ -505,7 +521,7 @@ Theory::PPAssertStatus TheoryBVLazy::ppAssert(TNode in,
   return Theory::PP_ASSERT_STATUS_UNSOLVED;
 }
 
-TrustNode TheoryBVLazy::ppRewrite(TNode t)
+TrustNode BVSolverLazy::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBVLazy::ppRewrite " << t << "\n";
   Node res = t;
@@ -602,14 +618,14 @@ TrustNode TheoryBVLazy::ppRewrite(TNode t)
   return TrustNode::null();
 }
 
-void TheoryBVLazy::presolve()
+void BVSolverLazy::presolve()
 {
   Debug("bitvector") << "TheoryBVLazy::presolve" << endl;
 }
 
 static int prop_count = 0;
 
-bool TheoryBVLazy::storePropagation(TNode literal, SubTheory subtheory)
+bool BVSolverLazy::storePropagation(TNode literal, SubTheory subtheory)
 {
   Debug("bitvector::propagate") << indent() << d_context->getLevel() << " "
                                 << "TheoryBVLazy::storePropagation(" << literal
@@ -667,14 +683,14 @@ bool TheoryBVLazy::storePropagation(TNode literal, SubTheory subtheory)
 
 } /* TheoryBVLazy::propagate(TNode) */
 
-void TheoryBVLazy::explain(TNode literal, std::vector<TNode>& assumptions)
+void BVSolverLazy::explain(TNode literal, std::vector<TNode>& assumptions)
 {
   Assert(wasPropagatedBySubtheory(literal));
   SubTheory sub = getPropagatingSubtheory(literal);
   d_subtheoryMap[sub]->explain(literal, assumptions);
 }
 
-TrustNode TheoryBVLazy::explain(TNode node)
+TrustNode BVSolverLazy::explain(TNode node)
 {
   Debug("bitvector::explain")
       << "TheoryBVLazy::explain(" << node << ")" << std::endl;
@@ -699,7 +715,7 @@ TrustNode TheoryBVLazy::explain(TNode node)
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
 }
 
-void TheoryBVLazy::notifySharedTerm(TNode t)
+void BVSolverLazy::notifySharedTerm(TNode t)
 {
   Debug("bitvector::sharing")
       << indent() << "TheoryBVLazy::notifySharedTerm(" << t << ")" << std::endl;
@@ -713,7 +729,7 @@ void TheoryBVLazy::notifySharedTerm(TNode t)
   }
 }
 
-EqualityStatus TheoryBVLazy::getEqualityStatus(TNode a, TNode b)
+EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)
 {
   if (options::bitblastMode() == options::BitblastMode::EAGER)
     return EQUALITY_UNKNOWN;
@@ -730,7 +746,7 @@ EqualityStatus TheoryBVLazy::getEqualityStatus(TNode a, TNode b)
   ;
 }
 
-void TheoryBVLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
+void BVSolverLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
 {
   if (d_staticLearnCache.find(in) != d_staticLearnCache.end())
   {
@@ -780,7 +796,7 @@ void TheoryBVLazy::ppStaticLearn(TNode in, NodeBuilder<>& learned)
   }
 }
 
-bool TheoryBVLazy::applyAbstraction(const std::vector<Node>& assertions,
+bool BVSolverLazy::applyAbstraction(const std::vector<Node>& assertions,
                                     std::vector<Node>& new_assertions)
 {
   bool changed =
@@ -796,7 +812,7 @@ bool TheoryBVLazy::applyAbstraction(const std::vector<Node>& assertions,
   return changed;
 }
 
-void TheoryBVLazy::setConflict(Node conflict)
+void BVSolverLazy::setConflict(Node conflict)
 {
   if (options::bvAbstraction())
   {

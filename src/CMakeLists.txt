@@ -406,6 +406,9 @@ libcvc4_add_sources(
   theory/bv/bv_inequality_graph.h
   theory/bv/bv_quick_check.cpp
   theory/bv/bv_quick_check.h
+  theory/bv/bv_solver.h
+  theory/bv/bv_solver_lazy.cpp
+  theory/bv/bv_solver_lazy.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h
@@ -419,8 +422,6 @@ libcvc4_add_sources(
   theory/bv/slicer.h
   theory/bv/theory_bv.cpp
   theory/bv/theory_bv.h
-  theory/bv/theory_bv_lazy.cpp
-  theory/bv/theory_bv_lazy.h
   theory/bv/theory_bv_rewrite_rules.h
   theory/bv/theory_bv_rewrite_rules_constant_evaluation.h
   theory/bv/theory_bv_rewrite_rules_core.h
@@ -429,7 +430,6 @@ libcvc4_add_sources(
   theory/bv/theory_bv_rewrite_rules_simplification.h
   theory/bv/theory_bv_rewriter.cpp
   theory/bv/theory_bv_rewriter.h
-  theory/bv/theory_bv_solver.h
   theory/bv/theory_bv_type_rules.h
   theory/bv/theory_bv_utils.cpp
   theory/bv/theory_bv_utils.h

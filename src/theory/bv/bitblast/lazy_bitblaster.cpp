@@ -23,8 +23,8 @@
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/theory_bv_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -58,7 +58,7 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c,
-                                 bv::TheoryBVLazy* bv,
+                                 bv::BVSolverLazy* bv,
                                  const std::string name,
                                  bool emptyNotify)
     : TBitblaster<Node>(),

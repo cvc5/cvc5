@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_bv_lazy.h
+/*! \file bv_solver_lazy.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Tim King
@@ -9,15 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Bitvector theory.
- **
- ** Bitvector theory.
+ ** \brief Lazy bit-vector solver.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__BV__THEORY_BV_LAZY_H
-#define CVC4__THEORY__BV__THEORY_BV_LAZY_H
+#ifndef CVC4__THEORY__BV__BV_SOLVER_LAZY_H
+#define CVC4__THEORY__BV__BV_SOLVER_LAZY_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -25,9 +23,9 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
+#include "theory/bv/bv_solver.h"
 #include "theory/bv/bv_subtheory.h"
 #include "theory/bv/theory_bv_rewriter.h"
-#include "theory/bv/theory_bv_solver.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
@@ -45,8 +43,11 @@ class EagerBitblastSolver;
 
 class AbstractionModule;
 
-class TheoryBVLazy : public TheoryBVSolver
+class BVSolverLazy : public BVSolver
 {
+  /** Back reference to TheoryBV */
+  TheoryBV& d_bv;
+
   /** The context we are using */
   context::Context* d_context;
 
@@ -59,13 +60,13 @@ class TheoryBVLazy : public TheoryBVSolver
       d_subtheoryMap;
 
  public:
-  TheoryBVLazy(TheoryBV& bv,
+  BVSolverLazy(TheoryBV& bv,
                context::Context* c,
                context::UserContext* u,
                ProofNodeManager* pnm = nullptr,
                std::string name = "");
 
-  ~TheoryBVLazy();
+  ~BVSolverLazy();
 
   //--------------------------------- initialization
 
@@ -240,4 +241,4 @@ class TheoryBVLazy : public TheoryBVSolver
 
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__BV__THEORY_BV_LAZY_H */
+#endif /* CVC4__THEORY__BV__BV_SOLVER_LAZY_H */

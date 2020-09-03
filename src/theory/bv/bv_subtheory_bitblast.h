@@ -65,7 +65,7 @@ class BitblastSolver : public SubtheorySolver
   void setConflict(TNode conflict);
 
  public:
-  BitblastSolver(context::Context* c, TheoryBVLazy* bv);
+  BitblastSolver(context::Context* c, BVSolverLazy* bv);
   ~BitblastSolver();
 
   void preRegister(TNode node) override;

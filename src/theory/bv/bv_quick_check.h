@@ -36,7 +36,7 @@ class TheoryModel;
 namespace bv {
 
 class TLazyBitblaster;
-class TheoryBVLazy;
+class BVSolverLazy;
 
 class BVQuickCheck
 {
@@ -47,7 +47,7 @@ class BVQuickCheck
   void setConflict();
 
  public:
-  BVQuickCheck(const std::string& name, theory::bv::TheoryBVLazy* bv);
+  BVQuickCheck(const std::string& name, theory::bv::BVSolverLazy* bv);
   ~BVQuickCheck();
   bool inConflict();
   Node getConflict() { return d_conflict; }

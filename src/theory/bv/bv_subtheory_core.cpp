@@ -19,7 +19,7 @@
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/theory_bv_lazy.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/ext_theory.h"
 #include "theory/theory_model.h"
@@ -89,7 +89,7 @@ bool CoreSolverExtTheoryCallback::getReduction(int effort,
   return false;
 }
 
-CoreSolver::CoreSolver(context::Context* c, TheoryBVLazy* bv)
+CoreSolver::CoreSolver(context::Context* c, BVSolverLazy* bv)
     : SubtheorySolver(c, bv),
       d_notify(*this),
       d_isComplete(c, true),

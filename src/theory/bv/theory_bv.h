@@ -36,15 +36,15 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-class TheoryBVSolver;
+class BVSolver;
 
 class TheoryBV : public Theory
 {
-  friend class TheoryBVSolver;
+  friend class BVSolver;
 
   /* TheoryBVLazy accesses methods from theory in a way that is deprecated and
    * will be removed in the future. For now we allow direct access. */
-  friend class TheoryBVLazy;
+  friend class BVSolverLazy;
 
  public:
   TheoryBV(context::Context* c,
@@ -109,7 +109,7 @@ class TheoryBV : public Theory
   Node getUFDivByZero(Kind k, unsigned width);
 
   /** Internal BV solver. */
-  std::unique_ptr<TheoryBVSolver> d_internal;
+  std::unique_ptr<BVSolver> d_internal;
 
   /**
    * Maps from bit-vector width to division-by-zero uninterpreted
