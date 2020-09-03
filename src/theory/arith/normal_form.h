@@ -946,6 +946,18 @@ public:
   /** Returns true if the polynomial contains a non-linear monomial.*/
   bool isNonlinear() const;
 
+  /** Check whether this polynomial is only a single variable. */
+  bool isVariable() const
+  {
+    return singleton() && getHead().getVarList().singleton()
+           && getHead().coefficientIsOne();
+  }
+  /** Return the variable, given that isVariable() holds. */
+  Variable getVariable() const
+  {
+    Assert(isVariable());
+    return getHead().getVarList().getHead();
+  }
 
   /**
    * Selects a minimal monomial in the polynomial by the absolute value of
@@ -1376,6 +1388,9 @@ public:
 
   Polynomial normalizedVariablePart() const;
   DeltaRational normalizedDeltaRational() const;
+
+  std::tuple<Polynomial, Kind, Constant> decompose(
+      bool split_constant = false) const;
 
 };/* class Comparison */
 
