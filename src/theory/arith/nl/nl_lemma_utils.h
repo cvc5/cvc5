@@ -20,7 +20,6 @@
 
 #include "expr/node.h"
 #include "theory/arith/arith_lemma.h"
-#include "theory/arith/nl/inference.h"
 #include "theory/output_channel.h"
 
 namespace CVC4 {
@@ -48,11 +47,11 @@ class NlLemma : public ArithLemma
   NlLemma(Node n,
           LemmaProperty p,
           ProofGenerator* pg,
-          nl::Inference inf = nl::Inference::UNKNOWN)
+          InferenceId inf = InferenceId::UNKNOWN)
       : ArithLemma(n, p, pg, inf)
   {
   }
-  NlLemma(Node n, nl::Inference inf = nl::Inference::UNKNOWN)
+  NlLemma(Node n, InferenceId inf = InferenceId::UNKNOWN)
       : ArithLemma(n, LemmaProperty::NONE, nullptr, inf)
   {
   }
