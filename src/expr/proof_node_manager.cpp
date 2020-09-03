@@ -29,6 +29,8 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkNode(
     const std::vector<Node>& args,
     Node expected)
 {
+  Trace("pnm") << "ProofNodeManager::mkNode " << id << " {" << expected.getId()
+               << "} " << expected << "\n";
   Node res = checkInternal(id, children, args, expected);
   if (res.isNull())
   {
@@ -106,11 +108,20 @@ std::shared_ptr<ProofNode> ProofNodeManager::mkScope(
     }
     // All free assumptions should be arguments to SCOPE.
     std::stringstream ss;
-    pf->printDebug(ss);
+
+    bool dumpProofTraceOn = Trace.isOn("dump-proof-error");
+    if (dumpProofTraceOn)
+    {
+      ss << "The proof : " << *pf << std::endl;
+    }
     ss << std::endl << "Free assumption: " << a << std::endl;
     for (const Node& aprint : ac)
     {
       ss << "- assumption: " << aprint << std::endl;
+    }
+    if (!dumpProofTraceOn)
+    {
+      ss << "Use -t dump-proof-error for details on proof" << std::endl;
     }
     Unreachable() << "Generated a proof that is not closed by the scope: "
                   << ss.str() << std::endl;

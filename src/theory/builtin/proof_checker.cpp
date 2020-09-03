@@ -16,6 +16,7 @@
 
 #include "expr/skolem_manager.h"
 #include "smt/term_formula_removal.h"
+#include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -29,6 +30,9 @@ const char* toString(MethodId id)
   switch (id)
   {
     case MethodId::RW_REWRITE: return "RW_REWRITE";
+    case MethodId::RW_EXT_REWRITE: return "RW_EXT_REWRITE";
+    case MethodId::RW_REWRITE_EQ_EXT: return "RW_REWRITE_EQ_EXT";
+    case MethodId::RW_EVALUATE: return "RW_EVALUATE";
     case MethodId::RW_IDENTITY: return "RW_IDENTITY";
     case MethodId::SB_DEFAULT: return "SB_DEFAULT";
     case MethodId::SB_LITERAL: return "SB_LITERAL";
@@ -56,6 +60,7 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::SCOPE, this);
   pc->registerChecker(PfRule::SUBS, this);
   pc->registerChecker(PfRule::REWRITE, this);
+  pc->registerChecker(PfRule::EVALUATE, this);
   pc->registerChecker(PfRule::MACRO_SR_EQ_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_INTRO, this);
   pc->registerChecker(PfRule::MACRO_SR_PRED_ELIM, this);
@@ -63,22 +68,13 @@ void BuiltinProofRuleChecker::registerTo(ProofChecker* pc)
   pc->registerChecker(PfRule::THEORY_REWRITE, this);
   pc->registerChecker(PfRule::REMOVE_TERM_FORMULA_AXIOM, this);
   // trusted rules
+  pc->registerTrustedChecker(PfRule::THEORY_LEMMA, this, 1);
   pc->registerTrustedChecker(PfRule::PREPROCESS, this, 2);
   pc->registerTrustedChecker(PfRule::PREPROCESS_LEMMA, this, 2);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS, this, 2);
   pc->registerTrustedChecker(PfRule::THEORY_PREPROCESS_LEMMA, this, 2);
   pc->registerTrustedChecker(PfRule::WITNESS_AXIOM, this, 2);
 }
-
-Node BuiltinProofRuleChecker::applyTheoryRewrite(Node n, bool preRewrite)
-{
-  TheoryId tid = Theory::theoryOf(n);
-  Rewriter* rewriter = Rewriter::getInstance();
-  Node nkr = preRewrite ? rewriter->preRewrite(tid, n).d_node
-                        : rewriter->postRewrite(tid, n).d_node;
-  return nkr;
-}
-
 
 Node BuiltinProofRuleChecker::applySubstitutionRewrite(
     Node n, const std::vector<Node>& exp, MethodId ids, MethodId idr)
@@ -95,7 +91,20 @@ Node BuiltinProofRuleChecker::applyRewrite(Node n, MethodId idr)
   {
     return Rewriter::rewrite(n);
   }
-  else if (idr == MethodId::RW_IDENTITY)
+  if (idr == MethodId::RW_EXT_REWRITE)
+  {
+    return d_ext_rewriter.extendedRewrite(n);
+  }
+  if (idr == MethodId::RW_REWRITE_EQ_EXT)
+  {
+    return Rewriter::rewriteEqualityExt(n);
+  }
+  if (idr == MethodId::RW_EVALUATE)
+  {
+    Evaluator eval;
+    return eval.eval(n, {}, {}, false);
+  }
+  if (idr == MethodId::RW_IDENTITY)
   {
     // does nothing
     return n;
@@ -228,7 +237,7 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     {
       exp.push_back(children[i]);
     }
-    Node res = applySubstitution(args[0], exp);
+    Node res = applySubstitution(args[0], exp, ids);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::REWRITE)
@@ -241,6 +250,13 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
       return Node::null();
     }
     Node res = applyRewrite(args[0], idr);
+    return args[0].eqNode(res);
+  }
+  else if (id == PfRule::EVALUATE)
+  {
+    Assert(children.empty());
+    Assert(args.size() == 1);
+    Node res = applyRewrite(args[0], MethodId::RW_EVALUATE);
     return args[0].eqNode(res);
   }
   else if (id == PfRule::MACRO_SR_EQ_INTRO)
@@ -334,13 +350,14 @@ Node BuiltinProofRuleChecker::checkInternal(PfRule id,
     Assert(args.size() == 1);
     return RemoveTermFormulas::getAxiomFor(args[0]);
   }
-  else if (id == PfRule::PREPROCESS || id == PfRule::PREPROCESS_LEMMA
-           || id == PfRule::THEORY_PREPROCESS
-           || id == PfRule::THEORY_PREPROCESS_LEMMA
-           || id == PfRule::WITNESS_AXIOM)
+  else if (id == PfRule::PREPROCESS || id == PfRule::THEORY_PREPROCESS
+           || id == PfRule::WITNESS_AXIOM || id == PfRule::THEORY_LEMMA
+           || id == PfRule::PREPROCESS_LEMMA || id == PfRule::THEORY_REWRITE)
   {
+    // "trusted" rules
     Assert(children.empty());
-    Assert(args.size() == 1);
+    Assert(!args.empty());
+    Assert(args[0].getType().isBoolean());
     return args[0];
   }
   // no rule
@@ -388,6 +405,23 @@ void BuiltinProofRuleChecker::addMethodIds(std::vector<Node>& args,
   {
     args.push_back(mkMethodId(idr));
   }
+}
+
+bool BuiltinProofRuleChecker::getTheoryId(TNode n, TheoryId& tid)
+{
+  uint32_t i;
+  if (!getUInt32(n, i))
+  {
+    return false;
+  }
+  tid = static_cast<TheoryId>(i);
+  return true;
+}
+
+Node BuiltinProofRuleChecker::mkTheoryIdNode(TheoryId tid)
+{
+  return NodeManager::currentNM()->mkConst(
+      Rational(static_cast<uint32_t>(tid)));
 }
 
 }  // namespace builtin
