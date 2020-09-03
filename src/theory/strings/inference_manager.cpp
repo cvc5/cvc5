@@ -39,7 +39,7 @@ InferenceManager::InferenceManager(Theory& t,
       d_termReg(tr),
       d_extt(e),
       d_statistics(statistics),
-      d_ipc(new InferProofCons(d_state.getSatContext(), pnm, d_statistics))
+      d_ipc(pnm ? new InferProofCons(d_state.getSatContext(), pnm, d_statistics) : nullptr)
 {
   NodeManager* nm = NodeManager::currentNM();
   d_zero = nm->mkConst(Rational(0));
@@ -218,7 +218,11 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
 void InferenceManager::conflictExpInferInfo(const InferInfo& ii)
 {
   // setup the fact to reproduce the proof in the call below
-  d_ipc->notifyFact(ii);
+  d_statistics.d_inferences << ii.d_id;
+  if (d_ipc!=nullptr)
+  {
+    d_ipc->notifyFact(ii);
+  }
   // make the trust node
   TrustNode tconf = mkConflictExp(ii.d_ant, d_ipc.get());
   Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
@@ -310,8 +314,12 @@ void InferenceManager::doPendingFacts()
     for (const Node& fact : facts)
     {
       ii.d_conc = fact;
-      // notify fact
-      d_ipc->notifyFact(ii);
+      // notify fact, which
+      d_statistics.d_inferences << ii.d_id;
+      if (d_ipc!=nullptr)
+      {
+        d_ipc->notifyFact(ii);
+      }
       // assert to equality engine using proof generator interface for
       // assertFact.
       bool polarity = fact.getKind() != NOT;
@@ -375,7 +383,11 @@ void InferenceManager::doPendingLemmas()
     ii.d_noExplain = noExplain;
     // ensure that the proof generator is ready to explain the final conclusion
     // of the lemma (ii.d_conc).
-    d_ipc->notifyFact(ii);
+    d_statistics.d_inferences << ii.d_id;
+    if (d_ipc!=nullptr)
+    {
+      d_ipc->notifyFact(ii);
+    }
     tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
     Node lem = tlem.getNode();
     Trace("strings-pending") << "Process pending lemma : " << lem << std::endl;

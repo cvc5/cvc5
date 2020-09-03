@@ -240,14 +240,11 @@ void SharedTermsDatabase::checkForConflict()
     return;
   }
   d_inConflict = false;
-  Node conflict = d_conflictLHS.eqNode(d_conflictRHS);
-  if (!d_conflictPolarity)
-  {
-    conflict = conflict.notNode();
-  }
   TrustNode trnc;
   if (d_pfee != nullptr)
   {
+    Node conflict = d_conflictLHS.eqNode(d_conflictRHS);
+    conflict = d_conflictPolarity ? conflict : conflict.notNode();
     trnc = d_pfee->assertConflict(conflict);
   }
   else
