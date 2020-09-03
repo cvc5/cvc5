@@ -92,19 +92,25 @@ void TheoryInferenceManager::conflictExp(PfRule id,
 {
   if (!d_theoryState.isInConflict())
   {
-    if (d_pfee != nullptr)
-    {
-      // use proof equality engine to construct the trust node
-      TrustNode tconf = d_pfee->assertConflict(id, exp, args);
-      d_out.trustedConflict(tconf);
-    }
-    else
-    {
-      // version without proofs
-      Node conf = mkExplainPartial(exp, {});
-      conflict(conf);
-    }
+    // make the trust node
+    TrustNode tconf = mkConflictExp(id, exp, args);
+    // send it on the output channel
+    trustedConflict(tconf);
   }
+}
+
+TrustNode TheoryInferenceManager::mkConflictExp(PfRule id,
+                  const std::vector<Node>& exp,
+                  const std::vector<Node>& args)
+{
+  if (d_pfee != nullptr)
+  {
+    // use proof equality engine to construct the trust node
+    return d_pfee->assertConflict(id, exp, args);
+  }
+  // version without proofs
+  Node conf = mkExplainPartial(exp, {});
+  return TrustNode::mkTrustConflict(conf, nullptr);
 }
 
 void TheoryInferenceManager::conflictExp(const std::vector<Node>& exp,
@@ -112,19 +118,24 @@ void TheoryInferenceManager::conflictExp(const std::vector<Node>& exp,
 {
   if (!d_theoryState.isInConflict())
   {
-    if (d_pfee != nullptr)
-    {
-      // use proof equality engine to construct the trust node
-      TrustNode tconf = d_pfee->assertConflict(exp, pg);
-      d_out.trustedConflict(tconf);
-    }
-    else
-    {
-      // version without proofs
-      Node conf = mkExplainPartial(exp, {});
-      conflict(conf);
-    }
+    // make the trust node
+    TrustNode tconf = mkConflictExp(exp, pg);
+    // send it on the output channel
+    trustedConflict(tconf);
   }
+}
+
+TrustNode TheoryInferenceManager::mkConflictExp(const std::vector<Node>& exp,
+                  ProofGenerator * pg)
+{
+  if (d_pfee != nullptr)
+  {
+    // use proof equality engine to construct the trust node
+    return d_pfee->assertConflict(exp, pg);
+  }
+  // version without proofs
+  Node conf = mkExplainPartial(exp, {});
+  return TrustNode::mkTrustConflict(conf, nullptr);
 }
 
 bool TheoryInferenceManager::propagateLit(TNode lit)
@@ -207,16 +218,27 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       LemmaProperty p,
                                       bool doCache)
 {
+  // make the trust node
+  TrustNode trn = mkLemmaExp(conc, id, exp, noExplain, args);
+  // send it on the output channel
+  return trustedLemma(trn, p, doCache);
+}
+
+TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
+              PfRule id,
+              const std::vector<Node>& exp,
+              const std::vector<Node>& noExplain,
+              const std::vector<Node>& args)
+{
   if (d_pfee != nullptr)
   {
     // make the trust node from the proof equality engine
-    TrustNode trn = d_pfee->assertLemma(conc, id, exp, noExplain, args);
-    return trustedLemma(trn, p, doCache);
+    return d_pfee->assertLemma(conc, id, exp, noExplain, args);
   }
-  // otherwise, not using proofs, explain and send lemma
+  // otherwise, not using proofs, explain and make trust node
   Node ant = mkExplainPartial(exp, noExplain);
   Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
-  return lemma(lem, p, doCache);
+  return TrustNode::mkTrustLemma(lem, nullptr);
 }
 
 bool TheoryInferenceManager::lemmaExp(Node conc,
@@ -226,18 +248,28 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
                                       LemmaProperty p,
                                       bool doCache)
 {
+  // make the trust node
+  TrustNode trn = mkLemmaExp(conc, exp, noExplain, pg);
+  // send it on the output channel
+  return trustedLemma(trn, p, doCache);
+}
+
+TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
+              const std::vector<Node>& exp,
+              const std::vector<Node>& noExplain,
+              ProofGenerator* pg)
+{
   if (d_pfee != nullptr)
   {
     // make the trust node from the proof equality engine
-    TrustNode trn = d_pfee->assertLemma(conc, exp, noExplain, pg);
-    return trustedLemma(trn, p, doCache);
+    return d_pfee->assertLemma(conc, exp, noExplain, pg);
   }
-  // otherwise, not using proofs, explain and send lemma
+  // otherwise, not using proofs, explain and make trust node
   Node ant = mkExplainPartial(exp, noExplain);
   Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
-  return lemma(lem, p, doCache);
+  return TrustNode::mkTrustLemma(lem, nullptr);
 }
-
+  
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
   return d_lemmasSent.find(lem) != d_lemmasSent.end();
