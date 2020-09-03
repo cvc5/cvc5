@@ -291,6 +291,8 @@ libcvc4_add_sources(
   theory/arith/fc_simplex.h
   theory/arith/infer_bounds.cpp
   theory/arith/infer_bounds.h
+  theory/arith/inference_id.cpp
+  theory/arith/inference_id.h
   theory/arith/inference_manager.cpp
   theory/arith/inference_manager.h
   theory/arith/linear_equality.cpp
@@ -313,8 +315,6 @@ libcvc4_add_sources(
   theory/arith/nl/ext_theory_callback.h
   theory/arith/nl/iand_solver.cpp
   theory/arith/nl/iand_solver.h
-  theory/arith/nl/inference.cpp
-  theory/arith/nl/inference.h
   theory/arith/nl/nl_constraint.cpp
   theory/arith/nl/nl_constraint.h
   theory/arith/nl/nl_lemma_utils.cpp

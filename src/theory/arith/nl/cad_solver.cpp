@@ -18,7 +18,7 @@
 #include <poly/polyxx.h>
 #endif
 
-#include "inference.h"
+#include "theory/arith/inference_id.h"
 #include "theory/arith/nl/cad/cdcac.h"
 #include "theory/arith/nl/poly_conversion.h"
 #include "util/poly_util.h"
@@ -89,11 +89,11 @@ std::vector<NlLemma> CadSolver::checkFull()
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     if (mis.size() == 1)
     {
-      lems.emplace_back(mis.front(), Inference::CAD_CONFLICT);
+      lems.emplace_back(mis.front(), InferenceId::NL_CAD_CONFLICT);
     }
     else
     {
-      lems.emplace_back(nm->mkNode(Kind::OR, mis), Inference::CAD_CONFLICT);
+      lems.emplace_back(nm->mkNode(Kind::OR, mis), InferenceId::NL_CAD_CONFLICT);
     }
     Trace("nl-cad") << "UNSAT with MIS: " << lems.back().d_node << std::endl;
   }
@@ -138,7 +138,7 @@ std::vector<NlLemma> CadSolver::checkPartial()
       if (!conclusion.isNull()) {
         Node lemma = nm->mkNode(Kind::IMPLIES, premise, conclusion);
         Trace("nl-cad") << "Excluding " << first_var << " -> " << interval.d_interval << " using " << lemma << std::endl;
-        lems.emplace_back(lemma, Inference::CAD_EXCLUDED_INTERVAL);
+        lems.emplace_back(lemma, InferenceId::NL_CAD_EXCLUDED_INTERVAL);
        }
     }
   }
