@@ -218,10 +218,12 @@ TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
   return assertLemma(d_false, exp, {}, psb);
 }
 
-TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp, ProofGenerator * pg)
+TrustNode ProofEqEngine::assertConflict(const std::vector<Node>& exp,
+                                        ProofGenerator* pg)
 {
-  Trace("pfee") << "pfee::assertConflict " << exp << " via generator" << std::endl;
-  return assertLemma(d_false,exp, {}, pg);
+  Trace("pfee") << "pfee::assertConflict " << exp << " via generator"
+                << std::endl;
+  return assertLemma(d_false, exp, {}, pg);
 }
 
 TrustNode ProofEqEngine::assertLemma(Node conc,

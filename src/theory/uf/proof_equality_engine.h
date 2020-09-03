@@ -171,7 +171,7 @@ class ProofEqEngine : public EagerProofGenerator
   /** Multi-step version */
   TrustNode assertConflict(const std::vector<Node>& exp, ProofStepBuffer& psb);
   /** Generator version, where pg has a proof of false from exp */
-  TrustNode assertConflict(const std::vector<Node>& exp, ProofGenerator * pg);
+  TrustNode assertConflict(const std::vector<Node>& exp, ProofGenerator* pg);
   //-------------------------- assert lemma
   /**
    * Called when we have concluded conc, typically via theory specific

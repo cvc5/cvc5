@@ -146,8 +146,8 @@ class TheoryInferenceManager
    * the returned trust node.
    */
   TrustNode mkConflictExp(PfRule id,
-                   const std::vector<Node>& exp,
-                   const std::vector<Node>& args);
+                          const std::vector<Node>& exp,
+                          const std::vector<Node>& args);
   /**
    * Explain and send conflict from contradictory facts. This method is called
    * when proof generator pf has a proof of false from free assumptions exp.
@@ -156,15 +156,13 @@ class TheoryInferenceManager
    * engine as the proof generator (if it exists), where pg provides the
    * final step(s) of this proof during this call.
    */
-  void conflictExp(const std::vector<Node>& exp,
-                   ProofGenerator * pg);
+  void conflictExp(const std::vector<Node>& exp, ProofGenerator* pg);
   /**
    * Make the trust node corresponding to the conflict of the above form. It is
    * the responsibility of the caller to subsequently call trustedConflict with
    * the returned trust node.
    */
-  TrustNode mkConflictExp(const std::vector<Node>& exp,
-                   ProofGenerator * pg);
+  TrustNode mkConflictExp(const std::vector<Node>& exp, ProofGenerator* pg);
   //--------------------------------------- lemmas
   /**
    * Send (trusted) lemma lem with property p on the output channel.
@@ -215,15 +213,15 @@ class TheoryInferenceManager
                 const std::vector<Node>& args,
                 LemmaProperty p = LemmaProperty::NONE,
                 bool doCache = true);
-  /** 
+  /**
    * Make the trust node for the above method. It is responsibility of the
    * caller to subsequently call trustedLemma with the returned trust node.
    */
   TrustNode mkLemmaExp(Node conc,
-                PfRule id,
-                const std::vector<Node>& exp,
-                const std::vector<Node>& noExplain,
-                const std::vector<Node>& args);
+                       PfRule id,
+                       const std::vector<Node>& exp,
+                       const std::vector<Node>& noExplain,
+                       const std::vector<Node>& args);
   /**
    * Same as above, but where pg can provide a proof of conc from free
    * assumptions in exp. This sends a trusted lemma on the output channel where
@@ -245,14 +243,14 @@ class TheoryInferenceManager
                 ProofGenerator* pg = nullptr,
                 LemmaProperty p = LemmaProperty::NONE,
                 bool doCache = true);
-  /** 
+  /**
    * Make the trust node for the above method. It is responsibility of the
    * caller to subsequently call trustedLemma with the returned trust node.
    */
   TrustNode mkLemmaExp(Node conc,
-                const std::vector<Node>& exp,
-                const std::vector<Node>& noExplain,
-                ProofGenerator* pg = nullptr);
+                       const std::vector<Node>& exp,
+                       const std::vector<Node>& noExplain,
+                       ProofGenerator* pg = nullptr);
   /**
    * Has this inference manager cached and sent the given lemma (in this user
    * context)? This method can be overridden by the particular manager. If not,

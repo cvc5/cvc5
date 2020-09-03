@@ -100,8 +100,8 @@ void TheoryInferenceManager::conflictExp(PfRule id,
 }
 
 TrustNode TheoryInferenceManager::mkConflictExp(PfRule id,
-                  const std::vector<Node>& exp,
-                  const std::vector<Node>& args)
+                                                const std::vector<Node>& exp,
+                                                const std::vector<Node>& args)
 {
   if (d_pfee != nullptr)
   {
@@ -114,7 +114,7 @@ TrustNode TheoryInferenceManager::mkConflictExp(PfRule id,
 }
 
 void TheoryInferenceManager::conflictExp(const std::vector<Node>& exp,
-                  ProofGenerator * pg)
+                                         ProofGenerator* pg)
 {
   if (!d_theoryState.isInConflict())
   {
@@ -126,7 +126,7 @@ void TheoryInferenceManager::conflictExp(const std::vector<Node>& exp,
 }
 
 TrustNode TheoryInferenceManager::mkConflictExp(const std::vector<Node>& exp,
-                  ProofGenerator * pg)
+                                                ProofGenerator* pg)
 {
   if (d_pfee != nullptr)
   {
@@ -225,10 +225,10 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
-              PfRule id,
-              const std::vector<Node>& exp,
-              const std::vector<Node>& noExplain,
-              const std::vector<Node>& args)
+                                             PfRule id,
+                                             const std::vector<Node>& exp,
+                                             const std::vector<Node>& noExplain,
+                                             const std::vector<Node>& args)
 {
   if (d_pfee != nullptr)
   {
@@ -255,9 +255,9 @@ bool TheoryInferenceManager::lemmaExp(Node conc,
 }
 
 TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
-              const std::vector<Node>& exp,
-              const std::vector<Node>& noExplain,
-              ProofGenerator* pg)
+                                             const std::vector<Node>& exp,
+                                             const std::vector<Node>& noExplain,
+                                             ProofGenerator* pg)
 {
   if (d_pfee != nullptr)
   {
@@ -269,7 +269,7 @@ TrustNode TheoryInferenceManager::mkLemmaExp(Node conc,
   Node lem = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
   return TrustNode::mkTrustLemma(lem, nullptr);
 }
-  
+
 bool TheoryInferenceManager::hasCachedLemma(TNode lem, LemmaProperty p)
 {
   return d_lemmasSent.find(lem) != d_lemmasSent.end();
