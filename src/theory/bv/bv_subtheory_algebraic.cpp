@@ -346,7 +346,7 @@ bool AlgebraicSolver::check(Theory::Effort e)
 
       if (Dump.isOn("bv-algebraic")) {
         Dump("bv-algebraic")
-            << EchoCommand("TheoryBVLazy::AlgebraicSolver::conflict");
+            << EchoCommand("BVSolverLazy::AlgebraicSolver::conflict");
         Dump("bv-algebraic") << PushCommand();
         Dump("bv-algebraic") << AssertCommand(conflict.toExpr());
         Dump("bv-algebraic") << CheckSatCommand();

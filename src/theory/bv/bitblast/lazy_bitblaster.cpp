@@ -293,10 +293,10 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
   }
 
   Debug("bitvector-bb")
-      << "TheoryBVLazy::TLazyBitblaster::assertToSat asserting node: " << atom
+      << "BVSolverLazy::TLazyBitblaster::assertToSat asserting node: " << atom
       << "\n";
   Debug("bitvector-bb")
-      << "TheoryBVLazy::TLazyBitblaster::assertToSat with literal:   "
+      << "BVSolverLazy::TLazyBitblaster::assertToSat with literal:   "
       << markerLit << "\n";
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);

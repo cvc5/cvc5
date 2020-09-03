@@ -89,7 +89,7 @@ class BVSolverLazy : public BVSolver
 
   bool collectModelInfo(TheoryModel* m) override;
 
-  std::string identify() const override { return std::string("TheoryBVLazy"); }
+  std::string identify() const override { return std::string("BVSolverLazy"); }
 
   Theory::PPAssertStatus ppAssert(TNode in,
                                   SubstitutionMap& outSubstitutions) override;
@@ -230,7 +230,7 @@ class BVSolverLazy : public BVSolver
   friend class InequalitySolver;
   friend class AlgebraicSolver;
   friend class EagerBitblastSolver;
-}; /* class TheoryBVLazy */
+}; /* class BVSolverLazy */
 
 }  // namespace bv
 }  // namespace theory
