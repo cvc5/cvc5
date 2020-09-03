@@ -80,22 +80,10 @@ void CadSolver::checkFull()
     d_foundSatisfiability = false;
     auto mis = collectConstraints(covering);
     Trace("nl-cad") << "Collected MIS: " << mis << std::endl;
-    auto* nm = NodeManager::currentNM();
-    for (auto& n : mis)
-    {
-      n = n.negate();
-    }
     Assert(!mis.empty()) << "Infeasible subset can not be empty";
     Trace("nl-cad") << "UNSAT with MIS: " << mis << std::endl;
-    if (mis.size() == 1)
-    {
-      d_im.addPendingArithLemma(mis.front(), InferenceId::NL_CAD_CONFLICT);
-    }
-    else
-    {
-      d_im.addPendingArithLemma(nm->mkNode(Kind::OR, mis),
-                                InferenceId::NL_CAD_CONFLICT);
-    }
+    d_im.addConflict(NodeManager::currentNM()->mkAnd(mis),
+                     InferenceId::NL_CAD_CONFLICT);
   }
 #else
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
