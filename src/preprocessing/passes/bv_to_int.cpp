@@ -690,9 +690,7 @@ Node BVToInt::bvToInt(Node n)
                * If the range is a BV sort, we replace it with INT
                */
 
-              /*
-               * construct the new function symbol.
-               */
+              // construct the new function symbol.
               Node bvUF = current.getOperator();
               Node intUF;
               TypeNode tn = current.getOperator().getType();
