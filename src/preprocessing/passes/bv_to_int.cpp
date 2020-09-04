@@ -859,7 +859,7 @@ Node BVToInt::bvToInt(Node n)
               Node translation = builder.constructNode();
               /**
                * if the adjusted term is of type bit-vector
-               * we use BITVECTOR_TO_NAR.
+               * we use BITVECTOR_TO_NAT.
                */
               if (translation.getType().isBitVector())
               {
