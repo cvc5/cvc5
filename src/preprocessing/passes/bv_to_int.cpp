@@ -729,7 +729,7 @@ Node BVToInt::bvToInt(Node n)
 
                 /*
                  * construct the new function application
-                 * In addition, create formul arguments (called `args` below)
+                 * In addition, create formal arguments (called `args` below)
                  * and use them in a `define-fun` for the new function.
                  */
                 Node intApplication;
