@@ -37,11 +37,9 @@ class InferenceManagerBuffered : public TheoryInferenceManager
                            ProofNodeManager* pnm);
   virtual ~InferenceManagerBuffered() {}
   /**
-   * Have we processed an inference during this call to check? In particular,
-   * this returns true if we have a pending fact or lemma, or have encountered
-   * a conflict.
+   * Do we have a pending fact or lemma?
    */
-  bool hasProcessed() const;
+  bool hasPending() const;
   /**
    * Do we have a pending fact to add as an internal fact to the equality
    * engine?
