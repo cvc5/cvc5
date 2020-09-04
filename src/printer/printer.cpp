@@ -23,6 +23,7 @@
 #include "printer/cvc/cvc_printer.h"
 #include "printer/smt2/smt2_printer.h"
 #include "printer/tptp/tptp_printer.h"
+#include "smt/command.h"
 #include "smt/node_command.h"
 
 using namespace std;
@@ -346,7 +347,7 @@ void Printer::toStreamCmdGetAssertions(std::ostream& out) const
 }
 
 void Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                            BenchmarkStatus status) const
+                                            Result::Sat status) const
 {
   printUnknownCommand(out, "set-info");
 }

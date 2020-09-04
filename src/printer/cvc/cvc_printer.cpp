@@ -1436,7 +1436,7 @@ void CvcPrinter::toStreamCmdGetUnsatCore(std::ostream& out) const
 }
 
 void CvcPrinter::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                               BenchmarkStatus status) const
+                                               Result::Sat status) const
 {
   out << "% (set-info :status " << status << ')';
 }

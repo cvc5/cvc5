@@ -2977,7 +2977,17 @@ void SetBenchmarkStatusCommand::toStream(std::ostream& out,
                                          size_t dag,
                                          OutputLanguage language) const
 {
-  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, d_status);
+  Result::Sat status;
+  switch (d_status)
+  {
+    case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
+    case BenchmarkStatus::SMT_UNSATISFIABLE:
+      status = Result::SAT_UNKNOWN;
+      break;
+    case BenchmarkStatus::SMT_UNKNOWN: status = Result::UNSAT; break;
+  }
+
+  Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
 }
 
 /* -------------------------------------------------------------------------- */
