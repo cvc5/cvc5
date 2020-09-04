@@ -31,6 +31,7 @@
 #include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
+#include "smt/command.h"
 #include "smt/node_command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/boolean_simplification.h"
@@ -1775,7 +1776,7 @@ void Smt2Printer::toStreamCmdGetUnsatCore(std::ostream& out) const
 }
 
 void Smt2Printer::toStreamCmdSetBenchmarkStatus(std::ostream& out,
-                                                BenchmarkStatus status) const
+                                                Result::Sat status) const
 {
   out << "(set-info :status " << status << ')';
 }

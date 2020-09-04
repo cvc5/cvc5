@@ -3,10 +3,10 @@
 source "$(dirname "$0")/get-script-header.sh"
 
 ABC_DIR="$DEPS_DIR/abc"
-commit=53f39c11b58d
+commit=3d7034bf619aada30b0ba1e8afcb151d304ab556
 
 check_dep_dir "$ABC_DIR"
-setup_dep "https://bitbucket.org/alanmi/abc/get/$commit.tar.gz" "$ABC_DIR"
+setup_dep "https://github.com/berkeley-abc/abc/archive/$commit.tar.gz" "$ABC_DIR"
 cd "$ABC_DIR"
 
 # Strip out libSupport.c, it is in charge of loading extensions and we
@@ -31,7 +31,12 @@ install_bin arch_flags
 # Copy headers and preserve subdirectories
 cd src
 mkdir -p "$INSTALL_INCLUDE_DIR/abc"
-cp --parents $(find . -name '*.h') "$INSTALL_INCLUDE_DIR/abc"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    rsync -R -r $(find . -name '*.h') "$INSTALL_INCLUDE_DIR/abc"
+else
+    cp --parents $(find . -name '*.h') "$INSTALL_INCLUDE_DIR/abc"
+fi
 
 echo
 echo ===================== Now configure CVC4 with =====================

@@ -425,6 +425,9 @@ libcvc4_add_sources(
   theory/bv/bv_inequality_graph.h
   theory/bv/bv_quick_check.cpp
   theory/bv/bv_quick_check.h
+  theory/bv/bv_solver.h
+  theory/bv/bv_solver_lazy.cpp
+  theory/bv/bv_solver_lazy.h
   theory/bv/bv_subtheory.h
   theory/bv/bv_subtheory_algebraic.cpp
   theory/bv/bv_subtheory_algebraic.h

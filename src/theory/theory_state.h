@@ -72,6 +72,9 @@ class TheoryState
   /** Are we currently in conflict? */
   virtual bool isInConflict() const;
 
+  /** Returns true if lit is a SAT literal. */
+  virtual bool isSatLiteral(TNode lit) const;
+
  protected:
   /** Pointer to the SAT context object used by the theory. */
   context::Context* d_context;
