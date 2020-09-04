@@ -851,6 +851,7 @@ bool BVToInt::childrenTypesChanged(Node n)
 
 Node BVToInt::adjustNode(Node node)
 {
+  // A node to store the result of the function
   Node adjustedNode;
   TypeNode originalType = node.getType();
   Node translated_node = d_bvToIntCache[node];
@@ -874,15 +875,14 @@ Node BVToInt::adjustNode(Node node)
 
 Node BVToInt::reconstructNode(Node node)
 {
+  // first, we adjust the children of the node as needed.
   vector<Node> adjusted_children;
   for (Node child : node)
   {
     Node adjusted_child = adjustNode(child);
     adjusted_children.push_back(adjusted_child);
   }
-  /**
-   * re-construct the term with the adjusted children.
-   */
+  // re-construct the term with the adjusted children.
   kind::Kind_t oldKind = node.getKind();
   NodeBuilder<> builder(oldKind);
   if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
@@ -894,10 +894,7 @@ Node BVToInt::reconstructNode(Node node)
     builder << child;
   }
   Node reconstruction = builder.constructNode();
-  /**
-   * if the adjusted term is of type bit-vector
-   * we use BITVECTOR_TO_NAT.
-   */
+  // cast back to integers if the result is a bit-vector.
   if (reconstruction.getType().isBitVector())
   {
     reconstruction = d_nm->mkNode(kind::BITVECTOR_TO_NAT, reconstruction);

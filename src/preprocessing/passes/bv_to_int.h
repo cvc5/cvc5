@@ -253,7 +253,24 @@ class BVToInt : public PreprocessingPass
    */
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
+  /**
+   * Reconstructs a node whose main operator cannot be
+   * translated to integers.
+   * Reconstruction is done by casting to integers/bit-vectors
+   * as needed.
+   * For example, if node is (select A x) where A
+   * is a bit-vector array, we do not change A to be
+   * an integer array, even though x was translated
+   * to integers.
+   * In this case we case x to (bv2nat x) during
+   * the reconstruction.
+   */
   Node reconstructNode(Node node);
+  /**
+   * A helper function for reconstructNode.
+   * Does the actual casting between bit-vectors
+   * and integers.
+   */
   Node adjustNode(Node node);
 
   /**
