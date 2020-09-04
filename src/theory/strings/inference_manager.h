@@ -246,8 +246,6 @@ class InferenceManager : public InferenceManagerBuffered
   void processConflict(const InferInfo& ii);
 
  private:
-  /** Add pending lemma */
-  void addPendingLemmaInfer(const InferInfo& ii);
   /** Called when ii is ready to be processed as a fact */
   bool processFact(InferInfo& ii);
   /** Called when ii is ready to be processed as a lemma */
