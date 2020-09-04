@@ -45,6 +45,7 @@ class TheoryEngine;
 
 namespace theory {
 
+class DecisionManager;
 class QuantifiersEnginePrivate;
 
 // TODO: organize this more/review this, github issue #1163
@@ -56,14 +57,14 @@ class QuantifiersEngine {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  QuantifiersEngine(context::Context* c,
-                    context::UserContext* u,
-                    TheoryEngine* te,
+  QuantifiersEngine(TheoryEngine* te, DecisionManager& dm,
                     ProofNodeManager* pnm);
   ~QuantifiersEngine();
   //---------------------- external interface
   /** get theory engine */
-  TheoryEngine* getTheoryEngine() const { return d_te; }
+  TheoryEngine* getTheoryEngine() const;
+  /** Get the decision manager */
+  DecisionManager* getDecisionManager();
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
@@ -121,7 +122,7 @@ class QuantifiersEngine {
    * precendence.
    */
   std::map< Node, int > d_owner_priority;
-public:
+ public:
   /** get owner */
   QuantifiersModule * getOwner( Node q );
   /**
@@ -337,8 +338,14 @@ public:
   Statistics d_statistics;
 
  private:
-  /** reference to theory engine object */
+  /** Pointer to theory engine object */
   TheoryEngine* d_te;
+  /** The SAT context */
+  context::Context* d_context;
+  /** The user context */
+  context::UserContext* d_userContext;
+  /** Reference to the decision manager of the theory engine */
+  DecisionManager& d_decManager;
   /** Pointer to the master equality engine */
   eq::EqualityEngine* d_masterEqualityEngine;
   /** vector of utilities for quantifiers */
