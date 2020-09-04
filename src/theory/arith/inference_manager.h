@@ -85,7 +85,7 @@ class InferenceManager : public InferenceManagerBuffered
    * Checks whether we have made any progress, that is whether a conflict, lemma
    * or fact was added or whether a lemma or fact is pending.
    */
-  bool hasMadeProgress();
+  bool hasMadeProgress() const;
 
   /** Returns the number of pending lemmas. */
   std::size_t numWaitingLemmas() const;
