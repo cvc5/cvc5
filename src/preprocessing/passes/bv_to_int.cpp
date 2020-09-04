@@ -820,52 +820,8 @@ Node BVToInt::bvToInt(Node n)
                * changed from bv to int should be adjusted back to bv and then
                * this term is reconstructed.
                */
-              vector<Node> adjusted_children;
-              for (Node child : current)
-              {
-                Node translated_child = d_bvToIntCache[child];
-                TypeNode originalType = child.getType();
-                TypeNode newType = translated_child.getType();
-                if (newType.isSubtypeOf(originalType))
-                {
-                  // type has not changed. The original child remains.
-                  adjusted_children.push_back(translated_child);
-                }
-                else
-                {
-                  // type has changed. The original child is adjusted.
-                  Assert(originalType.isBitVector());
-                  Assert(newType.isInteger());
-                  uint64_t bvsize = originalType.getBitVectorSize();
-                  Node intToBVOp =
-                      d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-                  Node adjusted_child =
-                      d_nm->mkNode(intToBVOp, translated_child);
-                  adjusted_children.push_back(adjusted_child);
-                }
-              }
-              /**
-               * re-construct the term with the adjusted children.
-               */
-              NodeBuilder<> builder(oldKind);
-              if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
-              {
-                builder << current.getOperator();
-              }
-              for (Node child : adjusted_children)
-              {
-                builder << child;
-              }
-              Node translation = builder.constructNode();
-              /**
-               * if the adjusted term is of type bit-vector
-               * we use BITVECTOR_TO_NAT.
-               */
-              if (translation.getType().isBitVector())
-              {
-                translation = d_nm->mkNode(kind::BITVECTOR_TO_NAT, translation);
-              }
-              d_bvToIntCache[current] = translation;
+              Node reconstruction = reconstructNode(current);
+              d_bvToIntCache[current] = reconstruction;
               break;
             }
           }
@@ -877,17 +833,76 @@ Node BVToInt::bvToInt(Node n)
   return d_bvToIntCache[n];
 }
 
-bool BVToInt::childrenTypesChanged(Node n) {
+bool BVToInt::childrenTypesChanged(Node n)
+{
   bool result = false;
-  for (Node child : n) {
+  for (Node child : n)
+  {
     TypeNode originalType = child.getType();
     TypeNode newType = d_bvToIntCache[child].get().getType();
-    if (! newType.isSubtypeOf(originalType)) {
+    if (!newType.isSubtypeOf(originalType))
+    {
       result = true;
       break;
     }
   }
   return result;
+}
+
+Node BVToInt::adjustNode(Node node)
+{
+  Node adjustedNode;
+  TypeNode originalType = node.getType();
+  Node translated_node = d_bvToIntCache[node];
+  TypeNode newType = translated_node.getType();
+  if (newType.isSubtypeOf(originalType))
+  {
+    // type has not changed. The original node remains the same.
+    adjustedNode = node;
+  }
+  else
+  {
+    // type has changed. The original node is adjusted.
+    Assert(originalType.isBitVector());
+    Assert(newType.isInteger());
+    uint64_t bvsize = originalType.getBitVectorSize();
+    Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+    adjustedNode = d_nm->mkNode(intToBVOp, translated_child);
+  }
+  return adjustedNode;
+}
+
+Node BVToInt::reconstructNode(Node node)
+{
+  vector<Node> adjusted_children;
+  for (Node child : current)
+  {
+    Node translated_child = d_bvToIntCache[child];
+    Node adjusted_child = adjustNode(child);
+    adjusted_children.push_back(adjusted_child);
+  }
+  /**
+   * re-construct the term with the adjusted children.
+   */
+  NodeBuilder<> builder(oldKind);
+  if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    builder << current.getOperator();
+  }
+  for (Node child : adjusted_children)
+  {
+    builder << child;
+  }
+  Node reconstruction = builder.constructNode();
+  /**
+   * if the adjusted term is of type bit-vector
+   * we use BITVECTOR_TO_NAT.
+   */
+  if (reconstruction.getType().isBitVector())
+  {
+    reconstruction = d_nm->mkNode(kind::BITVECTOR_TO_NAT, reconstruction);
+  }
+  return reconstruction;
 }
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
