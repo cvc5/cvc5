@@ -364,7 +364,8 @@ void InferenceManager::doPendingLemmas()
     {
       p |= LemmaProperty::NEEDS_JUSTIFY;
     }
-    d_out.lemma(lem, p);
+    // do lemma, with caching
+    lemma(lem, p);
   }
   // process the pending require phase calls
   for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
