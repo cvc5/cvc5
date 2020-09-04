@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
+import argparse
+import glob
+import gzip
 import json
 import logging
-
-logging.basicConfig(format='[%(levelname)s] %(message)s')
+import re
+from sklearn import linear_model
+import statistics
 
 
 def parse_commandline():
     """Parse commandline arguments"""
-    import argparse
     parser = argparse.ArgumentParser(description='export and analyze resources from statistics',
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('command', choices=[
@@ -27,24 +30,14 @@ def parse_commandline():
     return parser.parse_args()
 
 
-args = parse_commandline()
-
-if args.verbose:
-    logging.getLogger().setLevel(level=logging.DEBUG)
-else:
-    logging.getLogger().setLevel(level=logging.INFO)
-
-
 def load_zipped_json(filename):
     """Load data from a gziped json file"""
-    import gzip
     with gzip.GzipFile(args.json, 'r') as fin:
         return json.loads(fin.read().decode('utf-8'))
 
 
 def save_zipped_json(filename, data):
     """Store data to a gziped json file"""
-    import gzip
     with gzip.GzipFile(args.json, 'w') as fout:
         fout.write(json.dumps(data).encode('utf-8'))
 
@@ -54,11 +47,9 @@ def get_sorted_values(data):
     return [d[1] for d in sorted(data)]
 
 
-if args.command == 'parse':
-    if args.basedir == None:
+def parse(args):
+    if args.basedir is None:
         raise Exception('Specify basedir for parsing!')
-    import glob
-    import re
     filename_re = re.compile(
         '.*_incremental_([A-Z_]+/[0-9a-zA-Z_=\\./-]+\\.smt2)/output\\.log')
     resource_re = re.compile('resource::([^,]+), ([0-9]+)')
@@ -89,20 +80,16 @@ if args.command == 'parse':
     logging.info('Dumping data to {}'.format(args.json))
     save_zipped_json(args.json, data)
 
-elif args.command == 'analyze':
+
+def analyze(args):
     logging.info('Loading data from {}'.format(args.json))
     data = load_zipped_json(args.json)
 
     logging.info('Extracting resources')
     resources = set()
     for f in data:
-        spend_something = False
         for r in data[f]['resources']:
-            if r[0].startswith('Bv') and r[1] > 0:
-                spend_something = True
             resources.add(r[0])
-        if spend_something and f.startswith('QF_BV/') and data[f]['time'] < 0.004:
-            print(f)
     resources = list(sorted(resources))
 
     vals = {r: [] for r in resources}
@@ -121,8 +108,6 @@ elif args.command == 'analyze':
             vals[r[0]].append(r[1])
 
     logging.info('Training regression model')
-    from sklearn import linear_model
-    import statistics
     clf = linear_model.LinearRegression()
     r = clf.fit(x, y)
     coeffs = zip(resources, r.coef_)
@@ -147,15 +132,12 @@ elif args.command == 'analyze':
             continue
         vals = get_sorted_values(d['resources'])
         predict = float(r.predict([vals])) / args.mult
-        outliers['over-estimated'].append([predict /
-                                           actual, predict, actual, filename])
-        outliers['under-estimated'].append([actual /
-                                            predict, predict, actual, filename])
+        outliers['over-estimated'].append([predict / actual, predict, actual, filename])
+        outliers['under-estimated'].append([actual / predict, predict, actual, filename])
 
     for out in outliers:
         logging.info('Showing outliers for {}'.format(out))
         filtered = outliers[out]
-        #filtered = filter(lambda o: o[2] > 1 and o[2] < 30, filtered)
         for vals in sorted(filtered)[-5:]:
             logging.info(
                 '  -> {:6.2f} ({:6.2f}, actual {:6.2f}): {}'.format(*vals))
@@ -165,3 +147,16 @@ elif args.command == 'analyze':
     for out in sorted(outliers['under-estimated']):
         gnuplot.write('{}\t{}\n'.format(cur, out[0]))
         cur += 1
+
+
+if __name__ == "__main__":
+    logging.basicConfig(format='[%(levelname)s] %(message)s')
+    args = parse_commandline()
+    if args.verbose:
+        logging.getLogger().setLevel(level=logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(level=logging.INFO)
+    if args.command == 'parse':
+        parse(args)
+    elif args.command == 'analyze':
+        analyze(args)
