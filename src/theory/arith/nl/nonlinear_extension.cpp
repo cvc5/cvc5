@@ -564,6 +564,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     }
     else
     {
+      // checkFull() only adds a single conflict
       return 1;
     }
   }
