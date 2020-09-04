@@ -725,11 +725,10 @@ Node BVToInt::bvToInt(Node n)
                 // Insert the function symbol itself to the cache
                 d_bvToIntCache[bvUF] = intUF;
 
-                /*
-                 * construct the new function application
-                 * In addition, create formal arguments (called `args` below)
-                 * and use them in a `define-fun` for the new function.
-                 */
+                // construct the new function application
+                // In addition, create formal arguments (called `args` below)
+                // and use them in a `define-fun` for the new function.
+
                 Node intApplication;
                 vector<Node> achildren;
                 achildren.push_back(intUF);
@@ -737,11 +736,10 @@ Node BVToInt::bvToInt(Node n)
                 vector<Expr> args;
                 for (TypeNode d : bvDomain)
                 {
-                  /*
-                   * Each bit-vector argument is casted to a natural number
-                   * using BITVECTOR_TO_NAT operator.
-                   * Other arguments are left intact.
-                   */
+                  // Each bit-vector argument is casted to a natural number
+                  // using BITVECTOR_TO_NAT operator.
+                  // Other arguments are left intact.
+
                   Node fresh_bound_var = d_nm->mkBoundVar(d);
                   args.push_back(fresh_bound_var.toExpr());
                   if (d.isBitVector())
@@ -756,10 +754,8 @@ Node BVToInt::bvToInt(Node n)
                   i++;
                 }
                 intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
-                /*
-                 * If the range is BV, the application is casted to
-                   integers using BITVECTOR_TO_NAT.
-                 */
+                // If the range is BV, the application is casted to
+                //  integers using BITVECTOR_TO_NAT.
                 if (bvRange.isBitVector())
                 {
                   uint64_t bvsize = bvRange.getBitVectorSize();
@@ -785,22 +781,18 @@ Node BVToInt::bvToInt(Node n)
                     string("Cannot translate to Int: ") + current.toString());
               }
 
-              /*
-               * Now that the translated function and application were
-               * created, we add them to the cache and possibly add
-                 range constraints induced by the original BV width of the
-                 the functions range (codomain)..
-               */
+              // Now that the translated function and application were
+              // created, we add them to the cache and possibly add
+              // range constraints induced by the original BV width of the
+              // the functions range (codomain)..
               translated_children.insert(translated_children.begin(), intUF);
               // Insert the term to the cache
               d_bvToIntCache[current] =
                   d_nm->mkNode(kind::APPLY_UF, translated_children);
-              /**
-               * Add range constraints if necessary.
-               * If the original range was a BV sort, the current application of
-               * the function Must be within the range determined by the
-               * bitwidth.
-               */
+              // Add range constraints if necessary.
+              // If the original range was a BV sort, the current application of
+              // the function Must be within the range determined by the
+              // bitwidth.
               if (bvRange.isBitVector())
               {
                 Node m = d_bvToIntCache[current];
@@ -812,12 +804,10 @@ Node BVToInt::bvToInt(Node n)
             }
             default:
             {
-              /**
-               * In the default case, we have reached an operator that we do not
-               * translate directly to integers. The children whose types have
-               * changed from bv to int should be adjusted back to bv and then
-               * this term is reconstructed.
-               */
+              // In the default case, we have reached an operator that we do not
+              // translate directly to integers. The children whose types have
+              // changed from bv to int should be adjusted back to bv and then
+              // this term is reconstructed.
               Node reconstruction = reconstructNode(current);
               d_bvToIntCache[current] = reconstruction;
               break;
