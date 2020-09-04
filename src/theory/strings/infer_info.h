@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "util/safe_print.h"
 #include "theory/theory_inference.h"
+#include "util/safe_print.h"
 
 namespace CVC4 {
 namespace theory {
