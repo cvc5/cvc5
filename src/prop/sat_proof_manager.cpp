@@ -485,7 +485,7 @@ CDProof* SatProofManager::getProof() { return &d_proof; }
 
 void SatProofManager::registerInputs(const std::vector<Node>& inputs)
 {
-
+  d_chain.addFixedAssumptions(inputs);
 }
 
 }  // namespace prop
