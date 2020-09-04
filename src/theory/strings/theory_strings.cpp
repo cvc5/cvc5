@@ -658,7 +658,7 @@ void TheoryStrings::notifyFact(TNode atom,
           << "CONFLICT: Eager prefix : " << pc << std::endl;
       ++(d_statistics.d_conflictsEagerPrefix);
       // call the inference manager to send the conflict
-      d_im.conflictExpInferInfo(iiPrefixConf);
+      d_im.processConflict(iiPrefixConf);
       return;
     }
   }

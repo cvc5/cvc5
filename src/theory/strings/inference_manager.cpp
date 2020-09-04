@@ -49,6 +49,11 @@ InferenceManager::InferenceManager(Theory& t,
   d_false = nm->mkConst(false);
 }
 
+void InferenceManager::process()
+{
+  
+}
+
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                              Node conc,
                                              Inference infer)
@@ -144,26 +149,28 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, noExplain, eq, infer, isRev, asLemma);
 }
 
-void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
+void InferenceManager::sendInference(InferInfo& ii, bool asLemma)
 {
   Assert(!ii.isTrivial());
+  // set that this inference manager will be processing this inference
+  ii.d_sim = this;
   Trace("strings-infer-debug")
       << "sendInference: " << ii << ", asLemma = " << asLemma << std::endl;
   // check if we should send a conflict, lemma or a fact
-  if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
+  if (ii.isConflict())
   {
-    if (ii.isConflict())
-    {
-      Trace("strings-infer-debug") << "...as conflict" << std::endl;
-      Trace("strings-lemma") << "Strings::Conflict: " << ii.d_ant << " by "
-                             << ii.d_id << std::endl;
-      Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
-                                << " by " << ii.d_id << std::endl;
-      ++(d_statistics.d_conflictsInfer);
-      // process the conflict
-      conflictExpInferInfo(ii);
-      return;
-    }
+    Trace("strings-infer-debug") << "...as conflict" << std::endl;
+    Trace("strings-lemma") << "Strings::Conflict: " << ii.d_ant << " by "
+                            << ii.d_id << std::endl;
+    Trace("strings-conflict") << "CONFLICT: inference conflict " << ii.d_ant
+                              << " by " << ii.d_id << std::endl;
+    ++(d_statistics.d_conflictsInfer);
+    // process the conflict immediately
+    processConflict(ii);
+    return;
+  }
+  else if (asLemma || options::stringInferAsLemmas() || !ii.isFact())
+  {
     Trace("strings-infer-debug") << "...as lemma" << std::endl;
     d_pendingLem.push_back(ii);
     return;
@@ -182,6 +189,7 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
       Node eqs = ii.d_conc.substitute(
           vars.begin(), vars.end(), subs.begin(), subs.end());
       InferInfo iiSubsLem;
+      iiSubsLem.d_sim = this;
       // keep the same id for now, since we are transforming the form of the
       // inference, not the root reason.
       iiSubsLem.d_id = ii.d_id;
@@ -216,23 +224,6 @@ void InferenceManager::sendInference(const InferInfo& ii, bool asLemma)
   d_pending.push_back(ii);
 }
 
-void InferenceManager::conflictExpInferInfo(const InferInfo& ii)
-{
-  // setup the fact to reproduce the proof in the call below
-  d_statistics.d_inferences << ii.d_id;
-  if (d_ipc != nullptr)
-  {
-    d_ipc->notifyFact(ii);
-  }
-  // make the trust node
-  TrustNode tconf = mkConflictExp(ii.d_ant, d_ipc.get());
-  Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
-  Trace("strings-assert") << "(assert (not " << tconf.getNode()
-                          << ")) ; conflict " << ii.d_id << std::endl;
-  // send the trusted conflict
-  trustedConflict(tconf);
-}
-
 bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
 {
   Node eq = a.eqNode(b);
@@ -243,6 +234,7 @@ bool InferenceManager::sendSplit(Node a, Node b, Inference infer, bool preq)
   }
   NodeManager* nm = NodeManager::currentNM();
   InferInfo iiSplit;
+  iiSplit.d_sim = this;
   iiSplit.d_id = infer;
   iiSplit.d_conc = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   sendPhaseRequirement(eq, preq);
@@ -448,6 +440,145 @@ void InferenceManager::markCongruent(Node a, Node b)
 void InferenceManager::markReduced(Node n, bool contextDepend)
 {
   d_extt.markReduced(n, contextDepend);
+}
+
+void InferenceManager::processConflict(const InferInfo& ii)
+{
+  // setup the fact to reproduce the proof in the call below
+  d_statistics.d_inferences << ii.d_id;
+  if (d_ipc != nullptr)
+  {
+    d_ipc->notifyFact(ii);
+  }
+  // make the trust node
+  TrustNode tconf = mkConflictExp(ii.d_ant, d_ipc.get());
+  Assert(tconf.getKind() == TrustNodeKind::CONFLICT);
+  Trace("strings-assert") << "(assert (not " << tconf.getNode()
+                          << ")) ; conflict " << ii.d_id << std::endl;
+  // send the trusted conflict
+  trustedConflict(tconf);
+}
+
+bool InferenceManager::processFact(InferInfo& ii)
+{
+  // get the fact(s), where there are multiple if the conclusion is an AND
+  std::vector<Node> facts;
+  if (ii.d_conc.getKind() == AND)
+  {
+    for (const Node& cc : ii.d_conc)
+    {
+      facts.push_back(cc);
+    }
+  }
+  else
+  {
+    facts.push_back(ii.d_conc);
+  }
+  Trace("strings-assert")
+      << "(assert (=> " << ii.getAntecedant() << " " << ii.d_conc
+      << ")) ; fact " << ii.d_id << std::endl;
+  Trace("strings-lemma") << "Strings::Fact: " << ii.d_conc << " from "
+                          << ii.getAntecedant() << " by " << ii.d_id
+                          << std::endl;
+  std::vector<Node> exp;
+  for (const Node& ec : ii.d_ant)
+  {
+    utils::flattenOp(AND, ec, exp);
+  }
+  bool ret = false;
+  // convert for each fact
+  for (const Node& fact : facts)
+  {
+    ii.d_conc = fact;
+    // notify fact, which
+    d_statistics.d_inferences << ii.d_id;
+    bool polarity = fact.getKind() != NOT;
+    TNode atom = polarity ? fact : fact[0];
+    bool curRet = false;
+    if (d_ipc != nullptr)
+    {
+      d_ipc->notifyFact(ii);
+      // now, assert the internal fact with d_ipc as proof generator
+      curRet = assertInternalFact(atom, polarity, exp, d_ipc.get());
+    }
+    else
+    {
+      Node cexp = utils::mkAnd(exp);
+      // without proof generator
+      curRet = assertInternalFact(atom, polarity, cexp);
+    }
+    ret = ret || curRet;
+    // may be in conflict
+    if (d_state.isInConflict())
+    {
+      break;
+    }
+  }
+  return ret;
+}
+
+bool InferenceManager::processLemma(InferInfo& ii)
+{
+  Assert(!ii.isTrivial());
+  Assert(!ii.isConflict());
+  // set up the explanation and no-explanation
+  std::vector<Node> exp;
+  for (const Node& ec : ii.d_ant)
+  {
+    utils::flattenOp(AND, ec, exp);
+  }
+  std::vector<Node> noExplain;
+  if (!options::stringRExplainLemmas())
+  {
+    // if we aren't regressing the explanation, we add all literals to
+    // noExplain and ignore ii.d_ant.
+    noExplain.insert(noExplain.end(), exp.begin(), exp.end());
+  }
+  else
+  {
+    // otherwise, the no-explain literals are those provided
+    for (const Node& ecn : ii.d_noExplain)
+    {
+      utils::flattenOp(AND, ecn, noExplain);
+    }
+  }
+  // update the explanation and no-explain set
+  ii.d_ant = exp;
+  ii.d_noExplain = noExplain;
+  // ensure that the proof generator is ready to explain the final conclusion
+  // of the lemma (ii.d_conc).
+  d_statistics.d_inferences << ii.d_id;
+  if (d_ipc != nullptr)
+  {
+    d_ipc->notifyFact(ii);
+  }
+  TrustNode tlem = mkLemmaExp(ii.d_conc, exp, noExplain, d_ipc.get());
+  Trace("strings-pending") << "Process pending lemma : " << tlem.getNode() << std::endl;
+
+  // Process the side effects of the inference info.
+  // Register the new skolems from this inference. We register them here
+  // (lazily), since this is the moment when we have decided to process the
+  // inference.
+  for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
+        ii.d_new_skolem)
+  {
+    for (const Node& n : sks.second)
+    {
+      d_termReg.registerTermAtomic(n, sks.first);
+    }
+  }
+  LemmaProperty p = LemmaProperty::NONE;
+  if (ii.d_id == Inference::REDUCTION)
+  {
+    p |= LemmaProperty::NEEDS_JUSTIFY;
+  }
+  Trace("strings-assert")
+      << "(assert " << tlem.getNode() << ") ; lemma " << ii.d_id << std::endl;
+  Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by " << ii.d_id
+                          << std::endl;
+  ++(d_statistics.d_lemmasInfer);
+  // call the trusted lemma
+  return trustedLemma(tlem, p);
 }
 
 }  // namespace strings

@@ -37,7 +37,7 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-
+  
 /** Inference Manager
  *
  * The purpose of this class is to process inference steps for strategies
@@ -72,7 +72,7 @@ class InferenceManager : public TheoryInferenceManager
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
-
+  friend class InferInfo;
  public:
   InferenceManager(Theory& t,
                    SolverState& s,
@@ -81,6 +81,12 @@ class InferenceManager : public TheoryInferenceManager
                    SequencesStatistics& statistics,
                    ProofNodeManager* pnm);
   ~InferenceManager() {}
+  
+  /** 
+   * Process method. This processes all pending facts, lemmas and pending
+   * phase requests.
+   */
+  void process();
 
   /** send internal inferences
    *
@@ -173,7 +179,7 @@ class InferenceManager : public TheoryInferenceManager
    * If the flag asLemma is true, then this method will send a lemma instead
    * of a fact whenever applicable.
    */
-  void sendInference(const InferInfo& ii, bool asLemma = false);
+  void sendInference(InferInfo& ii, bool asLemma = false);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
@@ -276,9 +282,13 @@ class InferenceManager : public TheoryInferenceManager
    * trusted node whose generator is the underlying proof equality engine
    * (if it exists), and sends it on the output channel.
    */
-  void conflictExpInferInfo(const InferInfo& ii);
+  void processConflict(const InferInfo& ii);
 
  private:
+  /** Called when ii is processed as a fact */
+  bool processFact(InferInfo& ii);
+  /** Called when ii is processed as a lemma */
+  bool processLemma(InferInfo& ii);
   /** Reference to the solver state of the theory of strings. */
   SolverState& d_state;
   /** Reference to the term registry of theory of strings */
