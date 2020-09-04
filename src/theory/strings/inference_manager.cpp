@@ -433,20 +433,8 @@ bool InferenceManager::processLemma(InferInfo& ii)
                          << ii.d_id << std::endl;
   ++(d_statistics.d_lemmasInfer);
 
-  // testing the cache
-
-  if (d_lemmasSent.find(tlem.getNode()) != d_lemmasSent.end())
-  {
-    ++(d_statistics.d_lcacheHit);
-  }
-  else
-  {
-    ++(d_statistics.d_lcacheMiss);
-  }
-  d_lemmasSent.insert(tlem.getNode());
-
-  // call the trusted lemma, without caching
-  return trustedLemma(tlem, p, false);
+  // call the trusted lemma, with caching
+  return trustedLemma(tlem, p);
 }
 
 }  // namespace strings

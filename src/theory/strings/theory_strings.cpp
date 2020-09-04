@@ -720,33 +720,41 @@ void TheoryStrings::postCheck(Effort e)
       Trace("strings-eqc") << std::endl;
     }
     ++(d_statistics.d_checkRuns);
-    bool addedLemma = false;
-    bool addedFact;
+    bool sentLemma = false;
+    bool hadPending = false;
     Trace("strings-check") << "Full effort check..." << std::endl;
     do{
+      d_im.reset();
       ++(d_statistics.d_strategyRuns);
       Trace("strings-check") << "  * Run strategy..." << std::endl;
       runStrategy(e);
+      // remember if we had pending facts or lemmas
+      hadPending = d_im.hasPending();
       // Send the facts *and* the lemmas. We send lemmas regardless of whether
       // we send facts since some lemmas cannot be dropped. Other lemmas are
       // otherwise avoided by aborting the strategy when a fact is ready.
-      addedFact = d_im.hasPendingFact();
-      addedLemma = d_im.hasPendingLemma();
       d_im.doPending();
+      // Did we successfully send a lemma? Notice that if hasPending = true
+      // and sentLemma = false, then the above call may have:
+      // (1) had no pending lemmas, but successfully processed pending facts,
+      // (2) unsuccessfully processed pending lemmas.
+      // In either case, we repeat the strategy if we are not in conflict.
+      sentLemma = d_im.hasSentLemma();
       if (Trace.isOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
-        Trace("strings-check") << (addedFact ? "addedFact " : "");
-        Trace("strings-check") << (addedLemma ? "addedLemma " : "");
+        Trace("strings-check") << (hadPending ? "hadPending " : "");
+        Trace("strings-check") << (sentLemma ? "sentLemma " : "");
         Trace("strings-check") << (d_state.isInConflict() ? "conflict " : "");
-        if (!addedFact && !addedLemma && !d_state.isInConflict())
+        if (!hadPending && !sentLemma && !d_state.isInConflict())
         {
           Trace("strings-check") << "(none)";
         }
         Trace("strings-check") << std::endl;
       }
-      // repeat if we did not add a lemma or conflict
-    } while (!d_state.isInConflict() && !addedLemma && addedFact);
+      // repeat if we did not add a lemma or conflict, and we had pending
+      // facts or lemmas.
+    } while (!d_state.isInConflict() && !sentLemma && hadPending);
   }
   Trace("strings-check") << "Theory of strings, done check : " << e << std::endl;
   Assert(!d_im.hasPendingFact());
