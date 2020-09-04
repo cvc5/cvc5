@@ -30,13 +30,10 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-CardinalityExtension::CardinalityExtension(SolverState& s,
-                                           InferenceManager& im,
-                                           context::Context* c,
-                                           context::UserContext* u)
+CardinalityExtension::CardinalityExtension(SolverState& s, InferenceManager& im)
     : d_state(s),
       d_im(im),
-      d_card_processed(u),
+      d_card_processed(s.getUserContext()),
       d_finite_type_constants_processed(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -186,17 +183,17 @@ void CardinalityExtension::check()
 {
   checkCardinalityExtended();
   checkRegister();
-  if (d_im.hasProcessed())
+  if (d_im.hasSent())
   {
     return;
   }
   checkMinCard();
-  if (d_im.hasProcessed())
+  if (d_im.hasSent())
   {
     return;
   }
   checkCardCycles();
-  if (d_im.hasProcessed())
+  if (d_im.hasSent())
   {
     return;
   }
@@ -288,7 +285,7 @@ void CardinalityExtension::registerCardinalityTerm(Node n)
       d_im.assertInference(lem, d_emp_exp, "card", 1);
     }
   }
-  d_im.flushPendingLemmas();
+  d_im.doPendingLemmas();
 }
 
 void CardinalityExtension::checkCardCycles()
@@ -303,7 +300,7 @@ void CardinalityExtension::checkCardCycles()
     std::vector<Node> curr;
     std::vector<Node> exp;
     checkCardCyclesRec(s, curr, exp);
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       return;
     }
@@ -340,7 +337,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       Trace("sets-cycle-debug")
           << "CYCLE: " << fact << " from " << exp << std::endl;
       d_im.assertInference(fact, exp, "card_cycle");
-      d_im.flushPendingLemmas();
+      d_im.doPendingLemmas();
     }
     else
     {
@@ -416,8 +413,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
       }
       d_im.assertInference(conc, n.eqNode(emp_set), "cg_emp");
-      d_im.flushPendingLemmas();
-      if (d_im.hasProcessed())
+      d_im.doPendingLemmas();
+      if (d_im.hasSent())
       {
         return;
       }
@@ -448,8 +445,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
         d_im.assertInference(n.eqNode(emp_set), p.eqNode(emp_set), "cg_emppar");
-        d_im.flushPendingLemmas();
-        if (d_im.hasProcessed())
+        d_im.doPendingLemmas();
+        if (d_im.hasSent())
         {
           return;
         }
@@ -495,8 +492,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         Trace("sets-debug")
             << "...derived " << conc.size() << " conclusions" << std::endl;
         d_im.assertInference(conc, n.eqNode(p), "cg_eqpar");
-        d_im.flushPendingLemmas();
-        if (d_im.hasProcessed())
+        d_im.doPendingLemmas();
+        if (d_im.hasSent())
         {
           return;
         }
@@ -547,7 +544,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         {
           Node conc = n.eqNode(cpk);
           d_im.assertInference(conc, exps, "cg_par_sing");
-          d_im.flushPendingLemmas();
+          d_im.doPendingLemmas();
         }
         else
         {
@@ -555,7 +552,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           Trace("sets-nf") << "Split empty : " << n << std::endl;
           d_im.split(n.eqNode(emp_set), 1);
         }
-        Assert(d_im.hasProcessed());
+        Assert(d_im.hasSent());
         return;
       }
       else
@@ -602,8 +599,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
             }
           }
           d_im.assertInference(conc, cpk.eqNode(cpnl), "cg_pareq");
-          d_im.flushPendingLemmas();
-          if (d_im.hasProcessed())
+          d_im.doPendingLemmas();
+          if (d_im.hasSent())
           {
             return;
           }
@@ -622,7 +619,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       Trace("sets-cycle-debug")
           << "Traverse card parent " << eqc << " -> " << cpnc << std::endl;
       checkCardCyclesRec(cpnc, curr, exp);
-      if (d_im.hasProcessed())
+      if (d_im.hasSent())
       {
         return;
       }
@@ -645,7 +642,7 @@ void CardinalityExtension::checkNormalForms(std::vector<Node>& intro_sets)
   for (int i = (int)(d_oSetEqc.size() - 1); i >= 0; i--)
   {
     checkNormalForm(d_oSetEqc[i], intro_sets);
-    if (d_im.hasProcessed() || !intro_sets.empty())
+    if (d_im.hasSent() || !intro_sets.empty())
     {
       return;
     }
@@ -786,7 +783,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               d_state.debugPrintSet(r, "sets-nf");
               Trace("sets-nf") << std::endl;
               d_im.split(r.eqNode(emp_set), 1);
-              Assert(d_im.hasProcessed());
+              Assert(d_im.hasSent());
               return;
             }
           }
@@ -870,7 +867,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   if (!success)
   {
-    Assert(d_im.hasProcessed());
+    Assert(d_im.hasSent());
     return;
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
@@ -973,7 +970,7 @@ void CardinalityExtension::checkMinCard()
     }
   }
   // flush the lemmas
-  d_im.flushPendingLemmas();
+  d_im.doPendingLemmas();
 }
 
 bool CardinalityExtension::isModelValueBasic(Node eqc)

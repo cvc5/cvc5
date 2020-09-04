@@ -33,11 +33,6 @@
 
 namespace CVC4 {
 
-namespace proof {
-class ClausalBitVectorProof;
-class ResolutionBitVectorProof;
-}  // namespace proof
-
 namespace prop {
 
 class TheoryProxy;
@@ -58,7 +53,7 @@ public:
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
   virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
-  
+
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -84,6 +79,7 @@ public:
   virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
   {
     Unimplemented() << "Solving under assumptions not implemented";
+    return SAT_VALUE_UNKNOWN;
   };
 
   /** Interrupt the solver */
@@ -100,10 +96,6 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-
-  virtual void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp) {}
-
-  virtual void setClausalProofLog(proof::ClausalBitVectorProof* drat_proof) {}
 
 };/* class SatSolver */
 

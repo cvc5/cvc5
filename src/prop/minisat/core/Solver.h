@@ -63,7 +63,7 @@ public:
 
   typedef Var TVar;
   typedef Lit TLit;
-  typedef Clause TClause; 
+  typedef Clause TClause;
   typedef CRef TCRef;
   typedef vec<Lit> TLitVec;
 
@@ -98,7 +98,7 @@ public:
   vec<bool> lemmas_removable;
 
   /** Nodes being converted to CNF */
-  std::vector<std::pair<CVC4::Node, CVC4::Node> > lemmas_cnf_assertion;
+  std::vector<CVC4::Node> lemmas_cnf_assertion;
 
   /** Do a another check if FULL_EFFORT was the last one */
   bool recheck;
@@ -203,7 +203,7 @@ public:
     lbool    solve        (Lit p, Lit q, Lit r);     // Search for a model that respects three assumptions.
     bool    okay         () const;                  // FALSE means solver is in a conflicting state
 
-    void    toDimacs     (); 
+    void toDimacs();
     void    toDimacs     (FILE* f, const vec<Lit>& assumps);            // Write CNF to file in DIMACS-format.
     void    toDimacs     (const char *file, const vec<Lit>& assumps);
     void    toDimacs     (FILE* f, Clause& c, vec<Var>& map, Var& max);

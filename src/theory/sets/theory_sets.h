@@ -21,6 +21,8 @@
 
 #include <memory>
 
+#include "theory/sets/inference_manager.h"
+#include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -58,13 +60,17 @@ class TheorySets : public Theory
   void finishInit() override;
   //--------------------------------- end initialization
 
-  void notifySharedTerm(TNode) override;
-  void check(Effort) override;
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Effort level) override;
+  /** Notify fact */
+  void notifyFact(TNode atom, bool pol, TNode fact, bool isInternal) override;
+  //--------------------------------- end standard check
+  /** Collect model values in m based on the relevant terms given by termSet */
   bool collectModelValues(TheoryModel* m,
                           const std::set<Node>& termSet) override;
   void computeCareGraph() override;
   TrustNode explain(TNode) override;
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   Node getModelValue(TNode) override;
   std::string identify() const override { return "THEORY_SETS"; }
   void preRegisterTerm(TNode node) override;
@@ -72,6 +78,7 @@ class TheorySets : public Theory
   PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
   void presolve() override;
   bool isEntailed(Node n, bool pol);
+
  private:
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify
@@ -91,6 +98,10 @@ class TheorySets : public Theory
    private:
     TheorySetsPrivate& d_theory;
   };
+  /** The state of the sets solver at full effort */
+  SolverState d_state;
+  /** The inference manager */
+  InferenceManager d_im;
   /** The internal theory */
   std::unique_ptr<TheorySetsPrivate> d_internal;
   /** Instance of the above class */

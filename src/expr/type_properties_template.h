@@ -19,8 +19,6 @@
 #ifndef CVC4__TYPE_PROPERTIES_H
 #define CVC4__TYPE_PROPERTIES_H
 
-#line 23 "${template}"
-
 #include <sstream>
 
 #include "base/check.h"
@@ -30,8 +28,6 @@
 #include "options/language.h"
 
 ${type_properties_includes}
-
-#line 35 "${template}"
 
 namespace CVC4 {
 namespace kind {
@@ -47,7 +43,6 @@ inline Cardinality getCardinality(TypeConstant tc)
   switch (tc)
   {
 ${type_constant_cardinalities}
-#line 51 "${template}"
     default: InternalError() << "No cardinality known for type constant " << tc;
   }
 } /* getCardinality(TypeConstant) */
@@ -64,7 +59,6 @@ inline Cardinality getCardinality(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return getCardinality(typeNode.getConst<TypeConstant>());
 ${type_cardinalities}
-#line 68 "${template}"
   default:
     InternalError() << "A theory kinds file did not provide a cardinality "
                     << "or cardinality computer for type:\n"
@@ -75,7 +69,6 @@ ${type_cardinalities}
 inline bool isWellFounded(TypeConstant tc) {
   switch(tc) {
 ${type_constant_wellfoundednesses}
-#line 79 "${template}"
 default:
   InternalError() << "No well-foundedness status known for type constant: "
                   << tc;
@@ -88,7 +81,6 @@ inline bool isWellFounded(TypeNode typeNode) {
   case TYPE_CONSTANT:
     return isWellFounded(typeNode.getConst<TypeConstant>());
 ${type_wellfoundednesses}
-#line 92 "${template}"
   default:
     InternalError() << "A theory kinds file did not provide a well-foundedness "
                     << "or well-foundedness computer for type:\n"
@@ -101,7 +93,6 @@ inline Node mkGroundTerm(TypeConstant tc)
   switch (tc)
   {
 ${type_constant_groundterms}
-#line 105 "${template}"
     default:
       InternalError() << "No ground term known for type constant: " << tc;
   }
@@ -115,7 +106,6 @@ inline Node mkGroundTerm(TypeNode typeNode)
     case TYPE_CONSTANT:
       return mkGroundTerm(typeNode.getConst<TypeConstant>());
 ${type_groundterms}
-#line 119 "${template}"
     default:
       InternalError() << "A theory kinds file did not provide a ground term "
                       << "or ground term computer for type:\n"
