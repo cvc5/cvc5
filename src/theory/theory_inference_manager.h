@@ -92,6 +92,8 @@ class TheoryInferenceManager
    * beginning of this loop and repeat its strategy while hasAddedFact is true.
    */
   void reset();
+  /** Get the underlying proof equality engine */
+  eq::ProofEqEngine * getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,
