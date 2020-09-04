@@ -371,7 +371,7 @@ public:
   FCSimplexDecisionProcedure d_fcSimplex;
   SumOfInfeasibilitiesSPD d_soiSimplex;
   AttemptSolutionSDP d_attemptSolSimplex;
-  
+
   /** non-linear algebraic approach */
   nl::NonlinearExtension* d_nonlinearExtension;
 
@@ -456,6 +456,15 @@ public:
   Rational deltaValueForTotalOrder() const;
 
   bool collectModelInfo(TheoryModel* m);
+  /** 
+   * Collect model values. This is the main method for extracting information
+   * about how to construct the model.
+   * 
+   * @param termSet The set of relevant terms
+   * @param arithModel Mapping from  terms (of real type) to their values. The
+   * caller should assert equalities for each entry in this map.
+   */
+  void collectModelValues(const std::set<Node>& termSet, std::map<Node, Node>& arithModel);
 
   void shutdown(){ }
 
