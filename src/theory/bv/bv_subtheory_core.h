@@ -97,7 +97,7 @@ class CoreSolver : public SubtheorySolver {
   bool d_checkCalled;
 
   /** Pointer to the parent theory solver that owns this */
-  TheoryBV* d_bv;
+  BVSolverLazy* d_bv;
   /** Pointer to the equality engine of the parent */
   eq::EqualityEngine* d_equalityEngine;
   /** The extended theory callback */
@@ -146,7 +146,7 @@ class CoreSolver : public SubtheorySolver {
   bool doExtfReductions(std::vector<Node>& terms);
 
  public:
-  CoreSolver(context::Context* c, TheoryBV* bv);
+  CoreSolver(context::Context* c, BVSolverLazy* bv);
   ~CoreSolver();
   bool needsEqualityEngine(EeSetupInfo& esi);
   void finishInit();
