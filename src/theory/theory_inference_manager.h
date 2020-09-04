@@ -98,7 +98,7 @@ class TheoryInferenceManager
    */
   bool hasProcessed() const;
   /** Get the underlying proof equality engine */
-  eq::ProofEqEngine * getProofEqEngine();
+  eq::ProofEqEngine* getProofEqEngine();
   //--------------------------------------- propagations
   /**
    * T-propagate literal lit, possibly encountered by equality engine,

@@ -129,7 +129,7 @@ private:
   std::unique_ptr<EagerProofGenerator> d_pfGenExplain;
 
   /** Pointer to the proof equality engine of TheoryArith */
-  theory::eq::ProofEqEngine * d_pfee;
+  theory::eq::ProofEqEngine* d_pfee;
 
   void raiseConflict(Node conflict, std::shared_ptr<ProofNode> pf = nullptr);
 
@@ -211,7 +211,7 @@ private:
    * Finish initialize. This class is instructed by TheoryArithPrivate to use
    * the equality engine ee and proof equality engine pfee.
    */
-  void finishInit(eq::EqualityEngine* ee, eq::ProofEqEngine * pfee);
+  void finishInit(eq::EqualityEngine* ee, eq::ProofEqEngine* pfee);
   //--------------------------------- end initialization
 
   /**

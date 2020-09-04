@@ -147,7 +147,7 @@ std::pair<bool, Node> TheoryArith::entailmentCheck(TNode lit)
   std::pair<bool, Node> res = d_internal->entailmentCheck(lit, def, ase);
   return res;
 }
-eq::ProofEqEngine * TheoryArith::getProofEqEngine()
+eq::ProofEqEngine* TheoryArith::getProofEqEngine()
 {
   return d_inferenceManager.getProofEqEngine();
 }

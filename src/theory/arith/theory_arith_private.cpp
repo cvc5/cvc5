@@ -194,7 +194,7 @@ bool TheoryArithPrivate::needsEqualityEngine(EeSetupInfo& esi)
 void TheoryArithPrivate::finishInit()
 {
   eq::EqualityEngine* ee = d_containing.getEqualityEngine();
-  eq::ProofEqEngine * pfee = d_containing.getProofEqEngine();
+  eq::ProofEqEngine* pfee = d_containing.getProofEqEngine();
   Assert(ee != nullptr);
   d_congruenceManager.finishInit(ee, pfee);
   const LogicInfo& logicInfo = getLogicInfo();

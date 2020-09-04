@@ -64,7 +64,7 @@ bool TheoryInferenceManager::hasProcessed() const
          || d_numCurrentFacts > 0;
 }
 
-eq::ProofEqEngine * TheoryInferenceManager::getProofEqEngine()
+eq::ProofEqEngine* TheoryInferenceManager::getProofEqEngine()
 {
   return d_pfee.get();
 }
