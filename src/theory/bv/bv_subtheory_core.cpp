@@ -416,24 +416,24 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   return utils::isEqualityTerm(term, seen); 
 }
 
-bool CoreSolver::collectModelInfo(TheoryModel* m,
-                                  bool fullModel,
-                                  const std::set<Node>& termSet)
+bool CoreSolver::collectModelValues(TheoryModel* m,
+                                    bool fullModel,
+                                    const std::set<Node>& termSet)
 {
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {
-      Debug("bitvector-model") << "CoreSolver::collectModelInfo (assert "
-                               << *it << ")\n";
+      Debug("bitvector-model")
+          << "CoreSolver::collectModelValues (assert " << *it << ")\n";
     }
   }
   if (isComplete()) {
-    Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
+    Debug("bitvector-model") << "CoreSolver::collectModelValues complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
-      Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
-                               << a << " => " << b <<")\n";
+      Debug("bitvector-model") << "CoreSolver::collectModelValues modelValues "
+                               << a << " => " << b << ")\n";
       if (!m->assertEquality(a, b, true))
       {
         return false;

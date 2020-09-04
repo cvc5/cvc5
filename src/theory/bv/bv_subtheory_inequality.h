@@ -79,9 +79,9 @@ class InequalitySolver : public SubtheorySolver
   void propagate(Theory::Effort e) override;
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
   bool isComplete() override { return d_isComplete; }
-  bool collectModelInfo(TheoryModel* m,
-                        bool fullModel,
-                        const std::set<Node>& termSet) override;
+  bool collectModelValues(TheoryModel* m,
+                          bool fullModel,
+                          const std::set<Node>& termSet) override;
   Node getModelValue(TNode var) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
   void assertFact(TNode fact) override;

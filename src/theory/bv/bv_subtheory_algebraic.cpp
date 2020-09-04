@@ -712,11 +712,11 @@ EqualityStatus AlgebraicSolver::getEqualityStatus(TNode a, TNode b) {
   return EQUALITY_UNKNOWN;
 }
 
-bool AlgebraicSolver::collectModelInfo(TheoryModel* model,
-                                       bool fullModel,
-                                       const std::set<Node>& termSet)
+bool AlgebraicSolver::collectModelValues(TheoryModel* model,
+                                         bool fullModel,
+                                         const std::set<Node>& termSet)
 {
-  Debug("bitvector-model") << "AlgebraicSolver::collectModelInfo\n";
+  Debug("bitvector-model") << "AlgebraicSolver::collectModelValues\n";
   AlwaysAssert(!d_quickSolver->inConflict());
 
   // collect relevant terms that the bv theory abstracts to variables

@@ -383,7 +383,7 @@ bool BVSolverLazy::collectModelValues(TheoryModel* m,
   {
     if (d_subtheories[i]->isComplete())
     {
-      return d_subtheories[i]->collectModelInfo(m, true, termSet);
+      return d_subtheories[i]->collectModelValues(m, true, termSet);
     }
   }
   return true;
@@ -713,6 +713,13 @@ TrustNode BVSolverLazy::explain(TNode node)
                               << explanation << std::endl;
   Debug("bitvector::explain") << "BVSolverLazy::explain done. \n";
   return TrustNode::mkTrustPropExp(node, explanation, nullptr);
+}
+
+void BVSolverLazy::notifySharedTerm(TNode t)
+{
+  Debug("bitvector::sharing")
+      << indent() << "BVSolverLazy::notifySharedTerm(" << t << ")" << std::endl;
+  d_sharedTermsSet.insert(t);
 }
 
 EqualityStatus BVSolverLazy::getEqualityStatus(TNode a, TNode b)

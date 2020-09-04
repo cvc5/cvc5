@@ -181,6 +181,8 @@ class BVSolverLazy : public BVSolver
    */
   void explain(TNode literal, std::vector<TNode>& assumptions);
 
+  void notifySharedTerm(TNode t) override;
+
   bool isSharedTerm(TNode t) { return d_sharedTermsSet.contains(t); }
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
