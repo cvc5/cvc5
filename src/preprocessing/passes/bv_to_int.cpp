@@ -779,21 +779,22 @@ Node BVToInt::bvToInt(Node n)
                * as the translated functions may be different outside
                * of the bounds that were relevant for the original
                * bit-vectors.
-               */              
-              if (childrenTypesChanged(current) && options::ufHo()) {
-                  throw TypeCheckingException(
-                      current.toExpr(),
-                      string("Cannot translate to Int: ") + current.toString());
+               */
+              if (childrenTypesChanged(current) && options::ufHo())
+              {
+                throw TypeCheckingException(
+                    current.toExpr(),
+                    string("Cannot translate to Int: ") + current.toString());
               }
-              
+
               /*
                * Now that the translated function and application were
                * created, we add them to the cache and possibly add
-                 range constraints induced by the original BV width of the 
+                 range constraints induced by the original BV width of the
                  the functions range (codomain)..
                */
               translated_children.insert(translated_children.begin(), intUF);
-               // Insert the term to the cache
+              // Insert the term to the cache
               d_bvToIntCache[current] =
                   d_nm->mkNode(kind::APPLY_UF, translated_children);
               /**
@@ -808,18 +809,16 @@ Node BVToInt::bvToInt(Node n)
                 d_rangeAssertions.insert(
                     mkRangeConstraint(d_bvToIntCache[current],
                                       current.getType().getBitVectorSize()));
-
               }
               break;
             }
             default:
             {
               /**
-               * In the default case, we have reached an operator that we do not translate
-               * directly to integers.
-               * The children whose types have changed from
-               * bv to int should be adjusted back to bv
-               * and then this term is reconstructed.
+               * In the default case, we have reached an operator that we do not
+               * translate directly to integers. The children whose types have
+               * changed from bv to int should be adjusted back to bv and then
+               * this term is reconstructed.
                */
               vector<Node> adjusted_children;
               for (Node child : current)
