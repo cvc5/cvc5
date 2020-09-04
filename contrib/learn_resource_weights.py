@@ -50,8 +50,7 @@ def get_sorted_values(data):
 def parse(args):
     if args.basedir is None:
         raise Exception('Specify basedir for parsing!')
-    filename_re = re.compile(
-        '.*_incremental_([A-Z_]+/[0-9a-zA-Z_=\\./-]+\\.smt2)/output\\.log')
+    filename_re = re.compile('(.*\\.smt2)/output\\.log')
     resource_re = re.compile('resource::([^,]+), ([0-9]+)')
     result_re = re.compile('driver::sat/unsat, ([a-z]+)')
     totaltime_re = re.compile('driver::totalTime, ([0-9\\.]+)')
