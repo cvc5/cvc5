@@ -89,7 +89,7 @@ void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
 
 bool InferenceManager::hasMadeProgress() const
 {
-  return hasProcessed() || hasPending();
+  return hasSent() || hasPending();
 }
 
 std::size_t InferenceManager::numWaitingLemmas() const

@@ -286,7 +286,7 @@ void TheorySetsPrivate::fullEffortCheck()
   Trace("sets") << "----- Full effort check ------" << std::endl;
   do
   {
-    Assert(!d_im.hasPendingLemma() || d_im.hasProcessed());
+    Assert(!d_im.hasPendingLemma() || d_im.hasSent());
 
     Trace("sets") << "...iterate full effort check..." << std::endl;
     fullEffortReset();
@@ -391,7 +391,7 @@ void TheorySetsPrivate::fullEffortCheck()
 
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
@@ -421,35 +421,35 @@ void TheorySetsPrivate::fullEffortCheck()
     // check subtypes
     checkSubtypes();
     d_im.doPendingLemmas();
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
     // check downwards closure
     checkDownwardsClosure();
     d_im.doPendingLemmas();
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
     // check upwards closure
     checkUpwardsClosure();
     d_im.doPendingLemmas();
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
     // check disequalities
     checkDisequalities();
     d_im.doPendingLemmas();
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
     // check reduce comprehensions
     checkReduceComprehensions();
     d_im.doPendingLemmas();
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       continue;
     }
@@ -457,7 +457,7 @@ void TheorySetsPrivate::fullEffortCheck()
     {
       // call the check method of the cardinality solver
       d_cardSolver->check();
-      if (d_im.hasProcessed())
+      if (d_im.hasSent())
       {
         continue;
       }
@@ -469,7 +469,7 @@ void TheorySetsPrivate::fullEffortCheck()
     }
   } while (!d_im.hasSentLemma() && !d_state.isInConflict()
            && d_im.hasSentFact());
-  Assert(!d_im.hasPendingLemma() || d_im.hasProcessed());
+  Assert(!d_im.hasPendingLemma() || d_im.hasSent());
   Trace("sets") << "----- End full effort check, conflict="
                 << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
                 << std::endl;
@@ -720,7 +720,7 @@ void TheorySetsPrivate::checkUpwardsClosure()
       }
     }
   }
-  if (!d_im.hasProcessed())
+  if (!d_im.hasSent())
   {
     if (options::setsExt())
     {
@@ -827,7 +827,7 @@ void TheorySetsPrivate::checkDisequalities()
     lem = Rewriter::rewrite(lem);
     d_im.assertInference(lem, d_true, "diseq", 1);
     d_im.doPendingLemmas();
-    if (d_im.hasProcessed())
+    if (d_im.hasSent())
     {
       return;
     }
