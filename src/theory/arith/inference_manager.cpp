@@ -87,6 +87,11 @@ void InferenceManager::addConflict(const Node& conf, InferenceId inftype)
   conflict(Rewriter::rewrite(conf));
 }
 
+bool InferenceManager::hasMadeProgress() const
+{
+  return hasProcessed() || hasPending();
+}
+
 std::size_t InferenceManager::numWaitingLemmas() const
 {
   return d_waitingLem.size();

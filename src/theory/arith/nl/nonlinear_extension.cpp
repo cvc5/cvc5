@@ -558,7 +558,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   if (options::nlCad())
   {
     d_cadSlv.checkFull();
-    if (!d_im.hasProcessed())
+    if (!d_im.hasMadeProgress())
     {
       Trace("nl-cad") << "nl-cad found SAT!" << std::endl;
     }
