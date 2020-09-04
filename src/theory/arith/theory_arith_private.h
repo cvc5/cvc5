@@ -458,11 +458,13 @@ public:
   bool collectModelInfo(TheoryModel* m);
   /**
    * Collect model values. This is the main method for extracting information
-   * about how to construct the model.
+   * about how to construct the model. This method relies on the caller for
+   * processing the map, which is done so that other modules (e.g. the
+   * non-linear extension) can modify arithModel before it is sent to the model.
    *
    * @param termSet The set of relevant terms
-   * @param arithModel Mapping from  terms (of real type) to their values. The
-   * caller should assert equalities for each entry in this map.
+   * @param arithModel Mapping from terms (of real type) to their values. The
+   * caller should assert equalities to the model for each entry in this map.
    */
   void collectModelValues(const std::set<Node>& termSet,
                           std::map<Node, Node>& arithModel);
