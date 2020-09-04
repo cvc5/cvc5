@@ -253,6 +253,9 @@ class BVToInt : public PreprocessingPass
    */
   void addFinalizeRangeAssertions(AssertionPipeline* assertionsToPreprocess);
 
+  Node reconstructNode(Node node);
+  Node adjustNode(Node node);
+
   /**
    * Caches for the different functions
    */

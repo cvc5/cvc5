@@ -858,7 +858,7 @@ Node BVToInt::adjustNode(Node node)
   if (newType.isSubtypeOf(originalType))
   {
     // type has not changed. The original node remains the same.
-    adjustedNode = node;
+    adjustedNode = translated_node;
   }
   else
   {
@@ -867,7 +867,7 @@ Node BVToInt::adjustNode(Node node)
     Assert(newType.isInteger());
     uint64_t bvsize = originalType.getBitVectorSize();
     Node intToBVOp = d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
-    adjustedNode = d_nm->mkNode(intToBVOp, translated_child);
+    adjustedNode = d_nm->mkNode(intToBVOp, translated_node);
   }
   return adjustedNode;
 }
@@ -875,19 +875,19 @@ Node BVToInt::adjustNode(Node node)
 Node BVToInt::reconstructNode(Node node)
 {
   vector<Node> adjusted_children;
-  for (Node child : current)
+  for (Node child : node)
   {
-    Node translated_child = d_bvToIntCache[child];
     Node adjusted_child = adjustNode(child);
     adjusted_children.push_back(adjusted_child);
   }
   /**
    * re-construct the term with the adjusted children.
    */
+  kind::Kind_t oldKind = node.getKind();
   NodeBuilder<> builder(oldKind);
-  if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+  if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
   {
-    builder << current.getOperator();
+    builder << node.getOperator();
   }
   for (Node child : adjusted_children)
   {
