@@ -608,6 +608,7 @@ void NonlinearExtension::check(Theory::Effort e)
       d_im.doPendingFacts();
       d_im.doPendingLemmas();
       d_im.doPendingPhaseRequirements();
+      d_im.reset();
       return;
     }
     // Otherwise, we will answer SAT. The values that we approximated are
