@@ -86,7 +86,7 @@ void InferenceManagerBuffered::doPendingFacts()
   {
     // process this fact, which notice may enqueue more pending facts in this
     // loop.
-    d_pendingFact[i]->process(this);
+    d_pendingFact[i]->process(this, false);
     i++;
   }
   d_pendingFact.clear();
@@ -97,7 +97,7 @@ void InferenceManagerBuffered::doPendingLemmas()
   for (const std::unique_ptr<TheoryInference>& plem : d_pendingLem)
   {
     // process this lemma
-    plem->process(this);
+    plem->process(this, true);
   }
   d_pendingLem.clear();
 }

@@ -58,7 +58,7 @@ void TheoryInferenceManager::reset()
   d_numCurrentFacts = 0;
 }
 
-bool TheoryInferenceManager::hasSent() const
+bool TheoryInferenceManager::hasProcessed() const
 {
   return d_theoryState.isInConflict() || d_numCurrentLemmas > 0
          || d_numCurrentFacts > 0;
