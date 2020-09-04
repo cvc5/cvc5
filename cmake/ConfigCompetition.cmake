@@ -22,3 +22,13 @@ cvc4_set_option(ENABLE_MUZZLE ON)
 # enable_shared=no
 cvc4_set_option(ENABLE_SHARED OFF)
 cvc4_set_option(ENABLE_UNIT_TESTING OFF)
+
+# By default, we include all dependencies in our competition build that are
+# required to achieve the best performance
+set(ENABLE_GPL ON)
+cvc4_set_option(USE_CADICAL ON)
+cvc4_set_option(USE_CLN ON)
+cvc4_set_option(USE_CRYPTOMINISAT ON)
+cvc4_set_option(USE_EDITLINE OFF)
+cvc4_set_option(USE_GLPK ON)
+cvc4_set_option(USE_SYMFPU ON)

@@ -25,9 +25,6 @@
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "proof/proof_manager.h"
-#include "proof/theory_proof.h"
-#include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
 #include "theory/uf/cardinality_extension.h"
@@ -56,7 +53,8 @@ TheoryUF::TheoryUF(context::Context* c,
       d_ho(nullptr),
       d_functionsTerms(c),
       d_symb(u, instanceName),
-      d_state(c, u, valuation)
+      d_state(c, u, valuation),
+      d_im(*this, d_state, pnm)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
 
@@ -65,8 +63,9 @@ TheoryUF::TheoryUF(context::Context* c,
   {
     d_ufProofChecker.registerTo(pc);
   }
-  // indicate we are using the default theory state object
+  // indicate we are using the default theory state and inference managers
   d_theoryState = &d_state;
+  d_inferManager = &d_im;
 }
 
 TheoryUF::~TheoryUF() {
@@ -99,7 +98,7 @@ void TheoryUF::finishInit() {
   if (options::ufHo())
   {
     d_equalityEngine->addFunctionKind(kind::HO_APPLY);
-    d_ho.reset(new HoExtension(*this, d_state));
+    d_ho.reset(new HoExtension(d_state, d_im));
   }
 }
 
@@ -288,40 +287,26 @@ bool TheoryUF::propagateLit(TNode literal)
   return ok;
 }/* TheoryUF::propagate(TNode) */
 
-void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
+void TheoryUF::explain(TNode literal, Node& exp)
+{
+  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
+  std::vector<TNode> assumptions;
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;
   TNode atom = polarity ? literal : literal[0];
-  if (atom.getKind() == kind::EQUAL) {
+  if (atom.getKind() == kind::EQUAL)
+  {
     d_equalityEngine->explainEquality(
-        atom[0], atom[1], polarity, assumptions, pf);
-  } else {
-    d_equalityEngine->explainPredicate(atom, polarity, assumptions, pf);
+        atom[0], atom[1], polarity, assumptions, nullptr);
   }
-  if( pf ){
-    Debug("pf::uf") << std::endl;
-    pf->debug_print("pf::uf");
+  else
+  {
+    d_equalityEngine->explainPredicate(atom, polarity, assumptions, nullptr);
   }
-
-  Debug("pf::uf") << "UF: explain( " << literal << " ):" << std::endl << "\t";
-  for (unsigned i = 0; i < assumptions.size(); ++i) {
-    Debug("pf::uf") << assumptions[i] << " ";
-  }
-  Debug("pf::uf") << std::endl;
+  exp = mkAnd(assumptions);
 }
 
-TrustNode TheoryUF::explain(TNode literal)
-{
-  Node exp = explain(literal, NULL);
-  return TrustNode::mkTrustPropExp(literal, exp, nullptr);
-}
-
-Node TheoryUF::explain(TNode literal, eq::EqProof* pf) {
-  Debug("uf") << "TheoryUF::explain(" << literal << ")" << std::endl;
-  std::vector<TNode> assumptions;
-  explain(literal, assumptions, pf);
-  return mkAnd(assumptions);
-}
+TrustNode TheoryUF::explain(TNode literal) { return d_im.explainLit(literal); }
 
 bool TheoryUF::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
@@ -350,7 +335,8 @@ void TheoryUF::presolve() {
         i != newClauses.end();
         ++i) {
       Debug("uf") << "uf: generating a lemma: " << *i << std::endl;
-      d_out->lemma(*i);
+      // no proof generator provided
+      d_im.lemma(*i);
     }
   }
   if( d_thss ){
@@ -662,13 +648,12 @@ void TheoryUF::computeCareGraph() {
                        << std::endl;
 }/* TheoryUF::computeCareGraph() */
 
-void TheoryUF::conflict(TNode a, TNode b) {
-  std::shared_ptr<eq::EqProof> pf =
-      d_proofsEnabled ? std::make_shared<eq::EqProof>() : nullptr;
-  Node conf = explain(a.eqNode(b), pf.get());
-  std::unique_ptr<ProofUF> puf(d_proofsEnabled ? new ProofUF(pf) : nullptr);
-  d_out->conflict(conf, std::move(puf));
-  d_state.notifyInConflict();
+void TheoryUF::conflict(TNode a, TNode b)
+{
+  // call the inference manager, which will construct the conflict (possibly
+  // with proofs from the underlying proof equality engine), and notify the
+  // state object.
+  d_im.conflictEqConstantMerge(a, b);
 }
 
 void TheoryUF::eqNotifyNewClass(TNode t) {

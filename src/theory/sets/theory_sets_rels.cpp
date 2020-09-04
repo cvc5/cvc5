@@ -31,10 +31,8 @@ typedef std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator
 typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterator               TERM_IT;
 typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFunction > > >::iterator   TC_IT;
 
-TheorySetsRels::TheorySetsRels(SolverState& s,
-                               InferenceManager& im,
-                               context::UserContext* u)
-    : d_state(s), d_im(im), d_shared_terms(u)
+TheorySetsRels::TheorySetsRels(SolverState& s, InferenceManager& im)
+    : d_state(s), d_im(im), d_shared_terms(s.getUserContext())
 {
   d_trueNode = NodeManager::currentNM()->mkConst(true);
   d_falseNode = NodeManager::currentNM()->mkConst(false);
@@ -1103,7 +1101,7 @@ void TheorySetsRels::check(Theory::Effort level)
       // if we are still not in conflict, send lemmas
       if (!d_state.isInConflict())
       {
-        d_im.flushPendingLemmas();
+        d_im.doPendingLemmas();
       }
     }
     d_pending.clear();

@@ -18,8 +18,8 @@
 #pragma once
 
 #include "expr/node.h"
-#include "proof/arith_proof_recorder.h"
 #include "theory/arith/arith_state.h"
+#include "theory/arith/inference_manager.h"
 #include "theory/arith/theory_arith_private_forward.h"
 #include "theory/theory.h"
 
@@ -40,11 +40,6 @@ class TheoryArith : public Theory {
   TheoryArithPrivate* d_internal;
 
   TimerStat d_ppRewriteTimer;
-
-  /**
-   * @brief Where to store Farkas proofs of lemmas
-   */
-  proof::ArithProofRecorder * d_proofRecorder;
 
  public:
   TheoryArith(context::Context* c,
@@ -81,14 +76,6 @@ class TheoryArith : public Theory {
   bool needsCheckLastEffort() override;
   void propagate(Effort e) override;
   TrustNode explain(TNode n) override;
-  bool getCurrentSubstitution(int effort,
-                              std::vector<Node>& vars,
-                              std::vector<Node>& subs,
-                              std::map<Node, std::vector<Node> >& exp) override;
-  bool isExtfReduced(int effort,
-                     Node n,
-                     Node on,
-                     std::vector<Node>& exp) override;
 
   bool collectModelInfo(TheoryModel* m) override;
 
@@ -110,14 +97,19 @@ class TheoryArith : public Theory {
 
   std::pair<bool, Node> entailmentCheck(TNode lit) override;
 
-  void setProofRecorder(proof::ArithProofRecorder* proofRecorder)
+  /** Return a reference to the arith::InferenceManager. */
+  InferenceManager& getInferenceManager()
   {
-    d_proofRecorder = proofRecorder;
+    return d_inferenceManager;
   }
 
  private:
   /** The state object wrapping TheoryArithPrivate  */
   ArithState d_astate;
+
+  /** The arith::InferenceManager. */
+  InferenceManager d_inferenceManager;
+
 };/* class TheoryArith */
 
 }/* CVC4::theory::arith namespace */

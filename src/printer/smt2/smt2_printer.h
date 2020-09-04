@@ -19,8 +19,6 @@
 #ifndef CVC4__PRINTER__SMT2_PRINTER_H
 #define CVC4__PRINTER__SMT2_PRINTER_H
 
-#include <iostream>
-
 #include "printer/printer.h"
 
 namespace CVC4 {
@@ -234,7 +232,7 @@ class Smt2Printer : public CVC4::Printer
       std::ostream& out, TNode n, int toDepth, bool types, TypeNode nt) const;
   void toStream(std::ostream& out,
                 const Model& m,
-                const Command* c) const override;
+                const NodeCommand* c) const override;
   void toStream(std::ostream& out, const SExpr& sexpr) const;
   void toStream(std::ostream& out, const DType& dt) const;
 

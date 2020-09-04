@@ -214,6 +214,23 @@ class ExtfSolver
   NodeSet d_reduced;
 };
 
+/** An extended theory callback */
+class StringsExtfCallback : public ExtTheoryCallback
+{
+ public:
+  StringsExtfCallback() : d_esolver(nullptr) {}
+  /**
+   * Get current substitution based on the underlying extended function
+   * solver.
+   */
+  bool getCurrentSubstitution(int effort,
+                              const std::vector<Node>& vars,
+                              std::vector<Node>& subs,
+                              std::map<Node, std::vector<Node> >& exp) override;
+  /** The extended function solver */
+  ExtfSolver* d_esolver;
+};
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

@@ -47,7 +47,7 @@ class TptpPrinter : public CVC4::Printer
  private:
   void toStream(std::ostream& out,
                 const Model& m,
-                const Command* c) const override;
+                const NodeCommand* c) const override;
 
 }; /* class TptpPrinter */
 

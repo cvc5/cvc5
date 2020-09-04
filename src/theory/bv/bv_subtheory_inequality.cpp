@@ -18,7 +18,7 @@
 
 #include "options/smt_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/bv/theory_bv.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
 

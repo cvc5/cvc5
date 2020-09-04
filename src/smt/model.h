@@ -25,7 +25,7 @@
 
 namespace CVC4 {
 
-class Command;
+class NodeCommand;
 class SmtEngine;
 class Model;
 
@@ -48,7 +48,7 @@ class Model {
   /** get number of commands to report */
   size_t getNumCommands() const;
   /** get command */
-  const Command* getCommand(size_t i) const;
+  const NodeCommand* getCommand(size_t i) const;
   /** get the smt engine that this model is hooked up to */
   SmtEngine* getSmtEngine() { return &d_smt; }
   /** get the smt engine (as a pointer-to-const) that this model is hooked up to */

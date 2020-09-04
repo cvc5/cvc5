@@ -89,12 +89,6 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
 
   prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
 
-  void setProofLog(proof::BitVectorProof* bvp) override
-  {
-    // Proofs are currently not supported with ABC
-    Unimplemented();
-  }
-
   class Statistics
   {
    public:

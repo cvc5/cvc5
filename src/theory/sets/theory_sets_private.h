@@ -46,12 +46,6 @@ class TheorySetsPrivate {
   void eqNotifyNewClass(TNode t);
   void eqNotifyMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-  /** Assert fact holds in the current context with explanation exp.
-   *
-   * exp should be explainable by the equality engine of this class, and fact
-   * should be a literal.
-   */
-  bool assertFact(Node fact, Node exp);
 
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
@@ -122,7 +116,6 @@ class TheorySetsPrivate {
    * context.
    */
   NodeSet d_termProcessed;
-  NodeSet d_keep;
   
   //propagation
   class EqcInfo
@@ -155,9 +148,8 @@ class TheorySetsPrivate {
    * contexts.
    */
   TheorySetsPrivate(TheorySets& external,
-                    context::Context* c,
-                    context::UserContext* u,
-                    Valuation valuation);
+                    SolverState& state,
+                    InferenceManager& im);
 
   ~TheorySetsPrivate();
 
@@ -172,17 +164,20 @@ class TheorySetsPrivate {
    */
   void finishInit();
 
+  //--------------------------------- standard check
+  /** Post-check, called after the fact queue of the theory is processed. */
+  void postCheck(Theory::Effort level);
+  /** Notify new fact */
+  void notifyFact(TNode atom, bool polarity, TNode fact);
+  //--------------------------------- end standard check
+
+  /** Collect model values in m based on the relevant terms given by termSet */
   void addSharedTerm(TNode);
-
-  void check(Theory::Effort);
-
-  bool collectModelInfo(TheoryModel* m);
+  bool collectModelValues(TheoryModel* m, const std::set<Node>& termSet);
 
   void computeCareGraph();
 
   Node explain(TNode);
-
-  EqualityStatus getEqualityStatus(TNode a, TNode b);
 
   void preRegisterTerm(TNode node);
 
@@ -232,6 +227,10 @@ class TheorySetsPrivate {
 
  private:
   TheorySets& d_external;
+  /** The state of the sets solver at full effort */
+  SolverState& d_state;
+  /** The inference manager of the sets solver */
+  InferenceManager& d_im;
 
   /** Pointer to the equality engine of theory of sets */
   eq::EqualityEngine* d_equalityEngine;
@@ -251,10 +250,6 @@ class TheorySetsPrivate {
    * given set type, or creates a new one if it does not exist.
    */
   Node getChooseFunction(const TypeNode& setType);
-  /** The state of the sets solver at full effort */
-  SolverState d_state;
-  /** The inference manager of the sets solver */
-  InferenceManager d_im;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */

@@ -14,17 +14,16 @@
  ** Bitblaster for the lazy bv solver.
  **/
 
-#include "cvc4_private.h"
-
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
+#include "cvc4_private.h"
 #include "options/bv_options.h"
-#include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
+#include "theory/bv/bv_solver_lazy.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
@@ -59,7 +58,7 @@ uint64_t numNodes(TNode node, utils::NodeSet& seen)
 }
 
 TLazyBitblaster::TLazyBitblaster(context::Context* c,
-                                 bv::TheoryBV* bv,
+                                 bv::BVSolverLazy* bv,
                                  const std::string name,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
@@ -84,7 +83,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
                                                d_nullRegistrar.get(),
                                                d_nullContext.get(),
                                                rm,
-                                               options::proof(),
+                                               false,
                                                "LazyBitblaster"));
 
   d_satSolverNotify.reset(
@@ -161,8 +160,7 @@ void TLazyBitblaster::bbAtom(TNode node)
     Assert(!atom_bb.isNull());
     Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
     storeBBAtom(node, atom_bb);
-    d_cnfStream->convertAndAssert(
-        atom_definition, false, false, RULE_INVALID, TNode::null());
+    d_cnfStream->convertAndAssert(atom_definition, false, false);
     return;
   }
 
@@ -173,28 +171,19 @@ void TLazyBitblaster::bbAtom(TNode node)
           ? d_atomBBStrategies[normalized.getKind()](normalized, this)
           : normalized;
 
-  if (!options::proof())
-  {
-    atom_bb = Rewriter::rewrite(atom_bb);
-  }
+  atom_bb = Rewriter::rewrite(atom_bb);
 
   // asserting that the atom is true iff the definition holds
   Node atom_definition = nm->mkNode(kind::EQUAL, node, atom_bb);
   storeBBAtom(node, atom_bb);
-  d_cnfStream->convertAndAssert(
-      atom_definition, false, false, RULE_INVALID, TNode::null());
+  d_cnfStream->convertAndAssert(atom_definition, false, false);
 }
 
 void TLazyBitblaster::storeBBAtom(TNode atom, Node atom_bb) {
-  // No need to store the definition for the lazy bit-blaster (unless proofs are enabled).
-  if( d_bvp != NULL ){
-    d_bvp->registerAtomBB(atom.toExpr(), atom_bb.toExpr());
-  }
   d_bbAtoms.insert(atom);
 }
 
 void TLazyBitblaster::storeBBTerm(TNode node, const Bits& bits) {
-  if( d_bvp ){ d_bvp->registerTermBB(node.toExpr()); }
   d_termCache.insert(std::make_pair(node, bits));
 }
 
@@ -303,8 +292,12 @@ bool TLazyBitblaster::assertToSat(TNode lit, bool propagate) {
     markerLit = ~markerLit;
   }
 
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat asserting node: " << atom <<"\n";
-  Debug("bitvector-bb") << "TheoryBV::TLazyBitblaster::assertToSat with literal:   " << markerLit << "\n";
+  Debug("bitvector-bb")
+      << "BVSolverLazy::TLazyBitblaster::assertToSat asserting node: " << atom
+      << "\n";
+  Debug("bitvector-bb")
+      << "BVSolverLazy::TLazyBitblaster::assertToSat with literal:   "
+      << markerLit << "\n";
 
   prop::SatValue ret = d_satSolver->assertAssumption(markerLit, propagate);
 
@@ -421,9 +414,9 @@ void TLazyBitblaster::MinisatNotify::notify(prop::SatClause& clause) {
       lemmab << d_cnf->getNode(clause[i]);
     }
     Node lemma = lemmab;
-    d_bv->d_out->lemma(lemma);
+    d_bv->d_inferManager.lemma(lemma);
   } else {
-    d_bv->d_out->lemma(d_cnf->getNode(clause[0]));
+    d_bv->d_inferManager.lemma(d_cnf->getNode(clause[0]));
   }
 }
 
@@ -434,7 +427,7 @@ void TLazyBitblaster::MinisatNotify::spendResource(ResourceManager::Resource r)
 
 void TLazyBitblaster::MinisatNotify::safePoint(ResourceManager::Resource r)
 {
-  d_bv->d_out->safePoint(r);
+  d_bv->d_inferManager.safePoint(r);
 }
 
 EqualityStatus TLazyBitblaster::getEqualityStatus(TNode a, TNode b)
@@ -540,7 +533,8 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
 bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 {
   std::set<Node> termSet;
-  d_bv->computeRelevantTerms(termSet);
+  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
+  d_bv->computeAssertedTerms(termSet, irrKinds, true);
 
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {
     TNode var = *it;

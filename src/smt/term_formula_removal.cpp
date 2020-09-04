@@ -19,7 +19,7 @@
 
 #include "expr/node_algorithm.h"
 #include "expr/skolem_manager.h"
-#include "options/proof_options.h"
+#include "options/smt_options.h"
 #include "proof/proof_manager.h"
 
 using namespace std;
@@ -45,16 +45,21 @@ theory::TrustNode RemoveTermFormulas::run(
 {
   Node itesRemoved = run(assertion, newAsserts, newSkolems, false, false);
   // In some calling contexts, not necessary to report dependence information.
-  if (reportDeps
-      && (options::unsatCores() || options::fewerPreprocessingHoles()))
+  if (reportDeps && options::unsatCores())
   {
     // new assertions have a dependence on the node
-    PROOF(ProofManager::currentPM()->addDependence(itesRemoved, assertion);)
+    if (options::unsatCores())
+    {
+      ProofManager::currentPM()->addDependence(itesRemoved, assertion);
+    }
     unsigned n = 0;
     while (n < newAsserts.size())
     {
-      PROOF(ProofManager::currentPM()->addDependence(newAsserts[n].getProven(),
-                                                     assertion);)
+      if (options::unsatCores())
+      {
+        ProofManager::currentPM()->addDependence(newAsserts[n].getProven(),
+                                                 assertion);
+      }
       ++n;
     }
   }
@@ -380,7 +385,7 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
   }else if( !inTerm && hasNestedTermChildren( node ) ){
     // Remember if we're inside a term
     inTerm = true;
-  }  
+  }
 
   vector<Node> newChildren;
   bool somethingChanged = false;
@@ -402,13 +407,14 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
   }
 }
 
-// returns true if the children of node should be considered nested terms 
+// returns true if the children of node should be considered nested terms
 bool RemoveTermFormulas::hasNestedTermChildren( TNode node ) {
-  return theory::kindToTheoryId(node.getKind())!=theory::THEORY_BOOL && 
-         node.getKind()!=kind::EQUAL && node.getKind()!=kind::SEP_STAR && 
-         node.getKind()!=kind::SEP_WAND && node.getKind()!=kind::SEP_LABEL && 
-         node.getKind()!=kind::BITVECTOR_EAGER_ATOM;
-         // dont' worry about FORALL or EXISTS (handled separately)
+  return theory::kindToTheoryId(node.getKind()) != theory::THEORY_BOOL
+         && node.getKind() != kind::EQUAL && node.getKind() != kind::SEP_STAR
+         && node.getKind() != kind::SEP_WAND
+         && node.getKind() != kind::SEP_LABEL
+         && node.getKind() != kind::BITVECTOR_EAGER_ATOM;
+  // dont' worry about FORALL or EXISTS (handled separately)
 }
 
 Node RemoveTermFormulas::getAxiomFor(Node n)
