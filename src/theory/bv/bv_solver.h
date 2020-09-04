@@ -78,11 +78,11 @@ class BVSolver
                        "BVSolver::explain() interface!";
     return TrustNode::null();
   }
-  
+
   /** Collect model values in m based on the relevant terms given by termSet */
   virtual bool collectModelValues(TheoryModel* m,
-                          const std::set<Node>& termSet) = 0;
-                          
+                                  const std::set<Node>& termSet) = 0;
+
   virtual std::string identify() const = 0;
 
   virtual Theory::PPAssertStatus ppAssert(

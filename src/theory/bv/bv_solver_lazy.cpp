@@ -369,7 +369,7 @@ bool BVSolverLazy::needsCheckLastEffort()
 }
 
 bool BVSolverLazy::collectModelValues(TheoryModel* m,
-                          const std::set<Node>& termSet)
+                                      const std::set<Node>& termSet)
 {
   Assert(!inConflict());
   if (options::bitblastMode() == options::BitblastMode::EAGER)
