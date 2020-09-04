@@ -2981,10 +2981,8 @@ void SetBenchmarkStatusCommand::toStream(std::ostream& out,
   switch (d_status)
   {
     case BenchmarkStatus::SMT_SATISFIABLE: status = Result::SAT; break;
-    case BenchmarkStatus::SMT_UNSATISFIABLE:
-      status = Result::SAT_UNKNOWN;
-      break;
-    case BenchmarkStatus::SMT_UNKNOWN: status = Result::UNSAT; break;
+    case BenchmarkStatus::SMT_UNSATISFIABLE: status = Result::UNSAT; break;
+    case BenchmarkStatus::SMT_UNKNOWN: status = Result::SAT_UNKNOWN; break;
   }
 
   Printer::getPrinter(language)->toStreamCmdSetBenchmarkStatus(out, status);
