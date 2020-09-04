@@ -968,9 +968,10 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
               {
                 // TODO HB the usage above in the old proof code indicates that
                 // this may be the only case in which it is necessary, as the
-                // resolution step is added, that this literal be *directly*
-                // justified
-                d_pfManager->addResolutionStep(q, false);
+                // resolution step is added, that this literal be *recursively*
+                // justified, i.e., reason is called for its negation and their
+                // dependencies.
+                d_pfManager->addResolutionStep(q);
               }
             }
           }

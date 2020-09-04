@@ -83,19 +83,11 @@ void SatProofManager::startResChain(Minisat::Clause& start)
       std::pair<Node, Node>(getClauseNode(start), Node::null()));
 }
 
-void SatProofManager::addResolutionStep(Minisat::Lit lit, bool recJustify)
+void SatProofManager::addResolutionStep(Minisat::Lit lit)
 {
   SatLiteral satLit = MinisatSatSolver::toSatLiteral(lit);
   Trace("sat-proof") << "SatProofManager::addResolutionStep: [" << satLit
                      << "] " << ~satLit << "\n";
-  if (recJustify)
-  {
-    Trace("sat-proof") << CVC4::push
-                       << "SatProofManager::addResolutionStep: justify lit "
-                       << satLit << "\n";
-    tryJustifyingLit(~satLit);
-    Trace("sat-proof") << CVC4::pop;
-  }
   d_resolution.push_back(
       std::pair<Node, Node>(d_proxy->getCnfStream()->getNodeCache()[~satLit],
                             d_proxy->getCnfStream()->getNodeCache()[satLit]));
