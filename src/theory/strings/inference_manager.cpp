@@ -432,6 +432,19 @@ bool InferenceManager::processLemma(InferInfo& ii)
   Trace("strings-lemma") << "Strings::Lemma: " << tlem.getNode() << " by "
                          << ii.d_id << std::endl;
   ++(d_statistics.d_lemmasInfer);
+  
+  // testing the cache
+  
+  if (d_lemmasSent.find(tlem.getNode())!=d_lemmasSent.end())
+  {
+    ++(d_statistics.d_lcacheHit);
+  }
+  else
+  {
+    ++(d_statistics.d_lcacheMiss);
+  }
+  d_lemmasSent.insert(tlem.getNode());
+  
   // call the trusted lemma, without caching
   return trustedLemma(tlem, p, false);
 }
