@@ -164,9 +164,9 @@ bool TheoryBV::needsCheckLastEffort()
   return d_internal->needsCheckLastEffort();
 }
 
-bool TheoryBV::collectModelInfo(TheoryModel* m)
+bool TheoryBV::collectModelValues(TheoryModel* m, const std::set<Node>& termSet)
 {
-  return d_internal->collectModelInfo(m);
+  return d_internal->collectModelValues(m, termSet);
 }
 
 void TheoryBV::propagate(Effort e) { return d_internal->propagate(e); }
@@ -183,7 +183,15 @@ void TheoryBV::presolve() { d_internal->presolve(); }
 
 TrustNode TheoryBV::explain(TNode node) { return d_internal->explain(node); }
 
-void TheoryBV::notifySharedTerm(TNode t) { d_internal->notifySharedTerm(t); };
+void TheoryBV::notifySharedTerm(TNode t)
+{
+  d_internal->notifySharedTerm(t);
+  // temporary, will be built into Theory::addSharedTerm
+  if (d_equalityEngine != nullptr)
+  {
+    d_equalityEngine->addTriggerTerm(t, THEORY_BV);
+  }
+}
 
 void TheoryBV::ppStaticLearn(TNode in, NodeBuilder<>& learned)
 {

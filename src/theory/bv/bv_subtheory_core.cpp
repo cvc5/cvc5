@@ -347,7 +347,10 @@ void CoreSolver::buildModel()
 
 bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   // Notify the equality engine
-  if (!d_bv->inConflict() && (!d_bv->wasPropagatedBySubtheory(fact) || d_bv->getPropagatingSubtheory(fact) != SUB_CORE)) {
+  if (!d_bv->inConflict()
+      && (!d_bv->wasPropagatedBySubtheory(fact)
+          || d_bv->getPropagatingSubtheory(fact) != SUB_CORE))
+  {
     Debug("bv-slicer-eq") << "CoreSolver::assertFactToEqualityEngine fact=" << fact << endl;
     // Debug("bv-slicer-eq") << "                     reason=" << reason << endl;
     bool negated = fact.getKind() == kind::NOT;
@@ -370,7 +373,8 @@ bool CoreSolver::assertFactToEqualityEngine(TNode fact, TNode reason) {
   }
 
   // checking for a conflict
-  if (d_bv->inConflict()) {
+  if (d_bv->inConflict())
+  {
     return false;
   }
   return true;
@@ -412,29 +416,23 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
   return utils::isEqualityTerm(term, seen); 
 }
 
-bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
+bool CoreSolver::collectModelValues(TheoryModel* m,
+                                    const std::set<Node>& termSet)
 {
   if (Debug.isOn("bitvector-model")) {
     context::CDQueue<Node>::const_iterator it = d_assertionQueue.begin();
     for (; it!= d_assertionQueue.end(); ++it) {
-      Debug("bitvector-model") << "CoreSolver::collectModelInfo (assert "
-                               << *it << ")\n";
+      Debug("bitvector-model")
+          << "CoreSolver::collectModelValues (assert " << *it << ")\n";
     }
   }
-  set<Node> termSet;
-  const std::set<Kind>& irrKinds = m->getIrrelevantKinds();
-  d_bv->computeAssertedTerms(termSet, irrKinds, true);
-  if (!m->assertEqualityEngine(d_equalityEngine, &termSet))
-  {
-    return false;
-  }
   if (isComplete()) {
-    Debug("bitvector-model") << "CoreSolver::collectModelInfo complete.";
+    Debug("bitvector-model") << "CoreSolver::collectModelValues complete.";
     for (ModelValue::const_iterator it = d_modelValues.begin(); it != d_modelValues.end(); ++it) {
       Node a = it->first;
       Node b = it->second;
-      Debug("bitvector-model") << "CoreSolver::collectModelInfo modelValues "
-                               << a << " => " << b <<")\n";
+      Debug("bitvector-model") << "CoreSolver::collectModelValues modelValues "
+                               << a << " => " << b << ")\n";
       if (!m->assertEquality(a, b, true))
       {
         return false;
@@ -460,11 +458,6 @@ Node CoreSolver::getModelValue(TNode var) {
   }
   Debug("bitvector-model") << " => " << result <<"\n";
   return result;
-}
-
-void CoreSolver::addSharedTerm(TNode t)
-{
-  d_equalityEngine->addTriggerTerm(t, THEORY_BV);
 }
 
 EqualityStatus CoreSolver::getEqualityStatus(TNode a, TNode b)
