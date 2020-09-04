@@ -79,6 +79,7 @@ void TheoryArith::finishInit()
     d_valuation.setUnevaluatedKind(kind::PI);
   }
   // only need to create nonlinear extension if non-linear logic
+  const LogicInfo& logicInfo = getLogicInfo();
   if (logicInfo.isTheoryEnabled(THEORY_ARITH) && !logicInfo.isLinear())
   {
     d_nonlinearExtension.reset(
