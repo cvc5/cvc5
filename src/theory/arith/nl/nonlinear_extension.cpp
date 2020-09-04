@@ -396,11 +396,12 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   // init last call with IAND
   d_iandSlv.initLastCall(assertions, false_asserts, xts);
 
-  if (!lems.empty())
+  if (d_im.hasProcessed() || d_im.hasPending() || !lems.empty())
   {
-    Trace("nl-ext") << "  ...finished with " << lems.size()
+    unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
+    Trace("nl-ext") << "  ...finished with " << count
                     << " new lemmas during registration." << std::endl;
-    return lems.size();
+    return count;
   }
 
   //----------------------------------- possibly split on zero
@@ -424,9 +425,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     d_trSlv.checkTranscendentalInitialRefine();
     if (d_im.hasProcessed() || d_im.hasPending())
     {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+      unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
+      Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
                       << std::endl;
-      return lems.size();
+      return count;
     }
   }
   //-----------------------------------initial lemmas for iand
@@ -456,9 +458,10 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
     d_trSlv.checkTranscendentalMonotonic();
     if (d_im.hasProcessed() || d_im.hasPending())
     {
-      Trace("nl-ext") << "  ...finished with " << lems.size() << " new lemmas."
+      unsigned count = lems.size() + d_im.numPendingLemmas() + d_im.numSentLemmas();
+      Trace("nl-ext") << "  ...finished with " << count << " new lemmas."
                       << std::endl;
-      return lems.size();
+      return count;
     }
 
     //------------------------lemmas based on magnitude of non-zero monomials
@@ -719,7 +722,7 @@ bool NonlinearExtension::modelBasedRefinement(std::vector<NlLemma>& mlems)
     {
       complete_status = num_shared_wrong_value > 0 ? -1 : 0;
       checkLastCall(assertions, false_asserts, xts, mlems, wlems);
-      if (!mlems.empty())
+      if (!mlems.empty() || d_im.hasProcessed() || d_im.hasPending())
       {
         return true;
       }
