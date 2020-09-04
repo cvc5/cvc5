@@ -72,12 +72,9 @@ class TLazyBitblaster : public TBitblaster<Node>
    * Adds a constant value for each bit-blasted variable in the model.
    *
    * @param m the model
-   * @param fullModel whether to create a "full model," i.e., add
-   * constants to equivalence classes that don't already have them
    * @param termSet the set of relevant terms
    */
   bool collectModelValues(TheoryModel* m,
-                          bool fullModel,
                           const std::set<Node>& termSet);
 
   typedef TNodeSet::const_iterator vars_iterator;

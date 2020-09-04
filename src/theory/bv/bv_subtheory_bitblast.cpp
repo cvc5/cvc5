@@ -249,10 +249,9 @@ EqualityStatus BitblastSolver::getEqualityStatus(TNode a, TNode b) {
 }
 
 bool BitblastSolver::collectModelValues(TheoryModel* m,
-                                        bool fullModel,
                                         const std::set<Node>& termSet)
 {
-  return d_bitblaster->collectModelValues(m, fullModel, termSet);
+  return d_bitblaster->collectModelValues(m, termSet);
 }
 
 Node BitblastSolver::getModelValue(TNode node)

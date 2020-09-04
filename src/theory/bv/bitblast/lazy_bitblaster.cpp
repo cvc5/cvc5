@@ -531,7 +531,6 @@ Node TLazyBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
 }
 
 bool TLazyBitblaster::collectModelValues(TheoryModel* m,
-                                         bool fullModel,
                                          const std::set<Node>& termSet)
 {
   for (std::set<Node>::const_iterator it = termSet.begin(); it != termSet.end(); ++it) {

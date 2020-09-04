@@ -417,7 +417,6 @@ bool CoreSolver::isCompleteForTerm(TNode term, TNodeBoolMap& seen) {
 }
 
 bool CoreSolver::collectModelValues(TheoryModel* m,
-                                    bool fullModel,
                                     const std::set<Node>& termSet)
 {
   if (Debug.isOn("bitvector-model")) {

@@ -383,7 +383,7 @@ bool BVSolverLazy::collectModelValues(TheoryModel* m,
   {
     if (d_subtheories[i]->isComplete())
     {
-      return d_subtheories[i]->collectModelValues(m, true, termSet);
+      return d_subtheories[i]->collectModelValues(m, termSet);
     }
   }
   return true;

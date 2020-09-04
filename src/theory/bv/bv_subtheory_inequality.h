@@ -80,7 +80,6 @@ class InequalitySolver : public SubtheorySolver
   void explain(TNode literal, std::vector<TNode>& assumptions) override;
   bool isComplete() override { return d_isComplete; }
   bool collectModelValues(TheoryModel* m,
-                          bool fullModel,
                           const std::set<Node>& termSet) override;
   Node getModelValue(TNode var) override;
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
