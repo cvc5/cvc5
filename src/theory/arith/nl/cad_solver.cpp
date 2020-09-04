@@ -89,7 +89,6 @@ void CadSolver::checkFull()
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
-  return {};
 #endif
 }
 
@@ -135,7 +134,6 @@ void CadSolver::checkPartial()
   Warning() << "Tried to use CadSolver but libpoly is not available. Compile "
                "with --poly."
             << std::endl;
-  return {};
 #endif
 }
 
