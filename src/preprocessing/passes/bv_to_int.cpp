@@ -688,11 +688,11 @@ Node BVToInt::bvToInt(Node n)
               /*
                * We replace all BV-sorts of the domain with INT
                * If the range is a BV sort, we replace it with INT
-               * We cache both the term itself (e.g., f(a)) and the function
-               * symbol f.
                */
 
-              //Construct the function itself
+              /*
+               * construct the new function symbol.
+               */
               Node bvUF = current.getOperator();
               Node intUF;
               TypeNode tn = current.getOperator().getType();
@@ -709,6 +709,7 @@ Node BVToInt::bvToInt(Node n)
                  * if the original range is a bit-vector sort,
                  * the new range should be an integer sort.
                  * Otherwise, we keep the original range.
+                 * Similarly for the domains.
                  */
                 TypeNode intRange =
                     bvRange.isBitVector() ? d_nm->integerType() : bvRange;
@@ -725,57 +726,147 @@ Node BVToInt::bvToInt(Node n)
                                    "bv2int function");
                 // Insert the function symbol itself to the cache
                 d_bvToIntCache[bvUF] = intUF;
+
+                /*
+                 * construct the new function application
+                 * In addition, create formul arguments (called `args` below)
+                 * and use them in a `define-fun` for the new function.
+                 */
+                Node intApplication;
+                vector<Node> achildren;
+                achildren.push_back(intUF);
+                int i = 0;
+                vector<Expr> args;
+                for (TypeNode d : bvDomain)
+                {
+                  /*
+                   * Each bit-vector argument is casted to a natural number
+                   * using BITVECTOR_TO_NAT operator.
+                   * Other arguments are left intact.
+                   */
+                  Node fresh_bound_var = d_nm->mkBoundVar(d);
+                  args.push_back(fresh_bound_var.toExpr());
+                  if (d.isBitVector())
+                  {
+                    achildren.push_back(
+                        d_nm->mkNode(kind::BITVECTOR_TO_NAT, args[i]));
+                  }
+                  else
+                  {
+                    achildren.push_back(args[i]);
+                  }
+                  i++;
+                }
+                intApplication = d_nm->mkNode(kind::APPLY_UF, achildren);
+                /*
+                 * If the range is BV, the application is casted to
+                   integers using BITVECTOR_TO_NAT.
+                 */
+                if (bvRange.isBitVector())
+                {
+                  uint64_t bvsize = bvRange.getBitVectorSize();
+                  Node intToBVOp =
+                      d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+                  intApplication = d_nm->mkNode(intToBVOp, intApplication);
+                }
+                smt::currentSmtEngine()->defineFunction(
+                    bvUF.toExpr(), args, intApplication.toExpr(), true);
               }
-              if (childrenTypesChanged(current) && options::ufHo()) {
+
               /**
                * higher order logic allows comparing between functions
                * The current translation does not support this,
                * as the translated functions may be different outside
                * of the bounds that were relevant for the original
                * bit-vectors.
-               */
+               */              
+              if (childrenTypesChanged(current) && options::ufHo()) {
                   throw TypeCheckingException(
                       current.toExpr(),
                       string("Cannot translate to Int: ") + current.toString());
               }
-              else {
-                translated_children.insert(translated_children.begin(), intUF);
-                // Insert the term to the cache
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(kind::APPLY_UF, translated_children);
-                /**
-                 * Add range constraints if necessary.
-                 * If the original range was a BV sort, the current application of
-                 * the function Must be within the range determined by the
-                 * bitwidth.
-                 */
-                if (bvRange.isBitVector())
-                {
-                  d_rangeAssertions.insert(
-                      mkRangeConstraint(d_bvToIntCache[current],
-                                        current.getType().getBitVectorSize()));
-                }
+              
+              /*
+               * Now that the translated function and application were
+               * created, we add them to the cache and possibly add
+                 range constraints induced by the original BV width of the 
+                 the functions range (codomain)..
+               */
+              translated_children.insert(translated_children.begin(), intUF);
+               // Insert the term to the cache
+              d_bvToIntCache[current] =
+                  d_nm->mkNode(kind::APPLY_UF, translated_children);
+              /**
+               * Add range constraints if necessary.
+               * If the original range was a BV sort, the current application of
+               * the function Must be within the range determined by the
+               * bitwidth.
+               */
+              if (bvRange.isBitVector())
+              {
+                Node m = d_bvToIntCache[current];
+                d_rangeAssertions.insert(
+                    mkRangeConstraint(d_bvToIntCache[current],
+                                      current.getType().getBitVectorSize()));
+
               }
-                break;
+              break;
             }
             default:
             {
-              if (childrenTypesChanged(current)) {
-                /**
-                 * This is "failing on demand":
-                 * We throw an exception if we encounter a case
-                 * that we do not know how to translate,
-                 * only if we actually need to construct a new
-                 * node for such a case.
-                 */
-                  throw TypeCheckingException(
-                      current.toExpr(),
-                      string("Cannot translate to Int: ") + current.toString());
+              /**
+               * In the default case, we have reached an operator that we do not translate
+               * directly to integers.
+               * The children whose types have changed from
+               * bv to int should be adjusted back to bv
+               * and then this term is reconstructed.
+               */
+              vector<Node> adjusted_children;
+              for (Node child : current)
+              {
+                Node translated_child = d_bvToIntCache[child];
+                TypeNode originalType = child.getType();
+                TypeNode newType = translated_child.getType();
+                if (newType.isSubtypeOf(originalType))
+                {
+                  // type has not changed. The original child remains.
+                  adjusted_children.push_back(translated_child);
+                }
+                else
+                {
+                  // type has changed. The original child is adjusted.
+                  Assert(originalType.isBitVector());
+                  Assert(newType.isInteger());
+                  uint64_t bvsize = originalType.getBitVectorSize();
+                  Node intToBVOp =
+                      d_nm->mkConst<IntToBitVector>(IntToBitVector(bvsize));
+                  Node adjusted_child =
+                      d_nm->mkNode(intToBVOp, translated_child);
+                  adjusted_children.push_back(adjusted_child);
+                }
               }
-              else {
-                d_bvToIntCache[current] =
-                    d_nm->mkNode(oldKind, translated_children);
+              /**
+               * re-construct the term with the adjusted children.
+               */
+              NodeBuilder<> builder(oldKind);
+              if (current.getMetaKind() == kind::metakind::PARAMETERIZED)
+              {
+                builder << current.getOperator();
               }
+              for (Node child : adjusted_children)
+              {
+                builder << child;
+              }
+              Node translation = builder.constructNode();
+              /**
+               * if the adjusted term is of type bit-vector
+               * we use BITVECTOR_TO_NAR.
+               */
+              if (translation.getType().isBitVector())
+              {
+                translation = d_nm->mkNode(kind::BITVECTOR_TO_NAT, translation);
+              }
+              d_bvToIntCache[current] = translation;
               break;
             }
           }
